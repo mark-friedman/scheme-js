@@ -102,7 +102,7 @@ function assert(logger, description, actual, expected) {
   let isEqual = actual === expected;
   if (Array.isArray(actual) && Array.isArray(expected)) {
     isEqual = actual.length === expected.length &&
-        actual.every((val, i) => val === expected[i]);
+      actual.every((val, i) => val === expected[i]);
   }
 
   if (isEqual) {
@@ -179,6 +179,39 @@ export function runUnitTests(interpreter, logger) {
     logger.fail(`Parser unit tests failed: ${e.message}`);
   }
 
+  // --- Reader Error Tests ---
+  logger.title('Running Reader Error Tests...');
+  try {
+    try {
+      parse(")");
+      logger.fail("Reader: Unexpected ')' - FAILED to throw");
+    } catch (e) {
+      assert(logger, "Reader: Unexpected ')'", e.message, "Unexpected ')'");
+    }
+
+    try {
+      parse("(+ 1 2");
+      logger.fail("Reader: Missing ')' - FAILED to throw");
+    } catch (e) {
+      assert(logger, "Reader: Missing ')'", e.message, "Missing ')'");
+    }
+
+    try {
+      parse("");
+      // Depending on implementation, empty string might return [] or throw EOF
+      // The current implementation throws "Unexpected EOF" if tokens are empty but readFromTokens is called?
+      // Actually, parse() loops while tokens > 0. If empty, it returns [].
+      // Let's test a case that causes EOF during read, like "("
+      parse("(");
+      logger.fail("Reader: Unexpected EOF - FAILED to throw");
+    } catch (e) {
+      assert(logger, "Reader: Unexpected EOF", e.message, "Missing ')'");
+    }
+
+  } catch (e) {
+    logger.fail(`Reader error tests failed: ${e.message}`);
+  }
+
   // --- Analyzer Unit Tests ---
   logger.title('Running Analyzer Unit Tests...');
   try {
@@ -205,6 +238,33 @@ export function runUnitTests(interpreter, logger) {
     assert(logger, "Unit: analyze lambda (multi-body)", lambdaMultiBody.body instanceof Begin, true);
   } catch (e) {
     logger.fail(`Analyzer unit tests failed: ${e.message}`);
+  }
+
+  // --- Analyzer Error Tests ---
+  logger.title('Running Analyzer Error Tests...');
+  try {
+    try {
+      analyze(parse("(lambda (x))")[0]);
+      logger.fail("Analyzer: Malformed lambda - FAILED to throw");
+    } catch (e) {
+      // The error message might vary, checking for "Malformed lambda" or similar
+      const msg = e.message;
+      assert(logger, "Analyzer: Malformed lambda", msg.includes("Malformed lambda"), true);
+    }
+
+    // Test (if) with missing args - The current analyzer might not check arg count strictly for all forms,
+    // but let's see what happens. If it doesn't throw, we might want to add a check or just document it.
+    // Looking at analyzer.js: return new If(analyze(exp[1]), analyze(exp[2]), analyze(exp[3]));
+    // If exp[3] is missing, analyze(undefined) throws "received 'undefined' expression".
+    try {
+      analyze(parse("(if #t 1)")[0]);
+      logger.fail("Analyzer: Malformed if - FAILED to throw");
+    } catch (e) {
+      assert(logger, "Analyzer: Malformed if", e.message.includes("undefined"), true);
+    }
+
+  } catch (e) {
+    logger.fail(`Analyzer error tests failed: ${e.message}`);
   }
 }
 
@@ -413,4 +473,38 @@ export async function runAllTests(interpreter, logger) {
   // This log will appear *after* the async callbacks have fired,
   // because the 'await' above pauses this function.
   logger.log("...Async test assertions scheduled.", 'info');
+
+  // --- Runtime Error Tests ---
+  logger.title("Runtime Error Tests");
+
+  try {
+    run(interpreter, `(1 2)`);
+    logger.fail("Runtime: Apply non-function - FAILED to throw");
+  } catch (e) {
+    assert(logger, "Runtime: Apply non-function", e.message.includes("Not a function"), true);
+  }
+
+  try {
+    run(interpreter, `(undefined-var)`);
+    logger.fail("Runtime: Unbound variable - FAILED to throw");
+  } catch (e) {
+    assert(logger, "Runtime: Unbound variable", e.message.includes("Unbound variable"), true);
+  }
+
+  // --- Edge Case Tests ---
+  logger.title("Edge Case Tests");
+
+  result = run(interpreter, `(begin)`);
+  assert(logger, "Edge: Empty begin", result, null);
+
+  result = run(interpreter, `(if #t 1 2)`);
+  assert(logger, "Edge: If #t", result, 1);
+
+  result = run(interpreter, `(if #f 1 2)`);
+  assert(logger, "Edge: If #f", result, 2);
+
+  // set! returns the value set
+  result = run(interpreter, `(let ((x 1)) (set! x 2))`);
+  assert(logger, "Edge: set! return value", result, 2);
+
 }
