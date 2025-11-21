@@ -170,6 +170,15 @@ export function runUnitTests(interpreter, logger) {
     ast = parse(`"hello"`)[0];
     assert(logger, "Unit: parse string", ast instanceof Literal && ast.value === "hello", true);
 
+    // String Escaping Tests
+    ast = parse(`"\\n"`)[0];
+    assert(logger, "Unit: parse string \\n", ast.value, "\n");
+    ast = parse(`"\\""`)[0];
+    assert(logger, "Unit: parse string \\\"", ast.value, "\"");
+    ast = parse(`"\\\\"`)[0];
+    assert(logger, "Unit: parse string \\\\", ast.value, "\\");
+
+
     const list = parse("(+ 1 2)")[0];
     assert(logger, "Unit: parse simple list (tag)", list[0] instanceof Variable && list[0].name === "+", true);
     assert(logger, "Unit: parse simple list (arg1)", list[1] instanceof Literal && list[1].value === 1, true);
@@ -506,5 +515,50 @@ export async function runAllTests(interpreter, logger) {
   // set! returns the value set
   result = run(interpreter, `(let ((x 1)) (set! x 2))`);
   assert(logger, "Edge: set! return value", result, 2);
+
+  // letrec self-reference (limitation: returns null instead of error)
+  result = run(interpreter, `(letrec ((x x)) x)`);
+  assert(logger, "Edge: letrec self-reference", result, null);
+
+
+  // --- Continuation Arity Tests ---
+  logger.title("Continuation Arity Tests");
+
+  // Calling k with no args -> null
+  result = run(interpreter, `(call/cc (lambda (k) (k)))`);
+  assert(logger, "Continuation: 0 args", result, null);
+
+  // Calling k with multiple args -> first arg used
+  result = run(interpreter, `(call/cc (lambda (k) (k 1 2 3)))`);
+  assert(logger, "Continuation: multiple args", result, 1);
+
+  // --- JS Interop Error Tests ---
+  logger.title("JS Interop Error Tests");
+
+  // We need a function that throws. We can use a lambda that calls a non-existent JS function 
+  // or we can add a throwing primitive if we could, but we can't easily modify env here without access.
+  // However, we can use 'js-run-callback' to run code that throws? No, that runs scheme code.
+  // Let's try to invoke a method on a null object or similar via some trick, 
+  // OR we can rely on the fact that we can't easily add a throwing native function without modifying environment.js.
+  // Wait, we can define a new primitive in the global env if we have access to it?
+  // The interpreter has .globalEnv.
+
+  if (interpreter.globalEnv) {
+    // Add a throwing native function
+    interpreter.globalEnv.bindings.set('js-throw', new (interpreter.globalEnv.lookup('+').constructor)(
+      () => { throw new Error("Boom from JS"); },
+      interpreter
+    ));
+
+    try {
+      run(interpreter, `(js-throw)`);
+      logger.fail("JS Interop: Throw - FAILED to throw");
+    } catch (e) {
+      assert(logger, "JS Interop: Throw", e.message, "Boom from JS");
+    }
+  } else {
+    logger.log("Skipping JS Interop Error test (no globalEnv access)", 'warn');
+  }
+
 
 }
