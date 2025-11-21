@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheme Interpreter (Modular)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { font-family: 'Inter', sans-serif; }
+      .log-item {
+        font-family: 'Fira Code', 'Courier New', monospace;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        word-break: break-all;
+      }
+      .log-info { background-color: #f3f4f6; color: #1f2937; }
+      .log-pass { background-color: #dcfce7; color: #166534; }
+      .log-fail { background-color: #fee2e2; color: #991b1b; }
+      .log-title {
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        color: #4b5563;
+      }
+      /* REPL styles */
+      #repl-output pre {
+        white-space: pre-wrap;
+        word-break: break-all;
+        font-family: 'Fira Code', 'Courier New', monospace;
+      }
+      #repl-output .repl-prompt {
+        color: #6b7280; /* gray-500 */
+      }
+      #repl-output .repl-result {
+        color: #1d4ed8; /* blue-700 */
+      }
+      #repl-output .repl-error {
+        color: #b91c1c; /* red-700 */
+      }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 antialiased">
+
+<div class="container mx-auto max-w-4xl p-4 md:p-8">
+    <header class="mb-8 p-6 bg-white rounded-lg shadow">
+        <h1 class="text-3xl font-bold text-gray-800">Scheme Interpreter</h1>
+        <p class="mt-2 text-gray-600">
+            A basic Scheme interpreter in JavaScript, demonstrating Tail-Call Optimization (TCO)
+            and an explicit-stack implementation of First-Class Continuations (`call/cc`).
+        </p>
+    </header>
+
+    <!-- REPL UI -->
+    <main class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">REPL</h2>
+        <div id="repl-container">
+            <div id="repl-output" class="p-4 bg-gray-50 rounded-lg h-64 overflow-y-auto mb-4 border border-gray-200">
+                <pre><span class="repl-info">Welcome to Scheme.js! Type some code and press Run.</span></pre>
+            </div>
+            <textarea id="repl-input" class="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm" rows="5" placeholder="(+ 1 (call/cc (lambda (k) (k 10))))"></textarea>
+            <button id="repl-run-btn" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition duration-150">
+                Run
+            </button>
+        </div>
+    </main>
+
+    <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold mb-4">Test Results</h2>
+        <p class="text-gray-600 mb-6">
+            Unit tests and functional tests are run automatically. See the console
+            and results below.
+        </p>
+        <div id="test-output" class="p-4 bg-gray-50 rounded-lg">
+            <!-- Test results will be injected here -->
+        </div>
+    </section>
+</div>
+
+<!--
+  This is now the main entry point.
+  It will load all other modules.
+  You MUST serve this from a local web server (e.g., `python -m http.server`)
+  for the module imports to work.
+-->
+<script type="module" src="./main.js"></script>
+
+</body>
+</html>
