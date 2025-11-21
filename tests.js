@@ -1,6 +1,7 @@
 import { Environment } from './environment.js';
 import { parse } from './reader.js';
 import { analyze } from './analyzer.js';
+import { prettyPrint } from './repl.js';
 import { Literal, Variable, If, Let, LetRec, Lambda, TailApp, CallCC, Begin, Executable } from './ast.js';
 
 // --- PART 1: Test Harness ---
@@ -16,77 +17,17 @@ function run(interpreter, code) {
   const asts = parse(code);
   if (asts.length === 0) return undefined;
 
-  // If there's more than one, wrap in a 'begin'
-  // The parser returns AST nodes, but analyze expects S-exps for lists
-  // This is a bit of a mismatch. Let's re-parse for `analyze`
-  const raw_asts = new Reader().parse(code); // Use the class directly
-
   let ast;
-  if (raw_asts.length === 1) {
-    ast = analyze(raw_asts[0]);
+  if (asts.length === 1) {
+    ast = analyze(asts[0]);
   } else {
     // Construct a 'begin' S-exp and analyze it
-    ast = analyze([new Variable('begin'), ...raw_asts]);
+    // The parser returns AST nodes (Literal/Variable) for atoms, and Arrays for lists.
+    // analyze() handles both.
+    ast = analyze([new Variable('begin'), ...asts]);
   }
 
   return interpreter.run(ast);
-}
-
-// Re-implementing Reader here just for the `run` helper
-// This is clumsy, let's fix the `run` helper instead.
-class Reader {
-  tokenize(code) {
-    const regex = /\s*([()]|"(?:[\\].|[^"\\])*"|[^()\s]+)\s*/g;
-    const tokens = [];
-    let match;
-    while ((match = regex.exec(code)) !== null) {
-      tokens.push(match[1]);
-    }
-    return tokens;
-  }
-  readAtom(token) {
-    if (token.startsWith('"')) {
-      const strVal = token.substring(1, token.length - 1).replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
-      return new Literal(strVal);
-    }
-    const num = parseFloat(token);
-    if (!isNaN(num) && num.toString() === token) {
-      return new Literal(num);
-    }
-    if (token === '#t') { return new Literal(true); }
-    if (token === '#f') { return new Literal(false); }
-    if (token === 'null') { return new Literal(null); }
-    return new Variable(token);
-  }
-  readFromTokens(tokens) {
-    if (tokens.length === 0) {
-      throw new SyntaxError("Unexpected EOF");
-    }
-    const token = tokens.shift();
-    if (token === '(') {
-      const list = [];
-      while (tokens[0] !== ')') {
-        if (tokens.length === 0) {
-          throw new SyntaxError("Missing ')'");
-        }
-        list.push(this.readFromTokens(tokens));
-      }
-      tokens.shift();
-      return list;
-    } else if (token === ')') {
-      throw new SyntaxError("Unexpected ')'");
-    } else {
-      return this.readAtom(token);
-    }
-  }
-  parse(code) {
-    const tokens = this.tokenize(code);
-    const asts = [];
-    while (tokens.length > 0) {
-      asts.push(this.readFromTokens(tokens));
-    }
-    return asts;
-  }
 }
 
 
@@ -272,8 +213,25 @@ export function runUnitTests(interpreter, logger) {
       assert(logger, "Analyzer: Malformed if", e.message.includes("undefined"), true);
     }
 
+    try {
+      analyze(parse("(if #t 1)")[0]);
+      logger.fail("Analyzer: Malformed if - FAILED to throw");
+    } catch (e) {
+      assert(logger, "Analyzer: Malformed if", e.message.includes("undefined"), true);
+    }
+
   } catch (e) {
     logger.fail(`Analyzer error tests failed: ${e.message}`);
+  }
+
+  // --- REPL Unit Tests ---
+  logger.title('Running REPL Unit Tests...');
+  try {
+    assert(logger, "Unit: prettyPrint symbol", prettyPrint(new Variable("x")), "x");
+    assert(logger, "Unit: prettyPrint number", prettyPrint(123), "123");
+    assert(logger, "Unit: prettyPrint list", prettyPrint([new Literal(1), new Variable("a")]), "'(1 a)");
+  } catch (e) {
+    logger.fail(`REPL unit tests failed: ${e.message}`);
   }
 }
 
@@ -560,5 +518,80 @@ export async function runAllTests(interpreter, logger) {
     logger.log("Skipping JS Interop Error test (no globalEnv access)", 'warn');
   }
 
+  // --- Quasiquote Tests ---
+  runQuasiquoteTests(interpreter, logger);
+}
 
+/**
+ * Runs quasiquote tests.
+ * @param {Interpreter} interpreter
+ * @param {object} logger
+ */
+function runQuasiquoteTests(interpreter, logger) {
+  logger.title("Quasiquote Tests");
+
+  const tests = [
+    {
+      name: "Simple Quasiquote Atom",
+      code: "`x",
+      expected: "x" // Symbol x
+    },
+    {
+      name: "Simple Quasiquote Number",
+      code: "`1",
+      expected: 1
+    },
+    {
+      name: "Simple Quasiquote List",
+      code: "`(1 2 3)",
+      expected: [1, 2, 3]
+    },
+    {
+      name: "Unquote",
+      code: "`(1 ,(+ 1 1) 3)",
+      expected: [1, 2, 3]
+    },
+    {
+      name: "Unquote Splicing",
+      code: "`(1 ,@(list 2 3) 4)",
+      expected: [1, 2, 3, 4]
+    },
+    {
+      name: "Nested Splicing",
+      code: "`(a ,@(list 1 2) b)",
+      expected: ["a", 1, 2, "b"] // "a" and "b" are symbols (Variables)
+    },
+    {
+      name: "Splicing empty list",
+      code: "`(1 ,@(list) 2)",
+      expected: [1, 2]
+    }
+  ];
+
+  for (const test of tests) {
+    try {
+      const result = run(interpreter, test.code);
+
+      // Helper to compare results
+      const equal = (a, b) => {
+        if (Array.isArray(a) && Array.isArray(b)) {
+          if (a.length !== b.length) return false;
+          return a.every((val, i) => equal(val, b[i]));
+        }
+        if (a && a.name && typeof b === 'string') {
+          return a.name === b; // Compare Variable(name) with string
+        }
+        return a === b;
+      };
+
+      if (equal(result, test.expected)) {
+        logger.pass(test.name);
+      } else {
+        logger.fail(`${test.name}: Expected ${JSON.stringify(test.expected)}, got ${JSON.stringify(result)}`);
+      }
+    } catch (e) {
+      logger.fail(`${test.name}: Crashed - ${e.message}`);
+      console.error(e);
+    }
+  }
 }

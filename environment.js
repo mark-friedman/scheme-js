@@ -130,6 +130,19 @@ export function createGlobalEnvironment(interpreter) {
     ['cdr', wrap((p) => p[1])],
     ['list', wrap((...args) => args)],
     ['null?', wrap((a) => a === null)], // Using null for '()
+    ['append', wrap((...args) => {
+      if (args.length === 0) return null;
+      let res = args[0];
+      for (let i = 1; i < args.length; i++) {
+        const val = args[i];
+        if (res === null) {
+          res = val;
+        } else if (val !== null) {
+          res = res.concat(val);
+        }
+      }
+      return res;
+    })],
     // I/O
     ['display', wrap((val) => {
       // In REPL, we might want to buffer this

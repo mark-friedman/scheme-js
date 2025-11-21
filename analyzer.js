@@ -73,9 +73,72 @@ export function analyze(exp) {
         return new CallCC(analyze(exp[1]));
       case 'begin':
         return new Begin(exp.slice(1).map(analyze));
+      case 'quasiquote':
+        return expandQuasiquote(exp[1]);
     }
   }
 
   // It's a function application
   return new TailApp(analyze(exp[0]), exp.slice(1).map(analyze));
+}
+
+/**
+ * Expands a quasiquote expression into list construction calls.
+ * @param {*} exp - The expression inside the quasiquote.
+ * @returns {Executable}
+ */
+function expandQuasiquote(exp) {
+  // 1. Handle (unquote x)
+  if (Array.isArray(exp) && exp.length === 2 &&
+    exp[0] instanceof Variable && exp[0].name === 'unquote') {
+    return analyze(exp[1]);
+  }
+
+  // 2. Handle (unquote-splicing x) - Error at top level
+  if (Array.isArray(exp) && exp.length === 2 &&
+    exp[0] instanceof Variable && exp[0].name === 'unquote-splicing') {
+    throw new SyntaxError("unquote-splicing not allowed at top level of quasiquote");
+  }
+
+  // 3. Handle Lists (Arrays)
+  if (Array.isArray(exp)) {
+    const terms = [];
+    let currentList = [];
+
+    for (const item of exp) {
+      // Check for unquote-splicing: (unquote-splicing x)
+      if (Array.isArray(item) && item.length === 2 &&
+        item[0] instanceof Variable && item[0].name === 'unquote-splicing') {
+        // Flush current list
+        if (currentList.length > 0) {
+          terms.push(new TailApp(new Variable('list'), currentList));
+          currentList = [];
+        }
+        // Add the spliced term
+        terms.push(analyze(item[1]));
+      } else {
+        // Regular item (recursive expansion)
+        currentList.push(expandQuasiquote(item));
+      }
+    }
+
+    // Flush remaining items
+    if (currentList.length > 0) {
+      terms.push(new TailApp(new Variable('list'), currentList));
+    }
+
+    if (terms.length === 0) {
+      return new Literal(null); // Empty list
+    }
+    if (terms.length === 1) {
+      return terms[0];
+    }
+    return new TailApp(new Variable('append'), terms);
+  }
+
+  // 4. Handle Atoms (Literals, Variables, etc.)
+  if (exp instanceof Literal) {
+    return exp;
+  }
+  return new Literal(exp);
 }

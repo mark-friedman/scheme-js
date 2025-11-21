@@ -1,4 +1,4 @@
-import { Closure, Continuation } from './ast.js';
+import { Closure, Continuation, Variable } from './ast.js';
 import { parse } from './reader.js';
 import { analyze } from './analyzer.js';
 
@@ -13,6 +13,9 @@ export function prettyPrint(val) {
   }
   if (val instanceof Continuation) {
     return "#<continuation>";
+  }
+  if (val instanceof Variable) {
+    return val.name;
   }
   if (val === null) {
     return "'()";

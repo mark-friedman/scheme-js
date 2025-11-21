@@ -12,7 +12,7 @@ class Reader {
    * @returns {Array<string>} List of tokens.
    */
   tokenize(code) {
-    const regex = /\s*([()]|"(?:[\\].|[^"\\])*"|[^()\s]+)\s*/g;
+    const regex = /\s*([()]|"(?:[\\].|[^"\\])*"|,@|,|`|[^()\s]+)\s*/g;
     const tokens = [];
     let match;
     while ((match = regex.exec(code)) !== null) {
@@ -30,10 +30,10 @@ class Reader {
     if (token.startsWith('"')) {
       // It's a string
       const strVal = token.substring(1, token.length - 1)
-          .replace(/\\"/g, '"')
-          .replace(/\\n/g, '\n')
-          .replace(/\\t/g, '\t')
-          .replace(/\\\\/g, '\\');
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, '\t')
+        .replace(/\\\\/g, '\\');
       return new Literal(strVal);
     }
     // Try to parse as a number
@@ -73,6 +73,12 @@ class Reader {
       return list;
     } else if (token === ')') {
       throw new SyntaxError("Unexpected ')'");
+    } else if (token === '`') {
+      return [new Variable('quasiquote'), this.readFromTokens(tokens)];
+    } else if (token === ',') {
+      return [new Variable('unquote'), this.readFromTokens(tokens)];
+    } else if (token === ',@') {
+      return [new Variable('unquote-splicing'), this.readFromTokens(tokens)];
     } else {
       return this.readAtom(token);
     }
