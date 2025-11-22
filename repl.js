@@ -1,4 +1,4 @@
-import { Closure, Continuation, Variable } from './ast.js';
+import { Closure, Continuation, Variable, Literal } from './ast.js';
 import { parse } from './reader.js';
 import { analyze } from './analyzer.js';
 
@@ -8,6 +8,9 @@ import { analyze } from './analyzer.js';
  * @returns {string}
  */
 export function prettyPrint(val) {
+  if (val instanceof Literal) {
+    return prettyPrint(val.value);
+  }
   if (val instanceof Closure) {
     return "#<procedure>";
   }
