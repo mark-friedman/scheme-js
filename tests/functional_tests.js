@@ -194,7 +194,7 @@ export async function runFunctionalTests(interpreter, logger) {
 }
 
 // Allow running directly via node
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
     // Mock window for async tests
     global.window = {
         fetchData: (cb) => setTimeout(() => cb("Fetched data from JS"), 1000),

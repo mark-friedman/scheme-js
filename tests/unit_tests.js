@@ -186,7 +186,8 @@ export function runUnitTests(interpreter, logger) {
 }
 
 // Allow running directly via node
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Allow running directly via node
+if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
     const { interpreter } = createTestEnv();
     const logger = createTestLogger();
     runUnitTests(interpreter, logger);

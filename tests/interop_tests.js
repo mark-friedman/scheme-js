@@ -156,7 +156,7 @@ export function runInteropTests(interpreter, logger) {
 }
 
 // Allow running directly via node
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
     // Mock window for interop tests
     global.window = {
         globalK: null,
