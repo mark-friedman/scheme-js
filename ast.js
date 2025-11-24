@@ -52,7 +52,7 @@ export class NativeJsFunction extends SchemeValue {
           const ctl = new TailApp(new Literal(arg), schemeArgs);
           // Run this as a new, independent computation
           // This correctly starts a new stack.
-          this.interpreter.run(ctl, this.interpreter.globalEnv);
+          return this.interpreter.run(ctl, this.interpreter.globalEnv);
         };
       }
       if (arg instanceof SchemeValue) {

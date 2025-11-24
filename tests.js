@@ -518,6 +518,73 @@ export async function runAllTests(interpreter, logger) {
     logger.log("Skipping JS Interop Error test (no globalEnv access)", 'warn');
   }
 
+  // --- Advanced JS Interop Tests ---
+  logger.title("Advanced JS Interop Tests");
+
+  if (interpreter.globalEnv) {
+    // Setup: Define js-apply
+    interpreter.globalEnv.bindings.set('js-apply', new (interpreter.globalEnv.lookup('+').constructor)(
+      (fn, ...args) => {
+        // fn is a Scheme Closure (or NativeJsFunction)
+        // We call it as a JS function (the wrapper handles the interpreter.run)
+        return fn(...args);
+      },
+      interpreter
+    ));
+
+    // 1. Sync Round-trip
+    // Scheme -> JS (js-apply) -> Scheme (lambda)
+    result = run(interpreter, `(+ 1 (js-apply (lambda (x) (* x 2)) 10))`);
+    assert(logger, "Interop: Sync Round-trip", result, 21);
+
+    // 2. Non-abortive call/cc
+    // Scheme -> JS -> Scheme (invoking k)
+    // k captures the outer continuation: (+ 1 [])
+    // Inner run invokes k, which replaces inner stack with (+ 1 []).
+    // Inner run returns 11.
+    // js-apply returns 11.
+    // Outer run receives 11 as result of call/cc.
+    // Outer run computes (+ 1 11) -> 12.
+    result = run(interpreter, `(+ 1 (call/cc (lambda (k) (js-apply (lambda () (k 10))))))`);
+    assert(logger, "Interop: Non-abortive call/cc", result, 12);
+
+    // 3. Ping-Pong Recursion (TCO check across boundaries? No, JS stack grows)
+    // We just want to verify it works for small N.
+    interpreter.globalEnv.bindings.set('js-pong', new (interpreter.globalEnv.lookup('+').constructor)(
+      (n) => {
+        if (n === 0) return "pong-done";
+        // Call scheme-ping
+        const ping = interpreter.globalEnv.lookup('scheme-ping');
+        // We must invoke it via the wrapper
+        // Note: We can't easily look up the wrapper, but we can construct a call.
+        // Actually, 'ping' is a Closure. We can call it directly if we wrap it?
+        // No, NativeJsFunction.call wraps arguments.
+        // But here we are IN JS.
+        // We can use the same mechanism as js-apply: just call it?
+        // Wait, 'ping' is a Closure instance. It's not a JS function.
+        // We need to wrap it or use interpreter.run.
+        // The easiest way is to use the 'js-apply' logic:
+        // But we are inside the body of a NativeJsFunction.
+        // We can create a new run.
+        const ast = new TailApp(new Literal(ping), [new Literal(n - 1)]);
+        return interpreter.run(ast, interpreter.globalEnv);
+      },
+      interpreter
+    ));
+
+    run(interpreter, `
+      (set! scheme-ping (lambda (n)
+        (if (= n 0)
+            "ping-done"
+            (js-pong (- n 1)))))
+    `);
+
+    result = run(interpreter, `(scheme-ping 10)`);
+    assert(logger, "Interop: Ping-Pong (N=10)", result, "ping-done");
+
+  }
+
+
   // --- Quasiquote Tests ---
   runQuasiquoteTests(interpreter, logger);
 }
