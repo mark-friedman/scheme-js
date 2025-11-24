@@ -14,7 +14,7 @@ export class Executable {
  * Base class for all runtime values.
  * These do *not* have a `step` method.
  */
-export class SchemeValue {}
+export class SchemeValue { }
 
 // --- PART 2: Runtime Value Classes ---
 
@@ -238,6 +238,25 @@ export class SetFrame extends Executable {
 }
 
 /**
+ * Frame for a 'define' expression.
+ */
+export class DefineFrame extends Executable {
+  constructor(name, env) {
+    super();
+    this.name = name;
+    this.env = env;
+  }
+
+  step(registers, interpreter) {
+    // The valueExpr has been evaluated, its value is in 'ans'.
+    const value = registers[0];
+    this.env.define(this.name, value);
+    registers[0] = this.name; // 'define' returns the symbol name (or void)
+    return false; // Halt
+  }
+}
+
+/**
  * Frame for a function application.
  * Pauses execution, evaluates the function, then restores
  * and continues to evaluate arguments.
@@ -262,9 +281,9 @@ export class AppFrame extends Executable {
 
       // Push a *new* frame for the *rest* of the arguments
       registers[3].push(new AppFrame(
-          remainingArgExprs,
-          newArgValues,
-          this.env
+        remainingArgExprs,
+        newArgValues,
+        this.env
       ));
 
       registers[1] = nextArgExpr; // Set 'ctl' to evaluate the next arg
@@ -351,9 +370,9 @@ export class Let extends Executable {
   step(registers, interpreter) {
     // 1. Push the "rest of the work" (the LetFrame)
     registers[3].push(new LetFrame(
-        this.varName,
-        this.body,
-        registers[2] // Capture current env
+      this.varName,
+      this.body,
+      registers[2] // Capture current env
     ));
 
     // 2. Set 'ctl' to the work we need done *now*
@@ -379,9 +398,9 @@ export class LetRec extends Executable {
 
     // 2. Push the "rest of the work"
     registers[3].push(new LetRecFrame(
-        this.varName,
-        this.body,
-        newEnv // Pass the *new* env to the frame
+      this.varName,
+      this.body,
+      newEnv // Pass the *new* env to the frame
     ));
 
     // 3. Set 'ctl' to evaluate the lambda
@@ -406,9 +425,9 @@ export class If extends Executable {
   step(registers, interpreter) {
     // 1. Push the "rest of the work"
     registers[3].push(new IfFrame(
-        this.consequent,
-        this.alternative,
-        registers[2] // Capture current env
+      this.consequent,
+      this.alternative,
+      registers[2] // Capture current env
     ));
 
     // 2. Set 'ctl' to the test expression
@@ -431,8 +450,32 @@ export class Set extends Executable {
   step(registers, interpreter) {
     // 1. Push the "rest of the work"
     registers[3].push(new SetFrame(
-        this.name,
-        registers[2] // Capture current env
+      this.name,
+      registers[2] // Capture current env
+    ));
+
+    // 2. Set 'ctl' to the value expression
+    registers[1] = this.valueExpr;
+    // 'env' is unchanged
+    return true; // Continue
+  }
+}
+
+/**
+ * A variable definition (define).
+ */
+export class Define extends Executable {
+  constructor(name, valueExpr) {
+    super();
+    this.name = name;
+    this.valueExpr = valueExpr;
+  }
+
+  step(registers, interpreter) {
+    // 1. Push the "rest of the work"
+    registers[3].push(new DefineFrame(
+      this.name,
+      registers[2] // Capture current env
     ));
 
     // 2. Set 'ctl' to the value expression
@@ -463,9 +506,9 @@ export class TailApp extends Executable {
 
     // 1. Push the AppFrame that will do all the work
     registers[3].push(new AppFrame(
-        remainingExprs,
-        [], // No values computed yet
-        registers[2] // Capture current env
+      remainingExprs,
+      [], // No values computed yet
+      registers[2] // Capture current env
     ));
 
     // 2. Set 'ctl' to the first thing to evaluate
@@ -491,8 +534,8 @@ export class CallCC extends Executable {
     // 2. Create the function call (lambda-expr continuation)
     // This is a tail call, so we just set 'ctl'
     registers[1] = new TailApp(
-        this.lambdaExpr,
-        [new Literal(continuation)]
+      this.lambdaExpr,
+      [new Literal(continuation)]
     );
     // 'env' is unchanged
     return true; // Continue
@@ -520,8 +563,8 @@ export class Begin extends Executable {
     // 1. Push a BeginFrame for the *rest* of the expressions
     if (remainingExprs.length > 0) {
       registers[3].push(new BeginFrame(
-          remainingExprs,
-          registers[2] // Capture current env
+        remainingExprs,
+        registers[2] // Capture current env
       ));
     }
 

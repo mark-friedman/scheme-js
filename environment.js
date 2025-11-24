@@ -85,6 +85,18 @@ export class Environment {
     }
     return value;
   }
+
+  /**
+   * Defines a variable in the *current* environment frame.
+   * Shadows any outer bindings of the same name.
+   * @param {string} name - The variable name.
+   * @param {*} value - The value to bind.
+   * @returns {*} The value.
+   */
+  define(name, value) {
+    this.bindings.set(name, value);
+    return value;
+  }
 }
 
 

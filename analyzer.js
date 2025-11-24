@@ -9,7 +9,8 @@ import {
   Set,
   TailApp,
   CallCC,
-  Begin
+  Begin,
+  Define
 } from './ast.js';
 
 /**
@@ -69,6 +70,22 @@ export function analyze(exp) {
         return new Lambda(params, body);
       case 'set!':
         return new Set(exp[1].name, analyze(exp[2]));
+      case 'define': {
+        // Case 1: (define var value)
+        if (exp[1] instanceof Variable) {
+          return new Define(exp[1].name, analyze(exp[2]));
+        }
+        // Case 2: (define (func args...) body...)
+        // This is sugar for (define func (lambda (args...) body...))
+        if (Array.isArray(exp[1]) && exp[1].length > 0 && exp[1][0] instanceof Variable) {
+          const funcVar = exp[1][0];
+          const params = exp[1].slice(1).map(p => p.name);
+          const bodyExprs = exp.slice(2).map(analyze);
+          const body = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
+          return new Define(funcVar.name, new Lambda(params, body));
+        }
+        throw new SyntaxError(`Malformed define: ${exp}`);
+      }
       case 'call/cc':
         return new CallCC(analyze(exp[1]));
       case 'begin':
