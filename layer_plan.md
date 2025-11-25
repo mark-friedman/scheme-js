@@ -1,6 +1,3 @@
-I'll start by creating a new markdown document `plan.md` that outlines the layered implementation plan for R7RS-small.
-
-
 # Plan: R7RS-small Scheme Implementation
 
 This document outlines a layered plan for implementing a compliant R7RS-small Scheme on top of the existing JavaScript-based "Unexceptional" continuation interpreter. The strategy prioritizes a robust syntactic foundation (macros) to allow the majority of the standard library to be implemented in Scheme itself, rather than as JavaScript primitives.
@@ -8,6 +5,8 @@ This document outlines a layered plan for implementing a compliant R7RS-small Sc
 ## Layer 1: The Syntactic Foundation (Macros & Core Data)
 
 **Goal:** Enable the implementation of derived forms and richer data structures without touching the core interpreter loop. This layer focuses on upgrading the Reader, Analyzer, and Runtime to support `syntax-rules` macros and fundamental data types.
+
+For detailed implementation steps, see [plan_layer_1.md](plan_layer_1.md).
 
 ### Core Special Forms (JavaScript Implementation)
 These forms cannot be implemented as macros and must be supported by the interpreter directly:
@@ -25,32 +24,10 @@ These forms cannot be implemented as macros and must be supported by the interpr
 These will be implemented in Scheme using the core forms:
 *   `cond`, `case`, `and`, `or`, `when`, `unless`, `do`, `let`, `let*`, `letrec`, `letrec*`, `parameterize`, `guard`, `define-record-type`.
 
-### Phase 1: Quasiquote & Quote
-
-Before we can write macros comfortably, we need the ability to construct code templates easily.
-
-1.  **Reader Update:** Ensure `` ` ``, `,`, and `,@` are parsed into `(quasiquote x)`, `(unquote x)`, and `(unquote-splicing x)`.
-2.  **Analyzer/Macro Expansion:** Implement the expansion logic for `quasiquote`. While often implemented as a macro itself, in a bootstrap interpreter it's often easier to implement as a primitive syntactic form in the `Analyzer` that expands into `cons`, `list`, `append`, etc.
-
-### Phase 2: The Macro System (syntax-rules)
-
-1.  **`define-syntax`:** Add support to the `Analyzer` to recognize `(define-syntax name transformer)`.
-    * This requires a separate "compile-time" environment or a flag in the current environment to distinguish macros from variables.
-2.  **`syntax-rules` Transformer:**
-    * Implement the pattern matching logic in JavaScript.
-    * **Pattern Matching:** Match input syntax against literals, variables, and lists (including improper lists and ellipses `...`).
-    * **Transcription:** Valid matches must generate new ASTs based on the associated template.
-3.  **Hygiene (Basic):**
-    * Initially, we can implement a non-hygienic system (essentially `defmacro`) to get things working, or go straight for a renaming mechanism to ensure hygiene (renaming local variables in macros so they don't clash with user variables). *Recommendation: Start non-hygienic for speed, then refactor.*
-
-### Phase 3: Core Data Structures (The "Cons" Cell)
-
-1.  **`Cons` Class:** Create a class `Cons { car, cdr }`.
-2.  **Refactor `Reader`:** Change the reader to produce `Cons` chains instead of JS Arrays for lists.
-3.  **Refactor `Analyzer`:** Update the analyzer to traverse `Cons` chains.
-4.  **Primitives:** Add `car`, `cdr`, `cons`, `set-car!`, `set-cdr!`, `null?`, `pair?` to the global environment.
-5.  **Symbols:** Introduce a `Symbol` class and an `intern` mechanism to distinguish symbols from strings.
-6.  **Vectors:** Add support for Scheme vectors (`#(1 2 3)`), mapping them to JS arrays.
+### Summary of Work
+*   **Quasiquote & Quote:** Enable template construction.
+*   **Macro System:** Implement `define-syntax` and `syntax-rules`.
+*   **Core Data Structures:** Implement `Cons` cells, `Symbol`s, and `Vector`s.
 
 -----
 

@@ -29,6 +29,8 @@ Before we can write macros comfortably, we need the ability to construct code te
 2. **Refactor Reader:** Change the reader to produce Cons chains instead of JS Arrays for lists.  
 3. **Refactor Analyzer:** Update the analyzer to traverse Cons chains.  
 4. **Primitives:** Add car, cdr, cons, set-car\!, set-cdr\!, null?, pair? to the global environment.
+5. **Symbols:** Introduce a `Symbol` class and an `intern` mechanism to distinguish symbols from strings.
+6. **Vectors:** Add support for Scheme vectors (`#(1 2 3)`), mapping them to JS arrays.
 
 ## **Outcome**
 
