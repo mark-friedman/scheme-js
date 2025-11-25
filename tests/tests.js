@@ -1,8 +1,8 @@
-import { runUnitTests } from './tests/unit_tests.js';
-import { runFunctionalTests } from './tests/functional_tests.js';
-import { runInteropTests } from './tests/interop_tests.js';
-import { runQuasiquoteTests } from './tests/quasiquote_tests.js';
-import { runDefineTests } from './tests/test_define.js';
+import { runUnitTests } from './unit_tests.js';
+import { runFunctionalTests } from './functional_tests.js';
+import { runInteropTests } from './interop_tests.js';
+import { runQuasiquoteTests } from './quasiquote_tests.js';
+import { runDefineTests } from './test_define.js';
 
 export { runUnitTests };
 

@@ -8,7 +8,7 @@
 ## Testing
 - **Dual Environment**: All tests must run in both Node.js and the browser.
   - Use `if (typeof process !== 'undefined')` to guard Node.js-specific code (like `process.exitCode` or `import.meta.url` checks).
-- **Structure**: Place new tests in `tests/` and register them in `tests.js`.
+- **Structure**: Place new tests in `tests/` and register them in `tests/tests.js`.
 - **Execution**:
   - Run `node run_tests_node.js` to verify changes locally.
   - Verify browser compatibility via `http://localhost:8080/ui.html`.

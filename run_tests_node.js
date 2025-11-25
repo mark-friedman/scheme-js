@@ -14,7 +14,7 @@ global.document = {
 // Dynamic imports to ensure globals are set first
 const { createGlobalEnvironment } = await import('./environment.js');
 const { Interpreter } = await import('./interpreter.js');
-const { runUnitTests, runAllTests } = await import('./tests.js');
+const { runUnitTests, runAllTests } = await import('./tests/tests.js');
 
 // Mock logger for console output
 const logger = {

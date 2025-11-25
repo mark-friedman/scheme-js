@@ -4,7 +4,7 @@ import { Interpreter } from './interpreter.js';
 import { parse } from './reader.js';
 import { analyze } from './analyzer.js';
 import { setupRepl, prettyPrint } from './repl.js';
-import { runUnitTests, runAllTests } from './tests.js';
+import { runUnitTests, runAllTests } from './tests/tests.js';
 
 // --- Main Entry Point ---
 
