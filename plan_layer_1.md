@@ -1,67 +1,44 @@
-This is a very sensible and structured approach. Building a full R7RS-small Scheme implementation on top of our current core interpreter requires careful layering. Your instinct to prioritize syntactic extension (macros) first is spot-on; Scheme is famously built *on* itself, and a powerful macro system allows us to implement much of the standard library (like `cond`, `and`, `or`, `let*`, `do`) as derived forms rather than hacking them into the JavaScript core.
+# **Layer 1 Implementation Plan: Syntactic Foundation**
 
-Here is a proposed plan broken down into logical layers.
+## **Phase 1: Quasiquote & Quote**
 
-### Layer 1: The Syntactic Foundation (Macros & Core Data)
-**Goal:** Enable the implementation of derived forms and richer data structures without touching the core interpreter loop.
+Before we can write macros comfortably, we need the ability to construct code templates easily.
 
-1.  **Macro System (Minimal `syntax-rules`):**
-    * We need to upgrade the `Analyzer` to support macro expansion.
-    * Implement a basic pattern matcher for `syntax-rules`.
-    * This is critical because most special forms in R7RS can be defined as macros over `lambda`, `if`, and `set!`.
-    * *Why first?* It prevents the JavaScript `Analyzer` from becoming a monolith of every single special form.
-
-2.  **Core Data Types (The "Tower"):**
-    * **Pairs & Lists:** Our current arrays are a cheat. We need a proper `Cons` cell implementation to support `car`, `cdr`, `set-car!`, `set-cdr!`, and proper list structure (including improper lists).
-    * **Symbols:** Distinct from strings (currently we conflate them slightly). We need a `Symbol` class and an `intern` mechanism.
-    * **Vectors:** JavaScript arrays map well here, but we need the Scheme interface (`vector-ref`, `vector-set!`).
-    * **Characters & Strings:** Scheme strings are mutable; JS strings are not. We might need a wrapper or just accept the limitation for now (R7RS allows immutable strings in some contexts, but `string-set!` is standard).
-
-### Layer 2: The Standard Library (Scheme-on-Scheme)
-**Goal:** Implement the bulk of R7RS procedures using Scheme code defined in a "prelude" or "boot" file.
-
-1.  **Derived Forms:**
-    * Implement `cond`, `case`, `and`, `or`, `when`, `unless`, `do`, `let*`, `letrec*` using the macro system from Layer 1.
-2.  **List Library:**
-    * Implement `map`, `for-each`, `member`, `assoc`, `fold`, etc., in Scheme.
-3.  **Higher-Order Functions:**
-    * `apply`, `call-with-values` (requires multiple return value support in the interpreter).
-
-### Layer 3: Advanced Control & Environment
-**Goal:** Fill in the complex runtime gaps.
-
-1.  **Multiple Return Values:**
-    * Update `Interpreter` to handle the `values` primitive returning a special package, and `call-with-values` destructuring it.
-2.  **Dynamic Wind:**
-    * This interacts with `call/cc`. We need to track "winders" (before/after thunks) and invoke them correctly when a continuation jumps in or out of a dynamic extent.
-3.  **Exceptions:**
-    * `raise`, `guard`, `with-exception-handler`. These can be modeled on top of `call/cc` and `dynamic-wind`.
-
-### Layer 4: The R7RS Polish
-**Goal:** Compliance.
-
-1.  **Ports & I/O:**
-    * Abstraction over `console.log`, `fetch`, or file input.
-2.  **Records:**
-    * `define-record-type`. This is usually a macro that generates vectors or a specific JS object structure.
-3.  **Libraries:**
-    * `define-library`, `import`, `export`. This is a meta-layer above the standard environment lookup.
-
----
-
-### Immediate Next Steps (Layer 1.0)
-
-For our very next coding session, I propose we focus strictly on **Layer 1.0: Quasiquote and Basic Macros**.
-
-We cannot easily write the "Prelude" (standard library) without `quasiquote` (backtick) and `unquote` (comma), because writing macros that generate lists using `(list 'if (list '> ...) ...)` is incredibly painful and error-prone.
+1. **Reader Update:** Ensure \`, ,, and ,@ are parsed into (quasiquote x), (unquote x), and (unquote-splicing x).  
+2. **Analyzer/Macro Expansion:** Implement the expansion logic for quasiquote. While often implemented as a macro itself, in a bootstrap interpreter it's often easier to implement as a primitive syntactic form in the Analyzer that expands into cons, list, append, etc.
 
 **Proposed Plan for Next Session:**
-1.  **Implement `quasiquote`:** Update the `Reader` and `Analyzer` to handle `` ` ``, `,`, and `,@`. This effectively moves template construction from JS into Scheme.
-2.  **Implement `define-syntax` (Basic):** Create the hook in the `Analyzer` to register a transformer.
-3.  **Implement `syntax-rules` (Pattern Matcher):** Write the JS logic to match an input expression against a pattern and transcribe the template.
+1.  **Implement `quote`:** The fundamental special form to prevent evaluation. Required for macros to manipulate syntax as data.
+2.  **Implement `quasiquote`:** Update the `Reader` and `Analyzer` to handle `` ` ``, `,`, and `,@`. This effectively moves template construction from JS into Scheme.
+3.  **Implement `define-syntax` (Basic):** Create the hook in the `Analyzer` to register a transformer.
 
-Does this sound like the right trajectory? If so, we can start by implementing `quasiquote` support, which is the prerequisite for writing readable macros.
+## **Phase 2: The Macro System (syntax-rules)**
 
+1. **define-syntax:** Add support to the Analyzer to recognize (define-syntax name transformer).  
+   * This requires a separate "compile-time" environment or a flag in the current environment to distinguish macros from variables.  
+2. **syntax-rules Transformer:**  
+   * Implement the pattern matching logic in JavaScript.  
+   * **Pattern Matching:** Match input syntax against literals, variables, and lists (including improper lists and ellipses ...).  
+   * **Transcription:** valid matches must generate new ASTs based on the associated template.  
+3. **Hygiene (Basic):**  
+   * Initially, we can implement a non-hygienic system (essentially defmacro) to get things working, or go straight for a renaming mechanism to ensure hygiene (renaming local variables in macros so they don't clash with user variables). *Recommendation: Start non-hygienic for speed, then refactor.*
 
-http://googleusercontent.com/immersive_entry_chip/0
+## **Phase 3: Core Data Structures (The "Cons" Cell)**
+
+1. **Cons Class:** Create a class Cons { car, cdr }.  
+2. **Refactor Reader:** Change the reader to produce Cons chains instead of JS Arrays for lists.  
+3. **Refactor Analyzer:** Update the analyzer to traverse Cons chains.  
+4. **Primitives:** Add car, cdr, cons, set-car\!, set-cdr\!, null?, pair? to the global environment.
+
+## **Outcome**
+
+At the end of Layer 1, we will be able to define:
+
+```scheme
+(define-syntax when  
+  (syntax-rules ()  
+    ((when test stmt1 stmt2 ...)  
+     (if test (begin stmt1 stmt2 ...)))))
 ```
+
+This unlocks the ability to write the rest of the standard library in Scheme itself.

@@ -9,6 +9,22 @@ This document outlines a layered plan for implementing a compliant R7RS-small Sc
 
 **Goal:** Enable the implementation of derived forms and richer data structures without touching the core interpreter loop. This layer focuses on upgrading the Reader, Analyzer, and Runtime to support `syntax-rules` macros and fundamental data types.
 
+### Core Special Forms (JavaScript Implementation)
+These forms cannot be implemented as macros and must be supported by the interpreter directly:
+*   `quote`: Prevents evaluation of syntax.
+*   `lambda`: Creates closures.
+*   `if`: Conditional execution.
+*   `set!`: Variable assignment.
+*   `define`: Variable definition (current scope).
+*   `define-syntax`: Registers macro transformers.
+*   `let-syntax`, `letrec-syntax`: Local macro definitions.
+*   `define-library`, `import`, `export`: Module system.
+*   `include`, `include-ci`: File inclusion.
+
+### Derived Forms (Scheme Macros)
+These will be implemented in Scheme using the core forms:
+*   `cond`, `case`, `and`, `or`, `when`, `unless`, `do`, `let`, `let*`, `letrec`, `letrec*`, `parameterize`, `guard`, `define-record-type`.
+
 ### Phase 1: Quasiquote & Quote
 
 Before we can write macros comfortably, we need the ability to construct code templates easily.
