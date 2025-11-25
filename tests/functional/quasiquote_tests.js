@@ -1,4 +1,4 @@
-import { run, createTestLogger, createTestEnv } from '../helpers.js';
+import { run, assert, createTestLogger, createTestEnv } from '../helpers.js';
 
 /**
  * Runs quasiquote tests.
@@ -58,24 +58,7 @@ export function runQuasiquoteTests(interpreter, logger) {
     for (const test of tests) {
         try {
             const result = run(interpreter, test.code);
-
-            // Helper to compare results
-            const equal = (a, b) => {
-                if (Array.isArray(a) && Array.isArray(b)) {
-                    if (a.length !== b.length) return false;
-                    return a.every((val, i) => equal(val, b[i]));
-                }
-                if (a && a.name && typeof b === 'string') {
-                    return a.name === b; // Compare Variable(name) with string
-                }
-                return a === b;
-            };
-
-            if (equal(result, test.expected)) {
-                logger.pass(test.name);
-            } else {
-                logger.fail(`${test.name}: Expected ${JSON.stringify(test.expected)}, got ${JSON.stringify(result)}`);
-            }
+            assert(logger, test.name, result, test.expected);
         } catch (e) {
             logger.fail(`${test.name}: Crashed - ${e.message}`);
             console.error(e);

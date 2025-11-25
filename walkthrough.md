@@ -83,3 +83,41 @@ All tests passed, including the new `syntax-rules` suite.
 
 ## Next Steps
 The next phase will be to implement core data structures (Cons cells) to replace JS arrays for lists.
+
+# Walkthrough: Core Data Structures (Cons & Symbol)
+
+I have refactored the interpreter to use proper Scheme data structures (`Cons` cells and `Symbol` objects) instead of JavaScript arrays and strings. This aligns the interpreter's internal representation with the Scheme standard.
+
+## Changes
+
+### 1. Data Structures
+- **`Cons` Class**: Implemented in `src/data/cons.js` with `car` and `cdr`. Added helpers `cons`, `list`, and `toArray`.
+- **`Symbol` Class**: Implemented in `src/data/symbol.js` with interning support via `SymbolRegistry`.
+
+### 2. Reader Refactor
+- Updated `src/syntax/reader.js` to produce `Cons` chains and `Symbol` objects directly.
+- `readList` now constructs linked lists.
+- `readAtom` produces `Symbol`s or primitives.
+
+### 3. Analyzer Refactor
+- Updated `src/syntax/analyzer.js` to traverse `Cons` chains.
+- Updated special form handlers (`if`, `let`, `lambda`, etc.) to work with `Cons` and `Symbol`.
+- Updated `syntax-rules` engine to match patterns against `Cons` structures.
+
+### 4. Primitives
+- Implemented list primitives (`car`, `cdr`, `cons`, `list`, `pair?`, `null?`, `set-car!`, `set-cdr!`, `append`) in `src/primitives/list.js` using the `Cons` class.
+
+### 5. Testing Infrastructure
+- Updated `tests/helpers.js` to handle `Cons` and `Symbol` in assertions.
+- Rewrote `tests/unit/unit_tests.js` and functional tests (`macro_tests.js`, `quote_tests.js`, `quasiquote_tests.js`) to use the new data structures.
+- Added `tests/unit/data_tests.js` to test `Cons` and `Symbol` classes directly.
+- Added `tests/unit/primitives_tests.js` to test list primitives in isolation.
+
+## Verification Results
+
+I ran the full test suite, which covers unit tests, functional tests, macro tests, and JS interop. All tests passed.
+
+```
+=== All Tests Complete. ===
+Exit code: 0
+```

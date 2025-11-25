@@ -8,6 +8,14 @@ import { analyze } from '../src/syntax/analyzer.js';
  * @param {*} val - The value from the interpreter.
  * @returns {string}
  */
+import { Cons } from '../src/data/cons.js';
+import { Symbol } from '../src/data/symbol.js';
+
+/**
+ * Pretty-prints a Scheme value for the REPL.
+ * @param {*} val - The value from the interpreter.
+ * @returns {string}
+ */
 export function prettyPrint(val) {
     if (val instanceof Literal) {
         return prettyPrint(val.value);
@@ -19,7 +27,13 @@ export function prettyPrint(val) {
         return "#<continuation>";
     }
     if (val instanceof Variable) {
+        return val.name; // Should not happen for result values, but for AST debugging
+    }
+    if (val instanceof Symbol) {
         return val.name;
+    }
+    if (val instanceof Cons) {
+        return `(${prettyPrintList(val)})`;
     }
     if (val === null) {
         return "'()";
@@ -36,10 +50,25 @@ export function prettyPrint(val) {
         return `"${val.replace(/"/g, '\\"')}"`; // Show as string
     }
     if (Array.isArray(val)) {
+        // Fallback for arrays (should be Cons now)
         return `'(${val.map(prettyPrint).join(' ')})`;
     }
     // Numbers
     return `${val}`;
+}
+
+function prettyPrintList(cons) {
+    const elems = [];
+    let curr = cons;
+    while (curr instanceof Cons) {
+        elems.push(prettyPrint(curr.car));
+        curr = curr.cdr;
+    }
+    if (curr !== null) {
+        // Improper list
+        return `${elems.join(' ')} . ${prettyPrint(curr)}`;
+    }
+    return elems.join(' ');
 }
 
 /**

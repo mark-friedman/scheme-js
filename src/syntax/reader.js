@@ -1,9 +1,14 @@
-import { Literal, Variable } from './ast.js';
+import { Cons, cons, list } from '../data/cons.js';
+import { intern } from '../data/symbol.js';
 
 /**
- * Simple S-expression parser.
- * This version's `readAtom` is "smarter" and returns
- * AST nodes (Literal, Variable) directly.
+ * S-expression parser.
+ * Reads text and produces Scheme data structures:
+ * - Lists -> Cons chains (or null)
+ * - Symbols -> Symbol objects
+ * - Numbers -> JS numbers
+ * - Strings -> JS strings
+ * - Booleans -> JS booleans
  */
 class Reader {
   /**
@@ -12,6 +17,8 @@ class Reader {
    * @returns {Array<string>} List of tokens.
    */
   tokenize(code) {
+    // Added '.' to the regex to ensure it's captured if it's a standalone token
+    // Actually, [^()\s]+ captures '.' correctly.
     const regex = /\s*([()]|"(?:[\\].|[^"\\])*"|,@|,|`|'|[^()\s]+)\s*/g;
     const tokens = [];
     let match;
@@ -24,36 +31,37 @@ class Reader {
   /**
    * Reads an atom (number, bool, string, symbol) from a token.
    * @param {string} token
-   * @returns {Literal | Variable}
+   * @returns {*}
    */
   readAtom(token) {
     if (token.startsWith('"')) {
       // It's a string
-      const strVal = token.substring(1, token.length - 1)
+      return token.substring(1, token.length - 1)
         .replace(/\\"/g, '"')
         .replace(/\\n/g, '\n')
         .replace(/\\t/g, '\t')
         .replace(/\\\\/g, '\\');
-      return new Literal(strVal);
     }
     // Try to parse as a number
     const num = parseFloat(token);
     if (!isNaN(num) && num.toString() === token) {
-      return new Literal(num);
+      return num;
     }
-    // Check for booleans or null
-    if (token === '#t') { return new Literal(true); }
-    if (token === '#f') { return new Literal(false); }
-    if (token === 'null') { return new Literal(null); }
+    // Check for booleans
+    if (token === '#t') { return true; }
+    if (token === '#f') { return false; }
 
-    // Otherwise, it's a symbol (Variable)
-    return new Variable(token);
+    // Note: 'null' is just a symbol in Scheme, evaluating to ().
+    // We treat it as a symbol here.
+
+    // Otherwise, it's a symbol
+    return intern(token);
   }
 
   /**
    * Recursively reads S-expressions from a list of tokens.
    * @param {Array<string>} tokens - Mutable list of tokens.
-   * @returns {*} A single S-expression (Array or Executable).
+   * @returns {*} A single S-expression.
    */
   readFromTokens(tokens) {
     if (tokens.length === 0) {
@@ -62,28 +70,55 @@ class Reader {
     const token = tokens.shift();
 
     if (token === '(') {
-      const list = [];
-      while (tokens[0] !== ')') {
-        if (tokens.length === 0) {
-          throw new SyntaxError("Missing ')'");
-        }
-        list.push(this.readFromTokens(tokens));
-      }
-      tokens.shift(); // Pop the ')'
-      return list;
+      return this.readList(tokens);
     } else if (token === ')') {
       throw new SyntaxError("Unexpected ')'");
     } else if (token === '`') {
-      return [new Variable('quasiquote'), this.readFromTokens(tokens)];
+      return list(intern('quasiquote'), this.readFromTokens(tokens));
     } else if (token === ',') {
-      return [new Variable('unquote'), this.readFromTokens(tokens)];
+      return list(intern('unquote'), this.readFromTokens(tokens));
     } else if (token === ',@') {
-      return [new Variable('unquote-splicing'), this.readFromTokens(tokens)];
+      return list(intern('unquote-splicing'), this.readFromTokens(tokens));
     } else if (token === "'") {
-      return [new Variable('quote'), this.readFromTokens(tokens)];
+      return list(intern('quote'), this.readFromTokens(tokens));
     } else {
       return this.readAtom(token);
     }
+  }
+
+  /**
+   * Reads a list (proper or improper) from tokens.
+   * Assumes the opening '(' has already been consumed.
+   * @param {Array<string>} tokens
+   * @returns {*} Cons chain or null.
+   */
+  readList(tokens) {
+    if (tokens.length === 0) {
+      throw new SyntaxError("Missing ')'");
+    }
+
+    if (tokens[0] === ')') {
+      tokens.shift(); // Consume ')'
+      return null; // Empty list
+    }
+
+    // Read first element
+    const first = this.readFromTokens(tokens);
+
+    // Check for dot notation: (a . b)
+    if (tokens[0] === '.') {
+      tokens.shift(); // Consume '.'
+      const second = this.readFromTokens(tokens);
+      if (tokens[0] !== ')') {
+        throw new SyntaxError("Expected ')' after dot notation");
+      }
+      tokens.shift(); // Consume ')'
+      return cons(first, second);
+    }
+
+    // Recursive read for the rest of the list
+    const rest = this.readList(tokens);
+    return cons(first, rest);
   }
 
   /**

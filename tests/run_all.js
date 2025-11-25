@@ -16,10 +16,15 @@ async function runAll() {
     const { runMacroTests } = await import('./functional/macro_tests.js');
     const { runSyntaxRulesTests } = await import('./functional/syntax_rules_tests.js');
 
+    const { runDataTests } = await import('./unit/data_tests.js');
+    const { runPrimitiveTests } = await import('./unit/primitives_tests.js');
+
     const { interpreter } = createTestEnv();
     const logger = createTestLogger();
 
     try {
+        runDataTests(logger);
+        runPrimitiveTests(logger);
         runUnitTests(interpreter, logger);
     } catch (e) {
         logger.fail(`Unit test suite crashed: ${e.message}`);

@@ -1,6 +1,7 @@
 import { globalMacroRegistry } from '../../src/syntax/macro_registry.js';
-import { Variable, Literal } from '../../src/syntax/ast.js';
 import { run, assert } from '../helpers.js';
+import { list } from '../../src/data/cons.js';
+import { intern } from '../../src/data/symbol.js';
 
 export async function runMacroTests(interpreter, logger) {
     logger.title('Macro Tests');
@@ -8,23 +9,27 @@ export async function runMacroTests(interpreter, logger) {
     // --- Helper: Register a macro ---
     // (my-if test then else) -> (if test then else)
     globalMacroRegistry.define('my-if', (exp) => {
-        // exp is [Variable('my-if'), test, then, else]
-        // We want to return [Variable('if'), test, then, else]
-        return [new Variable('if'), exp[1], exp[2], exp[3]];
+        // exp is Cons(my-if, Cons(test, Cons(then, Cons(else, null))))
+        const test = exp.cdr.car;
+        const thenBranch = exp.cdr.cdr.car;
+        const elseBranch = exp.cdr.cdr.cdr.car;
+
+        return list(intern('if'), test, thenBranch, elseBranch);
     });
 
     // --- Helper: Register a recursive macro ---
-    // (my-or a b) -> (if a a b)  <-- simplistic, evaluates a twice, but good for testing expansion
+    // (my-or a b) -> (if a a b)
     globalMacroRegistry.define('my-or', (exp) => {
-        const a = exp[1];
-        const b = exp[2];
-        return [new Variable('if'), a, a, b];
+        const a = exp.cdr.car;
+        const b = exp.cdr.cdr.car;
+        return list(intern('if'), a, a, b);
     });
 
     // --- Helper: Register a macro that expands to another macro ---
     // (nested-macro x) -> (my-if x 1 2)
     globalMacroRegistry.define('nested-macro', (exp) => {
-        return [new Variable('my-if'), exp[1], new Literal(1), new Literal(2)];
+        const x = exp.cdr.car;
+        return list(intern('my-if'), x, 1, 2);
     });
 
     try {

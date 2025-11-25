@@ -4,6 +4,8 @@ import { Variable, Literal } from '../src/syntax/ast.js';
 import { Environment } from '../src/core/environment.js';
 import { createGlobalEnvironment } from '../src/primitives/index.js';
 import { Interpreter } from '../src/core/interpreter.js';
+import { Cons, list } from '../src/data/cons.js';
+import { intern } from '../src/data/symbol.js';
 
 /**
  * Helper to run code from strings.
@@ -21,9 +23,9 @@ export function run(interpreter, code) {
         ast = analyze(asts[0]);
     } else {
         // Construct a 'begin' S-exp and analyze it
-        // The parser returns AST nodes (Literal/Variable) for atoms, and Arrays for lists.
-        // analyze() handles both.
-        ast = analyze([new Variable('begin'), ...asts]);
+        // asts is an array of S-expressions (Cons, Symbol, etc.)
+        // We need to create a Cons list: (begin ...asts)
+        ast = analyze(list(intern('begin'), ...asts));
     }
 
     return interpreter.run(ast);
@@ -37,17 +39,64 @@ export function run(interpreter, code) {
  * @param {*} expected - Expected result.
  */
 export function assert(logger, description, actual, expected) {
-    // Simple deep equal for arrays
-    let isEqual = actual === expected;
-    if (Array.isArray(actual) && Array.isArray(expected)) {
-        isEqual = actual.length === expected.length &&
-            actual.every((val, i) => val === expected[i]);
+    const actualJS = toJS(actual);
+    const expectedJS = toJS(expected);
+
+    if (deepEqual(actualJS, expectedJS)) {
+        logger.pass(`${description} (Expected: ${safeStringify(expectedJS)}, Got: ${safeStringify(actualJS)})`);
+    } else {
+        logger.fail(`${description} (Expected: ${safeStringify(expectedJS)}, Got: ${safeStringify(actualJS)})`);
+    }
+}
+
+function toJS(val) {
+    if (val === null) return null;
+    if (val instanceof Cons || (val && val.car !== undefined && val.cdr !== undefined)) {
+        // Handle Cons (duck typing to be safe against module loading issues)
+        const arr = [];
+        let curr = val;
+        while (curr !== null && (curr instanceof Cons || (curr.car !== undefined && curr.cdr !== undefined))) {
+            arr.push(toJS(curr.car));
+            curr = curr.cdr;
+        }
+        // Handle improper list tail
+        if (curr !== null) {
+            // How to represent improper list in JS array?
+            // Maybe just push the tail?
+            // But [1, 2, . 3] is not valid JS.
+            // Let's push a special marker or just the tail?
+            // For tests expecting [1, 2], we assume proper lists.
+            // If improper, let's push it.
+            arr.push(toJS(curr));
+        }
+        return arr;
+    }
+    if (val instanceof Symbol || (val && val.name !== undefined && val.constructor.name === 'Symbol')) {
+        return val.name;
+    }
+    if (Array.isArray(val)) {
+        return val.map(toJS);
+    }
+    return val;
+}
+
+function deepEqual(a, b) {
+    if (a === b) return true;
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) return false;
+
+    if (Array.isArray(a) && Array.isArray(b)) {
+        if (a.length !== b.length) return false;
+        return a.every((val, i) => deepEqual(val, b[i]));
     }
 
-    if (isEqual) {
-        logger.pass(`${description} (Expected: ${expected}, Got: ${actual})`);
-    } else {
-        logger.fail(`${description} (Expected: ${expected}, Got: ${actual})`);
+    return false; // Objects not supported for now
+}
+
+function safeStringify(obj) {
+    try {
+        return JSON.stringify(obj);
+    } catch (e) {
+        return String(obj);
     }
 }
 

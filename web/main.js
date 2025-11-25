@@ -4,7 +4,17 @@ import { Interpreter } from '../src/core/interpreter.js';
 import { parse } from '../src/syntax/reader.js';
 import { analyze } from '../src/syntax/analyzer.js';
 import { setupRepl, prettyPrint } from './repl.js';
-import { runUnitTests, runAllTests } from '../tests/tests.js';
+
+// Import test runners
+import { runUnitTests } from '../tests/unit/unit_tests.js';
+import { runFunctionalTests } from '../tests/functional/functional_tests.js';
+import { runInteropTests } from '../tests/functional/interop_tests.js';
+import { runQuasiquoteTests } from '../tests/functional/quasiquote_tests.js';
+import { runQuoteTests } from '../tests/functional/quote_tests.js';
+import { runMacroTests } from '../tests/functional/macro_tests.js';
+import { runSyntaxRulesTests } from '../tests/functional/syntax_rules_tests.js';
+import { runDataTests } from '../tests/unit/data_tests.js';
+import { runPrimitiveTests } from '../tests/unit/primitives_tests.js';
 
 // --- Main Entry Point ---
 
@@ -39,21 +49,25 @@ setupRepl(interpreter, globalEnv);
 
 // --- Run Tests ---
 
-// Run unit tests first
-try {
-    runUnitTests(interpreter, logger);
-} catch (e) {
-    logger.fail(`Unit test suite crashed: ${e.message}`);
-}
-
-// Run all functional tests
-logger.title('Running Functional Tests...');
-// Make the test runner async to handle the new test
 (async () => {
     try {
-        await runAllTests(interpreter, logger);
+        // Run Unit Tests
+        runDataTests(logger);
+        runPrimitiveTests(logger);
+        runUnitTests(interpreter, logger);
+
+        // Run Functional Tests
+        logger.title('Running Functional Tests...');
+        await runFunctionalTests(interpreter, logger);
+        runInteropTests(interpreter, logger);
+        runQuasiquoteTests(interpreter, logger);
+        runQuoteTests(interpreter, logger);
+        await runMacroTests(interpreter, logger);
+        await runSyntaxRulesTests(interpreter, logger);
+
         logger.title('All Tests Complete.');
     } catch (e) {
-        logger.fail(`Functional test suite crashed: ${e.message}`);
+        logger.fail(`Test suite crashed: ${e.message}`);
+        console.error(e);
     }
 })();

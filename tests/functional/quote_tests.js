@@ -1,5 +1,4 @@
-import { run, createTestLogger, createTestEnv } from '../helpers.js';
-import { Variable } from '../../src/syntax/ast.js';
+import { run, assert, createTestLogger, createTestEnv } from '../helpers.js';
 
 export function runQuoteTests(interpreter, logger) {
     logger.title("Quote Tests");
@@ -15,22 +14,7 @@ export function runQuoteTests(interpreter, logger) {
     for (const test of tests) {
         try {
             const result = run(interpreter, test.code);
-
-            // Helper to compare results (simplified version of quasiquote_tests one)
-            const equal = (a, b) => {
-                if (Array.isArray(a) && Array.isArray(b)) {
-                    if (a.length !== b.length) return false;
-                    return a.every((val, i) => equal(val, b[i]));
-                }
-                if (a instanceof Variable) return a.name === b;
-                return a === b;
-            };
-
-            if (equal(result, test.expected)) {
-                logger.pass(test.name);
-            } else {
-                logger.fail(`${test.name}: Expected ${JSON.stringify(test.expected)}, got ${JSON.stringify(result)}`);
-            }
+            assert(logger, test.name, result, test.expected);
         } catch (e) {
             logger.fail(`${test.name}: Crashed - ${e.message}`);
         }

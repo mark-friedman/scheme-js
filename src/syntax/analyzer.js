@@ -14,240 +14,337 @@ import {
 } from './ast.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
+import { Cons, cons, list } from '../data/cons.js';
+import { Symbol, intern } from '../data/symbol.js';
 
 /**
  * Analyzes an S-expression and converts it to our AST object tree.
- * @param {*} exp - An S-expression (from the parser).
+ * @param {*} exp - An S-expression (Cons, Symbol, or primitive).
  * @returns {Executable} An AST node.
  */
 export function analyze(exp) {
-  // If the reader already gave us an AST node, just return it.
+  // 1. Handle Atoms
+  if (exp instanceof Symbol) {
+    return new Variable(exp.name);
+  }
+  if (typeof exp === 'number' || typeof exp === 'string' || typeof exp === 'boolean' || exp === null) {
+    return new Literal(exp);
+  }
   if (exp instanceof Executable) {
-    return exp;
+    return exp; // Already analyzed (e.g. from macro expansion)
   }
 
-  if (exp === undefined) {
-    throw new Error(`Analyzer error: received 'undefined' expression.`);
+  // 2. Handle Lists (Cons)
+  if (exp instanceof Cons) {
+    const tag = exp.car;
+
+    // Check for special forms
+    if (tag instanceof Symbol) {
+      // Macro Expansion
+      if (globalMacroRegistry.isMacro(tag.name)) {
+        const transformer = globalMacroRegistry.lookup(tag.name);
+        const expanded = transformer(exp);
+        return analyze(expanded);
+      }
+
+      switch (tag.name) {
+        case 'if':
+          return analyzeIf(exp);
+        case 'let':
+          return analyzeLet(exp);
+        case 'letrec':
+          return analyzeLetRec(exp);
+        case 'lambda':
+          return analyzeLambda(exp);
+        case 'set!':
+          return analyzeSet(exp);
+        case 'define':
+          return analyzeDefine(exp);
+        case 'call/cc':
+          return new CallCC(analyze(cadr(exp)));
+        case 'begin':
+          return new Begin(mapCons(exp.cdr, analyze));
+        case 'quote':
+          return new Literal(unwrapSyntax(cadr(exp)));
+        case 'define-syntax':
+          return analyzeDefineSyntax(exp);
+        case 'quasiquote':
+          return expandQuasiquote(cadr(exp));
+      }
+    }
+
+    // Function Application
+    const func = analyze(exp.car);
+    const args = mapCons(exp.cdr, analyze);
+    return new TailApp(func, args);
   }
-  if (!Array.isArray(exp)) {
-    throw new Error(`Analyzer error: expression is not a list or atom: ${exp}`);
+
+  throw new Error(`Analyzer error: Unknown expression type: ${exp}`);
+}
+
+// --- Special Form Handlers ---
+
+function analyzeIf(exp) {
+  // (if test consequent alternative)
+  const test = analyze(cadr(exp));
+  const consequent = analyze(caddr(exp));
+  const alternative = cdddr(exp) !== null ? analyze(cadddr(exp)) : new Literal(null);
+  return new If(test, consequent, alternative);
+}
+
+function analyzeLet(exp) {
+  // (let ((var binding) ...) body...)
+  const bindings = cadr(exp);
+  const body = cddr(exp);
+
+  const vars = [];
+  const args = [];
+
+  let curr = bindings;
+  while (curr instanceof Cons) {
+    const pair = curr.car; // (var binding)
+    vars.push(car(pair).name);
+    args.push(analyze(cadr(pair)));
+    curr = curr.cdr;
   }
-  if (exp.length === 0) { // '()
+
+  const bodyExprs = mapCons(body, analyze);
+  const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
+
+  // Desugar to Let AST node (which compiles to LetFrame)
+  // We can construct the Let node directly
+  // But wait, Let AST node takes (varName, binding, body).
+  // Our Let AST node only supports SINGLE binding?
+  // Let's check ast.js.
+  // ast.js Let: constructor(varName, binding, body).
+  // It seems our Let AST node is for a SINGLE let binding?
+  // No, standard Scheme let allows multiple.
+  // If ast.js Let only supports one, we need to nest them or change ast.js.
+  // Looking at ast.js:
+  // export class Let extends Executable { constructor(varName, binding, body) ... }
+  // It seems it only supports ONE variable.
+  // So (let ((x 1) (y 2)) body) must be desugared to nested Lets?
+  // Or (let ((x 1) (y 2)) body) -> ((lambda (x y) body) 1 2).
+  // The latter is the standard expansion.
+  // Let's use the lambda expansion for multi-var let.
+
+  return new TailApp(
+    new Lambda(vars, bodyAST),
+    args
+  );
+}
+
+function analyzeLetRec(exp) {
+  // (letrec ((var val) ...) body...)
+  // Our LetRec AST node supports single binding?
+  // ast.js LetRec: constructor(varName, lambdaExpr, body)
+  // It seems it's designed for single recursive binding.
+  // For multiple, we need a more complex desugaring or update AST.
+  // For now, let's assume single binding for LetRec AST or implement full letrec desugaring.
+  // (letrec ((f (lambda ...))) body)
+
+  const bindings = cadr(exp);
+  // Support single binding for now to match AST capability
+  const pair = car(bindings);
+  const varName = car(pair).name;
+  const valExpr = analyze(cadr(pair));
+  const body = cddr(exp);
+
+  const bodyExprs = mapCons(body, analyze);
+  const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
+
+  return new LetRec(varName, valExpr, bodyAST);
+}
+
+function analyzeLambda(exp) {
+  // (lambda (params...) body...)
+  const paramsList = cadr(exp);
+  const body = cddr(exp);
+
+  const params = [];
+  let curr = paramsList;
+  while (curr instanceof Cons) {
+    params.push(curr.car.name);
+    curr = curr.cdr;
+  }
+  // TODO: Handle improper list for rest args (curr is Symbol)
+
+  if (body === null) {
+    throw new Error("Malformed lambda: body cannot be empty");
+  }
+
+  const bodyExprs = mapCons(body, analyze);
+  const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
+
+  return new Lambda(params, bodyAST);
+}
+
+function analyzeSet(exp) {
+  // (set! var val)
+  return new Set(cadr(exp).name, analyze(caddr(exp)));
+}
+
+function analyzeDefine(exp) {
+  // (define var val) or (define (f args) body)
+  const head = cadr(exp);
+
+  if (head instanceof Symbol) {
+    // (define var val)
+    return new Define(head.name, analyze(caddr(exp)));
+  } else if (head instanceof Cons) {
+    // (define (f args...) body...)
+    const funcName = car(head).name;
+    const argsList = cdr(head);
+    const body = cddr(exp);
+
+    // Construct Lambda
+    const params = [];
+    let curr = argsList;
+    while (curr instanceof Cons) {
+      params.push(curr.car.name);
+      curr = curr.cdr;
+    }
+
+    const bodyExprs = mapCons(body, analyze);
+    const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
+
+    return new Define(funcName, new Lambda(params, bodyAST));
+  }
+  throw new Error("Malformed define");
+}
+
+function analyzeDefineSyntax(exp) {
+  // (define-syntax name transformer)
+  const name = cadr(exp).name;
+  const transformerSpec = caddr(exp);
+
+  // Check for (syntax-rules ...)
+  if (transformerSpec instanceof Cons &&
+    car(transformerSpec) instanceof Symbol &&
+    car(transformerSpec).name === 'syntax-rules') {
+
+    let literalsList = cadr(transformerSpec);
+    const clausesList = cddr(transformerSpec);
+
+    const literals = [];
+    let curr = literalsList;
+    while (curr instanceof Cons) {
+      literals.push(curr.car); // Keep as Symbols
+      curr = curr.cdr;
+    }
+
+    const clauses = [];
+    curr = clausesList;
+    while (curr instanceof Cons) {
+      const clause = curr.car; // (pattern template)
+      clauses.push([car(clause), cadr(clause)]);
+      curr = curr.cdr;
+    }
+
+    const transformer = compileSyntaxRules(literals, clauses);
+    globalMacroRegistry.define(name, transformer);
     return new Literal(null);
   }
-
-  // It's a list, so it's a special form or an application.
-  const tag = exp[0];
-
-  // Check for special forms
-  if (tag instanceof Variable) {
-    // 1. Check for Macro Expansion
-    if (globalMacroRegistry.isMacro(tag.name)) {
-      const transformer = globalMacroRegistry.lookup(tag.name);
-      const expanded = transformer(exp);
-      return analyze(expanded);
-    }
-
-    // 2. Check for Core Special Forms
-    switch (tag.name) {
-      case 'if':
-        // (if test consequent alternative)
-        return new If(analyze(exp[1]), analyze(exp[2]), analyze(exp[3]));
-      case 'let': {
-        // (let ((var binding)) body)
-        const bindingPair = exp[1][0]; // [Variable('x'), Literal(10)]
-        const varName = bindingPair[0].name;
-        const binding = analyze(bindingPair[1]);
-        const body = analyze(exp[2]);
-        return new Let(varName, binding, body);
-      }
-      case 'letrec': {
-        // (letrec ((var lambda-exp)) body)
-        const bindingPair = exp[1][0]; // [Variable('f'), [Variable('lambda'), ...]]
-        const varName = bindingPair[0].name;
-        const lambdaExp = analyze(bindingPair[1]);
-        const body = analyze(exp[2]);
-        return new LetRec(varName, lambdaExp, body);
-      }
-      case 'lambda':
-        // (lambda (params...) body1 body2 ...)
-        if (exp.length < 3) {
-          throw new SyntaxError(`Malformed lambda, missing body: ${exp}`);
-        }
-        const params = exp[1].map(p => p.name);
-        const bodyExprs = exp.slice(2).map(analyze);
-        const body = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
-        return new Lambda(params, body);
-      case 'set!':
-        return new Set(exp[1].name, analyze(exp[2]));
-      case 'define': {
-        // Case 1: (define var value)
-        if (exp[1] instanceof Variable) {
-          return new Define(exp[1].name, analyze(exp[2]));
-        }
-        // Case 2: (define (func args...) body...)
-        // This is sugar for (define func (lambda (args...) body...))
-        if (Array.isArray(exp[1]) && exp[1].length > 0 && exp[1][0] instanceof Variable) {
-          const funcVar = exp[1][0];
-          const params = exp[1].slice(1).map(p => p.name);
-          const bodyExprs = exp.slice(2).map(analyze);
-          const body = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
-          return new Define(funcVar.name, new Lambda(params, body));
-        }
-        throw new SyntaxError(`Malformed define: ${exp}`);
-      }
-      case 'call/cc':
-        return new CallCC(analyze(exp[1]));
-      case 'begin':
-        return new Begin(exp.slice(1).map(analyze));
-      case 'quote':
-        return new Literal(unwrapAST(exp[1]));
-      case 'define-syntax':
-        // (define-syntax name transformer)
-        if (exp.length !== 3 || !(exp[1] instanceof Variable)) {
-          throw new SyntaxError(`Malformed define-syntax: ${exp}`);
-        }
-
-        const name = exp[1].name;
-        const transformerSpec = exp[2];
-
-        // Check for syntax-rules
-        if (Array.isArray(transformerSpec) &&
-          transformerSpec.length >= 2 &&
-          transformerSpec[0] instanceof Variable &&
-          transformerSpec[0].name === 'syntax-rules') {
-
-          let literals = transformerSpec[1];
-
-          // Handle empty literals list '() -> Literal(null)
-          if (literals instanceof Literal && literals.value === null) {
-            literals = [];
-          }
-
-          if (!Array.isArray(literals)) {
-            throw new SyntaxError("syntax-rules: expected list of literals");
-          }
-
-          const clauses = transformerSpec.slice(2);
-          const transformer = compileSyntaxRules(literals, clauses);
-          globalMacroRegistry.define(name, transformer);
-
-          return new Literal(null);
-        }
-
-        throw new Error("Only syntax-rules transformers are supported in define-syntax");
-      case 'quasiquote':
-        return expandQuasiquote(exp[1]);
-    }
-  }
-
-  // It's a function application
-  return new TailApp(analyze(exp[0]), exp.slice(1).map(analyze));
+  return new Literal(null);
 }
 
-function unwrapAST(exp) {
-  if (exp instanceof Literal) {
-    return exp.value;
+// --- Helpers ---
+
+function mapCons(list, fn) {
+  const result = [];
+  let curr = list;
+  while (curr instanceof Cons) {
+    result.push(fn(curr.car));
+    curr = curr.cdr;
   }
-  if (exp instanceof Variable) {
-    return exp; // Symbols remain as Variable objects
-  }
-  if (Array.isArray(exp)) {
-    return exp.map(unwrapAST);
-  }
-  return exp;
+  return result;
 }
 
+function car(cons) { return cons.car; }
+function cdr(cons) { return cons.cdr; }
+function cadr(cons) { return cons.cdr.car; }
+function cddr(cons) { return cons.cdr.cdr; }
+function caddr(cons) { return cons.cdr.cdr.car; }
+function cdddr(cons) { return cons.cdr.cdr.cdr; }
+function cadddr(cons) { return cons.cdr.cdr.cdr.car; }
+
 /**
- * Expands a quasiquote expression into list construction calls.
- * @param {*} exp - The expression inside the quasiquote.
- * @returns {Executable}
+ * Unwraps syntax (Symbol -> Variable, Cons -> Array) for Quote.
+ * Actually, Quote should return the raw data (Symbol, Cons).
+ * But our AST `Literal` wraps the value.
+ * If we wrap `Symbol` in `Literal`, `interpreter` needs to handle it.
+ * Currently `Literal` returns `this.value`.
+ * So `(quote x)` -> `Literal(Symbol(x))`.
+ * `(quote (1 2))` -> `Literal(Cons(1, Cons(2, null)))`.
  */
-/**
- * Expands a quasiquote expression into list construction calls.
- * @param {*} exp - The expression inside the quasiquote.
- * @param {number} nesting - The current nesting level of quasiquotes (0 = top).
- * @returns {Executable}
- */
+function unwrapSyntax(exp) {
+  return exp; // Pass through the raw data structure
+}
+
+// --- Quasiquote Expansion (Updated for Cons) ---
+
 function expandQuasiquote(exp, nesting = 0) {
-  // 1. Handle (quasiquote x) - Increment nesting
-  if (Array.isArray(exp) && exp.length === 2 &&
-    exp[0] instanceof Variable && exp[0].name === 'quasiquote') {
-    return new TailApp(new Variable('list'), [
-      new Literal(new Variable('quasiquote')),
-      expandQuasiquote(exp[1], nesting + 1)
+  // 1. Handle (quasiquote x)
+  if (isTaggedList(exp, 'quasiquote')) {
+    return listApp('list', [
+      new Literal(intern('quasiquote')),
+      expandQuasiquote(cadr(exp), nesting + 1)
     ]);
   }
 
   // 2. Handle (unquote x)
-  if (Array.isArray(exp) && exp.length === 2 &&
-    exp[0] instanceof Variable && exp[0].name === 'unquote') {
+  if (isTaggedList(exp, 'unquote')) {
     if (nesting === 0) {
-      return analyze(exp[1]);
+      return analyze(cadr(exp));
     } else {
-      return new TailApp(new Variable('list'), [
-        new Literal(new Variable('unquote')),
-        expandQuasiquote(exp[1], nesting - 1)
+      return listApp('list', [
+        new Literal(intern('unquote')),
+        expandQuasiquote(cadr(exp), nesting - 1)
       ]);
     }
   }
 
-  // 3. Handle (unquote-splicing x) - Error if not in list, or reconstruct if nested
-  if (Array.isArray(exp) && exp.length === 2 &&
-    exp[0] instanceof Variable && exp[0].name === 'unquote-splicing') {
+  // 3. Handle (unquote-splicing x)
+  if (isTaggedList(exp, 'unquote-splicing')) {
     if (nesting === 0) {
-      throw new SyntaxError("unquote-splicing not allowed at top level of quasiquote");
+      throw new Error("unquote-splicing not allowed at top level");
     } else {
-      return new TailApp(new Variable('list'), [
-        new Literal(new Variable('unquote-splicing')),
-        expandQuasiquote(exp[1], nesting - 1)
+      return listApp('list', [
+        new Literal(intern('unquote-splicing')),
+        expandQuasiquote(cadr(exp), nesting - 1)
       ]);
     }
   }
 
-  // 4. Handle Lists (Arrays)
-  if (Array.isArray(exp)) {
-    const terms = [];
-    let currentList = [];
-
-    for (const item of exp) {
-      // Check for unquote-splicing at nesting 0: (unquote-splicing x)
-      if (nesting === 0 && Array.isArray(item) && item.length === 2 &&
-        item[0] instanceof Variable && item[0].name === 'unquote-splicing') {
-        // Flush current list
-        if (currentList.length > 0) {
-          terms.push(new TailApp(new Variable('list'), currentList));
-          currentList = [];
-        }
-        // Add the spliced term
-        terms.push(analyze(item[1]));
-      } else {
-        // Regular item (recursive expansion)
-        currentList.push(expandQuasiquote(item, nesting));
-      }
+  // 4. Handle Lists (Cons)
+  if (exp instanceof Cons) {
+    // Check for splicing in car
+    if (isTaggedList(exp.car, 'unquote-splicing') && nesting === 0) {
+      // (unquote-splicing x) . rest
+      // -> (append x (expand rest))
+      return listApp('append', [
+        analyze(cadr(exp.car)),
+        expandQuasiquote(exp.cdr, nesting)
+      ]);
     }
 
-    // Flush remaining items
-    if (currentList.length > 0) {
-      terms.push(new TailApp(new Variable('list'), currentList));
-    }
-
-    if (terms.length === 0) {
-      return new Literal(null); // Empty list
-    }
-    if (terms.length === 1) {
-      return terms[0];
-    }
-    return new TailApp(new Variable('append'), terms);
+    // Regular cons: (cons (expand car) (expand cdr))
+    return listApp('cons', [
+      expandQuasiquote(exp.car, nesting),
+      expandQuasiquote(exp.cdr, nesting)
+    ]);
   }
 
-  // 5. Handle Atoms (Literals, Variables, etc.)
-  if (exp instanceof Literal) {
-    return exp;
-  }
-  // For symbols (Variables) inside quasiquote, we must quote them
-  // unless we are just returning them as Literals?
-  // Wait, if I return new Literal(exp), it evaluates to exp (the Variable object).
-  // Yes, that's what we want.
+  // 5. Atoms
   return new Literal(exp);
+}
+
+function isTaggedList(exp, tag) {
+  return (exp instanceof Cons) &&
+    (exp.car instanceof Symbol) &&
+    (exp.car.name === tag);
+}
+
+function listApp(funcName, args) {
+  return new TailApp(new Variable(funcName), args);
 }
