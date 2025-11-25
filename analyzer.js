@@ -90,6 +90,11 @@ export function analyze(exp) {
         return new CallCC(analyze(exp[1]));
       case 'begin':
         return new Begin(exp.slice(1).map(analyze));
+      case 'quote':
+        return new Literal(unwrapAST(exp[1]));
+      case 'define-syntax':
+        // Placeholder for now
+        return new Literal(null);
       case 'quasiquote':
         return expandQuasiquote(exp[1]);
     }
@@ -99,32 +104,74 @@ export function analyze(exp) {
   return new TailApp(analyze(exp[0]), exp.slice(1).map(analyze));
 }
 
+function unwrapAST(exp) {
+  if (exp instanceof Literal) {
+    return exp.value;
+  }
+  if (exp instanceof Variable) {
+    return exp; // Symbols remain as Variable objects
+  }
+  if (Array.isArray(exp)) {
+    return exp.map(unwrapAST);
+  }
+  return exp;
+}
+
 /**
  * Expands a quasiquote expression into list construction calls.
  * @param {*} exp - The expression inside the quasiquote.
  * @returns {Executable}
  */
-function expandQuasiquote(exp) {
-  // 1. Handle (unquote x)
+/**
+ * Expands a quasiquote expression into list construction calls.
+ * @param {*} exp - The expression inside the quasiquote.
+ * @param {number} nesting - The current nesting level of quasiquotes (0 = top).
+ * @returns {Executable}
+ */
+function expandQuasiquote(exp, nesting = 0) {
+  // 1. Handle (quasiquote x) - Increment nesting
+  if (Array.isArray(exp) && exp.length === 2 &&
+    exp[0] instanceof Variable && exp[0].name === 'quasiquote') {
+    return new TailApp(new Variable('list'), [
+      new Literal(new Variable('quasiquote')),
+      expandQuasiquote(exp[1], nesting + 1)
+    ]);
+  }
+
+  // 2. Handle (unquote x)
   if (Array.isArray(exp) && exp.length === 2 &&
     exp[0] instanceof Variable && exp[0].name === 'unquote') {
-    return analyze(exp[1]);
+    if (nesting === 0) {
+      return analyze(exp[1]);
+    } else {
+      return new TailApp(new Variable('list'), [
+        new Literal(new Variable('unquote')),
+        expandQuasiquote(exp[1], nesting - 1)
+      ]);
+    }
   }
 
-  // 2. Handle (unquote-splicing x) - Error at top level
+  // 3. Handle (unquote-splicing x) - Error if not in list, or reconstruct if nested
   if (Array.isArray(exp) && exp.length === 2 &&
     exp[0] instanceof Variable && exp[0].name === 'unquote-splicing') {
-    throw new SyntaxError("unquote-splicing not allowed at top level of quasiquote");
+    if (nesting === 0) {
+      throw new SyntaxError("unquote-splicing not allowed at top level of quasiquote");
+    } else {
+      return new TailApp(new Variable('list'), [
+        new Literal(new Variable('unquote-splicing')),
+        expandQuasiquote(exp[1], nesting - 1)
+      ]);
+    }
   }
 
-  // 3. Handle Lists (Arrays)
+  // 4. Handle Lists (Arrays)
   if (Array.isArray(exp)) {
     const terms = [];
     let currentList = [];
 
     for (const item of exp) {
-      // Check for unquote-splicing: (unquote-splicing x)
-      if (Array.isArray(item) && item.length === 2 &&
+      // Check for unquote-splicing at nesting 0: (unquote-splicing x)
+      if (nesting === 0 && Array.isArray(item) && item.length === 2 &&
         item[0] instanceof Variable && item[0].name === 'unquote-splicing') {
         // Flush current list
         if (currentList.length > 0) {
@@ -135,7 +182,7 @@ function expandQuasiquote(exp) {
         terms.push(analyze(item[1]));
       } else {
         // Regular item (recursive expansion)
-        currentList.push(expandQuasiquote(item));
+        currentList.push(expandQuasiquote(item, nesting));
       }
     }
 
@@ -153,9 +200,13 @@ function expandQuasiquote(exp) {
     return new TailApp(new Variable('append'), terms);
   }
 
-  // 4. Handle Atoms (Literals, Variables, etc.)
+  // 5. Handle Atoms (Literals, Variables, etc.)
   if (exp instanceof Literal) {
     return exp;
   }
+  // For symbols (Variables) inside quasiquote, we must quote them
+  // unless we are just returning them as Literals?
+  // Wait, if I return new Literal(exp), it evaluates to exp (the Variable object).
+  // Yes, that's what we want.
   return new Literal(exp);
 }

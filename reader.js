@@ -12,7 +12,7 @@ class Reader {
    * @returns {Array<string>} List of tokens.
    */
   tokenize(code) {
-    const regex = /\s*([()]|"(?:[\\].|[^"\\])*"|,@|,|`|[^()\s]+)\s*/g;
+    const regex = /\s*([()]|"(?:[\\].|[^"\\])*"|,@|,|`|'|[^()\s]+)\s*/g;
     const tokens = [];
     let match;
     while ((match = regex.exec(code)) !== null) {
@@ -79,6 +79,8 @@ class Reader {
       return [new Variable('unquote'), this.readFromTokens(tokens)];
     } else if (token === ',@') {
       return [new Variable('unquote-splicing'), this.readFromTokens(tokens)];
+    } else if (token === "'") {
+      return [new Variable('quote'), this.readFromTokens(tokens)];
     } else {
       return this.readAtom(token);
     }

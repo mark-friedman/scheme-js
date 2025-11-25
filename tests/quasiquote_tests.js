@@ -43,6 +43,15 @@ export function runQuasiquoteTests(interpreter, logger) {
             name: "Splicing empty list",
             code: "`(1 ,@(list) 2)",
             expected: [1, 2]
+        },
+        {
+            name: "Nested Quasiquote",
+            code: "(let ((x 10)) `(1 `(2 ,,x) 3))",
+            // Expected: (1 (quasiquote (2 (unquote 10))) 3)
+            // In JS structure: [1, [Variable(quasiquote), [2, [Variable(unquote), 10]]], 3]
+            // But my equal helper compares Variable(name) with string.
+            // So: [1, ["quasiquote", [2, ["unquote", 10]]], 3]
+            expected: [1, ["quasiquote", [2, ["unquote", 10]]], 3]
         }
     ];
 

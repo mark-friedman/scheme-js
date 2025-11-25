@@ -12,6 +12,7 @@ async function runAll() {
     const { runFunctionalTests } = await import('./functional_tests.js');
     const { runInteropTests } = await import('./interop_tests.js');
     const { runQuasiquoteTests } = await import('./quasiquote_tests.js');
+    const { runQuoteTests } = await import('./quote_tests.js');
 
     const { interpreter } = createTestEnv();
     const logger = createTestLogger();
@@ -26,6 +27,7 @@ async function runAll() {
         await runFunctionalTests(interpreter, logger);
         runInteropTests(interpreter, logger);
         runQuasiquoteTests(interpreter, logger);
+        runQuoteTests(interpreter, logger);
         logger.title('All Tests Complete.');
     } catch (e) {
         logger.fail(`Functional test suite crashed: ${e.message}`);
