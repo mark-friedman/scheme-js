@@ -13,6 +13,7 @@ import {
   Define
 } from './ast.js';
 import { globalMacroRegistry } from './macro_registry.js';
+import { compileSyntaxRules } from './syntax_rules.js';
 
 /**
  * Analyzes an S-expression and converts it to our AST object tree.
@@ -106,9 +107,35 @@ export function analyze(exp) {
         if (exp.length !== 3 || !(exp[1] instanceof Variable)) {
           throw new SyntaxError(`Malformed define-syntax: ${exp}`);
         }
-        // TODO: Evaluate transformer and register it.
-        // For Phase 1, we rely on manual registration in tests.
-        return new Literal(null);
+
+        const name = exp[1].name;
+        const transformerSpec = exp[2];
+
+        // Check for syntax-rules
+        if (Array.isArray(transformerSpec) &&
+          transformerSpec.length >= 2 &&
+          transformerSpec[0] instanceof Variable &&
+          transformerSpec[0].name === 'syntax-rules') {
+
+          let literals = transformerSpec[1];
+
+          // Handle empty literals list '() -> Literal(null)
+          if (literals instanceof Literal && literals.value === null) {
+            literals = [];
+          }
+
+          if (!Array.isArray(literals)) {
+            throw new SyntaxError("syntax-rules: expected list of literals");
+          }
+
+          const clauses = transformerSpec.slice(2);
+          const transformer = compileSyntaxRules(literals, clauses);
+          globalMacroRegistry.define(name, transformer);
+
+          return new Literal(null);
+        }
+
+        throw new Error("Only syntax-rules transformers are supported in define-syntax");
       case 'quasiquote':
         return expandQuasiquote(exp[1]);
     }

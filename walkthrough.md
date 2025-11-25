@@ -38,5 +38,48 @@ I ran the new macro tests and all existing tests. All tests passed.
 ✅ PASS: Malformed define-syntax threw error
 ```
 
+# Walkthrough: Implementing syntax-rules
+
+I have implemented the `syntax-rules` macro transformer, enabling high-level macro definitions with pattern matching and templating.
+
+## Changes
+
+### 1. Syntax Rules Engine
+I created `src/syntax/syntax_rules.js` which implements:
+- **`matchPattern`**: Matches input expressions against patterns, supporting literals, variables, and lists.
+- **`transcribe`**: Expands templates using bindings from the match.
+- **Ellipsis Support**: Implemented basic ellipsis (`...`) support for matching zero or more items and expanding them.
+
+[src/syntax/syntax_rules.js](file:///Users/mark/code/scheme-js-4/src/syntax/syntax_rules.js)
+
+### 2. Analyzer Integration
+I updated `src/syntax/analyzer.js` to recognize `(syntax-rules ...)` forms within `define-syntax`. It compiles the specification into a transformer function and registers it.
+
+[src/syntax/analyzer.js](file:///Users/mark/code/scheme-js-4/src/syntax/analyzer.js)
+
+### 3. Functional Tests
+I added `tests/functional/syntax_rules_tests.js` covering:
+- Simple substitution.
+- Literal matching (e.g., `else` in `cond`).
+- Ellipsis expansion (e.g., `begin`, `let-values` style).
+- Recursive macros (e.g., `and`).
+
+[tests/functional/syntax_rules_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/syntax_rules_tests.js)
+
+## Verification Results
+
+All tests passed, including the new `syntax-rules` suite.
+
+```
+=== Syntax-Rules Tests ===
+✅ PASS: Simple Substitution (my-let) (Expected: 10, Got: 10)
+✅ PASS: Literals (else match) (Expected: 100, Got: 100)
+✅ PASS: Literals (non-else match) (Expected: 10, Got: 10)
+✅ PASS: Ellipsis (my-begin) (Expected: 3, Got: 3)
+✅ PASS: Recursive (my-and empty) (Expected: true, Got: true)
+✅ PASS: Recursive (my-and #t 10) (Expected: 10, Got: 10)
+✅ PASS: Recursive (my-and #t #f 10) (Expected: false, Got: false)
+```
+
 ## Next Steps
-The next phase (Phase 2) will be to implement `syntax-rules`, which will allow us to define macros using the standard Scheme syntax.
+The next phase will be to implement core data structures (Cons cells) to replace JS arrays for lists.

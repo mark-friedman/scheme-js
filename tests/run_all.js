@@ -14,6 +14,7 @@ async function runAll() {
     const { runQuasiquoteTests } = await import('./functional/quasiquote_tests.js');
     const { runQuoteTests } = await import('./functional/quote_tests.js');
     const { runMacroTests } = await import('./functional/macro_tests.js');
+    const { runSyntaxRulesTests } = await import('./functional/syntax_rules_tests.js');
 
     const { interpreter } = createTestEnv();
     const logger = createTestLogger();
@@ -30,6 +31,7 @@ async function runAll() {
         runQuasiquoteTests(interpreter, logger);
         runQuoteTests(interpreter, logger);
         await runMacroTests(interpreter, logger);
+        await runSyntaxRulesTests(interpreter, logger);
         logger.title('All Tests Complete.');
     } catch (e) {
         logger.fail(`Functional test suite crashed: ${e.message}`);
