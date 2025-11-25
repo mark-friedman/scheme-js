@@ -1,44 +1,42 @@
-# Restructuring Walkthrough
+# Walkthrough: Implementing define-syntax (Basic)
 
-I have reorganized the codebase into a modular structure as requested.
-
-## Directory Structure
-
-- **src/core/**: Core interpreter logic.
-  - `interpreter.js`: The main interpreter loop.
-  - `environment.js`: Lexical environment implementation.
-- **src/syntax/**: Parsing and AST.
-  - `reader.js`: Parser (S-expressions).
-  - `analyzer.js`: AST transformation.
-  - `ast.js`: AST node definitions (split from original `ast.js`).
-- **src/data/**: Runtime values.
-  - `values.js`: Runtime value classes (`Closure`, `NativeJsFunction`, `Continuation`) (split from original `ast.js`).
-- **src/primitives/**: Native implementations.
-  - `index.js`: Global environment loader.
-  - `math.js`: Math primitives.
-  - `io.js`: I/O primitives.
-  - `list.js`: List primitives.
-  - `async.js`: Async/Interop primitives.
-- **web/**: Web interface.
-  - `index.html`: Main HTML file (formerly `ui.html`).
-  - `main.js`: Entry point.
-  - `repl.js`: REPL logic.
-- **lib/**: Scheme libraries (placeholders).
-  - `boot.scm`
-  - `stdlib.scm`
-- **tests/**: Test suite.
-  - `unit/`: Unit tests.
-  - `functional/`: Functional tests.
-  - `helpers.js`, `tests.js`, `run_all.js`: Test runners and helpers.
+I have implemented the basic infrastructure for macros in the Scheme interpreter. This allows us to define and use macros, although `syntax-rules` is not yet implemented.
 
 ## Changes
 
-1.  **Split `ast.js`**: Separated AST nodes (`src/syntax/ast.js`) from runtime values (`src/data/values.js`) to break circular dependencies and clarify concerns.
-2.  **Moved Files**: Moved all files to their respective directories.
-3.  **Updated Imports**: Updated all `import` statements to reflect the new paths.
-4.  **Created Primitives**: Extracted primitives from `environment.js` into `src/primitives/`.
-5.  **Restructured Tests**: Organized tests into `unit` and `functional` folders.
+### 1. Macro Registry
+I created a `MacroRegistry` class to manage macro transformers. This registry maps macro names to transformer functions.
 
-## Verification
+[src/syntax/macro_registry.js](file:///Users/mark/code/scheme-js-4/src/syntax/macro_registry.js)
 
-Ran `node tests/run_all.js` and all tests passed.
+### 2. Analyzer Update
+I updated the `Analyzer` to check for macro calls during the analysis phase. If a macro is encountered, it is expanded using the registered transformer, and the result is recursively analyzed.
+
+I also added support for parsing the `define-syntax` special form, although for now it acts as a placeholder since we don't have a way to evaluate transformers at expansion time yet.
+
+[src/syntax/analyzer.js](file:///Users/mark/code/scheme-js-4/src/syntax/analyzer.js)
+
+### 3. Functional Tests
+I added a new test suite `tests/functional/macro_tests.js` to verify:
+- Basic macro expansion.
+- Recursive macro expansion.
+- `define-syntax` parsing.
+
+[tests/functional/macro_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/macro_tests.js)
+
+## Verification Results
+
+### Automated Tests
+I ran the new macro tests and all existing tests. All tests passed.
+
+```
+=== Macro Tests ===
+✅ PASS: Basic Macro Expansion (my-if #t) (Expected: 10, Got: 10)
+✅ PASS: Basic Macro Expansion (my-if #f) (Expected: 20, Got: 20)
+✅ PASS: Recursive Macro Expansion (Expected: 1, Got: 1)
+✅ PASS: define-syntax parsing (Expected: null, Got: null)
+✅ PASS: Malformed define-syntax threw error
+```
+
+## Next Steps
+The next phase (Phase 2) will be to implement `syntax-rules`, which will allow us to define macros using the standard Scheme syntax.

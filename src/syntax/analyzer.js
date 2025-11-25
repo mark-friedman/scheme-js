@@ -12,6 +12,7 @@ import {
   Begin,
   Define
 } from './ast.js';
+import { globalMacroRegistry } from './macro_registry.js';
 
 /**
  * Analyzes an S-expression and converts it to our AST object tree.
@@ -39,6 +40,14 @@ export function analyze(exp) {
 
   // Check for special forms
   if (tag instanceof Variable) {
+    // 1. Check for Macro Expansion
+    if (globalMacroRegistry.isMacro(tag.name)) {
+      const transformer = globalMacroRegistry.lookup(tag.name);
+      const expanded = transformer(exp);
+      return analyze(expanded);
+    }
+
+    // 2. Check for Core Special Forms
     switch (tag.name) {
       case 'if':
         // (if test consequent alternative)
@@ -93,7 +102,12 @@ export function analyze(exp) {
       case 'quote':
         return new Literal(unwrapAST(exp[1]));
       case 'define-syntax':
-        // Placeholder for now
+        // (define-syntax name transformer)
+        if (exp.length !== 3 || !(exp[1] instanceof Variable)) {
+          throw new SyntaxError(`Malformed define-syntax: ${exp}`);
+        }
+        // TODO: Evaluate transformer and register it.
+        // For Phase 1, we rely on manual registration in tests.
         return new Literal(null);
       case 'quasiquote':
         return expandQuasiquote(exp[1]);
