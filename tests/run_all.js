@@ -8,11 +8,11 @@ global.window = {
 async function runAll() {
     // Dynamic imports to ensure globals are set first
     const { createTestLogger, createTestEnv } = await import('./helpers.js');
-    const { runUnitTests } = await import('./unit_tests.js');
-    const { runFunctionalTests } = await import('./functional_tests.js');
-    const { runInteropTests } = await import('./interop_tests.js');
-    const { runQuasiquoteTests } = await import('./quasiquote_tests.js');
-    const { runQuoteTests } = await import('./quote_tests.js');
+    const { runUnitTests } = await import('./unit/unit_tests.js');
+    const { runFunctionalTests } = await import('./functional/functional_tests.js');
+    const { runInteropTests } = await import('./functional/interop_tests.js');
+    const { runQuasiquoteTests } = await import('./functional/quasiquote_tests.js');
+    const { runQuoteTests } = await import('./functional/quote_tests.js');
 
     const { interpreter } = createTestEnv();
     const logger = createTestLogger();

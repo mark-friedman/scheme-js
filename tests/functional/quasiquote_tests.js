@@ -1,4 +1,4 @@
-import { run, createTestLogger, createTestEnv } from './helpers.js';
+import { run, createTestLogger, createTestEnv } from '../helpers.js';
 
 /**
  * Runs quasiquote tests.

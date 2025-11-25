@@ -1,8 +1,9 @@
-import { parse } from '../reader.js';
-import { analyze } from '../analyzer.js';
-import { Variable, Literal } from '../ast.js';
-import { Environment, createGlobalEnvironment } from '../environment.js';
-import { Interpreter } from '../interpreter.js';
+import { parse } from '../src/syntax/reader.js';
+import { analyze } from '../src/syntax/analyzer.js';
+import { Variable, Literal } from '../src/syntax/ast.js';
+import { Environment } from '../src/core/environment.js';
+import { createGlobalEnvironment } from '../src/primitives/index.js';
+import { Interpreter } from '../src/core/interpreter.js';
 
 /**
  * Helper to run code from strings.

@@ -1,9 +1,9 @@
-import { Environment } from '../environment.js';
-import { parse } from '../reader.js';
-import { analyze } from '../analyzer.js';
-import { prettyPrint } from '../repl.js';
-import { Literal, Variable, If, Let, LetRec, Lambda, TailApp, CallCC, Begin } from '../ast.js';
-import { assert, createTestLogger, createTestEnv } from './helpers.js';
+import { Environment } from '../../src/core/environment.js';
+import { parse } from '../../src/syntax/reader.js';
+import { analyze } from '../../src/syntax/analyzer.js';
+import { prettyPrint } from '../../web/repl.js';
+import { Literal, Variable, If, Let, LetRec, Lambda, TailApp, CallCC, Begin } from '../../src/syntax/ast.js';
+import { assert, createTestLogger, createTestEnv } from '../helpers.js';
 
 /**
  * Runs all unit tests.

@@ -1,4 +1,4 @@
-import { assert, run, createTestLogger, createTestEnv } from './helpers.js';
+import { assert, run, createTestLogger, createTestEnv } from '../helpers.js';
 
 /**
  * Runs functional tests (Basic, TCO, Call/CC, Async, Runtime Errors, Edge Cases).

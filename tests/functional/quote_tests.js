@@ -1,6 +1,5 @@
-
-import { run, createTestLogger, createTestEnv } from './helpers.js';
-import { Variable } from '../ast.js';
+import { run, createTestLogger, createTestEnv } from '../helpers.js';
+import { Variable } from '../../src/syntax/ast.js';
 
 export function runQuoteTests(interpreter, logger) {
     logger.title("Quote Tests");

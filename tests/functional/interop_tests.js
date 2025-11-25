@@ -1,5 +1,5 @@
-import { assert, run, createTestLogger, createTestEnv } from './helpers.js';
-import { Literal, TailApp } from '../ast.js';
+import { assert, run, createTestLogger, createTestEnv } from '../helpers.js';
+import { Literal, TailApp } from '../../src/syntax/ast.js';
 
 /**
  * Runs JS Interop tests.
