@@ -1,4 +1,5 @@
 import { listPrimitives } from '../../src/primitives/list.js';
+import { vectorPrimitives } from '../../src/primitives/vector.js';
 import { Cons, cons, list } from '../../src/data/cons.js';
 import { assert } from '../helpers.js';
 
@@ -52,6 +53,64 @@ export function runPrimitiveTests(logger) {
         assert(logger, "Primitives: append improper cdr chain", l4.cdr.cdr.cdr, 99);
 
     } catch (e) {
-        logger.fail(`Primitive tests failed: ${e.message}`);
+        logger.fail(`List primitive tests failed: ${e.message}`);
+    }
+
+    // --- Vector Primitives ---
+    logger.title('Running Vector Primitive Unit Tests...');
+    const {
+        vector, 'make-vector': makeVector, 'vector?': isVector,
+        'vector-length': vectorLength, 'vector-ref': vectorRef,
+        'vector-set!': vectorSet, 'vector->list': vectorToList,
+        'list->vector': listToVector
+    } = vectorPrimitives;
+
+    try {
+        // Construction
+        const v1 = vector(1, 2, 3);
+        assert(logger, "Primitives: vector", Array.isArray(v1) && v1.length === 3, true);
+        assert(logger, "Primitives: vector content", v1[0] === 1 && v1[2] === 3, true);
+
+        const v2 = makeVector(3, 'a');
+        assert(logger, "Primitives: make-vector", Array.isArray(v2) && v2.length === 3, true);
+        assert(logger, "Primitives: make-vector content", v2[0] === 'a' && v2[2] === 'a', true);
+
+        // Predicates
+        assert(logger, "Primitives: vector? true", isVector(v1), true);
+        assert(logger, "Primitives: vector? false (list)", isVector(list(1, 2)), false);
+        assert(logger, "Primitives: vector? false (number)", isVector(123), false);
+
+        // Accessors
+        assert(logger, "Primitives: vector-length", vectorLength(v1), 3);
+        assert(logger, "Primitives: vector-ref", vectorRef(v1, 1), 2);
+
+        // Mutation
+        vectorSet(v1, 1, 99);
+        assert(logger, "Primitives: vector-set!", vectorRef(v1, 1), 99);
+
+        // Conversions
+        const l1 = vectorToList(v1);
+        assert(logger, "Primitives: vector->list", l1.toArray(), [1, 99, 3]);
+
+        const v3 = listToVector(l1);
+        assert(logger, "Primitives: list->vector", v3[1], 99);
+
+        // Error handling
+        try {
+            vectorRef([1], 5);
+            logger.fail("Primitives: vector-ref out of bounds failed to throw");
+        } catch (e) {
+            assert(logger, "Primitives: vector-ref out of bounds", e.message.includes("out of bounds"), true);
+        }
+
+        try {
+            makeVector(-1, 0);
+            logger.fail("Primitives: make-vector negative size failed to throw");
+        } catch (e) {
+            assert(logger, "Primitives: make-vector negative size", e.message.includes("non-negative"), true);
+        }
+
+    } catch (e) {
+        logger.fail(`Vector primitive tests failed: ${e.message}`);
     }
 }

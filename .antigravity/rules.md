@@ -4,6 +4,7 @@
 - All new features must have accompanying unit and/or functional tests in `tests/`.
 - Any complex logic should have unit tests.  Refactor to make it testable if needed.
 - Ensure tests pass in both Node.js and the browser.
+- Most tests should be written BEFORE the code that is being tested is written. Sometimes you'll realize after writing the code that you need to write additional tests for it and that's ok.  It's also ok to occasionally rewrite tests to make them more correct or more effective or cover more cases.
 
 ## Testing
 - **Dual Environment**: All tests must run in both Node.js and the browser.
@@ -27,4 +28,6 @@
 - **Directory Structure**: Generally, follow the directory structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
 - **Walkthroughs**: Document the changes you make by appending them to `walkthrough.md`.
 
+## Tools
+- **Scheme Conformance**: You can use the website at https://try.scheme.org/ to test any Scheme code against a standard implementation.  This is not a substitute for testing, but it can be helpful for debugging or if you're unsure about the behavior of a Scheme language feature.
 

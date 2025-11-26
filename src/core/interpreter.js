@@ -1,3 +1,6 @@
+import { Closure } from '../data/values.js';
+import { Literal, TailApp } from '../syntax/ast.js';
+
 /**
  * The core Scheme interpreter.
  * Manages the top-level trampoline loop and register state.
@@ -54,7 +57,14 @@ export class Interpreter {
         if (fstack.length === 0) {
           // --- Fate #1: Normal Termination ---
           // Stack is empty, computation is done.
-          return registers[0]; // Return the value in 'ans'
+          let result = registers[0];
+
+          // BOUNDARY CHECK: If result is a Closure, wrap it in a Bridge
+          if (result instanceof Closure) {
+            return this.createJsBridge(result);
+          }
+
+          return result; // Return the value in 'ans'
         }
 
         // --- Fate #2: Restore a Frame ---
@@ -80,6 +90,24 @@ export class Interpreter {
         throw e;
       }
     }
+  }
+
+  createJsBridge(closure) {
+    return (...jsArgs) => {
+      // 1. Convert JS args to Scheme args (literals)
+      // We assume shared types (number, string, array) are passed as is.
+      // We wrap them in Literal nodes.
+      const argLiterals = jsArgs.map(val => new Literal(val));
+
+      // 2. Create the invocation AST
+      // (closure ...args)
+      const ast = new TailApp(new Literal(closure), argLiterals);
+
+      // 3. Spin up a NEW interpreter instance (or re-enter this one?)
+      // Re-entering 'this.run' is safe because it creates a new 'registers' array.
+      // We use the global environment as the base, but the closure has its own captured env.
+      return this.run(ast, this.globalEnv);
+    };
   }
 
   /**

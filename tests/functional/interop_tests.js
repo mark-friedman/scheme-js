@@ -22,6 +22,11 @@ export function runInteropTests(interpreter, logger) {
     // Test 1: JS stores k, then JS invokes k
     run(interpreter, `(set! final-result "interop-test-1")`);
 
+    // Define helper to invoke globalK from JS
+    interpreter.globalEnv.bindings.set('invoke-global-k', (val) => {
+        if (window.globalK) window.globalK(val);
+    });
+
     let result = run(interpreter, `
         (let ((val (+ 100 (call/cc (lambda (k)
                                     (begin
@@ -31,15 +36,19 @@ export function runInteropTests(interpreter, logger) {
     assert(logger, "JS Interop: Store k (initial run)", result, 105);
 
     logger.log("JS Interop: Invoking k from JS...", 'info');
-    run(interpreter, `(js-invoke-k-from-js 25)`);
+    run(interpreter, `(invoke-global-k 25)`);
 
     result = run(interpreter, `final-result`);
     assert(logger, "JS Interop: Result after JS invokes k", result, 125); // 100 + 25
 
     // Test 2: Capture k *inside* a JS-initiated callback
     run(interpreter, `(set! callback-k #f)`);
+
+    // Define helper to run callback
+    interpreter.globalEnv.bindings.set('invoke-callback', (cb) => cb());
+
     run(interpreter, `
-        (js-run-callback
+        (invoke-callback
          (lambda ()
            (let ((val (+ 1000 (call/cc (lambda (k)
                                          (begin
@@ -58,7 +67,7 @@ export function runInteropTests(interpreter, logger) {
     run(interpreter, `(set! final-result "tco-test-not-run")`);
     try {
         run(interpreter, `
-            (js-run-callback
+            (invoke-callback
              (lambda ()
                (set! final-result (loop 5000 0))))`);
 
@@ -73,10 +82,8 @@ export function runInteropTests(interpreter, logger) {
 
     if (interpreter.globalEnv) {
         // Add a throwing native function
-        interpreter.globalEnv.bindings.set('js-throw', new (interpreter.globalEnv.lookup('+').constructor)(
-            () => { throw new Error("Boom from JS"); },
-            interpreter
-        ));
+        // Add a throwing native function
+        interpreter.globalEnv.bindings.set('js-throw', () => { throw new Error("Boom from JS"); });
 
         try {
             run(interpreter, `(js-throw)`);
@@ -93,14 +100,12 @@ export function runInteropTests(interpreter, logger) {
 
     if (interpreter.globalEnv) {
         // Setup: Define js-apply
-        interpreter.globalEnv.bindings.set('js-apply', new (interpreter.globalEnv.lookup('+').constructor)(
-            (fn, ...args) => {
-                // fn is a Scheme Closure (or NativeJsFunction)
-                // We call it as a JS function (the wrapper handles the interpreter.run)
-                return fn(...args);
-            },
-            interpreter
-        ));
+        // Setup: Define js-apply
+        interpreter.globalEnv.bindings.set('js-apply', (fn, ...args) => {
+            // fn is a Scheme Closure (wrapped in a Bridge by AppFrame)
+            // We call it as a JS function
+            return fn(...args);
+        });
 
         // 1. Sync Round-trip
         // Scheme -> JS (js-apply) -> Scheme (lambda)
@@ -120,27 +125,23 @@ export function runInteropTests(interpreter, logger) {
 
         // 3. Ping-Pong Recursion (TCO check across boundaries? No, JS stack grows)
         // We just want to verify it works for small N.
-        interpreter.globalEnv.bindings.set('js-pong', new (interpreter.globalEnv.lookup('+').constructor)(
-            (n) => {
-                if (n === 0) return "pong-done";
-                // Call scheme-ping
-                const ping = interpreter.globalEnv.lookup('scheme-ping');
-                // We must invoke it via the wrapper
-                // Note: We can't easily look up the wrapper, but we can construct a call.
-                // Actually, 'ping' is a Closure. We can call it directly if we wrap it?
-                // No, NativeJsFunction.call wraps arguments.
-                // But here we are IN JS.
-                // We can use the same mechanism as js-apply: just call it?
-                // Wait, 'ping' is a Closure instance. It's not a JS function.
-                // We need to wrap it or use interpreter.run.
-                // The easiest way is to use the 'js-apply' logic:
-                // But we are inside the body of a NativeJsFunction.
-                // We can create a new run.
-                const ast = new TailApp(new Literal(ping), [new Literal(n - 1)]);
-                return interpreter.run(ast, interpreter.globalEnv);
-            },
-            interpreter
-        ));
+        interpreter.globalEnv.bindings.set('js-pong', (n) => {
+            if (n === 0) return "pong-done";
+            // Call scheme-ping
+            const ping = interpreter.globalEnv.lookup('scheme-ping');
+            // 'ping' is a Closure.
+            // Since we are in JS, we need to manually wrap it if we want to call it?
+            // OR, since we are in a JS function called by Scheme, 'ping' might be raw Closure.
+            // Wait, 'lookup' returns the raw value from the environment.
+            // The environment holds the Closure object.
+            // So 'ping' is a Closure.
+            // We must use interpreter.createJsBridge(ping) to call it!
+            // OR use interpreter.run directly.
+
+            // Using createJsBridge is cleaner:
+            const bridge = interpreter.createJsBridge(ping);
+            return bridge(n - 1);
+        });
 
         run(interpreter, `
       (set! scheme-ping (lambda (n)
@@ -152,6 +153,84 @@ export function runInteropTests(interpreter, logger) {
         result = run(interpreter, `(scheme-ping 10)`);
         assert(logger, "Interop: Ping-Pong (N=10)", result, "ping-done");
 
+    }
+
+    // --- Hybrid Interop Tests (Merged) ---
+    logger.title("Hybrid Interoperability Tests");
+
+    // 1. Scheme calling raw JS function (Scheme -> JS)
+    try {
+        let capturedArg = null;
+        const rawJsFunc = (arg) => {
+            capturedArg = arg;
+            return "called-raw";
+        };
+
+        interpreter.globalEnv.define('raw-js-func', rawJsFunc);
+
+        const result = run(interpreter, `
+            (raw-js-func "hello")
+        `);
+
+        assert(logger, "Transparent Scheme -> JS call", result, "called-raw");
+        assert(logger, "Argument passed correctly", capturedArg, "hello");
+
+    } catch (e) {
+        logger.fail(`Scheme -> JS failed: ${e.message}`);
+    }
+
+    // 2. JS calling Scheme closure (JS -> Scheme Bridge)
+    try {
+        // Define a Scheme function
+        run(interpreter, `
+            (define (scheme-add a b) (+ a b))
+        `);
+
+        // Get the function back to JS via interpreter.run (which applies the Bridge)
+        const schemeAdd = run(interpreter, `scheme-add`);
+
+        // In the NEW implementation, this should be a JS function (the Bridge),
+        // NOT a Closure instance.
+        assert(logger, "Scheme function is a JS function", typeof schemeAdd, 'function');
+
+        // Call it directly
+        const result = schemeAdd(10, 20);
+        assert(logger, "Bridge returns correct result", result, 30);
+
+    } catch (e) {
+        logger.fail(`JS -> Scheme failed: ${e.message}`);
+    }
+
+    // 3. Vectors as raw Arrays
+    try {
+        const rawArray = [10, 20, 30];
+        interpreter.globalEnv.define('my-vec', rawArray);
+
+        // Test vector-ref
+        const refResult = run(interpreter, `(vector-ref my-vec 1)`);
+        assert(logger, "vector-ref on raw array", refResult, 20);
+
+        // Test vector-length
+        const lenResult = run(interpreter, `(vector-length my-vec)`);
+        assert(logger, "vector-length on raw array", lenResult, 3);
+
+        // Test vector-set!
+        run(interpreter, `(vector-set! my-vec 0 99)`);
+        assert(logger, "vector-set! mutated raw array", rawArray[0], 99);
+
+    } catch (e) {
+        logger.fail(`Vector/Array interop failed: ${e.message}`);
+    }
+
+    // 4. Vector Literal as raw Array
+    try {
+        // This relies on the Reader/Analyzer producing a raw array for #(...)
+        const vec = run(interpreter, `#(1 2 3)`);
+        assert(logger, "Vector literal is Array", Array.isArray(vec), true);
+        assert(logger, "Vector literal content", vec[0], 1);
+
+    } catch (e) {
+        logger.fail(`Vector literal failed: ${e.message}`);
     }
 }
 

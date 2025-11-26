@@ -11,6 +11,7 @@ import { analyze } from '../src/syntax/analyzer.js';
 import { Cons } from '../src/data/cons.js';
 import { Symbol } from '../src/data/symbol.js';
 
+
 /**
  * Pretty-prints a Scheme value for the REPL.
  * @param {*} val - The value from the interpreter.
@@ -32,6 +33,7 @@ export function prettyPrint(val) {
     if (val instanceof Symbol) {
         return val.name;
     }
+
     if (val instanceof Cons) {
         return `(${prettyPrintList(val)})`;
     }
@@ -50,8 +52,7 @@ export function prettyPrint(val) {
         return `"${val.replace(/"/g, '\\"')}"`; // Show as string
     }
     if (Array.isArray(val)) {
-        // Fallback for arrays (should be Cons now)
-        return `'(${val.map(prettyPrint).join(' ')})`;
+        return `#(${val.map(prettyPrint).join(' ')})`;
     }
     // Numbers
     return `${val}`;

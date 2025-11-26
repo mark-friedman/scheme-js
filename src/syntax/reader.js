@@ -1,141 +1,143 @@
 import { Cons, cons, list } from '../data/cons.js';
-import { intern } from '../data/symbol.js';
+import { Symbol, intern } from '../data/symbol.js';
+
 
 /**
- * S-expression parser.
- * Reads text and produces Scheme data structures:
- * - Lists -> Cons chains (or null)
- * - Symbols -> Symbol objects
- * - Numbers -> JS numbers
- * - Strings -> JS strings
- * - Booleans -> JS booleans
+ * Parses a string of Scheme code into a list of S-expressions.
+ * @param {string} input
+ * @returns {Array} Array of S-expressions (Cons, Symbol, number, etc.)
  */
-class Reader {
-  /**
-   * Tokenizes the input string.
-   * @param {string} code
-   * @returns {Array<string>} List of tokens.
-   */
-  tokenize(code) {
-    // Added '.' to the regex to ensure it's captured if it's a standalone token
-    // Actually, [^()\s]+ captures '.' correctly.
-    const regex = /\s*([()]|"(?:[\\].|[^"\\])*"|,@|,|`|'|[^()\s]+)\s*/g;
-    const tokens = [];
-    let match;
-    while ((match = regex.exec(code)) !== null) {
-      tokens.push(match[1]);
-    }
-    return tokens;
+export function parse(input) {
+  const tokens = tokenize(input);
+  const expressions = [];
+  while (tokens.length > 0) {
+    expressions.push(readFromTokens(tokens));
   }
-
-  /**
-   * Reads an atom (number, bool, string, symbol) from a token.
-   * @param {string} token
-   * @returns {*}
-   */
-  readAtom(token) {
-    if (token.startsWith('"')) {
-      // It's a string
-      return token.substring(1, token.length - 1)
-        .replace(/\\"/g, '"')
-        .replace(/\\n/g, '\n')
-        .replace(/\\t/g, '\t')
-        .replace(/\\\\/g, '\\');
-    }
-    // Try to parse as a number
-    const num = parseFloat(token);
-    if (!isNaN(num) && num.toString() === token) {
-      return num;
-    }
-    // Check for booleans
-    if (token === '#t') { return true; }
-    if (token === '#f') { return false; }
-
-    // Note: 'null' is just a symbol in Scheme, evaluating to ().
-    // We treat it as a symbol here.
-
-    // Otherwise, it's a symbol
-    return intern(token);
-  }
-
-  /**
-   * Recursively reads S-expressions from a list of tokens.
-   * @param {Array<string>} tokens - Mutable list of tokens.
-   * @returns {*} A single S-expression.
-   */
-  readFromTokens(tokens) {
-    if (tokens.length === 0) {
-      throw new SyntaxError("Unexpected EOF");
-    }
-    const token = tokens.shift();
-
-    if (token === '(') {
-      return this.readList(tokens);
-    } else if (token === ')') {
-      throw new SyntaxError("Unexpected ')'");
-    } else if (token === '`') {
-      return list(intern('quasiquote'), this.readFromTokens(tokens));
-    } else if (token === ',') {
-      return list(intern('unquote'), this.readFromTokens(tokens));
-    } else if (token === ',@') {
-      return list(intern('unquote-splicing'), this.readFromTokens(tokens));
-    } else if (token === "'") {
-      return list(intern('quote'), this.readFromTokens(tokens));
-    } else {
-      return this.readAtom(token);
-    }
-  }
-
-  /**
-   * Reads a list (proper or improper) from tokens.
-   * Assumes the opening '(' has already been consumed.
-   * @param {Array<string>} tokens
-   * @returns {*} Cons chain or null.
-   */
-  readList(tokens) {
-    if (tokens.length === 0) {
-      throw new SyntaxError("Missing ')'");
-    }
-
-    if (tokens[0] === ')') {
-      tokens.shift(); // Consume ')'
-      return null; // Empty list
-    }
-
-    // Read first element
-    const first = this.readFromTokens(tokens);
-
-    // Check for dot notation: (a . b)
-    if (tokens[0] === '.') {
-      tokens.shift(); // Consume '.'
-      const second = this.readFromTokens(tokens);
-      if (tokens[0] !== ')') {
-        throw new SyntaxError("Expected ')' after dot notation");
-      }
-      tokens.shift(); // Consume ')'
-      return cons(first, second);
-    }
-
-    // Recursive read for the rest of the list
-    const rest = this.readList(tokens);
-    return cons(first, rest);
-  }
-
-  /**
-   * Parses a string of Scheme code into a list of S-expressions.
-   * @param {string} code
-   * @returns {Array<*>} A list of S-expressions.
-   */
-  parse(code) {
-    const tokens = this.tokenize(code);
-    const asts = [];
-    while (tokens.length > 0) {
-      asts.push(this.readFromTokens(tokens));
-    }
-    return asts;
-  }
+  return expressions;
 }
 
-// Export a singleton instance
-const reader = new Reader();
-export const parse = (code) => reader.parse(code);
+function tokenize(input) {
+  // Regex based tokenizer
+  // Matches:
+  // 1. #( - Vector start
+  // 2. ( or ) - List delimiters
+  // 3. ' ` ,@ , - Quote/Quasiquote
+  // 4. Strings
+  // 5. Comments
+  // 6. Atoms (anything else)
+  const regex = /\s*(#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|;.*|[^\s()]+)(.*)/s;
+
+  const tokens = [];
+  let current = input;
+
+  while (current.length > 0) {
+    const match = current.match(regex);
+    if (!match) break;
+
+    const token = match[1];
+    current = match[2]; // Rest of string
+
+    if (token.startsWith(';')) continue; // Skip comments
+    if (token.trim() === '') continue;   // Skip whitespace
+
+    tokens.push(token);
+  }
+  return tokens;
+}
+
+function readFromTokens(tokens) {
+  if (tokens.length === 0) {
+    throw new Error("Unexpected EOF");
+  }
+
+  const token = tokens.shift();
+
+  if (token === '(') {
+    return readList(tokens);
+  }
+  if (token === '#(') {
+    return readVector(tokens);
+  }
+  if (token === ')') {
+    throw new Error("Unexpected ')'");
+  }
+
+  // Quotes
+  if (token === "'") {
+    return list(intern('quote'), readFromTokens(tokens));
+  }
+  if (token === '`') {
+    return list(intern('quasiquote'), readFromTokens(tokens));
+  }
+  if (token === ',') {
+    return list(intern('unquote'), readFromTokens(tokens));
+  }
+  if (token === ',@') {
+    return list(intern('unquote-splicing'), readFromTokens(tokens));
+  }
+
+  return readAtom(token);
+}
+
+function readList(tokens) {
+  const listItems = [];
+  while (tokens[0] !== ')') {
+    if (tokens.length === 0) {
+      throw new Error("Missing ')'");
+    }
+    if (tokens[0] === '.') {
+      tokens.shift(); // consume '.'
+      const tail = readFromTokens(tokens);
+      if (tokens.shift() !== ')') {
+        throw new Error("Expected ')' after improper list tail");
+      }
+      // Build improper list
+      let result = tail;
+      for (let i = listItems.length - 1; i >= 0; i--) {
+        result = cons(listItems[i], result);
+      }
+      return result;
+    }
+    listItems.push(readFromTokens(tokens));
+  }
+  tokens.shift(); // consume ')'
+
+  // Build proper list
+  return list(...listItems);
+}
+
+function readVector(tokens) {
+  const elements = [];
+  while (tokens[0] !== ')') {
+    if (tokens.length === 0) {
+      throw new Error("Missing ')' for vector");
+    }
+    elements.push(readFromTokens(tokens));
+  }
+  tokens.shift(); // consume ')'
+  return elements; // Return raw JS array
+}
+
+function readAtom(token) {
+  // Numbers
+  const num = Number(token);
+  if (!isNaN(num)) {
+    return num;
+  }
+
+  // Booleans
+  if (token === '#t') return true;
+  if (token === '#f') return false;
+
+  // Strings
+  if (token.startsWith('"')) {
+    // Remove quotes and handle escapes
+    return token.slice(1, -1)
+      .replace(/\\n/g, '\n')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
+  }
+
+  // Symbols
+  return intern(token);
+}

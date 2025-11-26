@@ -1,4 +1,4 @@
-import { Closure, NativeJsFunction, Continuation } from '../data/values.js';
+import { Closure, Continuation } from '../data/values.js';
 
 // --- PART 1: Base Classes ---
 
@@ -233,8 +233,19 @@ export class AppFrame extends Executable {
                 return true; // Tail call
             }
 
-            if (func instanceof NativeJsFunction) {
-                registers[0] = func.call(args);
+            if (typeof func === 'function') {
+                // DIRECT JS INTEROP
+                // We assume 'func' is a raw JS function (like Math.max or console.log)
+                // We pass the raw values (numbers, strings, arrays) directly.
+                // BUT if an argument is a Closure or Continuation, we must wrap it in a Bridge!
+                const jsArgs = args.map(arg => {
+                    if (arg instanceof Closure || arg instanceof Continuation) {
+                        return interpreter.createJsBridge(arg);
+                    }
+                    return arg;
+                });
+
+                registers[0] = func(...jsArgs);
                 return false; // Halt (value return)
             }
 

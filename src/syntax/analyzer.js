@@ -10,12 +10,13 @@ import {
   TailApp,
   CallCC,
   Begin,
-  Define
+  Define // This was in the original, but removed in the provided snippet. Keeping it for now as other parts of the file might use it.
 } from './ast.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
-import { Cons, cons, list } from '../data/cons.js';
+import { Cons, cons, list, car, cdr, mapCons, toArray } from '../data/cons.js'; // Added car, cdr, mapCons, toArray from snippet
 import { Symbol, intern } from '../data/symbol.js';
+
 
 /**
  * Analyzes an S-expression and converts it to our AST object tree.
@@ -30,6 +31,9 @@ export function analyze(exp) {
   if (typeof exp === 'number' || typeof exp === 'string' || typeof exp === 'boolean' || exp === null) {
     return new Literal(exp);
   }
+  if (Array.isArray(exp)) {
+    return new Literal(exp); // Vectors (Arrays) are self-evaluating
+  }
   if (exp instanceof Executable) {
     return exp; // Already analyzed (e.g. from macro expansion)
   }
@@ -41,8 +45,8 @@ export function analyze(exp) {
     // Check for special forms
     if (tag instanceof Symbol) {
       // Macro Expansion
-      if (globalMacroRegistry.isMacro(tag.name)) {
-        const transformer = globalMacroRegistry.lookup(tag.name);
+      if (globalMacroRegistry.isMacro(tag.name)) { // Original logic
+        const transformer = globalMacroRegistry.lookup(tag.name); // Original logic
         const expanded = transformer(exp);
         return analyze(expanded);
       }
@@ -250,18 +254,8 @@ function analyzeDefineSyntax(exp) {
 
 // --- Helpers ---
 
-function mapCons(list, fn) {
-  const result = [];
-  let curr = list;
-  while (curr instanceof Cons) {
-    result.push(fn(curr.car));
-    curr = curr.cdr;
-  }
-  return result;
-}
+// mapCons, car, cdr are imported from ../data/cons.js
 
-function car(cons) { return cons.car; }
-function cdr(cons) { return cons.cdr; }
 function cadr(cons) { return cons.cdr.car; }
 function cddr(cons) { return cons.cdr.cdr; }
 function caddr(cons) { return cons.cdr.cdr.car; }

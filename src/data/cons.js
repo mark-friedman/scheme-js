@@ -58,3 +58,28 @@ export function list(...args) {
 // Circular dependency note: Symbol is needed for toString of improper lists if we want (a . b)
 // But we can just use a string "." for now or import Symbol if available.
 import { Symbol } from './symbol.js';
+
+export function car(pair) {
+    return pair === null ? null : pair.car;
+}
+
+export function cdr(pair) {
+    return pair === null ? null : pair.cdr;
+}
+
+export function toArray(list) {
+    if (list === null) return [];
+    if (list instanceof Cons) return list.toArray();
+    return [list]; // Treat atom as single element array? Or throw?
+    // For analyzer usage, it expects a list.
+}
+
+export function mapCons(list, fn) {
+    const result = [];
+    let curr = list;
+    while (curr instanceof Cons) {
+        result.push(fn(curr.car));
+        curr = curr.cdr;
+    }
+    return result;
+}

@@ -15,6 +15,7 @@ import { runMacroTests } from '../tests/functional/macro_tests.js';
 import { runSyntaxRulesTests } from '../tests/functional/syntax_rules_tests.js';
 import { runDataTests } from '../tests/unit/data_tests.js';
 import { runPrimitiveTests } from '../tests/unit/primitives_tests.js';
+import { runVectorTests } from '../tests/unit/vector_tests.js';
 
 // --- Main Entry Point ---
 
@@ -54,6 +55,7 @@ setupRepl(interpreter, globalEnv);
         // Run Unit Tests
         runDataTests(logger);
         runPrimitiveTests(logger);
+        runVectorTests(logger);
         runUnitTests(interpreter, logger);
 
         // Run Functional Tests
