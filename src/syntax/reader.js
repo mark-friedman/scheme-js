@@ -25,7 +25,7 @@ function tokenize(input) {
   // 4. Strings
   // 5. Comments
   // 6. Atoms (anything else)
-  const regex = /\s*(#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|;.*|[^\s()]+)(.*)/s;
+  const regex = /\s*(#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|;[^\n]*|[+-]?(?:nan|inf)\.0|[^\s()]+)(.*)/s;
 
   const tokens = [];
   let current = input;
@@ -124,6 +124,11 @@ function readAtom(token) {
   if (!isNaN(num)) {
     return num;
   }
+
+  // Special numbers
+  if (token === '+nan.0' || token === '-nan.0') return NaN;
+  if (token === '+inf.0') return Infinity;
+  if (token === '-inf.0') return -Infinity;
 
   // Booleans
   if (token === '#t') return true;

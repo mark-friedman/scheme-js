@@ -31,6 +31,10 @@ Before we can write macros comfortably, we need the ability to construct code te
 4. **Primitives:** Add car, cdr, cons, set-car\!, set-cdr\!, null?, pair? to the global environment.
 5. **Symbols:** Introduce a `Symbol` class and an `intern` mechanism to distinguish symbols from strings.
 6. **Vectors:** Add support for Scheme vectors (`#(1 2 3)`), mapping them to JS arrays.
+7. **Records (JS Objects)**: Implement define-record-type such that it creates a native JavaScript class.
+- Interop Goal: A Scheme record point with fields x, y becomes a JS class Point.
+- Scheme -> JS: (make-point 1 2) returns new Point(1, 2).
+- JS -> Scheme: JS code can access fields directly (p.x) and check types (p instanceof Point).
 
 ## **Outcome**
 

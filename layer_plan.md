@@ -27,7 +27,9 @@ These will be implemented in Scheme using the core forms:
 ### Summary of Work
 *   **Quasiquote & Quote:** Enable template construction.
 *   **Macro System:** Implement `define-syntax` and `syntax-rules`.
-*   **Core Data Structures:** Implement `Cons` cells, `Symbol`s, and `Vector`s.
+*   **Core Data Structures:** Implement `Cons` cells, `Symbol`s, `Vector`s and `Record`s.
+
+
 
 -----
 
@@ -93,14 +95,19 @@ Implement standard list processing procedures in Scheme:
 * Abstraction over `console.log` (output ports) and string/file input (input ports).
 * `read`, `display`, `write`, `newline`.
 
-### Phase 2: Records
+### Phase 2: Hygienic Macros
 
-* `define-record-type`. This is usually a macro that generates vectors or a specific JS object structure with predicate and accessor functions.
+*   The initial macro system is **non-hygienic** (similar to `defmacro` but with `syntax-rules` pattern matching).
+*   **Goal:** Implement a fully hygienic renaming mechanism (e.g., syntactic closures or explicit renaming) to ensure safety and full R7RS compliance.
 
-### Phase 3: Libraries
+### Phase 3: Records
 
-* `define-library`, `import`, `export`.
-* This adds a meta-layer above the standard environment lookup, managing sets of bindings.
+*   `define-record-type`. This is usually a macro that generates vectors or a specific JS object structure with predicate and accessor functions.
+
+### Phase 4: Libraries
+
+*   `define-library`, `import`, `export`.
+*   This adds a meta-layer above the standard environment lookup, managing sets of bindings.
 
 -----
 

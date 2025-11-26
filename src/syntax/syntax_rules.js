@@ -69,7 +69,7 @@ function matchPattern(pattern, input, literals) {
 
     // 3. Lists (Cons)
     if (pattern instanceof Cons) {
-        if (!(input instanceof Cons)) return null;
+        // if (!(input instanceof Cons)) return null; // Incorrect for (x ...) matching ()
 
         const bindings = new Map();
         let pCurr = pattern;
@@ -86,7 +86,12 @@ function matchPattern(pattern, input, literals) {
 
             if (isEllipsis) {
                 // Greedy match for the rest of the input (tail ellipsis)
-                // TODO: Support non-tail ellipsis
+
+                // Initialize bindings for all vars in patItem to []
+                const varsInPat = collectPatternVars(patItem, literals);
+                for (const v of varsInPat) {
+                    bindings.set(v, []);
+                }
 
                 // Collect all matches
                 while (iCurr instanceof Cons) {
@@ -200,23 +205,24 @@ function transcribe(template, bindings) {
             // Find pattern variables used in the repeating item
             const varsInItem = getPatternVars(item, bindings);
 
-            if (varsInItem.length === 0) {
-                // If no vars, maybe it's a literal repetition? 
-                // Standard says "the pattern variable that occurs in the ellipsis template..."
-                // If none, it's an error or just repeats once? 
-                // Usually error or requires at least one var.
-                throw new Error("Ellipsis template must contain at least one pattern variable");
+            // Separate into list bindings (ellipsis) and scalar bindings
+            const listVars = varsInItem.filter(v => Array.isArray(bindings.get(v)));
+
+            if (listVars.length === 0) {
+                // If no list vars, it might be a literal repetition or error.
+                // For now, we require at least one list var to determine length.
+                // (Or we could support literal repetition if we knew the length from somewhere else?)
+                // But standard syntax-rules usually implies repetition is driven by pattern vars.
+                // If there are NO list vars, we can't determine how many times to repeat.
+                // Unless we allow 0 times? Or infinite?
+                // Let's assume it's an error for now if no driving variables are present.
+                // BUT wait, what if the template is just (literal ...)?
+                // That's usually invalid unless there's a pattern var.
+                throw new Error("Ellipsis template must contain at least one pattern variable bound to a list");
             }
 
-            // Check lengths
-            const lengths = varsInItem.map(v => {
-                const val = bindings.get(v);
-                if (!Array.isArray(val)) {
-                    throw new Error(`Variable '${v}' used in ellipsis but not bound to a list`);
-                }
-                return val.length;
-            });
-
+            // Check lengths of list vars
+            const lengths = listVars.map(v => bindings.get(v).length);
             const len = lengths[0];
             if (!lengths.every(l => l === len)) {
                 throw new Error("Ellipsis expansion: variable lengths do not match");
@@ -228,9 +234,11 @@ function transcribe(template, bindings) {
             for (let i = len - 1; i >= 0; i--) {
                 // Create a view of bindings for the i-th iteration
                 const subBindings = new Map(bindings);
-                for (const v of varsInItem) {
+                for (const v of listVars) {
                     subBindings.set(v, bindings.get(v)[i]);
                 }
+                // Scalar vars remain as is in subBindings (inherited from bindings)
+
                 const expandedItem = transcribe(item, subBindings);
                 expandedList = new Cons(expandedItem, expandedList);
             }
@@ -268,4 +276,26 @@ function getPatternVars(template, bindings) {
     }
     traverse(template);
     return Array.from(vars);
+}
+
+/**
+ * Collects all pattern variables in a pattern.
+ * @param {*} pattern 
+ * @param {Set<string>} literals 
+ * @returns {Set<string>}
+ */
+function collectPatternVars(pattern, literals) {
+    const vars = new Set();
+    function traverse(node) {
+        if (node instanceof Symbol) {
+            if (node.name === '_') return;
+            if (literals.has(node.name)) return;
+            vars.add(node.name);
+        } else if (node instanceof Cons) {
+            traverse(node.car);
+            traverse(node.cdr);
+        }
+    }
+    traverse(pattern);
+    return vars;
 }
