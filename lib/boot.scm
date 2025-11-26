@@ -92,3 +92,5 @@
                 ; If we wrapped them, we'd need more. But our reader produces primitive strings.
                 ; Wait, JS strings are value types, so === works.
     (else #f)))
+
+(define (native-report-test-result . args) #f)

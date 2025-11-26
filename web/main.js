@@ -15,6 +15,7 @@ import { runMacroTests } from '../tests/functional/macro_tests.js';
 import { runSyntaxRulesTests } from '../tests/functional/syntax_rules_tests.js';
 import { runDataTests } from '../tests/unit/data_tests.js';
 import { runPrimitiveTests } from '../tests/unit/primitives_tests.js';
+import { runSchemeTests } from '../tests/run_scheme_tests.js';
 
 // --- Main Entry Point ---
 
@@ -63,7 +64,27 @@ setupRepl(interpreter, globalEnv);
         runQuasiquoteTests(interpreter, logger);
         runQuoteTests(interpreter, logger);
         await runMacroTests(interpreter, logger);
+        await runMacroTests(interpreter, logger);
         await runSyntaxRulesTests(interpreter, logger);
+
+        // Run Scheme Tests
+        const browserFileLoader = async (relativePath) => {
+            // relativePath is like 'lib/boot.scm' or 'tests/scheme/foo.scm'
+            // We need to fetch from the root.
+            // Assuming web/index.html is served from root or we can access root.
+            // If served from root, then just fetch(relativePath).
+            const response = await fetch('../' + relativePath);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${relativePath}: ${response.statusText}`);
+            }
+            return response.text();
+        };
+
+        await runSchemeTests(interpreter, logger, [
+            'primitive_tests.scm',
+            'test_harness_tests.scm',
+            'record_tests.scm'
+        ], browserFileLoader);
 
         logger.title('All Tests Complete.');
     } catch (e) {

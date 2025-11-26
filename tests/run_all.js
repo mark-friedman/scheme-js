@@ -41,11 +41,19 @@ async function runAll() {
         await runMacroTests(interpreter, logger);
         await runSyntaxRulesTests(interpreter, logger);
 
+        // Define Node.js file loader
+        const fs = await import('fs');
+        const path = await import('path');
+        const nodeFileLoader = async (relativePath) => {
+            const filePath = path.join(process.cwd(), relativePath);
+            return fs.readFileSync(filePath, 'utf8');
+        };
+
         await runSchemeTests(interpreter, logger, [
             'primitive_tests.scm',
             'test_harness_tests.scm',
             'record_tests.scm'
-        ]);
+        ], nodeFileLoader);
         logger.title('All Tests Complete.');
     } catch (e) {
         logger.fail(`Functional test suite crashed: ${e.message}`);
