@@ -142,3 +142,67 @@ All tests passed with exit code 0.
 === All Tests Complete. ===
 Exit code: 0
 ```
+
+# Walkthrough: Define Special Form & Test Refactoring
+
+I have implemented the `define` special form and refactored the test suite into a modular structure.
+
+## Changes
+
+### 1. Define Special Form
+- Implemented `define` in `src/syntax/analyzer.js` to support:
+  - Variable definition: `(define x 10)`
+  - Function definition shorthand: `(define (f x) (+ x 1))`
+- Updated `Environment` to support `define` (binding in the current scope).
+- Added `tests/functional/define_tests.js` to verify definition logic, including nested defines and re-definition.
+
+### 2. Test Suite Refactoring
+- Split the monolithic `tests.js` into modular files in `tests/functional/` and `tests/unit/`.
+- Created `tests/tests.js` as the main entry point that aggregates all test modules.
+- Updated `run_tests_node.js` to use the new test runner.
+
+### 3. Project Updates
+- Bumped version to `0.1.0` in `package.json`.
+- Updated `task.md` and `layer_plan.md` to reflect the completion of initial Layer 1 goals and the addition of **Records** to the plan.
+
+## Verification Results
+
+Ran all tests using `node run_tests_node.js`.
+
+```
+=== All Tests Complete. ===
+Exit code: 0
+```
+
+# Walkthrough - Scheme Documentation Updates
+
+I have added JSDoc-style comments to the core Scheme library files and test files, as requested.
+
+## Changes
+
+### Library Documentation
+
+#### [lib/boot.scm](file:///Users/mark/code/scheme-js-4/lib/boot.scm)
+Added JSDoc-style comments to:
+- `and`, `let`, `letrec`, `cond`, `define-record-field`, `define-record-type` (macros)
+- `equal?`, `native-report-test-result` (functions)
+
+#### [lib/test.scm](file:///Users/mark/code/scheme-js-4/lib/test.scm)
+Added JSDoc-style comments to:
+- `*test-failures*`, `*test-passes*` (variables)
+- `test-report`, `report-test-result`, `assert-equal` (functions)
+- `test`, `test-group` (macros)
+
+### Test Documentation
+
+#### [tests/scheme/record_tests.scm](file:///Users/mark/code/scheme-js-4/tests/scheme/record_tests.scm)
+- Added documentation to `Point` and `Rect` record type definitions.
+
+## Verification Results
+
+### Automated Tests
+Ran `node run_tests_node.js` to ensure no syntax errors were introduced.
+
+```
+ALL TESTS PASSED
+```

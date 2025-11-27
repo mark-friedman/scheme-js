@@ -26,8 +26,7 @@
 - **Internal Documentation**: Document logic inside JavaScript and Scheme functions and procedures using comment syntax appropriate for the language.
 - **Code Sections**: Document the start of associated collections of functions and procedures using comment syntax appropriate for the language.
 - **Directory Structure**: Generally, follow the directory structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
-- **Walkthroughs**: Document the changes you make by appending them to `walkthrough.md`.
+- **CHANGES.md**: Document the changes you make by appending your Walkthrough files to `CHANGES.md`.
 
 ## Tools
 - **Scheme Conformance**: You can use the website at https://try.scheme.org/ to test any Scheme code against a standard implementation.  This is not a substitute for testing, but it can be helpful for debugging or if you're unsure about the behavior of a Scheme language feature.
-
