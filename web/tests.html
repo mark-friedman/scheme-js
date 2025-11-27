@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheme Interpreter Tests</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .log-item {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .log-info {
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .log-pass {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .log-fail {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .log-title {
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            color: #4b5563;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-900 antialiased">
+
+    <div class="container mx-auto max-w-4xl p-4 md:p-8">
+        <header class="mb-8 p-6 bg-white rounded-lg shadow flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Test Suite</h1>
+                <p class="mt-2 text-gray-600">
+                    Running all Unit, Functional, and Scheme tests.
+                </p>
+            </div>
+            <a href="index.html" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                Back to REPL
+            </a>
+        </header>
+
+        <section class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-4">Results</h2>
+            <div id="test-output" class="p-4 bg-gray-50 rounded-lg">
+                <!-- Test results will be injected here -->
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="./test_runner.js"></script>
+
+</body>
+
+</html>
