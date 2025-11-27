@@ -1,3 +1,8 @@
+;; /**
+;;  * Point record type for testing.
+;;  * @field x
+;;  * @field y
+;;  */
 (define-record-type Point
   (make-point x y)
   point?
@@ -32,6 +37,11 @@
     (test "equal? same instance" #t (equal? p2 p4))
     (test "equal? different instances" #f (equal? p2 p3))
 
+    ;; /**
+    ;;  * Rectangle record type for testing nested equality.
+    ;;  * @field p1 - Top-left point.
+    ;;  * @field p2 - Bottom-right point.
+    ;;  */
     (define-record-type Rect
       (make-rect p1 p2)
       rect?
