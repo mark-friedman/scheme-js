@@ -16,12 +16,12 @@ This structure mirrors the "Layers" plan we defined:
 │   │   ├── reader.js         # Parsing text into S-expressions
 │   │   ├── analyzer.js       # Transforming S-exps into AST nodes
 │   │   ├── ast.js            # AST Node class definitions
-│   │   └── expander.js       # (Future) Macro expansion logic
+│   │   └── expander.js       # Macro expansion logic
 │   │
 │   ├── data/                 # Scheme Data Types (Layer 1: Phase 3)
 │   │   ├── values.js         # Base types (Closure, SchemeValue)
-│   │   ├── cons.js           # (Future) Pair/List implementation
-│   │   └── symbol.js         # (Future) Symbol implementation
+│   │   ├── cons.js           # Pair/List implementation
+│   │   └── symbol.js         # Symbol implementation
 │   │
 │   └── primitives/           # Native JS Implementations (Layers 1, 3, 4)
 │       ├── index.js          # Loader for global environment

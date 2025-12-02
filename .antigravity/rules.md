@@ -19,6 +19,9 @@
 - **Formatting**: Use 2 spaces for indentation.
 - **Exports**: Export functions and classes clearly.
 
+## Code Organization
+- **Directory and File Structure**: Follow the directory and file structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
+
 ## Documentation
 - **Plans**: Update `layer_plan.md` when implementing new layers or significant features.
 - **JSDoc**: Document all JavaScript functions with JSDoc.
@@ -29,4 +32,6 @@
 - **CHANGES.md**: Document the changes you make by appending your Walkthrough files to `CHANGES.md`.
 
 ## Tools
-- **Scheme Conformance**: You can use the website at https://try.scheme.org/ to test any Scheme code against a standard implementation.  This is not a substitute for testing, but it can be helpful for debugging or if you're unsure about the behavior of a Scheme language feature.
+### Scheme Conformance
+- **Execution Based Conformance**: You can use the website at https://try.scheme.org/ to execute any Scheme code on a standard implementation.  This is not a substitute for testing, but it can be helpful for debugging or if you're unsure about the behavior of a Scheme language feature.
+- **Standard Documentation Based Conformance**: The R7RS-small standard is available in `docs/r7rs-small.pdf`.  It is the primary reference for Scheme language features and behavior.
