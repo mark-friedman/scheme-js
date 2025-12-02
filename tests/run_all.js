@@ -56,7 +56,7 @@ async function runAll() {
         ], nodeFileLoader);
         logger.title('All Tests Complete.');
     } catch (e) {
-        logger.fail(`Functional test suite crashed: ${e.message}`);
+        logger.fail(`Functional test suite failed: ${e.message}`);
     }
 }
 
