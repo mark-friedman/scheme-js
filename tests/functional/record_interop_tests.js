@@ -1,6 +1,6 @@
 import { assert, run } from '../helpers.js';
 
-export async function runRecordInteropTests(interpreter, logger) {
+export async function runRecordInteropTests(interpreter, logger, fileLoader) {
     logger.title('Running Record Interop Tests...');
 
     // 0. Reader Test: Dotted List
@@ -75,16 +75,19 @@ export async function runRecordInteropTests(interpreter, logger) {
     // 7. Macro: define-record-type
     try {
         // Load boot.scm to get the macro definition
-        // Load boot.scm to get the macro definition
-        // In a real app, this is done at startup.
-        // We need to read the file content.
-        if (typeof process !== 'undefined') {
+        if (fileLoader) {
+            const bootCode = await fileLoader('src/layer-1-kernel/scheme/boot.scm');
+            run(interpreter, bootCode);
+        } else if (typeof process !== 'undefined') {
+            // Fallback for direct node execution (if any)
             const fs = await import('fs');
             const path = await import('path');
-            const bootPath = path.join(process.cwd(), 'lib', 'boot.scm');
+            const bootPath = path.join(process.cwd(), 'src', 'layer-1-kernel', 'scheme', 'boot.scm');
             const bootCode = fs.readFileSync(bootPath, 'utf8');
-            // The run helper automatically wraps multiple expressions in a 'begin' block
             run(interpreter, bootCode);
+        } else {
+            logger.fail("Cannot load boot.scm: No file loader provided");
+            return;
         }
 
         run(interpreter, `

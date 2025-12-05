@@ -1,6 +1,6 @@
-import { listPrimitives } from '../../src/primitives/list.js';
-import { vectorPrimitives } from '../../src/primitives/vector.js';
-import { Cons, cons, list } from '../../src/data/cons.js';
+import { listPrimitives } from '../../src/layer-1-kernel/primitives/list.js';
+import { vectorPrimitives } from '../../src/layer-1-kernel/primitives/vector.js';
+import { Cons, cons, list } from '../../src/layer-1-kernel/cons.js';
 import { assert } from '../helpers.js';
 
 export function runPrimitiveTests(logger) {

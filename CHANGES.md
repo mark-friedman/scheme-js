@@ -206,3 +206,57 @@ Ran `node run_tests_node.js` to ensure no syntax errors were introduced.
 ```
 ALL TESTS PASSED
 ```
+
+# Walkthrough: Layered Architecture Refactor & Browser Test Fixes
+
+I have successfully refactored the codebase into a strict layered architecture and ensured all tests, including browser-based ones, are functioning correctly.
+
+## Changes
+
+### 1. Directory Structure
+The `src/` directory is now organized into layers:
+- `src/layer-1-kernel/`: Contains the core interpreter, AST, primitives, and Scheme boot code.
+- `src/layer-2-syntax/`: (Future) For macro expansion.
+- `src/layer-3-data/`: (Future) For complex data structures.
+- `src/layer-4-stdlib/`: (Future) For the standard library.
+
+### 2. Kernel Setup (Layer 1)
+- Moved `interpreter.js`, `ast.js`, `reader.js`, `analyzer.js`, `environment.js` to `src/layer-1-kernel/`.
+- Moved `primitives/` to `src/layer-1-kernel/primitives/`.
+- Created `src/layer-1-kernel/index.js` as the factory function `createLayer1()`.
+- Created `src/layer-1-kernel/library.js` for future library support.
+- Moved `lib/boot.scm` to `src/layer-1-kernel/scheme/boot.scm`.
+
+### 3. Test Infrastructure
+- Created `tests/runner.js`: A universal test runner that can target specific layers.
+- Created `tests/layer-1/tests.js`: The test suite for Layer 1.
+- Updated all existing tests (`unit`, `functional`) to import from the new `layer-1-kernel` location.
+- Moved `lib/test.scm` to `tests/scheme/test.scm`.
+- Verified tests pass with `node tests/runner.js 1`.
+
+### 4. Web UI & Browser Tests
+- Updated `web/main.js` to use `createLayer1()` to instantiate the interpreter.
+- Fixed `web/test_runner.js` to correctly invoke the Layer 1 test suite.
+- Updated `tests/layer-1/tests.js` to support custom file loaders and loggers, enabling browser compatibility.
+- Fixed `tests/functional/record_interop_tests.js` to use the platform-agnostic file loader for `boot.scm`.
+
+### 5. Scheme Test Output Improvement
+- Modified `tests/scheme/test.scm` to suppress verbose output and return boolean results.
+- Updated `tests/run_scheme_tests.js` to format pass messages with "(Expected: ..., Got: ...)" for consistency with JS tests.
+
+### 6. Boot Library Tests
+- Added `tests/scheme/boot_tests.scm` to test `src/layer-1-kernel/scheme/boot.scm`.
+- Verified coverage for `and`, `let`, `letrec`, `cond`, and `equal?`.
+
+## Verification Results
+
+### Automated Tests
+Ran `node tests/runner.js 1`:
+- **Unit Tests**: Passed.
+- **Functional Tests**: Passed (including TCO, Call/CC, Async, Interop).
+- **Syntax Rules Tests**: Passed.
+- **Scheme Tests**: Passed (`primitive_tests.scm`, `record_tests.scm`, `boot_tests.scm`). Output format improved to match JS tests.
+
+### Manual Verification
+- The directory structure is clean and documented.
+- `README.md` is updated.

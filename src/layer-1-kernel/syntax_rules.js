@@ -1,5 +1,5 @@
-import { Cons, cons, list } from '../data/cons.js';
-import { Symbol } from '../data/symbol.js';
+import { Cons, cons, list } from './cons.js';
+import { Symbol } from './symbol.js';
 
 /**
  * Compiles a syntax-rules specification into a transformer function.

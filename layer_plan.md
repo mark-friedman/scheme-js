@@ -33,11 +33,18 @@ These will be implemented in Scheme using the core forms:
 
 -----
 
-## Layer 2: The Standard Library (Scheme-on-Scheme)
+### Layer 1: The Syntactic Foundation (Macros & Core Data)
 
-**Goal:** Implement the bulk of R7RS procedures using Scheme code defined in a "prelude" or "boot" file. This layer leverages the macro system from Layer 1.
+**Goal:** Enable the implementation of derived forms and richer data structures without touching the core interpreter loop.
 
-### Phase 1: Derived Forms
+**Key Components:**
+*   **Macro System:** `syntax-rules` implementation.
+*   **Core Data:** `Cons`, `Symbol`, `Vector`, `Record`.
+*   **Boot Code:** `src/layer-1-kernel/scheme/boot.scm` (contains `and`, `let`, `cond`, etc.).
+
+### Layer 2: The Standard Library (Scheme-on-Scheme)
+
+**Goal:** Implement the bulk of R7RS procedures using Scheme code.
 
 Implement standard special forms as macros:
 

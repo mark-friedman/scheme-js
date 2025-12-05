@@ -21,6 +21,7 @@
 
 ## Code Organization
 - **Directory and File Structure**: Follow the directory and file structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
+- **Layering**: Follow the layering outlined in `layer_plan.md`.  If you need to deviate from this structure or add to it, update `layer_plan.md` to reflect the change.
 
 ## Documentation
 - **Plans**: Update `layer_plan.md` when implementing new layers or significant features.

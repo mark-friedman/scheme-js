@@ -1,15 +1,15 @@
-import { Closure, Continuation } from '../src/data/values.js';
-import { Variable, Literal } from '../src/syntax/ast.js';
-import { parse } from '../src/syntax/reader.js';
-import { analyze } from '../src/syntax/analyzer.js';
+import { Closure, Continuation } from '../src/layer-1-kernel/values.js';
+import { Variable, Literal } from '../src/layer-1-kernel/ast.js';
+import { parse } from '../src/layer-1-kernel/reader.js';
+import { analyze } from '../src/layer-1-kernel/analyzer.js';
 
 /**
  * Pretty-prints a Scheme value for the REPL.
  * @param {*} val - The value from the interpreter.
  * @returns {string}
  */
-import { Cons } from '../src/data/cons.js';
-import { Symbol } from '../src/data/symbol.js';
+import { Cons } from '../src/layer-1-kernel/cons.js';
+import { Symbol } from '../src/layer-1-kernel/symbol.js';
 
 
 /**

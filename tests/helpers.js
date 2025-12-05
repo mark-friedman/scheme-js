@@ -1,11 +1,11 @@
-import { parse } from '../src/syntax/reader.js';
-import { analyze } from '../src/syntax/analyzer.js';
-import { Variable, Literal } from '../src/syntax/ast.js';
-import { Environment } from '../src/core/environment.js';
-import { createGlobalEnvironment } from '../src/primitives/index.js';
-import { Interpreter } from '../src/core/interpreter.js';
-import { Cons, list } from '../src/data/cons.js';
-import { intern } from '../src/data/symbol.js';
+import { parse } from '../src/layer-1-kernel/reader.js';
+import { analyze } from '../src/layer-1-kernel/analyzer.js';
+import { Variable, Literal } from '../src/layer-1-kernel/ast.js';
+import { Environment } from '../src/layer-1-kernel/environment.js';
+import { createGlobalEnvironment } from '../src/layer-1-kernel/primitives/index.js';
+import { Interpreter } from '../src/layer-1-kernel/interpreter.js';
+import { Cons, list } from '../src/layer-1-kernel/cons.js';
+import { intern } from '../src/layer-1-kernel/symbol.js';
 
 /**
  * Helper to run code from strings.

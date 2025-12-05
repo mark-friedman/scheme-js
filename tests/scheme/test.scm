@@ -18,16 +18,9 @@
 ;;  * @returns {boolean} #t if all tests passed, #f otherwise.
 ;;  */
 (define (test-report)
-  (display "Test Report:") (newline)
-  (display "  Passes: ") (display *test-passes*) (newline)
-  (display "  Failures: ") (display *test-failures*) (newline)
   (if (> *test-failures* 0)
-      (begin
-        (display "SOME TESTS FAILED") (newline)
-        #f)
-      (begin
-        (display "ALL TESTS PASSED") (newline)
-        #t)))
+      #f
+      #t))
 
 ;; /**
 ;;  * Internal helper to report a single test result.
@@ -40,16 +33,10 @@
 ;;  */
 (define (report-test-result name passed expected actual)
   (if passed
-      (begin
-        (set! *test-passes* (+ *test-passes* 1))
-        (display "✅ PASS: ") (display name) (newline))
-      (begin
-        (set! *test-failures* (+ *test-failures* 1))
-        (display "❌ FAIL: ") (display name) (newline)
-        (display "   Expected: ") (display expected) (newline)
-        (display "   Got:      ") (display actual) (newline)))
+      (set! *test-passes* (+ *test-passes* 1))
+      (set! *test-failures* (+ *test-failures* 1)))
   ;; Call native reporter (always defined in boot.scm)
-  (native-report-test-result name passed (if passed "" expected) (if passed "" actual)))
+  (native-report-test-result name passed expected actual))
 
 ;; /**
 ;;  * Asserts that two values are equal.
@@ -88,6 +75,7 @@
   (syntax-rules ()
     ((test-group name body ...)
      (begin
-       (display "=== ") (display name) (display " ===") (newline)
+       ;; (display "=== ") (display name) (display " ===") (newline)
        body ...
-       (newline)))))
+       ;; (newline)
+       ))))

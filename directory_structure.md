@@ -1,52 +1,60 @@
-To make the layering clear to future developers, I recommend organizing your source code into a directory structure that strictly separates the **"Kernel"** (the JavaScript machinery), the **"Syntax"** (parsing/macros), the **"Data"** (Scheme types), and the **"Library"** (Scheme code running on the interpreter).
+# Directory Structure
 
-This structure mirrors the "Layers" plan we defined:
+To ensure strict separation of concerns and enable incremental testing, the source code is organized into numbered layers.
 
-### Recommended Directory Structure
+### Layered Directory Structure
 
 ```text
 /
 ├── src/
-│   ├── core/                 # The Execution Engine (Layer 0/3)
-│   │   ├── interpreter.js    # The trampoline and main run loop
-│   │   ├── environment.js    # Lexical scope handling
-│   │   └── continuation.js   # Continuation/Frame stack logic
+│   ├── layer-1-kernel/         # THE KERNEL
+│   │   ├── index.js            # EXPORT: createLayer1()
+│   │   ├── interpreter.js      # The core trampoline loop
+│   │   ├── ast.js              # Base AST nodes
+│   │   ├── library.js          # The "Micro-Library" registry
+│   │   └── primitives/         # Base JS natives (+, display, etc.)
+│   ├── layer-1-kernel/       # Layer 1: Syntactic Foundation & Core Data
+│   │   ├── scheme/           # Scheme boot code
+│   │   │   └── boot.scm      # Core macros (and, let, cond)
+│   │   ├── primitives/       # JS implementations of primitives
+│   │   ├── syntax/           # Reader, Analyzer, Macro Expander
+│   │   ├── data/             # Cons, Symbol, Vector, Record classes
+│   │   ├── ast.js            # AST Node definitions
+│   │   ├── environment.js    # Environment class
+│   │   ├── interpreter.js    # Core Interpreter Loop
+│   │   └── index.js          # Layer 1 Factory
 │   │
-│   ├── syntax/               # The Frontend (Layer 1: Phases 1 & 2)
-│   │   ├── reader.js         # Parsing text into S-expressions
-│   │   ├── analyzer.js       # Transforming S-exps into AST nodes
-│   │   ├── ast.js            # AST Node class definitions
-│   │   └── expander.js       # Macro expansion logic
+│   ├── layer-2-syntax/         # SYNTACTIC ABSTRACTION
+│   │   ├── index.js            # EXPORT: createLayer2()
+│   │   ├── expander.js         # JS logic for syntax-rules
+│   │   └── syntax.scm          # (define-library (scheme syntax) ...)
 │   │
-│   ├── data/                 # Scheme Data Types (Layer 1: Phase 3)
-│   │   ├── values.js         # Base types (Closure, SchemeValue)
-│   │   ├── cons.js           # Pair/List implementation
-│   │   └── symbol.js         # Symbol implementation
+│   ├── layer-3-data/           # DATA STRUCTURES
+│   │   ├── index.js            # EXPORT: createLayer3()
+│   │   ├── cons.js             # JS class for Pairs
+│   │   ├── symbol.js           # JS class for Interned Symbols
+│   │   └── data.scm            # (define-library (scheme data) ...)
 │   │
-│   └── primitives/           # Native JS Implementations (Layers 1, 3, 4)
-│       ├── index.js          # Loader for global environment
-│       ├── math.js           # +, -, *, etc.
-│       ├── io.js             # display, newline
-│       └── async.js          # JS interoperability functions
+│   └── layer-4-stdlib/         # STANDARD LIBRARY
+│       ├── index.js            # EXPORT: createLayer4()
+│       └── base.scm            # (define-library (scheme base) ...)
 │
-├── lib/                      # Scheme-on-Scheme Library (Layer 2)
-│   ├── boot.scm              # Bootstrapping code (loaded at startup)
-│   └── stdlib.scm            # Standard library (map, cond, etc.)
+├── tests/
+│   ├── runner.js               # Universal Test Runner
+│   ├── layer-1/                # Tests for Kernel only
+│   ├── layer-2/                # Tests for Macros
+│   └── layer-3/                # Tests for Cons/Lists
 │
-├── web/                      # Platform specific (Browser/UI)
-│   ├── main.js               # Entry point connecting components
-│   ├── repl.js               # REPL UI logic
-│   └── index.html            # The HTML container
-│
-└── tests/
-    ├── unit/                 # JS-level unit tests
-    └── functional/           # Scheme code integration tests
+└── web/
+    ├── index.html
+    └── main.js                 # UI Entry point (targets latest layer)
 ```
 
-### Why this allows for clear layering:
+### Key Principles
 
-1.  **Explicit Syntax Pipeline (`src/syntax/`)**: This is where **Layer 1 (Macros)** lives. By isolating `reader` and `analyzer` here, you create a clear home for the future `expander.js` and pattern matching logic without cluttering the core interpreter.
-2.  **Data Type Isolation (`src/data/`)**: **Layer 1 (Phase 3)** calls for `Cons` cells and `Symbols`. Putting them in their own folder allows you to develop the "Tower of Types" independently of how they are executed.
-3.  **The Library Separation (`lib/`)**: This is the physical manifestation of **Layer 2**. It makes it obvious to a developer: "If you can implement it in Scheme, put it in `lib/`. If you *must* use JavaScript, put it in `src/primitives/`."
-4.  **Core Stability (`src/core/`)**: The `interpreter.js` should ideally change very little. Segregating it protects the delicate trampoline logic from feature creep in the standard library.
-
+1.  **Strict Dependency Flow**: Higher numbered layers depend on lower numbered layers. Layer 1 knows nothing about Layer 2.
+2.  **Factory Pattern**: Each layer exports a `createLayerN()` function that builds upon the previous layer.
+3.  **Isolated Testing**: The `tests/runner.js` can target a specific layer (e.g., `node tests/runner.js 1`) to verify it in isolation.
+4.  **Library Separation**:
+    *   **JS Primitives**: Go in `src/layer-N/primitives/` or `src/layer-N/filename.js`.
+    *   **Scheme Libraries**: Go in `src/layer-N/filename.scm` and use `(define-library ...)`.

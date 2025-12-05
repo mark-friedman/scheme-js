@@ -1,5 +1,5 @@
-import { Closure } from '../data/values.js';
-import { Literal, TailApp } from '../syntax/ast.js';
+import { Closure } from './values.js';
+import { Literal, TailApp } from './ast.js';
 
 /**
  * The core Scheme interpreter.

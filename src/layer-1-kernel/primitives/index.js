@@ -1,4 +1,4 @@
-import { Environment } from '../core/environment.js';
+import { Environment } from '../environment.js';
 
 import { mathPrimitives } from './math.js';
 import { ioPrimitives } from './io.js';

@@ -1,5 +1,5 @@
 
-import { Cons, list, toArray } from '../data/cons.js';
+import { Cons, list, toArray } from '../cons.js';
 
 export const vectorPrimitives = {
     'vector': (...args) => args,

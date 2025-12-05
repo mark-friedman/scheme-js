@@ -1,18 +1,5 @@
-import { Environment } from '../src/core/environment.js';
-import { createGlobalEnvironment } from '../src/primitives/index.js';
-import { Interpreter } from '../src/core/interpreter.js';
-
-// Import test runners
-import { runUnitTests } from '../tests/unit/unit_tests.js';
-import { runFunctionalTests } from '../tests/functional/functional_tests.js';
-import { runInteropTests } from '../tests/functional/interop_tests.js';
-import { runQuasiquoteTests } from '../tests/functional/quasiquote_tests.js';
-import { runQuoteTests } from '../tests/functional/quote_tests.js';
-import { runMacroTests } from '../tests/functional/macro_tests.js';
-import { runSyntaxRulesTests } from '../tests/functional/syntax_rules_tests.js';
-import { runDataTests } from '../tests/unit/data_tests.js';
-import { runPrimitiveTests } from '../tests/unit/primitives_tests.js';
-import { runSchemeTests } from '../tests/run_scheme_tests.js';
+import { createLayer1 } from '../src/layer-1-kernel/index.js';
+import { run } from '../tests/layer-1/tests.js';
 
 // Simple logger to write to the page
 const outputEl = document.getElementById('test-output');
@@ -35,29 +22,19 @@ const logger = {
     fail: (message) => logger.log(`❌ FAIL: ${message}`, 'fail'),
 };
 
-// Create the interpreter instance
-const interpreter = new Interpreter();
-const globalEnv = createGlobalEnvironment(interpreter);
-interpreter.setGlobalEnv(globalEnv);
-
 (async () => {
     try {
-        // Run Unit Tests
-        runDataTests(logger);
-        runPrimitiveTests(logger);
-        runUnitTests(interpreter, logger);
+        // Create the interpreter instance using Layer 1 factory
+        const { interpreter, env } = createLayer1();
 
-        // Run Functional Tests
-        logger.title('Running Functional Tests...');
-        await runFunctionalTests(interpreter, logger);
-        runInteropTests(interpreter, logger);
-        runQuasiquoteTests(interpreter, logger);
-        runQuoteTests(interpreter, logger);
-        await runMacroTests(interpreter, logger);
-        await runSyntaxRulesTests(interpreter, logger);
-
-        // Run Scheme Tests
+        // File loader for Scheme tests in browser
         const browserFileLoader = async (relativePath) => {
+            // relativePath is like "lib/boot.scm" or "tests/scheme/primitive_tests.scm"
+            // We need to fetch from root.
+            // Since test_runner.js is in web/, and we serve from root,
+            // fetching "../" + relativePath should work if served from root.
+            // But usually web servers serve root as /.
+            // If we are at /web/tests.html, then ../ points to root.
             const response = await fetch('../' + relativePath);
             if (!response.ok) {
                 throw new Error(`Failed to fetch ${relativePath}: ${response.statusText}`);
@@ -65,11 +42,8 @@ interpreter.setGlobalEnv(globalEnv);
             return response.text();
         };
 
-        await runSchemeTests(interpreter, logger, [
-            'primitive_tests.scm',
-            'test_harness_tests.scm',
-            'record_tests.scm'
-        ], browserFileLoader);
+        // Run all tests
+        await run(interpreter, env, browserFileLoader, logger);
 
         logger.title('All Tests Complete.');
     } catch (e) {

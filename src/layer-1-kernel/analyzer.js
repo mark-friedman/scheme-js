@@ -14,8 +14,8 @@ import {
 } from './ast.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
-import { Cons, cons, list, car, cdr, mapCons, toArray } from '../data/cons.js'; // Added car, cdr, mapCons, toArray from snippet
-import { Symbol, intern } from '../data/symbol.js';
+import { Cons, cons, list, car, cdr, mapCons, toArray } from './cons.js';
+import { Symbol, intern } from './symbol.js';
 
 
 /**

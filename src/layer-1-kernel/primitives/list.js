@@ -1,4 +1,4 @@
-import { Cons, cons, list } from '../data/cons.js';
+import { Cons, cons, list } from '../cons.js';
 
 export const listPrimitives = {
     'cons': cons,

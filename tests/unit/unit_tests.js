@@ -1,11 +1,11 @@
-import { Environment } from '../../src/core/environment.js';
-import { parse } from '../../src/syntax/reader.js';
-import { analyze } from '../../src/syntax/analyzer.js';
+import { Environment } from '../../src/layer-1-kernel/environment.js';
+import { parse } from '../../src/layer-1-kernel/reader.js';
+import { analyze } from '../../src/layer-1-kernel/analyzer.js';
 import { prettyPrint } from '../../web/repl.js';
-import { Literal, Variable, If, Let, LetRec, Lambda, TailApp, CallCC, Begin } from '../../src/syntax/ast.js';
+import { Literal, Variable, If, Let, LetRec, Lambda, TailApp, CallCC, Begin } from '../../src/layer-1-kernel/ast.js';
 import { assert, createTestLogger, createTestEnv } from '../helpers.js';
-import { Cons, cons, list } from '../../src/data/cons.js';
-import { Symbol, intern } from '../../src/data/symbol.js';
+import { Cons, cons, list } from '../../src/layer-1-kernel/cons.js';
+import { Symbol, intern } from '../../src/layer-1-kernel/symbol.js';
 
 /**
  * Runs all unit tests.

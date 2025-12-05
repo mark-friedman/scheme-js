@@ -1,4 +1,4 @@
-import { Closure, Continuation } from '../data/values.js';
+import { Closure, Continuation } from './values.js';
 
 // --- PART 1: Base Classes ---
 

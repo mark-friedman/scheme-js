@@ -1,5 +1,5 @@
-import { Cons, cons, list } from '../data/cons.js';
-import { Symbol, intern } from '../data/symbol.js';
+import { Cons, cons, list } from './cons.js';
+import { Symbol, intern } from './symbol.js';
 
 
 /**

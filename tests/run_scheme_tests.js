@@ -4,20 +4,20 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     logger.title('Running Scheme Tests...');
 
     // 1. Load boot.scm
-    const bootCode = await fileLoader('lib/boot.scm');
+    const bootCode = await fileLoader('src/layer-1-kernel/scheme/boot.scm');
     run(interpreter, bootCode);
 
     // Inject native reporter (after boot.scm to avoid overwrite)
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
         if (passed) {
-            logger.pass(name);
+            logger.pass(`${name} (Expected: ${expected}, Got: ${actual})`);
         } else {
             logger.fail(`${name} (Expected: ${expected}, Got: ${actual})`);
         }
     });
 
     // 2. Load test.scm (Harness)
-    const testLibCode = await fileLoader('lib/test.scm');
+    const testLibCode = await fileLoader('tests/scheme/test.scm');
     run(interpreter, testLibCode);
 
     let allPassed = true;
