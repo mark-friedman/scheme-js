@@ -1,4 +1,4 @@
-import { Closure, Continuation } from './values.js';
+import { Closure, Continuation, TailCall } from './values.js';
 
 // --- PART 1: Base Classes ---
 
@@ -239,13 +239,22 @@ export class AppFrame extends Executable {
                 // We pass the raw values (numbers, strings, arrays) directly.
                 // BUT if an argument is a Closure or Continuation, we must wrap it in a Bridge!
                 const jsArgs = args.map(arg => {
-                    if (arg instanceof Closure || arg instanceof Continuation) {
+                    // Check if the function explicitly requests raw Closures (e.g. apply)
+                    if ((arg instanceof Closure || arg instanceof Continuation) && !func.skipBridge) {
                         return interpreter.createJsBridge(arg);
                     }
                     return arg;
                 });
 
-                registers[0] = func(...jsArgs);
+                const result = func(...jsArgs);
+                if (result instanceof TailCall) {
+                    registers[1] = result.ast;
+                    if (result.env) {
+                        registers[2] = result.env;
+                    }
+                    return true; // Continue trampoline
+                }
+                registers[0] = result;
                 return false; // Halt (value return)
             }
 

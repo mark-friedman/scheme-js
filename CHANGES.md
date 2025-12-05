@@ -260,3 +260,39 @@ Ran `node tests/runner.js 1`:
 ### Manual Verification
 - The directory structure is clean and documented.
 - `README.md` is updated.
+
+# Walkthrough: Eval & Apply Implementation
+I have implemented the `eval` and `apply` primitives in the Layer 1 Kernel, along with the necessary architectural changes to support them.
+## Changes
+### 1. TailCall Mechanism
+I introduced a `TailCall` class in `src/layer-1-kernel/values.js`. This allows native JavaScript primitives to return a special object that signals the interpreter to transfer control to a new AST and environment, rather than returning a value.
+### 2. Control Primitives
+I created `src/layer-1-kernel/primitives/control.js` which implements:
+*   **`apply`**: Invokes a procedure with a list of arguments. It flattens the arguments and returns a `TailCall` to the procedure.
+*   **`eval`**: Analyzes an expression and returns a `TailCall` to execute the resulting AST.
+*   **`interaction-environment`**: Returns the global environment.
+### 3. Interpreter Updates
+*   Updated `AppFrame.step` in `src/layer-1-kernel/ast.js` to handle `TailCall` returns from primitives.
+*   Added a `skipBridge` flag to `apply` to ensure it receives raw `Closure` objects instead of JS bridges, preventing stack overflows during recursion.
+### 4. Math Primitives Update
+*   Updated `+`, `-`, `*`, `/` in `src/layer-1-kernel/primitives/math.js` to be variadic (accepting any number of arguments), as required by the Scheme standard and `apply` tests.
+### 5. Testing
+*   Created `tests/functional/eval_apply_tests.js` with tests for:
+    *   `apply` with various argument combinations.
+    *   `eval` with expressions and definitions.
+    *   **TCO Verification**: Confirmed that tail-recursive loops using `apply` and `eval` do not consume stack space.
+## Verification Results
+### Automated Tests
+Ran `node tests/runner.js`. All tests passed, including the new `Eval & Apply Tests`.
+```
+=== Eval & Apply Tests ===
+✅ PASS: apply + (1 2 3) (Expected: 6, Got: 6)
+✅ PASS: apply + 1 2 (3 4) (Expected: 10, Got: 10)
+✅ PASS: apply + () (Expected: 0, Got: 0)
+✅ PASS: apply user-func (Expected: 30, Got: 30)
+✅ PASS: eval (+ 1 2) (Expected: 3, Got: 3)
+✅ PASS: eval variable (Expected: 100, Got: 100)
+✅ PASS: eval define (Expected: 200, Got: 200)
+✅ PASS: apply TCO (Expected: done, Got: done)
+✅ PASS: eval TCO (Expected: done, Got: done)
+```

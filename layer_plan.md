@@ -19,6 +19,8 @@ These forms cannot be implemented as macros and must be supported by the interpr
 *   `let-syntax`, `letrec-syntax`: Local macro definitions.
 *   `define-library`, `import`, `export`: Module system.
 *   `include`, `include-ci`: File inclusion.
+*   `apply`: Invokes a procedure with a list of arguments.
+*   `eval`: Evaluates an expression in a given environment.
 
 ### Derived Forms (Scheme Macros)
 These will be implemented in Scheme using the core forms:

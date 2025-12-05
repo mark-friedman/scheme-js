@@ -8,6 +8,7 @@ import { recordPrimitives } from './record.js';
 import { stringPrimitives } from './string.js';
 import { eqPrimitives } from './eq.js';
 import { getAsyncPrimitives } from './async.js';
+import { getControlPrimitives } from './control.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -32,6 +33,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(stringPrimitives);
     addPrimitives(eqPrimitives);
     addPrimitives(getAsyncPrimitives(interpreter));
+    addPrimitives(getControlPrimitives(interpreter));
 
     return new Environment(null, bindings);
 }

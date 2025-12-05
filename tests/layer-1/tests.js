@@ -9,6 +9,7 @@ import { runRecordInteropTests } from '../functional/record_interop_tests.js';
 import { runQuoteTests } from '../functional/quote_tests.js';
 import { runMacroTests } from '../functional/macro_tests.js';
 import { runSyntaxRulesTests } from '../functional/syntax_rules_tests.js';
+import { runEvalApplyTests } from '../functional/eval_apply_tests.js';
 import { runSchemeTests } from '../run_scheme_tests.js';
 import { createTestLogger } from '../helpers.js';
 
@@ -52,6 +53,7 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
     runQuoteTests(interpreter, logger);
     await runMacroTests(interpreter, logger);
     await runSyntaxRulesTests(interpreter, logger);
+    await runEvalApplyTests(interpreter, logger);
 
     // Run Scheme Tests
     if (loader) {

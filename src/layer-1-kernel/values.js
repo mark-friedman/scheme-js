@@ -34,3 +34,16 @@ export class Continuation extends SchemeValue {
     }
     toString() { return `[Continuation]`; }
 }
+
+/**
+ * A wrapper for a tail call returned by a primitive.
+ * This signals the interpreter to replace the current control and environment.
+ */
+export class TailCall extends SchemeValue {
+    constructor(ast, env) {
+        super();
+        this.ast = ast;
+        this.env = env;
+    }
+    toString() { return `[TailCall]`; }
+}

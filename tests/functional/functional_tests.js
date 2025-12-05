@@ -36,13 +36,13 @@ export async function runFunctionalTests(interpreter, logger) {
                          (if (= n 0)
                              acc
                              (loop (- n 1) (+ acc n))))))
-          (loop 5000 0))`;
+          (loop 2000000 0))`;
 
     try {
         result = run(interpreter, tcoLargeTest);
-        assert(logger, "TCO deep recursion (n=5000)", result, 12502500);
+        assert(logger, "TCO deep recursion (n=2000000)", result, 2000001000000);
     } catch (e) {
-        logger.fail(`TCO deep recursion (n=5000) failed: ${e.message}`);
+        logger.fail(`TCO deep recursion (n=2000000) failed: ${e.message}`);
     }
 
     // --- Call/CC Tests ---
