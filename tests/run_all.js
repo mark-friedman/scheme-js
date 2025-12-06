@@ -50,11 +50,11 @@ async function runAll() {
         };
 
         await runSchemeTests(interpreter, logger, [
-            'primitive_tests.scm',
+            '../layer-1/scheme/primitive_tests.scm',
             'test_harness_tests.scm',
-            'boot_tests.scm',
-            'record_tests.scm',
-            'tco_tests.scm'
+            '../layer-1/scheme/boot_tests.scm',
+            '../layer-1/scheme/record_tests.scm',
+            '../layer-1/scheme/tco_tests.scm'
         ], nodeFileLoader);
         logger.title('All Tests Complete.');
     } catch (e) {

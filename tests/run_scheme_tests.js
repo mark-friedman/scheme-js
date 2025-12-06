@@ -56,11 +56,11 @@ if (typeof process !== 'undefined' && process.argv[1] === import.meta.url.slice(
 
     // Default test files if not specified
     const tests = [
-            'primitive_tests.scm',
-            'test_harness_tests.scm',
-            'boot_tests.scm',
-            'record_tests.scm',
-            'tco_tests.scm'
+        '../layer-1/scheme/primitive_tests.scm',
+        'test_harness_tests.scm',
+        '../layer-1/scheme/boot_tests.scm',
+        '../layer-1/scheme/record_tests.scm',
+        '../layer-1/scheme/tco_tests.scm'
     ];
 
     runSchemeTests(interpreter, logger, tests)

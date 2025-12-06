@@ -58,11 +58,11 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
     // Run Scheme Tests
     if (loader) {
         await runSchemeTests(interpreter, logger, [
-            'primitive_tests.scm',
+            '../layer-1/scheme/primitive_tests.scm',
             'test_harness_tests.scm',
-            'boot_tests.scm',
-            'record_tests.scm',
-            'tco_tests.scm'
+            '../layer-1/scheme/boot_tests.scm',
+            '../layer-1/scheme/record_tests.scm',
+            '../layer-1/scheme/tco_tests.scm'
         ], loader);
     } else {
         console.warn("Skipping Scheme tests (No file loader provided)");
