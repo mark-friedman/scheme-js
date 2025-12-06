@@ -61,7 +61,8 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
             'primitive_tests.scm',
             'test_harness_tests.scm',
             'boot_tests.scm',
-            'record_tests.scm'
+            'record_tests.scm',
+            'tco_tests.scm'
         ], loader);
     } else {
         console.warn("Skipping Scheme tests (No file loader provided)");

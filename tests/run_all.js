@@ -52,7 +52,9 @@ async function runAll() {
         await runSchemeTests(interpreter, logger, [
             'primitive_tests.scm',
             'test_harness_tests.scm',
-            'record_tests.scm'
+            'boot_tests.scm',
+            'record_tests.scm',
+            'tco_tests.scm'
         ], nodeFileLoader);
         logger.title('All Tests Complete.');
     } catch (e) {
