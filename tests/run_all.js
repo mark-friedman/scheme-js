@@ -12,7 +12,7 @@ async function runAll() {
     const { runFunctionalTests } = await import('./functional/functional_tests.js');
     const { runInteropTests } = await import('./functional/interop_tests.js');
     const { runRecordInteropTests } = await import('./functional/record_interop_tests.js');
-    const { runSchemeTests } = await import('./run_scheme_tests.js');
+    const { runSchemeTests } = await import('./run_scheme_tests_lib.js');
     const { runQuasiquoteTests } = await import('./functional/quasiquote_tests.js');
     const { runQuoteTests } = await import('./functional/quote_tests.js');
     const { runMacroTests } = await import('./functional/macro_tests.js');
@@ -50,11 +50,13 @@ async function runAll() {
         };
 
         await runSchemeTests(interpreter, logger, [
-            '../layer-1/scheme/primitive_tests.scm',
-            'test_harness_tests.scm',
-            '../layer-1/scheme/boot_tests.scm',
-            '../layer-1/scheme/record_tests.scm',
-            '../layer-1/scheme/tco_tests.scm'
+            'tests/layer-1/scheme/primitive_tests.scm',
+            'tests/scheme/test_harness_tests.scm',
+            'tests/layer-1/scheme/boot_tests.scm',
+            'tests/layer-1/scheme/record_tests.scm',
+            'tests/layer-1/scheme/tco_tests.scm',
+            'tests/layer-1/scheme/dynamic_wind_tests.scm',
+            'tests/layer-1/scheme/dynamic_wind_interop_tests.scm'
         ], nodeFileLoader);
         logger.title('All Tests Complete.');
     } catch (e) {

@@ -1,5 +1,5 @@
 import { TailCall } from '../values.js';
-import { TailApp, Literal } from '../ast.js';
+import { TailApp, Literal, DynamicWindInit } from '../ast.js';
 import { analyze } from '../analyzer.js';
 import { Cons, toArray } from '../cons.js';
 
@@ -35,7 +35,7 @@ export function getControlPrimitives(interpreter) {
     // We want the raw Closure/Continuation so we can put it back into the AST.
     applyPrimitive.skipBridge = true;
 
-    return {
+    const controlPrimitives = {
         'apply': applyPrimitive,
 
         'eval': (expr, env) => {
@@ -51,6 +51,19 @@ export function getControlPrimitives(interpreter) {
                 throw new Error("interaction-environment: global environment not set");
             }
             return interpreter.globalEnv;
+        },
+
+        'dynamic-wind': (before, thunk, after) => {
+            // Return a TailCall to DynamicWindInit, which has access to the stack
+            return new TailCall(
+                new DynamicWindInit(before, thunk, after),
+                null
+            );
         }
     };
+
+    // Allow raw Closures for dynamic-wind components
+    controlPrimitives['dynamic-wind'].skipBridge = true;
+
+    return controlPrimitives;
 }

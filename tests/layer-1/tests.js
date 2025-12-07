@@ -10,7 +10,7 @@ import { runQuoteTests } from '../functional/quote_tests.js';
 import { runMacroTests } from '../functional/macro_tests.js';
 import { runSyntaxRulesTests } from '../functional/syntax_rules_tests.js';
 import { runEvalApplyTests } from '../functional/eval_apply_tests.js';
-import { runSchemeTests } from '../run_scheme_tests.js';
+import { runSchemeTests } from '../run_scheme_tests_lib.js';
 import { createTestLogger } from '../helpers.js';
 
 export async function run(interpreter, env, schemeFileLoader, customLogger) {
@@ -58,11 +58,13 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
     // Run Scheme Tests
     if (loader) {
         await runSchemeTests(interpreter, logger, [
-            '../layer-1/scheme/primitive_tests.scm',
-            'test_harness_tests.scm',
-            '../layer-1/scheme/boot_tests.scm',
-            '../layer-1/scheme/record_tests.scm',
-            '../layer-1/scheme/tco_tests.scm'
+            'tests/layer-1/scheme/primitive_tests.scm',
+            'tests/scheme/test_harness_tests.scm',
+            'tests/layer-1/scheme/boot_tests.scm',
+            'tests/layer-1/scheme/record_tests.scm',
+            'tests/layer-1/scheme/tco_tests.scm',
+            'tests/layer-1/scheme/dynamic_wind_tests.scm',
+            'tests/layer-1/scheme/dynamic_wind_interop_tests.scm'
         ], loader);
     } else {
         console.warn("Skipping Scheme tests (No file loader provided)");

@@ -117,11 +117,10 @@ export function runInteropTests(interpreter, logger) {
         // k captures the outer continuation: (+ 1 [])
         // Inner run invokes k, which replaces inner stack with (+ 1 []).
         // Inner run returns 11.
-        // js-apply returns 11.
-        // Outer run receives 11 as result of call/cc.
-        // Outer run computes (+ 1 11) -> 12.
+        // js-apply aborts.
+        // Outer run receives 11.
         result = run(interpreter, `(+ 1 (call/cc (lambda (k) (js-apply (lambda () (k 10))))))`);
-        assert(logger, "Interop: Non-abortive call/cc", result, 12);
+        assert(logger, "Interop: Non-abortive call/cc", result, 11);
 
         // 3. Ping-Pong Recursion (TCO check across boundaries? No, JS stack grows)
         // We just want to verify it works for small N.

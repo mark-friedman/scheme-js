@@ -1,69 +1,34 @@
 import { createTestEnv, run, createTestLogger } from './helpers.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+import { runSchemeTests } from './run_scheme_tests_lib.js';
 
-export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
-    logger.title('Running Scheme Tests...');
 
-    // 1. Load boot.scm
-    const bootCode = await fileLoader('src/layer-1-kernel/scheme/boot.scm');
-    run(interpreter, bootCode);
-
-    // Inject native reporter (after boot.scm to avoid overwrite)
-    interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
-        if (passed) {
-            logger.pass(`${name} (Expected: ${expected}, Got: ${actual})`);
-        } else {
-            logger.fail(`${name} (Expected: ${expected}, Got: ${actual})`);
-        }
-    });
-
-    // 2. Load test.scm (Harness)
-    const testLibCode = await fileLoader('tests/scheme/test.scm');
-    run(interpreter, testLibCode);
-
-    let allPassed = true;
-
-    // 3. Run each test file
-    for (const file of testFiles) {
-        logger.log(`Running ${file}...`);
-        const code = await fileLoader(`tests/scheme/${file}`);
-
-        // Run the test file
-        run(interpreter, code);
-
-        const result = run(interpreter, '(test-report)');
-        if (result !== true) {
-            allPassed = false;
-            logger.fail(`${file} FAILED`);
-        } else {
-            logger.pass(`${file} PASSED`);
-        }
-
-        // Reset counters for next file
-        run(interpreter, '(set! *test-failures* 0)');
-        run(interpreter, '(set! *test-passes* 0)');
-    }
-
-    if (!allPassed) {
-        throw new Error("Some Scheme tests failed");
-    }
-}
-
-// Allow running directly
-// Allow running directly
-if (typeof process !== 'undefined' && process.argv[1] === import.meta.url.slice(7)) { // Remove file://
+// CLI Entry point
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const logger = createTestLogger();
     const { interpreter } = createTestEnv();
 
-    // Default test files if not specified
-    const tests = [
-        '../layer-1/scheme/primitive_tests.scm',
-        'test_harness_tests.scm',
-        '../layer-1/scheme/boot_tests.scm',
-        '../layer-1/scheme/record_tests.scm',
-        '../layer-1/scheme/tco_tests.scm'
-    ];
+    // Mock window for interop tests
+    if (typeof global !== 'undefined' && !global.window) {
+        global.window = {};
+    }
 
-    runSchemeTests(interpreter, logger, tests)
+    // Simple Node file loader
+    const nodeFileLoader = async (relativePath) => {
+        // Run from CWD
+        const filePath = path.resolve(process.cwd(), relativePath);
+        return fs.readFileSync(filePath, 'utf8');
+    };
+
+    const args = process.argv.slice(2);
+    if (args.length === 0) {
+        console.error("Usage: node run_scheme_tests.js <test_file_path> ...");
+        process.exit(1);
+    }
+
+    runSchemeTests(interpreter, logger, args, nodeFileLoader)
         .then(() => console.log("All Scheme tests passed"))
         .catch(e => {
             console.error(e);

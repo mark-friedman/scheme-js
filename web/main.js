@@ -7,4 +7,4 @@ import { setupRepl } from './repl.js';
 const { interpreter, env } = createLayer1();
 
 // Setup REPL UI
-setupRepl(interpreter, globalEnv);
+setupRepl(interpreter, env);

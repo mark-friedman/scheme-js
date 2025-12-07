@@ -2,6 +2,28 @@
 
 A layered implementation of Scheme R7RS-Small in JavaScript.
 
+## Goals
+
+### Language goals
+- Support the R7RS-Small standard.
+- Support tail call optimization.
+- Support first-class continuations.
+- Support maximal interoperability with JavaScript.
+
+### Architectural goals
+- Use a layered architecture to make it easy to add new features based on exisiting features from lower layers.
+
+### Development goals
+- Use a test-driven development approach.
+
+### Documentation goals
+- Document the architecture and design decisions.
+- Document the code organization.
+- Document the architecture and algorithm for the core interpreter.
+- Document the API for each layer.
+- Provide useful comments in the code. 
+- Document the test suite.
+
 ## Architecture
 
 The project is organized into strict layers to ensure separation of concerns and testability.

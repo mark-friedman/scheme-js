@@ -65,6 +65,7 @@ export function analyze(exp) {
         case 'define':
           return analyzeDefine(exp);
         case 'call/cc':
+        case 'call-with-current-continuation':
           return new CallCC(analyze(cadr(exp)));
         case 'begin':
           return new Begin(mapCons(exp.cdr, analyze));

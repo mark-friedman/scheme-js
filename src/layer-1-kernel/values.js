@@ -1,49 +1,60 @@
 
-
-/**
- * Base class for all runtime values.
- * These do *not* have a `step` method.
- */
-export class SchemeValue { }
-
-// --- PART 2: Runtime Value Classes ---
-
-/**
- * A runtime closure (lambda + captured environment).
- */
-export class Closure extends SchemeValue {
-    constructor(params, body, env) {
-        super();
-        this.params = params;
-        this.body = body;
-        this.env = env;
-    }
-    toString() { return `[Closure]`; }
+export class Value {
+    constructor() { }
 }
 
+/**
+ * Closures capture the environment at definition time.
+ */
+export class Closure extends Value {
+    constructor(params, body, env) {
+        super();
+        this.params = params; // Scheme list of symbols
+        this.body = body;     // AST node (e.g. Sequence or single expression)
+        this.env = env;       // Captured Environment
+    }
 
+    toString() {
+        return "#<procedure>";
+        // return `#<closure params=${this.params} body=${this.body} env=${this.env}>`;
+    }
+}
 
 /**
- * A reified first-class continuation.
+ * First-class continuations.
+ * Captures the frame stack.
  */
-export class Continuation extends SchemeValue {
+export class Continuation extends Value {
     constructor(fstack) {
         super();
         // We must store a *copy* of the fstack.
         this.fstack = [...fstack];
     }
-    toString() { return `[Continuation]`; }
+
+    toString() {
+        return "#<continuation>";
+    }
 }
 
 /**
- * A wrapper for a tail call returned by a primitive.
- * This signals the interpreter to replace the current control and environment.
+ * TailCall "Thunk" (Trampoline return value).
+ * Returned by primitives to request specific control flow changes.
  */
-export class TailCall extends SchemeValue {
-    constructor(ast, env) {
-        super();
-        this.ast = ast;
-        this.env = env;
+export class TailCall {
+    constructor(func, args) {
+        this.func = func; // Closure
+        this.args = args; // Array of arguments
     }
-    toString() { return `[TailCall]`; }
+}
+
+/**
+ * Error thrown to unwind the JavaScript stack when invoking a Continuation.
+ * This allows jumping across JS boundaries (e.g. inside js-eval).
+ */
+export class ContinuationUnwind extends Error {
+    constructor(registers, isReturn = false) {
+        super("Continuation Unwind");
+        this.registers = registers;
+        this.isReturn = isReturn;
+    }
 }

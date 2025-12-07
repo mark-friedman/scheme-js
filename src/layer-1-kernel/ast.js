@@ -1,4 +1,4 @@
-import { Closure, Continuation, TailCall } from './values.js';
+import { Closure, Continuation, TailCall, ContinuationUnwind } from './values.js';
 
 // --- PART 1: Base Classes ---
 
@@ -123,6 +123,124 @@ export class LetRecFrame extends Executable {
 }
 
 /**
+ * Frame used to set up 'dynamic-wind' after 'before' runs.
+ */
+export class DynamicWindSetupFrame extends Executable {
+    constructor(before, thunk, after, env) {
+        super();
+        this.before = before;
+        this.thunk = thunk;
+        this.after = after;
+        this.env = env;
+    }
+
+    step(registers, interpreter) {
+        // 'before' has completed. 'ans' is ignored/void.
+
+        // 1. Push the WindFrame (active extent)
+        registers[3].push(new WindFrame(
+            this.before,
+            this.after,
+            this.env // Use captured environment
+        ));
+
+        // 2. Call the 'thunk'
+        registers[1] = new TailApp(new Literal(this.thunk), []);
+        // Maintain env
+        registers[2] = this.env;
+        return true;
+    }
+}
+
+/**
+ * AST Node to initialize 'dynamic-wind'.
+ * Primitives cannot touch stack, so they return this node to do it.
+ */
+export class DynamicWindInit extends Executable {
+    constructor(before, thunk, after) {
+        super();
+        this.before = before;
+        this.thunk = thunk;
+        this.after = after;
+    }
+
+    step(registers, interpreter) {
+        // 1. Push the Setup frame (waits for 'before')
+        registers[3].push(new DynamicWindSetupFrame(
+            this.before,
+            this.thunk,
+            this.after,
+            registers[2]
+        ));
+
+        // 2. Call 'before'
+        registers[1] = new TailApp(new Literal(this.before), []);
+        return true;
+    }
+}
+
+/**
+ * Frame for 'dynamic-wind' to restore the value after the 'after' thunk runs.
+ */
+export class RestoreValueFrame extends Executable {
+    constructor(savedValue) {
+        super();
+        this.savedValue = savedValue;
+    }
+
+    step(registers, interpreter) {
+        registers[0] = this.savedValue; // Restore saved value
+        return false; // Halt (return value)
+    }
+}
+
+/**
+ * Frame for 'dynamic-wind' execution.
+ * Represents an active dynamic extent.
+ * If we return through this frame normally, we must run 'after'.
+ */
+export class WindFrame extends Executable {
+    constructor(before, after, env) {
+        super();
+        this.before = before; // Thunk
+        this.after = after;   // Thunk
+        this.env = env;
+    }
+
+    step(registers, interpreter) {
+        // We are exiting the extent normally. 'ans' holds the body's result.
+        const result = registers[0];
+
+        // 1. Push a frame to restore the result *after* the 'after' thunk runs
+        registers[3].push(new RestoreValueFrame(result));
+
+        // 2. Call the 'after' thunk
+        registers[1] = new TailApp(new Literal(this.after), []);
+        // Maintain current env for the call logic, though TailApp will Switch it for the Closure
+        // registers[2] is fine.
+        return true;
+    }
+}
+
+/**
+ * Special AST node to restore a continuation's stack and value.
+ * Used as the final step in a dynamic-wind sequence.
+ */
+export class RestoreContinuation extends Executable {
+    constructor(targetStack, value) {
+        super();
+        this.targetStack = targetStack;
+        this.value = value;
+    }
+
+    step(registers, interpreter) {
+        registers[3] = [...this.targetStack]; // Restore target stack
+        registers[0] = this.value;            // Restore value
+        return false; // Halt (trampoline will see false and check stack, which we just filled)
+    }
+}
+
+/**
  * Frame for an 'if' expression.
  * Pauses execution, evaluates the test, then restores and
  * evaluates one of the branches.
@@ -224,9 +342,11 @@ export class AppFrame extends Executable {
             // --- All arguments evaluated, ready to apply ---
             // 'newArgValues[0]' is the function
             // 'newArgValues.slice(1)' are the arguments
+            // --- APPLICATION ---
             const func = newArgValues[0];
             const args = newArgValues.slice(1);
 
+            // 1. CLOSURE APPLICATION
             if (func instanceof Closure) {
                 registers[1] = func.body;
                 registers[2] = func.env.extendMany(func.params, args);
@@ -241,29 +361,92 @@ export class AppFrame extends Executable {
                 const jsArgs = args.map(arg => {
                     // Check if the function explicitly requests raw Closures (e.g. apply)
                     if ((arg instanceof Closure || arg instanceof Continuation) && !func.skipBridge) {
-                        return interpreter.createJsBridge(arg);
+                        return interpreter.createJsBridge(arg, registers[3]);
                     }
                     return arg;
                 });
 
                 const result = func(...jsArgs);
                 if (result instanceof TailCall) {
-                    registers[1] = result.ast;
-                    if (result.env) {
-                        registers[2] = result.env;
+                    const target = result.func;
+                    // If target is a Closure, Continuation, or JS Function, we treat it as an Application (TailApp)
+                    if (target instanceof Closure || target instanceof Continuation || typeof target === 'function') {
+                        const args = result.args || [];
+                        const argLiterals = args.map(a => new Literal(a));
+                        registers[1] = new TailApp(new Literal(target), argLiterals);
+                        return true;
                     }
-                    return true; // Continue trampoline
+                    // Otherwise, we assume it is an Executable AST node (e.g. DynamicWindInit)
+                    // We jump to it directly. Args must be null/empty in this case.
+                    registers[1] = target;
+                    return true;
                 }
                 registers[0] = result;
                 return false; // Halt (value return)
             }
 
             if (func instanceof Continuation) {
-                // --- INVOKE CONTINUATION ---
-                // Replace the fstack, set 'ans', and halt
-                registers[3] = [...func.fstack]; // Restore stack
-                registers[0] = args[0] || null;  // Set 'ans' to the value being passed
-                return false; // Halt
+                // --- INVOKE CONTINUATION WITH DYNAMIC-WIND ---
+                const currentStack = registers[3];
+                const targetStack = func.fstack;
+                const value = args[0] || null;
+
+                // 1. Find common ancestor
+                // Stacks are arrays of frames. We scan from the bottom (index 0) up.
+                // The stacks are different instances, but frames *should* be shared by reference
+                // if they are common.
+                let i = 0;
+                while (i < currentStack.length && i < targetStack.length && currentStack[i] === targetStack[i]) {
+                    i++;
+                }
+                const ancestorIndex = i;
+
+                // 2. Identify WindFrames to unwind (from top of current down to ancestor)
+                const toUnwind = currentStack.slice(ancestorIndex).reverse().filter(f => f instanceof WindFrame);
+
+                // 3. Identify WindFrames to rewind (from ancestor up to top of target)
+                const toRewind = targetStack.slice(ancestorIndex).filter(f => f instanceof WindFrame);
+
+                // 4. Construct sequence of operations
+                const actions = [];
+
+                for (const frame of toUnwind) {
+                    actions.push(new TailApp(new Literal(frame.after), []));
+                }
+                for (const frame of toRewind) {
+                    actions.push(new TailApp(new Literal(frame.before), []));
+                }
+
+                // CRITICAL: Unwind JS stack (Return Value Mode)
+                if (actions.length === 0) {
+                    registers[3] = [...targetStack];
+                    registers[0] = value;
+
+                    if (interpreter.depth > 1) {
+                        throw new ContinuationUnwind(registers, true);
+                    }
+                    return false;
+                }
+
+                // Append the final restoration
+                actions.push(new RestoreContinuation(targetStack, value));
+
+                // 5. Execute via BeginFrame mechanism
+                const firstAction = actions[0];
+                const remainingActions = actions.slice(1);
+
+                if (remainingActions.length > 0) {
+                    registers[3].push(new BeginFrame(remainingActions, this.env));
+                }
+
+                registers[1] = firstAction;
+
+                // CRITICAL: Unwind JS stack (Tail Call Mode)
+                if (interpreter.depth > 1) {
+                    throw new ContinuationUnwind(registers, false);
+                }
+
+                return true;
             }
 
             throw new Error(`Not a function: ${func}`);

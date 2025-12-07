@@ -160,3 +160,16 @@
 ;;  * @returns {boolean} #f (default implementation).
 ;;  */
 (define (native-report-test-result . args) #f)
+
+;; /**
+;;  * Applies a function to every element of a list.
+;;  *
+;;  * @param {procedure} proc - The function to apply.
+;;  * @param {list} list - The list to iterate over.
+;;  * @returns {list} A new list containing the results.
+;;  */
+(define (map proc list)
+  (if (null? list)
+      '()
+      (cons (proc (car list))
+            (map proc (cdr list)))))
