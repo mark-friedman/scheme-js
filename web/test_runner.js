@@ -1,8 +1,12 @@
 import { createLayer1 } from '../src/runtime/index.js';
 import { run } from '../tests/runtime/tests.js';
 
-// Simple logger to write to the page
+// Simple logger to write to the page with pass/fail tracking
 const outputEl = document.getElementById('test-output');
+let passCount = 0;
+let failCount = 0;
+const failures = [];
+
 const logger = {
     log: (message, type = 'info') => {
         console.log(message);
@@ -18,9 +22,30 @@ const logger = {
         el.className = 'text-xl font-semibold mt-4 mb-2 text-gray-700 log-title';
         outputEl.appendChild(el);
     },
-    pass: (message) => logger.log(`✅ PASS: ${message}`, 'pass'),
-    fail: (message) => logger.log(`❌ FAIL: ${message}`, 'fail'),
+    pass: (message) => {
+        passCount++;
+        logger.log(`✅ PASS: ${message}`, 'pass');
+    },
+    fail: (message) => {
+        failCount++;
+        failures.push(message);
+        logger.log(`❌ FAIL: ${message}`, 'fail');
+    },
+    summary: () => {
+        const el = document.createElement('div');
+        el.className = 'mt-4 p-4 rounded ' + (failCount > 0 ? 'bg-red-100' : 'bg-green-100');
+        el.innerHTML = `
+            <h2 class="text-2xl font-bold mb-2">TEST SUMMARY</h2>
+            <p class="text-lg">${passCount} passed, ${failCount} failed</p>
+            ${failCount > 0 ? `<ul class="mt-2 text-red-700">${failures.map((f, i) => `<li>${i + 1}. ${f}</li>`).join('')}</ul>` : ''}
+        `;
+        outputEl.appendChild(el);
+        console.log(`\nTEST SUMMARY: ${passCount} passed, ${failCount} failed`);
+        return { passCount, failCount, failures };
+    },
+    getStats: () => ({ passCount, failCount, failures }),
 };
+
 
 (async () => {
     try {
@@ -30,11 +55,7 @@ const logger = {
         // File loader for Scheme tests in browser
         const browserFileLoader = async (relativePath) => {
             // relativePath is like "lib/boot.scm" or "tests/scheme/primitive_tests.scm"
-            // We need to fetch from root.
-            // Since test_runner.js is in web/, and we serve from root,
-            // fetching "../" + relativePath should work if served from root.
-            // But usually web servers serve root as /.
-            // If we are at /web/tests.html, then ../ points to root.
+            // Fetch from parent directory since test_runner.js is in web/
             const response = await fetch('../' + relativePath);
             if (!response.ok) {
                 throw new Error(`Failed to fetch ${relativePath}: ${response.statusText}`);
@@ -42,12 +63,11 @@ const logger = {
             return response.text();
         };
 
-        // Run all tests
+        // Run all tests - summary is called inside run()
         await run(interpreter, env, browserFileLoader, logger);
-
-        logger.title('All Tests Complete.');
     } catch (e) {
         logger.fail(`Test suite crashed: ${e.message}`);
         console.error(e);
     }
 })();
+
