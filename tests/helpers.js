@@ -1,11 +1,11 @@
-import { parse } from '../src/layer-1-kernel/reader.js';
-import { analyze } from '../src/layer-1-kernel/analyzer.js';
-import { Variable, Literal } from '../src/layer-1-kernel/ast.js';
-import { Environment } from '../src/layer-1-kernel/environment.js';
-import { createGlobalEnvironment } from '../src/layer-1-kernel/primitives/index.js';
-import { Interpreter } from '../src/layer-1-kernel/interpreter.js';
-import { Cons, list } from '../src/layer-1-kernel/cons.js';
-import { intern } from '../src/layer-1-kernel/symbol.js';
+import { parse } from '../src/runtime/reader.js';
+import { analyze } from '../src/runtime/analyzer.js';
+import { Variable, Literal } from '../src/runtime/ast.js';
+import { Environment } from '../src/runtime/environment.js';
+import { createGlobalEnvironment } from '../src/runtime/primitives/index.js';
+import { Interpreter } from '../src/runtime/interpreter.js';
+import { Cons, list } from '../src/runtime/cons.js';
+import { intern } from '../src/runtime/symbol.js';
 
 /**
  * Helper to run code from strings.
@@ -101,16 +101,37 @@ function safeStringify(obj) {
 }
 
 export function createTestLogger() {
+    let passCount = 0;
+    let failCount = 0;
+    const failures = [];
+
     return {
         log: (message, type = 'info') => console.log(`[${type.toUpperCase()}] ${message}`),
         title: (message) => console.log(`\n=== ${message} ===`),
-        pass: (message) => console.log(`✅ PASS: ${message}`),
+        pass: (message) => {
+            passCount++;
+            console.log(`✅ PASS: ${message}`);
+        },
         fail: (message) => {
+            failCount++;
+            failures.push(message);
             console.error(`❌ FAIL: ${message}`);
             if (typeof process !== 'undefined') process.exitCode = 1;
         },
+        summary: () => {
+            console.log(`\n========================================`);
+            console.log(`TEST SUMMARY: ${passCount} passed, ${failCount} failed`);
+            if (failCount > 0) {
+                console.log(`\nFailed tests:`);
+                failures.forEach((f, i) => console.log(`  ${i + 1}. ${f}`));
+            }
+            console.log(`========================================\n`);
+            return { passCount, failCount, failures };
+        },
+        getStats: () => ({ passCount, failCount, failures }),
     };
 }
+
 
 export function createTestEnv() {
     const interpreter = new Interpreter();

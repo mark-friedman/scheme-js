@@ -4,7 +4,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     logger.title('Running Scheme Tests...');
 
     // 1. Load boot.scm
-    const bootCode = await fileLoader('src/layer-1-kernel/scheme/boot.scm');
+    const bootCode = await fileLoader('src/runtime/scheme/boot.scm');
     run(interpreter, bootCode);
 
     // Inject native reporter (after boot.scm to avoid overwrite)

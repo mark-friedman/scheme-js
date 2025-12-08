@@ -21,6 +21,12 @@ async function runAll() {
     const { runDataTests } = await import('./unit/data_tests.js');
     const { runPrimitiveTests } = await import('./unit/primitives_tests.js');
 
+    // New unit tests
+    const { runWindersTests } = await import('./unit/winders_tests.js');
+    const { runAnalyzerTests } = await import('./unit/analyzer_tests.js');
+    const { runReaderTests } = await import('./unit/reader_tests.js');
+    const { runSyntaxRulesUnitTests } = await import('./unit/syntax_rules_tests.js');
+
     const { interpreter } = createTestEnv();
     const logger = createTestLogger();
 
@@ -28,9 +34,16 @@ async function runAll() {
         runDataTests(logger);
         runPrimitiveTests(logger);
         runUnitTests(interpreter, logger);
+
+        // New unit tests
+        runWindersTests(interpreter, logger);
+        runAnalyzerTests(interpreter, logger);
+        runReaderTests(logger);
+        runSyntaxRulesUnitTests(logger);
     } catch (e) {
         logger.fail(`Unit test suite crashed: ${e.message}`);
     }
+
 
     try {
         await runFunctionalTests(interpreter, logger);
@@ -50,18 +63,21 @@ async function runAll() {
         };
 
         await runSchemeTests(interpreter, logger, [
-            'tests/layer-1/scheme/primitive_tests.scm',
+            'tests/runtime/scheme/primitive_tests.scm',
             'tests/scheme/test_harness_tests.scm',
-            'tests/layer-1/scheme/boot_tests.scm',
-            'tests/layer-1/scheme/record_tests.scm',
-            'tests/layer-1/scheme/tco_tests.scm',
-            'tests/layer-1/scheme/dynamic_wind_tests.scm',
-            'tests/layer-1/scheme/dynamic_wind_interop_tests.scm'
+            'tests/runtime/scheme/boot_tests.scm',
+            'tests/runtime/scheme/record_tests.scm',
+            'tests/runtime/scheme/tco_tests.scm',
+            'tests/runtime/scheme/dynamic_wind_tests.scm',
+            'tests/runtime/scheme/dynamic_wind_interop_tests.scm'
         ], nodeFileLoader);
         logger.title('All Tests Complete.');
     } catch (e) {
         logger.fail(`Functional test suite failed: ${e.message}`);
     }
+
+    // Print summary
+    logger.summary();
 }
 
 runAll();

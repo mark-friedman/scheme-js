@@ -1,5 +1,5 @@
-import { Cons, cons, list } from '../../src/layer-1-kernel/cons.js';
-import { Symbol, intern } from '../../src/layer-1-kernel/symbol.js';
+import { Cons, cons, list } from '../../src/runtime/cons.js';
+import { Symbol, intern } from '../../src/runtime/symbol.js';
 import { assert } from '../helpers.js';
 
 export function runDataTests(logger) {

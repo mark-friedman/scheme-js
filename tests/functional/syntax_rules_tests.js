@@ -1,5 +1,5 @@
 import { run, assert } from '../helpers.js';
-import { globalMacroRegistry } from '../../src/layer-1-kernel/macro_registry.js';
+import { globalMacroRegistry } from '../../src/runtime/macro_registry.js';
 
 export async function runSyntaxRulesTests(interpreter, logger) {
   logger.title('Syntax-Rules Tests');

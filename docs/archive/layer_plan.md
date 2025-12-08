@@ -42,7 +42,7 @@ These will be implemented in Scheme using the core forms:
 **Key Components:**
 *   **Macro System:** `syntax-rules` implementation.
 *   **Core Data:** `Cons`, `Symbol`, `Vector`, `Record`.
-*   **Boot Code:** `src/layer-1-kernel/scheme/boot.scm` (contains `and`, `let`, `cond`, etc.).
+*   **Boot Code:** `src/runtime/scheme/boot.scm` (contains `and`, `let`, `cond`, etc.).
 
 ### Layer 2: The Standard Library (Scheme-on-Scheme)
 

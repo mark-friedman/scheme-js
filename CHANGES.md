@@ -215,29 +215,29 @@ I have successfully refactored the codebase into a strict layered architecture a
 
 ### 1. Directory Structure
 The `src/` directory is now organized into layers:
-- `src/layer-1-kernel/`: Contains the core interpreter, AST, primitives, and Scheme boot code.
+- `src/runtime/`: Contains the core interpreter, AST, primitives, and Scheme boot code.
 - `src/layer-2-syntax/`: (Future) For macro expansion.
 - `src/layer-3-data/`: (Future) For complex data structures.
 - `src/layer-4-stdlib/`: (Future) For the standard library.
 
 ### 2. Kernel Setup (Layer 1)
-- Moved `interpreter.js`, `ast.js`, `reader.js`, `analyzer.js`, `environment.js` to `src/layer-1-kernel/`.
-- Moved `primitives/` to `src/layer-1-kernel/primitives/`.
-- Created `src/layer-1-kernel/index.js` as the factory function `createLayer1()`.
-- Created `src/layer-1-kernel/library.js` for future library support.
-- Moved `lib/boot.scm` to `src/layer-1-kernel/scheme/boot.scm`.
+- Moved `interpreter.js`, `ast.js`, `reader.js`, `analyzer.js`, `environment.js` to `src/runtime/`.
+- Moved `primitives/` to `src/runtime/primitives/`.
+- Created `src/runtime/index.js` as the factory function `createLayer1()`.
+- Created `src/runtime/library.js` for future library support.
+- Moved `lib/boot.scm` to `src/runtime/scheme/boot.scm`.
 
 ### 3. Test Infrastructure
 - Created `tests/runner.js`: A universal test runner that can target specific layers.
-- Created `tests/layer-1/tests.js`: The test suite for Layer 1.
-- Updated all existing tests (`unit`, `functional`) to import from the new `layer-1-kernel` location.
+- Created `tests/runtime/tests.js`: The test suite for Layer 1.
+- Updated all existing tests (`unit`, `functional`) to import from the new `runtime` location.
 - Moved `lib/test.scm` to `tests/scheme/test.scm`.
 - Verified tests pass with `node tests/runner.js 1`.
 
 ### 4. Web UI & Browser Tests
 - Updated `web/main.js` to use `createLayer1()` to instantiate the interpreter.
 - Fixed `web/test_runner.js` to correctly invoke the Layer 1 test suite.
-- Updated `tests/layer-1/tests.js` to support custom file loaders and loggers, enabling browser compatibility.
+- Updated `tests/runtime/tests.js` to support custom file loaders and loggers, enabling browser compatibility.
 - Fixed `tests/functional/record_interop_tests.js` to use the platform-agnostic file loader for `boot.scm`.
 
 ### 5. Scheme Test Output Improvement
@@ -245,7 +245,7 @@ The `src/` directory is now organized into layers:
 - Updated `tests/run_scheme_tests.js` to format pass messages with "(Expected: ..., Got: ...)" for consistency with JS tests.
 
 ### 6. Boot Library Tests
-- Added `tests/scheme/boot_tests.scm` to test `src/layer-1-kernel/scheme/boot.scm`.
+- Added `tests/scheme/boot_tests.scm` to test `src/runtime/scheme/boot.scm`.
 - Verified coverage for `and`, `let`, `letrec`, `cond`, and `equal?`.
 
 ## Verification Results
@@ -265,17 +265,17 @@ Ran `node tests/runner.js 1`:
 I have implemented the `eval` and `apply` primitives in the Layer 1 Kernel, along with the necessary architectural changes to support them.
 ## Changes
 ### 1. TailCall Mechanism
-I introduced a `TailCall` class in `src/layer-1-kernel/values.js`. This allows native JavaScript primitives to return a special object that signals the interpreter to transfer control to a new AST and environment, rather than returning a value.
+I introduced a `TailCall` class in `src/runtime/values.js`. This allows native JavaScript primitives to return a special object that signals the interpreter to transfer control to a new AST and environment, rather than returning a value.
 ### 2. Control Primitives
-I created `src/layer-1-kernel/primitives/control.js` which implements:
+I created `src/runtime/primitives/control.js` which implements:
 *   **`apply`**: Invokes a procedure with a list of arguments. It flattens the arguments and returns a `TailCall` to the procedure.
 *   **`eval`**: Analyzes an expression and returns a `TailCall` to execute the resulting AST.
 *   **`interaction-environment`**: Returns the global environment.
 ### 3. Interpreter Updates
-*   Updated `AppFrame.step` in `src/layer-1-kernel/ast.js` to handle `TailCall` returns from primitives.
+*   Updated `AppFrame.step` in `src/runtime/ast.js` to handle `TailCall` returns from primitives.
 *   Added a `skipBridge` flag to `apply` to ensure it receives raw `Closure` objects instead of JS bridges, preventing stack overflows during recursion.
 ### 4. Math Primitives Update
-*   Updated `+`, `-`, `*`, `/` in `src/layer-1-kernel/primitives/math.js` to be variadic (accepting any number of arguments), as required by the Scheme standard and `apply` tests.
+*   Updated `+`, `-`, `*`, `/` in `src/runtime/primitives/math.js` to be variadic (accepting any number of arguments), as required by the Scheme standard and `apply` tests.
 ### 5. Testing
 *   Created `tests/functional/eval_apply_tests.js` with tests for:
     *   `apply` with various argument combinations.
@@ -333,15 +333,15 @@ I have successfully diagnosed and resolved the issues with `dynamic-wind` intero
 
 ## Changes
 
-### `src/layer-1-kernel/values.js`
+### `src/runtime/values.js`
 - Added `isReturn` flag to `ContinuationUnwind` to support fast-path unwinding.
 
-### `src/layer-1-kernel/ast.js`
+### `src/runtime/ast.js`
 - **Fast Path**: Throw `ContinuationUnwind` even if no wind handlers (for return value propagation).
 - **TailCall**: Handle `Executable` targets (AST nodes).
 - **Complex Path**: Correctly unwind JS stack using `ContinuationUnwind`.
 
-### `src/layer-1-kernel/interpreter.js`
+### `src/runtime/interpreter.js`
 - **Depth**: Track recursion depth to detect nested runs.
 - **Unwind Catch**: Handle `ContinuationUnwind`, restoring registers or popping frames based on `isReturn`.
 # Fix: Browser Test Execution Failure
@@ -349,7 +349,7 @@ I have successfully diagnosed and resolved the issues with `dynamic-wind` intero
 I have fixed the issue where browser tests failed to run due to a "module resolution error" related to the `url` module.
 
 ## The Issue
-The file `tests/run_scheme_tests.js` contained top-level imports for Node.js modules (`url`, `fs`, `path`). This file was being imported by `tests/layer-1/tests.js`, which is used by the browser test runner (`web/test_runner.js`). Since browsers do not have these Node.js modules, the tests failed to load.
+The file `tests/run_scheme_tests.js` contained top-level imports for Node.js modules (`url`, `fs`, `path`). This file was being imported by `tests/runtime/tests.js`, which is used by the browser test runner (`web/test_runner.js`). Since browsers do not have these Node.js modules, the tests failed to load.
 
 ## The Solution
 I refactored the test runner to separate the core, environment-agnostic logic from the Node.js CLI-specific logic.
@@ -362,7 +362,7 @@ This new file contains the `runSchemeTests` function. It has **no** Node.js-spec
 #### 2. Updated `tests/run_scheme_tests.js`
 This file is now just a CLI entry point for Node.js. It imports the core logic from `run_scheme_tests_lib.js` and provides the Node.js-specific file loader and arguments.
 
-#### 3. Updated `tests/layer-1/tests.js`
+#### 3. Updated `tests/runtime/tests.js`
 This file now imports `runSchemeTests` from the clean `run_scheme_tests_lib.js` instead of the Node.js CLI file.
 
 ## Verification
@@ -399,19 +399,19 @@ Ran `node tests/run_all.js`.
 All tests are now passing in Node.js. Browser tests should also pass as the fix is in the shared kernel (`interpreter.js`).
 # Fix: Browser Test Paths
 
-I fixed the `File not found` error in the browser tests by updating the file paths in `tests/layer-1/tests.js` to be relative to the project root.
+I fixed the `File not found` error in the browser tests by updating the file paths in `tests/runtime/tests.js` to be relative to the project root.
 
 ## Issue
-The paths were defined relative to the directory containing the test file (or some other relative assumption), e.g., `../layer-1/scheme/primitive_tests.scm`.
+The paths were defined relative to the directory containing the test file (or some other relative assumption), e.g., `../runtime/scheme/primitive_tests.scm`.
 The browser loader (`web/test_runner.js`) assumes paths are relative to the project root (prepending `../` to the fetch URL from `/web/`).
 
 ## Fix
-Updated `tests/layer-1/tests.js` to use explicit root-relative paths:
-- `'tests/layer-1/scheme/primitive_tests.scm'`
+Updated `tests/runtime/tests.js` to use explicit root-relative paths:
+- `'tests/runtime/scheme/primitive_tests.scm'`
 - `'tests/scheme/test_harness_tests.scm'`
 - etc.
 
-This ensures that `fetch('../tests/layer-1/scheme/primitive_tests.scm')` correctly resolves to the file.
+This ensures that `fetch('../tests/runtime/scheme/primitive_tests.scm')` correctly resolves to the file.
 
 # Layer 1 Architectural Improvements
 
@@ -462,5 +462,42 @@ All tests pass:
 
 ```
 node run_tests_node.js
+=== All Tests Complete. ===
+```
+# Analyzer Refactoring & Test Coverage Expansion
+
+## Summary
+
+Refactored the monolithic analyzer into a modular, class-based system and achieved near 100% unit test coverage for the Layer 1 Kernel.
+
+## Analyzer Refactoring
+
+Decomposed `analyzer.js` into:
+
+- **`src/runtime/analysis/syntactic_analyzer.js`**: Core `SyntacticAnalyzer` class handling dispatch and special form registration.
+- **`src/runtime/analysis/special_forms.js`**: Individual handlers for `if`, `let`, `lambda`, etc.
+- **`src/runtime/analyzer.js`**: Legacy facade wrapping the new system for backward compatibility.
+
+## Comprehensive Unit Testing
+
+Created 6 new unit test suites to cover all core modules in isolation:
+
+| Test Suite | Coverage |
+|------------|----------|
+| `tests/unit/analyzer_tests.js` | `SyntacticAnalyzer` logic, registry, scope isolation. |
+| `tests/unit/winders_tests.js` | `winders.js` logic (stack walking algorithms). |
+| `tests/unit/nodes_tests.js` | `nodes.js` AST execution (`step()` methods). |
+| `tests/unit/frames_tests.js` | `frames.js` Continuation logic (`step()` methods). |
+| `tests/unit/interpreter_tests.js` | `Interpreter` state machine and JS bridge creation. |
+| `tests/unit/reader_tests.js` | `reader.js` regex edge cases, comments, escapes. |
+| `tests/unit/syntax_rules_tests.js` | `matchPattern` internals and macro expansion logic. |
+
+## Verification
+
+All tests passed successfully:
+
+```
+node run_tests_node.js
+...
 === All Tests Complete. ===
 ```

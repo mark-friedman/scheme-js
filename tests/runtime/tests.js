@@ -13,8 +13,14 @@ import { runEvalApplyTests } from '../functional/eval_apply_tests.js';
 import { runSchemeTests } from '../run_scheme_tests_lib.js';
 import { createTestLogger } from '../helpers.js';
 
+// New Unit Tests
+import { runWindersTests } from '../unit/winders_tests.js';
+import { runAnalyzerTests } from '../unit/analyzer_tests.js';
+import { runReaderTests } from '../unit/reader_tests.js';
+import { runSyntaxRulesUnitTests } from '../unit/syntax_rules_tests.js';
+
 export async function run(interpreter, env, schemeFileLoader, customLogger) {
-    console.log("Running Layer 1 Tests...");
+    console.log("Running Runtime Tests...");
 
     // Use provided logger or create default
     const logger = customLogger || createTestLogger();
@@ -44,7 +50,14 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
     runDataTests(logger);
     runPrimitiveTests(logger);
 
+    // New Unit Tests
+    runWindersTests(interpreter, logger);
+    runAnalyzerTests(interpreter, logger);
+    runReaderTests(logger);
+    runSyntaxRulesUnitTests(logger);
+
     // Run Functional Tests
+
     await runFunctionalTests(interpreter, logger);
     runInteropTests(interpreter, logger);
     runQuasiquoteTests(interpreter, logger);
@@ -58,13 +71,13 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
     // Run Scheme Tests
     if (loader) {
         await runSchemeTests(interpreter, logger, [
-            'tests/layer-1/scheme/primitive_tests.scm',
+            'tests/runtime/scheme/primitive_tests.scm',
             'tests/scheme/test_harness_tests.scm',
-            'tests/layer-1/scheme/boot_tests.scm',
-            'tests/layer-1/scheme/record_tests.scm',
-            'tests/layer-1/scheme/tco_tests.scm',
-            'tests/layer-1/scheme/dynamic_wind_tests.scm',
-            'tests/layer-1/scheme/dynamic_wind_interop_tests.scm'
+            'tests/runtime/scheme/boot_tests.scm',
+            'tests/runtime/scheme/record_tests.scm',
+            'tests/runtime/scheme/tco_tests.scm',
+            'tests/runtime/scheme/dynamic_wind_tests.scm',
+            'tests/runtime/scheme/dynamic_wind_interop_tests.scm'
         ], loader);
     } else {
         console.warn("Skipping Scheme tests (No file loader provided)");

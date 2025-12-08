@@ -23,9 +23,11 @@ function tokenize(input) {
   // 2. ( or ) - List delimiters
   // 3. ' ` ,@ , - Quote/Quasiquote
   // 4. Strings
-  // 5. Comments
-  // 6. Atoms (anything else)
-  const regex = /\s*(#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|;[^\n]*|[+-]?(?:nan|inf)\.0|[^\s()]+)(.*)/s;
+  // 5. Comments (;...)
+  // 6. Special numbers (+nan.0, etc.)
+  // 7. Atoms (anything else, stops at whitespace, parens, or semicolon)
+  const regex = /\s*(#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|;[^\n]*|[+-]?(?:nan|inf)\.0|[^\s();]+)(.*)/s;
+
 
   const tokens = [];
   let current = input;

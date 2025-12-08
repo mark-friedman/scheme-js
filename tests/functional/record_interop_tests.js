@@ -76,13 +76,13 @@ export async function runRecordInteropTests(interpreter, logger, fileLoader) {
     try {
         // Load boot.scm to get the macro definition
         if (fileLoader) {
-            const bootCode = await fileLoader('src/layer-1-kernel/scheme/boot.scm');
+            const bootCode = await fileLoader('src/runtime/scheme/boot.scm');
             run(interpreter, bootCode);
         } else if (typeof process !== 'undefined') {
             // Fallback for direct node execution (if any)
             const fs = await import('fs');
             const path = await import('path');
-            const bootPath = path.join(process.cwd(), 'src', 'layer-1-kernel', 'scheme', 'boot.scm');
+            const bootPath = path.join(process.cwd(), 'src', 'runtime', 'scheme', 'boot.scm');
             const bootCode = fs.readFileSync(bootPath, 'utf8');
             run(interpreter, bootCode);
         } else {

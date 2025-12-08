@@ -21,7 +21,7 @@ The source code is organized into numbered directories. This makes the dependenc
   │
   ├── src/
   │   │
-  │   ├── layer-1-kernel/         # THE KERNEL
+  │   ├── runtime/         # THE KERNEL
   │   │   ├── index.js            # EXPORT: createLayer1()
   │   │   ├── interpreter.js      # The core trampoline loop
   │   │   ├── ast.js              # Base AST nodes
@@ -45,7 +45,7 @@ The source code is organized into numbered directories. This makes the dependenc
   │
   ├── tests/
   │   ├── runner.js               # Universal Test Runner
-  │   ├── layer-1/                # Tests for Kernel only
+  │   ├── runtime/                # Tests for Kernel only
   │   ├── layer-2/                # Tests for Macros
   │   └── layer-3/                # Tests for Cons/Lists
   │
@@ -59,7 +59,7 @@ The source code is organized into numbered directories. This makes the dependenc
 
 To ensure layers are separately runnable, we do not simply modify a global Interpreter class. Instead, each layer exports a Factory Function that constructs a valid interpreter for that specific stage of development.
 
-Layer 1 Factory (src/layer-1-kernel/index.js)
+Layer 1 Factory (src/runtime/index.js)
 
 This layer builds the foundation from scratch.
 
@@ -84,7 +84,7 @@ Layer 2 Factory (src/layer-2-syntax/index.js)
 
 This layer imports Layer 1, instantiates it, and then mutates it to add new capabilities.
 
-import { createLayer1 } from '../layer-1-kernel/index.js';
+import { createLayer1 } from '../runtime/index.js';
 import { expandMacros } from './expander.js';
 
 export function createLayer2() {
@@ -196,10 +196,10 @@ Transparent Interop: Keep using the direct mapping strategy (JS Numbers = Scheme
 
 8. Immediate Next Steps
 
-Refactor: Move current src/* files into src/layer-1-kernel/.
+Refactor: Move current src/* files into src/runtime/.
 
-Create Factory: Create src/layer-1-kernel/index.js.
+Create Factory: Create src/runtime/index.js.
 
-Implement Library Support: Add define-library and import handling to src/layer-1-kernel/analyzer.js (or a new library_manager.js).
+Implement Library Support: Add define-library and import handling to src/runtime/analyzer.js (or a new library_manager.js).
 
 Verify: Ensure node tests/runner.js 1 passes all existing tests.

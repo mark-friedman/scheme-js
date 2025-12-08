@@ -1,4 +1,4 @@
-import { createLayer1 } from '../src/layer-1-kernel/index.js';
+import { createLayer1 } from '../src/runtime/index.js';
 import { setupRepl } from './repl.js';
 
 // --- Main Entry Point ---

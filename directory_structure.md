@@ -1,72 +1,57 @@
 # Directory Structure
 
-To ensure strict separation of concerns and enable incremental testing, the source code is organized into numbered layers.
+The codebase follows a two-tier architecture: JavaScript runtime and Scheme libraries.
 
-### Layered Directory Structure
+## Target Structure
 
 ```text
 /
 ├── src/
-│   ├── layer-1-kernel/         # THE KERNEL
-│   │   ├── index.js            # EXPORT: createLayer1()
-│   │   ├── interpreter.js      # The core trampoline loop
-│   │   ├── ast.js              # Barrel file (re-exports nodes/frames)
+│   ├── runtime/                # JavaScript Kernel
+│   │   ├── index.js            # EXPORT: createInterpreter()
+│   │   ├── interpreter.js      # Trampoline execution loop
 │   │   ├── nodes.js            # AST node classes
 │   │   ├── frames.js           # Continuation frame classes
-│   │   ├── frame_registry.js   # Factory functions (circular dep handling)
 │   │   ├── winders.js          # Dynamic-wind utilities
 │   │   ├── environment.js      # Environment class
-│   │   ├── library.js          # The "Micro-Library" registry
-│   │   ├── values.js           # Closure, Continuation, TailCall classes
-│   │   ├── analyzer.js         # S-expression to AST conversion
-│   │   ├── reader.js           # Tokenizer and parser
-│   │   ├── cons.js             # Cons cell implementation
-│   │   ├── symbol.js           # Symbol interning
-│   │   ├── syntax_rules.js     # Macro pattern matching
-│   │   ├── macro_registry.js   # Global macro storage
-│   │   └── primitives/         # Base JS natives (+, display, etc.)
-│   ├── layer-1-kernel/       # Layer 1: Syntactic Foundation & Core Data
-│   │   ├── scheme/           # Scheme boot code
-│   │   │   └── boot.scm      # Core macros (and, let, cond)
-│   │   ├── primitives/       # JS implementations of primitives
-│   │   ├── syntax/           # Reader, Analyzer, Macro Expander
-│   │   ├── data/             # Cons, Symbol, Vector, Record classes
-│   │   ├── ast.js            # AST Node definitions
-│   │   ├── environment.js    # Environment class
-│   │   ├── interpreter.js    # Core Interpreter Loop
-│   │   └── index.js          # Layer 1 Factory
+│   │   ├── values.js           # Closure, Continuation, TailCall
+│   │   ├── reader.js           # S-expression parser
+│   │   ├── analyzer.js         # S-exp → AST conversion
+│   │   ├── syntax_rules.js     # syntax-rules transformer
+│   │   ├── library_loader.js   # define-library / import / export
+│   │   ├── primitives/         # Native procedures (+, cons, etc.)
+│   │   ├── analysis/           # Syntactic analysis modules
+│   │   └── boot.scm            # Pre-library bootstrap
 │   │
-│   ├── layer-2-syntax/         # SYNTACTIC ABSTRACTION
-│   │   ├── index.js            # EXPORT: createLayer2()
-│   │   ├── expander.js         # JS logic for syntax-rules
-│   │   └── syntax.scm          # (define-library (scheme syntax) ...)
-│   │
-│   ├── layer-3-data/           # DATA STRUCTURES
-│   │   ├── index.js            # EXPORT: createLayer3()
-│   │   ├── cons.js             # JS class for Pairs
-│   │   ├── symbol.js           # JS class for Interned Symbols
-│   │   └── data.scm            # (define-library (scheme data) ...)
-│   │
-│   └── layer-4-stdlib/         # STANDARD LIBRARY
-│       ├── index.js            # EXPORT: createLayer4()
-│       └── base.scm            # (define-library (scheme base) ...)
+│   └── lib/                    # R7RS Libraries (Scheme)
+│       └── scheme/
+│           ├── base.sld        # (scheme base)
+│           ├── write.sld       # (scheme write)
+│           ├── read.sld        # (scheme read)
+│           ├── char.sld        # (scheme char)
+│           └── ...
 │
 ├── tests/
-│   ├── runner.js               # Universal Test Runner
-│   ├── layer-1/                # Tests for Kernel only
-│   ├── layer-2/                # Tests for Macros
-│   └── layer-3/                # Tests for Cons/Lists
+│   ├── runtime/                # Unit tests for JS runtime
+│   ├── integration/            # Full interpreter tests
+│   └── lib/                    # Per-library Scheme tests
+│       └── scheme/
+│           ├── base_tests.scm
+│           └── ...
+│
+├── docs/
+│   ├── architecture.md         # This architecture overview
+│   ├── trampoline.md           # Execution model details
+│   └── archive/                # Deprecated documentation
 │
 └── web/
     ├── index.html
-    └── main.js                 # UI Entry point (targets latest layer)
+    └── main.js                 # Browser entry point
 ```
 
-### Key Principles
+## Key Principles
 
-1.  **Strict Dependency Flow**: Higher numbered layers depend on lower numbered layers. Layer 1 knows nothing about Layer 2.
-2.  **Factory Pattern**: Each layer exports a `createLayerN()` function that builds upon the previous layer.
-3.  **Isolated Testing**: The `tests/runner.js` can target a specific layer (e.g., `node tests/runner.js 1`) to verify it in isolation.
-4.  **Library Separation**:
-    *   **JS Primitives**: Go in `src/layer-N/primitives/` or `src/layer-N/filename.js`.
-    *   **Scheme Libraries**: Go in `src/layer-N/filename.scm` and use `(define-library ...)`.
+1. **Two-Tier Model**: JavaScript provides the runtime; Scheme provides the libraries.
+2. **Standard Modules**: Dependencies use R7RS `define-library` / `import`.
+3. **Test Mirroring**: `tests/lib/` mirrors `src/lib/` structure.
+4. **Minimal Bootstrap**: `boot.scm` defines only what's needed to load `(scheme base)`.

@@ -28,7 +28,7 @@ A layered implementation of Scheme R7RS-Small in JavaScript.
 
 The project is organized into strict layers to ensure separation of concerns and testability.
 
-- **Layer 1: Kernel** (`src/layer-1-kernel/`)
+- **Layer 1: Kernel** (`src/runtime/`)
   - The minimal Scheme interpreter (AST, Environment, Primitives).
   - Uses native JS arrays for lists (initially) or simple Cons.
   - Factory: `createLayer1()`

@@ -1,5 +1,5 @@
-import { createLayer1 } from '../src/layer-1-kernel/index.js';
-import { run } from '../tests/layer-1/tests.js';
+import { createLayer1 } from '../src/runtime/index.js';
+import { run } from '../tests/runtime/tests.js';
 
 // Simple logger to write to the page
 const outputEl = document.getElementById('test-output');
