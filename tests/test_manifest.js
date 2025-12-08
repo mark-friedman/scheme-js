@@ -1,42 +1,43 @@
 /**
  * Test Manifest - Single source of truth for all test suites.
  * 
- * Both Node.js (run_all.js) and browser (runtime/tests.js) runners
- * use this manifest to ensure they run the same tests.
- * 
- * NOTE: All paths are absolute from server root for browser compatibility.
+ * Paths are relative to the `tests/` directory.
+ * Each runner adds its environment-specific prefix:
+ * - Node.js (run_all.js): "./" 
+ * - Browser (runtime/tests.js): "../"
  */
 
-// Unit Tests (no interpreter needed for some)
+// Unit Tests
 export const unitTests = [
-    { path: '/tests/unit/data_tests.js', fn: 'runDataTests', needsInterpreter: false },
-    { path: '/tests/unit/primitives_tests.js', fn: 'runPrimitiveTests', needsInterpreter: false },
-    { path: '/tests/unit/unit_tests.js', fn: 'runUnitTests', needsInterpreter: true },
-    { path: '/tests/unit/winders_tests.js', fn: 'runWindersTests', needsInterpreter: true },
-    { path: '/tests/unit/analyzer_tests.js', fn: 'runAnalyzerTests', needsInterpreter: true },
-    { path: '/tests/unit/reader_tests.js', fn: 'runReaderTests', needsInterpreter: false },
-    { path: '/tests/unit/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
+    { path: 'unit/data_tests.js', fn: 'runDataTests', needsInterpreter: false },
+    { path: 'unit/primitives_tests.js', fn: 'runPrimitiveTests', needsInterpreter: false },
+    { path: 'unit/unit_tests.js', fn: 'runUnitTests', needsInterpreter: true },
+    { path: 'unit/winders_tests.js', fn: 'runWindersTests', needsInterpreter: true },
+    { path: 'unit/analyzer_tests.js', fn: 'runAnalyzerTests', needsInterpreter: true },
+    { path: 'unit/reader_tests.js', fn: 'runReaderTests', needsInterpreter: false },
+    { path: 'unit/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)
 export const functionalTests = [
-    { path: '/tests/functional/functional_tests.js', fn: 'runFunctionalTests', async: true },
-    { path: '/tests/functional/interop_tests.js', fn: 'runInteropTests', async: false },
-    { path: '/tests/functional/quasiquote_tests.js', fn: 'runQuasiquoteTests', async: false },
-    { path: '/tests/functional/quote_tests.js', fn: 'runQuoteTests', async: false },
-    { path: '/tests/functional/macro_tests.js', fn: 'runMacroTests', async: true },
-    { path: '/tests/functional/syntax_rules_tests.js', fn: 'runSyntaxRulesTests', async: true },
-    { path: '/tests/functional/define_tests.js', fn: 'runDefineTests', async: false },
-    { path: '/tests/functional/eval_apply_tests.js', fn: 'runEvalApplyTests', async: true },
-    { path: '/tests/functional/record_interop_tests.js', fn: 'runRecordInteropTests', async: true, needsLoader: true },
+    { path: 'functional/functional_tests.js', fn: 'runFunctionalTests', async: true },
+    { path: 'functional/interop_tests.js', fn: 'runInteropTests', async: false },
+    { path: 'functional/quasiquote_tests.js', fn: 'runQuasiquoteTests', async: false },
+    { path: 'functional/quote_tests.js', fn: 'runQuoteTests', async: false },
+    { path: 'functional/macro_tests.js', fn: 'runMacroTests', async: true },
+    { path: 'functional/syntax_rules_tests.js', fn: 'runSyntaxRulesTests', async: true },
+    { path: 'functional/define_tests.js', fn: 'runDefineTests', async: false },
+    { path: 'functional/eval_apply_tests.js', fn: 'runEvalApplyTests', async: true },
+    { path: 'functional/record_interop_tests.js', fn: 'runRecordInteropTests', async: true, needsLoader: true },
+    { path: 'functional/multiple_values_tests.js', fn: 'runMultipleValuesTests', async: false },
 ];
 
 // Integration Tests
 export const integrationTests = [
-    { path: '/tests/integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
+    { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
 ];
 
-// Scheme Test Files (run via runSchemeTests)
+// Scheme Test Files (paths relative to project root, used by file loader)
 export const schemeTestFiles = [
     'tests/runtime/scheme/primitive_tests.scm',
     'tests/scheme/test_harness_tests.scm',
@@ -48,18 +49,20 @@ export const schemeTestFiles = [
 ];
 
 /**
- * Runs a single test module.
+ * Runs a single test module with the given path prefix.
+ * @param {string} pathPrefix - Path prefix for imports (e.g., "./" or "../")
  * @param {Object} test - Test descriptor from manifest
  * @param {Object} interpreter - Interpreter instance
  * @param {Object} logger - Logger instance
  * @param {Function} loader - File loader (for tests that need it)
  */
-export async function runTestModule(test, interpreter, logger, loader) {
-    const module = await import(test.path);
+export async function runTestModule(pathPrefix, test, interpreter, logger, loader) {
+    const fullPath = pathPrefix + test.path;
+    const module = await import(fullPath);
     const testFn = module[test.fn];
 
     if (!testFn) {
-        logger.fail(`Test function ${test.fn} not found in ${test.path}`);
+        logger.fail(`Test function ${test.fn} not found in ${fullPath}`);
         return;
     }
 
@@ -80,17 +83,18 @@ export async function runTestModule(test, interpreter, logger, loader) {
 }
 
 /**
- * Runs all tests from the manifest.
+ * Runs all tests from the manifest with the given path prefix.
+ * @param {string} pathPrefix - Path prefix for imports
  * @param {Object} interpreter - Interpreter instance
  * @param {Object} logger - Logger instance  
  * @param {Function} loader - File loader for Scheme tests
  * @param {Function} runSchemeTests - Scheme test runner function
  */
-export async function runAllFromManifest(interpreter, logger, loader, runSchemeTests) {
+export async function runAllFromManifest(pathPrefix, interpreter, logger, loader, runSchemeTests) {
     // Unit tests
     try {
         for (const test of unitTests) {
-            await runTestModule(test, interpreter, logger, loader);
+            await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {
         logger.fail(`Unit test suite crashed: ${e.message}`);
@@ -99,7 +103,7 @@ export async function runAllFromManifest(interpreter, logger, loader, runSchemeT
     // Functional tests
     try {
         for (const test of functionalTests) {
-            await runTestModule(test, interpreter, logger, loader);
+            await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {
         logger.fail(`Functional test suite crashed: ${e.message}`);
@@ -108,7 +112,7 @@ export async function runAllFromManifest(interpreter, logger, loader, runSchemeT
     // Integration tests
     try {
         for (const test of integrationTests) {
-            await runTestModule(test, interpreter, logger, loader);
+            await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {
         logger.fail(`Integration test suite crashed: ${e.message}`);

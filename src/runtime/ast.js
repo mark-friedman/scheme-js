@@ -24,8 +24,10 @@ export {
     CallCC,
     Begin,
     DynamicWindInit,
-    RestoreContinuation
+    RestoreContinuation,
+    CallWithValuesNode
 } from './nodes.js';
+
 
 // Re-export from frames.js
 export {
@@ -38,7 +40,8 @@ export {
     BeginFrame,
     DynamicWindSetupFrame,
     WindFrame,
-    RestoreValueFrame
+    RestoreValueFrame,
+    CallWithValuesFrame
 } from './frames.js';
 
 // Re-export from winders.js
@@ -56,5 +59,6 @@ export {
     createDynamicWindSetupFrame,
     createWindFrame,
     createRestoreValueFrame,
+    createCallWithValuesFrame,
     getWindFrameClass
 } from './frame_registry.js';

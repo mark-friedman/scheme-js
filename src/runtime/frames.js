@@ -278,7 +278,17 @@ export class AppFrame extends Executable {
     invokeContinuation(func, args, registers, interpreter) {
         const currentStack = registers[3];
         const targetStack = func.fstack;
-        const value = args[0] || null;
+
+        // Handle multiple values: wrap 2+ args in Values, like `values` primitive
+        let value;
+        if (args.length === 0) {
+            value = null;
+        } else if (args.length === 1) {
+            value = args[0];
+        } else {
+            value = new Values(args);
+        }
+
 
         // Get WindFrame class for instanceof check
         const WindFrameClass = getWindFrameClass();
@@ -419,6 +429,46 @@ export class RestoreValueFrame extends Executable {
     }
 }
 
+// --- Multiple Values Frames ---
+
+import { Values } from './values.js';
+
+/**
+ * Frame for call-with-values.
+ * Waits for producer result, unpacks Values if present, then applies consumer.
+ */
+export class CallWithValuesFrame extends Executable {
+    /**
+     * @param {Closure} consumer - The consumer procedure
+     * @param {Environment} env - The captured environment
+     */
+    constructor(consumer, env) {
+        super();
+        this.consumer = consumer;
+        this.env = env;
+    }
+
+    step(registers, interpreter) {
+        const result = registers[0];
+
+        // Unpack Values object, or treat single value as 1-element array
+        let args;
+        if (result instanceof Values) {
+            args = result.toArray();
+        } else {
+            args = [result];
+        }
+
+        // Create argument Literals for TailApp
+        const argLiterals = args.map(a => new Literal(a));
+
+        // Invoke consumer with the values
+        registers[1] = new TailApp(new Literal(this.consumer), argLiterals);
+        registers[2] = this.env;
+        return true;
+    }
+}
+
 // --- Register all frames with the registry ---
 registerFrames({
     LetFrame,
@@ -430,5 +480,7 @@ registerFrames({
     BeginFrame,
     DynamicWindSetupFrame,
     WindFrame,
-    RestoreValueFrame
+    RestoreValueFrame,
+    CallWithValuesFrame
 });
+

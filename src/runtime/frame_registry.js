@@ -9,6 +9,7 @@
 // Frame classes are registered here by frames.js
 let LetFrame, LetRecFrame, IfFrame, SetFrame, DefineFrame;
 let AppFrame, BeginFrame, DynamicWindSetupFrame, WindFrame, RestoreValueFrame;
+let CallWithValuesFrame;
 
 /**
  * Registers frame classes. Called by frames.js during module initialization.
@@ -25,6 +26,7 @@ export function registerFrames(frames) {
     DynamicWindSetupFrame = frames.DynamicWindSetupFrame;
     WindFrame = frames.WindFrame;
     RestoreValueFrame = frames.RestoreValueFrame;
+    CallWithValuesFrame = frames.CallWithValuesFrame;
 }
 
 // --- Factory Functions ---
@@ -104,4 +106,11 @@ export function createRestoreValueFrame(savedValue) {
  */
 export function getWindFrameClass() {
     return WindFrame;
+}
+
+/**
+ * Creates a CallWithValuesFrame instance.
+ */
+export function createCallWithValuesFrame(consumer, env) {
+    return new CallWithValuesFrame(consumer, env);
 }

@@ -1,5 +1,17 @@
-import { Closure } from './values.js';
+import { Closure, Values } from './values.js';
 import { Literal, TailApp } from './ast.js';
+
+/**
+ * Unpacks a Values object to its first value for JS interop (Option C).
+ * @param {*} result - The result to unpack
+ * @returns {*} First value if Values, otherwise unchanged
+ */
+function unpackForJs(result) {
+  if (result instanceof Values) {
+    return result.first();
+  }
+  return result;
+}
 
 /**
  * The core Scheme interpreter.
@@ -64,7 +76,7 @@ export class Interpreter {
           if (fstack.length === 0) {
             // --- Fate #1: Normal Termination ---
             // Stack is empty, computation is done.
-            let result = registers[0];
+            let result = unpackForJs(registers[0]);
 
             // BOUNDARY CHECK: If result is a Closure, wrap it in a Bridge
             if (result instanceof Closure) {
@@ -73,6 +85,7 @@ export class Interpreter {
 
             return result; // Return the value in 'ans'
           }
+
 
           // --- Fate #2: Restore a Frame ---
           // The stack is not empty. Pop the next frame.
@@ -115,7 +128,7 @@ export class Interpreter {
               const fstack = registers[3];
               if (fstack.length === 0) {
                 // Done
-                let result = registers[0];
+                let result = unpackForJs(registers[0]);
                 if (result instanceof Closure) {
                   return this.createJsBridge(result);
                 }
@@ -136,7 +149,7 @@ export class Interpreter {
 
           // Check for SentinelResult (Control Flow for JS Interop)
           if (e instanceof SentinelResult) {
-            return e.value;
+            return unpackForJs(e.value);
           }
 
           // Catch errors from native JS calls or logic errors

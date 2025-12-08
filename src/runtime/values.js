@@ -58,3 +58,38 @@ export class ContinuationUnwind extends Error {
         this.isReturn = isReturn;
     }
 }
+
+/**
+ * Multiple Values wrapper.
+ * Used by `values` and `call-with-values` to pass multiple return values.
+ * 
+ * In R7RS, (values 1 2 3) returns a "multiple values" object.
+ * call-with-values unpacks it and applies to the consumer.
+ */
+export class Values extends Value {
+    constructor(values) {
+        super();
+        this.values = values; // Array of values
+    }
+
+    /**
+     * Get the first value (used in single-value contexts).
+     * @returns {*} The first value, or undefined if empty
+     */
+    first() {
+        return this.values[0];
+    }
+
+    /**
+     * Get all values as an array.
+     * @returns {Array}
+     */
+    toArray() {
+        return this.values;
+    }
+
+    toString() {
+        return `#<values: ${this.values.length} values>`;
+    }
+}
+

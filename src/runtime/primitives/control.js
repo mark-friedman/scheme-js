@@ -1,5 +1,5 @@
-import { TailCall } from '../values.js';
-import { TailApp, Literal, DynamicWindInit } from '../ast.js';
+import { TailCall, Values } from '../values.js';
+import { TailApp, Literal, DynamicWindInit, CallWithValuesNode } from '../ast.js';
 import { analyze } from '../analyzer.js';
 import { Cons, toArray } from '../cons.js';
 
@@ -35,8 +35,44 @@ export function getControlPrimitives(interpreter) {
     // We want the raw Closure/Continuation so we can put it back into the AST.
     applyPrimitive.skipBridge = true;
 
+    /**
+     * call-with-values: (call-with-values producer consumer)
+     * 
+     * Calls producer with no arguments, then passes its return value(s)
+     * to consumer. If producer returns a Values object, unpack it.
+     */
+    const callWithValuesPrimitive = (producer, consumer) => {
+        // Return a TailCall to execute producer, then apply consumer
+        return new TailCall(
+            new CallWithValuesNode(producer, consumer),
+            null
+        );
+    };
+    callWithValuesPrimitive.skipBridge = true;
+
     const controlPrimitives = {
         'apply': applyPrimitive,
+
+        /**
+         * values: Return multiple values.
+         * (values) -> Returns undefined (single value)
+         * (values x) -> Returns x (single value)
+         * (values x y ...) -> Returns Values wrapper
+         */
+        'values': (...args) => {
+            if (args.length === 0) {
+                // No values - return undefined
+                return undefined;
+            } else if (args.length === 1) {
+                // Single value - return as-is
+                return args[0];
+            } else {
+                // Multiple values - wrap in Values
+                return new Values(args);
+            }
+        },
+
+        'call-with-values': callWithValuesPrimitive,
 
         'eval': (expr, env) => {
             // 1. Analyze the expression to get an AST
@@ -67,3 +103,4 @@ export function getControlPrimitives(interpreter) {
 
     return controlPrimitives;
 }
+

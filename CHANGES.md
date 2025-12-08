@@ -501,3 +501,79 @@ node run_tests_node.js
 ...
 === All Tests Complete. ===
 ```
+
+---
+
+# Phase 3: Library Loader (2025-12-08)
+
+Implemented the R7RS `define-library` module system.
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| `src/runtime/library_loader.js` | Core library loading and parsing |
+| `src/lib/scheme/base.sld` | Stub for `(scheme base)` library |
+| `src/lib/test/hello.sld` | Example test library |
+| `tests/integration/library_loader_tests.js` | 19 integration tests |
+
+## Key Functions
+
+- `parseDefineLibrary(form)` — Extract exports, imports, body from define-library
+- `parseImportSet(spec)` — Handle only/except/prefix/rename import filters
+- `loadLibrary(name, ...)` — Async library loading with dependency resolution
+- `registerBuiltinLibrary(name, exports)` — Pre-register runtime libraries
+- `createSchemeBaseExports(globalEnv)` — Extract primitives for (scheme base)
+
+## Test Runner Improvements
+
+- Synchronized Node.js (`tests/run_all.js`) and browser (`tests/runtime/tests.js`) test lists
+- Added `summary()` method to browser logger with pass/fail tracking
+- Both runners now show "TEST SUMMARY: X passed, Y failed"
+
+## Verification
+
+```
+Node.js: 320 passed, 0 failed
+Browser: 320 passed, 0 failed
+```
+
+---
+
+# Phase 4: Multiple Values (2025-12-08)
+
+Implemented R7RS `values` and `call-with-values` for multiple return values.
+
+## New/Modified Files
+
+| File | Change |
+|------|--------|
+| `src/runtime/values.js` | Added `Values` class to wrap multiple return values |
+| `src/runtime/primitives/control.js` | Added `values` and `call-with-values` primitives |
+| `src/runtime/nodes.js` | Added `CallWithValuesNode` AST node |
+| `src/runtime/frames.js` | Added `CallWithValuesFrame` continuation frame |
+| `src/runtime/frame_registry.js` | Added `createCallWithValuesFrame` factory |
+| `src/runtime/ast.js` | Updated exports |
+| `tests/functional/multiple_values_tests.js` | 7 new tests |
+
+## How It Works
+
+1. **`values` primitive**: Returns values directly for 0-1 args, wraps in `Values` for 2+
+2. **`call-with-values`**: Returns `TailCall` to `CallWithValuesNode`
+3. **`CallWithValuesNode`**: Pushes `CallWithValuesFrame`, calls producer with no args
+4. **`CallWithValuesFrame`**: Unpacks `Values` (if present) and applies consumer
+
+## Edge Case Handling
+
+- **call/cc with multiple values**: `(k 1 2 3)` now creates `Values(1,2,3)` in `invokeContinuation`
+- **JS Interop (Option C)**: When values escape to JS boundary, `unpackForJs` returns only the first value
+
+## Verification
+
+```
+Node.js: 331 passed, 0 failed
+Browser: 331 passed, 0 failed
+```
+
+
+

@@ -386,3 +386,36 @@ export class RestoreContinuation extends Executable {
         return false;
     }
 }
+
+// --- Multiple Values AST Nodes ---
+
+/**
+ * AST node for call-with-values.
+ * Calls producer with no arguments, then applies consumer to the result(s).
+ */
+export class CallWithValuesNode extends Executable {
+    /**
+     * @param {Closure} producer - Zero-argument procedure that produces values
+     * @param {Closure} consumer - Procedure that consumes the values
+     */
+    constructor(producer, consumer) {
+        super();
+        this.producer = producer;
+        this.consumer = consumer;
+    }
+
+    step(registers, interpreter) {
+        // Push a frame to handle the consumer call after producer returns
+        registers[3].push(FrameRegistry.createCallWithValuesFrame(
+            this.consumer,
+            registers[2]
+        ));
+
+        // Call producer with no arguments
+        registers[1] = new TailApp(new Literal(this.producer), []);
+        return true;
+    }
+
+    toString() { return "(CallWithValues ...)"; }
+}
+
