@@ -66,21 +66,19 @@ export class Environment {
     }
 
     /**
-     * Updates an existing variable in the scope chain.
-     * @param {string} name - The variable name.
-     * @param {*} value - The new value.
-     * @returns {*} The new value.
-     */
+   * Updates an existing variable in the scope chain.
+   * Throws an error if the variable is not bound.
+   * @param {string} name - The variable name.
+   * @param {*} value - The new value.
+   * @returns {*} The new value.
+   * @throws {Error} If the variable is not bound.
+   */
     set(name, value) {
         const env = this.findEnv(name);
         if (!env) {
-            // Set at the *top* (global) level.
-            let top = this;
-            while (top.parent) { top = top.parent; }
-            top.bindings.set(name, value);
-        } else {
-            env.bindings.set(name, value);
+            throw new Error(`set!: unbound variable: ${name}`);
         }
+        env.bindings.set(name, value);
         return value;
     }
 

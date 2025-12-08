@@ -46,8 +46,12 @@ export function runUnitTests(interpreter, logger) {
     assert(logger, "Unit: env.set (parent)", setEnv.lookup('x'), 10);
     assert(logger, "Unit: env.set (parent, child lookup)", setChild.lookup('x'), 10);
 
-    setChild.set('z', 99); // Set on global (not found)
-    assert(logger, "Unit: env.set (global)", setEnv.lookup('z'), 99);
+    try {
+        setChild.set('z', 99); // Set on unbound variable should throw
+        logger.fail("Unit: env.set (unbound) - FAILED to throw");
+    } catch (e) {
+        assert(logger, "Unit: env.set (unbound throws)", e.message, "set!: unbound variable: z");
+    }
 
     // --- Parser Unit Tests ---
     logger.title('Running Parser Unit Tests...');

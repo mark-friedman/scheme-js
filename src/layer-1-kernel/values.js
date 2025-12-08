@@ -9,7 +9,7 @@ export class Value {
 export class Closure extends Value {
     constructor(params, body, env) {
         super();
-        this.params = params; // Scheme list of symbols
+        this.params = params; // Array of parameter names (strings)
         this.body = body;     // AST node (e.g. Sequence or single expression)
         this.env = env;       // Captured Environment
     }

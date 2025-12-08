@@ -412,3 +412,55 @@ Updated `tests/layer-1/tests.js` to use explicit root-relative paths:
 - etc.
 
 This ensures that `fetch('../tests/layer-1/scheme/primitive_tests.scm')` correctly resolves to the file.
+
+# Layer 1 Architectural Improvements
+
+Implemented recommendations from Layer 1 code review to improve maintainability and R7RS compliance.
+
+## Changes Made
+
+### File Reorganization
+
+Split the 711-line `ast.js` into focused modules:
+
+| File | Purpose |
+|------|---------|
+| `nodes.js` | AST node classes (Literal, Variable, Lambda, etc.) |
+| `frames.js` | Continuation frames (AppFrame, IfFrame, etc.) |
+| `winders.js` | Dynamic-wind stack walking utilities |
+| `frame_registry.js` | Factory functions (circular dependency handling) |
+| `ast.js` | Barrel file (re-exports everything for backwards compat) |
+
+### Bug Fix: Environment.set()
+
+Changed `environment.js` `set()` method to throw on unbound variables (R7RS compliance):
+
+```diff
+- // Set at the *top* (global) level when not found
+- let top = this;
+- while (top.parent) { top = top.parent; }
+- top.bindings.set(name, value);
++ throw new Error(`set!: unbound variable: ${name}`);
+```
+
+### Documentation
+
+- `docs/trampoline.md` — Explains the execution model
+- `docs/future_layer_recommendations.md` — Prep for Layers 2-4
+- `directory_structure.md` — Updated with new files
+
+### Test Fixes
+
+Updated tests that relied on implicit global definition to use `define`:
+- `tests/unit/unit_tests.js`
+- `tests/functional/functional_tests.js`
+- `tests/functional/interop_tests.js`
+
+## Verification
+
+All tests pass:
+
+```
+node run_tests_node.js
+=== All Tests Complete. ===
+```

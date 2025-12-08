@@ -10,8 +10,20 @@ To ensure strict separation of concerns and enable incremental testing, the sour
 │   ├── layer-1-kernel/         # THE KERNEL
 │   │   ├── index.js            # EXPORT: createLayer1()
 │   │   ├── interpreter.js      # The core trampoline loop
-│   │   ├── ast.js              # Base AST nodes
+│   │   ├── ast.js              # Barrel file (re-exports nodes/frames)
+│   │   ├── nodes.js            # AST node classes
+│   │   ├── frames.js           # Continuation frame classes
+│   │   ├── frame_registry.js   # Factory functions (circular dep handling)
+│   │   ├── winders.js          # Dynamic-wind utilities
+│   │   ├── environment.js      # Environment class
 │   │   ├── library.js          # The "Micro-Library" registry
+│   │   ├── values.js           # Closure, Continuation, TailCall classes
+│   │   ├── analyzer.js         # S-expression to AST conversion
+│   │   ├── reader.js           # Tokenizer and parser
+│   │   ├── cons.js             # Cons cell implementation
+│   │   ├── symbol.js           # Symbol interning
+│   │   ├── syntax_rules.js     # Macro pattern matching
+│   │   ├── macro_registry.js   # Global macro storage
 │   │   └── primitives/         # Base JS natives (+, display, etc.)
 │   ├── layer-1-kernel/       # Layer 1: Syntactic Foundation & Core Data
 │   │   ├── scheme/           # Scheme boot code

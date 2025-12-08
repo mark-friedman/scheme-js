@@ -12,15 +12,15 @@ export function runInteropTests(interpreter, logger) {
 
     // Globally define 'loop' for TCO interop test
     run(interpreter, `
-        (set! loop (lambda (n acc)
-                     (if (= n 0)
-                         acc
-                         (loop (- n 1) (+ acc n)))))`);
+        (define loop (lambda (n acc)
+                      (if (= n 0)
+                          acc
+                          (loop (- n 1) (+ acc n)))))`);
 
     logger.title("call/cc (JS Interop)");
 
     // Test 1: JS stores k, then JS invokes k
-    run(interpreter, `(set! final-result "interop-test-1")`);
+    run(interpreter, `(define final-result "interop-test-1")`);
 
     // Define helper to invoke globalK from JS
     interpreter.globalEnv.bindings.set('invoke-global-k', (val) => {
@@ -42,7 +42,7 @@ export function runInteropTests(interpreter, logger) {
     assert(logger, "JS Interop: Result after JS invokes k", result, 125); // 100 + 25
 
     // Test 2: Capture k *inside* a JS-initiated callback
-    run(interpreter, `(set! callback-k #f)`);
+    run(interpreter, `(define callback-k #f)`);
 
     // Define helper to run callback
     interpreter.globalEnv.bindings.set('invoke-callback', (cb) => cb());
@@ -143,7 +143,7 @@ export function runInteropTests(interpreter, logger) {
         });
 
         run(interpreter, `
-      (set! scheme-ping (lambda (n)
+      (define scheme-ping (lambda (n)
         (if (= n 0)
             "ping-done"
             (js-pong (- n 1)))))

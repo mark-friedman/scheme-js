@@ -61,7 +61,7 @@ export async function runFunctionalTests(interpreter, logger) {
     // --- call/cc (Capture and Invoke) ---
     logger.title("call/cc (Capture and Invoke)");
 
-    run(interpreter, `(set! k-holder #f)`);
+    run(interpreter, `(define k-holder #f)`);
 
     result = run(interpreter, `
         (let ((val (+ 10 (call/cc (lambda (k)
@@ -74,7 +74,7 @@ export async function runFunctionalTests(interpreter, logger) {
     result = run(interpreter, `(k-holder 20)`);
     assert(logger, "call/cc invoke saved continuation", result, 30);
 
-    run(interpreter, `(set! foo (lambda () (k-holder 50)))`);
+    run(interpreter, `(define foo (lambda () (k-holder 50)))`);
 
     result = run(interpreter, `(let ((x 1000)) (foo))`);
     assert(logger, "call/cc invoke from deep stack", result, 60);
@@ -93,11 +93,11 @@ export async function runFunctionalTests(interpreter, logger) {
 
     logger.log("Starting async cancellation test...", 'info');
 
-    run(interpreter, `(set! final-result "not-run")`);
-    run(interpreter, `(set! cancel-k #f)`);
+    run(interpreter, `(define final-result "not-run")`);
+    run(interpreter, `(define cancel-k #f)`);
 
     run(interpreter, `
-        (set! cancel
+        (define cancel
           (lambda (reason)
             (if cancel-k
                 (let ((k cancel-k))
