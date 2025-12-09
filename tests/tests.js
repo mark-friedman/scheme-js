@@ -1,5 +1,5 @@
 import { runUnitTests } from './unit/unit_tests.js';
-import { runFunctionalTests } from './functional/functional_tests.js';
+import { runCoreTests } from './functional/core_tests.js';
 import { runInteropTests } from './functional/interop_tests.js';
 import { runQuasiquoteTests } from './functional/quasiquote_tests.js';
 import { runDefineTests } from './functional/define_tests.js';
@@ -11,8 +11,8 @@ export { runUnitTests };
  * @param {Interpreter} interpreter
  * @param {object} logger
  */
-export async function runAllTests(interpreter, logger) {
-  await runFunctionalTests(interpreter, logger);
+export function runAllTests(interpreter, logger) {
+  runCoreTests(interpreter, logger);
   runInteropTests(interpreter, logger);
   runQuasiquoteTests(interpreter, logger);
   runDefineTests(interpreter, logger);

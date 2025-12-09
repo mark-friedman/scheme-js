@@ -318,7 +318,12 @@ export class AppFrame extends Executable {
 
         // CRITICAL: Unwind JS stack (Return Value Mode)
         if (actions.length === 0) {
-            registers[3] = [...targetStack];
+            // Filter out SentinelFrames from the target stack.
+            // SentinelFrames are JS boundary markers that should not be executed
+            // when restoring a continuation - they would prematurely terminate
+            // the computation before parent context frames are executed.
+            const filteredStack = targetStack.filter(f => f.constructor.name !== 'SentinelFrame');
+            registers[3] = [...filteredStack];
             registers[0] = value;
 
             if (interpreter.depth > 1) {
@@ -327,8 +332,9 @@ export class AppFrame extends Executable {
             return false;
         }
 
-        // Append the final restoration
-        actions.push(new RestoreContinuation(targetStack, value));
+        // Append the final restoration (with SentinelFrames filtered out)
+        const filteredStack = targetStack.filter(f => f.constructor.name !== 'SentinelFrame');
+        actions.push(new RestoreContinuation(filteredStack, value));
 
         // Execute via BeginFrame mechanism
         const firstAction = actions[0];

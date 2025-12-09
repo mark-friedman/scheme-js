@@ -20,7 +20,7 @@ export const unitTests = [
 
 // Functional Tests (all need interpreter)
 export const functionalTests = [
-    { path: 'functional/functional_tests.js', fn: 'runFunctionalTests', async: true },
+    { path: 'functional/core_tests.js', fn: 'runCoreTests', async: false },
     { path: 'functional/interop_tests.js', fn: 'runInteropTests', async: false },
     { path: 'functional/quasiquote_tests.js', fn: 'runQuasiquoteTests', async: false },
     { path: 'functional/quote_tests.js', fn: 'runQuoteTests', async: false },
