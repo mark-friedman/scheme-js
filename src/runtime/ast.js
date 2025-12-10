@@ -1,17 +1,25 @@
 /**
  * AST Module - Barrel File
  * 
- * This file re-exports all AST nodes and frames for backwards compatibility.
- * The actual implementations are split across:
- * - nodes.js: AST node classes (Literal, Variable, Lambda, etc.)
- * - frames.js: Continuation frame classes (AppFrame, LetFrame, etc.)
+ * This file re-exports all stepable classes for backwards compatibility.
+ * The actual implementations are in:
+ * - stepables.js: All AST nodes and continuation frames
  * - frame_registry.js: Factory functions for frame creation
  * - winders.js: Dynamic-wind utilities
  */
 
-// Re-export from nodes.js
+// Re-export everything from stepables.js
 export {
+    // Register constants
+    ANS,
+    CTL,
+    ENV,
+    FSTACK,
+
+    // Base class
     Executable,
+
+    // AST Nodes
     Literal,
     Variable,
     Lambda,
@@ -25,12 +33,9 @@ export {
     Begin,
     DynamicWindInit,
     RestoreContinuation,
-    CallWithValuesNode
-} from './nodes.js';
+    CallWithValuesNode,
 
-
-// Re-export from frames.js
-export {
+    // Frames
     LetFrame,
     LetRecFrame,
     IfFrame,
@@ -42,7 +47,7 @@ export {
     WindFrame,
     RestoreValueFrame,
     CallWithValuesFrame
-} from './frames.js';
+} from './stepables.js';
 
 // Re-export from winders.js
 export { computeWindActions, findCommonAncestorIndex } from './winders.js';
@@ -62,3 +67,4 @@ export {
     createCallWithValuesFrame,
     getWindFrameClass
 } from './frame_registry.js';
+

@@ -1,6 +1,6 @@
 import { assert, createTestLogger } from '../helpers.js';
 import { computeWindActions, findCommonAncestorIndex } from '../../src/runtime/winders.js';
-import { WindFrame } from '../../src/runtime/frames.js';
+import { WindFrame } from '../../src/runtime/stepables.js';
 
 export function runWindersTests(interpreter, logger) {
     logger.title('Running Winders Logic Tests...');

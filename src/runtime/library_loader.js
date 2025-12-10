@@ -395,12 +395,11 @@ export function createSchemeBaseExports(globalEnv) {
     ];
 
     for (const name of baseExports) {
-        try {
-            const value = globalEnv.lookup(name);
-            exports.set(name, value);
-        } catch (e) {
-            // Binding not found - skip (might not be implemented yet)
+        // Use findEnv to check if binding exists without throwing
+        if (globalEnv.findEnv(name) !== null) {
+            exports.set(name, globalEnv.lookup(name));
         }
+        // Bindings not found are skipped (might not be implemented yet)
     }
 
     return exports;

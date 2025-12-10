@@ -2,17 +2,17 @@
  * Frame Registry - Factory functions to break circular dependencies.
  * 
  * This module provides factory functions for creating frame instances.
- * It acts as an indirection layer to avoid circular imports between
- * nodes.js and frames.js.
+ * It acts as an indirection layer to avoid circular imports within
+ * stepables.js during module initialization.
  */
 
-// Frame classes are registered here by frames.js
+// Frame classes are registered here by stepables.js
 let LetFrame, LetRecFrame, IfFrame, SetFrame, DefineFrame;
 let AppFrame, BeginFrame, DynamicWindSetupFrame, WindFrame, RestoreValueFrame;
 let CallWithValuesFrame;
 
 /**
- * Registers frame classes. Called by frames.js during module initialization.
+ * Registers frame classes. Called by stepables.js during module initialization.
  * @param {Object} frames - Object containing all frame classes.
  */
 export function registerFrames(frames) {

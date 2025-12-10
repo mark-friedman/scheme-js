@@ -6,7 +6,7 @@
  */
 
 import { getWindFrameClass } from './frame_registry.js';
-import { TailApp, Literal, RestoreContinuation } from './nodes.js';
+import { TailApp, Literal, RestoreContinuation } from './stepables.js';
 
 /**
  * Computes the sequence of wind actions needed when jumping

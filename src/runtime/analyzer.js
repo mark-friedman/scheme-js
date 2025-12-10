@@ -10,11 +10,11 @@ import {
   TailApp,
   CallCC,
   Begin,
-  Define // This was in the original, but removed in the provided snippet. Keeping it for now as other parts of the file might use it.
+  Define
 } from './ast.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
-import { Cons, cons, list, car, cdr, mapCons, toArray } from './cons.js';
+import { Cons, cons, list, car, cdr, mapCons, toArray, cadr, cddr, caddr, cdddr, cadddr } from './cons.js';
 import { Symbol, intern } from './symbol.js';
 
 
@@ -45,8 +45,8 @@ export function analyze(exp) {
     // Check for special forms
     if (tag instanceof Symbol) {
       // Macro Expansion
-      if (globalMacroRegistry.isMacro(tag.name)) { // Original logic
-        const transformer = globalMacroRegistry.lookup(tag.name); // Original logic
+      if (globalMacroRegistry.isMacro(tag.name)) {
+        const transformer = globalMacroRegistry.lookup(tag.name);
         const expanded = transformer(exp);
         return analyze(expanded);
       }
@@ -70,7 +70,7 @@ export function analyze(exp) {
         case 'begin':
           return new Begin(mapCons(exp.cdr, analyze));
         case 'quote':
-          return new Literal(unwrapSyntax(cadr(exp)));
+          return new Literal(cadr(exp)); // Pass through raw data structure
         case 'define-syntax':
           return analyzeDefineSyntax(exp);
         case 'quasiquote':
@@ -87,7 +87,24 @@ export function analyze(exp) {
   throw new Error(`Analyzer error: Unknown expression type: ${exp}`);
 }
 
-// --- Special Form Handlers ---
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+/**
+ * Analyzes a body (sequence of expressions) and returns appropriate AST.
+ * Single expressions return unwrapped; multiple expressions wrap in Begin.
+ * @param {Cons} bodyCons - The body as a Cons list.
+ * @returns {Executable} Single expression or Begin node.
+ */
+function analyzeBody(bodyCons) {
+  const exprs = mapCons(bodyCons, analyze);
+  return exprs.length === 1 ? exprs[0] : new Begin(exprs);
+}
+
+// =============================================================================
+// Special Form Handlers
+// =============================================================================
 
 function analyzeIf(exp) {
   // (if test consequent alternative)
@@ -99,6 +116,7 @@ function analyzeIf(exp) {
 
 function analyzeLet(exp) {
   // (let ((var binding) ...) body...)
+  // Multi-variable 'let' is desugared to ((lambda (vars...) body) vals...)
   const bindings = cadr(exp);
   const body = cddr(exp);
 
@@ -113,52 +131,23 @@ function analyzeLet(exp) {
     curr = curr.cdr;
   }
 
-  const bodyExprs = mapCons(body, analyze);
-  const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
-
-  // Desugar to Let AST node (which compiles to LetFrame)
-  // We can construct the Let node directly
-  // But wait, Let AST node takes (varName, binding, body).
-  // Our Let AST node only supports SINGLE binding?
-  // Let's check ast.js.
-  // ast.js Let: constructor(varName, binding, body).
-  // It seems our Let AST node is for a SINGLE let binding?
-  // No, standard Scheme let allows multiple.
-  // If ast.js Let only supports one, we need to nest them or change ast.js.
-  // Looking at ast.js:
-  // export class Let extends Executable { constructor(varName, binding, body) ... }
-  // It seems it only supports ONE variable.
-  // So (let ((x 1) (y 2)) body) must be desugared to nested Lets?
-  // Or (let ((x 1) (y 2)) body) -> ((lambda (x y) body) 1 2).
-  // The latter is the standard expansion.
-  // Let's use the lambda expansion for multi-var let.
-
   return new TailApp(
-    new Lambda(vars, bodyAST),
+    new Lambda(vars, analyzeBody(body)),
     args
   );
 }
 
 function analyzeLetRec(exp) {
   // (letrec ((var val) ...) body...)
-  // Our LetRec AST node supports single binding?
-  // ast.js LetRec: constructor(varName, lambdaExpr, body)
-  // It seems it's designed for single recursive binding.
-  // For multiple, we need a more complex desugaring or update AST.
-  // For now, let's assume single binding for LetRec AST or implement full letrec desugaring.
-  // (letrec ((f (lambda ...))) body)
-
+  // Currently supports single binding only.
+  // TODO: Extend to support multiple bindings via desugaring.
   const bindings = cadr(exp);
-  // Support single binding for now to match AST capability
   const pair = car(bindings);
   const varName = car(pair).name;
   const valExpr = analyze(cadr(pair));
   const body = cddr(exp);
 
-  const bodyExprs = mapCons(body, analyze);
-  const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
-
-  return new LetRec(varName, valExpr, bodyAST);
+  return new LetRec(varName, valExpr, analyzeBody(body));
 }
 
 function analyzeLambda(exp) {
@@ -178,10 +167,7 @@ function analyzeLambda(exp) {
     throw new Error("Malformed lambda: body cannot be empty");
   }
 
-  const bodyExprs = mapCons(body, analyze);
-  const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
-
-  return new Lambda(params, bodyAST);
+  return new Lambda(params, analyzeBody(body));
 }
 
 function analyzeSet(exp) {
@@ -190,19 +176,18 @@ function analyzeSet(exp) {
 }
 
 function analyzeDefine(exp) {
-  // (define var val) or (define (f args) body)
+  // (define var val) or (define (f args...) body...)
   const head = cadr(exp);
 
   if (head instanceof Symbol) {
-    // (define var val)
+    // Simple variable definition
     return new Define(head.name, analyze(caddr(exp)));
   } else if (head instanceof Cons) {
-    // (define (f args...) body...)
+    // Function definition shorthand
     const funcName = car(head).name;
     const argsList = cdr(head);
     const body = cddr(exp);
 
-    // Construct Lambda
     const params = [];
     let curr = argsList;
     while (curr instanceof Cons) {
@@ -210,10 +195,7 @@ function analyzeDefine(exp) {
       curr = curr.cdr;
     }
 
-    const bodyExprs = mapCons(body, analyze);
-    const bodyAST = (bodyExprs.length === 1) ? bodyExprs[0] : new Begin(bodyExprs);
-
-    return new Define(funcName, new Lambda(params, bodyAST));
+    return new Define(funcName, new Lambda(params, analyzeBody(body)));
   }
   throw new Error("Malformed define");
 }
@@ -253,30 +235,9 @@ function analyzeDefineSyntax(exp) {
   return new Literal(null);
 }
 
-// --- Helpers ---
-
-// mapCons, car, cdr are imported from ../data/cons.js
-
-function cadr(cons) { return cons.cdr.car; }
-function cddr(cons) { return cons.cdr.cdr; }
-function caddr(cons) { return cons.cdr.cdr.car; }
-function cdddr(cons) { return cons.cdr.cdr.cdr; }
-function cadddr(cons) { return cons.cdr.cdr.cdr.car; }
-
-/**
- * Unwraps syntax (Symbol -> Variable, Cons -> Array) for Quote.
- * Actually, Quote should return the raw data (Symbol, Cons).
- * But our AST `Literal` wraps the value.
- * If we wrap `Symbol` in `Literal`, `interpreter` needs to handle it.
- * Currently `Literal` returns `this.value`.
- * So `(quote x)` -> `Literal(Symbol(x))`.
- * `(quote (1 2))` -> `Literal(Cons(1, Cons(2, null)))`.
- */
-function unwrapSyntax(exp) {
-  return exp; // Pass through the raw data structure
-}
-
-// --- Quasiquote Expansion (Updated for Cons) ---
+// =============================================================================
+// Quasiquote Expansion
+// =============================================================================
 
 function expandQuasiquote(exp, nesting = 0) {
   // 1. Handle (quasiquote x)
@@ -315,8 +276,7 @@ function expandQuasiquote(exp, nesting = 0) {
   if (exp instanceof Cons) {
     // Check for splicing in car
     if (isTaggedList(exp.car, 'unquote-splicing') && nesting === 0) {
-      // (unquote-splicing x) . rest
-      // -> (append x (expand rest))
+      // (unquote-splicing x) . rest -> (append x (expand rest))
       return listApp('append', [
         analyze(cadr(exp.car)),
         expandQuasiquote(exp.cdr, nesting)

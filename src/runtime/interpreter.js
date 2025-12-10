@@ -1,5 +1,5 @@
 import { Closure, Values } from './values.js';
-import { Literal, TailApp } from './ast.js';
+import { Literal, TailApp, ANS, CTL, ENV, FSTACK } from './ast.js';
 
 /**
  * Unpacks a Values object to its first value for JS interop (Option C).
@@ -46,11 +46,11 @@ export class Interpreter {
       throw new Error("Interpreter global environment is not set. Call setGlobalEnv() first.");
     }
 
-    // The "CPU registers"
-    // [0] = ans (answer): Holds the result of the last computation.
-    // [1] = ctl (control): Holds the next AST node (or Frame) to execute.
-    // [2] = env (environment): Holds the current lexical environment.
-    // [3] = fstack (frame stack): Holds the continuation frames.
+    // The "CPU registers" - see stepables.js for constant definitions
+    // ANS (0): answer - holds result of last computation
+    // CTL (1): control - holds next AST node or Frame to execute
+    // ENV (2): environment - holds current lexical environment
+    // FSTACK (3): frame stack - holds continuation frames
     // We use a COPY of the initialStack to avoid mutating the parent's record of it,
     // although frames themselves are shared.
     const registers = [null, ast, env, [...initialStack]];
@@ -71,12 +71,12 @@ export class Interpreter {
           // --- `step` returned false ---
           // This means a value is in `ans` and `ctl` is "done".
           // We must now check the frame stack.
-          const fstack = registers[3];
+          const fstack = registers[FSTACK];
 
           if (fstack.length === 0) {
             // --- Fate #1: Normal Termination ---
             // Stack is empty, computation is done.
-            let result = unpackForJs(registers[0]);
+            let result = unpackForJs(registers[ANS]);
 
             // BOUNDARY CHECK: If result is a Closure, wrap it in a Bridge
             if (result instanceof Closure) {
@@ -92,13 +92,10 @@ export class Interpreter {
           const frame = fstack.pop();
 
           // Set the frame as the new 'ctl'
-          registers[1] = frame;
+          registers[CTL] = frame;
 
-          // The 'ans' register (registers[0]) already contains
-          // the value this frame was waiting for.
-
-          // The 'env' register (registers[2]) is restored
-          // by the frame itself in its `step` method.
+          // The 'ans' register already contains the value this frame was waiting for.
+          // The 'env' register is restored by the frame itself in its `step` method.
 
           // Loop again to execute the frame's `step`
           continue;
@@ -116,33 +113,33 @@ export class Interpreter {
             // Top Level (depth == 1): Adopt the hijacked state
             const newRegisters = e.registers;
 
-            registers[0] = newRegisters[0];
-            // registers[1] is ctl. Only meaningful if !isReturn.
-            registers[2] = newRegisters[2];
-            registers[3] = newRegisters[3]; // fstack
+            registers[ANS] = newRegisters[ANS];
+            // CTL is only meaningful if !isReturn.
+            registers[ENV] = newRegisters[ENV];
+            registers[FSTACK] = newRegisters[FSTACK];
 
             if (e.isReturn) {
               // Mimic "step returned false" (Value Return)
               // We must check if stack is empty, or pop the next frame.
 
-              const fstack = registers[3];
+              const fstack = registers[FSTACK];
               if (fstack.length === 0) {
                 // Done
-                let result = unpackForJs(registers[0]);
+                let result = unpackForJs(registers[ANS]);
                 if (result instanceof Closure) {
                   return this.createJsBridge(result);
                 }
                 return result;
               }
 
-              // Pop next frame and continuen
+              // Pop next frame and continue
               const frame = fstack.pop();
-              registers[1] = frame;
+              registers[CTL] = frame;
               continue;
             } else {
               // Mimic "step returned true" (Tail Call)
               // ctl must be valid.
-              registers[1] = newRegisters[1];
+              registers[CTL] = newRegisters[CTL];
               continue;
             }
           }
@@ -188,7 +185,7 @@ export class Interpreter {
    * @returns {boolean} `true` to continue the trampoline, `false` to halt.
    */
   step(registers) {
-    const ctl = registers[1];
+    const ctl = registers[CTL];
     return ctl.step(registers, this);
   }
 }
@@ -196,9 +193,9 @@ export class Interpreter {
 class SentinelFrame {
   step(registers, interpreter) {
     // We have reached the bottom of the inner run's stack.
-    // The result is in registers[0].
+    // The result is in registers[ANS].
     // We throw a special signal to break out of interpreter.run immediately.
-    throw new SentinelResult(registers[0]);
+    throw new SentinelResult(registers[ANS]);
   }
 }
 
@@ -207,4 +204,3 @@ class SentinelResult {
     this.value = value;
   }
 }
-

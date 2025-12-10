@@ -577,3 +577,79 @@ Browser: 331 passed, 0 failed
 
 
 
+---
+
+# Code Quality Improvements (2025-12-09)
+
+Comprehensive code review and cleanup of the runtime codebase.
+
+## Architectural Changes
+
+### Consolidated `nodes.js` + `frames.js` → `stepables.js`
+
+Merged both files into a single unified file to:
+- Eliminate duplicate `Executable` base class definition
+- Improve code organization with clear section headers
+- Reduce file count in the runtime directory
+
+### Named Register Constants
+
+Replaced magic indices with named constants:
+
+```javascript
+export const ANS = 0;    // Answer register
+export const CTL = 1;    // Control register
+export const ENV = 2;    // Environment register
+export const FSTACK = 3; // Frame stack register
+```
+
+## Comment Cleanup
+
+### `analyzer.js`
+- Removed stale "thinking out loud" comments
+- Extracted `analyzeBody(bodyCons)` helper for repeated pattern
+- Now imports list accessors from `cons.js`
+
+### `cons.js`
+- Moved `Symbol` import to top of file
+- Added exported accessors: `cadr`, `cddr`, `caddr`, `cdddr`, `cadddr`
+- Made `toArray()` throw on non-list inputs
+- Added comprehensive JSDoc
+
+### `values.js`
+- Removed unused `Value` base class
+- Added module-level documentation
+
+## Minor Fixes
+
+| File | Change |
+|------|--------|
+| `interpreter.js` | Fixed typo "continuen" → "continue" |
+| `library_loader.js` | Replaced try-catch with explicit `findEnv()` check |
+| `list.js` | Added JSDoc to `appendTwo` helper |
+| `stepables.js` | Added `filterSentinelFrames` helper |
+
+## Files Changed
+
+| File | Action |
+|------|--------|
+| `src/runtime/stepables.js` | **NEW** |
+| `src/runtime/nodes.js` | **DELETED** |
+| `src/runtime/frames.js` | **DELETED** |
+| `src/runtime/ast.js` | Modified |
+| `src/runtime/interpreter.js` | Modified |
+| `src/runtime/analyzer.js` | Modified |
+| `src/runtime/cons.js` | Modified |
+| `src/runtime/values.js` | Modified |
+| `src/runtime/frame_registry.js` | Modified |
+| `src/runtime/winders.js` | Modified |
+| `src/runtime/library_loader.js` | Modified |
+| `src/runtime/primitives/list.js` | Modified |
+| `tests/unit/winders_tests.js` | Modified |
+
+## Verification
+
+```
+Node.js: 337 passed, 0 failed
+```
+
