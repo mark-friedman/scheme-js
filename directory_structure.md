@@ -2,50 +2,54 @@
 
 The codebase follows a two-tier architecture: JavaScript runtime and Scheme libraries.
 
-## Target Structure
+## Current Structure
 
 ```text
 /
 ├── src/
-│   ├── runtime/                # JavaScript Kernel
-│   │   ├── index.js            # EXPORT: createInterpreter()
+│   ├── runtime/                # JavaScript Kernel (Layer 1)
+│   │   ├── index.js            # EXPORT: createLayer1()
 │   │   ├── interpreter.js      # Trampoline execution loop
-│   │   ├── nodes.js            # AST node classes
-│   │   ├── frames.js           # Continuation frame classes
+│   │   ├── stepables.js        # AST nodes + continuation frames
+│   │   ├── ast.js              # Barrel file (re-exports stepables)
+│   │   ├── frame_registry.js   # Frame factory functions
 │   │   ├── winders.js          # Dynamic-wind utilities
 │   │   ├── environment.js      # Environment class
-│   │   ├── values.js           # Closure, Continuation, TailCall
+│   │   ├── values.js           # Closure, Continuation, TailCall, Values
+│   │   ├── cons.js             # Cons cells + list utilities
+│   │   ├── symbol.js           # Symbol interning
 │   │   ├── reader.js           # S-expression parser
 │   │   ├── analyzer.js         # S-exp → AST conversion
 │   │   ├── syntax_rules.js     # syntax-rules transformer
-│   │   ├── library_loader.js   # define-library / import / export
-│   │   ├── primitives/         # Native procedures (+, cons, etc.)
+│   │   ├── macro_registry.js   # Macro registry
+│   │   ├── library.js          # Micro-library system
+│   │   ├── library_loader.js   # R7RS define-library / import
 │   │   ├── analysis/           # Syntactic analysis modules
-│   │   └── boot.scm            # Pre-library bootstrap
+│   │   ├── primitives/         # Native procedures (+, cons, etc.)
+│   │   └── scheme/
+│   │       └── boot.scm        # Pre-library bootstrap
 │   │
 │   └── lib/                    # R7RS Libraries (Scheme)
 │       └── scheme/
 │           ├── base.sld        # (scheme base)
-│           ├── write.sld       # (scheme write)
-│           ├── read.sld        # (scheme read)
-│           ├── char.sld        # (scheme char)
 │           └── ...
 │
 ├── tests/
-│   ├── runtime/                # Unit tests for JS runtime
-│   ├── integration/            # Full interpreter tests
-│   └── lib/                    # Per-library Scheme tests
-│       └── scheme/
-│           ├── base_tests.scm
-│           └── ...
+│   ├── run_all.js              # Main test runner
+│   ├── helpers.js              # Test utilities
+│   ├── test_manifest.js        # Test module registry
+│   ├── unit/                   # Unit tests for JS modules
+│   ├── functional/             # Functional tests (TCO, call/cc, etc.)
+│   ├── integration/            # Integration tests (library loader)
+│   ├── runtime/                # Runtime-specific tests
+│   └── scheme/                 # Scheme test files (.scm)
 │
 ├── docs/
-│   ├── architecture.md         # This architecture overview
 │   ├── trampoline.md           # Execution model details
-│   └── archive/                # Deprecated documentation
+│   └── ...
 │
 └── web/
-    ├── index.html
+    ├── ui.html                 # Browser REPL + test runner
     └── main.js                 # Browser entry point
 ```
 
@@ -53,5 +57,5 @@ The codebase follows a two-tier architecture: JavaScript runtime and Scheme libr
 
 1. **Two-Tier Model**: JavaScript provides the runtime; Scheme provides the libraries.
 2. **Standard Modules**: Dependencies use R7RS `define-library` / `import`.
-3. **Test Mirroring**: `tests/lib/` mirrors `src/lib/` structure.
+3. **Unified Stepables**: All executable objects (AST nodes + frames) in single `stepables.js`.
 4. **Minimal Bootstrap**: `boot.scm` defines only what's needed to load `(scheme base)`.
