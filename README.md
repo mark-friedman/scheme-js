@@ -1,59 +1,88 @@
 # Scheme R7RS-Small on JavaScript
 
-A layered implementation of Scheme R7RS-Small in JavaScript.
+A faithful, layered implementation of the **Scheme R7RS-Small** standard in JavaScript, designed for correctness, extensibility, and deep JavaScript interoperability.
 
-## Goals
+## 🎯 Goals
 
-### Language goals
-- Support the R7RS-Small standard.
-- Support tail call optimization.
-- Support first-class continuations.
-- Support maximal interoperability with JavaScript.
+### Language Goals
+- **R7RS-Small Compliance**: Strictly follow the standard.
+- **Tail Call Optimization (TCO)**: Proper handling of tail recursion (even when interleaved with JS) using a trampoline architecture.
+- **First-Class Continuations**: Full support for `call/cc`, including `dynamic-wind` and multiple return values.
+- **JavaScript Interop**: Seamless calling between Scheme and JavaScript, including shared data structures and transparent boundary crossing.
 
-### Architectural goals
-- Use a layered architecture to make it easy to add new features based on exisiting features from lower layers.
+### Architectural Goals
+- **Layered Design**: Build complex features (macros, data structures) on top of a minimal, robust kernel.
+- **Maintainability**: Clear separation of AST, Runtime, and Library code.
+- **Testability**: Comprehensive test suite running in both Node.js and Browser environments.
 
-### Development goals
-- Use a test-driven development approach.
+## 🏗️ Architecture
 
-### Documentation goals
-- Document the architecture and design decisions.
-- Document the code organization.
-- Document the architecture and algorithm for the core interpreter.
-- Document the API for each layer.
-- Provide useful comments in the code. 
-- Document the test suite.
+The project follows a **Two-Tier Architecture**:
+1.  **JavaScript Runtime (Kernel)**: The core engine that executes Scheme code (`src/runtime/`).
+2.  **Scheme Libraries**: The standard library implemented in Scheme itself, loaded by the runtime (`src/lib/`).
 
-## Architecture
+### Layer 1: The Kernel (`src/runtime/`)
+The foundational layer is currently implemented and stable:
+-   **Trampoline Interpreter**: Enables infinite recursion (TCO) by managing stack frames on the heap (`interpreter.js`).
+-   **Stepables**: Unified execution model for AST nodes and Continuation Frames (`stepables.js`).
+-   **Environment**: Lexical scoping mechanism (`environment.js`).
+-   **Primitives**: Native JavaScript implementations of core procedures (`primitives/`).
+-   **Library Loader**: R7RS `define-library` and `import` support (`library_loader.js`).
 
-The project is organized into strict layers to ensure separation of concerns and testability.
+### Scheme Libraries (`src/lib/`)
+-   **boot.scm**: Minimal bootstrap code loaded before libraries.
+-   **scheme/base.sld**: The R7RS `(scheme base)` library definition.
 
-- **Layer 1: Kernel** (`src/runtime/`)
-  - The minimal Scheme interpreter (AST, Environment, Primitives).
-  - Uses native JS arrays for lists (initially) or simple Cons.
-  - Factory: `createLayer1()`
+For a detailed breakdown of the internal file structure, see [directory_structure.md](./directory_structure.md).
 
-- **Layer 2: Syntax** (`src/layer-2-syntax/`)
-  - Adds macro expansion (`syntax-rules`).
-  - Factory: `createLayer2()`
+## 🚀 Getting Started
 
-- **Layer 3: Data** (`src/layer-3-data/`)
-  - Adds full Scheme data tower (complex numbers, etc.).
-  - Factory: `createLayer3()`
+### Prerequisites
+-   **Node.js**: v14+ (for running tests and CLI/server).
+-   **Modern Browser**: (Optional) For running the Web REPL.
 
-- **Layer 4: Stdlib** (`src/layer-4-stdlib/`)
-  - The standard library implemented in Scheme.
-  - Factory: `createLayer4()`
-
-## Running Tests
-
-Use the universal test runner to test a specific layer:
-
+### Installation
+Clone the repository:
 ```bash
-# Test Layer 1 (Kernel)
-node tests/runner.js 1
+git clone https://github.com/mark-friedman/scheme-js-4.git
+cd scheme-js-4
 ```
 
-## Web Interface
+### Running the Web REPL
+1.  Start a local HTTP server in the project root:
+    ```bash
+    python3 -m http.server 8080
+    ```
+2.  Open your browser to:
+    [http://localhost:8080/web/ui.html](http://localhost:8080/web/ui.html)
+3.  Start typing Scheme code!
 
-Open `web/index.html` to run the REPL. It currently targets Layer 1.
+## 🧪 Testing
+
+The project uses a custom universal test runner that works in both Node.js and the Browser.
+
+### Run All Tests (Node.js)
+Execute the complete test suite including unit, functional, and integration tests:
+```bash
+node run_tests_node.js
+```
+
+### Run Browser Tests
+1.  Ensure the HTTP server is running (see above).
+2.  Navigate to `http://localhost:8080/web/ui.html`.
+3.  The test suite runs automatically in the console on load. Check the browser developer console (F12) to see the results.
+
+## 📚 Documentation
+
+We maintain detailed documentation for the project internals:
+
+-   [**Directory Structure**](./directory_structure.md): Detailed map of the codebase and where files belong.
+-   [**Layer Plan**](./layer_plan.md): The implementation roadmap for future layers.
+-   [**Trampoline Execution**](./docs/trampoline.md): A deep dive into how the interpreter handles stack frames and TCO.
+-   [**Changes**](./CHANGES.md): A log of major implementation steps, walkthroughs of features, and refactors.
+
+## 🛠️ Code Standards
+
+-   **Style**: We use ES Modules (`import`/`export`) throughout. All functions are documented with JSDoc. Scheme code is written in a style that is similar to JSDoc.
+-   **Testing**: We follow a "Dual Environment" rule - every new feature must represent correct behavior in both Node.js V8 and standard browser engines.
+-   **Code Quality**: We separate "step-able" logic (instructions for the machine) from runtime state (values and environments).
