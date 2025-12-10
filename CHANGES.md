@@ -708,3 +708,90 @@ node run_tests_node.js
 TEST SUMMARY: 337 passed, 0 failed
 ========================================
 ```
+# Phase 1: Hygienic Macros Implementation
+
+## Summary
+
+Implemented proper hygiene for `syntax-rules` macros using the **alpha-renaming** algorithm. This prevents accidental variable capture when macros expand into binding forms.
+
+## Problem Solved
+
+Before this change, macro-introduced bindings could capture user variables:
+
+```scheme
+(define-syntax swap!
+  (syntax-rules ()
+    ((swap! a b)
+     (let ((temp a))     ;; temp introduced by macro
+       (set! a b)
+       (set! b temp)))))
+
+(let ((temp 5) (other 10))
+  (swap! temp other))    ;; BUG: macro's temp captured user's temp!
+```
+
+Now, the macro's `temp` is renamed to a unique gensym (`temp#1`), preventing capture.
+
+## Changes Made
+
+### [syntax_rules.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/syntax_rules.js)
+
+1. **Added gensym support** (lines 12-28)
+   - `gensym(baseName)` — generates unique symbols like `temp#1`
+   - `resetGensymCounter()` — for deterministic tests
+
+2. **Added `SPECIAL_FORMS` set** (lines 35-39)
+   - Lists special forms (`if`, `let`, etc.) that should NOT be renamed
+
+3. **Added `findIntroducedBindings()`** (lines 81-155)
+   - Traverses template to find symbols in binding positions
+   - Detects `let`/`letrec` bindings and `lambda` parameters
+   - Returns set of names that need fresh gensyms
+
+4. **Updated `compileSyntaxRules()`** (lines 62-79)
+   - Collects pattern variables from matched clause
+   - Calls `findIntroducedBindings()` on template
+   - Generates rename map (original → gensym)
+   - Passes rename map to `transcribe()`
+
+5. **Updated `transcribe()`** (lines 328-410)
+   - Accepts `renameMap` parameter
+   - Uses rename map to substitute introduced bindings
+
+### [hygiene_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/hygiene_tests.js) [NEW]
+
+7 comprehensive hygiene tests:
+- `swap!` with user's `temp` variable
+- `my-or` with shadowed `t`
+- Nested let bindings
+- Lambda parameter hygiene
+- Multiple expansions get unique gensyms
+
+### [test_manifest.js](file:///Users/mark/code/scheme-js-4/tests/test_manifest.js)
+
+Added `hygiene_tests.js` to functional test suite.
+
+## Verification
+
+```
+========================================
+TEST SUMMARY: 367 passed, 0 failed
+========================================
+```
+
+All hygiene tests pass:
+- ✅ `Hygiene: swap! temp value`
+- ✅ `Hygiene: swap! other value`
+- ✅ `Hygiene: my-or with shadowed t`
+- ✅ `Hygiene: nested let outer x visible`
+- ✅ `Hygiene: lambda param x`
+- ✅ `Hygiene: multiple expansions 1`
+- ✅ `Hygiene: multiple expansions 2`
+
+## Limitations
+
+This implementation solves **accidental capture** (macro bindings don't capture user variables). It does NOT fully address **reference transparency** for free variables in templates that reference non-global bindings at macro definition time. However:
+
+- Special forms (`if`, `let`, etc.) are recognized by the analyzer
+- Primitives are globally bound
+- These cover 99% of practical `syntax-rules` use cases

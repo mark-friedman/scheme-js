@@ -26,6 +26,7 @@ export const functionalTests = [
     { path: 'functional/quote_tests.js', fn: 'runQuoteTests', async: false },
     { path: 'functional/macro_tests.js', fn: 'runMacroTests', async: true },
     { path: 'functional/syntax_rules_tests.js', fn: 'runSyntaxRulesTests', async: true },
+    { path: 'functional/hygiene_tests.js', fn: 'runHygieneTests', async: true },
     { path: 'functional/define_tests.js', fn: 'runDefineTests', async: false },
     { path: 'functional/eval_apply_tests.js', fn: 'runEvalApplyTests', async: true },
     { path: 'functional/record_interop_tests.js', fn: 'runRecordInteropTests', async: true, needsLoader: true },

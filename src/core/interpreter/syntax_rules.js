@@ -1,5 +1,42 @@
 import { Cons, cons, list } from './cons.js';
-import { Symbol } from './symbol.js';
+import { Symbol, intern } from './symbol.js';
+
+// =============================================================================
+// Hygiene Support
+// =============================================================================
+
+/**
+ * Counter for generating unique symbol names.
+ * @type {number}
+ */
+let gensymCounter = 0;
+
+/**
+ * Generates a fresh, unique symbol with the given base name.
+ * Used for hygienic macro expansion to rename introduced bindings.
+ * @param {string} baseName - The original symbol name.
+ * @returns {Symbol} A new symbol with a unique suffix.
+ */
+export function gensym(baseName) {
+    return intern(`${baseName}#${++gensymCounter}`);
+}
+
+/**
+ * Resets the gensym counter. Used for testing.
+ */
+export function resetGensymCounter() {
+    gensymCounter = 0;
+}
+
+/**
+ * Set of special form names that are recognized by the analyzer.
+ * These should NOT be renamed during macro expansion.
+ */
+const SPECIAL_FORMS = new Set([
+    'if', 'let', 'letrec', 'lambda', 'set!', 'define', 'begin',
+    'quote', 'quasiquote', 'unquote', 'unquote-splicing',
+    'define-syntax', 'call/cc', 'call-with-current-continuation'
+]);
 
 /**
  * Compiles a syntax-rules specification into a transformer function.
@@ -22,12 +59,124 @@ export function compileSyntaxRules(literals, clauses) {
             const bindings = matchPattern(pattern, exp, literalNames);
 
             if (bindings) {
-                // If match successful, transcribe the template
-                return transcribe(template, bindings);
+                // Collect pattern variables from this clause's pattern
+                const patternVars = collectPatternVars(pattern, literalNames);
+
+                // Find introduced bindings in the template (symbols in binding 
+                // positions that are not pattern variables or special forms)
+                const introducedBindings = findIntroducedBindings(template, patternVars);
+
+                // Generate fresh names for introduced bindings
+                const renameMap = new Map();
+                for (const name of introducedBindings) {
+                    renameMap.set(name, gensym(name));
+                }
+
+                // Transcribe with the rename map for hygiene
+                return transcribe(template, bindings, renameMap);
             }
         }
         throw new Error(`No matching clause for macro use: ${exp}`);
     };
+}
+
+/**
+ * Finds identifiers introduced by the template that need renaming for hygiene.
+ * These are symbols in binding positions (let, lambda, letrec bindings) that:
+ * - Are NOT pattern variables (would be substituted from input)
+ * - Are NOT special forms (recognized by analyzer)
+ * 
+ * @param {*} template - The template to analyze
+ * @param {Set<string>} patternVars - Set of pattern variable names
+ * @returns {Set<string>} Set of names that need fresh gensyms
+ */
+function findIntroducedBindings(template, patternVars) {
+    const introduced = new Set();
+
+    function traverse(node, inBindingPosition = false) {
+        if (node instanceof Symbol) {
+            // If we're in a binding position and this isn't a pattern var or special form
+            if (inBindingPosition &&
+                !patternVars.has(node.name) &&
+                !SPECIAL_FORMS.has(node.name)) {
+                introduced.add(node.name);
+            }
+            return;
+        }
+
+        if (!(node instanceof Cons)) return;
+
+        const head = node.car;
+
+        // Check for binding forms
+        if (head instanceof Symbol) {
+            const name = head.name;
+
+            // (let ((var val) ...) body) or (letrec ((var val) ...) body)
+            if (name === 'let' || name === 'letrec') {
+                const bindings = node.cdr?.car;  // The ((var val) ...) part
+                const body = node.cdr?.cdr;
+
+                // Process binding pairs
+                let curr = bindings;
+                while (curr instanceof Cons) {
+                    const pair = curr.car;  // (var val)
+                    if (pair instanceof Cons) {
+                        // The car is the variable name (binding position)
+                        traverse(pair.car, true);
+                        // The cadr is the value (not binding position)
+                        if (pair.cdr instanceof Cons) {
+                            traverse(pair.cdr.car, false);
+                        }
+                    }
+                    curr = curr.cdr;
+                }
+
+                // Process body
+                traverseList(body);
+                return;
+            }
+
+            // (lambda (params...) body)
+            if (name === 'lambda') {
+                const params = node.cdr?.car;  // The (params...) part
+                const body = node.cdr?.cdr;
+
+                // Process params as binding positions
+                let curr = params;
+                while (curr instanceof Cons) {
+                    traverse(curr.car, true);
+                    curr = curr.cdr;
+                }
+                // Handle rest parameter (improper list)
+                if (curr instanceof Symbol) {
+                    traverse(curr, true);
+                }
+
+                // Process body
+                traverseList(body);
+                return;
+            }
+        }
+
+        // Default: traverse all elements
+        let curr = node;
+        while (curr instanceof Cons) {
+            traverse(curr.car, false);
+            curr = curr.cdr;
+        }
+    }
+
+    function traverseList(node) {
+        let curr = node;
+        while (curr instanceof Cons) {
+            traverse(curr.car, false);
+            curr = curr.cdr;
+        }
+    }
+
+    traverse(template, false);
+    return introduced;
 }
 
 /**
@@ -171,17 +320,28 @@ function mergeBindings(target, source, isEllipsis) {
 }
 
 /**
- * Transcribes a template using the bindings.
- * @param {*} template 
- * @param {Map<string, *>} bindings 
+ * Transcribes a template using the bindings and rename map.
+ * @param {*} template - The template to transcribe
+ * @param {Map<string, *>} bindings - Pattern variable bindings
+ * @param {Map<string, Symbol>} renameMap - Map of names to their gensyms
  * @returns {*} Expanded expression.
  */
-function transcribe(template, bindings) {
+function transcribe(template, bindings, renameMap = new Map()) {
     // 1. Variables (Symbols)
     if (template instanceof Symbol) {
-        if (bindings.has(template.name)) {
-            return bindings.get(template.name);
+        const name = template.name;
+
+        // Pattern variable → substitute with user input
+        if (bindings.has(name)) {
+            return bindings.get(name);
         }
+
+        // Introduced binding → rename to gensym
+        if (renameMap.has(name)) {
+            return renameMap.get(name);
+        }
+
+        // Free variable (including special forms) → keep as-is
         return template;
     }
 
@@ -229,7 +389,7 @@ function transcribe(template, bindings) {
             }
 
             // Expand N times
-            let expandedList = transcribe(restTemplate, bindings);
+            let expandedList = transcribe(restTemplate, bindings, renameMap);
 
             for (let i = len - 1; i >= 0; i--) {
                 // Create a view of bindings for the i-th iteration
@@ -239,7 +399,7 @@ function transcribe(template, bindings) {
                 }
                 // Scalar vars remain as is in subBindings (inherited from bindings)
 
-                const expandedItem = transcribe(item, subBindings);
+                const expandedItem = transcribe(item, subBindings, renameMap);
                 expandedList = new Cons(expandedItem, expandedList);
             }
 
@@ -247,8 +407,8 @@ function transcribe(template, bindings) {
         } else {
             // Regular cons
             return new Cons(
-                transcribe(template.car, bindings),
-                transcribe(template.cdr, bindings)
+                transcribe(template.car, bindings, renameMap),
+                transcribe(template.cdr, bindings, renameMap)
             );
         }
     }
