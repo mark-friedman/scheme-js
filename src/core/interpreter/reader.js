@@ -4,14 +4,17 @@ import { Symbol, intern } from './symbol.js';
 
 /**
  * Parses a string of Scheme code into a list of S-expressions.
- * @param {string} input
+ * @param {string} input - Source code to parse
+ * @param {Object} [options] - Parsing options
+ * @param {boolean} [options.caseFold=false] - If true, fold symbol names to lowercase (for include-ci)
  * @returns {Array} Array of S-expressions (Cons, Symbol, number, etc.)
  */
-export function parse(input) {
+export function parse(input, options = {}) {
+  const caseFold = options.caseFold || false;
   const tokens = tokenize(input);
   const expressions = [];
   while (tokens.length > 0) {
-    expressions.push(readFromTokens(tokens));
+    expressions.push(readFromTokens(tokens, caseFold));
   }
   return expressions;
 }
@@ -47,7 +50,7 @@ function tokenize(input) {
   return tokens;
 }
 
-function readFromTokens(tokens) {
+function readFromTokens(tokens, caseFold = false) {
   if (tokens.length === 0) {
     throw new Error("Unexpected EOF");
   }
@@ -55,10 +58,10 @@ function readFromTokens(tokens) {
   const token = tokens.shift();
 
   if (token === '(') {
-    return readList(tokens);
+    return readList(tokens, caseFold);
   }
   if (token === '#(') {
-    return readVector(tokens);
+    return readVector(tokens, caseFold);
   }
   if (token === ')') {
     throw new Error("Unexpected ')'");
@@ -66,22 +69,22 @@ function readFromTokens(tokens) {
 
   // Quotes
   if (token === "'") {
-    return list(intern('quote'), readFromTokens(tokens));
+    return list(intern('quote'), readFromTokens(tokens, caseFold));
   }
   if (token === '`') {
-    return list(intern('quasiquote'), readFromTokens(tokens));
+    return list(intern('quasiquote'), readFromTokens(tokens, caseFold));
   }
   if (token === ',') {
-    return list(intern('unquote'), readFromTokens(tokens));
+    return list(intern('unquote'), readFromTokens(tokens, caseFold));
   }
   if (token === ',@') {
-    return list(intern('unquote-splicing'), readFromTokens(tokens));
+    return list(intern('unquote-splicing'), readFromTokens(tokens, caseFold));
   }
 
-  return readAtom(token);
+  return readAtom(token, caseFold);
 }
 
-function readList(tokens) {
+function readList(tokens, caseFold = false) {
   const listItems = [];
   while (tokens[0] !== ')') {
     if (tokens.length === 0) {
@@ -89,7 +92,7 @@ function readList(tokens) {
     }
     if (tokens[0] === '.') {
       tokens.shift(); // consume '.'
-      const tail = readFromTokens(tokens);
+      const tail = readFromTokens(tokens, caseFold);
       if (tokens.shift() !== ')') {
         throw new Error("Expected ')' after improper list tail");
       }
@@ -100,7 +103,7 @@ function readList(tokens) {
       }
       return result;
     }
-    listItems.push(readFromTokens(tokens));
+    listItems.push(readFromTokens(tokens, caseFold));
   }
   tokens.shift(); // consume ')'
 
@@ -108,19 +111,19 @@ function readList(tokens) {
   return list(...listItems);
 }
 
-function readVector(tokens) {
+function readVector(tokens, caseFold = false) {
   const elements = [];
   while (tokens[0] !== ')') {
     if (tokens.length === 0) {
       throw new Error("Missing ')' for vector");
     }
-    elements.push(readFromTokens(tokens));
+    elements.push(readFromTokens(tokens, caseFold));
   }
   tokens.shift(); // consume ')'
   return elements; // Return raw JS array
 }
 
-function readAtom(token) {
+function readAtom(token, caseFold = false) {
   // Numbers
   const num = Number(token);
   if (!isNaN(num)) {
@@ -136,7 +139,7 @@ function readAtom(token) {
   if (token === '#t') return true;
   if (token === '#f') return false;
 
-  // Strings
+  // Strings (not case-folded)
   if (token.startsWith('"')) {
     // Remove quotes and handle escapes
     return token.slice(1, -1)
@@ -145,6 +148,7 @@ function readAtom(token) {
       .replace(/\\\\/g, '\\');
   }
 
-  // Symbols
-  return intern(token);
+  // Symbols - apply case folding if enabled
+  const symbolName = caseFold ? token.toLowerCase() : token;
+  return intern(symbolName);
 }

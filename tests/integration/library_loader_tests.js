@@ -10,12 +10,17 @@ import {
     clearLibraryRegistry,
     isLibraryLoaded,
     loadLibrary,
-    setFileResolver
+    setFileResolver,
+    hasFeature,
+    addFeature,
+    getFeatures,
+    evaluateFeatureRequirement
 } from '../../src/core/interpreter/library_loader.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { Interpreter } from '../../src/core/interpreter/interpreter.js';
 import { createGlobalEnvironment } from '../../src/core/primitives/index.js';
+import { intern } from '../../src/core/interpreter/symbol.js';
 
 export async function runLibraryLoaderTests(logger) {
     logger.title('Running Library Loader Tests...');
@@ -168,6 +173,136 @@ export async function runLibraryLoaderTests(logger) {
     } catch (e) {
         logger.fail(`loadLibrary with deps failed: ${e.message}`);
     }
+
+    clearLibraryRegistry();
+
+    // 8. Test cond-expand feature detection
+    logger.title('Testing cond-expand...');
+
+    // Test hasFeature
+    assert(logger, "hasFeature r7rs", hasFeature('r7rs'), true);
+    assert(logger, "hasFeature scheme-js", hasFeature('scheme-js'), true);
+    assert(logger, "hasFeature unknown", hasFeature('unknown-feature'), false);
+
+    // Test getFeatures
+    const allFeatures = getFeatures();
+    assert(logger, "getFeatures includes r7rs", allFeatures.includes('r7rs'), true);
+
+    // Test evaluateFeatureRequirement with simple symbol
+    assert(logger, "evalFeature simple r7rs",
+        evaluateFeatureRequirement(intern('r7rs')), true);
+    assert(logger, "evalFeature simple unknown",
+        evaluateFeatureRequirement(intern('unknown')), false);
+
+    // Test evaluateFeatureRequirement with (and ...)
+    const andReq = parse("(and r7rs scheme-js)")[0];
+    assert(logger, "evalFeature (and r7rs scheme-js)",
+        evaluateFeatureRequirement(andReq), true);
+
+    const andReqFail = parse("(and r7rs unknown)")[0];
+    assert(logger, "evalFeature (and r7rs unknown)",
+        evaluateFeatureRequirement(andReqFail), false);
+
+    // Test evaluateFeatureRequirement with (or ...)
+    const orReq = parse("(or unknown r7rs)")[0];
+    assert(logger, "evalFeature (or unknown r7rs)",
+        evaluateFeatureRequirement(orReq), true);
+
+    const orReqFail = parse("(or unknown missing)")[0];
+    assert(logger, "evalFeature (or unknown missing)",
+        evaluateFeatureRequirement(orReqFail), false);
+
+    // Test evaluateFeatureRequirement with (not ...)
+    const notReq = parse("(not unknown)")[0];
+    assert(logger, "evalFeature (not unknown)",
+        evaluateFeatureRequirement(notReq), true);
+
+    const notReqFail = parse("(not r7rs)")[0];
+    assert(logger, "evalFeature (not r7rs)",
+        evaluateFeatureRequirement(notReqFail), false);
+
+    // 9. Test parseDefineLibrary with cond-expand
+    const libWithCondExpand = `
+        (define-library (test cond)
+          (export common-export)
+          (cond-expand
+            (r7rs
+              (export r7rs-only)
+              (begin (define r7rs-only 'yes)))
+            (else
+              (begin (define r7rs-only 'no))))
+          (begin
+            (define common-export 42)))
+    `;
+    const condLibForm = parse(libWithCondExpand)[0];
+    const condLibDef = parseDefineLibrary(condLibForm);
+
+    assert(logger, "cond-expand export count",
+        condLibDef.exports.length, 2);  // common-export + r7rs-only
+    assert(logger, "cond-expand body count",
+        condLibDef.body.length, 2);     // define r7rs-only + define common-export
+
+    // 10. Test cond-expand with else clause (when first clause fails)
+    const libWithElse = `
+        (define-library (test else)
+          (cond-expand
+            (unknown-feature
+              (begin (define result 'unknown)))
+            (else
+              (begin (define result 'else-branch))))
+          (export result))
+    `;
+    const elseLibForm = parse(libWithElse)[0];
+    const elseLibDef = parseDefineLibrary(elseLibForm);
+
+    assert(logger, "cond-expand else body count",
+        elseLibDef.body.length, 1);  // Only else branch should match
+
+    // 11. Test parse with case-folding
+    logger.title('Testing include-ci (case-folding)...');
+
+    const caseFoldedSymbols = parse("(DEFINE FOO bar)", { caseFold: true })[0];
+    const caseFoldedArr = caseFoldedSymbols.toArray();
+    assert(logger, "caseFold: DEFINE becomes define",
+        caseFoldedArr[0].name, 'define');
+    assert(logger, "caseFold: FOO becomes foo",
+        caseFoldedArr[1].name, 'foo');
+    assert(logger, "caseFold: bar stays bar",
+        caseFoldedArr[2].name, 'bar');
+
+    // Normal parse should NOT case-fold
+    const normalSymbols = parse("(DEFINE FOO bar)")[0];
+    const normalArr = normalSymbols.toArray();
+    assert(logger, "normal: DEFINE stays DEFINE",
+        normalArr[0].name, 'DEFINE');
+
+    // 12. Test parseDefineLibrary with include-ci
+    const libWithIncludeCi = `
+        (define-library (test ci)
+          (include-ci "legacy.scm")
+          (export result))
+    `;
+    const ciLibForm = parse(libWithIncludeCi)[0];
+    const ciLibDef = parseDefineLibrary(ciLibForm);
+
+    assert(logger, "include-ci parsed",
+        ciLibDef.includesCi.length, 1);
+    assert(logger, "include-ci filename",
+        ciLibDef.includesCi[0], "legacy.scm");
+
+    // 13. Test parseDefineLibrary with include-library-declarations
+    const libWithIncludeDecl = `
+        (define-library (test decl)
+          (include-library-declarations "common-exports.scm")
+          (begin (define x 1)))
+    `;
+    const declLibForm = parse(libWithIncludeDecl)[0];
+    const declLibDef = parseDefineLibrary(declLibForm);
+
+    assert(logger, "include-library-declarations parsed",
+        declLibDef.includeLibraryDeclarations.length, 1);
+    assert(logger, "include-library-declarations filename",
+        declLibDef.includeLibraryDeclarations[0], "common-exports.scm");
 
     clearLibraryRegistry();
 }

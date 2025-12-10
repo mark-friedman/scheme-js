@@ -11,6 +11,98 @@ import { Environment } from './environment.js';
 import { parse } from './reader.js';
 
 /**
+ * Feature registry for cond-expand.
+ * Standard R7RS features plus implementation-specific ones.
+ */
+const features = new Set([
+    'r7rs',           // R7RS Scheme
+    'scheme-js',      // This implementation
+    'exact-closed',   // Rationals not implemented, but we can claim this for integers
+    'ieee-float',     // JavaScript uses IEEE 754
+]);
+
+/**
+ * Checks if a feature is supported.
+ * @param {string} featureName - Feature identifier
+ * @returns {boolean}
+ */
+export function hasFeature(featureName) {
+    return features.has(featureName);
+}
+
+/**
+ * Adds a feature to the registry.
+ * @param {string} featureName - Feature identifier
+ */
+export function addFeature(featureName) {
+    features.add(featureName);
+}
+
+/**
+ * Gets all supported features.
+ * @returns {string[]}
+ */
+export function getFeatures() {
+    return Array.from(features);
+}
+
+/**
+ * Evaluates a cond-expand feature requirement.
+ * 
+ * @param {Symbol|Cons} requirement - Feature requirement expression
+ * @returns {boolean} True if requirement is satisfied
+ */
+export function evaluateFeatureRequirement(requirement) {
+    // Simple feature identifier
+    if (requirement instanceof Symbol) {
+        return features.has(requirement.name);
+    }
+
+    // Compound requirement: (and ...), (or ...), (not ...), (library ...)
+    const arr = toArray(requirement);
+    if (arr.length === 0) return false;
+
+    const tag = arr[0];
+    if (!(tag instanceof Symbol)) return false;
+
+    switch (tag.name) {
+        case 'and':
+            // All requirements must be true
+            for (let i = 1; i < arr.length; i++) {
+                if (!evaluateFeatureRequirement(arr[i])) return false;
+            }
+            return true;
+
+        case 'or':
+            // At least one requirement must be true
+            for (let i = 1; i < arr.length; i++) {
+                if (evaluateFeatureRequirement(arr[i])) return true;
+            }
+            return false;
+
+        case 'not':
+            // Negation
+            if (arr.length !== 2) {
+                throw new Error('cond-expand: (not) requires exactly one argument');
+            }
+            return !evaluateFeatureRequirement(arr[1]);
+
+        case 'library':
+            // Check if library is available (loaded or loadable)
+            if (arr.length !== 2) {
+                throw new Error('cond-expand: (library) requires a library name');
+            }
+            const libName = toArray(arr[1]);
+            const libKey = libraryNameToKey(libName);
+            return libraryRegistry.has(libKey);
+
+        default:
+            // Unknown tag - treat as false
+            return false;
+    }
+}
+
+/**
  * Registry of loaded libraries.
  * Key: stringified library name (e.g., "scheme.base")
  * Value: { exports: Map<string, value>, env: Environment }
@@ -84,6 +176,8 @@ export function parseDefineLibrary(form) {
     const imports = [];
     const body = [];
     const includes = [];
+    const includesCi = [];  // Case-insensitive includes
+    const includeLibraryDeclarations = [];  // Library declaration includes
 
     // Parse clauses
     for (let i = 2; i < arr.length; i++) {
@@ -136,8 +230,83 @@ export function parseDefineLibrary(form) {
                 }
                 break;
 
+            case 'include-ci':
+                // (include-ci filename ...) - case-insensitive include
+                for (let j = 1; j < clauseArr.length; j++) {
+                    includesCi.push(clauseArr[j]);
+                }
+                break;
+
+            case 'include-library-declarations':
+                // (include-library-declarations filename ...)
+                for (let j = 1; j < clauseArr.length; j++) {
+                    includeLibraryDeclarations.push(clauseArr[j]);
+                }
+                break;
+
             case 'cond-expand':
-                // TODO: Implement feature-based conditional inclusion
+                // (cond-expand <clause> ...)
+                // Each clause: (<feature-requirement> <declaration> ...)
+                // or (else <declaration> ...)
+                for (let j = 1; j < clauseArr.length; j++) {
+                    const ceClause = toArray(clauseArr[j]);
+                    if (ceClause.length === 0) continue;
+
+                    const featureReq = ceClause[0];
+                    let matched = false;
+
+                    // Check for 'else' clause
+                    if (featureReq instanceof Symbol && featureReq.name === 'else') {
+                        matched = true;
+                    } else {
+                        matched = evaluateFeatureRequirement(featureReq);
+                    }
+
+                    if (matched) {
+                        // Expand declarations from this clause
+                        for (let k = 1; k < ceClause.length; k++) {
+                            const decl = ceClause[k];
+                            const declArr = toArray(decl);
+                            if (declArr.length === 0) continue;
+
+                            const declTag = declArr[0];
+                            if (!(declTag instanceof Symbol)) continue;
+
+                            // Process the declaration as if it were a top-level clause
+                            switch (declTag.name) {
+                                case 'export':
+                                    for (let m = 1; m < declArr.length; m++) {
+                                        const spec = declArr[m];
+                                        if (spec instanceof Symbol) {
+                                            exports.push({ internal: spec.name, external: spec.name });
+                                        }
+                                    }
+                                    break;
+                                case 'import':
+                                    for (let m = 1; m < declArr.length; m++) {
+                                        imports.push(parseImportSet(declArr[m]));
+                                    }
+                                    break;
+                                case 'begin':
+                                    for (let m = 1; m < declArr.length; m++) {
+                                        body.push(declArr[m]);
+                                    }
+                                    break;
+                                case 'include':
+                                    for (let m = 1; m < declArr.length; m++) {
+                                        includes.push(declArr[m]);
+                                    }
+                                    break;
+                                case 'cond-expand':
+                                    // Nested cond-expand - recursive processing would be needed
+                                    // For now, skip nested cond-expand
+                                    break;
+                            }
+                        }
+                        // Only process first matching clause
+                        break;
+                    }
+                }
                 break;
 
             default:
@@ -145,7 +314,7 @@ export function parseDefineLibrary(form) {
         }
     }
 
-    return { name, exports, imports, body, includes };
+    return { name, exports, imports, body, includes, includesCi, includeLibraryDeclarations };
 }
 
 /**
@@ -248,7 +417,7 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
         applyImports(libEnv, importExports, importSpec);
     }
 
-    // Load includes
+    // Load standard includes
     for (const includeFile of libDef.includes) {
         const includeSource = await fileResolver(
             [...libraryName.slice(0, -1), includeFile]
@@ -256,6 +425,69 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
         const includeForms = parse(includeSource);
         for (const form of includeForms) {
             libDef.body.push(form);
+        }
+    }
+
+    // Load case-insensitive includes
+    for (const includeFile of libDef.includesCi) {
+        const includeSource = await fileResolver(
+            [...libraryName.slice(0, -1), includeFile]
+        );
+        // Parse with case-folding enabled
+        const includeForms = parse(includeSource, { caseFold: true });
+        for (const form of includeForms) {
+            libDef.body.push(form);
+        }
+    }
+
+    // Load library declaration includes
+    // These contain additional library clauses (export, import, begin, etc.)
+    for (const declFile of libDef.includeLibraryDeclarations) {
+        const declSource = await fileResolver(
+            [...libraryName.slice(0, -1), declFile]
+        );
+        const declForms = parse(declSource);
+
+        // Process each declaration in the included file
+        for (const decl of declForms) {
+            const declArr = toArray(decl);
+            if (declArr.length === 0) continue;
+
+            const declTag = declArr[0];
+            if (!(declTag instanceof Symbol)) continue;
+
+            switch (declTag.name) {
+                case 'export':
+                    for (let j = 1; j < declArr.length; j++) {
+                        const spec = declArr[j];
+                        if (spec instanceof Symbol) {
+                            libDef.exports.push({ internal: spec.name, external: spec.name });
+                        }
+                    }
+                    break;
+                case 'import':
+                    for (let j = 1; j < declArr.length; j++) {
+                        const importSpec = parseImportSet(declArr[j]);
+                        const importExports = await loadLibrary(
+                            importSpec.libraryName,
+                            analyze,
+                            interpreter,
+                            baseEnv
+                        );
+                        applyImports(libEnv, importExports, importSpec);
+                    }
+                    break;
+                case 'begin':
+                    for (let j = 1; j < declArr.length; j++) {
+                        libDef.body.push(declArr[j]);
+                    }
+                    break;
+                case 'include':
+                    for (let j = 1; j < declArr.length; j++) {
+                        libDef.includes.push(declArr[j]);
+                    }
+                    break;
+            }
         }
     }
 
