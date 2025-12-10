@@ -14,17 +14,18 @@ The interpreter uses a "trampoline" pattern to avoid using the JavaScript call s
 
 The interpreter state is modeled as a simple register machine with four registers:
 
-| Register | Index | Purpose |
-|----------|-------|---------|
-| `ans` | 0 | **Answer** - Result of the last sub-computation |
-| `ctl` | 1 | **Control** - The next AST node or Frame to execute |
-| `env` | 2 | **Environment** - Current lexical environment |
-| `fstack` | 3 | **Frame Stack** - The continuation (stack of pending operations) |
+| Register | Constant | Purpose |
+|----------|----------|---------|
+| `ans` | `ANS` (0) | **Answer** - Result of the last sub-computation |
+| `ctl` | `CTL` (1) | **Control** - The next AST node or Frame to execute |
+| `env` | `ENV` (2) | **Environment** - Current lexical environment |
+| `fstack` | `FSTACK` (3) | **Frame Stack** - The continuation (stack of pending operations) |
 
 ```javascript
 // In interpreter.js
+import { ANS, CTL, ENV, FSTACK } from './stepables.js';
 const registers = [null, ast, env, [...initialStack]];
-//                 ans   ctl  env  fstack
+//                 ANS   CTL  ENV  FSTACK
 ```
 
 ## The Trampoline Loop
@@ -38,15 +39,15 @@ while (true) {
     }
     
     // step() returned false: value computed
-    const fstack = registers[3];
+    const fstack = registers[FSTACK];
     
     if (fstack.length === 0) {
-        return registers[0];  // Done! Return the answer
+        return registers[ANS];  // Done! Return the answer
     }
     
     // Pop next frame and continue
     const frame = fstack.pop();
-    registers[1] = frame;
+    registers[CTL] = frame;
 }
 ```
 
@@ -114,8 +115,8 @@ When `call/cc` executes, it:
 
 ```javascript
 // In CallCC.step()
-const continuation = new Continuation(registers[3]);
-registers[1] = new TailApp(this.lambdaExpr, [new Literal(continuation)]);
+const continuation = new Continuation(registers[FSTACK]);
+registers[CTL] = new TailApp(this.lambdaExpr, [new Literal(continuation)]);
 ```
 
 ## Invoking a Continuation
@@ -148,8 +149,8 @@ The AST and frame code is organized as:
 
 | File | Contents |
 |------|----------|
-| `nodes.js` | AST node classes (Literal, Variable, Lambda, etc.) |
-| `frames.js` | Continuation frames (AppFrame, IfFrame, etc.) |
+| `stepables.js` | All AST nodes and Continuation Frames |
+| `interpreter.js` | The trampoline loop and state management |
 | `frame_registry.js` | Factory functions to avoid circular imports |
 | `winders.js` | Dynamic-wind stack walking utilities |
 | `ast.js` | Barrel file re-exporting everything |
