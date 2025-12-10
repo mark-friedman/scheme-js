@@ -18,20 +18,20 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 ## 🏗️ Architecture
 
 The project follows a **Two-Tier Architecture**:
-1.  **JavaScript Runtime (Kernel)**: The core engine that executes Scheme code (`src/runtime/`).
-2.  **Scheme Libraries**: The standard library implemented in Scheme itself, loaded by the runtime (`src/lib/`).
+1.  **JavaScript Core**: The interpreter engine that executes Scheme code (`src/core/interpreter/`).
+2.  **Scheme Libraries**: The standard library implemented in Scheme itself (`src/core/scheme/`, `src/lib/`).
 
-### Layer 1: The Kernel (`src/runtime/`)
+### The Core (`src/core/`)
 The foundational layer is currently implemented and stable:
--   **Trampoline Interpreter**: Enables infinite recursion (TCO) by managing stack frames on the heap (`interpreter.js`).
--   **Stepables**: Unified execution model for AST nodes and Continuation Frames (`stepables.js`).
--   **Environment**: Lexical scoping mechanism (`environment.js`).
--   **Primitives**: Native JavaScript implementations of core procedures (`primitives/`).
--   **Library Loader**: R7RS `define-library` and `import` support (`library_loader.js`).
+-   **`interpreter/`**: Trampoline interpreter with TCO via heap-managed frames.
+-   **`primitives/`**: Native JavaScript implementations of core procedures (+, cons, etc.).
+-   **`scheme/`**: Core Scheme subset (`base.scm`) defining macros like `and`, `let`, `cond`.
 
-### Scheme Libraries (`src/lib/`)
--   **boot.scm**: Minimal bootstrap code loaded before libraries.
--   **scheme/base.sld**: The R7RS `(scheme base)` library definition.
+Key modules in `interpreter/`:
+-   **`interpreter.js`**: Trampoline execution loop.
+-   **`stepables.js`**: Unified AST nodes and Continuation Frames.
+-   **`environment.js`**: Lexical scoping mechanism.
+-   **`library_loader.js`**: R7RS `define-library` and `import` support.
 
 For a detailed breakdown of the internal file structure, see [directory_structure.md](./directory_structure.md).
 

@@ -4,7 +4,7 @@
  */
 
 import { run, assert } from '../helpers.js';
-import { Values } from '../../src/runtime/values.js';
+import { Values } from '../../src/core/interpreter/values.js';
 
 export function runMultipleValuesTests(interpreter, logger) {
   logger.title('Multiple Values Tests');

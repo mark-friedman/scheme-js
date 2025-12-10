@@ -3,11 +3,11 @@ import { run } from './helpers.js';
 export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
     logger.title('Running Scheme Tests...');
 
-    // 1. Load boot.scm
-    const bootCode = await fileLoader('src/runtime/scheme/boot.scm');
-    run(interpreter, bootCode);
+    // 1. Load base.scm (core Scheme subset)
+    const baseCode = await fileLoader('src/core/scheme/base.scm');
+    run(interpreter, baseCode);
 
-    // Inject native reporter (after boot.scm to avoid overwrite)
+    // Inject native reporter (after base.scm to avoid overwrite)
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
         if (passed) {
             logger.pass(`${name} (Expected: ${expected}, Got: ${actual})`);
@@ -17,7 +17,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     });
 
     // 2. Load test.scm (Harness)
-    const testLibCode = await fileLoader('tests/scheme/test.scm');
+    const testLibCode = await fileLoader('tests/core/scheme/test.scm');
     run(interpreter, testLibCode);
 
     let allPassed = true;

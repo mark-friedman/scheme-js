@@ -1,7 +1,7 @@
-import { TailCall, Values } from '../values.js';
-import { TailApp, Literal, DynamicWindInit, CallWithValuesNode } from '../ast.js';
-import { analyze } from '../analyzer.js';
-import { Cons, toArray } from '../cons.js';
+import { TailCall, Values } from '../interpreter/values.js';
+import { TailApp, Literal, DynamicWindInit, CallWithValuesNode } from '../interpreter/ast.js';
+import { analyze } from '../interpreter/analyzer.js';
+import { Cons, toArray } from '../interpreter/cons.js';
 
 export function getControlPrimitives(interpreter) {
     const applyPrimitive = (proc, ...args) => {

@@ -1,4 +1,4 @@
-import { toArray } from '../cons.js';
+import { toArray } from '../interpreter/cons.js';
 
 export const recordPrimitives = {
     // (make-record-type name fields)

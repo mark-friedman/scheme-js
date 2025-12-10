@@ -4,25 +4,25 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
-    console.log(`\n=== Running Runtime Tests ===\n`);
+    console.log(`\n=== Running Core Tests ===\n`);
 
     try {
-        // Load the runtime factory
-        const factoryPath = '../src/runtime/index.js';
+        // Load the interpreter factory
+        const factoryPath = '../src/core/interpreter/index.js';
         console.log(`Loading Factory: ${factoryPath}`);
         const factoryModule = await import(factoryPath);
-        const factory = factoryModule.createLayer1;
+        const factory = factoryModule.createInterpreter;
 
         if (!factory) {
-            throw new Error(`Factory function createLayer1 not found in ${factoryPath}`);
+            throw new Error(`Factory function createInterpreter not found in ${factoryPath}`);
         }
 
         // Instantiate the interpreter
         const { interpreter, env } = factory();
-        console.log(`Runtime Interpreter Instantiated.`);
+        console.log(`Interpreter Instantiated.`);
 
         // Run the tests
-        const testSuitePath = `./runtime/tests.js`;
+        const testSuitePath = `./core/interpreter/tests.js`;
         console.log(`Loading Test Suite: ${testSuitePath}`);
 
         const testSuite = await import(testSuitePath);

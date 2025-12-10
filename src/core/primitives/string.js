@@ -1,4 +1,4 @@
-import { intern, Symbol } from '../symbol.js';
+import { intern, Symbol } from '../interpreter/symbol.js';
 
 export const stringPrimitives = {
     'string?': (obj) => typeof obj === 'string',

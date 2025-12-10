@@ -1,7 +1,6 @@
-import { assert, createTestLogger } from '../helpers.js';
-import { Literal, Variable, If, Begin, Set, Define } from '../../src/runtime/ast.js';
-import { AppFrame, IfFrame, SetFrame, DefineFrame, BeginFrame } from '../../src/runtime/frames.js';
-import { Symbol, intern } from '../../src/runtime/symbol.js';
+import { assert, createTestLogger } from '../../helpers.js';
+import { Literal, Variable, If, Begin, Set, Define, AppFrame, IfFrame, SetFrame, DefineFrame, BeginFrame } from '../../../src/core/interpreter/ast.js';
+import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
 
 export function runNodesTests(logger) {
     logger.title('Running Nodes Unit Tests...');

@@ -1,5 +1,5 @@
-import { createLayer1 } from '../src/runtime/index.js';
-import { run } from '../tests/runtime/tests.js';
+import { createInterpreter } from '../src/core/interpreter/index.js';
+import { run } from '../tests/core/interpreter/tests.js';
 
 // Simple logger to write to the page with pass/fail tracking
 const outputEl = document.getElementById('test-output');
@@ -50,7 +50,7 @@ const logger = {
 (async () => {
     try {
         // Create the interpreter instance using Layer 1 factory
-        const { interpreter, env } = createLayer1();
+        const { interpreter, env } = createInterpreter();
 
         // File loader for Scheme tests in browser
         const browserFileLoader = async (relativePath) => {

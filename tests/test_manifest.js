@@ -4,18 +4,18 @@
  * Paths are relative to the `tests/` directory.
  * Each runner adds its environment-specific prefix:
  * - Node.js (run_all.js): "./" 
- * - Browser (runtime/tests.js): "../"
+ * - Browser (core/interpreter/tests.js): "../"
  */
 
-// Unit Tests
+// Unit Tests (in tests/core/interpreter/)
 export const unitTests = [
-    { path: 'unit/data_tests.js', fn: 'runDataTests', needsInterpreter: false },
-    { path: 'unit/primitives_tests.js', fn: 'runPrimitiveTests', needsInterpreter: false },
-    { path: 'unit/unit_tests.js', fn: 'runUnitTests', needsInterpreter: true },
-    { path: 'unit/winders_tests.js', fn: 'runWindersTests', needsInterpreter: true },
-    { path: 'unit/analyzer_tests.js', fn: 'runAnalyzerTests', needsInterpreter: true },
-    { path: 'unit/reader_tests.js', fn: 'runReaderTests', needsInterpreter: false },
-    { path: 'unit/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
+    { path: 'core/interpreter/data_tests.js', fn: 'runDataTests', needsInterpreter: false },
+    { path: 'core/interpreter/primitives_tests.js', fn: 'runPrimitiveTests', needsInterpreter: false },
+    { path: 'core/interpreter/unit_tests.js', fn: 'runUnitTests', needsInterpreter: true },
+    { path: 'core/interpreter/winders_tests.js', fn: 'runWindersTests', needsInterpreter: true },
+    { path: 'core/interpreter/analyzer_tests.js', fn: 'runAnalyzerTests', needsInterpreter: true },
+    { path: 'core/interpreter/reader_tests.js', fn: 'runReaderTests', needsInterpreter: false },
+    { path: 'core/interpreter/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)
@@ -39,13 +39,13 @@ export const integrationTests = [
 
 // Scheme Test Files (paths relative to project root, used by file loader)
 export const schemeTestFiles = [
-    'tests/runtime/scheme/primitive_tests.scm',
-    'tests/scheme/test_harness_tests.scm',
-    'tests/runtime/scheme/boot_tests.scm',
-    'tests/runtime/scheme/record_tests.scm',
-    'tests/runtime/scheme/tco_tests.scm',
-    'tests/runtime/scheme/dynamic_wind_tests.scm',
-    'tests/runtime/scheme/dynamic_wind_interop_tests.scm',
+    'tests/core/scheme/primitive_tests.scm',
+    'tests/core/scheme/test_harness_tests.scm',
+    'tests/core/scheme/boot_tests.scm',
+    'tests/core/scheme/record_tests.scm',
+    'tests/core/scheme/tco_tests.scm',
+    'tests/core/scheme/dynamic_wind_tests.scm',
+    'tests/core/scheme/dynamic_wind_interop_tests.scm',
 ];
 
 /**

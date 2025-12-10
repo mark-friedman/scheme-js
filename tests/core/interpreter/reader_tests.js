@@ -1,7 +1,7 @@
-import { assert, createTestLogger } from '../helpers.js';
-import { parse } from '../../src/runtime/reader.js';
-import { Cons } from '../../src/runtime/cons.js';
-import { Symbol } from '../../src/runtime/symbol.js';
+import { assert, createTestLogger } from '../../helpers.js';
+import { parse } from '../../../src/core/interpreter/reader.js';
+import { Cons } from '../../../src/core/interpreter/cons.js';
+import { Symbol } from '../../../src/core/interpreter/symbol.js';
 
 export function runReaderTests(logger) {
     logger.title('Running Reader Unit Tests...');

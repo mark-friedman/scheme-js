@@ -1,7 +1,7 @@
-import { globalMacroRegistry } from '../../src/runtime/macro_registry.js';
+import { globalMacroRegistry } from '../../src/core/interpreter/macro_registry.js';
 import { run, assert } from '../helpers.js';
-import { list } from '../../src/runtime/cons.js';
-import { intern } from '../../src/runtime/symbol.js';
+import { list } from '../../src/core/interpreter/cons.js';
+import { intern } from '../../src/core/interpreter/symbol.js';
 
 export async function runMacroTests(interpreter, logger) {
     logger.title('Macro Tests');

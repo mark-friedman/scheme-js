@@ -1,5 +1,5 @@
 /**
- * Browser/Node Runtime Test Runner
+ * Browser/Node Core Test Runner
  * 
  * Uses the shared test manifest.
  * Called by web/test_runner.js (browser).
@@ -8,9 +8,9 @@
  * file (tests/), so we use "./" prefix for both Node and browser.
  */
 
-import { runAllFromManifest, schemeTestFiles } from '../test_manifest.js';
-import { runSchemeTests } from '../run_scheme_tests_lib.js';
-import { createTestLogger } from '../helpers.js';
+import { runAllFromManifest, schemeTestFiles } from '../../test_manifest.js';
+import { runSchemeTests } from '../../run_scheme_tests_lib.js';
+import { createTestLogger } from '../../helpers.js';
 
 /**
  * Main test runner.

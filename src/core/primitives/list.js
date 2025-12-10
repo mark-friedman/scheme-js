@@ -4,7 +4,7 @@
  * Provides basic pair and list operations for the Scheme runtime.
  */
 
-import { Cons, cons, list } from '../cons.js';
+import { Cons, cons, list } from '../interpreter/cons.js';
 
 /**
  * List primitives exported to Scheme.

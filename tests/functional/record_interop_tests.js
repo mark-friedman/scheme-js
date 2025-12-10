@@ -74,19 +74,19 @@ export async function runRecordInteropTests(interpreter, logger, fileLoader) {
 
     // 7. Macro: define-record-type
     try {
-        // Load boot.scm to get the macro definition
+        // Load base.scm to get the macro definition
         if (fileLoader) {
-            const bootCode = await fileLoader('src/runtime/scheme/boot.scm');
-            run(interpreter, bootCode);
+            const baseCode = await fileLoader('src/core/scheme/base.scm');
+            run(interpreter, baseCode);
         } else if (typeof process !== 'undefined') {
             // Fallback for direct node execution (if any)
             const fs = await import('fs');
             const path = await import('path');
-            const bootPath = path.join(process.cwd(), 'src', 'runtime', 'scheme', 'boot.scm');
-            const bootCode = fs.readFileSync(bootPath, 'utf8');
-            run(interpreter, bootCode);
+            const basePath = path.join(process.cwd(), 'src', 'core', 'scheme', 'base.scm');
+            const baseCode = fs.readFileSync(basePath, 'utf8');
+            run(interpreter, baseCode);
         } else {
-            logger.fail("Cannot load boot.scm: No file loader provided");
+            logger.fail("Cannot load base.scm: No file loader provided");
             return;
         }
 

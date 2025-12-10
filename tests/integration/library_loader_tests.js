@@ -11,11 +11,11 @@ import {
     isLibraryLoaded,
     loadLibrary,
     setFileResolver
-} from '../../src/runtime/library_loader.js';
-import { parse } from '../../src/runtime/reader.js';
-import { analyze } from '../../src/runtime/analyzer.js';
-import { Interpreter } from '../../src/runtime/interpreter.js';
-import { createGlobalEnvironment } from '../../src/runtime/primitives/index.js';
+} from '../../src/core/interpreter/library_loader.js';
+import { parse } from '../../src/core/interpreter/reader.js';
+import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { Interpreter } from '../../src/core/interpreter/interpreter.js';
+import { createGlobalEnvironment } from '../../src/core/primitives/index.js';
 
 export async function runLibraryLoaderTests(logger) {
     logger.title('Running Library Loader Tests...');
@@ -118,7 +118,7 @@ export async function runLibraryLoaderTests(logger) {
 
     // 7. Test library with (scheme base) dependency
     const { registerBuiltinLibrary, createSchemeBaseExports } =
-        await import('../../src/runtime/library_loader.js');
+        await import('../../src/core/interpreter/library_loader.js');
 
     // Register (scheme base) first
     const schemeBaseExports = createSchemeBaseExports(globalEnv);

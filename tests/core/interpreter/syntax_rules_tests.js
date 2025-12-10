@@ -1,8 +1,8 @@
-import { assert, createTestLogger } from '../helpers.js';
-import { compileSyntaxRules } from '../../src/runtime/syntax_rules.js';
-import { parse } from '../../src/runtime/reader.js';
-import { Symbol, intern } from '../../src/runtime/symbol.js';
-import { list, cons } from '../../src/runtime/cons.js';
+import { assert, createTestLogger } from '../../helpers.js';
+import { compileSyntaxRules } from '../../../src/core/interpreter/syntax_rules.js';
+import { parse } from '../../../src/core/interpreter/reader.js';
+import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
+import { list, cons } from '../../../src/core/interpreter/cons.js';
 
 export function runSyntaxRulesUnitTests(logger) {
     logger.title('Running Syntax Rules Unit Tests...');

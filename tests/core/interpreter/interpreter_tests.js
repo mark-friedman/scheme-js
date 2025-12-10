@@ -1,6 +1,6 @@
-import { assert, createTestLogger } from '../helpers.js';
-import { Interpreter } from '../../src/runtime/interpreter.js';
-import { Closure } from '../../src/runtime/values.js';
+import { assert, createTestLogger } from '../../helpers.js';
+import { Interpreter } from '../../../src/core/interpreter/interpreter.js';
+import { Closure } from '../../../src/core/interpreter/values.js';
 
 export function runInterpreterTests(logger) {
     logger.title('Running Interpreter Unit Tests...');

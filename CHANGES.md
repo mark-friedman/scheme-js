@@ -653,3 +653,58 @@ export const FSTACK = 3; // Frame stack register
 Node.js: 337 passed, 0 failed
 ```
 
+# Directory Structure Migration
+
+Reorganized the codebase for clarity, separating the JavaScript interpreter from the core Scheme subset.
+
+## Changes Made
+
+### Source Directory Restructuring
+
+| Before | After |
+|--------|-------|
+| `src/runtime/*.js` | `src/core/interpreter/*.js` |
+| `src/runtime/primitives/` | `src/core/primitives/` |
+| `src/runtime/scheme/boot.scm` | `src/core/scheme/base.scm` |
+| `src/lib/scheme/base.sld` | `src/core/scheme/base.sld` |
+
+### Test Directory Restructuring
+
+| Before | After |
+|--------|-------|
+| `tests/unit/` | `tests/core/interpreter/` |
+| `tests/runtime/` | `tests/core/interpreter/` |
+| `tests/scheme/` | `tests/core/scheme/` |
+
+### API Rename
+
+- `createLayer1()` → `createInterpreter()`
+
+### Files Updated
+
+Over 40 files had import paths updated to reflect the new structure:
+- All `src/core/primitives/*.js` files
+- All `tests/core/interpreter/*.js` files
+- All `tests/functional/*.js` files
+- All `tests/integration/*.js` files
+- `web/main.js`, `web/test_runner.js`, `web/repl.js`
+- `tests/run_scheme_tests_lib.js`
+- `tests/test_manifest.js`
+- `tests/runner.js`
+- `tests/run_all.js`
+
+### Documentation Updated
+
+- `directory_structure.md` — New structure documented
+- `README.md` — Architecture section updated
+
+## Verification
+
+All 337 tests pass:
+
+```
+node run_tests_node.js
+========================================
+TEST SUMMARY: 337 passed, 0 failed
+========================================
+```

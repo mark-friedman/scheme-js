@@ -1,61 +1,81 @@
 # Directory Structure
 
-The codebase follows a two-tier architecture: JavaScript runtime and Scheme libraries.
+The codebase follows a two-tier architecture: JavaScript core and Scheme libraries.
 
 ## Current Structure
 
 ```text
 /
 ├── src/
-│   ├── runtime/                # JavaScript Kernel (Layer 1)
-│   │   ├── index.js            # EXPORT: createLayer1()
-│   │   ├── interpreter.js      # Trampoline execution loop
-│   │   ├── stepables.js        # AST nodes + continuation frames
-│   │   ├── ast.js              # Barrel file (re-exports stepables)
-│   │   ├── frame_registry.js   # Frame factory functions
-│   │   ├── winders.js          # Dynamic-wind utilities
-│   │   ├── environment.js      # Environment class
-│   │   ├── values.js           # Closure, Continuation, TailCall, Values
-│   │   ├── cons.js             # Cons cells + list utilities
-│   │   ├── symbol.js           # Symbol interning
-│   │   ├── reader.js           # S-expression parser
-│   │   ├── analyzer.js         # S-exp → AST conversion
-│   │   ├── syntax_rules.js     # syntax-rules transformer
-│   │   ├── macro_registry.js   # Macro registry
-│   │   ├── library.js          # Micro-library system
-│   │   ├── library_loader.js   # R7RS define-library / import
-│   │   ├── analysis/           # Syntactic analysis modules
-│   │   ├── primitives/         # Native procedures (+, cons, etc.)
-│   │   └── scheme/
-│   │       └── boot.scm        # Pre-library bootstrap
-│   │
-│   └── lib/                    # R7RS Libraries (Scheme)
-│       └── scheme/
-│           ├── base.sld        # (scheme base)
-│           └── ...
+│   └── core/                       # The Core (JS Interpreter + Scheme subset)
+│       ├── interpreter/            # JavaScript Interpreter
+│       │   ├── index.js            # EXPORT: createInterpreter()
+│       │   ├── interpreter.js      # Trampoline execution loop
+│       │   ├── stepables.js        # AST nodes + continuation frames
+│       │   ├── ast.js              # Barrel file (re-exports stepables)
+│       │   ├── frame_registry.js   # Frame factory functions
+│       │   ├── winders.js          # Dynamic-wind utilities
+│       │   ├── environment.js      # Environment class
+│       │   ├── values.js           # Closure, Continuation, TailCall, Values
+│       │   ├── cons.js             # Cons cells + list utilities
+│       │   ├── symbol.js           # Symbol interning
+│       │   ├── reader.js           # S-expression parser
+│       │   ├── analyzer.js         # S-exp → AST conversion
+│       │   ├── syntax_rules.js     # syntax-rules transformer
+│       │   ├── macro_registry.js   # Macro registry
+│       │   ├── library.js          # Micro-library system
+│       │   ├── library_loader.js   # R7RS define-library / import
+│       │   └── analysis/           # Syntactic analysis modules
+│       │
+│       ├── primitives/             # Native procedures (+, cons, etc.)
+│       │   ├── index.js
+│       │   ├── math.js
+│       │   ├── list.js
+│       │   ├── string.js
+│       │   ├── vector.js
+│       │   ├── control.js
+│       │   └── ...
+│       │
+│       └── scheme/                 # Core Scheme subset (base library)
+│           ├── base.sld            # (scheme base) library declaration
+│           └── base.scm            # Core macros/procedures
 │
 ├── tests/
-│   ├── run_all.js              # Main test runner
-│   ├── helpers.js              # Test utilities
-│   ├── test_manifest.js        # Test module registry
-│   ├── unit/                   # Unit tests for JS modules
-│   ├── functional/             # Functional tests (TCO, call/cc, etc.)
-│   ├── integration/            # Integration tests (library loader)
-│   ├── runtime/                # Runtime-specific tests
-│   └── scheme/                 # Scheme test files (.scm)
+│   ├── core/                       # Tests for src/core/
+│   │   ├── interpreter/            # Tests for interpreter modules
+│   │   │   ├── unit_tests.js
+│   │   │   ├── reader_tests.js
+│   │   │   ├── analyzer_tests.js
+│   │   │   └── ...
+│   │   ├── primitives/             # Tests for primitives (empty)
+│   │   └── scheme/                 # Scheme tests
+│   │       ├── test.scm            # Test harness
+│   │       ├── primitive_tests.scm
+│   │       ├── boot_tests.scm
+│   │       └── ...
+│   │
+│   ├── functional/                 # Cross-cutting integration tests
+│   │   ├── core_tests.js
+│   │   ├── interop_tests.js
+│   │   └── ...
+│   │
+│   ├── integration/                # Library system tests
+│   └── lib/                        # Tests for src/lib/ (future)
 │
 ├── docs/
-│   ├── trampoline.md           # Execution model details
+│   ├── trampoline.md               # Execution model details
 │   └── ...
 │
 └── web/
-    ├── ui.html                 # Browser REPL + test runner
-    └── main.js                 # Browser entry point
+    ├── ui.html                     # Browser REPL + test runner
+    └── main.js                     # Browser entry point
 ```
 
 ## Key Principles
 
-1. **Two-Tier Model**: JavaScript provides the runtime; Scheme provides the libraries.
-2. **Standard Modules**: Dependencies use R7RS `define-library` / `import`.
-3. **Unified Stepables**: All executable objects (AST nodes + frames) in single `stepables.js`.
-4. **Minimal Bootstrap**: `boot.scm` defines only what's needed to load `(scheme base)`.
+1. **Two-Tier Model**: JavaScript provides the core; Scheme provides libraries.
+2. **`src/core/`**: Everything needed to run basic Scheme (JS interpreter + core Scheme subset).
+3. **`src/lib/`**: (Future) Additional R7RS libraries built on-top of the core.
+4. **Tests mirror source**: `tests/core/` tests `src/core/`.
+5. **Unified Stepables**: All executable objects (AST nodes + frames) in `stepables.js`.
+6. **Minimal Bootstrap**: `base.scm` defines only what's needed to load `(scheme base)`.

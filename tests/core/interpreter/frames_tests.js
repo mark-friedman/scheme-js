@@ -1,6 +1,5 @@
-import { assert, createTestLogger } from '../helpers.js';
-import { IfFrame, SetFrame, DefineFrame, BeginFrame, LetFrame } from '../../src/runtime/frames.js';
-import { Literal, Variable } from '../../src/runtime/ast.js';
+import { assert, createTestLogger } from '../../helpers.js';
+import { IfFrame, SetFrame, DefineFrame, BeginFrame, LetFrame, Literal, Variable } from '../../../src/core/interpreter/ast.js';
 
 
 export function runFramesTests(logger) {

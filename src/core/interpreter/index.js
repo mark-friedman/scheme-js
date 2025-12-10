@@ -1,12 +1,12 @@
 import { Interpreter } from './interpreter.js';
-import { createGlobalEnvironment } from './primitives/index.js';
+import { createGlobalEnvironment } from '../primitives/index.js';
 import { LibraryRegistry } from './library.js';
 
 /**
- * Factory for Layer 1 (Kernel).
+ * Factory for the Scheme interpreter core.
  * @returns {{interpreter: Interpreter, env: Environment}}
  */
-export function createLayer1() {
+export function createInterpreter() {
     const interpreter = new Interpreter();
     const env = createGlobalEnvironment(interpreter);
 

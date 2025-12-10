@@ -1,10 +1,10 @@
-import { createLayer1 } from '../src/runtime/index.js';
+import { createInterpreter } from '../src/core/interpreter/index.js';
 import { setupRepl } from './repl.js';
 
 // --- Main Entry Point ---
 
 // Create the interpreter instance
-const { interpreter, env } = createLayer1();
+const { interpreter, env } = createInterpreter();
 
 // Setup REPL UI
 setupRepl(interpreter, env);
