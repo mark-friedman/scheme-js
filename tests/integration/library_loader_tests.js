@@ -122,11 +122,11 @@ export async function runLibraryLoaderTests(logger) {
     clearLibraryRegistry();
 
     // 7. Test library with (scheme base) dependency
-    const { registerBuiltinLibrary, createSchemeBaseExports } =
+    const { registerBuiltinLibrary, createPrimitiveExports } =
         await import('../../src/core/interpreter/library_loader.js');
 
-    // Register (scheme base) first
-    const schemeBaseExports = createSchemeBaseExports(globalEnv);
+    // Register (scheme base) first (mocking it with primitives for this test)
+    const schemeBaseExports = createPrimitiveExports(globalEnv);
     registerBuiltinLibrary(['scheme', 'base'], schemeBaseExports, globalEnv);
 
     assert(logger, "registerBuiltinLibrary works",

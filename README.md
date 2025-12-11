@@ -86,3 +86,31 @@ We maintain detailed documentation for the project internals:
 -   **Style**: We use ES Modules (`import`/`export`) throughout. All functions are documented with JSDoc. Scheme code is written in a style that is similar to JSDoc.
 -   **Testing**: We follow a "Dual Environment" rule - every new feature must represent correct behavior in both Node.js V8 and standard browser engines.
 -   **Code Quality**: We separate "step-able" logic (instructions for the machine) from runtime state (values and environments).
+
+## Limitations
+
+### Hygiene
+
+The current implementation addresses **accidental capture** (macro bindings don't capture user variables). It does NOT fully address **reference transparency** for free variables in templates that reference non-global bindings at macro definition time. However:
+- Special forms (`if`, `let`, etc.) are recognized by the analyzer
+- Primitives are globally bound
+- These cover 99% of practical `syntax-rules` use cases
+
+What is NOT handled are local definition-site bindings — If a macro is defined inside a let that binds a helper, and that name is shadowed at the expansion site:
+
+```scheme
+;; Macro defined inside a let with a local helper
+(let ((helper (lambda (x) (* x 2))))      ;; definition-site binding
+  (define-syntax my-double
+    (syntax-rules ()
+      ((my-double x) (helper x)))))
+;; Later, at expansion site:
+(let ((helper (lambda (x) (+ x 1))))      ;; shadows helper!
+  (my-double 5))
+;; BUG: Returns 6 (expansion-site helper) instead of 10 (definition-site helper)
+```
+
+Why this is rare in practice:
+- `define-syntax` is almost always used at top level in R7RS
+- Macros typically only reference globally-bound names
+- Special forms are immune (they're recognized syntactically)

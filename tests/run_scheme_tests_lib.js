@@ -3,8 +3,8 @@ import { run } from './helpers.js';
 export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
     logger.title('Running Scheme Tests...');
 
-    // 1. Load base.scm (core Scheme subset)
-    const baseCode = await fileLoader('src/core/scheme/base.scm');
+    // 1. Load core.scm (core Scheme subset)
+    const baseCode = await fileLoader('src/core/scheme/core.scm');
     run(interpreter, baseCode);
 
     // Inject native reporter (after base.scm to avoid overwrite)

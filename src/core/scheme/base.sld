@@ -4,39 +4,31 @@
 ;; Will be expanded to full R7RS base in Phase 8.
 
 (define-library (scheme base)
+  (import (scheme primitives))
+  (import (scheme core))
+
   (export
     ;; Equivalence predicates
     eq? eqv? equal?
     
     ;; Numbers
-    + - * / < > <= >= = 
-    number? integer? zero? positive? negative?
-    abs modulo remainder quotient
+    + - * / < > = modulo
     
     ;; Booleans
-    not boolean?
     
     ;; Pairs and lists
     cons car cdr pair? null? list?
     set-car! set-cdr!
-    list length append reverse
-    list-ref list-tail
-    memq memv member
-    assq assv assoc
+    list append
+    cadr cddr caddr cdddr cadddr
     
     ;; Symbols
-    symbol? symbol->string string->symbol
+    symbol->string string->symbol
     
     ;; Characters
-    char? char=? char<? char>? char<=? char>=?
     
     ;; Strings  
-    string? string-length string-ref string-set!
-    string=? string<? string>?
-    string-append substring
-    string->list list->string
-    string-copy string-fill!
-    number->string string->number
+    string? string-append number->string
     
     ;; Vectors
     vector? make-vector vector vector-length
@@ -44,17 +36,20 @@
     vector->list list->vector
     
     ;; Control
-    procedure? apply
-    map for-each
+    apply map
     call-with-current-continuation call/cc
     dynamic-wind
+    values call-with-values
     
     ;; I/O (basic)
     display newline
     
-    ;; Syntax (re-exported from boot)
-    ;; These are macros defined in boot.scm:
-    ;; and, or, let, let*, letrec, cond, case, when, unless, begin
+    ;; Syntax (Macros & Special Forms)
+    define set! lambda if begin quote quasiquote unquote unquote-splicing
+    define-syntax let-syntax letrec-syntax ;; syntax-rules
+    and or cond case do when unless
+    let let* letrec
+    define-record-type
   )
   
   ;; The actual bindings come from the runtime primitives.

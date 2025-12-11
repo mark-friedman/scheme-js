@@ -4,13 +4,19 @@
  * Provides basic pair and list operations for the Scheme runtime.
  */
 
-import { Cons, cons, list } from '../interpreter/cons.js';
+import { Cons, cons, list, cadr, cddr, caddr, cdddr, cadddr } from '../interpreter/cons.js';
 
 /**
  * List primitives exported to Scheme.
  */
 export const listPrimitives = {
     'cons': cons,
+
+    'cadr': cadr,
+    'cddr': cddr,
+    'caddr': caddr,
+    'cdddr': cdddr,
+    'cadddr': cadddr,
 
     'car': (p) => {
         if (!(p instanceof Cons)) throw new Error(`car: expected pair, got ${p}`);

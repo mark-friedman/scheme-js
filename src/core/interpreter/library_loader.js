@@ -582,58 +582,66 @@ export function registerBuiltinLibrary(libraryName, exports, env) {
 }
 
 /**
- * Creates (scheme base) exports from the global environment.
+ * Creates (scheme primitives) exports from the global environment.
  * 
  * @param {Environment} globalEnv - The global environment with primitives
  * @returns {Map<string, *>} The exports map
  */
-export function createSchemeBaseExports(globalEnv) {
+export function createPrimitiveExports(globalEnv) {
     const exports = new Map();
 
-    // List of (scheme base) exports
-    const baseExports = [
+    // List of (scheme primitives) exports
+    // This MUST match what is actually installed in the global environment by primitives/index.js
+    const primitiveExports = [
         // Equivalence
-        'eq?', 'eqv?', 'equal?',
+        'eq?', 'eqv?',
         // Numbers
-        '+', '-', '*', '/', '<', '>', '<=', '>=', '=',
-        'number?', 'integer?', 'zero?', 'positive?', 'negative?',
-        'abs', 'modulo', 'remainder', 'quotient',
-        // Booleans
-        'not', 'boolean?',
+        '+', '-', '*', '/', '<', '>', '=', 'modulo',
         // Pairs and lists
-        'cons', 'car', 'cdr', 'pair?', 'null?', 'list?',
+        'cons', 'car', 'cdr', 'pair?', 'null?',
         'set-car!', 'set-cdr!',
-        'list', 'length', 'append', 'reverse',
-        'list-ref', 'list-tail',
-        'memq', 'memv', 'member',
-        'assq', 'assv', 'assoc',
+        'list', 'append',
+        'cadr', 'cddr', 'caddr', 'cdddr', 'cadddr',
         // Symbols
-        'symbol?', 'symbol->string', 'string->symbol',
+        'symbol->string', 'string->symbol',
         // Strings
-        'string?', 'string-length', 'string-ref',
-        'string=?', 'string<?', 'string>?',
-        'string-append', 'substring',
-        'number->string', 'string->number',
+        'string?', 'string-append', 'number->string',
         // Vectors
         'vector?', 'make-vector', 'vector', 'vector-length',
         'vector-ref', 'vector-set!',
         'vector->list', 'list->vector',
+        // Records (Low-level primitives for define-record-type)
+        'make-record-type', 'record-constructor', 'record-predicate',
+        'record-accessor', 'record-modifier',
         // Control
-        'procedure?', 'apply',
-        'call-with-current-continuation', 'call/cc',
+        'apply', 'values', 'call-with-values',
+        'eval', 'interaction-environment',
         'dynamic-wind',
         // I/O
         'display', 'newline',
     ];
 
-    for (const name of baseExports) {
+    for (const name of primitiveExports) {
         // Use findEnv to check if binding exists without throwing
         if (globalEnv.findEnv(name) !== null) {
             exports.set(name, globalEnv.lookup(name));
+        } else {
+            // Warn about missing primitives that we expect to be there
+            console.warn(`Warning: (scheme primitives) claims export '${name}' but it is not in the global environment.`);
         }
-        // Bindings not found are skipped (might not be implemented yet)
     }
 
     return exports;
+}
+
+for (const name of baseExports) {
+    // Use findEnv to check if binding exists without throwing
+    if (globalEnv.findEnv(name) !== null) {
+        exports.set(name, globalEnv.lookup(name));
+    }
+    // Bindings not found are skipped (might not be implemented yet)
+}
+
+return exports;
 }
 

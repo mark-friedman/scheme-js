@@ -795,3 +795,30 @@ This implementation solves **accidental capture** (macro bindings don't capture 
 - Special forms (`if`, `let`, etc.) are recognized by the analyzer
 - Primitives are globally bound
 - These cover 99% of practical `syntax-rules` use cases
+
+## [Phase 1.5] Library Architecture Refactor
+
+Refactored the codebase to align with R7RS Appendix A library structure and clean up the "Layer 1" terminology.
+
+### Key Changes
+1.  **Primitives Library**:
+    *   Renamed `createSchemeBaseExports` to `createPrimitiveExports` in `library_loader.js`.
+    *   Updated the export list to accurately reflect all implemented JS primitives.
+    *   Wired up `(scheme primitives)` in `interpreter/index.js` as a built-in library.
+
+2.  **Core Library**:
+    *   Renamed `src/core/scheme/base.scm` to `src/core/scheme/core.scm`.
+    *   Created `src/core/scheme/core.sld` which defines the `(scheme core)` library.
+    *   `(scheme core)` acts as the comprehensive implementation library, importing primitives and including the core Scheme code.
+
+3.  **Base Library**:
+    *   Updated `src/core/scheme/base.sld` to be a pure interface.
+    *   It now imports `(scheme primitives)` and `(scheme core)` and re-exports the standard R7RS subset.
+
+4.  **Test Updates**:
+    *   Updated `tests/run_scheme_tests_lib.js` to load `core.scm` directly (instead of the old `base.scm`).
+    *   Updated `tests/integration/library_loader_tests.js` to use the new primitive export function.
+
+### Verification
+*   Ran full test suite (`node run_tests_node.js`).
+*   All tests (Unit, Functional, Integration, Scheme) passed.
