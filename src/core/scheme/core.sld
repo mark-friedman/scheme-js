@@ -9,7 +9,7 @@
     define-record-type define-record-field
     
     ;; Procedures
-    equal? map
+    equal? map memq memv member
     native-report-test-result
   )
 )

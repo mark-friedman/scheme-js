@@ -173,3 +173,53 @@
       '()
       (cons (proc (car list))
             (map proc (cdr list)))))
+;; List searching
+
+;; /**
+;;  * Return the sublist of list whose car is eq? to obj.
+;;  * Return #f if obj is not found.
+;;  *
+;;  * @param {any} obj - Object to find.
+;;  * @param {list} list - List to search.
+;;  * @return {list|boolean} Sublist or #f.
+;;  */
+(define (memq obj list)
+  (if (null? list)
+      #f
+      (if (eq? obj (car list))
+          list
+          (memq obj (cdr list)))))
+
+;; /**
+;;  * Return the sublist of list whose car is eqv? to obj.
+;;  * Return #f if obj is not found.
+;;  *
+;;  * @param {any} obj - Object to find.
+;;  * @param {list} list - List to search.
+;;  * @return {list|boolean} Sublist or #f.
+;;  */
+(define (memv obj list)
+  (if (null? list)
+      #f
+      (if (eqv? obj (car list))
+          list
+          (memv obj (cdr list)))))
+
+;; /**
+;;  * Return the sublist of list whose car is equal? to obj.
+;;  * Return #f if obj is not found.
+;;  *
+;;  * @param {any} obj - Object to find.
+;;  * @param {list} list - List to search.
+;;  * @param {procedure} [compare] - Optional comparison procedure (default equal?).
+;;  * @return {list|boolean} Sublist or #f.
+;;  */
+(define (member obj list . compare)
+  (let ((compare (if (null? compare) equal? (car compare))))
+    (letrec ((loop (lambda (ls)
+                     (if (null? ls)
+                         #f
+                         (if (compare obj (car ls))
+                             ls
+                             (loop (cdr ls)))))))
+      (loop list))))
