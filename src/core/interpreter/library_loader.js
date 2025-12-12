@@ -634,14 +634,5 @@ export function createPrimitiveExports(globalEnv) {
     return exports;
 }
 
-for (const name of baseExports) {
-    // Use findEnv to check if binding exists without throwing
-    if (globalEnv.findEnv(name) !== null) {
-        exports.set(name, globalEnv.lookup(name));
-    }
-    // Bindings not found are skipped (might not be implemented yet)
-}
 
-return exports;
-}
 

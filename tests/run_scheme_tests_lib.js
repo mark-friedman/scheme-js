@@ -7,6 +7,10 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     const baseCode = await fileLoader('src/core/scheme/core.scm');
     run(interpreter, baseCode);
 
+    // 1.5 Load control.scm (Standard macros: when, unless, etc.)
+    const controlCode = await fileLoader('src/core/scheme/control.scm');
+    run(interpreter, controlCode);
+
     // Inject native reporter (after base.scm to avoid overwrite)
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
         if (passed) {

@@ -70,22 +70,22 @@ Restructured the codebase to align with R7RS Appendix A.
 
 ---
 
-## Phase 2: Core Syntax (Standard Macros)
+## Phase 2: Core Syntax (Standard Macros) ✅
 **Target Library:** `(scheme base)`
 
-Define missing standard macros in `src/core/scheme/control.scm` and wrap in `(scheme control)` (or directly in `(scheme core)` depending on size).
+Defined missing standard macros in `src/core/scheme/control.scm`.
 
 | Macro | Status | Notes |
 |-------|--------|-------|
-| `or` | ❌ Missing | Short-circuit OR |
-| `let*` | ❌ Missing | Sequential binding |
-| `case` | ❌ Missing | Pattern dispatch |
-| `when` | ❌ Missing | Single-branch conditional |
-| `unless` | ❌ Missing | Negated `when` |
-| `do` | ❌ Missing | Iteration construct |
-| `begin` | ⚠️ Analyzer | Should be macro or special form? |
+| `or` | ✅ | |
+| `let*` | ✅ | |
+| `case` | ✅ | Uses `memv` |
+| `when` | ✅ | |
+| `unless` | ✅ | |
+| `do` | ✅ | Normalized expansion |
+| `begin` | ⚠️ Analyzer | Special form in analyzer |
 
-**Deliverable:** Add macros to `src/core/scheme/control.scm`. Register exports in `(scheme base)`.
+**Deliverable:** `src/core/scheme/control.scm` created and verified.
 
 ---
 

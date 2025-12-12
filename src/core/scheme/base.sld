@@ -6,6 +6,7 @@
 (define-library (scheme base)
   (import (scheme primitives))
   (import (scheme core))
+  (import (scheme control))
 
   (export
     ;; Equivalence predicates
@@ -15,20 +16,25 @@
     + - * / < > = modulo
     
     ;; Booleans
+    ;; not boolean?  ;; Missing
     
     ;; Pairs and lists
     cons car cdr pair? null? list?
     set-car! set-cdr!
     list append
     cadr cddr caddr cdddr cadddr
+    memq memv member
+    ;; reverse list-ref list-tail assq assv assoc ;; Missing
     
     ;; Symbols
     symbol->string string->symbol
     
     ;; Characters
+    ;; All missing
     
     ;; Strings  
     string? string-append number->string
+    ;; string-length string-ref string-set! ... ;; Missing
     
     ;; Vectors
     vector? make-vector vector vector-length
@@ -40,6 +46,7 @@
     call-with-current-continuation call/cc
     dynamic-wind
     values call-with-values
+    ;; procedure? for-each ;; Missing
     
     ;; I/O (basic)
     display newline
@@ -57,3 +64,4 @@
   (begin
     ;; No definitions needed - primitives are injected by the runtime
   ))
+```
