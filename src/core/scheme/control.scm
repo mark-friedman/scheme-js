@@ -122,3 +122,56 @@
        clauses ...)
      (let ((atom-key key))
        (case "dispatch" atom-key clauses ...)))))
+
+;; =============================================================================
+;; Exception Handling
+;; =============================================================================
+
+;; /**
+;;  * Exception handling construct (R7RS).
+;;  * Catches exceptions and dispatches based on condition clauses.
+;;  *
+;;  * @param {symbol} var - Variable to bind to exception.
+;;  * @param {...clause} clauses - Exception handling clauses.
+;;  * @param {...expression} body - Body expressions to protect.
+;;  */
+(define-syntax guard
+  (syntax-rules ()
+    ((guard (var clause ...) body ...)
+     (call/cc
+       (lambda (guard-exit)
+         (with-exception-handler
+           (lambda (condition)
+             (let ((var condition))
+               (guard-clauses guard-exit var clause ...)))
+           (lambda ()
+             body ...)))))))
+
+;; /**
+;;  * Helper macro to process guard clauses.
+;;  * Evaluates clauses in order, re-raising if none match.
+;;  */
+(define-syntax guard-clauses
+  (syntax-rules (else =>)
+    ;; else clause - always matches
+    ((guard-clauses exit var (else result1 result2 ...))
+     (exit (begin result1 result2 ...)))
+    ;; => clause - apply proc to result if test is true
+    ((guard-clauses exit var (test => proc))
+     (let ((temp test))
+       (if temp
+           (exit (proc temp))
+           (raise-continuable var))))
+    ;; test with results - return results if test is true
+    ((guard-clauses exit var (test result1 result2 ...))
+     (if test
+         (exit (begin result1 result2 ...))
+         (raise-continuable var)))
+    ;; multiple clauses - try first, then rest
+    ((guard-clauses exit var (test result1 result2 ...) clause ...)
+     (if test
+         (exit (begin result1 result2 ...))
+         (guard-clauses exit var clause ...)))
+    ;; no clauses matched - re-raise
+    ((guard-clauses exit var)
+     (raise-continuable var))))

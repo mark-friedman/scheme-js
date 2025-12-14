@@ -5,6 +5,6 @@
   (include "control.scm")
 
   (export
-    when unless or let* do case
+    when unless or let* do case guard
   )
 )

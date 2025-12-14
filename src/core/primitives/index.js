@@ -11,6 +11,7 @@ import { getAsyncPrimitives } from './async.js';
 import { getControlPrimitives } from './control.js';
 import { GCPrimitives } from './gc.js';
 import { interopPrimitives } from './interop.js';
+import { getExceptionPrimitives } from './exception.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -38,6 +39,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(getControlPrimitives(interpreter));
     addPrimitives(GCPrimitives);
     addPrimitives(interopPrimitives);
+    addPrimitives(getExceptionPrimitives(interpreter));
 
     return new Environment(null, bindings);
 }

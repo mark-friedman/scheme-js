@@ -34,6 +34,9 @@ export {
     DynamicWindInit,
     RestoreContinuation,
     CallWithValuesNode,
+    WithExceptionHandlerInit,
+    RaiseNode,
+    InvokeExceptionHandler,
 
     // Frames
     LetFrame,
@@ -46,7 +49,9 @@ export {
     DynamicWindSetupFrame,
     WindFrame,
     RestoreValueFrame,
-    CallWithValuesFrame
+    CallWithValuesFrame,
+    ExceptionHandlerFrame,
+    RaiseContinuableResumeFrame
 } from './stepables.js';
 
 // Re-export from winders.js

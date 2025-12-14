@@ -48,13 +48,19 @@
     values call-with-values
     ;; procedure? for-each ;; Missing
     
+    ;; Exceptions
+    raise raise-continuable
+    with-exception-handler
+    error
+    error-object? error-object-message error-object-irritants
+    
     ;; I/O (basic)
     display newline
     
     ;; Syntax (Macros & Special Forms)
     define set! lambda if begin quote quasiquote unquote unquote-splicing
     define-syntax let-syntax letrec-syntax ;; syntax-rules
-    and or cond case do when unless
+    and or cond case do when unless guard
     let let* letrec
     define-record-type
   )
@@ -64,4 +70,3 @@
   (begin
     ;; No definitions needed - primitives are injected by the runtime
   ))
-```

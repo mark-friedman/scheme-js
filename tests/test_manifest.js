@@ -7,7 +7,7 @@
  * - Browser (core/interpreter/tests.js): "../"
  */
 
-// Unit Tests (in tests/core/interpreter/)
+// Unit Tests (in tests/core/interpreter/ and tests/unit/)
 export const unitTests = [
     { path: 'core/interpreter/data_tests.js', fn: 'runDataTests', needsInterpreter: false },
     { path: 'core/interpreter/primitives_tests.js', fn: 'runPrimitiveTests', needsInterpreter: false },
@@ -16,6 +16,7 @@ export const unitTests = [
     { path: 'core/interpreter/analyzer_tests.js', fn: 'runAnalyzerTests', needsInterpreter: true },
     { path: 'core/interpreter/reader_tests.js', fn: 'runReaderTests', needsInterpreter: false },
     { path: 'core/interpreter/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
+    { path: 'core/interpreter/error_tests.js', fn: 'runErrorTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)
@@ -31,6 +32,7 @@ export const functionalTests = [
     { path: 'functional/eval_apply_tests.js', fn: 'runEvalApplyTests', async: true },
     { path: 'functional/record_interop_tests.js', fn: 'runRecordInteropTests', async: true, needsLoader: true },
     { path: 'functional/multiple_values_tests.js', fn: 'runMultipleValuesTests', async: false },
+    { path: 'functional/exception_interop_tests.js', fn: 'runExceptionInteropTests', async: true },
 ];
 
 // Integration Tests
@@ -48,6 +50,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/dynamic_wind_tests.scm',
     'tests/core/scheme/dynamic_wind_interop_tests.scm',
     'tests/core/scheme/control_tests.scm',
+    'tests/core/scheme/exception_tests.scm',
 ];
 
 /**

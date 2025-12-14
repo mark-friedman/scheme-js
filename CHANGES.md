@@ -822,3 +822,51 @@ Refactored the codebase to align with R7RS Appendix A library structure and clea
 ### Verification
 *   Ran full test suite (`node run_tests_node.js`).
 *   All tests (Unit, Functional, Integration, Scheme) passed.
+
+---
+
+# R7RS Exception System (2025-12-13)
+
+Implemented complete R7RS-compliant exception handling with 432 tests passing.
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| [errors.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/errors.js) | `SchemeError`, `SchemeTypeError`, `SchemeArityError`, `SchemeRangeError` |
+| [type_check.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/type_check.js) | Type predicates (`isPair`, `isList`, etc.) and assertions |
+| [exception.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/exception.js) | R7RS exception primitives |
+| [error_tests.js](file:///Users/mark/code/scheme-js-4/tests/core/interpreter/error_tests.js) | 22 unit tests for error classes |
+| [exception_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/exception_tests.scm) | 14 Scheme exception tests |
+| [exception_interop_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/exception_interop_tests.js) | 10 JS/Scheme interop tests |
+
+## Modified Files
+
+| File | Changes |
+|------|---------|
+| [stepables.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/stepables.js) | `RaiseNode`, `InvokeExceptionHandler`, `ExceptionHandlerFrame`, `RaiseContinuableResumeFrame` |
+| [ast.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/ast.js) | Exported new nodes/frames |
+| [control.scm](file:///Users/mark/code/scheme-js-4/src/core/scheme/control.scm) | `guard`, `guard-clauses` macros |
+| [control.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/control.sld) | Exported `guard` |
+| [base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld) | Exported exception primitives + guard |
+| [index.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/index.js) | Registered exception primitives |
+
+## Key Implementation Details
+
+1. **Stack-based Exception Handlers**: `ExceptionHandlerFrame` pushed onto `FSTACK`, integrates naturally with continuations
+
+2. **Dynamic-wind Integration**: `RaiseNode` unwinds through `WindFrame`s (runs 'after' thunks) before invoking handler via `InvokeExceptionHandler`
+
+3. **Continuable vs Non-Continuable**:
+   - `raise-continuable`: Handler return value replaces the raise expression
+   - `raise`: Handler can mutate state, but returning re-raises to next handler
+
+4. **Vectors use Arrays**: Fixed `type_check.js` to use `Array.isArray()` since vectors are JS arrays
+
+## Verification
+
+```
+========================================
+TEST SUMMARY: 432 passed, 0 failed
+========================================
+```

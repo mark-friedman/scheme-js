@@ -438,6 +438,154 @@ export class CallWithValuesNode extends Executable {
 }
 
 // =============================================================================
+// AST Nodes - Exceptions
+// =============================================================================
+
+/**
+ * AST node to set up with-exception-handler.
+ * Pushes ExceptionHandlerFrame, then executes thunk.
+ */
+export class WithExceptionHandlerInit extends Executable {
+    /**
+     * @param {Closure|Function} handler - Exception handler procedure
+     * @param {Closure|Function} thunk - Zero-argument procedure to execute
+     */
+    constructor(handler, thunk) {
+        super();
+        this.handler = handler;
+        this.thunk = thunk;
+    }
+
+    step(registers, interpreter) {
+        // Push handler frame onto stack
+        registers[FSTACK].push(new ExceptionHandlerFrame(
+            this.handler,
+            registers[ENV]
+        ));
+
+        // Execute thunk
+        registers[CTL] = new TailApp(new Literal(this.thunk), []);
+        return true;
+    }
+}
+
+/**
+ * AST node to raise an exception.
+ * Searches the stack for ExceptionHandlerFrame, then invokes it.
+ */
+export class RaiseNode extends Executable {
+    /**
+     * @param {*} exception - The exception value to raise
+     * @param {boolean} continuable - Whether this is a continuable exception
+     */
+    constructor(exception, continuable = false) {
+        super();
+        this.exception = exception;
+        this.continuable = continuable;
+    }
+
+    step(registers, interpreter) {
+        const fstack = registers[FSTACK];
+
+        // Search for the nearest ExceptionHandlerFrame
+        let handlerIndex = -1;
+        for (let i = fstack.length - 1; i >= 0; i--) {
+            if (fstack[i] instanceof ExceptionHandlerFrame) {
+                handlerIndex = i;
+                break;
+            }
+        }
+
+        if (handlerIndex === -1) {
+            // No handler found - propagate as JS error
+            const exc = this.exception;
+            if (exc instanceof Error) {
+                throw exc;
+            }
+            throw new Error(`Unhandled exception: ${exc}`);
+        }
+
+        // Get the handler
+        const handlerFrame = fstack[handlerIndex];
+        const handler = handlerFrame.handler;
+
+        // Find WindFrames between current position and handler that need unwinding
+        const WindFrameClass = getWindFrameClass();
+        const framesToUnwind = fstack.slice(handlerIndex + 1).reverse()
+            .filter(f => f instanceof WindFrameClass);
+
+        // Build the action sequence: unwind frames, then invoke handler
+        const actions = [];
+
+        // Add 'after' thunks for each WindFrame to unwind
+        for (const frame of framesToUnwind) {
+            actions.push(new TailApp(new Literal(frame.after), []));
+        }
+
+        // The final action is to invoke the handler
+        // We create an InvokeHandlerNode to handle the actual invocation
+        // after unwinding is complete
+        actions.push(new InvokeExceptionHandler(
+            handler,
+            this.exception,
+            handlerIndex,
+            this.continuable,
+            fstack.slice(handlerIndex + 1) // Save frames for continuable
+        ));
+
+        // Truncate stack to handler (keeping handler for now, InvokeExceptionHandler will remove it)
+        fstack.length = handlerIndex + 1;
+
+        // Execute via Begin mechanism
+        if (actions.length === 1) {
+            registers[CTL] = actions[0];
+        } else {
+            const firstAction = actions[0];
+            const remainingActions = actions.slice(1);
+            if (remainingActions.length > 0) {
+                registers[FSTACK].push(FrameRegistry.createBeginFrame(remainingActions, registers[ENV]));
+            }
+            registers[CTL] = firstAction;
+        }
+        return true;
+    }
+}
+
+/**
+ * AST node to invoke exception handler after unwinding is complete.
+ * This is the final step after all 'after' thunks have run.
+ */
+export class InvokeExceptionHandler extends Executable {
+    constructor(handler, exception, handlerIndex, continuable, savedFrames) {
+        super();
+        this.handler = handler;
+        this.exception = exception;
+        this.handlerIndex = handlerIndex;
+        this.continuable = continuable;
+        this.savedFrames = savedFrames;
+    }
+
+    step(registers, interpreter) {
+        const fstack = registers[FSTACK];
+
+        // Remove the handler frame
+        fstack.pop(); // Pop the ExceptionHandlerFrame
+
+        // For continuable: push a resume frame
+        if (this.continuable) {
+            fstack.push(new RaiseContinuableResumeFrame(
+                this.savedFrames,
+                registers[ENV]
+            ));
+        }
+
+        // Invoke handler with the exception
+        registers[CTL] = new TailApp(new Literal(this.handler), [new Literal(this.exception)]);
+        return true;
+    }
+}
+
+// =============================================================================
 // Frames - Helper Functions
 // =============================================================================
 
@@ -905,6 +1053,63 @@ export class CallWithValuesFrame extends Executable {
         registers[CTL] = new TailApp(new Literal(this.consumer), argLiterals);
         registers[ENV] = this.env;
         return true;
+    }
+}
+
+// =============================================================================
+// Frames - Exceptions
+// =============================================================================
+
+/**
+ * Frame representing an active exception handler.
+ * Installed by with-exception-handler, searched by raise.
+ * When control returns normally through this frame, it just passes through.
+ */
+export class ExceptionHandlerFrame extends Executable {
+    /**
+     * @param {Closure|Function} handler - Exception handler procedure
+     * @param {Environment} env - The captured environment
+     */
+    constructor(handler, env) {
+        super();
+        this.handler = handler;
+        this.env = env;
+    }
+
+    step(registers, interpreter) {
+        // Handler frame is popped normally - just pass through
+        // The value in ANS is the result of the thunk
+        return false;
+    }
+}
+
+/**
+ * Frame for resuming after a continuable exception.
+ * If the handler returns, this frame restores the saved frames
+ * and continues with the handler's return value.
+ */
+export class RaiseContinuableResumeFrame extends Executable {
+    /**
+     * @param {Array} savedFrames - Frames to restore on resumption
+     * @param {Environment} env - The captured environment
+     */
+    constructor(savedFrames, env) {
+        super();
+        this.savedFrames = savedFrames;
+        this.env = env;
+    }
+
+    step(registers, interpreter) {
+        // Handler returned with a value - resume with that value
+        // The saved frames expect the handler's return value in ANS
+        // Push them back onto the stack
+        for (const frame of this.savedFrames) {
+            registers[FSTACK].push(frame);
+        }
+
+        // ANS already contains the handler's return value
+        // Pop the next frame to continue execution
+        return false;
     }
 }
 
