@@ -1,6 +1,7 @@
 ---
 description: how to run all tests
 ---
+
 # Run All Tests
 
 This workflow runs the complete test suite for the Scheme interpreter in both Node.js and browser environments.
@@ -24,7 +25,7 @@ This workflow runs the complete test suite for the Scheme interpreter in both No
 
 3. Open the browser test UI:
    ```
-   open http://localhost:8080/ui.html
+   open http://localhost:8080/tests.html
    ```
    This opens the interactive test runner in your default browser.
 
