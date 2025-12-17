@@ -1,15 +1,27 @@
-import { toArray } from '../interpreter/cons.js';
+/**
+ * Record Primitives for Scheme.
+ * 
+ * Provides record type operations for R7RS define-record-type.
+ */
 
+import { toArray } from '../interpreter/cons.js';
+import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
+import { SchemeTypeError } from '../interpreter/errors.js';
+
+/**
+ * Record primitives exported to Scheme.
+ */
 export const recordPrimitives = {
-    // (make-record-type name fields)
-    // name: string
-    // fields: list of symbols
+    /**
+     * Creates a new record type.
+     * @param {string} name - Name of the record type.
+     * @param {Cons} fields - List of field symbols.
+     * @returns {Function} The record type constructor class.
+     */
     'make-record-type': (name, fields) => {
         const fieldNames = toArray(fields).map(s => s.name);
 
         // Dynamically create a named class
-        // We use new Function to get a named class constructor
-        // This ensures 'instanceof' works and the class name is correct in JS.
         const classSrc = `
             return class ${name} {
                 constructor(${fieldNames.join(', ')}) {
@@ -22,35 +34,51 @@ export const recordPrimitives = {
         return ClassConstructor;
     },
 
-    // (record-constructor rtd)
-    // rtd: The Class constructor returned by make-record-type
+    /**
+     * Creates a constructor for a record type.
+     * @param {Function} rtd - Record type descriptor.
+     * @returns {Function} Constructor function.
+     */
     'record-constructor': (rtd) => {
-        // Return a function that creates a new instance
         return (...args) => new rtd(...args);
     },
 
-    // (record-predicate rtd)
+    /**
+     * Creates a predicate for a record type.
+     * @param {Function} rtd - Record type descriptor.
+     * @returns {Function} Predicate function.
+     */
     'record-predicate': (rtd) => {
         return (obj) => obj instanceof rtd;
     },
 
-    // (record-accessor rtd field)
+    /**
+     * Creates an accessor for a record field.
+     * @param {Function} rtd - Record type descriptor.
+     * @param {Symbol} field - Field symbol.
+     * @returns {Function} Accessor function.
+     */
     'record-accessor': (rtd, field) => {
         const fieldName = field.name;
         return (obj) => {
             if (!(obj instanceof rtd)) {
-                throw new Error(`Accessor ${fieldName}: expected instance of ${rtd.name}`);
+                throw new SchemeTypeError(`${fieldName} accessor`, 1, rtd.name, obj);
             }
             return obj[fieldName];
         };
     },
 
-    // (record-modifier rtd field)
+    /**
+     * Creates a modifier for a record field.
+     * @param {Function} rtd - Record type descriptor.
+     * @param {Symbol} field - Field symbol.
+     * @returns {Function} Modifier function.
+     */
     'record-modifier': (rtd, field) => {
         const fieldName = field.name;
         return (obj, val) => {
             if (!(obj instanceof rtd)) {
-                throw new Error(`Modifier ${fieldName}: expected instance of ${rtd.name}`);
+                throw new SchemeTypeError(`${fieldName} modifier`, 1, rtd.name, obj);
             }
             obj[fieldName] = val;
         };

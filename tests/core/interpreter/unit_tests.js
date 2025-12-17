@@ -151,9 +151,9 @@ export function runUnitTests(interpreter, logger) {
             analyze(parse("(lambda (x))")[0]);
             logger.fail("Analyzer: Malformed lambda - FAILED to throw");
         } catch (e) {
-            // The error message might vary, checking for "Malformed lambda" or similar
+            // The error message says "lambda: body cannot be empty" or similar
             const msg = e.message;
-            assert(logger, "Analyzer: Malformed lambda", msg.includes("Malformed lambda"), true);
+            assert(logger, "Analyzer: Malformed lambda", msg.includes("lambda:"), true);
         }
 
         // Test (if) with missing args

@@ -100,14 +100,14 @@ export function runPrimitiveTests(logger) {
             vectorRef([1], 5);
             logger.fail("Primitives: vector-ref out of bounds failed to throw");
         } catch (e) {
-            assert(logger, "Primitives: vector-ref out of bounds", e.message.includes("out of bounds"), true);
+            assert(logger, "Primitives: vector-ref out of bounds", e.message.includes("out of range"), true);
         }
 
         try {
             makeVector(-1, 0);
             logger.fail("Primitives: make-vector negative size failed to throw");
         } catch (e) {
-            assert(logger, "Primitives: make-vector negative size", e.message.includes("non-negative"), true);
+            assert(logger, "Primitives: make-vector negative size", e.message.includes("out of range"), true);
         }
 
     } catch (e) {

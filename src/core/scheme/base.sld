@@ -14,9 +14,10 @@
     
     ;; Numbers
     + - * / < > = modulo
+    number?
     
     ;; Booleans
-    ;; not boolean?  ;; Missing
+    not boolean?
     
     ;; Pairs and lists
     cons car cdr pair? null? list?
@@ -46,7 +47,7 @@
     call-with-current-continuation call/cc
     dynamic-wind
     values call-with-values
-    ;; procedure? for-each ;; Missing
+    procedure?
     
     ;; Exceptions
     raise raise-continuable

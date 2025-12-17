@@ -163,63 +163,81 @@
 
 ;; /**
 ;;  * Applies a function to every element of a list.
-;;  *
+;;
 ;;  * @param {procedure} proc - The function to apply.
-;;  * @param {list} list - The list to iterate over.
+;;  * @param {list} lst - The list to iterate over.
 ;;  * @returns {list} A new list containing the results.
 ;;  */
-(define (map proc list)
-  (if (null? list)
-      '()
-      (cons (proc (car list))
-            (map proc (cdr list)))))
+(define (map proc lst)
+  (if (not (procedure? proc))
+      (error "map: expected procedure" proc))
+  (if (not (list? lst))
+      (error "map: expected list" lst))
+  (letrec ((loop (lambda (l)
+                   (if (null? l)
+                       '()
+                       (cons (proc (car l))
+                             (loop (cdr l)))))))
+    (loop lst)))
 ;; List searching
 
 ;; /**
 ;;  * Return the sublist of list whose car is eq? to obj.
 ;;  * Return #f if obj is not found.
-;;  *
+;;
 ;;  * @param {any} obj - Object to find.
-;;  * @param {list} list - List to search.
+;;  * @param {list} lst - List to search.
 ;;  * @return {list|boolean} Sublist or #f.
 ;;  */
-(define (memq obj list)
-  (if (null? list)
-      #f
-      (if (eq? obj (car list))
-          list
-          (memq obj (cdr list)))))
+(define (memq obj lst)
+  (if (not (list? lst))
+      (error "memq: expected list" lst))
+  (letrec ((loop (lambda (l)
+                   (if (null? l)
+                       #f
+                       (if (eq? obj (car l))
+                           l
+                           (loop (cdr l)))))))
+    (loop lst)))
 
 ;; /**
 ;;  * Return the sublist of list whose car is eqv? to obj.
 ;;  * Return #f if obj is not found.
-;;  *
+;;
 ;;  * @param {any} obj - Object to find.
-;;  * @param {list} list - List to search.
+;;  * @param {list} lst - List to search.
 ;;  * @return {list|boolean} Sublist or #f.
 ;;  */
-(define (memv obj list)
-  (if (null? list)
-      #f
-      (if (eqv? obj (car list))
-          list
-          (memv obj (cdr list)))))
+(define (memv obj lst)
+  (if (not (list? lst))
+      (error "memv: expected list" lst))
+  (letrec ((loop (lambda (l)
+                   (if (null? l)
+                       #f
+                       (if (eqv? obj (car l))
+                           l
+                           (loop (cdr l)))))))
+    (loop lst)))
 
 ;; /**
 ;;  * Return the sublist of list whose car is equal? to obj.
 ;;  * Return #f if obj is not found.
-;;  *
+;;
 ;;  * @param {any} obj - Object to find.
-;;  * @param {list} list - List to search.
+;;  * @param {list} lst - List to search.
 ;;  * @param {procedure} [compare] - Optional comparison procedure (default equal?).
 ;;  * @return {list|boolean} Sublist or #f.
 ;;  */
-(define (member obj list . compare)
-  (let ((compare (if (null? compare) equal? (car compare))))
-    (letrec ((loop (lambda (ls)
-                     (if (null? ls)
+(define (member obj lst . compare)
+  (if (not (list? lst))
+      (error "member: expected list" lst))
+  (let ((cmp (if (null? compare) equal? (car compare))))
+    (if (not (procedure? cmp))
+        (error "member: expected procedure" cmp))
+    (letrec ((loop (lambda (l)
+                     (if (null? l)
                          #f
-                         (if (compare obj (car ls))
-                             ls
-                             (loop (cdr ls)))))))
-      (loop list))))
+                         (if (cmp obj (car l))
+                             l
+                             (loop (cdr l)))))))
+      (loop lst))))

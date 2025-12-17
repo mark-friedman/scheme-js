@@ -1,12 +1,29 @@
-import { TailCall, Values } from '../interpreter/values.js';
+/**
+ * Control Primitives for Scheme.
+ * 
+ * Provides control flow operations including apply, eval, dynamic-wind, and values.
+ */
+
+import { TailCall, Values, Closure, Continuation } from '../interpreter/values.js';
 import { TailApp, Literal, DynamicWindInit, CallWithValuesNode } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/analyzer.js';
 import { Cons, toArray } from '../interpreter/cons.js';
+import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';
+import { SchemeTypeError } from '../interpreter/errors.js';
 
+/**
+ * Returns control primitives.
+ * @param {Interpreter} interpreter - The interpreter instance.
+ * @returns {Object} Map of primitive names to functions.
+ */
 export function getControlPrimitives(interpreter) {
+    /**
+     * apply: Apply a procedure to a list of arguments.
+     * (apply proc arg1 ... args)
+     */
     const applyPrimitive = (proc, ...args) => {
         if (args.length === 0) {
-            throw new Error("apply: expects at least 1 argument");
+            throw new SchemeTypeError('apply', 2, 'list', undefined);
         }
 
         // The last argument must be a list
@@ -18,7 +35,7 @@ export function getControlPrimitives(interpreter) {
         } else if (lastArg === null) {
             // Empty list, do nothing
         } else {
-            throw new Error(`apply: last argument must be a list, got ${lastArg}`);
+            throw new SchemeTypeError('apply', args.length + 2, 'list', lastArg);
         }
 
         // Wrap args in Literals for the AST
@@ -32,17 +49,14 @@ export function getControlPrimitives(interpreter) {
     };
 
     // CRITICAL: Tell AppFrame NOT to wrap the first argument (proc) in a bridge.
-    // We want the raw Closure/Continuation so we can put it back into the AST.
     applyPrimitive.skipBridge = true;
 
     /**
      * call-with-values: (call-with-values producer consumer)
-     * 
-     * Calls producer with no arguments, then passes its return value(s)
-     * to consumer. If producer returns a Values object, unpack it.
      */
     const callWithValuesPrimitive = (producer, consumer) => {
-        // Return a TailCall to execute producer, then apply consumer
+        assertProcedure('call-with-values', 1, producer);
+        assertProcedure('call-with-values', 2, consumer);
         return new TailCall(
             new CallWithValuesNode(producer, consumer),
             null
@@ -55,33 +69,30 @@ export function getControlPrimitives(interpreter) {
 
         /**
          * values: Return multiple values.
-         * (values) -> Returns undefined (single value)
-         * (values x) -> Returns x (single value)
-         * (values x y ...) -> Returns Values wrapper
          */
         'values': (...args) => {
             if (args.length === 0) {
-                // No values - return undefined
                 return undefined;
             } else if (args.length === 1) {
-                // Single value - return as-is
                 return args[0];
             } else {
-                // Multiple values - wrap in Values
                 return new Values(args);
             }
         },
 
         'call-with-values': callWithValuesPrimitive,
 
+        /**
+         * eval: Evaluate an expression in an environment.
+         */
         'eval': (expr, env) => {
-            // 1. Analyze the expression to get an AST
             const ast = analyze(expr);
-
-            // 2. Return a TailCall to execute the AST in the given environment
             return new TailCall(ast, env);
         },
 
+        /**
+         * interaction-environment: Returns the global environment.
+         */
         'interaction-environment': () => {
             if (!interpreter.globalEnv) {
                 throw new Error("interaction-environment: global environment not set");
@@ -89,12 +100,26 @@ export function getControlPrimitives(interpreter) {
             return interpreter.globalEnv;
         },
 
+        /**
+         * dynamic-wind: Install before/after thunks.
+         */
         'dynamic-wind': (before, thunk, after) => {
-            // Return a TailCall to DynamicWindInit, which has access to the stack
+            assertProcedure('dynamic-wind', 1, before);
+            assertProcedure('dynamic-wind', 2, thunk);
+            assertProcedure('dynamic-wind', 3, after);
             return new TailCall(
                 new DynamicWindInit(before, thunk, after),
                 null
             );
+        },
+
+        /**
+         * procedure?: Type predicate for procedures.
+         */
+        'procedure?': (obj) => {
+            return typeof obj === 'function' ||
+                obj instanceof Closure ||
+                obj instanceof Continuation;
         }
     };
 
@@ -103,4 +128,3 @@ export function getControlPrimitives(interpreter) {
 
     return controlPrimitives;
 }
-

@@ -107,7 +107,11 @@ function analyzeBody(bodyCons) {
 // =============================================================================
 
 function analyzeIf(exp) {
-  // (if test consequent alternative)
+  // (if test consequent [alternative])
+  const expArray = toArray(exp);
+  if (expArray.length < 3 || expArray.length > 4) {
+    throw new Error(`if: expected 2 or 3 arguments, got ${expArray.length - 1}`);
+  }
   const test = analyze(cadr(exp));
   const consequent = analyze(caddr(exp));
   const alternative = cdddr(exp) !== null ? analyze(cadddr(exp)) : new Literal(null);
@@ -116,9 +120,12 @@ function analyzeIf(exp) {
 
 function analyzeLet(exp) {
   // (let ((var binding) ...) body...)
-  // Multi-variable 'let' is desugared to ((lambda (vars...) body) vals...)
   const bindings = cadr(exp);
   const body = cddr(exp);
+
+  if (body === null) {
+    throw new Error('let: body cannot be empty');
+  }
 
   const vars = [];
   const args = [];
@@ -126,7 +133,14 @@ function analyzeLet(exp) {
   let curr = bindings;
   while (curr instanceof Cons) {
     const pair = curr.car; // (var binding)
-    vars.push(car(pair).name);
+    if (!(pair instanceof Cons)) {
+      throw new Error('let: malformed binding - expected (var expr)');
+    }
+    const varSym = car(pair);
+    if (!(varSym instanceof Symbol)) {
+      throw new Error('let: binding name must be a symbol');
+    }
+    vars.push(varSym.name);
     args.push(analyze(cadr(pair)));
     curr = curr.cdr;
   }
@@ -139,40 +153,68 @@ function analyzeLet(exp) {
 
 function analyzeLetRec(exp) {
   // (letrec ((var val) ...) body...)
-  // Currently supports single binding only.
-  // TODO: Extend to support multiple bindings via desugaring.
   const bindings = cadr(exp);
+  if (!(bindings instanceof Cons)) {
+    throw new Error('letrec: expected at least one binding');
+  }
   const pair = car(bindings);
-  const varName = car(pair).name;
+  if (!(pair instanceof Cons)) {
+    throw new Error('letrec: malformed binding - expected (var expr)');
+  }
+  const varSym = car(pair);
+  if (!(varSym instanceof Symbol)) {
+    throw new Error('letrec: binding name must be a symbol');
+  }
   const valExpr = analyze(cadr(pair));
   const body = cddr(exp);
+  if (body === null) {
+    throw new Error('letrec: body cannot be empty');
+  }
 
-  return new LetRec(varName, valExpr, analyzeBody(body));
+  return new LetRec(varSym.name, valExpr, analyzeBody(body));
 }
 
 function analyzeLambda(exp) {
-  // (lambda (params...) body...)
-  const paramsList = cadr(exp);
+  // (lambda (params...) body...) or (lambda params body...) for rest args
+  const paramsPart = cadr(exp);
   const body = cddr(exp);
 
+  if (body === null) {
+    throw new Error('lambda: body cannot be empty');
+  }
+
   const params = [];
-  let curr = paramsList;
+  let curr = paramsPart;
+
+  // Handle proper list of params
   while (curr instanceof Cons) {
+    if (!(curr.car instanceof Symbol)) {
+      throw new Error('lambda: parameter must be a symbol');
+    }
     params.push(curr.car.name);
     curr = curr.cdr;
   }
-  // TODO: Handle improper list for rest args (curr is Symbol)
 
-  if (body === null) {
-    throw new Error("Malformed lambda: body cannot be empty");
+  // Check for rest parameter (improper list or symbol)
+  if (curr !== null && !(curr instanceof Symbol)) {
+    throw new Error('lambda: malformed parameter list');
   }
+  // TODO: Handle rest args when curr is Symbol
 
   return new Lambda(params, analyzeBody(body));
 }
 
 function analyzeSet(exp) {
   // (set! var val)
-  return new Set(cadr(exp).name, analyze(caddr(exp)));
+  const expArray = toArray(exp);
+  if (expArray.length !== 3) {
+    throw new Error(`set!: expected 2 arguments, got ${expArray.length - 1}`);
+  }
+  const varSym = cadr(exp);
+  if (!(varSym instanceof Symbol)) {
+    throw new Error('set!: first argument must be a symbol');
+  }
+  return new Set(varSym.name, analyze(caddr(exp)));
 }
 
 function analyzeDefine(exp) {
@@ -180,24 +222,38 @@ function analyzeDefine(exp) {
   const head = cadr(exp);
 
   if (head instanceof Symbol) {
-    // Simple variable definition
-    return new Define(head.name, analyze(caddr(exp)));
+    // Simple variable definition: (define var val)
+    const val = caddr(exp);
+    if (val === undefined) {
+      throw new Error('define: missing value expression');
+    }
+    return new Define(head.name, analyze(val));
   } else if (head instanceof Cons) {
-    // Function definition shorthand
-    const funcName = car(head).name;
+    // Function definition shorthand: (define (f args...) body...)
+    const funcNameSym = car(head);
+    if (!(funcNameSym instanceof Symbol)) {
+      throw new Error('define: function name must be a symbol');
+    }
     const argsList = cdr(head);
     const body = cddr(exp);
+
+    if (body === null) {
+      throw new Error('define: function body cannot be empty');
+    }
 
     const params = [];
     let curr = argsList;
     while (curr instanceof Cons) {
+      if (!(curr.car instanceof Symbol)) {
+        throw new Error('define: parameter must be a symbol');
+      }
       params.push(curr.car.name);
       curr = curr.cdr;
     }
 
-    return new Define(funcName, new Lambda(params, analyzeBody(body)));
+    return new Define(funcNameSym.name, new Lambda(params, analyzeBody(body)));
   }
-  throw new Error("Malformed define");
+  throw new Error('define: expected symbol or (name args...) form');
 }
 
 function analyzeDefineSyntax(exp) {
