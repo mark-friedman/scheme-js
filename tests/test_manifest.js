@@ -51,6 +51,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/dynamic_wind_interop_tests.scm',
     'tests/core/scheme/control_tests.scm',
     'tests/core/scheme/exception_tests.scm',
+    'tests/core/scheme/error_tests.scm',
 ];
 
 /**

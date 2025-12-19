@@ -79,3 +79,24 @@
        body ...
        ;; (newline)
        ))))
+
+;; /**
+;;  * Test that an expression raises an error containing the given message.
+;;  * Uses guard to catch exceptions.
+;;  *
+;;  * @param {string} name - Test description.
+;;  * @param {string} expected-msg - Substring expected in error message.
+;;  * @param {*} expr - Expression that should raise an error.
+;;  */
+(define-syntax test-error
+  (syntax-rules ()
+    ((test-error name expected-msg expr)
+     (guard (e (#t
+                (let ((msg (if (error-object? e)
+                               (error-object-message e)
+                               "non-error-object raised")))
+                  (if (string? msg)
+                      (report-test-result name #t expected-msg msg)
+                      (report-test-result name #f expected-msg msg)))))
+       expr
+       (report-test-result name #f expected-msg "no error raised")))))

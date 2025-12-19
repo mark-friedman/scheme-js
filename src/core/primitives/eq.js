@@ -36,5 +36,12 @@ export const eqPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is #t or #f.
      */
-    'boolean?': (obj) => typeof obj === 'boolean'
+    'boolean?': (obj) => typeof obj === 'boolean',
+
+    /**
+     * Symbol type predicate.
+     * @param {*} obj - Value to check.
+     * @returns {boolean} True if obj is a symbol.
+     */
+    'symbol?': (obj) => obj !== null && typeof obj === 'object' && obj.constructor && obj.constructor.name === 'Symbol'
 };

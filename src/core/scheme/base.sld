@@ -28,7 +28,7 @@
     ;; reverse list-ref list-tail assq assv assoc ;; Missing
     
     ;; Symbols
-    symbol->string string->symbol
+    symbol? symbol->string string->symbol
     
     ;; Characters
     ;; All missing
