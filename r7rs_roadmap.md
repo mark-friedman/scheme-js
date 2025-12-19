@@ -12,10 +12,13 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - Basic macros (`define-syntax`, `syntax-rules`) — **Hygienic!** ✅
 - `eval`, `apply`, Records
 - **Library System Refactor:** Clean core/primitives split, `(scheme base)` is a facade.
+- **Exceptions:** `error`, `raise`, `raise-continuable`, `with-exception-handler`, `guard` ✅
+- **JS Exception Integration:** Scheme handlers catch JavaScript errors ✅
+- **Type Predicates:** `number?`, `boolean?`, `procedure?`, `list?`, `symbol?`, `error-object?` ✅
+- **Type/Arity/Range Checking:** All primitives validate inputs ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete
-- **Standard macros** — `or`, `let*`, `case`, `when`, `unless`, `do` not yet defined
 
 ---
 
@@ -99,7 +102,8 @@ Expand `math.js` to cover R7RS §6.2.
 | `<=`, `>=` | ❌ Missing | |
 | `abs` | ❌ Missing | |
 | `quotient`, `remainder` | ❌ Missing | |
-| `number?`, `integer?` | ❌ Missing | Type predicates |
+| `number?` | ✅ | |
+| `integer?` | ❌ Missing | |
 | `zero?`, `positive?`, `negative?` | ❌ Missing | |
 | `odd?`, `even?` | ❌ Missing | |
 | `max`, `min` | ❌ Missing | |
@@ -115,40 +119,41 @@ Expand `math.js` to cover R7RS §6.2.
 
 ---
 
-## Phase 4: Boolean & Equivalence
+## Phase 4: Boolean & Equivalence ✅
 **Target Library:** `(scheme base)`
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
-| `not` | ❌ Missing | |
-| `boolean?` | ❌ Missing | |
+| `not` | ✅ | |
+| `boolean?` | ✅ | |
 | `boolean=?` | ❌ Missing | |
 | `eq?` | ✅ | |
-| `eqv?` | ✅ (partial) | Verify numeric equivalence |
+| `eqv?` | ✅ | |
 | `equal?` | ✅ Scheme | In `core.scm` |
 
-**Deliverable:** Add to `eq.js` or new `boolean.js`. Update `(scheme primitives)`/`(scheme base)`.
+**Deliverable:** ~~Add to `eq.js` or new `boolean.js`.~~ Done.
 
 ---
 
-## Phase 5: List Procedures
+## Phase 5: List Procedures (Partial) ✅
 **Target Library:** `(scheme base)`, `(scheme cxr)`
 
 Expand `list.js` to cover R7RS §6.4.
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
-| `list?` | ❌ Missing | Proper list check |
+| `list?` | ✅ | |
 | `length` | ❌ Missing | |
 | `list-ref`, `list-tail` | ❌ Missing | |
 | `reverse` | ❌ Missing | |
-| `memq`, `memv`, `member` | ❌ Missing | |
+| `memq`, `memv`, `member` | ✅ Scheme | In `core.scm` with type checking |
 | `assq`, `assv`, `assoc` | ❌ Missing | |
 | `list-copy` | ❌ Missing | |
-| `caar`...`cddddr` | ❌ Missing | Compound accessors (24 total) |
+| `cadr`, `cddr`, `caddr`, `cdddr`, `cadddr` | ✅ | |
+| `caar`...`cddddr` (rest) | ❌ Missing | Compound accessors |
 
 **Deliverable:**
-1. Expand `list.js`.
+1. Expand `list.js` for remaining procedures.
 2. **[NEW]** Define `src/core/scheme/cxr.sld` for `(scheme cxr)` if covering 3-4 deep accessors.
 
 ---
@@ -211,13 +216,13 @@ Current `vector.js` covers basics. Add:
 
 ---
 
-## Phase 9: Control Flow
+## Phase 9: Control Flow (Partial) ✅
 **Target Library:** `(scheme base)`, `(scheme case-lambda)`
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
-| `procedure?` | ❌ Missing | |
-| `map` | ✅ Scheme | In `core.scm` |
+| `procedure?` | ✅ | |
+| `map` | ✅ Scheme | In `core.scm` with type checking |
 | `for-each` | ❌ Missing | |
 | `case-lambda` | ❌ Missing | |
 
@@ -245,12 +250,24 @@ This is the largest remaining subsystem. R7RS §6.13 requires:
 
 ---
 
-## Phase 11: Exceptions & Errors
+## Phase 11: Exceptions & Errors ✅
 **Target Library:** `(scheme base)`
 
 R7RS §6.11 requires: `error`, `raise`, `raise-continuable`, `with-exception-handler`, `guard`.
 
-**Deliverable:** Exception system integrated with continuations.
+| Primitive | Status | Notes |
+|-----------|--------|-------|
+| `error` | ✅ | Creates and raises SchemeError |
+| `raise` | ✅ | Non-continuable |
+| `raise-continuable` | ✅ | Handler return becomes value |
+| `with-exception-handler` | ✅ | Primitive |
+| `guard` | ✅ Scheme | Macro in `control.scm` |
+| `error-object?` | ✅ | |
+| `error-object-message` | ✅ | |
+| `error-object-irritants` | ✅ | |
+| **JS Exception Integration** | ✅ | Scheme handlers catch JS errors |
+
+**Deliverable:** ~~Exception system integrated with continuations.~~ Done!
 
 ---
 
