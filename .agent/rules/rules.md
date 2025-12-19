@@ -32,7 +32,7 @@ trigger: always_on
 
 ## Code Organization
 - **Directory and File Structure**: Follow the directory and file structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
-- **Scheme Dependencies**: Scheme procedures and special forms should be described in Scheme `.sld` files in libraries using `define-library` to express their exports, dependencies, etc. Generally the `.sld` files only describe the libraries.  The actual implementations should be in separate `.scm` files.
+- **Scheme Dependencies**: Scheme procedures and special forms should be described in Scheme `.sld` files in libraries using `define-library` to express their exports, dependencies, etc. Generally the `.sld` files only describe the libraries.  The actual implementations should be in separate `.scm` files. For standard Scheme procedures (i.e. the ones in the r7rs-small standard) use appendix A of the r7rs-small standard to determine the libraries that those procedures should be defined in.
 
 
 ## Documentation
