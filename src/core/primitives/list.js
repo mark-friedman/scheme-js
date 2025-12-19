@@ -2,11 +2,19 @@
  * List Primitives for Scheme.
  * 
  * Provides basic pair and list operations for the Scheme runtime.
+ * Implements R7RS §6.4 list procedures.
+ * 
+ * NOTE: Only primitives that REQUIRE JavaScript are implemented here.
+ * Higher-level list procedures are in core.scm.
  */
 
-import { Cons, cons, list, cadr, cddr, caddr, cdddr, cadddr } from '../interpreter/cons.js';
-import { assertPair, assertList, assertArity, isList } from '../interpreter/type_check.js';
+import { Cons, cons, list } from '../interpreter/cons.js';
+import { assertPair, isList } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
+
+// =============================================================================
+// List Primitives (JavaScript-required)
+// =============================================================================
 
 /**
  * List primitives exported to Scheme.
@@ -19,31 +27,6 @@ export const listPrimitives = {
      * @returns {Cons} New pair.
      */
     'cons': cons,
-
-    /**
-     * cadr - (car (cdr x))
-     */
-    'cadr': cadr,
-
-    /**
-     * cddr - (cdr (cdr x))
-     */
-    'cddr': cddr,
-
-    /**
-     * caddr - (car (cdr (cdr x)))
-     */
-    'caddr': caddr,
-
-    /**
-     * cdddr - (cdr (cdr (cdr x)))
-     */
-    'cdddr': cdddr,
-
-    /**
-     * cadddr - (car (cdr (cdr (cdr x))))
-     */
-    'cadddr': cadddr,
 
     /**
      * Returns the car of a pair.
@@ -70,6 +53,10 @@ export const listPrimitives = {
      */
     'list': list,
 
+    // =========================================================================
+    // Type Predicates (require JavaScript instanceof)
+    // =========================================================================
+
     /**
      * Pair type predicate.
      * @param {*} p - Value to check.
@@ -90,6 +77,10 @@ export const listPrimitives = {
      * @returns {boolean} True if p is a proper list.
      */
     'list?': (p) => isList(p),
+
+    // =========================================================================
+    // Mutators (require direct object mutation)
+    // =========================================================================
 
     /**
      * Mutates the car of a pair.

@@ -11,6 +11,7 @@
 
 import { Closure, Continuation, TailCall, ContinuationUnwind, Values } from './values.js';
 import { registerFrames, createBeginFrame, getWindFrameClass } from './frame_registry.js';
+import { Cons } from './cons.js';
 
 // =============================================================================
 // Register Constants
@@ -100,19 +101,21 @@ export class Lambda extends Executable {
     /**
      * @param {Array<string>} params - Array of parameter names.
      * @param {Executable} body - The body expression.
+     * @param {string|null} restParam - Name of rest parameter, or null if none.
      */
-    constructor(params, body) {
+    constructor(params, body, restParam = null) {
         super();
         this.params = params;
         this.body = body;
+        this.restParam = restParam;
     }
 
     step(registers, interpreter) {
-        registers[ANS] = new Closure(this.params, this.body, registers[ENV]);
+        registers[ANS] = new Closure(this.params, this.body, registers[ENV], this.restParam);
         return false;
     }
 
-    toString() { return `(Lambda (${this.params.join(' ')}) ...`; }
+    toString() { return `(Lambda (${this.params.join(' ')}${this.restParam ? ' . ' + this.restParam : ''}) ...`; }
 }
 
 // =============================================================================
@@ -816,7 +819,27 @@ export class AppFrame extends Executable {
         // 1. CLOSURE APPLICATION
         if (func instanceof Closure) {
             registers[CTL] = func.body;
-            registers[ENV] = func.env.extendMany(func.params, args);
+
+            // Handle rest parameter if present
+            if (func.restParam) {
+                // Required params get their args, rest param gets remaining as list
+                const requiredCount = func.params.length;
+                const requiredArgs = args.slice(0, requiredCount);
+                const restArgs = args.slice(requiredCount);
+
+                // Build a Scheme list from rest args
+                let restList = null;
+                for (let i = restArgs.length - 1; i >= 0; i--) {
+                    restList = new Cons(restArgs[i], restList);
+                }
+
+                // Extend environment with required params + rest param
+                const allParams = [...func.params, func.restParam];
+                const allArgs = [...requiredArgs, restList];
+                registers[ENV] = func.env.extendMany(allParams, allArgs);
+            } else {
+                registers[ENV] = func.env.extendMany(func.params, args);
+            }
             return true;
         }
 

@@ -92,30 +92,30 @@ Defined missing standard macros in `src/core/scheme/control.scm`.
 
 ---
 
-## Phase 3: Numeric Primitives
+## Phase 3: Numeric Primitives ✅
 **Target Library:** `(scheme base)`, `(scheme complex)`, `(scheme inexact)`
 
-Expand `math.js` to cover R7RS §6.2.
+Completed in `math.js` and `numbers.scm` per R7RS §6.2.
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
-| `<=`, `>=` | ❌ Missing | |
-| `abs` | ❌ Missing | |
-| `quotient`, `remainder` | ❌ Missing | |
+| `<=`, `>=` | ✅ Scheme | In `numbers.scm` |
+| `abs` | ✅ JS | In `math.js` |
+| `quotient`, `remainder` | ✅ JS | In `math.js` |
 | `number?` | ✅ | |
-| `integer?` | ❌ Missing | |
-| `zero?`, `positive?`, `negative?` | ❌ Missing | |
-| `odd?`, `even?` | ❌ Missing | |
-| `max`, `min` | ❌ Missing | |
-| `gcd`, `lcm` | ❌ Missing | |
-| `floor`, `ceiling`, `truncate`, `round` | ❌ Missing | |
-| `expt`, `sqrt` | ❌ Missing | |
-| Variadic `=`, `<`, `>`, `<=`, `>=` | ❌ Missing | Currently binary only |
+| `integer?` | ✅ JS | In `math.js` |
+| `zero?`, `positive?`, `negative?` | ✅ Scheme | In `numbers.scm` |
+| `odd?`, `even?` | ✅ Scheme | In `numbers.scm` |
+| `max`, `min` | ✅ Scheme | In `numbers.scm` |
+| `gcd`, `lcm` | ✅ Scheme | In `numbers.scm` |
+| `floor`, `ceiling`, `truncate`, `round` | ✅ | JS + Scheme |
+| `expt`, `sqrt` | ✅ JS | In `math.js` |
+| Variadic `=`, `<`, `>`, `<=`, `>=` | ✅ Scheme | In `numbers.scm` |
 
 > [!NOTE]
-> **Scope decision:** We will **not** implement full exact rationals or complex numbers initially.
+> **Scope decision:** We will **not** implement full exact rationals or complex numbers.
 
-**Deliverable:** Expand `math.js`, add `tests/unit/math_tests.js`. Ensure exports are added to `(scheme primitives)` and re-exported by `(scheme base)`.
+**Deliverable:** ✅ Done in `math.js` and `numbers.scm`.
 
 ---
 
@@ -126,35 +126,33 @@ Expand `math.js` to cover R7RS §6.2.
 |-----------|--------|-------|
 | `not` | ✅ | |
 | `boolean?` | ✅ | |
-| `boolean=?` | ❌ Missing | |
+| `boolean=?` | ✅ JS | In `eq.js` |
 | `eq?` | ✅ | |
 | `eqv?` | ✅ | |
-| `equal?` | ✅ Scheme | In `core.scm` |
+| `equal?` | ✅ Scheme | In `equality.scm` |
 
-**Deliverable:** ~~Add to `eq.js` or new `boolean.js`.~~ Done.
+**Deliverable:** ✅ Done.
 
 ---
 
-## Phase 5: List Procedures (Partial) ✅
+## Phase 5: List Procedures ✅
 **Target Library:** `(scheme base)`, `(scheme cxr)`
 
-Expand `list.js` to cover R7RS §6.4.
+Expanded `list.scm` and `cxr.scm` to cover R7RS §6.4.
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
 | `list?` | ✅ | |
-| `length` | ❌ Missing | |
-| `list-ref`, `list-tail` | ❌ Missing | |
-| `reverse` | ❌ Missing | |
-| `memq`, `memv`, `member` | ✅ Scheme | In `core.scm` with type checking |
-| `assq`, `assv`, `assoc` | ❌ Missing | |
-| `list-copy` | ❌ Missing | |
+| `length` | ✅ Scheme | In `list.scm` |
+| `list-ref`, `list-tail` | ✅ Scheme | In `list.scm` |
+| `reverse` | ✅ Scheme | In `list.scm` |
+| `memq`, `memv`, `member` | ✅ Scheme | In `list.scm` with type checking |
+| `assq`, `assv`, `assoc` | ✅ Scheme | In `list.scm` |
+| `list-copy` | ✅ Scheme | In `list.scm` |
 | `cadr`, `cddr`, `caddr`, `cdddr`, `cadddr` | ✅ | |
-| `caar`...`cddddr` (rest) | ❌ Missing | Compound accessors |
+| All 28 cxr accessors | ✅ Scheme | In `cxr.scm` |
 
-**Deliverable:**
-1. Expand `list.js` for remaining procedures.
-2. **[NEW]** Define `src/core/scheme/cxr.sld` for `(scheme cxr)` if covering 3-4 deep accessors.
+**Deliverable:** ✅ Done in `list.scm` and `cxr.scm`.
 
 ---
 

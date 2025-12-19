@@ -97,14 +97,21 @@ export async function runTestModule(pathPrefix, test, interpreter, logger, loade
  * @param {Function} loader - File loader for Scheme tests
  * @param {Function} runSchemeTests - Scheme test runner function
  */
-export async function runAllFromManifest(pathPrefix, interpreter, logger, loader, runSchemeTests) {
-    // Unit tests
+export async function runAllFromManifest(pathPrefix, interpreter, logger, loader, runSchemeTests, loadBootstrap) {
+    // Unit tests (run BEFORE core.scm is loaded to test raw analyzer)
     try {
         for (const test of unitTests) {
             await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {
         logger.fail(`Unit test suite crashed: ${e.message}`);
+    }
+
+    // Load core.scm and control.scm AFTER unit tests, BEFORE functional tests
+    // This ensures unit tests test the raw interpreter, while functional tests
+    // have access to Scheme-defined procedures and macros.
+    if (loadBootstrap) {
+        await loadBootstrap();
     }
 
     // Functional tests

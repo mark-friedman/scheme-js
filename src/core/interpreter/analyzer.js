@@ -175,7 +175,7 @@ function analyzeLetRec(exp) {
 }
 
 function analyzeLambda(exp) {
-  // (lambda (params...) body...) or (lambda params body...) for rest args
+  // (lambda (params...) body...) or (lambda (x y . rest) body...) or (lambda args body...)
   const paramsPart = cadr(exp);
   const body = cddr(exp);
 
@@ -184,9 +184,16 @@ function analyzeLambda(exp) {
   }
 
   const params = [];
+  let restParam = null;
   let curr = paramsPart;
 
-  // Handle proper list of params
+  // Handle: (lambda single-symbol body...) - all args go to single symbol
+  if (curr instanceof Symbol) {
+    restParam = curr.name;
+    return new Lambda(params, analyzeBody(body), restParam);
+  }
+
+  // Handle proper list of params and improper list (with rest param)
   while (curr instanceof Cons) {
     if (!(curr.car instanceof Symbol)) {
       throw new Error('lambda: parameter must be a symbol');
@@ -195,13 +202,16 @@ function analyzeLambda(exp) {
     curr = curr.cdr;
   }
 
-  // Check for rest parameter (improper list or symbol)
-  if (curr !== null && !(curr instanceof Symbol)) {
-    throw new Error('lambda: malformed parameter list');
+  // Check for rest parameter (improper list tail is a Symbol)
+  if (curr !== null) {
+    if (curr instanceof Symbol) {
+      restParam = curr.name;
+    } else {
+      throw new Error('lambda: malformed parameter list');
+    }
   }
-  // TODO: Handle rest args when curr is Symbol
 
-  return new Lambda(params, analyzeBody(body));
+  return new Lambda(params, analyzeBody(body), restParam);
 }
 
 function analyzeSet(exp) {
@@ -218,7 +228,7 @@ function analyzeSet(exp) {
 }
 
 function analyzeDefine(exp) {
-  // (define var val) or (define (f args...) body...)
+  // (define var val) or (define (f args...) body...) or (define (f . args) body...)
   const head = cadr(exp);
 
   if (head instanceof Symbol) {
@@ -242,7 +252,9 @@ function analyzeDefine(exp) {
     }
 
     const params = [];
+    let restParam = null;
     let curr = argsList;
+    
     while (curr instanceof Cons) {
       if (!(curr.car instanceof Symbol)) {
         throw new Error('define: parameter must be a symbol');
@@ -250,8 +262,17 @@ function analyzeDefine(exp) {
       params.push(curr.car.name);
       curr = curr.cdr;
     }
+    
+    // Check for rest parameter (improper list tail is a Symbol)
+    if (curr !== null) {
+      if (curr instanceof Symbol) {
+        restParam = curr.name;
+      } else {
+        throw new Error('define: malformed parameter list');
+      }
+    }
 
-    return new Define(funcNameSym.name, new Lambda(params, analyzeBody(body)));
+    return new Define(funcNameSym.name, new Lambda(params, analyzeBody(body), restParam));
   }
   throw new Error('define: expected symbol or (name args...) form');
 }

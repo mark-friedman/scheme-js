@@ -34,11 +34,18 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │       │   ├── string.js
 │       │   ├── vector.js
 │       │   ├── control.js
-│       │   └── ...
 │       │
 │       └── scheme/                 # Core Scheme subset (base library)
 │           ├── base.sld            # (scheme base) library declaration
-│           └── base.scm            # Core macros/procedures
+│           ├── core.sld            # (scheme core) library declaration
+│           ├── control.sld         # (scheme control) library declaration
+│           ├── cxr.sld             # (scheme cxr) library declaration
+│           ├── macros.scm          # Core macros: and, let, letrec, cond
+│           ├── equality.scm        # Deep equality: equal?
+│           ├── cxr.scm             # All 28 cxr accessors
+│           ├── numbers.scm         # Variadic comparisons, predicates, min/max
+│           ├── list.scm            # map, for-each, memq, assq, length, etc.
+│           └── control.scm         # when, unless, or, let*, do, case, guard
 │
 ├── tests/
 │   ├── core/                       # Tests for src/core/

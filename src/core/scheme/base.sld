@@ -1,7 +1,7 @@
-;; R7RS (scheme base) library stub
+;; R7RS (scheme base) library
 ;; 
-;; This is a minimal version that re-exports primitives from the runtime.
-;; Will be expanded to full R7RS base in Phase 8.
+;; This re-exports primitives from the runtime and core implementations.
+;; Per R7RS Appendix A.
 
 (define-library (scheme base)
   (import (scheme primitives))
@@ -12,30 +12,49 @@
     ;; Equivalence predicates
     eq? eqv? equal?
     
-    ;; Numbers
-    + - * / < > = modulo
-    number?
+    ;; Numbers - basic arithmetic
+    + - * /
+    
+    ;; Numbers - comparison (variadic, from core)
+    = < > <= >=
+    
+    ;; Numbers - predicates (from primitives)
+    number? integer? real? rational? exact-integer?
+    finite? infinite? nan?
+    
+    ;; Numbers - predicates (from core)
+    zero? positive? negative? odd? even?
+    
+    ;; Numbers - operations
+    abs quotient remainder modulo
+    floor ceiling truncate round
+    max min gcd lcm
+    expt sqrt
     
     ;; Booleans
-    not boolean?
+    not boolean? boolean=?
     
-    ;; Pairs and lists
+    ;; Pairs and lists - basic
     cons car cdr pair? null? list?
     set-car! set-cdr!
     list append
-    cadr cddr caddr cdddr cadddr
+    
+    ;; Pairs and lists - extended
+    length list-ref list-tail reverse list-copy
     memq memv member
-    ;; reverse list-ref list-tail assq assv assoc ;; Missing
+    assq assv assoc
+    
+    ;; Compound accessors (cxr) - depth 2-4
+    caar cadr cdar cddr
+    caaar caadr cadar caddr cdaar cdadr cddar cdddr
+    caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
+    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
     
     ;; Symbols
     symbol? symbol->string string->symbol
     
-    ;; Characters
-    ;; All missing
-    
     ;; Strings  
     string? string-append number->string
-    ;; string-length string-ref string-set! ... ;; Missing
     
     ;; Vectors
     vector? make-vector vector vector-length
@@ -43,7 +62,7 @@
     vector->list list->vector
     
     ;; Control
-    apply map
+    apply map for-each
     call-with-current-continuation call/cc
     dynamic-wind
     values call-with-values
@@ -60,7 +79,7 @@
     
     ;; Syntax (Macros & Special Forms)
     define set! lambda if begin quote quasiquote unquote unquote-splicing
-    define-syntax let-syntax letrec-syntax ;; syntax-rules
+    define-syntax let-syntax letrec-syntax
     and or cond case do when unless guard
     let let* letrec
     define-record-type

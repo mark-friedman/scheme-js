@@ -239,6 +239,18 @@ export function assertProcedure(procName, argPos, value) {
 }
 
 /**
+ * Asserts value is a boolean.
+ * @param {string} procName - Procedure name
+ * @param {number} argPos - Argument position (1-indexed)
+ * @param {*} value - Value to check
+ * @returns {boolean} The boolean
+ * @throws {SchemeTypeError}
+ */
+export function assertBoolean(procName, argPos, value) {
+    return assertType(procName, argPos, value, isBoolean, 'boolean');
+}
+
+/**
  * Asserts correct number of arguments.
  * @param {string} procName - Procedure name
  * @param {Array} args - Arguments array

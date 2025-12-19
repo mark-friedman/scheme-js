@@ -4,6 +4,8 @@
  * Provides eq?, eqv?, and boolean operations.
  */
 
+import { assertBoolean, assertArity } from '../interpreter/type_check.js';
+
 /**
  * Equality primitives exported to Scheme.
  */
@@ -37,6 +39,17 @@ export const eqPrimitives = {
      * @returns {boolean} True if obj is #t or #f.
      */
     'boolean?': (obj) => typeof obj === 'boolean',
+
+    /**
+     * Boolean equivalence. Returns true if all boolean arguments are equal.
+     * @param {...boolean} args - Booleans to compare.
+     * @returns {boolean} True if all arguments are the same boolean value.
+     */
+    'boolean=?': (...args) => {
+        assertArity('boolean=?', args, 2, Infinity);
+        args.forEach((arg, i) => assertBoolean('boolean=?', i + 1, arg));
+        return args.every(b => b === args[0]);
+    },
 
     /**
      * Symbol type predicate.

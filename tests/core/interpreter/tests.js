@@ -10,7 +10,7 @@
 
 import { runAllFromManifest, schemeTestFiles } from '../../test_manifest.js';
 import { runSchemeTests } from '../../run_scheme_tests_lib.js';
-import { createTestLogger } from '../../helpers.js';
+import { createTestLogger, run as runCode } from '../../helpers.js';
 
 /**
  * Main test runner.
@@ -44,7 +44,26 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
         };
     }
 
+    // Callback to load Scheme bootstrap files AFTER unit tests
+    // This ensures unit tests test the raw interpreter without macros
+    const loadBootstrap = async () => {
+        // Load Scheme core files in dependency order
+        const schemeFiles = [
+            'src/core/scheme/macros.scm',
+            'src/core/scheme/equality.scm',
+            'src/core/scheme/cxr.scm',
+            'src/core/scheme/numbers.scm',
+            'src/core/scheme/list.scm',
+            'src/core/scheme/control.scm',
+        ];
+
+        for (const file of schemeFiles) {
+            const code = await loader(file);
+            runCode(interpreter, code);
+        }
+    };
+
     // Dynamic imports in manifest resolve relative to tests/, so use "./"
-    await runAllFromManifest('./', interpreter, logger, loader, runSchemeTests);
+    await runAllFromManifest('./', interpreter, logger, loader, runSchemeTests, loadBootstrap);
 }
 

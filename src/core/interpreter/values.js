@@ -15,11 +15,13 @@ export class Closure {
      * @param {Array<string>} params - Parameter names.
      * @param {Executable} body - The body AST node.
      * @param {Environment} env - The captured lexical environment.
+     * @param {string|null} restParam - Name of rest parameter, or null if none.
      */
-    constructor(params, body, env) {
+    constructor(params, body, env, restParam = null) {
         this.params = params;
         this.body = body;
         this.env = env;
+        this.restParam = restParam;
     }
 
     toString() {

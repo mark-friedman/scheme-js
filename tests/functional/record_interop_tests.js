@@ -74,24 +74,24 @@ export async function runRecordInteropTests(interpreter, logger, fileLoader) {
 
     // 7. Macro: define-record-type
     try {
-        // Load core.scm to get the macro definition
-        // We need to use the file loader to read the file content
-        let baseCode;
+        // Load macros.scm to get the define-record-type macro
+        // (The macros were split out from core.scm into separate files)
+        let macrosCode;
         if (fileLoader) {
-            baseCode = await fileLoader('src/core/scheme/core.scm');
+            macrosCode = await fileLoader('src/core/scheme/macros.scm');
         } else {
             // Fallback for direct node execution (less robust but works for debugging)
             const fs = await import('fs');
             const path = await import('path');
-            const basePath = path.join(process.cwd(), 'src', 'core', 'scheme', 'core.scm');
+            const macrosPath = path.join(process.cwd(), 'src', 'core', 'scheme', 'macros.scm');
             try {
-                baseCode = fs.readFileSync(basePath, 'utf8');
+                macrosCode = fs.readFileSync(macrosPath, 'utf8');
             } catch (e) {
-                logger.fail("Cannot load core.scm: No file loader provided");
+                logger.fail("Cannot load macros.scm: No file loader provided");
                 return;
             }
         }
-        run(interpreter, baseCode);
+        run(interpreter, macrosCode);
 
         run(interpreter, `
             (define-record-type Node

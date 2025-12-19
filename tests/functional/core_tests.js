@@ -80,9 +80,10 @@ export function runCoreTests(interpreter, logger) {
     result = run(interpreter, `(let ((x 1)) (set! x 2))`);
     assert(logger, "Edge: set! return value", result, 2);
 
-    // letrec self-reference (limitation: returns null instead of error)
+    // letrec self-reference: macro initializes to 'undefined symbol
     result = run(interpreter, `(letrec ((x x)) x)`);
-    assert(logger, "Edge: letrec self-reference", result, null);
+    // After core.scm macro expansion, the placeholder is the symbol 'undefined
+    assert(logger, "Edge: letrec self-reference", result && result.name, 'undefined');
 }
 
 // Allow running directly via node

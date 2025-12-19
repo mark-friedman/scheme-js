@@ -594,14 +594,23 @@ export function createPrimitiveExports(globalEnv) {
     // This MUST match what is actually installed in the global environment by primitives/index.js
     const primitiveExports = [
         // Equivalence
-        'eq?', 'eqv?',
-        // Numbers
-        '+', '-', '*', '/', '<', '>', '=', 'modulo',
+        'eq?', 'eqv?', 'not', 'boolean?', 'boolean=?', 'symbol?',
+        // Math - basic arithmetic
+        '+', '-', '*', '/',
+        // Math - binary comparisons (used by core.scm to build variadic versions)
+        '%num=', '%num<', '%num>', '%num<=', '%num>=',
+        // Math - integer division
+        'modulo', 'quotient', 'remainder',
+        // Math - type predicates
+        'number?', 'real?', 'rational?', 'integer?', 'exact-integer?',
+        'finite?', 'infinite?', 'nan?',
+        // Math - functions requiring Math.*
+        'abs', 'floor', 'ceiling', 'truncate', 'expt', 'sqrt',
+        'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'exp',
         // Pairs and lists
-        'cons', 'car', 'cdr', 'pair?', 'null?',
+        'cons', 'car', 'cdr', 'pair?', 'null?', 'list?',
         'set-car!', 'set-cdr!',
         'list', 'append',
-        'cadr', 'cddr', 'caddr', 'cdddr', 'cadddr',
         // Symbols
         'symbol->string', 'string->symbol',
         // Strings
@@ -617,6 +626,11 @@ export function createPrimitiveExports(globalEnv) {
         'apply', 'values', 'call-with-values',
         'eval', 'interaction-environment',
         'dynamic-wind',
+        'call-with-current-continuation', 'call/cc',
+        'procedure?',
+        // Exceptions
+        'raise', 'raise-continuable', 'with-exception-handler',
+        'error', 'error-object?', 'error-object-message', 'error-object-irritants',
         // I/O
         'display', 'newline',
     ];

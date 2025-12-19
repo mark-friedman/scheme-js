@@ -3,15 +3,16 @@ import { run } from './helpers.js';
 export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
     logger.title('Running Scheme Tests...');
 
-    // 1. Load core.scm (core Scheme subset)
-    const baseCode = await fileLoader('src/core/scheme/core.scm');
-    run(interpreter, baseCode);
+    // Reload macros because hygiene_tests.js clears globalMacroRegistry
+    // which destroys macros like 'and', 'let', 'letrec', 'cond'
+    const macrosCode = await fileLoader('src/core/scheme/macros.scm');
+    run(interpreter, macrosCode);
 
-    // 1.5 Load control.scm (Standard macros: when, unless, etc.)
+    // And control macros: 'when', 'unless', 'or', etc.
     const controlCode = await fileLoader('src/core/scheme/control.scm');
     run(interpreter, controlCode);
 
-    // Inject native reporter (after base.scm to avoid overwrite)
+    // Inject native reporter
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
         if (passed) {
             logger.pass(`${name} (Expected: ${expected}, Got: ${actual})`);

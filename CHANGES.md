@@ -984,3 +984,44 @@ Previously, JS errors (like type errors from `(+ "a" 1)`) bypassed Scheme except
 TEST SUMMARY: 446 passed, 0 failed
 ========================================
 ```
+
+---
+
+# Rest Parameters & Core.scm Refactoring (2025-12-19)
+
+Implemented rest parameter support for variadic functions and refactored core.scm into organized files.
+
+## Rest Parameter Support
+
+Fixed the interpreter to correctly handle rest parameters in lambda and define forms:
+
+| File | Changes |
+|------|---------|
+| [analyzer.js](file:///workspaces/scheme-js-4/src/core/interpreter/analyzer.js) | Updated `analyzeLambda` and `analyzeDefine` to parse `(x y . rest)` |
+| [stepables.js](file:///workspaces/scheme-js-4/src/core/interpreter/stepables.js) | `Lambda` stores `restParam`, `AppFrame` collects excess args into list |
+| [values.js](file:///workspaces/scheme-js-4/src/core/interpreter/values.js) | `Closure` stores `restParam` |
+
+## Core.scm Refactoring
+
+Split the monolithic `core.scm` (723 lines) into organized files:
+
+| File | Contents |
+|------|----------|
+| [macros.scm](file:///workspaces/scheme-js-4/src/core/scheme/macros.scm) | `and`, `let`, `letrec`, `cond`, `define-record-type` |
+| [equality.scm](file:///workspaces/scheme-js-4/src/core/scheme/equality.scm) | `equal?` |
+| [cxr.scm](file:///workspaces/scheme-js-4/src/core/scheme/cxr.scm) | All 28 cxr accessors |
+| [numbers.scm](file:///workspaces/scheme-js-4/src/core/scheme/numbers.scm) | Variadic `=`, `<`, `>`, predicates, `min`/`max`, `gcd`/`lcm`, `round` |
+| [list.scm](file:///workspaces/scheme-js-4/src/core/scheme/list.scm) | `map`, `for-each`, `memq`/`v`, `assq`/`v`, `length`, `reverse`, etc. |
+
+## Test Fixes
+
+- **Bootstrap timing**: Scheme files load AFTER unit tests to avoid macro interference
+- **Macro restoration**: `macros.scm` and `control.scm` reloaded before Scheme tests
+
+## Verification
+
+```
+========================================
+TEST SUMMARY: 446 passed, 0 failed
+========================================
+```
