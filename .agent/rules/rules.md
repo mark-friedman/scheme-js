@@ -18,15 +18,17 @@ trigger: always_on
   - Run `node run_tests_node.js` to verify changes locally.
   - Verify browser compatibility via `http://localhost:8080/ui.html`.
 
-## Code Style
+## JavaScript Code Style
 - **Modules**: Use ES Modules (`import`/`export`).
 - **Formatting**: Use 2 spaces for indentation.
 - **Exports**: Export functions and classes clearly.
 
+## Scheme Code Rules
+- **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all neccessary type, range, and arity checking
+
 ## Code Organization
 - **Directory and File Structure**: Follow the directory and file structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
 - **Scheme Dependencies**: Scheme procedures and special forms should be described in Scheme `.sld` files in libraries using `define-library` to express their exports, dependencies, etc. Generally the `.sld` files only describe the libraries.  The actual implementations should be in separate `.scm` files.
-
 
 ## Documentation
 - **JSDoc**: Document all JavaScript functions with JSDoc.
@@ -34,7 +36,8 @@ trigger: always_on
 - **Internal Documentation**: Document logic inside JavaScript and Scheme functions and procedures using comment syntax appropriate for the language.
 - **Code Sections**: Document the start of associated collections of functions and procedures using comment syntax appropriate for the language.
 - **Directory Structure**: Generally, follow the directory structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
-- **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major talks are completed.
+- **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major tasks are completed.
+- **Planning Docs**: Make sure any planning-related docs (e.g. r7rs_roadmap) is kept up to date after making new plans and after carrying out tasks.
 
 ## Tools
 ### Scheme Conformance
