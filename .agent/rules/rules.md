@@ -27,7 +27,8 @@ trigger: always_on
 - **Exports**: Export functions and classes clearly.
 
 ## Scheme Code Rules
-- **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all neccessary type, range, and arity checking
+- **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all neccessary type, range, and arity checking.
+- **Scheme over JS**: Implementations should always be done in Scheme, if possible.  If that's not possible, isolate the minimum that is required in JavaScript and then implement the rest in Scheme.
 
 ## Code Organization
 - **Directory and File Structure**: Follow the directory and file structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
