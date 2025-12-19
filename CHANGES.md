@@ -870,3 +870,79 @@ Implemented complete R7RS-compliant exception handling with 432 tests passing.
 TEST SUMMARY: 432 passed, 0 failed
 ========================================
 ```
+
+---
+
+# Type/Arity/Range Checking (2025-12-13)
+
+Added comprehensive input validation to all Scheme procedures.
+
+## Summary
+
+- **432 tests pass** (0 failures)
+- Updated 10 JavaScript primitive files
+- Updated Scheme procedures in `core.scm`
+- Added compile-time validation to `analyzer.js`
+- Added 5 new predicates: `number?`, `boolean?`, `not`, `procedure?`, `list?`
+
+## JavaScript Primitives
+
+| File | Changes |
+|------|---------|
+| [math.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/math.js) | Added `assertNumber` to +, -, *, /, =, <, >, modulo. Added `number?` |
+| [list.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/list.js) | Converted to `assertPair`, `SchemeTypeError`. Added `list?` |
+| [vector.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/vector.js) | Used `assertVector`, `assertIndex`, `assertInteger` |
+| [string.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/string.js) | Added `assertString`, `assertNumber`, `assertSymbol` |
+| [control.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/control.js) | Added `assertProcedure` for dynamic-wind, call-with-values. Added `procedure?` |
+| [record.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/record.js) | Converted to `SchemeTypeError` |
+| [eq.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/eq.js) | Added `not`, `boolean?` |
+| [interop.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/interop.js) | Added `assertString` for `js-eval` |
+
+## Scheme Procedures ([core.scm](file:///Users/mark/code/scheme-js-4/src/core/scheme/core.scm))
+
+- `map` - Validates proc is `procedure?`, list is `list?`
+- `memq`, `memv`, `member` - Validate list is `list?`
+
+## Special Forms ([analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js))
+
+- `analyzeIf` - Validates 2-3 arguments
+- `analyzeLet` - Validates binding structure  
+- `analyzeLetRec` - Validates binding structure
+- `analyzeLambda` - Validates param symbols, body not empty
+- `analyzeSet` - Validates symbol argument
+- `analyzeDefine` - Improved error messages
+
+## Exports ([base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld))
+
+Added exports: `number?`, `boolean?`, `not`, `procedure?`, `list?`
+
+---
+
+# Type Checking Follow-up (2025-12-19)
+
+Added test infrastructure and additional predicate.
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| [error_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/error_tests.scm) | 5 Scheme tests for error checking |
+
+## Changes
+
+### test.scm
+Added `test-error` macro for testing that expressions raise errors with expected messages.
+
+### eq.js
+Added `symbol?` predicate.
+
+### base.sld
+Added `symbol?` to exports.
+
+## Verification
+
+```
+========================================
+TEST SUMMARY: 438 passed, 0 failed
+========================================
+```
