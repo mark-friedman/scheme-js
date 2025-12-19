@@ -946,3 +946,41 @@ Added `symbol?` to exports.
 TEST SUMMARY: 438 passed, 0 failed
 ========================================
 ```
+
+---
+
+# JS Exception Integration with Scheme Handlers (2025-12-19)
+
+Scheme's `guard` and `with-exception-handler` can now catch JavaScript exceptions from primitives and callbacks.
+
+## Problem Solved
+
+Previously, JS errors (like type errors from `(+ "a" 1)`) bypassed Scheme exception handlers entirely.
+
+## Changes
+
+### [interpreter.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/interpreter.js)
+
+- Added `findExceptionHandler(fstack)` - searches stack for ExceptionHandlerFrame
+- Added `wrapJsError(e)` - wraps JS Error as SchemeError if needed
+- Modified catch block to route JS errors through RaiseNode when handler present
+
+### [js_exception_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/js_exception_tests.js) [NEW]
+
+8 new tests covering:
+- Basic type error catch
+- Error message accessibility
+- TCO + error handling
+- call/cc + error handling
+- Nested handlers
+- No handler propagation
+- Dynamic-wind unwinding
+- JS callback error catch
+
+## Verification
+
+```
+========================================
+TEST SUMMARY: 446 passed, 0 failed
+========================================
+```

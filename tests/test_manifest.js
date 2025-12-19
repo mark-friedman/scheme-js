@@ -33,6 +33,7 @@ export const functionalTests = [
     { path: 'functional/record_interop_tests.js', fn: 'runRecordInteropTests', async: true, needsLoader: true },
     { path: 'functional/multiple_values_tests.js', fn: 'runMultipleValuesTests', async: false },
     { path: 'functional/exception_interop_tests.js', fn: 'runExceptionInteropTests', async: true },
+    { path: 'functional/js_exception_tests.js', fn: 'runJsExceptionTests', async: false },
 ];
 
 // Integration Tests

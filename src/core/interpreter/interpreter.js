@@ -1,5 +1,33 @@
 import { Closure, Values } from './values.js';
-import { Literal, TailApp, ANS, CTL, ENV, FSTACK } from './ast.js';
+import { Literal, TailApp, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
+import { SchemeError } from './errors.js';
+
+/**
+ * Finds the nearest ExceptionHandlerFrame on the stack.
+ * @param {Array} fstack - The frame stack
+ * @returns {number} Index of handler or -1 if not found
+ */
+function findExceptionHandler(fstack) {
+  for (let i = fstack.length - 1; i >= 0; i--) {
+    if (fstack[i] instanceof ExceptionHandlerFrame) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Wraps a JS Error as a SchemeError if not already one.
+ * @param {Error} e - The error to wrap
+ * @returns {SchemeError} A SchemeError instance
+ */
+function wrapJsError(e) {
+  if (e instanceof SchemeError) {
+    return e;
+  }
+  // Wrap generic JS errors
+  return new SchemeError(e.message, [], e.name);
+}
 
 /**
  * Unpacks a Values object to its first value for JS interop (Option C).
@@ -149,9 +177,20 @@ export class Interpreter {
             return unpackForJs(e.value);
           }
 
-          // Catch errors from native JS calls or logic errors
+          // Check if there's an ExceptionHandlerFrame on the stack
+          // If so, route the JS error through Scheme's exception system
+          const handlerIndex = findExceptionHandler(registers[FSTACK]);
+          if (handlerIndex !== -1) {
+            // Wrap JS error as SchemeError if needed
+            const schemeError = wrapJsError(e);
+            // Use RaiseNode to properly unwind and invoke handler
+            // This ensures dynamic-wind 'after' thunks are called
+            registers[CTL] = new RaiseNode(schemeError, false);
+            continue;
+          }
+
+          // No handler found - propagate to JS caller
           console.error("Native JavaScript error caught in interpreter:", e);
-          // For REPL, we throw the error so it can be caught and printed.
           throw e;
         }
       }
