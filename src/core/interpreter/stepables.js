@@ -352,6 +352,39 @@ export class Begin extends Executable {
     }
 }
 
+/**
+ * AST Node for top-level import.
+ * Populates the environment with exports from a loaded library.
+ * Libraries must be loaded into the registry first.
+ */
+export class ImportNode extends Executable {
+    /**
+     * @param {Array<object>} importSpecs - Array of { libraryName, only, except, rename, prefix }
+     * @param {Function} getLibraryExports - Function to look up loaded library exports
+     * @param {Function} applyImports - Function to apply imports to an environment
+     */
+    constructor(importSpecs, getLibraryExports, applyImports) {
+        super();
+        this.importSpecs = importSpecs;
+        this.getLibraryExports = getLibraryExports;
+        this.applyImports = applyImports;
+    }
+
+    step(registers, interpreter) {
+        const env = registers[ENV];
+        for (const spec of this.importSpecs) {
+            const exports = this.getLibraryExports(spec.libraryName);
+            if (!exports) {
+                const libNameStr = Array.isArray(spec.libraryName) ? spec.libraryName.join('.') : spec.libraryName;
+                throw new Error(`Import error: Library ${libNameStr} not loaded. Use loadLibrary first.`);
+            }
+            this.applyImports(env, exports, spec);
+        }
+        registers[ANS] = true;
+        return false;
+    }
+}
+
 // =============================================================================
 // AST Nodes - Dynamic Wind
 // =============================================================================

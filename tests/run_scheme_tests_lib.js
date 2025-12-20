@@ -1,16 +1,22 @@
 import { run } from './helpers.js';
+import { loadLibrary, applyImports } from '../src/core/interpreter/library_loader.js';
+import { analyze } from '../src/core/interpreter/analyzer.js';
 
 export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
     logger.title('Running Scheme Tests...');
 
+    // 1. Bootstrap standard libraries
+    const baseExports = await loadLibrary(['scheme', 'base'], analyze, interpreter, interpreter.globalEnv);
+    const replExports = await loadLibrary(['scheme', 'repl'], analyze, interpreter, interpreter.globalEnv);
+    applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
+    applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
+
     // Reload macros because hygiene_tests.js clears globalMacroRegistry
     // which destroys macros like 'and', 'let', 'letrec', 'cond'
-    const macrosCode = await fileLoader('src/core/scheme/macros.scm');
-    run(interpreter, macrosCode);
+    // Note: (scheme base) already loads these, but hygiene tests might clear them later.
+    // For now, let's rely on the bootstrap.
 
-    // And control macros: 'when', 'unless', 'or', etc.
-    const controlCode = await fileLoader('src/core/scheme/control.scm');
-    run(interpreter, controlCode);
+    // And control macros: 'when', 'unless', 'or', etc. are now in (scheme base) via (scheme control)
 
     // Inject native reporter
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {

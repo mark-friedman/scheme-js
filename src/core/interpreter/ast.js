@@ -31,6 +31,7 @@ export {
     TailApp,
     CallCC,
     Begin,
+    ImportNode,
     DynamicWindInit,
     RestoreContinuation,
     CallWithValuesNode,

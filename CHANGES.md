@@ -1025,3 +1025,51 @@ Split the monolithic `core.scm` (723 lines) into organized files:
 TEST SUMMARY: 446 passed, 0 failed
 ========================================
 ```
+# Walkthrough: REPL Environment Fix & Architecture Refinement
+
+I have successfully resolved the issue where standard Scheme macros were unbound in the browser REPL and refined the architecture to use standard Scheme library mechanisms for bootstrapping.
+
+## Key Changes
+
+### 1. Library System & `(scheme repl)`
+Implemented the `(scheme repl)` library, which now serves as the entry point for the REPL environment. It imports `(scheme base)`, leveraging the library system's dependency management to ensure all standard bindings are available.
+- [repl.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/repl.sld)
+
+### 2. Top-Level `import` Support
+Implemented support for the `import` special form at the top level of the interpreter. This allows the REPL and user code to manage dependencies using standard syntax.
+- **Analyzer**: Updated [analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js) to handle `import`.
+- **AST**: Added `ImportNode` to [stepables.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/stepables.js) to execute imports.
+- **Loader**: Added `getLibraryExports` to [library_loader.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/library_loader.js) for synchronous lookup.
+
+### 3. Refined Bootstrap Process
+Updated [main.js](file:///Users/mark/code/scheme-js-4/web/main.js) to use a cleaner, more standard-compliant bootstrap logic:
+1.  Asynchronously load `(scheme repl)` (which automatically loads `(scheme base)`).
+2.  Execute `(import (scheme base) (scheme repl))` using the interpreter.
+3.  This correctly populates the environment with procedures and macros (like `or`, `when`) without manual Javascript intervention.
+
+## Verification Results
+
+### Browser REPL Verification
+I performed a fresh verification in the browser (see recording below). The bootstrap is robust, and the environment is correctly populated.
+
+| Expression | Result |
+| :--- | :--- |
+| **Startup** | Console: `REPL environment ready.` |
+| `(or #f 10)` | `10` |
+| `(when #t "success")` | `"success"` |
+| `(interaction-environment)` | `[object Object]` |
+
+![Refined Bootstrap Verification](file:///Users/mark/.gemini/antigravity/brain/641af666-b2bb-45a8-a595-fde34bace0c9/verify_refined_bootstrap_final_1766189128960.webp)
+
+### Automated Tests
+Updated [repl_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/repl_tests.scm) to use the new `import` syntax, and confirmed it passes in the Node.js test runner:
+
+```bash
+=== Running Scheme Tests... ===
+[INFO] Running tests/core/scheme/repl_tests.scm...
+✅ PASS: interaction-environment returns an environment (Expected: true, Got: true)
+✅ PASS: or macro works in base (Expected: 10, Got: 10)
+✅ PASS: when macro works in base (Expected: success, Got: success)
+✅ PASS: guard macro works in base (Expected: caught, Got: caught)
+✅ PASS: tests/core/scheme/repl_tests.scm PASSED
+```

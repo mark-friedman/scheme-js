@@ -8,6 +8,7 @@
 import { Cons, list, toArray } from './cons.js';
 import { Symbol, intern } from './symbol.js';
 import { Environment } from './environment.js';
+import { globalMacroRegistry } from './macro_registry.js';
 import { parse } from './reader.js';
 
 /**
@@ -19,6 +20,19 @@ const features = new Set([
     'scheme-js',      // This implementation
     'exact-closed',   // Rationals not implemented, but we can claim this for integers
     'ieee-float',     // JavaScript uses IEEE 754
+]);
+
+/**
+ * Standard Scheme syntax keywords.
+ * These are handled by the analyzer as special forms.
+ */
+const SYNTAX_KEYWORDS = new Set([
+    'define', 'set!', 'lambda', 'if', 'begin', 'quote',
+    'quasiquote', 'unquote', 'unquote-splicing',
+    'define-syntax', 'let-syntax', 'letrec-syntax',
+    'syntax-rules', '...', 'else', '=>', 'import', 'export',
+    'define-library', 'include', 'include-ci', 'include-library-declarations',
+    'cond-expand'
 ]);
 
 /**
@@ -145,10 +159,11 @@ export function isLibraryLoaded(key) {
 
 /**
  * Gets a loaded library's exports.
- * @param {string} key - Library key
+ * @param {string|string[]} library - Library name parts or library key
  * @returns {Map|null}
  */
-export function getLibraryExports(key) {
+export function getLibraryExports(library) {
+    const key = Array.isArray(library) ? libraryNameToKey(library) : library;
     const lib = libraryRegistry.get(key);
     return lib ? lib.exports : null;
 }
@@ -500,7 +515,21 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
     // Build exports map
     const exports = new Map();
     for (const exp of libDef.exports) {
-        const value = libEnv.lookup(exp.internal);
+        let value;
+        try {
+            value = libEnv.lookup(exp.internal);
+        } catch (e) {
+            // Check if it's a macro or a syntax keyword
+            if (globalMacroRegistry.isMacro(exp.internal)) {
+                // Return a marker so applyImports knows it's a macro
+                value = { _isMacro: true, name: exp.internal };
+            } else if (SYNTAX_KEYWORDS.has(exp.internal)) {
+                // Return a marker so applyImports knows it's a syntax keyword
+                value = { _isKeyword: true, name: exp.internal };
+            } else {
+                throw e;
+            }
+        }
         exports.set(exp.external, value);
     }
 
@@ -517,7 +546,7 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
  * @param {Map} exports - Source library exports
  * @param {Object} importSpec - Import specification
  */
-function applyImports(env, exports, importSpec) {
+export function applyImports(env, exports, importSpec) {
     for (const [name, value] of exports) {
         // Check only filter
         if (importSpec.only && !importSpec.only.includes(name)) {
@@ -543,16 +572,16 @@ function applyImports(env, exports, importSpec) {
             finalName = importSpec.prefix + finalName;
         }
 
+        // If it's a macro or keyword marker, don't define it in the environment.
+        // It's already handled by the analyzer/macro registry.
+        if (value && (value._isMacro || value._isKeyword)) {
+            continue;
+        }
+
         env.define(finalName, value);
     }
 }
 
-/**
- * Clears the library registry (for testing).
- */
-export function clearLibraryRegistry() {
-    libraryRegistry.clear();
-}
 
 /**
  * Gets all loaded library keys (for debugging).
@@ -560,6 +589,13 @@ export function clearLibraryRegistry() {
  */
 export function getLoadedLibraries() {
     return Array.from(libraryRegistry.keys());
+}
+
+/**
+ * Clears the library registry (for testing).
+ */
+export function clearLibraryRegistry() {
+    libraryRegistry.clear();
 }
 
 /**

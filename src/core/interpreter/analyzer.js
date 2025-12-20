@@ -10,8 +10,10 @@ import {
   TailApp,
   CallCC,
   Begin,
-  Define
+  Define,
+  ImportNode
 } from './ast.js';
+import { getLibraryExports, applyImports, parseImportSet } from './library_loader.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
 import { Cons, cons, list, car, cdr, mapCons, toArray, cadr, cddr, caddr, cdddr, cadddr } from './cons.js';
@@ -75,6 +77,8 @@ export function analyze(exp) {
           return analyzeDefineSyntax(exp);
         case 'quasiquote':
           return expandQuasiquote(cadr(exp));
+        case 'import':
+          return analyzeImport(exp);
       }
     }
 
@@ -254,7 +258,7 @@ function analyzeDefine(exp) {
     const params = [];
     let restParam = null;
     let curr = argsList;
-    
+
     while (curr instanceof Cons) {
       if (!(curr.car instanceof Symbol)) {
         throw new Error('define: parameter must be a symbol');
@@ -262,7 +266,7 @@ function analyzeDefine(exp) {
       params.push(curr.car.name);
       curr = curr.cdr;
     }
-    
+
     // Check for rest parameter (improper list tail is a Symbol)
     if (curr !== null) {
       if (curr instanceof Symbol) {
@@ -310,6 +314,14 @@ function analyzeDefineSyntax(exp) {
     return new Literal(null);
   }
   return new Literal(null);
+}
+
+function analyzeImport(exp) {
+  // (import import-set ...)
+  const sets = toArray(exp.cdr);
+  const importSpecs = sets.map(s => parseImportSet(s));
+
+  return new ImportNode(importSpecs, getLibraryExports, applyImports);
 }
 
 // =============================================================================

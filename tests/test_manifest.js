@@ -53,6 +53,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/control_tests.scm',
     'tests/core/scheme/exception_tests.scm',
     'tests/core/scheme/error_tests.scm',
+    'tests/core/scheme/repl_tests.scm',
 ];
 
 /**

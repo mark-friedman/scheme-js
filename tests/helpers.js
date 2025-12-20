@@ -133,9 +133,8 @@ export function createTestLogger() {
 }
 
 
+import { createInterpreter } from '../src/core/interpreter/index.js';
+
 export function createTestEnv() {
-    const interpreter = new Interpreter();
-    const globalEnv = createGlobalEnvironment(interpreter);
-    interpreter.setGlobalEnv(globalEnv);
-    return { interpreter, globalEnv };
+    return createInterpreter();
 }

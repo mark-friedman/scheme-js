@@ -114,6 +114,19 @@ export function getControlPrimitives(interpreter) {
         },
 
         /**
+         * call-with-current-continuation: Capture the current continuation.
+         */
+        'call-with-current-continuation': (proc) => {
+            assertProcedure('call-with-current-continuation', 1, proc);
+            return new TailCall(new CallCC(new Literal(proc)), null);
+        },
+
+        'call/cc': (proc) => {
+            assertProcedure('call/cc', 1, proc);
+            return new TailCall(new CallCC(new Literal(proc)), null);
+        },
+
+        /**
          * procedure?: Type predicate for procedures.
          */
         'procedure?': (obj) => {
