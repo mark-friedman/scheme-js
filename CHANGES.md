@@ -1237,3 +1237,50 @@ Failed tests:
 | `src/core/scheme/char.sld` | **NEW** - `(scheme char)` library |
 | `src/core/scheme/base.sld` | Added character/string/vector exports |
 | `r7rs_roadmap.md` | Updated phases 6-8 status to complete |
+
+---
+
+# Phase 10: Input/Output (Ports) - 2025-12-21
+
+Implemented R7RS §6.13 I/O subsystem with textual string ports for in-memory I/O.
+
+## Summary
+
+Added ~30 I/O primitives to the interpreter including port predicates, string ports, character/string reading and writing, EOF handling, and port control.
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/core/primitives/io.js` | Complete rewrite: Port class hierarchy, ~30 primitives (807 lines) |
+| `src/core/scheme/write.sld` | **NEW** - `(scheme write)` library declaration |
+| `src/core/scheme/read.sld` | **NEW** - `(scheme read)` library stub |
+| `src/core/scheme/base.sld` | Added 20+ I/O exports |
+| `tests/functional/io_tests.js` | **NEW** - Comprehensive I/O tests (~320 lines) |
+| `tests/test_manifest.js` | Added I/O tests to manifest |
+| `r7rs_roadmap.md` | Updated Phase 10 status to complete |
+| `directory_structure.md` | Added io.js, char.js, new .sld files |
+
+## Features Implemented
+
+| Category | Primitives |
+|----------|------------|
+| Predicates | `port?`, `input-port?`, `output-port?`, `textual-port?`, `binary-port?`, `input-port-open?`, `output-port-open?` |
+| Current Ports | `current-input-port`, `current-output-port`, `current-error-port` |
+| String Ports | `open-input-string`, `open-output-string`, `get-output-string` |
+| Input | `read-char`, `peek-char`, `char-ready?`, `read-line`, `read-string` |
+| Output | `write-char`, `write-string`, `display`, `newline`, `write`, `flush-output-port` |
+| EOF | `eof-object`, `eof-object?` |
+| Control | `close-port`, `close-input-port`, `close-output-port` |
+
+## Deferred Items
+
+- File I/O (`open-input-file`, etc.) — async complexity
+- `read` procedure — S-expression parsing
+- Binary ports — Phase 12 (Bytevectors)
+
+## Validation
+
+```
+TEST SUMMARY: 620 passed, 0 failed
+```

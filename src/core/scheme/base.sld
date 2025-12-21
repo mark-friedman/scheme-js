@@ -85,8 +85,27 @@
     error
     error-object? error-object-message error-object-irritants
     
-    ;; I/O (basic)
-    display newline
+    ;; I/O - Ports
+    port? input-port? output-port?
+    textual-port? binary-port?
+    input-port-open? output-port-open?
+    current-input-port current-output-port current-error-port
+    close-port close-input-port close-output-port
+    flush-output-port
+    
+    ;; I/O - String Ports
+    open-input-string open-output-string get-output-string
+    
+    ;; I/O - EOF
+    eof-object eof-object?
+    
+    ;; I/O - Input
+    read-char peek-char char-ready?
+    read-line read-string
+    
+    ;; I/O - Output
+    write-char write-string
+    display newline write
     
     ;; Syntax (Macros & Special Forms)
     define set! lambda if begin quote quasiquote unquote unquote-splicing

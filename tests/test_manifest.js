@@ -37,6 +37,7 @@ export const functionalTests = [
     { path: 'functional/char_tests.js', fn: 'runCharTests', async: false },
     { path: 'functional/string_tests.js', fn: 'runStringTests', async: false },
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
+    { path: 'functional/io_tests.js', fn: 'runIOTests', async: false },
 ];
 
 // Integration Tests

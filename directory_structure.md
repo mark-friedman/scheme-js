@@ -34,12 +34,17 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │       │   ├── string.js
 │       │   ├── vector.js
 │       │   ├── control.js
-│       │
+│       │   ├── char.js              # Character predicates and operations
+│       │   └── io.js                # Port system and I/O operations
+│
 │       └── scheme/                 # Core Scheme subset (base library)
 │           ├── base.sld            # (scheme base) library declaration
 │           ├── core.sld            # (scheme core) library declaration
 │           ├── control.sld         # (scheme control) library declaration
 │           ├── cxr.sld             # (scheme cxr) library declaration
+│           ├── char.sld            # (scheme char) library declaration
+│           ├── write.sld           # (scheme write) library declaration
+│           ├── read.sld            # (scheme read) library declaration
 │           ├── macros.scm          # Core macros: and, let, letrec, cond
 │           ├── equality.scm        # Deep equality: equal?
 │           ├── cxr.scm             # All 28 cxr accessors

@@ -238,21 +238,33 @@ Expanded `vector.js` with additional R7RS operations.
 
 ---
 
-## Phase 10: Input/Output (Ports)
+## Phase 10: Input/Output (Ports) ✅
 **Target Library:** `(scheme write)`, `(scheme read)`, `(scheme file)`, `(scheme base)`
 
-This is the largest remaining subsystem. R7RS §6.13 requires:
+Implemented textual string ports for in-memory I/O. File I/O deferred due to async complexity.
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
-| `current-input-port`... | ❌ | |
-| `open-input-file`... | ❌ | |
-| `read-char`, `read-line` | ❌ | Async in browser |
-| `read`, `write`, `display` | ⚠️ Basic | |
+| `port?`, `input-port?`, `output-port?` | ✅ | Port predicates |
+| `textual-port?`, `binary-port?` | ✅ | Type predicates |
+| `input-port-open?`, `output-port-open?` | ✅ | Open state |
+| `current-input-port`, `current-output-port`, `current-error-port` | ✅ | Default ports |
+| `close-port`, `close-input-port`, `close-output-port` | ✅ | Port control |
+| `open-input-string`, `open-output-string`, `get-output-string` | ✅ | String ports |
+| `read-char`, `peek-char`, `char-ready?` | ✅ | Character input |
+| `read-line`, `read-string` | ✅ | String input |
+| `eof-object`, `eof-object?` | ✅ | EOF handling |
+| `write-char`, `write-string` | ✅ | Character/string output |
+| `display`, `newline`, `write` | ✅ | Formatted output with optional port |
+| `flush-output-port` | ✅ | Flush buffered output |
+| `open-input-file`, `open-output-file` | ❌ | File I/O deferred |
+| `read` | ❌ | S-expression parsing deferred |
 
-**Deliverable:**
-1. New `io.js` port system.
-2. **[NEW]** Define `src/core/scheme/write.sld`, `read.sld`, `file.sld`.
+> [!NOTE]
+> File I/O (`(scheme file)`) requires async filesystem access and is deferred.
+> Binary ports and bytevector operations are deferred to Phase 12.
+
+**Deliverable:** ✅ Done in `io.js`, `write.sld`, `read.sld`. Updated `(scheme base)`.
 
 ---
 
