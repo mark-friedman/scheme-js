@@ -102,6 +102,7 @@
     ;; I/O - Input
     read-char peek-char char-ready?
     read-line read-string
+    read
     
     ;; I/O - Output
     write-char write-string

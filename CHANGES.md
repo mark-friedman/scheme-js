@@ -1282,5 +1282,38 @@ Added ~30 I/O primitives to the interpreter including port predicates, string po
 ## Validation
 
 ```
-TEST SUMMARY: 620 passed, 0 failed
+TEST SUMMARY: 640 passed, 0 failed
+```
+
+---
+
+# Phase 10 Extension: File I/O and Read - 2025-12-21
+
+Extended Phase 10 I/O with file operations (Node.js only) and the `read` procedure.
+
+## New Features
+
+| Feature | Description |
+|---------|-------------|
+| `read` | Parse S-expression from any input port |
+| `open-input-file` | Open file for reading (Node.js) |
+| `open-output-file` | Open file for writing (Node.js) |
+| `call-with-input-file` | Open, call proc, close |
+| `call-with-output-file` | Open, call proc, close |
+| `file-exists?` | Check if file exists (Node.js) |
+| `delete-file` | Delete file (Node.js) |
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/core/primitives/io.js` | Added FileInputPort, FileOutputPort, read, file I/O primitives |
+| `src/core/scheme/file.sld` | **NEW** - `(scheme file)` library |
+| `src/core/scheme/read.sld` | Added `read` export |
+| `tests/functional/io_tests.js` | Added read and file I/O tests |
+
+## Validation
+
+```
+TEST SUMMARY: 640 passed, 0 failed
 ```

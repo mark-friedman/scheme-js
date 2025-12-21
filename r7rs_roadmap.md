@@ -257,14 +257,16 @@ Implemented textual string ports for in-memory I/O. File I/O deferred due to asy
 | `write-char`, `write-string` | ✅ | Character/string output |
 | `display`, `newline`, `write` | ✅ | Formatted output with optional port |
 | `flush-output-port` | ✅ | Flush buffered output |
-| `open-input-file`, `open-output-file` | ❌ | File I/O deferred |
-| `read` | ❌ | S-expression parsing deferred |
+| `open-input-file`, `open-output-file` | ✅ | Node.js only |
+| `call-with-input-file`, `call-with-output-file` | ✅ | Node.js only |
+| `file-exists?`, `delete-file` | ✅ | Node.js only |
+| `read` | ✅ | S-expression parsing from ports |
 
 > [!NOTE]
-> File I/O (`(scheme file)`) requires async filesystem access and is deferred.
+> File I/O (`(scheme file)`) only works in Node.js. Browser calls raise errors.
 > Binary ports and bytevector operations are deferred to Phase 12.
 
-**Deliverable:** ✅ Done in `io.js`, `write.sld`, `read.sld`. Updated `(scheme base)`.
+**Deliverable:** ✅ Done in `io.js`, `write.sld`, `read.sld`, `file.sld`. Updated `(scheme base)`.
 
 ---
 

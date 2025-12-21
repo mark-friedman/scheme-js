@@ -1,11 +1,38 @@
 /**
  * I/O Primitives for Scheme.
  * 
- * Implements R7RS §6.13 port system with textual string ports.
- * Binary ports and file I/O are deferred to later phases.
+ * Implements R7RS §6.13 port system with textual string ports and file ports.
+ * File I/O is Node.js only - browser calls raise errors.
  */
 
 import { Cons, list } from '../interpreter/cons.js';
+import { parse } from '../interpreter/reader.js';
+
+// ============================================================================
+// Environment Detection
+// ============================================================================
+
+/**
+ * Detect if running in Node.js (vs browser).
+ */
+const isNode = typeof process !== 'undefined' &&
+    process.versions != null &&
+    process.versions.node != null;
+
+/**
+ * Node.js fs module (loaded dynamically to avoid browser errors).
+ * @type {Object|null}
+ */
+let fs = null;
+if (isNode) {
+    // Dynamic import for Node.js only
+    try {
+        fs = await import('node:fs');
+    } catch (e) {
+        // Fallback for older Node versions
+        fs = await import('fs');
+    }
+}
 
 // ============================================================================
 // EOF Object
@@ -251,6 +278,129 @@ class ConsoleOutputPort extends Port {
 
     toString() {
         return `#<console-${this._name}-port>`;
+    }
+}
+
+// ============================================================================
+// File Port Classes (Node.js Only)
+// ============================================================================
+
+/**
+ * File input port - reads from a file (Node.js only).
+ */
+class FileInputPort extends Port {
+    /**
+     * @param {string} filename - Path to the file.
+     */
+    constructor(filename) {
+        super('input');
+        if (!isNode || !fs) {
+            throw new Error('open-input-file: file I/O not supported in browser');
+        }
+        this._filename = filename;
+        this._content = fs.readFileSync(filename, 'utf8');
+        this._pos = 0;
+    }
+
+    /** @returns {boolean} Whether there's more to read. */
+    hasMore() { return this._pos < this._string.length; }
+
+    readChar() {
+        if (!this._open) throw new Error('read-char: port is closed');
+        if (this._pos >= this._content.length) return EOF_OBJECT;
+        return this._content[this._pos++];
+    }
+
+    peekChar() {
+        if (!this._open) throw new Error('peek-char: port is closed');
+        if (this._pos >= this._content.length) return EOF_OBJECT;
+        return this._content[this._pos];
+    }
+
+    readLine() {
+        if (!this._open) throw new Error('read-line: port is closed');
+        if (this._pos >= this._content.length) return EOF_OBJECT;
+        let line = '';
+        while (this._pos < this._content.length) {
+            const ch = this._content[this._pos++];
+            if (ch === '\n') return line;
+            if (ch === '\r') {
+                if (this._pos < this._content.length && this._content[this._pos] === '\n') {
+                    this._pos++;
+                }
+                return line;
+            }
+            line += ch;
+        }
+        return line;
+    }
+
+    readString(k) {
+        if (!this._open) throw new Error('read-string: port is closed');
+        if (this._pos >= this._content.length) return EOF_OBJECT;
+        const end = Math.min(this._pos + k, this._content.length);
+        const result = this._content.slice(this._pos, end);
+        this._pos = end;
+        return result;
+    }
+
+    charReady() {
+        return this._open && this._pos < this._content.length;
+    }
+
+    toString() {
+        return `#<file-input-port:${this._filename}:${this._open ? 'open' : 'closed'}>`;
+    }
+}
+
+/**
+ * File output port - writes to a file (Node.js only).
+ */
+class FileOutputPort extends Port {
+    /**
+     * @param {string} filename - Path to the file.
+     */
+    constructor(filename) {
+        super('output');
+        if (!isNode || !fs) {
+            throw new Error('open-output-file: file I/O not supported in browser');
+        }
+        this._filename = filename;
+        this._buffer = '';
+    }
+
+    writeChar(ch) {
+        if (!this._open) throw new Error('write-char: port is closed');
+        this._buffer += ch;
+    }
+
+    writeString(str, start = 0, end = str.length) {
+        if (!this._open) throw new Error('write-string: port is closed');
+        this._buffer += str.slice(start, end);
+    }
+
+    /**
+     * Flushes buffer to file.
+     */
+    flush() {
+        if (this._buffer.length > 0) {
+            fs.appendFileSync(this._filename, this._buffer);
+            this._buffer = '';
+        }
+    }
+
+    /**
+     * Closes the port and writes remaining buffer.
+     */
+    close() {
+        if (this._open) {
+            this.flush();
+            this._open = false;
+        }
+    }
+
+    toString() {
+        return `#<file-output-port:${this._filename}:${this._open ? 'open' : 'closed'}>`;
     }
 }
 
@@ -584,7 +734,7 @@ export const ioPrimitives = {
     'read-char': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-char');
-        if (!(port instanceof StringInputPort)) {
+        if (!(port instanceof StringInputPort) && !(port instanceof FileInputPort)) {
             throw new Error('read-char: unsupported port type');
         }
         return port.readChar();
@@ -598,7 +748,7 @@ export const ioPrimitives = {
     'peek-char': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'peek-char');
-        if (!(port instanceof StringInputPort)) {
+        if (!(port instanceof StringInputPort) && !(port instanceof FileInputPort)) {
             throw new Error('peek-char: unsupported port type');
         }
         return port.peekChar();
@@ -615,7 +765,7 @@ export const ioPrimitives = {
             throw new Error('char-ready?: expected input port');
         }
         if (!port.isOpen) return false;
-        if (port instanceof StringInputPort) {
+        if (port instanceof StringInputPort || port instanceof FileInputPort) {
             return port.charReady();
         }
         return false;
@@ -629,7 +779,7 @@ export const ioPrimitives = {
     'read-line': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-line');
-        if (!(port instanceof StringInputPort)) {
+        if (!(port instanceof StringInputPort) && !(port instanceof FileInputPort)) {
             throw new Error('read-line: unsupported port type');
         }
         return port.readLine();
@@ -647,7 +797,7 @@ export const ioPrimitives = {
         }
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-string');
-        if (!(port instanceof StringInputPort)) {
+        if (!(port instanceof StringInputPort) && !(port instanceof FileInputPort)) {
             throw new Error('read-string: unsupported port type');
         }
         return port.readString(k);
@@ -795,12 +945,225 @@ export const ioPrimitives = {
         if (!isOutputPort(port)) {
             throw new Error('flush-output-port: expected output port');
         }
-        if (port instanceof ConsoleOutputPort) {
+        if (port instanceof ConsoleOutputPort || port instanceof FileOutputPort) {
             port.flush();
         }
+        return undefined;  // unspecified
+    },
+
+    // --------------------------------------------------------------------------
+    // Read (S-expression Parsing)
+    // --------------------------------------------------------------------------
+
+    /**
+     * Reads and parses a single S-expression from port.
+     * @param {Port} [port] - Input port (default: current-input-port).
+     * @returns {*} Parsed S-expression or EOF.
+     */
+    'read': (...args) => {
+        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+        requireOpenInputPort(port, 'read');
+
+        // Collect characters until we have a complete expression
+        let buffer = '';
+        let parenDepth = 0;
+        let inString = false;
+        let escaped = false;
+        let started = false;
+
+        while (true) {
+            const ch = port.readChar();
+            if (ch === EOF_OBJECT) {
+                if (buffer.trim() === '') {
+                    return EOF_OBJECT;
+                }
+                // Try to parse what we have
+                break;
+            }
+
+            buffer += ch;
+
+            // Track string state
+            if (escaped) {
+                escaped = false;
+            } else if (ch === '\\' && inString) {
+                escaped = true;
+            } else if (ch === '"') {
+                inString = !inString;
+                started = true;
+            } else if (!inString) {
+                if (ch === '(') {
+                    parenDepth++;
+                    started = true;
+                } else if (ch === ')') {
+                    parenDepth--;
+                    if (parenDepth <= 0 && started) {
+                        break;
+                    }
+                } else if (ch === '#' && port.peekChar() === '(') {
+                    // Vector start
+                    port.readChar(); // consume '('
+                    buffer += '(';
+                    parenDepth++;
+                    started = true;
+                } else if (ch === '\'' || ch === '`' || ch === ',') {
+                    started = true;
+                    // Quote/quasiquote - need to read next expression
+                } else if (!ch.match(/\s/) && ch !== ';') {
+                    started = true;
+                    if (parenDepth === 0) {
+                        // Reading an atom - continue until whitespace or delimiter
+                        while (true) {
+                            const next = port.peekChar();
+                            if (next === EOF_OBJECT || next === null) {
+                                break;
+                            }
+                            if (/[\s()\[\]{}";]/.test(next)) {
+                                break;
+                            }
+                            buffer += port.readChar();
+                        }
+                        break;
+                    }
+                } else if (ch === ';') {
+                    // Skip comment
+                    while (true) {
+                        const next = port.readChar();
+                        if (next === EOF_OBJECT || next === '\n') break;
+                    }
+                    buffer = buffer.slice(0, -1); // Remove the semicolon from buffer
+                }
+            }
+        }
+
+        // Parse the collected buffer
+        const trimmed = buffer.trim();
+        if (trimmed === '') {
+            return EOF_OBJECT;
+        }
+
+        try {
+            const parsed = parse(trimmed);
+            if (parsed.length === 0) {
+                return EOF_OBJECT;
+            }
+            return parsed[0];
+        } catch (e) {
+            throw new Error(`read: ${e.message}`);
+        }
+    },
+
+    // --------------------------------------------------------------------------
+    // File I/O (Node.js Only)
+    // --------------------------------------------------------------------------
+
+    /**
+     * Opens a file for reading.
+     * @param {string} filename - Path to the file.
+     * @returns {FileInputPort}
+     */
+    'open-input-file': (filename) => {
+        if (typeof filename !== 'string') {
+            throw new Error('open-input-file: expected string filename');
+        }
+        if (!isNode) {
+            throw new Error('open-input-file: file I/O not supported in browser');
+        }
+        return new FileInputPort(filename);
+    },
+
+    /**
+     * Opens a file for writing.
+     * @param {string} filename - Path to the file.
+     * @returns {FileOutputPort}
+     */
+    'open-output-file': (filename) => {
+        if (typeof filename !== 'string') {
+            throw new Error('open-output-file: expected string filename');
+        }
+        if (!isNode) {
+            throw new Error('open-output-file: file I/O not supported in browser');
+        }
+        // Truncate file on open
+        fs.writeFileSync(filename, '');
+        return new FileOutputPort(filename);
+    },
+
+    /**
+     * Opens file, calls proc with port, closes file.
+     * @param {string} filename - Path to the file.
+     * @param {Function} proc - Procedure to call with port.
+     * @returns {*} Result of proc.
+     */
+    'call-with-input-file': (filename, proc) => {
+        if (typeof filename !== 'string') {
+            throw new Error('call-with-input-file: expected string filename');
+        }
+        if (typeof proc !== 'function') {
+            throw new Error('call-with-input-file: expected procedure');
+        }
+        const port = ioPrimitives['open-input-file'](filename);
+        try {
+            return proc(port);
+        } finally {
+            port.close();
+        }
+    },
+
+    /**
+     * Opens file, calls proc with port, closes file.
+     * @param {string} filename - Path to the file.
+     * @param {Function} proc - Procedure to call with port.
+     * @returns {*} Result of proc.
+     */
+    'call-with-output-file': (filename, proc) => {
+        if (typeof filename !== 'string') {
+            throw new Error('call-with-output-file: expected string filename');
+        }
+        if (typeof proc !== 'function') {
+            throw new Error('call-with-output-file: expected procedure');
+        }
+        const port = ioPrimitives['open-output-file'](filename);
+        try {
+            return proc(port);
+        } finally {
+            port.close();
+        }
+    },
+
+    /**
+     * Checks if a file exists.
+     * @param {string} filename - Path to the file.
+     * @returns {boolean}
+     */
+    'file-exists?': (filename) => {
+        if (typeof filename !== 'string') {
+            throw new Error('file-exists?: expected string filename');
+        }
+        if (!isNode) {
+            throw new Error('file-exists?: file I/O not supported in browser');
+        }
+        return fs.existsSync(filename);
+    },
+
+    /**
+     * Deletes a file.
+     * @param {string} filename - Path to the file.
+     */
+    'delete-file': (filename) => {
+        if (typeof filename !== 'string') {
+            throw new Error('delete-file: expected string filename');
+        }
+        if (!isNode) {
+            throw new Error('delete-file: file I/O not supported in browser');
+        }
+        fs.unlinkSync(filename);
         return undefined;  // unspecified
     },
 };
 
 // Export for testing
-export { Port, StringInputPort, StringOutputPort, ConsoleOutputPort, EOF_OBJECT };
+export {
+    Port, StringInputPort, StringOutputPort, ConsoleOutputPort,
+    FileInputPort, FileOutputPort, EOF_OBJECT, isNode
+};
