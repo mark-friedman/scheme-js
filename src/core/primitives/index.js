@@ -6,6 +6,7 @@ import { listPrimitives } from './list.js';
 import { vectorPrimitives } from './vector.js';
 import { recordPrimitives } from './record.js';
 import { stringPrimitives } from './string.js';
+import { charPrimitives } from './char.js';
 import { eqPrimitives } from './eq.js';
 import { getAsyncPrimitives } from './async.js';
 import { getControlPrimitives } from './control.js';
@@ -34,6 +35,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(vectorPrimitives);
     addPrimitives(recordPrimitives);
     addPrimitives(stringPrimitives);
+    addPrimitives(charPrimitives);
     addPrimitives(eqPrimitives);
     addPrimitives(getAsyncPrimitives(interpreter));
     addPrimitives(getControlPrimitives(interpreter));

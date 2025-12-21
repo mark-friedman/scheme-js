@@ -1,9 +1,33 @@
 import { run } from './helpers.js';
-import { loadLibrary, applyImports } from '../src/core/interpreter/library_loader.js';
+import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 
 export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
     logger.title('Running Scheme Tests...');
+
+    // Re-register (scheme primitives) in case previous tests cleared the registry
+    const primitiveExports = createPrimitiveExports(interpreter.globalEnv);
+    registerBuiltinLibrary(['scheme', 'primitives'], primitiveExports, interpreter.globalEnv);
+
+    // Set up the file resolver for the library loader
+    // Handles both library names and include file paths
+    setFileResolver(async (pathParts) => {
+        // pathParts is an array like:
+        // - ['scheme', 'base'] for library imports -> base.sld
+        // - ['scheme', 'macros.scm'] for include directives -> macros.scm
+        const fileName = pathParts[pathParts.length - 1];
+
+        let libPath;
+        if (fileName.endsWith('.scm') || fileName.endsWith('.sld')) {
+            // Include directive - fileName already has extension
+            libPath = `src/core/scheme/${fileName}`;
+        } else {
+            // Library import - add .sld extension
+            libPath = `src/core/scheme/${fileName}.sld`;
+        }
+
+        return await fileLoader(libPath);
+    });
 
     // 1. Bootstrap standard libraries
     const baseExports = await loadLibrary(['scheme', 'base'], analyze, interpreter, interpreter.globalEnv);

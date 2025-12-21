@@ -22,14 +22,16 @@ export function parse(input, options = {}) {
 function tokenize(input) {
   // Regex based tokenizer
   // Matches:
-  // 1. #( - Vector start
-  // 2. ( or ) - List delimiters
-  // 3. ' ` ,@ , - Quote/Quasiquote
-  // 4. Strings
-  // 5. Comments (;...)
-  // 6. Special numbers (+nan.0, etc.)
-  // 7. Atoms (anything else, stops at whitespace, parens, or semicolon)
-  const regex = /\s*(#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|;[^\n]*|[+-]?(?:nan|inf)\.0|[^\s();]+)(.*)/s;
+  // 1. #\ followed by character name or single char (character literals)
+  // 2. #( - Vector start
+  // 3. ( or ) - List delimiters
+  // 4. ' ` ,@ , - Quote/Quasiquote
+  // 5. Strings
+  // 6. Comments (;...)
+  // 7. Special numbers (+nan.0, etc.)
+  // 8. Atoms (anything else, stops at whitespace, parens, or semicolon)
+  // Note: #\\ must come before #( to avoid partial matches
+  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|;[^\n]*|[+-]?(?:nan|inf)\.0|[^\s();]+)(.*)/s;
 
 
   const tokens = [];
@@ -139,6 +141,11 @@ function readAtom(token, caseFold = false) {
   if (token === '#t') return true;
   if (token === '#f') return false;
 
+  // Character literals (#\a, #\newline, #\x41, etc.)
+  if (token.startsWith('#\\')) {
+    return readCharacter(token.slice(2));
+  }
+
   // Strings (not case-folded)
   if (token.startsWith('"')) {
     // Remove quotes and handle escapes
@@ -151,4 +158,48 @@ function readAtom(token, caseFold = false) {
   // Symbols - apply case folding if enabled
   const symbolName = caseFold ? token.toLowerCase() : token;
   return intern(symbolName);
+}
+
+/**
+ * Named character constants per R7RS §6.6.
+ */
+const NAMED_CHARACTERS = {
+  'alarm': '\x07',
+  'backspace': '\x08',
+  'delete': '\x7F',
+  'escape': '\x1B',
+  'newline': '\n',
+  'null': '\x00',
+  'return': '\r',
+  'space': ' ',
+  'tab': '\t'
+};
+
+/**
+ * Parses a character literal (after the #\ prefix).
+ * @param {string} name - The character name or literal
+ * @returns {string} Single-character string (Scheme character)
+ */
+function readCharacter(name) {
+  // Hex escape: #\x41 -> 'A'
+  if (name.startsWith('x') && name.length > 1) {
+    const codePoint = parseInt(name.slice(1), 16);
+    if (isNaN(codePoint)) {
+      throw new Error(`Invalid character hex escape: #\\${name}`);
+    }
+    return String.fromCodePoint(codePoint);
+  }
+
+  // Named character: #\newline -> '\n'
+  const lower = name.toLowerCase();
+  if (NAMED_CHARACTERS.hasOwnProperty(lower)) {
+    return NAMED_CHARACTERS[lower];
+  }
+
+  // Single character: #\a -> 'a'
+  if (name.length === 1) {
+    return name;
+  }
+
+  throw new Error(`Unknown character name: #\\${name}`);
 }

@@ -53,13 +53,24 @@
     ;; Symbols
     symbol? symbol->string string->symbol
     
+    ;; Characters
+    char? char=? char<? char>? char<=? char>=?
+    char->integer integer->char
+    
     ;; Strings  
-    string? string-append number->string
+    string? make-string string string-length string-ref
+    string=? string<? string>? string<=? string>=?
+    substring string-append string-copy
+    string->list list->string
+    number->string string->number
+    string-upcase string-downcase string-foldcase
     
     ;; Vectors
     vector? make-vector vector vector-length
-    vector-ref vector-set!
+    vector-ref vector-set! vector-fill!
+    vector-copy vector-copy! vector-append
     vector->list list->vector
+    vector->string string->vector
     
     ;; Control
     apply map for-each

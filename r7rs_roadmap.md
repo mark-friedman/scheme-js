@@ -156,61 +156,69 @@ Expanded `list.scm` and `cxr.scm` to cover R7RS §6.4.
 
 ---
 
-## Phase 6: Characters
+## Phase 6: Characters ✅
 **Target Library:** `(scheme char)`, `(scheme base)`
 
-Create `char.js` for R7RS §6.6.
-
-| Primitive | Status |
-|-----------|--------|
-| `char?` | ❌ |
-| `char=?`, `char<?`, etc. | ❌ |
-| `char-ci=?`, etc. | ❌ |
-| `char-alphabetic?`, etc. | ❌ |
-| `char-upcase`, `char-downcase` | ❌ |
-| `char->integer`, `integer->char` | ❌ |
-
-**Deliverable:**
-1. New `char.js`.
-2. **[NEW]** Define `src/core/scheme/char.sld` for `(scheme char)`.
-
----
-
-## Phase 7: Strings
-**Target Library:** `(scheme base)`
-
-Expand `string.js` for R7RS §6.7.
+Implemented `char.js` for R7RS §6.6.
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
-| `make-string` | ❌ | |
-| `string` | ❌ | |
-| `string-length`, `string-ref` | ❌ | |
-| `string-set!` | ❌ | See mutability note below |
-| `string=?`, `string<?`, etc. | ❌ | |
-| `substring` | ❌ | |
-| `string->list`, `list->string` | ❌ | |
-| `string-copy`, `string-fill!` | ❌ | |
+| `char?` | ✅ | |
+| `char=?`, `char<?`, etc. | ✅ | Variadic comparison |
+| `char-ci=?`, etc. | ✅ | Case-insensitive in `(scheme char)` |
+| `char-alphabetic?`, etc. | ✅ | Character class predicates |
+| `char-upcase`, `char-downcase`, `char-foldcase` | ✅ | |
+| `char->integer`, `integer->char` | ✅ | |
+| `digit-value` | ✅ | |
 
-> [!IMPORTANT]
-> **Design Decision Required:** Mutable strings implementation strategy.
+> [!NOTE]
+> Characters are represented as single-character JavaScript strings for JS interop.
 
-**Deliverable:** Expand `string.js`. Update `(scheme base)`.
+**Deliverable:** ✅ Done in `char.js`, `char.sld`, reader updated for `#\...` literals.
 
 ---
 
-## Phase 8: Vectors (Expansion)
+## Phase 7: Strings ✅
 **Target Library:** `(scheme base)`
 
-Current `vector.js` covers basics. Add:
+Expanded `string.js` for R7RS §6.7.
 
-| Primitive | Status |
-|-----------|--------|
-| `vector-fill!` | ❌ |
-| `vector-copy`, `vector-copy!` | ❌ |
-| `vector->string`, `string->vector` | ❌ |
+| Primitive | Status | Notes |
+|-----------|--------|-------|
+| `make-string` | ✅ | |
+| `string` | ✅ | From character args |
+| `string-length`, `string-ref` | ✅ | |
+| `string-set!` | ✅ | Raises error (immutable) |
+| `string=?`, `string<?`, etc. | ✅ | Variadic comparison |
+| `string-ci=?`, etc. | ✅ | Case-insensitive |
+| `substring` | ✅ | |
+| `string->list`, `list->string` | ✅ | |
+| `string-copy` | ✅ | With optional start/end |
+| `string-fill!` | ✅ | Raises error (immutable) |
+| `string-upcase`, `string-downcase`, `string-foldcase` | ✅ | |
+| `string->number` | ✅ | With radix support |
 
-**Deliverable:** Expand `vector.js`. Update `(scheme base)`.
+> [!IMPORTANT]
+> **Immutability Decision:** `string-set!` and `string-fill!` raise errors for JavaScript interoperability.
+
+**Deliverable:** ✅ Done in `string.js`. Updated `(scheme base)`.
+
+---
+
+## Phase 8: Vectors (Expansion) ✅
+**Target Library:** `(scheme base)`
+
+Expanded `vector.js` with additional R7RS operations.
+
+| Primitive | Status | Notes |
+|-----------|--------|-------|
+| `vector-fill!` | ✅ | With optional start/end |
+| `vector-copy` | ✅ | With optional start/end |
+| `vector-copy!` | ✅ | Handles overlapping correctly |
+| `vector->string`, `string->vector` | ✅ | |
+| `vector-append` | ✅ | Variadic |
+
+**Deliverable:** ✅ Done in `vector.js`. Updated `(scheme base)`.
 
 ---
 
@@ -292,6 +300,48 @@ Implement the remaining R7RS standard libraries:
 
 ---
 
+
+## Phase 14: Advanced Interop
+**Target:** Enhance Scheme <-> JS usability
+
+| Feature | Description |
+|---------|-------------|
+| **Dot-Syntax** | Concise syntax for JS method calls (e.g. `(.log console "Hello")`). |
+| **Iterable Lists** | Make `Cons` implement JS Iterable protocol for easier use with `Array.from`, spread syntax, etc. |
+| **JS Subclassing** | Mechanism to define Scheme records that subclass native JS classes. |
+
+---
+
+## Phase 15: Full Numeric Tower
+**Target:** R7RS full numeric compliance
+
+| Feature | Description |
+|---------|-------------|
+| **Exact Integers** | Arbitrary-precision integers (BigInt support). |
+| **Rationals** | Fraction support (e.g. `1/3`). |
+| **Complex Numbers** | Complex number support (e.g. `3+4i`). |
+
+---
+
+## Phase 16: Developer Experience
+**Target:** Debugging and usability
+
+| Feature | Description |
+|---------|-------------|
+| **Source Locations** | Track line/column numbers in AST for better error reporting. |
+| **Stack Traces** | Readable Scheme stack traces (filtering internal JS frames). |
+
+---
+
+## Phase 17: Robust Hygiene
+**Target:** Completing macro system semantics
+
+| Feature | Description |
+|---------|-------------|
+| **Referential Transparency** | Ensure macros respect lexical scoping of free variables (fixing the `list` vs `+` issue). |
+
+---
+
 ## Verification Plan
 
 ### Automated Tests
@@ -319,3 +369,4 @@ Consider running the [Chibi Scheme R7RS test suite](https://github.com/ashinn/ch
 5. **Phase 10** — I/O (largest effort, async challenges).
 6. **Phase 11** — Exceptions (robust error handling).
 7. **Phase 12–13** — Bytevectors and remaining R7RS libraries.
+

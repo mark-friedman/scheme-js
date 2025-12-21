@@ -251,6 +251,18 @@ export function assertBoolean(procName, argPos, value) {
 }
 
 /**
+ * Asserts value is a character (single-character string).
+ * @param {string} procName - Procedure name
+ * @param {number} argPos - Argument position (1-indexed)
+ * @param {*} value - Value to check
+ * @returns {string} The character
+ * @throws {SchemeTypeError}
+ */
+export function assertChar(procName, argPos, value) {
+    return assertType(procName, argPos, value, isChar, 'character');
+}
+
+/**
  * Asserts correct number of arguments.
  * @param {string} procName - Procedure name
  * @param {Array} args - Arguments array
