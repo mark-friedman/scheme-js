@@ -7,10 +7,16 @@
  */
 
 /**
+ * Base class for all procedures.
+ */
+export class Procedure { }
+
+/**
  * Closures capture the environment at definition time.
  * Created by Lambda nodes when evaluated.
  */
-export class Closure {
+// eslint-disable-next-line no-unused-vars
+export class Closure extends Procedure {
     /**
      * @param {Array<string>} params - Parameter names.
      * @param {Executable} body - The body AST node.
@@ -18,6 +24,7 @@ export class Closure {
      * @param {string|null} restParam - Name of rest parameter, or null if none.
      */
     constructor(params, body, env, restParam = null) {
+        super();
         this.params = params;
         this.body = body;
         this.env = env;

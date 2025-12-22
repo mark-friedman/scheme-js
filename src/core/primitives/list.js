@@ -141,3 +141,12 @@ function appendTwo(list1, list2, argPos) {
     }
     return new Cons(list1.car, appendTwo(list1.cdr, list2, argPos));
 }
+
+// Mark primitives that should receive raw Scheme objects (no JS bridge wrapping)
+listPrimitives['cons'].skipBridge = true;
+listPrimitives['car'].skipBridge = true;
+listPrimitives['cdr'].skipBridge = true;
+listPrimitives['set-car!'].skipBridge = true;
+listPrimitives['set-cdr!'].skipBridge = true;
+listPrimitives['list'].skipBridge = true;
+listPrimitives['append'].skipBridge = true;

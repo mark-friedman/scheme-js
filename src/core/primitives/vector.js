@@ -284,3 +284,10 @@ export const vectorPrimitives = {
         return str.slice(s, e).split('');
     }
 };
+
+// Mark primitives that should receive raw Scheme objects (no JS bridge wrapping)
+vectorPrimitives['vector'].skipBridge = true;
+vectorPrimitives['make-vector'].skipBridge = true;
+vectorPrimitives['vector-set!'].skipBridge = true;
+vectorPrimitives['vector-ref'].skipBridge = true; // Returns raw object
+vectorPrimitives['vector-fill!'].skipBridge = true;

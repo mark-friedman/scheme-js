@@ -78,6 +78,7 @@
     dynamic-wind
     values call-with-values
     procedure?
+    make-parameter parameterize
     
     ;; Exceptions
     raise raise-continuable

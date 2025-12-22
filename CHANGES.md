@@ -1317,3 +1317,106 @@ Extended Phase 10 I/O with file operations (Node.js only) and the `read` procedu
 ```
 TEST SUMMARY: 640 passed, 0 failed
 ```
+
+
+
+# Parameter Identity Bug Fix
+
+## Issue Description
+The `parameterize` implementation relied on object identity (`eq?`) to find the correct parameter cell in the dynamic environment. This checks failed consistently.
+
+Investigation revealed that:
+1. `make-parameter` creates a `Closure` object.
+2. `param-dynamic-bind` stores this closure in a list using `cons`.
+3. `param-dynamic-lookup` compares a lookup key (Closure) with the stored key using `eq?`.
+
+The failure occurred because `cons` and `eq?` are implemented as JavaScript primitives. The interpreter's `AppFrame` logic automatically wrapped `Closure` objects in a new JS function ("bridge") to support JS interop. This meant:
+- `cons` stored a *wrapper* around the closure.
+- `eq?` compared a new *wrapper* against another *wrapper*.
+- Wrappers are distinct objects, so `eq?` returned `#f`.
+
+## Solution
+We introduced a `skipBridge` property on internal Scheme primitives that should operate on raw Scheme objects (`Closure`, `Cons`, etc.) rather than receiving JS-callable wrappers.
+
+We applied `skipBridge = true` to:
+- **Equality**: `eq?`, `eqv?`
+- **Lists**: `cons`, `car`, `cdr`, `set-car!`, `set-cdr!`, `list`, `append`
+- **Vectors**: `vector`, `make-vector`, `vector-ref`, `vector-set!`, `vector-fill!`
+- **Control**: `apply`, `values`, `eval`, `call/cc`, `dynamic-wind`, `procedure?`, `interaction-environment`
+- **IO**: `display`, `write`
+
+## Verification
+Ran `tests/core/scheme/parameter_tests.scm` and verified all 14 tests passed, including nested `parameterize`, `call/cc` interaction, and converter logic.
+
+```
+✅ PASS: parameterize basic (Expected: 100, Got: 100)
+✅ PASS: parameterize multiple (Expected: (2 3), Got: (2 3))
+✅ PASS: tests/core/scheme/parameter_tests.scm FAILED -> PASSED
+```
+
+This fix also resolves potential performance overhead by avoiding unnecessary wrapper creation for internal Scheme operations.
+
+
+
+
+# Hygiene Implementation Complete (2025-12-21)
+
+## Overview
+We have fully implemented hygienic macro expansion using marks-based hygiene (Dybvig-style sets-of-scopes), supporting both **renaming** (avoiding variable capture) and **referential transparency** (macros reliably capturing their definition-site bindings).
+
+## Key Changes
+
+### 1. Global Reference Resolution
+- Introduced `GlobalRef` to safely refer to global variables (primitives and user defines) in the `ScopeBindingRegistry`.
+- Updated `ScopedVariable` to perform dynamic environment lookups when resolving a `GlobalRef`, ensuring that macros use the *live* values of globals (e.g., if a global is redefined or mutated).
+
+### 2. Definition Registration
+- Updated `analyzer.js` to register all user definitions (`define`) in the `ScopeBindingRegistry` with the global scope.
+- Updated `createGlobalEnvironment` to register all standard primitives (e.g., `list`, `+`) in the registry.
+
+### 3. Scope Resolution Fix
+- Updated `ScopeBindingRegistry` to prefer *newer* bindings when scopes are equally specific, ensuring correct shadowing behavior (e.g., redefining a primitive).
+
+### 4. Analyzer Binding Forms & Regressions
+- Updated `analyzeLambda`, `analyzeLet`, `analyzeLetRec`, `analyzeDefine`, and `analyzeSet` to correctly handle `SyntaxObject` identifiers.
+- Fixed a regression in `analyzeLetRec` where `varSym` was undefined after variable renaming.
+- These changes allowed macros to generate binding forms with scopes attached, eliminating crashes like `lambda: parameter must be a symbol`.
+
+### 5. Library Environment Linking
+This was the most complex part of the implementation, solving the problem of internal library definitions being inaccessible to hygienic macros:
+
+- **Problem**: Internal library definitions like `param-dynamic-bind` (used by the `parameterize` macro in `scheme core`) were defined in library-specific environments but `GlobalRef` only looked in the global environment.
+
+- **Solution**: 
+  - Introduced `libraryScopeEnvMap` in `syntax_object.js` to map library defining scopes to their runtime environments.
+  - Updated `library_loader.js` to register this mapping when loading libraries via `registerLibraryScope(libraryScope, libEnv)`.
+  - Updated `GlobalRef` to carry the defining scope ID.
+  - Updated `ScopedVariable.step` to use `lookupLibraryEnv` when resolving scoped `GlobalRef`s, enabling correct resolution across library boundaries.
+
+## Files Modified
+
+| File | Changes |
+|------|---------|
+| `syntax_object.js` | Added `libraryScopeEnvMap`, `registerLibraryScope()`, `lookupLibraryEnv()`, updated `GlobalRef` constructor |
+| `library_loader.js` | Imported and called `registerLibraryScope()` in `loadLibrary()` |
+| `stepables.js` | Updated `ScopedVariable.step` to use library environment lookup |
+| `analyzer.js` | Updated all binding forms to handle `SyntaxObject`, fixed `analyzeLetRec` regression |
+
+## Verification
+
+### Hygiene Tests (`tests/functional/macro_tests.js`)
+All 8 tests pass:
+- ✅ **Standard Library Capture**: `(syntax-rules () ((_) (list 1 2)))` works even if `list` is shadowed locally
+- ✅ **User Global Capture**: `(syntax-rules () ((_) global-var))` works even if `global-var` is shadowed locally  
+- ✅ **Renaming**: Macro-introduced variables don't clash with user variables
+
+### Regression Tests
+- ✅ `tests/core/scheme/error_tests.scm` - Confirms `lambda` and other forms accept `SyntaxObject` parameters
+- ✅ `tests/core/scheme/parameter_tests.scm` - Confirms `parameterize` macro works with internal `param-dynamic-bind`
+
+### Full Suite
+```
+TEST SUMMARY: 644 passed, 0 failed
+```
+
+All tests pass, including the complete `scheme core` parameter implementation that depends on cross-library hygienic macro expansion.

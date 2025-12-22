@@ -10,6 +10,7 @@ import { Symbol, intern } from './symbol.js';
 import { Environment } from './environment.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { parse } from './reader.js';
+import { freshScope, pushDefiningScope, popDefiningScope, registerLibraryScope } from './syntax_object.js';
 
 /**
  * Feature registry for cond-expand.
@@ -506,10 +507,20 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
         }
     }
 
-    // Execute body
-    for (const expr of libDef.body) {
-        const ast = analyze(expr);
-        interpreter.run(ast, libEnv);
+    // Execute body with a defining scope for referential transparency
+    // Bindings defined here will be registered in the scope registry
+    // so macros can reference them hygienically
+    const libraryScope = freshScope();
+    registerLibraryScope(libraryScope, libEnv);
+    pushDefiningScope(libraryScope);
+
+    try {
+        for (const expr of libDef.body) {
+            const ast = analyze(expr);
+            interpreter.run(ast, libEnv);
+        }
+    } finally {
+        popDefiningScope();
     }
 
     // Build exports map

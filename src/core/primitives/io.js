@@ -478,6 +478,11 @@ function requireOpenOutputPort(port, procName) {
  * @returns {string}
  */
 function displayString(val) {
+    if (typeof val === 'function' || val && val.constructor && val.constructor.name === 'Closure') {
+        const name = val.constructor ? val.constructor.name : 'Unknown';
+        if (name === 'Closure') return val.toString();
+        return `#<procedure ${name}>`;
+    }
     if (val === null) return '()';
     if (val === true) return '#t';
     if (val === false) return '#f';
@@ -488,7 +493,11 @@ function displayString(val) {
     if (val && val.name && val.description === undefined) return val.name; // Symbol
     if (val === EOF_OBJECT) return '#<eof>';
     if (val instanceof Port) return val.toString();
-    if (typeof val === 'function') return '#<procedure>';
+    if (typeof val === 'function') {
+        const name = val.constructor ? val.constructor.name : 'Unknown';
+        if (name === 'Closure') return val.toString();
+        return `#<procedure ${name}>`;
+    }
     if (val && val.type === 'record') {
         return `#<${val.typeDescriptor.name}>`;
     }
@@ -519,7 +528,11 @@ function writeString(val) {
     if (val && val.name && val.description === undefined) return val.name; // Symbol
     if (val === EOF_OBJECT) return '#<eof>';
     if (val instanceof Port) return val.toString();
-    if (typeof val === 'function') return '#<procedure>';
+    if (typeof val === 'function') {
+        const name = val.constructor ? val.constructor.name : 'Unknown';
+        if (name === 'Closure') return val.toString();
+        return `#<procedure ${name}>`;
+    }
     if (val && typeof val === 'object' && val.type === 'char') {
         // Character representation
         const ch = val.value;
@@ -1161,6 +1174,10 @@ export const ioPrimitives = {
         return undefined;  // unspecified
     },
 };
+
+// Mark primitives that should receive raw Scheme objects
+ioPrimitives['display'].skipBridge = true;
+ioPrimitives['write'].skipBridge = true;
 
 // Export for testing
 export {

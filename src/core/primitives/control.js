@@ -138,6 +138,12 @@ export function getControlPrimitives(interpreter) {
 
     // Allow raw Closures for dynamic-wind components
     controlPrimitives['dynamic-wind'].skipBridge = true;
+    controlPrimitives['values'].skipBridge = true;
+    controlPrimitives['procedure?'].skipBridge = true;
+    controlPrimitives['eval'].skipBridge = true;
+    controlPrimitives['call/cc'].skipBridge = true;
+    controlPrimitives['call-with-current-continuation'].skipBridge = true;
+    controlPrimitives['interaction-environment'].skipBridge = true;
 
     return controlPrimitives;
 }

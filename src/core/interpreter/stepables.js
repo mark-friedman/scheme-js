@@ -12,6 +12,7 @@
 import { Closure, Continuation, TailCall, ContinuationUnwind, Values } from './values.js';
 import { registerFrames, createBeginFrame, getWindFrameClass } from './frame_registry.js';
 import { Cons } from './cons.js';
+import { registerBindingWithCurrentScopes, GlobalRef, lookupLibraryEnv } from './syntax_object.js';
 
 // =============================================================================
 // Register Constants
@@ -91,6 +92,71 @@ export class Variable extends Executable {
     }
 
     toString() { return `(Variable ${this.name})`; }
+}
+
+/**
+ * A scoped variable lookup.
+ * This is used for macro free variables that carry scope marks.
+ * It first checks the scope binding registry, then falls back to the environment.
+ */
+export class ScopedVariable extends Executable {
+    /**
+     * @param {string} name - The variable name to look up.
+     * @param {Set<number>} scopes - The scope marks for this identifier.
+     * @param {ScopeBindingRegistry} scopeRegistry - The registry to check first.
+     */
+    constructor(name, scopes, scopeRegistry) {
+        super();
+        this.name = name;
+        this.scopes = scopes;
+        this.scopeRegistry = scopeRegistry;
+    }
+
+    step(registers, interpreter) {
+        // First, check scope registry for a marked binding
+        if (this.scopeRegistry) {
+            const resolved = this.scopeRegistry.resolve({ name: this.name, scopes: this.scopes });
+            if (resolved !== null) {
+                if (resolved instanceof GlobalRef) {
+                    // Global/Dynamic lookup (for user defined globals or library internals)
+                    // If the ref carries a scope, try to find the specific library environment
+                    let envVal;
+                    let found = false;
+
+                    if (resolved.scope) {
+                        const libEnv = lookupLibraryEnv(resolved.scope);
+                        if (libEnv) {
+                            // Try to lookup in library env (findEnv avoids throwing if missing)
+                            if (libEnv.findEnv(resolved.name)) {
+                                envVal = libEnv.lookup(resolved.name);
+                                found = true;
+                            }
+                        }
+                    }
+
+                    if (!found) {
+                        // Fall back to global/runtime environment
+                        if (!interpreter.globalEnv) {
+                            throw new Error(`GlobalRef resolution failed: no global environment for ${this.name}`);
+                        }
+                        envVal = interpreter.globalEnv.lookup(resolved.name);
+                    }
+                    registers[ANS] = envVal;
+                } else {
+                    // Constant/Macro binding
+                    registers[ANS] = resolved;
+                }
+                return false;
+            }
+        }
+
+        // Fall back to regular environment lookup
+        const env = registers[ENV];
+        registers[ANS] = env.lookup(this.name);
+        return false;
+    }
+
+    toString() { return `(ScopedVariable ${this.name} {${[...this.scopes].join(',')}})`; }
 }
 
 /**
@@ -754,6 +820,7 @@ export class SetFrame extends Executable {
 /**
  * Frame for a 'define' expression.
  * Waits for the value, then creates a binding in the current scope.
+ * Also registers the binding with any active defining scopes (for macro hygiene).
  */
 export class DefineFrame extends Executable {
     /**
@@ -769,6 +836,10 @@ export class DefineFrame extends Executable {
     step(registers, interpreter) {
         const value = registers[ANS];
         this.env.define(this.name, value);
+
+        // Register binding with current defining scopes for macro referential transparency
+        registerBindingWithCurrentScopes(this.name, value);
+
         registers[ANS] = this.name;
         return false;
     }

@@ -58,6 +58,54 @@ export async function runMacroTests(interpreter, logger) {
             logger.pass('Malformed define-syntax threw error');
         }
 
+        // Test 5: Hygienic Shadowing (Referential Transparency - Standard Lib)
+        // Macro 'use-list' uses 'list' (global). Shadowing 'list' should not affect it.
+        run(interpreter, `
+            (define-syntax use-list
+                (syntax-rules ()
+                    ((_) (list 1 2))))
+        `);
+
+        // Shadow 'list' with a symbol 'broken
+        const hygieneResult1 = run(interpreter, `
+            (let ((list 'broken))
+                (use-list))
+        `);
+        // Should evaluate to (1 2)
+        assert(logger, 'Hygiene: Ref Transparency (Standard Lib)', hygieneResult1.car, 1);
+
+        // Test 6: Hygienic Shadowing (Referential Transparency - User Global)
+        run(interpreter, `(define hidden 100)`);
+        run(interpreter, `
+            (define-syntax return-hidden
+                (syntax-rules ()
+                    ((_) hidden)))
+        `);
+
+        const hygieneResult2 = run(interpreter, `
+            (let ((hidden 200))
+                (return-hidden))
+        `);
+        assert(logger, 'Hygiene: Ref Transparency (User Global)', hygieneResult2, 100);
+
+        // Test 7: Hygienic Renaming (Avoid Capture)
+        // Macro introduces 'tmp'. User uses 'tmp'. No collision.
+        run(interpreter, `
+            (define-syntax hygienic-swap
+                (syntax-rules ()
+                    ((hygienic-swap a b)
+                     (let ((tmp a))
+                        (set! a b)
+                        (set! b tmp)))))
+        `);
+
+        run(interpreter, `(define tmp 10)`);
+        run(interpreter, `(define val 20)`);
+        run(interpreter, `(hygienic-swap tmp val)`);
+
+        const tmpVal = run(interpreter, `tmp`);
+        assert(logger, 'Hygiene: Renaming (avoid capture)', tmpVal, 20);
+
     } catch (e) {
         logger.fail(`Macro tests crashed: ${e.message}`);
     } finally {

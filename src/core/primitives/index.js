@@ -1,4 +1,5 @@
 import { Environment } from '../interpreter/environment.js';
+import { globalScopeRegistry, GLOBAL_SCOPE_ID } from '../interpreter/syntax_object.js';
 
 import { mathPrimitives } from './math.js';
 import { ioPrimitives } from './io.js';
@@ -22,10 +23,16 @@ import { getExceptionPrimitives } from './exception.js';
 export function createGlobalEnvironment(interpreter) {
     const bindings = new Map();
 
+    // Clear registry to ensure fresh state for tests
+    globalScopeRegistry.clear();
+
     // Helper to add primitives
     const addPrimitives = (prims) => {
         for (const [name, fn] of Object.entries(prims)) {
             bindings.set(name, fn); // No wrapper needed!
+
+            // Register for hygienic macro expansion
+            globalScopeRegistry.bind(name, new Set([GLOBAL_SCOPE_ID]), fn);
         }
     };
 

@@ -1,5 +1,7 @@
 import { Cons, cons, list } from './cons.js';
 import { Symbol, intern } from './symbol.js';
+import { SyntaxObject, freshScope, globalScopeRegistry } from './syntax_object.js';
+import { globalMacroRegistry } from './macro_registry.js';
 
 // =============================================================================
 // Hygiene Support
@@ -40,11 +42,14 @@ const SPECIAL_FORMS = new Set([
 
 /**
  * Compiles a syntax-rules specification into a transformer function.
+ * 
  * @param {Array<Symbol>} literals - List of literal identifiers.
  * @param {Array} clauses - List of (pattern template) clauses.
+ * @param {number|null} definingScope - Scope ID for referential transparency.
+ *        Free variables in templates will be marked with this scope.
  * @returns {Function} A transformer function (exp) -> exp.
  */
-export function compileSyntaxRules(literals, clauses) {
+export function compileSyntaxRules(literals, clauses, definingScope = null) {
     const literalNames = new Set(literals.map(l => l.name));
 
     return (exp) => {
@@ -72,8 +77,9 @@ export function compileSyntaxRules(literals, clauses) {
                     renameMap.set(name, gensym(name));
                 }
 
-                // Transcribe with the rename map for hygiene
-                return transcribe(template, bindings, renameMap);
+                // Transcribe with the rename map for hygiene and definingScope
+                // for referential transparency
+                return transcribe(template, bindings, renameMap, definingScope);
             }
         }
         throw new Error(`No matching clause for macro use: ${exp}`);
@@ -321,12 +327,14 @@ function mergeBindings(target, source, isEllipsis) {
 
 /**
  * Transcribes a template using the bindings and rename map.
+ * 
  * @param {*} template - The template to transcribe
  * @param {Map<string, *>} bindings - Pattern variable bindings
  * @param {Map<string, Symbol>} renameMap - Map of names to their gensyms
+ * @param {number|null} definingScope - Scope ID for marking free variables
  * @returns {*} Expanded expression.
  */
-function transcribe(template, bindings, renameMap = new Map()) {
+function transcribe(template, bindings, renameMap = new Map(), definingScope = null) {
     // 1. Variables (Symbols)
     if (template instanceof Symbol) {
         const name = template.name;
@@ -341,7 +349,17 @@ function transcribe(template, bindings, renameMap = new Map()) {
             return renameMap.get(name);
         }
 
-        // Free variable (including special forms) → keep as-is
+        // Free variable: mark with defining scope for referential transparency
+        // Special forms are NOT marked - they're keywords recognized by the analyzer
+        // Macros are NOT marked - they're expanded at analysis time, not runtime values
+        if (definingScope !== null &&
+            !SPECIAL_FORMS.has(name) &&
+            !globalMacroRegistry.isMacro(name)) {
+            // Return a SyntaxObject with the defining scope mark
+            return new SyntaxObject(name, new Set([definingScope]));
+        }
+
+        // Fallback: keep as-is (primitives, special forms, macros, or no definingScope)
         return template;
     }
 
@@ -389,7 +407,7 @@ function transcribe(template, bindings, renameMap = new Map()) {
             }
 
             // Expand N times
-            let expandedList = transcribe(restTemplate, bindings, renameMap);
+            let expandedList = transcribe(restTemplate, bindings, renameMap, definingScope);
 
             for (let i = len - 1; i >= 0; i--) {
                 // Create a view of bindings for the i-th iteration
@@ -399,7 +417,7 @@ function transcribe(template, bindings, renameMap = new Map()) {
                 }
                 // Scalar vars remain as is in subBindings (inherited from bindings)
 
-                const expandedItem = transcribe(item, subBindings, renameMap);
+                const expandedItem = transcribe(item, subBindings, renameMap, definingScope);
                 expandedList = new Cons(expandedItem, expandedList);
             }
 
@@ -407,8 +425,8 @@ function transcribe(template, bindings, renameMap = new Map()) {
         } else {
             // Regular cons
             return new Cons(
-                transcribe(template.car, bindings, renameMap),
-                transcribe(template.cdr, bindings, renameMap)
+                transcribe(template.car, bindings, renameMap, definingScope),
+                transcribe(template.cdr, bindings, renameMap, definingScope)
             );
         }
     }

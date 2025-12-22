@@ -58,3 +58,7 @@ export const eqPrimitives = {
      */
     'symbol?': (obj) => obj !== null && typeof obj === 'object' && obj.constructor && obj.constructor.name === 'Symbol'
 };
+
+// Mark primitives that should receive raw Scheme objects (no JS bridge wrapping)
+eqPrimitives['eq?'].skipBridge = true;
+eqPrimitives['eqv?'].skipBridge = true;

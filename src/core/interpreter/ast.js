@@ -22,6 +22,7 @@ export {
     // AST Nodes
     Literal,
     Variable,
+    ScopedVariable,
     Lambda,
     Let,
     LetRec,

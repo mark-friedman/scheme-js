@@ -7,6 +7,7 @@
   (include "cxr.scm")        ; caar, cadr, etc.
   (include "numbers.scm")    ; =, <, >, predicates, min/max
   (include "list.scm")       ; map, for-each, memq, assq, etc.
+  (include "parameter.scm")  ; make-parameter, parameterize
   
   (export
     ;; Macros
@@ -43,7 +44,11 @@
     ;; Rounding
     round inexact->exact
     
+    ;; Parameter objects
+    make-parameter parameterize
+    
     ;; Misc
     native-report-test-result
   )
 )
+
