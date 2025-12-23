@@ -113,8 +113,8 @@ export function analyze(exp, syntacticEnv = null) {
       const opNameForMacro = (operator instanceof Symbol) ? operator.name :
         (isSyntaxObject(operator) ? syntaxName(operator) : null);
 
-      if (opNameForMacro && globalMacroRegistry.isMacro(opNameForMacro)) {
-        const transformer = globalMacroRegistry.lookup(opNameForMacro);
+      if (opNameForMacro && currentMacroRegistry.isMacro(opNameForMacro)) {
+        const transformer = currentMacroRegistry.lookup(opNameForMacro);
         try {
           const expanded = transformer(exp);
           return analyze(expanded, syntacticEnv);
@@ -144,8 +144,8 @@ export function analyze(exp, syntacticEnv = null) {
         // Restored cases
         case 'quasiquote': return expandQuasiquote(cadr(exp), syntacticEnv); // Pass env to quasiquote!
         case 'define-syntax': return analyzeDefineSyntax(exp);
-        case 'let-syntax': return analyzeLetSyntax(exp);
-        case 'letrec-syntax': return analyzeLetrecSyntax(exp);
+        case 'let-syntax': return analyzeLetSyntax(exp, syntacticEnv);
+        case 'letrec-syntax': return analyzeLetrecSyntax(exp, syntacticEnv);
         case 'cond-expand': return analyze(expandCondExpand(exp), syntacticEnv);
       }
     }
@@ -267,7 +267,7 @@ function analyzeDefineSyntax(exp) {
 // Current macro registry stack for scoped expansion
 let currentMacroRegistry = globalMacroRegistry;
 
-function analyzeLetSyntax(exp) {
+function analyzeLetSyntax(exp, syntacticEnv) {
   // (let-syntax ((name transformer) ...) body ...)
   const bindings = cadr(exp);
   const body = cddr(exp);
@@ -300,7 +300,7 @@ function analyzeLetSyntax(exp) {
   }
 }
 
-function analyzeLetrecSyntax(exp) {
+function analyzeLetrecSyntax(exp, syntacticEnv) {
   // (letrec-syntax ((name transformer) ...) body ...)
   // Same as let-syntax but transformers can refer to each other
   const bindings = cadr(exp);

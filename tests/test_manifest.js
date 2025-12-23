@@ -59,6 +59,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/error_tests.scm',
     'tests/core/scheme/repl_tests.scm',
     'tests/core/scheme/parameter_tests.scm',
+    'tests/core/scheme/hygiene_tests.scm',
 ];
 
 /**
