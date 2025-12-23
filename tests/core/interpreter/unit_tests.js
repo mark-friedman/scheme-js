@@ -122,14 +122,16 @@ export function runUnitTests(interpreter, logger) {
         let ast = analyze(parse(`(if #t 1 2)`)[0]);
         assert(logger, "Unit: analyze if", ast instanceof If, true);
         ast = analyze(parse(`(call/cc (lambda (k) k))`)[0]);
-        assert(logger, "Unit: analyze call/cc", ast instanceof CallCC, true);
+        // call/cc is now a regular function application (primitive procedure)
+        assert(logger, "Unit: analyze call/cc", ast instanceof TailApp, true);
 
         // Let is now desugared to TailApp (Lambda)
         ast = analyze(parse(`(let ((x 1)) x)`)[0]);
         assert(logger, "Unit: analyze let", ast instanceof TailApp, true);
 
         ast = analyze(parse(`(letrec ((f (lambda () 0))) (f))`)[0]);
-        assert(logger, "Unit: analyze letrec", ast instanceof LetRec, true);
+        // letrec is now desugared to let + set! via TailApp(Lambda)
+        assert(logger, "Unit: analyze letrec", ast instanceof TailApp, true);
         ast = analyze(parse(`(lambda (x) x)`)[0]);
         assert(logger, "Unit: analyze lambda (single body)", ast instanceof Lambda, true);
         ast = analyze(parse(`(+ 1 2)`)[0]);

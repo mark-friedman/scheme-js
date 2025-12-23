@@ -5,7 +5,7 @@
  */
 
 import { TailCall, Values, Closure, Continuation } from '../interpreter/values.js';
-import { TailApp, Literal, DynamicWindInit, CallWithValuesNode } from '../interpreter/ast.js';
+import { TailApp, Literal, DynamicWindInit, CallWithValuesNode, CallCC } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/analyzer.js';
 import { Cons, toArray } from '../interpreter/cons.js';
 import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';

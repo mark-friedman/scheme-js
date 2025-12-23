@@ -1170,9 +1170,92 @@ export const ioPrimitives = {
         if (!isNode) {
             throw new Error('delete-file: file I/O not supported in browser');
         }
-        fs.unlinkSync(filename);
-        return undefined;  // unspecified
+        if (fs.existsSync(filename)) {
+            fs.unlinkSync(filename);
+        } else {
+            throw new Error(`delete-file: file not found: ${filename}`);
+        }
+        return undefined; // unspecified
     },
+
+    // --------------------------------------------------------------------------
+    // System Primitives (6.14)
+    // --------------------------------------------------------------------------
+
+    /**
+     * Returns the value of a system environment variable.
+     * @param {string} name
+     * @returns {string|boolean} Value or #f if not found.
+     */
+    'get-environment-variable': (name) => {
+        if (typeof name !== 'string') {
+            throw new Error('get-environment-variable: expected string');
+        }
+        if (isNode) {
+            const val = process.env[name];
+            return val !== undefined ? val : false;
+        }
+        return false;
+    },
+
+    /**
+     * Returns an association list of all environment variables.
+     * @returns {Cons} List of (name . value) pairs.
+     */
+    'get-environment-variables': () => {
+        if (isNode) {
+            const entries = Object.entries(process.env).map(([k, v]) => list(k, v));
+            return list(...entries);
+        }
+        return list();
+    },
+
+    /**
+     * Returns the command line arguments as a list of strings.
+     * @returns {Cons}
+     */
+    'command-line': () => {
+        if (isNode) {
+            return list(...process.argv);
+        }
+        return list();
+    },
+
+    /**
+     * Returns the current time in seconds since the epoch.
+     * @returns {number}
+     */
+    'current-second': () => Date.now() / 1000,
+
+    /**
+     * Returns the current jiffy count (high resolution time).
+     * @returns {number}
+     */
+    'current-jiffy': () => {
+        // Return arbitrary precision unit. Using milliseconds for now.
+        return Date.now();
+    },
+
+    /**
+     * Returns the number of jiffies per second.
+     * @returns {number}
+     */
+    'jiffies-per-second': () => 1000,
+
+    /**
+     * Returns a list of supported feature identifiers.
+     * @returns {Cons}
+     */
+    'features': () => {
+        // Basic R7RS features
+        return list(
+            { name: 'r7rs' },
+            { name: 'exact-closed' },
+            { name: 'ratios' },
+            { name: 'complex' },
+            { name: 'full-unicode' }
+        );
+    }
 };
 
 // Mark primitives that should receive raw Scheme objects

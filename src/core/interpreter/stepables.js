@@ -47,6 +47,18 @@ export class Executable {
     }
 }
 
+/**
+ * Helper to ensure a value is an Executable AST node.
+ * If it's already an Executable, returns it as-is.
+ * Otherwise, wraps it in a Literal.
+ * @param {*} obj 
+ * @returns {Executable}
+ */
+export function ensureExecutable(obj) {
+    if (obj instanceof Executable) return obj;
+    return new Literal(obj);
+}
+
 // =============================================================================
 // AST Nodes - Atomic
 // =============================================================================
@@ -480,7 +492,7 @@ export class DynamicWindInit extends Executable {
             registers[ENV]
         ));
 
-        registers[CTL] = new TailApp(new Literal(this.before), []);
+        registers[CTL] = new TailApp(ensureExecutable(this.before), []);
         return true;
     }
 }
@@ -532,7 +544,7 @@ export class CallWithValuesNode extends Executable {
             registers[ENV]
         ));
 
-        registers[CTL] = new TailApp(new Literal(this.producer), []);
+        registers[CTL] = new TailApp(ensureExecutable(this.producer), []);
         return true;
     }
 
@@ -566,7 +578,7 @@ export class WithExceptionHandlerInit extends Executable {
         ));
 
         // Execute thunk
-        registers[CTL] = new TailApp(new Literal(this.thunk), []);
+        registers[CTL] = new TailApp(ensureExecutable(this.thunk), []);
         return true;
     }
 }
@@ -621,7 +633,7 @@ export class RaiseNode extends Executable {
 
         // Add 'after' thunks for each WindFrame to unwind
         for (const frame of framesToUnwind) {
-            actions.push(new TailApp(new Literal(frame.after), []));
+            actions.push(new TailApp(ensureExecutable(frame.after), []));
         }
 
         // The final action is to invoke the handler
@@ -682,7 +694,7 @@ export class InvokeExceptionHandler extends Executable {
         }
 
         // Invoke handler with the exception
-        registers[CTL] = new TailApp(new Literal(this.handler), [new Literal(this.exception)]);
+        registers[CTL] = new TailApp(ensureExecutable(this.handler), [new Literal(this.exception)]);
         return true;
     }
 }

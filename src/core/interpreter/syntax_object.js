@@ -378,3 +378,53 @@ export function clearDefiningScopes() {
     currentDefiningScopes = [];
 }
 
+/**
+ * Compares two identifiers for equality (same name and scopes).
+ * Handles both Symbols and SyntaxObjects.
+ * @param {Symbol|SyntaxObject} id1 
+ * @param {Symbol|SyntaxObject} id2 
+ * @returns {boolean}
+ */
+export function identifierEquals(id1, id2) {
+    if (id1 instanceof SyntaxObject) {
+        if (id2 instanceof SyntaxObject) {
+            return id1.boundIdentifierEquals(id2);
+        } else if (id2 instanceof Symbol) {
+            // Compare syntax object with symbol (treat symbol as empty scope)
+            return id1.scopes.size === 0 && id1.name === id2.name;
+        }
+    } else if (id1 instanceof Symbol) {
+        if (id2 instanceof SyntaxObject) {
+            return id2.scopes.size === 0 && id2.name === id1.name;
+        } else if (id2 instanceof Symbol) {
+            return id1.name === id2.name;
+        }
+    }
+    return false;
+}
+
+/**
+ * Unwrap a syntax object to get the underlying symbol/value.
+ * If strictly a symbol is needed, use toSymbol().
+ * @param {any} obj 
+ * @returns {any}
+ */
+export function unwrapSyntax(obj) {
+    if (obj instanceof SyntaxObject) {
+        return intern(obj.name);
+    }
+    return obj;
+}
+
+/**
+ * Get scope set from an object (empty if not syntax object).
+ * @param {any} obj
+ * @returns {Set<number>}
+ */
+export function syntaxScopes(obj) {
+    if (obj instanceof SyntaxObject) {
+        return obj.scopes;
+    }
+    return new Set();
+}
+

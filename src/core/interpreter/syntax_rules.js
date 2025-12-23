@@ -47,9 +47,10 @@ const SPECIAL_FORMS = new Set([
  * @param {Array} clauses - List of (pattern template) clauses.
  * @param {number|null} definingScope - Scope ID for referential transparency.
  *        Free variables in templates will be marked with this scope.
+ * @param {string} ellipsisName - The ellipsis identifier (default '...')
  * @returns {Function} A transformer function (exp) -> exp.
  */
-export function compileSyntaxRules(literals, clauses, definingScope = null) {
+export function compileSyntaxRules(literals, clauses, definingScope = null, ellipsisName = '...') {
     const literalNames = new Set(literals.map(l => l.name));
 
     return (exp) => {
@@ -57,15 +58,23 @@ export function compileSyntaxRules(literals, clauses, definingScope = null) {
         // We match against the whole expression.
 
         for (const clause of clauses) {
-            const pattern = clause[0];
             const template = clause[1];
 
-            // Match against the pattern
-            const bindings = matchPattern(pattern, exp, literalNames);
+            // Skip the macro name in the pattern matching
+            // R7RS: The first element of the pattern is ignored
+            let pattern = clause[0];
+            let input = exp;
+
+            if (pattern instanceof Cons && input instanceof Cons) {
+                pattern = pattern.cdr;
+                input = input.cdr;
+            }
+
+            const bindings = matchPattern(pattern, input, literalNames, ellipsisName);
 
             if (bindings) {
                 // Collect pattern variables from this clause's pattern
-                const patternVars = collectPatternVars(pattern, literalNames);
+                const patternVars = collectPatternVars(pattern, literalNames, ellipsisName);
 
                 // Find introduced bindings in the template (symbols in binding 
                 // positions that are not pattern variables or special forms)
@@ -79,7 +88,7 @@ export function compileSyntaxRules(literals, clauses, definingScope = null) {
 
                 // Transcribe with the rename map for hygiene and definingScope
                 // for referential transparency
-                return transcribe(template, bindings, renameMap, definingScope);
+                return transcribe(template, bindings, renameMap, definingScope, ellipsisName, literalNames);
             }
         }
         throw new Error(`No matching clause for macro use: ${exp}`);
@@ -98,10 +107,10 @@ export function compileSyntaxRules(literals, clauses, definingScope = null) {
  */
 function findIntroducedBindings(template, patternVars) {
     const introduced = new Set();
+    const visited = new Set(); // Prevent infinite recursion on cyclic structures if any
 
     function traverse(node, inBindingPosition = false) {
         if (node instanceof Symbol) {
-            // If we're in a binding position and this isn't a pattern var or special form
             if (inBindingPosition &&
                 !patternVars.has(node.name) &&
                 !SPECIAL_FORMS.has(node.name)) {
@@ -112,6 +121,10 @@ function findIntroducedBindings(template, patternVars) {
 
         if (!(node instanceof Cons)) return;
 
+        // Prevent cycles just in case
+        if (visited.has(node)) return;
+        visited.add(node);
+
         const head = node.car;
 
         // Check for binding forms
@@ -120,47 +133,48 @@ function findIntroducedBindings(template, patternVars) {
 
             // (let ((var val) ...) body) or (letrec ((var val) ...) body)
             if (name === 'let' || name === 'letrec') {
-                const bindings = node.cdr?.car;  // The ((var val) ...) part
+                const bindings = node.cdr?.car;
                 const body = node.cdr?.cdr;
 
-                // Process binding pairs
                 let curr = bindings;
                 while (curr instanceof Cons) {
-                    const pair = curr.car;  // (var val)
+                    const pair = curr.car;
                     if (pair instanceof Cons) {
-                        // The car is the variable name (binding position)
-                        traverse(pair.car, true);
-                        // The cadr is the value (not binding position)
-                        if (pair.cdr instanceof Cons) {
-                            traverse(pair.cdr.car, false);
-                        }
+                        traverse(pair.car, true); // var
+                        traverseList(pair.cdr);   // val (usually list of 1)
                     }
                     curr = curr.cdr;
                 }
 
-                // Process body
                 traverseList(body);
                 return;
             }
 
             // (lambda (params...) body)
             if (name === 'lambda') {
-                const params = node.cdr?.car;  // The (params...) part
+                const params = node.cdr?.car;
                 const body = node.cdr?.cdr;
 
-                // Process params as binding positions
-                let curr = params;
-                while (curr instanceof Cons) {
-                    traverse(curr.car, true);
-                    curr = curr.cdr;
-                }
-                // Handle rest parameter (improper list)
-                if (curr instanceof Symbol) {
-                    traverse(curr, true);
-                }
-
-                // Process body
+                traverseFormParams(params);
                 traverseList(body);
+                return;
+            }
+
+            // (define var val) or (define (name params...) body)
+            if (name === 'define') {
+                const firstArgs = node.cdr?.car;
+                const rest = node.cdr?.cdr;
+
+                if (firstArgs instanceof Symbol) {
+                    // (define var val)
+                    traverse(firstArgs, true); // var
+                    traverseList(rest);
+                } else if (firstArgs instanceof Cons) {
+                    // (define (name params...) body)
+                    traverse(firstArgs.car, true); // name
+                    traverseFormParams(firstArgs.cdr); // params
+                    traverseList(rest);
+                }
                 return;
             }
         }
@@ -170,6 +184,17 @@ function findIntroducedBindings(template, patternVars) {
         while (curr instanceof Cons) {
             traverse(curr.car, false);
             curr = curr.cdr;
+        }
+    }
+
+    function traverseFormParams(params) {
+        let curr = params;
+        while (curr instanceof Cons) {
+            traverse(curr.car, true);
+            curr = curr.cdr;
+        }
+        if (curr instanceof Symbol) {
+            traverse(curr, true);
         }
     }
 
@@ -185,6 +210,7 @@ function findIntroducedBindings(template, patternVars) {
     return introduced;
 }
 
+
 /**
  * Matches an input expression against a pattern.
  * @param {*} pattern 
@@ -192,22 +218,28 @@ function findIntroducedBindings(template, patternVars) {
  * @param {Set<string>} literals 
  * @returns {Map<string, *> | null} Bindings map or null if failed.
  */
-function matchPattern(pattern, input, literals) {
-    // 1. Variables (Symbols)
-    if (pattern instanceof Symbol) {
-        // Wildcard
-        if (pattern.name === '_') return new Map();
+function matchPattern(pattern, input, literals, ellipsisName = '...') {
+    // 1. Variables (Symbols or SyntaxObjects)
+    // SyntaxObjects can appear when patterns come from macro-expanded define-syntax
+    if (pattern instanceof Symbol || pattern instanceof SyntaxObject) {
+        const patName = pattern instanceof SyntaxObject ? pattern.name : pattern.name;
 
         // Literal identifier
-        if (literals.has(pattern.name)) {
-            if (input instanceof Symbol && input.name === pattern.name) {
+        if (literals.has(patName)) {
+            // Match literal by name (ignore scopes for literal matching)
+            const inputName = (input instanceof Symbol) ? input.name :
+                (input instanceof SyntaxObject) ? input.name : null;
+            if (inputName === patName) {
                 return new Map();
             }
             return null; // Mismatch
         }
 
+        // Wildcard
+        if (patName === '_') return new Map();
+
         // Pattern variable
-        return new Map([[pattern.name, input]]);
+        return new Map([[patName, input]]);
     }
 
     // 2. Literals (Numbers, Strings, Booleans, Null)
@@ -234,35 +266,41 @@ function matchPattern(pattern, input, literals) {
             const patItem = pCurr.car;
 
             // Check for ellipsis: look ahead
-            // pCurr.cdr must be a Cons, and pCurr.cdr.car must be '...'
-            const isEllipsis = (pCurr.cdr instanceof Cons) &&
-                (pCurr.cdr.car instanceof Symbol) &&
-                (pCurr.cdr.car.name === '...');
+            // pCurr.cdr must be a Cons, and pCurr.cdr.car must be the ellipsis symbol
+            const nextCar = pCurr.cdr instanceof Cons ? pCurr.cdr.car : null;
+            const isEllipsis = nextCar &&
+                ((nextCar instanceof Symbol && nextCar.name === ellipsisName) ||
+                    (nextCar instanceof SyntaxObject && nextCar.name === ellipsisName));
 
             if (isEllipsis) {
-                // Greedy match for the rest of the input (tail ellipsis)
+                // Determine how many items to match Greedily (P ...)
+                // We need to reserve enough items for the tail pattern T
+                // Pattern is (P ... . T)
+                const tailPattern = pCurr.cdr.cdr;
+                const tailLen = countPairs(tailPattern);
+                const inputLen = countPairs(iCurr);
+
+                if (inputLen < tailLen) return null; // Not enough input
+
+                // Number of items to consume for the ellipsis
+                const matchCount = inputLen - tailLen;
 
                 // Initialize bindings for all vars in patItem to []
-                const varsInPat = collectPatternVars(patItem, literals);
+                const varsInPat = collectPatternVars(patItem, literals, ellipsisName);
                 for (const v of varsInPat) {
                     bindings.set(v, []);
                 }
 
-                // Collect all matches
-                while (iCurr instanceof Cons) {
-                    const subBindings = matchPattern(patItem, iCurr.car, literals);
+                // Collect matches
+                for (let k = 0; k < matchCount; k++) {
+                    if (!(iCurr instanceof Cons)) return null;
+                    const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName);
                     if (!subBindings) return null; // Failed to match one item
                     mergeBindings(bindings, subBindings, true);
                     iCurr = iCurr.cdr;
                 }
 
-                // If iCurr is not null, it means input was improper list or longer?
-                // But we consumed all Cons. If iCurr is not null, it's the dotted tail.
-                // But pattern has ellipsis, so it expects list.
-                // Standard syntax-rules: (x ...) matches proper list.
-                if (iCurr !== null) return null;
-
-                pCurr = pCurr.cdr.cdr; // Skip pat and ...
+                pCurr = pCurr.cdr.cdr; // Skip pat and ellipsis
             } else {
                 // Normal match
                 if (iCurr === null) return null; // Ran out of input
@@ -270,7 +308,7 @@ function matchPattern(pattern, input, literals) {
                 // Handle improper input list if pattern expects more
                 if (!(iCurr instanceof Cons)) return null;
 
-                const subBindings = matchPattern(patItem, iCurr.car, literals);
+                const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName);
                 if (!subBindings) return null;
                 mergeBindings(bindings, subBindings, false);
 
@@ -288,7 +326,7 @@ function matchPattern(pattern, input, literals) {
         // Dotted pattern tail: (a . b)
         // pCurr is the tail (b)
         // Match tail against remaining input
-        const tailBindings = matchPattern(pCurr, iCurr, literals);
+        const tailBindings = matchPattern(pCurr, iCurr, literals, ellipsisName);
         if (!tailBindings) return null;
         mergeBindings(bindings, tailBindings, false);
 
@@ -296,6 +334,21 @@ function matchPattern(pattern, input, literals) {
     }
 
     return null;
+}
+
+/**
+ * Counts the number of Cons pairs in a list (proper or improper).
+ * @param {*} list 
+ * @returns {number}
+ */
+function countPairs(list) {
+    let count = 0;
+    let curr = list;
+    while (curr instanceof Cons) {
+        count++;
+        curr = curr.cdr;
+    }
+    return count;
 }
 
 /**
@@ -326,18 +379,92 @@ function mergeBindings(target, source, isEllipsis) {
 }
 
 /**
+ * Transcribes a template literally, without expanding ellipsis.
+ * Used for escaped ellipsis (... <template>) per R7RS 4.3.2.
+ * Pattern variables are still substituted, but ... is treated as a literal symbol.
+ * 
+ * @param {*} template - The template to transcribe literally
+ * @param {Map<string, *>} bindings - Pattern variable bindings
+ * @param {Map<string, Symbol>} renameMap - Map of names to their gensyms
+ * @param {number|null} definingScope - Scope ID for marking free variables
+ * @returns {*} Expanded expression with ... treated literally.
+ */
+function transcribeLiteral(template, bindings, renameMap, definingScope) {
+    // Symbol or SyntaxObject: substitute pattern variables, but keep ellipsis literal
+    if (template instanceof Symbol || template instanceof SyntaxObject) {
+        const name = template instanceof SyntaxObject ? template.name : template.name;
+
+        // If it's the ellipsis symbol, keep it literal
+        // Note: transcribeLiteral works on the escaped template content, 
+        // avoiding ANY ellipsis expansion. So even if '...' appears, it's literal.
+        // We only check it to avoid substituting if '...' happened to be a pattern var (unlikely for ...)
+        if (name === '...') {
+            return template;
+        }
+
+        // Pattern variable → substitute
+        if (bindings.has(name)) {
+            return bindings.get(name);
+        }
+
+        // Introduced binding → rename
+        if (renameMap.has(name)) {
+            return renameMap.get(name);
+        }
+
+        // Free variable with scope
+        if (definingScope !== null &&
+            !SPECIAL_FORMS.has(name) &&
+            !globalMacroRegistry.isMacro(name)) {
+            return new SyntaxObject(name, new Set([definingScope]));
+        }
+
+        return template;
+    }
+
+    // Literals
+    if (template === null || typeof template !== 'object') {
+        return template;
+    }
+
+    // Lists - recurse but treat ... literally
+    if (template instanceof Cons) {
+        const car = transcribeLiteral(template.car, bindings, renameMap, definingScope);
+        const cdr = transcribeLiteral(template.cdr, bindings, renameMap, definingScope);
+        return new Cons(car, cdr);
+    }
+
+    // Vectors
+    if (template instanceof Vector) {
+        const elements = template.elements.map(e =>
+            transcribeLiteral(e, bindings, renameMap, definingScope));
+        return new Vector(elements);
+    }
+
+    return template;
+}
+
+/**
  * Transcribes a template using the bindings and rename map.
  * 
  * @param {*} template - The template to transcribe
  * @param {Map<string, *>} bindings - Pattern variable bindings
  * @param {Map<string, Symbol>} renameMap - Map of names to their gensyms
  * @param {number|null} definingScope - Scope ID for marking free variables
+ * @param {string} ellipsisName - The ellipsis identifier (default '...')
  * @returns {*} Expanded expression.
  */
-function transcribe(template, bindings, renameMap = new Map(), definingScope = null) {
-    // 1. Variables (Symbols)
-    if (template instanceof Symbol) {
-        const name = template.name;
+function transcribe(template, bindings, renameMap = new Map(), definingScope = null, ellipsisName = '...', literals = new Set()) {
+    if (template === null) return null;
+
+    // 1. Variables (Symbols or SyntaxObjects)
+    if (template instanceof Symbol || template instanceof SyntaxObject) {
+        // Unwrap SyntaxObject if it wraps a Cons list (recurse on content)
+        if (template instanceof SyntaxObject && template.name instanceof Cons) {
+            return transcribe(template.name, bindings, renameMap, definingScope, ellipsisName, literals);
+        }
+
+        const name = template instanceof SyntaxObject ? template.name : template.name;
 
         // Pattern variable → substitute with user input
         if (bindings.has(name)) {
@@ -356,25 +483,52 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
             !SPECIAL_FORMS.has(name) &&
             !globalMacroRegistry.isMacro(name)) {
             // Return a SyntaxObject with the defining scope mark
+            // If already a SyntaxObject, add the scope
+            if (template instanceof SyntaxObject) {
+                return template.addScope(definingScope);
+            }
             return new SyntaxObject(name, new Set([definingScope]));
         }
 
         // Fallback: keep as-is (primitives, special forms, macros, or no definingScope)
+        // For SyntaxObject, keep it as is
         return template;
     }
 
     // 2. Literals
-    if (template === null || typeof template !== 'object') {
+    if (typeof template !== 'object') {
         return template;
     }
 
     // 3. Lists (Cons)
     if (template instanceof Cons) {
-        // Check for ellipsis in template
-        // (item ... . rest)
-        const isEllipsis = (template.cdr instanceof Cons) &&
-            (template.cdr.car instanceof Symbol) &&
-            (template.cdr.car.name === '...');
+        const carName = (template.car instanceof Symbol) ? template.car.name :
+            (template.car instanceof SyntaxObject) ? template.car.name : null;
+
+        // Escaped ellipsis (... <template>)
+        // Per R7RS 4.3.2, (... <template>) means <template> is treated literally
+        // and ellipsis within it doesn't have its special meaning
+        // Note: Only the standard '...' can be used for escaping
+        if (carName === '...') {
+            // The cdr should be a list with one element
+            if (template.cdr instanceof Cons && template.cdr.cdr === null) {
+                // Return the escaped content literally
+                return transcribeLiteral(template.cdr.car, bindings, renameMap, definingScope);
+            }
+            console.log('Malformed escaped ellipsis in transcribe:', template.toString());
+            // Malformed escaped ellipsis - just return it
+            // Fall through
+        }
+
+        // Check for ellipsis in template: (item <ellipsis> . rest)
+        // pCurr.cdr must be a Cons, and pCurr.cdr.car must be the ellipsis symbol
+        const nextCar = template.cdr instanceof Cons ? template.cdr.car : null;
+        let nextCarName = null;
+        if (nextCar instanceof Symbol) nextCarName = nextCar.name;
+        else if (nextCar instanceof SyntaxObject) nextCarName = nextCar.name;
+
+        // Check if next car is ellipsis AND NOT A LITERAL
+        const isEllipsis = nextCarName === ellipsisName && !literals.has(nextCarName);
 
         if (isEllipsis) {
             const item = template.car;
@@ -396,6 +550,12 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
                 // Let's assume it's an error for now if no driving variables are present.
                 // BUT wait, what if the template is just (literal ...)?
                 // That's usually invalid unless there's a pattern var.
+                console.error('Ellipsis template error:', {
+                    template: template.toString(),
+                    item: item.toString(),
+                    varsInItem,
+                    bindings: Array.from(bindings.keys())
+                });
                 throw new Error("Ellipsis template must contain at least one pattern variable bound to a list");
             }
 
@@ -407,7 +567,7 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
             }
 
             // Expand N times
-            let expandedList = transcribe(restTemplate, bindings, renameMap, definingScope);
+            let expandedList = transcribe(restTemplate, bindings, renameMap, definingScope, ellipsisName, literals);
 
             for (let i = len - 1; i >= 0; i--) {
                 // Create a view of bindings for the i-th iteration
@@ -417,7 +577,7 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
                 }
                 // Scalar vars remain as is in subBindings (inherited from bindings)
 
-                const expandedItem = transcribe(item, subBindings, renameMap, definingScope);
+                const expandedItem = transcribe(item, subBindings, renameMap, definingScope, ellipsisName, literals);
                 expandedList = new Cons(expandedItem, expandedList);
             }
 
@@ -425,8 +585,8 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
         } else {
             // Regular cons
             return new Cons(
-                transcribe(template.car, bindings, renameMap, definingScope),
-                transcribe(template.cdr, bindings, renameMap, definingScope)
+                transcribe(template.car, bindings, renameMap, definingScope, ellipsisName, literals),
+                transcribe(template.cdr, bindings, renameMap, definingScope, ellipsisName, literals)
             );
         }
     }
@@ -443,9 +603,11 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
 function getPatternVars(template, bindings) {
     const vars = new Set();
     function traverse(node) {
-        if (node instanceof Symbol) {
-            if (bindings.has(node.name)) {
-                vars.add(node.name);
+        // Handle both Symbol and SyntaxObject
+        if (node instanceof Symbol || node instanceof SyntaxObject) {
+            const name = node instanceof SyntaxObject ? node.name : node.name;
+            if (bindings.has(name)) {
+                vars.add(name);
             }
         } else if (node instanceof Cons) {
             traverse(node.car);
@@ -460,15 +622,19 @@ function getPatternVars(template, bindings) {
  * Collects all pattern variables in a pattern.
  * @param {*} pattern 
  * @param {Set<string>} literals 
+ * @param {string} ellipsisName - The ellipsis identifier
  * @returns {Set<string>}
  */
-function collectPatternVars(pattern, literals) {
+function collectPatternVars(pattern, literals, ellipsisName = '...') {
     const vars = new Set();
     function traverse(node) {
-        if (node instanceof Symbol) {
-            if (node.name === '_') return;
-            if (literals.has(node.name)) return;
-            vars.add(node.name);
+        // Handle both Symbol and SyntaxObject
+        if (node instanceof Symbol || node instanceof SyntaxObject) {
+            const name = node instanceof SyntaxObject ? node.name : node.name;
+            if (name === '_') return;
+            if (name === ellipsisName) return; // Skip ellipsis
+            if (literals.has(name)) return;
+            vars.add(name);
         } else if (node instanceof Cons) {
             traverse(node.car);
             traverse(node.cdr);

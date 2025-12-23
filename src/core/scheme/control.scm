@@ -167,11 +167,23 @@
      (if test
          (exit (begin result1 result2 ...))
          (raise-continuable var)))
-    ;; multiple clauses - try first, then rest
     ((guard-clauses exit var (test result1 result2 ...) clause ...)
      (if test
          (exit (begin result1 result2 ...))
          (guard-clauses exit var clause ...)))
+    
+    ;; test only - return result of test if true
+    ((guard-clauses exit var (test))
+     (let ((temp test))
+       (if temp
+           (exit temp)
+           (raise-continuable var))))
+    ((guard-clauses exit var (test) clause ...)
+     (let ((temp test))
+       (if temp
+           (exit temp)
+           (guard-clauses exit var clause ...))))
+
     ;; no clauses matched - re-raise
     ((guard-clauses exit var)
      (raise-continuable var))))

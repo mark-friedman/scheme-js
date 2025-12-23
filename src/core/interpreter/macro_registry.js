@@ -3,15 +3,15 @@
  * Maps symbol names to transformer functions.
  */
 class MacroRegistry {
-    constructor() {
+    constructor(parent = null) {
         this.macros = new Map();
+        this.parent = parent;
     }
 
     /**
      * Registers a macro transformer.
      * @param {string} name - The name of the macro.
      * @param {Function} transformer - The transformer function.
-     *                                 Takes an S-expression, returns an S-expression.
      */
     define(name, transformer) {
         this.macros.set(name, transformer);
@@ -23,7 +23,9 @@ class MacroRegistry {
      * @returns {boolean}
      */
     isMacro(name) {
-        return this.macros.has(name);
+        if (this.macros.has(name)) return true;
+        if (this.parent) return this.parent.isMacro(name);
+        return false;
     }
 
     /**
@@ -32,7 +34,9 @@ class MacroRegistry {
      * @returns {Function | undefined}
      */
     lookup(name) {
-        return this.macros.get(name);
+        if (this.macros.has(name)) return this.macros.get(name);
+        if (this.parent) return this.parent.lookup(name);
+        return undefined;
     }
 
     /**
@@ -40,8 +44,10 @@ class MacroRegistry {
      */
     clear() {
         this.macros.clear();
+        this.parent = null;
     }
 }
 
-// Export a singleton instance
+// Export a singleton instance and the class itself for scoped registries
+export { MacroRegistry };
 export const globalMacroRegistry = new MacroRegistry();
