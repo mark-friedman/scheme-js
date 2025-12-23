@@ -1542,3 +1542,53 @@ Changed `analyzeVariable` to use `globalScopeRegistry` directly:
 TEST SUMMARY: 654 passed, 0 failed
 ```
 All parameterize tests pass without the export workaround.
+# Walkthrough - Macro Hygiene Fixes
+
+## Summary
+Fixed multiple macro hygiene issues and added comprehensive tests.
+
+## Fixes Applied
+
+### 1. Macro Referential Transparency (analyzer.js:176)
+`ScopedVariable` was created with `exp.scopeRegistry` (undefined) instead of `globalScopeRegistry`.
+```diff
+- return new ScopedVariable(syntaxName(exp), syntaxScopes(exp), exp.scopeRegistry);
++ return new ScopedVariable(syntaxName(exp), syntaxScopes(exp), globalScopeRegistry);
+```
+**Effect**: Macros can now reference internal library bindings (like `param-dynamic-bind`) without exporting them.
+
+### 2. let-syntax/letrec-syntax Environment Propagation (analyzer.js:147-148, 270, 303)
+Added missing `syntacticEnv` parameter:
+```diff
+- case 'let-syntax': return analyzeLetSyntax(exp);
++ case 'let-syntax': return analyzeLetSyntax(exp, syntacticEnv);
+```
+**Effect**: `let-syntax` and `letrec-syntax` body analysis receives proper lexical environment.
+
+### 3. Nested let-syntax Macro Visibility (analyzer.js:116-117)
+Changed macro lookup to use scoped registry:
+```diff
+- if (opNameForMacro && globalMacroRegistry.isMacro(opNameForMacro)) {
+-   const transformer = globalMacroRegistry.lookup(opNameForMacro);
++ if (opNameForMacro && currentMacroRegistry.isMacro(opNameForMacro)) {
++   const transformer = currentMacroRegistry.lookup(opNameForMacro);
+```
+**Effect**: Nested `let-syntax` can see macros from outer scopes.
+
+### 4. Removed param-dynamic-bind Export Workaround
+- [core.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/core.sld): Removed `param-dynamic-bind` from exports
+- [base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld): Removed `param-dynamic-bind` from exports
+
+## Tests Added
+Created [hygiene_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/hygiene_tests.scm) with 10 tests:
+- Referential transparency (3 tests)
+- let-syntax scoping (4 tests)  
+- letrec-syntax (2 tests)
+- Hygiene edge cases (1 test)
+
+## Verification
+```
+TEST SUMMARY: 665 passed, 0 failed
+```
+
+Chibi compliance: **17 sections pass** (including 4.3-macros.scm which tests syntax-rules/let-syntax heavily)

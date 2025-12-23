@@ -103,3 +103,41 @@
       (square-it 5)))
   25)  ;; tmp inside macro doesn't conflict with outer tmp
 
+;; ============================================================================
+;; Lexical Capture Tests
+;; These test that macros can capture lexical bindings from their definition site.
+;; ============================================================================
+
+;; Test that let-syntax macros can capture outer let bindings
+(test "let-syntax captures lexical binding"
+  (let ((n 100))
+    (let-syntax ((add-n (syntax-rules ()
+                          ((add-n x) (+ x n)))))
+      (add-n 5)))
+  105)
+
+;; Test that letrec-syntax macros can capture outer let bindings
+(test "letrec-syntax captures lexical binding"
+  (let ((multiplier 10))
+    (letrec-syntax ((scale (syntax-rules ()
+                             ((scale x) (* x multiplier)))))
+      (scale 7)))
+  70)
+
+;; Test nested let with macro capturing outer binding
+(test "let-syntax captures outer binding with inner shadowing"
+  (let ((x 100))
+    (let-syntax ((get-x (syntax-rules ()
+                          ((get-x) x))))
+      (let ((x 999))  ;; This shadows x in runtime, but macro uses definition-site x
+        (get-x))))
+  100)
+
+;; Test define-syntax can capture let bindings
+(test "define-syntax in let captures bindings"
+  (let ((base 1000))
+    (define-syntax add-base
+      (syntax-rules ()
+        ((add-base x) (+ x base))))
+    (add-base 42))
+  1042)

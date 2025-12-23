@@ -50,7 +50,7 @@ const SPECIAL_FORMS = new Set([
  * @param {string} ellipsisName - The ellipsis identifier (default '...')
  * @returns {Function} A transformer function (exp) -> exp.
  */
-export function compileSyntaxRules(literals, clauses, definingScope = null, ellipsisName = '...') {
+export function compileSyntaxRules(literals, clauses, definingScope = null, ellipsisName = '...', capturedEnv = null) {
     const literalNames = new Set(literals.map(l => l.name));
 
     return (exp) => {
@@ -88,7 +88,7 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
 
                 // Transcribe with the rename map for hygiene and definingScope
                 // for referential transparency
-                return transcribe(template, bindings, renameMap, definingScope, ellipsisName, literalNames);
+                return transcribe(template, bindings, renameMap, definingScope, ellipsisName, literalNames, capturedEnv);
             }
         }
         throw new Error(`No matching clause for macro use: ${exp}`);
@@ -454,14 +454,14 @@ function transcribeLiteral(template, bindings, renameMap, definingScope) {
  * @param {string} ellipsisName - The ellipsis identifier (default '...')
  * @returns {*} Expanded expression.
  */
-function transcribe(template, bindings, renameMap = new Map(), definingScope = null, ellipsisName = '...', literals = new Set()) {
+function transcribe(template, bindings, renameMap = new Map(), definingScope = null, ellipsisName = '...', literals = new Set(), capturedEnv = null) {
     if (template === null) return null;
 
     // 1. Variables (Symbols or SyntaxObjects)
     if (template instanceof Symbol || template instanceof SyntaxObject) {
         // Unwrap SyntaxObject if it wraps a Cons list (recurse on content)
         if (template instanceof SyntaxObject && template.name instanceof Cons) {
-            return transcribe(template.name, bindings, renameMap, definingScope, ellipsisName, literals);
+            return transcribe(template.name, bindings, renameMap, definingScope, ellipsisName, literals, capturedEnv);
         }
 
         const name = template instanceof SyntaxObject ? template.name : template.name;
@@ -474,6 +474,16 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
         // Introduced binding → rename to gensym
         if (renameMap.has(name)) {
             return renameMap.get(name);
+        }
+
+        // Lexical binding from captured environment
+        // If the macro was defined in a lexical scope, resolve local bindings
+        if (capturedEnv && !SPECIAL_FORMS.has(name) && !globalMacroRegistry.isMacro(name)) {
+            const lexicalRename = capturedEnv.lookup(template);
+            if (lexicalRename) {
+                // Return a new Symbol with the renamed name from the lexical environment
+                return intern(lexicalRename);
+            }
         }
 
         // Free variable: mark with defining scope for referential transparency
@@ -567,7 +577,7 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
             }
 
             // Expand N times
-            let expandedList = transcribe(restTemplate, bindings, renameMap, definingScope, ellipsisName, literals);
+            let expandedList = transcribe(restTemplate, bindings, renameMap, definingScope, ellipsisName, literals, capturedEnv);
 
             for (let i = len - 1; i >= 0; i--) {
                 // Create a view of bindings for the i-th iteration
@@ -577,7 +587,7 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
                 }
                 // Scalar vars remain as is in subBindings (inherited from bindings)
 
-                const expandedItem = transcribe(item, subBindings, renameMap, definingScope, ellipsisName, literals);
+                const expandedItem = transcribe(item, subBindings, renameMap, definingScope, ellipsisName, literals, capturedEnv);
                 expandedList = new Cons(expandedItem, expandedList);
             }
 
@@ -585,8 +595,8 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
         } else {
             // Regular cons
             return new Cons(
-                transcribe(template.car, bindings, renameMap, definingScope, ellipsisName, literals),
-                transcribe(template.cdr, bindings, renameMap, definingScope, ellipsisName, literals)
+                transcribe(template.car, bindings, renameMap, definingScope, ellipsisName, literals, capturedEnv),
+                transcribe(template.cdr, bindings, renameMap, definingScope, ellipsisName, literals, capturedEnv)
             );
         }
     }

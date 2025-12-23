@@ -143,7 +143,7 @@ export function analyze(exp, syntacticEnv = null) {
 
         // Restored cases
         case 'quasiquote': return expandQuasiquote(cadr(exp), syntacticEnv); // Pass env to quasiquote!
-        case 'define-syntax': return analyzeDefineSyntax(exp);
+        case 'define-syntax': return analyzeDefineSyntax(exp, syntacticEnv);
         case 'let-syntax': return analyzeLetSyntax(exp, syntacticEnv);
         case 'letrec-syntax': return analyzeLetrecSyntax(exp, syntacticEnv);
         case 'cond-expand': return analyze(expandCondExpand(exp), syntacticEnv);
@@ -189,7 +189,7 @@ function analyzeVariable(exp, syntacticEnv) {
 
 
 
-function analyzeDefineSyntax(exp) {
+function analyzeDefineSyntax(exp, syntacticEnv = null) {
   // (define-syntax name transformer)
   // name can be a Symbol or SyntaxObject (when macro-expanded)
   const nameObj = cadr(exp);
@@ -249,7 +249,7 @@ function analyzeDefineSyntax(exp) {
       const currentScopes = getCurrentDefiningScopes();
       const definingScope = currentScopes.length > 0 ? currentScopes[currentScopes.length - 1] : GLOBAL_SCOPE_ID;
 
-      const transformer = compileSyntaxRules(literals, clauses, definingScope, ellipsisName);
+      const transformer = compileSyntaxRules(literals, clauses, definingScope, ellipsisName, syntacticEnv);
       globalMacroRegistry.define(name, transformer);
 
       return new Literal(null);
@@ -285,7 +285,7 @@ function analyzeLetSyntax(exp, syntacticEnv) {
     const binding = curr.car; // (name transformer-spec)
     const name = syntaxName(car(binding));
     const transformerSpec = cadr(binding);
-    const transformer = compileTransformerSpec(transformerSpec);
+    const transformer = compileTransformerSpec(transformerSpec, syntacticEnv);
     localRegistry.define(name, transformer);
     curr = curr.cdr;
   }
@@ -324,7 +324,7 @@ function analyzeLetrecSyntax(exp, syntacticEnv) {
       const binding = curr.car; // (name transformer-spec)
       const name = syntaxName(car(binding));
       const transformerSpec = cadr(binding);
-      const transformer = compileTransformerSpec(transformerSpec);
+      const transformer = compileTransformerSpec(transformerSpec, syntacticEnv);
       localRegistry.define(name, transformer);
       curr = curr.cdr;
     }
@@ -335,7 +335,7 @@ function analyzeLetrecSyntax(exp, syntacticEnv) {
   }
 }
 
-function compileTransformerSpec(transformerSpec) {
+function compileTransformerSpec(transformerSpec, syntacticEnv = null) {
   if (!(transformerSpec instanceof Cons) ||
     !(car(transformerSpec) instanceof Symbol) ||
     car(transformerSpec).name !== 'syntax-rules') {
@@ -363,7 +363,7 @@ function compileTransformerSpec(transformerSpec) {
   const currentScopes = getCurrentDefiningScopes();
   const definingScope = currentScopes.length > 0 ? currentScopes[currentScopes.length - 1] : GLOBAL_SCOPE_ID;
 
-  return compileSyntaxRules(literals, clauses, definingScope);
+  return compileSyntaxRules(literals, clauses, definingScope, '...', syntacticEnv);
 }
 
 function analyzeBodyWithMacroRegistry(bodyCons, syntacticEnv) {
