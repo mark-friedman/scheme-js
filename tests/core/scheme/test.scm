@@ -52,17 +52,31 @@
       (report-test-result msg #f expected actual)))
 
 ;; /**
-;;  * Test assertion macro.
-;;  * Syntactic sugar for `assert-equal`.
-;;  *
-;;  * @param {string} msg - Test description.
+;;  * Internal helper to run a test with exception handling.
+;;  * @param {string} name - Test description.
 ;;  * @param {*} expected - Expected value.
-;;  * @param {*} expr - Expression to evaluate and compare.
+;;  * @param {procedure} thunk - Thunk that evaluates the test expression.
 ;;  */
+(define (run-test-with-guard name expected thunk)
+  (guard (test-exception
+          (#t
+           ;; Exception caught - report as failure with error message
+           (let ((err-msg (if (error-object? test-exception)
+                              (error-object-message test-exception)
+                              (if (string? test-exception) 
+                                  test-exception 
+                                  "exception raised"))))
+             (report-test-result name #f expected err-msg))))
+    (assert-equal name expected (thunk))))
+
 (define-syntax test
   (syntax-rules ()
+    ;; 3-argument form: (test "description" expected expr)
     ((test msg expected expr)
-     (assert-equal msg expected expr))))
+     (run-test-with-guard msg expected (lambda () expr)))
+    ;; 2-argument Chibi form: (test expected expr)
+    ((test expected expr)
+     (run-test-with-guard 'expr expected (lambda () expr)))))
 
 ;; /**
 ;;  * Groups related tests together.
@@ -71,12 +85,38 @@
 ;;  * @param {string} name - Group name.
 ;;  * @param {...*} body - Test expressions to execute.
 ;;  */
+;; Helper to protect expressions but let definitions pass through
+(define-syntax test-protect
+  (syntax-rules (define define-syntax begin import)
+    ;; Definitions: emit raw to preserve scope
+    ((test-protect (define . rest))
+     (define . rest))
+    ((test-protect (define-syntax . rest))
+     (define-syntax . rest))
+    ((test-protect (import . rest))
+     (import . rest))
+    
+    ;; Explicit begin: recurse into it (splicing behavior)
+    ((test-protect (begin part ...))
+     (begin (test-protect part) ...))
+    
+    ;; Expressions: wrap in guard to catch errors and continue
+    ((test-protect expr)
+     (guard (test-protected-exn (else
+                (display "Error in test group: ")
+                (if (error-object? test-protected-exn)
+                    (display (error-object-message test-protected-exn))
+                    (display test-protected-exn))
+                (newline)
+                #f)) ;; return false on error
+       expr))))
+
 (define-syntax test-group
   (syntax-rules ()
     ((test-group name body ...)
      (begin
        ;; (display "=== ") (display name) (display " ===") (newline)
-       body ...
+       (test-protect body) ...
        ;; (newline)
        ))))
 
@@ -100,3 +140,15 @@
                       (report-test-result name #f expected-msg msg)))))
        expr
        (report-test-result name #f expected-msg "no error raised")))))
+
+;; Compatibility definitions for Chibi tests
+;; (test-begin and test-end removed as we standardized on test-group)
+
+(display "Test Harness Loaded\n")
+
+(define-syntax test-assert
+  (syntax-rules ()
+    ((test-assert name expr)
+     (test name #t expr))
+    ((test-assert expr)
+     (test #t expr))))

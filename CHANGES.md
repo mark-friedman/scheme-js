@@ -1420,3 +1420,125 @@ TEST SUMMARY: 644 passed, 0 failed
 ```
 
 All tests pass, including the complete `scheme core` parameter implementation that depends on cross-library hygienic macro expansion.
+
+# Walkthrough - Macro Ellipsis and Hygiene Fixes
+
+This walkthrough details the resolution of the "Ellipsis template must contain at least one pattern variable bound to a list" error and other macro system improvements.
+
+## Key Changes
+
+### 1. Tail-Aware Ellipsis Matching
+Improved `matchPattern` in `src/core/interpreter/syntax_rules.js` to correctly handle patterns like `(P ... . T)` (ellipsis followed by a tail).
+- **Previous Behavior**: Incorrectly consumed too many elements or failed to match the tail.
+- **New Behavior**: Uses `countPairs` helper to calculate tail length and greedily matches `P ...` against `inputLen - tailLen` elements.
+
+### 2. Ellipsis Template Error Fix
+Resolved the critical error preventing `4.3-macros.scm` from running.
+- **Root Cause**: `compileSyntaxRules` was passing the `literals` **Array** to `transcribe` instead of the `literalNames` **Set**. This caused `literals.has()` to crash inside `transcribe`.
+- **Fix**: Updated `compileSyntaxRules` to pass `literalNames`.
+
+### 3. SyntaxObject Unwrapping in Templates
+Fixed handling of macro templates wrapped in SyntaxObjects (e.g., from nested macros like `test-group`).
+- **Issue**: `transcribe` treated wrapped lists as opaque objects, failing to expand them.
+- **Fix**: Added logic to `transcribe` to unwrap `SyntaxObject` if it contains a `Cons` list, allowing recursive expansion.
+
+### 4. Macro Hygiene for `define`
+Fixed `findIntroducedBindings` to correctly recognize variables introduced by `define` forms.
+- **Issue**: Variables in `(define (f x) ...)` were treated as free variables instead of bindings, causing `unbound variable` errors due to incorrect marking.
+- **Fix**: Added `define` handling logic to `findIntroducedBindings`.
+
+### 5. Literal Matching Fix
+Fixed precedence of literals vs wildcards in `matchPattern`.
+- **Issue**: `_` was always treated as a wildcard even if specified in the literals list (e.g., `(syntax-rules (_) ...)`).
+- **Fix**: Swapped the order of checks in `matchPattern` to prioritize `literals.has(patName)` before checking for `_`.
+
+## Verification Results
+
+Verified with `tests/core/scheme/compliance/run_chibi_tests.js`.
+Section `4.3-macros.scm`:
+- ✅ `elli-esc-1`: Passed (Ellipsis escaping)
+- ✅ `elli-lit-1`: Passed (Implicitly verified by no error)
+- ✅ `part-2`: Passed (Tail ellipsis)
+- ✅ `(ff 10)`: Passed (Correct hygiene for defined functions)
+# Walkthrough - Fixing Macro Hygiene Bug
+
+The core issue was a macro hygiene limitation where local `let` bindings introduced by macros failed to shadow global references, causing "Unbound variable" errors in certain contexts. This was resolved by implementing **static alpha-renaming** in the `Analyzer`.
+
+## Problem
+
+When a macro expanded to a code block containing a local binding (e.g., `let`) for an identifier that was previously deemed "global" or Carryed special scopes, the analyzer incorrectly prioritized the global/scoped lookup over the new local binding.
+
+## Solution: Static Alpha-Renaming
+
+We implemented a systematic renaming of all local variables during the analysis phase. Each local binding is assigned a unique runtime name (e.g., `x_$1`), and all references to that binding are mapped to this unique name in a technical environment called the `SyntacticEnv`.
+
+### Key Changes
+
+### 1. Analyzer Alpha-Renaming ([analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js))
+- **SyntacticEnv**: Introduced a lookup table that maps scoped identifiers (Symbol or SyntaxObject) to unique runtime names.
+- **analyzeLambda & analyzeLet**: These nodes now generate unique names for their parameters/bindings and extend the `SyntacticEnv` before analyzing their bodies.
+- **analyzeVariable**: Now consults the `SyntacticEnv` first. If a renamed mapping exists, it returns a `Variable` with the unique name; otherwise, it falls back to a global lookup (`ScopedVariable`).
+
+### 2. Hygiene Infrastructure ([syntax_object.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/syntax_object.js))
+- **identifierEquals**: Implemented a robust comparison that considers both the name and the scope set of an identifier, ensuring that macro-introduced identifiers are correctly distinguished from original source identifiers.
+- **Helper Functions**: Added `unwrapSyntax`, `syntaxName`, and `syntaxScopes` to simplify identifier processing in the analyzer.
+
+### 3. Stability and Robustness ([stepables.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/stepables.js))
+- **ensureExecutable**: Added a helper to handle cases where primitives return a mixture of raw values (from data) and AST nodes. This ensures that `TailApp` always receives executable targets, preventing "ctl.step is not a function" errors.
+- **Automatic AST Detection**: Updated the `analyze` function to detect if an expression is already an `Executable` node, preventing double-wrapping if a macro expansion or sub-analyzer returns an AST node directly.
+
+## Verification
+
+The fix was verified using a targeted reproduction test case and the full system test suite.
+
+### Automated Tests
+- **Reproduction Test**: `tests/functional/hygiene_limitation.scm`
+  - Demonstrates correct shadowing of a global binding by a macro-introduced `let` (via `guard`).
+  - **Result**: ✅ PASS
+- **Regression Suite**: `node run_tests_node.js`
+  - Runs 650+ tests covering all interpreter features, including JS interop, nested quasiquotes, and complex macros.
+  - **Result**: ✅ PASS (All regressions resolved)
+
+### Reproduction Case Snippet
+```scheme
+(define e "global")
+(define-syntax test-guard-binding
+  (syntax-rules ()
+    ((_ expr)
+     (guard (e (else (if (string? e) e "not-string")))
+       expr))))
+
+(test "error" (test-guard-binding (raise "error"))) 
+;; Previously failed with "Unbound variable: e" or "global"
+;; Now correctly returns "error"
+
+# Walkthrough - Fixing Macro Referential Transparency
+
+## Problem
+The `parameterize` macro referenced an internal helper function `param-dynamic-bind` which wasn't exported from `(scheme base)`. As a workaround, we initially exported this internal function, but the proper hygienic macro system should resolve such references automatically.
+
+## Root Cause
+In `analyzeVariable` (analyzer.js line 176), `ScopedVariable` was created with `exp.scopeRegistry`:
+```javascript
+return new ScopedVariable(syntaxName(exp), syntaxScopes(exp), exp.scopeRegistry);
+```
+
+However, `SyntaxObject` instances don't have a `scopeRegistry` property, so this was always `undefined`. Without a registry, `ScopedVariable.step()` couldn't resolve the scoped binding and fell back to regular environment lookup, which failed.
+
+## Fix
+Changed `analyzeVariable` to use `globalScopeRegistry` directly:
+```diff
+- return new ScopedVariable(syntaxName(exp), syntaxScopes(exp), exp.scopeRegistry);
++ return new ScopedVariable(syntaxName(exp), syntaxScopes(exp), globalScopeRegistry);
+```
+
+## Changes
+- [analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js#L176): Fixed `ScopedVariable` creation
+- [core.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/core.sld): Removed `param-dynamic-bind` export
+- [base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld): Removed `param-dynamic-bind` export
+
+## Verification
+```
+TEST SUMMARY: 654 passed, 0 failed
+```
+All parameterize tests pass without the export workaround.

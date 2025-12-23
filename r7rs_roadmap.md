@@ -347,12 +347,13 @@ Implement the remaining R7RS standard libraries:
 
 ---
 
-## Phase 17: Robust Hygiene
-**Target:** Completing macro system semantics
+## Phase 17: Robust Hygiene ✅
 
-| Feature | Description |
-|---------|-------------|
-| **Referential Transparency** | Ensure macros respect lexical scoping of free variables (fixing the `list` vs `+` issue). |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Referential Transparency** | Static alpha-renaming ensures identifiers are resolved in their original lexical context. | ✅ |
+| **Shadowing** | Local bindings correctly shadow global or macro-introduced bindings. | ✅ |
+
 
 ---
 

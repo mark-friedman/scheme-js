@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chibi R7RS Compliance Tests</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .log-item {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            word-break: break-all;
+            font-size: 0.9rem;
+        }
+
+        .log-info {
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .log-pass {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .log-fail {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .log-title {
+            font-weight: 600;
+            margin-top: 1rem;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.25rem;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+
+    <div class="container mx-auto max-w-5xl p-6 md:p-12">
+        <header
+            class="mb-10 p-8 bg-white rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Chibi Compliance</h1>
+                <p class="mt-2 text-slate-500 font-medium">R7RS-Small Standard Verification Suite</p>
+            </div>
+            <button id="run-btn"
+                class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all">
+                Run Suite
+            </button>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <aside class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Statistics</h3>
+                    <div id="stats" class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Passed</span>
+                            <span id="stat-pass" class="text-green-600 font-bold">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Failed</span>
+                            <span id="stat-fail" class="text-red-600 font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-indigo-50 rounded-xl text-xs text-indigo-700 leading-relaxed italic">
+                    Tests are based on the Chibi-Scheme R7RS compliance suite, revised for compatibility with the native
+                    harness.
+                </div>
+            </aside>
+
+            <section class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-bottom border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <h2 class="font-bold text-slate-700">Detailed Results</h2>
+                    <span id="status-badge"
+                        class="px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-slate-200 text-slate-500 rounded">Ready</span>
+                </div>
+                <div id="test-output" class="p-6 max-h-[70vh] overflow-y-auto space-y-2">
+                    <div class="text-slate-400 text-center py-12 italic">Click "Run Suite" to begin verification...
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createTestEnv } from '../../../helpers.js';
+        import { runChibiSuite } from './chibi_runner_lib.js';
+
+        const runBtn = document.getElementById('run-btn');
+        const output = document.getElementById('test-output');
+        const statPass = document.getElementById('stat-pass');
+        const statFail = document.getElementById('stat-fail');
+        const statusBadge = document.getElementById('status-badge');
+
+        const browserFileLoader = async (path) => {
+            const response = await fetch('../../../../' + path);
+            if (!response.ok) throw new Error(`Failed to load ${path}`);
+            return await response.text();
+        };
+
+        const createBrowserLogger = () => {
+            let passes = 0;
+            let fails = 0;
+
+            return {
+                title: (text) => {
+                    const el = document.createElement('div');
+                    el.className = 'log-title';
+                    el.textContent = text;
+                    output.appendChild(el);
+                    el.scrollIntoView({ behavior: 'smooth' });
+                },
+                log: (text) => {
+                    const el = document.createElement('div');
+                    el.className = 'log-item log-info';
+                    el.textContent = text;
+                    output.appendChild(el);
+                },
+                pass: (text) => {
+                    passes++;
+                    statPass.textContent = passes;
+                    const el = document.createElement('div');
+                    el.className = 'log-item log-pass';
+                    el.textContent = '✓ ' + text;
+                    output.appendChild(el);
+                },
+                fail: (text) => {
+                    fails++;
+                    statFail.textContent = fails;
+                    const el = document.createElement('div');
+                    el.className = 'log-item log-fail';
+                    el.textContent = '✗ ' + text;
+                    output.appendChild(el);
+                },
+                summary: () => {
+                    statusBadge.textContent = fails > 0 ? 'Failed' : 'Complete';
+                    statusBadge.className = `px-2 py-1 text-[10px] font-black uppercase tracking-widest rounded ${fails > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`;
+                }
+            };
+        };
+
+        runBtn.addEventListener('click', async () => {
+            output.innerHTML = '';
+            statPass.textContent = '0';
+            statFail.textContent = '0';
+            statusBadge.textContent = 'Running';
+            statusBadge.className = 'px-2 py-1 text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-600 rounded animate-pulse';
+
+            const { interpreter } = createTestEnv();
+            const logger = createBrowserLogger();
+
+            try {
+                await runChibiSuite(interpreter, logger, browserFileLoader);
+            } catch (e) {
+                logger.fail('CRASH: ' + e.message);
+                console.error(e);
+            }
+        });
+    </script>
+</body>
+
+</html>
