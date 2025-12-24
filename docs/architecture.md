@@ -21,14 +21,18 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 | Component | Purpose |
 |-----------|---------|
 | `interpreter.js` | Trampoline execution loop |
-| `nodes.js` / `frames.js` | AST nodes and continuation frames |
+| `stepables_base.js` | Register constants + `Executable` base class |
+| `ast_nodes.js` | AST node classes (Literal, If, Lambda...) |
+| `frames.js` | Continuation frame classes |
 | `reader.js` | S-expression parser |
 | `analyzer.js` | S-exp → AST conversion |
-| `library_loader.js` | `define-library` / `import` / `export` |
+| `library_registry.js` | Feature + library registries |
+| `library_parser.js` | define-library parser |
+| `library_loader.js` | Library loading orchestration |
 | `syntax_rules.js` | Macro transformer + hygiene primitives |
 | `primitives/` | Native procedures |
 
-## Features Requiring JS Core
+## Features Implemented in JS Core
 
 | Feature | Description |
 |---------|-------------|
@@ -36,37 +40,38 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 | `call/cc` | First-class continuations |
 | `dynamic-wind` | Before/after thunk protocol |
 | Multiple Values | `values` / `call-with-values` |
-| Hygienic Macros | `rename` / `compare` primitives |
-| Exceptions | Handler stack, `raise` |
-| Ports | I/O abstraction |
-| Library Loader | Module system |
+| Hygienic Macros | Mark/rename algorithm |
+| Exceptions | Handler stack, `raise`, `guard` |
+| Parameters | `make-parameter`, `parameterize` |
+| Library Loader | R7RS module system |
 
 ## Directory Structure
 
 ```
-src/
-├── runtime/            # JavaScript kernel
-│   ├── primitives/
-│   └── boot.scm        # Pre-library bootstrap
-└── lib/                # R7RS libraries
-    └── scheme/
-        ├── base.sld
-        └── ...
+src/core/
+├── interpreter/        # JavaScript interpreter
+│   ├── stepables_base.js
+│   ├── ast_nodes.js
+│   ├── frames.js
+│   ├── stepables.js    # Barrel file
+│   ├── library_registry.js
+│   ├── library_parser.js
+│   ├── library_loader.js
+│   └── primitives/
+└── scheme/             # Core Scheme libraries
+    ├── base.sld
+    └── ...
 
 tests/
-├── runtime/            # JS runtime tests
-├── integration/        # Full interpreter tests
-└── lib/                # Per-library tests
+├── harness/            # Test infrastructure
+├── core/               # Tests for interpreter/scheme
+├── functional/         # Cross-cutting tests
+└── integration/        # Library system tests
 ```
 
-## Implementation Phases
+## Related Documentation
 
-1. ✅ Documentation
-2. ✅ Consolidate JS Core
-3. ⏳ Library Loader
-4. 🔲 Multiple Values
-5. 🔲 Hygienic Macros
-6. 🔲 Exceptions
-7. 🔲 Ports/IO
-8. 🔲 Standard Libraries
-9. 🔲 Complete R7RS
+- [directory_structure.md](../directory_structure.md) — Detailed file listing
+- [trampoline.md](trampoline.md) — Execution model details
+- [hygiene_implementation.md](hygiene_implementation.md) — Macro hygiene algorithm
+- [r7rs_roadmap.md](../r7rs_roadmap.md) — Implementation progress

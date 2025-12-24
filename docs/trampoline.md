@@ -145,17 +145,20 @@ When JS code calls a bridged Scheme closure:
 
 ## File Organization
 
-The AST and frame code is organized as:
+The stepable code is organized as:
 
 | File | Contents |
 |------|----------|
-| `stepables.js` | All AST nodes and Continuation Frames |
+| `stepables_base.js` | Register constants (`ANS`, `CTL`, `ENV`, `FSTACK`) + `Executable` base class |
+| `ast_nodes.js` | All AST node classes (Literal, Variable, Lambda, If, etc.) |
+| `frames.js` | All continuation frame classes (LetFrame, AppFrame, etc.) |
+| `stepables.js` | Barrel file re-exporting everything (backwards compatibility) |
 | `interpreter.js` | The trampoline loop and state management |
 | `frame_registry.js` | Factory functions to avoid circular imports |
 | `winders.js` | Dynamic-wind stack walking utilities |
-| `ast.js` | Barrel file re-exporting everything |
 
 ## Related Documentation
 
-- [layer_plan.md](../layer_plan.md) - Overall architecture plan
+- [architecture.md](architecture.md) - High-level architecture
 - [directory_structure.md](../directory_structure.md) - File organization
+- [hygiene_implementation.md](hygiene_implementation.md) - Macro hygiene algorithm

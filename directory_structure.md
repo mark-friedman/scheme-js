@@ -11,8 +11,11 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │       ├── interpreter/            # JavaScript Interpreter
 │       │   ├── index.js            # EXPORT: createInterpreter()
 │       │   ├── interpreter.js      # Trampoline execution loop
-│       │   ├── stepables.js        # AST nodes + continuation frames
-│       │   ├── ast.js              # Barrel file (re-exports stepables)
+│       │   ├── stepables.js        # Barrel file (re-exports all stepables)
+│       │   ├── stepables_base.js   # Base class + register constants
+│       │   ├── ast_nodes.js        # AST node classes (Literal, If, Lambda...)
+│       │   ├── frames.js           # Continuation frame classes
+│       │   ├── ast.js              # Legacy barrel file
 │       │   ├── frame_registry.js   # Frame factory functions
 │       │   ├── winders.js          # Dynamic-wind utilities
 │       │   ├── environment.js      # Environment class
@@ -26,8 +29,9 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │       │   ├── syntax_object.js    # SyntaxObject and ScopeBindingRegistry
 │       │   ├── macro_registry.js   # Macro registry
 │       │   ├── type_check.js       # Type checking utilities for primitives
-│       │   ├── library.js          # Micro-library system
-│       │   ├── library_loader.js   # R7RS define-library / import
+│       │   ├── library_loader.js   # Library loading + barrel (re-exports)
+│       │   ├── library_registry.js # Feature + library registries
+│       │   ├── library_parser.js   # define-library parser
 │       │   └── analysis/           # Syntactic analysis modules
 │       │
 │       ├── primitives/             # Native procedures (+, cons, etc.)
@@ -65,11 +69,13 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │           ├── parameter.scm       # make-parameter, parameterize
 │           └── repl.scm            # REPL utilities
 │
-├── tests/
-│   ├── helpers.js                  # Test utilities (run, assert, createTestLogger)
+│   ├── harness/                    # Test infrastructure
+│   │   ├── helpers.js              # Test utilities (run, assert, createTestLogger)
+│   │   ├── runner.js               # Test runner logic
+│   │   └── scheme_test.scm         # Scheme test harness
+│   │
 │   ├── test_manifest.js            # Central registry of all test files
 │   ├── run_all.js                  # Node.js test runner entry
-│   ├── runner.js                   # Test runner logic
 │   │
 │   ├── core/                       # Tests for src/core/
 │   │   ├── interpreter/            # Tests for interpreter modules
@@ -127,5 +133,6 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 2. **`src/core/`**: Everything needed to run basic Scheme (JS interpreter + core Scheme subset).
 3. **`src/lib/`**: (Future) Additional R7RS libraries built on-top of the core.
 4. **Tests mirror source**: `tests/core/` tests `src/core/`.
-5. **Unified Stepables**: All executable objects (AST nodes + frames) in `stepables.js`.
-6. **Minimal Bootstrap**: `base.scm` defines only what's needed to load `(scheme base)`.
+5. **Split Stepables**: AST nodes in `ast_nodes.js`, frames in `frames.js`, shared base in `stepables_base.js`.
+6. **Split Library Loader**: Registry in `library_registry.js`, parser in `library_parser.js`, loader logic in `library_loader.js`.
+7. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.

@@ -29,8 +29,9 @@ The foundational layer is currently implemented and stable:
 
 Key modules in `interpreter/`:
 -   **`interpreter.js`**: Trampoline execution loop.
--   **`stepables.js`**: Unified AST nodes and Continuation Frames.
--   **`environment.js`**: Lexical scoping mechanism.
+-   **`stepables_base.js`**: Register constants and `Executable` base class.
+-   **`ast_nodes.js`**: AST node classes (Literal, If, Lambda, etc.).
+-   **`frames.js`**: Continuation frame classes.
 -   **`library_loader.js`**: R7RS `define-library` and `import` support.
 
 For a detailed breakdown of the internal file structure, see [directory_structure.md](./directory_structure.md).
@@ -77,8 +78,9 @@ node run_tests_node.js
 We maintain detailed documentation for the project internals:
 
 -   [**Directory Structure**](./directory_structure.md): Detailed map of the codebase and where files belong.
--   [**Layer Plan**](./layer_plan.md): The implementation roadmap for future layers.
+-   [**Architecture**](./docs/architecture.md): High-level architecture overview.
 -   [**Trampoline Execution**](./docs/trampoline.md): A deep dive into how the interpreter handles stack frames and TCO.
+-   [**Hygiene Implementation**](./docs/hygiene_implementation.md): How macro hygiene works.
 -   [**Changes**](./CHANGES.md): A log of major implementation steps, walkthroughs of features, and refactors.
 
 ## 🛠️ Code Standards
