@@ -49,6 +49,16 @@ export function assert(logger, description, actual, expected) {
     }
 }
 
+/**
+ * Skip a test
+ * @param {object} logger - The logger object.
+ * @param {string} description - Test description.
+ * @param {string} reason - Reason for skipping.
+ */
+export function skip(logger, description, reason) {
+    logger.skip(`${description} (Reason: ${reason})`);
+}
+
 function toJS(val) {
     if (val === null) return null;
     if (val instanceof Cons || (val && val.car !== undefined && val.cdr !== undefined)) {
@@ -103,6 +113,7 @@ function safeStringify(obj) {
 export function createTestLogger() {
     let passCount = 0;
     let failCount = 0;
+    let skipCount = 0;
     const failures = [];
 
     return {
@@ -112,6 +123,10 @@ export function createTestLogger() {
             passCount++;
             console.log(`✅ PASS: ${message}`);
         },
+        skip: (message) => {
+            skipCount++;
+            console.log(`⚠️ SKIP: ${message}`);
+        },
         fail: (message) => {
             failCount++;
             failures.push(message);
@@ -120,7 +135,7 @@ export function createTestLogger() {
         },
         summary: () => {
             console.log(`\n========================================`);
-            console.log(`TEST SUMMARY: ${passCount} passed, ${failCount} failed`);
+            console.log(`TEST SUMMARY: ${passCount} passed, ${failCount} failed, ${skipCount} skipped`);
             if (failCount > 0) {
                 console.log(`\nFailed tests:`);
                 failures.forEach((f, i) => console.log(`  ${i + 1}. ${f}`));
@@ -128,7 +143,7 @@ export function createTestLogger() {
             console.log(`========================================\n`);
             return { passCount, failCount, failures };
         },
-        getStats: () => ({ passCount, failCount, failures }),
+        getStats: () => ({ passCount, failCount, skipCount, failures }),
     };
 }
 

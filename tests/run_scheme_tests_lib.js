@@ -51,6 +51,10 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
         }
     });
 
+    interpreter.globalEnv.bindings.set('native-report-test-skip', (name, reason) => {
+        logger.skip(`${name} (Reason: ${reason})`);
+    });
+
     // 2. Load test.scm (Harness)
     const testLibCode = await fileLoader('tests/core/scheme/test.scm');
     run(interpreter, testLibCode);

@@ -10,6 +10,11 @@
 ;;  * @type {number}
 ;;  */
 (define *test-passes* 0)
+;; /**
+;;  * Counter for skipped tests.
+;;  * @type {number}
+;;  */
+(define *test-skips* 0)
 
 ;; /**
 ;;  * Prints a summary of test results.
@@ -37,6 +42,17 @@
       (set! *test-failures* (+ *test-failures* 1)))
   ;; Call native reporter (always defined in boot.scm)
   (native-report-test-result name passed expected actual))
+
+;; /**
+;;  * Internal helper to report a skipped test.
+;;  * Updates counters and calls the native skip reporter.
+;;  *
+;;  * @param {string} name - Name/description of the test.
+;;  * @param {string} reason - Reason for skipping.
+;;  */
+(define (report-test-skip name reason)
+  (set! *test-skips* (+ *test-skips* 1))
+  (native-report-test-skip name reason))
 
 ;; /**
 ;;  * Asserts that two values are equal.
@@ -77,6 +93,13 @@
     ;; 2-argument Chibi form: (test expected expr)
     ((test expected expr)
      (run-test-with-guard 'expr expected (lambda () expr)))))
+
+(define-syntax test-skip
+  (syntax-rules ()
+    ((test-skip msg reason)
+     (report-test-skip msg reason))
+    ((test-skip msg reason expr)
+     (report-test-skip msg reason))))
 
 ;; /**
 ;;  * Groups related tests together.
@@ -137,9 +160,10 @@
                                "non-error-object raised")))
                   (if (string? msg)
                       (report-test-result name #t expected-msg msg)
-                      (report-test-result name #f expected-msg msg)))))
+                       (report-test-result name #f expected-msg msg)))))
        expr
        (report-test-result name #f expected-msg "no error raised")))))
+
 
 ;; Compatibility definitions for Chibi tests
 ;; (test-begin and test-end removed as we standardized on test-group)

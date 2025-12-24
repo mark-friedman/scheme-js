@@ -4,7 +4,7 @@
  * Tests R7RS §6.13 I/O operations.
  */
 
-import { assert, run, createTestLogger, createTestEnv } from '../helpers.js';
+import { assert, skip, run, createTestLogger, createTestEnv } from '../helpers.js';
 
 /**
  * Runs I/O primitive tests.
@@ -395,7 +395,7 @@ export function runIOTests(interpreter, logger) {
   result = run(interpreter, `(read (open-input-string "#t"))`);
   assert(logger, "read boolean", result, true);
 
-    result = run(interpreter, `(read (open-input-string "\\"hello\\""))`);
+  result = run(interpreter, `(read (open-input-string "\\"hello\\""))`);
   assert(logger, "read hello", result, 'hello');
 
   result = run(interpreter, `
@@ -514,7 +514,22 @@ export function runIOTests(interpreter, logger) {
 
     // Clean up
     run(interpreter, `(delete-file "${testFile2}")`);
+
+    // Skip browser-only tests in Node
+    skip(logger, "open-input-file browser error", "Browser only");
+    skip(logger, "file-exists? browser error", "Browser only");
   } else {
+    // Browser environment - skip Node.js only tests
+    skip(logger, "file-exists? on existing file", "Node.js File I/O only");
+    skip(logger, "file-exists? on nonexistent file", "Node.js File I/O only");
+    skip(logger, "open-output-file and write", "Node.js File I/O only");
+    skip(logger, "file exists after creation", "Node.js File I/O only");
+    skip(logger, "open-input-file and read-line", "Node.js File I/O only");
+    skip(logger, "read from file port", "Node.js File I/O only");
+    skip(logger, "file deleted", "Node.js File I/O only");
+    skip(logger, "call-with-output-file", "Node.js File I/O only");
+    skip(logger, "call-with-input-file", "Node.js File I/O only");
+
     // Browser environment - verify errors are thrown
     try {
       run(interpreter, `(open-input-file "test.txt")`);

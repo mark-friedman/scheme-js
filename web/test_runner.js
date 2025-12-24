@@ -5,6 +5,7 @@ import { run } from '../tests/core/interpreter/tests.js';
 const outputEl = document.getElementById('test-output');
 let passCount = 0;
 let failCount = 0;
+let skipCount = 0;
 const failures = [];
 
 const logger = {
@@ -26,6 +27,10 @@ const logger = {
         passCount++;
         logger.log(`✅ PASS: ${message}`, 'pass');
     },
+    skip: (message) => {
+        skipCount++;
+        logger.log(`⚠️ SKIP: ${message}`, 'skip');
+    },
     fail: (message) => {
         failCount++;
         failures.push(message);
@@ -36,14 +41,14 @@ const logger = {
         el.className = 'mt-4 p-4 rounded ' + (failCount > 0 ? 'bg-red-100' : 'bg-green-100');
         el.innerHTML = `
             <h2 class="text-2xl font-bold mb-2">TEST SUMMARY</h2>
-            <p class="text-lg">${passCount} passed, ${failCount} failed</p>
+            <p class="text-lg">${passCount} passed, ${failCount} failed, ${skipCount} skipped</p>
             ${failCount > 0 ? `<ul class="mt-2 text-red-700">${failures.map((f, i) => `<li>${i + 1}. ${f}</li>`).join('')}</ul>` : ''}
         `;
         outputEl.appendChild(el);
         console.log(`\nTEST SUMMARY: ${passCount} passed, ${failCount} failed`);
         return { passCount, failCount, failures };
     },
-    getStats: () => ({ passCount, failCount, failures }),
+    getStats: () => ({ passCount, failCount, skipCount, failures }),
 };
 
 

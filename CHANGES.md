@@ -1592,3 +1592,46 @@ TEST SUMMARY: 665 passed, 0 failed
 ```
 
 Chibi compliance: **17 sections pass** (including 4.3-macros.scm which tests syntax-rules/let-syntax heavily)
+# Walkthrough - Macro Hygiene & Skipped Test Reporting
+
+## Summary of Work
+This task focused on two main areas:
+1. **Macro Hygiene**: Implemented lexical capture and propagation of syntactic environments to ensure macros correctly resolve definition-site bindings.
+2. **Skipped Test Reporting**: Enhanced the test infrastructure to formally support and report "skipped" tests, resolving discrepancies between Node.js and Browser test counts.
+
+## Key Changes
+
+### 1. Macro Hygiene Fixes
+- **Lexical Capture**: Macros now capture the lexical environment (`syntacticEnv`) from their definition site.
+- **Environment Propagation**: Fixed `let-syntax` and `letrec-syntax` to correctly pass the syntactic environment down to nested macros.
+- **Referential Transparency**: Macros can now reference internal library bindings (like `param-dynamic-bind`) even if they aren't exported.
+
+### 2. Skipped Test Reporting
+- **Logger Support**: Added `skip` status to `createTestLogger` and `helpers.js`.
+- **Browser UI**: Updated the browser test runner to display skip counts and reasons.
+- **Scheme Integration**: Added `test-skip` macro and `native-report-test-skip` binding to the Scheme test harness.
+- **Conditional Skips**: Updated `io_tests.js` to explicitly skip Node-only tests in the browser and vice-versa.
+
+## Verification Results
+
+### Both environments now report a consistent total of 671 tests:
+
+| Environment | Passed | Failed | Skipped | Total |
+| :--- | :--- | :--- | :--- | :--- |
+| **Node.js** | 669 | 0 | 2 (Browser-only) | **671** |
+| **Browser** | 662 | 0 | 9 (Node-only) | **671** |
+
+### Browser Summary
+![Browser Test Summary](/Users/mark/.gemini/antigravity/brain/5d6fdc49-7cdd-4d56-ab4a-892695dc7fb0/test_summary_success_1766548076580.png)
+
+## Detailed Fixes Applied
+
+### Macro System
+- [analyzer.js:146,192,253,288,327,338,366](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js): Pass `syntacticEnv` through macro compilation.
+- [syntax_rules.js:53,91,457,484,580,590](file:///Users/mark/code/scheme-js-4/src/core/interpreter/syntax_rules.js): Implement lexical resolution in `transcribe`.
+
+### Test Infrastructure
+- [helpers.js:58,114,131](file:///Users/mark/code/scheme-js-4/tests/helpers.js): Add `skip(logger, desc, reason)` and update `createTestLogger`.
+- [test_runner.js:29,39,44](file:///Users/mark/code/scheme-js-4/web/test_runner.js): Add skip support to browser UI.
+- [test.scm:17,49,79](file:///Users/mark/code/scheme-js-4/tests/core/scheme/test.scm): Add `test-skip` and `*test-skips*`.
+- [io_tests.js:517-535,556-566](file:///Users/mark/code/scheme-js-4/tests/functional/io_tests.js): Implement environment-conditional skips.
