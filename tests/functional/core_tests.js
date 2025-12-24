@@ -1,4 +1,4 @@
-import { assert, run, createTestLogger, createTestEnv } from '../helpers.js';
+import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
 
 /**
  * Core functional tests for the Scheme interpreter.

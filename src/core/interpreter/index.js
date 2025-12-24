@@ -1,6 +1,5 @@
 import { Interpreter } from './interpreter.js';
 import { createGlobalEnvironment } from '../primitives/index.js';
-// import { LibraryRegistry } from './library.js'; // Unused now
 import { registerBuiltinLibrary, createPrimitiveExports } from './library_loader.js';
 
 /**

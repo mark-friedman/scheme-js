@@ -8,7 +8,7 @@
  * to avoid dependency on boot code loading.
  */
 
-import { run, assert, createTestEnv } from '../helpers.js';
+import { run, assert, createTestEnv } from '../harness/helpers.js';
 
 /**
  * Runs JS exception integration tests.

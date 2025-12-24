@@ -1,4 +1,4 @@
-import { run, assert } from '../helpers.js';
+import { run, assert } from '../harness/helpers.js';
 import { globalMacroRegistry } from '../../src/core/interpreter/macro_registry.js';
 import { resetGensymCounter } from '../../src/core/interpreter/syntax_rules.js';
 

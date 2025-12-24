@@ -1,11 +1,11 @@
-import { parse } from '../src/core/interpreter/reader.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
-import { Variable, Literal } from '../src/core/interpreter/ast.js';
-import { Environment } from '../src/core/interpreter/environment.js';
-import { createGlobalEnvironment } from '../src/core/primitives/index.js';
-import { Interpreter } from '../src/core/interpreter/interpreter.js';
-import { Cons, list } from '../src/core/interpreter/cons.js';
-import { intern } from '../src/core/interpreter/symbol.js';
+import { parse } from '../../src/core/interpreter/reader.js';
+import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { Variable, Literal } from '../../src/core/interpreter/ast.js';
+import { Environment } from '../../src/core/interpreter/environment.js';
+import { createGlobalEnvironment } from '../../src/core/primitives/index.js';
+import { Interpreter } from '../../src/core/interpreter/interpreter.js';
+import { Cons, list } from '../../src/core/interpreter/cons.js';
+import { intern } from '../../src/core/interpreter/symbol.js';
 
 /**
  * Helper to run code from strings.
@@ -148,7 +148,7 @@ export function createTestLogger() {
 }
 
 
-import { createInterpreter } from '../src/core/interpreter/index.js';
+import { createInterpreter } from '../../src/core/interpreter/index.js';
 
 export function createTestEnv() {
     return createInterpreter();

@@ -1,4 +1,4 @@
-import { createTestEnv, run, createTestLogger } from './helpers.js';
+import { createTestEnv, run, createTestLogger } from './harness/helpers.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';

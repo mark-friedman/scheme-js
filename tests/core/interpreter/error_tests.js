@@ -18,7 +18,7 @@ import {
 
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol } from '../../../src/core/interpreter/symbol.js';
-import { assert } from '../../helpers.js';
+import { assert } from '../../harness/helpers.js';
 
 export function runErrorTests(logger) {
     logger.title('Running Error Class and Type Check Unit Tests...');

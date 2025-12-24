@@ -15,7 +15,7 @@ async function runAll() {
     const fs = await import('fs');
     const path = await import('path');
 
-    const { createTestLogger, createTestEnv, run } = await import('./helpers.js');
+    const { createTestLogger, createTestEnv, run } = await import('./harness/helpers.js');
     const { runAllFromManifest } = await import('./test_manifest.js');
     const { runSchemeTests } = await import('./run_scheme_tests_lib.js');
 

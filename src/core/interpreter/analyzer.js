@@ -27,6 +27,16 @@ import { SyntaxObject, globalScopeRegistry, freshScope, getCurrentDefiningScopes
 
 
 /**
+ * Set of special form names recognized by the analyzer.
+ * These have dedicated analysis functions and are NOT treated as macro calls.
+ * @type {Set<string>}
+ */
+const SPECIAL_FORMS = new Set([
+  'quote', 'quasiquote', 'lambda', 'if', 'set!', 'define', 'let', 'letrec',
+  'begin', 'import', 'define-syntax', 'let-syntax', 'letrec-syntax', 'cond-expand'
+]);
+
+/**
  * Analyzes an S-expression and converts it to our AST object tree.
  */
 

@@ -1,4 +1,4 @@
-import { run, assert } from '../helpers.js';
+import { run, assert } from '../harness/helpers.js';
 
 export async function runEvalApplyTests(interpreter, logger) {
     logger.title('Eval & Apply Tests');

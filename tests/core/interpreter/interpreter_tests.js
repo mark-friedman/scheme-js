@@ -1,4 +1,4 @@
-import { assert, createTestLogger } from '../../helpers.js';
+import { assert, createTestLogger } from '../../harness/helpers.js';
 import { Interpreter } from '../../../src/core/interpreter/interpreter.js';
 import { Closure } from '../../../src/core/interpreter/values.js';
 

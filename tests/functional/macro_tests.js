@@ -1,5 +1,5 @@
 import { globalMacroRegistry } from '../../src/core/interpreter/macro_registry.js';
-import { run, assert } from '../helpers.js';
+import { run, assert } from '../harness/helpers.js';
 import { list } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
 

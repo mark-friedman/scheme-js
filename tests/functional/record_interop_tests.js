@@ -1,4 +1,4 @@
-import { assert, run } from '../helpers.js';
+import { assert, run } from '../harness/helpers.js';
 
 export async function runRecordInteropTests(interpreter, logger, fileLoader) {
     logger.title('Running Record Interop Tests...');

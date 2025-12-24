@@ -1,6 +1,25 @@
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE/Editor
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
+
+# Temp artifacts
 implementation_plan.md
 tasks.md
 walkthrough.md
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+*.log
+npm-debug.log*

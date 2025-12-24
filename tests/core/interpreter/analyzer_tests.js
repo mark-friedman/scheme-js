@@ -1,4 +1,4 @@
-import { assert, createTestLogger } from '../../helpers.js';
+import { assert, createTestLogger } from '../../harness/helpers.js';
 import { SyntacticAnalyzer } from '../../../src/core/interpreter/analysis/syntactic_analyzer.js';
 import { Literal, Variable, If } from '../../../src/core/interpreter/ast.js';
 import { list, cons } from '../../../src/core/interpreter/cons.js';

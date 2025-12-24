@@ -3,7 +3,7 @@
  * Tests for R7RS values and call-with-values
  */
 
-import { run, assert } from '../helpers.js';
+import { run, assert } from '../harness/helpers.js';
 import { Values } from '../../src/core/interpreter/values.js';
 
 export function runMultipleValuesTests(interpreter, logger) {

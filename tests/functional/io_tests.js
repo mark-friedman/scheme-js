@@ -4,7 +4,7 @@
  * Tests R7RS §6.13 I/O operations.
  */
 
-import { assert, skip, run, createTestLogger, createTestEnv } from '../helpers.js';
+import { assert, skip, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
 
 /**
  * Runs I/O primitive tests.

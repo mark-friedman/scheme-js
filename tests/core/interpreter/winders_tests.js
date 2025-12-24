@@ -1,4 +1,4 @@
-import { assert, createTestLogger } from '../../helpers.js';
+import { assert, createTestLogger } from '../../harness/helpers.js';
 import { computeWindActions, findCommonAncestorIndex } from '../../../src/core/interpreter/winders.js';
 import { WindFrame } from '../../../src/core/interpreter/stepables.js';
 

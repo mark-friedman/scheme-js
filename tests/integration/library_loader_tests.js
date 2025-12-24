@@ -2,7 +2,7 @@
  * Tests for the R7RS Library Loader
  */
 
-import { assert, createTestLogger } from '../helpers.js';
+import { assert, createTestLogger } from '../harness/helpers.js';
 import {
     parseDefineLibrary,
     parseImportSet,

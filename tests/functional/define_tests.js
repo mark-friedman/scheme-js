@@ -1,4 +1,4 @@
-import { run, assert, createTestLogger, createTestEnv } from '../helpers.js';
+import { run, assert, createTestLogger, createTestEnv } from '../harness/helpers.js';
 
 /**
  * Runs define tests.

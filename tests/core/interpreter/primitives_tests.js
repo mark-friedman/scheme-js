@@ -1,7 +1,7 @@
 import { listPrimitives } from '../../../src/core/primitives/list.js';
 import { vectorPrimitives } from '../../../src/core/primitives/vector.js';
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
-import { assert } from '../../helpers.js';
+import { assert } from '../../harness/helpers.js';
 
 export function runPrimitiveTests(logger) {
     logger.title('Running List Primitive Unit Tests...');

@@ -10,7 +10,7 @@
 
 import { runAllFromManifest, schemeTestFiles } from '../../test_manifest.js';
 import { runSchemeTests } from '../../run_scheme_tests_lib.js';
-import { createTestLogger, run as runCode } from '../../helpers.js';
+import { createTestLogger, run as runCode } from '../../harness/helpers.js';
 
 /**
  * Main test runner.

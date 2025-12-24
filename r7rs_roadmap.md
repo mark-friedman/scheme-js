@@ -309,7 +309,7 @@ Implement the remaining R7RS standard libraries:
 | `(scheme eval)` | ❌ |
 | `(scheme load)` | ❌ |
 | `(scheme process-context)` | ❌ |
-| `(scheme repl)` | ❌ |
+| `(scheme repl)` | ⚠️ Partial (has `repl.sld`, `repl.scm`) |
 | `(scheme time)` | ❌ |
 
 ---
@@ -361,9 +361,9 @@ Implement the remaining R7RS standard libraries:
 
 ### Automated Tests
 Each phase adds tests to:
-- `tests/unit/` — JavaScript module tests
+- `tests/core/interpreter/` — JavaScript module tests
 - `tests/functional/` — Integration tests
-- `tests/scheme/` — Scheme-based tests
+- `tests/core/scheme/` — Scheme-based tests
 
 Run all tests:
 ```bash

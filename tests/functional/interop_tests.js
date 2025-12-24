@@ -1,4 +1,4 @@
-import { assert, run, createTestLogger, createTestEnv } from '../helpers.js';
+import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
 import { Literal, TailApp } from '../../src/core/interpreter/ast.js';
 
 /**

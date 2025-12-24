@@ -3,7 +3,7 @@ import { parse } from '../../../src/core/interpreter/reader.js';
 import { analyze } from '../../../src/core/interpreter/analyzer.js';
 import { prettyPrint } from '../../../web/repl.js';
 import { Literal, Variable, If, Let, LetRec, Lambda, TailApp, CallCC, Begin } from '../../../src/core/interpreter/ast.js';
-import { assert, createTestLogger, createTestEnv } from '../../helpers.js';
+import { assert, createTestLogger, createTestEnv } from '../../harness/helpers.js';
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
 

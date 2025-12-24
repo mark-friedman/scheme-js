@@ -1,4 +1,4 @@
-import { assert, createTestLogger } from '../../helpers.js';
+import { assert, createTestLogger } from '../../harness/helpers.js';
 import { IfFrame, SetFrame, DefineFrame, BeginFrame, LetFrame, Literal, Variable } from '../../../src/core/interpreter/ast.js';
 
 

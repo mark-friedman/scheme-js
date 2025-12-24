@@ -4,7 +4,7 @@
  * Tests R7RS §6.8 vector operations beyond the basics.
  */
 
-import { assert, run, createTestLogger, createTestEnv } from '../helpers.js';
+import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
 
 /**
  * Runs vector expansion tests.

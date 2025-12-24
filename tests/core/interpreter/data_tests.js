@@ -1,6 +1,6 @@
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
-import { assert } from '../../helpers.js';
+import { assert } from '../../harness/helpers.js';
 
 export function runDataTests(logger) {
     logger.title('Running Data Structure Unit Tests...');

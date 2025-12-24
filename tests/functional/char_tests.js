@@ -4,7 +4,7 @@
  * Tests R7RS §6.6 character operations.
  */
 
-import { assert, run, createTestLogger, createTestEnv } from '../helpers.js';
+import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
 
 /**
  * Runs character primitive tests.

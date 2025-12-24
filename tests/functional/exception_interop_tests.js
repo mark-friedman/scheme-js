@@ -12,7 +12,7 @@
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { SchemeError } from '../../src/core/interpreter/errors.js';
-import { assert } from '../helpers.js';
+import { assert } from '../harness/helpers.js';
 
 export async function runExceptionInteropTests(interpreter, logger) {
     logger.title('Running Exception Interop Tests...');
