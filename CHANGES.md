@@ -1635,3 +1635,54 @@ This task focused on two main areas:
 - [test_runner.js:29,39,44](file:///Users/mark/code/scheme-js-4/web/test_runner.js): Add skip support to browser UI.
 - [test.scm:17,49,79](file:///Users/mark/code/scheme-js-4/tests/core/scheme/test.scm): Add `test-skip` and `*test-skips*`.
 - [io_tests.js:517-535,556-566](file:///Users/mark/code/scheme-js-4/tests/functional/io_tests.js): Implement environment-conditional skips.
+
+---
+
+# Codebase Quality Improvements (2025-12-24)
+
+Comprehensive documentation and organization improvements.
+
+## Phase 1: Documentation ✅
+
+| File | Change |
+|------|--------|
+| `directory_structure.md` | Added 30+ missing files (interpreter, primitives, scheme libs) |
+| `r7rs_roadmap.md` | Fixed test paths, marked `(scheme repl)` as partial |
+| `docs/hygiene_implementation.md` | **NEW** — Documented mark/rename hygiene algorithm |
+
+## Phase 4: Test Infrastructure ✅
+
+| Change | Details |
+|--------|---------|
+| Created `tests/harness/` | New test infrastructure home |
+| Moved files | `helpers.js`, `runner.js` → harness |
+| Updated imports | 30+ files |
+| Cleanup | Deleted `hygiene_limitation.scm` |
+
+## Phase 5: Nice-to-Haves ✅
+
+| File | Change |
+|------|--------|
+| `.agent/workflows/run-tests.md` | Fixed browser test URL |
+| `.gitignore` | Expanded with IDE/build patterns |
+| `web/index.js` | **NEW** — Barrel file for web module |
+
+## Phase 3: Code Quality ✅
+
+| File | Change |
+|------|--------|
+| `src/core/interpreter/index.js` | Removed unused import comment |
+| `src/core/interpreter/analyzer.js` | Added `SPECIAL_FORMS` constant |
+
+## Deferred (Future Work)
+
+Module splits deferred due to complexity:
+- `stepables.js` — AST nodes directly reference Frame classes
+- `library_loader.js` — Tightly integrated registry/parsing
+- `macros/` directory — Depends on stepables refactor
+
+## Verification
+
+```
+TEST SUMMARY: 669 passed, 0 failed, 2 skipped
+```
