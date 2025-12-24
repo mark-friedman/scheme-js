@@ -9,7 +9,7 @@
 // Frame classes are registered here by stepables.js
 let LetFrame, LetRecFrame, IfFrame, SetFrame, DefineFrame;
 let AppFrame, BeginFrame, DynamicWindSetupFrame, WindFrame, RestoreValueFrame;
-let CallWithValuesFrame;
+let CallWithValuesFrame, ExceptionHandlerFrame, RaiseContinuableResumeFrame;
 
 /**
  * Registers frame classes. Called by stepables.js during module initialization.
@@ -27,6 +27,8 @@ export function registerFrames(frames) {
     WindFrame = frames.WindFrame;
     RestoreValueFrame = frames.RestoreValueFrame;
     CallWithValuesFrame = frames.CallWithValuesFrame;
+    ExceptionHandlerFrame = frames.ExceptionHandlerFrame;
+    RaiseContinuableResumeFrame = frames.RaiseContinuableResumeFrame;
 }
 
 // --- Factory Functions ---
@@ -113,4 +115,25 @@ export function getWindFrameClass() {
  */
 export function createCallWithValuesFrame(consumer, env) {
     return new CallWithValuesFrame(consumer, env);
+}
+
+/**
+ * Creates an ExceptionHandlerFrame instance.
+ */
+export function createExceptionHandlerFrame(handler, env) {
+    return new ExceptionHandlerFrame(handler, env);
+}
+
+/**
+ * Creates a RaiseContinuableResumeFrame instance.
+ */
+export function createRaiseContinuableResumeFrame(savedFrames, env) {
+    return new RaiseContinuableResumeFrame(savedFrames, env);
+}
+
+/**
+ * Gets the ExceptionHandlerFrame class (for instanceof checks).
+ */
+export function getExceptionHandlerFrameClass() {
+    return ExceptionHandlerFrame;
 }
