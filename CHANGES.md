@@ -1686,3 +1686,57 @@ Module splits deferred due to complexity:
 ```
 TEST SUMMARY: 669 passed, 0 failed, 2 skipped
 ```
+
+---
+
+# Code Quality Improvements (December 2024)
+
+Four-phase code quality improvement plan executed.
+
+## Phase 1: Centralize SYNTAX_KEYWORDS ✅
+
+Consolidated three separate special forms keyword sets into single source of truth.
+
+| File | Change |
+|------|--------|
+| `library_registry.js` | Added `SPECIAL_FORMS` export |
+| `analyzer.js` | Removed local `SPECIAL_FORMS`, imports from registry |
+| `syntax_rules.js` | Removed local `SPECIAL_FORMS`, imports from registry |
+
+## Phase 2: Remove Orphaned Analyzer ✅
+
+Identified and removed unused experimental `SyntacticAnalyzer` modular refactor.
+
+| Deleted Files |
+|---------------|
+| `src/core/interpreter/analysis/syntactic_analyzer.js` |
+| `src/core/interpreter/analysis/special_forms.js` |
+| `tests/core/interpreter/analyzer_tests.js` |
+
+Added Phase 18 to `r7rs_roadmap.md` documenting this approach for future consideration.
+
+## Phase 3: Uniform AST Node Naming ✅
+
+Renamed 11 core AST classes to use consistent `*Node` suffix across 18+ files.
+
+| Old Name | New Name |
+|----------|----------|
+| `Literal` | `LiteralNode` |
+| `Variable` | `VariableNode` |
+| `Lambda` | `LambdaNode` |
+| `Let`, `LetRec` | `LetNode`, `LetRecNode` |
+| `If`, `Set`, `Define` | `IfNode`, `SetNode`, `DefineNode` |
+| `TailApp`, `CallCC`, `Begin` | `TailAppNode`, `CallCCNode`, `BeginNode` |
+
+## Phase 4: Verify Browser Testing Parity ✅
+
+Confirmed browser and Node.js test runners use identical infrastructure:
+- Both use `runAllFromManifest()` from `test_manifest.js`
+- Both use same `loadBootstrap()` pattern with same 6 `.scm` files
+- No parity issues found
+
+## Verification
+
+```
+TEST SUMMARY: 662 passed, 0 failed, 2 skipped
+```
