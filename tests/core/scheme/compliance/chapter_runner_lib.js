@@ -1,8 +1,8 @@
 /**
- * Chibi Compliance Test Runner Library
+ * Chapter-based R7RS Compliance Test Runner Library
  * 
- * Shared library for running the R7RS compliance tests in both
- * Node.js and browser environments.
+ * Shared library for running the chapter-based R7RS compliance tests
+ * (chapter_3.scm through chapter_6.scm) in both Node.js and browser environments.
  */
 
 import { createInterpreter } from '../../../../src/core/interpreter/index.js';
@@ -10,37 +10,21 @@ import { run } from '../../../harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../../../../src/core/interpreter/library_loader.js';
 import { analyze } from '../../../../src/core/interpreter/analyzer.js';
 
-// Section files in order
-const sectionFiles = [
-    '4.1-primitives.scm',
-    '4.2-derived.scm',
-    '4.3-macros.scm',
-    '5-program-structure.scm',
-    '6.1-equivalence.scm',
-    '6.2-numbers.scm',
-    '6.3-booleans.scm',
-    '6.4-lists.scm',
-    '6.5-symbols.scm',
-    '6.6-characters.scm',
-    '6.7-strings.scm',
-    '6.8-vectors.scm',
-    '6.9-bytevectors.scm',
-    '6.10-control.scm',
-    '6.11-exceptions.scm',
-    '6.12-environments.scm',
-    '6.13-io.scm',
-    '6.14-system.scm',
-    '7.1-read-syntax.scm',
-    '7.1-numeric-syntax.scm'
+// Chapter files in order
+const chapterFiles = [
+    'chapter_3.scm',
+    'chapter_4.scm',
+    'chapter_5.scm',
+    'chapter_6.scm'
 ];
 
 /**
- * Creates and configures an interpreter for compliance testing.
+ * Creates and configures an interpreter for chapter-based compliance testing.
  * @param {Function} fileLoader - Function to load files by path
  * @param {Object} logger - Logger object with pass/fail methods
- * @returns {Object} - { interpreter, run, runSectionTest, runAllSections }
+ * @returns {Object} - { interpreter, run, runChapterTest, runAllChapters }
  */
-export async function createComplianceRunner(fileLoader, logger) {
+export async function createChapterComplianceRunner(fileLoader, logger) {
     const { interpreter } = createInterpreter();
 
     // Register (scheme primitives)
@@ -100,30 +84,30 @@ export async function createComplianceRunner(fileLoader, logger) {
     run(interpreter, harnessCode);
 
     /**
-     * Run a single section test file
+     * Run a single chapter test file
      */
-    async function runSectionTest(sectionFile) {
-        const path = `tests/core/scheme/compliance/chibi_revised/sections/${sectionFile}`;
+    async function runChapterTest(chapterFile) {
+        const path = `tests/core/scheme/compliance/${chapterFile}`;
         try {
             const testCode = await fileLoader(path);
             run(interpreter, testCode);
             const result = run(interpreter, '(test-report)');
-            // Reset counters for next section
+            // Reset counters for next chapter
             run(interpreter, '(set! *test-failures* 0)');
             run(interpreter, '(set! *test-passes* 0)');
-            return { success: true, file: sectionFile };
+            return { success: true, file: chapterFile };
         } catch (error) {
-            return { success: false, file: sectionFile, error: error.message };
+            return { success: false, file: chapterFile, error: error.message };
         }
     }
 
     /**
-     * Run all section tests
+     * Run all chapter tests
      */
-    async function runAllSections() {
+    async function runAllChapters() {
         const results = [];
-        for (const sectionFile of sectionFiles) {
-            const result = await runSectionTest(sectionFile);
+        for (const chapterFile of chapterFiles) {
+            const result = await runChapterTest(chapterFile);
             results.push(result);
         }
         return results;
@@ -132,10 +116,10 @@ export async function createComplianceRunner(fileLoader, logger) {
     return {
         interpreter,
         run: (code) => run(interpreter, code),
-        runSectionTest,
-        runAllSections,
-        sectionFiles
+        runChapterTest,
+        runAllChapters,
+        chapterFiles
     };
 }
 
-export { sectionFiles };
+export { chapterFiles };

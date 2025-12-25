@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chibi R7RS Compliance Tests</title>
+    <title>R7RS Chapter Compliance Tests</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -51,13 +51,19 @@
         <header
             class="mb-10 p-8 bg-white rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
             <div>
-                <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Chibi Compliance</h1>
-                <p class="mt-2 text-slate-500 font-medium">R7RS-Small Standard Verification Suite</p>
+                <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">R7RS Chapter Compliance</h1>
+                <p class="mt-2 text-slate-500 font-medium">Chapter-based R7RS-Small Standard Verification</p>
             </div>
-            <button id="run-btn"
-                class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all">
-                Run Suite
-            </button>
+            <div class="flex gap-3">
+                <a href="chibi_ui.html"
+                    class="px-4 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-all">
+                    Chibi Suite
+                </a>
+                <button id="run-btn"
+                    class="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:scale-105 active:scale-95 transition-all">
+                    Run Suite
+                </button>
+            </div>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -75,9 +81,18 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-4 bg-indigo-50 rounded-xl text-xs text-indigo-700 leading-relaxed italic">
-                    Tests are based on the Chibi-Scheme R7RS compliance suite, revised for compatibility with the native
-                    harness.
+                <div class="p-4 bg-emerald-50 rounded-xl text-xs text-emerald-700 leading-relaxed italic">
+                    Tests cover R7RS-small chapters 3-6: Basic concepts, Expressions, Program structure, and Standard
+                    procedures.
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Chapters</h3>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        <li>• Chapter 3: Basic concepts</li>
+                        <li>• Chapter 4: Expressions</li>
+                        <li>• Chapter 5: Program structure</li>
+                        <li>• Chapter 6: Standard procedures</li>
+                    </ul>
                 </div>
             </aside>
 
@@ -93,10 +108,14 @@
                 </div>
             </section>
         </main>
+
+        <footer class="mt-8 text-center text-sm text-slate-400">
+            <a href="../../../../web/index.html" class="hover:text-slate-600 transition">← Back to REPL</a>
+        </footer>
     </div>
 
     <script type="module">
-        import { createComplianceRunner, sectionFiles } from './chibi_runner_lib.js';
+        import { createChapterComplianceRunner, chapterFiles } from './chapter_runner_lib.js';
 
         const runBtn = document.getElementById('run-btn');
         const output = document.getElementById('test-output');
@@ -162,14 +181,14 @@
 
             try {
                 // Create the compliance runner with file loader and logger
-                const runner = await createComplianceRunner(browserFileLoader, logger);
+                const runner = await createChapterComplianceRunner(browserFileLoader, logger);
 
-                // Run all section tests
-                for (const sectionFile of sectionFiles) {
-                    logger.title(sectionFile);
-                    const result = await runner.runSectionTest(sectionFile);
+                // Run all chapter tests
+                for (const chapterFile of chapterFiles) {
+                    logger.title(chapterFile.replace('.scm', '').replace('_', ' '));
+                    const result = await runner.runChapterTest(chapterFile);
                     if (!result.success) {
-                        logger.fail(`Section ${sectionFile} crashed: ${result.error}`);
+                        logger.fail(`Chapter ${chapterFile} crashed: ${result.error}`);
                     }
                 }
 
