@@ -60,6 +60,10 @@ export const schemeTestFiles = [
     'tests/core/scheme/parameter_tests.scm',
     'tests/core/scheme/hygiene_tests.scm',
     'tests/core/scheme/case_lambda_tests.scm',
+    'tests/core/scheme/lazy_tests.scm',
+    'tests/core/scheme/time_tests.scm',
+    'tests/core/scheme/eval_tests.scm',
+    'tests/core/scheme/process_context_tests.scm',
 ];
 
 /**

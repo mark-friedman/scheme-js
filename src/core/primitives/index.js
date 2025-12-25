@@ -14,6 +14,8 @@ import { getControlPrimitives } from './control.js';
 import { GCPrimitives } from './gc.js';
 import { interopPrimitives } from './interop.js';
 import { getExceptionPrimitives } from './exception.js';
+import { timePrimitives } from './time.js';
+import { processContextPrimitives } from './process_context.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -49,6 +51,8 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(GCPrimitives);
     addPrimitives(interopPrimitives);
     addPrimitives(getExceptionPrimitives(interpreter));
+    addPrimitives(timePrimitives);
+    addPrimitives(processContextPrimitives);
 
     return new Environment(null, bindings);
 }
