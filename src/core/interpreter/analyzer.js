@@ -19,22 +19,12 @@ import {
   RaiseNode
 } from './ast.js';
 import { getLibraryExports, applyImports, parseImportSet, evaluateFeatureRequirement } from './library_loader.js';
+import { SPECIAL_FORMS } from './library_registry.js';
 import { globalMacroRegistry, MacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
 import { Cons, cons, list, car, cdr, mapCons, toArray, cadr, cddr, caddr, cdddr, cadddr } from './cons.js';
 import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, globalScopeRegistry, freshScope, getCurrentDefiningScopes, GLOBAL_SCOPE_ID, registerBindingWithCurrentScopes, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
-
-
-/**
- * Set of special form names recognized by the analyzer.
- * These have dedicated analysis functions and are NOT treated as macro calls.
- * @type {Set<string>}
- */
-const SPECIAL_FORMS = new Set([
-  'quote', 'quasiquote', 'lambda', 'if', 'set!', 'define', 'let', 'letrec',
-  'begin', 'import', 'define-syntax', 'let-syntax', 'letrec-syntax', 'cond-expand'
-]);
 
 /**
  * Analyzes an S-expression and converts it to our AST object tree.

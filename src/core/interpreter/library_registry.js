@@ -224,12 +224,13 @@ export function registerBuiltinLibrary(libraryName, exports, env) {
 }
 
 // =============================================================================
-// Syntax Keywords
+// Syntax Keywords and Special Forms
 // =============================================================================
 
 /**
  * Standard Scheme syntax keywords.
  * These are handled by the analyzer as special forms.
+ * Used by library_loader to filter keywords from exports.
  */
 export const SYNTAX_KEYWORDS = new Set([
     'define', 'set!', 'lambda', 'if', 'begin', 'quote',
@@ -237,5 +238,22 @@ export const SYNTAX_KEYWORDS = new Set([
     'define-syntax', 'let-syntax', 'letrec-syntax',
     'syntax-rules', '...', 'else', '=>', 'import', 'export',
     'define-library', 'include', 'include-ci', 'include-library-declarations',
-    'cond-expand'
+    'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation'
+]);
+
+/**
+ * Special forms recognized by the analyzer.
+ * These have dedicated analysis functions and are NOT treated as macro calls.
+ * Also used by syntax_rules to prevent renaming during macro expansion.
+ */
+export const SPECIAL_FORMS = new Set([
+    // Core special forms
+    'if', 'let', 'letrec', 'lambda', 'set!', 'define', 'begin',
+    'quote', 'quasiquote', 'unquote', 'unquote-splicing',
+    // Macro-related
+    'define-syntax', 'let-syntax', 'letrec-syntax',
+    // Control flow
+    'call/cc', 'call-with-current-continuation',
+    // Module system
+    'import', 'cond-expand'
 ]);

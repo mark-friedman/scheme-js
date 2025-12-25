@@ -2,6 +2,7 @@ import { Cons, cons, list } from './cons.js';
 import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, freshScope, globalScopeRegistry } from './syntax_object.js';
 import { globalMacroRegistry } from './macro_registry.js';
+import { SPECIAL_FORMS } from './library_registry.js';
 
 // =============================================================================
 // Hygiene Support
@@ -29,16 +30,6 @@ export function gensym(baseName) {
 export function resetGensymCounter() {
     gensymCounter = 0;
 }
-
-/**
- * Set of special form names that are recognized by the analyzer.
- * These should NOT be renamed during macro expansion.
- */
-const SPECIAL_FORMS = new Set([
-    'if', 'let', 'letrec', 'lambda', 'set!', 'define', 'begin',
-    'quote', 'quasiquote', 'unquote', 'unquote-splicing',
-    'define-syntax', 'call/cc', 'call-with-current-continuation'
-]);
 
 /**
  * Compiles a syntax-rules specification into a transformer function.
