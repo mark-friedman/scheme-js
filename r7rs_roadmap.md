@@ -347,6 +347,34 @@ Implement the remaining R7RS standard libraries:
 
 ---
 
+## Phase 18: Modular Analyzer Refactoring (Future)
+**Target:** Improve analyzer architecture for extensibility.
+
+> [!NOTE]
+> An experimental class-based `SyntacticAnalyzer` with pluggable special form handlers was prototyped but never integrated. It was removed during code cleanup (Dec 2024).
+
+### Potential Benefits
+| Benefit | Description |
+|---------|-------------|
+| **Extensibility** | Register custom special forms at runtime without modifying core code |
+| **Testability** | Each handler is a pure function, easily unit-testable in isolation |
+| **DSL potential** | Could support dialect variations (e.g., Racket-flavored syntax) |
+
+### Considerations
+| Concern | Notes |
+|---------|-------|
+| **Hygiene complexity** | Main analyzer now handles `SyntaxObject` wrapping, scoped macros, and `let-syntax` which would need careful porting |
+| **Performance** | Map lookup per expression vs. direct switch dispatch (likely negligible) |
+| **Migration effort** | Would require maintaining two implementations during transition |
+
+### Recommendation
+**Pursue after R7RS compliance is complete.** A good approach:
+1. Extract handlers from `analyzer.js` into standalone functions (same file initially)
+2. Only split into modules if file exceeds ~1000 lines
+3. Consider making special form registration opt-in for custom DSLs
+
+---
+
 ## Phase 17: Robust Hygiene ✅
 
 | Feature | Description | Status |

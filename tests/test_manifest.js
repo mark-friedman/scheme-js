@@ -13,7 +13,6 @@ export const unitTests = [
     { path: 'core/interpreter/primitives_tests.js', fn: 'runPrimitiveTests', needsInterpreter: false },
     { path: 'core/interpreter/unit_tests.js', fn: 'runUnitTests', needsInterpreter: true },
     { path: 'core/interpreter/winders_tests.js', fn: 'runWindersTests', needsInterpreter: true },
-    { path: 'core/interpreter/analyzer_tests.js', fn: 'runAnalyzerTests', needsInterpreter: true },
     { path: 'core/interpreter/reader_tests.js', fn: 'runReaderTests', needsInterpreter: false },
     { path: 'core/interpreter/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
     { path: 'core/interpreter/error_tests.js', fn: 'runErrorTests', needsInterpreter: false },
