@@ -30,6 +30,15 @@
     floor ceiling truncate round
     max min gcd lcm
     expt sqrt
+    exact-integer-sqrt
+    floor/ floor-quotient floor-remainder
+    truncate/ truncate-quotient truncate-remainder
+    
+    ;; Bytevectors
+    bytevector? make-bytevector bytevector bytevector-length
+    bytevector-u8-ref bytevector-u8-set!
+    bytevector-copy bytevector-copy! bytevector-append
+    utf8->string string->utf8
     
     ;; Booleans
     not boolean? boolean=?
@@ -113,7 +122,8 @@
     define set! lambda if begin quote quasiquote unquote unquote-splicing
     define-syntax let-syntax letrec-syntax
     and or cond case do when unless guard
-    let let* letrec
+    let let* letrec letrec*
+    let-values let*-values define-values
     define-record-type
   )
   

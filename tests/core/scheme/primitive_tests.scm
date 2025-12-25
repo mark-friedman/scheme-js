@@ -27,4 +27,39 @@
     (test "string-append" "abcdef" (string-append "abc" "def"))
     (test "number->string" "123" (number->string 123))
   )
+
+  (test-group "Division Primitives"
+    ;; exact-integer-sqrt
+    (test "exact-integer-sqrt 0" '(0 0)
+          (let-values (((s r) (exact-integer-sqrt 0)))
+            (list s r)))
+    (test "exact-integer-sqrt 16" '(4 0)
+          (let-values (((s r) (exact-integer-sqrt 16)))
+            (list s r)))
+    (test "exact-integer-sqrt 17" '(4 1)
+          (let-values (((s r) (exact-integer-sqrt 17)))
+            (list s r)))
+    
+    ;; floor/
+    (test "floor/ positive" '(2 1)
+          (let-values (((q r) (floor/ 5 2)))
+            (list q r)))
+    (test "floor/ negative dividend" '(-3 1)
+          (let-values (((q r) (floor/ -5 2)))
+            (list q r)))
+    
+    ;; truncate/
+    (test "truncate/ positive" '(2 1)
+          (let-values (((q r) (truncate/ 5 2)))
+            (list q r)))
+    (test "truncate/ negative dividend" '(-2 -1)
+          (let-values (((q r) (truncate/ -5 2)))
+            (list q r)))
+    
+    ;; Single-value versions
+    (test "floor-quotient" 2 (floor-quotient 5 2))
+    (test "floor-remainder" 1 (floor-remainder 5 2))
+    (test "truncate-quotient" 2 (truncate-quotient 5 2))
+    (test "truncate-remainder" 1 (truncate-remainder 5 2))
+  )
 )

@@ -6,5 +6,6 @@
 
   (export
     when unless or let* do case guard
+    let-values let*-values define-values
   )
 )

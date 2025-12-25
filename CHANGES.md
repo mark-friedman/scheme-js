@@ -1815,3 +1815,66 @@ CHAPTERS: 3 passed, 1 failed (chapter_6 macro expansion issue)
 - Chibi UI: 561 passed, 179 failed
 
 Test failures are in Scheme implementation (missing bytevector, define-values, etc.), not test infrastructure.
+
+---
+
+# R7RS-small Missing Features Implementation (2025-12-25)
+
+Implemented six R7RS-small features identified as missing from compliance tests.
+
+## Features Implemented
+
+### 1. Bytevector Support (R7RS §6.9)
+Created `src/core/primitives/bytevector.js`:
+- `bytevector?` - type predicate
+- `make-bytevector`, `bytevector` - constructors
+- `bytevector-length`, `bytevector-u8-ref`, `bytevector-u8-set!` - accessors
+- `bytevector-copy`, `bytevector-copy!`, `bytevector-append` - copy operations
+- `utf8->string`, `string->utf8` - string conversion
+
+### 2. Multiple Value Binding Forms
+Added to `src/core/scheme/macros.scm` and `control.scm`:
+- `letrec*` - sequential recursive bindings
+- `let-values` - bind multiple values from producers
+- `let*-values` - sequential multiple value bindings
+- `define-values` - define multiple variables from multiple values
+
+### 3. Enhanced `case` and `guard` with `=>`
+Updated `case` and `guard-clauses` macros to support `=>` clauses for applying a procedure to the matched key.
+
+### 4. Supporting Numeric Primitives
+Added to `src/core/primitives/math.js`:
+- `exact-integer-sqrt` - returns root and remainder
+- `floor/`, `floor-quotient`, `floor-remainder` - floor division
+- `truncate/`, `truncate-quotient`, `truncate-remainder` - truncate division
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/core/primitives/bytevector.js` | NEW - bytevector primitives |
+| `src/core/primitives/index.js` | Register bytevector primitives |
+| `src/core/primitives/math.js` | Add division primitives |
+| `src/core/scheme/macros.scm` | Add `letrec*` |
+| `src/core/scheme/control.scm` | Add `let-values`, `let*-values`, `define-values`, enhanced `case`/`guard-clauses` |
+| `src/core/scheme/control.sld` | Export new forms |
+| `src/core/scheme/base.sld` | Export all new features |
+
+## Test Files
+
+Tests distributed to appropriate existing files:
+- `tests/core/scheme/bytevector_tests.scm` - NEW (17 tests)
+- `tests/core/scheme/control_tests.scm` - Added binding form tests
+- `tests/core/scheme/primitive_tests.scm` - Added division primitive tests
+
+## Verification
+
+```
+TEST SUMMARY: 764 passed, 0 failed, 2 skipped
+```
+
+Compliance test improvements:
+- `case match symbol` (with `=>`) - now passes
+- `guard catches raise` (with `=>`) - now passes
+- `let-values exact-integer-sqrt` - now passes
+- `letrec* sequencing` - passes (using R7RS-small standard example)

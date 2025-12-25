@@ -94,30 +94,140 @@
     ((do ((var init . step) ...) (test . exprs) . commands)
      (do "normalize" ((var init . step) ...) () (test . exprs) . commands))))
 
+;; =============================================================================
+;; Multiple Value Binding Forms
+;; =============================================================================
+
+;; /**
+;;  * Let-values binding form.
+;;  * Binds results from producers that return multiple values.
+;;  *
+;;  * @param {list} ((formals producer) ...) - Binding clauses.
+;;  * @param {...expression} body - Body expressions.
+;;  */
+(define-syntax let-values
+  (syntax-rules ()
+    ;; Empty bindings
+    ((let-values () body ...)
+     (let () body ...))
+    ;; Single binding
+    ((let-values ((formals producer)) body ...)
+     (call-with-values
+       (lambda () producer)
+       (lambda formals body ...)))
+    ;; Multiple bindings - nest them
+    ((let-values ((formals producer) rest ...) body ...)
+     (call-with-values
+       (lambda () producer)
+       (lambda formals (let-values (rest ...) body ...))))))
+
+;; /**
+;;  * Sequential let-values binding form.
+;;  * Like let-values but each clause sees the bindings of previous clauses.
+;;  *
+;;  * @param {list} ((formals producer) ...) - Binding clauses.
+;;  * @param {...expression} body - Body expressions.
+;;  */
+(define-syntax let*-values
+  (syntax-rules ()
+    ;; Empty bindings
+    ((let*-values () body ...)
+     (let () body ...))
+    ;; One or more bindings - expand sequentially
+    ((let*-values ((formals producer) rest ...) body ...)
+     (call-with-values
+       (lambda () producer)
+       (lambda formals (let*-values (rest ...) body ...))))))
+
+;; /**
+;;  * Define multiple variables from multiple values.
+;;  * Supports various patterns: (define-values () expr), (define-values (a) expr),
+;;  * (define-values (a b) expr), (define-values (a b . rest) expr), (define-values x expr).
+;;  *
+;;  * @param {list|symbol} formals - Variable(s) to define.
+;;  * @param {expression} expr - Expression producing multiple values.
+;;  */
+(define-syntax define-values
+  (syntax-rules ()
+    ;; Empty formals - just evaluate for side effects
+    ((define-values () expr)
+     (call-with-values (lambda () expr) (lambda () (if #f #f))))
+    ;; Single variable in parens
+    ((define-values (var) expr)
+     (define var (call-with-values (lambda () expr) (lambda (x) x))))
+    ;; Single variable without parens (gets all values as list)
+    ((define-values var expr)
+     (define var (call-with-values (lambda () expr) list)))
+    ;; Two variables
+    ((define-values (var1 var2) expr)
+     (begin
+       (define var1 'undefined)
+       (define var2 'undefined)
+       (call-with-values (lambda () expr)
+         (lambda (t1 t2) (set! var1 t1) (set! var2 t2)))))
+    ;; Three variables
+    ((define-values (var1 var2 var3) expr)
+     (begin
+       (define var1 'undefined)
+       (define var2 'undefined)
+       (define var3 'undefined)
+       (call-with-values (lambda () expr)
+         (lambda (t1 t2 t3) (set! var1 t1) (set! var2 t2) (set! var3 t3)))))
+    ;; Two variables with rest
+    ((define-values (var1 var2 . rest) expr)
+     (begin
+       (define var1 'undefined)
+       (define var2 'undefined)
+       (define rest 'undefined)
+       (call-with-values (lambda () expr)
+         (lambda (t1 t2 . trest) (set! var1 t1) (set! var2 t2) (set! rest trest)))))))
+
 ;; /**
 ;;  * Case dispatch.
 ;;  * Dispatches based on value equality (using memv).
+;;  * Supports => syntax to apply a procedure to the matched key.
 ;;  *
 ;;  * @param {expression} key - Value to match.
-;;  * @param {...list} clauses - ((datum ...) result1 result2 ...).
+;;  * @param {...list} clauses - ((datum ...) result1 result2 ...) or ((datum ...) => proc).
 ;;  */
 (define-syntax case
   (syntax-rules (else =>)
+    ;; else with => - apply proc to key (must come before plain else)
+    ((case "dispatch" key
+       (else => proc))
+     (proc key))
+    ;; else clause - always matches
     ((case "dispatch" key
        (else result1 result2 ...))
      (begin result1 result2 ...))
+    ;; Single clause with => - apply proc to key if match
+    ((case "dispatch" key
+       ((atoms ...) => proc))
+     (if (memv key '(atoms ...))
+         (proc key)))
+    ;; => clause with more clauses following
+    ((case "dispatch" key
+       ((atoms ...) => proc)
+       clause clauses ...)
+     (if (memv key '(atoms ...))
+         (proc key)
+         (case "dispatch" key clause clauses ...)))
+    ;; Single clause with results
     ((case "dispatch" key
        ((atoms ...) result1 result2 ...))
      (if (memv key '(atoms ...))
          (begin result1 result2 ...)))
+    ;; Multiple clauses with results
     ((case "dispatch" key
        ((atoms ...) result1 result2 ...)
        clause clauses ...)
      (if (memv key '(atoms ...))
          (begin result1 result2 ...)
          (case "dispatch" key clause clauses ...)))
+    ;; No match case
     ((case "dispatch" key)
-     (if #f #t)) ;; no match
+     (if #f #t))
+    ;; Entry point - bind key once
     ((case key
        clauses ...)
      (let ((atom-key key))
@@ -156,34 +266,40 @@
     ;; else clause - always matches
     ((guard-clauses exit var (else result1 result2 ...))
      (exit (begin result1 result2 ...)))
-    ;; => clause - apply proc to result if test is true
+    ;; => clause with more clauses following (must come before non-=> versions!)
+    ((guard-clauses exit var (test => proc) clause ...)
+     (let ((temp test))
+       (if temp
+           (exit (proc temp))
+           (guard-clauses exit var clause ...))))
+    ;; => clause - apply proc to result if test is true (single clause)
     ((guard-clauses exit var (test => proc))
      (let ((temp test))
        (if temp
            (exit (proc temp))
            (raise-continuable var))))
-    ;; test with results - return results if test is true
-    ((guard-clauses exit var (test result1 result2 ...))
-     (if test
-         (exit (begin result1 result2 ...))
-         (raise-continuable var)))
+    ;; test with results and more clauses
     ((guard-clauses exit var (test result1 result2 ...) clause ...)
      (if test
          (exit (begin result1 result2 ...))
          (guard-clauses exit var clause ...)))
-    
-    ;; test only - return result of test if true
-    ((guard-clauses exit var (test))
-     (let ((temp test))
-       (if temp
-           (exit temp)
-           (raise-continuable var))))
+    ;; test with results - return results if test is true (single clause)
+    ((guard-clauses exit var (test result1 result2 ...))
+     (if test
+         (exit (begin result1 result2 ...))
+         (raise-continuable var)))
+    ;; test only with more clauses
     ((guard-clauses exit var (test) clause ...)
      (let ((temp test))
        (if temp
            (exit temp)
            (guard-clauses exit var clause ...))))
-
+    ;; test only - return result of test if true (single clause)
+    ((guard-clauses exit var (test))
+     (let ((temp test))
+       (if temp
+           (exit temp)
+           (raise-continuable var))))
     ;; no clauses matched - re-raise
     ((guard-clauses exit var)
      (raise-continuable var))))

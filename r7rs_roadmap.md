@@ -76,16 +76,20 @@ Restructured the codebase to align with R7RS Appendix A.
 ## Phase 2: Core Syntax (Standard Macros) ✅
 **Target Library:** `(scheme base)`
 
-Defined missing standard macros in `src/core/scheme/control.scm`.
+Defined missing standard macros in `src/core/scheme/control.scm` and `macros.scm`.
 
 | Macro | Status | Notes |
 |-------|--------|-------|
 | `or` | ✅ | |
 | `let*` | ✅ | |
-| `case` | ✅ | Uses `memv` |
+| `case` | ✅ | Uses `memv`, supports `=>` syntax |
 | `when` | ✅ | |
 | `unless` | ✅ | |
 | `do` | ✅ | Normalized expansion |
+| `letrec*` | ✅ | Sequential initialization |
+| `let-values` | ✅ | Multiple value bindings |
+| `let*-values` | ✅ | Sequential multiple value bindings |
+| `define-values` | ✅ | Define from multiple values |
 | `begin` | ⚠️ Analyzer | Special form in analyzer |
 
 **Deliverable:** `src/core/scheme/control.scm` created and verified.
@@ -110,6 +114,9 @@ Completed in `math.js` and `numbers.scm` per R7RS §6.2.
 | `gcd`, `lcm` | ✅ Scheme | In `numbers.scm` |
 | `floor`, `ceiling`, `truncate`, `round` | ✅ | JS + Scheme |
 | `expt`, `sqrt` | ✅ JS | In `math.js` |
+| `exact-integer-sqrt` | ✅ JS | Returns two values |
+| `floor/`, `floor-quotient`, `floor-remainder` | ✅ JS | Floor division |
+| `truncate/`, `truncate-quotient`, `truncate-remainder` | ✅ JS | Truncate division |
 | Variadic `=`, `<`, `>`, `<=`, `>=` | ✅ Scheme | In `numbers.scm` |
 
 > [!NOTE]
@@ -292,10 +299,24 @@ R7RS §6.11 requires: `error`, `raise`, `raise-continuable`, `with-exception-han
 
 ---
 
-## Phase 12: Bytevectors (Optional)
+## Phase 12: Bytevectors ✅
 **Target Library:** `(scheme base)` (basics)
 
-R7RS §6.9 defines bytevectors.
+R7RS §6.9 defines bytevectors. Implemented in `src/core/primitives/bytevector.js`.
+
+| Primitive | Status | Notes |
+|-----------|--------|-------|
+| `bytevector?` | ✅ | Type predicate |
+| `make-bytevector` | ✅ | Constructor with optional fill |
+| `bytevector` | ✅ | Construct from bytes |
+| `bytevector-length` | ✅ | Return length |
+| `bytevector-u8-ref` | ✅ | Read byte |
+| `bytevector-u8-set!` | ✅ | Write byte |
+| `bytevector-copy` | ✅ | Copy with optional start/end |
+| `bytevector-copy!` | ✅ | Copy into existing |
+| `bytevector-append` | ✅ | Concatenate bytevectors |
+| `utf8->string` | ✅ | Convert to string |
+| `string->utf8` | ✅ | Convert from string |
 
 ---
 

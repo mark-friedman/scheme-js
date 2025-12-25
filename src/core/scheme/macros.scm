@@ -50,6 +50,31 @@
        (let () body ...)))))
 
 ;; /**
+;;  * Sequential recursive binding construct.
+;;  * Like letrec but guarantees left-to-right evaluation of inits.
+;;  *
+;;  * @param {list} bindings - List of ((var init) ...) bindings.
+;;  * @param {...*} body - Body expressions to evaluate.
+;;  * @returns {*} Result of the last expression in the body.
+;;  */
+(define-syntax letrec*
+  (syntax-rules ()
+    ;; Empty case
+    ((letrec* () body ...)
+     (let () body ...))
+    ;; Use a helper to collect bindings, then expand
+    ((letrec* ((var init) ...) body ...)
+     (let ((var 'undefined) ...)
+       (letrec* "init" ((var init) ...) body ...)))
+    ;; Helper: initialize each binding sequentially, then run body
+    ((letrec* "init" () body ...)
+     (let () body ...))
+    ((letrec* "init" ((var init) rest ...) body ...)
+     (begin
+       (set! var init)
+       (letrec* "init" (rest ...) body ...)))))
+
+;; /**
 ;;  * Conditional expression.
 ;;  * Evaluates clauses sequentially until one's test evaluates to true.
 ;;  *

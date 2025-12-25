@@ -48,6 +48,7 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │       │   ├── exception.js        # Exception handling primitives
 │       │   ├── interop.js          # JavaScript interop utilities
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
+│       │   ├── bytevector.js       # Bytevector operations (R7RS §6.9)
 │       │   └── gc.js               # GC-related utilities
 │       │
 │       └── scheme/                 # Core Scheme subset (base library)

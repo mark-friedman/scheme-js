@@ -9,6 +9,7 @@
  */
 
 import { assertNumber, assertInteger, assertArity } from '../interpreter/type_check.js';
+import { Values } from '../interpreter/values.js';
 
 // =============================================================================
 // Math Primitives (JavaScript-required)
@@ -405,5 +406,130 @@ export const mathPrimitives = {
     'exp': (x) => {
         assertNumber('exp', 1, x);
         return Math.exp(x);
+    },
+
+    // =========================================================================
+    // Multiple-Value Returning Procedures (R7RS §6.2.6)
+    // =========================================================================
+
+    /**
+     * Exact integer square root.
+     * Returns two values: the root and remainder such that k = s^2 + r
+     * @param {number} k - Non-negative exact integer
+     * @returns {Values} Two values: root and remainder
+     */
+    'exact-integer-sqrt': (k) => {
+        assertInteger('exact-integer-sqrt', 1, k);
+        if (k < 0) {
+            throw new Error('exact-integer-sqrt: expected non-negative integer');
+        }
+        const s = Math.floor(Math.sqrt(k));
+        const r = k - s * s;
+        return new Values([s, r]);
+    },
+
+    /**
+     * Floor division.
+     * Returns two values: quotient and remainder such that
+     * n1 = n2 * quotient + remainder, with remainder having same sign as n2.
+     * @param {number} n1 - Dividend
+     * @param {number} n2 - Divisor
+     * @returns {Values} Two values: quotient and remainder
+     */
+    'floor/': (n1, n2) => {
+        assertArity('floor/', [n1, n2], 2, 2);
+        assertInteger('floor/', 1, n1);
+        assertInteger('floor/', 2, n2);
+        if (n2 === 0) {
+            throw new Error('floor/: division by zero');
+        }
+        const q = Math.floor(n1 / n2);
+        const r = n1 - n2 * q;
+        return new Values([q, r]);
+    },
+
+    /**
+     * Truncate division.
+     * Returns two values: quotient and remainder such that
+     * n1 = n2 * quotient + remainder, with remainder having same sign as n1.
+     * @param {number} n1 - Dividend
+     * @param {number} n2 - Divisor
+     * @returns {Values} Two values: quotient and remainder
+     */
+    'truncate/': (n1, n2) => {
+        assertArity('truncate/', [n1, n2], 2, 2);
+        assertInteger('truncate/', 1, n1);
+        assertInteger('truncate/', 2, n2);
+        if (n2 === 0) {
+            throw new Error('truncate/: division by zero');
+        }
+        const q = Math.trunc(n1 / n2);
+        const r = n1 - n2 * q;
+        return new Values([q, r]);
+    },
+
+    /**
+     * Floor quotient (single value).
+     * @param {number} n1 - Dividend
+     * @param {number} n2 - Divisor
+     * @returns {number} Floor quotient
+     */
+    'floor-quotient': (n1, n2) => {
+        assertArity('floor-quotient', [n1, n2], 2, 2);
+        assertInteger('floor-quotient', 1, n1);
+        assertInteger('floor-quotient', 2, n2);
+        if (n2 === 0) {
+            throw new Error('floor-quotient: division by zero');
+        }
+        return Math.floor(n1 / n2);
+    },
+
+    /**
+     * Floor remainder (single value).
+     * @param {number} n1 - Dividend
+     * @param {number} n2 - Divisor
+     * @returns {number} Floor remainder
+     */
+    'floor-remainder': (n1, n2) => {
+        assertArity('floor-remainder', [n1, n2], 2, 2);
+        assertInteger('floor-remainder', 1, n1);
+        assertInteger('floor-remainder', 2, n2);
+        if (n2 === 0) {
+            throw new Error('floor-remainder: division by zero');
+        }
+        const q = Math.floor(n1 / n2);
+        return n1 - n2 * q;
+    },
+
+    /**
+     * Truncate quotient (single value).
+     * @param {number} n1 - Dividend
+     * @param {number} n2 - Divisor
+     * @returns {number} Truncate quotient
+     */
+    'truncate-quotient': (n1, n2) => {
+        assertArity('truncate-quotient', [n1, n2], 2, 2);
+        assertInteger('truncate-quotient', 1, n1);
+        assertInteger('truncate-quotient', 2, n2);
+        if (n2 === 0) {
+            throw new Error('truncate-quotient: division by zero');
+        }
+        return Math.trunc(n1 / n2);
+    },
+
+    /**
+     * Truncate remainder (single value).
+     * @param {number} n1 - Dividend
+     * @param {number} n2 - Divisor
+     * @returns {number} Truncate remainder
+     */
+    'truncate-remainder': (n1, n2) => {
+        assertArity('truncate-remainder', [n1, n2], 2, 2);
+        assertInteger('truncate-remainder', 1, n1);
+        assertInteger('truncate-remainder', 2, n2);
+        if (n2 === 0) {
+            throw new Error('truncate-remainder: division by zero');
+        }
+        return n1 % n2;
     },
 };

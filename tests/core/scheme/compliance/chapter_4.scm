@@ -121,12 +121,17 @@
                 (even? 88))))
 
       (test-group "letrec*"
-        ;; letrec* enforces left-to-right evaluation order for inits
+        ;; R7RS-small example: letrec* enforces left-to-right evaluation order
         (test "letrec* sequencing" 5
-              (letrec* ((p (lambda (x) (+ 1 (q x))))
-                        (q (lambda (x) (+ 1 x)))
-                        (x (p 2)))
-                x)))
+              (letrec* ((p (lambda (x)
+                             (+ 1 (q (- x 1)))))
+                        (q (lambda (y)
+                             (if (zero? y)
+                                 0
+                                 (+ 1 (p (- y 1))))))
+                        (x (p 5))
+                        (y x))
+                y)))
 
       (test-group "let-values"
         (test "let-values exact-integer-sqrt" 35
