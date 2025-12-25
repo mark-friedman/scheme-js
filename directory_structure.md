@@ -98,7 +98,19 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │   │       ├── hygiene_tests.scm
 │   │       ├── parameter_tests.scm
 │   │       ├── repl_tests.scm
-│   │       └── compliance/         # R7RS conformance tests (Chibi-based)
+│   │       └── compliance/         # R7RS conformance tests
+│   │           ├── chibi_ui.html           # Browser UI for Chibi suite
+│   │           ├── chibi_runner_lib.js     # Chibi test runner library
+│   │           ├── run_chibi_tests.js      # Node.js runner for Chibi
+│   │           ├── chapter_ui.html         # Browser UI for chapter tests
+│   │           ├── chapter_runner_lib.js   # Chapter test runner library
+│   │           ├── run_chapter_tests.js    # Node.js runner for chapters
+│   │           ├── chapter_3.scm           # Basic concepts tests
+│   │           ├── chapter_4.scm           # Expressions tests
+│   │           ├── chapter_5.scm           # Program structure tests
+│   │           ├── chapter_6.scm           # Standard procedures tests
+│   │           └── chibi_revised/          # Chibi-based section tests
+│   │               └── sections/           # Individual section files
 │   │
 │   ├── functional/                 # Cross-cutting integration tests
 │   │   ├── core_tests.js

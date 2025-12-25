@@ -1740,3 +1740,78 @@ Confirmed browser and Node.js test runners use identical infrastructure:
 ```
 TEST SUMMARY: 662 passed, 0 failed, 2 skipped
 ```
+
+---
+
+# Compliance Test Browser UI & Library Loading Fixes (2025-12-25)
+
+## Summary
+
+Fixed critical bugs in the R7RS compliance test infrastructure and created new browser and Node.js test runners for chapter-based compliance tests.
+
+## Bug Fixes
+
+### Import Path Fixes
+
+Fixed incorrect import paths in `chibi_ui.html` and `chibi_runner_lib.js`:
+- `'../../../helpers.js'` → `'../../../harness/helpers.js'`
+
+### API Mismatch Fix
+
+Fixed `chibi_ui.html` calling non-existent `runChibiSuite`:
+- Changed to use exported `createComplianceRunner` and `sectionFiles`
+
+### Library Loading Fix
+
+Both compliance runners were only loading 2 libraries (`base`, `repl`), missing implemented features like `case-lambda` and `lazy`.
+
+Updated both runners to load all 12 available R7RS libraries:
+
+| Library | Before | After |
+|---------|--------|-------|
+| `(scheme base)` | ✅ | ✅ |
+| `(scheme repl)` | ✅ | ✅ |
+| `(scheme case-lambda)` | ❌ | ✅ |
+| `(scheme lazy)` | ❌ | ✅ |
+| `(scheme char)` | ❌ | ✅ |
+| `(scheme cxr)` | ❌ | ✅ |
+| `(scheme read)` | ❌ | ✅ |
+| `(scheme write)` | ❌ | ✅ |
+| `(scheme eval)` | ❌ | ✅ |
+| `(scheme time)` | ❌ | ✅ |
+| `(scheme process-context)` | ❌ | ✅ |
+| `(scheme file)` | ❌ | ✅ |
+
+**Tests now passing that previously failed:**
+- `case-lambda 1 arg`, `case-lambda 2 args`
+- `lazy evaluation`, `memoization`, `promise?`
+
+## New Files
+
+| File | Description |
+|------|-------------|
+| `tests/core/scheme/compliance/chapter_runner_lib.js` | Runner library for chapter compliance tests |
+| `tests/core/scheme/compliance/chapter_ui.html` | Browser UI for chapter tests |
+| `tests/core/scheme/compliance/run_chapter_tests.js` | Node.js CLI runner for chapter tests |
+
+## Modified Files
+
+| File | Change |
+|------|--------|
+| `web/index.html` | Added "R7RS Compliance Tests" section with links |
+| `chibi_runner_lib.js` | Fixed import path, added all 12 library imports |
+| `chibi_ui.html` | Fixed import path, fixed API usage |
+
+## Verification
+
+### Chapter Tests (Node.js)
+```
+node tests/core/scheme/compliance/run_chapter_tests.js
+CHAPTERS: 3 passed, 1 failed (chapter_6 macro expansion issue)
+```
+
+### Browser Tests
+- Chapter UI: 61 passed, 36 failed
+- Chibi UI: 561 passed, 179 failed
+
+Test failures are in Scheme implementation (missing bytevector, define-values, etc.), not test infrastructure.
