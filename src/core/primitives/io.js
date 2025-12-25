@@ -7,6 +7,7 @@
 
 import { Cons, list } from '../interpreter/cons.js';
 import { parse } from '../interpreter/reader.js';
+import { intern } from '../interpreter/symbol.js';
 
 // ============================================================================
 // Environment Detection
@@ -555,6 +556,140 @@ function writeString(val) {
 }
 
 /**
+ * Converts a Scheme value to its write representation with shared structure detection.
+ * Uses datum labels (#n= and #n#) for cycles and shared objects.
+ * @param {*} val
+ * @returns {string}
+ */
+function writeStringShared(val) {
+    // First pass: find shared/cyclic objects
+    const seen = new Map();  // object -> { count: number, id: number|null }
+    let nextId = 0;
+
+    function countOccurrences(obj) {
+        if (obj === null || typeof obj !== 'object') return;
+        if (typeof obj === 'function') return;
+
+        // Skip non-compound types
+        if (!(obj instanceof Cons) && !Array.isArray(obj)) return;
+
+        if (seen.has(obj)) {
+            const info = seen.get(obj);
+            info.count++;
+            if (info.id === null) {
+                info.id = nextId++;
+            }
+        } else {
+            seen.set(obj, { count: 1, id: null });
+            if (obj instanceof Cons) {
+                countOccurrences(obj.car);
+                countOccurrences(obj.cdr);
+            } else if (Array.isArray(obj)) {
+                for (const elem of obj) {
+                    countOccurrences(elem);
+                }
+            }
+        }
+    }
+
+    countOccurrences(val);
+
+    // Second pass: build output with datum labels
+    const emitted = new Set();  // objects that have been output with #n=
+
+    function emit(obj) {
+        // Handle primitives
+        if (obj === null) return '()';
+        if (obj === true) return '#t';
+        if (obj === false) return '#f';
+        if (typeof obj === 'string') {
+            return '"' + obj
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r')
+                .replace(/\t/g, '\\t') + '"';
+        }
+        if (typeof obj === 'number') return String(obj);
+        if (obj && obj.name && obj.description === undefined) return obj.name; // Symbol
+        if (obj === EOF_OBJECT) return '#<eof>';
+        if (obj instanceof Port) return obj.toString();
+        if (typeof obj === 'function') {
+            const name = obj.constructor ? obj.constructor.name : 'Unknown';
+            if (name === 'Closure') return obj.toString();
+            return `#<procedure ${name}>`;
+        }
+        if (obj && obj.type === 'record') {
+            return `#<${obj.typeDescriptor.name}>`;
+        }
+
+        // Handle compound types with sharing detection
+        if (obj instanceof Cons || Array.isArray(obj)) {
+            const info = seen.get(obj);
+            if (info && info.id !== null) {
+                if (emitted.has(obj)) {
+                    // Already emitted - use reference
+                    return `#${info.id}#`;
+                } else {
+                    // First emission - add label
+                    emitted.add(obj);
+                    if (obj instanceof Cons) {
+                        return `#${info.id}=${consToStringShared(obj, emit)}`;
+                    } else {
+                        return `#${info.id}=${vectorToStringShared(obj, emit)}`;
+                    }
+                }
+            } else {
+                // Not shared - normal output
+                if (obj instanceof Cons) {
+                    return consToStringShared(obj, emit);
+                } else {
+                    return vectorToStringShared(obj, emit);
+                }
+            }
+        }
+
+        return String(obj);
+    }
+
+    function consToStringShared(cons, emitFn) {
+        const parts = [];
+        let current = cons;
+        const visitedInChain = new Set();
+
+        while (current instanceof Cons) {
+            // Check if this cons is shared and already referenced
+            const info = seen.get(current);
+            if (info && info.id !== null && emitted.has(current) && current !== cons) {
+                // Terminate with improper tail reference
+                return '(' + parts.join(' ') + ' . #' + info.id + '#)';
+            }
+
+            // Detect cycle within same chain (not via datum labels)
+            if (visitedInChain.has(current)) {
+                return '(' + parts.join(' ') + ' . ...)';
+            }
+            visitedInChain.add(current);
+
+            parts.push(emitFn(current.car));
+            current = current.cdr;
+        }
+
+        if (current === null) {
+            return '(' + parts.join(' ') + ')';
+        } else {
+            return '(' + parts.join(' ') + ' . ' + emitFn(current) + ')';
+        }
+    }
+
+    function vectorToStringShared(vec, emitFn) {
+        return '#(' + vec.map(emitFn).join(' ') + ')';
+    }
+
+    return emit(val);
+}
+
+/**
  * Converts a cons cell to a string.
  * @param {Cons} cons
  * @param {Function} elemFn - Function to convert elements.
@@ -909,6 +1044,34 @@ export const ioPrimitives = {
         return undefined;  // unspecified
     },
 
+    /**
+     * Writes a value without datum labels for shared structure.
+     * Same as write for our implementation.
+     * @param {*} val - Value to write.
+     * @param {Port} [port] - Output port (default: current-output-port).
+     */
+    'write-simple': (val, ...args) => {
+        const port = args.length > 0 ? args[0] : currentOutputPort;
+        requireOpenOutputPort(port, 'write-simple');
+        const str = writeString(val);
+        port.writeString(str);
+        return undefined;  // unspecified
+    },
+
+    /**
+     * Writes a value with datum labels for shared/cyclic structure.
+     * Uses #n= for definitions and #n# for references.
+     * @param {*} val - Value to write.
+     * @param {Port} [port] - Output port (default: current-output-port).
+     */
+    'write-shared': (val, ...args) => {
+        const port = args.length > 0 ? args[0] : currentOutputPort;
+        requireOpenOutputPort(port, 'write-shared');
+        const str = writeStringShared(val);
+        port.writeString(str);
+        return undefined;  // unspecified
+    },
+
     // --------------------------------------------------------------------------
     // Port Control
     // --------------------------------------------------------------------------
@@ -1247,13 +1410,14 @@ export const ioPrimitives = {
      * @returns {Cons}
      */
     'features': () => {
-        // Basic R7RS features
+        // R7RS features - return proper symbols
         return list(
-            { name: 'r7rs' },
-            { name: 'exact-closed' },
-            { name: 'ratios' },
-            { name: 'complex' },
-            { name: 'full-unicode' }
+            intern('r7rs'),
+            intern('exact-closed'),
+            intern('ratios'),
+            intern('ieee-float'),
+            intern('full-unicode'),
+            intern('scheme-js')
         );
     }
 };

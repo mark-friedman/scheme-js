@@ -49,6 +49,161 @@
                          (loop (cdr l)))))))
     (loop lst)))
 
+;; /**
+;;  * Applies a procedure to corresponding characters of strings.
+;;  * Returns a new string of the results.
+;;
+;;  * @param {procedure} proc - The procedure to apply.
+;;  * @param {string} str - First string.
+;;  * @param {...string} strs - Additional strings (optional).
+;;  * @returns {string} A new string of the results.
+;;  */
+(define (string-map proc str . strs)
+  (if (not (procedure? proc))
+      (error "string-map: expected procedure" proc))
+  (if (not (string? str))
+      (error "string-map: expected string" str))
+  (let ((len (string-length str)))
+    (for-each (lambda (s)
+                (if (not (string? s))
+                    (error "string-map: expected string" s))
+                (if (not (= (string-length s) len))
+                    (error "string-map: strings must have same length")))
+              strs)
+    (if (null? strs)
+        ;; Single string case
+        (list->string
+         (letrec ((loop (lambda (i acc)
+                          (if (< i 0)
+                              acc
+                              (loop (- i 1) (cons (proc (string-ref str i)) acc))))))
+           (loop (- len 1) '())))
+        ;; Multiple strings case
+        (list->string
+         (letrec ((loop (lambda (i acc)
+                          (if (< i 0)
+                              acc
+                              (let ((chars (cons (string-ref str i)
+                                                 (map (lambda (s) (string-ref s i)) strs))))
+                                (loop (- i 1) (cons (apply proc chars) acc)))))))
+           (loop (- len 1) '()))))))
+
+;; /**
+;;  * Applies a procedure to corresponding characters of strings for side effects.
+;;
+;;  * @param {procedure} proc - The procedure to apply.
+;;  * @param {string} str - First string.
+;;  * @param {...string} strs - Additional strings (optional).
+;;  * @returns {undefined} Unspecified.
+;;  */
+(define (string-for-each proc str . strs)
+  (if (not (procedure? proc))
+      (error "string-for-each: expected procedure" proc))
+  (if (not (string? str))
+      (error "string-for-each: expected string" str))
+  (let ((len (string-length str)))
+    (for-each (lambda (s)
+                (if (not (string? s))
+                    (error "string-for-each: expected string" s))
+                (if (not (= (string-length s) len))
+                    (error "string-for-each: strings must have same length")))
+              strs)
+    (if (null? strs)
+        ;; Single string case
+        (letrec ((loop (lambda (i)
+                         (if (< i len)
+                             (begin
+                               (proc (string-ref str i))
+                               (loop (+ i 1)))))))
+          (loop 0))
+        ;; Multiple strings case
+        (letrec ((loop (lambda (i)
+                         (if (< i len)
+                             (let ((chars (cons (string-ref str i)
+                                                (map (lambda (s) (string-ref s i)) strs))))
+                               (apply proc chars)
+                               (loop (+ i 1)))))))
+          (loop 0)))))
+
+;; /**
+;;  * Applies a procedure to corresponding elements of vectors.
+;;  * Returns a new vector of the results.
+;;
+;;  * @param {procedure} proc - The procedure to apply.
+;;  * @param {vector} vec - First vector.
+;;  * @param {...vector} vecs - Additional vectors (optional).
+;;  * @returns {vector} A new vector of the results.
+;;  */
+(define (vector-map proc vec . vecs)
+  (if (not (procedure? proc))
+      (error "vector-map: expected procedure" proc))
+  (if (not (vector? vec))
+      (error "vector-map: expected vector" vec))
+  (let ((len (vector-length vec)))
+    (for-each (lambda (v)
+                (if (not (vector? v))
+                    (error "vector-map: expected vector" v))
+                (if (not (= (vector-length v) len))
+                    (error "vector-map: vectors must have same length")))
+              vecs)
+    (if (null? vecs)
+        ;; Single vector case
+        (let ((result (make-vector len)))
+          (letrec ((loop (lambda (i)
+                           (if (< i len)
+                               (begin
+                                 (vector-set! result i (proc (vector-ref vec i)))
+                                 (loop (+ i 1)))))))
+            (loop 0))
+          result)
+        ;; Multiple vectors case
+        (let ((result (make-vector len)))
+          (letrec ((loop (lambda (i)
+                           (if (< i len)
+                               (let ((elems (cons (vector-ref vec i)
+                                                  (map (lambda (v) (vector-ref v i)) vecs))))
+                                 (vector-set! result i (apply proc elems))
+                                 (loop (+ i 1)))))))
+            (loop 0))
+          result))))
+
+;; /**
+;;  * Applies a procedure to corresponding elements of vectors for side effects.
+;;
+;;  * @param {procedure} proc - The procedure to apply.
+;;  * @param {vector} vec - First vector.
+;;  * @param {...vector} vecs - Additional vectors (optional).
+;;  * @returns {undefined} Unspecified.
+;;  */
+(define (vector-for-each proc vec . vecs)
+  (if (not (procedure? proc))
+      (error "vector-for-each: expected procedure" proc))
+  (if (not (vector? vec))
+      (error "vector-for-each: expected vector" vec))
+  (let ((len (vector-length vec)))
+    (for-each (lambda (v)
+                (if (not (vector? v))
+                    (error "vector-for-each: expected vector" v))
+                (if (not (= (vector-length v) len))
+                    (error "vector-for-each: vectors must have same length")))
+              vecs)
+    (if (null? vecs)
+        ;; Single vector case
+        (letrec ((loop (lambda (i)
+                         (if (< i len)
+                             (begin
+                               (proc (vector-ref vec i))
+                               (loop (+ i 1)))))))
+          (loop 0))
+        ;; Multiple vectors case
+        (letrec ((loop (lambda (i)
+                         (if (< i len)
+                             (let ((elems (cons (vector-ref vec i)
+                                                (map (lambda (v) (vector-ref v i)) vecs))))
+                               (apply proc elems)
+                               (loop (+ i 1)))))))
+          (loop 0)))))
+
 ;; =============================================================================
 ;; Membership Procedures
 ;; =============================================================================

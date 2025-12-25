@@ -65,6 +65,9 @@ export const schemeTestFiles = [
     'tests/core/scheme/eval_tests.scm',
     'tests/core/scheme/process_context_tests.scm',
     'tests/core/scheme/bytevector_tests.scm',
+    'tests/core/scheme/features_tests.scm',
+    'tests/core/scheme/iteration_tests.scm',
+    'tests/core/scheme/write_tests.scm',
 ];
 
 /**

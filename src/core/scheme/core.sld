@@ -19,6 +19,8 @@
     
     ;; List operations
     map for-each
+    string-map string-for-each
+    vector-map vector-for-each
     memq memv member
     assq assv assoc
     length list-ref list-tail reverse list-copy

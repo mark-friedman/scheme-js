@@ -83,6 +83,8 @@
     
     ;; Control
     apply map for-each
+    string-map string-for-each
+    vector-map vector-for-each
     call-with-current-continuation call/cc
     dynamic-wind
     values call-with-values
@@ -117,6 +119,7 @@
     ;; I/O - Output
     write-char write-string
     display newline write
+    write-simple write-shared
     
     ;; Syntax (Macros & Special Forms)
     define set! lambda if begin quote quasiquote unquote unquote-splicing
