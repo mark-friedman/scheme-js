@@ -1,5 +1,5 @@
 import { Closure, Continuation } from '../src/core/interpreter/values.js';
-import { Variable, Literal } from '../src/core/interpreter/ast.js';
+import { VariableNode, LiteralNode } from '../src/core/interpreter/ast.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 
@@ -18,7 +18,7 @@ import { Symbol } from '../src/core/interpreter/symbol.js';
  * @returns {string}
  */
 export function prettyPrint(val) {
-    if (val instanceof Literal) {
+    if (val instanceof LiteralNode) {
         return prettyPrint(val.value);
     }
     if (val instanceof Closure) {
@@ -27,7 +27,7 @@ export function prettyPrint(val) {
     if (val instanceof Continuation) {
         return "#<continuation>";
     }
-    if (val instanceof Variable) {
+    if (val instanceof VariableNode) {
         return val.name; // Should not happen for result values, but for AST debugging
     }
     if (val instanceof Symbol) {

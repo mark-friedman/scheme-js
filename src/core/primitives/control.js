@@ -5,7 +5,7 @@
  */
 
 import { TailCall, Values, Closure, Continuation } from '../interpreter/values.js';
-import { TailApp, Literal, DynamicWindInit, CallWithValuesNode, CallCC } from '../interpreter/ast.js';
+import { TailAppNode, LiteralNode, DynamicWindInit, CallWithValuesNode, CallCCNode } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/analyzer.js';
 import { Cons, toArray } from '../interpreter/cons.js';
 import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';
@@ -39,11 +39,11 @@ export function getControlPrimitives(interpreter) {
         }
 
         // Wrap args in Literals for the AST
-        const argLiterals = finalArgs.map(val => new Literal(val));
+        const argLiterals = finalArgs.map(val => new LiteralNode(val));
 
         // Return a TailCall to transfer control
         return new TailCall(
-            new TailApp(new Literal(proc), argLiterals),
+            new TailAppNode(new LiteralNode(proc), argLiterals),
             null // Use current environment
         );
     };
@@ -118,12 +118,12 @@ export function getControlPrimitives(interpreter) {
          */
         'call-with-current-continuation': (proc) => {
             assertProcedure('call-with-current-continuation', 1, proc);
-            return new TailCall(new CallCC(new Literal(proc)), null);
+            return new TailCall(new CallCCNode(new LiteralNode(proc)), null);
         },
 
         'call/cc': (proc) => {
             assertProcedure('call/cc', 1, proc);
-            return new TailCall(new CallCC(new Literal(proc)), null);
+            return new TailCall(new CallCCNode(new LiteralNode(proc)), null);
         },
 
         /**

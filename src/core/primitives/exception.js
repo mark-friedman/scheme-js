@@ -10,7 +10,7 @@
  */
 
 import { TailCall } from '../interpreter/values.js';
-import { WithExceptionHandlerInit, RaiseNode, Literal } from '../interpreter/ast.js';
+import { WithExceptionHandlerInit, RaiseNode, LiteralNode } from '../interpreter/ast.js';
 import { SchemeError } from '../interpreter/errors.js';
 import { list } from '../interpreter/cons.js';
 

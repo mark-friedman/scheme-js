@@ -6,7 +6,7 @@
  */
 
 import { getWindFrameClass } from './frame_registry.js';
-import { TailApp, Literal, RestoreContinuation } from './stepables.js';
+import { TailAppNode, LiteralNode, RestoreContinuation } from './stepables.js';
 
 /**
  * Computes the sequence of wind actions needed when jumping
@@ -48,12 +48,12 @@ export function computeWindActions(currentStack, targetStack, value) {
 
     // Run 'after' thunks for extents we're leaving
     for (const frame of toUnwind) {
-        actions.push(new TailApp(new Literal(frame.after), []));
+        actions.push(new TailAppNode(new LiteralNode(frame.after), []));
     }
 
     // Run 'before' thunks for extents we're entering
     for (const frame of toRewind) {
-        actions.push(new TailApp(new Literal(frame.before), []));
+        actions.push(new TailAppNode(new LiteralNode(frame.before), []));
     }
 
     // Append the final restoration if there are actions

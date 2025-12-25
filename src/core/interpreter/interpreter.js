@@ -1,5 +1,5 @@
 import { Closure, Values } from './values.js';
-import { Literal, TailApp, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
+import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 
 /**
@@ -202,10 +202,10 @@ export class Interpreter {
   createJsBridge(closure, parentStack = []) {
     return (...jsArgs) => {
       // 1. Convert JS args to Scheme args (literals)
-      const argLiterals = jsArgs.map(val => new Literal(val));
+      const argLiterals = jsArgs.map(val => new LiteralNode(val));
 
       // 2. Create the invocation AST
-      const ast = new TailApp(new Literal(closure), argLiterals);
+      const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
 
       // 3. Spin up a NEW interpreter instance
       // We pass 'parentStack' + SentinelFrame to the new run.

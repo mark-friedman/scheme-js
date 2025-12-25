@@ -1,5 +1,5 @@
 import { assert, createTestLogger } from '../../harness/helpers.js';
-import { IfFrame, SetFrame, DefineFrame, BeginFrame, LetFrame, Literal, Variable } from '../../../src/core/interpreter/ast.js';
+import { IfFrame, SetFrame, DefineFrame, BeginFrame, LetFrame, LiteralNode, VariableNode } from '../../../src/core/interpreter/ast.js';
 
 
 export function runFramesTests(logger) {
@@ -11,8 +11,8 @@ export function runFramesTests(logger) {
     // 1. IfFrame
     // (if test consequent alternative)
     const env = { id: 'env-parent' };
-    const consequent = new Literal("cons");
-    const alternative = new Literal("alt");
+    const consequent = new LiteralNode("cons");
+    const alternative = new LiteralNode("alt");
     const ifFrame = new IfFrame(env, consequent, alternative);
 
     // Case A: Test is true
@@ -43,14 +43,14 @@ export function runFramesTests(logger) {
     assert(logger, "SetFrame sets ans (undefined)", regs3[0], undefined);
     assert(logger, "SetFrame does NOT set ctl (continues to loop)", regs3[1], null); // step returns undefined? 
     // Wait, frames usually return undefined in step? 
-    // They modify registers. If ctl is null, loop checks fstack.
+    // They modify registers. IfNode ctl is null, loop checks fstack.
     // SetFrame.step modifies registers[1] (ctl) to null implied? 
     // No, step returns nothing. ctl is null. Correct.
 
     // 3. BeginFrame
     // (begin exp1 exp2) -> evaluates exp1, then BeginFrame gets result, sets ctl to exp2
     const beginEnv = { id: 'env' };
-    const exps = [new Literal(2), new Literal(3)];
+    const exps = [new LiteralNode(2), new LiteralNode(3)];
     const beginFrame = new BeginFrame(beginEnv, exps);
 
     const regs4 = createRegisters();
@@ -62,12 +62,12 @@ export function runFramesTests(logger) {
 
     // 4. LetFrame
     // (let ((x 1)) body)
-    // Actually LetFrame is simpler? R7RS `let` desugared to `Lambda` + `App`.
-    // Layer 1 `Let` might be simple binding?
+    // Actually LetFrame is simpler? R7RS `let` desugared to `LambdaNode` + `App`.
+    // Layer 1 `LetNode` might be simple binding?
     // LetFrame (env, var, body)
     // Step: ans is val. extend env. run body.
     const letEnv = { extend: (k, v) => ({ parent: letEnv, k, v }) };
-    const body = new Literal("body");
+    const body = new LiteralNode("body");
     const letFrame = new LetFrame(letEnv, "x", body);
 
     const regs5 = createRegisters();

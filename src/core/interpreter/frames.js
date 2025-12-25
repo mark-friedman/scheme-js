@@ -16,7 +16,7 @@ import { registerBindingWithCurrentScopes } from './syntax_object.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
-import { Literal, TailApp, RestoreContinuation } from './ast_nodes.js';
+import { LiteralNode, TailAppNode, RestoreContinuation } from './ast_nodes.js';
 
 // =============================================================================
 // Helper Functions
@@ -293,8 +293,8 @@ export class AppFrame extends Executable {
                 const target = result.func;
                 if (target instanceof Closure || target instanceof Continuation || typeof target === 'function') {
                     const tailArgs = result.args || [];
-                    const argLiterals = tailArgs.map(a => new Literal(a));
-                    registers[CTL] = new TailApp(new Literal(target), argLiterals);
+                    const argLiterals = tailArgs.map(a => new LiteralNode(a));
+                    registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
                     return true;
                 }
                 registers[CTL] = target;
@@ -351,10 +351,10 @@ export class AppFrame extends Executable {
         const actions = [];
 
         for (const frame of toUnwind) {
-            actions.push(new TailApp(new Literal(frame.after), []));
+            actions.push(new TailAppNode(new LiteralNode(frame.after), []));
         }
         for (const frame of toRewind) {
-            actions.push(new TailApp(new Literal(frame.before), []));
+            actions.push(new TailAppNode(new LiteralNode(frame.before), []));
         }
 
         // CRITICAL: Unwind JS stack (Return Value Mode)
@@ -422,7 +422,7 @@ export class DynamicWindSetupFrame extends Executable {
             this.env
         ));
 
-        registers[CTL] = new TailApp(new Literal(this.thunk), []);
+        registers[CTL] = new TailAppNode(new LiteralNode(this.thunk), []);
         registers[ENV] = this.env;
         return true;
     }
@@ -451,7 +451,7 @@ export class WindFrame extends Executable {
 
         registers[FSTACK].push(new RestoreValueFrame(result));
 
-        registers[CTL] = new TailApp(new Literal(this.after), []);
+        registers[CTL] = new TailAppNode(new LiteralNode(this.after), []);
         return true;
     }
 }
@@ -505,10 +505,10 @@ export class CallWithValuesFrame extends Executable {
         }
 
         // Create argument Literals for TailApp
-        const argLiterals = args.map(a => new Literal(a));
+        const argLiterals = args.map(a => new LiteralNode(a));
 
         // Invoke consumer with the values
-        registers[CTL] = new TailApp(new Literal(this.consumer), argLiterals);
+        registers[CTL] = new TailAppNode(new LiteralNode(this.consumer), argLiterals);
         registers[ENV] = this.env;
         return true;
     }

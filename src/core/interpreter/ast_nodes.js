@@ -24,7 +24,7 @@ import { GlobalRef, lookupLibraryEnv } from './syntax_object.js';
  */
 export function ensureExecutable(obj) {
     if (obj instanceof Executable) return obj;
-    return new Literal(obj);
+    return new LiteralNode(obj);
 }
 
 // =============================================================================
@@ -35,7 +35,7 @@ export function ensureExecutable(obj) {
  * A literal value (number, string, boolean).
  * This is an atomic expression that returns immediately.
  */
-export class Literal extends Executable {
+export class LiteralNode extends Executable {
     /**
      * @param {*} value - The literal value.
      */
@@ -56,7 +56,7 @@ export class Literal extends Executable {
  * A variable lookup.
  * This is an atomic expression that looks up a name in the environment.
  */
-export class Variable extends Executable {
+export class VariableNode extends Executable {
     /**
      * @param {string} name - The variable name to look up.
      */
@@ -143,7 +143,7 @@ export class ScopedVariable extends Executable {
  * A lambda expression.
  * Creates a closure capturing the current environment.
  */
-export class Lambda extends Executable {
+export class LambdaNode extends Executable {
     /**
      * @param {Array<string>} params - Array of parameter names.
      * @param {Executable} body - The body expression.
@@ -172,7 +172,7 @@ export class Lambda extends Executable {
  * A 'let' binding.
  * Evaluates the binding expression, then the body in an extended environment.
  */
-export class Let extends Executable {
+export class LetNode extends Executable {
     /**
      * @param {string} varName - The variable name to bind.
      * @param {Executable} binding - The expression to evaluate for the binding.
@@ -200,7 +200,7 @@ export class Let extends Executable {
  * A 'letrec' binding for recursive functions.
  * Creates environment with placeholder, evaluates lambda, then patches.
  */
-export class LetRec extends Executable {
+export class LetRecNode extends Executable {
     /**
      * @param {string} varName - The variable name to bind.
      * @param {Lambda} lambdaExpr - Must be a Lambda expression.
@@ -232,7 +232,7 @@ export class LetRec extends Executable {
  * An 'if' expression.
  * Evaluates the test, then one of the branches.
  */
-export class If extends Executable {
+export class IfNode extends Executable {
     /**
      * @param {Executable} test - The test expression.
      * @param {Executable} consequent - The 'then' branch.
@@ -260,7 +260,7 @@ export class If extends Executable {
  * A variable assignment (set!).
  * Evaluates the expression, then updates the binding.
  */
-export class Set extends Executable {
+export class SetNode extends Executable {
     /**
      * @param {string} name - The variable name to set.
      * @param {Executable} valueExpr - The expression to evaluate.
@@ -285,7 +285,7 @@ export class Set extends Executable {
  * A variable definition (define).
  * Evaluates the expression, then creates a binding in the current scope.
  */
-export class Define extends Executable {
+export class DefineNode extends Executable {
     /**
      * @param {string} name - The variable name to define.
      * @param {Executable} valueExpr - The expression to evaluate.
@@ -311,7 +311,7 @@ export class Define extends Executable {
  * This is the only complex node that doesn't push its own frame first,
  * because it's in tail position.
  */
-export class TailApp extends Executable {
+export class TailAppNode extends Executable {
     /**
      * @param {Executable} funcExpr - The function expression.
      * @param {Array<Executable>} argExprs - The argument expressions.
@@ -342,7 +342,7 @@ export class TailApp extends Executable {
  * call-with-current-continuation.
  * Captures the current continuation and passes it to the lambda.
  */
-export class CallCC extends Executable {
+export class CallCCNode extends Executable {
     /**
      * @param {Executable} lambdaExpr - Should be a (lambda (k) ...) expression.
      */
@@ -354,9 +354,9 @@ export class CallCC extends Executable {
     step(registers, interpreter) {
         const continuation = new Continuation(registers[FSTACK]);
 
-        registers[CTL] = new TailApp(
+        registers[CTL] = new TailAppNode(
             this.lambdaExpr,
-            [new Literal(continuation)]
+            [new LiteralNode(continuation)]
         );
         return true;
     }
@@ -366,7 +366,7 @@ export class CallCC extends Executable {
  * A 'begin' expression.
  * Evaluates a sequence of expressions, returning the last.
  */
-export class Begin extends Executable {
+export class BeginNode extends Executable {
     /**
      * @param {Array<Executable>} expressions - The expressions to evaluate.
      */
@@ -458,7 +458,7 @@ export class DynamicWindInit extends Executable {
             registers[ENV]
         ));
 
-        registers[CTL] = new TailApp(ensureExecutable(this.before), []);
+        registers[CTL] = new TailAppNode(ensureExecutable(this.before), []);
         return true;
     }
 }
@@ -510,7 +510,7 @@ export class CallWithValuesNode extends Executable {
             registers[ENV]
         ));
 
-        registers[CTL] = new TailApp(ensureExecutable(this.producer), []);
+        registers[CTL] = new TailAppNode(ensureExecutable(this.producer), []);
         return true;
     }
 
@@ -544,7 +544,7 @@ export class WithExceptionHandlerInit extends Executable {
         ));
 
         // Execute thunk
-        registers[CTL] = new TailApp(ensureExecutable(this.thunk), []);
+        registers[CTL] = new TailAppNode(ensureExecutable(this.thunk), []);
         return true;
     }
 }
@@ -600,7 +600,7 @@ export class RaiseNode extends Executable {
 
         // Add 'after' thunks for each WindFrame to unwind
         for (const frame of framesToUnwind) {
-            actions.push(new TailApp(ensureExecutable(frame.after), []));
+            actions.push(new TailAppNode(ensureExecutable(frame.after), []));
         }
 
         // The final action is to invoke the handler
@@ -661,7 +661,7 @@ export class InvokeExceptionHandler extends Executable {
         }
 
         // Invoke handler with the exception
-        registers[CTL] = new TailApp(ensureExecutable(this.handler), [new Literal(this.exception)]);
+        registers[CTL] = new TailAppNode(ensureExecutable(this.handler), [new LiteralNode(this.exception)]);
         return true;
     }
 }

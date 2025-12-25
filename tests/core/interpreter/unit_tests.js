@@ -2,7 +2,7 @@ import { Environment } from '../../../src/core/interpreter/environment.js';
 import { parse } from '../../../src/core/interpreter/reader.js';
 import { analyze } from '../../../src/core/interpreter/analyzer.js';
 import { prettyPrint } from '../../../web/repl.js';
-import { Literal, Variable, If, Let, LetRec, Lambda, TailApp, CallCC, Begin } from '../../../src/core/interpreter/ast.js';
+import { LiteralNode, VariableNode, IfNode, LetNode, LetRecNode, LambdaNode, TailAppNode, CallCCNode, BeginNode } from '../../../src/core/interpreter/ast.js';
 import { assert, createTestLogger, createTestEnv } from '../../harness/helpers.js';
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
@@ -38,16 +38,16 @@ export function runUnitTests(interpreter, logger) {
     const setEnv = new Environment(null, new Map([['x', 1]]));
     const setChild = setEnv.extend('y', 2);
 
-    setChild.set('y', 20); // Set on self
+    setChild.set('y', 20); // SetNode on self
     assert(logger, "Unit: env.set (self)", setChild.lookup('y'), 20);
     assert(logger, "Unit: env.set (self, parent unchanged)", setEnv.lookup('x'), 1);
 
-    setChild.set('x', 10); // Set on parent
+    setChild.set('x', 10); // SetNode on parent
     assert(logger, "Unit: env.set (parent)", setEnv.lookup('x'), 10);
     assert(logger, "Unit: env.set (parent, child lookup)", setChild.lookup('x'), 10);
 
     try {
-        setChild.set('z', 99); // Set on unbound variable should throw
+        setChild.set('z', 99); // SetNode on unbound variable should throw
         logger.fail("Unit: env.set (unbound) - FAILED to throw");
     } catch (e) {
         assert(logger, "Unit: env.set (unbound throws)", e.message, "set!: unbound variable: z");
@@ -116,32 +116,32 @@ export function runUnitTests(interpreter, logger) {
     // --- Analyzer Unit Tests ---
     logger.title('Running Analyzer Unit Tests...');
     try {
-        assert(logger, "Unit: analyze literal", analyze(1) instanceof Literal, true);
-        assert(logger, "Unit: analyze variable", analyze(intern("x")) instanceof Variable, true);
+        assert(logger, "Unit: analyze literal", analyze(1) instanceof LiteralNode, true);
+        assert(logger, "Unit: analyze variable", analyze(intern("x")) instanceof VariableNode, true);
 
         let ast = analyze(parse(`(if #t 1 2)`)[0]);
-        assert(logger, "Unit: analyze if", ast instanceof If, true);
+        assert(logger, "Unit: analyze if", ast instanceof IfNode, true);
         ast = analyze(parse(`(call/cc (lambda (k) k))`)[0]);
         // call/cc is now a regular function application (primitive procedure)
-        assert(logger, "Unit: analyze call/cc", ast instanceof TailApp, true);
+        assert(logger, "Unit: analyze call/cc", ast instanceof TailAppNode, true);
 
-        // Let is now desugared to TailApp (Lambda)
+        // LetNode is now desugared to TailAppNode (LambdaNode)
         ast = analyze(parse(`(let ((x 1)) x)`)[0]);
-        assert(logger, "Unit: analyze let", ast instanceof TailApp, true);
+        assert(logger, "Unit: analyze let", ast instanceof TailAppNode, true);
 
         ast = analyze(parse(`(letrec ((f (lambda () 0))) (f))`)[0]);
-        // letrec is now desugared to let + set! via TailApp(Lambda)
-        assert(logger, "Unit: analyze letrec", ast instanceof TailApp, true);
+        // letrec is now desugared to let + set! via TailAppNode(LambdaNode)
+        assert(logger, "Unit: analyze letrec", ast instanceof TailAppNode, true);
         ast = analyze(parse(`(lambda (x) x)`)[0]);
-        assert(logger, "Unit: analyze lambda (single body)", ast instanceof Lambda, true);
+        assert(logger, "Unit: analyze lambda (single body)", ast instanceof LambdaNode, true);
         ast = analyze(parse(`(+ 1 2)`)[0]);
-        assert(logger, "Unit: analyze app", ast instanceof TailApp, true);
+        assert(logger, "Unit: analyze app", ast instanceof TailAppNode, true);
         ast = analyze(parse(`(begin 1 2)`)[0]);
-        assert(logger, "Unit: analyze begin", ast instanceof Begin, true);
+        assert(logger, "Unit: analyze begin", ast instanceof BeginNode, true);
 
         // Test lambda with multiple body expressions
         const lambdaMultiBody = analyze(parse(`(lambda (x) 1 x)`)[0]);
-        assert(logger, "Unit: analyze lambda (multi-body)", lambdaMultiBody.body instanceof Begin, true);
+        assert(logger, "Unit: analyze lambda (multi-body)", lambdaMultiBody.body instanceof BeginNode, true);
     } catch (e) {
         logger.fail(`Analyzer unit tests failed: ${e.message}`);
     }

@@ -1,5 +1,5 @@
 import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
-import { Literal, TailApp } from '../../src/core/interpreter/ast.js';
+import { LiteralNode, TailAppNode } from '../../src/core/interpreter/ast.js';
 
 /**
  * Runs JS Interop tests.
@@ -68,7 +68,7 @@ export function runInteropTests(interpreter, logger) {
     // Test 1: JS stores k, then JS invokes k
     run(interpreter, `(define final-result "interop-test-1")`);
 
-    // Define helper to invoke globalK from JS
+    // DefineNode helper to invoke globalK from JS
     interpreter.globalEnv.bindings.set('invoke-global-k', (val) => {
         if (window.globalK) window.globalK(val);
     });
@@ -90,7 +90,7 @@ export function runInteropTests(interpreter, logger) {
     // Test 2: Capture k *inside* a JS-initiated callback
     run(interpreter, `(define callback-k #f)`);
 
-    // Define helper to run callback
+    // DefineNode helper to run callback
     interpreter.globalEnv.bindings.set('invoke-callback', (cb) => cb());
 
     run(interpreter, `
@@ -145,8 +145,8 @@ export function runInteropTests(interpreter, logger) {
     logger.title("Advanced JS Interop Tests");
 
     if (interpreter.globalEnv) {
-        // Setup: Define js-apply
-        // Setup: Define js-apply
+        // Setup: DefineNode js-apply
+        // Setup: DefineNode js-apply
         interpreter.globalEnv.bindings.set('js-apply', (fn, ...args) => {
             // fn is a Scheme Closure (wrapped in a Bridge by AppFrame)
             // We call it as a JS function
@@ -226,7 +226,7 @@ export function runInteropTests(interpreter, logger) {
 
     // 2. JS calling Scheme closure (JS -> Scheme Bridge)
     try {
-        // Define a Scheme function
+        // DefineNode a Scheme function
         run(interpreter, `
             (define (scheme-add a b) (+ a b))
         `);
@@ -267,7 +267,7 @@ export function runInteropTests(interpreter, logger) {
         logger.fail(`Vector/Array interop failed: ${e.message}`);
     }
 
-    // 4. Vector Literal as raw Array
+    // 4. Vector LiteralNode as raw Array
     try {
         // This relies on the Reader/Analyzer producing a raw array for #(...)
         const vec = run(interpreter, `#(1 2 3)`);
