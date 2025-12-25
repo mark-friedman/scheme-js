@@ -283,6 +283,148 @@ class ConsoleOutputPort extends Port {
 }
 
 // ============================================================================
+// Bytevector Port Classes (Binary I/O)
+// ============================================================================
+
+/**
+ * Bytevector input port - reads bytes from a bytevector.
+ */
+class BytevectorInputPort extends Port {
+    /**
+     * @param {Uint8Array} bytevector - The bytevector to read from.
+     */
+    constructor(bytevector) {
+        super('input');
+        this._bytevector = bytevector;
+        this._pos = 0;
+    }
+
+    /** @returns {boolean} Whether this is a binary port. */
+    get isBinary() { return true; }
+
+    /** @returns {boolean} Whether this is a textual port. */
+    get isTextual() { return false; }
+
+    /** @returns {boolean} Whether there's more to read. */
+    hasMore() { return this._pos < this._bytevector.length; }
+
+    /**
+     * Reads the next byte.
+     * @returns {number|object} The byte (0-255) or EOF_OBJECT.
+     */
+    readU8() {
+        if (!this._open) {
+            throw new Error('read-u8: port is closed');
+        }
+        if (this._pos >= this._bytevector.length) {
+            return EOF_OBJECT;
+        }
+        return this._bytevector[this._pos++];
+    }
+
+    /**
+     * Peeks at the next byte without consuming it.
+     * @returns {number|object} The byte or EOF_OBJECT.
+     */
+    peekU8() {
+        if (!this._open) {
+            throw new Error('peek-u8: port is closed');
+        }
+        if (this._pos >= this._bytevector.length) {
+            return EOF_OBJECT;
+        }
+        return this._bytevector[this._pos];
+    }
+
+    /**
+     * Checks if a byte is ready.
+     * @returns {boolean} Always true for bytevector ports.
+     */
+    u8Ready() {
+        return this._open && this._pos < this._bytevector.length;
+    }
+
+    /**
+     * Reads up to k bytes into a new bytevector.
+     * @param {number} k - Maximum bytes to read.
+     * @returns {Uint8Array|object} Bytevector or EOF_OBJECT.
+     */
+    readBytevector(k) {
+        if (!this._open) {
+            throw new Error('read-bytevector: port is closed');
+        }
+        if (this._pos >= this._bytevector.length) {
+            return EOF_OBJECT;
+        }
+        const end = Math.min(this._pos + k, this._bytevector.length);
+        const result = this._bytevector.slice(this._pos, end);
+        this._pos = end;
+        return result;
+    }
+
+    toString() {
+        return `#<bytevector-input-port:${this._open ? 'open' : 'closed'}>`;
+    }
+}
+
+/**
+ * Bytevector output port - writes bytes to an accumulator.
+ */
+class BytevectorOutputPort extends Port {
+    constructor() {
+        super('output');
+        this._buffer = [];
+    }
+
+    /** @returns {boolean} Whether this is a binary port. */
+    get isBinary() { return true; }
+
+    /** @returns {boolean} Whether this is a textual port. */
+    get isTextual() { return false; }
+
+    /**
+     * Writes a byte.
+     * @param {number} byte - The byte to write (0-255).
+     */
+    writeU8(byte) {
+        if (!this._open) {
+            throw new Error('write-u8: port is closed');
+        }
+        if (!Number.isInteger(byte) || byte < 0 || byte > 255) {
+            throw new Error('write-u8: expected byte (0-255)');
+        }
+        this._buffer.push(byte);
+    }
+
+    /**
+     * Writes bytes from a bytevector.
+     * @param {Uint8Array} bv - Bytevector to write from.
+     * @param {number} [start] - Start index.
+     * @param {number} [end] - End index.
+     */
+    writeBytevector(bv, start = 0, end = bv.length) {
+        if (!this._open) {
+            throw new Error('write-bytevector: port is closed');
+        }
+        for (let i = start; i < end; i++) {
+            this._buffer.push(bv[i]);
+        }
+    }
+
+    /**
+     * Gets the accumulated bytevector.
+     * @returns {Uint8Array} The output bytevector.
+     */
+    getBytevector() {
+        return new Uint8Array(this._buffer);
+    }
+
+    toString() {
+        return `#<bytevector-output-port:${this._open ? 'open' : 'closed'}>`;
+    }
+}
+
+// ============================================================================
 // File Port Classes (Node.js Only)
 // ============================================================================
 
@@ -854,6 +996,40 @@ export const ioPrimitives = {
     },
 
     // --------------------------------------------------------------------------
+    // Bytevector Ports (Binary I/O)
+    // --------------------------------------------------------------------------
+
+    /**
+     * Opens an input port that reads from a bytevector.
+     * @param {Uint8Array} bv - The bytevector to read from.
+     * @returns {BytevectorInputPort}
+     */
+    'open-input-bytevector': (bv) => {
+        if (!(bv instanceof Uint8Array)) {
+            throw new Error('open-input-bytevector: expected bytevector');
+        }
+        return new BytevectorInputPort(bv);
+    },
+
+    /**
+     * Opens an output port that accumulates to a bytevector.
+     * @returns {BytevectorOutputPort}
+     */
+    'open-output-bytevector': () => new BytevectorOutputPort(),
+
+    /**
+     * Returns the accumulated bytevector from a bytevector output port.
+     * @param {BytevectorOutputPort} port
+     * @returns {Uint8Array}
+     */
+    'get-output-bytevector': (port) => {
+        if (!(port instanceof BytevectorOutputPort)) {
+            throw new Error('get-output-bytevector: expected bytevector output port');
+        }
+        return port.getBytevector();
+    },
+
+    // --------------------------------------------------------------------------
     // EOF
     // --------------------------------------------------------------------------
 
@@ -952,6 +1128,73 @@ export const ioPrimitives = {
     },
 
     // --------------------------------------------------------------------------
+    // Binary Input Operations
+    // --------------------------------------------------------------------------
+
+    /**
+     * Reads the next byte from a binary port.
+     * @param {Port} [port] - Binary input port (default: current-input-port).
+     * @returns {number|object} Byte (0-255) or EOF.
+     */
+    'read-u8': (...args) => {
+        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+        requireOpenInputPort(port, 'read-u8');
+        if (!(port instanceof BytevectorInputPort)) {
+            throw new Error('read-u8: expected binary input port');
+        }
+        return port.readU8();
+    },
+
+    /**
+     * Peeks at the next byte without consuming it.
+     * @param {Port} [port] - Binary input port (default: current-input-port).
+     * @returns {number|object} Byte or EOF.
+     */
+    'peek-u8': (...args) => {
+        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+        requireOpenInputPort(port, 'peek-u8');
+        if (!(port instanceof BytevectorInputPort)) {
+            throw new Error('peek-u8: expected binary input port');
+        }
+        return port.peekU8();
+    },
+
+    /**
+     * Returns #t if a byte is ready on port.
+     * @param {Port} [port] - Binary input port.
+     * @returns {boolean}
+     */
+    'u8-ready?': (...args) => {
+        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+        if (!isInputPort(port)) {
+            throw new Error('u8-ready?: expected input port');
+        }
+        if (!port.isOpen) return false;
+        if (port instanceof BytevectorInputPort) {
+            return port.u8Ready();
+        }
+        return false;
+    },
+
+    /**
+     * Reads up to k bytes from a binary port.
+     * @param {number} k - Maximum bytes to read.
+     * @param {Port} [port] - Binary input port.
+     * @returns {Uint8Array|object} Bytevector or EOF.
+     */
+    'read-bytevector': (k, ...args) => {
+        if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) {
+            throw new Error('read-bytevector: expected non-negative integer');
+        }
+        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+        requireOpenInputPort(port, 'read-bytevector');
+        if (!(port instanceof BytevectorInputPort)) {
+            throw new Error('read-bytevector: expected binary input port');
+        }
+        return port.readBytevector(k);
+    },
+
+    // --------------------------------------------------------------------------
     // Output Operations
     // --------------------------------------------------------------------------
 
@@ -1004,6 +1247,67 @@ export const ioPrimitives = {
 
         requireOpenOutputPort(port, 'write-string');
         port.writeString(str, start, end);
+        return undefined;  // unspecified
+    },
+
+    // --------------------------------------------------------------------------
+    // Binary Output Operations
+    // --------------------------------------------------------------------------
+
+    /**
+     * Writes a byte to a binary port.
+     * @param {number} byte - Byte to write (0-255).
+     * @param {Port} [port] - Binary output port.
+     */
+    'write-u8': (byte, ...args) => {
+        if (!Number.isInteger(byte) || byte < 0 || byte > 255) {
+            throw new Error('write-u8: expected byte (0-255)');
+        }
+        const port = args.length > 0 ? args[0] : currentOutputPort;
+        requireOpenOutputPort(port, 'write-u8');
+        if (!(port instanceof BytevectorOutputPort)) {
+            throw new Error('write-u8: expected binary output port');
+        }
+        port.writeU8(byte);
+        return undefined;  // unspecified
+    },
+
+    /**
+     * Writes bytes from a bytevector to a binary port.
+     * @param {Uint8Array} bv - Bytevector to write from.
+     * @param {Port} [port] - Binary output port.
+     * @param {number} [start] - Start index.
+     * @param {number} [end] - End index.
+     */
+    'write-bytevector': (bv, ...args) => {
+        if (!(bv instanceof Uint8Array)) {
+            throw new Error('write-bytevector: expected bytevector');
+        }
+        let port = currentOutputPort;
+        let start = 0;
+        let end = bv.length;
+
+        if (args.length >= 1 && isOutputPort(args[0])) {
+            port = args[0];
+            if (args.length >= 2) start = args[1];
+            if (args.length >= 3) end = args[2];
+        } else if (args.length >= 1) {
+            start = args[0];
+            if (args.length >= 2) end = args[1];
+        }
+
+        if (!Number.isInteger(start) || start < 0 || start > bv.length) {
+            throw new Error('write-bytevector: invalid start index');
+        }
+        if (!Number.isInteger(end) || end < start || end > bv.length) {
+            throw new Error('write-bytevector: invalid end index');
+        }
+
+        requireOpenOutputPort(port, 'write-bytevector');
+        if (!(port instanceof BytevectorOutputPort)) {
+            throw new Error('write-bytevector: expected binary output port');
+        }
+        port.writeBytevector(bv, start, end);
         return undefined;  // unspecified
     },
 

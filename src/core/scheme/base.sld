@@ -108,6 +108,9 @@
     ;; I/O - String Ports
     open-input-string open-output-string get-output-string
     
+    ;; I/O - Bytevector Ports (Binary I/O)
+    open-input-bytevector open-output-bytevector get-output-bytevector
+    
     ;; I/O - EOF
     eof-object eof-object?
     
@@ -116,10 +119,17 @@
     read-line read-string
     read
     
+    ;; I/O - Binary Input
+    read-u8 peek-u8 u8-ready?
+    read-bytevector
+    
     ;; I/O - Output
     write-char write-string
     display newline write
     write-simple write-shared
+    
+    ;; I/O - Binary Output
+    write-u8 write-bytevector
     
     ;; Syntax (Macros & Special Forms)
     define set! lambda if begin quote quasiquote unquote unquote-splicing
