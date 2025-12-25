@@ -55,6 +55,7 @@ export async function run(interpreter, env, schemeFileLoader, customLogger) {
             'src/core/scheme/numbers.scm',
             'src/core/scheme/list.scm',
             'src/core/scheme/control.scm',
+            'src/core/scheme/case_lambda.scm',
         ];
 
         for (const file of schemeFiles) {

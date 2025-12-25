@@ -222,19 +222,20 @@ Expanded `vector.js` with additional R7RS operations.
 
 ---
 
-## Phase 9: Control Flow (Partial) ✅
+## Phase 9: Control Flow ✅
 **Target Library:** `(scheme base)`, `(scheme case-lambda)`
 
 | Primitive | Status | Notes |
 |-----------|--------|-------|
-| `procedure?` | ✅ | |
-| `map` | ✅ Scheme | In `core.scm` with type checking |
-| `for-each` | ❌ Missing | |
-| `case-lambda` | ❌ Missing | |
+| `procedure?` | ✅ | In `control.js` |
+| `map` | ✅ Scheme | In `list.scm` with type checking |
+| `for-each` | ✅ Scheme | In `list.scm` with type checking |
+| `case-lambda` | ✅ Scheme | In `case_lambda.scm`, dispatches on arity |
 
-**Deliverable:**
-1. Expand `control.js` / `core.scm`.
-2. **[NEW]** Define `src/core/scheme/case_lambda.sld` for `(scheme case-lambda)`.
+**Deliverable:** Complete.
+- `for-each` in `src/core/scheme/list.scm`
+- `case-lambda` macro in `src/core/scheme/case_lambda.scm`
+- `(scheme case-lambda)` library in `src/core/scheme/case-lambda.sld`
 
 ---
 

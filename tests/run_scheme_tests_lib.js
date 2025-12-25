@@ -32,8 +32,10 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     // 1. Bootstrap standard libraries
     const baseExports = await loadLibrary(['scheme', 'base'], analyze, interpreter, interpreter.globalEnv);
     const replExports = await loadLibrary(['scheme', 'repl'], analyze, interpreter, interpreter.globalEnv);
+    const caseLambdaExports = await loadLibrary(['scheme', 'case-lambda'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
+    applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });
 
     // Reload macros because hygiene_tests.js clears globalMacroRegistry
     // which destroys macros like 'and', 'let', 'letrec', 'cond'

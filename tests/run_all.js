@@ -41,6 +41,7 @@ async function runAll() {
             'src/core/scheme/numbers.scm',    // =, <, >, zero?, max, gcd, round
             'src/core/scheme/list.scm',       // map, for-each, memq, assq, length
             'src/core/scheme/control.scm',    // when, unless, or, let*, do, case
+            'src/core/scheme/case_lambda.scm', // case-lambda
         ];
 
         for (const file of schemeFiles) {
