@@ -19,7 +19,8 @@
     = < > <= >=
     
     ;; Numbers - predicates (from primitives)
-    number? integer? real? rational? exact-integer?
+    number? complex? real? rational? integer? exact-integer?
+    exact? inexact?
     finite? infinite? nan?
     
     ;; Numbers - predicates (from core)
@@ -33,6 +34,13 @@
     exact-integer-sqrt
     floor/ floor-quotient floor-remainder
     truncate/ truncate-quotient truncate-remainder
+    
+    ;; Rational number procedures
+    numerator denominator
+    
+    ;; Complex number procedures
+    make-rectangular make-polar
+    real-part imag-part magnitude angle
     
     ;; Bytevectors
     bytevector? make-bytevector bytevector bytevector-length

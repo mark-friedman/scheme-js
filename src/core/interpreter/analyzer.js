@@ -23,6 +23,8 @@ import { SPECIAL_FORMS } from './library_registry.js';
 import { globalMacroRegistry, MacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
 import { Cons, cons, list, car, cdr, mapCons, toArray, cadr, cddr, caddr, cdddr, cadddr } from './cons.js';
+import { Rational } from '../primitives/rational.js';
+import { Complex } from '../primitives/complex.js';
 import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, globalScopeRegistry, freshScope, getCurrentDefiningScopes, GLOBAL_SCOPE_ID, registerBindingWithCurrentScopes, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
 
@@ -91,6 +93,10 @@ export function analyze(exp, syntacticEnv = null) {
     return new LiteralNode(exp);
   }
   if (Array.isArray(exp)) {
+    return new LiteralNode(exp);
+  }
+  // Rational and Complex numbers are self-evaluating
+  if (exp instanceof Rational || exp instanceof Complex) {
     return new LiteralNode(exp);
   }
 

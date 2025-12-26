@@ -10,6 +10,8 @@
 
 import { assertNumber, assertInteger, assertArity } from '../interpreter/type_check.js';
 import { Values } from '../interpreter/values.js';
+import { Rational, isRational } from './rational.js';
+import { Complex, isComplex, makeRectangular, makePolar } from './complex.js';
 
 // =============================================================================
 // Math Primitives (JavaScript-required)
@@ -193,30 +195,51 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a number.
      */
-    'number?': (obj) => typeof obj === 'number',
+    'number?': (obj) => typeof obj === 'number' || isRational(obj) || isComplex(obj),
+
+    /**
+     * Complex number type predicate.
+     * In R7RS, all numbers are complex.
+     * @param {*} obj - Value to check.
+     * @returns {boolean} True if obj is a complex number.
+     */
+    'complex?': (obj) => typeof obj === 'number' || isRational(obj) || isComplex(obj),
 
     /**
      * Real number type predicate.
-     * In our implementation, all numbers are real (no complex support).
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a real number.
      */
-    'real?': (obj) => typeof obj === 'number',
+    'real?': (obj) => {
+        if (typeof obj === 'number') return true;
+        if (isRational(obj)) return true;
+        if (isComplex(obj)) return obj.imag === 0;
+        return false;
+    },
 
     /**
      * Rational number type predicate.
-     * In our implementation, finite numbers are rational.
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a rational number.
      */
-    'rational?': (obj) => typeof obj === 'number' && Number.isFinite(obj),
+    'rational?': (obj) => {
+        if (isRational(obj)) return true;
+        if (typeof obj === 'number') return Number.isFinite(obj);
+        if (isComplex(obj)) return obj.imag === 0 && Number.isFinite(obj.real);
+        return false;
+    },
 
     /**
      * Integer type predicate.
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is an integer.
      */
-    'integer?': (obj) => typeof obj === 'number' && Number.isInteger(obj),
+    'integer?': (obj) => {
+        if (typeof obj === 'number') return Number.isInteger(obj);
+        if (isRational(obj)) return obj.denominator === 1;
+        if (isComplex(obj)) return obj.imag === 0 && Number.isInteger(obj.real);
+        return false;
+    },
 
     /**
      * Exact integer type predicate.
@@ -224,7 +247,35 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is an exact integer.
      */
-    'exact-integer?': (obj) => typeof obj === 'number' && Number.isInteger(obj),
+    'exact-integer?': (obj) => {
+        if (typeof obj === 'number') return Number.isInteger(obj);
+        if (isRational(obj)) return obj.denominator === 1;
+        return false;
+    },
+
+    /**
+     * Exact number type predicate.
+     * Rationals are exact, JS numbers are inexact.
+     * @param {*} obj - Value to check.
+     * @returns {boolean} True if obj is exact.
+     */
+    'exact?': (obj) => {
+        if (isRational(obj)) return true;
+        if (typeof obj === 'number') return Number.isInteger(obj);
+        return false;
+    },
+
+    /**
+     * Inexact number type predicate.
+     * JS floats are inexact.
+     * @param {*} obj - Value to check.
+     * @returns {boolean} True if obj is inexact.
+     */
+    'inexact?': (obj) => {
+        if (typeof obj === 'number') return !Number.isInteger(obj);
+        if (isComplex(obj)) return true; // Complex uses floats
+        return false;
+    },
 
     /**
      * Finite predicate.
@@ -232,8 +283,10 @@ export const mathPrimitives = {
      * @returns {boolean} True if x is finite.
      */
     'finite?': (x) => {
-        assertNumber('finite?', 1, x);
-        return Number.isFinite(x);
+        if (typeof x === 'number') return Number.isFinite(x);
+        if (isRational(x)) return true;
+        if (isComplex(x)) return Number.isFinite(x.real) && Number.isFinite(x.imag);
+        throw new Error('finite?: expected number');
     },
 
     /**
@@ -242,8 +295,10 @@ export const mathPrimitives = {
      * @returns {boolean} True if x is infinite.
      */
     'infinite?': (x) => {
-        assertNumber('infinite?', 1, x);
-        return !Number.isFinite(x) && !Number.isNaN(x);
+        if (typeof x === 'number') return !Number.isFinite(x) && !Number.isNaN(x);
+        if (isRational(x)) return false;
+        if (isComplex(x)) return !Number.isFinite(x.real) || !Number.isFinite(x.imag);
+        throw new Error('infinite?: expected number');
     },
 
     /**
@@ -252,8 +307,116 @@ export const mathPrimitives = {
      * @returns {boolean} True if x is NaN.
      */
     'nan?': (x) => {
-        assertNumber('nan?', 1, x);
-        return Number.isNaN(x);
+        if (typeof x === 'number') return Number.isNaN(x);
+        if (isRational(x)) return false;
+        if (isComplex(x)) return Number.isNaN(x.real) || Number.isNaN(x.imag);
+        throw new Error('nan?: expected number');
+    },
+
+    // =========================================================================
+    // Rational Number Procedures
+    // =========================================================================
+
+    /**
+     * Returns the numerator of a rational.
+     * @param {Rational|number} q - Rational number.
+     * @returns {number} Numerator.
+     */
+    'numerator': (q) => {
+        if (isRational(q)) return q.numerator;
+        if (typeof q === 'number' && Number.isInteger(q)) return q;
+        throw new Error('numerator: expected rational number');
+    },
+
+    /**
+     * Returns the denominator of a rational.
+     * @param {Rational|number} q - Rational number.
+     * @returns {number} Denominator.
+     */
+    'denominator': (q) => {
+        if (isRational(q)) return q.denominator;
+        if (typeof q === 'number' && Number.isInteger(q)) return 1;
+        throw new Error('denominator: expected rational number');
+    },
+
+    // =========================================================================
+    // Complex Number Procedures (scheme complex)
+    // =========================================================================
+
+    /**
+     * Creates a complex from rectangular coordinates.
+     * @param {number} x - Real part.
+     * @param {number} y - Imaginary part.
+     * @returns {Complex}
+     */
+    'make-rectangular': (x, y) => {
+        assertNumber('make-rectangular', 1, x);
+        assertNumber('make-rectangular', 2, y);
+        const realVal = typeof x === 'number' ? x : x.toNumber();
+        const imagVal = typeof y === 'number' ? y : y.toNumber();
+        return makeRectangular(realVal, imagVal);
+    },
+
+    /**
+     * Creates a complex from polar coordinates.
+     * @param {number} r - Magnitude.
+     * @param {number} theta - Angle in radians.
+     * @returns {Complex}
+     */
+    'make-polar': (r, theta) => {
+        assertNumber('make-polar', 1, r);
+        assertNumber('make-polar', 2, theta);
+        const mag = typeof r === 'number' ? r : r.toNumber();
+        const ang = typeof theta === 'number' ? theta : theta.toNumber();
+        return makePolar(mag, ang);
+    },
+
+    /**
+     * Returns the real part of a complex number.
+     * @param {Complex|number} z - Complex number.
+     * @returns {number}
+     */
+    'real-part': (z) => {
+        if (isComplex(z)) return z.real;
+        if (typeof z === 'number') return z;
+        if (isRational(z)) return z.toNumber();
+        throw new Error('real-part: expected number');
+    },
+
+    /**
+     * Returns the imaginary part of a complex number.
+     * @param {Complex|number} z - Complex number.
+     * @returns {number}
+     */
+    'imag-part': (z) => {
+        if (isComplex(z)) return z.imag;
+        if (typeof z === 'number') return 0;
+        if (isRational(z)) return 0;
+        throw new Error('imag-part: expected number');
+    },
+
+    /**
+     * Returns the magnitude of a complex number.
+     * @param {Complex|number} z - Complex number.
+     * @returns {number}
+     */
+    'magnitude': (z) => {
+        if (isComplex(z)) return z.magnitude();
+        if (typeof z === 'number') return Math.abs(z);
+        if (isRational(z)) return Math.abs(z.toNumber());
+        throw new Error('magnitude: expected number');
+    },
+
+    /**
+     * Returns the angle (argument) of a complex number.
+     * @param {Complex|number} z - Complex number.
+     * @returns {number}
+     */
+    'angle': (z) => {
+        if (isComplex(z)) return z.angle();
+        if (typeof z === 'number') return z >= 0 ? 0 : Math.PI;
+        if (isRational(z)) return z.toNumber() >= 0 ? 0 : Math.PI;
+        throw new Error('angle: expected number');
     },
 
     // =========================================================================
