@@ -158,29 +158,31 @@
     ;; Single variable without parens (gets all values as list)
     ((define-values var expr)
      (define var (call-with-values (lambda () expr) list)))
-    ;; Two variables
+    ;; Two variables - define both as list elements with accessors  
     ((define-values (var1 var2) expr)
-     (begin
-       (define var1 'undefined)
-       (define var2 'undefined)
-       (call-with-values (lambda () expr)
-         (lambda (t1 t2) (set! var1 t1) (set! var2 t2)))))
-    ;; Three variables
+     (define %define-values-temp%
+       (let* ((vals (call-with-values (lambda () expr) list))
+              (val1 (car vals))
+              (val2 (cadr vals))
+              (setter! (lambda ()
+                         (set! var1 val1)
+                         (set! var2 val2))))
+         (setter!)
+         vals)))
+    ;; Three variables - use a temporary list to capture values
     ((define-values (var1 var2 var3) expr)
      (begin
-       (define var1 'undefined)
-       (define var2 'undefined)
-       (define var3 'undefined)
-       (call-with-values (lambda () expr)
-         (lambda (t1 t2 t3) (set! var1 t1) (set! var2 t2) (set! var3 t3)))))
-    ;; Two variables with rest
+       (define %temp-vals% (call-with-values (lambda () expr) list))
+       (define var1 (car %temp-vals%))
+       (define var2 (cadr %temp-vals%))
+       (define var3 (caddr %temp-vals%))))
+    ;; Two variables with rest - use a temporary list to capture values
     ((define-values (var1 var2 . rest) expr)
      (begin
-       (define var1 'undefined)
-       (define var2 'undefined)
-       (define rest 'undefined)
-       (call-with-values (lambda () expr)
-         (lambda (t1 t2 . trest) (set! var1 t1) (set! var2 t2) (set! rest trest)))))))
+       (define %temp-vals% (call-with-values (lambda () expr) list))
+       (define var1 (car %temp-vals%))
+       (define var2 (cadr %temp-vals%))
+       (define rest (cddr %temp-vals%))))))
 
 ;; /**
 ;;  * Case dispatch.

@@ -110,12 +110,16 @@
 ;;  */
 ;; Helper to protect expressions but let definitions pass through
 (define-syntax test-protect
-  (syntax-rules (define define-syntax begin import)
+  (syntax-rules (define define-syntax define-values define-record-type begin import)
     ;; Definitions: emit raw to preserve scope
     ((test-protect (define . rest))
      (define . rest))
     ((test-protect (define-syntax . rest))
      (define-syntax . rest))
+    ((test-protect (define-values . rest))
+     (define-values . rest))
+    ((test-protect (define-record-type . rest))
+     (define-record-type . rest))
     ((test-protect (import . rest))
      (import . rest))
     
