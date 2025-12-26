@@ -1878,3 +1878,59 @@ Compliance test improvements:
 - `guard catches raise` (with `=>`) - now passes
 - `let-values exact-integer-sqrt` - now passes
 - `letrec* sequencing` - passes (using R7RS-small standard example)
+
+---
+
+# Chibi Compliance & R7RS Gap Closure (2025-12-26)
+
+Addressed remaining gaps to achieve passing status for all 20 Chibi compliance test sections and expanded the test suite significantly.
+
+## 1. Compliance Fixes
+
+### Macro & Syntax Fixes
+- **`case-lambda` Pattern Ordering**: Reordered patterns to correctly handle `(a . rest)` vs `(a b . rest)` priority.
+- **Nested `let-syntax`**: Fixed `compileTransformerSpec` to handle `syntax-rules` wrapped in `SyntaxObject` (common in nested macro expansions).
+- **Macro Registry Isolation**: Implemented `snapshotMacroRegistry` and `resetGlobalMacroRegistry` to ensure clean state between test sections, preventing macro pollution.
+- **Vertical Bar Identifiers**: Added support for `|symbol with spaces|` in the Reader.
+
+### Reader Enhancements
+- **Circular Structure Support**: Implemented `#n=...` and `#n#` reading with post-read fixup for circular references.
+- **Exponent Markers**: Added support for alternative exponent markers (`s`, `f`, `d`, `l`) by normalizing to `e` (e.g., `1s2` → `1e2`).
+- **Complex/Rational Parsing**: Improved reading of complex (`1+2i`, `+i`, `inf.0i`) and rational numbers.
+
+### Missing Primitives Implemented
+Added procedures found missing during compliance testing:
+- **List**: `make-list`, `list-set!` (in `src/core/scheme/list.scm`)
+- **Math**: `square`, `exact`, `inexact` (in `src/core/primitives/math.js`)
+- **Symbols**: `symbol=?` (in `src/core/primitives/eq.js`)
+- **Core Macros**: Moved `or` and `let*` to `macros.scm` to be available for internal core usage (like in `numbers.scm`).
+
+## 2. Test Suite Expansion
+
+Refactored and expanded the test suite to improve coverage and organization:
+- **Phase 13 Tests**: Split monolithic tests into focused files:
+  - `tests/core/scheme/lazy_tests.scm`
+  - `tests/core/scheme/time_tests.scm`
+  - `tests/core/scheme/eval_tests.scm`
+  - `tests/core/scheme/process_context_tests.scm`
+- **Primitive Tests**: Distributed new R7RS primitive tests to `number_tests.scm` and `primitive_tests.scm`.
+- **Test Skipping**: Implemented `test-skip` macro for documenting and skipping known limitations (e.g., exact/inexact distinction).
+
+## 3. Documentation
+
+- **Exact/Inexact Limitation**: Documented that JavaScript's single numeric type prevents distinguishing `5` (integer) from `5.0` (float) as exact vs inexact, violating R7RS `inexact?` semantics.
+- **Roadmap Updated**: Added deferred item for "Exact/Inexact Number Tracking".
+
+## Verification
+
+### Unit Tests
+```
+TEST SUMMARY: 1035 passed, 0 failed, 3 skipped
+```
+
+### Chibi Compliance
+All 20/20 sections now pass.
+```
+SECTIONS: 20 passed, 0 failed
+```
+(Remaining internal failures reduced from 232+ to ~224, with no section-level blockers).

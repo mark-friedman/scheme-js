@@ -292,6 +292,24 @@
     (test "sqrt"
       5
       (sqrt 25))
+    
+    ;; square
+    (test "square zero" 0 (square 0))
+    (test "square positive" 4 (square 2))
+    (test "square negative" 9 (square -3))
+    (test "square large" 1764 (square 42))
+    (test "square float" 6.25 (square 2.5))
+    
+    ;; exact (converts to exact, rounds floats)
+    (test "exact integer" 5 (exact 5))
+    (test "exact float" 5 (exact 5.0))
+    
+    ;; inexact tests - SKIPPED due to JavaScript numeric limitation
+    ;; JavaScript has a single numeric type (IEEE 754 double).
+    ;; There is no native way to distinguish exact/inexact integers.
+    ;; See README.md "Exact/Inexact Numbers" for details.
+    (test-skip "(inexact? (inexact 5))"
+      "JavaScript cannot distinguish exact/inexact integers - see README.md")
   )
   
   ;; ===== Special Values =====

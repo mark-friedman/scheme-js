@@ -30,8 +30,9 @@
     abs quotient remainder modulo
     floor ceiling truncate round
     max min gcd lcm
-    expt sqrt
+    expt sqrt square
     exact-integer-sqrt
+    exact inexact
     floor/ floor-quotient floor-remainder
     truncate/ truncate-quotient truncate-remainder
     
@@ -58,6 +59,7 @@
     
     ;; Pairs and lists - extended
     length list-ref list-tail reverse list-copy
+    make-list list-set!
     memq memv member
     assq assv assoc
     
@@ -68,7 +70,7 @@
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
     
     ;; Symbols
-    symbol? symbol->string string->symbol
+    symbol? symbol=? symbol->string string->symbol
     
     ;; Characters
     char? char=? char<? char>? char<=? char>=?

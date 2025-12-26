@@ -19,11 +19,17 @@ export const recordPrimitives = {
      * @returns {Function} The record type constructor class.
      */
     'make-record-type': (name, fields) => {
+        // name may be a Symbol object from quoted symbol 'type
+        const typeName = typeof name === 'string' ? name : name.name;
         const fieldNames = toArray(fields).map(s => s.name);
+
+        // Sanitize name for use as JS class name (replace <> and other invalid chars)
+        const jsClassName = typeName.replace(/[^a-zA-Z0-9_$]/g, '_');
 
         // Dynamically create a named class
         const classSrc = `
-            return class ${name} {
+            return class ${jsClassName} {
+                static get schemeName() { return ${JSON.stringify(typeName)}; }
                 constructor(${fieldNames.join(', ')}) {
                     ${fieldNames.map(f => `this.${f} = ${f};`).join('\n')}
                 }

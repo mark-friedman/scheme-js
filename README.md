@@ -116,3 +116,39 @@ Why this is rare in practice:
 - `define-syntax` is almost always used at top level in R7RS
 - Macros typically only reference globally-bound names
 - Special forms are immune (they're recognized syntactically)
+
+### Exact/Inexact Numbers
+
+R7RS distinguishes between **exact** numbers (integers, rationals - mathematically precise) and **inexact** numbers (floating-point - approximate). The `exact` and `inexact` procedures convert between these representations, and `exact?`/`inexact?` test which category a number belongs to.
+
+**JavaScript Limitation:**
+JavaScript has only one numeric type (`number`), which is an IEEE 754 double-precision float. There is no native way to distinguish between `5` (an exact integer) and `5.0` (an inexact float) - they are identical values:
+
+```javascript
+5 === 5.0  // true in JavaScript
+```
+
+**Current Implementation:**
+Our implementation uses `Number.isInteger()` to distinguish exact from inexact:
+- Integers (`5`, `-42`) are considered **exact**
+- Non-integers (`3.14`, `0.5`) are considered **inexact**
+- `Rational` objects are always **exact**
+
+**Semantic Differences from R7RS:**
+
+| Operation | R7RS Expected | Our Result |
+|-----------|---------------|------------|
+| `(inexact 5)` | Inexact `5.0` | `5` (still exact by our predicate) |
+| `(inexact? (inexact 5))` | `#t` | `#f` ❌ |
+| `(exact 3.0)` | Exact `3` | `3` (correct by coincidence) |
+
+**Practical Impact:**
+- Most Scheme programs don't rely on the exact/inexact distinction for integers
+- Arithmetic works correctly - only the `exact?`/`inexact?` predicates are affected
+- Rationals (`1/2`, `3/4`) are fully supported and always exact
+- This is documented as a known limitation
+
+**Future Improvement:**
+See `r7rs_roadmap.md` for potential approaches to fix this, including:
+- Creating an `InexactNumber` wrapper class
+- Using a tag map to track exactness separately

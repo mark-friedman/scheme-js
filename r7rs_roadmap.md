@@ -435,3 +435,37 @@ Consider running the [Chibi Scheme R7RS test suite](https://github.com/ashinn/ch
 6. **Phase 11** — Exceptions (robust error handling).
 7. **Phase 12–13** — Bytevectors and remaining R7RS libraries.
 
+---
+
+## Future Improvements (Deferred)
+
+### Exact/Inexact Number Tracking
+
+JavaScript has a single numeric type (IEEE 754 double), so we cannot natively distinguish between exact integers (like `5`) and inexact floats (like `5.0`). Currently:
+- We use `Number.isInteger()` to determine exactness
+- `(inexact 5)` returns `5`, which is still considered "exact" by our predicates
+- This violates R7RS semantics where `(inexact? (inexact 5))` should return `#t`
+
+**Potential Approaches:**
+
+1. **InexactNumber Wrapper Class**
+   - Create a class similar to `Rational` and `Complex`
+   - `(inexact 5)` returns `new InexactNumber(5)`
+   - `inexact?` checks `instanceof InexactNumber`
+   - **Pros:** Semantically correct, consistent with existing wrappers
+   - **Cons:** Performance overhead for wrapped numbers, need to unwrap for arithmetic
+
+2. **Exactness Tag Map**
+   - Maintain a WeakMap or similar structure to track which numbers are inexact
+   - **Pros:** No wrapper object overhead
+   - **Cons:** Complex to implement, memory concerns, equality issues
+
+3. **Accept the Limitation**
+   - Document that exact/inexact for integers is based on representation
+   - Note that rationals are always exact, floats are always inexact
+   - **Pros:** Simple, performant
+   - **Cons:** Not fully R7RS compliant
+
+**Current Decision:** Option 3 (documented limitation). Revisit if user demand requires full compliance.
+
+

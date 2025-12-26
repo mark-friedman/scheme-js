@@ -51,3 +51,32 @@ class MacroRegistry {
 // Export a singleton instance and the class itself for scoped registries
 export { MacroRegistry };
 export const globalMacroRegistry = new MacroRegistry();
+
+// Track the baseline set of macros (after std lib loading)
+let baselineMacroNames = null;
+
+/**
+ * Takes a snapshot of the current macro registry state as the baseline.
+ * Call this after loading standard libraries but before running user code.
+ */
+export function snapshotMacroRegistry() {
+    baselineMacroNames = new Set(globalMacroRegistry.macros.keys());
+}
+
+/**
+ * Resets the global macro registry to the baseline state,
+ * removing any macros added after the snapshot was taken.
+ */
+export function resetGlobalMacroRegistry() {
+    if (baselineMacroNames === null) {
+        // No baseline - just clear everything (fallback behavior)
+        globalMacroRegistry.macros.clear();
+    } else {
+        // Remove only macros added after the baseline
+        for (const name of globalMacroRegistry.macros.keys()) {
+            if (!baselineMacroNames.has(name)) {
+                globalMacroRegistry.macros.delete(name);
+            }
+        }
+    }
+}

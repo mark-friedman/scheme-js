@@ -26,6 +26,17 @@
                      (loop (+ i 1))
                      #f)))
            #f)))
+    ((and (bytevector? a) (bytevector? b))
+     (let ((len-a (bytevector-length a))
+           (len-b (bytevector-length b)))
+       (if (= len-a len-b)
+           (let loop ((i 0))
+             (if (= i len-a)
+                 #t
+                 (if (= (bytevector-u8-ref a i) (bytevector-u8-ref b i))
+                     (loop (+ i 1))
+                     #f)))
+           #f)))
     ((and (string? a) (string? b))
      (eqv? a b)) ; Strings are primitives in JS, so eqv? (Object.is) works. 
     (else #f)))

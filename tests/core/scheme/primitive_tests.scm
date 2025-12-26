@@ -62,4 +62,33 @@
     (test "truncate-quotient" 2 (truncate-quotient 5 2))
     (test "truncate-remainder" 1 (truncate-remainder 5 2))
   )
+
+  (test-group "List Procedures"
+    ;; make-list
+    (test "make-list empty" '() (make-list 0))
+    (test "make-list default fill" '(#f #f #f) (make-list 3))
+    (test "make-list with fill" '(x x x x) (make-list 4 'x))
+    (test "make-list with list fill" '((a b) (a b)) (make-list 2 '(a b)))
+    
+    ;; list-set!
+    (test "list-set! first" '(99 2 3)
+      (let ((lst (list 1 2 3)))
+        (list-set! lst 0 99)
+        lst))
+    (test "list-set! middle" '(1 99 3)
+      (let ((lst (list 1 2 3)))
+        (list-set! lst 1 99)
+        lst))
+    (test "list-set! last" '(1 2 99)
+      (let ((lst (list 1 2 3)))
+        (list-set! lst 2 99)
+        lst))
+  )
+
+  (test-group "Symbols"
+    (test "symbol=? same" #t (symbol=? 'a 'a))
+    (test "symbol=? different" #f (symbol=? 'a 'b))
+    (test "symbol=? multiple same" #t (symbol=? 'foo 'foo 'foo))
+    (test "symbol=? multiple different" #f (symbol=? 'foo 'foo 'bar))
+  )
 )

@@ -95,6 +95,9 @@ export function analyze(exp, syntacticEnv = null) {
   if (Array.isArray(exp)) {
     return new LiteralNode(exp);
   }
+  if (exp instanceof Uint8Array) {
+    return new LiteralNode(exp);
+  }
   // Rational and Complex numbers are self-evaluating
   if (exp instanceof Rational || exp instanceof Complex) {
     return new LiteralNode(exp);
@@ -342,9 +345,14 @@ function analyzeLetrecSyntax(exp, syntacticEnv) {
 }
 
 function compileTransformerSpec(transformerSpec, syntacticEnv = null) {
-  if (!(transformerSpec instanceof Cons) ||
-    !(car(transformerSpec) instanceof Symbol) ||
-    car(transformerSpec).name !== 'syntax-rules') {
+  // Handle both Symbol and SyntaxObject-wrapped 'syntax-rules'
+  if (!(transformerSpec instanceof Cons)) {
+    throw new Error('Transformer must be (syntax-rules ...)');
+  }
+  const keyword = car(transformerSpec);
+  const keywordName = (keyword instanceof Symbol) ? keyword.name :
+    (isSyntaxObject(keyword) ? syntaxName(keyword) : null);
+  if (keywordName !== 'syntax-rules') {
     throw new Error('Transformer must be (syntax-rules ...)');
   }
 

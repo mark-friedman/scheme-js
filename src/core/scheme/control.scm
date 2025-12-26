@@ -155,34 +155,30 @@
     ;; Single variable in parens
     ((define-values (var) expr)
      (define var (call-with-values (lambda () expr) (lambda (x) x))))
-    ;; Single variable without parens (gets all values as list)
-    ((define-values var expr)
-     (define var (call-with-values (lambda () expr) list)))
-    ;; Two variables - define both as list elements with accessors  
+    ;; Two variables - use begin+define pattern with temp list
     ((define-values (var1 var2) expr)
-     (define %define-values-temp%
-       (let* ((vals (call-with-values (lambda () expr) list))
-              (val1 (car vals))
-              (val2 (cadr vals))
-              (setter! (lambda ()
-                         (set! var1 val1)
-                         (set! var2 val2))))
-         (setter!)
-         vals)))
+     (begin
+       (define temp-vals (call-with-values (lambda () expr) list))
+       (define var1 (car temp-vals))
+       (define var2 (cadr temp-vals))))
     ;; Three variables - use a temporary list to capture values
     ((define-values (var1 var2 var3) expr)
      (begin
-       (define %temp-vals% (call-with-values (lambda () expr) list))
-       (define var1 (car %temp-vals%))
-       (define var2 (cadr %temp-vals%))
-       (define var3 (caddr %temp-vals%))))
+       (define temp-vals (call-with-values (lambda () expr) list))
+       (define var1 (car temp-vals))
+       (define var2 (cadr temp-vals))
+       (define var3 (caddr temp-vals))))
     ;; Two variables with rest - use a temporary list to capture values
     ((define-values (var1 var2 . rest) expr)
      (begin
-       (define %temp-vals% (call-with-values (lambda () expr) list))
-       (define var1 (car %temp-vals%))
-       (define var2 (cadr %temp-vals%))
-       (define rest (cddr %temp-vals%))))))
+       (define temp-vals (call-with-values (lambda () expr) list))
+       (define var1 (car temp-vals))
+       (define var2 (cadr temp-vals))
+       (define rest (cddr temp-vals))))
+    ;; Single variable without parens (gets all values as list)
+    ;; NOTE: This pattern must be LAST as bare `var` matches any expression
+    ((define-values var expr)
+     (define var (call-with-values (lambda () expr) list)))))
 
 ;; /**
 ;;  * Case dispatch.

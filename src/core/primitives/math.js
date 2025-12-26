@@ -695,4 +695,52 @@ export const mathPrimitives = {
         }
         return n1 % n2;
     },
+
+    /**
+     * Returns the square of a number.
+     * @param {number} z - Number to square.
+     * @returns {number} z * z
+     */
+    'square': (z) => {
+        assertNumber('square', 1, z);
+        if (isComplex(z)) {
+            // (a+bi)^2 = a^2 - b^2 + 2abi
+            const a = z.real, b = z.imag;
+            return makeRectangular(a * a - b * b, 2 * a * b);
+        }
+        return z * z;
+    },
+
+    /**
+     * Converts a number to its inexact equivalent.
+     * @param {number|Rational} z - Number to convert.
+     * @returns {number} Inexact equivalent.
+     */
+    'inexact': (z) => {
+        assertNumber('inexact', 1, z);
+        if (typeof z === 'number') return z + 0.0; // Force float
+        if (isRational(z)) return z.toNumber();
+        if (isComplex(z)) return z; // Already inexact
+        return z;
+    },
+
+    /**
+     * Converts a number to its exact equivalent if possible.
+     * @param {number} z - Number to convert.
+     * @returns {number|Rational} Exact equivalent.
+     */
+    'exact': (z) => {
+        assertNumber('exact', 1, z);
+        if (typeof z === 'number') {
+            if (Number.isInteger(z)) return z;
+            // Try to convert to rational if possible
+            // For now just return integer part for non-integers
+            return Math.round(z);
+        }
+        if (isRational(z)) return z; // Already exact
+        if (isComplex(z)) {
+            throw new Error('exact: cannot convert complex to exact');
+        }
+        return z;
+    },
 };

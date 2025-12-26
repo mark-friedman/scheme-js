@@ -11,7 +11,7 @@
   
   (export
     ;; Macros
-    and let letrec cond
+    and or let let* letrec cond
     define-record-type define-record-field
     
     ;; Deep equality
@@ -24,6 +24,7 @@
     memq memv member
     assq assv assoc
     length list-ref list-tail reverse list-copy
+    make-list list-set!
     
     ;; Compound accessors (cxr)
     caar cadr cdar cddr

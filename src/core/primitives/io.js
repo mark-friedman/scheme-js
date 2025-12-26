@@ -1501,8 +1501,18 @@ export const ioPrimitives = {
                             if (/[\s()\[\]{}";]/.test(next)) {
                                 break;
                             }
+                            // Stop at datum label definition (#n=)
+                            if (/^#\d+=$/.test(buffer.trim())) {
+                                break;
+                            }
                             buffer += port.readChar();
                         }
+
+                        // Datum label definition - continue to read the value
+                        if (/^#\d+=$/.test(buffer.trim())) {
+                            continue;
+                        }
+
                         break;
                     }
                 } else if (ch === ';') {

@@ -84,24 +84,27 @@
            body ...)
          (case-lambda-clauses args rest ...)))
     
-    ;; One or more (rest param)
-    ((case-lambda-clauses args ((a . rest) body ...) more ...)
-     (if (pair? args)
-         (let ((a (car args)) (rest (cdr args)))
+    ;; NOTE: Rest patterns must be ordered from most specific to least specific
+    ;; to ensure proper pattern matching.
+    
+    ;; Three or more (rest param) - must come before (a b . rest)
+    ((case-lambda-clauses args ((a b c . rest) body ...) more ...)
+     (if (and (pair? args) (pair? (cdr args)) (pair? (cddr args)))
+         (let ((a (car args)) (b (cadr args)) (c (caddr args)) (rest (cdddr args)))
            body ...)
          (case-lambda-clauses args more ...)))
     
-    ;; Two or more (rest param)
+    ;; Two or more (rest param) - must come before (a . rest)
     ((case-lambda-clauses args ((a b . rest) body ...) more ...)
      (if (and (pair? args) (pair? (cdr args)))
          (let ((a (car args)) (b (cadr args)) (rest (cddr args)))
            body ...)
          (case-lambda-clauses args more ...)))
     
-    ;; Three or more (rest param)
-    ((case-lambda-clauses args ((a b c . rest) body ...) more ...)
-     (if (and (pair? args) (pair? (cdr args)) (pair? (cddr args)))
-         (let ((a (car args)) (b (cadr args)) (c (caddr args)) (rest (cdddr args)))
+    ;; One or more (rest param)
+    ((case-lambda-clauses args ((a . rest) body ...) more ...)
+     (if (pair? args)
+         (let ((a (car args)) (rest (cdr args)))
            body ...)
          (case-lambda-clauses args more ...)))
     

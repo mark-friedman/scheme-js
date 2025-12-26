@@ -17,6 +17,37 @@
      (if test1 (and test2 ...) #f))))
 
 ;; /**
+;;  * Logical OR macro.
+;;  * Short-circuits evaluation: returns the first true value, or #f if all are false.
+;;  *
+;;  * @param {boolean} ...test - Expressions to evaluate.
+;;  * @returns {boolean|*} First true value, or #f.
+;;  */
+(define-syntax or
+  (syntax-rules ()
+    ((or) #f)
+    ((or test) test)
+    ((or test1 test2 ...)
+     (let ((x test1))
+       (if x x (or test2 ...))))))
+
+;; /**
+;;  * Sequential binding macro.
+;;  * Binds variables sequentially, allowing later bindings to refer to earlier ones.
+;;  *
+;;  * @param {list} bindings - List of ((variable init) ...) bindings.
+;;  * @param {...expression} body - Body to evaluate.
+;;  */
+(define-syntax let*
+  (syntax-rules ()
+    ((let* () body1 body2 ...)
+     (let () body1 body2 ...))
+    ((let* ((name1 val1) (name2 val2) ...) body1 body2 ...)
+     (let ((name1 val1))
+       (let* ((name2 val2) ...)
+         body1 body2 ...)))))
+
+;; /**
 ;;  * Binds variables to values within a scope.
 ;;  * Supports both standard let (parallel binding) and named let (for recursion).
 ;;  *

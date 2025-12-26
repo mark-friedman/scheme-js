@@ -109,22 +109,35 @@ export class Complex {
     }
 
     /**
-     * Returns the string representation.
+     * Returns the string representation with R7RS formatting for special values.
+     * @param {number} [radix=10]
      * @returns {string}
      */
-    toString() {
+    toString(radix = 10) {
+        const formatComp = (n) => {
+            if (n === Infinity) return '+inf.0';
+            if (n === -Infinity) return '-inf.0';
+            if (Number.isNaN(n)) return '+nan.0';
+            return n.toString(radix);
+        };
+
         if (this.imag === 0) {
-            return String(this.real);
+            return formatComp(this.real);
         }
         if (this.real === 0) {
+            // Pure imaginary
             if (this.imag === 1) return '+i';
             if (this.imag === -1) return '-i';
-            return `${this.imag >= 0 ? '+' : ''}${this.imag}i`;
+            return `${formatComp(this.imag)}i`;
         }
-        const sign = this.imag >= 0 ? '+' : '';
-        if (this.imag === 1) return `${this.real}+i`;
-        if (this.imag === -1) return `${this.real}-i`;
-        return `${this.real}${sign}${this.imag}i`;
+
+        const realStr = formatComp(this.real);
+        const imagStr = formatComp(Math.abs(this.imag));
+        const sign = this.imag >= 0 ? '+' : '-';
+
+        if (this.imag === 1) return `${realStr}+i`;
+        if (this.imag === -1) return `${realStr}-i`;
+        return `${realStr}${sign}${imagStr}i`;
     }
 
     /**

@@ -423,3 +423,43 @@
   (if (not (pair? obj))
       obj
       (cons (car obj) (list-copy (cdr obj)))))
+
+;; /**
+;;  * Creates a list of k elements, each initialized to fill (default is #f).
+;;
+;;  * @param {integer} k - The number of elements.
+;;  * @param {*} fill - The value to fill (optional, default #f).
+;;  * @returns {list} A new list of k elements.
+;;  */
+(define (make-list k . rest)
+  (if (not (integer? k))
+      (error "make-list: expected integer" k))
+  (if (< k 0)
+      (error "make-list: expected non-negative integer" k))
+  (let ((fill (if (null? rest) #f (car rest))))
+    (letrec ((loop (lambda (n)
+                     (if (= n 0)
+                         '()
+                         (cons fill (loop (- n 1)))))))
+      (loop k))))
+
+;; /**
+;;  * Stores obj in element k of list.
+;;  * It is an error if k is not a valid index of list.
+;;
+;;  * @param {list} lst - A proper list.
+;;  * @param {integer} k - The index.
+;;  * @param {*} obj - The value to store.
+;;  * @returns {unspecified}
+;;  */
+(define (list-set! lst k obj)
+  (if (not (list? lst))
+      (error "list-set!: expected list" lst))
+  (if (not (integer? k))
+      (error "list-set!: expected integer index" k))
+  (if (or (< k 0) (>= k (length lst)))
+      (error "list-set!: index out of range" k))
+  (if (= k 0)
+      (set-car! lst obj)
+      (list-set! (cdr lst) (- k 1) obj)))
+

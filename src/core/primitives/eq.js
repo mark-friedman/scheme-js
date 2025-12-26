@@ -5,6 +5,8 @@
  */
 
 import { assertBoolean, assertArity } from '../interpreter/type_check.js';
+import { Complex } from './complex.js';
+import { Rational } from './rational.js';
 
 /**
  * Equality primitives exported to Scheme.
@@ -19,12 +21,24 @@ export const eqPrimitives = {
     'eq?': (a, b) => a === b,
 
     /**
-     * Equivalence comparison (handles NaN, -0).
+     * Equivalence comparison (handles NaN, -0, Complex, Rational).
      * @param {*} a - First value.
      * @param {*} b - Second value.
      * @returns {boolean} True if a and b are equivalent.
      */
-    'eqv?': (a, b) => Object.is(a, b),
+    'eqv?': (a, b) => {
+        if (Object.is(a, b)) return true;
+
+        if (a instanceof Complex && b instanceof Complex) {
+            return a.real === b.real && a.imag === b.imag;
+        }
+
+        if (a instanceof Rational && b instanceof Rational) {
+            return a.numerator === b.numerator && a.denominator === b.denominator;
+        }
+
+        return false;
+    },
 
     /**
      * Boolean negation.
@@ -56,7 +70,27 @@ export const eqPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a symbol.
      */
-    'symbol?': (obj) => obj !== null && typeof obj === 'object' && obj.constructor && obj.constructor.name === 'Symbol'
+    'symbol?': (obj) => obj !== null && typeof obj === 'object' && obj.constructor && obj.constructor.name === 'Symbol',
+
+    /**
+     * Symbol equality. Returns true if all arguments are the same symbol.
+     * @param {...Symbol} args - Symbols to compare.
+     * @returns {boolean} True if all arguments are eq?.
+     */
+    'symbol=?': (...args) => {
+        assertArity('symbol=?', args, 2, Infinity);
+        if (args.length === 0) return true;
+        const first = args[0];
+        if (!(first !== null && typeof first === 'object' && first.constructor && first.constructor.name === 'Symbol')) {
+            throw new Error('symbol=?: expected symbol');
+        }
+        return args.every(sym => {
+            if (!(sym !== null && typeof sym === 'object' && sym.constructor && sym.constructor.name === 'Symbol')) {
+                throw new Error('symbol=?: expected symbol');
+            }
+            return sym === first;
+        });
+    }
 };
 
 // Mark primitives that should receive raw Scheme objects (no JS bridge wrapping)

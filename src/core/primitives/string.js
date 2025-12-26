@@ -365,6 +365,14 @@ export const stringPrimitives = {
      */
     'number->string': (num, radix) => {
         assertNumber('number->string', 1, num);
+
+        // R7RS special value formatting
+        if (typeof num === 'number') {
+            if (num === Infinity) return '+inf.0';
+            if (num === -Infinity) return '-inf.0';
+            if (Number.isNaN(num)) return '+nan.0';
+        }
+
         if (radix !== undefined) {
             assertInteger('number->string', 2, radix);
             if (![2, 8, 10, 16].includes(radix)) {
@@ -372,7 +380,7 @@ export const stringPrimitives = {
             }
             return num.toString(radix);
         }
-        return String(num);
+        return num.toString();
     },
 
     /**

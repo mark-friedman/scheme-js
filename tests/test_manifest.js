@@ -73,6 +73,8 @@ export const schemeTestFiles = [
     'tests/core/scheme/rational_tests.scm',
     'tests/core/scheme/complex_tests.scm',
     'tests/core/scheme/base_prefix_tests.scm',
+    'tests/core/scheme/reader_tests.scm',
+    'tests/core/scheme/define_values_tests.scm',
 ];
 
 /**
