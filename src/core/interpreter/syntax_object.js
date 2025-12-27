@@ -11,6 +11,7 @@
  */
 
 import { Symbol, intern } from './symbol.js';
+import { Cons } from './cons.js';
 
 // =============================================================================
 // Scope Management
@@ -412,6 +413,16 @@ export function identifierEquals(id1, id2) {
 export function unwrapSyntax(obj) {
     if (obj instanceof SyntaxObject) {
         return intern(obj.name);
+    }
+    // Recursively unwrap Cons structures
+    if (obj instanceof Cons) {
+        const car = unwrapSyntax(obj.car);
+        const cdr = unwrapSyntax(obj.cdr);
+        return new Cons(car, cdr);
+    }
+    // Handle arrays (vectors)
+    if (Array.isArray(obj)) {
+        return obj.map(unwrapSyntax);
     }
     return obj;
 }
