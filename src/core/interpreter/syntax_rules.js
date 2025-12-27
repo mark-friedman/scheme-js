@@ -39,13 +39,14 @@ export function resetGensymCounter() {
  * @param {number|null} definingScope - Scope ID for referential transparency.
  *        Free variables in templates will be marked with this scope.
  * @param {string} ellipsisName - The ellipsis identifier (default '...')
- * @returns {Function} A transformer function (exp) -> exp.
+ * @returns {Function} A transformer function (exp, useSiteEnv) -> exp.
  */
 export function compileSyntaxRules(literals, clauses, definingScope = null, ellipsisName = '...', capturedEnv = null) {
     const literalNames = new Set(literals.map(l => l.name));
 
-    return (exp) => {
+    return (exp, useSiteEnv = null) => {
         // exp is the macro call: (macro-name arg1 ...)
+        // useSiteEnv is the syntactic environment at the macro invocation site
         // We match against the whole expression.
 
         for (const clause of clauses) {
@@ -55,13 +56,13 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
             // R7RS: The first element of the pattern is ignored
             let pattern = clause[0];
             let input = exp;
-
             if (pattern instanceof Cons && input instanceof Cons) {
                 pattern = pattern.cdr;
                 input = input.cdr;
             }
 
-            const bindings = matchPattern(pattern, input, literalNames, ellipsisName);
+            // Pass useSiteEnv for free-identifier=? comparison on literals
+            const bindings = matchPattern(pattern, input, literalNames, ellipsisName, useSiteEnv);
 
             if (bindings) {
                 // Collect pattern variables from this clause's pattern
@@ -207,23 +208,38 @@ function findIntroducedBindings(template, patternVars) {
  * @param {*} pattern 
  * @param {*} input 
  * @param {Set<string>} literals 
+ * @param {string} ellipsisName
+ * @param {SyntacticEnv} useSiteEnv - Environment at macro invocation for free-identifier=?
  * @returns {Map<string, *> | null} Bindings map or null if failed.
  */
-function matchPattern(pattern, input, literals, ellipsisName = '...') {
+function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv = null) {
     // 1. Variables (Symbols or SyntaxObjects)
     // SyntaxObjects can appear when patterns come from macro-expanded define-syntax
     if (pattern instanceof Symbol || pattern instanceof SyntaxObject) {
         const patName = pattern instanceof SyntaxObject ? pattern.name : pattern.name;
 
-        // Literal identifier
+        // Literal identifier - use free-identifier=? semantics
         if (literals.has(patName)) {
-            // Match literal by name (ignore scopes for literal matching)
             const inputName = (input instanceof Symbol) ? input.name :
                 (input instanceof SyntaxObject) ? input.name : null;
-            if (inputName === patName) {
-                return new Map();
+
+            // Names must match
+            if (inputName !== patName) {
+                return null; // Different names - no match
             }
-            return null; // Mismatch
+
+            // free-identifier=? semantics: if the input identifier is locally 
+            // bound at the use site, it refers to that local binding, not the literal.
+            // So a locally bound `=>` should NOT match the `=>` literal in cond.
+            if (useSiteEnv) {
+                const localBinding = useSiteEnv.lookup(input);
+                if (localBinding) {
+                    // Input is locally bound - it's a different identifier
+                    return null;
+                }
+            }
+
+            return new Map(); // Same name, not locally bound - matches literal
         }
 
         // Wildcard
@@ -285,7 +301,7 @@ function matchPattern(pattern, input, literals, ellipsisName = '...') {
                 // Collect matches
                 for (let k = 0; k < matchCount; k++) {
                     if (!(iCurr instanceof Cons)) return null;
-                    const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName);
+                    const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName, useSiteEnv);
                     if (!subBindings) return null; // Failed to match one item
                     mergeBindings(bindings, subBindings, true);
                     iCurr = iCurr.cdr;
@@ -299,7 +315,7 @@ function matchPattern(pattern, input, literals, ellipsisName = '...') {
                 // Handle improper input list if pattern expects more
                 if (!(iCurr instanceof Cons)) return null;
 
-                const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName);
+                const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName, useSiteEnv);
                 if (!subBindings) return null;
                 mergeBindings(bindings, subBindings, false);
 
@@ -317,7 +333,7 @@ function matchPattern(pattern, input, literals, ellipsisName = '...') {
         // Dotted pattern tail: (a . b)
         // pCurr is the tail (b)
         // Match tail against remaining input
-        const tailBindings = matchPattern(pCurr, iCurr, literals, ellipsisName);
+        const tailBindings = matchPattern(pCurr, iCurr, literals, ellipsisName, useSiteEnv);
         if (!tailBindings) return null;
         mergeBindings(bindings, tailBindings, false);
 
@@ -472,7 +488,10 @@ function transcribe(template, bindings, renameMap = new Map(), definingScope = n
         if (capturedEnv && !SPECIAL_FORMS.has(name) && !globalMacroRegistry.isMacro(name)) {
             const lexicalRename = capturedEnv.lookup(template);
             if (lexicalRename) {
-                // Return a new Symbol with the renamed name from the lexical environment
+                // Return SyntaxObject with scope info so ScopedVariable can resolve it
+                if (template instanceof SyntaxObject) {
+                    return new SyntaxObject(lexicalRename, template.scopes);
+                }
                 return intern(lexicalRename);
             }
         }

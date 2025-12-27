@@ -125,7 +125,7 @@ export function analyze(exp, syntacticEnv = null) {
       if (opNameForMacro && currentMacroRegistry.isMacro(opNameForMacro)) {
         const transformer = currentMacroRegistry.lookup(opNameForMacro);
         try {
-          const expanded = transformer(exp);
+          const expanded = transformer(exp, syntacticEnv);
           return analyze(expanded, syntacticEnv);
         } catch (e) {
           throw new Error(`Error expanding macro ${opNameForMacro}: ${e.message}`);
@@ -300,10 +300,13 @@ function analyzeLetSyntax(exp, syntacticEnv) {
   }
 
   // Analyze body with the local registry active
+  // Wrap in an implicit (let () ...) to isolate internal defines
   const savedRegistry = currentMacroRegistry;
   currentMacroRegistry = localRegistry;
   try {
-    return analyzeBodyWithMacroRegistry(body, syntacticEnv);
+    // Build (let () body1 body2 ...) to create a new scope
+    const letExp = cons(intern('let'), cons(null, body));
+    return analyzeWithCurrentMacroRegistry(letExp, syntacticEnv);
   } finally {
     currentMacroRegistry = savedRegistry;
   }
@@ -396,7 +399,7 @@ function analyzeWithCurrentMacroRegistry(exp, syntacticEnv) {
     const tag = exp.car;
     if (tag instanceof Symbol && currentMacroRegistry.isMacro(tag.name)) {
       const transformer = currentMacroRegistry.lookup(tag.name);
-      const expanded = transformer(exp);
+      const expanded = transformer(exp, syntacticEnv);
       return analyzeWithCurrentMacroRegistry(expanded, syntacticEnv);
     }
   }
@@ -610,7 +613,44 @@ function analyzeLambda(exp, syntacticEnv) {
 }
 
 function analyzeBody(body, syntacticEnv) {
-  const exprs = toArray(body).map(e => analyze(e, syntacticEnv));
+  const bodyArray = toArray(body);
+
+  // Pre-scan for internal defines and extend syntactic environment
+  // This allows define-syntax forms to see preceding defines from same body
+  // Critical for macro hygiene: (begin (define x ...) (define-syntax m ... x ...))
+  let extendedEnv = syntacticEnv;
+  for (const exp of bodyArray) {
+    if (exp instanceof Cons) {
+      const head = exp.car;
+      const headName = (head instanceof Symbol) ? head.name :
+        (isSyntaxObject(head)) ? syntaxName(head) : null;
+
+      if (headName === 'define') {
+        // Extract the name being defined
+        const defHead = cadr(exp);
+        let definedName;
+        let bindKey = defHead;
+
+        if (defHead instanceof Cons) {
+          // (define (name args...) body) - function form
+          const nameObj = car(defHead);
+          definedName = (nameObj instanceof Symbol) ? nameObj.name : syntaxName(nameObj);
+          bindKey = nameObj;
+        } else if (defHead instanceof Symbol || isSyntaxObject(defHead)) {
+          // (define name value) - simple form
+          definedName = (defHead instanceof Symbol) ? defHead.name : syntaxName(defHead);
+        }
+
+        if (definedName) {
+          // Add to syntactic environment so define-syntax can see it
+          // The name maps to itself since it's a runtime binding
+          extendedEnv = extendedEnv.extend(bindKey, definedName);
+        }
+      }
+    }
+  }
+
+  const exprs = bodyArray.map(e => analyze(e, extendedEnv));
   if (exprs.length === 1) {
     return exprs[0];
   }

@@ -34,10 +34,12 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     const replExports = await loadLibrary(['scheme', 'repl'], analyze, interpreter, interpreter.globalEnv);
     const caseLambdaExports = await loadLibrary(['scheme', 'case-lambda'], analyze, interpreter, interpreter.globalEnv);
     const lazyExports = await loadLibrary(['scheme', 'lazy'], analyze, interpreter, interpreter.globalEnv);
+    const evalExports = await loadLibrary(['scheme', 'eval'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
     applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });
     applyImports(interpreter.globalEnv, lazyExports, { libraryName: ['scheme', 'lazy'] });
+    applyImports(interpreter.globalEnv, evalExports, { libraryName: ['scheme', 'eval'] });
     // Note: time and process-context primitives are loaded via primitives/index.js
 
     // Reload macros because hygiene_tests.js clears globalMacroRegistry

@@ -141,11 +141,11 @@
 (define-syntax test-group
   (syntax-rules ()
     ((test-group name body ...)
-     (begin
-       ;; (display "=== ") (display name) (display " ===") (newline)
-       (test-protect body) ...
-       ;; (newline)
-       ))))
+     ;; Use let() to create a body context where defines (including from 
+     ;; macro expansion) are valid. No test-protect wrapping - let errors
+     ;; propagate naturally. This fixes mad-hatter and similar patterns.
+     (let ()
+       body ...))))
 
 ;; /**
 ;;  * Test that an expression raises an error containing the given message.

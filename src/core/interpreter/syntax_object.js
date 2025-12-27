@@ -439,3 +439,38 @@ export function syntaxScopes(obj) {
     return new Set();
 }
 
+/**
+ * Add a scope mark to all identifiers in an expression.
+ * This is used by binding forms (let, lambda) to mark identifiers
+ * in their body with the binding's scope for hygiene purposes.
+ * 
+ * @param {any} exp - The expression to process
+ * @param {number} scope - The scope ID to add
+ * @returns {any} Expression with scope marks added to all identifiers
+ */
+export function addScopeToExpression(exp, scope) {
+    // Handle Symbol - wrap as SyntaxObject with scope
+    if (exp instanceof Symbol) {
+        return new SyntaxObject(exp.name, new Set([scope]));
+    }
+
+    // Handle SyntaxObject - add scope to existing
+    if (exp instanceof SyntaxObject) {
+        return exp.addScope(scope);
+    }
+
+    // Handle Cons - recurse on car and cdr
+    if (exp instanceof Cons) {
+        const car = addScopeToExpression(exp.car, scope);
+        const cdr = addScopeToExpression(exp.cdr, scope);
+        return new Cons(car, cdr);
+    }
+
+    // Handle arrays (vectors)
+    if (Array.isArray(exp)) {
+        return exp.map(e => addScopeToExpression(e, scope));
+    }
+
+    // Primitives pass through unchanged
+    return exp;
+}

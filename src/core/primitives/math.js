@@ -439,6 +439,10 @@ export const mathPrimitives = {
      * @returns {number} Floor of x.
      */
     'floor': (x) => {
+        // Handle Rational numbers
+        if (isRational(x)) {
+            x = x.toNumber();
+        }
         assertNumber('floor', 1, x);
         return Math.floor(x);
     },
@@ -449,6 +453,10 @@ export const mathPrimitives = {
      * @returns {number} Ceiling of x.
      */
     'ceiling': (x) => {
+        // Handle Rational numbers
+        if (isRational(x)) {
+            x = x.toNumber();
+        }
         assertNumber('ceiling', 1, x);
         return Math.ceil(x);
     },
@@ -459,6 +467,10 @@ export const mathPrimitives = {
      * @returns {number} Truncated value.
      */
     'truncate': (x) => {
+        // Handle Rational numbers
+        if (isRational(x)) {
+            x = x.toNumber();
+        }
         assertNumber('truncate', 1, x);
         return Math.trunc(x);
     },

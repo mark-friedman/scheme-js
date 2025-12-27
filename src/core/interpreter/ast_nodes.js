@@ -115,11 +115,10 @@ export class ScopedVariable extends Executable {
                     }
 
                     if (!found) {
-                        // Fall back to global/runtime environment
-                        if (!interpreter.globalEnv) {
-                            throw new Error(`GlobalRef resolution failed: no global environment for ${this.name}`);
-                        }
-                        envVal = interpreter.globalEnv.lookup(resolved.name);
+                        // Fall back to current runtime environment
+                        // This handles macro-introduced bindings that are local, not global
+                        const env = registers[ENV];
+                        envVal = env.lookup(resolved.name);
                     }
                     registers[ANS] = envVal;
                 } else {

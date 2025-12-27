@@ -12,10 +12,11 @@
     ;;  * @syntax (delay expr)
     ;;  * @returns {promise} A promise.
     ;;  */
+    ;; Note: Inline promise construction to avoid hygiene issues with internal binding
     (define-syntax delay
       (syntax-rules ()
         ((delay expr)
-         (make-promise-internal (lambda () expr)))))
+         (cons (cons 'promise-tag #f) (lambda () expr)))))
     
     ;; /**
     ;;  * delay-force - Create a promise that forces another promise when forced.
@@ -26,4 +27,5 @@
     (define-syntax delay-force
       (syntax-rules ()
         ((delay-force expr)
-         (make-promise-internal (lambda () (force expr))))))))
+         (cons (cons 'promise-tag #f) (lambda () (force expr))))))))
+

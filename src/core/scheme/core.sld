@@ -48,7 +48,7 @@
     round inexact->exact
     
     ;; Parameter objects
-    make-parameter parameterize
+    make-parameter parameterize param-dynamic-bind
     
     ;; Misc
     native-report-test-result
