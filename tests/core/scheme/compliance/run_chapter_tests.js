@@ -36,21 +36,37 @@ async function main() {
     let failedChapters = 0;
     const errors = [];
 
+    // Track overall test counts
+    let totalPasses = 0;
+    let totalFailures = 0;
+    let totalSkips = 0;
+
     for (const chapterFile of chapterFiles) {
         console.log(`\n--- ${chapterFile} ---`);
         const result = await runner.runChapterTest(chapterFile);
+
+        // Accumulate test counts
+        totalPasses += result.passes;
+        totalFailures += result.failures;
+        totalSkips += result.skips;
+
         if (result.success) {
-            console.log(`✅ Chapter ${chapterFile} completed`);
+            console.log(`✅ Chapter ${chapterFile} completed (${result.passes} passed, ${result.failures} failed, ${result.skips} skipped)`);
             passedChapters++;
-        } else {
-            console.log(`❌ Chapter ${chapterFile}: ${result.error}`);
+        } else if (result.error) {
+            console.log(`❌ Chapter ${chapterFile} crashed: ${result.error}`);
             failedChapters++;
             errors.push({ file: chapterFile, error: result.error });
+        } else {
+            console.log(`❌ Chapter ${chapterFile} had failures (${result.passes} passed, ${result.failures} failed, ${result.skips} skipped)`);
+            failedChapters++;
+            errors.push({ file: chapterFile, error: `${result.failures} test failures` });
         }
     }
 
     console.log('\n========================================');
     console.log(`CHAPTERS: ${passedChapters} passed, ${failedChapters} failed`);
+    console.log(`TESTS: ${totalPasses} passed, ${totalFailures} failed, ${totalSkips} skipped`);
     console.log('========================================');
 
     if (errors.length > 0) {

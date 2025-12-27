@@ -28,29 +28,46 @@ const logger = {
 async function main() {
     console.log('=== Running R7RS Compliance Suite ===\n');
 
-    const runner = await createComplianceRunner(fileLoader, logger);
-
     console.log(`Found ${sectionFiles.length} test sections\n`);
 
     let passedSections = 0;
     let failedSections = 0;
     const errors = [];
 
+    // Track overall test counts
+    let totalPasses = 0;
+    let totalFailures = 0;
+    let totalSkips = 0;
+
     for (const sectionFile of sectionFiles) {
         console.log(`\n--- ${sectionFile} ---`);
+
+        // Create a fresh runner for each section to prevent macro pollution
+        const runner = await createComplianceRunner(fileLoader, logger);
         const result = await runner.runSectionTest(sectionFile);
+
+        // Accumulate test counts
+        totalPasses += result.passes;
+        totalFailures += result.failures;
+        totalSkips += result.skips;
+
         if (result.success) {
-            console.log(`✅ Section ${sectionFile} completed`);
+            console.log(`✅ Section ${sectionFile} completed (${result.passes} passed, ${result.failures} failed, ${result.skips} skipped)`);
             passedSections++;
-        } else {
-            console.log(`❌ Section ${sectionFile}: ${result.error}`);
+        } else if (result.error) {
+            console.log(`❌ Section ${sectionFile} crashed: ${result.error}`);
             failedSections++;
             errors.push({ file: sectionFile, error: result.error });
+        } else {
+            console.log(`❌ Section ${sectionFile} had failures (${result.passes} passed, ${result.failures} failed, ${result.skips} skipped)`);
+            failedSections++;
+            errors.push({ file: sectionFile, error: `${result.failures} test failures` });
         }
     }
 
     console.log('\n========================================');
     console.log(`SECTIONS: ${passedSections} passed, ${failedSections} failed`);
+    console.log(`TESTS: ${totalPasses} passed, ${totalFailures} failed, ${totalSkips} skipped`);
     console.log('========================================');
 
     if (errors.length > 0) {

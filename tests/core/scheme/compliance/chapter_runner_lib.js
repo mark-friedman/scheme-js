@@ -79,7 +79,15 @@ export async function createChapterComplianceRunner(fileLoader, logger) {
         }
     });
 
-    // Load the test harness
+    // Inject skip reporter
+    interpreter.globalEnv.bindings.set('native-report-test-skip', (name, reason) => {
+        if (logger.skip) {
+            logger.skip(`${name} (Reason: ${reason})`);
+        } else {
+            console.log(`⏭️ SKIP: ${name} - ${reason}`);
+        }
+    });
+
     const harnessCode = await fileLoader('tests/core/scheme/test.scm');
     run(interpreter, harnessCode);
 
@@ -92,12 +100,26 @@ export async function createChapterComplianceRunner(fileLoader, logger) {
             const testCode = await fileLoader(path);
             run(interpreter, testCode);
             const result = run(interpreter, '(test-report)');
+
+            // Get counts before resetting
+            const passes = run(interpreter, '*test-passes*');
+            const failures = run(interpreter, '*test-failures*');
+            const skips = run(interpreter, '*test-skips*');
+
             // Reset counters for next chapter
             run(interpreter, '(set! *test-failures* 0)');
             run(interpreter, '(set! *test-passes* 0)');
-            return { success: true, file: chapterFile };
+            run(interpreter, '(set! *test-skips* 0)');
+
+            return {
+                success: (failures || 0) === 0,
+                file: chapterFile,
+                passes: passes || 0,
+                failures: failures || 0,
+                skips: skips || 0
+            };
         } catch (error) {
-            return { success: false, file: chapterFile, error: error.message };
+            return { success: false, file: chapterFile, error: error.message, passes: 0, failures: 0, skips: 0 };
         }
     }
 

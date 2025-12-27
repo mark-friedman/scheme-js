@@ -137,7 +137,7 @@ export async function createComplianceRunner(fileLoader, logger) {
             run(interpreter, '(set! *test-skips* 0)');
 
             return {
-                success: true,
+                success: (failures || 0) === 0,
                 file: sectionFile,
                 passes: passes || 0,
                 failures: failures || 0,

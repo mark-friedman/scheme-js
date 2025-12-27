@@ -138,11 +138,12 @@
               (let-values (((root rem) (exact-integer-sqrt 32))) (* root rem))))
 
       (test-group "let*-values"
-        (test "let*-values sequencing" '((a b) (x y))
+        ;; let*-values binds sequentially, so second binding sees new values of a, b
+        (test "let*-values sequencing" '((x y) (x y))
               (let ((a 'a) (b 'b) (x 'x) (y 'y))
-                (let*-values (((a b) (values x y))
-                              ((x y) (values a b)))
-                  (list (list a b) (list x y))))))
+                (let*-values (((a b) (values x y))    ; a='x, b='y
+                              ((x y) (values a b)))   ; x='x, y='y (uses new a, b)
+                  (list (list a b) (list x y)))))))
     )
 
     (test-group "4.2.3 Sequencing"
@@ -192,12 +193,25 @@
 
     (test-group "4.2.8 Quasiquotation"
       (test "quasiquote basic" '(list 3 4) `(list ,(+ 1 2) 4))
-      (test "quasiquote splicing" '(a 3 4 5 6 b) 
-            (let ((name 'a)) `(list ,name ',name))) ;; Literal from text example is tricky to map exact
-      (test "nested quasiquote" '(a (b (c) d) e)
-            (let ((x '(c))) `(a (b ,x d) e))) ;; simplified test
-      (test "unquote-splicing" '(a 1 2 3 b)
-            `(a ,@(list 1 2 3) b)))
+      (test "quasiquote splicing multiple" '(a 3 4 5 6 b) `(a ,(+ 1 2) ,@(map abs `(4 -5 6)) b))
+      (test "quasiquote splicing cons" '((foo 7) . cons) `(( foo ,(- 10 3)) ,@(cdr `(c)) . ,(car `(cons))))
+      (test "quasiquote vector" #(10 5 2 4 3 8) `#(10 5 ,(sqrt 4) ,@(map sqrt `(16 9)) 8))
+      (test "quasiquote in let" '(list foo bar baz) 
+            (let ((foo `(foo bar)) (@baz `baz))
+              `(list ,@foo , @baz)))
+      ;; Nested quasiquote - inner unquotes stay unevaluated, outer unquote of inner ,(foo...) evaluates the ,(+ 1 3)
+      (test "quasiquote nested" '(a `(b ,(+ 1 2) ,(foo 4 d) e) f)
+            `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f))
+      ;; ,,name1 at level 1: outer unquote evaluates name1 -> 'x, leaves ,x in template
+      ;; ,`,name2 at level 1: inner ` increases nesting, , decreases it, evaluates name2 -> 'y 
+      (test "quasiquote nested in let" '(a `(b ,x ,'y d) e)
+            (let ((name1 'x)
+                  (name2 'y))
+              `(a `(b ,,name1 ,',name2 d) e)))
+      (test "explicit quasiquote unquote" '(list 3 4)
+            (quasiquote (list (unquote (+ 1 2)) 4)))
+      (test "quasiquote unquote-splicing" '(quasiquote (list (unquote (+ 1 2)) 4))
+            `(quasiquote (list (unquote (+ 1 2)) 4))))
 
     (test-group "4.2.9 Case-lambda"
       (define range
@@ -235,4 +249,3 @@
               (let ((x #f) (y 7) (temp 8))
                 (my-or x (let ((temp 9)) (if y y)) y)))))
   )
-)

@@ -459,7 +459,30 @@ function expandQuasiquote(exp, syntacticEnv, nesting = 0) {
     ]);
   }
 
-  // 5. Atoms
+  // 5. Handle Vectors (Arrays)
+  if (Array.isArray(exp)) {
+    // Check if any element has unquote-splicing at nesting 0
+    let hasSplicing = false;
+    for (const elem of exp) {
+      if (isTaggedList(elem, 'unquote-splicing') && nesting === 0) {
+        hasSplicing = true;
+        break;
+      }
+    }
+
+    if (hasSplicing) {
+      // Convert to list, expand, then use list->vector
+      const listForm = exp.reduceRight((acc, el) => cons(el, acc), null);
+      const expandedList = expandQuasiquote(listForm, syntacticEnv, nesting);
+      return listApp('list->vector', [expandedList]);
+    } else {
+      // No splicing - expand each element and use vector
+      const expandedElements = exp.map(e => expandQuasiquote(e, syntacticEnv, nesting));
+      return listApp('vector', expandedElements);
+    }
+  }
+
+  // 6. Atoms
   return new LiteralNode(exp);
 }
 
