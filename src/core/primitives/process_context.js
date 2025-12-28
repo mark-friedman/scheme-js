@@ -6,6 +6,7 @@
  */
 
 import { assertArity, assertString, assertInteger } from '../interpreter/type_check.js';
+import { list, cons } from '../interpreter/cons.js';
 
 // Check if running in Node.js
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
@@ -14,15 +15,16 @@ export const processContextPrimitives = {
     /**
      * command-line: Returns a list of command line arguments.
      * R7RS requires no arguments.
-     * @returns {Array} List of command line arguments.
+     * @returns {Cons|null} Scheme list of command line arguments.
      */
     'command-line': (...args) => {
         assertArity('command-line', args, 0, 0);
         if (isNode) {
-            return process.argv;
+            // Convert JS array to Scheme list
+            return list(...process.argv);
         }
-        // Browser: return empty list with location as program name
-        return [typeof location !== 'undefined' ? location.href : 'scheme'];
+        // Browser: return list with location as program name
+        return list(typeof location !== 'undefined' ? location.href : 'scheme');
     },
 
     /**
@@ -95,13 +97,17 @@ export const processContextPrimitives = {
     /**
      * get-environment-variables: Get all environment variables as an alist.
      * R7RS requires no arguments.
-     * @returns {Array} Association list of (name . value) pairs.
+     * @returns {Cons|null} Scheme association list of (name . value) pairs.
      */
     'get-environment-variables': (...args) => {
         assertArity('get-environment-variables', args, 0, 0);
         if (isNode && process.env) {
-            return Object.entries(process.env);
+            // Convert to Scheme alist: ((name . value) ...)
+            const entries = Object.entries(process.env);
+            // Build list of pairs
+            const pairs = entries.map(([name, value]) => cons(name, value));
+            return list(...pairs);
         }
-        return [];
+        return null;  // Empty list
     }
 };

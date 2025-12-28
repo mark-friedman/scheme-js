@@ -729,9 +729,10 @@ export const mathPrimitives = {
      * @returns {number} Inexact equivalent.
      */
     'inexact': (z) => {
+        // Handle Rational before assertNumber (which only accepts JS numbers)
+        if (isRational(z)) return z.toNumber();
         assertNumber('inexact', 1, z);
         if (typeof z === 'number') return z + 0.0; // Force float
-        if (isRational(z)) return z.toNumber();
         if (isComplex(z)) return z; // Already inexact
         return z;
     },

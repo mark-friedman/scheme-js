@@ -17,6 +17,7 @@ import { getExceptionPrimitives } from './exception.js';
 import { timePrimitives } from './time.js';
 import { processContextPrimitives } from './process_context.js';
 import { bytevectorPrimitives } from './bytevector.js';
+import { syntaxPrimitives } from './syntax.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -55,6 +56,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(timePrimitives);
     addPrimitives(processContextPrimitives);
     addPrimitives(bytevectorPrimitives);
+    addPrimitives(syntaxPrimitives);
 
     return new Environment(null, bindings);
 }

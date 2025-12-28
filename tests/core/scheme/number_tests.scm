@@ -401,4 +401,62 @@
       (nan? (sqrt -1)))
   )
 
+  ;; ===== Rational Support =====
+  
+  (test-group "rational arithmetic"
+    
+    (test "round rational 7/2"
+      4
+      (round 7/2))
+    
+    (test "round rational 5/2"
+      2
+      (round 5/2))  ;; round to even
+    
+    (test "floor rational"
+      3
+      (floor 7/2))
+    
+    (test "ceiling rational"
+      4
+      (ceiling 7/2))
+    
+    (test "inexact rational"
+      3.5
+      (inexact 7/2))
+  )
+
+  ;; ===== String->Number =====
+  
+  (test-group "string->number"
+    
+    (test "scientific notation"
+      100.0
+      (string->number "1e2"))
+    
+    (test "scientific notation with decimal"
+      1.5e10
+      (string->number "1.5e10"))
+    
+    (test "basic integer"
+      100
+      (string->number "100"))
+    
+    (test "hex radix"
+      256
+      (string->number "100" 16))
+    
+    (test "invalid string returns false"
+      #f
+      (string->number "1 2"))
+    
+    (test "positive infinity"
+      +inf.0
+      (string->number "+inf.0"))
+    
+    (test "negative infinity"
+      -inf.0
+      (string->number "-inf.0"))
+  )
+
 ) ;; end test-group

@@ -10,6 +10,7 @@ import { run } from '../../../harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../../../../src/core/interpreter/library_loader.js';
 import { analyze } from '../../../../src/core/interpreter/analyzer.js';
 import { resetGlobalMacroRegistry, snapshotMacroRegistry } from '../../../../src/core/interpreter/macro_registry.js';
+import { writeString } from '../../../../src/core/primitives/io.js';
 
 // Section files in order
 const sectionFiles = [
@@ -92,10 +93,13 @@ export async function createComplianceRunner(fileLoader, logger) {
 
     // Inject native reporter
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
+        const expectedStr = writeString(expected);
+        const actualStr = writeString(actual);
+
         if (passed) {
-            logger.pass(`${name} (Expected: ${expected}, Got: ${actual})`);
+            logger.pass(`${name} (Expected: ${expectedStr}, Got: ${actualStr})`);
         } else {
-            logger.fail(`${name} (Expected: ${expected}, Got: ${actual})`);
+            logger.fail(`${name} (Expected: ${expectedStr}, Got: ${actualStr})`);
         }
     });
 
@@ -131,7 +135,7 @@ export async function createComplianceRunner(fileLoader, logger) {
             const failures = run(interpreter, '*test-failures*');
             const skips = run(interpreter, '*test-skips*');
 
-            // Reset counters for next section
+            // Reset counters for next sections
             run(interpreter, '(set! *test-failures* 0)');
             run(interpreter, '(set! *test-passes* 0)');
             run(interpreter, '(set! *test-skips* 0)');

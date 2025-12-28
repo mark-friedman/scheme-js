@@ -12,23 +12,53 @@
 (define (native-report-test-result . args) #f)
 
 ;; /**
-;;  * Applies a function to every element of a list.
+;;  * Applies a function to corresponding elements of one or more lists.
+;;  * Returns a new list of results. When multiple lists are given,
+;;  * the result is the same length as the shortest list (R7RS).
 ;;
 ;;  * @param {procedure} proc - The function to apply.
-;;  * @param {list} lst - The list to iterate over.
+;;  * @param {list} lst - First list.
+;;  * @param {...list} lsts - Additional lists (optional).
 ;;  * @returns {list} A new list containing the results.
 ;;  */
-(define (map proc lst)
+(define (map proc lst . lsts)
   (if (not (procedure? proc))
       (error "map: expected procedure" proc))
   (if (not (list? lst))
       (error "map: expected list" lst))
-  (letrec ((loop (lambda (l)
-                   (if (null? l)
-                       '()
-                       (cons (proc (car l))
-                             (loop (cdr l)))))))
-    (loop lst)))
+  (if (null? lsts)
+      ;; Single list case - original behavior
+      (letrec ((loop (lambda (l)
+                       (if (null? l)
+                           '()
+                           (cons (proc (car l))
+                                 (loop (cdr l)))))))
+        (loop lst))
+      ;; Multiple lists case - stop at shortest
+      (begin
+        (for-each (lambda (l)
+                    (if (not (list? l))
+                        (error "map: expected list" l)))
+                  lsts)
+        (letrec ((any-null? (lambda (lists)
+                              (if (null? lists)
+                                  #f  ;; No more lists to check, none were null
+                                  (or (null? (car lists))
+                                      (any-null? (cdr lists))))))
+                 (all-cars (lambda (lists)
+                             (if (null? lists)
+                                 '()
+                                 (cons (car (car lists)) (all-cars (cdr lists))))))
+                 (all-cdrs (lambda (lists)
+                             (if (null? lists)
+                                 '()
+                                 (cons (cdr (car lists)) (all-cdrs (cdr lists))))))
+                 (loop (lambda (first-list rest-lists)
+                         (if (or (null? first-list) (any-null? rest-lists))
+                             '()
+                             (cons (apply proc (cons (car first-list) (all-cars rest-lists)))
+                                   (loop (cdr first-list) (all-cdrs rest-lists)))))))
+          (loop lst lsts)))))
 
 ;; /**
 ;;  * Applies a procedure to each element of a list for side effects.
@@ -51,7 +81,8 @@
 
 ;; /**
 ;;  * Applies a procedure to corresponding characters of strings.
-;;  * Returns a new string of the results.
+;;  * Returns a new string of the results. When multiple strings are given,
+;;  * the result length is the same as the shortest string (R7RS).
 ;;
 ;;  * @param {procedure} proc - The procedure to apply.
 ;;  * @param {string} str - First string.
@@ -63,13 +94,14 @@
       (error "string-map: expected procedure" proc))
   (if (not (string? str))
       (error "string-map: expected string" str))
-  (let ((len (string-length str)))
-    (for-each (lambda (s)
-                (if (not (string? s))
-                    (error "string-map: expected string" s))
-                (if (not (= (string-length s) len))
-                    (error "string-map: strings must have same length")))
-              strs)
+  ;; Calculate minimum length across all strings
+  (let ((len (let loop ((min-len (string-length str)) (ss strs))
+               (if (null? ss)
+                   min-len
+                   (begin
+                     (if (not (string? (car ss)))
+                         (error "string-map: expected string" (car ss)))
+                     (loop (min min-len (string-length (car ss))) (cdr ss)))))))
     (if (null? strs)
         ;; Single string case
         (list->string
@@ -127,7 +159,8 @@
 
 ;; /**
 ;;  * Applies a procedure to corresponding elements of vectors.
-;;  * Returns a new vector of the results.
+;;  * Returns a new vector of the results. When multiple vectors are given,
+;;  * the result length is the same as the shortest vector (R7RS).
 ;;
 ;;  * @param {procedure} proc - The procedure to apply.
 ;;  * @param {vector} vec - First vector.
@@ -139,13 +172,14 @@
       (error "vector-map: expected procedure" proc))
   (if (not (vector? vec))
       (error "vector-map: expected vector" vec))
-  (let ((len (vector-length vec)))
-    (for-each (lambda (v)
-                (if (not (vector? v))
-                    (error "vector-map: expected vector" v))
-                (if (not (= (vector-length v) len))
-                    (error "vector-map: vectors must have same length")))
-              vecs)
+  ;; Calculate minimum length across all vectors
+  (let ((len (let loop ((min-len (vector-length vec)) (vs vecs))
+               (if (null? vs)
+                   min-len
+                   (begin
+                     (if (not (vector? (car vs)))
+                         (error "vector-map: expected vector" (car vs)))
+                     (loop (min min-len (vector-length (car vs))) (cdr vs)))))))
     (if (null? vecs)
         ;; Single vector case
         (let ((result (make-vector len)))
@@ -249,21 +283,24 @@
 ;; /**
 ;;  * Return the sublist of list whose car is equal? to obj.
 ;;  * Return #f if obj is not found.
+;;  * Optionally takes a custom comparison procedure.
 ;;
 ;;  * @param {any} obj - Object to find.
 ;;  * @param {list} lst - List to search.
+;;  * @param {procedure} [compare] - Optional comparison procedure (default equal?).
 ;;  * @return {list|boolean} Sublist or #f.
 ;;  */
-(define (member obj lst)
+(define (member obj lst . compare)
   (if (not (list? lst))
       (error "member: expected list" lst))
-  (letrec ((loop (lambda (l)
-                   (if (null? l)
-                       #f
-                       (if (equal? obj (car l))
-                           l
-                           (loop (cdr l)))))))
-    (loop lst)))
+  (let ((cmp (if (null? compare) equal? (car compare))))
+    (letrec ((loop (lambda (l)
+                     (if (null? l)
+                         #f
+                         (if (cmp obj (car l))
+                             l
+                             (loop (cdr l)))))))
+      (loop lst))))
 
 ;; =============================================================================
 ;; Association List Procedures

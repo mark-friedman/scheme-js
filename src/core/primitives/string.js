@@ -403,14 +403,54 @@ export const stringPrimitives = {
             if (str === '+nan.0' || str === '-nan.0') return NaN;
         }
 
+        // For base 10, try parseFloat first to handle scientific notation and decimals
+        if (r === 10) {
+            // Check if string contains scientific notation or decimal point
+            if (/[.eE]/.test(str)) {
+                const f = parseFloat(str);
+                // Only return if we consumed the entire string
+                if (!isNaN(f) && String(f) === str.replace(/^[+-]?/, m => f < 0 ? '-' : '')) {
+                    return f;
+                }
+                // Fallback: try parseFloat and verify it consumed everything meaningful
+                if (!isNaN(f)) {
+                    // Check if remaining is just garbage
+                    const parsed = str.match(/^[+-]?(\d+\.?\d*|\d*\.?\d+)([eE][+-]?\d+)?/);
+                    if (parsed && parsed[0] === str) {
+                        return f;
+                    }
+                }
+            }
+        }
+
+        // For non-base-10, validate that all characters are valid digits for the radix
+        if (r !== 10) {
+            const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, r);
+            const cleanStr = str.replace(/^[+-]/, '');
+            for (const ch of cleanStr.toLowerCase()) {
+                if (!validChars.includes(ch)) {
+                    return false;  // Invalid character for this radix
+                }
+            }
+        }
+
         const num = parseInt(str, r);
         if (isNaN(num)) {
-            // Try parseFloat for decimals
+            // Try parseFloat for base 10 decimals
             if (r === 10) {
                 const f = parseFloat(str);
                 if (!isNaN(f)) return f;
             }
             return false;
+        }
+
+        // Validate that the entire string was consumed (no trailing garbage)
+        // For base 10: check against Number(str) which is stricter
+        // For other bases: we already validated all chars above
+        if (r === 10) {
+            // parseFloat("1 2") returns 1, but Number("1 2") returns NaN
+            const strict = Number(str);
+            if (isNaN(strict)) return false;
         }
         return num;
     },

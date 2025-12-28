@@ -1743,5 +1743,5 @@ ioPrimitives['write'].skipBridge = true;
 // Export for testing
 export {
     Port, StringInputPort, StringOutputPort, ConsoleOutputPort,
-    FileInputPort, FileOutputPort, EOF_OBJECT, isNode
+    FileInputPort, FileOutputPort, EOF_OBJECT, isNode, writeString
 };

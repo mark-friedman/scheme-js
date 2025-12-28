@@ -28,7 +28,12 @@ const logger = {
 async function main() {
     console.log('=== Running R7RS Compliance Suite ===\n');
 
-    console.log(`Found ${sectionFiles.length} test sections\n`);
+    const args = process.argv.slice(2);
+    const filteredSections = args.length > 0
+        ? sectionFiles.filter(f => args.some(arg => f.includes(arg)))
+        : sectionFiles;
+
+    console.log(`Found ${filteredSections.length} test sections (filtered from ${sectionFiles.length})\n`);
 
     let passedSections = 0;
     let failedSections = 0;
@@ -39,7 +44,7 @@ async function main() {
     let totalFailures = 0;
     let totalSkips = 0;
 
-    for (const sectionFile of sectionFiles) {
+    for (const sectionFile of filteredSections) {
         console.log(`\n--- ${sectionFile} ---`);
 
         // Create a fresh runner for each section to prevent macro pollution

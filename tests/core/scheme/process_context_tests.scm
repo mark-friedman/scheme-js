@@ -56,6 +56,28 @@
       'ok)
     'ok)
   
+  (test "get-environment-variables returns a list"
+    (list? (get-environment-variables))
+    #t)
+  
+  (test "get-environment-variables pairs are pairs"
+    (let ((vars (get-environment-variables)))
+      (if (null? vars)
+          #t  ;; Empty is OK
+          (pair? (car vars))))
+    #t)
+  
+  (test "command-line returns a list"
+    (list? (command-line))
+    #t)
+  
+  (test "command-line first element is a string"
+    (let ((args (command-line)))
+      (if (null? args)
+          #t
+          (string? (car args))))
+    #t)
+  
   (test "get-environment-variables no args required"
     (guard (e (#t 'error))
       (get-environment-variables 'extra))

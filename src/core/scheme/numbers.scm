@@ -251,14 +251,16 @@
 (define (round x)
   (if (not (number? x))
       (error "round: expected number" x))
-  (let* ((fl (floor x))
-         (frac (- x fl)))
-    (cond
-      ((< frac 0.5) fl)
-      ((> frac 0.5) (+ fl 1))
-      ;; frac = 0.5, round to even
-      ((even? (inexact->exact fl)) fl)
-      (else (+ fl 1)))))
+  ;; Convert rational to inexact for arithmetic operations
+  (let ((x (if (rational? x) (inexact x) x)))
+    (let* ((fl (floor x))
+           (frac (- x fl)))
+      (cond
+        ((< frac 0.5) fl)
+        ((> frac 0.5) (+ fl 1))
+        ;; frac = 0.5, round to even
+        ((even? (inexact->exact fl)) fl)
+        (else (+ fl 1))))))
 
 ;; Helper for round: convert inexact to exact (truncate to integer)
 (define (inexact->exact x)

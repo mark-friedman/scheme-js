@@ -101,6 +101,24 @@ export function getControlPrimitives(interpreter) {
         },
 
         /**
+         * null-environment: Returns a specifier for the environment that is 
+         * empty except for bindings for standard syntactic keywords.
+         * For R5RS compatibility.
+         */
+        'null-environment': (version) => {
+            // R7RS only requires this for version 5 (R5RS)
+            if (version !== 5) {
+                throw new Error(`null-environment: unsupported version ${version}`);
+            }
+            // Return the global environment for now - proper implementation
+            // would filter to only syntax keywords
+            if (!interpreter.globalEnv) {
+                throw new Error("null-environment: global environment not set");
+            }
+            return interpreter.globalEnv;
+        },
+
+        /**
          * dynamic-wind: Install before/after thunks.
          */
         'dynamic-wind': (before, thunk, after) => {
@@ -144,6 +162,7 @@ export function getControlPrimitives(interpreter) {
     controlPrimitives['call/cc'].skipBridge = true;
     controlPrimitives['call-with-current-continuation'].skipBridge = true;
     controlPrimitives['interaction-environment'].skipBridge = true;
+    controlPrimitives['null-environment'].skipBridge = true;
 
     return controlPrimitives;
 }
