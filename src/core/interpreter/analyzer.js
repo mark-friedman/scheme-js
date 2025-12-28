@@ -486,13 +486,15 @@ function expandQuasiquote(exp, syntacticEnv, nesting = 0) {
   }
 
   // 6. Atoms
-  return new LiteralNode(exp);
+  return new LiteralNode(unwrapSyntax(exp));
 }
 
 function isTaggedList(exp, tag) {
-  return (exp instanceof Cons) &&
-    (exp.car instanceof Symbol) &&
-    (exp.car.name === tag);
+  if (!(exp instanceof Cons)) return false;
+  const head = exp.car;
+  if (head instanceof Symbol) return head.name === tag;
+  if (isSyntaxObject(head)) return syntaxName(head) === tag;
+  return false;
 }
 
 function listApp(funcName, args) {

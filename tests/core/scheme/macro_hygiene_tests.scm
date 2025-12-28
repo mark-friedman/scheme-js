@@ -53,15 +53,15 @@
   ;; Issue: Pattern variable from outer macro is being shadowed by inner macro's
   ;; pattern variable with the same name.
   ;;
-  ;; (let ()
-  ;;   (define-syntax foo
-  ;;     (syntax-rules ()
-  ;;       ((foo bar y)
-  ;;        (define-syntax bar
-  ;;          (syntax-rules ()
-  ;;            ((bar x) 'y))))))
-  ;;   (foo bar x)
-  ;;   (test 'x (bar 1)))  ; Should return 'x, but returns 1
+  (let ()
+    (define-syntax foo
+      (syntax-rules ()
+        ((foo bar y)
+         (define-syntax bar
+           (syntax-rules ()
+             ((bar x) 'y))))))
+    (foo bar x)
+    (test "nested pattern capture (bar 1)" 'x (bar 1)))
   ;;
   ;; The outer macro `foo` has pattern variable `y` bound to `x`.
   ;; The inner macro `bar` has pattern variable `x` which shadows the ability

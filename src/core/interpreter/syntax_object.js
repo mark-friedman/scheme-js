@@ -35,6 +35,64 @@ export function resetScopeCounter() {
     scopeCounter = 0;
 }
 
+// =============================================================================
+// Syntax Object Interning
+// =============================================================================
+
+/**
+ * Cache for interned SyntaxObjects.
+ * Key: name|scope1,scope2,... (sorted)
+ * Value: SyntaxObject
+ * @type {Map<string, SyntaxObject>}
+ */
+const syntaxInternCache = new Map();
+
+/**
+ * Generates a cache key for a syntax object.
+ * @param {string} name 
+ * @param {Set<number>} scopes 
+ * @returns {string}
+ */
+function getSyntaxKey(name, scopes) {
+    if (scopes.size === 0) return name;
+    // Sort scopes for canonical key
+    const sortedScopes = [...scopes].sort((a, b) => a - b);
+    return `${name}|${sortedScopes.join(',')}`;
+}
+
+/**
+ * Returns a canonical (interned) SyntaxObject for the given name and scopes.
+ * This ensures that identifiers with the same name and scopes are object-identical,
+ * which is required for using them as keys in Map-based environments.
+ * 
+ * @param {string} name 
+ * @param {Set<number>|Array<number>} scopes 
+ * @param {Object} context - Context is currently ignored for identity
+ * @returns {SyntaxObject}
+ */
+export function internSyntax(name, scopes, context = null) {
+    const scopeSet = scopes instanceof Set ? scopes : new Set(scopes);
+    const key = getSyntaxKey(name, scopeSet);
+
+    if (syntaxInternCache.has(key)) {
+        return syntaxInternCache.get(key);
+    }
+
+    // Note: We use the constructor directly here.
+    // The constructor does NOT intern automatically to allow temporary objects if needed,
+    // but typically internSyntax should be used.
+    const obj = new SyntaxObject(name, scopeSet, context);
+    syntaxInternCache.set(key, obj);
+    return obj;
+}
+
+/**
+ * Clear the intern cache. Used for testing/reset.
+ */
+export function resetSyntaxCache() {
+    syntaxInternCache.clear();
+}
+
 /**
  * The global scope ID, used for top-level bindings.
  * @type {number}
@@ -101,7 +159,7 @@ export class SyntaxObject {
     addScope(scope) {
         const newScopes = new Set(this.scopes);
         newScopes.add(scope);
-        return new SyntaxObject(this.name, newScopes, this.context);
+        return internSyntax(this.name, newScopes, this.context);
     }
 
     /**
@@ -112,14 +170,15 @@ export class SyntaxObject {
     removeScope(scope) {
         const newScopes = new Set(this.scopes);
         newScopes.delete(scope);
-        return new SyntaxObject(this.name, newScopes, this.context);
+        return internSyntax(this.name, newScopes, this.context);
     }
 
     /**
      * Create a copy that flips a scope mark (add if absent, remove if present).
      * This is used in anti-mark hygiene implementations.
+     * When all scopes cancel out (empty set), returns a plain Symbol.
      * @param {number} scope - The scope to flip
-     * @returns {SyntaxObject} New syntax object with flipped mark
+     * @returns {SyntaxObject|Symbol} New syntax object with flipped mark, or Symbol if empty
      */
     flipScope(scope) {
         const newScopes = new Set(this.scopes);
@@ -128,7 +187,12 @@ export class SyntaxObject {
         } else {
             newScopes.add(scope);
         }
-        return new SyntaxObject(this.name, newScopes, this.context);
+        // If all scopes cancelled, return a plain Symbol instead of empty-scoped SyntaxObject
+        // This ensures proper equal? behavior after anti-mark + mark cancellation
+        if (newScopes.size === 0) {
+            return intern(this.name);
+        }
+        return internSyntax(this.name, newScopes, this.context);
     }
 
     /**
@@ -207,8 +271,8 @@ export class ScopeBindingRegistry {
      * @returns {any|null} The binding, or null if not found in registry
      */
     resolve(syntaxObj) {
-        const name = syntaxObj.name;
-        const idScopes = syntaxObj.scopes;
+        const name = syntaxObj instanceof SyntaxObject ? syntaxObj.name : syntaxObj.name;
+        const idScopes = syntaxObj instanceof SyntaxObject ? syntaxObj.scopes : new Set();
 
         if (!this.bindings.has(name)) {
             return null;
@@ -275,7 +339,7 @@ export const globalScopeRegistry = new ScopeBindingRegistry();
  */
 export function syntaxWrap(sym, scopes = new Set()) {
     const name = sym instanceof Symbol ? sym.name : sym;
-    return new SyntaxObject(name, scopes instanceof Set ? scopes : new Set(scopes));
+    return internSyntax(name, scopes instanceof Set ? scopes : new Set(scopes));
 }
 
 /**
@@ -412,7 +476,12 @@ export function identifierEquals(id1, id2) {
  */
 export function unwrapSyntax(obj) {
     if (obj instanceof SyntaxObject) {
-        return intern(obj.name);
+        // recursively unwrap the content
+        // If the content is a string, it's an identifier name -> Symbol
+        if (typeof obj.name === 'string') {
+            return intern(obj.name);
+        }
+        return unwrapSyntax(obj.name);
     }
     // Recursively unwrap Cons structures
     if (obj instanceof Cons) {
@@ -424,6 +493,7 @@ export function unwrapSyntax(obj) {
     if (Array.isArray(obj)) {
         return obj.map(unwrapSyntax);
     }
+    // Base case: return as is (Symbol, Number, String, etc)
     return obj;
 }
 
@@ -451,7 +521,7 @@ export function syntaxScopes(obj) {
 export function addScopeToExpression(exp, scope) {
     // Handle Symbol - wrap as SyntaxObject with scope
     if (exp instanceof Symbol) {
-        return new SyntaxObject(exp.name, new Set([scope]));
+        return internSyntax(exp.name, new Set([scope]));
     }
 
     // Handle SyntaxObject - add scope to existing
@@ -469,6 +539,41 @@ export function addScopeToExpression(exp, scope) {
     // Handle arrays (vectors)
     if (Array.isArray(exp)) {
         return exp.map(e => addScopeToExpression(e, scope));
+    }
+
+    // Primitives pass through unchanged
+    return exp;
+}
+
+/**
+ * Flip a scope mark on all identifiers in an expression.
+ * Used for Dybvig anti-mark hygiene.
+ * 
+ * @param {any} exp - The expression to process
+ * @param {number} scope - The scope ID to flip
+ * @returns {any} Expression with scope marks flipped on all identifiers
+ */
+export function flipScopeInExpression(exp, scope) {
+    // Handle Symbol - wrap as SyntaxObject with scope (flip on empty = add)
+    if (exp instanceof Symbol) {
+        return internSyntax(exp.name, new Set([scope]));
+    }
+
+    // Handle SyntaxObject - flip scope on existing
+    if (exp instanceof SyntaxObject) {
+        return exp.flipScope(scope);
+    }
+
+    // Handle Cons - recurse on car and cdr
+    if (exp instanceof Cons) {
+        const car = flipScopeInExpression(exp.car, scope);
+        const cdr = flipScopeInExpression(exp.cdr, scope);
+        return new Cons(car, cdr);
+    }
+
+    // Handle arrays (vectors)
+    if (Array.isArray(exp)) {
+        return exp.map(e => flipScopeInExpression(e, scope));
     }
 
     // Primitives pass through unchanged
