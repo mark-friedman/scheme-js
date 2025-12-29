@@ -25,8 +25,9 @@
     (let ((port (open-output-string)))
       (write '|| port)
       (test "||" (get-output-string port)))
+    ;; The dot symbol needs to be read from string since '. is invalid syntax
     (let ((port (open-output-string)))
-      (write '. port)
+      (write (read (open-input-string "|.|")) port)
       (test "|.|" (get-output-string port)))
     ;; +i as a symbol (not the complex number)
     (let ((port (open-output-string)))

@@ -1,11 +1,12 @@
 /**
  * Tests for JS Exception Integration with Scheme Handlers
  * 
- * Tests that Scheme's with-exception-handler can catch
- * JavaScript exceptions thrown from primitives and callbacks.
+ * Tests that Scheme's exception handling can catch JavaScript exceptions 
+ * thrown from primitives and callbacks.
  * 
- * Uses with-exception-handler (primitive) instead of guard (macro)
- * to avoid dependency on boot code loading.
+ * Note: Uses with-exception-handler with call/cc escape pattern since
+ * handlers cannot return from non-continuable exceptions per R7RS.
+ * The handler must escape via continuation to return a value.
  */
 
 import { run, assert, createTestEnv } from '../harness/helpers.js';
@@ -18,22 +19,24 @@ import { run, assert, createTestEnv } from '../harness/helpers.js';
 export function runJsExceptionTests(interpreter, logger) {
     logger.title('JS Exception Integration Tests');
 
-    // === Basic: with-exception-handler catches JS type error ===
+    // === Basic: with-exception-handler + call/cc catches JS type error ===
     {
         const result = run(interpreter, `
-            (with-exception-handler
-              (lambda (e) "caught")
-              (lambda () (+ "not a number" 1)))
+            (call/cc (lambda (escape)
+              (with-exception-handler
+                (lambda (e) (escape "caught"))
+                (lambda () (+ "not a number" 1)))))
         `);
-        assert(logger, "Basic: handler catches type error", result, "caught");
+        assert(logger, "Basic: handler catches type error via escape", result, "caught");
     }
 
     // === Error message accessible ===
     {
         const result = run(interpreter, `
-            (with-exception-handler
-              (lambda (e) (error-object-message e))
-              (lambda () (+ "a" 1)))
+            (call/cc (lambda (escape)
+              (with-exception-handler
+                (lambda (e) (escape (error-object-message e)))
+                (lambda () (+ "a" 1)))))
         `);
         // Result should contain "expected number"
         const passed = typeof result === 'string' && result.includes("expected number");
@@ -47,9 +50,10 @@ export function runJsExceptionTests(interpreter, logger) {
               (if (= n 0)
                   (+ "trigger error" 1)  ;; JS error in tail position
                   (loop (- n 1))))
-            (with-exception-handler
-              (lambda (e) "caught-in-tail")
-              (lambda () (loop 100)))
+            (call/cc (lambda (escape)
+              (with-exception-handler
+                (lambda (e) (escape "caught-in-tail"))
+                (lambda () (loop 100)))))
         `);
         assert(logger, "TCO: Error in tail position caught", result, "caught-in-tail");
     }
@@ -58,12 +62,13 @@ export function runJsExceptionTests(interpreter, logger) {
     {
         const result = run(interpreter, `
             (define saved-k #f)
-            (with-exception-handler
-              (lambda (e) "error-caught")
-              (lambda ()
-                (+ 1 (call/cc (lambda (k)
-                       (set! saved-k k)
-                       (+ "trigger" 1))))))  ;; Error after capturing k
+            (call/cc (lambda (escape)
+              (with-exception-handler
+                (lambda (e) (escape "error-caught"))
+                (lambda ()
+                  (+ 1 (call/cc (lambda (k)
+                         (set! saved-k k)
+                         (+ "trigger" 1))))))))  ;; Error after capturing k
         `);
         assert(logger, "call/cc: Error after capturing continuation", result, "error-caught");
     }
@@ -71,12 +76,14 @@ export function runJsExceptionTests(interpreter, logger) {
     // === Nested handlers: Inner catches before outer ===
     {
         const result = run(interpreter, `
-            (with-exception-handler
-              (lambda (e-outer) "outer")
-              (lambda ()
-                (with-exception-handler
-                  (lambda (e-inner) "inner")
-                  (lambda () (car 5)))))  ;; Type error
+            (call/cc (lambda (escape-outer)
+              (with-exception-handler
+                (lambda (e-outer) (escape-outer "outer"))
+                (lambda ()
+                  (call/cc (lambda (escape-inner)
+                    (with-exception-handler
+                      (lambda (e-inner) (escape-inner "inner"))
+                      (lambda () (car 5)))))))))  ;; Type error
         `);
         assert(logger, "Nested: Inner handler catches first", result, "inner");
     }
@@ -96,13 +103,14 @@ export function runJsExceptionTests(interpreter, logger) {
     {
         const result = run(interpreter, `
             (define log '())
-            (with-exception-handler
-              (lambda (e) log)
-              (lambda ()
-                (dynamic-wind
-                  (lambda () (set! log (cons 'before log)))
-                  (lambda () (+ "error" 1))
-                  (lambda () (set! log (cons 'after log))))))
+            (call/cc (lambda (escape)
+              (with-exception-handler
+                (lambda (e) (escape log))
+                (lambda ()
+                  (dynamic-wind
+                    (lambda () (set! log (cons 'before log)))
+                    (lambda () (+ "error" 1))
+                    (lambda () (set! log (cons 'after log))))))))
         `);
         // log should be '(after before) - after runs before handler catches
         // Result is a Cons list, check the structure
@@ -119,9 +127,10 @@ export function runJsExceptionTests(interpreter, logger) {
         });
 
         const result = run(interpreter, `
-            (with-exception-handler
-              (lambda (e) "caught-js")
-              (lambda () (js-throws)))
+            (call/cc (lambda (escape)
+              (with-exception-handler
+                (lambda (e) (escape "caught-js"))
+                (lambda () (js-throws)))))
         `);
         assert(logger, "JS Interop: Error from callback caught", result, "caught-js");
     }

@@ -74,18 +74,23 @@ export async function runExceptionInteropTests(interpreter, logger) {
     }
 
     // Handler mutation works with raise (non-continuable)
+    // Per R7RS: handler returning from non-continuable raise raises secondary exception
+    // But the handler IS called, so side effects happen before the re-raise
     {
-        const result = run(`
-            (let ((was-handled #f))
-                (with-exception-handler
-                    (lambda (e) (set! was-handled #t))
-                    (lambda () (raise 'test-error)))
-                was-handled)
-        `);
-        // Handler IS called, mutation happens
-        // Since raise is non-continuable, the handler returning normally re-raises
-        // But the mutation side-effect already happened
-        assert(logger, 'raise handler is called (mutation visible)', result, true);
+        let caught = false;
+        try {
+            run(`
+                (let ((was-handled #f))
+                    (with-exception-handler
+                        (lambda (e) (set! was-handled #t))
+                        (lambda () (raise 'test-error)))
+                    was-handled)
+            `);
+        } catch (e) {
+            // Expected: secondary exception because handler returned
+            caught = e.message.includes('non-continuable');
+        }
+        assert(logger, 'raise handler returning raises secondary exception', caught, true);
     }
 
     // === dynamic-wind + exceptions ===

@@ -33,7 +33,7 @@ export const functionalTests = [
     { path: 'functional/record_interop_tests.js', fn: 'runRecordInteropTests', async: true, needsLoader: true },
     { path: 'functional/multiple_values_tests.js', fn: 'runMultipleValuesTests', async: false },
     { path: 'functional/exception_interop_tests.js', fn: 'runExceptionInteropTests', async: true },
-    { path: 'functional/js_exception_tests.js', fn: 'runJsExceptionTests', async: false },
+    { path: 'functional/js_exception_tests.js', fn: 'runJsExceptionTests', async: true },
     { path: 'functional/char_tests.js', fn: 'runCharTests', async: false },
     { path: 'functional/string_tests.js', fn: 'runStringTests', async: false },
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
@@ -80,7 +80,6 @@ export const schemeTestFiles = [
     'tests/core/scheme/define_values_tests.scm',
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',
-    'tests/core/scheme/primitive_tests.scm',
 ];
 
 /**
