@@ -1935,6 +1935,138 @@ SECTIONS: 20 passed, 0 failed
 ```
 (Remaining internal failures reduced from 232+ to ~224, with no section-level blockers).
 
+# Miscellaneous Feature Additions (2025-12-26)
+
+R7RS reader features and new macros.
+
+## Changes Made
+
+### Reader Enhancements
+- **Datum Labels**: Implemented `#n=` and `#n#` for creating cyclic structures
+- **Exponent Suffixes**: Support for `s`, `f`, `d`, `l` float suffixes (e.g., `1s2`, `1.5L10`)
+- **Angle-Bracket Identifiers**: Reader now accepts `<pare>`, `<a-b-c>` style symbols
+
+### New Macros
+- **`or`** — Short-circuit disjunction
+- **`let*`** — Sequential bindings (moved to `macros.scm` for internal usage)
+
+### Test Additions
+- Added `define_values_tests.scm`, `reader_tests.scm`, `primitive_tests.scm`
+- Enhanced `number_tests.scm` with new test cases
+
+---
+
+# Quasiquotation Fixes (2025-12-26)
+
+Fixed quasiquotation handling in analyzer.
+
+## Changes Made
+- Fixed nested quasiquote/unquote handling
+- Improved compliance test infrastructure for chapter-based tests
+- Enhanced Chibi test runner with better error reporting
+
+---
+
+# Ellipsis Literal Fix (2025-12-26)
+
+Fixed ellipsis handling when used as a literal in macros.
+
+## Changes Made
+- Added `isEllipsisLiteral` check in `SyntaxObject` to distinguish ellipsis-as-literal from ellipsis-as-pattern
+
+---
+
+# Macro Hygiene Improvements (2025-12-27)
+
+Foundational work for proper hygienic macro expansion.
+
+## Changes Made
+
+### SyntaxObject Enhancements
+- Added scope marking (`flipScope`) for hygiene
+- Added `ScopedVariable` for scope-aware variable resolution
+
+### Analyzer Updates
+- Handle `SyntaxObject` in various contexts
+- Proper scope propagation during macro expansion
+
+### New Tests
+- `macro_hygiene_tests.scm` — Tests for referential transparency
+- `nested_macro_tests.scm` — Tests for macros-defining-macros
+- `scope_marking_tests.js` — Unit tests for scope operations
+
+---
+
+# Macro Hygiene Part 2 (2025-12-28)
+
+Continued hygiene improvements with captured environments.
+
+## Changes Made
+
+### SyntaxObject Extensions
+- Added `ScopeBindingRegistry` for scope-aware variable resolution
+- Added `internSyntax` helper for efficient syntax object creation
+- Implemented `flipScopeInExpression` for deep scope marking
+
+### Syntax Rules Improvements
+- Added `capturedEnv` parameter for lexical capture
+- Implemented `findIntroducedBindings` for gensym renaming
+- Updated pattern matching to handle `SyntaxObject` properly
+
+### New Tests
+- `syntax_object_tests.js` — Unit tests for SyntaxObject operations
+- Enhanced `macro_hygiene_tests.scm`
+
+---
+
+# R7RS Compliance Improvements (2025-12-28)
+
+Various fixes to increase R7RS compliance.
+
+## Changes Made
+
+### New Primitives
+- **`null-environment`** — Returns empty environment (for R7RS standard library)
+- Enhanced `number->string` with radix support
+- String procedures: `string-copy`, `string-copy!`, `string-fill!`
+
+### List Procedures
+- `assv`, `assoc` with optional equality predicate
+- `member`, `memp` with equality predicate support
+
+### Test Infrastructure
+- Enhanced Chibi test reporting with section-level summaries
+- Added `process_context_tests.scm`
+
+---
+
+# Numeric Fixes (2025-12-28)
+
+Major improvements to number handling.
+
+## Changes Made
+
+### Reader Improvements
+- Refactored number parsing (~446 lines changed)
+- Better handling of complex number syntax
+- Improved rational number parsing
+
+### Complex Numbers
+- Fixed `make-rectangular`, `make-polar`
+- Proper `real-part`, `imag-part`, `magnitude`, `angle`
+- Fixed comparison and arithmetic operations
+
+### I/O Enhancements
+- Port operations: `peek-char`, `read-char`, `read-line`, `read-string`
+- `write-char`, `write-string`, `display`, `newline`
+- String port improvements
+
+### List Procedures
+- Fixed `list-tail`, `list-ref` with proper bounds checking
+- Enhanced `for-each`, `map` for multiple list arguments
+
+---
+
 # Macro Implementation Refactoring (2025-12-29)
 
 Code quality improvements and bug fixes for the macro system and test infrastructure.
