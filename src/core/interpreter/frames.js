@@ -16,7 +16,7 @@ import { registerBindingWithCurrentScopes } from './syntax_object.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
-import { LiteralNode, TailAppNode, RestoreContinuation } from './ast_nodes.js';
+import { LiteralNode, TailAppNode, RestoreContinuation, RaiseNode } from './ast_nodes.js';
 
 // =============================================================================
 // Helper Functions
@@ -571,6 +571,31 @@ export class RaiseContinuableResumeFrame extends Executable {
     }
 }
 
+/**
+ * Frame for handling return from a non-continuable exception.
+ * If the handler returns, this frame re-raises the exception to outer handlers,
+ * as per R7RS which states returning from a non-continuable exception handler
+ * is undefined behavior (we implement it as re-raise).
+ */
+export class RaiseNonContinuableResumeFrame extends Executable {
+    /**
+     * @param {*} exception - The exception being raised
+     * @param {Environment} env - The captured environment
+     */
+    constructor(exception, env) {
+        super();
+        this.exception = exception;
+        this.env = env;
+    }
+
+    step(registers, interpreter) {
+        // Handler returned from non-continuable exception
+        // Re-raise the exception to continue propagating to outer handlers
+        registers[CTL] = new RaiseNode(this.exception, false);
+        return true;
+    }
+}
+
 // =============================================================================
 // Frame Registration
 // =============================================================================
@@ -588,5 +613,6 @@ registerFrames({
     RestoreValueFrame,
     CallWithValuesFrame,
     ExceptionHandlerFrame,
-    RaiseContinuableResumeFrame
+    RaiseContinuableResumeFrame,
+    RaiseNonContinuableResumeFrame
 });

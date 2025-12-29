@@ -94,12 +94,32 @@
     ((test expected expr)
      (run-test-with-guard 'expr expected (lambda () expr)))))
 
+;; test-skip: Marks a test as skipped while preserving the original test details.
+;; New syntax: (test-skip reason (test expected expr))
+;; The original test form is NOT executed, but its details are reported.
 (define-syntax test-skip
-  (syntax-rules ()
-    ((test-skip msg reason)
-     (report-test-skip msg reason))
-    ((test-skip msg reason expr)
-     (report-test-skip msg reason))))
+  (syntax-rules (test test-assert test-numeric-syntax test-precision)
+    ;; Skip a regular test: (test-skip reason (test expected expr))
+    ((test-skip reason (test expected expr))
+     (report-test-skip 'expr reason))
+    ;; Skip a test with explicit name: (test-skip reason (test name expected expr))
+    ((test-skip reason (test name expected expr))
+     (report-test-skip name reason))
+    ;; Skip a test-assert: (test-skip reason (test-assert name expr))
+    ((test-skip reason (test-assert name expr))
+     (report-test-skip name reason))
+    ;; Skip a test-assert without name: (test-skip reason (test-assert expr))
+    ((test-skip reason (test-assert expr))
+     (report-test-skip 'expr reason))
+    ;; Skip test-numeric-syntax: (test-skip reason (test-numeric-syntax str ...))
+    ((test-skip reason (test-numeric-syntax str . rest))
+     (report-test-skip str reason))
+    ;; Skip test-precision: (test-skip reason (test-precision str ...))
+    ((test-skip reason (test-precision str . rest))
+     (report-test-skip str reason))
+    ;; Legacy 2-arg form for backward compat: (test-skip "name" "reason")
+    ((test-skip name reason)
+     (report-test-skip name reason))))
 
 ;; /**
 ;;  * Groups related tests together.

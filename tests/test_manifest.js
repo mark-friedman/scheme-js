@@ -76,6 +76,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/complex_tests.scm',
     'tests/core/scheme/base_prefix_tests.scm',
     'tests/core/scheme/reader_tests.scm',
+    'tests/core/scheme/reader_syntax_tests.scm',
     'tests/core/scheme/define_values_tests.scm',
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',

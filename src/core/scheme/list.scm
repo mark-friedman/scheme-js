@@ -15,6 +15,7 @@
 ;;  * Applies a function to corresponding elements of one or more lists.
 ;;  * Returns a new list of results. When multiple lists are given,
 ;;  * the result is the same length as the shortest list (R7RS).
+;;  * Supports circular lists when used with multiple lists (stops at shortest).
 ;;
 ;;  * @param {procedure} proc - The function to apply.
 ;;  * @param {list} lst - First list.
@@ -24,35 +25,38 @@
 (define (map proc lst . lsts)
   (if (not (procedure? proc))
       (error "map: expected procedure" proc))
-  (if (not (list? lst))
+  ;; For proper error messages, check that first arg is a list or null
+  ;; But for circular list support, we only check pair-ness during iteration
+  (if (and (not (null? lst)) (not (pair? lst)))
       (error "map: expected list" lst))
   (if (null? lsts)
-      ;; Single list case - original behavior
+      ;; Single list case - works with proper lists
+      ;; (circular single list would loop forever - that's expected behavior)
       (letrec ((loop (lambda (l)
                        (if (null? l)
                            '()
                            (cons (proc (car l))
                                  (loop (cdr l)))))))
         (loop lst))
-      ;; Multiple lists case - stop at shortest
+      ;; Multiple lists case - stop at shortest (works with circular lists)
       (begin
         (for-each (lambda (l)
-                    (if (not (list? l))
+                    (if (and (not (null? l)) (not (pair? l)))
                         (error "map: expected list" l)))
                   lsts)
         (letrec ((any-null? (lambda (lists)
                               (if (null? lists)
-                                  #f  ;; No more lists to check, none were null
+                                  #f
                                   (or (null? (car lists))
                                       (any-null? (cdr lists))))))
                  (all-cars (lambda (lists)
                              (if (null? lists)
                                  '()
-                                 (cons (car (car lists)) (all-cars (cdr lists))))))
+                                 (cons (caar lists) (all-cars (cdr lists))))))
                  (all-cdrs (lambda (lists)
                              (if (null? lists)
                                  '()
-                                 (cons (cdr (car lists)) (all-cdrs (cdr lists))))))
+                                 (cons (cdar lists) (all-cdrs (cdr lists))))))
                  (loop (lambda (first-list rest-lists)
                          (if (or (null? first-list) (any-null? rest-lists))
                              '()
@@ -61,23 +65,49 @@
           (loop lst lsts)))))
 
 ;; /**
-;;  * Applies a procedure to each element of a list for side effects.
+;;  * Applies a procedure to each element of one or more lists for side effects.
+;;  * When multiple lists are given, iterates until the shortest is exhausted (R7RS).
+;;  * Supports circular lists when used with multiple lists.
 ;;
 ;;  * @param {procedure} proc - The procedure to apply.
-;;  * @param {list} lst - The list to iterate over.
+;;  * @param {list} lst - First list.
+;;  * @param {...list} lsts - Additional lists (optional).
 ;;  * @returns {undefined} Unspecified.
 ;;  */
-(define (for-each proc lst)
+(define (for-each proc lst . lsts)
   (if (not (procedure? proc))
       (error "for-each: expected procedure" proc))
-  (if (not (list? lst))
+  ;; Check first arg - allow circular lists (pair? but not list?)
+  (if (and (not (null? lst)) (not (pair? lst)))
       (error "for-each: expected list" lst))
-  (letrec ((loop (lambda (l)
-                   (if (not (null? l))
-                       (begin
-                         (proc (car l))
-                         (loop (cdr l)))))))
-    (loop lst)))
+  (if (null? lsts)
+      ;; Single list case
+      (letrec ((loop (lambda (l)
+                       (if (not (null? l))
+                           (begin
+                             (proc (car l))
+                             (loop (cdr l)))))))
+        (loop lst))
+      ;; Multiple lists case - stop at shortest (works with circular lists)
+      (letrec ((any-null? (lambda (lists)
+                            (if (null? lists)
+                                #f
+                                (or (null? (car lists))
+                                    (any-null? (cdr lists))))))
+               (all-cars (lambda (lists)
+                           (if (null? lists)
+                               '()
+                               (cons (caar lists) (all-cars (cdr lists))))))
+               (all-cdrs (lambda (lists)
+                           (if (null? lists)
+                               '()
+                               (cons (cdar lists) (all-cdrs (cdr lists))))))
+               (loop (lambda (first-list rest-lists)
+                       (if (not (or (null? first-list) (any-null? rest-lists)))
+                           (begin
+                             (apply proc (cons (car first-list) (all-cars rest-lists)))
+                             (loop (cdr first-list) (all-cdrs rest-lists)))))))
+        (loop lst lsts))))
 
 ;; /**
 ;;  * Applies a procedure to corresponding characters of strings.

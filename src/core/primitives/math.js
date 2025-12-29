@@ -14,8 +14,88 @@ import { Rational, isRational } from './rational.js';
 import { Complex, isComplex, makeRectangular, makePolar } from './complex.js';
 
 // =============================================================================
-// Math Primitives (JavaScript-required)
+// Generic Arithmetic Helpers
 // =============================================================================
+
+function toComplex(n) {
+    if (isComplex(n)) return n;
+    if (isRational(n)) return makeRectangular(n.toNumber(), 0);
+    return makeRectangular(n, 0);
+}
+
+function toRational(n) {
+    if (isRational(n)) return n;
+    if (Number.isInteger(n)) return Rational.fromNumber(n);
+    throw new Error('Cannot convert inexact to rational');
+}
+
+function genericAdd(a, b) {
+    // If either is complex, result is complex (inexact in our implementation)
+    if (isComplex(a) || isComplex(b)) {
+        return toComplex(a).add(toComplex(b));
+    }
+    // If either is rational or both are integers
+    if (isRational(a) || isRational(b)) {
+        // If any is inexact float, result is float
+        if ((typeof a === 'number' && !Number.isInteger(a)) ||
+            (typeof b === 'number' && !Number.isInteger(b))) {
+            return (isRational(a) ? a.toNumber() : a) + (isRational(b) ? b.toNumber() : b);
+        }
+        // Exact arithmetic
+        const res = toRational(a).add(toRational(b));
+        return res.denominator === 1 ? res.numerator : res;
+    }
+    // Primitive numbers
+    return a + b;
+}
+
+function genericSub(a, b) {
+    if (isComplex(a) || isComplex(b)) {
+        return toComplex(a).subtract(toComplex(b));
+    }
+    if (isRational(a) || isRational(b)) {
+        if ((typeof a === 'number' && !Number.isInteger(a)) ||
+            (typeof b === 'number' && !Number.isInteger(b))) {
+            return (isRational(a) ? a.toNumber() : a) - (isRational(b) ? b.toNumber() : b);
+        }
+        const res = toRational(a).subtract(toRational(b));
+        return res.denominator === 1 ? res.numerator : res;
+    }
+    return a - b;
+}
+
+function genericMul(a, b) {
+    if (isComplex(a) || isComplex(b)) {
+        return toComplex(a).multiply(toComplex(b));
+    }
+    if (isRational(a) || isRational(b)) {
+        if ((typeof a === 'number' && !Number.isInteger(a)) ||
+            (typeof b === 'number' && !Number.isInteger(b))) {
+            return (isRational(a) ? a.toNumber() : a) * (isRational(b) ? b.toNumber() : b);
+        }
+        const res = toRational(a).multiply(toRational(b));
+        return res.denominator === 1 ? res.numerator : res;
+    }
+    return a * b;
+}
+
+function genericDiv(a, b) {
+    if (isComplex(a) || isComplex(b)) {
+        return toComplex(a).divide(toComplex(b));
+    }
+    // Division involves rationals if explicit or if both are integers (and result not integer)
+    // Actually standard division of integers implies Rational result in Scheme unless Inexact
+    if ((typeof a === 'number' && !Number.isInteger(a)) ||
+        (typeof b === 'number' && !Number.isInteger(b))) {
+        // Floating point division
+        const va = isRational(a) ? a.toNumber() : a;
+        const vb = isRational(b) ? b.toNumber() : b;
+        return va / vb;
+    }
+    // Exact division (Integers or Rationals)
+    const res = toRational(a).divide(toRational(b));
+    return res.denominator === 1 ? res.numerator : res;
+}
 
 /**
  * Math primitives exported to Scheme.
@@ -32,7 +112,7 @@ export const mathPrimitives = {
      */
     '+': (...args) => {
         args.forEach((arg, i) => assertNumber('+', i + 1, arg));
-        return args.reduce((a, b) => a + b, 0);
+        return args.reduce((a, b) => genericAdd(a, b), 0);
     },
 
     /**
@@ -46,8 +126,11 @@ export const mathPrimitives = {
         assertArity('-', [first, ...rest], 1, Infinity);
         assertNumber('-', 1, first);
         rest.forEach((arg, i) => assertNumber('-', i + 2, arg));
-        if (rest.length === 0) return -first;
-        return rest.reduce((a, b) => a - b, first);
+        if (rest.length === 0) {
+            // Negation
+            return genericSub(0, first);
+        }
+        return rest.reduce((a, b) => genericSub(a, b), first);
     },
 
     /**
@@ -57,7 +140,7 @@ export const mathPrimitives = {
      */
     '*': (...args) => {
         args.forEach((arg, i) => assertNumber('*', i + 1, arg));
-        return args.reduce((a, b) => a * b, 1);
+        return args.reduce((a, b) => genericMul(a, b), 1);
     },
 
     /**
@@ -71,8 +154,15 @@ export const mathPrimitives = {
         assertArity('/', [first, ...rest], 1, Infinity);
         assertNumber('/', 1, first);
         rest.forEach((arg, i) => assertNumber('/', i + 2, arg));
-        if (rest.length === 0) return 1 / first;
-        return rest.reduce((a, b) => a / b, first);
+        let res;
+        if (rest.length === 0) {
+            // Reciprocal
+            res = genericDiv(1, first);
+        } else {
+            res = rest.reduce((a, b) => genericDiv(a, b), first);
+        }
+        if (res instanceof Rational) return res;
+        return res;
     },
 
     // =========================================================================
@@ -352,9 +442,7 @@ export const mathPrimitives = {
     'make-rectangular': (x, y) => {
         assertNumber('make-rectangular', 1, x);
         assertNumber('make-rectangular', 2, y);
-        const realVal = typeof x === 'number' ? x : x.toNumber();
-        const imagVal = typeof y === 'number' ? y : y.toNumber();
-        return makeRectangular(realVal, imagVal);
+        return makeRectangular(x, y);
     },
 
     /**
@@ -430,6 +518,8 @@ export const mathPrimitives = {
      */
     'abs': (x) => {
         assertNumber('abs', 1, x);
+        if (isComplex(x)) return x.magnitude();
+        if (isRational(x)) return x.abs();
         return Math.abs(x);
     },
 
@@ -485,7 +575,12 @@ export const mathPrimitives = {
         assertArity('expt', [base, exponent], 2, 2);
         assertNumber('expt', 1, base);
         assertNumber('expt', 2, exponent);
-        return Math.pow(base, exponent);
+
+        // Convert to floats for now unless we implement exact expt
+        const b = isRational(base) ? base.toNumber() : (isComplex(base) ? base.toNumber() : base); // Complex toNumber throws if not real
+        const e = isRational(exponent) ? exponent.toNumber() : (isComplex(exponent) ? exponent.toNumber() : exponent);
+
+        return Math.pow(b, e);
     },
 
     /**
@@ -495,7 +590,10 @@ export const mathPrimitives = {
      */
     'sqrt': (x) => {
         assertNumber('sqrt', 1, x);
-        return Math.sqrt(x);
+        // TODO: Complex sqrt
+        if (isComplex(x)) throw new Error('sqrt: complex not fully supported');
+        const val = isRational(x) ? x.toNumber() : x; // Returns inexact
+        return Math.sqrt(val);
     },
 
     /**
@@ -505,7 +603,9 @@ export const mathPrimitives = {
      */
     'sin': (x) => {
         assertNumber('sin', 1, x);
-        return Math.sin(x);
+        if (isComplex(x)) throw new Error('sin: complex not fully supported');
+        const val = isRational(x) ? x.toNumber() : x;
+        return Math.sin(val);
     },
 
     /**
@@ -515,7 +615,9 @@ export const mathPrimitives = {
      */
     'cos': (x) => {
         assertNumber('cos', 1, x);
-        return Math.cos(x);
+        if (isComplex(x)) throw new Error('cos: complex not fully supported');
+        const val = isRational(x) ? x.toNumber() : x;
+        return Math.cos(val);
     },
 
     /**
@@ -525,7 +627,9 @@ export const mathPrimitives = {
      */
     'tan': (x) => {
         assertNumber('tan', 1, x);
-        return Math.tan(x);
+        if (isComplex(x)) throw new Error('tan: complex not fully supported');
+        const val = isRational(x) ? x.toNumber() : x;
+        return Math.tan(val);
     },
 
     /**
@@ -535,7 +639,8 @@ export const mathPrimitives = {
      */
     'asin': (x) => {
         assertNumber('asin', 1, x);
-        return Math.asin(x);
+        const val = isRational(x) ? x.toNumber() : x;
+        return Math.asin(val);
     },
 
     /**
@@ -545,7 +650,8 @@ export const mathPrimitives = {
      */
     'acos': (x) => {
         assertNumber('acos', 1, x);
-        return Math.acos(x);
+        const val = isRational(x) ? x.toNumber() : x;
+        return Math.acos(val);
     },
 
     /**
@@ -556,11 +662,14 @@ export const mathPrimitives = {
      */
     'atan': (y, x) => {
         assertNumber('atan', 1, y);
+        const vy = isRational(y) ? y.toNumber() : y;
+
         if (x === undefined) {
-            return Math.atan(y);
+            return Math.atan(vy);
         }
         assertNumber('atan', 2, x);
-        return Math.atan2(y, x);
+        const vx = isRational(x) ? x.toNumber() : x;
+        return Math.atan2(vy, vx);
     },
 
     /**
@@ -570,7 +679,9 @@ export const mathPrimitives = {
      */
     'log': (x) => {
         assertNumber('log', 1, x);
-        return Math.log(x);
+        if (isComplex(x)) throw new Error('log: complex not fully supported');
+        const val = isRational(x) ? x.toNumber() : x;
+        return Math.log(val);
     },
 
     /**
@@ -580,7 +691,9 @@ export const mathPrimitives = {
      */
     'exp': (x) => {
         assertNumber('exp', 1, x);
-        return Math.exp(x);
+        if (isComplex(x)) throw new Error('exp: complex not fully supported');
+        const val = isRational(x) ? x.toNumber() : x;
+        return Math.exp(val);
     },
 
     // =========================================================================

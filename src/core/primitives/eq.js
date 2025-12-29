@@ -30,11 +30,20 @@ export const eqPrimitives = {
         if (Object.is(a, b)) return true;
 
         if (a instanceof Complex && b instanceof Complex) {
-            return a.real === b.real && a.imag === b.imag;
+            return eqPrimitives['eqv?'](a.real, b.real) && eqPrimitives['eqv?'](a.imag, b.imag);
         }
 
-        if (a instanceof Rational && b instanceof Rational) {
-            return a.numerator === b.numerator && a.denominator === b.denominator;
+        if (a instanceof Rational) {
+            if (b instanceof Rational) {
+                return a.numerator === b.numerator && a.denominator === b.denominator;
+            }
+            if (Number.isInteger(b)) {
+                return a.denominator === 1 && a.numerator === b;
+            }
+        }
+
+        if (Number.isInteger(a) && b instanceof Rational) {
+            return b.denominator === 1 && b.numerator === a;
         }
 
         return false;

@@ -275,7 +275,7 @@
      (let ((temp test))
        (if temp
            (exit (proc temp))
-           (raise-continuable var))))
+           (raise var))))
     ;; test with results and more clauses
     ((guard-clauses exit var (test result1 result2 ...) clause ...)
      (if test
@@ -285,7 +285,7 @@
     ((guard-clauses exit var (test result1 result2 ...))
      (if test
          (exit (begin result1 result2 ...))
-         (raise-continuable var)))
+         (raise var)))
     ;; test only with more clauses
     ((guard-clauses exit var (test) clause ...)
      (let ((temp test))
@@ -297,7 +297,7 @@
      (let ((temp test))
        (if temp
            (exit temp)
-           (raise-continuable var))))
+           (raise var))))
     ;; no clauses matched - re-raise
     ((guard-clauses exit var)
-     (raise-continuable var))))
+     (raise var))))

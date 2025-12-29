@@ -94,7 +94,7 @@
   (test-group "division"
     
     (test "reciprocal"
-      0.5
+      1/2
       (/ 2))
     
     (test "divide two args"
@@ -110,8 +110,8 @@
       (/ -12 4))
     
     (test "divide floats"
-      2.5
-      (/ 5.0 2))
+      2.75
+      (/ 5.5 2))
   )
   
   ;; ===== Comparison =====

@@ -48,12 +48,31 @@ export function isList(x) {
 }
 
 /**
- * Checks if value is a number.
+ * Checks if value looks like a Rational (duck typing to avoid circular deps).
+ * @param {*} x 
+ * @returns {boolean}
+ */
+function isRationalLike(x) {
+    return x && typeof x === 'object' && typeof x.numerator === 'number' && typeof x.denominator === 'number';
+}
+
+/**
+ * Checks if value looks like a Complex (duck typing to avoid circular deps).
+ * @param {*} x 
+ * @returns {boolean}
+ */
+function isComplexLike(x) {
+    // Note: Rational also matches object with properties, but Complex has real/imag
+    return x && typeof x === 'object' && typeof x.real === 'number' && typeof x.imag === 'number';
+}
+
+/**
+ * Checks if value is a number (primitive or Scheme numeric object).
  * @param {*} x - Value to check
  * @returns {boolean}
  */
 export function isNumber(x) {
-    return typeof x === 'number';
+    return typeof x === 'number' || isRationalLike(x) || isComplexLike(x);
 }
 
 /**
@@ -62,7 +81,10 @@ export function isNumber(x) {
  * @returns {boolean}
  */
 export function isInteger(x) {
-    return typeof x === 'number' && Number.isInteger(x);
+    if (typeof x === 'number') return Number.isInteger(x);
+    if (isRationalLike(x)) return x.denominator === 1;
+    if (isComplexLike(x)) return x.imag === 0 && Number.isInteger(x.real);
+    return false;
 }
 
 /**

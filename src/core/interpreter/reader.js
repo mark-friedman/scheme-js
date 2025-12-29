@@ -12,14 +12,19 @@ import { Complex } from '../primitives/complex.js';
  * @returns {Array} Array of S-expressions (Cons, Symbol, number, etc.)
  */
 export function parse(input, options = {}) {
-  const caseFold = options.caseFold || false;
-  const tokens = tokenize(input);
+  // State object for parsing context
+  const state = {
+    caseFold: options.caseFold || false,
+    labels: new Map()
+  };
+
+  // Strip block comments before tokenizing
+  const preprocessed = stripBlockComments(input);
+  const tokens = tokenize(preprocessed);
   const expressions = [];
-  // Context for datum labels: map of id -> Placeholder
-  const context = { labels: new Map() };
 
   while (tokens.length > 0) {
-    const expr = readFromTokens(tokens, caseFold, context);
+    const expr = readFromTokens(tokens, state);
     // If the expression is a Placeholder, it means top-level #n# (unlikely but possible)
     // or #n=... which returns the value. 
     // We need to run fixup on the result to resolve internal cycles.
@@ -28,20 +33,60 @@ export function parse(input, options = {}) {
   return expressions;
 }
 
+/**
+ * Strips block comments #|...|# from input, including nested ones.
+ * @param {string} input - Source code
+ * @returns {string} Input with block comments removed
+ */
+function stripBlockComments(input) {
+  let result = '';
+  let i = 0;
+
+  while (i < input.length) {
+    if (i + 1 < input.length && input[i] === '#' && input[i + 1] === '|') {
+      // Start of block comment - find matching end
+      let depth = 1;
+      i += 2;
+      while (i < input.length && depth > 0) {
+        if (i + 1 < input.length && input[i] === '#' && input[i + 1] === '|') {
+          depth++;
+          i += 2;
+        } else if (i + 1 < input.length && input[i] === '|' && input[i + 1] === '#') {
+          depth--;
+          i += 2;
+        } else {
+          i++;
+        }
+      }
+      // Replace with space to preserve token boundaries
+      result += ' ';
+    } else {
+      result += input[i];
+      i++;
+    }
+  }
+  return result;
+}
+
+
+
 function tokenize(input) {
   // Regex based tokenizer
-  // Matches:
+  // Matches (order matters - longer/more specific matches first):
   // 1. #\ followed by character name or single char (character literals)
-  // 2. #( - Vector start
-  // 3. ( or ) - List delimiters
-  // 4. ' ` ,@ , - Quote/Quasiquote
-  // 5. Strings
-  // 6. Comments (;...)
-  // 7. Special numbers (+nan.0, etc.)
-  // 8. Atoms (anything else, stops at whitespace, parens, or semicolon)
-  // Note: #\\ must come before #( to avoid partial matches
-  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\(|[()]|'|`|,@|,|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0|[^\s();]+)(.*)/s;
-
+  // 2. #u8( - Bytevector start
+  // 3. #( - Vector start
+  // 4. #; - Datum comment
+  // 5. #!fold-case, #!no-fold-case - Case folding directives
+  // 6. ( or ) - List delimiters
+  // 7. ' ` ,@ , - Quote/Quasiquote
+  // 8. Strings
+  // 9. |...| - Vertical bar delimited symbols
+  // 10. Line comments (;...)
+  // 11. Complex numbers with inf/nan (e.g., +inf.0+inf.0i, -nan.0+inf.0i)
+  // 12. Single special numbers (+nan.0, +inf.0, etc.)
+  // 13. Atoms (anything else, stops at whitespace, parens, or semicolon)
+  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\(|#;|#!fold-case|#!no-fold-case|[()]|'|`|,@|,|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0[+-](?:nan|inf)\.0i|[+-]?(?:nan|inf)\.0|[^\s();]+)(.*)/si;
 
   const tokens = [];
   let current = input;
@@ -61,13 +106,29 @@ function tokenize(input) {
   return tokens;
 }
 
-function readFromTokens(tokens, caseFold = false, context = { labels: new Map() }) {
+function readFromTokens(tokens, state) {
   if (tokens.length === 0) {
     throw new Error("Unexpected EOF");
   }
   // console.log("readFromTokens:", tokens[0], tokens.length);
 
   const token = tokens.shift();
+
+  // Handle fold-case directives
+  if (token === '#!fold-case') {
+    state.caseFold = true;
+    return readFromTokens(tokens, state); // Continue to next datum
+  }
+  if (token === '#!no-fold-case') {
+    state.caseFold = false;
+    return readFromTokens(tokens, state); // Continue to next datum
+  }
+
+  // Handle datum comments: #; skips the next datum
+  if (token === '#;') {
+    readFromTokens(tokens, state); // Read and discard next datum
+    return readFromTokens(tokens, state); // Return the datum after that
+  }
 
   // Handle fused tokens like #1=100
   if (token.includes('=') && /^#\d+=/.test(token)) {
@@ -80,7 +141,7 @@ function readFromTokens(tokens, caseFold = false, context = { labels: new Map() 
 
       // Create placeholder and register it
       const placeholder = new Placeholder(id);
-      context.labels.set(id, placeholder);
+      state.labels.set(id, placeholder);
 
       let val;
       if (remainder) {
@@ -110,10 +171,10 @@ function readFromTokens(tokens, caseFold = false, context = { labels: new Map() 
         }
 
         tokens.unshift(remainder);
-        val = readFromTokens(tokens, caseFold, context);
+        val = readFromTokens(tokens, state);
       } else {
         // No remainder, read next token
-        val = readFromTokens(tokens, caseFold, context);
+        val = readFromTokens(tokens, state);
       }
 
       placeholder.value = val;
@@ -126,9 +187,9 @@ function readFromTokens(tokens, caseFold = false, context = { labels: new Map() 
   if (/^#\d+=$/.test(token)) {
     const id = parseInt(token.slice(1, -1), 10);
     const placeholder = new Placeholder(id);
-    context.labels.set(id, placeholder);
+    state.labels.set(id, placeholder);
 
-    const val = readFromTokens(tokens, caseFold, context);
+    const val = readFromTokens(tokens, state);
     placeholder.value = val;
     placeholder.resolved = true;
     return val;
@@ -137,7 +198,7 @@ function readFromTokens(tokens, caseFold = false, context = { labels: new Map() 
   // Handle #n# reference
   if (/^#\d+#$/.test(token)) {
     const id = parseInt(token.slice(1, -1), 10);
-    const placeholder = context.labels.get(id);
+    const placeholder = state.labels.get(id);
     if (!placeholder) {
       throw new Error(`Reference to undefined label #${id}#`);
     }
@@ -145,10 +206,10 @@ function readFromTokens(tokens, caseFold = false, context = { labels: new Map() 
   }
 
   if (token === '(') {
-    return readList(tokens, caseFold, context);
+    return readList(tokens, state);
   }
   if (token === '#(') {
-    return readVector(tokens, caseFold, context);
+    return readVector(tokens, state);
   }
   if (token === '#u8(') {
     return readBytevector(tokens);
@@ -159,47 +220,116 @@ function readFromTokens(tokens, caseFold = false, context = { labels: new Map() 
 
   // Quotes
   if (token === "'") {
-    return list(intern('quote'), readFromTokens(tokens, caseFold, context));
+    return list(intern('quote'), readFromTokens(tokens, state));
   }
   if (token === '`') {
-    return list(intern('quasiquote'), readFromTokens(tokens, caseFold, context));
+    return list(intern('quasiquote'), readFromTokens(tokens, state));
   }
   if (token === ',') {
-    return list(intern('unquote'), readFromTokens(tokens, caseFold, context));
+    return list(intern('unquote'), readFromTokens(tokens, state));
   }
   if (token === ',@') {
-    return list(intern('unquote-splicing'), readFromTokens(tokens, caseFold, context));
+    return list(intern('unquote-splicing'), readFromTokens(tokens, state));
   }
 
   // Vertical bar delimited symbol |...|
   if (token.startsWith('|') && token.endsWith('|')) {
     // Extract the name between the bars and process escape sequences
     const inner = token.slice(1, -1);
-    // Handle escape sequences: \| -> |, \\ -> \, \x...; -> char
-    const name = inner.replace(/\\(.)/g, (match, char) => {
-      if (char === '|') return '|';
-      if (char === '\\') return '\\';
-      if (char === 'x') {
-        // Hex escape should be handled separately with the semicolon
-        return match; // Keep as-is for now
-      }
-      return char;
-    });
+    // Handle escape sequences: \| -> |, \\ -> \, \xNN; -> char
+    const name = processSymbolEscapes(inner);
     return intern(name);
   }
 
-  return readAtom(token, caseFold);
+  return readAtom(token, state.caseFold);
 }
 
-function readList(tokens, caseFold = false, context) {
+/**
+ * Process escape sequences in vertical bar delimited symbols.
+ * @param {string} str - Inner content of |...|
+ * @returns {string} Processed string
+ */
+function processSymbolEscapes(str) {
+  let result = '';
+  let i = 0;
+  while (i < str.length) {
+    if (str[i] === '\\' && i + 1 < str.length) {
+      const next = str[i + 1];
+      if (next === '|') {
+        result += '|';
+        i += 2;
+      } else if (next === '\\') {
+        result += '\\';
+        i += 2;
+      } else if (next === 'x') {
+        // Hex escape: \xNN; or \xNNNN;
+        const semicolonIdx = str.indexOf(';', i + 2);
+        if (semicolonIdx !== -1) {
+          const hexStr = str.slice(i + 2, semicolonIdx);
+          const codePoint = parseInt(hexStr, 16);
+          if (!isNaN(codePoint)) {
+            result += String.fromCodePoint(codePoint);
+            i = semicolonIdx + 1;
+            continue;
+          }
+        }
+        // Invalid hex escape - keep as-is
+        result += str[i];
+        i++;
+      } else {
+        // Other escapes - keep the character after backslash
+        result += next;
+        i += 2;
+      }
+    } else {
+      result += str[i];
+      i++;
+    }
+  }
+  return result;
+}
+
+
+function readList(tokens, state) {
   const listItems = [];
   while (tokens[0] !== ')') {
     if (tokens.length === 0) {
       throw new Error("Missing ')'");
     }
+    // Handle datum comment inside list
+    if (tokens[0] === '#;') {
+      tokens.shift(); // consume #;
+      // Can't use datum comment on syntactic markers
+      if (tokens[0] === '.') {
+        throw new Error("Invalid datum comment: cannot comment out '.' in dotted notation");
+      }
+      if (tokens[0] === ')') {
+        throw new Error("Invalid datum comment: no datum following #;");
+      }
+      readFromTokens(tokens, state); // discard next datum
+      continue;
+    }
     if (tokens[0] === '.') {
+      // R7RS: dotted list must have at least one element before the dot
+      if (listItems.length === 0) {
+        throw new Error("Illegal use of '.' - no elements before dot in dotted list");
+      }
       tokens.shift(); // consume '.'
-      const tail = readFromTokens(tokens, caseFold, context);
+      // Handle datum comment after dot
+      while (tokens[0] === '#;') {
+        tokens.shift();
+        readFromTokens(tokens, state);
+      }
+      // Ensure there's actually a datum after the dot
+      if (tokens[0] === ')') {
+        throw new Error("Illegal use of '.' - no datum after dot in dotted list");
+      }
+      const tail = readFromTokens(tokens, state);
+      // Skip any datum comments before closing paren
+      while (tokens[0] === '#;') {
+        tokens.shift();
+        readFromTokens(tokens, state);
+      }
       if (tokens.shift() !== ')') {
         throw new Error("Expected ')' after improper list tail");
       }
@@ -210,7 +340,7 @@ function readList(tokens, caseFold = false, context) {
       }
       return result;
     }
-    listItems.push(readFromTokens(tokens, caseFold, context));
+    listItems.push(readFromTokens(tokens, state));
   }
   tokens.shift(); // consume ')'
 
@@ -218,13 +348,13 @@ function readList(tokens, caseFold = false, context) {
   return list(...listItems);
 }
 
-function readVector(tokens, caseFold = false, context) {
+function readVector(tokens, state) {
   const elements = [];
   while (tokens[0] !== ')') {
     if (tokens.length === 0) {
       throw new Error("Missing ')' for vector");
     }
-    elements.push(readFromTokens(tokens, caseFold, context));
+    elements.push(readFromTokens(tokens, state));
   }
   tokens.shift(); // consume ')'
   return elements; // Return raw JS array
@@ -259,33 +389,144 @@ function readAtom(token, caseFold = false) {
     return numResult;
   }
 
-  // Special numbers
-  if (token === '+nan.0' || token === '-nan.0') return NaN;
-  if (token === '+inf.0') return Infinity;
-  if (token === '-inf.0') return -Infinity;
+  // Special numbers (case-insensitive)
+  const lowerToken = token.toLowerCase();
+  if (lowerToken === '+nan.0' || lowerToken === '-nan.0') return NaN;
+  if (lowerToken === '+inf.0') return Infinity;
+  if (lowerToken === '-inf.0') return -Infinity;
 
-  // Booleans
-  if (token === '#t') return true;
-  if (token === '#f') return false;
+  // Booleans (R7RS: #t, #f, #true, #false)
+  if (token === '#t' || token === '#true') return true;
+  if (token === '#f' || token === '#false') return false;
 
   // Character literals (#\a, #\newline, #\x41, etc.)
   if (token.startsWith('#\\')) {
     return readCharacter(token.slice(2));
   }
 
-  // Strings (not case-folded)
+  // Strings (not case-folded) - handle R7RS escape sequences
   if (token.startsWith('"')) {
-    // Remove quotes and handle escapes
-    return token.slice(1, -1)
-      .replace(/\\n/g, '\n')
-      .replace(/\\"/g, '"')
-      .replace(/\\\\/g, '\\');
+    return processStringEscapes(token.slice(1, -1));
   }
 
   // Symbols - apply case folding if enabled
   const symbolName = caseFold ? token.toLowerCase() : token;
+
+  // R7RS: The identifier consisting of a single dot is used only in pairs and is not an identifier.
+  // readList handles '.' as a delimiter/improper list marker. 
+  // If we reach here, '.' appeared where a datum was expected.
+  if (symbolName === '.') {
+    throw new Error("Unexpected '.'");
+  }
+
   return intern(symbolName);
 }
+
+/**
+ * Process R7RS string escape sequences.
+ * \a - alarm (bell)
+ * \b - backspace
+ * \t - tab
+ * \n - newline
+ * \r - return
+ * \" - double quote
+ * \\ - backslash
+ * \| - vertical bar
+ * \xN...N; - hex escape
+ * \<newline><intraline-whitespace> - line continuation
+ * @param {string} str - String content without quotes
+ * @returns {string} Processed string
+ */
+function processStringEscapes(str) {
+  let result = '';
+  let i = 0;
+  while (i < str.length) {
+    if (str[i] === '\\' && i + 1 < str.length) {
+      const next = str[i + 1];
+      switch (next) {
+        case 'a':
+          result += '\x07'; // alarm (bell)
+          i += 2;
+          break;
+        case 'b':
+          result += '\x08'; // backspace
+          i += 2;
+          break;
+        case 't':
+          result += '\t';
+          i += 2;
+          break;
+        case 'n':
+          result += '\n';
+          i += 2;
+          break;
+        case 'r':
+          result += '\r';
+          i += 2;
+          break;
+        case '"':
+          result += '"';
+          i += 2;
+          break;
+        case '\\':
+          result += '\\';
+          i += 2;
+          break;
+        case '|':
+          result += '|';
+          i += 2;
+          break;
+        case 'x':
+          // Hex escape: \xN...N;
+          const semicolonIdx = str.indexOf(';', i + 2);
+          if (semicolonIdx !== -1) {
+            const hexStr = str.slice(i + 2, semicolonIdx);
+            const codePoint = parseInt(hexStr, 16);
+            if (!isNaN(codePoint)) {
+              result += String.fromCodePoint(codePoint);
+              i = semicolonIdx + 1;
+              break;
+            }
+          }
+          // Invalid hex escape - keep as-is
+          result += str[i];
+          i++;
+          break;
+        case '\n':
+        case '\r':
+        case ' ':
+        case '\t':
+          // Line continuation: skip backslash, skip whitespace including newline
+          i += 1; // skip backslash
+          // Skip leading whitespace before newline
+          while (i < str.length && (str[i] === ' ' || str[i] === '\t')) {
+            i++;
+          }
+          // Skip newline (could be \n, \r, or \r\n)
+          if (i < str.length && str[i] === '\r') {
+            i++;
+          }
+          if (i < str.length && str[i] === '\n') {
+            i++;
+          }
+          // Skip trailing whitespace after newline
+          while (i < str.length && (str[i] === ' ' || str[i] === '\t')) {
+            i++;
+          }
+          break;
+        default:
+          // Unknown escape - keep the character
+          result += next;
+          i += 2;
+      }
+    } else {
+      result += str[i];
+      i++;
+    }
+  }
+  return result;
+}
+
 
 /**
  * Parses a numeric literal (integers, rationals, complex, with optional prefixes)
@@ -293,11 +534,13 @@ function readAtom(token, caseFold = false) {
  * @param {string} token 
  * @returns {number|Rational|Complex|null}
  */
-function parseNumber(token) {
+export function parseNumber(token, exactness) {
   // Normalize R7RS exponent markers (s, f, d, l) to 'e' globally before parsing
   // This handles 1s2 -> 1e2, 1s2+3d4i -> 1e2+3e4i, etc.
+  // Use lookahead to ensure we only replace exponent markers followed by a sign or digit,
+  // preventing "inf.0" from becoming "ine.0"
   if (/[sSfFdDlL]/.test(token) && !token.startsWith('#')) {
-    token = token.replace(/[sSfFdDlL]/g, 'e');
+    token = token.replace(/[sSfFdDlL](?=[+-]?\d)/g, 'e');
   }
 
   // Handle prefixed numbers (#x, #o, #b, #d, #e, #i)
@@ -305,15 +548,30 @@ function parseNumber(token) {
     return parsePrefixedNumber(token);
   }
 
-  // Helper to parse a real component string into a number
+  // Helper to force number (float) from potential Rational for Complex arithmetic
+  // (We don't support Exact Complex yet)
+
+
+  // Helper to parse a real component string into a number or Rational
   const parseRealStr = (str) => {
     if (!str) return 0;
     const lower = str.toLowerCase();
     if (lower.endsWith('inf.0')) {
-      return lower.startsWith('-') ? -Infinity : Infinity;
+      const val = lower.startsWith('-') ? -Infinity : Infinity;
+      return val;
     }
     if (lower.endsWith('nan.0')) {
       return NaN;
+    }
+    // Handle rational components (e.g. 1/2) - return Rational if exact components
+    if (str.includes('/')) {
+      const parts = str.split('/');
+      // If either part is decimal/scientific, it's inexact float division
+      if (parts[0].includes('.') || parts[0].toLowerCase().includes('e') ||
+        parts[1].includes('.') || parts[1].toLowerCase().includes('e')) {
+        return parseFloat(parts[0]) / parseFloat(parts[1]);
+      }
+      return new Rational(parseInt(parts[0], 10), parseInt(parts[1], 10));
     }
     return parseFloat(str);
   };
@@ -322,22 +580,37 @@ function parseNumber(token) {
   if (/^[+-]?inf\.0$/i.test(token)) return parseRealStr(token);
   if (/^[+-]?nan\.0$/i.test(token)) return NaN;
 
-  // Pattern for real numbers: integers, decimals, scientific notation, inf.0, nan.0
-  const REAL_PATTERN = '([+-]?(?:(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?|inf\\.0|nan\\.0))';
+  // Pattern for unsigned real numbers: rationals, integers, decimals, scientific notation, inf.0, nan.0
+  const UNSIGNED_REAL = '(?:\\d+/\\d+|(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?|inf\\.0|nan\\.0)';
 
-  // Complex: real+imag (e.g., 1+2i, 1e2+3e4i, 1+inf.0i)
-  const complexRegex = new RegExp(`^${REAL_PATTERN}([+-])${REAL_PATTERN}?i$`, 'i');
+  // Pattern for signed real numbers (capturing group 1)
+  const REAL_PATTERN = `([+-]?${UNSIGNED_REAL})`;
+
+  // Complex: real+imag (e.g., 1+2i, 1e2+3e4i, +inf.0+inf.0i)
+  // The regex captures: 1:real, 2:sign, 3:imag(unsigned)
+  const complexRegex = new RegExp(`^${REAL_PATTERN}([+-])(${UNSIGNED_REAL})?i$`, 'i');
+  // console.log('Checking token:', token);
+  // console.log('Complex regex:', complexRegex);
   const complexMatch = token.match(complexRegex);
+  // console.log('Match result:', complexMatch);
 
   if (complexMatch) {
     const real = parseRealStr(complexMatch[1]);
     const sign = complexMatch[2] === '-' ? -1 : 1;
     const imagStr = complexMatch[3];
-    const imag = imagStr ? sign * parseRealStr(imagStr) : sign;
-    return new Complex(real, imag);
+
+    let imagVal = imagStr ? parseRealStr(imagStr) : 1;
+    // Apply sign
+    if (sign === -1) {
+      if (imagVal instanceof Rational) imagVal = imagVal.negate();
+      else imagVal = -imagVal;
+    }
+
+    return new Complex(real, imagVal);
   }
 
   // Pure imaginary: +i, -i, 3i, +inf.0i
+  // Captures: 1:real(signed) or sign
   const pureImagRegex = new RegExp(`^(${REAL_PATTERN}|[+-])i$`, 'i');
   const pureImagMatch = token.match(pureImagRegex);
 
@@ -345,6 +618,7 @@ function parseNumber(token) {
     const part = pureImagMatch[1];
     if (part === '+' || part === '') return new Complex(0, 1);
     if (part === '-') return new Complex(0, -1);
+
     return new Complex(0, parseRealStr(part));
   }
 
@@ -434,7 +708,9 @@ function parsePrefixedNumber(token) {
     if (exactness === 'inexact') {
       return num / den;
     }
-    return new Rational(num, den);
+    const rat = new Rational(num, den);
+    // console.log(`DEBUG: parsePrefixedNumber ${token} -> Rational(${rat.numerator}, ${rat.denominator})`);
+    return rat;
   }
 
   // Handle complex with radix: #d10+11i
@@ -449,10 +725,38 @@ function parsePrefixedNumber(token) {
 
   // Parse as integer in the given radix
   let result;
-  if (radix === 10 && (rest.includes('.') || rest.toLowerCase().includes('e'))) {
+
+  // Handle special values: +inf.0, -inf.0, +nan.0, -nan.0 (case-insensitive)
+  const lowerRest = rest.toLowerCase();
+  if (/^[+-]?inf\.0$/.test(lowerRest)) {
+    return lowerRest.startsWith('-') ? -Infinity : Infinity;
+  }
+  if (/^[+-]?nan\.0$/.test(lowerRest)) {
+    return NaN;
+  }
+
+  if (radix === 10 && (rest.includes('.') || rest.toLowerCase().includes('e') || rest.toLowerCase().includes('s') || rest.toLowerCase().includes('f') || rest.toLowerCase().includes('d') || rest.toLowerCase().includes('l'))) {
     // Decimal with fractional part or exponent
-    result = parseFloat(rest);
+    // Validate strict format: optional sign, digits, optional dot, optional digits, optional exponent
+    if (!/^[+-]?(\d+(\.\d*)?|\.\d+)([eEsSfFdDlL][+-]?\d+)?$/.test(rest)) {
+      return null;
+    }
+    // Normalize exponent before parsing (already done in parseNumber but rest might be fresh substring)
+    // Actually parseNumber does global replace on TOKEN. 
+    // parsePrefixedNumber receives TOKEN. 
+    // rest is substring. The replace happened on token.
+    // So rest should have 'e'.
+    // But safety:
+    const normalized = rest.replace(/[sSfFdDlL](?=[+-]?\d)/g, 'e');
+    result = parseFloat(normalized);
   } else {
+    // Integer in given radix
+    // Validate chars strictly
+    const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, radix);
+    const checkRest = rest.replace(/^[+-]/, '').toLowerCase();
+    for (const char of checkRest) {
+      if (!validChars.includes(char)) return null;
+    }
     result = parseInt(rest, radix);
   }
 

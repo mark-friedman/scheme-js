@@ -7,7 +7,10 @@
 
 import { intern, Symbol } from '../interpreter/symbol.js';
 import { list, toArray } from '../interpreter/cons.js';
+import { Values } from '../interpreter/values.js';
+import { parseNumber } from '../interpreter/reader.js';
 import {
+    assertType,
     assertString,
     assertSymbol,
     assertNumber,
@@ -396,63 +399,67 @@ export const stringPrimitives = {
             assertInteger('string->number', 2, radix);
         }
 
-        // Handle special float values
-        if (r === 10) {
-            if (str === '+inf.0') return Infinity;
-            if (str === '-inf.0') return -Infinity;
-            if (str === '+nan.0' || str === '-nan.0') return NaN;
-        }
+        // Delegate to reader's parseNumber for robust Scheme numeric syntax support
+        // Note: radix argument overrides any prefix in string if inconsistent?
+        // R7RS: "If radix is not supplied, ... If radix is supplied, ... interpret with that radix"
 
-        // For base 10, try parseFloat first to handle scientific notation and decimals
-        if (r === 10) {
-            // Check if string contains scientific notation or decimal point
-            if (/[.eE]/.test(str)) {
-                const f = parseFloat(str);
-                // Only return if we consumed the entire string
-                if (!isNaN(f) && String(f) === str.replace(/^[+-]?/, m => f < 0 ? '-' : '')) {
-                    return f;
+        let prefix = "";
+
+        // If radix is explicit, we prepend the corresponding prefix if not present?
+        if (r === 2) prefix = "#b";
+        else if (r === 8) prefix = "#o";
+        else if (r === 10) prefix = "#d";
+        else if (r === 16) prefix = "#x";
+
+        try {
+            // Simplified approach: use parseNumber directly.
+
+            // If customized radix (not 2,8,10,16), full custom logic required.
+            if (![2, 8, 10, 16].includes(r)) {
+                // Fallback to old simple parsing for non-standard bases (integers only)
+                const num = parseInt(str, r);
+                if (isNaN(num)) return false;
+                // Validate chars
+                const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, r);
+                const cleanStr = str.replace(/^[+-]/, '');
+                for (const ch of cleanStr.toLowerCase()) {
+                    if (!validChars.includes(ch)) return false;
                 }
-                // Fallback: try parseFloat and verify it consumed everything meaningful
-                if (!isNaN(f)) {
-                    // Check if remaining is just garbage
-                    const parsed = str.match(/^[+-]?(\d+\.?\d*|\d*\.?\d+)([eE][+-]?\d+)?/);
-                    if (parsed && parsed[0] === str) {
-                        return f;
-                    }
+                return num;
+            }
+
+            // Standard bases: Use parseNumber
+            // If string starts with #, parseNumber handles it.
+            // If string DOES NOT start with #, pretend it has #d (default) or the radix prefix.
+
+            let targetStr = str;
+            if (!str.trim().startsWith('#')) {
+                targetStr = prefix + str;
+            }
+            // If explicit radix given, we check if logic is consistent
+            // If (string->number "#x10" 10) -> Should fail or ignore prefix?
+            // R7RS: "If the string has a radix prefix, and a radix argument is also supplied,
+            // and they imply different radices, an error is signaled."
+            // We return #f for now to be safe (or false).
+            if (radix !== undefined) {
+                const match = str.match(/^#[boxd]/i);
+                if (match) {
+                    const p = match[0].toLowerCase();
+                    if (r === 2 && p !== '#b') return false;
+                    if (r === 8 && p !== '#o') return false;
+                    if (r === 10 && p !== '#d') return false;
+                    if (r === 16 && p !== '#x') return false;
                 }
             }
-        }
 
-        // For non-base-10, validate that all characters are valid digits for the radix
-        if (r !== 10) {
-            const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, r);
-            const cleanStr = str.replace(/^[+-]/, '');
-            for (const ch of cleanStr.toLowerCase()) {
-                if (!validChars.includes(ch)) {
-                    return false;  // Invalid character for this radix
-                }
-            }
-        }
+            const result = parseNumber(targetStr);
+            if (result === null) return false;
 
-        const num = parseInt(str, r);
-        if (isNaN(num)) {
-            // Try parseFloat for base 10 decimals
-            if (r === 10) {
-                const f = parseFloat(str);
-                if (!isNaN(f)) return f;
-            }
+            return result;
+
+        } catch (e) {
             return false;
         }
-
-        // Validate that the entire string was consumed (no trailing garbage)
-        // For base 10: check against Number(str) which is stricter
-        // For other bases: we already validated all chars above
-        if (r === 10) {
-            // parseFloat("1 2") returns 1, but Number("1 2") returns NaN
-            const strict = Number(str);
-            if (isNaN(strict)) return false;
-        }
-        return num;
     },
 
     /**

@@ -7,7 +7,7 @@
 
 import { Cons, list } from '../interpreter/cons.js';
 import { parse } from '../interpreter/reader.js';
-import { intern } from '../interpreter/symbol.js';
+import { intern, Symbol } from '../interpreter/symbol.js';
 
 // ============================================================================
 // Environment Detection
@@ -630,10 +630,16 @@ function displayString(val) {
     if (val === true) return '#t';
     if (val === false) return '#f';
     if (typeof val === 'string') return val;  // display doesn't quote strings
-    if (typeof val === 'number') return String(val);
+    if (typeof val === 'number') {
+        // R7RS special value formatting
+        if (val === Infinity) return '+inf.0';
+        if (val === -Infinity) return '-inf.0';
+        if (Number.isNaN(val)) return '+nan.0';
+        return String(val);
+    }
     if (val instanceof Cons) return consToString(val, displayString);
     if (Array.isArray(val)) return vectorToString(val, displayString);
-    if (val && val.name && val.description === undefined) return val.name; // Symbol
+    if (val instanceof Symbol) return val.name; // Symbol - display doesn't wrap
     if (val === EOF_OBJECT) return '#<eof>';
     if (val instanceof Port) return val.toString();
     if (typeof val === 'function') {
@@ -665,10 +671,19 @@ function writeString(val) {
             .replace(/\r/g, '\\r')
             .replace(/\t/g, '\\t') + '"';
     }
-    if (typeof val === 'number') return String(val);
+    if (typeof val === 'number') {
+        // R7RS special value formatting
+        if (val === Infinity) return '+inf.0';
+        if (val === -Infinity) return '-inf.0';
+        if (Number.isNaN(val)) return '+nan.0';
+        return String(val);
+    }
     if (val instanceof Cons) return consToString(val, writeString);
     if (Array.isArray(val)) return vectorToString(val, writeString);
-    if (val && val.name && val.description === undefined) return val.name; // Symbol
+    if (val instanceof Symbol) {
+        // Symbol - check if it needs |...| escaping
+        return writeSymbol(val.name);
+    }
     if (val === EOF_OBJECT) return '#<eof>';
     if (val instanceof Port) return val.toString();
     if (typeof val === 'function') {
@@ -696,6 +711,69 @@ function writeString(val) {
     }
     return String(val);
 }
+
+/**
+ * Writes a symbol, escaping with |...| if needed per R7RS.
+ * Symbols that look like numbers, start with special chars, contain whitespace
+ * or special characters, or are empty need to be wrapped in |...|.
+ * @param {string} name - Symbol name
+ * @returns {string} Properly escaped symbol representation
+ */
+function writeSymbol(name) {
+    // Empty symbol
+    if (name === '') {
+        return '||';
+    }
+
+    // Check if the symbol needs escaping
+    if (symbolNeedsEscaping(name)) {
+        // Escape backslashes and vertical bars, then wrap in |...|
+        const escaped = name
+            .replace(/\\/g, '\\\\')
+            .replace(/\|/g, '\\|');
+        return '|' + escaped + '|';
+    }
+
+    return name;
+}
+
+/**
+ * Checks if a symbol name needs |...| escaping.
+ * @param {string} name - Symbol name
+ * @returns {boolean} True if escaping is needed
+ */
+function symbolNeedsEscaping(name) {
+    // Empty string always needs escaping
+    if (name === '') return true;
+
+    // Single dot needs escaping
+    if (name === '.') return true;
+
+    // Contains whitespace or special characters
+    if (/[\s"'`,;()[\]{}|\\]/.test(name)) return true;
+
+    // Looks like it could be parsed as a number
+    // This includes: starts with digit, +digit, -digit, ., +., -.
+    // Also +i, -i, +nan.0, -nan.0, +inf.0, -inf.0
+
+    // Check if it looks like a numeric literal
+    const lowerName = name.toLowerCase();
+
+    // Pure numeric forms
+    if (/^[+-]?\.?\d/.test(name)) return true;
+
+    // +i, -i
+    if (lowerName === '+i' || lowerName === '-i') return true;
+
+    // +nan.0, -nan.0, +inf.0, -inf.0
+    if (/^[+-]?(nan|inf)\.0/i.test(name)) return true;
+
+    // Starts with # (could look like numeric prefix)
+    if (name.startsWith('#')) return true;
+
+    return false;
+}
+
 
 /**
  * Converts a Scheme value to its write representation with shared structure detection.
@@ -1095,6 +1173,7 @@ export const ioPrimitives = {
         return false;
     },
 
+
     /**
      * Reads a line from port.
      * @param {Port} [port] - Input port (default: current-input-port).
@@ -1448,6 +1527,7 @@ export const ioPrimitives = {
         let buffer = '';
         let parenDepth = 0;
         let inString = false;
+        let inVerticalBar = false;  // For |...| symbols
         let escaped = false;
         let started = false;
 
@@ -1463,14 +1543,39 @@ export const ioPrimitives = {
 
             buffer += ch;
 
-            // Track string state
+            // Track escape state for strings and |...| symbols
             if (escaped) {
                 escaped = false;
-            } else if (ch === '\\' && inString) {
+                continue;
+            } else if (ch === '\\' && (inString || inVerticalBar)) {
                 escaped = true;
-            } else if (ch === '"') {
+                continue;
+            }
+
+            // Track vertical bar symbol state
+            if (ch === '|' && !inString) {
+                inVerticalBar = !inVerticalBar;
+                started = true;
+                if (!inVerticalBar && parenDepth === 0) {
+                    // Finished |...| symbol at top level
+                    break;
+                }
+                continue;
+            }
+
+            // Skip content inside |...| symbols
+            if (inVerticalBar) {
+                continue;
+            }
+
+            // Track string state
+            if (ch === '"') {
                 inString = !inString;
                 started = true;
+                if (!inString && parenDepth === 0) {
+                    // Finished string at top level
+                    break;
+                }
             } else if (!inString) {
                 if (ch === '(') {
                     parenDepth++;
@@ -1480,12 +1585,96 @@ export const ioPrimitives = {
                     if (parenDepth <= 0 && started) {
                         break;
                     }
-                } else if (ch === '#' && port.peekChar() === '(') {
-                    // Vector start
-                    port.readChar(); // consume '('
-                    buffer += '(';
-                    parenDepth++;
-                    started = true;
+                } else if (ch === '#') {
+                    // Check what follows the #
+                    const next = port.peekChar();
+                    if (next === '(') {
+                        // Vector start: #(
+                        port.readChar();
+                        buffer += '(';
+                        parenDepth++;
+                        started = true;
+                    } else if (next === 'u' || next === 'U') {
+                        // Possibly #u8( bytevector
+                        const ch2 = port.readChar();
+                        buffer += ch2;
+                        const next2 = port.peekChar();
+                        if (next2 === '8') {
+                            buffer += port.readChar();
+                            const next3 = port.peekChar();
+                            if (next3 === '(') {
+                                buffer += port.readChar();
+                                parenDepth++;
+                                started = true;
+                            }
+                        }
+                    } else if (next === ';') {
+                        // Datum comment #; - need to read and discard following datum
+                        port.readChar(); // consume ;
+                        buffer = buffer.slice(0, -1); // Remove # from buffer
+
+                        // If we haven't started an expression yet, recursively read/discard the next datum
+                        if (!started && parenDepth === 0) {
+                            // Skip any whitespace after #;
+                            while (true) {
+                                const peek = port.peekChar();
+                                if (peek === EOF_OBJECT) break;
+                                if (!/\s/.test(peek)) break;
+                                port.readChar();
+                            }
+                            // Recursively read and discard the next datum
+                            const discarded = ioPrimitives['read'](port);
+                            if (discarded === EOF_OBJECT) {
+                                throw new Error('read: Unexpected EOF after datum comment');
+                            }
+                            // Continue reading for the actual expression
+                            continue;
+                        }
+                        // Inside a structure: add back to buffer and let parser handle it
+                        buffer += '#;';
+                        started = true;
+                    } else if (next === '|') {
+                        // Block comment #|...|# - skip it
+                        port.readChar(); // consume |
+                        buffer = buffer.slice(0, -1); // Remove # from buffer
+                        let depth = 1;
+                        while (depth > 0) {
+                            const c1 = port.readChar();
+                            if (c1 === EOF_OBJECT) break;
+                            const c2 = port.peekChar();
+                            if (c1 === '#' && c2 === '|') {
+                                port.readChar();
+                                depth++;
+                            } else if (c1 === '|' && c2 === '#') {
+                                port.readChar();
+                                depth--;
+                            }
+                        }
+                    } else if (next === '!') {
+                        // Possibly #!fold-case or #!no-fold-case
+                        // Read the directive
+                        while (true) {
+                            const peek = port.peekChar();
+                            if (peek === EOF_OBJECT || /\s/.test(peek)) break;
+                            buffer += port.readChar();
+                        }
+                        started = true;
+                        // Continue reading - the parser handles the directive
+                    } else if (next === '\\') {
+                        // Character literal #\...
+                        started = true;
+                        // Read until delimiter
+                        while (true) {
+                            const peek = port.peekChar();
+                            if (peek === EOF_OBJECT) break;
+                            if (buffer.length > 3 && /[\s()\[\]{}"';]/.test(peek)) break;
+                            buffer += port.readChar();
+                        }
+                        if (parenDepth === 0) break;
+                    } else {
+                        // Other # forms - keep reading
+                        started = true;
+                    }
                 } else if (ch === '\'' || ch === '`' || ch === ',') {
                     started = true;
                     // Quote/quasiquote - need to read next expression
@@ -1498,7 +1687,7 @@ export const ioPrimitives = {
                             if (next === EOF_OBJECT || next === null) {
                                 break;
                             }
-                            if (/[\s()\[\]{}";]/.test(next)) {
+                            if (/[\s()\[\]{}"';]/.test(next)) {
                                 break;
                             }
                             // Stop at datum label definition (#n=)
@@ -1516,7 +1705,7 @@ export const ioPrimitives = {
                         break;
                     }
                 } else if (ch === ';') {
-                    // Skip comment
+                    // Skip line comment
                     while (true) {
                         const next = port.readChar();
                         if (next === EOF_OBJECT || next === '\n') break;
@@ -1525,6 +1714,7 @@ export const ioPrimitives = {
                 }
             }
         }
+
 
         // Parse the collected buffer
         const trimmed = buffer.trim();

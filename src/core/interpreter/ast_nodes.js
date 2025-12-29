@@ -10,6 +10,7 @@ import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
 import { Closure, Continuation } from './values.js';
 import * as FrameRegistry from './frame_registry.js';
 import { GlobalRef, lookupLibraryEnv } from './syntax_object.js';
+import { SchemeError } from './errors.js';
 
 // =============================================================================
 // Helper Function
@@ -651,16 +652,30 @@ export class InvokeExceptionHandler extends Executable {
         // Remove the handler frame
         fstack.pop(); // Pop the ExceptionHandlerFrame
 
-        // For continuable: push a resume frame
+        // For continuable: push a resume frame that allows handler return value
         if (this.continuable) {
             fstack.push(FrameRegistry.createRaiseContinuableResumeFrame(
                 this.savedFrames,
                 registers[ENV]
             ));
+        } else {
+            // For non-continuable: if handler returns, R7RS requires raising a secondary exception.
+            fstack.push(new NonContinuableFrame());
         }
 
         // Invoke handler with the exception
         registers[CTL] = new TailAppNode(ensureExecutable(this.handler), [new LiteralNode(this.exception)]);
         return true;
+    }
+}
+
+/**
+ * Frame that traps return from a non-continuable exception handler.
+ * Raises a secondary exception.
+ */
+class NonContinuableFrame {
+    step(registers, interpreter) {
+        // If we reached here, the handler returned, which is forbidden for 'raise'
+        throw new SchemeError("non-continuable exception: handler returned");
     }
 }
