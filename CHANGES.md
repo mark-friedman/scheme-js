@@ -1934,3 +1934,86 @@ All 20/20 sections now pass.
 SECTIONS: 20 passed, 0 failed
 ```
 (Remaining internal failures reduced from 232+ to ~224, with no section-level blockers).
+
+# Macro Implementation Refactoring (2025-12-29)
+
+Code quality improvements and bug fixes for the macro system and test infrastructure.
+
+## Changes Made
+
+### Phase 1: Macro Code Cleanup
+- **Removed debug logging**: Deleted console.log statements from `syntax_rules.js`
+- **Improved error messages**: Macro clause mismatch error now includes macro name
+- **Removed dead code**: Deleted unused `Vector` handling and 3 unused functions (`resolveLexical`, `resolveIdentifier`, `freeIdentifierEquals`)
+
+### Phase 2: Utility Extraction
+
+Created new `identifier_utils.js` module with shared helpers:
+- `getIdentifierName(id)` — Extract name from Symbol or SyntaxObject
+- `getCarName(cons)` — Extract identifier name from cons cell car
+- `isEllipsisIdentifier(id, ellipsisName, literals)` — Check if identifier is ellipsis
+- `nextIsEllipsis(cons, ellipsisName, literals)` — Lookahead for ellipsis detection
+
+### Phase 3: Scope Naming Clarification
+
+Fixed confusing variable naming in `syntax_rules.js`:
+- **`definingScope`** — Where the macro was defined (used for lookup)
+- **`expansionScope`** — Fresh per-expansion scope used for hygiene marking
+- Updated `transcribe()` and `transcribeLiteral()` parameter names
+- Cleaned up duplicate/confusing comments
+
+### Phase 4: Exception Handling Bug Fixes
+
+Fixed incorrect test expectations based on R7RS semantics:
+- **R7RS behavior**: Handler returning from non-continuable `raise` must raise secondary exception
+- Fixed `exception_tests.scm` — Uses `guard` to properly catch non-continuable exceptions
+- Fixed `exception_interop_tests.js` — Expects secondary exception when handler returns
+- Fixed `js_exception_tests.js` — Rewrote using `call/cc` escape pattern (R7RS compliant)
+
+### Phase 5: Test Infrastructure Fixes
+
+- **Fixed `reader_syntax_tests.scm`** — Dot symbol test used invalid `'.` syntax; now uses `(read (open-input-string "|.|"))`
+- **Removed duplicate test entry** — `primitive_tests.scm` was listed twice in manifest
+- **Made `js_exception_tests.js` async** — Ensures boot code loads before tests run
+
+### Documentation Updates
+
+- **Updated `hygiene_implementation.md`**:
+  - Removed obsolete "Known Limitations" section (lexical capture now works!)
+  - Added "Scope Types" section explaining `definingScope` vs `expansionScope`
+  - Updated code snippets to reflect current naming
+- **Updated `hygiene.md`**:
+  - Added Section 3: Captured Environment for lexical scoping
+  - Added `identifier_utils.js` to file structure table
+  - Fixed markdown formatting issues
+- **Updated `directory_structure.md`**: Added `identifier_utils.js` entry
+
+## File Changes
+
+| File | Action |
+|------|--------|
+| `src/core/interpreter/identifier_utils.js` | **NEW** — shared identifier helpers |
+| `src/core/interpreter/syntax_rules.js` | Modified (833 → 707 lines, scope naming clarified) |
+| `tests/core/scheme/exception_tests.scm` | Fixed R7RS semantics |
+| `tests/functional/exception_interop_tests.js` | Fixed R7RS semantics |
+| `tests/functional/js_exception_tests.js` | Rewrote with call/cc escape pattern |
+| `tests/core/scheme/reader_syntax_tests.scm` | Fixed dot symbol syntax crash |
+| `tests/test_manifest.js` | Removed duplicate, made js_exception_tests async |
+| `docs/hygiene_implementation.md` | Updated with scope types section |
+| `docs/hygiene.md` | Comprehensive rewrite for accuracy |
+| `directory_structure.md` | Added identifier_utils.js |
+
+## Verification
+
+### Unit Tests
+```
+TEST SUMMARY: 1141 passed, 0 failed, 3 skipped
+```
+
+### Chibi Compliance
+```
+SECTIONS: 19 passed, 1 failed
+TESTS: 913 passed, 1 failed, 60 skipped
+```
+
+The one failing test is a pre-existing JavaScript limitation with inexact number formatting (`#i3/2` outputs `1.5` instead of `3/2`).

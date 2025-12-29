@@ -66,18 +66,25 @@ for (const name of introducedBindings) {
 
 ### 4. Transcription
 
-`transcribe()` builds the output:
-- **Pattern variables** → substituted with matched input
-- **Introduced bindings** → renamed to gensyms
-- **Free variables** → wrapped in `SyntaxObject` with defining scope
+`transcribe()` builds the output. Each invocation receives an `expansionScope` (unique per expansion):
+
+- **Pattern variables** → substituted with matched input (with scope flip applied)
+- **Introduced bindings** → renamed to gensyms  
+- **Free variables** → wrapped in `SyntaxObject` with the expansion scope
 
 ```javascript
-if (bindings.has(name)) return bindings.get(name);
+// In transcribe() in syntax_rules.js
+if (bindings.has(name)) return flipScopeInExpression(bindings.get(name), expansionScope);
 if (renameMap.has(name)) return renameMap.get(name);
-if (definingScope !== null) {
-  return new SyntaxObject(name, new Set([definingScope]));
+if (expansionScope !== null) {
+  return new SyntaxObject(name, new Set([expansionScope]));
 }
 ```
+
+### Scope Types
+
+- **`definingScope`** — Where the macro was defined. Used to look up the definition environment for literal comparison and lexical capture.
+- **`expansionScope`** — Fresh scope created for each macro expansion. Used to mark free variables for hygiene.
 
 ## Resolution at Analysis Time
 
@@ -118,24 +125,31 @@ registers[ANS] = registers[ENV].lookup(this.name);
 3. Output becomes `(let ((tmp#1 a)) (set! a b) (set! b tmp#1))`
 4. User's `tmp` is unaffected
 
-## Known Limitations
+## Lexical Capture
 
-Local definition-site bindings are NOT handled:
+Macros can capture bindings from their lexical definition site. This is enabled by passing the `capturedEnv` (syntactic environment) to `compileSyntaxRules`:
 
-```scheme
-(let ((helper (lambda (x) (* x 2))))
-  (define-syntax my-double
-    (syntax-rules ()
-      ((my-double x) (helper x)))))
-
-(let ((helper (lambda (x) (+ x 1))))
-  (my-double 5))  ; Returns 6, not 10
+```javascript
+// In analyzer.js - analyzeDefineSyntax
+const transformer = compileSyntaxRules(literals, clauses, definingScope, ellipsisName, syntacticEnv);
 ```
 
-**Why this is rare:**
-- `define-syntax` is almost always at top level
-- Macros typically reference only global names
-- Special forms are immune (recognized syntactically)
+During transcription, identifiers that resolve in the captured environment are properly scoped:
+
+```scheme
+;; Macro captures 'n' from definition site
+(let ((n 100))
+  (let-syntax ((add-n (syntax-rules ()
+                        ((add-n x) (+ x n)))))
+    (add-n 5)))  ; → 105
+
+;; Works even with shadowing at use site
+(let ((x 100))
+  (let-syntax ((get-x (syntax-rules ()
+                        ((get-x) x))))
+    (let ((x 999))  ; Shadowing doesn't affect macro
+      (get-x))))    ; → 100
+```
 
 ## File Structure
 
@@ -143,10 +157,10 @@ Local definition-site bindings are NOT handled:
 |------|---------|
 | `syntax_object.js` | `SyntaxObject`, `ScopeBindingRegistry`, scope utilities |
 | `syntax_rules.js` | `compileSyntaxRules`, pattern matching, transcription |
+| `identifier_utils.js` | Shared identifier helpers (`getIdentifierName`, `isEllipsisIdentifier`) |
 | `macro_registry.js` | Global macro name registry |
 | `analyzer.js` | `analyzeDefineSyntax`, `ScopedVariable` creation |
 
 ## Related Documentation
 
-- [README.md](../README.md#limitations) — Documents the hygiene limitation
-- [docs/hygeine.md](./hygeine.md) — Additional hygiene notes
+- [docs/hygiene.md](./hygiene.md) — Additional hygiene notes

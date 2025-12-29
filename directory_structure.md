@@ -28,6 +28,7 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │       │   ├── syntax_rules.js     # syntax-rules transformer
 │       │   ├── syntax_object.js    # SyntaxObject and ScopeBindingRegistry
 │       │   ├── macro_registry.js   # Macro registry
+│       │   ├── identifier_utils.js # Shared identifier helpers
 │       │   ├── type_check.js       # Type checking utilities for primitives
 │       │   ├── library_loader.js   # Library loading + barrel (re-exports)
 │       │   ├── library_registry.js # Feature + library registries
