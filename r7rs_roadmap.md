@@ -439,33 +439,40 @@ Consider running the [Chibi Scheme R7RS test suite](https://github.com/ashinn/ch
 
 ## Future Improvements (Deferred)
 
-### Exact/Inexact Number Tracking
+### Full R7RS Exactness with BigInt (Planned)
 
-JavaScript has a single numeric type (IEEE 754 double), so we cannot natively distinguish between exact integers (like `5`) and inexact floats (like `5.0`). Currently:
-- We use `Number.isInteger()` to determine exactness
-- `(inexact 5)` returns `5`, which is still considered "exact" by our predicates
-- This violates R7RS semantics where `(inexact? (inexact 5))` should return `#t`
+A design has been created to implement proper R7RS exactness semantics using JavaScript's `BigInt` for exact integers:
 
-**Potential Approaches:**
+**Core Approach:**
+- **Exact integers**: `BigInt` (e.g., `5n`)
+- **Inexact reals**: `Number` (e.g., `5.0`)
+- **Exact rationals**: `Rational` class with `BigInt` numerator/denominator and `exact` flag
+- **Complex numbers**: `Complex` class with `exact` flag, parts can be any numeric type
 
-1. **InexactNumber Wrapper Class**
-   - Create a class similar to `Rational` and `Complex`
-   - `(inexact 5)` returns `new InexactNumber(5)`
-   - `inexact?` checks `instanceof InexactNumber`
-   - **Pros:** Semantically correct, consistent with existing wrappers
-   - **Cons:** Performance overhead for wrapped numbers, need to unwrap for arithmetic
+**Key Features:**
+- Reader parses `5` as `BigInt`, `5.0` as `Number`
+- `#e` and `#i` prefixes force exactness
+- Structural preservation: `(inexact 1/3)` keeps rational structure
+- JS interop: automatic `BigInt` → `Number` conversion at call boundary
 
-2. **Exactness Tag Map**
-   - Maintain a WeakMap or similar structure to track which numbers are inexact
-   - **Pros:** No wrapper object overhead
-   - **Cons:** Complex to implement, memory concerns, equality issues
+See `implementation_plan.md` in the artifacts directory for full design.
 
-3. **Accept the Limitation**
-   - Document that exact/inexact for integers is based on representation
-   - Note that rationals are always exact, floats are always inexact
-   - **Pros:** Simple, performant
-   - **Cons:** Not fully R7RS compliant
+---
 
-**Current Decision:** Option 3 (documented limitation). Revisit if user demand requires full compliance.
+### High-Precision Inexact Numbers (Future)
+
+For applications requiring more precision than IEEE 754 doubles (e.g., scientific computing, financial calculations), consider integrating **[decimal.js](https://github.com/MikeMcl/decimal.js)**.
+
+**Use Cases:**
+- Arbitrary precision decimal arithmetic (100+ digits)
+- Avoiding binary float quirks (`0.1 + 0.2 ≠ 0.3`)
+- Financial applications requiring exact decimal representation
+
+**Implementation Notes:**
+- Would be an optional "extended precision" mode
+- Not required for R7RS compliance
+- Could be exposed via a `(scheme decimal)` library
+
+**Decision:** Deferred. Implement if user demand requires high-precision inexact arithmetic.
 
 
