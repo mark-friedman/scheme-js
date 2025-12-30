@@ -6,6 +6,7 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 
 ```text
 /
+├── repl.js                         # Node.js REPL entry point
 ├── src/
 │   └── core/                       # The Core (JS Interpreter + Scheme subset)
 │       ├── interpreter/            # JavaScript Interpreter

@@ -33,6 +33,7 @@ export {
     CallCCNode,
     BeginNode,
     ImportNode,
+    DefineLibraryNode,
     DynamicWindInit,
     RestoreContinuation,
     CallWithValuesNode,

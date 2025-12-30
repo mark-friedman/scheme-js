@@ -2149,3 +2149,69 @@ TESTS: 913 passed, 1 failed, 60 skipped
 ```
 
 The one failing test is a pre-existing JavaScript limitation with inexact number formatting (`#i3/2` outputs `1.5` instead of `3/2`).
+
+---
+
+# Walkthrough: Node.js Scheme REPL & Standard Mechanisms
+
+I have implemented a robust Node.js REPL application for the Scheme interpreter and refactored the system to support standard Scheme library loading mechanisms (`load`, `import`, `define-library`) synchronously.
+
+## Features
+
+- **Interactive REPL**: Run `node repl.js` to start the session.
+- **Multi-line Input**: The REPL detects incomplete expressions (open parentheses, unclosed strings) and prompts for continuation.
+- **File Loading**: Use `(load "filename.scm")` to load Scheme scripts into the current environment. 
+- **Library Imports**: Use `(import (lib name))` to import R7RS libraries synchronously.
+- **File Execution**: Run `node repl.js <file.scm>` to execute a Scheme file.
+- **Expression Evaluation**: Run `node repl.js -e "<expr>"` to evaluate a single expression and exit.
+- **Standard Library Support**: Automatically bootstraps `(scheme base)`, `(scheme repl)`, and `(scheme complex)`.
+
+## Architecture Refactoring
+
+The Node.js REPL enforces a fully synchronous execution model to support standard Scheme semantics for `load` and `import`.
+
+### Synchronous Execution
+1.  **File Loading**: `repl.js` configures a synchronous file resolver using `fs.readFileSync`.
+2.  **Library Loading**: The interpreter uses `loadLibrarySync` (in `library_loader.js`) to load and evaluate libraries on demand.
+3.  **Standard Forms**:
+    *   `(import ...)` is handled by `ImportNode` which triggers synchronous library loading.
+    *   `(define-library ...)` is handled by `DefineLibraryNode` which registers libraries synchronously.
+    *   `(load "file")` is a primitive defined in `repl.js` that synchronously reads, parses, analyzes, and executes the file content.
+
+### Chibi Compliance
+To support running the Chibi R7RS compliance suite:
+*   `repl.js` adds `tests/core/scheme/compliance/chibi_original` (and revised) to search paths.
+*   Stub libraries were created for `(chibi diff)`, `(chibi term ansi)`, and `(chibi optional)` in `src/core/scheme`.
+*   Relative `include` resolution inside `test.sld` is handled by the `repl.js` resolver finding the files in the search paths.
+
+## Components
+*   **`repl.js`**: Main entry point. Bootstraps interpreter, sets up synchronous resolver with compliance paths, defines `load`, and runs the REPL loop.
+*   **`reader.js`**: Handles parsing of S-expressions (updated with string termination checks).
+*   **`analyzer.js`**: Converts S-expressions to AST nodes, including `ImportNode` and `DefineLibraryNode`.
+*   **`interpreter.js`**: Executes the AST synchronously.
+*   **`printer.js`**: New shared module for pretty-printing in both Node and Browser (handles `Closure` and JS functions consistently).
+
+## Verification
+
+### Automated Tests
+*   `tests/test_repl_mini.js`: Verified writer output.
+*   `verify_browser_repl` (Browser Subagent): Verified that Browser REPL correctly evaluates expressions and pretty-prints procedures using the shared printer.
+
+### Manual Verification
+1.  **Interactive Mode**: Verified `(import (scheme base))` and expression evaluation.
+2.  **Flags**: Verified `-e` correctly evaluates and prints results.
+3.  **File Execution**: Verified loading and executing Scheme files with `(load "file")`.
+4.  **Chibi Suite**: Verified `(load "tests/core/scheme/compliance/chibi_original/test.sld")` followed by `(import (chibi test))` works correctly.
+
+## Usage Examples
+
+```bash
+# Start REPL
+node repl.js
+
+# Evaluate expression
+node repl.js -e "(+ 1 2 3)"
+
+# Run Chibi compliance test library load
+node repl.js -e '(load "tests/core/scheme/compliance/chibi_original/test.sld") (import (chibi test)) (test-begin "foo")'
+```

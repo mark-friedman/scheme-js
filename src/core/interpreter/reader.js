@@ -406,6 +406,9 @@ function readAtom(token, caseFold = false) {
 
   // Strings (not case-folded) - handle R7RS escape sequences
   if (token.startsWith('"')) {
+    if (token.length < 2 || !token.endsWith('"')) {
+      throw new Error("Unterminated string");
+    }
     return processStringEscapes(token.slice(1, -1));
   }
 

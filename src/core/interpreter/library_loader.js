@@ -83,6 +83,63 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
     // Parse the define-library form
     const libDef = parseDefineLibrary(forms[0]);
 
+    return await evaluateLibraryDefinition(libDef, analyze, interpreter, baseEnv);
+}
+
+/**
+ * Loads a library by name synchronously (Node.js only).
+ * 
+ * @param {string[]} libraryName - Library name parts
+ * @param {Function} analyze - The analyze function
+ * @param {Object} interpreter - The interpreter instance
+ * @param {Environment} baseEnv - Base environment for primitives
+ * @returns {Map} The library's exports
+ */
+export function loadLibrarySync(libraryName, analyze, interpreter, baseEnv) {
+    const key = libraryNameToKey(libraryName);
+
+    // Return cached if already loaded
+    const cached = _getLibraryExports(key);
+    if (cached) {
+        return cached;
+    }
+
+    // Resolve and load file
+    const fileResolver = getFileResolver();
+    if (!fileResolver) {
+        throw new Error('No file resolver set. Call setFileResolver first.');
+    }
+
+    const source = fileResolver(libraryName);
+    if (source instanceof Promise) {
+        throw new Error(`loadLibrarySync encountered async file resolver for ${key}`);
+    }
+
+    const forms = parse(source);
+
+    if (forms.length === 0) {
+        throw new Error(`Empty library file for ${key}`);
+    }
+
+    // Parse the define-library form
+    const libDef = parseDefineLibrary(forms[0]);
+
+    return evaluateLibraryDefinitionSync(libDef, analyze, interpreter, baseEnv);
+}
+
+/**
+ * Evaluates a parsed library definition and registers it.
+ * 
+ * @param {Object} libDef - The parsed library definition
+ * @param {Function} analyze - The analyze function
+ * @param {Object} interpreter - The interpreter instance
+ * @param {Environment} baseEnv - Base environment for primitives
+ * @returns {Promise<Map>} The library's exports
+ */
+export async function evaluateLibraryDefinition(libDef, analyze, interpreter, baseEnv) {
+    const libraryName = libDef.name;
+    const key = libraryNameToKey(libraryName);
+
     // Create library environment (child of base env)
     const libEnv = new Environment(baseEnv);
 
@@ -99,76 +156,234 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
         applyImports(libEnv, importExports, importSpec);
     }
 
-    // Load standard includes
-    for (const includeFile of libDef.includes) {
-        const includeSource = await fileResolver(
-            [...libraryName.slice(0, -1), includeFile]
-        );
-        const includeForms = parse(includeSource);
-        for (const form of includeForms) {
-            libDef.body.push(form);
+    // Resolve includes using file resolver
+    const fileResolver = getFileResolver();
+    if (fileResolver) {
+        // Load standard includes
+        for (const includeFile of libDef.includes) {
+            const includeSource = await fileResolver(
+                [...libraryName.slice(0, -1), includeFile]
+            );
+            const includeForms = parse(includeSource);
+            for (const form of includeForms) {
+                libDef.body.push(form);
+            }
         }
-    }
 
-    // Load case-insensitive includes
-    for (const includeFile of libDef.includesCi) {
-        const includeSource = await fileResolver(
-            [...libraryName.slice(0, -1), includeFile]
-        );
-        // Parse with case-folding enabled
-        const includeForms = parse(includeSource, { caseFold: true });
-        for (const form of includeForms) {
-            libDef.body.push(form);
+        // Load case-insensitive includes
+        for (const includeFile of libDef.includesCi) {
+            const includeSource = await fileResolver(
+                [...libraryName.slice(0, -1), includeFile]
+            );
+            // Parse with case-folding enabled
+            const includeForms = parse(includeSource, { caseFold: true });
+            for (const form of includeForms) {
+                libDef.body.push(form);
+            }
         }
-    }
 
-    // Load library declaration includes
-    // These contain additional library clauses (export, import, begin, etc.)
-    for (const declFile of libDef.includeLibraryDeclarations) {
-        const declSource = await fileResolver(
-            [...libraryName.slice(0, -1), declFile]
-        );
-        const declForms = parse(declSource);
+        // Load library declaration includes
+        for (const declFile of libDef.includeLibraryDeclarations) {
+            const declSource = await fileResolver(
+                [...libraryName.slice(0, -1), declFile]
+            );
+            const declForms = parse(declSource);
 
-        // Process each declaration in the included file
-        for (const decl of declForms) {
-            const declArr = toArray(decl);
-            if (declArr.length === 0) continue;
+            // Process each declaration in the included file
+            for (const decl of declForms) {
+                const declArr = toArray(decl);
+                if (declArr.length === 0) continue;
 
-            const declTag = declArr[0];
-            if (!(declTag instanceof Symbol)) continue;
+                const declTag = declArr[0];
+                if (!(declTag instanceof Symbol)) continue;
 
-            switch (declTag.name) {
-                case 'export':
-                    for (let j = 1; j < declArr.length; j++) {
-                        const spec = declArr[j];
-                        if (spec instanceof Symbol) {
-                            libDef.exports.push({ internal: spec.name, external: spec.name });
+                switch (declTag.name) {
+                    case 'export':
+                        for (let j = 1; j < declArr.length; j++) {
+                            const spec = declArr[j];
+                            if (spec instanceof Symbol) {
+                                libDef.exports.push({ internal: spec.name, external: spec.name });
+                            }
                         }
-                    }
-                    break;
-                case 'import':
-                    for (let j = 1; j < declArr.length; j++) {
-                        const importSpec = parseImportSet(declArr[j]);
-                        const importExports = await loadLibrary(
-                            importSpec.libraryName,
-                            analyze,
-                            interpreter,
-                            baseEnv
-                        );
-                        applyImports(libEnv, importExports, importSpec);
-                    }
-                    break;
-                case 'begin':
-                    for (let j = 1; j < declArr.length; j++) {
-                        libDef.body.push(declArr[j]);
-                    }
-                    break;
-                case 'include':
-                    for (let j = 1; j < declArr.length; j++) {
-                        libDef.includes.push(declArr[j]);
-                    }
-                    break;
+                        break;
+                    case 'import':
+                        for (let j = 1; j < declArr.length; j++) {
+                            const importSpec = parseImportSet(declArr[j]);
+                            const importExports = await loadLibrary(
+                                importSpec.libraryName,
+                                analyze,
+                                interpreter,
+                                baseEnv
+                            );
+                            applyImports(libEnv, importExports, importSpec);
+                        }
+                        break;
+                    case 'begin':
+                        for (let j = 1; j < declArr.length; j++) {
+                            libDef.body.push(declArr[j]);
+                        }
+                        break;
+                    case 'include':
+                        for (let j = 1; j < declArr.length; j++) {
+                            libDef.includes.push(declArr[j]);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    // Execute body with a defining scope for referential transparency
+    // Bindings defined here will be registered in the scope registry
+    // so macros can reference them hygienically
+    const libraryScope = freshScope();
+    registerLibraryScope(libraryScope, libEnv);
+    pushDefiningScope(libraryScope);
+
+    try {
+        for (const expr of libDef.body) {
+            const ast = analyze(expr);
+            interpreter.run(ast, libEnv);
+        }
+    } finally {
+        popDefiningScope();
+    }
+
+    // Build exports map
+    const exports = new Map();
+    for (const exp of libDef.exports) {
+        let value;
+        try {
+            value = libEnv.lookup(exp.internal);
+        } catch (e) {
+            // Check if it's a macro or a syntax keyword
+            if (globalMacroRegistry.isMacro(exp.internal)) {
+                // Return a marker so applyImports knows it's a macro
+                value = { _isMacro: true, name: exp.internal };
+            } else if (SYNTAX_KEYWORDS.has(exp.internal)) {
+                // Return a marker so applyImports knows it's a syntax keyword
+                value = { _isKeyword: true, name: exp.internal };
+            } else {
+                throw e;
+            }
+        }
+        exports.set(exp.external, value);
+    }
+
+    // Register library
+    registerLibrary(key, exports, libEnv);
+
+    return exports;
+}
+
+/**
+ * Evaluates a parsed library definition synchronously.
+ * 
+ * @param {Object} libDef - The parsed library definition
+ * @param {Function} analyze - The analyze function
+ * @param {Object} interpreter - The interpreter instance
+ * @param {Environment} baseEnv - Base environment for primitives
+ * @returns {Map} The library's exports
+ */
+export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, baseEnv) {
+    const libraryName = libDef.name;
+    const key = libraryNameToKey(libraryName);
+
+    // Create library environment (child of base env)
+    const libEnv = new Environment(baseEnv);
+
+    // Process imports first
+    for (const importSpec of libDef.imports) {
+        const importExports = loadLibrarySync(
+            importSpec.libraryName,
+            analyze,
+            interpreter,
+            baseEnv
+        );
+
+        // Apply import filters and add to env
+        applyImports(libEnv, importExports, importSpec);
+    }
+
+    // Resolve includes using file resolver
+    const fileResolver = getFileResolver();
+    if (fileResolver) {
+        // Load standard includes
+        for (const includeFile of libDef.includes) {
+            const includeSource = fileResolver(
+                [...libraryName.slice(0, -1), includeFile]
+            );
+            if (includeSource instanceof Promise) throw new Error("Async resolver in sync load");
+
+            const includeForms = parse(includeSource);
+            for (const form of includeForms) {
+                libDef.body.push(form);
+            }
+        }
+
+        // Load case-insensitive includes
+        for (const includeFile of libDef.includesCi) {
+            const includeSource = fileResolver(
+                [...libraryName.slice(0, -1), includeFile]
+            );
+            if (includeSource instanceof Promise) throw new Error("Async resolver in sync load");
+
+            // Parse with case-folding enabled
+            const includeForms = parse(includeSource, { caseFold: true });
+            for (const form of includeForms) {
+                libDef.body.push(form);
+            }
+        }
+
+        // Load library declaration includes
+        for (const declFile of libDef.includeLibraryDeclarations) {
+            const declSource = fileResolver(
+                [...libraryName.slice(0, -1), declFile]
+            );
+            if (declSource instanceof Promise) throw new Error("Async resolver in sync load");
+
+            const declForms = parse(declSource);
+
+            // Process each declaration in the included file
+            for (const decl of declForms) {
+                const declArr = toArray(decl);
+                if (declArr.length === 0) continue;
+
+                const declTag = declArr[0];
+                if (!(declTag instanceof Symbol)) continue;
+
+                switch (declTag.name) {
+                    case 'export':
+                        for (let j = 1; j < declArr.length; j++) {
+                            const spec = declArr[j];
+                            if (spec instanceof Symbol) {
+                                libDef.exports.push({ internal: spec.name, external: spec.name });
+                            }
+                        }
+                        break;
+                    case 'import':
+                        for (let j = 1; j < declArr.length; j++) {
+                            const importSpec = parseImportSet(declArr[j]);
+                            const importExports = loadLibrarySync(
+                                importSpec.libraryName,
+                                analyze,
+                                interpreter,
+                                baseEnv
+                            );
+                            applyImports(libEnv, importExports, importSpec);
+                        }
+                        break;
+                    case 'begin':
+                        for (let j = 1; j < declArr.length; j++) {
+                            libDef.body.push(declArr[j]);
+                        }
+                        break;
+                    case 'include':
+                        for (let j = 1; j < declArr.length; j++) {
+                            libDef.includes.push(declArr[j]);
+                        }
+                        break;
+                }
             }
         }
     }

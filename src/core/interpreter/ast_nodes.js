@@ -404,27 +404,52 @@ export class BeginNode extends Executable {
 export class ImportNode extends Executable {
     /**
      * @param {Array<object>} importSpecs - Array of { libraryName, only, except, rename, prefix }
-     * @param {Function} getLibraryExports - Function to look up loaded library exports
+     * @param {Function} loadLibrary - Function to load a library recursively (sync or async depending on usage)
      * @param {Function} applyImports - Function to apply imports to an environment
+     * @param {Function} analyze - Analyze function for loading libraries
      */
-    constructor(importSpecs, getLibraryExports, applyImports) {
+    constructor(importSpecs, loadLibrary, applyImports, analyze) {
         super();
         this.importSpecs = importSpecs;
-        this.getLibraryExports = getLibraryExports;
+        this.loadLibrary = loadLibrary;
         this.applyImports = applyImports;
+        this.analyze = analyze;
     }
 
     step(registers, interpreter) {
         const env = registers[ENV];
         for (const spec of this.importSpecs) {
-            const exports = this.getLibraryExports(spec.libraryName);
-            if (!exports) {
-                const libNameStr = Array.isArray(spec.libraryName) ? spec.libraryName.join('.') : spec.libraryName;
-                throw new Error(`Import error: Library ${libNameStr} not loaded. Use loadLibrary first.`);
-            }
+            // Load the library (synchronously if loadLibrary is sync)
+            const exports = this.loadLibrary(spec.libraryName, this.analyze, interpreter, env);
             this.applyImports(env, exports, spec);
         }
         registers[ANS] = true;
+        return false;
+    }
+}
+
+/**
+ * AST Node for define-library.
+ * Registers a new library definition at runtime.
+ */
+export class DefineLibraryNode extends Executable {
+    /**
+     * @param {Object} libDef - Parsed library definition
+     * @param {Function} evaluateLibraryDefinition - Function to evaluate and register library
+     * @param {Function} analyze - Analyze function
+     */
+    constructor(libDef, evaluateLibraryDefinition, analyze) {
+        super();
+        this.libDef = libDef;
+        this.evaluateLibraryDefinition = evaluateLibraryDefinition;
+        this.analyze = analyze;
+    }
+
+    step(registers, interpreter) {
+        const env = registers[ENV];
+        // Evaluate the library (synchronously if evaluateLibraryDefinition is sync)
+        this.evaluateLibraryDefinition(this.libDef, this.analyze, interpreter, env);
+        registers[ANS] = true; // Returns true/unspecified
         return false;
     }
 }

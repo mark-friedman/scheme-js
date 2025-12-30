@@ -12,13 +12,14 @@ import {
   BeginNode,
   DefineNode,
   ImportNode,
+  DefineLibraryNode,
   ScopedVariable,
   DynamicWindInit,
   CallWithValuesNode,
   WithExceptionHandlerInit,
   RaiseNode
 } from './ast.js';
-import { getLibraryExports, applyImports, parseImportSet, evaluateFeatureRequirement } from './library_loader.js';
+import { getLibraryExports, applyImports, parseImportSet, evaluateFeatureRequirement, loadLibrarySync, evaluateLibraryDefinitionSync, parseDefineLibrary } from './library_loader.js';
 import { SPECIAL_FORMS } from './library_registry.js';
 import { globalMacroRegistry, MacroRegistry } from './macro_registry.js';
 import { compileSyntaxRules } from './syntax_rules.js';
@@ -148,6 +149,7 @@ export function analyze(exp, syntacticEnv = null) {
         case 'letrec': return analyzeLetRec(exp, syntacticEnv);
         case 'begin': return analyzeBegin(exp, syntacticEnv);
         case 'import': return analyzeImport(exp);
+        case 'define-library': return analyzeDefineLibrary(exp);
 
 
         // Restored cases
@@ -877,30 +879,13 @@ function analyzeRaise(exp, syntacticEnv, continuable = false) {
   return new RaiseNode(obj, continuable);
 }
 
-function analyzeImport(exp) {
-  // Import specs should be handled by loader, but if encountered in eval:
-  // We construct ImportNode.
-  // NOTE: This requires parsing implementation which I omitted previously.
-  // For now, let's assume valid import form and minimal processing or throw?
-  // Given usage in library loader, this might not be called?
-  // But let's leave existing implementation if possible.
-  // I can't leave existing because I deleted it.
-  // I will return a placeholder error if reached, to see if it's used.
-  // Only library_loader invokes analyze on library body. Library body can contain import?
-  // R7RS: import is top-level. (define-library ...) contains import.
-  // (analyze) is called on body expressions. (import) inside (begin)?
-  // (begin (import ...)) is valid at top level.
-  // So we should support it.
+export function analyzeImport(exp) {
+  // exp is (import spec1 spec2 ...)
+  const specs = toArray(cdr(exp)).map(spec => parseImportSet(spec));
+  return new ImportNode(specs, loadLibrarySync, applyImports, analyze);
+}
 
-  // Minimal implementation:
-  // parse specs -> 
-  // We need parseImportSpec from library_loader.js? No, circular dependency.
-  // Just wrap arguments in ImportNode and let ImportNode.step handle it?
-  // ImportNode expects `specs`.
-  // Let's implement a simple parser here or just pass raw cons?
-  // ImportNode expects array of objects.
-  // Let's try to pass raw cons and let step method fail if wrong, 
-  // or fix ImportNode later.
-  // Actually, `library_loader` parses imports.
-  return new ImportNode([], null, null);
+function analyzeDefineLibrary(exp) {
+  const libDef = parseDefineLibrary(exp);
+  return new DefineLibraryNode(libDef, evaluateLibraryDefinitionSync, analyze);
 }
