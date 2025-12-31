@@ -506,8 +506,12 @@ export function createPrimitiveExports(globalEnv) {
         'number?', 'real?', 'rational?', 'integer?', 'exact-integer?',
         'finite?', 'infinite?', 'nan?',
         // Math - functions requiring Math.*
-        'abs', 'floor', 'ceiling', 'truncate', 'expt', 'sqrt',
+        'abs', 'floor', 'ceiling', 'truncate', 'round',
+        'expt', 'sqrt', 'square', 'exact-integer-sqrt',
         'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'exp',
+        'exact', 'inexact', 'inexact->exact',
+        'numerator', 'denominator',
+        'make-rectangular', 'make-polar', 'real-part', 'imag-part', 'magnitude', 'angle',
         // Pairs and lists
         'cons', 'car', 'cdr', 'pair?', 'null?', 'list?',
         'set-car!', 'set-cdr!',

@@ -4,8 +4,8 @@
 (test-group "6.6 Characters"
 
   (test #t (char? #\a))
-  ;; SKIP: JS uses single-char strings for characters - no type disjointness
-  (test-skip "(char? \"a\") disjointness" "JS characters are single-char strings")
+  ;; Type disjointness: strings are not characters
+  (test #f (char? "a"))
   (test #f (char? 'a))
   (test #f (char? 0))
 

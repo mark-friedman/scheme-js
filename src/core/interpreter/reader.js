@@ -1,5 +1,6 @@
 import { Cons, cons, list } from './cons.js';
 import { Symbol, intern } from './symbol.js';
+import { Char } from '../primitives/char_class.js';
 import { Rational } from '../primitives/rational.js';
 import { Complex } from '../primitives/complex.js';
 
@@ -372,8 +373,9 @@ function readBytevector(tokens) {
       throw new Error("Missing ')' for bytevector");
     }
     const token = tokens.shift();
-    const num = parseInt(token, 10);
-    if (isNaN(num) || num < 0 || num > 255) {
+    const result = parseNumber(token);
+    const num = (result !== null) ? Number(result) : NaN;
+    if (isNaN(num) || num < 0 || num > 255 || !Number.isInteger(num)) {
       throw new Error(`Invalid byte value in bytevector: ${token}`);
     }
     bytes.push(num);
@@ -557,7 +559,7 @@ export function parseNumber(token, exactness) {
 
   // Helper to parse a real component string into a number or Rational
   const parseRealStr = (str) => {
-    if (!str) return 0;
+    if (!str) return 0n;
     const lower = str.toLowerCase();
     if (lower.endsWith('inf.0')) {
       const val = lower.startsWith('-') ? -Infinity : Infinity;
@@ -574,8 +576,20 @@ export function parseNumber(token, exactness) {
         parts[1].includes('.') || parts[1].toLowerCase().includes('e')) {
         return parseFloat(parts[0]) / parseFloat(parts[1]);
       }
-      return new Rational(parseInt(parts[0], 10), parseInt(parts[1], 10));
+      // Exact rational - use BigInt for components
+      return new Rational(BigInt(parts[0]), BigInt(parts[1]));
     }
+
+    // Check for integer (exact) syntax: no decimal point, no exponent
+    if (!str.includes('.') && !lower.includes('e')) {
+      try {
+        return BigInt(str);
+      } catch (e) {
+        // Fallback (shouldn't happen for valid integer syntax)
+        return parseFloat(str);
+      }
+    }
+
     return parseFloat(str);
   };
 
@@ -584,7 +598,8 @@ export function parseNumber(token, exactness) {
   if (/^[+-]?nan\.0$/i.test(token)) return NaN;
 
   // Pattern for unsigned real numbers: rationals, integers, decimals, scientific notation, inf.0, nan.0
-  const UNSIGNED_REAL = '(?:\\d+/\\d+|(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?|inf\\.0|nan\\.0)';
+  // R7RS supports s, f, d, l as exponent markers equivalent to e
+  const UNSIGNED_REAL = '(?:\\d+/\\d+|(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eEsSfFdDlL][+-]?\\d+)?|inf\\.0|nan\\.0)';
 
   // Pattern for signed real numbers (capturing group 1)
   const REAL_PATTERN = `([+-]?${UNSIGNED_REAL})`;
@@ -602,14 +617,20 @@ export function parseNumber(token, exactness) {
     const sign = complexMatch[2] === '-' ? -1 : 1;
     const imagStr = complexMatch[3];
 
-    let imagVal = imagStr ? parseRealStr(imagStr) : 1;
+    let imagVal = imagStr ? parseRealStr(imagStr) : 1n;
     // Apply sign
     if (sign === -1) {
       if (imagVal instanceof Rational) imagVal = imagVal.negate();
+      else if (typeof imagVal === 'bigint') imagVal = -imagVal;
       else imagVal = -imagVal;
     }
 
-    return new Complex(real, imagVal);
+    // Determine overall exactness: exact only if both parts are exact
+    const isExact = (typeof real !== 'number') && (typeof imagVal !== 'number') &&
+      (!(real instanceof Rational) || real.exact !== false) &&
+      (!(imagVal instanceof Rational) || imagVal.exact !== false);
+
+    return new Complex(real, imagVal, isExact);
   }
 
   // Pure imaginary: +i, -i, 3i, +inf.0i
@@ -619,24 +640,29 @@ export function parseNumber(token, exactness) {
 
   if (pureImagMatch) {
     const part = pureImagMatch[1];
-    if (part === '+' || part === '') return new Complex(0, 1);
-    if (part === '-') return new Complex(0, -1);
+    if (part === '+' || part === '') return new Complex(0n, 1n);
+    if (part === '-') return new Complex(0n, -1n);
 
-    return new Complex(0, parseRealStr(part));
+    return new Complex(0n, parseRealStr(part));
   }
 
   // Check for rational: 1/2, -3/4, etc.
   const rationalMatch = token.match(/^([+-]?\d+)\/(\d+)$/);
   if (rationalMatch) {
-    const num = parseInt(rationalMatch[1], 10);
-    const den = parseInt(rationalMatch[2], 10);
-    if (den === 0) {
+    const num = BigInt(rationalMatch[1]);
+    const den = BigInt(rationalMatch[2]);
+    if (den === 0n) {
       throw new Error('Division by zero in rational literal');
     }
     return new Rational(num, den);
   }
 
-  // Regular number (integer or decimal)
+  // Check for integer (no decimal point, no exponent) -> BigInt (exact)
+  if (/^[+-]?\d+$/.test(token)) {
+    return BigInt(token);
+  }
+
+  // Regular number with decimal or exponent (inexact) -> Number
   let num = Number(token);
   if (!isNaN(num)) {
     return num;
@@ -703,27 +729,42 @@ function parsePrefixedNumber(token) {
   // Handle rational with radix: #x10/2 means 16/2 = 8
   const rationalMatch = rest.match(/^([+-]?[0-9a-fA-F]+)\/([0-9a-fA-F]+)$/);
   if (rationalMatch) {
-    const num = parseInt(rationalMatch[1], radix);
-    const den = parseInt(rationalMatch[2], radix);
-    if (isNaN(num) || isNaN(den)) return null;
-    if (den === 0) throw new Error('Division by zero in rational literal');
+    const num = BigInt(parseInt(rationalMatch[1], radix));
+    const den = BigInt(parseInt(rationalMatch[2], radix));
+    if (den === 0n) throw new Error('Division by zero in rational literal');
 
     if (exactness === 'inexact') {
-      return num / den;
+      return Number(num) / Number(den);
     }
     const rat = new Rational(num, den);
-    // console.log(`DEBUG: parsePrefixedNumber ${token} -> Rational(${rat.numerator}, ${rat.denominator})`);
     return rat;
   }
 
   // Handle complex with radix: #d10+11i
   const complexMatch = rest.match(/^([+-]?[0-9a-fA-F.]+)([+-])([0-9a-fA-F.]+)?i$/);
   if (complexMatch) {
-    const real = radix === 10 ? parseFloat(complexMatch[1]) : parseInt(complexMatch[1], radix);
+    const parsePart = (str) => {
+      if (!str) return 0n;
+      if (radix === 10 && (str.includes('.') || str.toLowerCase().includes('e'))) return parseFloat(str);
+      return BigInt(parseInt(str, radix));
+    };
+
+    const realPart = parsePart(complexMatch[1]);
     const sign = complexMatch[2] === '-' ? -1 : 1;
-    const imagPart = complexMatch[3] || '1';
-    const imag = sign * (radix === 10 ? parseFloat(imagPart) : parseInt(imagPart, radix));
-    return new Complex(real, imag);
+    const imagStr = complexMatch[3] || '1';
+    let imagPart = parsePart(imagStr);
+
+    // Apply sign
+    if (sign === -1) {
+      if (typeof imagPart === 'bigint') imagPart = -imagPart;
+      else imagPart = -imagPart;
+    }
+
+    const isResultExact = exactness === 'exact' ? true :
+      (exactness === 'inexact' ? false :
+        (typeof realPart !== 'number' && typeof imagPart !== 'number'));
+
+    return new Complex(realPart, imagPart, isResultExact);
   }
 
   // Parse as integer in the given radix
@@ -753,25 +794,53 @@ function parsePrefixedNumber(token) {
     const normalized = rest.replace(/[sSfFdDlL](?=[+-]?\d)/g, 'e');
     result = parseFloat(normalized);
   } else {
-    // Integer in given radix
-    // Validate chars strictly
+    // Integer in given radix -> BigInt (exact)
+    // Verify chars
     const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, radix);
     const checkRest = rest.replace(/^[+-]/, '').toLowerCase();
     for (const char of checkRest) {
       if (!validChars.includes(char)) return null;
     }
-    result = parseInt(rest, radix);
+
+    // Use BigInt with prefix for correct parsing
+    // Note: Node/V8 may not support BigInt("-0x...") directly, so we manual negate.
+    if (radix !== 10) {
+      const prefix = radix === 16 ? '0x' : (radix === 8 ? '0o' : '0b');
+      try {
+        if (rest.startsWith('-')) {
+          result = -BigInt(prefix + rest.slice(1));
+        } else if (rest.startsWith('+')) {
+          result = BigInt(prefix + rest.slice(1));
+        } else {
+          result = BigInt(prefix + rest);
+        }
+      } catch (e) {
+        console.log('parsePrefixedNumber ERROR:', e.message, 'rest:', rest, 'radix:', radix);
+        return null;
+      }
+    } else {
+      try {
+        result = BigInt(rest);
+      } catch (e) {
+        return null;
+      }
+    }
   }
 
-  if (isNaN(result)) {
+  // BigInt can never be NaN; only check for Number
+  if (typeof result === 'number' && isNaN(result)) {
     return null;
   }
 
   // Apply exactness
-  if (exactness === 'inexact' && Number.isInteger(result)) {
-    result = result + 0.0; // Ensure it's a float (though in JS all numbers are floats)
-  } else if (exactness === 'exact' && Number.isInteger(result)) {
-    // Already exact, return as-is or as Rational
+  if (exactness === 'inexact') {
+    // Force to Number (inexact)
+    return typeof result === 'bigint' ? Number(result) : result;
+  } else if (exactness === 'exact' && typeof result === 'number' && Number.isInteger(result)) {
+    // Convert float integer to BigInt
+    return BigInt(result);
+  } else if (typeof result === 'bigint') {
+    // Already exact BigInt
     return result;
   }
 
@@ -796,7 +865,7 @@ const NAMED_CHARACTERS = {
 /**
  * Parses a character literal (after the #\ prefix).
  * @param {string} name - The character name or literal
- * @returns {string} Single-character string (Scheme character)
+ * @returns {Char} Scheme character object
  */
 function readCharacter(name) {
   // Hex escape: #\x41 -> 'A'
@@ -805,18 +874,18 @@ function readCharacter(name) {
     if (isNaN(codePoint)) {
       throw new Error(`Invalid character hex escape: #\\${name}`);
     }
-    return String.fromCodePoint(codePoint);
+    return new Char(codePoint);
   }
 
   // Named character: #\newline -> '\n'
   const lower = name.toLowerCase();
   if (NAMED_CHARACTERS.hasOwnProperty(lower)) {
-    return NAMED_CHARACTERS[lower];
+    return new Char(NAMED_CHARACTERS[lower].codePointAt(0));
   }
 
   // Single character: #\a -> 'a'
   if (name.length === 1) {
-    return name;
+    return new Char(name.codePointAt(0));
   }
 
   throw new Error(`Unknown character name: #\\${name}`);

@@ -26,6 +26,7 @@ import { compileSyntaxRules } from './syntax_rules.js';
 import { Cons, cons, list, car, cdr, mapCons, toArray, cadr, cddr, caddr, cdddr, cadddr } from './cons.js';
 import { Rational } from '../primitives/rational.js';
 import { Complex } from '../primitives/complex.js';
+import { Char } from '../primitives/char_class.js';
 import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, globalScopeRegistry, freshScope, getCurrentDefiningScopes, GLOBAL_SCOPE_ID, registerBindingWithCurrentScopes, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
 
@@ -87,6 +88,9 @@ export function analyze(exp, syntacticEnv = null) {
   if (typeof exp === 'number') {
     return new LiteralNode(exp);
   }
+  if (typeof exp === 'bigint') {
+    return new LiteralNode(exp);
+  }
   if (typeof exp === 'string') {
     return new LiteralNode(exp);
   }
@@ -99,8 +103,8 @@ export function analyze(exp, syntacticEnv = null) {
   if (exp instanceof Uint8Array) {
     return new LiteralNode(exp);
   }
-  // Rational and Complex numbers are self-evaluating
-  if (exp instanceof Rational || exp instanceof Complex) {
+  // Rational, Complex and Char are self-evaluating
+  if (exp instanceof Rational || exp instanceof Complex || exp instanceof Char) {
     return new LiteralNode(exp);
   }
 

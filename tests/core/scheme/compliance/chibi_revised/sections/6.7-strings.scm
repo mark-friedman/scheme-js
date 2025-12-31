@@ -6,8 +6,8 @@
   (test #t (string? ""))
   (test #t (string? " "))
   (test #f (string? 'a))
-  ;; SKIP: JS uses single-char strings for characters - no type disjointness
-  (test-skip "(string? #\\a) disjointness" "JS characters are single-char strings")
+  ;; Type disjointness: characters are not strings
+  (test #f (string? #\a))
 
   (test 3 (string-length (make-string 3)))
   (test "---" (make-string 3 #\-))

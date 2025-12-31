@@ -11,6 +11,7 @@ import {
     assertArity,
     isChar
 } from '../interpreter/type_check.js';
+import { Char } from './char_class.js';
 import { SchemeRangeError } from '../interpreter/errors.js';
 
 // =============================================================================
@@ -37,7 +38,7 @@ function compareChars(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllChars(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        if (!compare(args[i], args[i + 1])) return false;
+        if (!compare(args[i].toString(), args[i + 1].toString())) return false;
     }
     return true;
 }
@@ -53,8 +54,8 @@ function compareCiChars(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllChars(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        const a = args[i].toLowerCase();
-        const b = args[i + 1].toLowerCase();
+        const a = args[i].toString().toLowerCase();
+        const b = args[i + 1].toString().toLowerCase();
         if (!compare(a, b)) return false;
     }
     return true;
@@ -168,7 +169,7 @@ export const charPrimitives = {
      */
     'char-alphabetic?': (char) => {
         assertChar('char-alphabetic?', 1, char);
-        return /^[a-zA-Z]$/.test(char);
+        return /^[a-zA-Z]$/.test(char.toString());
     },
 
     /**
@@ -178,7 +179,7 @@ export const charPrimitives = {
      */
     'char-numeric?': (char) => {
         assertChar('char-numeric?', 1, char);
-        return /^[0-9]$/.test(char);
+        return /^[0-9]$/.test(char.toString());
     },
 
     /**
@@ -188,7 +189,7 @@ export const charPrimitives = {
      */
     'char-whitespace?': (char) => {
         assertChar('char-whitespace?', 1, char);
-        return /^\s$/.test(char);
+        return /^\s$/.test(char.toString());
     },
 
     /**
@@ -198,7 +199,8 @@ export const charPrimitives = {
      */
     'char-upper-case?': (char) => {
         assertChar('char-upper-case?', 1, char);
-        return char === char.toUpperCase() && char !== char.toLowerCase();
+        const s = char.toString();
+        return s === s.toUpperCase() && s !== s.toLowerCase();
     },
 
     /**
@@ -208,7 +210,8 @@ export const charPrimitives = {
      */
     'char-lower-case?': (char) => {
         assertChar('char-lower-case?', 1, char);
-        return char === char.toLowerCase() && char !== char.toUpperCase();
+        const s = char.toString();
+        return s === s.toLowerCase() && s !== s.toUpperCase();
     },
 
     // -------------------------------------------------------------------------
@@ -222,7 +225,7 @@ export const charPrimitives = {
      */
     'char->integer': (char) => {
         assertChar('char->integer', 1, char);
-        return char.codePointAt(0);
+        return BigInt(char.valueOf());
     },
 
     /**
@@ -232,10 +235,11 @@ export const charPrimitives = {
      */
     'integer->char': (n) => {
         assertInteger('integer->char', 1, n);
-        if (n < 0 || n > 0x10FFFF) {
+        const code = Number(n);
+        if (code < 0 || code > 0x10FFFF) {
             throw new SchemeRangeError('integer->char', 'code point', 0, 0x10FFFF, n);
         }
-        return String.fromCodePoint(n);
+        return new Char(code);
     },
 
     // -------------------------------------------------------------------------
@@ -249,7 +253,7 @@ export const charPrimitives = {
      */
     'char-upcase': (char) => {
         assertChar('char-upcase', 1, char);
-        return char.toUpperCase();
+        return new Char(char.toString().toUpperCase().codePointAt(0));
     },
 
     /**
@@ -259,7 +263,7 @@ export const charPrimitives = {
      */
     'char-downcase': (char) => {
         assertChar('char-downcase', 1, char);
-        return char.toLowerCase();
+        return new Char(char.toString().toLowerCase().codePointAt(0));
     },
 
     /**
@@ -270,7 +274,7 @@ export const charPrimitives = {
      */
     'char-foldcase': (char) => {
         assertChar('char-foldcase', 1, char);
-        return char.toLowerCase();
+        return new Char(char.toString().toLowerCase().codePointAt(0));
     },
 
     // -------------------------------------------------------------------------
@@ -285,9 +289,9 @@ export const charPrimitives = {
      */
     'digit-value': (char) => {
         assertChar('digit-value', 1, char);
-        const code = char.charCodeAt(0);
+        const code = char.valueOf();
         if (code >= 48 && code <= 57) { // '0' to '9'
-            return code - 48;
+            return BigInt(code - 48);
         }
         return false;
     }

@@ -2,6 +2,7 @@
 
 ;; (test 21 (eval '(* 7 3) (scheme-report-environment 5)))
 
+;; null-environment 5 now works with BigInt version
 (test 20
     (let ((f (eval '(lambda (f x) (f x x)) (null-environment 5))))
       (f + 10)))

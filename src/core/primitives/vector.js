@@ -14,6 +14,7 @@ import {
     assertChar,
     isChar
 } from '../interpreter/type_check.js';
+import { Char } from './char_class.js';
 import { SchemeRangeError, SchemeError } from '../interpreter/errors.js';
 
 // =============================================================================
@@ -29,8 +30,11 @@ import { SchemeRangeError, SchemeError } from '../interpreter/errors.js';
  * @returns {[number, number]} Validated [start, end]
  */
 function validateRange(procName, vec, start, end) {
-    const s = start === undefined ? 0 : start;
-    const e = end === undefined ? vec.length : end;
+    let s = start === undefined ? 0 : start;
+    let e = end === undefined ? vec.length : end;
+
+    if (typeof s === 'bigint') s = Number(s);
+    if (typeof e === 'bigint') e = Number(e);
 
     if (!Number.isInteger(s) || s < 0 || s > vec.length) {
         throw new SchemeRangeError(procName, 'start', 0, vec.length, s);
@@ -67,11 +71,12 @@ export const vectorPrimitives = {
      * @returns {Array} New vector.
      */
     'make-vector': (k, fill) => {
-        assertInteger('make-vector', 1, k);
-        if (k < 0) {
-            throw new SchemeRangeError('make-vector', 'size', 0, Infinity, k);
+        const size = typeof k === 'bigint' ? Number(k) : k;
+        assertInteger('make-vector', 1, size);
+        if (size < 0) {
+            throw new SchemeRangeError('make-vector', 'size', 0, Infinity, size);
         }
-        return new Array(k).fill(fill);
+        return new Array(size).fill(fill);
     },
 
     // -------------------------------------------------------------------------
@@ -91,12 +96,12 @@ export const vectorPrimitives = {
 
     /**
      * Returns the length of a vector.
-     * @param {Array} vec - A vector.
-     * @returns {number} Length.
+     * @param {Array} vec - Vector.
+     * @returns {bigint} Length (exact integer).
      */
     'vector-length': (vec) => {
         assertVector('vector-length', 1, vec);
-        return vec.length;
+        return BigInt(vec.length);
     },
 
     /**
@@ -107,8 +112,8 @@ export const vectorPrimitives = {
      */
     'vector-ref': (vec, k) => {
         assertVector('vector-ref', 1, vec);
-        assertIndex('vector-ref', k, vec.length);
-        return vec[k];
+        const idx = assertIndex('vector-ref', k, vec.length);
+        return vec[idx];
     },
 
     /**
@@ -120,8 +125,8 @@ export const vectorPrimitives = {
      */
     'vector-set!': (vec, k, obj) => {
         assertVector('vector-set!', 1, vec);
-        assertIndex('vector-set!', k, vec.length);
-        vec[k] = obj;
+        const idx = assertIndex('vector-set!', k, vec.length);
+        vec[idx] = obj;
         return null;
     },
 
@@ -177,26 +182,28 @@ export const vectorPrimitives = {
         assertInteger('vector-copy!', 2, at);
         assertVector('vector-copy!', 3, from);
 
-        if (at < 0 || at > to.length) {
-            throw new SchemeRangeError('vector-copy!', 'at', 0, to.length, at);
+        let destStart = typeof at === 'bigint' ? Number(at) : at;
+
+        if (destStart < 0 || destStart > to.length) {
+            throw new SchemeRangeError('vector-copy!', 'at', 0, to.length, destStart);
         }
 
         const [s, e] = validateRange('vector-copy!', from, start, end);
         const count = e - s;
 
-        if (at + count > to.length) {
-            throw new SchemeRangeError('vector-copy!', 'range', 0, to.length - at, count);
+        if (destStart + count > to.length) {
+            throw new SchemeRangeError('vector-copy!', 'range', 0, to.length - destStart, count);
         }
 
         // Handle overlapping copies correctly
-        if (to === from && at > s && at < e) {
+        if (to === from && destStart > s && destStart < e) {
             // Copy backwards to avoid overwriting
             for (let i = count - 1; i >= 0; i--) {
-                to[at + i] = from[s + i];
+                to[destStart + i] = from[s + i];
             }
         } else {
             for (let i = 0; i < count; i++) {
-                to[at + i] = from[s + i];
+                to[destStart + i] = from[s + i];
             }
         }
         return null;
@@ -259,7 +266,7 @@ export const vectorPrimitives = {
                 );
             }
         });
-        return slice.join('');
+        return slice.map(c => c.toString()).join('');
     },
 
     /**
@@ -271,8 +278,11 @@ export const vectorPrimitives = {
      */
     'string->vector': (str, start, end) => {
         assertString('string->vector', 1, str);
-        const s = start === undefined ? 0 : start;
-        const e = end === undefined ? str.length : end;
+        let s = start === undefined ? 0 : start;
+        let e = end === undefined ? str.length : end;
+
+        if (typeof s === 'bigint') s = Number(s);
+        if (typeof e === 'bigint') e = Number(e);
 
         if (!Number.isInteger(s) || s < 0 || s > str.length) {
             throw new SchemeRangeError('string->vector', 'start', 0, str.length, s);
@@ -281,7 +291,12 @@ export const vectorPrimitives = {
             throw new SchemeRangeError('string->vector', 'end', s, str.length, e);
         }
 
-        return str.slice(s, e).split('');
+        const substr = str.slice(s, e);
+        const chars = [];
+        for (const char of substr) {
+            chars.push(new Char(char.codePointAt(0)));
+        }
+        return chars;
     }
 };
 

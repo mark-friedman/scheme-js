@@ -9,6 +9,7 @@ import { intern, Symbol } from '../interpreter/symbol.js';
 import { list, toArray } from '../interpreter/cons.js';
 import { Values } from '../interpreter/values.js';
 import { parseNumber } from '../interpreter/reader.js';
+import { Char } from './char_class.js';
 import {
     assertType,
     assertString,
@@ -20,6 +21,8 @@ import {
     isChar
 } from '../interpreter/type_check.js';
 import { SchemeRangeError, SchemeError } from '../interpreter/errors.js';
+import { Complex } from './complex.js';
+import { Rational } from './rational.js';
 
 // =============================================================================
 // Helper Functions
@@ -86,8 +89,8 @@ function compareCiStrings(procName, compare, args) {
  * @returns {[number, number]} Validated [start, end]
  */
 function validateRange(procName, str, start, end) {
-    const s = start === undefined ? 0 : start;
-    const e = end === undefined ? str.length : end;
+    const s = start === undefined ? 0 : Number(start);
+    const e = end === undefined ? str.length : Number(end);
 
     if (!Number.isInteger(s) || s < 0 || s > str.length) {
         throw new SchemeRangeError(procName, 'start', 0, str.length, s);
@@ -129,15 +132,16 @@ export const stringPrimitives = {
      */
     'make-string': (k, char) => {
         assertInteger('make-string', 1, k);
-        if (k < 0) {
+        const len = Number(k);
+        if (len < 0) {
             throw new SchemeRangeError('make-string', 'length', 0, Infinity, k);
         }
         if (char !== undefined) {
             assertChar('make-string', 2, char);
-            return char.repeat(k);
+            return char.toString().repeat(len);
         }
         // R7RS: unspecified fill, we use space
-        return ' '.repeat(k);
+        return ' '.repeat(len);
     },
 
     /**
@@ -147,7 +151,7 @@ export const stringPrimitives = {
      */
     'string': (...chars) => {
         assertAllChars('string', chars);
-        return chars.join('');
+        return chars.map(c => c.toString()).join('');
     },
 
     // -------------------------------------------------------------------------
@@ -157,11 +161,11 @@ export const stringPrimitives = {
     /**
      * Returns the length of a string.
      * @param {string} str - String
-     * @returns {number} Length
+     * @returns {bigint} Length (exact integer)
      */
     'string-length': (str) => {
         assertString('string-length', 1, str);
-        return str.length;
+        return BigInt(str.length);
     },
 
     /**
@@ -173,10 +177,11 @@ export const stringPrimitives = {
     'string-ref': (str, k) => {
         assertString('string-ref', 1, str);
         assertInteger('string-ref', 2, k);
-        if (k < 0 || k >= str.length) {
+        const idx = Number(k);
+        if (idx < 0 || idx >= str.length) {
             throw new SchemeRangeError('string-ref', 'index', 0, str.length - 1, k);
         }
-        return str[k];
+        return new Char(str.codePointAt(idx));
     },
 
     /**
@@ -337,7 +342,11 @@ export const stringPrimitives = {
     'string->list': (str, start, end) => {
         assertString('string->list', 1, str);
         const [s, e] = validateRange('string->list', str, start, end);
-        const chars = str.slice(s, e).split('');
+        const substr = str.slice(s, e);
+        const chars = [];
+        for (const char of substr) {
+            chars.push(new Char(char.codePointAt(0)));
+        }
         return list(...chars);
     },
 
@@ -357,7 +366,7 @@ export const stringPrimitives = {
                 );
             }
         });
-        return chars.join('');
+        return chars.map(c => c.toString()).join('');
     },
 
     /**
@@ -369,21 +378,47 @@ export const stringPrimitives = {
     'number->string': (num, radix) => {
         assertNumber('number->string', 1, num);
 
-        // R7RS special value formatting
+        const r = radix === undefined ? 10 : Number(radix);
+        if (radix !== undefined) {
+            assertInteger('number->string', 2, radix);
+            if (![2, 8, 10, 16].includes(r)) {
+                throw new SchemeRangeError('number->string', 'radix', 2, 16, radix);
+            }
+        }
+
+        // Complex numbers have their own toString
+        if (num instanceof Complex) {
+            return num.toString(r);
+        }
+
+        // Rational numbers have their own toString
+        if (num instanceof Rational) {
+            return num.toString(r);
+        }
+
+        // R7RS special value formatting for inexact real numbers
         if (typeof num === 'number') {
             if (num === Infinity) return '+inf.0';
             if (num === -Infinity) return '-inf.0';
             if (Number.isNaN(num)) return '+nan.0';
+            // Handle negative zero specially - JS toString() loses the sign
+            if (Object.is(num, -0)) return '-0.0';
+
+            // For inexact integer-valued numbers, show decimal point
+            // to indicate inexactness per R7RS
+            let s = num.toString(r);
+            if (Number.isInteger(num) && !s.includes('.') && !s.includes('e')) {
+                s += '.0';
+            }
+            return s;
         }
 
-        if (radix !== undefined) {
-            assertInteger('number->string', 2, radix);
-            if (![2, 8, 10, 16].includes(radix)) {
-                throw new SchemeRangeError('number->string', 'radix', 2, 16, radix);
-            }
-            return num.toString(radix);
+        // BigInt (exact integers) - no decimal point
+        if (typeof num === 'bigint') {
+            return num.toString(r);
         }
-        return num.toString();
+
+        return num.toString(r);
     },
 
     /**
@@ -394,7 +429,7 @@ export const stringPrimitives = {
      */
     'string->number': (str, radix) => {
         assertString('string->number', 1, str);
-        const r = radix === undefined ? 10 : radix;
+        const r = radix === undefined ? 10 : Number(radix);
         if (radix !== undefined) {
             assertInteger('string->number', 2, radix);
         }

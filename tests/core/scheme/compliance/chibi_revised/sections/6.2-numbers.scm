@@ -11,8 +11,8 @@
   (test #t (integer? 8/4))
 
   (test #t (exact-integer? 32))
-  (test-skip "JS limitation: integers match floats"
-    (test #f (exact-integer? 32.0)))
+  ;; 32.0 is a Number (inexact), so not an exact-integer
+  (test #f (exact-integer? 32.0))
   (test #f (exact-integer? 32/5))
 
   (test #t (finite? 3))
@@ -125,8 +125,8 @@
   (test 0 (expt 0 1))
 
   (test 1 (inexact 1))
-  (test-skip "JS limitation: exact/inexact integers"
-    (test #t (inexact? (inexact 1))))
+  ;; This now works: BigInt is exact, Number is inexact
+  (test #t (inexact? (inexact 1)))
   (test 1 (exact 1))
   (test #t (exact? (exact 1)))
 

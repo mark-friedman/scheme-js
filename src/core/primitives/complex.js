@@ -7,33 +7,63 @@
 
 import { Rational } from './rational.js';
 
-// Helper for component arithmetic (Number/Rational)
+// Helper for component arithmetic (Number/Rational/BigInt)
 function add(a, b) {
-    if (a instanceof Rational) return a.add(b);
-    if (b instanceof Rational) return b.add(a);
+    // Basic types (BigInt/Number)
+    if (typeof a === 'bigint' && typeof b === 'bigint') return a + b;
+    if (typeof a === 'number' && typeof b === 'number') return a + b;
+
+    // Rational handling
+    if (a instanceof Rational) return a.add(b instanceof Rational ? b : Rational.fromNumber(b));
+    if (b instanceof Rational) return b.add(a instanceof Rational ? a : Rational.fromNumber(a));
+
+    // Mixed BigInt/Number -> Inexact
+    if (typeof a === 'bigint') return Number(a) + b;
+    if (typeof b === 'bigint') return a + Number(b);
+
     return a + b;
 }
 
 function sub(a, b) {
-    if (a instanceof Rational) return a.subtract(b);
-    if (b instanceof Rational) return b.negate().add(a);
+    if (typeof a === 'bigint' && typeof b === 'bigint') return a - b;
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+
+    if (a instanceof Rational) return a.subtract(b instanceof Rational ? b : Rational.fromNumber(b));
+    if (b instanceof Rational) return Rational.fromNumber(a).subtract(b);
+
+    if (typeof a === 'bigint') return Number(a) - b;
+    if (typeof b === 'bigint') return a - Number(b);
     return a - b;
 }
 
 function mul(a, b) {
-    if (a instanceof Rational) return a.multiply(b);
-    if (b instanceof Rational) return b.multiply(a);
+    if (typeof a === 'bigint' && typeof b === 'bigint') return a * b;
+    if (typeof a === 'number' && typeof b === 'number') return a * b;
+
+    if (a instanceof Rational) return a.multiply(b instanceof Rational ? b : Rational.fromNumber(b));
+    if (b instanceof Rational) return b.multiply(a instanceof Rational ? a : Rational.fromNumber(a));
+
+    if (typeof a === 'bigint') return Number(a) * b;
+    if (typeof b === 'bigint') return a * Number(b);
     return a * b;
 }
 
 function div(a, b) {
-    if (a instanceof Rational) return a.divide(b);
-    if (b instanceof Rational) return Rational.fromNumber(a).divide(b); // a is number
+    if (a instanceof Rational) return a.divide(b instanceof Rational ? b : Rational.fromNumber(b));
+    if (b instanceof Rational) return Rational.fromNumber(a).divide(b);
+
+    if (typeof a === 'bigint' && typeof b === 'bigint') {
+        return new Rational(a, b);
+    }
+
+    if (typeof a === 'bigint') a = Number(a);
+    if (typeof b === 'bigint') b = Number(b);
     return a / b;
 }
 
 function toNum(n) {
     if (n instanceof Rational) return n.toNumber();
+    if (typeof n === 'bigint') return Number(n);
     return n;
 }
 
@@ -43,20 +73,38 @@ function toNum(n) {
 
 /**
  * Represents a complex number with real and imaginary parts.
+ * Parts can be Number, BigInt, or Rational.
  */
 export class Complex {
     /**
      * Creates a new Complex number.
-     * @param {number} real - The real part
-     * @param {number} imag - The imaginary part
+     * @param {number|bigint|Rational} real - The real part
+     * @param {number|bigint|Rational} imag - The imaginary part
+     * @param {boolean} [exact] - Whether this complex number is exact. 
+     *                           Calculated from parts if omitted.
      */
-    constructor(real, imag) {
-        if ((typeof real !== 'number' && !(real instanceof Rational)) ||
-            (typeof imag !== 'number' && !(imag instanceof Rational))) {
-            throw new Error('Complex: real and imaginary parts must be numbers or Rationals');
+    constructor(real, imag, exact) {
+        const validType = (x) => typeof x === 'number' || typeof x === 'bigint' || x instanceof Rational;
+        if (!validType(real) || !validType(imag)) {
+            throw new Error('Complex: real and imaginary parts must be numbers, BigInts, or Rationals');
         }
-        this.real = real;
-        this.imag = imag;
+
+        // Determine exactness if not provided
+        // Is exact if and only if both parts are exact.
+        const partsExact = (typeof real !== 'number') && (typeof imag !== 'number') &&
+            (!(real instanceof Rational) || real.exact !== false) &&
+            (!(imag instanceof Rational) || imag.exact !== false);
+
+        this.exact = exact === undefined ? partsExact : exact;
+
+        // If inexact, coerce parts to Number (JavaScript floats) for consistency
+        if (!this.exact) {
+            this.real = toNum(real);
+            this.imag = toNum(imag);
+        } else {
+            this.real = real;
+            this.imag = imag;
+        }
     }
 
     /**
@@ -71,14 +119,17 @@ export class Complex {
 
     /**
      * Creates a Complex from polar coordinates.
-     * @param {number} magnitude - Magnitude (r)
-     * @param {number} angle - Angle in radians (θ)
+     * @param {number|bigint|Rational} magnitude - Magnitude (r)
+     * @param {number|bigint|Rational} angle - Angle in radians (θ)
      * @returns {Complex}
      */
     static fromPolar(magnitude, angle) {
+        // Convert to Number for trigonometric operations
+        const r = toNum(magnitude);
+        const theta = toNum(angle);
         return new Complex(
-            magnitude * Math.cos(angle),
-            magnitude * Math.sin(angle)
+            r * Math.cos(theta),
+            r * Math.sin(theta)
         );
     }
 
@@ -87,12 +138,15 @@ export class Complex {
      * @returns {boolean}
      */
     isReal() {
-        return this.imag === 0 || (this.imag instanceof Rational && this.imag.numerator === 0);
+        return this.imag === 0 || this.imag === 0n ||
+            (this.imag instanceof Rational && this.imag.numerator === 0n);
     }
 
     isImaginary() {
-        const rZero = this.real === 0 || (this.real instanceof Rational && this.real.numerator === 0);
-        const iZero = this.imag === 0 || (this.imag instanceof Rational && this.imag.numerator === 0);
+        const rZero = this.real === 0 || this.real === 0n ||
+            (this.real instanceof Rational && this.real.numerator === 0n);
+        const iZero = this.imag === 0 || this.imag === 0n ||
+            (this.imag instanceof Rational && this.imag.numerator === 0n);
         return rZero && !iZero;
     }
 
@@ -141,57 +195,68 @@ export class Complex {
      */
     toString(radix = 10) {
         // Format a component with R7RS special value formatting
-        const formatComp = (n, includeSign = true) => {
-            if (typeof n === 'number') {
-                if (n === Infinity) return includeSign ? '+inf.0' : 'inf.0';
-                if (n === -Infinity) return '-inf.0';
-                if (Number.isNaN(n)) return includeSign ? '+nan.0' : 'nan.0';
-                if (n >= 0 && includeSign) return '+' + n.toString(radix);
-                return n.toString(radix);
+        const formatComp = (val, isImag, includeSign = true) => {
+            let s;
+            if (typeof val === 'bigint') {
+                s = val.toString(radix);
+            } else if (val instanceof Rational) {
+                s = val.toString(radix);
+            } else if (typeof val === 'number') {
+                // Always include + for positive infinity in R7RS format
+                if (val === Infinity) return '+inf.0';
+                if (val === -Infinity) return '-inf.0';
+                if (Number.isNaN(val)) return '+nan.0';
+                // Handle negative zero - JS toString() loses the sign
+                if (Object.is(val, -0)) return '-0.0';
+
+                s = val.toString(radix);
+                // Ensure inexactness is visible
+                if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
+                    s += '.0';
+                }
+            } else {
+                s = String(val);
             }
-            if (n instanceof Rational) {
-                const str = n.toString(radix);
-                // Rational toString is "n/d" or "-n/d"
-                if (!str.startsWith('-') && includeSign) return '+' + str;
-                return str;
+
+            if (includeSign && !s.startsWith('-') && !s.startsWith('+')) {
+                return '+' + s;
             }
-            return String(n);
+            return s;
         };
 
-        // For the real part, we force the sign if it's a special value (inf/nan),
-        // because R7RS requires +inf.0 / +nan.0, but formatComp(..., false) gives inf.0
-        const realIsSpecial = typeof this.real === 'number' && !Number.isFinite(this.real);
-        const realStr = formatComp(this.real, realIsSpecial);
-
-        // For imaginary part, we calculate the sign separate from the magnitude
-        // so we don't want formatComp to include the sign for the magnitude.
+        const realStr = formatComp(this.real, false, false);
 
         let imagVal = this.imag;
-        let signStr = '+';
+        let signStr = '';
 
-        // Normalize sign for imaginary part
-        if (typeof imagVal === 'number') {
-            if (imagVal < 0) {
-                imagVal = -imagVal;
-                signStr = '-';
-            }
-        } else if (imagVal instanceof Rational) {
-            if (imagVal.numerator < 0) {
-                imagVal = imagVal.negate();
-                signStr = '-';
-            }
+        // Check if imaginary part is a special value (inf/nan) - they carry their own sign
+        const isSpecialImag = typeof imagVal === 'number' &&
+            (imagVal === Infinity || imagVal === -Infinity || Number.isNaN(imagVal));
+
+        if (isSpecialImag) {
+            // Special values format themselves with their sign
+            const imagStr = formatComp(imagVal, true, false);
+            // imagStr will be "+inf.0", "-inf.0", or "+nan.0"
+            return `${realStr}${imagStr}i`;
         }
 
-        // Handle pure imaginary unit 'i'
-        let imagStr = formatComp(imagVal, false);
+        // Regular handling for non-special values
+        if (typeof imagVal === 'number' && imagVal < 0) {
+            imagVal = -imagVal;
+            signStr = '-';
+        } else if (imagVal instanceof Rational && imagVal.numerator < 0n) {
+            imagVal = imagVal.negate();
+            signStr = '-';
+        } else if (typeof imagVal === 'bigint' && imagVal < 0n) {
+            imagVal = -imagVal;
+            signStr = '-';
+        } else {
+            signStr = '+';
+        }
 
-        // If the magnitude is 1, suppress the '1' before 'i'
-        // But be careful: '1' vs '1.0' vs '1/1'
-        // R7RS: 1i -> +i. 1.0i -> +1.0i (retains exactness/precision marking if we had it)
-        // With Rational(1,1), toString says "1".
-        // With Number 1, toString says "1".
-        // With Number 1.0, toString says "1" (JS limitation).
+        let imagStr = formatComp(imagVal, true, false);
 
+        // Suppress 1 for pure imaginary unit i/1.0i/etc if it's exact integer 1
         if (imagStr === '1') {
             imagStr = '';
         }
@@ -265,12 +330,21 @@ export class Complex {
     equals(other) {
         if (!(other instanceof Complex)) return false;
         const eq = (a, b) => {
+            if (a === b) return true;
             if (a instanceof Rational && b instanceof Rational) return a.equals(b);
             if (a instanceof Rational) return a.equals(Rational.fromNumber(b));
             if (b instanceof Rational) return Rational.fromNumber(a).equals(b);
+
+            // Numeric comparison for mixed BigInt/Number
+            if (typeof a === 'bigint' && typeof b === 'number') return Number(a) === b;
+            if (typeof a === 'number' && typeof b === 'bigint') return a === Number(b);
+
+            // NaN handling
+            if (typeof a === 'number' && typeof b === 'number' && isNaN(a) && isNaN(b)) return true;
+
             return a === b;
         };
-        return eq(this.real, other.real) && eq(this.imag, other.imag);
+        return (this.exact === other.exact) && eq(this.real, other.real) && eq(this.imag, other.imag);
     }
 }
 

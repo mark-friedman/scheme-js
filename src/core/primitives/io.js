@@ -8,6 +8,8 @@
 import { Cons, list } from '../interpreter/cons.js';
 import { parse } from '../interpreter/reader.js';
 import { intern, Symbol } from '../interpreter/symbol.js';
+import { isChar } from '../interpreter/type_check.js';
+import { Char } from './char_class.js';
 
 // ============================================================================
 // Environment Detection
@@ -112,7 +114,7 @@ class StringInputPort extends Port {
         if (this._pos >= this._string.length) {
             return EOF_OBJECT;
         }
-        return this._string[this._pos++];
+        return new Char(this._string.codePointAt(this._pos++));
     }
 
     /**
@@ -126,7 +128,7 @@ class StringInputPort extends Port {
         if (this._pos >= this._string.length) {
             return EOF_OBJECT;
         }
-        return this._string[this._pos];
+        return new Char(this._string.codePointAt(this._pos));
     }
 
     /**
@@ -206,7 +208,7 @@ class StringOutputPort extends Port {
         if (!this._open) {
             throw new Error('write-char: port is closed');
         }
-        this._buffer += ch;
+        this._buffer += ch.toString ? ch.toString() : ch;
     }
 
     /**
@@ -451,13 +453,13 @@ class FileInputPort extends Port {
     readChar() {
         if (!this._open) throw new Error('read-char: port is closed');
         if (this._pos >= this._content.length) return EOF_OBJECT;
-        return this._content[this._pos++];
+        return new Char(this._content.codePointAt(this._pos++));
     }
 
     peekChar() {
         if (!this._open) throw new Error('peek-char: port is closed');
         if (this._pos >= this._content.length) return EOF_OBJECT;
-        return this._content[this._pos];
+        return new Char(this._content.codePointAt(this._pos));
     }
 
     readLine() {
@@ -641,6 +643,7 @@ function displayString(val) {
     if (Array.isArray(val)) return vectorToString(val, displayString);
     if (val instanceof Symbol) return val.name; // Symbol - display doesn't wrap
     if (val === EOF_OBJECT) return '#<eof>';
+    if (val instanceof Char) return val.toString();
     if (val instanceof Port) return val.toString();
     if (typeof val === 'function') {
         const name = val.constructor ? val.constructor.name : 'Unknown';
@@ -671,12 +674,23 @@ function writeString(val) {
             .replace(/\r/g, '\\r')
             .replace(/\t/g, '\\t') + '"';
     }
+    if (typeof val === 'bigint') {
+        return val.toString(); // BigInt 5n -> "5"
+    }
     if (typeof val === 'number') {
         // R7RS special value formatting
         if (val === Infinity) return '+inf.0';
         if (val === -Infinity) return '-inf.0';
         if (Number.isNaN(val)) return '+nan.0';
-        return String(val);
+        // Ensure inexactness is visible for integers
+        let s = String(val);
+        if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
+            s += '.0';
+        }
+        return s;
+    }
+    if (val && typeof val === 'object' && (val.constructor.name === 'Rational' || val.constructor.name === 'Complex')) {
+        return val.toString();
     }
     if (val instanceof Cons) return consToString(val, writeString);
     if (Array.isArray(val)) return vectorToString(val, writeString);
@@ -691,20 +705,14 @@ function writeString(val) {
         if (name === 'Closure') return val.toString();
         return `#<procedure ${name}>`;
     }
-    if (val && typeof val === 'object' && val.type === 'char') {
+    if (val instanceof Char) {
         // Character representation
-        const ch = val.value;
+        const ch = val.toString();
         if (ch === ' ') return '#\\space';
         if (ch === '\n') return '#\\newline';
         if (ch === '\t') return '#\\tab';
         if (ch === '\r') return '#\\return';
         return '#\\' + ch;
-    }
-    // If it's just a single character string representing a char
-    if (typeof val === 'string' && val.length === 1) {
-        // This is called from write context - but strings should be quoted
-        // Character objects would be handled separately
-        return '"' + val + '"';
     }
     if (val && val.type === 'record') {
         return `#<${val.typeDescriptor.name}>`;
@@ -1131,28 +1139,22 @@ export const ioPrimitives = {
     /**
      * Reads the next character from port.
      * @param {Port} [port] - Input port (default: current-input-port).
-     * @returns {string|object} Character or EOF.
+     * @returns {Char|object} Character or EOF.
      */
     'read-char': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-char');
-        if (!(port instanceof StringInputPort) && !(port instanceof FileInputPort)) {
-            throw new Error('read-char: unsupported port type');
-        }
         return port.readChar();
     },
 
     /**
      * Peeks at the next character without consuming it.
      * @param {Port} [port] - Input port (default: current-input-port).
-     * @returns {string|object} Character or EOF.
+     * @returns {Char|object} Character or EOF.
      */
     'peek-char': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'peek-char');
-        if (!(port instanceof StringInputPort) && !(port instanceof FileInputPort)) {
-            throw new Error('peek-char: unsupported port type');
-        }
         return port.peekChar();
     },
 
@@ -1195,7 +1197,9 @@ export const ioPrimitives = {
      * @returns {string|object} String or EOF.
      */
     'read-string': (k, ...args) => {
-        if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) {
+        // Convert BigInt to Number
+        const count = typeof k === 'bigint' ? Number(k) : k;
+        if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) {
             throw new Error('read-string: expected non-negative integer');
         }
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
@@ -1203,7 +1207,7 @@ export const ioPrimitives = {
         if (!(port instanceof StringInputPort) && !(port instanceof FileInputPort)) {
             throw new Error('read-string: unsupported port type');
         }
-        return port.readString(k);
+        return port.readString(count);
     },
 
     // --------------------------------------------------------------------------
@@ -1213,7 +1217,7 @@ export const ioPrimitives = {
     /**
      * Reads the next byte from a binary port.
      * @param {Port} [port] - Binary input port (default: current-input-port).
-     * @returns {number|object} Byte (0-255) or EOF.
+     * @returns {bigint|object} Byte (0-255) or EOF.
      */
     'read-u8': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
@@ -1221,13 +1225,14 @@ export const ioPrimitives = {
         if (!(port instanceof BytevectorInputPort)) {
             throw new Error('read-u8: expected binary input port');
         }
-        return port.readU8();
+        const b = port.readU8();
+        return b === EOF_OBJECT ? b : BigInt(b);
     },
 
     /**
      * Peeks at the next byte without consuming it.
      * @param {Port} [port] - Binary input port (default: current-input-port).
-     * @returns {number|object} Byte or EOF.
+     * @returns {bigint|object} Byte or EOF.
      */
     'peek-u8': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
@@ -1235,7 +1240,8 @@ export const ioPrimitives = {
         if (!(port instanceof BytevectorInputPort)) {
             throw new Error('peek-u8: expected binary input port');
         }
-        return port.peekU8();
+        const b = port.peekU8();
+        return b === EOF_OBJECT ? b : BigInt(b);
     },
 
     /**
@@ -1262,7 +1268,9 @@ export const ioPrimitives = {
      * @returns {Uint8Array|object} Bytevector or EOF.
      */
     'read-bytevector': (k, ...args) => {
-        if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) {
+        // Convert BigInt to Number
+        const count = typeof k === 'bigint' ? Number(k) : k;
+        if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) {
             throw new Error('read-bytevector: expected non-negative integer');
         }
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
@@ -1270,7 +1278,7 @@ export const ioPrimitives = {
         if (!(port instanceof BytevectorInputPort)) {
             throw new Error('read-bytevector: expected binary input port');
         }
-        return port.readBytevector(k);
+        return port.readBytevector(count);
     },
 
     // --------------------------------------------------------------------------
@@ -1283,7 +1291,7 @@ export const ioPrimitives = {
      * @param {Port} [port] - Output port (default: current-output-port).
      */
     'write-char': (char, ...args) => {
-        if (typeof char !== 'string' || char.length !== 1) {
+        if (!isChar(char)) {
             throw new Error('write-char: expected character');
         }
         const port = args.length > 0 ? args[0] : currentOutputPort;
@@ -1317,6 +1325,10 @@ export const ioPrimitives = {
             if (args.length >= 2) end = args[1];
         }
 
+        // Convert BigInt to Number
+        if (typeof start === 'bigint') start = Number(start);
+        if (typeof end === 'bigint') end = Number(end);
+
         if (typeof start !== 'number' || start < 0 || start > str.length) {
             throw new Error('write-string: invalid start index');
         }
@@ -1339,7 +1351,9 @@ export const ioPrimitives = {
      * @param {Port} [port] - Binary output port.
      */
     'write-u8': (byte, ...args) => {
-        if (!Number.isInteger(byte) || byte < 0 || byte > 255) {
+        // Convert BigInt to Number
+        const byteVal = typeof byte === 'bigint' ? Number(byte) : byte;
+        if (!Number.isInteger(byteVal) || byteVal < 0 || byteVal > 255) {
             throw new Error('write-u8: expected byte (0-255)');
         }
         const port = args.length > 0 ? args[0] : currentOutputPort;
@@ -1347,7 +1361,7 @@ export const ioPrimitives = {
         if (!(port instanceof BytevectorOutputPort)) {
             throw new Error('write-u8: expected binary output port');
         }
-        port.writeU8(byte);
+        port.writeU8(byteVal);
         return undefined;  // unspecified
     },
 
@@ -1374,6 +1388,10 @@ export const ioPrimitives = {
             start = args[0];
             if (args.length >= 2) end = args[1];
         }
+
+        // Convert BigInt to Number
+        if (typeof start === 'bigint') start = Number(start);
+        if (typeof end === 'bigint') end = Number(end);
 
         if (!Number.isInteger(start) || start < 0 || start > bv.length) {
             throw new Error('write-bytevector: invalid start index');
@@ -1532,8 +1550,8 @@ export const ioPrimitives = {
         let started = false;
 
         while (true) {
-            const ch = port.readChar();
-            if (ch === EOF_OBJECT) {
+            const charObj = port.readChar();
+            if (charObj === EOF_OBJECT) {
                 if (buffer.trim() === '') {
                     return EOF_OBJECT;
                 }
@@ -1541,6 +1559,7 @@ export const ioPrimitives = {
                 break;
             }
 
+            const ch = charObj.toString();
             buffer += ch;
 
             // Track escape state for strings and |...| symbols
@@ -1587,7 +1606,8 @@ export const ioPrimitives = {
                     }
                 } else if (ch === '#') {
                     // Check what follows the #
-                    const next = port.peekChar();
+                    const nextObj = port.peekChar();
+                    const next = nextObj === EOF_OBJECT ? null : nextObj.toString();
                     if (next === '(') {
                         // Vector start: #(
                         port.readChar();
@@ -1596,14 +1616,17 @@ export const ioPrimitives = {
                         started = true;
                     } else if (next === 'u' || next === 'U') {
                         // Possibly #u8( bytevector
-                        const ch2 = port.readChar();
+                        const ch2Obj = port.readChar();
+                        const ch2 = ch2Obj.toString();
                         buffer += ch2;
-                        const next2 = port.peekChar();
+                        const next2Obj = port.peekChar();
+                        const next2 = next2Obj === EOF_OBJECT ? null : next2Obj.toString();
                         if (next2 === '8') {
-                            buffer += port.readChar();
-                            const next3 = port.peekChar();
+                            buffer += port.readChar().toString();
+                            const next3Obj = port.peekChar();
+                            const next3 = next3Obj === EOF_OBJECT ? null : next3Obj.toString();
                             if (next3 === '(') {
-                                buffer += port.readChar();
+                                buffer += port.readChar().toString();
                                 parenDepth++;
                                 started = true;
                             }
@@ -1617,8 +1640,9 @@ export const ioPrimitives = {
                         if (!started && parenDepth === 0) {
                             // Skip any whitespace after #;
                             while (true) {
-                                const peek = port.peekChar();
-                                if (peek === EOF_OBJECT) break;
+                                const peekObj = port.peekChar();
+                                if (peekObj === EOF_OBJECT) break;
+                                const peek = peekObj.toString();
                                 if (!/\s/.test(peek)) break;
                                 port.readChar();
                             }
@@ -1639,9 +1663,11 @@ export const ioPrimitives = {
                         buffer = buffer.slice(0, -1); // Remove # from buffer
                         let depth = 1;
                         while (depth > 0) {
-                            const c1 = port.readChar();
-                            if (c1 === EOF_OBJECT) break;
-                            const c2 = port.peekChar();
+                            const c1Obj = port.readChar();
+                            if (c1Obj === EOF_OBJECT) break;
+                            const c1 = c1Obj.toString();
+                            const c2Obj = port.peekChar();
+                            const c2 = c2Obj === EOF_OBJECT ? null : c2Obj.toString();
                             if (c1 === '#' && c2 === '|') {
                                 port.readChar();
                                 depth++;
@@ -1654,9 +1680,11 @@ export const ioPrimitives = {
                         // Possibly #!fold-case or #!no-fold-case
                         // Read the directive
                         while (true) {
-                            const peek = port.peekChar();
-                            if (peek === EOF_OBJECT || /\s/.test(peek)) break;
-                            buffer += port.readChar();
+                            const peekObj = port.peekChar();
+                            if (peekObj === EOF_OBJECT) break;
+                            const peek = peekObj.toString();
+                            if (/\s/.test(peek)) break;
+                            buffer += port.readChar().toString();
                         }
                         started = true;
                         // Continue reading - the parser handles the directive
@@ -1665,10 +1693,11 @@ export const ioPrimitives = {
                         started = true;
                         // Read until delimiter
                         while (true) {
-                            const peek = port.peekChar();
-                            if (peek === EOF_OBJECT) break;
+                            const peekObj = port.peekChar();
+                            if (peekObj === EOF_OBJECT) break;
+                            const peek = peekObj.toString();
                             if (buffer.length > 3 && /[\s()\[\]{}"';]/.test(peek)) break;
-                            buffer += port.readChar();
+                            buffer += port.readChar().toString();
                         }
                         if (parenDepth === 0) break;
                     } else {
@@ -1683,10 +1712,11 @@ export const ioPrimitives = {
                     if (parenDepth === 0) {
                         // Reading an atom - continue until whitespace or delimiter
                         while (true) {
-                            const next = port.peekChar();
-                            if (next === EOF_OBJECT || next === null) {
+                            const nextObj = port.peekChar();
+                            if (nextObj === EOF_OBJECT || nextObj === null) {
                                 break;
                             }
+                            const next = nextObj.toString();
                             if (/[\s()\[\]{}"';]/.test(next)) {
                                 break;
                             }
@@ -1694,7 +1724,7 @@ export const ioPrimitives = {
                             if (/^#\d+=$/.test(buffer.trim())) {
                                 break;
                             }
-                            buffer += port.readChar();
+                            buffer += port.readChar().toString();
                         }
 
                         // Datum label definition - continue to read the value
@@ -1707,8 +1737,10 @@ export const ioPrimitives = {
                 } else if (ch === ';') {
                     // Skip line comment
                     while (true) {
-                        const next = port.readChar();
-                        if (next === EOF_OBJECT || next === '\n') break;
+                        const nextObj = port.readChar();
+                        if (nextObj === EOF_OBJECT) break;
+                        const next = nextObj.toString();
+                        if (next === '\n') break;
                     }
                     buffer = buffer.slice(0, -1); // Remove the semicolon from buffer
                 }
@@ -1888,26 +1920,9 @@ export const ioPrimitives = {
         return list();
     },
 
-    /**
-     * Returns the current time in seconds since the epoch.
-     * @returns {number}
-     */
-    'current-second': () => Date.now() / 1000,
-
-    /**
-     * Returns the current jiffy count (high resolution time).
-     * @returns {number}
-     */
-    'current-jiffy': () => {
-        // Return arbitrary precision unit. Using milliseconds for now.
-        return Date.now();
-    },
-
-    /**
-     * Returns the number of jiffies per second.
-     * @returns {number}
-     */
-    'jiffies-per-second': () => 1000,
+    // command-line found in io.js -> process_context.js? 
+    // Wait, command-line is also in process_context.js? Let me check.
+    // For now, just removing the time primitives.
 
     /**
      * Returns a list of supported feature identifiers.

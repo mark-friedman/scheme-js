@@ -107,7 +107,9 @@ export function getControlPrimitives(interpreter) {
          */
         'null-environment': (version) => {
             // R7RS only requires this for version 5 (R5RS)
-            if (version !== 5) {
+            // Convert BigInt to Number for comparison
+            const v = typeof version === 'bigint' ? Number(version) : version;
+            if (v !== 5) {
                 throw new Error(`null-environment: unsupported version ${version}`);
             }
             // Return the global environment for now - proper implementation

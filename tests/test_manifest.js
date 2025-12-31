@@ -80,6 +80,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/define_values_tests.scm',
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',
+    'tests/core/scheme/bigint_exactness_tests.scm',
 ];
 
 /**

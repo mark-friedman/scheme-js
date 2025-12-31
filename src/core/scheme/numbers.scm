@@ -151,15 +151,20 @@
 ;;  * @param {...number} rest - Additional numbers.
 ;;  * @returns {number} Maximum value.
 ;;  */
+(define (m-max x . rest)
+  (if (null? rest)
+      x
+      (let ((res (apply m-max rest)))
+        (let ((m (if (> x res) x res)))
+          ;; R7RS: If any argument is inexact, result is inexact
+          (if (or (inexact? x) (inexact? res))
+              (inexact m)
+              m)))))
+
 (define (max x . rest)
   (if (not (number? x))
       (error "max: expected number" x))
-  (if (null? rest)
-      x
-      (let ((next (car rest)))
-        (if (not (number? next))
-            (error "max: expected number" next))
-        (apply max (if (> x next) x next) (cdr rest)))))
+  (apply m-max x rest))
 
 ;; /**
 ;;  * Minimum. Returns the smallest of its arguments.
@@ -168,15 +173,20 @@
 ;;  * @param {...number} rest - Additional numbers.
 ;;  * @returns {number} Minimum value.
 ;;  */
+(define (m-min x . rest)
+  (if (null? rest)
+      x
+      (let ((res (apply m-min rest)))
+        (let ((m (if (< x res) x res)))
+          ;; R7RS: If any argument is inexact, result is inexact
+          (if (or (inexact? x) (inexact? res))
+              (inexact m)
+              m)))))
+
 (define (min x . rest)
   (if (not (number? x))
       (error "min: expected number" x))
-  (if (null? rest)
-      x
-      (let ((next (car rest)))
-        (if (not (number? next))
-            (error "min: expected number" next))
-        (apply min (if (< x next) x next) (cdr rest)))))
+  (apply m-min x rest))
 
 ;; =============================================================================
 ;; GCD/LCM
@@ -238,30 +248,4 @@
                   (loop (quotient (* result b) (%gcd2 result b))
                         (cdr rest))))))))
 
-;; =============================================================================
-;; Rounding (R7RS banker's rounding)
-;; =============================================================================
 
-;; /**
-;;  * Round to nearest integer (R7RS: round half to even).
-;;
-;;  * @param {number} x - Number to round.
-;;  * @returns {number} Rounded value.
-;;  */
-(define (round x)
-  (if (not (number? x))
-      (error "round: expected number" x))
-  ;; Convert rational to inexact for arithmetic operations
-  (let ((x (if (rational? x) (inexact x) x)))
-    (let* ((fl (floor x))
-           (frac (- x fl)))
-      (cond
-        ((< frac 0.5) fl)
-        ((> frac 0.5) (+ fl 1))
-        ;; frac = 0.5, round to even
-        ((even? (inexact->exact fl)) fl)
-        (else (+ fl 1))))))
-
-;; Helper for round: convert inexact to exact (truncate to integer)
-(define (inexact->exact x)
-  (truncate x))

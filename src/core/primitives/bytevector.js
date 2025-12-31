@@ -50,23 +50,26 @@ function assertBytevector(procName, argPos, value) {
  */
 function assertByte(procName, argPos, value) {
     assertInteger(procName, argPos, value);
-    if (value < 0 || value > 255) {
-        throw new SchemeRangeError(procName, 'byte', 0, 255, value);
+    // Convert BigInt to Number for comparison
+    const numVal = typeof value === 'bigint' ? Number(value) : value;
+    if (numVal < 0 || numVal > 255) {
+        throw new SchemeRangeError(procName, 'byte', 0, 255, numVal);
     }
-    return value;
+    return numVal;
 }
 
 /**
  * Validates and returns start/end range for bytevector operations.
+ * Handles BigInt by converting to Number.
  * @param {string} procName - Procedure name
  * @param {Uint8Array} bv - The bytevector
- * @param {number|undefined} start - Start index (default 0)
- * @param {number|undefined} end - End index (default bv.length)
+ * @param {number|bigint|undefined} start - Start index (default 0)
+ * @param {number|bigint|undefined} end - End index (default bv.length)
  * @returns {[number, number]} Validated [start, end]
  */
 function validateRange(procName, bv, start, end) {
-    const s = start === undefined ? 0 : start;
-    const e = end === undefined ? bv.length : end;
+    let s = start === undefined ? 0 : (typeof start === 'bigint' ? Number(start) : start);
+    let e = end === undefined ? bv.length : (typeof end === 'bigint' ? Number(end) : end);
 
     if (!Number.isInteger(s) || s < 0 || s > bv.length) {
         throw new SchemeRangeError(procName, 'start', 0, bv.length, s);
@@ -102,12 +105,12 @@ export const bytevectorPrimitives = {
 
     /**
      * Creates a bytevector from byte arguments.
-     * @param {...number} bytes - Bytes (0-255)
+     * @param {...number|bigint} bytes - Bytes (0-255)
      * @returns {Uint8Array} New bytevector
      */
     'bytevector': (...bytes) => {
-        bytes.forEach((b, i) => assertByte('bytevector', i + 1, b));
-        return new Uint8Array(bytes);
+        const numBytes = bytes.map((b, i) => assertByte('bytevector', i + 1, b));
+        return new Uint8Array(numBytes);
     },
 
     /**
@@ -118,13 +121,15 @@ export const bytevectorPrimitives = {
      */
     'make-bytevector': (k, fill = 0) => {
         assertInteger('make-bytevector', 1, k);
-        if (k < 0) {
-            throw new SchemeRangeError('make-bytevector', 'length', 0, Infinity, k);
+        // Convert BigInt to Number for array size
+        const size = typeof k === 'bigint' ? Number(k) : k;
+        if (size < 0) {
+            throw new SchemeRangeError('make-bytevector', 'length', 0, Infinity, size);
         }
-        assertByte('make-bytevector', 2, fill);
-        const bv = new Uint8Array(k);
-        if (fill !== 0) {
-            bv.fill(fill);
+        const fillVal = assertByte('make-bytevector', 2, fill);
+        const bv = new Uint8Array(size);
+        if (fillVal !== 0) {
+            bv.fill(fillVal);
         }
         return bv;
     },
@@ -136,11 +141,11 @@ export const bytevectorPrimitives = {
     /**
      * Returns the length of a bytevector.
      * @param {Uint8Array} bv - A bytevector.
-     * @returns {number} Length.
+     * @returns {bigint} Length (exact integer).
      */
     'bytevector-length': (bv) => {
         assertBytevector('bytevector-length', 1, bv);
-        return bv.length;
+        return BigInt(bv.length);
     },
 
     /**
@@ -152,10 +157,12 @@ export const bytevectorPrimitives = {
     'bytevector-u8-ref': (bv, k) => {
         assertBytevector('bytevector-u8-ref', 1, bv);
         assertInteger('bytevector-u8-ref', 2, k);
-        if (k < 0 || k >= bv.length) {
-            throw new SchemeRangeError('bytevector-u8-ref', 'index', 0, bv.length - 1, k);
+        // Convert BigInt to Number for indexing
+        const idx = typeof k === 'bigint' ? Number(k) : k;
+        if (idx < 0 || idx >= bv.length) {
+            throw new SchemeRangeError('bytevector-u8-ref', 'index', 0, bv.length - 1, idx);
         }
-        return bv[k];
+        return BigInt(bv[idx]);
     },
 
     /**
@@ -168,11 +175,13 @@ export const bytevectorPrimitives = {
     'bytevector-u8-set!': (bv, k, byte) => {
         assertBytevector('bytevector-u8-set!', 1, bv);
         assertInteger('bytevector-u8-set!', 2, k);
-        if (k < 0 || k >= bv.length) {
-            throw new SchemeRangeError('bytevector-u8-set!', 'index', 0, bv.length - 1, k);
+        // Convert BigInt to Number for indexing
+        const idx = typeof k === 'bigint' ? Number(k) : k;
+        if (idx < 0 || idx >= bv.length) {
+            throw new SchemeRangeError('bytevector-u8-set!', 'index', 0, bv.length - 1, idx);
         }
-        assertByte('bytevector-u8-set!', 3, byte);
-        bv[k] = byte;
+        const byteVal = assertByte('bytevector-u8-set!', 3, byte);
+        bv[idx] = byteVal;
         return undefined;
     },
 
@@ -207,25 +216,28 @@ export const bytevectorPrimitives = {
         assertInteger('bytevector-copy!', 2, at);
         assertBytevector('bytevector-copy!', 3, from);
 
-        if (at < 0 || at > to.length) {
-            throw new SchemeRangeError('bytevector-copy!', 'at', 0, to.length, at);
+        // Convert BigInt to Number for indexing
+        const atIdx = typeof at === 'bigint' ? Number(at) : at;
+
+        if (atIdx < 0 || atIdx > to.length) {
+            throw new SchemeRangeError('bytevector-copy!', 'at', 0, to.length, atIdx);
         }
 
         const [s, e] = validateRange('bytevector-copy!', from, start, end);
         const count = e - s;
 
-        if (at + count > to.length) {
-            throw new SchemeRangeError('bytevector-copy!', 'destination', 0, to.length - at, count);
+        if (atIdx + count > to.length) {
+            throw new SchemeRangeError('bytevector-copy!', 'destination', 0, to.length - atIdx, count);
         }
 
         // Handle overlapping regions by copying to temp first if needed
-        if (to === from && at > s && at < e) {
+        if (to === from && atIdx > s && atIdx < e) {
             // Overlapping forward copy - need temp buffer
             const temp = from.slice(s, e);
-            to.set(temp, at);
+            to.set(temp, atIdx);
         } else {
             // Safe direct copy
-            to.set(from.subarray(s, e), at);
+            to.set(from.subarray(s, e), atIdx);
         }
 
         return undefined;
@@ -275,8 +287,9 @@ export const bytevectorPrimitives = {
      */
     'string->utf8': (str, start, end) => {
         assertString('string->utf8', 1, str);
-        const s = start === undefined ? 0 : start;
-        const e = end === undefined ? str.length : end;
+        // Convert BigInt to Number for indexing
+        let s = start === undefined ? 0 : (typeof start === 'bigint' ? Number(start) : start);
+        let e = end === undefined ? str.length : (typeof end === 'bigint' ? Number(end) : end);
 
         if (!Number.isInteger(s) || s < 0 || s > str.length) {
             throw new SchemeRangeError('string->utf8', 'start', 0, str.length, s);

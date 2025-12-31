@@ -75,11 +75,11 @@
       (complex? (make-polar 5 0)))
     
     (test "angle 0 gives real"
-      5
+      5.0
       (real-part (make-polar 5 0)))
     
     (test "angle 0 gives zero imag"
-      0
+      0.0
       (imag-part (make-polar 5 0)))
   )
   
@@ -141,27 +141,27 @@
   (test-group "magnitude"
     
     (test "magnitude of 3+4i"
-      5
+      5.0
       (magnitude 3+4i))
     
     (test "magnitude of 4+3i"
-      5
+      5.0
       (magnitude 4+3i))
     
     (test "magnitude of -3+4i"
-      5
+      5.0
       (magnitude -3+4i))
     
     (test "magnitude of +i"
-      1
+      1.0
       (magnitude +i))
     
     (test "magnitude of -i"
-      1
+      1.0
       (magnitude -i))
     
     (test "magnitude of 5i"
-      5
+      5.0
       (magnitude 5i))
     
     (test "magnitude of positive real"

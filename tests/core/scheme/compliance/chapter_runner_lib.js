@@ -6,7 +6,7 @@
  */
 
 import { createInterpreter } from '../../../../src/core/interpreter/index.js';
-import { run } from '../../../harness/helpers.js';
+import { run, deepEqual, safeStringify, toJS } from '../../../harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../../../../src/core/interpreter/library_loader.js';
 import { analyze } from '../../../../src/core/interpreter/analyzer.js';
 
@@ -72,10 +72,13 @@ export async function createChapterComplianceRunner(fileLoader, logger) {
 
     // Inject native reporter
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
-        if (passed) {
-            logger.pass(`${name} (Expected: ${expected}, Got: ${actual})`);
+        // Double check with deepEqual in JS to catch false negatives (e.g. BigInt vs Number)
+        const trulyPassed = passed || deepEqual(toJS(expected), toJS(actual));
+
+        if (trulyPassed) {
+            logger.pass(`${name}`);
         } else {
-            logger.fail(`${name} (Expected: ${expected}, Got: ${actual})`);
+            logger.fail(`${name} (Expected: ${safeStringify(expected)}, Got: ${safeStringify(actual)})`);
         }
     });
 
@@ -102,9 +105,10 @@ export async function createChapterComplianceRunner(fileLoader, logger) {
             const result = run(interpreter, '(test-report)');
 
             // Get counts before resetting
-            const passes = run(interpreter, '*test-passes*');
-            const failures = run(interpreter, '*test-failures*');
-            const skips = run(interpreter, '*test-skips*');
+            // Cast to Number as Scheme integers are now BigInt
+            const passes = Number(run(interpreter, '*test-passes*'));
+            const failures = Number(run(interpreter, '*test-failures*'));
+            const skips = Number(run(interpreter, '*test-skips*'));
 
             // Reset counters for next chapter
             run(interpreter, '(set! *test-failures* 0)');

@@ -59,7 +59,7 @@ export function skip(logger, description, reason) {
     logger.skip(`${description} (Reason: ${reason})`);
 }
 
-function toJS(val) {
+export function toJS(val) {
     if (val === null) return null;
     if (val instanceof Cons || (val && val.car !== undefined && val.cdr !== undefined)) {
         // Handle Cons (duck typing to be safe against module loading issues)
@@ -87,11 +87,24 @@ function toJS(val) {
     if (Array.isArray(val)) {
         return val.map(toJS);
     }
+    if (val && typeof val === 'object' && val.constructor &&
+        (val.constructor.name === 'Char' || val.constructor.name === 'Rational' || val.constructor.name === 'Complex')) {
+        return val.toString();
+    }
     return val;
 }
 
-function deepEqual(a, b) {
+export function deepEqual(a, b) {
     if (a === b) return true;
+
+    // Handle BigInt vs Number comparison
+    if (typeof a === 'bigint' && typeof b === 'number') {
+        return Number(a) === b;
+    }
+    if (typeof a === 'number' && typeof b === 'bigint') {
+        return a === Number(b);
+    }
+
     if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) return false;
 
     if (Array.isArray(a) && Array.isArray(b)) {
@@ -102,9 +115,12 @@ function deepEqual(a, b) {
     return false; // Objects not supported for now
 }
 
-function safeStringify(obj) {
+export function safeStringify(obj) {
     try {
-        return JSON.stringify(obj);
+        // Custom replacer to handle BigInt
+        return JSON.stringify(obj, (key, value) =>
+            typeof value === 'bigint' ? value.toString() : value
+        );
     } catch (e) {
         return String(obj);
     }

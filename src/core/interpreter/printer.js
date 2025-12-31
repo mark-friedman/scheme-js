@@ -48,7 +48,23 @@ export function prettyPrint(val) {
     if (Array.isArray(val)) {
         return `#(${val.map(prettyPrint).join(' ')})`;
     }
-    // Numbers
+    // Handle BigInt (exact integers)
+    if (typeof val === 'bigint') {
+        return `${val}`;
+    }
+    // Handle Numbers (inexact)
+    if (typeof val === 'number') {
+        // Display inexact integers with decimal point to distinguish from exact
+        if (Number.isInteger(val) && Number.isFinite(val)) {
+            return `${val}.0`;
+        }
+        // Handle special values
+        if (val === Infinity) return '+inf.0';
+        if (val === -Infinity) return '-inf.0';
+        if (Number.isNaN(val)) return '+nan.0';
+        return `${val}`;
+    }
+    // Other objects (Rational, Complex, etc.) use their toString method
     return `${val}`;
 }
 

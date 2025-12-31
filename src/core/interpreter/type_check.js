@@ -6,6 +6,8 @@
  */
 
 import { Cons } from './cons.js';
+import { Char } from '../primitives/char_class.js';
+import { Complex } from '../primitives/complex.js';
 import { Symbol } from './symbol.js';
 import { Closure, Continuation } from './values.js';
 import { SchemeTypeError, SchemeArityError, SchemeRangeError } from './errors.js';
@@ -49,41 +51,51 @@ export function isList(x) {
 
 /**
  * Checks if value looks like a Rational (duck typing to avoid circular deps).
+ * With BigInt support, numerator/denominator are now bigint.
  * @param {*} x 
  * @returns {boolean}
  */
 function isRationalLike(x) {
-    return x && typeof x === 'object' && typeof x.numerator === 'number' && typeof x.denominator === 'number';
+    return x && typeof x === 'object' &&
+        (typeof x.numerator === 'bigint' || typeof x.numerator === 'number') &&
+        (typeof x.denominator === 'bigint' || typeof x.denominator === 'number');
 }
 
 /**
  * Checks if value looks like a Complex (duck typing to avoid circular deps).
+ * Complex parts can be Number, BigInt, or Rational.
  * @param {*} x 
  * @returns {boolean}
  */
 function isComplexLike(x) {
-    // Note: Rational also matches object with properties, but Complex has real/imag
-    return x && typeof x === 'object' && typeof x.real === 'number' && typeof x.imag === 'number';
+    if (!x || typeof x !== 'object') return false;
+    // Complex has real/imag properties
+    const hasReal = 'real' in x;
+    const hasImag = 'imag' in x;
+    return hasReal && hasImag;
 }
 
 /**
  * Checks if value is a number (primitive or Scheme numeric object).
+ * Includes BigInt (exact integers), Number (inexact), Rational, and Complex.
  * @param {*} x - Value to check
  * @returns {boolean}
  */
 export function isNumber(x) {
-    return typeof x === 'number' || isRationalLike(x) || isComplexLike(x);
+    return typeof x === 'number' || typeof x === 'bigint' || isRationalLike(x) || isComplexLike(x);
 }
 
 /**
  * Checks if value is an integer.
+ * BigInt is always an integer. Number must pass Number.isInteger().
  * @param {*} x - Value to check
  * @returns {boolean}
  */
 export function isInteger(x) {
+    if (typeof x === 'bigint') return true;
     if (typeof x === 'number') return Number.isInteger(x);
-    if (isRationalLike(x)) return x.denominator === 1;
-    if (isComplexLike(x)) return x.imag === 0 && Number.isInteger(x.real);
+    if (isRationalLike(x)) return x.denominator === 1n || x.denominator === 1;
+    if (isComplexLike(x)) return x.imag === 0 && isInteger(x.real);
     return false;
 }
 
@@ -133,14 +145,12 @@ export function isProcedure(x) {
 }
 
 /**
- * Checks if value is a character (single-character string for now).
+ * Checks if value is a character.
  * @param {*} x - Value to check
  * @returns {boolean}
  */
 export function isChar(x) {
-    // For now, characters are single-char strings
-    // This may change if we add a dedicated Char type
-    return typeof x === 'string' && x.length === 1;
+    return x instanceof Char;
 }
 
 // =============================================================================
@@ -318,17 +328,25 @@ export function assertRange(procName, argName, value, min, max) {
 
 /**
  * Asserts a valid index for a sized collection.
+ * Accepts both Number integers and BigInt.
  * @param {string} procName - Procedure name
- * @param {number} index - Index to check
+ * @param {number|bigint} index - Index to check
  * @param {number} size - Size of collection
  * @throws {SchemeRangeError}
+ * @returns {number} The index as a Number
  */
 export function assertIndex(procName, index, size) {
-    if (!Number.isInteger(index)) {
+    // Convert BigInt to Number for JS array indexing
+    let numIndex;
+    if (typeof index === 'bigint') {
+        numIndex = Number(index);
+    } else if (typeof index === 'number' && Number.isInteger(index)) {
+        numIndex = index;
+    } else {
         throw new SchemeTypeError(procName, 2, 'exact integer', index);
     }
-    if (index < 0 || index >= size) {
-        throw new SchemeRangeError(procName, 'index', 0, size - 1, index);
+    if (numIndex < 0 || numIndex >= size) {
+        throw new SchemeRangeError(procName, 'index', 0, size - 1, numIndex);
     }
-    return index;
+    return numIndex;
 }

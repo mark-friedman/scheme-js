@@ -18,31 +18,31 @@ export function runVectorExpansionTests(interpreter, logger) {
         (let ((v (vector 1 2 3 4 5)))
           (vector-fill! v 0)
           v)`);
-    assert(logger, "vector-fill! all zeros", JSON.stringify(result), JSON.stringify([0, 0, 0, 0, 0]));
+    assert(logger, "vector-fill! all zeros", result, [0n, 0n, 0n, 0n, 0n]);
 
     result = run(interpreter, `
         (let ((v (vector 1 2 3 4 5)))
           (vector-fill! v 9 1 4)
           v)`);
-    assert(logger, "vector-fill! with range", JSON.stringify(result), JSON.stringify([1, 9, 9, 9, 5]));
+    assert(logger, "vector-fill! with range", result, [1n, 9n, 9n, 9n, 5n]);
 
     result = run(interpreter, `
         (let ((v (vector 1 2 3)))
           (vector-fill! v 0 0 0)
           v)`);
-    assert(logger, "vector-fill! empty range", JSON.stringify(result), JSON.stringify([1, 2, 3]));
+    assert(logger, "vector-fill! empty range", result, [1n, 2n, 3n]);
 
     // -------------------------------------------------------------------------
     logger.title("Vector Tests - Copy");
 
     result = run(interpreter, `(vector-copy (vector 1 2 3 4 5))`);
-    assert(logger, "vector-copy full", JSON.stringify(result), JSON.stringify([1, 2, 3, 4, 5]));
+    assert(logger, "vector-copy full", result, [1n, 2n, 3n, 4n, 5n]);
 
     result = run(interpreter, `(vector-copy (vector 1 2 3 4 5) 1 4)`);
-    assert(logger, "vector-copy with range", JSON.stringify(result), JSON.stringify([2, 3, 4]));
+    assert(logger, "vector-copy with range", result, [2n, 3n, 4n]);
 
     result = run(interpreter, `(vector-copy (vector 1 2 3) 0 0)`);
-    assert(logger, "vector-copy empty range", JSON.stringify(result), JSON.stringify([]));
+    assert(logger, "vector-copy empty range", result, []);
 
     // Test that copy creates a new vector
     result = run(interpreter, `
@@ -60,43 +60,43 @@ export function runVectorExpansionTests(interpreter, logger) {
               (from (vector 10 20 30)))
           (vector-copy! to 1 from)
           to)`);
-    assert(logger, "vector-copy! basic", JSON.stringify(result), JSON.stringify([1, 10, 20, 30, 5]));
+    assert(logger, "vector-copy! basic", result, [1n, 10n, 20n, 30n, 5n]);
 
     result = run(interpreter, `
         (let ((to (vector 1 2 3 4 5))
               (from (vector 10 20 30 40 50)))
           (vector-copy! to 0 from 2 4)
           to)`);
-    assert(logger, "vector-copy! with source range", JSON.stringify(result), JSON.stringify([30, 40, 3, 4, 5]));
+    assert(logger, "vector-copy! with source range", result, [30n, 40n, 3n, 4n, 5n]);
 
     // Overlapping copy (forward)
     result = run(interpreter, `
         (let ((v (vector 1 2 3 4 5)))
           (vector-copy! v 0 v 1 4)
           v)`);
-    assert(logger, "vector-copy! overlap forward", JSON.stringify(result), JSON.stringify([2, 3, 4, 4, 5]));
+    assert(logger, "vector-copy! overlap forward", result, [2n, 3n, 4n, 4n, 5n]);
 
     // Overlapping copy (backward - tricky case)
     result = run(interpreter, `
         (let ((v (vector 1 2 3 4 5)))
           (vector-copy! v 2 v 0 3)
           v)`);
-    assert(logger, "vector-copy! overlap backward", JSON.stringify(result), JSON.stringify([1, 2, 1, 2, 3]));
+    assert(logger, "vector-copy! overlap backward", result, [1n, 2n, 1n, 2n, 3n]);
 
     // -------------------------------------------------------------------------
     logger.title("Vector Tests - Append");
 
     result = run(interpreter, `(vector-append (vector 1 2) (vector 3 4))`);
-    assert(logger, "vector-append two", JSON.stringify(result), JSON.stringify([1, 2, 3, 4]));
+    assert(logger, "vector-append two", result, [1n, 2n, 3n, 4n]);
 
     result = run(interpreter, `(vector-append (vector 1) (vector 2) (vector 3))`);
-    assert(logger, "vector-append three", JSON.stringify(result), JSON.stringify([1, 2, 3]));
+    assert(logger, "vector-append three", result, [1n, 2n, 3n]);
 
     result = run(interpreter, `(vector-append)`);
-    assert(logger, "vector-append empty", JSON.stringify(result), JSON.stringify([]));
+    assert(logger, "vector-append empty", result, []);
 
     result = run(interpreter, `(vector-append (vector 1 2 3))`);
-    assert(logger, "vector-append single", JSON.stringify(result), JSON.stringify([1, 2, 3]));
+    assert(logger, "vector-append single", result, [1n, 2n, 3n]);
 
     // -------------------------------------------------------------------------
     logger.title("Vector Tests - String Conversion");
@@ -108,10 +108,10 @@ export function runVectorExpansionTests(interpreter, logger) {
     assert(logger, "vector->string with range", result, 'bc');
 
     result = run(interpreter, `(string->vector "hello")`);
-    assert(logger, "string->vector", JSON.stringify(result), JSON.stringify(['h', 'e', 'l', 'l', 'o']));
+    assert(logger, "string->vector", result, ['h', 'e', 'l', 'l', 'o']);
 
     result = run(interpreter, `(string->vector "hello" 1 4)`);
-    assert(logger, "string->vector with range", JSON.stringify(result), JSON.stringify(['e', 'l', 'l']));
+    assert(logger, "string->vector with range", result, ['e', 'l', 'l']);
 
     // -------------------------------------------------------------------------
     logger.title("Vector Tests - List Conversion with Range");

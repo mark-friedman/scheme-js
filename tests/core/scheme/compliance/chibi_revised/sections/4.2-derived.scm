@@ -108,6 +108,7 @@
     (test 27 a)
     (test-skip "JS limitation: floating-point precision for geometric mean"
       (test 9.728 b))
+    ;; Harmonic mean now works with exact rationals
     (test 1800/497 c))
 
 

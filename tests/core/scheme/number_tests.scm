@@ -258,27 +258,27 @@
       (abs 0))
     
     (test "floor"
-      3
+      3.0
       (floor 3.7))
     
     (test "floor negative"
-      -4
+      -4.0
       (floor -3.2))
     
     (test "ceiling"
-      4
+      4.0
       (ceiling 3.2))
     
     (test "ceiling negative"
-      -3
+      -3.0
       (ceiling -3.7))
     
     (test "truncate positive"
-      3
+      3.0
       (truncate 3.9))
     
     (test "truncate negative"
-      -3
+      -3.0
       (truncate -3.9))
     
     (test "expt square"
@@ -290,7 +290,7 @@
       (expt 2 3))
     
     (test "sqrt"
-      5
+      5.0
       (sqrt 25))
     
     ;; square
@@ -304,12 +304,9 @@
     (test "exact integer" 5 (exact 5))
     (test "exact float" 5 (exact 5.0))
     
-    ;; inexact tests - SKIPPED due to JavaScript numeric limitation
-    ;; JavaScript has a single numeric type (IEEE 754 double).
-    ;; There is no native way to distinguish exact/inexact integers.
-    ;; See README.md "Exact/Inexact Numbers" for details.
-    (test-skip "(inexact? (inexact 5))"
-      "JavaScript cannot distinguish exact/inexact integers - see README.md")
+    ;; inexact tests - now work with BigInt/Number distinction
+    ;; (inexact 5) converts BigInt 5 to Number 5.0, which is inexact
+    (test "inexact integer becomes inexact" #t (inexact? (inexact 5)))
   )
   
   ;; ===== Special Values =====

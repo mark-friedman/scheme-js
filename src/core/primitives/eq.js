@@ -7,6 +7,7 @@
 import { assertBoolean, assertArity } from '../interpreter/type_check.js';
 import { Complex } from './complex.js';
 import { Rational } from './rational.js';
+import { Char } from './char_class.js';
 
 /**
  * Equality primitives exported to Scheme.
@@ -21,7 +22,8 @@ export const eqPrimitives = {
     'eq?': (a, b) => a === b,
 
     /**
-     * Equivalence comparison (handles NaN, -0, Complex, Rational).
+     * Equivalence comparison (handles NaN, -0, Complex, Rational, BigInt).
+     * R7RS: eqv? distinguishes exact from inexact numbers.
      * @param {*} a - First value.
      * @param {*} b - Second value.
      * @returns {boolean} True if a and b are equivalent.
@@ -29,22 +31,44 @@ export const eqPrimitives = {
     'eqv?': (a, b) => {
         if (Object.is(a, b)) return true;
 
+        // Exact (BigInt) is not eqv? to inexact (Number) even if values match
+        // e.g., (eqv? 5 5.0) => #f
+        if (typeof a === 'bigint' && typeof b === 'number') return false;
+        if (typeof a === 'number' && typeof b === 'bigint') return false;
+
+        // BigInt comparison
+        if (typeof a === 'bigint' && typeof b === 'bigint') {
+            return a === b;
+        }
+
         if (a instanceof Complex && b instanceof Complex) {
             return eqPrimitives['eqv?'](a.real, b.real) && eqPrimitives['eqv?'](a.imag, b.imag);
         }
 
         if (a instanceof Rational) {
             if (b instanceof Rational) {
-                return a.numerator === b.numerator && a.denominator === b.denominator;
+                return a.numerator === b.numerator &&
+                    a.denominator === b.denominator &&
+                    a.exact === b.exact;  // exactness matters for eqv?
             }
-            if (Number.isInteger(b)) {
-                return a.denominator === 1 && a.numerator === b;
+            // Rational with denominator 1 vs BigInt
+            if (typeof b === 'bigint' && a.denominator === 1n && a.exact) {
+                return a.numerator === b;
             }
         }
 
-        if (Number.isInteger(a) && b instanceof Rational) {
-            return b.denominator === 1 && b.numerator === a;
+        if (b instanceof Rational) {
+            // BigInt vs Rational with denominator 1
+            if (typeof a === 'bigint' && b.denominator === 1n && b.exact) {
+                return b.numerator === a;
+            }
         }
+
+        if (a instanceof Char && b instanceof Char) {
+            return a.codePoint === b.codePoint;
+        }
+
+        // Symbols are interned, so Object.is already covers them.
 
         return false;
     },

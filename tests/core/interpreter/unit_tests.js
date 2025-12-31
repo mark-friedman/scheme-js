@@ -1,7 +1,7 @@
 import { Environment } from '../../../src/core/interpreter/environment.js';
 import { parse } from '../../../src/core/interpreter/reader.js';
 import { analyze } from '../../../src/core/interpreter/analyzer.js';
-import { prettyPrint } from '../../../web/repl.js';
+import { prettyPrint } from '../../../src/core/interpreter/printer.js';
 import { LiteralNode, VariableNode, IfNode, LetNode, LetRecNode, LambdaNode, TailAppNode, CallCCNode, BeginNode } from '../../../src/core/interpreter/ast.js';
 import { assert, createTestLogger, createTestEnv } from '../../harness/helpers.js';
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
@@ -57,7 +57,7 @@ export function runUnitTests(interpreter, logger) {
     logger.title('Running Parser Unit Tests...');
     try {
         let ast = parse("123")[0];
-        assert(logger, "Unit: parse number", ast === 123, true);
+        assert(logger, "Unit: parse number", ast === 123n, true);
         ast = parse("foo")[0];
         assert(logger, "Unit: parse symbol", ast instanceof Symbol && ast.name === "foo", true);
         ast = parse("#t")[0];
@@ -78,9 +78,9 @@ export function runUnitTests(interpreter, logger) {
 
         const list = parse("(+ 1 2)")[0];
         assert(logger, "Unit: parse simple list (tag)", list.car instanceof Symbol && list.car.name === "+", true);
-        assert(logger, "Unit: parse simple list (arg1)", list.cdr.car === 1, true);
+        assert(logger, "Unit: parse simple list (arg1)", list.cdr.car === 1n, true);
 
-        assert(logger, "Unit: parse multiple exprs", parse("1 2")[1] === 2, true);
+        assert(logger, "Unit: parse multiple exprs", parse("1 2")[1] === 2n, true);
     } catch (e) {
         logger.fail(`Parser unit tests failed: ${e.message}`);
     }
@@ -182,8 +182,8 @@ export function runUnitTests(interpreter, logger) {
     logger.title('Running REPL Unit Tests...');
     try {
         assert(logger, "Unit: prettyPrint symbol", prettyPrint(intern("x")), "x");
-        assert(logger, "Unit: prettyPrint number", prettyPrint(123), "123");
-        assert(logger, "Unit: prettyPrint list", prettyPrint(list(1, intern("a"))), "(1 a)");
+        assert(logger, "Unit: prettyPrint number", prettyPrint(123), "123.0");
+        assert(logger, "Unit: prettyPrint list", prettyPrint(list(1, intern("a"))), "(1.0 a)");
     } catch (e) {
         logger.fail(`REPL unit tests failed: ${e.message}`);
     }

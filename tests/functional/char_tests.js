@@ -43,8 +43,8 @@ export function runCharTests(interpreter, logger) {
     assert(logger, "char? on char", result, true);
 
     result = run(interpreter, `(char? "a")`);
-    // Single-char strings ARE characters in this implementation
-    assert(logger, "char? on single-char string", result, true);
+    // Single-char strings are NOT characters anymore
+    assert(logger, "char? on single-char string", result, false);
 
     result = run(interpreter, `(char? "ab")`);
     assert(logger, "char? on multi-char string", result, false);

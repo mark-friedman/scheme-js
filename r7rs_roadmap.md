@@ -16,6 +16,8 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **JS Exception Integration:** Scheme handlers catch JavaScript errors ✅
 - **Type Predicates:** `number?`, `boolean?`, `procedure?`, `list?`, `symbol?`, `error-object?` ✅
 - **Type/Arity/Range Checking:** All primitives validate inputs ✅
+- **Full Numeric Tower:** BigInt exactness, Rationals, and Complex numbers successfully implemented and verified ✅
+- **Chibi R7RS Compliance:** **982 passed, 0 failed, 24 skipped** (97.6% pass rate) ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete
@@ -348,14 +350,18 @@ Implemented the remaining R7RS standard libraries:
 
 ---
 
-## Phase 15: Full Numeric Tower
+## Phase 15: Full Numeric Tower ✅
 **Target:** R7RS full numeric compliance
 
-| Feature | Description |
-|---------|-------------|
-| **Exact Integers** | Arbitrary-precision integers (BigInt support). |
-| **Rationals** | Fraction support (e.g. `1/3`). |
-| **Complex Numbers** | Complex number support (e.g. `3+4i`). |
+Implemented arbitrary-precision exact integers using `BigInt`, exact rationals, and complex numbers with proper exactness tracking per R7RS §6.2.
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| **Exact Integers** | ✅ | BigInt support (`5n`) |
+| **Rationals** | ✅ | Fraction support (`1/3`) |
+| **Complex Numbers** | ✅ | Complex number support (`3+4i`) |
+
+**Deliverable:** Updated numeric primitives and reader, all numeric compliance tests passing.
 
 ---
 
