@@ -72,6 +72,13 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │           ├── parameter.scm       # make-parameter, parameterize
 │           └── repl.scm            # REPL utilities
 │
+│   └── extras/                     # Extension libraries (non-R7RS)
+│       ├── primitives/             # JavaScript primitives for extensions
+│       │   └── promise.js          # Promise interop primitives
+│       └── scheme/                 # Scheme library files
+│           ├── promise.sld         # (scheme-js promise) library declaration
+│           └── promise.scm         # Promise utilities and macros
+│
 │   ├── harness/                    # Test infrastructure
 │   │   ├── helpers.js              # Test utilities (run, assert, createTestLogger)
 │   │   ├── runner.js               # Test runner logic

@@ -39,6 +39,7 @@ export const functionalTests = [
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: false },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
+    { path: 'functional/promise_interop_tests.js', fn: 'runPromiseInteropTests', async: true },
 ];
 
 // Integration Tests
@@ -80,6 +81,8 @@ export const schemeTestFiles = [
     'tests/core/scheme/define_values_tests.scm',
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',
+    // Extension library tests
+    'tests/extras/scheme/promise_tests.scm',
 ];
 
 /**

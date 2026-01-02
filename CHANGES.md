@@ -2215,3 +2215,120 @@ node repl.js -e "(+ 1 2 3)"
 # Run Chibi compliance test library load
 node repl.js -e '(load "tests/core/scheme/compliance/chibi_original/test.sld") (import (chibi test)) (test-begin "foo")'
 ```
+
+---
+
+# JavaScript Promise Interoperability (2026-01-01)
+
+Implemented transparent JavaScript Promise support via the `(scheme-js promise)` library.
+
+## New Directory Structure
+
+Created `src/extras/` for non-R7RS extension libraries:
+
+```
+src/extras/
+├── primitives/
+│   └── promise.js        # JavaScript Promise primitives
+└── scheme/
+    ├── promise.sld       # (scheme-js promise) library definition
+    └── promise.scm       # Scheme utilities and async-lambda macro
+```
+
+## Primitives Implemented
+
+| Procedure | Description |
+|-----------|-------------|
+| `js-promise?` | Predicate for JavaScript Promises |
+| `make-js-promise` | Create Promise with executor `(lambda (resolve reject) ...)` |
+| `js-promise-resolve` | Create resolved Promise |
+| `js-promise-reject` | Create rejected Promise |
+| `js-promise-then` | Attach fulfillment handler |
+| `js-promise-catch` | Attach rejection handler |
+| `js-promise-finally` | Attach finally handler |
+| `js-promise-all` | Wait for all promises |
+| `js-promise-race` | Wait for first to settle |
+| `js-promise-all-settled` | Wait for all to settle |
+| `js-promise-map` | Apply function to resolved value |
+| `js-promise-chain` | Chain promise-returning functions |
+
+## Design Decisions
+
+### CPS Approach
+Used CPS (Continuation-Passing Style) transformation rather than automatic async/await because:
+- Preserves TCO within each callback segment
+- Explicit suspension points make `call/cc` limitations visible
+- Aligns with existing trampoline architecture
+
+### `js-` Prefix Naming
+All procedures use `js-` prefix to distinguish from R7RS `(scheme lazy)` which has its own `promise?` and `make-promise` for lazy evaluation.
+
+### `call/cc` Limitations
+Documented that `call/cc` across Promise boundaries abandons the Promise chain. This is inherent to mixing JavaScript's `Promise.then()` with Scheme's continuation model.
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/extras/primitives/promise.js` | **NEW** - JavaScript Promise primitives |
+| `src/extras/scheme/promise.sld` | **NEW** - Library definition |
+| `src/extras/scheme/promise.scm` | **NEW** - Utilities and async-lambda macro |
+| `src/core/primitives/index.js` | Import and register promise primitives |
+| `repl.js` | Added `src/extras/scheme` to library search paths |
+| `tests/run_scheme_tests_lib.js` | Extended file resolver for `src/extras/scheme` |
+| `tests/extras/scheme/promise_tests.scm` | **NEW** - 18 Scheme-level tests |
+| `tests/functional/promise_interop_tests.js` | **NEW** - 6 JS<->Scheme interop tests |
+| `tests/test_manifest.js` | Added promise tests |
+| `tests/core/interpreter/unit_tests.js` | Fixed `prettyPrint` import path |
+| `README.md` | Added Promise interop documentation |
+| `r7rs_roadmap.md` | Added delimited continuations future direction |
+| `directory_structure.md` | Added `src/extras/` documentation |
+
+## Verification
+
+### Scheme Tests (18 tests)
+```
+✅ js-promise? returns #f for numbers
+✅ js-promise? returns #t for resolved promise
+✅ make-js-promise returns a Promise
+✅ js-promise-then returns a Promise
+✅ js-promise-all returns a Promise
+... (18 total)
+```
+
+### JS Interop Tests (6 tests)
+```
+✅ Scheme-created promise resolved correctly in JS (got 42)
+✅ Scheme callback doubled JS Promise value correctly (100 -> 200)
+✅ Complex chain computed correctly: 5 -> 10 -> 13
+✅ Scheme executor computed correctly: 10+20+30 = 60
+✅ promise-all with mixed sources worked correctly
+✅ Scheme caught JS rejection correctly
+```
+
+### Overall
+```
+========================================
+TEST SUMMARY: 1166 passed, 0 failed, 3 skipped
+========================================
+```
+
+## Usage Example
+
+```scheme
+(import (scheme-js promise))
+
+;; Create and work with promises
+(define p (js-promise-resolve 42))
+(js-promise-then p (lambda (x) (display x)))
+
+;; Create promise with executor
+(define p2 (make-js-promise 
+             (lambda (resolve reject)
+               (resolve (* 6 7)))))
+
+;; Chain promises
+(js-promise-chain (fetch-url "http://example.com")
+  (lambda (response) (parse-json response))
+  (lambda (data) (process data)))
+```
