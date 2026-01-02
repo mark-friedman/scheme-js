@@ -1,0 +1,1780 @@
+
+=== Running Data Structure Unit Tests... ===
+✅ PASS: Symbol: intern uniqueness (Expected: true, Got: true)
+✅ PASS: Symbol: distinct symbols (Expected: true, Got: true)
+✅ PASS: Symbol: name property (Expected: "foo", Got: "foo")
+✅ PASS: Symbol: toString (Expected: "foo", Got: "foo")
+✅ PASS: Cons: car (Expected: 1, Got: 1)
+✅ PASS: Cons: cdr (Expected: 2, Got: 2)
+✅ PASS: Cons: is pair (Expected: true, Got: true)
+✅ PASS: List: construction (Expected: true, Got: true)
+✅ PASS: List: structure car (Expected: 1, Got: 1)
+✅ PASS: List: structure cadr (Expected: 2, Got: 2)
+✅ PASS: List: structure caddr (Expected: 3, Got: 3)
+✅ PASS: List: structure null termination (Expected: null, Got: null)
+✅ PASS: Cons: toArray (Expected: [1,2,3], Got: [1,2,3])
+✅ PASS: Cons: toArray improper list length (Expected: 3, Got: 3)
+✅ PASS: Cons: toArray improper list dot (Expected: ".", Got: ".")
+✅ PASS: Cons: toArray improper list tail (Expected: 2, Got: 2)
+
+=== Running List Primitive Unit Tests... ===
+✅ PASS: Primitives: cons (Expected: true, Got: true)
+✅ PASS: Primitives: car (Expected: 1, Got: 1)
+✅ PASS: Primitives: cdr (Expected: 2, Got: 2)
+✅ PASS: Primitives: pair? true (Expected: true, Got: true)
+✅ PASS: Primitives: pair? false (Expected: false, Got: false)
+✅ PASS: Primitives: pair? false (atom) (Expected: false, Got: false)
+✅ PASS: Primitives: null? true (Expected: true, Got: true)
+✅ PASS: Primitives: null? false (Expected: false, Got: false)
+✅ PASS: Primitives: set-car! (Expected: 10, Got: 10)
+✅ PASS: Primitives: set-cdr! (Expected: 20, Got: 20)
+✅ PASS: Primitives: list (Expected: [1,2,3], Got: [1,2,3])
+✅ PASS: Primitives: append (Expected: [1,2,3,4,5], Got: [1,2,3,4,5])
+✅ PASS: Primitives: append empty (Expected: [1,2,3], Got: [1,2,3])
+✅ PASS: Primitives: append null first (Expected: [1,2,3], Got: [1,2,3])
+✅ PASS: Primitives: append improper car (Expected: 1, Got: 1)
+✅ PASS: Primitives: append improper cdr chain (Expected: 99, Got: 99)
+
+=== Running Vector Primitive Unit Tests... ===
+✅ PASS: Primitives: vector (Expected: true, Got: true)
+✅ PASS: Primitives: vector content (Expected: true, Got: true)
+✅ PASS: Primitives: make-vector (Expected: true, Got: true)
+✅ PASS: Primitives: make-vector content (Expected: true, Got: true)
+✅ PASS: Primitives: vector? true (Expected: true, Got: true)
+✅ PASS: Primitives: vector? false (list) (Expected: false, Got: false)
+✅ PASS: Primitives: vector? false (number) (Expected: false, Got: false)
+✅ PASS: Primitives: vector-length (Expected: 3, Got: 3)
+✅ PASS: Primitives: vector-ref (Expected: 2, Got: 2)
+✅ PASS: Primitives: vector-set! (Expected: 99, Got: 99)
+✅ PASS: Primitives: vector->list (Expected: [1,99,3], Got: [1,99,3])
+✅ PASS: Primitives: list->vector (Expected: 99, Got: 99)
+✅ PASS: Primitives: vector-ref out of bounds (Expected: true, Got: true)
+✅ PASS: Primitives: make-vector negative size (Expected: true, Got: true)
+
+=== Running Unit Tests... ===
+✅ PASS: Unit: env.lookup (global) (Expected: 1, Got: 1)
+✅ PASS: Unit: env.lookup (child) (Expected: 2, Got: 2)
+✅ PASS: Unit: env.lookup (shadow) (Expected: 10, Got: 10)
+✅ PASS: Unit: env.lookup (parent) (Expected: 1, Got: 1)
+✅ PASS: Unit: env.lookup (grandchild) (Expected: 3, Got: 3)
+✅ PASS: Unit: env.lookup (grandparent) (Expected: 1, Got: 1)
+✅ PASS: Unit: env.lookup (unbound) (Expected: "Unbound variable: z", Got: "Unbound variable: z")
+✅ PASS: Unit: env.set (self) (Expected: 20, Got: 20)
+✅ PASS: Unit: env.set (self, parent unchanged) (Expected: 1, Got: 1)
+✅ PASS: Unit: env.set (parent) (Expected: 10, Got: 10)
+✅ PASS: Unit: env.set (parent, child lookup) (Expected: 10, Got: 10)
+✅ PASS: Unit: env.set (unbound throws) (Expected: "set!: unbound variable: z", Got: "set!: unbound variable: z")
+
+=== Running Parser Unit Tests... ===
+✅ PASS: Unit: parse number (Expected: true, Got: true)
+✅ PASS: Unit: parse symbol (Expected: true, Got: true)
+✅ PASS: Unit: parse bool #t (Expected: true, Got: true)
+✅ PASS: Unit: parse bool #f (Expected: true, Got: true)
+✅ PASS: Unit: parse string (Expected: true, Got: true)
+✅ PASS: Unit: parse string \n (Expected: "\n", Got: "\n")
+✅ PASS: Unit: parse string \" (Expected: "\"", Got: "\"")
+✅ PASS: Unit: parse string \\ (Expected: "\\", Got: "\\")
+✅ PASS: Unit: parse simple list (tag) (Expected: true, Got: true)
+✅ PASS: Unit: parse simple list (arg1) (Expected: true, Got: true)
+✅ PASS: Unit: parse multiple exprs (Expected: true, Got: true)
+
+=== Running Reader Error Tests... ===
+✅ PASS: Reader: Unexpected ')' (Expected: "Unexpected ')'", Got: "Unexpected ')'")
+✅ PASS: Reader: Missing ')' (Expected: "Missing ')'", Got: "Missing ')'")
+✅ PASS: Reader: Unexpected EOF (Expected: "Missing ')'", Got: "Missing ')'")
+
+=== Running Analyzer Unit Tests... ===
+✅ PASS: Unit: analyze literal (Expected: true, Got: true)
+✅ PASS: Unit: analyze variable (Expected: true, Got: true)
+✅ PASS: Unit: analyze if (Expected: true, Got: true)
+✅ PASS: Unit: analyze call/cc (Expected: true, Got: true)
+✅ PASS: Unit: analyze let (Expected: true, Got: true)
+✅ PASS: Unit: analyze letrec (Expected: true, Got: true)
+✅ PASS: Unit: analyze lambda (single body) (Expected: true, Got: true)
+✅ PASS: Unit: analyze app (Expected: true, Got: true)
+✅ PASS: Unit: analyze begin (Expected: true, Got: true)
+✅ PASS: Unit: analyze lambda (multi-body) (Expected: true, Got: true)
+
+=== Running Analyzer Error Tests... ===
+✅ PASS: Analyzer: Malformed lambda (Expected: true, Got: true)
+✅ PASS: Analyzer: Malformed if (missing consequent) (Expected: true, Got: true)
+✅ PASS: Analyzer: One-armed if (Expected: true, Got: true)
+
+=== Running REPL Unit Tests... ===
+✅ PASS: Unit: prettyPrint symbol (Expected: "x", Got: "x")
+✅ PASS: Unit: prettyPrint number (Expected: "123", Got: "123")
+✅ PASS: Unit: prettyPrint list (Expected: "(1 a)", Got: "(1 a)")
+
+=== Running Winders Logic Tests... ===
+✅ PASS: Common ancestor (2 elements) (Expected: 2, Got: 2)
+✅ PASS: Common ancestor (1 element) (Expected: 1, Got: 1)
+✅ PASS: No common ancestor (Expected: 0, Got: 0)
+✅ PASS: Empty stacks (Expected: 0, Got: 0)
+✅ PASS: One empty stack (Expected: 0, Got: 0)
+
+=== Running Reader Unit Tests... ===
+✅ PASS: Skip comment line (Expected: 123, Got: 123)
+✅ PASS: Skip comment end of line (no space) (Expected: 123, Got: 123)
+✅ PASS: Skip comment end of line (with space) (Expected: 123, Got: 123)
+✅ PASS: Escaped quote (Expected: "foo \" bar", Got: "foo \" bar")
+✅ PASS: Escaped newline (Expected: "foo \n bar", Got: "foo \n bar")
+✅ PASS: Vector array (Expected: true, Got: true)
+✅ PASS: Vector content (Expected: 1, Got: 1)
+✅ PASS: Improper pair car (Expected: 1, Got: 1)
+✅ PASS: Improper pair cdr (Expected: 2, Got: 2)
+✅ PASS: Improper list 2nd element (Expected: 2, Got: 2)
+✅ PASS: Improper list tail (Expected: 3, Got: 3)
+✅ PASS: Number float (Expected: 1.5, Got: 1.5)
+✅ PASS: Number negative (Expected: -10, Got: -10)
+✅ PASS: +inf.0 (Expected: null, Got: null)
+✅ PASS: -inf.0 (Expected: null, Got: null)
+✅ PASS: +nan.0 (Expected: true, Got: true)
+✅ PASS: Bool #t (Expected: true, Got: true)
+✅ PASS: Bool #f (Expected: false, Got: false)
+✅ PASS: Multiple spaces (Expected: 1, Got: 1)
+✅ PASS: Newlines (Expected: 1, Got: 1)
+
+=== Running Syntax Rules Unit Tests... ===
+✅ PASS: Identity expansion (Expected: 10, Got: 10)
+✅ PASS: Literal match (Expected: 1, Got: 1)
+✅ PASS: Non-literal match (Expected: 2, Got: 2)
+✅ PASS: Ellipsis expansion car (Expected: "list", Got: "list")
+✅ PASS: Ellipsis expansion length (Expected: 3, Got: 3)
+
+=== Running Error Class and Type Check Unit Tests... ===
+✅ PASS: SchemeError captures message and irritants (Expected: true, Got: true)
+✅ PASS: SchemeTypeError includes proc, expected, got (Expected: true, Got: true)
+✅ PASS: SchemeArityError reports expected vs actual (Expected: true, Got: true)
+✅ PASS: SchemeArityError variadic message (Expected: true, Got: true)
+✅ PASS: SchemeRangeError includes bounds and actual (Expected: true, Got: true)
+✅ PASS: getTypeName returns correct type names (Expected: true, Got: true)
+✅ PASS: isPair identifies cons cells (Expected: true, Got: true)
+✅ PASS: isList accepts null and proper lists (Expected: true, Got: true)
+✅ PASS: isNumber identifies numbers (Expected: true, Got: true)
+✅ PASS: isInteger identifies integers (Expected: true, Got: true)
+✅ PASS: isString identifies strings (Expected: true, Got: true)
+✅ PASS: isSymbol identifies symbols (Expected: true, Got: true)
+✅ PASS: isVector identifies arrays (Expected: true, Got: true)
+✅ PASS: isProcedure identifies functions (Expected: true, Got: true)
+✅ PASS: assertPair throws SchemeTypeError for non-pair (Expected: true, Got: true)
+✅ PASS: assertPair returns pair on success (Expected: true, Got: true)
+✅ PASS: assertList accepts null as empty list (Expected: false, Got: false)
+✅ PASS: assertArity throws SchemeArityError (Expected: true, Got: true)
+✅ PASS: assertRange throws SchemeRangeError (Expected: true, Got: true)
+✅ PASS: assertIndex throws on invalid index (Expected: true, Got: true)
+
+=== Running SyntaxObject Unit Tests... ===
+✅ PASS: Interning: same scopes -> same object (Expected: true, Got: true)
+✅ PASS: Interning: order agnostic (Expected: true, Got: true)
+✅ PASS: Interning: name check (Expected: "x", Got: "x")
+✅ PASS: Interning: diff scopes -> diff object (Expected: true, Got: true)
+✅ PASS: addScope returns interned (Expected: true, Got: true)
+✅ PASS: removeScope returns interned (Expected: true, Got: true)
+✅ PASS: flipScope adds if missing (Expected: true, Got: true)
+✅ PASS: flipScope remove if present (Expected: true, Got: true)
+✅ PASS: flipScopeInExpression symbol -> SyntaxObject (Expected: true, Got: true)
+✅ PASS: flipScopeInExpression symbol scope (Expected: true, Got: true)
+✅ PASS: flipScopeInExpression flip back to Symbol (Expected: true, Got: true)
+✅ PASS: flipScopeInExpression returns interned symbol (Expected: true, Got: true)
+✅ PASS: unwrapSyntax raw string stays string (Expected: "string", Got: "string")
+✅ PASS: unwrapSyntax raw string value (Expected: "hello", Got: "hello")
+✅ PASS: unwrapSyntax SyntaxObject -> Symbol (Expected: true, Got: true)
+✅ PASS: unwrapSyntax SyntaxObject name (Expected: "foo", Got: "foo")
+✅ PASS: unwrapSyntax raw Symbol stays Symbol (Expected: true, Got: true)
+✅ PASS: unwrapSyntax number stays number (Expected: 42, Got: 42)
+✅ PASS: unwrapSyntax list car stays string (Expected: "string", Got: "string")
+✅ PASS: unwrapSyntax list car value (Expected: "a", Got: "a")
+✅ PASS: unwrapSyntax vector[0] is Symbol (Expected: true, Got: true)
+✅ PASS: unwrapSyntax vector[0] name (Expected: "x", Got: "x")
+✅ PASS: unwrapSyntax vector[1] is Symbol (Expected: true, Got: true)
+✅ PASS: unwrapSyntax mixed[0] stays string (Expected: "string", Got: "string")
+✅ PASS: unwrapSyntax mixed[1] is Symbol (Expected: true, Got: true)
+
+=== Basic Evaluation & Native Calls ===
+✅ PASS: Native '+' call (Expected: 5, Got: 5)
+✅ PASS: 'let' binding (Expected: 20, Got: 20)
+✅ PASS: 'if' expression (true) (Expected: "yes", Got: "yes")
+
+=== Tail Call Optimization (TCO) ===
+✅ PASS: TCO sum (1-5) (Expected: 15, Got: 15)
+✅ PASS: TCO deep recursion (n=2000000) (Expected: 2000001000000, Got: 2000001000000)
+
+=== Runtime Error Tests ===
+Native JavaScript error caught in interpreter: Error: Not a function: 1
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:313:15)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runCoreTests (file:///app/tests/functional/core_tests.js:54:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: Runtime: Apply non-function (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: Unbound variable: undefined-var
+    at Environment.lookup (file:///app/src/core/interpreter/environment.js:50:15)
+    at VariableNode.step (file:///app/src/core/interpreter/ast_nodes.js:71:30)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runCoreTests (file:///app/tests/functional/core_tests.js:61:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: Runtime: Unbound variable (Expected: true, Got: true)
+
+=== Edge Case Tests ===
+✅ PASS: Edge: Empty begin (Expected: null, Got: null)
+✅ PASS: Edge: If #t (Expected: 1, Got: 1)
+✅ PASS: Edge: If #f (Expected: 2, Got: 2)
+✅ PASS: Edge: set! return value (Expected: 2, Got: 2)
+✅ PASS: Edge: letrec self-reference (Expected: "undefined", Got: "undefined")
+
+=== First-Class Continuations (call/cc) ===
+✅ PASS: call/cc simple return (Expected: 11, Got: 11)
+✅ PASS: call/cc capture but don't use (Expected: 11, Got: 11)
+
+=== call/cc (Capture and Invoke) ===
+✅ PASS: call/cc capture and save (Expected: 15, Got: 15)
+✅ PASS: call/cc invoke saved continuation (Expected: 30, Got: 30)
+✅ PASS: call/cc invoke from deep stack (Expected: 60, Got: 60)
+
+=== Continuation Arity Tests ===
+✅ PASS: Continuation: 0 args (Expected: null, Got: null)
+✅ PASS: Continuation: multiple args (Expected: 1, Got: 1)
+
+=== JS Interop Tests ===
+
+=== call/cc (JS Interop) ===
+✅ PASS: JS Interop: Store k (initial run) (Expected: 105, Got: 105)
+[INFO] JS Interop: Invoking k from JS...
+✅ PASS: JS Interop: Result after JS invokes k (Expected: 125, Got: 125)
+✅ PASS: JS Interop: Capture k inside JS callback (Expected: 1010, Got: 1010)
+✅ PASS: JS Interop: Invoke k captured in callback (Expected: 1030, Got: 1030)
+✅ PASS: JS Interop: TCO from JS callback (n=5000) (Expected: 12502500, Got: 12502500)
+
+=== JS Interop Error Tests ===
+Native JavaScript error caught in interpreter: Error: Boom from JS
+    at file:///app/tests/functional/interop_tests.js:132:70
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runInteropTests (file:///app/tests/functional/interop_tests.js:135:13)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: JS Interop: Throw (Expected: "Boom from JS", Got: "Boom from JS")
+
+=== Advanced JS Interop Tests ===
+✅ PASS: Interop: Sync Round-trip (Expected: 21, Got: 21)
+✅ PASS: Interop: Non-abortive call/cc (Expected: 11, Got: 11)
+✅ PASS: Interop: Ping-Pong (N=10) (Expected: "ping-done", Got: "ping-done")
+
+=== Hybrid Interoperability Tests ===
+✅ PASS: Transparent Scheme -> JS call (Expected: "called-raw", Got: "called-raw")
+✅ PASS: Argument passed correctly (Expected: "hello", Got: "hello")
+✅ PASS: Scheme function is a JS function (Expected: "function", Got: "function")
+✅ PASS: Bridge returns correct result (Expected: 30, Got: 30)
+✅ PASS: vector-ref on raw array (Expected: 20, Got: 20)
+✅ PASS: vector-length on raw array (Expected: 3, Got: 3)
+✅ PASS: vector-set! mutated raw array (Expected: 99, Got: 99)
+✅ PASS: Vector literal is Array (Expected: true, Got: true)
+✅ PASS: Vector literal content (Expected: 1, Got: 1)
+
+=== Interleaved Stack Continuation Tests ===
+✅ PASS: Interleaved: Outer k from nested callback (Expected: 142, Got: 142)
+✅ PASS: Interleaved: Double-nested (3 levels) (Expected: 1000, Got: 1000)
+✅ PASS: Interleaved: Dynamic-wind escape value (Expected: "escaped", Got: "escaped")
+✅ PASS: Interleaved: Dynamic-wind before called (Expected: "before", Got: "before")
+✅ PASS: Interleaved: Dynamic-wind after called (Expected: "after", Got: "after")
+✅ PASS: Interleaved: Multi-k initial (Expected: 111, Got: 111)
+✅ PASS: Interleaved: Multi-k after outer-k (Expected: 201, Got: 201)
+✅ PASS: Interleaved: Multi-k inner-k return (Expected: 61, Got: 61)
+
+=== Quasiquote Tests ===
+✅ PASS: Simple Quasiquote Atom (Expected: "x", Got: "x")
+✅ PASS: Simple Quasiquote Number (Expected: 1, Got: 1)
+✅ PASS: Simple Quasiquote List (Expected: [1,2,3], Got: [1,2,3])
+✅ PASS: Unquote (Expected: [1,2,3], Got: [1,2,3])
+✅ PASS: Unquote Splicing (Expected: [1,2,3,4], Got: [1,2,3,4])
+✅ PASS: Nested Splicing (Expected: ["a",1,2,"b"], Got: ["a",1,2,"b"])
+✅ PASS: Splicing empty list (Expected: [1,2], Got: [1,2])
+✅ PASS: Nested Quasiquote (Expected: [1,["quasiquote",[2,["unquote",10]]],3], Got: [1,["quasiquote",[2,["unquote",10]]],3])
+
+=== Quote Tests ===
+✅ PASS: Quote Basic (Expected: "a", Got: "a")
+✅ PASS: Quote List (Expected: [1,2,3], Got: [1,2,3])
+✅ PASS: Quote Nested (Expected: ["a",["b","c"]], Got: ["a",["b","c"]])
+✅ PASS: Quote Shorthand (Expected: "a", Got: "a")
+✅ PASS: Quote Shorthand List (Expected: [1,2,3], Got: [1,2,3])
+
+=== Macro Tests ===
+✅ PASS: Basic Macro Expansion (my-if #t) (Expected: 10, Got: 10)
+✅ PASS: Basic Macro Expansion (my-if #f) (Expected: 20, Got: 20)
+✅ PASS: Recursive Macro Expansion (Expected: 1, Got: 1)
+✅ PASS: define-syntax parsing (Expected: null, Got: null)
+✅ PASS: Malformed define-syntax threw error
+✅ PASS: Hygiene: Ref Transparency (Standard Lib) (Expected: 1, Got: 1)
+✅ PASS: Hygiene: Ref Transparency (User Global) (Expected: 100, Got: 100)
+✅ PASS: Hygiene: Renaming (avoid capture) (Expected: 20, Got: 20)
+
+=== Syntax-Rules Tests ===
+✅ PASS: Simple Substitution (my-let) (Expected: 10, Got: 10)
+✅ PASS: Literals (else match) (Expected: 100, Got: 100)
+✅ PASS: Literals (non-else match) (Expected: 10, Got: 10)
+✅ PASS: Ellipsis (my-begin) (Expected: 3, Got: 3)
+✅ PASS: Recursive (my-and empty) (Expected: true, Got: true)
+✅ PASS: Recursive (my-and #t 10) (Expected: 10, Got: 10)
+✅ PASS: Recursive (my-and #t #f 10) (Expected: false, Got: false)
+
+=== Macro Hygiene Tests ===
+✅ PASS: Hygiene: swap! temp value (Expected: 10, Got: 10)
+✅ PASS: Hygiene: swap! other value (Expected: 5, Got: 5)
+✅ PASS: Hygiene: my-or with shadowed t (Expected: "user-t", Got: "user-t")
+✅ PASS: Hygiene: nested let outer x visible (Expected: 42, Got: 42)
+✅ PASS: Hygiene: lambda param x (Expected: 15, Got: 15)
+✅ PASS: Hygiene: multiple expansions 1 (Expected: 11, Got: 11)
+✅ PASS: Hygiene: multiple expansions 2 (Expected: 21, Got: 21)
+
+=== Define Special Form Tests ===
+✅ PASS: Basic Definition (Expected: 10, Got: 10)
+✅ PASS: Function Definition (Expected: 25, Got: 25)
+✅ PASS: Redefinition (Expected: 2, Got: 2)
+✅ PASS: Re-assignment (Expected: 20, Got: 20)
+✅ PASS: Nested Define (Shadowing) (Expected: 2, Got: 2)
+✅ PASS: Nested Define (Outer Unchanged) (Expected: 1, Got: 1)
+✅ PASS: Nested Define (Mutual Recursion) (Expected: true, Got: true)
+
+=== Eval & Apply Tests ===
+✅ PASS: apply + (1 2 3) (Expected: 6, Got: 6)
+✅ PASS: apply + 1 2 (3 4) (Expected: 10, Got: 10)
+✅ PASS: apply + () (Expected: 0, Got: 0)
+✅ PASS: apply user-func (Expected: 30, Got: 30)
+✅ PASS: eval (+ 1 2) (Expected: 3, Got: 3)
+✅ PASS: eval variable (Expected: 100, Got: 100)
+✅ PASS: eval define (Expected: 200, Got: 200)
+✅ PASS: apply TCO (Expected: "done", Got: "done")
+✅ PASS: eval TCO (Expected: "done", Got: "done")
+
+=== Running Record Interop Tests... ===
+[INFO] Reader: Dotted list parsed successfully
+✅ PASS: make-record-type returns a function (Class) (Expected: "function", Got: "function")
+✅ PASS: Class name is Point (Expected: "Point", Got: "Point")
+✅ PASS: record-constructor returns a function (Expected: "function", Got: "function")
+✅ PASS: Instance created (Expected: "object", Got: "object")
+✅ PASS: Instance is instanceof Point (Expected: true, Got: true)
+✅ PASS: point? true for instance (Expected: true, Got: true)
+✅ PASS: point? false for other (Expected: false, Got: false)
+✅ PASS: accessor x (Expected: 10, Got: 10)
+✅ PASS: accessor y (Expected: 20, Got: 20)
+✅ PASS: modifier updates value (Expected: 999, Got: 999)
+✅ PASS: JS property access x (Expected: 5, Got: 5)
+✅ PASS: JS property access y (Expected: 5, Got: 5)
+✅ PASS: Macro: constructor (Expected: true, Got: true)
+✅ PASS: Macro: accessor (Expected: "A", Got: "A")
+✅ PASS: Macro: modifier (Expected: "B", Got: "B")
+✅ PASS: Macro: JS class name (Expected: "Node", Got: "Node")
+✅ PASS: Macro: JS property val (Expected: "A", Got: "A")
+
+=== Multiple Values Tests ===
+✅ PASS: values single (Expected: 42, Got: 42)
+✅ PASS: values empty (Expected: undefined, Got: undefined)
+✅ PASS: call-with-values sum (Expected: 6, Got: 6)
+✅ PASS: call-with-values single (Expected: 84, Got: 84)
+✅ PASS: call-with-values difference (Expected: 10, Got: 10)
+✅ PASS: values in expression (Expected: 3, Got: 3)
+✅ PASS: call-with-values two sum (Expected: 300, Got: 300)
+✅ PASS: call/cc with multiple values (Expected: 6, Got: 6)
+✅ PASS: call/cc with single value (Expected: 84, Got: 84)
+✅ PASS: escaped values returns first (Expected: 1, Got: 1)
+✅ PASS: JS interop: first value from multi (Expected: 10, Got: 10)
+
+=== Running Exception Interop Tests... ===
+Native JavaScript error caught in interpreter: Error: Unhandled exception: scheme-exception
+    at RaiseNode.step (file:///app/src/core/interpreter/ast_nodes.js:611:19)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/functional/exception_interop_tests.js:23:39)
+    at runExceptionInteropTests (file:///app/tests/functional/exception_interop_tests.js:31:13)
+    at runTestModule (file:///app/tests/test_manifest.js:118:15)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: Scheme raise propagates to JS (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeError: test error
+    at errorPrimitive (file:///app/src/core/primitives/exception.js:58:21)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/functional/exception_interop_tests.js:23:39)
+    at runExceptionInteropTests (file:///app/tests/functional/exception_interop_tests.js:43:13)
+    at runTestModule (file:///app/tests/test_manifest.js:118:15)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ 1, 2, 3 ],
+  procName: null,
+  schemeStack: []
+}
+✅ PASS: SchemeError.irritants accessible in JS (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: JS boom!
+    at file:///app/tests/functional/exception_interop_tests.js:54:52
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/functional/exception_interop_tests.js:23:39)
+    at runExceptionInteropTests (file:///app/tests/functional/exception_interop_tests.js:57:13)
+    at runTestModule (file:///app/tests/test_manifest.js:118:15)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: JS Error propagates to JS caller (Expected: "JS boom!", Got: "JS boom!")
+✅ PASS: raise-continuable uses handler return (Expected: 43, Got: 43)
+Native JavaScript error caught in interpreter: SchemeError: non-continuable exception: handler returned
+    at NonContinuableFrame.step (file:///app/src/core/interpreter/ast_nodes.js:704:15)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/functional/exception_interop_tests.js:23:39)
+    at runExceptionInteropTests (file:///app/tests/functional/exception_interop_tests.js:82:13)
+    at runTestModule (file:///app/tests/test_manifest.js:118:15)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [],
+  procName: null,
+  schemeStack: []
+}
+✅ PASS: raise handler returning raises secondary exception (Expected: true, Got: true)
+✅ PASS: dynamic-wind after runs on raise-continuable (Expected: true, Got: true)
+✅ PASS: call/cc escape before raise (Expected: true, Got: true)
+✅ PASS: arithmetic with raise-continuable (Expected: 105, Got: 105)
+
+=== JS Exception Integration Tests ===
+✅ PASS: Basic: handler catches type error via escape (Expected: "caught", Got: "caught")
+✅ PASS: Error message: accessible via error-object-message (Expected: true, Got: true)
+✅ PASS: TCO: Error in tail position caught (Expected: "caught-in-tail", Got: "caught-in-tail")
+✅ PASS: call/cc: Error after capturing continuation (Expected: "error-caught", Got: "error-caught")
+✅ PASS: Nested: Inner handler catches first (Expected: "inner", Got: "inner")
+Native JavaScript error caught in interpreter: SchemeTypeError: +: expected number at argument 1, got string
+    at assertType (file:///app/src/core/interpreter/type_check.js:162:15)
+    at assertNumber (file:///app/src/core/interpreter/type_check.js:200:12)
+    at file:///app/src/core/primitives/math.js:114:34
+    at Array.forEach (<anonymous>)
+    at + (file:///app/src/core/primitives/math.js:114:14)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runJsExceptionTests (file:///app/tests/functional/js_exception_tests.js:95:13) {
+  irritants: [ 'a' ],
+  procName: '+',
+  schemeStack: [],
+  argPos: 1,
+  expectedType: 'number',
+  actualValue: 'a'
+}
+✅ PASS: No handler: Error propagates to JS (Expected: true, Got: true)
+✅ PASS: Dynamic-wind: After thunk runs before handler (Expected: true, Got: true)
+✅ PASS: JS Interop: Error from callback caught (Expected: "caught-js", Got: "caught-js")
+
+=== Character Tests - Reader ===
+✅ PASS: Char literal: #\a (Expected: "a", Got: "a")
+✅ PASS: Char literal: #\A (Expected: "A", Got: "A")
+✅ PASS: Char literal: #\space (Expected: " ", Got: " ")
+✅ PASS: Char literal: #\newline (Expected: "\n", Got: "\n")
+✅ PASS: Char literal: #\tab (Expected: "\t", Got: "\t")
+✅ PASS: Char literal: #\x41 (hex A) (Expected: "A", Got: "A")
+✅ PASS: Char literal: #\x7a (hex z) (Expected: "z", Got: "z")
+
+=== Character Tests - Predicates ===
+✅ PASS: char? on char (Expected: true, Got: true)
+✅ PASS: char? on single-char string (Expected: true, Got: true)
+✅ PASS: char? on multi-char string (Expected: false, Got: false)
+✅ PASS: char? on number (Expected: false, Got: false)
+
+=== Character Tests - Comparison ===
+✅ PASS: char=? equal (Expected: true, Got: true)
+✅ PASS: char=? not equal (Expected: false, Got: false)
+✅ PASS: char<? a < b (Expected: true, Got: true)
+✅ PASS: char<? b < a (Expected: false, Got: false)
+✅ PASS: char>? b > a (Expected: true, Got: true)
+✅ PASS: char<=? equal (Expected: true, Got: true)
+✅ PASS: char<=? less (Expected: true, Got: true)
+✅ PASS: char>=? greater (Expected: true, Got: true)
+✅ PASS: char<? variadic (a b c) (Expected: true, Got: true)
+✅ PASS: char<? variadic (a c b) false (Expected: false, Got: false)
+
+=== Character Tests - Case-Insensitive Comparison ===
+✅ PASS: char-ci=? a A (Expected: true, Got: true)
+✅ PASS: char-ci<? A b (Expected: true, Got: true)
+
+=== Character Tests - Class Predicates ===
+✅ PASS: char-alphabetic? a (Expected: true, Got: true)
+✅ PASS: char-alphabetic? 5 (Expected: false, Got: false)
+✅ PASS: char-numeric? 5 (Expected: true, Got: true)
+✅ PASS: char-numeric? a (Expected: false, Got: false)
+✅ PASS: char-whitespace? space (Expected: true, Got: true)
+✅ PASS: char-whitespace? a (Expected: false, Got: false)
+✅ PASS: char-upper-case? A (Expected: true, Got: true)
+✅ PASS: char-upper-case? a (Expected: false, Got: false)
+✅ PASS: char-lower-case? a (Expected: true, Got: true)
+
+=== Character Tests - Conversion ===
+✅ PASS: char->integer A (Expected: 65, Got: 65)
+✅ PASS: integer->char 65 (Expected: "A", Got: "A")
+✅ PASS: char-upcase a (Expected: "A", Got: "A")
+✅ PASS: char-downcase A (Expected: "a", Got: "a")
+✅ PASS: char-foldcase A (Expected: "a", Got: "a")
+
+=== Character Tests - Digit Value ===
+✅ PASS: digit-value 5 (Expected: 5, Got: 5)
+✅ PASS: digit-value 0 (Expected: 0, Got: 0)
+✅ PASS: digit-value a (not digit) (Expected: false, Got: false)
+
+=== Character Tests - Error Cases ===
+Native JavaScript error caught in interpreter: SchemeArityError: char=?: wrong number of arguments (expected at least 2, got 1)
+    at assertArity (file:///app/src/core/interpreter/type_check.js:298:15)
+    at compareChars (file:///app/src/core/primitives/char.js:37:5)
+    at char=? (file:///app/src/core/primitives/char.js:91:28)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runCharTests (file:///app/tests/functional/char_tests.js:162:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13) {
+  irritants: [],
+  procName: 'char=?',
+  schemeStack: [],
+  expectedMin: 2,
+  expectedMax: Infinity,
+  actualCount: 1
+}
+✅ PASS: char=? requires 2+ args (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeTypeError: char-upcase: expected character at argument 1, got string
+    at assertType (file:///app/src/core/interpreter/type_check.js:162:15)
+    at assertChar (file:///app/src/core/interpreter/type_check.js:284:12)
+    at char-upcase (file:///app/src/core/primitives/char.js:251:9)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runCharTests (file:///app/tests/functional/char_tests.js:169:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13) {
+  irritants: [ 'ab' ],
+  procName: 'char-upcase',
+  schemeStack: [],
+  argPos: 1,
+  expectedType: 'character',
+  actualValue: 'ab'
+}
+✅ PASS: char-upcase type check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeRangeError: integer->char: code point out of range [0, 1114111], got -1
+    at integer->char (file:///app/src/core/primitives/char.js:236:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runCharTests (file:///app/tests/functional/char_tests.js:176:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ -1 ],
+  procName: 'integer->char',
+  schemeStack: [],
+  argName: 'code point',
+  minVal: 0,
+  maxVal: 1114111,
+  actualVal: -1
+}
+✅ PASS: integer->char range check (Expected: true, Got: true)
+
+=== String Tests - Constructors ===
+✅ PASS: make-string 5 a (Expected: "aaaaa", Got: "aaaaa")
+✅ PASS: make-string 3 (default fill) (Expected: "   ", Got: "   ")
+✅ PASS: make-string 0 (Expected: "", Got: "")
+✅ PASS: string from chars (Expected: "hi", Got: "hi")
+✅ PASS: string (empty) (Expected: "", Got: "")
+
+=== String Tests - Accessors ===
+✅ PASS: string-length (Expected: 5, Got: 5)
+✅ PASS: string-length empty (Expected: 0, Got: 0)
+✅ PASS: string-ref 0 (Expected: "h", Got: "h")
+✅ PASS: string-ref 4 (Expected: "o", Got: "o")
+
+=== String Tests - Comparison ===
+✅ PASS: string=? equal (Expected: true, Got: true)
+✅ PASS: string=? not equal (Expected: false, Got: false)
+✅ PASS: string<? abc < abd (Expected: true, Got: true)
+✅ PASS: string<? abd < abc (Expected: false, Got: false)
+✅ PASS: string>? abd > abc (Expected: true, Got: true)
+✅ PASS: string<=? equal (Expected: true, Got: true)
+✅ PASS: string>=? equal (Expected: true, Got: true)
+✅ PASS: string<? variadic (a b c) (Expected: true, Got: true)
+✅ PASS: string<? variadic (a c b) false (Expected: false, Got: false)
+
+=== String Tests - Case-Insensitive Comparison ===
+✅ PASS: string-ci=? ABC abc (Expected: true, Got: true)
+✅ PASS: string-ci<? ABC abd (Expected: true, Got: true)
+
+=== String Tests - Substring and Copy ===
+✅ PASS: substring 1 4 (Expected: "ell", Got: "ell")
+✅ PASS: substring 0 5 (full) (Expected: "hello", Got: "hello")
+✅ PASS: string-append (Expected: "hello world", Got: "hello world")
+✅ PASS: string-append empty (Expected: "", Got: "")
+✅ PASS: string-copy (Expected: "hello", Got: "hello")
+✅ PASS: string-copy with range (Expected: "ell", Got: "ell")
+
+=== String Tests - Conversion ===
+✅ PASS: string->list car (Expected: "a", Got: "a")
+✅ PASS: string->list length (Expected: 5, Got: 5)
+✅ PASS: list->string (Expected: "abc", Got: "abc")
+✅ PASS: number->string 42 (Expected: "42", Got: "42")
+✅ PASS: number->string 255 hex (Expected: "ff", Got: "ff")
+✅ PASS: string->number 42 (Expected: 42, Got: 42)
+✅ PASS: string->number ff hex (Expected: 255, Got: 255)
+✅ PASS: string->number invalid (Expected: false, Got: false)
+✅ PASS: string->number +inf.0 (Expected: null, Got: null)
+
+=== String Tests - Case Conversion ===
+✅ PASS: string-upcase (Expected: "HELLO", Got: "HELLO")
+✅ PASS: string-downcase (Expected: "hello", Got: "hello")
+✅ PASS: string-foldcase (Expected: "hello", Got: "hello")
+
+=== String Tests - Immutability Errors ===
+Native JavaScript error caught in interpreter: SchemeError: string-set!: strings are immutable in this implementation for JavaScript interoperability
+    at string-set! (file:///app/src/core/primitives/string.js:187:15)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runStringTests (file:///app/tests/functional/string_tests.js:156:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [],
+  procName: 'string-set!',
+  schemeStack: []
+}
+✅ PASS: string-set! throws immutability error (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeError: string-fill!: strings are immutable in this implementation for JavaScript interoperability
+    at string-fill! (file:///app/src/core/primitives/string.js:319:15)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runStringTests (file:///app/tests/functional/string_tests.js:164:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [],
+  procName: 'string-fill!',
+  schemeStack: []
+}
+✅ PASS: string-fill! throws immutability error (Expected: true, Got: true)
+
+=== String Tests - Error Cases ===
+Native JavaScript error caught in interpreter: SchemeRangeError: string-ref: index out of range [0, 4], got 10
+    at string-ref (file:///app/src/core/primitives/string.js:177:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runStringTests (file:///app/tests/functional/string_tests.js:175:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ 10 ],
+  procName: 'string-ref',
+  schemeStack: [],
+  argName: 'index',
+  minVal: 0,
+  maxVal: 4,
+  actualVal: 10
+}
+✅ PASS: string-ref bounds check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeRangeError: string-ref: index out of range [0, 4], got -1
+    at string-ref (file:///app/src/core/primitives/string.js:177:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runStringTests (file:///app/tests/functional/string_tests.js:182:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ -1 ],
+  procName: 'string-ref',
+  schemeStack: [],
+  argName: 'index',
+  minVal: 0,
+  maxVal: 4,
+  actualVal: -1
+}
+✅ PASS: string-ref negative check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeRangeError: make-string: length out of range [0, Infinity], got -1
+    at make-string (file:///app/src/core/primitives/string.js:133:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runStringTests (file:///app/tests/functional/string_tests.js:189:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ -1 ],
+  procName: 'make-string',
+  schemeStack: [],
+  argName: 'length',
+  minVal: 0,
+  maxVal: Infinity,
+  actualVal: -1
+}
+✅ PASS: make-string negative check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeRangeError: substring: end out of range [3, 5], got 1
+    at validateRange (file:///app/src/core/primitives/string.js:96:15)
+    at substring (file:///app/src/core/primitives/string.js:287:24)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runStringTests (file:///app/tests/functional/string_tests.js:196:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ 1 ],
+  procName: 'substring',
+  schemeStack: [],
+  argName: 'end',
+  minVal: 3,
+  maxVal: 5,
+  actualVal: 1
+}
+✅ PASS: substring range check (Expected: true, Got: true)
+
+=== Vector Tests - Fill ===
+✅ PASS: vector-fill! all zeros (Expected: "[0,0,0,0,0]", Got: "[0,0,0,0,0]")
+✅ PASS: vector-fill! with range (Expected: "[1,9,9,9,5]", Got: "[1,9,9,9,5]")
+✅ PASS: vector-fill! empty range (Expected: "[1,2,3]", Got: "[1,2,3]")
+
+=== Vector Tests - Copy ===
+✅ PASS: vector-copy full (Expected: "[1,2,3,4,5]", Got: "[1,2,3,4,5]")
+✅ PASS: vector-copy with range (Expected: "[2,3,4]", Got: "[2,3,4]")
+✅ PASS: vector-copy empty range (Expected: "[]", Got: "[]")
+✅ PASS: vector-copy is independent (Expected: 1, Got: 1)
+
+=== Vector Tests - Copy! ===
+✅ PASS: vector-copy! basic (Expected: "[1,10,20,30,5]", Got: "[1,10,20,30,5]")
+✅ PASS: vector-copy! with source range (Expected: "[30,40,3,4,5]", Got: "[30,40,3,4,5]")
+✅ PASS: vector-copy! overlap forward (Expected: "[2,3,4,4,5]", Got: "[2,3,4,4,5]")
+✅ PASS: vector-copy! overlap backward (Expected: "[1,2,1,2,3]", Got: "[1,2,1,2,3]")
+
+=== Vector Tests - Append ===
+✅ PASS: vector-append two (Expected: "[1,2,3,4]", Got: "[1,2,3,4]")
+✅ PASS: vector-append three (Expected: "[1,2,3]", Got: "[1,2,3]")
+✅ PASS: vector-append empty (Expected: "[]", Got: "[]")
+✅ PASS: vector-append single (Expected: "[1,2,3]", Got: "[1,2,3]")
+
+=== Vector Tests - String Conversion ===
+✅ PASS: vector->string (Expected: "hi", Got: "hi")
+✅ PASS: vector->string with range (Expected: "bc", Got: "bc")
+✅ PASS: string->vector (Expected: "[\"h\",\"e\",\"l\",\"l\",\"o\"]", Got: "[\"h\",\"e\",\"l\",\"l\",\"o\"]")
+✅ PASS: string->vector with range (Expected: "[\"e\",\"l\",\"l\"]", Got: "[\"e\",\"l\",\"l\"]")
+
+=== Vector Tests - List Conversion with Range ===
+✅ PASS: vector->list with range length (Expected: 3, Got: 3)
+✅ PASS: vector->list from index (Expected: 3, Got: 3)
+
+=== Vector Tests - Error Cases ===
+Native JavaScript error caught in interpreter: SchemeRangeError: vector-copy!: range out of range [0, 2], got 5
+    at vector-copy! (file:///app/src/core/primitives/vector.js:188:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runVectorExpansionTests (file:///app/tests/functional/vector_tests.js:129:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ 5 ],
+  procName: 'vector-copy!',
+  schemeStack: [],
+  argName: 'range',
+  minVal: 0,
+  maxVal: 2,
+  actualVal: 5
+}
+✅ PASS: vector-copy! overflow check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeError: vector->string: element 0 is not a character
+    at file:///app/src/core/primitives/vector.js:255:23
+    at Array.forEach (<anonymous>)
+    at vector->string (file:///app/src/core/primitives/vector.js:253:15)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runVectorExpansionTests (file:///app/tests/functional/vector_tests.js:136:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13) {
+  irritants: [ 1 ],
+  procName: 'vector->string',
+  schemeStack: []
+}
+✅ PASS: vector->string type check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: SchemeRangeError: vector-fill!: start out of range [0, 3], got 5
+    at validateRange (file:///app/src/core/primitives/vector.js:36:15)
+    at vector-fill! (file:///app/src/core/primitives/vector.js:142:24)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runVectorExpansionTests (file:///app/tests/functional/vector_tests.js:143:9)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5) {
+  irritants: [ 5 ],
+  procName: 'vector-fill!',
+  schemeStack: [],
+  argName: 'start',
+  minVal: 0,
+  maxVal: 3,
+  actualVal: 5
+}
+✅ PASS: vector-fill! bounds check (Expected: true, Got: true)
+
+=== I/O Tests - Port Predicates ===
+✅ PASS: port? on input string port (Expected: true, Got: true)
+✅ PASS: port? on output string port (Expected: true, Got: true)
+✅ PASS: port? on number (Expected: false, Got: false)
+✅ PASS: input-port? on input port (Expected: true, Got: true)
+✅ PASS: input-port? on output port (Expected: false, Got: false)
+✅ PASS: output-port? on output port (Expected: true, Got: true)
+✅ PASS: output-port? on input port (Expected: false, Got: false)
+✅ PASS: textual-port? (Expected: true, Got: true)
+✅ PASS: binary-port? (false for textual) (Expected: false, Got: false)
+
+=== I/O Tests - Port Open State ===
+✅ PASS: input-port-open? on open port (Expected: true, Got: true)
+✅ PASS: input-port-open? after close (Expected: false, Got: false)
+✅ PASS: output-port-open? on open port (Expected: true, Got: true)
+✅ PASS: output-port-open? after close (Expected: false, Got: false)
+
+=== I/O Tests - Current Ports ===
+✅ PASS: current-input-port is a port (Expected: true, Got: true)
+✅ PASS: current-input-port is input (Expected: true, Got: true)
+✅ PASS: current-output-port is a port (Expected: true, Got: true)
+✅ PASS: current-output-port is output (Expected: true, Got: true)
+✅ PASS: current-error-port is output (Expected: true, Got: true)
+
+=== I/O Tests - String Input Port ===
+✅ PASS: read-char returns first char (Expected: "h", Got: "h")
+✅ PASS: read-char second char (Expected: "e", Got: "e")
+✅ PASS: peek-char first (Expected: "a", Got: "a")
+✅ PASS: peek-char doesn't consume (Expected: "a", Got: "a")
+✅ PASS: peek then read same char (Expected: "a", Got: "a")
+✅ PASS: read-string 3 (Expected: "hel", Got: "hel")
+✅ PASS: read-string more than available (Expected: "hi", Got: "hi")
+✅ PASS: char-ready? on string port (Expected: true, Got: true)
+
+=== I/O Tests - read-line ===
+✅ PASS: read-line single line no newline (Expected: "line1", Got: "line1")
+✅ PASS: read-line first of two lines (Expected: "line1", Got: "line1")
+✅ PASS: read-line second line (Expected: "line2", Got: "line2")
+✅ PASS: read-line handles CRLF (Expected: "line1", Got: "line1")
+
+=== I/O Tests - EOF Handling ===
+✅ PASS: eof-object? on eof-object (Expected: true, Got: true)
+✅ PASS: eof-object? on symbol (Expected: false, Got: false)
+✅ PASS: eof-object? on #f (Expected: false, Got: false)
+✅ PASS: read-char from empty returns eof (Expected: true, Got: true)
+✅ PASS: read-char past end returns eof (Expected: true, Got: true)
+✅ PASS: read-line from empty returns eof (Expected: true, Got: true)
+✅ PASS: read-string from empty returns eof (Expected: true, Got: true)
+
+=== I/O Tests - String Output Port ===
+✅ PASS: write-char to string port (Expected: "H", Got: "H")
+✅ PASS: write-string to string port (Expected: "Hello", Got: "Hello")
+✅ PASS: multiple write-string calls (Expected: "Hello World", Got: "Hello World")
+✅ PASS: display to string port (Expected: "test", Got: "test")
+✅ PASS: newline to string port (Expected: "\n", Got: "\n")
+✅ PASS: display with explicit port (Expected: "!", Got: "!")
+
+=== I/O Tests - write vs display ===
+✅ PASS: display string unquoted (Expected: "hello", Got: "hello")
+✅ PASS: write string quoted (Expected: "\"hello\"", Got: "\"hello\"")
+✅ PASS: display boolean (Expected: "#t", Got: "#t")
+✅ PASS: display number (Expected: "42", Got: "42")
+✅ PASS: display empty list (Expected: "()", Got: "()")
+✅ PASS: display list (Expected: "(1 2 3)", Got: "(1 2 3)")
+✅ PASS: display vector (Expected: "#(a b c)", Got: "#(a b c)")
+
+=== I/O Tests - Error Cases ===
+Native JavaScript error caught in interpreter: Error: open-input-string: expected string
+    at open-input-string (file:///app/src/core/primitives/io.js:1053:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:315:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: open-input-string type check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: get-output-string: expected string output port
+    at get-output-string (file:///app/src/core/primitives/io.js:1071:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:323:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: get-output-string port type check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: read-char: port is closed
+    at requireOpenInputPort (file:///app/src/core/primitives/io.js:600:15)
+    at read-char (file:///app/src/core/primitives/io.js:1138:9)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:331:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: read-char closed port check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: write-char: port is closed
+    at requireOpenOutputPort (file:///app/src/core/primitives/io.js:614:15)
+    at write-char (file:///app/src/core/primitives/io.js:1290:9)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:343:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: write-char closed port check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: write-char: expected character
+    at write-char (file:///app/src/core/primitives/io.js:1287:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:355:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: write-char expects character (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: read-string: expected non-negative integer
+    at read-string (file:///app/src/core/primitives/io.js:1199:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:363:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: read-string negative check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: input-port-open?: expected input port
+    at input-port-open? (file:///app/src/core/primitives/io.js:997:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:371:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: input-port-open? type check (Expected: true, Got: true)
+Native JavaScript error caught in interpreter: Error: output-port-open?: expected output port
+    at output-port-open? (file:///app/src/core/primitives/io.js:1009:19)
+    at AppFrame.step (file:///app/src/core/interpreter/frames.js:290:28)
+    at Interpreter.step (file:///app/src/core/interpreter/interpreter.js:228:16)
+    at Interpreter.run (file:///app/src/core/interpreter/interpreter.js:95:20)
+    at run (file:///app/tests/harness/helpers.js:31:24)
+    at runIOTests (file:///app/tests/functional/io_tests.js:379:5)
+    at runTestModule (file:///app/tests/test_manifest.js:120:9)
+    at async runAllFromManifest (file:///app/tests/test_manifest.js:152:13)
+    at async runAll (file:///app/tests/run_all.js:54:5)
+✅ PASS: output-port-open? type check (Expected: true, Got: true)
+
+=== I/O Tests - read Procedure ===
+✅ PASS: read number (Expected: 42, Got: 42)
+✅ PASS: read symbol (Expected: "hello", Got: "hello")
+✅ PASS: read boolean (Expected: true, Got: true)
+✅ PASS: read hello (Expected: "hello", Got: "hello")
+✅ PASS: read list returns pair (Expected: true, Got: true)
+✅ PASS: read list car (Expected: "+", Got: "+")
+✅ PASS: read quoted symbol (Expected: "quote", Got: "quote")
+✅ PASS: read from empty returns eof (Expected: true, Got: true)
+✅ PASS: read multiple expressions (Expected: 2, Got: 2)
+✅ PASS: read skips comments (Expected: 42, Got: 42)
+✅ PASS: read vector (Expected: true, Got: true)
+
+=== I/O Tests - File I/O (Node.js) ===
+✅ PASS: file-exists? on existing file (Expected: true, Got: true)
+✅ PASS: file-exists? on nonexistent file (Expected: false, Got: false)
+✅ PASS: open-output-file and write (Expected: true, Got: true)
+✅ PASS: file exists after creation (Expected: true, Got: true)
+✅ PASS: open-input-file and read-line (Expected: "Hello, World!", Got: "Hello, World!")
+✅ PASS: read from file port (Expected: "Hello,", Got: "Hello,")
+✅ PASS: file deleted (Expected: false, Got: false)
+✅ PASS: call-with-output-file (Expected: "done", Got: "done")
+✅ PASS: call-with-input-file (Expected: "test content", Got: "test content")
+⚠️ SKIP: open-input-file browser error (Reason: Browser only)
+⚠️ SKIP: file-exists? browser error (Reason: Browser only)
+=== Scope Marking Tests ===
+
+Scope Marking Tests: 8 passed, 0 failed
+
+=== Promise Interop Tests ===
+[INFO] Test: Scheme-created Promise consumed by JavaScript
+✅ PASS: Scheme-created promise resolved correctly in JS (got 42)
+[INFO] Test: Scheme callback attached to JS Promise
+✅ PASS: Scheme callback doubled JS Promise value correctly (100 -> 200)
+[INFO] Test: Complex JS <-> Scheme promise chain
+✅ PASS: Complex chain computed correctly: 5 -> 10 -> 13
+[INFO] Test: Scheme procedure as Promise executor
+✅ PASS: Scheme executor computed correctly: 10+20+30 = 60
+[INFO] Test: promise-all with mixed Scheme/JS promises
+✅ PASS: promise-all with mixed sources worked correctly
+[INFO] Test: Error handling across JS/Scheme boundary
+✅ PASS: Scheme caught JS rejection correctly
+
+=== Running Library Loader Tests... ===
+✅ PASS: libraryNameToKey simple (Expected: "scheme.base", Got: "scheme.base")
+✅ PASS: parseDefineLibrary name (Expected: "test.example", Got: "test.example")
+✅ PASS: parseDefineLibrary export count (Expected: 2, Got: 2)
+✅ PASS: parseDefineLibrary export 1 (Expected: "foo", Got: "foo")
+✅ PASS: parseDefineLibrary import count (Expected: 1, Got: 1)
+✅ PASS: parseDefineLibrary body count (Expected: 2, Got: 2)
+✅ PASS: parseImportSet simple (Expected: "scheme.base", Got: "scheme.base")
+✅ PASS: parseImportSet only library (Expected: "scheme.base", Got: "scheme.base")
+✅ PASS: parseImportSet only filter (Expected: 2, Got: 2)
+✅ PASS: parseImportSet prefix (Expected: "base:", Got: "base:")
+✅ PASS: loadLibrary returns exports (Expected: true, Got: true)
+✅ PASS: loadLibrary export value (Expected: 100, Got: 100)
+✅ PASS: loadLibrary export function (Expected: "object", Got: "object")
+✅ PASS: loadLibrary caches library (Expected: true, Got: true)
+✅ PASS: registerBuiltinLibrary works (Expected: true, Got: true)
+✅ PASS: scheme.base has cons (Expected: true, Got: true)
+✅ PASS: loadLibrary with deps returns exports (Expected: true, Got: true)
+✅ PASS: loadLibrary with deps has double (Expected: true, Got: true)
+✅ PASS: exported function is closure (Expected: true, Got: true)
+
+=== Testing cond-expand... ===
+✅ PASS: hasFeature r7rs (Expected: true, Got: true)
+✅ PASS: hasFeature scheme-js (Expected: true, Got: true)
+✅ PASS: hasFeature unknown (Expected: false, Got: false)
+✅ PASS: getFeatures includes r7rs (Expected: true, Got: true)
+✅ PASS: evalFeature simple r7rs (Expected: true, Got: true)
+✅ PASS: evalFeature simple unknown (Expected: false, Got: false)
+✅ PASS: evalFeature (and r7rs scheme-js) (Expected: true, Got: true)
+✅ PASS: evalFeature (and r7rs unknown) (Expected: false, Got: false)
+✅ PASS: evalFeature (or unknown r7rs) (Expected: true, Got: true)
+✅ PASS: evalFeature (or unknown missing) (Expected: false, Got: false)
+✅ PASS: evalFeature (not unknown) (Expected: true, Got: true)
+✅ PASS: evalFeature (not r7rs) (Expected: false, Got: false)
+✅ PASS: cond-expand export count (Expected: 2, Got: 2)
+✅ PASS: cond-expand body count (Expected: 2, Got: 2)
+✅ PASS: cond-expand else body count (Expected: 1, Got: 1)
+
+=== Testing include-ci (case-folding)... ===
+✅ PASS: caseFold: DEFINE becomes define (Expected: "define", Got: "define")
+✅ PASS: caseFold: FOO becomes foo (Expected: "foo", Got: "foo")
+✅ PASS: caseFold: bar stays bar (Expected: "bar", Got: "bar")
+✅ PASS: normal: DEFINE stays DEFINE (Expected: "DEFINE", Got: "DEFINE")
+✅ PASS: include-ci parsed (Expected: 1, Got: 1)
+✅ PASS: include-ci filename (Expected: "legacy.scm", Got: "legacy.scm")
+✅ PASS: include-library-declarations parsed (Expected: 1, Got: 1)
+✅ PASS: include-library-declarations filename (Expected: "common-exports.scm", Got: "common-exports.scm")
+
+=== Bundle Tests ===
+✅ PASS: Basic Math (Sync) (Expected: 3, Got: 3)
+✅ PASS: Basic Math (Async) (Expected: 200, Got: 200)
+✅ PASS: Shared Environment (Define/Ref) (Expected: 42, Got: 42)
+✅ PASS: Shared Environment (Async Access) (Expected: 142, Got: 142)
+
+=== Running Scheme Tests... ===
+HiTest Harness Loaded
+[INFO] Running tests/test_script.scm...
+✅ PASS: Basic Math (Expected: true, Got: true)
+✅ PASS: Defined variable (Expected: true, Got: true)
+HTML Script Tests Completed
+✅ PASS: tests/test_script.scm PASSED
+[INFO] Running tests/core/scheme/primitive_tests.scm...
+✅ PASS: eq? numbers (Expected: true, Got: true)
+✅ PASS: eq? symbols (Expected: true, Got: true)
+✅ PASS: eq? different symbols (Expected: false, Got: false)
+✅ PASS: equal? numbers (Expected: true, Got: true)
+✅ PASS: equal? strings (Expected: true, Got: true)
+✅ PASS: equal? lists (Expected: true, Got: true)
+✅ PASS: equal? nested lists (Expected: true, Got: true)
+✅ PASS: equal? vectors (Expected: true, Got: true)
+✅ PASS: equal? different lists (Expected: false, Got: false)
+✅ PASS: eqv? numbers (Expected: true, Got: true)
+✅ PASS: eqv? symbols (Expected: true, Got: true)
+✅ PASS: eqv? NaN (Expected: true, Got: true)
+✅ PASS: eqv? 0.0 -0.0 (Expected: false, Got: false)
+✅ PASS: equal? NaN (Expected: true, Got: true)
+✅ PASS: equal? 0.0 -0.0 (Expected: false, Got: false)
+✅ PASS: string? (Expected: true, Got: true)
+✅ PASS: string? number (Expected: false, Got: false)
+✅ PASS: string-append (Expected: abcdef, Got: abcdef)
+✅ PASS: number->string (Expected: 123, Got: 123)
+✅ PASS: exact-integer-sqrt 0 (Expected: (0 0), Got: (0 0))
+✅ PASS: exact-integer-sqrt 16 (Expected: (4 0), Got: (4 0))
+✅ PASS: exact-integer-sqrt 17 (Expected: (4 1), Got: (4 1))
+✅ PASS: floor/ positive (Expected: (2 1), Got: (2 1))
+✅ PASS: floor/ negative dividend (Expected: (-3 1), Got: (-3 1))
+✅ PASS: truncate/ positive (Expected: (2 1), Got: (2 1))
+✅ PASS: truncate/ negative dividend (Expected: (-2 -1), Got: (-2 -1))
+✅ PASS: floor-quotient (Expected: 2, Got: 2)
+✅ PASS: floor-remainder (Expected: 1, Got: 1)
+✅ PASS: truncate-quotient (Expected: 2, Got: 2)
+✅ PASS: truncate-remainder (Expected: 1, Got: 1)
+✅ PASS: make-list empty (Expected: null, Got: null)
+✅ PASS: make-list default fill (Expected: (false false false), Got: (false false false))
+✅ PASS: make-list with fill (Expected: (x x x x), Got: (x x x x))
+✅ PASS: make-list with list fill (Expected: ((a b) (a b)), Got: ((a b) (a b)))
+✅ PASS: list-set! first (Expected: (99 2 3), Got: (99 2 3))
+✅ PASS: list-set! middle (Expected: (1 99 3), Got: (1 99 3))
+✅ PASS: list-set! last (Expected: (1 2 99), Got: (1 2 99))
+✅ PASS: symbol=? same (Expected: true, Got: true)
+✅ PASS: symbol=? different (Expected: false, Got: false)
+✅ PASS: symbol=? multiple same (Expected: true, Got: true)
+✅ PASS: symbol=? multiple different (Expected: false, Got: false)
+✅ PASS: tests/core/scheme/primitive_tests.scm PASSED
+[INFO] Running tests/core/scheme/test_harness_tests.scm...
+✅ PASS: Basic assertion (Expected: 1, Got: 1)
+✅ PASS: Nested assertion (Expected: true, Got: true)
+✅ PASS: tests/core/scheme/test_harness_tests.scm PASSED
+[INFO] Running tests/core/scheme/boot_tests.scm...
+✅ PASS: and empty (Expected: true, Got: true)
+✅ PASS: and single true (Expected: 1, Got: 1)
+✅ PASS: and single false (Expected: false, Got: false)
+✅ PASS: and multiple true (Expected: 3, Got: 3)
+✅ PASS: and short-circuit (Expected: false, Got: false)
+✅ PASS: and mixed (Expected: false, Got: false)
+✅ PASS: let basic (Expected: 3, Got: 3)
+✅ PASS: let shadowing (Expected: 2, Got: 2)
+✅ PASS: named let (Expected: 15, Got: 15)
+✅ PASS: letrec factorial (Expected: 120, Got: 120)
+✅ PASS: letrec mutual recursion (Expected: true, Got: true)
+✅ PASS: cond first true (Expected: 1, Got: 1)
+✅ PASS: cond else (Expected: 2, Got: 2)
+✅ PASS: cond no else (Expected: undefined, Got: undefined)
+✅ PASS: cond => (Expected: 6, Got: 6)
+✅ PASS: cond implicit begin (Expected: 2, Got: 2)
+✅ PASS: equal? numbers (Expected: true, Got: true)
+✅ PASS: equal? symbols (Expected: true, Got: true)
+✅ PASS: equal? strings (Expected: true, Got: true)
+✅ PASS: equal? lists (Expected: true, Got: true)
+✅ PASS: equal? nested lists (Expected: true, Got: true)
+✅ PASS: equal? vectors (Expected: true, Got: true)
+✅ PASS: equal? mixed fail (Expected: false, Got: false)
+✅ PASS: tests/core/scheme/boot_tests.scm PASSED
+[INFO] Running tests/core/scheme/record_tests.scm...
+✅ PASS: Constructor (Expected: true, Got: true)
+✅ PASS: Predicate true (Expected: true, Got: true)
+✅ PASS: Predicate false (Expected: false, Got: false)
+✅ PASS: Accessor x (Expected: 10, Got: 10)
+✅ PASS: Accessor y (Expected: 20, Got: 20)
+✅ PASS: Modifier (Expected: 30, Got: 30)
+✅ PASS: eq? same instance (Expected: true, Got: true)
+✅ PASS: eq? different instances (Expected: false, Got: false)
+✅ PASS: eqv? same instance (Expected: true, Got: true)
+✅ PASS: eqv? different instances (Expected: false, Got: false)
+✅ PASS: equal? same instance (Expected: true, Got: true)
+✅ PASS: equal? different instances (Expected: false, Got: false)
+✅ PASS: Nested eq? same (Expected: true, Got: true)
+✅ PASS: Nested eq? diff (Expected: false, Got: false)
+✅ PASS: Nested equal? same (Expected: true, Got: true)
+✅ PASS: Nested equal? diff (Expected: false, Got: false)
+✅ PASS: tests/core/scheme/record_tests.scm PASSED
+[INFO] Running tests/core/scheme/tco_tests.scm...
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+GC not exposed. Heap test will not be accurate.
+✅ PASS: no heap growth (Expected: true, Got: true)
+✅ PASS: tests/core/scheme/tco_tests.scm PASSED
+[INFO] Running tests/core/scheme/dynamic_wind_tests.scm...
+✅ PASS: basic dynamic-wind (Expected: (after in before), Got: (after in before))
+✅ PASS: dynamic-wind return value (Expected: result, Got: result)
+✅ PASS: call/cc escape (Expected: (after in before), Got: (after in before))
+✅ PASS: nested dynamic-wind (Expected: (outer-after inner-after inner-in inner-before outer-before), Got: (outer-after inner-after inner-in inner-before outer-before))
+✅ PASS: re-entry with call/cc (Expected: (after in before after in before), Got: (after in before after in before))
+✅ PASS: full unwind/rewind (Expected: (after before after in before), Got: (after before after in before))
+✅ PASS: tests/core/scheme/dynamic_wind_tests.scm PASSED
+[INFO] Running tests/core/scheme/dynamic_wind_interop_tests.scm...
+✅ PASS: Scheme -> JS -> Scheme (Re-entry) (Expected: (before in after), Got: (before in after))
+✅ PASS: Scheme -> JS -> Scheme (Standard) (Expected: (after in before), Got: (after in before))
+✅ PASS: JS -> Escape (Expected: (after in before), Got: (after in before))
+✅ PASS: JS -> Re-entry (Global Stored K) (Expected: (after before after in before), Got: (after before after in before))
+✅ PASS: Interleaved Calls (Expected: (after before after before), Got: (after before after before))
+✅ PASS: tests/core/scheme/dynamic_wind_interop_tests.scm PASSED
+[INFO] Running tests/core/scheme/control_tests.scm...
+✅ PASS: when true (Expected: 2, Got: 2)
+✅ PASS: when false (Expected: 0, Got: 0)
+✅ PASS: unless false (Expected: 2, Got: 2)
+✅ PASS: unless true (Expected: 0, Got: 0)
+✅ PASS: or empty (Expected: false, Got: false)
+✅ PASS: or single true (Expected: 1, Got: 1)
+✅ PASS: or single false (Expected: false, Got: false)
+✅ PASS: or first true (Expected: 1, Got: 1)
+✅ PASS: or last true (Expected: 3, Got: 3)
+✅ PASS: or all false (Expected: false, Got: false)
+✅ PASS: or short-circuit (Expected: true, Got: true)
+✅ PASS: let* simple (Expected: 3, Got: 3)
+✅ PASS: let* sequential (Expected: 3, Got: 3)
+✅ PASS: let* shadowing (Expected: 2, Got: 2)
+✅ PASS: do basic loop (Expected: 10, Got: 10)
+✅ PASS: do empty body (Expected: 3, Got: 3)
+✅ PASS: case match first (Expected: 1, Got: 1)
+✅ PASS: case match second (Expected: 2, Got: 2)
+✅ PASS: case match list (Expected: 1, Got: 1)
+✅ PASS: case match else (Expected: 3, Got: 3)
+✅ PASS: case no else match (Expected: undefined, Got: undefined)
+✅ PASS: case key evaluated once (Expected: 1, Got: 1)
+✅ PASS: case else => (Expected: x, Got: x)
+✅ PASS: case datum => (Expected: matched, Got: matched)
+✅ PASS: letrec* basic (Expected: 6, Got: 6)
+✅ PASS: letrec* mutual recursion (Expected: true, Got: true)
+✅ PASS: let-values basic (Expected: 5, Got: 5)
+✅ PASS: let-values with exact-integer-sqrt (Expected: 35, Got: 35)
+✅ PASS: let-values empty (Expected: 42, Got: 42)
+✅ PASS: let-values single (Expected: 7, Got: 7)
+✅ PASS: let-values with floor/ (Expected: (2 1), Got: (2 1))
+✅ PASS: let*-values sequential (Expected: 10, Got: 10)
+✅ PASS: tests/core/scheme/control_tests.scm PASSED
+[INFO] Running tests/core/scheme/exception_tests.scm...
+✅ PASS: raise invokes handler (Expected: handler-ran, Got: handler-ran)
+✅ PASS: raise-continuable allows handler return (Expected: 43, Got: 43)
+✅ PASS: guard catches exception (Expected: caught, Got: caught)
+✅ PASS: guard with else clause (Expected: 3, Got: 3)
+✅ PASS: guard matches correct clause (Expected: 2, Got: 2)
+✅ PASS: error creates error-object (Expected: true, Got: true)
+✅ PASS: error-object-message (Expected: hello world, Got: hello world)
+✅ PASS: guard body returns normally (Expected: 3, Got: 3)
+✅ PASS: dynamic-wind after runs on exception (Expected: (after before), Got: (after before))
+✅ PASS: guard inside dynamic-wind (Expected: (after caught before), Got: (after caught before))
+✅ PASS: nested handlers (Expected: inner-returned-as-expected, Got: inner-returned-as-expected)
+✅ PASS: guard + call/cc escape (Expected: escaped, Got: escaped)
+✅ PASS: raise-continuable returns value (Expected: 105, Got: 105)
+✅ PASS: tests/core/scheme/exception_tests.scm PASSED
+[INFO] Running tests/core/scheme/error_tests.scm...
+✅ PASS: error raises (Expected: test error, Got: test error)
+✅ PASS: map-non-proc (Expected: procedure, Got: map: expected procedure)
+✅ PASS: memq-non-list (Expected: list, Got: memq: expected list)
+✅ PASS: memv-non-list (Expected: list, Got: memv: expected list)
+✅ PASS: member-non-list (Expected: list, Got: member: expected list)
+✅ PASS: tests/core/scheme/error_tests.scm PASSED
+[INFO] Running tests/core/scheme/repl_tests.scm...
+✅ PASS: interaction-environment returns an environment (Expected: true, Got: true)
+✅ PASS: or macro works in base (Expected: 10, Got: 10)
+✅ PASS: when macro works in base (Expected: success, Got: success)
+✅ PASS: guard macro works in base (Expected: caught, Got: caught)
+✅ PASS: tests/core/scheme/repl_tests.scm PASSED
+[INFO] Running tests/core/scheme/parameter_tests.scm...
+✅ PASS: make-parameter initial value (Expected: 10, Got: 10)
+✅ PASS: make-parameter with converter (Expected: 42, Got: 42)
+✅ PASS: parameter set value (Expected: 20, Got: 20)
+✅ PASS: parameter set with converter (Expected: 999, Got: 999)
+✅ PASS: parameterize basic (Expected: 100, Got: 100)
+✅ PASS: parameterize restores value (Expected: 10, Got: 10)
+✅ PASS: parameterize with converter (Expected: 200, Got: 200)
+✅ PASS: parameterize multiple (Expected: (2 3), Got: (2 3))
+✅ PASS: nested parameterize inner (Expected: 30, Got: 30)
+✅ PASS: nested parameterize middle (Expected: 20, Got: 20)
+✅ PASS: nested parameterize outer (Expected: 10, Got: 10)
+✅ PASS: parameterize with call/cc escape (Expected: 10, Got: 10)
+✅ PASS: parameterize call/cc captures inner (Expected: 100, Got: 100)
+✅ PASS: parameterize with dynamic-wind (Expected: (after inner before), Got: (after inner before))
+✅ PASS: tests/core/scheme/parameter_tests.scm PASSED
+[INFO] Running tests/core/scheme/hygiene_tests.scm...
+✅ PASS: parameterize internal binding (Expected: 42, Got: 42)
+✅ PASS: parameterize restores after exit (Expected: 5, Got: 5)
+✅ PASS: nested parameterize (Expected: 100, Got: 100)
+✅ PASS: let-syntax basic (Expected: 42, Got: 42)
+✅ PASS: let-syntax shadowing (Expected: inner, Got: inner)
+✅ PASS: let-syntax nested with different macros (Expected: 33, Got: 33)
+✅ PASS: let-syntax outer macro visible in inner scope (Expected: 300, Got: 300)
+✅ PASS: letrec-syntax basic (Expected: 10, Got: 10)
+✅ PASS: letrec-syntax count elements (Expected: (0 1 2 3), Got: (0 1 2 3))
+✅ PASS: macro doesn't capture local binding (Expected: 25, Got: 25)
+✅ PASS: let-syntax captures lexical binding (Expected: 105, Got: 105)
+✅ PASS: letrec-syntax captures lexical binding (Expected: 70, Got: 70)
+✅ PASS: let-syntax captures outer binding with inner shadowing (Expected: 100, Got: 100)
+✅ PASS: define-syntax in let captures bindings (Expected: 1042, Got: 1042)
+✅ PASS: tests/core/scheme/hygiene_tests.scm PASSED
+[INFO] Running tests/core/scheme/case_lambda_tests.scm...
+✅ PASS: case-lambda single clause (Expected: 10, Got: 10)
+✅ PASS: case-lambda two clauses (Expected: (42 7), Got: (42 7))
+✅ PASS: case-lambda three clauses (Expected: (5 7 6), Got: (5 7 6))
+✅ PASS: tests/core/scheme/case_lambda_tests.scm PASSED
+[INFO] Running tests/core/scheme/lazy_tests.scm...
+✅ PASS: promise? on make-promise (Expected: true, Got: true)
+✅ PASS: promise? on delay (Expected: true, Got: true)
+✅ PASS: promise? on number (Expected: false, Got: false)
+✅ PASS: promise? on list (Expected: false, Got: false)
+✅ PASS: promise? on procedure (Expected: false, Got: false)
+✅ PASS: make-promise wraps value (Expected: 42, Got: 42)
+✅ PASS: make-promise wraps list (Expected: (a b c), Got: (a b c))
+✅ PASS: make-promise is idempotent (Expected: true, Got: true)
+✅ PASS: delay creates promise (Expected: true, Got: true)
+✅ PASS: delay does not evaluate immediately (Expected: false, Got: false)
+✅ PASS: delay evaluates on force (Expected: 3, Got: 3)
+✅ PASS: force on delay (Expected: 42, Got: 42)
+✅ PASS: force memoizes result (Expected: 1, Got: 1)
+✅ PASS: force on make-promise (Expected: hello, Got: hello)
+✅ PASS: delay-force creates promise (Expected: true, Got: true)
+✅ PASS: delay-force evaluates nested delay (Expected: 100, Got: 100)
+✅ PASS: delay-force for lazy iteration (Expected: done, Got: done)
+✅ PASS: force on non-promise errors (Expected: error-caught, Got: error-caught)
+✅ PASS: tests/core/scheme/lazy_tests.scm PASSED
+[INFO] Running tests/core/scheme/time_tests.scm...
+✅ PASS: current-second returns number (Expected: true, Got: true)
+✅ PASS: current-second returns real (Expected: true, Got: true)
+✅ PASS: current-second is positive (Expected: true, Got: true)
+✅ PASS: current-second after Unix epoch (Expected: true, Got: true)
+✅ PASS: current-second progresses (Expected: true, Got: true)
+✅ PASS: current-jiffy returns integer (Expected: true, Got: true)
+✅ PASS: current-jiffy returns exact (Expected: true, Got: true)
+✅ PASS: current-jiffy is non-negative (Expected: true, Got: true)
+✅ PASS: current-jiffy progresses (Expected: true, Got: true)
+✅ PASS: jiffies-per-second is 1000 (Expected: 1000, Got: 1000)
+✅ PASS: jiffies-per-second returns integer (Expected: true, Got: true)
+✅ PASS: jiffies-per-second is positive (Expected: true, Got: true)
+✅ PASS: current-second no args required (Expected: error, Got: error)
+✅ PASS: current-jiffy no args required (Expected: error, Got: error)
+✅ PASS: jiffies-per-second no args required (Expected: error, Got: error)
+✅ PASS: tests/core/scheme/time_tests.scm PASSED
+[INFO] Running tests/core/scheme/eval_tests.scm...
+✅ PASS: eval simple arithmetic (Expected: 3, Got: 3)
+✅ PASS: eval quote (Expected: hello, Got: hello)
+✅ PASS: eval list construction (Expected: (1 2 3), Got: (1 2 3))
+✅ PASS: eval lambda application (Expected: 25, Got: 25)
+✅ PASS: eval if expression true (Expected: yes, Got: yes)
+✅ PASS: eval if expression false (Expected: no, Got: no)
+✅ PASS: eval define then use (Expected: 42, Got: 42)
+✅ PASS: eval define procedure (Expected: 7, Got: 7)
+✅ PASS: eval let expression (Expected: 30, Got: 30)
+✅ PASS: eval nested let (Expected: 50, Got: 50)
+✅ PASS: interaction-environment returns env (Expected: true, Got: true)
+✅ PASS: environment returns interaction-environment (Expected: true, Got: true)
+✅ PASS: eval quasiquote (Expected: (a b c), Got: (a b c))
+✅ PASS: eval quasiquote with unquote (Expected: (a 3 c), Got: (a 3 c))
+✅ PASS: eval with malformed expression (Expected: error-caught, Got: error-caught)
+✅ PASS: tests/core/scheme/eval_tests.scm PASSED
+[INFO] Running tests/core/scheme/process_context_tests.scm...
+✅ PASS: command-line does not error (Expected: ok, Got: ok)
+✅ PASS: get-environment-variable returns #f for nonexistent (Expected: false, Got: false)
+✅ PASS: get-environment-variable with empty string (Expected: false, Got: false)
+✅ PASS: get-environment-variable PATH exists (Expected: true, Got: true)
+✅ PASS: get-environment-variable HOME or fallback (Expected: true, Got: true)
+✅ PASS: get-environment-variable requires string (Expected: type-error, Got: type-error)
+✅ PASS: get-environment-variable requires exactly 1 arg (Expected: arity-error, Got: arity-error)
+✅ PASS: get-environment-variables does not error (Expected: ok, Got: ok)
+✅ PASS: get-environment-variables returns a list (Expected: true, Got: true)
+✅ PASS: get-environment-variables pairs are pairs (Expected: true, Got: true)
+✅ PASS: command-line returns a list (Expected: true, Got: true)
+✅ PASS: command-line first element is a string (Expected: true, Got: true)
+✅ PASS: get-environment-variables no args required (Expected: error, Got: error)
+✅ PASS: exit arity check with too many args (Expected: arity-error, Got: arity-error)
+✅ PASS: emergency-exit arity check with too many args (Expected: arity-error, Got: arity-error)
+✅ PASS: tests/core/scheme/process_context_tests.scm PASSED
+[INFO] Running tests/core/scheme/bytevector_tests.scm...
+✅ PASS: bytevector? on bytevector (Expected: true, Got: true)
+✅ PASS: bytevector? on vector (Expected: false, Got: false)
+✅ PASS: bytevector? on list (Expected: false, Got: false)
+✅ PASS: bytevector? on string (Expected: false, Got: false)
+✅ PASS: make-bytevector length (Expected: 5, Got: 5)
+✅ PASS: make-bytevector with fill (Expected: 42, Got: 42)
+✅ PASS: bytevector length (Expected: 3, Got: 3)
+✅ PASS: bytevector elements (Expected: 2, Got: 2)
+✅ PASS: bytevector-u8-set! (Expected: 99, Got: 99)
+✅ PASS: bytevector-copy length (Expected: 3, Got: 3)
+✅ PASS: bytevector-copy element (Expected: 2, Got: 2)
+✅ PASS: bytevector-copy with start (Expected: 2, Got: 2)
+✅ PASS: bytevector-append length (Expected: 5, Got: 5)
+✅ PASS: utf8->string basic (Expected: ABC, Got: ABC)
+✅ PASS: string->utf8 length (Expected: 3, Got: 3)
+✅ PASS: tests/core/scheme/bytevector_tests.scm PASSED
+[INFO] Running tests/core/scheme/features_tests.scm...
+✅ PASS: features returns list (Expected: true, Got: true)
+✅ PASS: features returns non-empty list (Expected: true, Got: true)
+✅ PASS: features contains r7rs (Expected: true, Got: true)
+✅ PASS: all features are symbols (Expected: true, Got: true)
+✅ PASS: features includes ieee-float (Expected: true, Got: true)
+✅ PASS: features includes full-unicode (Expected: true, Got: true)
+✅ PASS: features includes scheme-js (Expected: true, Got: true)
+✅ PASS: tests/core/scheme/features_tests.scm PASSED
+[INFO] Running tests/core/scheme/iteration_tests.scm...
+✅ PASS: string-map basic (Expected: ABC, Got: ABC)
+✅ PASS: string-map with case toggle (Expected: aBcD, Got: aBcD)
+✅ PASS: string-map empty string (Expected: , Got: )
+✅ PASS: string-map returns string (Expected: true, Got: true)
+✅ PASS: string-map type error (Expected: error, Got: error)
+✅ PASS: string-map string type error (Expected: error, Got: error)
+✅ PASS: string-for-each collects (Expected: (c b a), Got: (c b a))
+✅ PASS: string-for-each empty string (Expected: null, Got: null)
+✅ PASS: string-for-each type error (Expected: error, Got: error)
+✅ PASS: vector-map basic (Expected: 2,4,6, Got: 2,4,6)
+✅ PASS: vector-map cadr (Expected: b,e,h, Got: b,e,h)
+✅ PASS: vector-map empty vector (Expected: , Got: )
+✅ PASS: vector-map returns vector (Expected: true, Got: true)
+✅ PASS: vector-map type error (Expected: error, Got: error)
+✅ PASS: vector-map vector type error (Expected: error, Got: error)
+✅ PASS: vector-for-each collects (Expected: 0,1,4,9,16, Got: 0,1,4,9,16)
+✅ PASS: vector-for-each empty vector (Expected: null, Got: null)
+✅ PASS: vector-for-each type error (Expected: error, Got: error)
+✅ PASS: tests/core/scheme/iteration_tests.scm PASSED
+[INFO] Running tests/core/scheme/write_tests.scm...
+✅ PASS: write returns string output (Expected: abc, Got: abc)
+✅ PASS: write quotes strings (Expected: "hello", Got: "hello")
+✅ PASS: write escapes newlines - output has backslash-n (Expected: true, Got: true)
+✅ PASS: write-simple basic list (Expected: ((1 2 3) (1 2 3)), Got: ((1 2 3) (1 2 3)))
+✅ PASS: write-simple symbol (Expected: abc, Got: abc)
+✅ PASS: write-shared shows sharing (Expected: true, Got: true)
+✅ PASS: write-shared with no sharing (Expected: ((1 2) (3 4)), Got: ((1 2) (3 4)))
+✅ PASS: write-shared vector (Expected: #(1 2 3), Got: #(1 2 3))
+✅ PASS: tests/core/scheme/write_tests.scm PASSED
+[INFO] Running tests/core/scheme/binary_io_tests.scm...
+✅ PASS: open-input-bytevector returns port (Expected: true, Got: true)
+✅ PASS: bytevector input port is binary (Expected: true, Got: true)
+✅ PASS: read-u8 from bytevector port (Expected: 1, Got: 1)
+✅ PASS: peek-u8 doesn't consume (Expected: 2, Got: 2)
+✅ PASS: u8-ready? on bytevector port (Expected: true, Got: true)
+✅ PASS: read-u8 returns eof at end (Expected: true, Got: true)
+✅ PASS: read-bytevector returns bytevector (Expected: true, Got: true)
+✅ PASS: read-bytevector reads correct count (Expected: 3, Got: 3)
+✅ PASS: open-output-bytevector returns port (Expected: true, Got: true)
+✅ PASS: bytevector output port is binary (Expected: true, Got: true)
+✅ PASS: write-u8 and get-output-bytevector (Expected: 1, Got: 1)
+✅ PASS: write-u8 writes correct byte (Expected: 42, Got: 42)
+✅ PASS: write-bytevector writes all bytes (Expected: 3, Got: 3)
+✅ PASS: multiple writes accumulate (Expected: 5, Got: 5)
+✅ PASS: read-u8 requires binary port (Expected: error, Got: error)
+✅ PASS: write-u8 range check (Expected: error, Got: error)
+✅ PASS: tests/core/scheme/binary_io_tests.scm PASSED
+[INFO] Running tests/core/scheme/number_tests.scm...
+✅ PASS: add zero args (Expected: 0, Got: 0)
+✅ PASS: add one arg (Expected: 5, Got: 5)
+✅ PASS: add two args (Expected: 7, Got: 7)
+✅ PASS: add multiple args (Expected: 15, Got: 15)
+✅ PASS: add negatives (Expected: -5, Got: -5)
+✅ PASS: add mixed signs (Expected: 2, Got: 2)
+✅ PASS: add floats (Expected: 5.5, Got: 5.5)
+✅ PASS: negate single arg (Expected: -5, Got: -5)
+✅ PASS: subtract two args (Expected: 3, Got: 3)
+✅ PASS: subtract multiple (Expected: 0, Got: 0)
+✅ PASS: subtract negative (Expected: 8, Got: 8)
+✅ PASS: subtract floats (Expected: 1.5, Got: 1.5)
+✅ PASS: multiply zero args (Expected: 1, Got: 1)
+✅ PASS: multiply one arg (Expected: 5, Got: 5)
+✅ PASS: multiply two args (Expected: 12, Got: 12)
+✅ PASS: multiply multiple (Expected: 120, Got: 120)
+✅ PASS: multiply by zero (Expected: 0, Got: 0)
+✅ PASS: multiply negatives (Expected: 6, Got: 6)
+✅ PASS: multiply mixed signs (Expected: -15, Got: -15)
+✅ PASS: reciprocal (Expected: 1/2, Got: 1/2)
+✅ PASS: divide two args (Expected: 3, Got: 3)
+✅ PASS: divide multiple (Expected: 2, Got: 2)
+✅ PASS: divide negative (Expected: -3, Got: -3)
+✅ PASS: divide floats (Expected: 2.75, Got: 2.75)
+✅ PASS: = equal (Expected: true, Got: true)
+✅ PASS: = not equal (Expected: false, Got: false)
+✅ PASS: = multiple equal (Expected: true, Got: true)
+✅ PASS: = one different (Expected: false, Got: false)
+✅ PASS: < increasing (Expected: true, Got: true)
+✅ PASS: < not increasing (Expected: false, Got: false)
+✅ PASS: > decreasing (Expected: true, Got: true)
+✅ PASS: > not decreasing (Expected: false, Got: false)
+✅ PASS: <= with equal (Expected: true, Got: true)
+✅ PASS: >= with equal (Expected: true, Got: true)
+✅ PASS: quotient positive (Expected: 3, Got: 3)
+✅ PASS: quotient negative dividend (Expected: -3, Got: -3)
+✅ PASS: quotient negative divisor (Expected: -3, Got: -3)
+✅ PASS: quotient both negative (Expected: 3, Got: 3)
+✅ PASS: remainder positive (Expected: 1, Got: 1)
+✅ PASS: remainder negative dividend (Expected: -1, Got: -1)
+✅ PASS: modulo positive (Expected: 1, Got: 1)
+✅ PASS: modulo different from remainder (Expected: 2, Got: 2)
+✅ PASS: number? on integer (Expected: true, Got: true)
+✅ PASS: number? on float (Expected: true, Got: true)
+✅ PASS: number? on string (Expected: false, Got: false)
+✅ PASS: integer? on integer (Expected: true, Got: true)
+✅ PASS: integer? on float (Expected: false, Got: false)
+✅ PASS: integer? on whole float (Expected: true, Got: true)
+✅ PASS: real? on float (Expected: true, Got: true)
+✅ PASS: rational? on finite (Expected: true, Got: true)
+✅ PASS: exact-integer? on integer (Expected: true, Got: true)
+✅ PASS: exact-integer? on float (Expected: false, Got: false)
+✅ PASS: abs positive (Expected: 5, Got: 5)
+✅ PASS: abs negative (Expected: 5, Got: 5)
+✅ PASS: abs zero (Expected: 0, Got: 0)
+✅ PASS: floor (Expected: 3, Got: 3)
+✅ PASS: floor negative (Expected: -4, Got: -4)
+✅ PASS: ceiling (Expected: 4, Got: 4)
+✅ PASS: ceiling negative (Expected: -3, Got: -3)
+✅ PASS: truncate positive (Expected: 3, Got: 3)
+✅ PASS: truncate negative (Expected: -3, Got: -3)
+✅ PASS: expt square (Expected: 25, Got: 25)
+✅ PASS: expt cube (Expected: 8, Got: 8)
+✅ PASS: sqrt (Expected: 5, Got: 5)
+✅ PASS: square zero (Expected: 0, Got: 0)
+✅ PASS: square positive (Expected: 4, Got: 4)
+✅ PASS: square negative (Expected: 9, Got: 9)
+✅ PASS: square large (Expected: 1764, Got: 1764)
+✅ PASS: square float (Expected: 6.25, Got: 6.25)
+✅ PASS: exact integer (Expected: 5, Got: 5)
+✅ PASS: exact float (Expected: 5, Got: 5)
+⚠️ SKIP: (inexact? (inexact 5)) (Reason: JavaScript cannot distinguish exact/inexact integers - see README.md)
+✅ PASS: positive infinity (Expected: true, Got: true)
+✅ PASS: negative infinity (Expected: true, Got: true)
+✅ PASS: nan (Expected: true, Got: true)
+✅ PASS: finite number (Expected: true, Got: true)
+✅ PASS: infinity not finite (Expected: false, Got: false)
+✅ PASS: zero? on zero (Expected: true, Got: true)
+✅ PASS: zero? on nonzero (Expected: false, Got: false)
+✅ PASS: positive? on positive (Expected: true, Got: true)
+✅ PASS: positive? on negative (Expected: false, Got: false)
+✅ PASS: negative? on negative (Expected: true, Got: true)
+✅ PASS: negative? on positive (Expected: false, Got: false)
+✅ PASS: odd? on odd (Expected: true, Got: true)
+✅ PASS: odd? on even (Expected: false, Got: false)
+✅ PASS: even? on even (Expected: true, Got: true)
+✅ PASS: even? on odd (Expected: false, Got: false)
+✅ PASS: + with non-number (Expected: error, Got: error)
+✅ PASS: quotient with non-integer (Expected: error, Got: error)
+✅ PASS: sqrt of negative (Expected: true, Got: true)
+✅ PASS: round rational 7/2 (Expected: 4, Got: 4)
+✅ PASS: round rational 5/2 (Expected: 2, Got: 2)
+✅ PASS: floor rational (Expected: 3, Got: 3)
+✅ PASS: ceiling rational (Expected: 4, Got: 4)
+✅ PASS: inexact rational (Expected: 3.5, Got: 3.5)
+✅ PASS: scientific notation (Expected: 100, Got: 100)
+✅ PASS: scientific notation with decimal (Expected: 15000000000, Got: 15000000000)
+✅ PASS: basic integer (Expected: 100, Got: 100)
+✅ PASS: hex radix (Expected: 256, Got: 256)
+✅ PASS: invalid string returns false (Expected: false, Got: false)
+✅ PASS: positive infinity (Expected: Infinity, Got: Infinity)
+✅ PASS: negative infinity (Expected: -Infinity, Got: -Infinity)
+✅ PASS: tests/core/scheme/number_tests.scm PASSED
+[INFO] Running tests/core/scheme/rational_tests.scm...
+✅ PASS: parse simple fraction (Expected: true, Got: true)
+✅ PASS: parse larger fraction (Expected: true, Got: true)
+✅ PASS: parse negative numerator (Expected: true, Got: true)
+✅ PASS: reduces 2/4 to 1/2 (Expected: 1, Got: 1)
+✅ PASS: denominator of reduced 2/4 (Expected: 2, Got: 2)
+✅ PASS: reduces 10/5 to 2 (Expected: 2, Got: 2)
+✅ PASS: denominator of integer-like rational (Expected: 1, Got: 1)
+✅ PASS: reduces large fraction (Expected: 1, Got: 1)
+✅ PASS: numerator of 3/7 (Expected: 3, Got: 3)
+✅ PASS: denominator of 3/7 (Expected: 7, Got: 7)
+✅ PASS: numerator of negative (Expected: -3, Got: -3)
+✅ PASS: denominator of negative (stays positive) (Expected: 7, Got: 7)
+✅ PASS: numerator of integer (Expected: 5, Got: 5)
+✅ PASS: denominator of integer (Expected: 1, Got: 1)
+✅ PASS: numerator of zero (Expected: 0, Got: 0)
+✅ PASS: denominator of zero (Expected: 1, Got: 1)
+✅ PASS: rational? on fraction (Expected: true, Got: true)
+✅ PASS: number? on rational (Expected: true, Got: true)
+✅ PASS: complex? on rational (Expected: true, Got: true)
+✅ PASS: real? on rational (Expected: true, Got: true)
+✅ PASS: integer? on non-integer rational (Expected: false, Got: false)
+✅ PASS: integer? on integer-valued rational (Expected: true, Got: true)
+✅ PASS: exact? on rational (Expected: true, Got: true)
+✅ PASS: inexact? on rational (Expected: false, Got: false)
+✅ PASS: rational? on integer (Expected: true, Got: true)
+✅ PASS: numerator on integer (Expected: 42, Got: 42)
+✅ PASS: denominator on integer (Expected: 1, Got: 1)
+✅ PASS: negative integer numerator (Expected: -7, Got: -7)
+✅ PASS: negative integer denominator (Expected: 1, Got: 1)
+✅ PASS: numerator on non-rational (Expected: error, Got: error)
+✅ PASS: denominator on non-rational (Expected: error, Got: error)
+✅ PASS: tests/core/scheme/rational_tests.scm PASSED
+[INFO] Running tests/core/scheme/complex_tests.scm...
+✅ PASS: complex with + sign (Expected: true, Got: true)
+✅ PASS: complex with - sign (Expected: true, Got: true)
+✅ PASS: pure imaginary +i (Expected: true, Got: true)
+✅ PASS: pure imaginary -i (Expected: true, Got: true)
+✅ PASS: pure imaginary 5i (Expected: true, Got: true)
+✅ PASS: pure imaginary -3i (Expected: true, Got: true)
+✅ PASS: complex with decimal (Expected: true, Got: true)
+✅ PASS: negative real part (Expected: true, Got: true)
+✅ PASS: creates complex (Expected: true, Got: true)
+✅ PASS: real part correct (Expected: 3, Got: 3)
+✅ PASS: imag part correct (Expected: 4, Got: 4)
+✅ PASS: negative parts (Expected: -3, Got: -3)
+✅ PASS: zero imaginary part (Expected: 0, Got: 0)
+✅ PASS: creates complex (Expected: true, Got: true)
+✅ PASS: angle 0 gives real (Expected: 5, Got: 5)
+✅ PASS: angle 0 gives zero imag (Expected: 0, Got: 0)
+✅ PASS: real-part of 3+4i (Expected: 3, Got: 3)
+✅ PASS: imag-part of 3+4i (Expected: 4, Got: 4)
+✅ PASS: real-part of 3-4i (Expected: 3, Got: 3)
+✅ PASS: imag-part of 3-4i (Expected: -4, Got: -4)
+✅ PASS: real-part of +i (Expected: 0, Got: 0)
+✅ PASS: imag-part of +i (Expected: 1, Got: 1)
+✅ PASS: real-part of -i (Expected: 0, Got: 0)
+✅ PASS: imag-part of -i (Expected: -1, Got: -1)
+✅ PASS: real-part of 5i (Expected: 0, Got: 0)
+✅ PASS: imag-part of 5i (Expected: 5, Got: 5)
+✅ PASS: real-part of real number (Expected: 7, Got: 7)
+✅ PASS: imag-part of real number (Expected: 0, Got: 0)
+✅ PASS: magnitude of 3+4i (Expected: 5, Got: 5)
+✅ PASS: magnitude of 4+3i (Expected: 5, Got: 5)
+✅ PASS: magnitude of -3+4i (Expected: 5, Got: 5)
+✅ PASS: magnitude of +i (Expected: 1, Got: 1)
+✅ PASS: magnitude of -i (Expected: 1, Got: 1)
+✅ PASS: magnitude of 5i (Expected: 5, Got: 5)
+✅ PASS: magnitude of positive real (Expected: 5, Got: 5)
+✅ PASS: magnitude of negative real (Expected: 5, Got: 5)
+✅ PASS: magnitude of 0 (Expected: 0, Got: 0)
+✅ PASS: angle of positive real (Expected: 0, Got: 0)
+✅ PASS: angle of +i is pi/2 (Expected: true, Got: true)
+✅ PASS: angle of -i is -pi/2 (Expected: true, Got: true)
+✅ PASS: complex? on complex (Expected: true, Got: true)
+✅ PASS: number? on complex (Expected: true, Got: true)
+✅ PASS: complex? on real (Expected: true, Got: true)
+✅ PASS: complex? on rational (Expected: true, Got: true)
+✅ PASS: real? on complex with nonzero imag (Expected: false, Got: false)
+✅ PASS: real? on complex with zero imag (Expected: true, Got: true)
+✅ PASS: rational? on complex with nonzero imag (Expected: false, Got: false)
+✅ PASS: integer? on complex with nonzero imag (Expected: false, Got: false)
+✅ PASS: integer? on complex with zero imag and int real (Expected: true, Got: true)
+✅ PASS: tests/core/scheme/complex_tests.scm PASSED
+[INFO] Running tests/core/scheme/base_prefix_tests.scm...
+✅ PASS: #x10 = 16 (Expected: 16, Got: 16)
+✅ PASS: #xff = 255 (Expected: 255, Got: 255)
+✅ PASS: #xA = 10 (Expected: 10, Got: 10)
+✅ PASS: #x-10 = -16 (Expected: -16, Got: -16)
+✅ PASS: #o10 = 8 (Expected: 8, Got: 8)
+✅ PASS: #o77 = 63 (Expected: 63, Got: 63)
+✅ PASS: #o-10 = -8 (Expected: -8, Got: -8)
+✅ PASS: #b101 = 5 (Expected: 5, Got: 5)
+✅ PASS: #b11111111 = 255 (Expected: 255, Got: 255)
+✅ PASS: #b-10 = -2 (Expected: -2, Got: -2)
+✅ PASS: #d10 = 10 (Expected: 10, Got: 10)
+✅ PASS: #d-5 = -5 (Expected: -5, Got: -5)
+✅ PASS: #e10 = 10 (Expected: 10, Got: 10)
+✅ PASS: #i10 = 10 (Expected: 10, Got: 10)
+✅ PASS: #e#x10 = 16 (Expected: 16, Got: 16)
+✅ PASS: #x#e10 = 16 (Expected: 16, Got: 16)
+✅ PASS: #o#e10 = 8 (Expected: 8, Got: 8)
+✅ PASS: #x10/2 numerator (Expected: 8, Got: 8)
+✅ PASS: #x10/2 denominator (Expected: 1, Got: 1)
+✅ PASS: tests/core/scheme/base_prefix_tests.scm PASSED
+[INFO] Running tests/core/scheme/reader_tests.scm...
+✅ PASS: (read (open-input-string 1s2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1S2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1f2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1F2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1d2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1D2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1l2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1L2)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string 1.5s2)) (Expected: 150, Got: 150)
+✅ PASS: (read (open-input-string 1.5S2)) (Expected: 150, Got: 150)
+✅ PASS: (read (open-input-string 1s10)) (Expected: 10000000000, Got: 10000000000)
+✅ PASS: (read (open-input-string 1s-10)) (Expected: 1e-10, Got: 1e-10)
+✅ PASS: (read (open-input-string 1.5L10)) (Expected: 15000000000, Got: 15000000000)
+✅ PASS: (read (open-input-string 1s0+2i)) (Expected: 1+2i, Got: 1+2i)
+✅ PASS: (read (open-input-string 1+2s0i)) (Expected: 1+2i, Got: 1+2i)
+✅ PASS: (pair? x) (Expected: true, Got: true)
+✅ PASS: (car x) (Expected: a, Got: a)
+✅ PASS: (eq? x (cdr x)) (Expected: true, Got: true)
+✅ PASS: (pair? x) (Expected: true, Got: true)
+✅ PASS: (car x) (Expected: a, Got: a)
+✅ PASS: (cdr x) (Expected: null, Got: null)
+✅ PASS: (vector? v) (Expected: true, Got: true)
+✅ PASS: (vector-length v) (Expected: 3, Got: 3)
+✅ PASS: (vector-ref v 0) (Expected: 1, Got: 1)
+✅ PASS: (eq? v (vector-ref v 1)) (Expected: true, Got: true)
+✅ PASS: (vector-ref v 2) (Expected: 2, Got: 2)
+✅ PASS: (read (open-input-string #1=100)) (Expected: 100, Got: 100)
+✅ PASS: (read (open-input-string #2= 100)) (Expected: 100, Got: 100)
+✅ PASS: (car x) (Expected: 10, Got: 10)
+✅ PASS: (cadr x) (Expected: 10, Got: 10)
+✅ PASS: (eq? x (cadr x)) (Expected: true, Got: true)
+✅ PASS: (eq? (car x) (caddr x)) (Expected: true, Got: true)
+✅ PASS: (caar x) (Expected: a, Got: a)
+✅ PASS: (read (open-input-string <pare>)) (Expected: <pare>, Got: <pare>)
+✅ PASS: (read (open-input-string <)) (Expected: <, Got: <)
+✅ PASS: (read (open-input-string >)) (Expected: >, Got: >)
+✅ PASS: (read (open-input-string <>)) (Expected: <>, Got: <>)
+✅ PASS: (read (open-input-string <a-b-c>)) (Expected: <a-b-c>, Got: <a-b-c>)
+✅ PASS: tests/core/scheme/reader_tests.scm PASSED
+[INFO] Running tests/core/scheme/reader_syntax_tests.scm...
+✅ PASS: (read (open-input-string #true)) (Expected: true, Got: true)
+✅ PASS: (read (open-input-string #false)) (Expected: false, Got: false)
+✅ PASS: (read (open-input-string #t)) (Expected: true, Got: true)
+✅ PASS: (read (open-input-string #f)) (Expected: false, Got: false)
+✅ PASS: (read (open-input-string   5)) (Expected: 5, Got: 5)
+✅ PASS: (read (open-input-string 42  )) (Expected: 42, Got: 42)
+✅ PASS: (read (open-input-string   10)) (Expected: 10, Got: 10)
+✅ PASS: (read (open-input-string |Hello|)) (Expected: Hello, Got: Hello)
+✅ PASS: (symbol? (read (open-input-string |hello world|))) (Expected: true, Got: true)
+✅ PASS: (symbol? (read (open-input-string ||))) (Expected: true, Got: true)
+✅ PASS: (get-output-string port) (Expected: ||, Got: ||)
+✅ PASS: (get-output-string port) (Expected: |.|, Got: |.|)
+✅ PASS: (get-output-string port) (Expected: |+i|, Got: |+i|)
+✅ PASS: tests/core/scheme/reader_syntax_tests.scm PASSED
+[INFO] Running tests/core/scheme/define_values_tests.scm...
+✅ PASS: define-values single in let (Expected: 1, Got: 1)
+✅ PASS: define-values two vars in let (Expected: 3, Got: 3)
+✅ PASS: define-values three vars in let (Expected: 6, Got: 6)
+✅ PASS: define-values rest in let (Expected: (3 4), Got: (3 4))
+✅ PASS: define-values all as list (Expected: (1 2 3), Got: (1 2 3))
+✅ PASS: macro with multiple occurrences of pattern var (Expected: 1, Got: 1)
+✅ PASS: begin with two defines using same var (Expected: 3, Got: 3)
+✅ PASS: define with set! in body (Expected: 2, Got: 2)
+✅ PASS: second define references first (Expected: 3, Got: 3)
+✅ PASS: tests/core/scheme/define_values_tests.scm PASSED
+[INFO] Running tests/core/scheme/macro_hygiene_tests.scm...
+✅ PASS: cond else basic (Expected: equal, Got: equal)
+✅ PASS: cond => basic (Expected: 2, Got: 2)
+✅ PASS: case else basic (Expected: consonant, Got: consonant)
+✅ PASS: cond with rebound => (Expected: ok, Got: ok)
+✅ PASS: mad-hatter sees march-hare (Expected: 42, Got: 42)
+✅ PASS: nested pattern capture (bar 1) (Expected: x, Got: x)
+✅ PASS: tests/core/scheme/macro_hygiene_tests.scm PASSED
+[INFO] Running tests/core/scheme/nested_macro_tests.scm...
+✅ PASS: my-val (Expected: 42, Got: 42)
+✅ PASS: (hidden-def) (Expected: 99, Got: 99)
+✅ PASS: (mad-hatter) (Expected: 42, Got: 42)
+✅ PASS: tests/core/scheme/nested_macro_tests.scm PASSED
+[INFO] Running tests/extras/scheme/promise_tests.scm...
+✅ PASS: js-promise? returns #f for numbers (Expected: false, Got: false)
+✅ PASS: js-promise? returns #f for strings (Expected: false, Got: false)
+✅ PASS: js-promise? returns #f for lists (Expected: false, Got: false)
+✅ PASS: js-promise? returns #t for resolved promise (Expected: true, Got: true)
+✅ PASS: js-promise? returns #t for rejected promise (Expected: true, Got: true)
+✅ PASS: js-promise-resolve returns a Promise (Expected: true, Got: true)
+✅ PASS: js-promise-resolve works with strings (Expected: true, Got: true)
+✅ PASS: js-promise-resolve works with lists (Expected: true, Got: true)
+✅ PASS: js-promise-reject returns a Promise (Expected: true, Got: true)
+✅ PASS: make-js-promise returns a Promise (Expected: true, Got: true)
+✅ PASS: make-js-promise with resolve executor (Expected: true, Got: true)
+✅ PASS: js-promise-then returns a Promise (Expected: true, Got: true)
+✅ PASS: js-promise-all returns a Promise (Expected: true, Got: true)
+✅ PASS: js-promise-race returns a Promise (Expected: true, Got: true)
+✅ PASS: js-promise-map returns a Promise (Expected: true, Got: true)
+✅ PASS: js-promise-chain returns a Promise (Expected: true, Got: true)
+✅ PASS: js-promise-then rejects non-promise first arg (Expected: must be a Promise, Got: js-promise-then: first argument must be a Promise)
+✅ PASS: js-promise-catch rejects non-promise first arg (Expected: must be a Promise, Got: js-promise-catch: first argument must be a Promise)
+✅ PASS: tests/extras/scheme/promise_tests.scm PASSED
+
+========================================
+TEST SUMMARY: 1173 passed, 0 failed, 3 skipped
+========================================
