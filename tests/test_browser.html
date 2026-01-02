@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheme Browser Test</title>
+</head>
+<body>
+    <h1>Scheme Browser Test</h1>
+    <div id="output"></div>
+
+    <!-- 1. Load the interpreter bundle and inject test harness helpers -->
+    <script type="module">
+        import { env } from '../dist/scheme.js';
+
+        // Helper to report test results to console (mocking the native reporter)
+        env.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
+            const status = passed ? 'PASS' : 'FAIL';
+            const css = passed ? 'color: green' : 'color: red';
+            console.log(`%c[${status}] ${name}`, css, passed ? '' : `(Expected: ${expected}, Got: ${actual})`);
+
+            // Also append to DOM for visibility
+            const div = document.createElement('div');
+            div.textContent = `[${status}] ${name} ${passed ? '' : `(Expected: ${expected}, Got: ${actual})`}`;
+            div.style.color = passed ? 'green' : 'red';
+            document.getElementById('output').appendChild(div);
+        });
+
+        env.bindings.set('native-report-test-skip', (name, reason) => {
+            console.log(`%c[SKIP] ${name}: ${reason}`, 'color: orange');
+        });
+    </script>
+
+    <!-- 2. Import the Scheme adapter which will run scripts -->
+    <script type="module" src="../dist/scheme-html.js"></script>
+
+    <!-- 3. Load the test harness library -->
+    <script type="text/scheme" src="core/scheme/test.scm"></script>
+
+    <!-- 4. Run inline test using harness -->
+    <script type="text/scheme">
+        (test-group "Inline Tests"
+           (test-assert "Inline Math" (= (+ 1 2) 3))
+        )
+    </script>
+
+    <!-- 5. Run external test script -->
+    <script type="text/scheme" src="test_script.scm"></script>
+</body>
+</html>

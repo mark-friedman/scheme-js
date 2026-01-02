@@ -7,7 +7,12 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 ```text
 /
 ├── repl.js                         # Node.js REPL entry point
+├── rollup.config.js                # Rollup bundling configuration
 ├── src/
+│   ├── packaging/                  # Bundling and distribution logic
+│   │   ├── scheme_entry.js         # Core bundle entry point
+│   │   └── html_adapter.js         # HTML script tag adapter
+│   │
 │   └── core/                       # The Core (JS Interpreter + Scheme subset)
 │       ├── interpreter/            # JavaScript Interpreter
 │       │   ├── index.js            # EXPORT: createInterpreter()
@@ -86,6 +91,8 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │   │
 │   ├── test_manifest.js            # Central registry of all test files
 │   ├── run_all.js                  # Node.js test runner entry
+│   ├── test_bundle.js              # Integration tests for bundled artifact
+│   ├── test_script.scm             # Scheme script test for HTML adapter
 │   │
 │   ├── core/                       # Tests for src/core/
 │   │   ├── interpreter/            # Tests for interpreter modules
