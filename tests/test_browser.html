@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheme Browser Test</title>
+    <!-- Import the Scheme adapter -->
+    <script type="module" src="../dist/scheme-html.js"></script>
+</head>
+<body>
+    <h1>Scheme Browser Test</h1>
+    <div id="output"></div>
+
+    <!-- Inline Scheme Script -->
+    <script type="text/scheme">
+        (import (scheme base) (scheme write))
+
+        (display "Hello from Inline Scheme!\n")
+
+        (define (add a b) (+ a b))
+        (display "3 + 4 = ")
+        (display (add 3 4))
+        (newline)
+    </script>
+
+    <!-- External Scheme Script -->
+    <script type="text/scheme" src="test_script.scm"></script>
+
+    <script>
+        // Optional: Listen for console logs to verify output in a test runner
+        // For manual testing, open DevTools console.
+    </script>
+</body>
+</html>
