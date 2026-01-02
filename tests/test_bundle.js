@@ -1,13 +1,18 @@
 import { schemeEval, schemeEvalAsync } from '../dist/scheme.js';
 import { assert } from './harness/helpers.js';
 
-// Function signature matches what runTestModule passes when needsInterpreter: false
-// args: [logger] (since needsLoader is also false/undefined)
+/**
+ * Runs integration tests for the bundled Scheme interpreter.
+ * @param {object} logger - The test logger.
+ */
 export async function runBundleTests(logger) {
     logger.title("Bundle Tests");
 
-    // Wrapper to mimic interpreter.run for assertion helper
-    // Since schemeEval returns the value directly (unpacked), we can pass it to assert
+    /**
+     * Helper to run synchronous Scheme code.
+     * @param {string} code - Scheme code.
+     * @returns {*} Result.
+     */
     function runSync(code) {
         return schemeEval(code);
     }

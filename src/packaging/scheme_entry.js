@@ -7,6 +7,11 @@ import { intern } from '../core/interpreter/symbol.js';
 // Create a single shared interpreter and environment instance
 const { interpreter, env } = createInterpreter();
 
+/**
+ * Internal helper to parse, analyze, and execute Scheme code.
+ * @param {string} code - The Scheme source code.
+ * @returns {*} The result of the evaluation.
+ */
 function evalCode(code) {
     const asts = parse(code);
     if (asts.length === 0) return undefined;

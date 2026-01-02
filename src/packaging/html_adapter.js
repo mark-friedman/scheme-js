@@ -1,5 +1,10 @@
 import { schemeEvalAsync } from './scheme_entry.js';
 
+/**
+ * Finds and executes all <script type="text/scheme"> tags.
+ * Handles both inline code and src attributes sequentially.
+ * @returns {Promise<void>}
+ */
 async function runScripts() {
     const scripts = document.querySelectorAll('script[type="text/scheme"]');
 
