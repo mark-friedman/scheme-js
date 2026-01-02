@@ -1,11 +1,11 @@
-import { createInterpreter } from './core/interpreter/index.js';
-import { parse } from './core/interpreter/reader.js';
-import { analyze } from './core/interpreter/analyzer.js';
-import { list } from './core/interpreter/cons.js';
-import { intern } from './core/interpreter/symbol.js';
+import { createInterpreter } from '../core/interpreter/index.js';
+import { parse } from '../core/interpreter/reader.js';
+import { analyze } from '../core/interpreter/analyzer.js';
+import { list } from '../core/interpreter/cons.js';
+import { intern } from '../core/interpreter/symbol.js';
 
 // Create a single shared interpreter and environment instance
-const { interpreter } = createInterpreter();
+const { interpreter, env } = createInterpreter();
 
 function evalCode(code) {
     const asts = parse(code);
@@ -45,3 +45,6 @@ export function schemeEvalAsync(code) {
         }
     });
 }
+
+// Export the interpreter and environment for advanced usage (e.g. testing, extending)
+export { interpreter, env };

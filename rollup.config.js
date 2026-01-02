@@ -1,6 +1,6 @@
 export default [
   {
-    input: 'src/scheme_entry.js',
+    input: 'src/packaging/scheme_entry.js',
     output: {
       file: 'dist/scheme.js',
       format: 'es'
@@ -8,7 +8,7 @@ export default [
     external: ['fs', 'node:fs', 'path', 'node:path']
   },
   {
-    input: 'src/html_adapter.js',
+    input: 'src/packaging/html_adapter.js',
     plugins: [
       {
         name: 'rewrite-import',

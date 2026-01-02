@@ -1,8 +1,8 @@
-(import (scheme base) (scheme write))
+(test-group "HTML Script Tests"
+  (test-assert "Basic Math" (= (* 6 7) 42))
 
-(display "Hello from External Scheme File!\n")
+  (define result (* 6 7))
+  (test-assert "Defined variable" (= result 42))
 
-(define result (* 6 7))
-(display "6 * 7 = ")
-(display result)
-(newline)
+  (display "HTML Script Tests Completed\n")
+)

@@ -1,32 +1,47 @@
 import { schemeEval, schemeEvalAsync } from '../dist/scheme.js';
-import assert from 'assert';
+import { assert, createTestLogger } from './harness/helpers.js';
 
-console.log("Testing dist/scheme.js...");
+const logger = createTestLogger();
+logger.title("Bundle Tests");
+
+// Wrapper to mimic interpreter.run for assertion helper
+// Since schemeEval returns the value directly (unpacked), we can pass it to assert
+function runSync(code) {
+    return schemeEval(code);
+}
 
 // Test 1: Basic Math (Sync)
-console.log("Test 1: Basic Math (Sync)");
-const result1 = schemeEval('(+ 1 2)');
-assert.strictEqual(result1, 3);
-console.log("PASS: (+ 1 2) = 3");
+try {
+    const result = runSync('(+ 1 2)');
+    assert(logger, "Basic Math (Sync)", result, 3);
+} catch (e) {
+    logger.fail(`Basic Math (Sync) failed: ${e.message}`);
+}
 
 // Test 2: Basic Math (Async)
-console.log("Test 2: Basic Math (Async)");
-const result2 = await schemeEvalAsync('(* 10 20)');
-assert.strictEqual(result2, 200);
-console.log("PASS: (* 10 20) = 200");
+try {
+    const result = await schemeEvalAsync('(* 10 20)');
+    assert(logger, "Basic Math (Async)", result, 200);
+} catch (e) {
+    logger.fail(`Basic Math (Async) failed: ${e.message}`);
+}
 
 // Test 3: Shared Environment
-console.log("Test 3: Shared Environment");
-schemeEval('(define x 42)');
-const result3 = schemeEval('x');
-assert.strictEqual(result3, 42);
-console.log("PASS: Defined x = 42, retrieved x = 42");
+try {
+    runSync('(define x 42)');
+    const result = runSync('x');
+    assert(logger, "Shared Environment (Define/Ref)", result, 42);
+} catch (e) {
+    logger.fail(`Shared Environment (Define/Ref) failed: ${e.message}`);
+}
 
 // Test 4: Shared Environment (Async)
-console.log("Test 4: Shared Environment (Async)");
-schemeEval('(define y 100)');
-const result4 = await schemeEvalAsync('(+ x y)'); // 42 + 100
-assert.strictEqual(result4, 142);
-console.log("PASS: (+ x y) = 142");
+try {
+    runSync('(define y 100)');
+    const result = await schemeEvalAsync('(+ x y)'); // 42 + 100
+    assert(logger, "Shared Environment (Async Access)", result, 142);
+} catch (e) {
+    logger.fail(`Shared Environment (Async Access) failed: ${e.message}`);
+}
 
-console.log("All Bundle Tests Passed!");
+logger.summary();
