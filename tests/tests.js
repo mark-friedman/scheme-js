@@ -3,6 +3,7 @@ import { runCoreTests } from './functional/core_tests.js';
 import { runInteropTests } from './functional/interop_tests.js';
 import { runQuasiquoteTests } from './functional/quasiquote_tests.js';
 import { runDefineTests } from './functional/define_tests.js';
+import { runJsGlobalTests } from './functional/js_global_tests.js';
 
 export { runUnitTests };
 
@@ -16,4 +17,5 @@ export function runAllTests(interpreter, logger) {
   runInteropTests(interpreter, logger);
   runQuasiquoteTests(interpreter, logger);
   runDefineTests(interpreter, logger);
+  runJsGlobalTests(interpreter, logger);
 }
