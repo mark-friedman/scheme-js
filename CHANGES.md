@@ -2332,3 +2332,47 @@ TEST SUMMARY: 1166 passed, 0 failed, 3 skipped
   (lambda (response) (parse-json response))
   (lambda (data) (process data)))
 ```
+
+# Walkthrough: Packaging and HTML Script Support (2025-01-28)
+
+Implemented bundling infrastructure to package the interpreter for distribution and added support for executing Scheme code directly in HTML via `<script>` tags.
+
+## Packaging System
+
+### Rollup Configuration
+- Configured Rollup to produce two ESM bundles:
+    - `dist/scheme.js`: The core interpreter bundle. Exports `schemeEval` (sync) and `schemeEvalAsync` (Promise-based).
+    - `dist/scheme-html.js`: A lightweight adapter for browser environments.
+
+### Core Entry Point (`src/packaging/scheme_entry.js`)
+- Initializes a singleton `Interpreter` instance with the global environment.
+- Exports `schemeEval` for synchronous evaluation (returns result or throws).
+- Exports `schemeEvalAsync` for asynchronous evaluation (returns Promise).
+- Exports `interpreter` and `env` for advanced usage (e.g., injecting test helpers).
+
+### HTML Adapter (`src/packaging/html_adapter.js`)
+- Listens for `DOMContentLoaded`.
+- Scans for `<script type="text/scheme">` tags.
+- Supports both inline code and `src` attributes (via `fetch`).
+- Executes scripts sequentially using the shared interpreter instance.
+
+## Testing Infrastructure
+
+### Bundle Integration Tests
+- Added `tests/test_bundle.js`: Verifies the bundled artifacts work correctly in Node.js.
+- Added to `tests/test_manifest.js` as an integration test.
+
+### Browser Script Tests
+- Added `tests/test_script.scm`: A Scheme test file to verify the HTML adapter.
+- Added `tests/test_browser.html`: A test page that loads the bundle, injects the Scheme test harness, and runs the script test.
+- Added to `tests/test_manifest.js` so it runs as part of the standard Scheme test suite.
+
+## Verification
+
+```
+TEST SUMMARY: 1173 passed, 0 failed, 3 skipped
+```
+
+### Manual Verification
+- Verified `scheme.js` can be imported in Node.js.
+- Verified `scheme-html.js` correctly finds and executes scripts in the DOM (simulated via structure checks).

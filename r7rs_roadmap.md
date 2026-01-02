@@ -22,6 +22,21 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 
 ---
 
+## Phase -1: Packaging and Distribution ✅
+
+Created build system to package the interpreter for Node.js and Browser use.
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Rollup Build | ✅ | Produces ESM bundles |
+| Core Bundle | ✅ | `dist/scheme.js` with `schemeEval` API |
+| HTML Adapter | ✅ | `<script type="text/scheme">` support |
+| Shared Environment | ✅ | All scripts run in same interpreter instance |
+
+**Deliverable:** `src/packaging/` and `rollup.config.js`.
+
+---
+
 ## Phase 0: Library System Completion
 
 Complete the R7RS library system.
