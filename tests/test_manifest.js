@@ -22,7 +22,7 @@ export const unitTests = [
 // Functional Tests (all need interpreter)
 export const functionalTests = [
     { path: 'functional/core_tests.js', fn: 'runCoreTests', async: false },
-    { path: 'functional/interop_tests.js', fn: 'runInteropTests', async: false },
+    { path: 'extras/primitives/interop_tests.js', fn: 'runInteropTests', async: false },
     { path: 'functional/quasiquote_tests.js', fn: 'runQuasiquoteTests', async: false },
     { path: 'functional/quote_tests.js', fn: 'runQuoteTests', async: false },
     { path: 'functional/macro_tests.js', fn: 'runMacroTests', async: true },
@@ -86,6 +86,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/nested_macro_tests.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',
+    'tests/extras/scheme/jsref_tests.scm',
 ];
 
 /**

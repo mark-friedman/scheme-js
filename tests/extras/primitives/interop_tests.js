@@ -1,5 +1,5 @@
-import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
-import { LiteralNode, TailAppNode } from '../../src/core/interpreter/ast.js';
+import { assert, run, createTestLogger, createTestEnv } from '../../harness/helpers.js';
+import { LiteralNode, TailAppNode } from '../../../src/core/interpreter/ast.js';
 
 /**
  * Runs JS Interop tests.

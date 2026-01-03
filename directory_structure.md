@@ -79,6 +79,7 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │
 │   └── extras/                     # Extension libraries (non-R7RS)
 │       ├── primitives/             # JavaScript primitives for extensions
+│       │   ├── interop.js          # JS interop: js-eval, js-ref, js-set!
 │       │   └── promise.js          # Promise interop primitives
 │       └── scheme/                 # Scheme library files
 │           ├── promise.sld         # (scheme-js promise) library declaration

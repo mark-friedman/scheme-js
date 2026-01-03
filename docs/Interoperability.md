@@ -159,6 +159,53 @@ createJsBridge(closure, parentStack = []) {
 }
 ```
 
+## JS Property Access Syntax
+
+The reader provides JS-style dot notation for accessing JavaScript object properties:
+
+### Reading Properties
+
+```scheme
+;; Define a JS object
+(define obj (js-eval "({name: 'alice', age: 30})"))
+
+;; Access properties using dot notation
+obj.name    ;; => "alice"
+obj.age     ;; => 30
+
+;; Chained property access
+(define nested (js-eval "({a: {b: {c: 42}}})"))
+nested.a.b.c  ;; => 42
+```
+
+### Writing Properties
+
+Use `set!` with dot notation to modify properties:
+
+```scheme
+(define obj (js-eval "({x: 0})"))
+(set! obj.x 42)
+obj.x  ;; => 42
+
+;; Chained property set
+(define nested (js-eval "({a: {b: 0}})"))
+(set! nested.a.b 99)
+nested.a.b  ;; => 99
+```
+
+### Under the Hood
+
+The reader transforms dot notation at read time:
+
+| Input | Transformed To |
+|:------|:---------------|
+| `obj.prop` | `(js-ref obj "prop")` |
+| `obj.a.b` | `(js-ref (js-ref obj "a") "b")` |
+| `(set! obj.prop val)` | `(js-set! obj "prop" val)` |
+
+> [!NOTE]
+> Numbers with dots like `3.14` are parsed as numbers, not property access.
+
 ## Summary
 
 1. **Execution Model:** The interpreter registers hold raw JS values and class instances for Scheme-specific types.
@@ -166,5 +213,6 @@ createJsBridge(closure, parentStack = []) {
 3. **JS calling Scheme:** Closures and continuations are callable functions. No explicit wrapping needed.
 4. **Context Tracking:** The `jsContextStack` ensures proper `dynamic-wind` handling across boundaries.
 5. **Type Identification:** Marker symbols (`SCHEME_CLOSURE`, `SCHEME_CONTINUATION`) distinguish Scheme callables from regular JS functions.
+6. **Property Access:** Use `obj.prop` syntax to access JS object properties, and `(set! obj.prop val)` to modify them.
 
 This design provides "Transparent Interoperability" - closures stored in JS globals, arrays, Maps, or any data structure can be invoked directly without special handling.

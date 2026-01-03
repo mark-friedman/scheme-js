@@ -422,7 +422,35 @@ function readAtom(token, caseFold = false) {
     throw new Error("Unexpected '.'");
   }
 
+  // JS Property Access: obj.prop1.prop2 -> (js-ref (js-ref obj "prop1") "prop2")
+  // Only transform if there's at least one dot with non-empty parts on both sides
+  if (symbolName.includes('.') && !symbolName.startsWith('.') && !symbolName.endsWith('.')) {
+    const parts = symbolName.split('.');
+    // Ensure all parts are non-empty (no consecutive dots)
+    if (parts.every(part => part.length > 0)) {
+      return buildPropertyAccessForm(parts);
+    }
+  }
+
   return intern(symbolName);
+}
+
+/**
+ * Builds a nested property access form from a chain like ["obj", "prop1", "prop2"].
+ * Returns: (js-ref (js-ref obj "prop1") "prop2")
+ * @param {string[]} parts - Array of property path segments
+ * @returns {Cons|Symbol} The nested js-ref form
+ */
+function buildPropertyAccessForm(parts) {
+  // Start with the base object (first part as a symbol)
+  let result = intern(parts[0]);
+
+  // Chain property accesses for remaining parts
+  for (let i = 1; i < parts.length; i++) {
+    result = list(intern('js-ref'), result, parts[i]);
+  }
+
+  return result;
 }
 
 /**

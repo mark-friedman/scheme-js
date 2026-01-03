@@ -12,7 +12,7 @@ import { eqPrimitives } from './eq.js';
 import { getAsyncPrimitives } from './async.js';
 import { getControlPrimitives } from './control.js';
 import { GCPrimitives } from './gc.js';
-import { interopPrimitives } from './interop.js';
+import { interopPrimitives } from '../../extras/primitives/interop.js';
 import { getExceptionPrimitives } from './exception.js';
 import { timePrimitives } from './time.js';
 import { processContextPrimitives } from './process_context.js';
