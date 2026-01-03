@@ -2376,3 +2376,29 @@ TEST SUMMARY: 1173 passed, 0 failed, 3 skipped
 ### Manual Verification
 - Verified `scheme.js` can be imported in Node.js.
 - Verified `scheme-html.js` correctly finds and executes scripts in the DOM (simulated via structure checks).
+
+# Walkthrough: JS Global Environment Access (2025-01-28)
+
+Implemented implicit access to the JavaScript global environment (`globalThis`) when a symbol is not found in the Scheme environment.
+
+## Changes
+
+### 1. Environment Lookup
+- Modified `Environment.prototype.lookup` in `src/core/interpreter/environment.js` to fallback to `globalThis` if the variable is unbound in the Scheme scope chain.
+
+### 2. Environment Modification
+- Modified `Environment.prototype.set` in `src/core/interpreter/environment.js`. If a variable is unbound in Scheme, it checks `globalThis` and updates the JS global if it exists.
+
+### 3. Verification
+- Added `tests/functional/js_global_tests.js` verifying:
+    - Reading JS globals.
+    - Writing JS globals (`set!`).
+    - Shadowing JS globals with `define`.
+    - Calling JS global functions.
+    - Error handling for non-existent variables.
+
+## Verification Results
+
+```
+TEST SUMMARY: 1173 passed, 0 failed
+```

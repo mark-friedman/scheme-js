@@ -47,6 +47,10 @@ export class Environment {
         if (this.parent) {
             return this.parent.lookup(name);
         }
+        // Fallback to JS global environment
+        if (Reflect.has(globalThis, name)) {
+            return globalThis[name];
+        }
         throw new Error(`Unbound variable: ${name}`);
     }
 
@@ -76,6 +80,11 @@ export class Environment {
     set(name, value) {
         const env = this.findEnv(name);
         if (!env) {
+            // Check JS global environment
+            if (Reflect.has(globalThis, name)) {
+                globalThis[name] = value;
+                return value;
+            }
             throw new Error(`set!: unbound variable: ${name}`);
         }
         env.bindings.set(name, value);
