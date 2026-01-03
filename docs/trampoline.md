@@ -132,16 +132,26 @@ When a `Continuation` is called as a function:
 ## JavaScript Interoperability
 
 ### Scheme → JavaScript
-When Scheme code calls a JavaScript function, the interpreter:
-1. Wraps any Scheme closures in "bridges" (plain JS functions)
-2. Calls the JS function directly
-3. Puts the result in `ans`
+When Scheme code calls a JavaScript function:
+1. The interpreter **pushes the current context** onto `jsContextStack`
+2. Calls the JS function directly with raw values
+3. **Pops the context** after the call returns
+4. Puts the result in `ans`
 
 ### JavaScript → Scheme
-When JS code calls a bridged Scheme closure:
-1. The bridge creates a new `TailApp` AST node
-2. Calls `interpreter.run()` recursively
-3. A `SentinelFrame` prevents the inner run from consuming parent frames
+Scheme closures are now **intrinsically callable JavaScript functions**:
+1. Closures are created with attached Scheme metadata (params, body, env)
+2. When JS calls a closure, the closure wrapper calls `interpreter.runWithSentinel(ast)`
+3. `runWithSentinel` uses the **parent context** from `jsContextStack` for proper `dynamic-wind` handling
+4. A `SentinelFrame` ensures the inner run terminates properly
+
+### Callable Continuations
+Continuations work the same way - they are callable JS functions:
+1. When invoked from JS, they call `interpreter.invokeContinuation(k, value)`
+2. The continuation invocation uses `ContinuationUnwind` to properly handle stack replacement
+3. `dynamic-wind` thunks are correctly run during the unwind/rewind process
+
+See [Interoperability.md](Interoperability.md) for detailed documentation.
 
 ## File Organization
 

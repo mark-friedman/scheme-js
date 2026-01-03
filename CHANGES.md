@@ -1,3 +1,56 @@
+# Callable Closures Implementation (2026-01-03)
+
+Made Scheme closures and continuations **intrinsically callable JavaScript functions**. They can now be stored in any JavaScript data structure (arrays, objects, Maps, Sets, global variables) and invoked directly without special handling.
+
+## Problem Solved
+
+Previously, Scheme closures could only be called from JavaScript via explicit bridging at specific interpreter boundaries. This caused issues when:
+- A closure was stored in a JS global variable and later invoked
+- A closure was placed in a vector/array and called from there
+- A continuation was captured and later invoked from arbitrary JS code
+
+## Key Changes
+
+### `values.js`
+- Added `createClosure()` and `createContinuation()` factory functions
+- Added marker symbols (`SCHEME_CLOSURE`, `SCHEME_CONTINUATION`) for type identification
+- Added `isSchemeClosure()` and `isSchemeContinuation()` type checkers
+
+### `ast_nodes.js`
+- Updated `LambdaNode.step()` to use `createClosure()`
+- Updated `CallCCNode.step()` to use `createContinuation()`
+
+### `frames.js`
+- Reordered type checks: Scheme closures → Scheme continuations → JS functions
+- Added `pushJsContext`/`popJsContext` calls for dynamic-wind context tracking
+- Removed bridge-wrapping logic (no longer needed)
+
+### `interpreter.js`
+- Added `jsContextStack` for tracking Scheme context across JS boundaries
+- Added `runWithSentinel()` method for proper nested runs
+- Added `invokeContinuation()` method
+
+## Usage Example
+
+```scheme
+;; Store a closure in a JS global variable
+(js-eval "var myCallback = null")
+(set! myCallback (lambda (x) (* x x)))
+```
+
+```javascript
+// Call it from JavaScript!
+myCallback(7);  // Returns 49
+```
+
+## Verification
+
+- **Node.js Tests**: 1197 passed, 0 failed
+- **Chibi Compliance**: 913 passed, 1 failed (pre-existing), 60 skipped
+- **New Tests Added**: 16 callable closures interop tests
+
+---
+
 # Walkthrough: Implementing define-syntax (Basic)
 
 I have implemented the basic infrastructure for macros in the Scheme interpreter. This allows us to define and use macros, although `syntax-rules` is not yet implemented.

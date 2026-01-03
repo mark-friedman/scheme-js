@@ -7,7 +7,7 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
-import { Closure, Continuation } from './values.js';
+import { createClosure, createContinuation, isSchemeClosure, isSchemeContinuation } from './values.js';
 import * as FrameRegistry from './frame_registry.js';
 import { GlobalRef, lookupLibraryEnv } from './syntax_object.js';
 import { SchemeError } from './errors.js';
@@ -157,7 +157,7 @@ export class LambdaNode extends Executable {
     }
 
     step(registers, interpreter) {
-        registers[ANS] = new Closure(this.params, this.body, registers[ENV], this.restParam);
+        registers[ANS] = createClosure(this.params, this.body, registers[ENV], this.restParam, interpreter);
         return false;
     }
 
@@ -352,7 +352,7 @@ export class CallCCNode extends Executable {
     }
 
     step(registers, interpreter) {
-        const continuation = new Continuation(registers[FSTACK]);
+        const continuation = createContinuation(registers[FSTACK], interpreter);
 
         registers[CTL] = new TailAppNode(
             this.lambdaExpr,

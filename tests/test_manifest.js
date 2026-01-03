@@ -46,6 +46,7 @@ export const functionalTests = [
 export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
+    { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true, needsInterpreter: false },
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
