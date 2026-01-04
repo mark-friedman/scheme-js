@@ -143,7 +143,7 @@ export class SetFrame extends Executable {
     step(registers, interpreter) {
         const value = registers[ANS];
         this.env.set(this.name, value);
-        registers[ANS] = value;
+        registers[ANS] = undefined;
         return false;
     }
 }
@@ -171,7 +171,7 @@ export class DefineFrame extends Executable {
         // Register binding with current defining scopes for macro referential transparency
         registerBindingWithCurrentScopes(this.name, value);
 
-        registers[ANS] = this.name;
+        registers[ANS] = undefined;
         return false;
     }
 }

@@ -78,7 +78,8 @@ export function runInteropTests(interpreter, logger) {
                                     (begin
                                       (js-store-k k)
                                       5))))))
-          (set! final-result val))`);
+          (set! final-result val)
+          val)`);
     assert(logger, "JS Interop: Store k (initial run)", result, 105);
 
     logger.log("JS Interop: Invoking k from JS...", 'info');
@@ -372,14 +373,15 @@ export function runInteropTests(interpreter, logger) {
 
         // First run: capture both k's and return normally
         result = run(interpreter, `
-            (set! multi-k-result
-              (+ 1 (call/cc (lambda (outer-k)
+            (let ((v (+ 1 (call/cc (lambda (outer-k)
                               (set! outer-k-holder outer-k)
                               (js-invoke-with-callback
                                 (lambda ()
                                   (+ 10 (call/cc (lambda (inner-k)
                                                    (set! inner-k-holder inner-k)
-                                                   100)))))))))
+                                                   100))))))))))
+              (set! multi-k-result v)
+              v)
         `);
         // Initial: 1 + 10 + 100 = 111
         assert(logger, "Interleaved: Multi-k initial", result, 111);
@@ -393,14 +395,15 @@ export function runInteropTests(interpreter, logger) {
 
         // Re-run to capture new continuations
         result = run(interpreter, `
-            (set! multi-k-result
-              (+ 1 (call/cc (lambda (outer-k)
+            (let ((v (+ 1 (call/cc (lambda (outer-k)
                               (set! outer-k-holder outer-k)
                               (js-invoke-with-callback
                                 (lambda ()
                                   (+ 10 (call/cc (lambda (inner-k)
                                                    (set! inner-k-holder inner-k)
-                                                   100)))))))))
+                                                   100))))))))))
+              (set! multi-k-result v)
+              v)
         `);
 
         // Invoke inner-k: the return value should be 1 + 10 + 50 = 61

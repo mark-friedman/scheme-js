@@ -76,9 +76,9 @@ export function runCoreTests(interpreter, logger) {
     result = run(interpreter, `(if #f 1 2)`);
     assert(logger, "Edge: If #f", result, 2);
 
-    // set! returns the value set
+    // set! has unspecified return value per R7RS
     result = run(interpreter, `(let ((x 1)) (set! x 2))`);
-    assert(logger, "Edge: set! return value", result, 2);
+    assert(logger, "Edge: set! return value", result, undefined);
 
     // letrec self-reference: macro initializes to 'undefined symbol
     result = run(interpreter, `(letrec ((x x)) x)`);

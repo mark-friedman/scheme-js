@@ -1,56 +1,3 @@
-# Callable Closures Implementation (2026-01-03)
-
-Made Scheme closures and continuations **intrinsically callable JavaScript functions**. They can now be stored in any JavaScript data structure (arrays, objects, Maps, Sets, global variables) and invoked directly without special handling.
-
-## Problem Solved
-
-Previously, Scheme closures could only be called from JavaScript via explicit bridging at specific interpreter boundaries. This caused issues when:
-- A closure was stored in a JS global variable and later invoked
-- A closure was placed in a vector/array and called from there
-- A continuation was captured and later invoked from arbitrary JS code
-
-## Key Changes
-
-### `values.js`
-- Added `createClosure()` and `createContinuation()` factory functions
-- Added marker symbols (`SCHEME_CLOSURE`, `SCHEME_CONTINUATION`) for type identification
-- Added `isSchemeClosure()` and `isSchemeContinuation()` type checkers
-
-### `ast_nodes.js`
-- Updated `LambdaNode.step()` to use `createClosure()`
-- Updated `CallCCNode.step()` to use `createContinuation()`
-
-### `frames.js`
-- Reordered type checks: Scheme closures → Scheme continuations → JS functions
-- Added `pushJsContext`/`popJsContext` calls for dynamic-wind context tracking
-- Removed bridge-wrapping logic (no longer needed)
-
-### `interpreter.js`
-- Added `jsContextStack` for tracking Scheme context across JS boundaries
-- Added `runWithSentinel()` method for proper nested runs
-- Added `invokeContinuation()` method
-
-## Usage Example
-
-```scheme
-;; Store a closure in a JS global variable
-(js-eval "var myCallback = null")
-(set! myCallback (lambda (x) (* x x)))
-```
-
-```javascript
-// Call it from JavaScript!
-myCallback(7);  // Returns 49
-```
-
-## Verification
-
-- **Node.js Tests**: 1197 passed, 0 failed
-- **Chibi Compliance**: 913 passed, 1 failed (pre-existing), 60 skipped
-- **New Tests Added**: 16 callable closures interop tests
-
----
-
 # Walkthrough: Implementing define-syntax (Basic)
 
 I have implemented the basic infrastructure for macros in the Scheme interpreter. This allows us to define and use macros, although `syntax-rules` is not yet implemented.
@@ -2455,3 +2402,156 @@ Implemented implicit access to the JavaScript global environment (`globalThis`) 
 ```
 TEST SUMMARY: 1173 passed, 0 failed
 ```
+
+# JS Property Access Reader Syntax (2026-01-03)
+
+Implemented JS-style dot notation for accessing JavaScript object properties: `obj.prop`, `obj.a.b.c`, and `(set! obj.prop val)`.
+
+## Changes
+
+### File Reorganization
+- Moved `interop.js` from `src/core/primitives/` to `src/extras/primitives/`
+- Moved `interop_tests.js` from `tests/functional/` to `tests/extras/primitives/`
+
+### Reader Transformation (`src/core/interpreter/reader.js`)
+- Added `buildPropertyAccessForm()` helper function
+- Modified `readAtom()` to detect dotted symbols and transform them:
+  - `obj.prop` → `(js-ref obj "prop")`
+  - `obj.a.b.c` → `(js-ref (js-ref (js-ref obj "a") "b") "c")`
+- Numbers like `3.14` are correctly preserved as numbers
+
+### Analyzer Modification (`src/core/interpreter/analyzer.js`)
+- Modified `analyzeSet()` to detect `js-ref` forms and transform to `js-set!`:
+  - `(set! obj.prop val)` → `(js-set! obj "prop" val)`
+
+### New Primitives (`src/extras/primitives/interop.js`)
+- `js-ref`: Access a property on a JavaScript object
+- `js-set!`: Set a property on a JavaScript object
+
+### Tests
+- Added `tests/extras/scheme/jsref_tests.scm` with comprehensive tests
+
+### Documentation
+- Updated `docs/Interoperability.md` with property access section
+- Updated `directory_structure.md`
+
+## Usage
+
+```scheme
+(define obj (js-eval "({name: 'alice', age: 30})"))
+obj.name        ;; => "alice"
+obj.age         ;; => 30
+
+(set! obj.age 31)
+obj.age         ;; => 31
+
+;; Chained access
+(define nested (js-eval "({a: {b: 42}})"))
+nested.a.b      ;; => 42
+(set! nested.a.b 99)
+nested.a.b      ;; => 99
+```
+
+## Verification
+
+```
+TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
+```
+---
+
+# Callable Closures Implementation (2026-01-03)
+
+Made Scheme closures and continuations **intrinsically callable JavaScript functions**. They can now be stored in any JavaScript data structure (arrays, objects, Maps, Sets, global variables) and invoked directly without special handling.
+
+## Problem Solved
+
+Previously, Scheme closures could only be called from JavaScript via explicit bridging at specific interpreter boundaries. This caused issues when:
+- A closure was stored in a JS global variable and later invoked
+- A closure was placed in a vector/array and called from there
+- A continuation was captured and later invoked from arbitrary JS code
+
+## Key Changes
+
+### `values.js`
+- Added `createClosure()` and `createContinuation()` factory functions
+- Added marker symbols (`SCHEME_CLOSURE`, `SCHEME_CONTINUATION`) for type identification
+- Added `isSchemeClosure()` and `isSchemeContinuation()` type checkers
+
+### `ast_nodes.js`
+- Updated `LambdaNode.step()` to use `createClosure()`
+- Updated `CallCCNode.step()` to use `createContinuation()`
+
+### `frames.js`
+- Reordered type checks: Scheme closures → Scheme continuations → JS functions
+- Added `pushJsContext`/`popJsContext` calls for dynamic-wind context tracking
+- Removed bridge-wrapping logic (no longer needed)
+
+### `interpreter.js`
+- Added `jsContextStack` for tracking Scheme context across JS boundaries
+- Added `runWithSentinel()` method for proper nested runs
+- Added `invokeContinuation()` method
+
+## Usage Example
+
+```scheme
+;; Store a closure in a JS global variable
+(js-eval "var myCallback = null")
+(set! myCallback (lambda (x) (* x x)))
+```
+
+```javascript
+// Call it from JavaScript!
+myCallback(7);  // Returns 49
+```
+
+## Verification
+
+- **Node.js Tests**: 1197 passed, 0 failed
+- **Chibi Compliance**: 913 passed, 1 failed (pre-existing), 60 skipped
+- **New Tests Added**: 16 callable closures interop tests
+
+---
+
+# R7RS Compliance: `define` and `set!` Return Values (2026-01-04)
+
+Fixed incorrect return values for `define` and `set!` special forms.
+
+## Problem
+
+The `define` special form was incorrectly returning the name of the variable being defined (as a string), and `set!` was returning the assigned value. According to R7RS, both `define` and `set!` have **unspecified return values**.
+
+Example of incorrect behavior:
+```scheme
+> (define x 10)
+"x"              ;; WRONG: should not return a value
+> (set! x 20)
+20               ;; WRONG: should not return the value
+```
+
+## Solution
+
+Updated `DefineFrame` and `SetFrame` in `frames.js` to return `undefined` instead of a value.
+
+### Changes
+
+#### [frames.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/frames.js)
+- `DefineFrame.step()`: Changed from `registers[ANS] = this.name` to `registers[ANS] = undefined`
+- `SetFrame.step()`: Changed from `registers[ANS] = value` to `registers[ANS] = undefined`
+
+#### Test Updates
+- `tests/functional/core_tests.js`: Updated "set! return value" test to expect `undefined`
+- `tests/extras/primitives/interop_tests.js`: Fixed tests that incorrectly relied on `set!` returning a value
+
+## Verification
+
+All 1209 tests pass:
+
+```
+node run_tests_node.js
+========================================
+TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
+========================================
+```
+
+---
+
