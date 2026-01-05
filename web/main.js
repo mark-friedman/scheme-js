@@ -14,21 +14,25 @@ import { analyze } from '../src/core/interpreter/analyzer.js';
     setFileResolver(async (libraryName) => {
         // libraryName is like ['scheme', 'base'] OR ['scheme', 'macros.scm']
         const fileName = libraryName[libraryName.length - 1];
-        const baseDir = '../src/core/scheme/';
+        const searchDirs = ['../src/core/scheme/', '../src/extras/scheme/'];
 
-        // If it already has an extension (like macros.scm), try that first and only
+        // If it already has an extension (like macros.scm), try that first
         if (fileName.endsWith('.sld') || fileName.endsWith('.scm')) {
-            const response = await fetch(baseDir + fileName);
-            if (response.ok) return response.text();
-            throw new Error(`Failed to load ${fileName}: ${response.statusText}`);
+            for (const dir of searchDirs) {
+                const response = await fetch(dir + fileName);
+                if (response.ok) return response.text();
+            }
+            throw new Error(`Failed to load ${fileName}: Not found`);
         }
 
-        // Otherwise, try .sld then .scm (standard library trial)
-        const sldResponse = await fetch(baseDir + fileName + '.sld');
-        if (sldResponse.ok) return sldResponse.text();
+        // Otherwise, try .sld then .scm in both directories
+        for (const dir of searchDirs) {
+            const sldResponse = await fetch(dir + fileName + '.sld');
+            if (sldResponse.ok) return sldResponse.text();
 
-        const scmResponse = await fetch(baseDir + fileName + '.scm');
-        if (scmResponse.ok) return scmResponse.text();
+            const scmResponse = await fetch(dir + fileName + '.scm');
+            if (scmResponse.ok) return scmResponse.text();
+        }
 
         throw new Error(`Failed to load library ${libraryName.join('.')}: Not found`);
     });

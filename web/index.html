@@ -61,6 +61,217 @@
       color: #b91c1c;
       /* red-700 */
     }
+
+    /* Shell-style REPL styles */
+    .repl-shell {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5em;
+      padding: 16px;
+      border-radius: 8px;
+      min-height: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .repl-line {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+
+    /* Multiline history entries - stacks lines vertically */
+    .repl-history-multiline {
+      margin-bottom: 4px;
+    }
+
+    .repl-history-line {
+      display: flex;
+      align-items: flex-start;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* History prompts: fixed width to match input area */
+    .repl-history-line .repl-prompt {
+      width: 3ch;
+      text-align: right;
+      margin-right: 8px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    /* Prompt column: fixed width to prevent shift when adding ... prompts */
+    .repl-prompt-column {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 3ch;
+      /* Width of "..." - prevents width change */
+      margin-right: 8px;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .repl-prompt {
+      color: #6a9955;
+      font-weight: bold;
+      height: 1.5em;
+      line-height: 1.5em;
+      text-align: right;
+      /* Right-align so > and ... align at right edge */
+    }
+
+    .repl-prompt.continuation {
+      color: #808080;
+    }
+
+    /* Grid wrapper for overlay stacking */
+    .repl-input-wrapper {
+      display: grid;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Both layers occupy the same grid cell with identical styling */
+    .repl-highlight-layer,
+    .repl-input {
+      grid-area: 1 / 1 / 2 / 2;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: 1.5em;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .repl-highlight-layer {
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .repl-input {
+      background: transparent;
+      color: transparent;
+      caret-color: #fff;
+      z-index: 1;
+      outline: none;
+    }
+
+    .repl-input:focus {
+      outline: none;
+    }
+
+    /* Make selected text visible for copying */
+    .repl-input::selection {
+      background: #264f78;
+      color: #fff;
+    }
+
+    /* Rainbow parentheses - 6 levels cycling */
+    .paren-0 {
+      color: #ffd700;
+    }
+
+    /* Gold */
+    .paren-1 {
+      color: #da70d6;
+    }
+
+    /* Orchid */
+    .paren-2 {
+      color: #87ceeb;
+    }
+
+    /* Sky blue */
+    .paren-3 {
+      color: #98fb98;
+    }
+
+    /* Pale green */
+    .paren-4 {
+      color: #ffa07a;
+    }
+
+    /* Light salmon */
+    .paren-5 {
+      color: #dda0dd;
+    }
+
+    /* Plum */
+
+    /* Matching paren highlight */
+    .paren-match {
+      background-color: rgba(255, 255, 0, 0.4);
+      border-radius: 2px;
+    }
+
+    /* Mismatched paren */
+    .paren-mismatch {
+      background-color: rgba(255, 0, 0, 0.4);
+      color: #ff6b6b;
+      border-radius: 2px;
+    }
+
+    .repl-result {
+      color: #569cd6;
+      margin-bottom: 4px;
+      padding-left: 24px;
+    }
+
+    .repl-error {
+      color: #f14c4c;
+      margin-bottom: 4px;
+      padding-left: 24px;
+    }
+
+    .repl-history-input {
+      color: #d4d4d4;
+    }
+
+    .repl-history-continuation {
+      color: #808080;
+    }
+
+    .repl-history-line {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    /* Paren matching styles */
+    .match-paren {
+      background-color: rgba(255, 255, 0, 0.3);
+      border-radius: 2px;
+    }
+
+    .mismatch-paren {
+      background-color: rgba(255, 0, 0, 0.3);
+      border-radius: 2px;
+    }
+
+    /* Status indicator for incomplete expressions */
+    .incomplete-indicator {
+      color: #808080;
+      font-style: italic;
+      padding-left: 24px;
+      margin-bottom: 4px;
+    }
+
+    /* Paren indicator next to input */
+    .paren-indicator {
+      color: #808080;
+      font-style: italic;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .paren-indicator.mismatch {
+      color: #f14c4c;
+    }
   </style>
 </head>
 
@@ -78,14 +289,28 @@
     <!-- REPL UI -->
     <main class="bg-white rounded-lg shadow p-6 mb-8">
       <h2 class="text-2xl font-semibold mb-4">REPL</h2>
-      <div id="repl-container">
-        <div id="repl-output" class="p-4 bg-gray-50 rounded-lg h-64 overflow-y-auto mb-4 border border-gray-200">
-          <pre><span class="repl-info">Welcome to Scheme.js! Type some code and press Run.</span></pre>
+
+      <!-- Integrated Shell -->
+      <div id="repl-shell" class="repl-shell">
+        <div id="repl-history"></div>
+        <div id="repl-current-line" class="repl-line">
+          <div id="repl-prompt-column" class="repl-prompt-column">
+            <span class="repl-prompt">&gt;</span>
+          </div>
+          <div class="repl-input-wrapper">
+            <div id="repl-highlight-layer" class="repl-highlight-layer" aria-hidden="true"></div>
+            <span id="repl-input-area" class="repl-input" contenteditable="true" spellcheck="false"></span>
+          </div>
         </div>
-        <textarea id="repl-input" class="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm" rows="5"
-          placeholder="(+ 1 (call/cc (lambda (k) (k 10))))"></textarea>
+      </div>
+
+      <!-- Paste Area for larger expressions -->
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <label class="block text-sm font-medium text-gray-600 mb-2">Paste larger expressions:</label>
+        <textarea id="repl-input" class="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm" rows="4"
+          placeholder="(define (factorial n) ...)"></textarea>
         <button id="repl-run-btn"
-          class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition duration-150">
+          class="mt-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition duration-150">
           Run
         </button>
       </div>
