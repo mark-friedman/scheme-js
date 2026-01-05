@@ -210,3 +210,36 @@ Using `call/cc` across promise boundaries has limitations:
 - Use `call/cc` within a single callback (before any `await` points)
 - Avoid jumping out of promise chains with continuations
 - Consider using explicit error handling with `promise-catch`
+
+### Deep JavaScript Interoperability
+
+The `(scheme-js js-conversion)` library provides a robust system for converting complex data structures between Scheme and JavaScript.
+
+**Features:**
+- **Automatic Conversion**: The `js-auto-convert` parameter (default `#t`) automatically handles deep conversion of arguments and return values at the JS boundary.
+- **Deep Conversion Procedures**:
+  - `(scheme->js-deep val)`: Recursively converts Scheme lists/vectors to JS arrays and records to JS objects.
+  - `(js->scheme-deep val)`: Recursively converts JS arrays to Scheme vectors and JS objects to `js-object` records.
+- **Bi-Directional**: Works seamlessly for both Scheme calling JS and JS calling Scheme.
+- **Safe BigInts**: Errors are thrown when converting BigInts outside the safe JavaScript integer range to prevent silent precision loss.
+
+**Usage:**
+
+```scheme
+(import (scheme-js js-conversion))
+
+;; JS Array -> Scheme Vector (deep)
+(define vec (js->scheme-deep (js-eval "[1, 2, [3]]")))
+
+;; Scheme List -> JS Array (deep)
+(js-call "console.log" (scheme->js-deep '(1 2 (3))))
+
+;; Accessing JS Objects
+(define obj (js->scheme-deep (js-eval "({x: 10})")))
+(display (js-ref obj "x")) ; -> 10
+(js-set! obj "y" 20)
+```
+
+**Limitations:**
+- **Circular References**: Deep conversion does **not** support circular data structures. Attempting to convert a circular structure will result in a stack overflow error.
+

@@ -538,6 +538,11 @@ export function createPrimitiveExports(globalEnv) {
         'error', 'error-object?', 'error-object-message', 'error-object-irritants',
         // I/O
         'display', 'newline',
+        // JS Interop
+        'scheme->js', 'scheme->js-deep',
+        'js->scheme', 'js->scheme-deep',
+        'register-js-object-record',
+        'js-ref', 'js-set!',
     ];
 
     for (const name of primitiveExports) {

@@ -213,6 +213,38 @@ The reader transforms dot notation at read time:
 3. **JS calling Scheme:** Closures and continuations are callable functions. No explicit wrapping needed.
 4. **Context Tracking:** The `jsContextStack` ensures proper `dynamic-wind` handling across boundaries.
 5. **Type Identification:** Marker symbols (`SCHEME_CLOSURE`, `SCHEME_CONTINUATION`) distinguish Scheme callables from regular JS functions.
+
 6. **Property Access:** Use `obj.prop` syntax to access JS object properties, and `(set! obj.prop val)` to modify them.
 
 This design provides "Transparent Interoperability" - closures stored in JS globals, arrays, Maps, or any data structure can be invoked directly without special handling.
+
+## Deep Data Conversion
+
+While the core interoperability layer handles values "as-is" (shallow), the `(scheme-js js-conversion)` library offers deep, recursive conversion between language types.
+
+### Conversion Mapping
+
+| Scheme Type | `scheme->js-deep` | `js->scheme-deep` | JS Type |
+| :--- | :--- | :--- | :--- |
+| `Pair`/`List` | **Array** (recursive) | N/A | `Array` |
+| `Vector` | **Array** (recursive) | **Vector** (recursive) | `Array` |
+| `Record` | **Object** (recursive) | N/A | `Object` |
+| `js-object` | **Object** (unwrap) | **js-object** (recursive) | `Object` |
+| `BigInt` | `Number` (if safe*) | `BigInt` (identity) | `BigInt` |
+| Other | Identity | Identity | Other |
+
+* *Note: BigInt->Number conversion throws an error if the value is outside the safe integer range.*
+
+### Automatic Boundary Conversion
+
+The `js-auto-convert` parameter controls whether this conversion happens automatically at the API boundary.
+
+- **Default (`#t`)**:
+    - **Scheme calling JS**: Arguments are deeply converted to JS. Return values are deeply converted to Scheme.
+    - **JS calling Scheme**: Arguments are deeply converted to Scheme. Return values are deeply converted to JS.
+- **Disabled (`#f`)**: No conversion occurs. Values are passed as raw references.
+
+```scheme
+(parameterize ((js-auto-convert #f))
+  (js-call "processLargeData" scheme-data)) ;; Passed efficiently without copying
+```

@@ -29,16 +29,35 @@ function wrapJsError(e) {
   return new SchemeError(e.message, [], e.name);
 }
 
+import { schemeToJs, schemeToJsDeep } from './js_interop.js';
+
 /**
- * Unpacks a Values object to its first value for JS interop.
+ * Unpacks a Values object to its first value for JS interop (Option C).
+ * Also performs Scheme->JS conversion based on the 'js-auto-convert' parameter.
+ * 
  * @param {*} result - The result to unpack
- * @returns {*} First value if Values, otherwise unchanged
+ * @param {Interpreter} interpreter - The interpreter instance (for env lookup)
+ * @returns {*} Converted value
  */
-function unpackForJs(result) {
+function unpackForJs(result, interpreter) {
   if (result instanceof Values) {
-    return result.first();
+    result = result.first();
   }
-  return result;
+
+  // Check 'js-auto-convert' parameter
+  // If undefined or true, use deep conversion.
+  // If false, use shallow conversion.
+
+  let autoConvert = true;
+  if (interpreter && interpreter.jsAutoConvert === false) {
+    autoConvert = false;
+  }
+
+  if (autoConvert) {
+    return schemeToJsDeep(result);
+  } else {
+    return schemeToJs(result);
+  }
 }
 
 /**
@@ -204,7 +223,7 @@ export class Interpreter {
               const fstack = registers[FSTACK];
               if (fstack.length === 0) {
                 // Done - closures are callable, no wrapping needed
-                return unpackForJs(registers[ANS]);
+                return unpackForJs(registers[ANS], this);
               }
 
               // Pop next frame and continue
@@ -221,7 +240,7 @@ export class Interpreter {
 
           // Check for SentinelResult (Control Flow for JS Interop)
           if (e instanceof SentinelResult) {
-            return unpackForJs(e.value);
+            return unpackForJs(e.value, this);
           }
 
           // Check if there's an ExceptionHandlerFrame on the stack

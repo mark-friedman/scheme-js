@@ -2705,3 +2705,41 @@ TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
 
 ---
 
+
+# Deep JavaScript Interoperability (2026-01-05)
+
+Implemented a robust system for converting complex data structures between Scheme and JavaScript, enabling seamless data exchange.
+
+## Features
+
+### Deep Conversion
+New procedures in `(scheme-js js-conversion)` library provided:
+- `(scheme->js-deep val)`: Recursively converts Scheme Lists/Vectors to JS Arrays, and Records to JS Objects.
+- `(js->scheme-deep val)`: Recursively converts JS Arrays to Scheme Vectors, and JS Objects to Scheme `js-object` records.
+
+### Bi-Directional Auto-Conversion
+Introduced the `js-auto-convert` parameter (default `#t`).
+- When enabled, arguments passed to JS functions and return values from JS functions are automatically deeply converted.
+- When disabled (`#f`), values are passed as-is (opaque handles).
+
+### BigInt Safety
+Conversion automatically checks `BigInt` values. If a Scheme exact integer is outside the safe JavaScript integer range (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`), conversion throws an error prevents silent precision loss.
+
+## New API
+
+```scheme
+(import (scheme-js js-conversion))
+
+;; Manual Deep Conversion
+(define js-arr (scheme->js-deep '(1 2 3)))  ;; -> [1, 2, 3]
+(define scm-vec (js->scheme-deep js-arr))   ;; -> #(1 2 3)
+
+;; JS Object Access
+(define obj (js->scheme-deep (js-eval "({x: 10})")))
+(js-ref obj "x") ;; -> 10
+```
+
+## Verification
+
+- **Functional Tests**: Comprehensive coverage of implementation logic including nested structures.
+- **Regression Tests**: Confirmed 0 regressions in Chibi (982 tests) and Chapter (219 tests) compliance suites.

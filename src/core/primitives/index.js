@@ -1,3 +1,4 @@
+
 import { Environment } from '../interpreter/environment.js';
 import { globalScopeRegistry, GLOBAL_SCOPE_ID } from '../interpreter/syntax_object.js';
 
@@ -19,6 +20,7 @@ import { processContextPrimitives } from './process_context.js';
 import { bytevectorPrimitives } from './bytevector.js';
 import { syntaxPrimitives } from './syntax.js';
 import { getPromisePrimitives } from '../../extras/primitives/promise.js';
+import { jsInteropPrimitives } from './js_interop_primitives.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -59,6 +61,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(bytevectorPrimitives);
     addPrimitives(syntaxPrimitives);
     addPrimitives(getPromisePrimitives(interpreter));
+    addPrimitives(jsInteropPrimitives);
 
     return new Environment(null, bindings);
 }
