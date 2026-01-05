@@ -68,7 +68,7 @@
          (async-body rest ...))))))
 
 ;; ============================================================================
-;; Promise Composition Utilities (Scheme-level)
+;; Promise Composition Utilities
 ;; ============================================================================
 
 ;; /**
@@ -92,3 +92,5 @@
       (apply js-promise-chain 
              (js-promise-then p (car fs))
              (cdr fs))))
+
+

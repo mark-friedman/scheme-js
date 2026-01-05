@@ -39,14 +39,13 @@ export const functionalTests = [
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: false },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
-    { path: 'functional/promise_interop_tests.js', fn: 'runPromiseInteropTests', async: true },
 ];
 
 // Integration Tests
 export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
-    { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true, needsInterpreter: false },
+    { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
@@ -86,6 +85,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/nested_macro_tests.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',
+    'tests/extras/scheme/promise_interop_tests.scm',
     'tests/extras/scheme/jsref_tests.scm',
 ];
 
@@ -98,6 +98,13 @@ export const schemeTestFiles = [
  * @param {Function} loader - File loader (for tests that need it)
  */
 export async function runTestModule(pathPrefix, test, interpreter, logger, loader) {
+    // Skip Node.js-only tests in the browser
+    const inBrowser = typeof process === 'undefined';
+    if (test.nodeOnly && inBrowser) {
+        logger.skip(`${test.path} (Node.js only)`);
+        return;
+    }
+
     const fullPath = pathPrefix + test.path;
     const module = await import(fullPath);
     const testFn = module[test.fn];

@@ -5,24 +5,10 @@
  * directly from JavaScript in all contexts.
  */
 
-import { assert, createTestLogger } from '../harness/helpers.js';
-import { Interpreter } from '../../src/core/interpreter/interpreter.js';
-import { createGlobalEnvironment } from '../../src/core/primitives/index.js';
+import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { isSchemeClosure, isSchemeContinuation } from '../../src/core/interpreter/values.js';
-import * as fs from 'fs';
-import * as path from 'path';
-
-/**
- * Creates a fresh interpreter instance for testing.
- */
-function createInterpreter() {
-    const interpreter = new Interpreter();
-    const globalEnv = createGlobalEnvironment(interpreter);
-    interpreter.setGlobalEnv(globalEnv);
-    return { interpreter, globalEnv };
-}
 
 /**
  * Helper to run Scheme code and return the result.
@@ -46,32 +32,15 @@ function runSchemeProgram(interpreter, code) {
 }
 
 /**
- * Loads the Scheme bootstrap files needed for tests.
+ * Callable closures test suite.
+ * Uses the shared interpreter which already has bootstrap loaded.
+ * @param {Object} interpreter - Scheme interpreter (with bootstrap already loaded)
+ * @param {Object} logger - Test logger
  */
-function loadBootstrap(interpreter) {
-    const schemeFiles = [
-        'src/core/scheme/macros.scm',     // Core macros: and, let, letrec, cond
-        'src/core/scheme/equality.scm',   // equal?
-        'src/core/scheme/cxr.scm',        // caar, cadr, etc.
-        'src/core/scheme/numbers.scm',    // =, <, >, zero?, max, gcd, round
-        'src/core/scheme/list.scm',       // map, for-each, memq, assq, length
-        'src/core/scheme/control.scm',    // when, unless, or, let*, do, case
-    ];
-
-    for (const file of schemeFiles) {
-        const filePath = path.join(process.cwd(), file);
-        const code = fs.readFileSync(filePath, 'utf8');
-        runSchemeProgram(interpreter, code);
-    }
-}
-
-export async function runCallableClosuresTests(logger) {
+export async function runCallableClosuresTests(interpreter, logger) {
     logger.title('Running Callable Closures Interop Tests...');
 
-    const { interpreter, globalEnv } = createInterpreter();
-
-    // Load bootstrap files for full Scheme support (=, define, etc.)
-    loadBootstrap(interpreter);
+    const globalEnv = interpreter.globalEnv;
 
     // =========================================================================
     // Basic Callable Closure Tests

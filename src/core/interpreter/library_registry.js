@@ -13,15 +13,29 @@ import { Symbol } from './symbol.js';
 // =============================================================================
 
 /**
- * Feature registry for cond-expand.
+ * Feature registry for cond-expand and (features) primitive.
  * Standard R7RS features plus implementation-specific ones.
+ * This is the single source of truth for all features.
  */
 const features = new Set([
     'r7rs',           // R7RS Scheme
     'scheme-js',      // This implementation
     'exact-closed',   // Rationals not implemented, but we can claim this for integers
+    'ratios',         // Rational number support
     'ieee-float',     // JavaScript uses IEEE 754
+    'full-unicode',   // Full Unicode support in strings
 ]);
+
+// Detect Node.js vs browser and add appropriate feature
+const isNode = typeof process !== 'undefined' &&
+    process.versions != null &&
+    process.versions.node != null;
+
+if (isNode) {
+    features.add('node');
+} else {
+    features.add('browser');
+}
 
 /**
  * Checks if a feature is supported.
