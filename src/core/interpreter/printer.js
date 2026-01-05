@@ -1,6 +1,6 @@
 import { Cons } from './cons.js';
 import { Symbol } from './symbol.js';
-import { Closure, Continuation } from './values.js';
+import { isSchemeClosure, isSchemeContinuation } from './values.js';
 import { LiteralNode, VariableNode } from './ast.js'; // VariableNode used in web/repl, LiteralNode in both
 
 /**
@@ -12,12 +12,15 @@ export function prettyPrint(val) {
     if (val instanceof LiteralNode) {
         return prettyPrint(val.value);
     }
-    if (val instanceof Closure) {
+    // Check for Scheme closures (callable functions with marker)
+    if (isSchemeClosure(val)) {
         return "#<procedure>";
     }
-    if (val instanceof Continuation) {
+    // Check for Scheme continuations (callable functions with marker)
+    if (isSchemeContinuation(val)) {
         return "#<continuation>";
     }
+    // Regular JS functions
     if (typeof val === 'function') {
         return "#<procedure>";
     }

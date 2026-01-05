@@ -112,7 +112,7 @@ export async function runLibraryLoaderTests(logger) {
         assert(logger, "loadLibrary export value",
             exports.get('value'), 100);
         assert(logger, "loadLibrary export function",
-            typeof exports.get('add1'), 'object'); // Closure
+            typeof exports.get('add1'), 'function'); // Callable Scheme closure
         assert(logger, "loadLibrary caches library",
             isLibraryLoaded('test.simple'), true);
     } catch (e) {

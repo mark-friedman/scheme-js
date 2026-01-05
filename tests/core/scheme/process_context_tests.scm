@@ -24,17 +24,26 @@
     (get-environment-variable "")
     #f)
   
-  ;; PATH should exist on most systems
-  (test "get-environment-variable PATH exists"
-    (string? (get-environment-variable "PATH"))
-    #t)
+  ;; PATH and HOME tests only make sense in Node.js where we have env vars
+  (cond-expand
+    (node
+      ;; PATH should exist on most systems
+      (test "get-environment-variable PATH exists"
+        (string? (get-environment-variable "PATH"))
+        #t)
   
-  ;; HOME should exist on Unix/Mac, USERPROFILE on Windows
-  (test "get-environment-variable HOME or fallback"
-    (or (string? (get-environment-variable "HOME"))
-        (string? (get-environment-variable "USERPROFILE"))
-        #t)  ; fallback for unusual systems
-    #t)
+      ;; HOME should exist on Unix/Mac, USERPROFILE on Windows
+      (test "get-environment-variable HOME or fallback"
+        (or (string? (get-environment-variable "HOME"))
+            (string? (get-environment-variable "USERPROFILE"))
+            #t)  ; fallback for unusual systems
+        #t))
+    (else
+      ;; Browser environment - skip env var existence tests
+      (test-skip "Browser environment" 
+        (test "get-environment-variable PATH exists" #t #t))
+      (test-skip "Browser environment"
+        (test "get-environment-variable HOME or fallback" #t #t))))
   
   ;; ===== get-environment-variable type checking =====
   

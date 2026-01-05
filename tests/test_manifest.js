@@ -1,9 +1,9 @@
 /**
  * Test Manifest - Single source of truth for all test suites.
- * 
+ *
  * Paths are relative to the `tests/` directory.
  * Each runner adds its environment-specific prefix:
- * - Node.js (run_all.js): "./" 
+ * - Node.js (run_all.js): "./"
  * - Browser (core/interpreter/tests.js): "../"
  */
 
@@ -22,7 +22,7 @@ export const unitTests = [
 // Functional Tests (all need interpreter)
 export const functionalTests = [
     { path: 'functional/core_tests.js', fn: 'runCoreTests', async: false },
-    { path: 'functional/interop_tests.js', fn: 'runInteropTests', async: false },
+    { path: 'extras/primitives/interop_tests.js', fn: 'runInteropTests', async: false },
     { path: 'functional/quasiquote_tests.js', fn: 'runQuasiquoteTests', async: false },
     { path: 'functional/quote_tests.js', fn: 'runQuoteTests', async: false },
     { path: 'functional/macro_tests.js', fn: 'runMacroTests', async: true },
@@ -44,10 +44,13 @@ export const functionalTests = [
 // Integration Tests
 export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
+    { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
+    { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
 export const schemeTestFiles = [
+    'tests/test_script.scm',
     'tests/core/scheme/primitive_tests.scm',
     'tests/core/scheme/test_harness_tests.scm',
     'tests/core/scheme/boot_tests.scm',
@@ -81,6 +84,10 @@ export const schemeTestFiles = [
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',
     'tests/core/scheme/bigint_exactness_tests.scm',
+    // Extension library tests
+    'tests/extras/scheme/promise_tests.scm',
+    'tests/extras/scheme/promise_interop_tests.scm',
+    'tests/extras/scheme/jsref_tests.scm',
 ];
 
 /**
@@ -92,6 +99,13 @@ export const schemeTestFiles = [
  * @param {Function} loader - File loader (for tests that need it)
  */
 export async function runTestModule(pathPrefix, test, interpreter, logger, loader) {
+    // Skip Node.js-only tests in the browser
+    const inBrowser = typeof process === 'undefined';
+    if (test.nodeOnly && inBrowser) {
+        logger.skip(`${test.path} (Node.js only)`);
+        return;
+    }
+
     const fullPath = pathPrefix + test.path;
     const module = await import(fullPath);
     const testFn = module[test.fn];
@@ -121,7 +135,7 @@ export async function runTestModule(pathPrefix, test, interpreter, logger, loade
  * Runs all tests from the manifest with the given path prefix.
  * @param {string} pathPrefix - Path prefix for imports
  * @param {Object} interpreter - Interpreter instance
- * @param {Object} logger - Logger instance  
+ * @param {Object} logger - Logger instance
  * @param {Function} loader - File loader for Scheme tests
  * @param {Function} runSchemeTests - Scheme test runner function
  */

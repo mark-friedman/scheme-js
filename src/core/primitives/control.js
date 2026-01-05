@@ -4,7 +4,7 @@
  * Provides control flow operations including apply, eval, dynamic-wind, and values.
  */
 
-import { TailCall, Values, Closure, Continuation } from '../interpreter/values.js';
+import { TailCall, Values, isSchemeClosure, isSchemeContinuation, Closure, Continuation } from '../interpreter/values.js';
 import { TailAppNode, LiteralNode, DynamicWindInit, CallWithValuesNode, CallCCNode } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/analyzer.js';
 import { Cons, toArray } from '../interpreter/cons.js';
@@ -48,9 +48,6 @@ export function getControlPrimitives(interpreter) {
         );
     };
 
-    // CRITICAL: Tell AppFrame NOT to wrap the first argument (proc) in a bridge.
-    applyPrimitive.skipBridge = true;
-
     /**
      * call-with-values: (call-with-values producer consumer)
      */
@@ -62,7 +59,6 @@ export function getControlPrimitives(interpreter) {
             null
         );
     };
-    callWithValuesPrimitive.skipBridge = true;
 
     const controlPrimitives = {
         'apply': applyPrimitive,
@@ -148,23 +144,16 @@ export function getControlPrimitives(interpreter) {
 
         /**
          * procedure?: Type predicate for procedures.
+         * Returns #t for Scheme closures, continuations, and JS functions.
          */
         'procedure?': (obj) => {
+            // All callable functions are procedures
+            // Scheme closures/continuations are now functions with markers
             return typeof obj === 'function' ||
                 obj instanceof Closure ||
                 obj instanceof Continuation;
         }
     };
-
-    // Allow raw Closures for dynamic-wind components
-    controlPrimitives['dynamic-wind'].skipBridge = true;
-    controlPrimitives['values'].skipBridge = true;
-    controlPrimitives['procedure?'].skipBridge = true;
-    controlPrimitives['eval'].skipBridge = true;
-    controlPrimitives['call/cc'].skipBridge = true;
-    controlPrimitives['call-with-current-continuation'].skipBridge = true;
-    controlPrimitives['interaction-environment'].skipBridge = true;
-    controlPrimitives['null-environment'].skipBridge = true;
 
     return controlPrimitives;
 }

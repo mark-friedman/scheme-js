@@ -9,7 +9,7 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
-import { Closure, Continuation, TailCall, ContinuationUnwind, Values } from './values.js';
+import { isSchemeClosure, isSchemeContinuation, TailCall, ContinuationUnwind, Values } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { Cons } from './cons.js';
 import { registerBindingWithCurrentScopes } from './syntax_object.js';
@@ -143,7 +143,7 @@ export class SetFrame extends Executable {
     step(registers, interpreter) {
         const value = registers[ANS];
         this.env.set(this.name, value);
-        registers[ANS] = value;
+        registers[ANS] = undefined;
         return false;
     }
 }
@@ -171,7 +171,7 @@ export class DefineFrame extends Executable {
         // Register binding with current defining scopes for macro referential transparency
         registerBindingWithCurrentScopes(this.name, value);
 
-        registers[ANS] = this.name;
+        registers[ANS] = undefined;
         return false;
     }
 }
@@ -251,8 +251,9 @@ export class AppFrame extends Executable {
         const func = newArgValues[0];
         const args = newArgValues.slice(1);
 
-        // 1. CLOSURE APPLICATION
-        if (func instanceof Closure) {
+        // 1. SCHEME CLOSURE APPLICATION
+        // Check for callable Scheme closures first (they are typeof 'function')
+        if (isSchemeClosure(func)) {
             registers[CTL] = func.body;
 
             // Handle rest parameter if present
@@ -278,20 +279,31 @@ export class AppFrame extends Executable {
             return true;
         }
 
-        // 2. JS FUNCTION APPLICATION
-        if (typeof func === 'function') {
-            const jsArgs = args.map(arg => {
-                if ((arg instanceof Closure || arg instanceof Continuation) && !func.skipBridge) {
-                    return interpreter.createJsBridge(arg, registers[FSTACK]);
-                }
-                return arg;
-            });
+        // 2. SCHEME CONTINUATION INVOCATION
+        // Check for callable Scheme continuations (they are also typeof 'function')
+        if (isSchemeContinuation(func)) {
+            return this.invokeContinuation(func, args, registers, interpreter);
+        }
 
-            const result = func(...jsArgs);
+        // 3. JS FUNCTION APPLICATION
+        // Regular JavaScript functions (including callable closures passed to JS)
+        if (typeof func === 'function') {
+            // CRITICAL: Push the current Scheme context before calling JS.
+            // This allows callable closures/continuations invoked by JS to
+            // properly track dynamic-wind frames for unwinding/rewinding.
+            interpreter.pushJsContext(registers[FSTACK]);
+
+            let result;
+            try {
+                result = func(...args);
+            } finally {
+                // Pop the context after JS returns (or throws)
+                interpreter.popJsContext();
+            }
 
             if (result instanceof TailCall) {
                 const target = result.func;
-                if (target instanceof Closure || target instanceof Continuation || typeof target === 'function') {
+                if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
                     const tailArgs = result.args || [];
                     const argLiterals = tailArgs.map(a => new LiteralNode(a));
                     registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
@@ -303,11 +315,6 @@ export class AppFrame extends Executable {
 
             registers[ANS] = result;
             return false;
-        }
-
-        // 3. CONTINUATION INVOCATION
-        if (func instanceof Continuation) {
-            return this.invokeContinuation(func, args, registers, interpreter);
         }
 
         throw new Error(`Not a function: ${func}`);

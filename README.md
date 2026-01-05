@@ -152,3 +152,61 @@ Our implementation uses `Number.isInteger()` to distinguish exact from inexact:
 See `r7rs_roadmap.md` for potential approaches to fix this, including:
 - Creating an `InexactNumber` wrapper class
 - Using a tag map to track exactness separately
+
+### JavaScript Promise Interoperability
+
+The `(scheme-js promise)` library provides transparent interoperability with JavaScript Promises using a CPS (Continuation-Passing Style) approach.
+
+**Basic Usage:**
+
+```scheme
+(import (scheme-js promise))
+
+;; Create and work with promises
+(define p (js-promise-resolve 42))
+(js-promise-then p (lambda (x) (display x)))
+
+;; Chain promises
+(js-promise-chain (fetch-url "http://example.com")
+  (lambda (response) (parse-json response))
+  (lambda (data) (process data)))
+```
+
+**Available Procedures:**
+
+| Procedure | Description |
+|-----------|-------------|
+| `(js-promise? obj)` | Returns `#t` if obj is a JavaScript Promise |
+| `(make-js-promise executor)` | Creates a Promise with `(lambda (resolve reject) ...)` |
+| `(js-promise-resolve value)` | Creates a resolved Promise |
+| `(js-promise-reject reason)` | Creates a rejected Promise |
+| `(js-promise-then p handler)` | Attaches fulfillment handler |
+| `(js-promise-catch p handler)` | Attaches rejection handler |
+| `(js-promise-all list)` | Waits for all promises |
+| `(js-promise-race list)` | Waits for first to settle |
+| `(js-promise-map f p)` | Apply function to resolved value |
+| `(js-promise-chain p f ...)` | Chain promise-returning functions |
+
+**Limitations with `call/cc`:**
+
+Using `call/cc` across promise boundaries has limitations:
+
+```scheme
+;; WARNING: This will abandon the promise chain
+(call/cc
+  (lambda (k)
+    (js-promise-then (js-promise-resolve 1)
+      (lambda (x)
+        (k (* x 10))  ; Escapes the promise chain!
+        (+ x 1)))))   ; Never executes
+```
+
+**Why this happens:**
+1. Each `promise-then` callback runs in a fresh interpreter invocation
+2. Continuations captured inside a callback only escape *that* callback
+3. The JavaScript Promise chain is abandoned, not just the Scheme continuation
+
+**Safe patterns:**
+- Use `call/cc` within a single callback (before any `await` points)
+- Avoid jumping out of promise chains with continuations
+- Consider using explicit error handling with `promise-catch`

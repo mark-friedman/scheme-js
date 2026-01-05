@@ -9,8 +9,11 @@ import { Cons } from './cons.js';
 import { Char } from '../primitives/char_class.js';
 import { Complex } from '../primitives/complex.js';
 import { Symbol } from './symbol.js';
-import { Closure, Continuation } from './values.js';
+import { Closure, Continuation, isSchemeClosure, isSchemeContinuation } from './values.js';
 import { SchemeTypeError, SchemeArityError, SchemeRangeError } from './errors.js';
+
+// Re-export type checkers for convenience
+export { isSchemeClosure, isSchemeContinuation };
 
 // =============================================================================
 // Type Predicates
@@ -141,6 +144,9 @@ export function isVector(x) {
  * @returns {boolean}
  */
 export function isProcedure(x) {
+    // All callable functions are procedures
+    // This includes Scheme closures/continuations (which are now callable functions)
+    // and regular JS functions
     return typeof x === 'function' || x instanceof Closure || x instanceof Continuation;
 }
 

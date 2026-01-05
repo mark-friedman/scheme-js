@@ -41,6 +41,9 @@ async function bootstrapInterpreter() {
             process.cwd(),
             path.join(process.cwd(), 'src/core/scheme'),
             path.join(__dirname, 'src/core/scheme'),
+            // Extension libraries (non-R7RS)
+            path.join(process.cwd(), 'src/extras/scheme'),
+            path.join(__dirname, 'src/extras/scheme'),
             // Add test directories for compliance checking
             path.join(process.cwd(), 'tests/core/scheme/compliance/chibi_original'),
             path.join(process.cwd(), 'tests/core/scheme/compliance/chibi_revised')

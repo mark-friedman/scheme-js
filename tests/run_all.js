@@ -48,6 +48,8 @@ async function runAll() {
             const code = await nodeFileLoader(file);
             run(interpreter, code);
         }
+        // Note: Promise primitives (js-promise-chain, js-promise-map, etc.)
+        // are always available as they're registered as primitives in primitives/index.js
     };
 
     // Run all tests with "./" prefix (we're already in tests/)

@@ -2365,3 +2365,343 @@ if (!passed && trulyPassed) {
 - **12 string immutability** (JavaScript strings are immutable by design)
 - **11 FP precision** (denormal numbers, sqrt precision, geometric mean)
 - **1 geometric mean precision** (FP calculation differs slightly)
+
+---
+
+# JavaScript Promise Interoperability (2026-01-01)
+
+Implemented transparent JavaScript Promise support via the `(scheme-js promise)` library.
+
+## New Directory Structure
+
+Created `src/extras/` for non-R7RS extension libraries:
+
+```
+src/extras/
+├── primitives/
+│   └── promise.js        # JavaScript Promise primitives
+└── scheme/
+    ├── promise.sld       # (scheme-js promise) library definition
+    └── promise.scm       # Scheme utilities and async-lambda macro
+```
+
+## Primitives Implemented
+
+| Procedure | Description |
+|-----------|-------------|
+| `js-promise?` | Predicate for JavaScript Promises |
+| `make-js-promise` | Create Promise with executor `(lambda (resolve reject) ...)` |
+| `js-promise-resolve` | Create resolved Promise |
+| `js-promise-reject` | Create rejected Promise |
+| `js-promise-then` | Attach fulfillment handler |
+| `js-promise-catch` | Attach rejection handler |
+| `js-promise-finally` | Attach finally handler |
+| `js-promise-all` | Wait for all promises |
+| `js-promise-race` | Wait for first to settle |
+| `js-promise-all-settled` | Wait for all to settle |
+| `js-promise-map` | Apply function to resolved value |
+| `js-promise-chain` | Chain promise-returning functions |
+
+## Design Decisions
+
+### CPS Approach
+Used CPS (Continuation-Passing Style) transformation rather than automatic async/await because:
+- Preserves TCO within each callback segment
+- Explicit suspension points make `call/cc` limitations visible
+- Aligns with existing trampoline architecture
+
+### `js-` Prefix Naming
+All procedures use `js-` prefix to distinguish from R7RS `(scheme lazy)` which has its own `promise?` and `make-promise` for lazy evaluation.
+
+### `call/cc` Limitations
+Documented that `call/cc` across Promise boundaries abandons the Promise chain. This is inherent to mixing JavaScript's `Promise.then()` with Scheme's continuation model.
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/extras/primitives/promise.js` | **NEW** - JavaScript Promise primitives |
+| `src/extras/scheme/promise.sld` | **NEW** - Library definition |
+| `src/extras/scheme/promise.scm` | **NEW** - Utilities and async-lambda macro |
+| `src/core/primitives/index.js` | Import and register promise primitives |
+| `repl.js` | Added `src/extras/scheme` to library search paths |
+| `tests/run_scheme_tests_lib.js` | Extended file resolver for `src/extras/scheme` |
+| `tests/extras/scheme/promise_tests.scm` | **NEW** - 18 Scheme-level tests |
+| `tests/functional/promise_interop_tests.js` | **NEW** - 6 JS<->Scheme interop tests |
+| `tests/test_manifest.js` | Added promise tests |
+| `tests/core/interpreter/unit_tests.js` | Fixed `prettyPrint` import path |
+| `README.md` | Added Promise interop documentation |
+| `r7rs_roadmap.md` | Added delimited continuations future direction |
+| `directory_structure.md` | Added `src/extras/` documentation |
+
+## Verification
+
+### Scheme Tests (18 tests)
+```
+✅ js-promise? returns #f for numbers
+✅ js-promise? returns #t for resolved promise
+✅ make-js-promise returns a Promise
+✅ js-promise-then returns a Promise
+✅ js-promise-all returns a Promise
+... (18 total)
+```
+
+### JS Interop Tests (6 tests)
+```
+✅ Scheme-created promise resolved correctly in JS (got 42)
+✅ Scheme callback doubled JS Promise value correctly (100 -> 200)
+✅ Complex chain computed correctly: 5 -> 10 -> 13
+✅ Scheme executor computed correctly: 10+20+30 = 60
+✅ promise-all with mixed sources worked correctly
+✅ Scheme caught JS rejection correctly
+```
+
+### Overall
+```
+========================================
+TEST SUMMARY: 1166 passed, 0 failed, 3 skipped
+========================================
+```
+
+## Usage Example
+
+```scheme
+(import (scheme-js promise))
+
+;; Create and work with promises
+(define p (js-promise-resolve 42))
+(js-promise-then p (lambda (x) (display x)))
+
+;; Create promise with executor
+(define p2 (make-js-promise 
+             (lambda (resolve reject)
+               (resolve (* 6 7)))))
+
+;; Chain promises
+(js-promise-chain (fetch-url "http://example.com")
+  (lambda (response) (parse-json response))
+  (lambda (data) (process data)))
+```
+
+# Walkthrough: Packaging and HTML Script Support (2025-01-28)
+
+Implemented bundling infrastructure to package the interpreter for distribution and added support for executing Scheme code directly in HTML via `<script>` tags.
+
+## Packaging System
+
+### Rollup Configuration
+- Configured Rollup to produce two ESM bundles:
+    - `dist/scheme.js`: The core interpreter bundle. Exports `schemeEval` (sync) and `schemeEvalAsync` (Promise-based).
+    - `dist/scheme-html.js`: A lightweight adapter for browser environments.
+
+### Core Entry Point (`src/packaging/scheme_entry.js`)
+- Initializes a singleton `Interpreter` instance with the global environment.
+- Exports `schemeEval` for synchronous evaluation (returns result or throws).
+- Exports `schemeEvalAsync` for asynchronous evaluation (returns Promise).
+- Exports `interpreter` and `env` for advanced usage (e.g., injecting test helpers).
+
+### HTML Adapter (`src/packaging/html_adapter.js`)
+- Listens for `DOMContentLoaded`.
+- Scans for `<script type="text/scheme">` tags.
+- Supports both inline code and `src` attributes (via `fetch`).
+- Executes scripts sequentially using the shared interpreter instance.
+
+## Testing Infrastructure
+
+### Bundle Integration Tests
+- Added `tests/test_bundle.js`: Verifies the bundled artifacts work correctly in Node.js.
+- Added to `tests/test_manifest.js` as an integration test.
+
+### Browser Script Tests
+- Added `tests/test_script.scm`: A Scheme test file to verify the HTML adapter.
+- Added `tests/test_browser.html`: A test page that loads the bundle, injects the Scheme test harness, and runs the script test.
+- Added to `tests/test_manifest.js` so it runs as part of the standard Scheme test suite.
+
+## Verification
+
+```
+TEST SUMMARY: 1173 passed, 0 failed, 3 skipped
+```
+
+### Manual Verification
+- Verified `scheme.js` can be imported in Node.js.
+- Verified `scheme-html.js` correctly finds and executes scripts in the DOM (simulated via structure checks).
+
+# Walkthrough: JS Global Environment Access (2025-01-28)
+
+Implemented implicit access to the JavaScript global environment (`globalThis`) when a symbol is not found in the Scheme environment.
+
+## Changes
+
+### 1. Environment Lookup
+- Modified `Environment.prototype.lookup` in `src/core/interpreter/environment.js` to fallback to `globalThis` if the variable is unbound in the Scheme scope chain.
+
+### 2. Environment Modification
+- Modified `Environment.prototype.set` in `src/core/interpreter/environment.js`. If a variable is unbound in Scheme, it checks `globalThis` and updates the JS global if it exists.
+
+### 3. Verification
+- Added `tests/functional/js_global_tests.js` verifying:
+    - Reading JS globals.
+    - Writing JS globals (`set!`).
+    - Shadowing JS globals with `define`.
+    - Calling JS global functions.
+    - Error handling for non-existent variables.
+
+## Verification Results
+
+```
+TEST SUMMARY: 1173 passed, 0 failed
+```
+
+# JS Property Access Reader Syntax (2026-01-03)
+
+Implemented JS-style dot notation for accessing JavaScript object properties: `obj.prop`, `obj.a.b.c`, and `(set! obj.prop val)`.
+
+## Changes
+
+### File Reorganization
+- Moved `interop.js` from `src/core/primitives/` to `src/extras/primitives/`
+- Moved `interop_tests.js` from `tests/functional/` to `tests/extras/primitives/`
+
+### Reader Transformation (`src/core/interpreter/reader.js`)
+- Added `buildPropertyAccessForm()` helper function
+- Modified `readAtom()` to detect dotted symbols and transform them:
+  - `obj.prop` → `(js-ref obj "prop")`
+  - `obj.a.b.c` → `(js-ref (js-ref (js-ref obj "a") "b") "c")`
+- Numbers like `3.14` are correctly preserved as numbers
+
+### Analyzer Modification (`src/core/interpreter/analyzer.js`)
+- Modified `analyzeSet()` to detect `js-ref` forms and transform to `js-set!`:
+  - `(set! obj.prop val)` → `(js-set! obj "prop" val)`
+
+### New Primitives (`src/extras/primitives/interop.js`)
+- `js-ref`: Access a property on a JavaScript object
+- `js-set!`: Set a property on a JavaScript object
+
+### Tests
+- Added `tests/extras/scheme/jsref_tests.scm` with comprehensive tests
+
+### Documentation
+- Updated `docs/Interoperability.md` with property access section
+- Updated `directory_structure.md`
+
+## Usage
+
+```scheme
+(define obj (js-eval "({name: 'alice', age: 30})"))
+obj.name        ;; => "alice"
+obj.age         ;; => 30
+
+(set! obj.age 31)
+obj.age         ;; => 31
+
+;; Chained access
+(define nested (js-eval "({a: {b: 42}})"))
+nested.a.b      ;; => 42
+(set! nested.a.b 99)
+nested.a.b      ;; => 99
+```
+
+## Verification
+
+```
+TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
+```
+---
+
+# Callable Closures Implementation (2026-01-03)
+
+Made Scheme closures and continuations **intrinsically callable JavaScript functions**. They can now be stored in any JavaScript data structure (arrays, objects, Maps, Sets, global variables) and invoked directly without special handling.
+
+## Problem Solved
+
+Previously, Scheme closures could only be called from JavaScript via explicit bridging at specific interpreter boundaries. This caused issues when:
+- A closure was stored in a JS global variable and later invoked
+- A closure was placed in a vector/array and called from there
+- A continuation was captured and later invoked from arbitrary JS code
+
+## Key Changes
+
+### `values.js`
+- Added `createClosure()` and `createContinuation()` factory functions
+- Added marker symbols (`SCHEME_CLOSURE`, `SCHEME_CONTINUATION`) for type identification
+- Added `isSchemeClosure()` and `isSchemeContinuation()` type checkers
+
+### `ast_nodes.js`
+- Updated `LambdaNode.step()` to use `createClosure()`
+- Updated `CallCCNode.step()` to use `createContinuation()`
+
+### `frames.js`
+- Reordered type checks: Scheme closures → Scheme continuations → JS functions
+- Added `pushJsContext`/`popJsContext` calls for dynamic-wind context tracking
+- Removed bridge-wrapping logic (no longer needed)
+
+### `interpreter.js`
+- Added `jsContextStack` for tracking Scheme context across JS boundaries
+- Added `runWithSentinel()` method for proper nested runs
+- Added `invokeContinuation()` method
+
+## Usage Example
+
+```scheme
+;; Store a closure in a JS global variable
+(js-eval "var myCallback = null")
+(set! myCallback (lambda (x) (* x x)))
+```
+
+```javascript
+// Call it from JavaScript!
+myCallback(7);  // Returns 49
+```
+
+## Verification
+
+- **Node.js Tests**: 1197 passed, 0 failed
+- **Chibi Compliance**: 913 passed, 1 failed (pre-existing), 60 skipped
+- **New Tests Added**: 16 callable closures interop tests
+
+---
+
+# R7RS Compliance: `define` and `set!` Return Values (2026-01-04)
+
+Fixed incorrect return values for `define` and `set!` special forms.
+
+## Problem
+
+The `define` special form was incorrectly returning the name of the variable being defined (as a string), and `set!` was returning the assigned value. According to R7RS, both `define` and `set!` have **unspecified return values**.
+
+Example of incorrect behavior:
+```scheme
+> (define x 10)
+"x"              ;; WRONG: should not return a value
+> (set! x 20)
+20               ;; WRONG: should not return the value
+```
+
+## Solution
+
+Updated `DefineFrame` and `SetFrame` in `frames.js` to return `undefined` instead of a value.
+
+### Changes
+
+#### [frames.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/frames.js)
+- `DefineFrame.step()`: Changed from `registers[ANS] = this.name` to `registers[ANS] = undefined`
+- `SetFrame.step()`: Changed from `registers[ANS] = value` to `registers[ANS] = undefined`
+
+#### Test Updates
+- `tests/functional/core_tests.js`: Updated "set! return value" test to expect `undefined`
+- `tests/extras/primitives/interop_tests.js`: Fixed tests that incorrectly relied on `set!` returning a value
+
+## Verification
+
+All 1209 tests pass:
+
+```
+node run_tests_node.js
+========================================
+TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
+========================================
+```
+
+---
+

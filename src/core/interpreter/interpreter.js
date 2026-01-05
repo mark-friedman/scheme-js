@@ -1,4 +1,4 @@
-import { Closure, Values } from './values.js';
+import { Values, isSchemeClosure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 
@@ -30,7 +30,7 @@ function wrapJsError(e) {
 }
 
 /**
- * Unpacks a Values object to its first value for JS interop (Option C).
+ * Unpacks a Values object to its first value for JS interop.
  * @param {*} result - The result to unpack
  * @returns {*} First value if Values, otherwise unchanged
  */
@@ -39,6 +39,29 @@ function unpackForJs(result) {
     return result.first();
   }
   return result;
+}
+
+/**
+ * SentinelFrame is pushed onto the stack when calling Scheme from JS.
+ * When control returns to this frame, it throws SentinelResult to
+ * break out of the nested interpreter.run() call.
+ */
+class SentinelFrame {
+  step(registers, interpreter) {
+    // We have reached the bottom of the inner run's stack.
+    // The result is in registers[ANS].
+    // We throw a special signal to break out of interpreter.run immediately.
+    throw new SentinelResult(registers[ANS]);
+  }
+}
+
+/**
+ * SentinelResult is thrown to signal normal completion of a nested run.
+ */
+class SentinelResult {
+  constructor(value) {
+    this.value = value;
+  }
 }
 
 /**
@@ -53,6 +76,41 @@ export class Interpreter {
      */
     this.globalEnv = null;
     this.depth = 0;
+
+    /**
+     * Stack of frame stacks representing the Scheme context at JS boundary crossings.
+     * When Scheme calls a JS function, we push the current fstack here.
+     * When JS calls back into Scheme (via a callable closure/continuation),
+     * we use the top of this stack as the parent context.
+     * @type {Array<Array>}
+     */
+    this.jsContextStack = [];
+  }
+
+  /**
+   * Pushes the current Scheme context before calling into JS.
+   * @param {Array} fstack - The current frame stack.
+   */
+  pushJsContext(fstack) {
+    this.jsContextStack.push([...fstack]);
+  }
+
+  /**
+   * Pops the Scheme context after returning from JS.
+   */
+  popJsContext() {
+    this.jsContextStack.pop();
+  }
+
+  /**
+   * Gets the current parent context (if any) for re-entering Scheme from JS.
+   * @returns {Array} The parent frame stack, or empty array if none.
+   */
+  getParentContext() {
+    if (this.jsContextStack.length > 0) {
+      return this.jsContextStack[this.jsContextStack.length - 1];
+    }
+    return [];
   }
 
   /**
@@ -67,6 +125,7 @@ export class Interpreter {
    * Runs a piece of Scheme code (as an AST).
    * @param {Executable} ast - The AST node to execute.
    * @param {Environment} [env] - The environment to run in. Defaults to globalEnv.
+   * @param {Array} [initialStack] - Initial frame stack.
    * @returns {*} The final result of the computation.
    */
   run(ast, env = this.globalEnv, initialStack = []) {
@@ -104,16 +163,9 @@ export class Interpreter {
           if (fstack.length === 0) {
             // --- Fate #1: Normal Termination ---
             // Stack is empty, computation is done.
-            let result = unpackForJs(registers[ANS]);
-
-            // BOUNDARY CHECK: If result is a Closure, wrap it in a Bridge
-            if (result instanceof Closure) {
-              return this.createJsBridge(result);
-            }
-
-            return result; // Return the value in 'ans'
+            // Closures are now callable functions, no wrapping needed.
+            return unpackForJs(registers[ANS]);
           }
-
 
           // --- Fate #2: Restore a Frame ---
           // The stack is not empty. Pop the next frame.
@@ -130,8 +182,7 @@ export class Interpreter {
 
         } catch (e) {
           // Check for Continuation Unwind
-          // We check the constructor name to avoid circular dependency imports if possible,
-          // or we can import ContinuationUnwind at top.
+          // We check the constructor name to avoid circular dependency imports if possible.
           if (e.constructor.name === 'ContinuationUnwind') {
             // If we are nested (depth > 1), strictly propagate up to the top level
             if (this.depth > 1) {
@@ -152,12 +203,8 @@ export class Interpreter {
 
               const fstack = registers[FSTACK];
               if (fstack.length === 0) {
-                // Done
-                let result = unpackForJs(registers[ANS]);
-                if (result instanceof Closure) {
-                  return this.createJsBridge(result);
-                }
-                return result;
+                // Done - closures are callable, no wrapping needed
+                return unpackForJs(registers[ANS]);
               }
 
               // Pop next frame and continue
@@ -199,19 +246,61 @@ export class Interpreter {
     }
   }
 
+  /**
+   * Runs an AST with a sentinel frame on the stack.
+   * Used when JavaScript code calls a Scheme closure.
+   * The sentinel ensures the nested run terminates properly.
+   * Uses the parent context from jsContextStack for proper dynamic-wind handling.
+   * 
+   * @param {Executable} ast - The AST to execute.
+   * @returns {*} The result of the computation.
+   */
+  runWithSentinel(ast) {
+    // Get the parent context (the Scheme stack at the point where we entered JS)
+    const parentContext = this.getParentContext();
+    const stackWithSentinel = [...parentContext, new SentinelFrame()];
+    return this.run(ast, this.globalEnv, stackWithSentinel);
+  }
+
+  /**
+   * Invokes a captured continuation from JavaScript.
+   * This is called when JS code invokes a callable continuation.
+   * 
+   * @param {Function} continuation - The callable continuation (with fstack attached).
+   * @param {*} value - The value to pass to the continuation.
+   * @returns {*} The result of invoking the continuation.
+   */
+  invokeContinuation(continuation, value) {
+    // Build an AST that invokes the continuation
+    const ast = new TailAppNode(
+      new LiteralNode(continuation),
+      [new LiteralNode(value)]
+    );
+
+    // Run with sentinel and parent context
+    return this.runWithSentinel(ast);
+  }
+
+  /**
+   * Creates a JS-callable wrapper for a Scheme closure.
+   * 
+   * @deprecated Closures are now created as callable functions directly.
+   *             This method is kept for backward compatibility.
+   * @param {Function} closure - A Scheme closure (callable function with marker).
+   * @param {Array} parentStack - The parent frame stack for context.
+   * @returns {Function} A callable wrapper (or the closure itself if already callable).
+   */
   createJsBridge(closure, parentStack = []) {
+    // If it's already a callable Scheme closure, it can be called directly.
+    // This method is now essentially a passthrough for new-style closures.
+    if (isSchemeClosure(closure)) {
+      return closure;
+    }
+
+    // Legacy path for old-style Closure instances (during migration)
     return (...jsArgs) => {
-      // 1. Convert JS args to Scheme args (literals)
       const argLiterals = jsArgs.map(val => new LiteralNode(val));
-
-      // 2. Create the invocation AST
       const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
-
-      // 3. Spin up a NEW interpreter instance
-      // We pass 'parentStack' + SentinelFrame to the new run.
-      // This ensures that if the closure returns normally (popping frames),
-      // it hits the SentinelFrame and stops the inner interpreter,
-      // instead of continuing into the parent's frames (Double Execution).
       const stackWithSentinel = [...parentStack, new SentinelFrame()];
       return this.run(ast, this.globalEnv, stackWithSentinel);
     };
@@ -226,20 +315,5 @@ export class Interpreter {
   step(registers) {
     const ctl = registers[CTL];
     return ctl.step(registers, this);
-  }
-}
-
-class SentinelFrame {
-  step(registers, interpreter) {
-    // We have reached the bottom of the inner run's stack.
-    // The result is in registers[ANS].
-    // We throw a special signal to break out of interpreter.run immediately.
-    throw new SentinelResult(registers[ANS]);
-  }
-}
-
-class SentinelResult {
-  constructor(value) {
-    this.value = value;
   }
 }

@@ -1,3 +1,7 @@
+;; (scheme repl) library - R7RS standard
+;;
+;; Provides the interaction environment for REPL use.
+
 (define-library (scheme repl)
   (import (scheme base))
   (export interaction-environment)

@@ -808,6 +808,24 @@ function analyzeSet(exp, syntacticEnv) {
   const varObj = cadr(exp);
   const valExpr = analyze(caddr(exp), syntacticEnv);
 
+  // Check for JS property access form: (set! (js-ref obj "prop") val)
+  // The reader transforms obj.prop to (js-ref obj "prop"), so when we see
+  // this pattern in set!, we need to transform it to (js-set! obj "prop" val)
+  if (varObj instanceof Cons) {
+    const opName = (varObj.car instanceof Symbol) ? varObj.car.name :
+      (isSyntaxObject(varObj.car) ? syntaxName(varObj.car) : null);
+
+    if (opName === 'js-ref') {
+      // Transform to (js-set! obj "prop" value)
+      const objExpr = analyze(cadr(varObj), syntacticEnv);
+      const propName = caddr(varObj); // string literal for property name
+      return new TailAppNode(
+        new VariableNode('js-set!'),
+        [objExpr, new LiteralNode(propName), valExpr]
+      );
+    }
+  }
+
   // Check local lookup
   const renamed = syntacticEnv.lookup(varObj);
   if (renamed) {

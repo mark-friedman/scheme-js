@@ -24,6 +24,21 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 
 ---
 
+## Phase -1: Packaging and Distribution ✅
+
+Created build system to package the interpreter for Node.js and Browser use.
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Rollup Build | ✅ | Produces ESM bundles |
+| Core Bundle | ✅ | `dist/scheme.js` with `schemeEval` API |
+| HTML Adapter | ✅ | `<script type="text/scheme">` support |
+| Shared Environment | ✅ | All scripts run in same interpreter instance |
+
+**Deliverable:** `src/packaging/` and `rollup.config.js`.
+
+---
+
 ## Phase 0: Library System Completion
 
 Complete the R7RS library system.
@@ -481,4 +496,36 @@ For applications requiring more precision than IEEE 754 doubles (e.g., scientifi
 
 **Decision:** Deferred. Implement if user demand requires high-precision inexact arithmetic.
 
+---
+
+### Delimited Continuations (Future)
+
+For improved async semantics and cleaner control flow, consider implementing **delimited continuations** (`shift`/`reset` or `control`/`prompt`).
+
+**Motivation:**
+- The current `(scheme-js promise)` library uses CPS transformation for async/await
+- Full `call/cc` has problematic interactions with JavaScript Promise chains
+- Delimited continuations (`shift`/`reset`) would provide cleaner semantics
+
+**Benefits:**
+- `shift` captures only up to the enclosing `reset` (not the whole program)
+- Natural fit for async operations - continuation becomes callback
+- TCO preserved within each delimited segment
+- More principled than full `call/cc` for async patterns
+
+**Example Usage (proposed):**
+```scheme
+(define (fetch-data url)
+  (reset
+    (let ((response (shift k (promise-then (fetch url) k))))
+      (let ((json (shift k (promise-then (parse-json response) k))))
+        json))))
+```
+
+**Implementation Notes:**
+- Based on SRFI-226 "Control Features" (partial) or a simpler `shift`/`reset`
+- Would require modifications to the trampoline and frame stack
+- Could coexist with existing `call/cc`
+
+**Decision:** Deferred. Consider after JavaScript Promise integration is battle-tested.
 

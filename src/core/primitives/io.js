@@ -1,6 +1,6 @@
 /**
  * I/O Primitives for Scheme.
- * 
+ *
  * Implements R7RS §6.13 port system with textual string ports and file ports.
  * File I/O is Node.js only - browser calls raise errors.
  */
@@ -10,6 +10,7 @@ import { parse } from '../interpreter/reader.js';
 import { intern, Symbol } from '../interpreter/symbol.js';
 import { isChar } from '../interpreter/type_check.js';
 import { Char } from './char_class.js';
+import { getFeatures } from '../interpreter/library_registry.js';
 
 // ============================================================================
 // Environment Detection
@@ -1920,24 +1921,19 @@ export const ioPrimitives = {
         return list();
     },
 
-    // command-line found in io.js -> process_context.js? 
+    // command-line found in io.js -> process_context.js?
     // Wait, command-line is also in process_context.js? Let me check.
     // For now, just removing the time primitives.
 
     /**
      * Returns a list of supported feature identifiers.
+     * Uses the unified feature registry from library_registry.js.
      * @returns {Cons}
      */
     'features': () => {
-        // R7RS features - return proper symbols
-        return list(
-            intern('r7rs'),
-            intern('exact-closed'),
-            intern('ratios'),
-            intern('ieee-float'),
-            intern('full-unicode'),
-            intern('scheme-js')
-        );
+        // Get features from the single source of truth
+        const featureSymbols = getFeatures().map(name => intern(name));
+        return list(...featureSymbols);
     }
 };
 

@@ -7,7 +7,12 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 ```text
 /
 ├── repl.js                         # Node.js REPL entry point
+├── rollup.config.js                # Rollup bundling configuration
 ├── src/
+│   ├── packaging/                  # Bundling and distribution logic
+│   │   ├── scheme_entry.js         # Core bundle entry point
+│   │   └── html_adapter.js         # HTML script tag adapter
+│   │
 │   └── core/                       # The Core (JS Interpreter + Scheme subset)
 │       ├── interpreter/            # JavaScript Interpreter
 │       │   ├── index.js            # EXPORT: createInterpreter()
@@ -72,6 +77,14 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │           ├── parameter.scm       # make-parameter, parameterize
 │           └── repl.scm            # REPL utilities
 │
+│   └── extras/                     # Extension libraries (non-R7RS)
+│       ├── primitives/             # JavaScript primitives for extensions
+│       │   ├── interop.js          # JS interop: js-eval, js-ref, js-set!
+│       │   └── promise.js          # Promise interop primitives
+│       └── scheme/                 # Scheme library files
+│           ├── promise.sld         # (scheme-js promise) library declaration
+│           └── promise.scm         # Promise utilities and macros
+│
 │   ├── harness/                    # Test infrastructure
 │   │   ├── helpers.js              # Test utilities (run, assert, createTestLogger)
 │   │   ├── runner.js               # Test runner logic
@@ -79,6 +92,8 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 │   │
 │   ├── test_manifest.js            # Central registry of all test files
 │   ├── run_all.js                  # Node.js test runner entry
+│   ├── test_bundle.js              # Integration tests for bundled artifact
+│   ├── test_script.scm             # Scheme script test for HTML adapter
 │   │
 │   ├── core/                       # Tests for src/core/
 │   │   ├── interpreter/            # Tests for interpreter modules

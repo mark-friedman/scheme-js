@@ -15,18 +15,34 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
         // pathParts is an array like:
         // - ['scheme', 'base'] for library imports -> base.sld
         // - ['scheme', 'macros.scm'] for include directives -> macros.scm
+        // - ['scheme-js', 'promise'] for extension libraries
         const fileName = pathParts[pathParts.length - 1];
 
-        let libPath;
+        // Try to find the library in multiple locations
+        const searchPaths = [];
+
         if (fileName.endsWith('.scm') || fileName.endsWith('.sld')) {
             // Include directive - fileName already has extension
-            libPath = `src/core/scheme/${fileName}`;
+            searchPaths.push(`src/core/scheme/${fileName}`);
+            searchPaths.push(`src/extras/scheme/${fileName}`);
         } else {
             // Library import - add .sld extension
-            libPath = `src/core/scheme/${fileName}.sld`;
+            // Check standard library first, then extras
+            searchPaths.push(`src/core/scheme/${fileName}.sld`);
+            searchPaths.push(`src/extras/scheme/${fileName}.sld`);
         }
 
-        return await fileLoader(libPath);
+        // Try each path until one succeeds
+        for (const libPath of searchPaths) {
+            try {
+                const content = await fileLoader(libPath);
+                return content;
+            } catch (e) {
+                // Continue to next path
+            }
+        }
+
+        throw new Error(`Library not found: ${pathParts.join('/')}`);
     });
 
     // 1. Bootstrap standard libraries
@@ -35,11 +51,14 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     const caseLambdaExports = await loadLibrary(['scheme', 'case-lambda'], analyze, interpreter, interpreter.globalEnv);
     const lazyExports = await loadLibrary(['scheme', 'lazy'], analyze, interpreter, interpreter.globalEnv);
     const evalExports = await loadLibrary(['scheme', 'eval'], analyze, interpreter, interpreter.globalEnv);
+    // Extension libraries
+    const promiseExports = await loadLibrary(['scheme-js', 'promise'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
     applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });
     applyImports(interpreter.globalEnv, lazyExports, { libraryName: ['scheme', 'lazy'] });
     applyImports(interpreter.globalEnv, evalExports, { libraryName: ['scheme', 'eval'] });
+    applyImports(interpreter.globalEnv, promiseExports, { libraryName: ['scheme-js', 'promise'] });
     // Note: time and process-context primitives are loaded via primitives/index.js
 
     // Reload macros because hygiene_tests.js clears globalMacroRegistry
