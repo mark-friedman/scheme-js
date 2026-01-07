@@ -70,6 +70,9 @@ function generateUniqueName(baseName) {
   return `${baseName}_$${_uniqueIdCounter}`;
 }
 
+// Current macro registry stack for scoped expansion
+let currentMacroRegistry = globalMacroRegistry;
+
 export function analyze(exp, syntacticEnv = null) {
   if (!syntacticEnv) {
     syntacticEnv = new SyntacticEnv();
@@ -261,7 +264,7 @@ function analyzeDefineSyntax(exp, syntacticEnv = null) {
       const definingScope = currentScopes.length > 0 ? currentScopes[currentScopes.length - 1] : GLOBAL_SCOPE_ID;
 
       const transformer = compileSyntaxRules(literals, clauses, definingScope, ellipsisName, syntacticEnv);
-      globalMacroRegistry.define(name, transformer);
+      currentMacroRegistry.define(name, transformer);
 
       return new LiteralNode(null);
     }
@@ -274,9 +277,6 @@ function analyzeDefineSyntax(exp, syntacticEnv = null) {
 // =============================================================================
 // Local Macro Bindings: let-syntax, letrec-syntax
 // =============================================================================
-
-// Current macro registry stack for scoped expansion
-let currentMacroRegistry = globalMacroRegistry;
 
 function analyzeLetSyntax(exp, syntacticEnv) {
   // (let-syntax ((name transformer) ...) body ...)
@@ -613,7 +613,20 @@ function analyzeLambda(exp, syntacticEnv) {
     }
   }
 
-  return new LambdaNode(newParams, analyzeBody(body, newEnv), restParamRenamed);
+  // Lambda bodies establish a new scope for macros (internal syntax definitions)
+  return new LambdaNode(newParams, analyzeScopedBody(body, newEnv), restParamRenamed);
+}
+
+function analyzeScopedBody(body, syntacticEnv) {
+  // Create a new local registry with the current as parent
+  const localRegistry = new MacroRegistry(currentMacroRegistry);
+  const savedRegistry = currentMacroRegistry;
+  currentMacroRegistry = localRegistry;
+  try {
+    return analyzeBody(body, syntacticEnv);
+  } finally {
+    currentMacroRegistry = savedRegistry;
+  }
 }
 
 function analyzeBody(body, syntacticEnv) {
@@ -731,8 +744,9 @@ function analyzeLet(exp, syntacticEnv) {
     newEnv = newEnv.extend(r.id, r.name);
   }
 
+  // Let bodies establish a new scope for macros
   return new TailAppNode(
-    new LambdaNode(vars, analyzeBody(body, newEnv)),
+    new LambdaNode(vars, analyzeScopedBody(body, newEnv)),
     args
   );
 }
@@ -790,7 +804,8 @@ function analyzeLetRec(exp, syntacticEnv) {
     setExprs.push(new SetNode(renos[i].name, args[i]));
   }
 
-  const bodyExpr = analyzeBody(body, newEnv);
+  // Letrec bodies establish a new scope for macros
+  const bodyExpr = analyzeScopedBody(body, newEnv);
   // Sequence: set!... body
   const seq = new BeginNode([...setExprs, bodyExpr]);
 
