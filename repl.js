@@ -174,10 +174,6 @@ async function startRepl() {
         prompt: '> ',
         eval: (cmd, context, filename, callback) => {
             // cmd contains the full accumulated command including newlines
-            // But for our visual matcher, we want to know what part is "pending" (committed to history but incomplete)
-            // vs what is currently being edited.
-            // Actually, 'cmd' passed here is the FINAL string after user hit Enter.
-
             const trimmedCmd = cmd.trim();
             if (trimmedCmd === '') {
                 pendingInput = "";
@@ -192,12 +188,6 @@ async function startRepl() {
             } catch (e) {
                 if (isRecoverableError(e)) {
                     // Recoverable - update pending input
-                    // We need to know what was added.
-                    // 'cmd' is the full buffer.
-                    // So we can just set pendingInput = cmd (which includes newlines)
-                    // But wait, the REPL will prompt again.
-                    // Does REPL keep 'cmd' internally? Yes.
-                    // But for our matcher which runs on keypress, we need access to this state.
                     pendingInput = cmd;
                     return callback(new repl.Recoverable(e));
                 }
@@ -221,35 +211,16 @@ function setupParenMatching(replServer, getPendingInput) {
     // Listen to keypress on the input stream
     process.stdin.on('keypress', (str, key) => {
         // We only care about matching when we type something
-        // performMatch will check if it is ) or "
         performMatch(replServer, getPendingInput());
     });
 }
 
 // Helper for visual matching
 function performMatch(replServer, pendingInput) {
-    const currentLine = replServer.line;
-    const cursor = replServer.cursor; // Cursor position in current line
-    const fullCode = pendingInput + currentLine;
-
-    // Calculate global cursor index
-    const globalCursorIndex = pendingInput.length + cursor - 1; // -1 because we just typed the char?
-    // Wait, this is called on keypress.
-    // If we type ')', readline updates line and cursor.
-    // We should wait for readline to update?
-    // process.stdin 'keypress' happens *before* readline handles it usually?
-    // Actually, readline listens to data/keypress.
-    // If we listen on process.stdin, we might race.
-
-    // Better: listen on outputStream? No.
-    // Listen on input stream keypress, but we need the state *after* the character is inserted.
-    // Use setImmediate to let readline process it?
-
+    // Wait for readline to process key and update line/cursor
     setImmediate(() => {
         const currentLine = replServer.line;
         const cursor = replServer.cursor;
-        // Note: cursor is the position *after* the character we just typed.
-        // So the character to match is at cursor - 1.
 
         if (cursor <= 0) return;
 
@@ -317,14 +288,13 @@ function performMatch(replServer, pendingInput) {
             }
             stream.write(`\x1B[${targetCol + 1}G`); // 1-based
 
-            // Highlight? maybe invert colors? \x1B[7m ... \x1B[27m
-            // Just jump is requested, but maybe brief pause?
+            // Highlight/Hold
             // We can't pause the thread (it freezes UI).
             // We can restore after a timeout.
 
             setTimeout(() => {
                 stream.write('\x1B8');
-            }, 200);
+            }, 350); // Increased duration to be more noticeable
         }
     });
 }
