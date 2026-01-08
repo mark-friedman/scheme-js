@@ -10,6 +10,6 @@
   },
   "private": true,
   "devDependencies": {
-    "rollup": "^4.54.0"
+    "rollup": "^4.55.1"
   }
 }

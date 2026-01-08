@@ -19,6 +19,7 @@ import { Closure, Continuation } from './src/core/interpreter/values.js';
 import { LiteralNode } from './src/core/interpreter/ast.js';
 
 import { prettyPrint } from './src/core/interpreter/printer.js';
+import { findMatchingParen } from './src/core/interpreter/matcher.js';
 
 
 
@@ -166,27 +167,164 @@ async function startRepl() {
     // Start Interactive REPL
     console.log('Welcome to Scheme-JS-4 REPL');
 
-    repl.start({
+    // Shared state for pending input across lines
+    let pendingInput = "";
+
+    const replServer = repl.start({
         prompt: '> ',
         eval: (cmd, context, filename, callback) => {
-            cmd = cmd.trim();
-            if (cmd === '') {
+            // cmd contains the full accumulated command including newlines
+            // But for our visual matcher, we want to know what part is "pending" (committed to history but incomplete)
+            // vs what is currently being edited.
+            // Actually, 'cmd' passed here is the FINAL string after user hit Enter.
+
+            const trimmedCmd = cmd.trim();
+            if (trimmedCmd === '') {
+                pendingInput = "";
                 return callback(null);
             }
 
             try {
-                const result = schemeEval(cmd);
+                const result = schemeEval(trimmedCmd);
+                // Success - clear pending
+                pendingInput = "";
                 callback(null, result);
             } catch (e) {
                 if (isRecoverableError(e)) {
+                    // Recoverable - update pending input
+                    // We need to know what was added.
+                    // 'cmd' is the full buffer.
+                    // So we can just set pendingInput = cmd (which includes newlines)
+                    // But wait, the REPL will prompt again.
+                    // Does REPL keep 'cmd' internally? Yes.
+                    // But for our matcher which runs on keypress, we need access to this state.
+                    pendingInput = cmd;
                     return callback(new repl.Recoverable(e));
                 }
+                // Error - clear pending
+                pendingInput = "";
                 callback(e);
             }
         },
         writer: (output) => {
             if (output === undefined) return '';
             return prettyPrint(output);
+        }
+    });
+
+    setupParenMatching(replServer, () => pendingInput);
+}
+
+function setupParenMatching(replServer, getPendingInput) {
+    if (!process.stdin.isTTY) return;
+
+    // Listen to keypress on the input stream
+    process.stdin.on('keypress', (str, key) => {
+        // We only care about matching when we type something
+        // performMatch will check if it is ) or "
+        performMatch(replServer, getPendingInput());
+    });
+}
+
+// Helper for visual matching
+function performMatch(replServer, pendingInput) {
+    const currentLine = replServer.line;
+    const cursor = replServer.cursor; // Cursor position in current line
+    const fullCode = pendingInput + currentLine;
+
+    // Calculate global cursor index
+    const globalCursorIndex = pendingInput.length + cursor - 1; // -1 because we just typed the char?
+    // Wait, this is called on keypress.
+    // If we type ')', readline updates line and cursor.
+    // We should wait for readline to update?
+    // process.stdin 'keypress' happens *before* readline handles it usually?
+    // Actually, readline listens to data/keypress.
+    // If we listen on process.stdin, we might race.
+
+    // Better: listen on outputStream? No.
+    // Listen on input stream keypress, but we need the state *after* the character is inserted.
+    // Use setImmediate to let readline process it?
+
+    setImmediate(() => {
+        const currentLine = replServer.line;
+        const cursor = replServer.cursor;
+        // Note: cursor is the position *after* the character we just typed.
+        // So the character to match is at cursor - 1.
+
+        if (cursor <= 0) return;
+
+        // Re-read line and cursor in case they changed rapidly
+        const charToCheck = currentLine[cursor - 1];
+        if (charToCheck !== ')' && charToCheck !== '"') return;
+
+        const fullCode = pendingInput + currentLine;
+        const globalIndex = pendingInput.length + (cursor - 1);
+
+        const match = findMatchingParen(fullCode, globalIndex);
+
+        if (match) {
+            // Visual jump
+            // match.line and match.column are relative to fullCode.
+            // We need to convert to relative screen coordinates.
+
+            // 1. Calculate how many lines up we need to go.
+            // Current line index in fullCode?
+            // pendingInput ends with newline if not empty.
+            // Number of newlines in pendingInput = number of previous lines.
+            const previousLinesCount = (pendingInput.match(/\n/g) || []).length;
+            const currentLineIndex = previousLinesCount; // 0-based index of current line
+
+            // match.line is 0-based line number in fullCode.
+            const linesUp = currentLineIndex - match.line;
+
+            // 2. Calculate column.
+            // match.column is 0-based column index.
+            // We need to account for prompt length!
+            // Prompt: '> ' (2 chars) or '... ' (4 chars)?
+            // Default REPL uses '> ' for first line, '... ' for others.
+            // If match.line == 0, prompt is '> '.
+            // If match.line > 0, prompt is '... '.
+
+            let promptLen = 2; // '> '
+            if (match.line > 0) {
+                 promptLen = 4; // '... ' (usually, unless customized)
+                 // Node default is '... '
+            }
+
+            // Target column on screen
+            const targetCol = promptLen + match.column;
+
+            // Current cursor position on screen
+            // replServer prompt len
+            const currentPromptLen = (previousLinesCount > 0) ? 4 : 2;
+            const currentCol = currentPromptLen + cursor;
+
+            // ANSI Escape Codes
+            // Save cursor position: \x1B7 (DEC) or \x1B[s (ANSI)
+            // Restore cursor position: \x1B8 (DEC) or \x1B[u (ANSI)
+            // Move cursor up: \x1B[<n>A
+            // Move cursor horizontal: \x1B[<n>G (1-based column)
+
+            const stream = replServer.outputStream;
+
+            // We use standard ANSI escapes
+            // Save cursor
+            stream.write('\x1B7');
+
+            // Move to target
+            if (linesUp > 0) {
+                stream.write(`\x1B[${linesUp}A`);
+            }
+            stream.write(`\x1B[${targetCol + 1}G`); // 1-based
+
+            // Highlight? maybe invert colors? \x1B[7m ... \x1B[27m
+            // Just jump is requested, but maybe brief pause?
+            // We can't pause the thread (it freezes UI).
+            // We can restore after a timeout.
+
+            setTimeout(() => {
+                stream.write('\x1B8');
+            }, 200);
         }
     });
 }
