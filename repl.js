@@ -109,8 +109,11 @@ async function bootstrapInterpreter() {
 
         // Import (scheme repl) into global environment
         // Since (scheme repl) now exports everything from base + extras, this is sufficient.
-        const importAst = analyze(['import', ['scheme', 'repl']]);
-        interpreter.run(importAst, env);
+        const importExprs = parse('(import (scheme repl))');
+        for (const exp of importExprs) {
+            const importAst = analyze(exp);
+            interpreter.run(importAst, env);
+        }
     } catch (e) {
         console.error("Failed to bootstrap REPL environment:", e);
         process.exit(1);
