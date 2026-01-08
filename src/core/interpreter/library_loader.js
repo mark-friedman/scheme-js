@@ -534,6 +534,21 @@ export function createPrimitiveExports(globalEnv) {
         'error', 'error-object?', 'error-object-message', 'error-object-irritants',
         // I/O
         'display', 'newline',
+
+        // Interop Primitives
+        'js-eval', 'js-ref', 'js-set!',
+
+        // Promise Primitives (for (scheme-js promise))
+        'js-promise?',
+        'make-js-promise',
+        'js-promise-resolve',
+        'js-promise-reject',
+        'js-promise-then',
+        'js-promise-catch',
+        'js-promise-finally',
+        'js-promise-all',
+        'js-promise-race',
+        'js-promise-all-settled'
     ];
 
     for (const name of primitiveExports) {

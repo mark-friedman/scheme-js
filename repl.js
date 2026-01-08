@@ -97,12 +97,19 @@ async function bootstrapInterpreter() {
 
     // Load standard libraries
     try {
-        // Use synchronous loading
+        // Use synchronous loading to ensure libraries are registered
+        // We load (scheme base) explicitly to avoid issues with implicit loading during import
+        loadLibrarySync(['scheme', 'base'], analyze, interpreter, env);
         loadLibrarySync(['scheme', 'repl'], analyze, interpreter, env);
+        loadLibrarySync(['scheme', 'read'], analyze, interpreter, env);
+        loadLibrarySync(['scheme', 'write'], analyze, interpreter, env);
         loadLibrarySync(['scheme', 'complex'], analyze, interpreter, env);
+        loadLibrarySync(['scheme-js', 'interop'], analyze, interpreter, env);
+        loadLibrarySync(['scheme-js', 'promise'], analyze, interpreter, env);
 
-        // Import them into global environment
-        const importAst = analyze(['import', ['scheme', 'base'], ['scheme', 'repl'], ['scheme', 'write'], ['scheme', 'complex']]);
+        // Import (scheme repl) into global environment
+        // Since (scheme repl) now exports everything from base + extras, this is sufficient.
+        const importAst = analyze(['import', ['scheme', 'repl']]);
         interpreter.run(importAst, env);
     } catch (e) {
         console.error("Failed to bootstrap REPL environment:", e);
