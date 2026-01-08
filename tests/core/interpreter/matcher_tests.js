@@ -1,5 +1,5 @@
 
-import { findMatchingParen } from '../../../src/core/interpreter/matcher.js';
+import { findMatchingParen } from '../../../src/core/interpreter/expression_utils.js';
 
 export function test(logger) {
     if (!logger) {

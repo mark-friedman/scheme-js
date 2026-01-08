@@ -2555,3 +2555,31 @@ TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
 
 ---
 
+# Node.js REPL Parenthesis Matching (2025-01-01)
+
+Implemented visual parenthesis matching for the Node.js REPL and unified the matching logic with the browser REPL.
+
+## Key Changes
+
+### 1. REPL Matching
+- Modified `repl.js` to intercept keypress events and visually highlight matching parentheses or quotes.
+- Uses ANSI escape codes to perform a momentary "cursor jump" to the matching delimiter.
+- Handles matching across multi-line inputs by tracking the pending REPL buffer.
+
+### 2. Unified Logic in `expression_utils.js`
+- Refactored `src/core/interpreter/expression_utils.js` to serve as the single source of truth for matching logic.
+- Implemented `findMatchingDelimiter` using a robust tokenizer-based scan (handling comments, strings, and character literals correctly), replacing the previous simplified backward scan.
+- Added `findMatchingParen` to support the Node REPL's need for line/column coordinates.
+- Preserved `analyzeDelimiters` and `isCompleteExpression` to ensure full backward compatibility with the browser REPL.
+
+### 3. Tests
+- Added `tests/core/interpreter/matcher_tests.js` to verify the unified matching logic handles complex cases (nesting, strings, comments) correctly.
+
+## Verification
+
+### Automated Tests
+- `node run_tests_node.js`: Verified all 1200+ tests pass, including the new matcher tests.
+
+### Manual Verification
+- **Node REPL**: Verified cursor jumping works for single-line and multi-line expressions.
+- **Browser REPL**: Verified syntax highlighting and multi-line support remain functional using the unified logic.

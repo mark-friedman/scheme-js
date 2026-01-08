@@ -1,6 +1,6 @@
 /**
  * Utility functions for expression completeness detection and delimiter matching.
- * Used by the browser REPL for multiline expression support and paren matching.
+ * Used by the browser REPL and Node.js REPL for multiline expression support and paren matching.
  * @module expression_utils
  */
 
@@ -170,82 +170,65 @@ export function isCompleteExpression(input) {
  *          Delimiter analysis with positions of unmatched opening parens
  */
 export function analyzeDelimiters(input) {
-    const openParens = []; // Stack of positions of unmatched opening parens
-    let inString = false;
-    let inLineComment = false;
+    // Re-implemented using tokenizer for consistency and robustness
+    const tokens = tokenizeWithLocation(input);
+    const openParens = [];
+    let parenDepth = 0;
+    let inString = false; // Note: tokenizeWithLocation handles strings, so we can't easily check 'inString' state from tokens unless the input ends abruptly inside a string token?
+    // Actually tokenizeWithLocation completes string tokens. If string is unclosed, it might consume to end.
+    // Let's check tokenizeWithLocation behavior for unclosed strings.
+    // It does `while (i < len)` looking for closing quote. If EOF, it pushes token.
+
+    // For analyzeDelimiters, we want the state *at the end*.
+    // Using the same manual scan as before is probably safer for "partial" state detection than full tokenization,
+    // or we can adapt tokenization.
+    // Given the reviewer's concern, let's restore the original manual scan logic exactly as it was to ensure 100% regression safety for this specific function.
+
+    const positions = [];
     let blockCommentDepth = 0;
+    let inLineComment = false;
     let i = 0;
 
+    // Use loop similar to isCompleteExpression but tracking positions
     while (i < input.length) {
         const char = input[i];
         const next = i + 1 < input.length ? input[i + 1] : '';
 
         // Handle line comments
         if (inLineComment) {
-            if (char === '\n') {
-                inLineComment = false;
-            }
-            i++;
-            continue;
+            if (char === '\n') inLineComment = false;
+            i++; continue;
         }
 
         // Handle block comments
         if (blockCommentDepth > 0) {
-            if (char === '|' && next === '#') {
-                blockCommentDepth--;
-                i += 2;
-            } else if (char === '#' && next === '|') {
-                blockCommentDepth++;
-                i += 2;
-            } else {
-                i++;
-            }
+            if (char === '|' && next === '#') { blockCommentDepth--; i += 2; }
+            else if (char === '#' && next === '|') { blockCommentDepth++; i += 2; }
+            else i++;
             continue;
         }
 
         // Handle strings
         if (inString) {
-            if (char === '\\' && i + 1 < input.length) {
-                i += 2;
-            } else if (char === '"') {
-                inString = false;
-                i++;
-            } else {
-                i++;
-            }
+            if (char === '\\' && i + 1 < input.length) { i += 2; }
+            else if (char === '"') { inString = false; i++; }
+            else i++;
             continue;
         }
 
-        if (char === ';') {
-            inLineComment = true;
-            i++;
-            continue;
-        }
-
-        if (char === '#' && next === '|') {
-            blockCommentDepth++;
-            i += 2;
-            continue;
-        }
-
-        if (char === '"') {
-            inString = true;
-            i++;
-            continue;
-        }
+        if (char === ';') { inLineComment = true; i++; continue; }
+        if (char === '#' && next === '|') { blockCommentDepth++; i += 2; continue; }
+        if (char === '"') { inString = true; i++; continue; }
 
         if (char === '(' || (char === '#' && next === '(')) {
-            openParens.push(i);
-            if (char === '#') {
-                i += 2;
-            } else {
-                i++;
-            }
+            positions.push(i);
+            if (char === '#') i += 2;
+            else i++;
             continue;
         }
 
         if (char === ')') {
-            openParens.pop();
+            positions.pop();
             i++;
             continue;
         }
@@ -254,17 +237,47 @@ export function analyzeDelimiters(input) {
     }
 
     return {
-        parenDepth: openParens.length,
+        parenDepth: positions.length,
         inString,
-        positions: openParens
+        positions
     };
 }
 
 /**
+ * Finds the matching parenthesis or quote for the character at the given index.
+ * Wrapper around findMatchingDelimiter that returns robust position info for Node REPL.
+ *
+ * @param {string} code - The source code to scan.
+ * @param {number} cursorIndex - The index of the closing delimiter (e.g. ')', '"').
+ * @returns {Object|null} - An object { index, line, column } or null if not found.
+ */
+export function findMatchingParen(code, cursorIndex) {
+    const matchIndex = findMatchingDelimiter(code, cursorIndex);
+    if (matchIndex === null) return null;
+
+    return calculatePosition(code, matchIndex);
+}
+
+function calculatePosition(code, index) {
+    let line = 0;
+    let column = 0;
+    for (let i = 0; i < index; i++) {
+        if (code[i] === '\n') {
+            line++;
+            column = 0;
+        } else {
+            column++;
+        }
+    }
+    return { index, line, column };
+}
+
+/**
  * Finds the position of the matching delimiter for the one at the given position.
+ * Uses a robust forward-scan tokenizer to correctly handle strings, comments, and character literals.
  * 
  * @param {string} text - Source code
- * @param {number} position - Position of the delimiter to match
+ * @param {number} position - Position of the delimiter to match (either open or close)
  * @returns {number|null} Position of matching delimiter, or null if not found
  */
 export function findMatchingDelimiter(text, position) {
@@ -273,96 +286,168 @@ export function findMatchingDelimiter(text, position) {
     }
 
     const char = text[position];
+    const tokens = tokenizeWithLocation(text);
 
-    // Opening delimiter - search forward
-    if (char === '(') {
-        return findForward(text, position, '(', ')');
+    // Find token at position
+    let targetToken = null;
+    let targetIndex = -1;
+
+    for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i];
+        if (position >= t.start && position < t.end) {
+            targetToken = t;
+            targetIndex = i;
+            break;
+        }
     }
 
-    // Closing delimiter - search backward
+    if (!targetToken) return null;
+
+    // Handle Closing Paren )
     if (char === ')') {
-        return findBackward(text, position, '(', ')');
+        if (targetToken.type !== 'paren_close') return null;
+
+        let depth = 0;
+        for (let i = targetIndex - 1; i >= 0; i--) {
+            const t = tokens[i];
+            if (t.type === 'paren_close') depth++;
+            else if (t.type === 'paren_open') {
+                if (depth === 0) return t.start;
+                depth--;
+            }
+        }
+    }
+
+    // Handle Opening Paren (
+    if (char === '(') {
+        if (targetToken.type !== 'paren_open') return null;
+
+        let depth = 0;
+        for (let i = targetIndex + 1; i < tokens.length; i++) {
+            const t = tokens[i];
+            if (t.type === 'paren_open') depth++;
+            else if (t.type === 'paren_close') {
+                if (depth === 0) return t.start;
+                depth--;
+            }
+        }
+    }
+
+    // Handle Quotes "..."
+    if (char === '"') {
+        if (targetToken.type !== 'string') return null;
+        // If cursor is at start quote
+        if (position === targetToken.start) return targetToken.end - 1;
+        // If cursor is at end quote
+        if (position === targetToken.end - 1) return targetToken.start;
     }
 
     return null;
 }
 
 /**
- * Search forward for matching closing delimiter.
+ * Simplified tokenizer that preserves location and categorizes parens/strings/comments.
+ * Used for robust structural navigation.
  */
-function findForward(text, startPos, open, close) {
-    let depth = 0;
-    let inString = false;
-    let inLineComment = false;
-    let blockCommentDepth = 0;
+function tokenizeWithLocation(input) {
+    const tokens = [];
+    let i = 0;
+    const len = input.length;
 
-    for (let i = startPos; i < text.length; i++) {
-        const char = text[i];
-        const next = i + 1 < text.length ? text[i + 1] : '';
+    while (i < len) {
+        const char = input[i];
 
-        // Skip comments and strings
-        if (inLineComment) {
-            if (char === '\n') inLineComment = false;
+        // Skip whitespace
+        if (/\s/.test(char)) {
+            i++;
             continue;
         }
-        if (blockCommentDepth > 0) {
-            if (char === '|' && next === '#') { blockCommentDepth--; i++; }
-            else if (char === '#' && next === '|') { blockCommentDepth++; i++; }
-            continue;
-        }
-        if (inString) {
-            if (char === '\\') { i++; continue; }
-            if (char === '"') inString = false;
-            continue;
-        }
-        if (char === ';') { inLineComment = true; continue; }
-        if (char === '#' && next === '|') { blockCommentDepth++; i++; continue; }
-        if (char === '"') { inString = true; continue; }
 
-        // Track parentheses
-        if (char === open) {
-            depth++;
-        } else if (char === close) {
-            depth--;
-            if (depth === 0) {
-                return i;
+        const start = i;
+
+        // Comments
+        if (char === ';') {
+            // Line comment
+            while (i < len && input[i] !== '\n') i++;
+            continue;
+        }
+
+        // Block comments #| ... |#
+        if (char === '#' && i + 1 < len && input[i + 1] === '|') {
+            i += 2;
+            let depth = 1;
+            while (i < len && depth > 0) {
+                if (input[i] === '#' && input[i + 1] === '|') {
+                    depth++;
+                    i += 2;
+                } else if (input[i] === '|' && input[i + 1] === '#') {
+                    depth--;
+                    i += 2;
+                } else {
+                    i++;
+                }
             }
+            continue;
+        }
+
+        // Strings
+        if (char === '"') {
+            i++;
+            while (i < len) {
+                if (input[i] === '"') {
+                    i++;
+                    break;
+                }
+                if (input[i] === '\\') {
+                    i += 2;
+                } else {
+                    i++;
+                }
+            }
+            tokens.push({ type: 'string', start, end: i });
+            continue;
+        }
+
+        // Parentheses
+        if (char === '(' || char === '[' || char === '{') {
+            tokens.push({ type: 'paren_open', start, end: i + 1, value: char });
+            i++;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            tokens.push({ type: 'paren_close', start, end: i + 1, value: char });
+            i++;
+            continue;
+        }
+
+        // Character literal #\c
+        if (char === '#' && i + 1 < len && input[i + 1] === '\\') {
+            i += 2;
+            while (i < len && !/[\s();"\[\]{}]/.test(input[i])) {
+                i++;
+            }
+            continue;
+        }
+
+        // Vector #(
+        if (char === '#' && i + 1 < len && input[i + 1] === '(') {
+            tokens.push({ type: 'paren_open', start, end: i + 2, value: '#(' });
+            i += 2;
+            continue;
+        }
+
+        // Bytevector #u8(
+        if (char === '#' && input.substr(i, 4) === '#u8(') {
+            tokens.push({ type: 'paren_open', start, end: i + 4, value: '#u8(' });
+            i += 4;
+            continue;
+        }
+
+        // Atom (symbol, number, etc.)
+        while (i < len && !/[\s();"\[\]{}]/.test(input[i])) {
+            i++;
         }
     }
 
-    return null;
-}
-
-/**
- * Search backward for matching opening delimiter.
- */
-function findBackward(text, startPos, open, close) {
-    let depth = 0;
-    // Simple backward search - doesn't handle all comment cases perfectly
-    // but good enough for UI highlighting
-    let inString = false;
-
-    for (let i = startPos; i >= 0; i--) {
-        const char = text[i];
-        const prev = i > 0 ? text[i - 1] : '';
-
-        // Basic string handling (imperfect but functional)
-        if (char === '"' && prev !== '\\') {
-            inString = !inString;
-            continue;
-        }
-        if (inString) continue;
-
-        // Track parentheses
-        if (char === close) {
-            depth++;
-        } else if (char === open) {
-            depth--;
-            if (depth === 0) {
-                return i;
-            }
-        }
-    }
-
-    return null;
+    return tokens;
 }

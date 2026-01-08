@@ -19,7 +19,7 @@ import { Closure, Continuation } from './src/core/interpreter/values.js';
 import { LiteralNode } from './src/core/interpreter/ast.js';
 
 import { prettyPrint } from './src/core/interpreter/printer.js';
-import { findMatchingParen } from './src/core/interpreter/matcher.js';
+import { findMatchingParen } from './src/core/interpreter/expression_utils.js';
 
 
 
