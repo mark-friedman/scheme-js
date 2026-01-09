@@ -2,6 +2,7 @@ import { createInterpreter } from '../src/core/interpreter/index.js';
 import { setupRepl } from './repl.js';
 import { setFileResolver, loadLibrary } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
+import { parse } from '../src/core/interpreter/reader.js';
 
 // --- Main Entry Point ---
 
@@ -47,8 +48,11 @@ import { analyze } from '../src/core/interpreter/analyzer.js';
 
         // Now that the libraries are loaded, we can use a standard Scheme import form
         // to populate the REPL environment. This is now supported by the analyzer.
-        const importAst = analyze(['import', ['scheme', 'base'], ['scheme', 'repl']]);
-        interpreter.run(importAst, env);
+        const importExprs = parse('(import (scheme repl))');
+        for (const exp of importExprs) {
+            const importAst = analyze(exp);
+            interpreter.run(importAst, env);
+        }
 
         console.log("REPL environment ready.");
     } catch (e) {
