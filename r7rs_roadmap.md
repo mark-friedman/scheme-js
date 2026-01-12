@@ -525,3 +525,20 @@ For improved async semantics and cleaner control flow, consider implementing **d
 
 **Decision:** Deferred. Consider after JavaScript Promise integration is battle-tested.
 
+---
+
+### Extended Syntax: Bracket Access (Future)
+
+Consider implementing `(expr)[key]` notation for computed property access, similar to JavaScript.
+
+**Motivation:**
+- Computed property access is common in JS interop.
+- Current `.prop` syntax only supports static keys.
+- Reader refactor for dotted notation makes implementation feasible (identifying `[` adjacent to expression).
+
+**Considerations:**
+- Conflict with Scheme implementations using `[]` as synonyms for `()`.
+- Need to decide if `[]` should be reserved for this syntax or strictly brackets-as-parens.
+
+**Decision:** Deferred pending user feedback on syntax preferences.
+
