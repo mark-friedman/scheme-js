@@ -74,6 +74,11 @@ export const interopPrimitives = {
 
     /**
      * Creates a plain JavaScript object from key-value pairs.
+     * Keys are converted to strings following JS semantics:
+     * - Scheme Symbol: uses the symbol's name property
+     * - String: used verbatim
+     * - Number: converted to string
+     * - Other: String() conversion
      * @param {...*} args - Alternating keys and values.
      * @returns {Object} The new JavaScript object.
      */
@@ -82,9 +87,39 @@ export const interopPrimitives = {
         for (let i = 0; i < args.length; i += 2) {
             const key = args[i];
             const val = args[i + 1];
-            const keyStr = (typeof key === 'string') ? key : (key && typeof key.name === 'string') ? key.name : String(key);
+            // Convert key to string:
+            // - Scheme Symbol (has .name property) -> use the symbol name
+            // - String -> use verbatim
+            // - Other -> String() conversion
+            let keyStr;
+            if (key && typeof key === 'object' && typeof key.name === 'string') {
+                // Scheme Symbol object
+                keyStr = key.name;
+            } else if (typeof key === 'string') {
+                keyStr = key;
+            } else {
+                keyStr = String(key);
+            }
             obj[keyStr] = val;
         }
         return obj;
+    },
+
+    /**
+     * Merges multiple objects/js-obj results into one.
+     * Used for spread syntax in #{...} literals.
+     * @param {...Object} objects - Objects to merge (left to right, later overrides earlier).
+     * @returns {Object} The merged JavaScript object.
+     */
+    'js-obj-merge': (...objects) => {
+        const result = {};
+        for (const obj of objects) {
+            if (obj && typeof obj === 'object') {
+                Object.assign(result, obj);
+            } else if (obj !== null && obj !== undefined) {
+                throw new Error(`js-obj-merge: expected object, got ${typeof obj}`);
+            }
+        }
+        return result;
     }
 };

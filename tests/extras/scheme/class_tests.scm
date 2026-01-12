@@ -80,14 +80,25 @@
     (greet (other) (string-append "Hi " other ", I'm " this.name))))
 
 (define g1 (Greeter "Alice"))
-;; Bind using js-obj procedure for context object
-(define context (js-obj 'name "Bob"))
+;; Bind using #{...} syntax for context object
+(define context #{(name "Bob")})
 (define bound-greet (g1.greet.bind context))
 (test "bind method from Scheme" "Hi Dave, I'm Bob" (bound-greet "Dave"))
 
-;; 6. JS Object procedure verification
-(test "js-obj literal" "Bob" (js-ref (js-obj 'name "Bob") "name"))
-(test "js-obj nested" 123 (js-ref (js-ref (js-obj 'a (js-obj 'b 123)) "a") "b"))
-(test "js-obj with multiple keys" 2 (js-ref (js-obj 'x 1 'y 2) "y"))
+;; 6. JS Object syntax verification - #{...} reader syntax
+(test "#{...} literal" "Bob" (js-ref #{(name "Bob")} "name"))
+(test "#{...} nested" 123 (js-ref (js-ref #{(a #{(b 123)})} "a") "b"))
+(test "#{...} with multiple keys" 2 (js-ref #{(x 1) (y 2)} "y"))
+
+;; 7. Key type tests
+(test "#{...} symbol key" "val1" (js-ref #{(foo "val1")} "foo"))
+(test "#{...} string key" "val2" (js-ref #{("bar" "val2")} "bar"))
+(test "#{...} number key" "val3" (js-ref #{(42 "val3")} "42"))
+(test "#{...} computed key" "val4" (js-ref #{((string-append "x" "y") "val4")} "xy"))
+
+;; 8. Spread syntax
+(define base #{(a 1) (b 2)})
+(test "#{...} spread" 3 (js-ref #{(... base) (c 3)} "c"))
+(test "#{...} spread override" 99 (js-ref #{(... base) (a 99)} "a"))
 
 ) ;; end test-group

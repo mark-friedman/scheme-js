@@ -10,4 +10,5 @@
     js-ref
     js-set!
     js-invoke
-    js-obj))
+    js-obj
+    js-obj-merge))

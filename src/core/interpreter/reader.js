@@ -80,18 +80,19 @@ function tokenize(input) {
   // Matches (order matters - longer/more specific matches first):
   // 1. #\ followed by character name or single char (character literals)
   // 2. #u8( - Bytevector start
-  // 3. #( - Vector start
-  // 4. #; - Datum comment
-  // 5. #!fold-case, #!no-fold-case - Case folding directives
-  // 6. ( or ) - List delimiters
-  // 7. ' ` ,@ , - Quote/Quasiquote
-  // 8. Strings
-  // 9. |...| - Vertical bar delimited symbols
-  // 10. Line comments (;...)
-  // 11. Complex numbers with inf/nan (e.g., +inf.0+inf.0i, -nan.0+inf.0i)
-  // 12. Single special numbers (+nan.0, +inf.0, etc.)
-  // 13. Atoms (anything else, stops at whitespace, parens, or semicolon)
-  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\(|#;|#!fold-case|#!no-fold-case|'|`|,@|,|[()]|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0[+-](?:nan|inf)\.0i|[+-]?(?:nan|inf)\.0|[^\s(){};]+)(.*)/si;
+  // 3. #{ - JS object literal start
+  // 4. #( - Vector start
+  // 5. #; - Datum comment
+  // 6. #!fold-case, #!no-fold-case - Case folding directives
+  // 7. ( or ) or } - List/object delimiters
+  // 8. ' ` ,@ , - Quote/Quasiquote
+  // 9. Strings
+  // 10. |...| - Vertical bar delimited symbols
+  // 11. Line comments (;...)
+  // 12. Complex numbers with inf/nan (e.g., +inf.0+inf.0i, -nan.0+inf.0i)
+  // 13. Single special numbers (+nan.0, +inf.0, etc.)
+  // 14. Atoms (anything else, stops at whitespace, parens, or semicolon)
+  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\{|#\(|#;|#!fold-case|#!no-fold-case|'|`|,@|,|[(){}]|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0[+-](?:nan|inf)\.0i|[+-]?(?:nan|inf)\.0|[^\s(){};]+)(.*)/si;
 
   const tokens = [];
   let current = input;
@@ -225,8 +226,14 @@ function readFromTokens(tokens, state) {
   if (token === '#u8(') {
     return readBytevector(tokens);
   }
+  if (token === '#{') {
+    return readJSObjectLiteral(tokens, state);
+  }
   if (token === ')') {
-    throw new Error("Unexpected ')'");
+    throw new Error("Unexpected ')' - unbalanced parentheses");
+  }
+  if (token === '}') {
+    throw new Error("Unexpected '}' - unbalanced braces");
   }
 
   // Quotes
@@ -371,6 +378,108 @@ function readVector(tokens, state) {
   return elements; // Return raw JS array
 }
 
+/**
+ * Reads a JS object literal #{(key val) ...}
+ * Each entry is a 2-element list where:
+ * - First element: key (symbol -> quoted, string -> verbatim, expr -> evaluated)
+ * - Second element: value (evaluated normally)
+ * 
+ * Special: (... obj) spreads obj's properties into the result
+ * 
+ * @param {string[]} tokens - Token array
+ * @param {Object} state - Reader state
+ * @returns {Cons} S-expression representing the js-obj call
+ */
+function readJSObjectLiteral(tokens, state) {
+  const entries = [];
+
+  while (tokens.length > 0 && tokens[0] !== '}') {
+    // Each entry must be a list (key val) or (... obj)
+    if (tokens[0] !== '(') {
+      throw new Error(`Expected '(' for property entry in #{...}, got '${tokens[0]}'`);
+    }
+
+    // Read the entry as a list
+    tokens.shift(); // consume '('
+    const entryItems = [];
+    while (tokens.length > 0 && tokens[0] !== ')') {
+      entryItems.push(readFromTokens(tokens, state));
+    }
+    if (tokens.length === 0) {
+      throw new Error("Missing ')' in #{...} property entry");
+    }
+    tokens.shift(); // consume ')'
+
+    // Check for spread syntax: (... obj)
+    if (entryItems.length >= 1 &&
+      entryItems[0] instanceof Symbol &&
+      entryItems[0].name === '...') {
+      if (entryItems.length !== 2) {
+        throw new Error("Spread syntax (... obj) requires exactly one object");
+      }
+      // Mark as spread entry
+      entries.push({ spread: true, value: entryItems[1] });
+    } else if (entryItems.length === 2) {
+      // Normal (key val) entry
+      entries.push({ spread: false, key: entryItems[0], value: entryItems[1] });
+    } else {
+      throw new Error(`Property entry must be (key value) or (... obj), got ${entryItems.length} elements`);
+    }
+  }
+
+  if (tokens.length === 0) {
+    throw new Error("Missing '}' for #{...}");
+  }
+  tokens.shift(); // consume '}'
+
+  // Build the (js-obj ...) or (js-obj-merge ...) expression
+  // If there are spreads, we need to use js-obj-merge
+  const hasSpread = entries.some(e => e.spread);
+
+  if (hasSpread) {
+    // Use special merge form: (js-obj-merge (spread obj1) (pairs k1 v1 k2 v2) (spread obj2) ...)
+    const parts = [];
+    let currentPairs = [];
+
+    for (const entry of entries) {
+      if (entry.spread) {
+        // Flush any pending pairs
+        if (currentPairs.length > 0) {
+          parts.push(list(intern('js-obj'), ...currentPairs));
+          currentPairs = [];
+        }
+        // Add spread object directly
+        parts.push(entry.value);
+      } else {
+        // Accumulate key-value pair
+        // Quote the key if it's a symbol
+        const key = (entry.key instanceof Symbol)
+          ? list(intern('quote'), entry.key)
+          : entry.key;
+        currentPairs.push(key, entry.value);
+      }
+    }
+
+    // Flush remaining pairs
+    if (currentPairs.length > 0) {
+      parts.push(list(intern('js-obj'), ...currentPairs));
+    }
+
+    // Return (js-obj-merge part1 part2 ...)
+    return list(intern('js-obj-merge'), ...parts);
+  } else {
+    // Simple case: (js-obj k1 v1 k2 v2 ...)
+    const args = [];
+    for (const entry of entries) {
+      // Quote the key if it's a symbol
+      const key = (entry.key instanceof Symbol)
+        ? list(intern('quote'), entry.key)
+        : entry.key;
+      args.push(key, entry.value);
+    }
+    return list(intern('js-obj'), ...args);
+  }
+}
 
 
 /**

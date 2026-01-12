@@ -92,7 +92,7 @@ export function runUnitTests(interpreter, logger) {
             parse(")");
             logger.fail("Reader: Unexpected ')' - FAILED to throw");
         } catch (e) {
-            assert(logger, "Reader: Unexpected ')'", e.message, "Unexpected ')'");
+            assert(logger, "Reader: Unexpected ')'", e.message, "Unexpected ')' - unbalanced parentheses");
         }
 
         try {
