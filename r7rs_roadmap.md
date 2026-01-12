@@ -32,8 +32,9 @@ Created build system to package the interpreter for Node.js and Browser use.
 | Core Bundle | ✅ | `dist/scheme.js` with `schemeEval` API |
 | HTML Adapter | ✅ | `<script type="text/scheme">` support |
 | Shared Environment | ✅ | All scripts run in same interpreter instance |
+| **Bundled Libraries** | ✅ | Embeds Scheme sources into the JS bundle for file-free loading |
 
-**Deliverable:** `src/packaging/` and `rollup.config.js`.
+**Deliverable:** `src/packaging/`, `rollup.config.js`, and `scripts/generate_bundled_libraries.js`.
 
 ---
 

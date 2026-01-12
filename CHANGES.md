@@ -2555,3 +2555,55 @@ TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
 
 ---
 
+# REPL UI Alignment and Selection Fixes (2026-01-05)
+
+Resolved persistent UI glitches in the Node.js REPL related to multiline input and text selection.
+
+## Improvements
+
+### Consistent Alignment
+- Fixed a bug where horizontal text shifting occurred after evaluating an expression in multiline mode.
+- Ensured that primary prompts (`> `) and continuation prompts (`... `) are perfectly aligned vertically.
+
+### Selection Protection
+- Modified the REPL output stream to prevent system prompts from being included when the user selects or copies text from the terminal.
+
+### History Mode
+- Ensured that alignment is preserved when browsing through multiline history entries.
+
+---
+
+# REPL Environment Binding Fixes & Bundled Library Support (2026-01-12)
+
+Fixed unbound standard procedures in REPLs and API, and implemented a "file-free" library loading mechanism for bundled deployments.
+
+## Problem Solved
+
+Standard Scheme procedures (like `<`) were undefined in the REPLs because bootstrap `import` statements were being constructed as JavaScript arrays. The `analyze` function treats arrays as literals, resulting in a `LiteralNode` instead of an `ImportNode`.
+
+## Key Changes
+
+### Fixed Import Parsing
+- Updated `repl.js` and `web/main.js` to use `parse()` to generate proper Scheme `Cons` structures for bootstrap `import` forms.
+- Expanded the default set of imported libraries to include nearly all R7RS-small libraries (`base`, `write`, `read`, `repl`, `lazy`, `case-lambda`, `eval`, `time`, `complex`, `cxr`, `char`) plus `scheme-js` extras.
+
+### Bundled Library System
+- Created `scripts/generate_bundled_libraries.js` which scans Scheme library sources (`.sld`, `.scm`) and embeds them as strings in `src/packaging/bundled_libraries.js`.
+- Added a `prebuild` script to `package.json` to ensure bundled sources are always up to date.
+- Updated `src/packaging/scheme_entry.js` to use a custom `fileResolver` that reads from these embedded strings, allowing the interpreter to function in restricted environments (like web browsers or bundles) without file system access.
+
+### (scheme-js interop) Library
+- Formalized the JS interop primitives into a standard library: `(scheme-js interop)`.
+- Exports `js-eval`, `js-ref` (property access), and `js-set!` (property mutation).
+
+## Verification
+
+### Automated Tests
+- All 1227 tests passing.
+- Verified that `schemeEval` from the bundled `dist/scheme.js` correctly loads and executes code using standard libraries.
+
+### Manual Verification
+- `node repl.js -e '(< 1 2)'` → `#t`
+- `node repl.js -e '(force (delay 42))'` → `42`
+- `node repl.js -e '(char-upcase #\a)'` → `"A"`
+
