@@ -2686,3 +2686,40 @@ All tests are passing, including 15+ new tests specifically for classes and `thi
 ========================================
 TEST SUMMARY: 1251 passed, 0 failed, 3 skipped
 ========================================
+
+# Walkthrough: Extended Dot Notation
+
+I have generalized the parser to support JavaScript-style dot notation for property access on *any* expression, provided there is no whitespace between the expression and the dot.
+
+## Summary
+
+Previously, dot notation (`obj.prop`) was only supported for simple symbols. I have extended this to support:
+- String literals: `"abc".length` -> 3
+- Vector literals: `#(1 2 3).length` -> 3
+- Expression results: `(vector 1 2).length` -> 2
+- JS Object literals: `#{("a" 1)}.a` -> 1
+- Chained access: `expr.prop1.prop2`
+
+## Key Mechanism
+
+The tokenizer was refactored to be **whitespace-aware**. It now flags whether a token was preceded by whitespace.
+The reader uses this flag to distinguish between:
+- `expr.prop` (adjacent): Interpreted as property access -> `(js-ref expr "prop")`
+- `expr .prop` (space): Interpreted as two separate datums (`expr` and symbol `.prop`).
+
+This prevents conflicts with Scheme's dot usage (e.g. improper lists `(a . b)`).
+
+## Changes
+
+- **`src/core/interpreter/reader.js`**:
+    - `tokenize`: Returns objects `{ value, hasPrecedingSpace }`.
+    - `readFromTokens`, `readList`, `readVector`, etc.: Updated to handle token objects.
+    - `handleDotAccess`: New helper function that performs the lookahead and transformation for `js-ref`.
+
+- **`tests/extras/scheme/dot_access_tests.scm`**: New test suite verifying valid and invalid usage.
+
+## Verification
+
+All tests passed:
+- `dot_access_tests.scm` covers string, vector, list, and object property access.
+- Existing tests (`class_tests.scm`, etc.) passed with no regressions.

@@ -92,33 +92,88 @@ function tokenize(input) {
   // 12. Complex numbers with inf/nan (e.g., +inf.0+inf.0i, -nan.0+inf.0i)
   // 13. Single special numbers (+nan.0, +inf.0, etc.)
   // 14. Atoms (anything else, stops at whitespace, parens, or semicolon)
-  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\{|#\(|#;|#!fold-case|#!no-fold-case|'|`|,@|,|[(){}]|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0[+-](?:nan|inf)\.0i|[+-]?(?:nan|inf)\.0|[^\s(){};]+)(.*)/si;
+  // Note: Updated to capture leading whitespace in group 1
+  const regex = /^(\s*)(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\{|#\(|#;|#!fold-case|#!no-fold-case|'|`|,@|,|[(){}]|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0[+-](?:nan|inf)\.0i|[+-]?(?:nan|inf)\.0|[^\s(){};]+)(.*)/si;
 
   const tokens = [];
   let current = input;
 
+  // Track if we are at the very beginning of the input
+  let isStart = true;
+
   while (current.length > 0) {
     const match = current.match(regex);
-    if (!match) break;
+    if (!match) {
+      // If we can't match a token but have content, it might be just whitespace at EOF or invalid input
+      // Skip one char and try again (fallback, though regex should cover whitespace)
+      if (current.trim() === '') break;
+      current = current.slice(1);
+      continue;
+    }
 
-    const token = match[1];
-    current = match[2]; // Rest of string
+    const whitespace = match[1];
+    const tokenStr = match[2];
+    current = match[3]; // Rest of string
 
-    if (token.startsWith(';')) continue; // Skip comments
-    if (token.trim() === '') continue;   // Skip whitespace
+    if (tokenStr.startsWith(';')) {
+      // Comments act as whitespace separator effectively, but we don't count them as "space" for adjacency.
+      // Actually, standard behavior: `(a) ;comment\n.prop` -> separate line, effectively separate.
+      // We will count comments as breaking adjacency.
+      isStart = false;
+      continue;
+    }
 
-    tokens.push(token);
+    // hasPrecedingSpace is true if there was whitespace OR we are at start of input
+    const hasSpace = (whitespace.length > 0) || isStart;
+
+    tokens.push({ value: tokenStr, hasPrecedingSpace: hasSpace });
+    isStart = false; // After first token, not start anymore
   }
   return tokens;
+}
+
+function handleDotAccess(expr, tokens) {
+  let currentExpr = expr;
+
+  while (tokens.length > 0) {
+    const nextToken = tokens[0];
+
+    // Check if next token is a dot property access:
+    // 1. Starts with dot
+    // 2. Not just "." (improper list delimiter)
+    // 3. NO preceding space (adjacent)
+    if (nextToken.value.startsWith('.') &&
+      nextToken.value !== '.' &&
+      !nextToken.hasPrecedingSpace) {
+
+      // Consume token
+      tokens.shift();
+
+      // Split property chain (e.g. .a.b -> ["", "a", "b"])
+      const parts = nextToken.value.split('.');
+
+      for (let i = 1; i < parts.length; i++) {
+        const prop = parts[i];
+        if (prop.length === 0) {
+          // Skip empty parts (consecutive dots or trailing dot)
+          continue;
+        }
+        currentExpr = list(intern('js-ref'), currentExpr, prop);
+      }
+    } else {
+      break;
+    }
+  }
+  return currentExpr;
 }
 
 function readFromTokens(tokens, state) {
   if (tokens.length === 0) {
     throw new Error(`Unexpected EOF while reading ${state.current || 'unknown'}`);
   }
-  // console.log("readFromTokens:", tokens[0], tokens.length);
 
-  const token = tokens.shift();
+  const tokenObj = tokens.shift();
+  const token = tokenObj.value;
 
   // Handle fold-case directives
   if (token === '#!fold-case') {
@@ -158,31 +213,17 @@ function readFromTokens(tokens, state) {
       let val;
       if (remainder) {
         // Recurse on the remainder as a single token (or unshift if it's complex?)
-        // If remainder is "100", readAtom("100") works.
-        // If remainder is "(...", it's a list start.
-        // Unshifting is safer generally, but readAtom takes a single token.
-        // Tokenizer splits at delimiters, so remainder is likely an atom or empty if separated by space.
 
-        // If remainder is empty (split by space), we read NEXT token.
-        // But here we have remainder.
-        // Check if remainder is start of list? 
-        // Tokenizer splits before '(', so remainder won't be '('.
-        // Unless it's something like #1=#u8(...
-
-        // Let's assume remainder is a valid single token if present.
-        // But wait, if input is "#1=(a)", tokenizer gives "#1=", "(" ... because ( is delimiter.
-        // Remainder might be start of a list/vector (e.g. #0=(a...))
-        // Unshift it back to tokens and recurse to handle it properly
         // Check if remainder was split from a delimiter (e.g. #0=#( -> remainder=#, next=( )
-        if (remainder === '#' && tokens.length > 0 && tokens[0] === '(') {
+        if (remainder === '#' && tokens.length > 0 && tokens[0].value === '(') {
           remainder = '#(';
           tokens.shift();
-        } else if (remainder === '#u8' && tokens.length > 0 && tokens[0] === '(') {
+        } else if (remainder === '#u8' && tokens.length > 0 && tokens[0].value === '(') {
           remainder = '#u8(';
           tokens.shift();
         }
 
-        tokens.unshift(remainder);
+        tokens.unshift({ value: remainder, hasPrecedingSpace: false });
         val = readFromTokens(tokens, state);
       } else {
         // No remainder, read next token
@@ -191,7 +232,7 @@ function readFromTokens(tokens, state) {
 
       placeholder.value = val;
       placeholder.resolved = true;
-      return val;
+      return handleDotAccess(val, tokens);
     }
   }
 
@@ -204,7 +245,7 @@ function readFromTokens(tokens, state) {
     const val = readFromTokens(tokens, state);
     placeholder.value = val;
     placeholder.resolved = true;
-    return val;
+    return handleDotAccess(val, tokens);
   }
 
   // Handle #n# reference
@@ -214,52 +255,41 @@ function readFromTokens(tokens, state) {
     if (!placeholder) {
       throw new Error(`Reference to undefined label #${id}#`);
     }
-    return placeholder;
+    return handleDotAccess(placeholder, tokens);
   }
 
+  let result;
   if (token === '(') {
-    return readList(tokens, state);
-  }
-  if (token === '#(') {
-    return readVector(tokens, state);
-  }
-  if (token === '#u8(') {
-    return readBytevector(tokens);
-  }
-  if (token === '#{') {
-    return readJSObjectLiteral(tokens, state);
-  }
-  if (token === ')') {
+    result = readList(tokens, state);
+  } else if (token === '#(') {
+    result = readVector(tokens, state);
+  } else if (token === '#u8(') {
+    result = readBytevector(tokens);
+  } else if (token === '#{') {
+    result = readJSObjectLiteral(tokens, state);
+  } else if (token === ')') {
     throw new Error("Unexpected ')' - unbalanced parentheses");
-  }
-  if (token === '}') {
+  } else if (token === '}') {
     throw new Error("Unexpected '}' - unbalanced braces");
-  }
-
-  // Quotes
-  if (token === "'") {
-    return list(intern('quote'), readFromTokens(tokens, state));
-  }
-  if (token === '`') {
-    return list(intern('quasiquote'), readFromTokens(tokens, state));
-  }
-  if (token === ',') {
-    return list(intern('unquote'), readFromTokens(tokens, state));
-  }
-  if (token === ',@') {
-    return list(intern('unquote-splicing'), readFromTokens(tokens, state));
-  }
-
-  // Vertical bar delimited symbol |...|
-  if (token.startsWith('|') && token.endsWith('|')) {
-    // Extract the name between the bars and process escape sequences
+  } else if (token === "'") {
+    // Quotes
+    result = list(intern('quote'), readFromTokens(tokens, state));
+  } else if (token === '`') {
+    result = list(intern('quasiquote'), readFromTokens(tokens, state));
+  } else if (token === ',') {
+    result = list(intern('unquote'), readFromTokens(tokens, state));
+  } else if (token === ',@') {
+    result = list(intern('unquote-splicing'), readFromTokens(tokens, state));
+  } else if (token.startsWith('|') && token.endsWith('|')) {
+    // Vertical bar delimited symbol |...|
     const inner = token.slice(1, -1);
-    // Handle escape sequences: \| -> |, \\ -> \, \xNN; -> char
     const name = processSymbolEscapes(inner);
-    return intern(name);
+    result = intern(name);
+  } else {
+    result = readAtom(token, state.caseFold);
   }
 
-  return readAtom(token, state.caseFold);
+  return handleDotAccess(result, tokens);
 }
 
 /**
@@ -310,45 +340,49 @@ function processSymbolEscapes(str) {
 
 function readList(tokens, state) {
   const listItems = [];
-  while (tokens[0] !== ')') {
+  while (true) {
     if (tokens.length === 0) {
       throw new Error("Missing ')'");
     }
+    if (tokens[0].value === ')') break;
+
     // Handle datum comment inside list
-    if (tokens[0] === '#;') {
+    if (tokens[0].value === '#;') {
       tokens.shift(); // consume #;
+      if (tokens.length === 0) throw new Error("Invalid datum comment: unexpected EOF");
+
       // Can't use datum comment on syntactic markers
-      if (tokens[0] === '.') {
+      if (tokens[0].value === '.') {
         throw new Error("Invalid datum comment: cannot comment out '.' in dotted notation");
       }
-      if (tokens[0] === ')') {
+      if (tokens[0].value === ')') {
         throw new Error("Invalid datum comment: no datum following #;");
       }
       readFromTokens(tokens, state); // discard next datum
       continue;
     }
-    if (tokens[0] === '.') {
+    if (tokens[0].value === '.') {
       // R7RS: dotted list must have at least one element before the dot
       if (listItems.length === 0) {
         throw new Error("Illegal use of '.' - no elements before dot in dotted list");
       }
       tokens.shift(); // consume '.'
       // Handle datum comment after dot
-      while (tokens[0] === '#;') {
+      while (tokens.length > 0 && tokens[0].value === '#;') {
         tokens.shift();
         readFromTokens(tokens, state);
       }
       // Ensure there's actually a datum after the dot
-      if (tokens[0] === ')') {
+      if (tokens.length === 0 || tokens[0].value === ')') {
         throw new Error("Illegal use of '.' - no datum after dot in dotted list");
       }
       const tail = readFromTokens(tokens, state);
       // Skip any datum comments before closing paren
-      while (tokens[0] === '#;') {
+      while (tokens.length > 0 && tokens[0].value === '#;') {
         tokens.shift();
         readFromTokens(tokens, state);
       }
-      if (tokens.shift() !== ')') {
+      if (tokens.length === 0 || tokens.shift().value !== ')') {
         throw new Error("Expected ')' after improper list tail");
       }
       // Build improper list
@@ -368,10 +402,11 @@ function readList(tokens, state) {
 
 function readVector(tokens, state) {
   const elements = [];
-  while (tokens[0] !== ')') {
+  while (true) {
     if (tokens.length === 0) {
       throw new Error("Missing ')' for vector");
     }
+    if (tokens[0].value === ')') break;
     elements.push(readFromTokens(tokens, state));
   }
   tokens.shift(); // consume ')'
@@ -386,23 +421,23 @@ function readVector(tokens, state) {
  * 
  * Special: (... obj) spreads obj's properties into the result
  * 
- * @param {string[]} tokens - Token array
+ * @param {Object[]} tokens - Token array
  * @param {Object} state - Reader state
  * @returns {Cons} S-expression representing the js-obj call
  */
 function readJSObjectLiteral(tokens, state) {
   const entries = [];
 
-  while (tokens.length > 0 && tokens[0] !== '}') {
+  while (tokens.length > 0 && tokens[0].value !== '}') {
     // Each entry must be a list (key val) or (... obj)
-    if (tokens[0] !== '(') {
-      throw new Error(`Expected '(' for property entry in #{...}, got '${tokens[0]}'`);
+    if (tokens[0].value !== '(') {
+      throw new Error(`Expected '(' for property entry in #{...}, got '${tokens[0].value}'`);
     }
 
     // Read the entry as a list
     tokens.shift(); // consume '('
     const entryItems = [];
-    while (tokens.length > 0 && tokens[0] !== ')') {
+    while (tokens.length > 0 && tokens[0].value !== ')') {
       entryItems.push(readFromTokens(tokens, state));
     }
     if (tokens.length === 0) {
@@ -484,25 +519,28 @@ function readJSObjectLiteral(tokens, state) {
 
 /**
  * Reads a bytevector literal #u8(...)
- * @param {string[]} tokens - Token array
+ * @param {Object[]} tokens - Token array
  * @returns {Uint8Array}
  */
 function readBytevector(tokens) {
   const bytes = [];
-  while (tokens[0] !== ')') {
+  while (true) {
     if (tokens.length === 0) {
       throw new Error("Missing ')' for bytevector");
     }
-    const token = tokens.shift();
-    const num = parseInt(token, 10);
+    if (tokens[0].value === ')') break;
+
+    const tokenObj = tokens.shift();
+    const num = parseInt(tokenObj.value, 10);
     if (isNaN(num) || num < 0 || num > 255) {
-      throw new Error(`Invalid byte value in bytevector: ${token}`);
+      throw new Error(`Invalid byte value in bytevector: ${tokenObj.value}`);
     }
     bytes.push(num);
   }
   tokens.shift(); // consume ')'
   return new Uint8Array(bytes);
 }
+
 
 function readAtom(token, caseFold = false) {
   // Try to parse as a number (including rationals and complex)
