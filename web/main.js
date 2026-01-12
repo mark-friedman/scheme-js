@@ -1,7 +1,8 @@
 import { createInterpreter } from '../src/core/interpreter/index.js';
 import { setupRepl } from './repl.js';
-import { setFileResolver, loadLibrary } from '../src/core/interpreter/library_loader.js';
+import { setFileResolver } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
+import { parse } from '../src/core/interpreter/reader.js';
 
 // --- Main Entry Point ---
 
@@ -38,17 +39,29 @@ import { analyze } from '../src/core/interpreter/analyzer.js';
     });
 
     // 2. Bootstrap standard libraries
-    // We want the REPL to have standard macros and procedures available.
     try {
         console.log("Bootstrapping REPL environment...");
 
-        // Load (scheme repl) - this will also trigger loading (scheme base) due to dependency
-        await loadLibrary(['scheme', 'repl'], analyze, interpreter, env);
-
-        // Now that the libraries are loaded, we can use a standard Scheme import form
-        // to populate the REPL environment. This is now supported by the analyzer.
-        const importAst = analyze(['import', ['scheme', 'base'], ['scheme', 'repl']]);
-        interpreter.run(importAst, env);
+        // Import R7RS-small libraries and scheme-js extras
+        // Excludes (scheme file) and (scheme process-context) which require Node.js
+        const imports = `
+            (import (scheme base)
+                    (scheme write)
+                    (scheme read)
+                    (scheme repl)
+                    (scheme lazy)
+                    (scheme case-lambda)
+                    (scheme eval)
+                    (scheme time)
+                    (scheme complex)
+                    (scheme cxr)
+                    (scheme char)
+                    (scheme-js promise)
+                    (scheme-js interop))
+        `;
+        for (const exp of parse(imports)) {
+            interpreter.run(analyze(exp), env);
+        }
 
         console.log("REPL environment ready.");
     } catch (e) {
