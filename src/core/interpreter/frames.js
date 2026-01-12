@@ -8,7 +8,7 @@
  * All frames extend Executable and implement a step() method.
  */
 
-import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
+import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
 import { isSchemeClosure, isSchemeContinuation, TailCall, ContinuationUnwind, Values } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { Cons } from './cons.js';
@@ -272,9 +272,21 @@ export class AppFrame extends Executable {
                 // Extend environment with required params + rest param
                 const allParams = [...func.params, func.restParam];
                 const allArgs = [...requiredArgs, restList];
-                registers[ENV] = func.env.extendMany(allParams, allArgs);
+                let newEnv = func.env.extendMany(allParams, allArgs);
+                // Bind 'this' pseudo-variable if available (method call)
+                if (registers[THIS] !== undefined) {
+                    registers[ENV] = newEnv.extend('this', registers[THIS]);
+                } else {
+                    registers[ENV] = newEnv;
+                }
             } else {
-                registers[ENV] = func.env.extendMany(func.params, args);
+                let newEnv = func.env.extendMany(func.params, args);
+                // Bind 'this' pseudo-variable if available (method call)
+                if (registers[THIS] !== undefined) {
+                    registers[ENV] = newEnv.extend('this', registers[THIS]);
+                } else {
+                    registers[ENV] = newEnv;
+                }
             }
             return true;
         }

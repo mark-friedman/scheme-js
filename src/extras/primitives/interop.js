@@ -50,5 +50,41 @@ export const interopPrimitives = {
         }
         obj[prop] = value;
         return undefined;
+    },
+
+    /**
+     * Invokes a method on a JavaScript object.
+     * Used by expanded dot notation: obj.method(args...) -> (js-invoke obj "method" args...)
+     * @param {Object} obj - The object.
+     * @param {string} method - The method name.
+     * @param {...*} args - Arguments to the method.
+     * @returns {*} Result of the method call.
+     */
+    'js-invoke': (obj, method, ...args) => {
+        assertString('js-invoke', 2, method);
+        if (obj === null || obj === undefined) {
+            throw new Error(`js-invoke: cannot call method "${method}" on ${obj}`);
+        }
+        const func = obj[method];
+        if (typeof func !== 'function') {
+            throw new Error(`js-invoke: property "${method}" is not a function on ${obj}`);
+        }
+        return func.apply(obj, args);
+    },
+
+    /**
+     * Creates a plain JavaScript object from key-value pairs.
+     * @param {...*} args - Alternating keys and values.
+     * @returns {Object} The new JavaScript object.
+     */
+    'js-obj': (...args) => {
+        const obj = {};
+        for (let i = 0; i < args.length; i += 2) {
+            const key = args[i];
+            const val = args[i + 1];
+            const keyStr = (typeof key === 'string') ? key : (key && typeof key.name === 'string') ? key.name : String(key);
+            obj[keyStr] = val;
+        }
+        return obj;
     }
 };

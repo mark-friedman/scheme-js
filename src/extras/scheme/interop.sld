@@ -8,4 +8,6 @@
   (export
     js-eval
     js-ref
-    js-set!))
+    js-set!
+    js-invoke
+    js-obj))

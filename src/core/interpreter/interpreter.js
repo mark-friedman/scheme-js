@@ -126,9 +126,10 @@ export class Interpreter {
    * @param {Executable} ast - The AST node to execute.
    * @param {Environment} [env] - The environment to run in. Defaults to globalEnv.
    * @param {Array} [initialStack] - Initial frame stack.
+   * @param {*} [thisContext] - The JavaScript 'this' context.
    * @returns {*} The final result of the computation.
    */
-  run(ast, env = this.globalEnv, initialStack = []) {
+  run(ast, env = this.globalEnv, initialStack = [], thisContext = undefined) {
     if (!this.globalEnv) {
       throw new Error("Interpreter global environment is not set. Call setGlobalEnv() first.");
     }
@@ -138,9 +139,10 @@ export class Interpreter {
     // CTL (1): control - holds next AST node or Frame to execute
     // ENV (2): environment - holds current lexical environment
     // FSTACK (3): frame stack - holds continuation frames
+    // THIS (4): this context - holds current JS 'this' context
     // We use a COPY of the initialStack to avoid mutating the parent's record of it,
     // although frames themselves are shared.
-    const registers = [null, ast, env, [...initialStack]];
+    const registers = [null, ast, env, [...initialStack], thisContext];
 
     // Track recursion depth
     this.depth++;
@@ -253,13 +255,14 @@ export class Interpreter {
    * Uses the parent context from jsContextStack for proper dynamic-wind handling.
    * 
    * @param {Executable} ast - The AST to execute.
+   * @param {*} [thisContext] - The value for the 'this' register.
    * @returns {*} The result of the computation.
    */
-  runWithSentinel(ast) {
+  runWithSentinel(ast, thisContext = undefined) {
     // Get the parent context (the Scheme stack at the point where we entered JS)
     const parentContext = this.getParentContext();
     const stackWithSentinel = [...parentContext, new SentinelFrame()];
-    return this.run(ast, this.globalEnv, stackWithSentinel);
+    return this.run(ast, this.globalEnv, stackWithSentinel, thisContext);
   }
 
   /**
@@ -268,9 +271,10 @@ export class Interpreter {
    * 
    * @param {Function} continuation - The callable continuation (with fstack attached).
    * @param {*} value - The value to pass to the continuation.
+   * @param {*} [thisContext] - The value for the 'this' register.
    * @returns {*} The result of invoking the continuation.
    */
-  invokeContinuation(continuation, value) {
+  invokeContinuation(continuation, value, thisContext = undefined) {
     // Build an AST that invokes the continuation
     const ast = new TailAppNode(
       new LiteralNode(continuation),
@@ -278,7 +282,7 @@ export class Interpreter {
     );
 
     // Run with sentinel and parent context
-    return this.runWithSentinel(ast);
+    return this.runWithSentinel(ast, thisContext);
   }
 
   /**

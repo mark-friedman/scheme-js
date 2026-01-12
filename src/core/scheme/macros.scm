@@ -175,3 +175,62 @@
        (define constructor (record-constructor type))
        (define predicate (record-predicate type))
        (define-record-field type field-tag accessor . more) ...))))
+
+;; /**
+;;  * Internal helper for defining class fields.
+;;  */
+(define-syntax define-class-field
+  (syntax-rules ()
+    ((define-class-field type field-tag accessor)
+     (define accessor (record-accessor type 'field-tag)))
+    ((define-class-field type field-tag accessor modifier)
+     (begin
+       (define accessor (record-accessor type 'field-tag))
+       (define modifier (record-modifier type 'field-tag))))))
+
+;; /**
+;;  * Internal helper for defining class methods.
+;;  */
+(define-syntax define-class-method
+  (syntax-rules ()
+    ((define-class-method type (name (param ...) body ...))
+     (class-method-set! type 'name (lambda (param ...) body ...)))))
+
+;; /**
+;;  * Defines a new JS-compatible class.
+;;  * Creates a constructor, a type predicate, accessors/modifiers for fields,
+;;  * and methods on the class prototype.
+;;  *
+;;  * Syntax:
+;;  * (define-class type [parent]
+;;  *   (constructor constructor-tag ...)
+;;  *   predicate
+;;  *   (fields (field-tag accessor [modifier]) ...)
+;;  *   (methods (method-name (params ...) body ...) ...))
+;;  */
+(define-syntax define-class
+  (syntax-rules (fields methods)
+    ;; Form with parent class
+    ((define-class type parent
+       (constructor-name field-tag ...)
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (methods (method-name params . body) ...))
+     (begin
+       (define type (make-class 'type parent '(field-tag-spec ...) '(field-tag ...)))
+       (define constructor-name (record-constructor type))
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type (method-name params . body)) ...))
+    ;; Form without parent class
+    ((define-class type
+       (constructor-name field-tag ...)
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (methods (method-name params . body) ...))
+     (begin
+       (define type (make-class 'type #f '(field-tag-spec ...) '(field-tag ...)))
+       (define constructor-name (record-constructor type))
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type (method-name params . body)) ...))))

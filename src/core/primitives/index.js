@@ -19,6 +19,7 @@ import { processContextPrimitives } from './process_context.js';
 import { bytevectorPrimitives } from './bytevector.js';
 import { syntaxPrimitives } from './syntax.js';
 import { getPromisePrimitives } from '../../extras/primitives/promise.js';
+import { classPrimitives } from './class.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -59,6 +60,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(bytevectorPrimitives);
     addPrimitives(syntaxPrimitives);
     addPrimitives(getPromisePrimitives(interpreter));
+    addPrimitives(classPrimitives);
 
     return new Environment(null, bindings);
 }

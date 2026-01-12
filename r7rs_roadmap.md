@@ -353,14 +353,15 @@ Implemented the remaining R7RS standard libraries:
 ---
 
 
-## Phase 14: Advanced Interop
+## Phase 14: Advanced Interop ✅
 **Target:** Enhance Scheme <-> JS usability
 
-| Feature | Description |
-|---------|-------------|
-| **Dot-Syntax** | Concise syntax for JS method calls (e.g. `(.log console "Hello")`). |
-| **Iterable Lists** | Make `Cons` implement JS Iterable protocol for easier use with `Array.from`, spread syntax, etc. |
-| **JS Subclassing** | Mechanism to define Scheme records that subclass native JS classes. |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Dot-Syntax** | Concise syntax for JS property access and method calls (e.g. `obj.method`). | ✅ |
+| **JS Subclassing** | Mechanism to define Scheme classes that subclass native JS classes (`define-class`). | ✅ |
+| **`this` Binding** | Correct handling and lexical binding of `this` in Scheme methods. | ✅ |
+| **Iterable Lists** | Make `Cons` implement JS Iterable protocol. | ❌ |
 
 ---
 

@@ -23,12 +23,17 @@ export function parse(input, options = {}) {
   const tokens = tokenize(preprocessed);
   const expressions = [];
 
-  while (tokens.length > 0) {
-    const expr = readFromTokens(tokens, state);
-    // If the expression is a Placeholder, it means top-level #n# (unlikely but possible)
-    // or #n=... which returns the value. 
-    // We need to run fixup on the result to resolve internal cycles.
-    expressions.push(fixup(expr));
+  try {
+    while (tokens.length > 0) {
+      const expr = readFromTokens(tokens, state);
+      // If the expression is a Placeholder, it means top-level #n# (unlikely but possible)
+      // or #n=... which returns the value. 
+      // We need to run fixup on the result to resolve internal cycles.
+      expressions.push(fixup(expr));
+    }
+  } catch (e) {
+    console.error(`Parse error in input: "${input.substring(0, 100)}${input.length > 100 ? '...' : ''}"`);
+    throw e;
   }
   return expressions;
 }
@@ -86,7 +91,7 @@ function tokenize(input) {
   // 11. Complex numbers with inf/nan (e.g., +inf.0+inf.0i, -nan.0+inf.0i)
   // 12. Single special numbers (+nan.0, +inf.0, etc.)
   // 13. Atoms (anything else, stops at whitespace, parens, or semicolon)
-  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\(|#;|#!fold-case|#!no-fold-case|[()]|'|`|,@|,|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0[+-](?:nan|inf)\.0i|[+-]?(?:nan|inf)\.0|[^\s();]+)(.*)/si;
+  const regex = /\s*(#\\(?:x[0-9a-fA-F]+|[a-zA-Z]+|.)|#u8\(|#\(|#;|#!fold-case|#!no-fold-case|'|`|,@|,|[()]|"(?:\\.|[^"])*"|\|(?:[^|\\]|\\.)*\||;[^\n]*|[+-]?(?:nan|inf)\.0[+-](?:nan|inf)\.0i|[+-]?(?:nan|inf)\.0|[^\s(){};]+)(.*)/si;
 
   const tokens = [];
   let current = input;
@@ -108,7 +113,7 @@ function tokenize(input) {
 
 function readFromTokens(tokens, state) {
   if (tokens.length === 0) {
-    throw new Error("Unexpected EOF");
+    throw new Error(`Unexpected EOF while reading ${state.current || 'unknown'}`);
   }
   // console.log("readFromTokens:", tokens[0], tokens.length);
 
@@ -117,16 +122,22 @@ function readFromTokens(tokens, state) {
   // Handle fold-case directives
   if (token === '#!fold-case') {
     state.caseFold = true;
+    if (tokens.length === 0) return undefined;
     return readFromTokens(tokens, state); // Continue to next datum
   }
   if (token === '#!no-fold-case') {
     state.caseFold = false;
+    if (tokens.length === 0) return undefined;
     return readFromTokens(tokens, state); // Continue to next datum
   }
 
   // Handle datum comments: #; skips the next datum
   if (token === '#;') {
+    if (tokens.length === 0) {
+      throw new Error("read: Unexpected EOF after datum comment marker #;");
+    }
     readFromTokens(tokens, state); // Read and discard next datum
+    if (tokens.length === 0) return undefined;
     return readFromTokens(tokens, state); // Return the datum after that
   }
 
@@ -359,6 +370,8 @@ function readVector(tokens, state) {
   tokens.shift(); // consume ')'
   return elements; // Return raw JS array
 }
+
+
 
 /**
  * Reads a bytevector literal #u8(...)

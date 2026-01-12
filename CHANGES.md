@@ -2607,3 +2607,82 @@ Standard Scheme procedures (like `<`) were undefined in the REPLs because bootst
 - `node repl.js -e '(force (delay 42))'` → `42`
 - `node repl.js -e '(char-upcase #\a)'` → `"A"`
 
+# JavaScript Class Support and `this` Binding Walkthrough
+
+The project now supports defining and using JavaScript-compatible classes directly from Scheme, with seamless interoperability and correct `this` context management.
+
+## Key Accomplishments
+
+### 1. `this` Context Support
+- **Infrastructure**: Added a `THIS` register to the interpreter to track the JavaScript `this` context.
+- **Propagation**: Modified the interpreter, closures, and continuations to capture and propagate `thisContext` across execution boundaries.
+- **Lexical Binding**: Updated `AppFrame` to bind the symbol `'this` in the Scheme environment during method calls, respecting lexical scoping in nested closures.
+
+### 2. JS Interop and Method Calls
+- **`js-invoke` Primitive**: Implemented `js-invoke` for robust method calls on JS objects from Scheme.
+- **Dot Notation Expansion**: Extended the analyzer to transform `obj.method(...)` syntax into `(js-invoke obj "method" ...)` calls.
+- **Extension Libraries**: Created and bootstrapped `(scheme-js interop)` for interop primitives.
+
+### 3. Class Implementation
+- **`make-class` Primitive**: Creates native JS classes with support for inheritance, constructor parameter mapping, and field initialization.
+- **Callable Classes**: Scheme-defined classes can be called directly as functions (returning a new instance) or with `new` in JavaScript.
+- **`define-class` Macro**: Provided a high-level Scheme interface for class definitions, following R7RS `define-record-type` conventions.
+
+## Implementation Details
+
+### `make-class` (src/core/primitives/class.js)
+The `make-class` primitive now returns a "Callable Wrapper" that acts as both a JS class and a regular function:
+```javascript
+const Wrapper = function(...args) {
+    if (new.target) {
+        return Reflect.construct(InternalClass, args, new.target);
+    }
+    return new InternalClass(...args);
+};
+Object.setPrototypeOf(Wrapper, InternalClass);
+Wrapper.prototype = InternalClass.prototype;
+```
+
+### `this` Binding (src/core/interpreter/frames.js)
+`AppFrame` now binds `this` lexically, but avoids shadowing when no new `this` context is provide (e.g., in a plain function call from the top level):
+```javascript
+if (registers[THIS] !== undefined) {
+    registers[ENV] = newEnv.extend('this', registers[THIS]);
+} else {
+    registers[ENV] = newEnv;
+}
+```
+
+## Proof of Work: Automated Tests
+
+All tests are passing, including 15+ new tests specifically for classes and `this` binding.
+
+### Test Results
+```text
+=== Running tests/extras/scheme/class_tests.scm... ===
+✅ PASS: point?
+✅ PASS: point-x
+✅ PASS: point-y
+✅ PASS: p1.magnitude
+✅ PASS: point-x after move
+✅ PASS: point-y after move
+✅ PASS: color-point?
+✅ PASS: color-point is point
+✅ PASS: point-x inherited
+✅ PASS: cp1.color
+✅ PASS: cp1.describe
+✅ PASS: get-self
+✅ PASS: nested closure 'this'
+✅ PASS: tests/extras/scheme/class_tests.scm PASSED
+
+=== Running tests/functional/class_interop_tests.js... ===
+✅ PASS: Person instance in JS
+✅ PASS: Person methods in JS
+✅ PASS: Employee inheritance in JS
+✅ PASS: Custom bind on Scheme closure
+✅ PASS: Custom bind on Scheme method
+```
+
+========================================
+TEST SUMMARY: 1251 passed, 0 failed, 3 skipped
+========================================

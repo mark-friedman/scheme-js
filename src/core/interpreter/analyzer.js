@@ -878,7 +878,29 @@ function analyzeApplication(exp, syntacticEnv) {
   if (fileArray.some(x => x === null)) {
     console.error("Application with null arg:", JSON.stringify(exp));
   }
-  const funcExpr = analyze(fileArray[0], syntacticEnv);
+
+  const operator = fileArray[0];
+
+  // Check for JS Method Call: (js-ref obj "method")(args...) -> (js-invoke obj "method" args...)
+  // This handles the expansion of obj.method(...) where obj.method was read as (js-ref obj "method")
+  if (operator instanceof Cons) {
+    const opCar = car(operator);
+    const opName = (opCar instanceof Symbol) ? opCar.name :
+      (isSyntaxObject(opCar) ? syntaxName(opCar) : null);
+
+    if (opName === 'js-ref') {
+      const objExpr = analyze(cadr(operator), syntacticEnv);
+      const methodName = caddr(operator); // Should be a string literal "method"
+      const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv));
+
+      return new TailAppNode(
+        new VariableNode('js-invoke'),
+        [objExpr, new LiteralNode(methodName), ...argExprs]
+      );
+    }
+  }
+
+  const funcExpr = analyze(operator, syntacticEnv);
   const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv));
   return new TailAppNode(funcExpr, argExprs);
 }

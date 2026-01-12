@@ -39,6 +39,7 @@ export const functionalTests = [
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: false },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
+    { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
 ];
 
 // Integration Tests
@@ -87,6 +88,7 @@ export const schemeTestFiles = [
     'tests/extras/scheme/promise_tests.scm',
     'tests/extras/scheme/promise_interop_tests.scm',
     'tests/extras/scheme/jsref_tests.scm',
+    'tests/extras/scheme/class_tests.scm',
 ];
 
 /**
@@ -158,6 +160,7 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
     // Functional tests
     try {
         for (const test of functionalTests) {
+            console.log(`Running functional test: ${test.path}`);
             await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {

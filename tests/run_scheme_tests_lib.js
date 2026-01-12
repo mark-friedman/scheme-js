@@ -53,12 +53,14 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     const evalExports = await loadLibrary(['scheme', 'eval'], analyze, interpreter, interpreter.globalEnv);
     // Extension libraries
     const promiseExports = await loadLibrary(['scheme-js', 'promise'], analyze, interpreter, interpreter.globalEnv);
-    applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
-    applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
-    applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });
-    applyImports(interpreter.globalEnv, lazyExports, { libraryName: ['scheme', 'lazy'] });
+    const interopExports = await loadLibrary(['scheme-js', 'interop'], analyze, interpreter, interpreter.globalEnv);
+    applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme-js', 'base'] });
+    applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme-js', 'repl'] });
+    applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme-js', 'case-lambda'] });
+    applyImports(interpreter.globalEnv, lazyExports, { libraryName: ['scheme-js', 'lazy'] });
     applyImports(interpreter.globalEnv, evalExports, { libraryName: ['scheme', 'eval'] });
     applyImports(interpreter.globalEnv, promiseExports, { libraryName: ['scheme-js', 'promise'] });
+    applyImports(interpreter.globalEnv, interopExports, { libraryName: ['scheme-js', 'interop'] });
     // Note: time and process-context primitives are loaded via primitives/index.js
 
     // Reload macros because hygiene_tests.js clears globalMacroRegistry

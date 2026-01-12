@@ -148,6 +148,7 @@
     let let* letrec letrec*
     let-values let*-values define-values
     define-record-type
+    define-class
   )
   
   ;; The actual bindings come from the runtime primitives.
