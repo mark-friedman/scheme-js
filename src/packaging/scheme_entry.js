@@ -97,3 +97,9 @@ export function schemeEvalAsync(code) {
 // Export the interpreter and environment for advanced usage (e.g. testing, extending)
 export { interpreter, env };
 
+// Export REPL utilities
+export { parse } from '../core/interpreter/reader.js';
+export { analyze } from '../core/interpreter/analyzer.js';
+export { prettyPrint } from '../core/interpreter/printer.js';
+export { isCompleteExpression, findMatchingDelimiter } from '../core/interpreter/expression_utils.js';
+

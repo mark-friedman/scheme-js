@@ -3,6 +3,8 @@ import { setupRepl } from './repl.js';
 import { setFileResolver } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { parse } from '../src/core/interpreter/reader.js';
+import { prettyPrint } from '../src/core/interpreter/printer.js';
+import { isCompleteExpression, findMatchingDelimiter } from '../src/core/interpreter/expression_utils.js';
 
 // --- Main Entry Point ---
 
@@ -69,5 +71,11 @@ import { parse } from '../src/core/interpreter/reader.js';
     }
 
     // Setup REPL UI
-    setupRepl(interpreter, env);
+    setupRepl(interpreter, env, document, {
+        parse,
+        analyze,
+        prettyPrint,
+        isCompleteExpression,
+        findMatchingDelimiter
+    });
 })();
