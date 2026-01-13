@@ -10,7 +10,7 @@ import { run } from '../../../harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../../../../src/core/interpreter/library_loader.js';
 import { analyze } from '../../../../src/core/interpreter/analyzer.js';
 import { resetGlobalMacroRegistry, snapshotMacroRegistry } from '../../../../src/core/interpreter/macro_registry.js';
-import { writeString } from '../../../../src/core/primitives/io.js';
+import { writeString } from '../../../../src/core/primitives/io/index.js';
 
 // Section files in order
 const sectionFiles = [

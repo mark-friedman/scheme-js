@@ -2,7 +2,7 @@ import { Environment } from '../interpreter/environment.js';
 import { globalScopeRegistry, GLOBAL_SCOPE_ID } from '../interpreter/syntax_object.js';
 
 import { mathPrimitives } from './math.js';
-import { ioPrimitives } from './io.js';
+import { ioPrimitives } from './io/index.js';
 import { listPrimitives } from './list.js';
 import { vectorPrimitives } from './vector.js';
 import { recordPrimitives } from './record.js';

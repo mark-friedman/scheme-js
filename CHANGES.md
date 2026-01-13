@@ -2772,3 +2772,84 @@ Verified using `dist/repl-demo.html`.
 <script type="module" src="./scheme-repl.js"></script>
 <scheme-repl></scheme-repl>
 ```
+# Walkthrough: Split io.js into Modules
+
+I have successfully refactored the monolithic `src/core/primitives/io.js` into a set of focused, modular files under `src/core/primitives/io/`. This improves codebase organization, maintainability, and makes it easier to extend I/O functionality in the future.
+
+## Changes
+
+### 1. Created New Modules
+
+The `io.js` file (1,933 lines) was split into the following modules:
+
+-   **`src/core/primitives/io/ports.js`**:
+    -   Contains the `Port` base class.
+    -   Exports predicates: `isPort`, `isInputPort`, `isOutputPort`.
+    -   Exports `EOF_OBJECT`.
+    -   Exports utilities: `requireOpenInputPort`, `requireOpenOutputPort`.
+
+-   **`src/core/primitives/io/string_port.js`**:
+    -   `StringInputPort`: Reads from a string (supports operations like `read-char`, `read-line`).
+    -   `StringOutputPort`: Collects output into an internal string buffer (for `open-output-string`).
+
+-   **`src/core/primitives/io/file_port.js`**:
+    -   `FileInputPort`: Wraps Node.js `fs.readFileSync` (reads entire file to memory currently).
+    -   `FileOutputPort`: Wraps Node.js `fs.writeFileSync`/`appendFileSync`.
+    -   Includes strict Node.js environment detection to prevent browser crashes.
+    -   Exports `fileExists` and `deleteFile` helpers.
+    -   Logic for browser compatibility (dynamic import of `fs`).
+
+-   **`src/core/primitives/io/bytevector_port.js`**:
+    -   `BytevectorInputPort`: Reads from `Uint8Array`.
+    -   `BytevectorOutputPort`: Writes to `Uint8Array` (expandable).
+
+-   **`src/core/primitives/io/console_port.js`**:
+    -   `ConsoleOutputPort`: Simple wrapper around `process.stdout`/`console.log`.
+
+-   **`src/core/primitives/io/printer.js`**:
+    -   Extracted all `display` and `write` logic.
+    -   Handles `writeString`, `writeSimple`, `writeShared` (datum labels).
+    -   Dependencies: `Symbol`, `Cons`.
+
+-   **`src/core/primitives/io/reader_bridge.js`**:
+    -   Implements `readExpressionFromPort`.
+    -   Handles reading from a port until a complete S-expression is formed.
+    -   Improved logic to handle comments and datum labels (`#n=`) correctly by re-trying parse on "unexpected end of input".
+
+-   **`src/core/primitives/io/primitives.js`**:
+    -   Defines the `ioPrimitives` map exported to Scheme.
+    -   Manages global state: `current-input-port`, `current-output-port`, `current-error-port`.
+    -   Implements Scheme primitives: `open-input-file`, `call-with-input-file`, `with-output-to-file`, `features`, etc.
+
+-   **`src/core/primitives/io/index.js`**:
+    -   Barrel file exporting `ioPrimitives` and all Port classes.
+
+### 2. Updated References
+
+-   Updated `src/core/primitives/index.js` to import from `./io/index.js`.
+-   Updated `tests/core/scheme/compliance/chibi_runner_lib.js` imports.
+-   Deleted `src/core/primitives/io.js`.
+
+## Verification Results
+
+### Automatic Tests
+All tests passed, including I/O specific tests and general regression tests.
+
+```bash
+node tests/functional/io_tests.js
+# ...
+# Passed
+```
+
+Full suite:
+```bash
+node run_tests_node.js
+# ...
+# TEST SUMMARY: 1284 passed, 0 failed, 3 skipped
+```
+
+### Key Improvements
+-   **Modular Design**: Each port type is isolated.
+-   **Better Encapsulation**: Global state is managed in `primitives.js`, not mixed with class definitions.
+-   **Robustness**: Improved `read` logic for datum labels and comments.
+-   **Maintainability**: `printer.js` and `reader_bridge.js` separate complex logic handling from basic port I/O.
