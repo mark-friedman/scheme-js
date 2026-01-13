@@ -70,6 +70,13 @@ function generateUniqueName(baseName) {
   return `${baseName}_$${_uniqueIdCounter}`;
 }
 
+/**
+ * Resets the unique ID counter. Used for test isolation.
+ */
+export function resetUniqueIdCounter() {
+  _uniqueIdCounter = 0;
+}
+
 // Current macro registry stack for scoped expansion
 let currentMacroRegistry = globalMacroRegistry;
 

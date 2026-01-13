@@ -17,6 +17,7 @@ export const unitTests = [
     { path: 'core/interpreter/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
     { path: 'core/interpreter/error_tests.js', fn: 'runErrorTests', needsInterpreter: false },
     { path: 'core/interpreter/syntax_object_tests.js', fn: 'runSyntaxObjectTests', needsInterpreter: false },
+    { path: 'core/interpreter/state_isolation_tests.js', fn: 'runStateIsolationTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)

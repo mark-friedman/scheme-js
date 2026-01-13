@@ -110,22 +110,28 @@ function safeStringify(obj) {
     }
 }
 
-export function createTestLogger() {
+export function createTestLogger({ verbose = false } = {}) {
     let passCount = 0;
     let failCount = 0;
     let skipCount = 0;
     const failures = [];
 
     return {
-        log: (message, type = 'info') => console.log(`[${type.toUpperCase()}] ${message}`),
+        log: (message, type = 'info') => {
+            if (verbose) console.log(`[${type.toUpperCase()}] ${message}`);
+        },
         title: (message) => console.log(`\n=== ${message} ===`),
         pass: (message) => {
             passCount++;
-            console.log(`✅ PASS: ${message}`);
+            if (verbose) {
+                console.log(`✅ PASS: ${message}`);
+            }
         },
         skip: (message) => {
             skipCount++;
-            console.log(`⚠️ SKIP: ${message}`);
+            if (verbose) {
+                console.log(`⚠️ SKIP: ${message}`);
+            }
         },
         fail: (message) => {
             failCount++;
