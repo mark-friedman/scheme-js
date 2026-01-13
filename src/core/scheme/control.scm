@@ -1,5 +1,6 @@
 ;; Standard Control Macros
-;; (when, unless, or, let*, do, case)
+;; (when, unless, do, case, guard, let-values, let*-values, define-values)
+;; Note: `or` and `let*` are defined in macros.scm
 
 ;; /**
 ;;  * One-armed conditional.
@@ -27,36 +28,6 @@
      (if test
          #f ;; unspecified
          (begin result1 result2 ...)))))
-
-;; /**
-;;  * Short-circuit OR.
-;;  * Returns the first true value, or #f if all are false.
-;;  *
-;;  * @param {...expression} test - Expressions to test.
-;;  */
-(define-syntax or
-  (syntax-rules ()
-    ((or) #f)
-    ((or test) test)
-    ((or test1 test2 ...)
-     (let ((x test1))
-       (if x x (or test2 ...))))))
-
-;; /**
-;;  * Sequential binding.
-;;  * Binds variables sequentially, allowing later bindings to refer to earlier ones.
-;;  *
-;;  * @param {list} bindings - List of ((variable init) ...) bindings.
-;;  * @param {...expression} body - Body to evaluate.
-;;  */
-(define-syntax let*
-  (syntax-rules ()
-    ((let* () body1 body2 ...)
-     (let () body1 body2 ...))
-    ((let* ((name1 val1) (name2 val2) ...) body1 body2 ...)
-     (let ((name1 val1))
-       (let* ((name2 val2) ...)
-         body1 body2 ...)))))
 
 ;; /**
 ;;  * Iteration construct.
