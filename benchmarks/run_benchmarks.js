@@ -66,26 +66,29 @@ async function runBenchmarks() {
     loadSchemeFile(interpreter, env, path.join(__dirname, 'benchmark_arithmetic.scm'));
     loadSchemeFile(interpreter, env, path.join(__dirname, 'benchmark_mixed.scm'));
 
-    // Try to load interop benchmarks (may fail if interop not available)
-    let hasInterop = false;
+    // Try to load interop benchmarks - define fallback if scheme->js-deep not available
+    let hasNativeInterop = false;
     try {
         // Check if scheme->js-deep is available
         evalScheme(interpreter, env, '(define __has-interop (procedure? scheme->js-deep))');
-        hasInterop = evalScheme(interpreter, env, '__has-interop');
+        hasNativeInterop = evalScheme(interpreter, env, '__has-interop');
     } catch (e) {
-        hasInterop = false;
+        hasNativeInterop = false;
     }
 
-    if (hasInterop) {
-        try {
-            loadSchemeFile(interpreter, env, path.join(__dirname, 'benchmark_interop.scm'));
-            console.log('Interop benchmarks loaded.');
-        } catch (e) {
-            console.log('Interop benchmarks skipped:', e.message);
-            hasInterop = false;
-        }
+    if (!hasNativeInterop) {
+        // Define scheme->js-deep as identity function for benchmarking
+        evalScheme(interpreter, env, '(define scheme->js-deep (lambda (x) x))');
+        console.log('scheme->js-deep not available - using identity function.');
     } else {
-        console.log('scheme->js-deep not available - skipping interop benchmarks.');
+        console.log('scheme->js-deep available - using native implementation.');
+    }
+
+    try {
+        loadSchemeFile(interpreter, env, path.join(__dirname, 'benchmark_interop.scm'));
+        console.log('Interop benchmarks loaded.');
+    } catch (e) {
+        console.log('Interop benchmarks failed to load:', e.message);
     }
     console.log('');
 
@@ -102,17 +105,13 @@ async function runBenchmarks() {
         { name: 'map-filter-10K', expr: '(time-map-filter)', category: 'Non-Numeric' },
         { name: 'append-loop-1K', expr: '(time-append-loop)', category: 'Non-Numeric' },
         { name: 'symbol-lookup-100K', expr: '(time-symbol-lookup)', category: 'Non-Numeric' },
-    ];
 
-    // Add interop benchmarks if available
-    if (hasInterop) {
-        benchmarks.push(
-            { name: 'js-calls-10K', expr: '(time-js-calls)', category: 'JS Interop' },
-            { name: 'js-roundtrip-10K', expr: '(time-roundtrip)', category: 'JS Interop' },
-            { name: 'array-convert-10K', expr: '(time-array-conversion)', category: 'JS Interop' },
-            { name: 'nested-convert', expr: '(time-nested-conversion)', category: 'JS Interop' },
-        );
-    }
+        // Interop benchmarks (always included - uses identity fallback if no native impl)
+        { name: 'js-calls-10K', expr: '(time-js-calls)', category: 'JS Interop' },
+        { name: 'js-roundtrip-10K', expr: '(time-roundtrip)', category: 'JS Interop' },
+        { name: 'array-convert-10K', expr: '(time-array-conversion)', category: 'JS Interop' },
+        { name: 'nested-convert', expr: '(time-nested-conversion)', category: 'JS Interop' },
+    ];
 
     const results = {};
     const RUNS = 5;

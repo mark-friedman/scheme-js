@@ -1,5 +1,6 @@
 ;; benchmark_interop.scm
 ;; JS Interop benchmarks for comparing BigInt vs Number boundary crossing costs
+;; Note: scheme->js-deep is defined by run_benchmarks.js if not already available
 
 ;; Test 6: Repeated JS calls with numeric args
 (define (js-call-loop n)
