@@ -13,6 +13,7 @@ import { isSchemeClosure, isSchemeContinuation, TailCall, ContinuationUnwind, Va
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { Cons } from './cons.js';
 import { registerBindingWithCurrentScopes } from './syntax_object.js';
+import { SchemeApplicationError } from './errors.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
@@ -329,7 +330,7 @@ export class AppFrame extends Executable {
             return false;
         }
 
-        throw new Error(`Not a function: ${func}`);
+        throw new SchemeApplicationError(func);
     }
 
     /**

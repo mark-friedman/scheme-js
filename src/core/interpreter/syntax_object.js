@@ -12,6 +12,7 @@
 
 import { Symbol, intern } from './symbol.js';
 import { Cons } from './cons.js';
+import { SchemeTypeError } from './errors.js';
 
 // =============================================================================
 // Scope Management
@@ -359,7 +360,7 @@ export function isSyntaxObject(obj) {
 export function syntaxName(obj) {
     if (obj instanceof SyntaxObject) return obj.name;
     if (obj instanceof Symbol) return obj.name;
-    throw new Error(`Expected symbol or syntax object, got ${obj}`);
+    throw new SchemeTypeError('syntaxName', 1, 'symbol or syntax object', obj);
 }
 
 // =============================================================================

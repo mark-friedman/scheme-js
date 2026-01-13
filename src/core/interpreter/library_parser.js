@@ -8,6 +8,7 @@
 import { toArray } from './cons.js';
 import { Symbol } from './symbol.js';
 import { evaluateFeatureRequirement } from './library_registry.js';
+import { SchemeSyntaxError } from './errors.js';
 
 // =============================================================================
 // define-library Parser
@@ -23,12 +24,12 @@ export function parseDefineLibrary(form) {
     const arr = toArray(form);
 
     if (arr.length < 2) {
-        throw new Error('define-library requires a library name');
+        throw new SchemeSyntaxError('requires a library name', null, 'define-library');
     }
 
     const tag = arr[0];
     if (!(tag instanceof Symbol) || tag.name !== 'define-library') {
-        throw new Error('Expected define-library');
+        throw new SchemeSyntaxError('expected define-library form', form, 'define-library');
     }
 
     const name = toArray(arr[1]);
@@ -46,7 +47,7 @@ export function parseDefineLibrary(form) {
         const clauseTag = clauseArr[0];
 
         if (!(clauseTag instanceof Symbol)) {
-            throw new Error(`Invalid library clause: ${clause}`);
+            throw new SchemeSyntaxError('invalid clause - expected symbol', clause, 'define-library');
         }
 
         switch (clauseTag.name) {
@@ -170,7 +171,7 @@ export function parseDefineLibrary(form) {
                 break;
 
             default:
-                throw new Error(`Unknown library clause: ${clauseTag.name}`);
+                throw new SchemeSyntaxError(`unknown clause: ${clauseTag.name}`, clause, 'define-library');
         }
     }
 

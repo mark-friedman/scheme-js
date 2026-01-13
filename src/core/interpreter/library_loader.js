@@ -11,6 +11,7 @@ import { Environment } from './environment.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { parse } from './reader.js';
 import { freshScope, pushDefiningScope, popDefiningScope, registerLibraryScope } from './syntax_object.js';
+import { SchemeLibraryError } from './errors.js';
 
 // Import from focused modules
 import {
@@ -70,14 +71,14 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
     // Resolve and load file
     const fileResolver = getFileResolver();
     if (!fileResolver) {
-        throw new Error('No file resolver set. Call setFileResolver first.');
+        throw new SchemeLibraryError('no file resolver set - call setFileResolver first');
     }
 
     const source = await fileResolver(libraryName);
     const forms = parse(source);
 
     if (forms.length === 0) {
-        throw new Error(`Empty library file for ${key}`);
+        throw new SchemeLibraryError('empty library file', key);
     }
 
     // Parse the define-library form
@@ -107,18 +108,18 @@ export function loadLibrarySync(libraryName, analyze, interpreter, baseEnv) {
     // Resolve and load file
     const fileResolver = getFileResolver();
     if (!fileResolver) {
-        throw new Error('No file resolver set. Call setFileResolver first.');
+        throw new SchemeLibraryError('no file resolver set - call setFileResolver first');
     }
 
     const source = fileResolver(libraryName);
     if (source instanceof Promise) {
-        throw new Error(`loadLibrarySync encountered async file resolver for ${key}`);
+        throw new SchemeLibraryError('async resolver not supported in sync load', key);
     }
 
     const forms = parse(source);
 
     if (forms.length === 0) {
-        throw new Error(`Empty library file for ${key}`);
+        throw new SchemeLibraryError('empty library file', key);
     }
 
     // Parse the define-library form
@@ -313,7 +314,7 @@ export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, base
             const includeSource = fileResolver(
                 [...libraryName.slice(0, -1), includeFile]
             );
-            if (includeSource instanceof Promise) throw new Error("Async resolver in sync load");
+            if (includeSource instanceof Promise) throw new SchemeLibraryError('async resolver not supported in sync load');
 
             const includeForms = parse(includeSource);
             for (const form of includeForms) {
@@ -326,7 +327,7 @@ export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, base
             const includeSource = fileResolver(
                 [...libraryName.slice(0, -1), includeFile]
             );
-            if (includeSource instanceof Promise) throw new Error("Async resolver in sync load");
+            if (includeSource instanceof Promise) throw new SchemeLibraryError('async resolver not supported in sync load');
 
             // Parse with case-folding enabled
             const includeForms = parse(includeSource, { caseFold: true });
@@ -340,7 +341,7 @@ export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, base
             const declSource = fileResolver(
                 [...libraryName.slice(0, -1), declFile]
             );
-            if (declSource instanceof Promise) throw new Error("Async resolver in sync load");
+            if (declSource instanceof Promise) throw new SchemeLibraryError('async resolver not supported in sync load');
 
             const declForms = parse(declSource);
 

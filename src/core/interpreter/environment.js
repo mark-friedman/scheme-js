@@ -1,3 +1,5 @@
+import { SchemeUnboundError } from './errors.js';
+
 /**
  * Manages lexical scope via a chain of maps.
  */
@@ -39,6 +41,7 @@ export class Environment {
      * Finds a variable's value by searching up the scope chain.
      * @param {string} name - The variable name to look up.
      * @returns {*} The bound value.
+     * @throws {SchemeUnboundError} If the variable is not bound.
      */
     lookup(name) {
         if (this.bindings.has(name)) {
@@ -51,7 +54,7 @@ export class Environment {
         if (Reflect.has(globalThis, name)) {
             return globalThis[name];
         }
-        throw new Error(`Unbound variable: ${name}`);
+        throw new SchemeUnboundError(name);
     }
 
     /**
@@ -75,7 +78,7 @@ export class Environment {
    * @param {string} name - The variable name.
    * @param {*} value - The new value.
    * @returns {*} The new value.
-   * @throws {Error} If the variable is not bound.
+   * @throws {SchemeUnboundError} If the variable is not bound.
    */
     set(name, value) {
         const env = this.findEnv(name);
@@ -85,7 +88,7 @@ export class Environment {
                 globalThis[name] = value;
                 return value;
             }
-            throw new Error(`set!: unbound variable: ${name}`);
+            throw new SchemeUnboundError(name, true);
         }
         env.bindings.set(name, value);
         return value;

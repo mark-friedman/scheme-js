@@ -608,7 +608,7 @@ export class RaiseNode extends Executable {
             if (exc instanceof Error) {
                 throw exc;
             }
-            throw new Error(`Unhandled exception: ${exc}`);
+            throw new SchemeError(`Unhandled exception: ${exc}`, [exc]);
         }
 
         // Get the handler

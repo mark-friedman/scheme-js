@@ -186,7 +186,7 @@ export class Interpreter {
    */
   run(ast, env = this.globalEnv, initialStack = [], thisContext = undefined) {
     if (!this.globalEnv) {
-      throw new Error("Interpreter global environment is not set. Call setGlobalEnv() first.");
+      throw new SchemeError("Interpreter global environment is not set. Call setGlobalEnv() first.");
     }
 
     // The "CPU registers" - see stepables.js for constant definitions

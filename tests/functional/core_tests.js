@@ -1,4 +1,5 @@
 import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
+import { SchemeApplicationError, SchemeUnboundError } from '../../src/core/interpreter/errors.js';
 
 /**
  * Core functional tests for the Scheme interpreter.
@@ -54,14 +55,16 @@ export function runCoreTests(interpreter, logger) {
         run(interpreter, `(1 2)`);
         logger.fail("Runtime: Apply non-function - FAILED to throw");
     } catch (e) {
-        assert(logger, "Runtime: Apply non-function", e.message.includes("Not a function"), true);
+        // Check error type instead of message string
+        assert(logger, "Runtime: Apply non-function", e instanceof SchemeApplicationError, true);
     }
 
     try {
         run(interpreter, `(undefined-var)`);
         logger.fail("Runtime: Unbound variable - FAILED to throw");
     } catch (e) {
-        assert(logger, "Runtime: Unbound variable", e.message.includes("Unbound variable"), true);
+        // Check error type instead of message string
+        assert(logger, "Runtime: Unbound variable", e instanceof SchemeUnboundError, true);
     }
 
     // --- Edge Case Tests ---

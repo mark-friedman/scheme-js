@@ -2,6 +2,7 @@ import { Cons, cons, list } from './cons.js';
 import { Symbol, intern } from './symbol.js';
 import { Rational } from '../primitives/rational.js';
 import { Complex } from '../primitives/complex.js';
+import { SchemeReadError } from './errors.js';
 
 
 /**
@@ -169,7 +170,7 @@ function handleDotAccess(expr, tokens) {
 
 function readFromTokens(tokens, state) {
   if (tokens.length === 0) {
-    throw new Error(`Unexpected EOF while reading ${state.current || 'unknown'}`);
+    throw new SchemeReadError('unexpected end of input', state.current || 'expression');
   }
 
   const tokenObj = tokens.shift();
@@ -190,7 +191,7 @@ function readFromTokens(tokens, state) {
   // Handle datum comments: #; skips the next datum
   if (token === '#;') {
     if (tokens.length === 0) {
-      throw new Error("read: Unexpected EOF after datum comment marker #;");
+      throw new SchemeReadError('unexpected end of input after #;', 'datum comment');
     }
     readFromTokens(tokens, state); // Read and discard next datum
     if (tokens.length === 0) return undefined;
@@ -253,7 +254,7 @@ function readFromTokens(tokens, state) {
     const id = parseInt(token.slice(1, -1), 10);
     const placeholder = state.labels.get(id);
     if (!placeholder) {
-      throw new Error(`Reference to undefined label #${id}#`);
+      throw new SchemeReadError(`reference to undefined label #${id}#`, 'datum label');
     }
     return handleDotAccess(placeholder, tokens);
   }
@@ -268,9 +269,9 @@ function readFromTokens(tokens, state) {
   } else if (token === '#{') {
     result = readJSObjectLiteral(tokens, state);
   } else if (token === ')') {
-    throw new Error("Unexpected ')' - unbalanced parentheses");
+    throw new SchemeReadError("unexpected ')' - unbalanced parentheses", 'list');
   } else if (token === '}') {
-    throw new Error("Unexpected '}' - unbalanced braces");
+    throw new SchemeReadError("unexpected '}' - unbalanced braces", 'object literal');
   } else if (token === "'") {
     // Quotes
     result = list(intern('quote'), readFromTokens(tokens, state));
@@ -342,21 +343,21 @@ function readList(tokens, state) {
   const listItems = [];
   while (true) {
     if (tokens.length === 0) {
-      throw new Error("Missing ')'");
+      throw new SchemeReadError("missing ')'", 'list');
     }
     if (tokens[0].value === ')') break;
 
     // Handle datum comment inside list
     if (tokens[0].value === '#;') {
       tokens.shift(); // consume #;
-      if (tokens.length === 0) throw new Error("Invalid datum comment: unexpected EOF");
+      if (tokens.length === 0) throw new SchemeReadError('unexpected end of input', 'datum comment');
 
       // Can't use datum comment on syntactic markers
       if (tokens[0].value === '.') {
-        throw new Error("Invalid datum comment: cannot comment out '.' in dotted notation");
+        throw new SchemeReadError("cannot comment out '.' in dotted notation", 'datum comment');
       }
       if (tokens[0].value === ')') {
-        throw new Error("Invalid datum comment: no datum following #;");
+        throw new SchemeReadError('no datum following #;', 'datum comment');
       }
       readFromTokens(tokens, state); // discard next datum
       continue;
@@ -364,7 +365,7 @@ function readList(tokens, state) {
     if (tokens[0].value === '.') {
       // R7RS: dotted list must have at least one element before the dot
       if (listItems.length === 0) {
-        throw new Error("Illegal use of '.' - no elements before dot in dotted list");
+        throw new SchemeReadError("illegal use of '.' - no elements before dot", 'dotted list');
       }
       tokens.shift(); // consume '.'
       // Handle datum comment after dot
@@ -374,7 +375,7 @@ function readList(tokens, state) {
       }
       // Ensure there's actually a datum after the dot
       if (tokens.length === 0 || tokens[0].value === ')') {
-        throw new Error("Illegal use of '.' - no datum after dot in dotted list");
+        throw new SchemeReadError("illegal use of '.' - no datum after dot", 'dotted list');
       }
       const tail = readFromTokens(tokens, state);
       // Skip any datum comments before closing paren
@@ -383,7 +384,7 @@ function readList(tokens, state) {
         readFromTokens(tokens, state);
       }
       if (tokens.length === 0 || tokens.shift().value !== ')') {
-        throw new Error("Expected ')' after improper list tail");
+        throw new SchemeReadError("expected ')' after improper list tail", 'dotted list');
       }
       // Build improper list
       let result = tail;
@@ -404,7 +405,7 @@ function readVector(tokens, state) {
   const elements = [];
   while (true) {
     if (tokens.length === 0) {
-      throw new Error("Missing ')' for vector");
+      throw new SchemeReadError("missing ')'", 'vector');
     }
     if (tokens[0].value === ')') break;
     elements.push(readFromTokens(tokens, state));
@@ -431,7 +432,7 @@ function readJSObjectLiteral(tokens, state) {
   while (tokens.length > 0 && tokens[0].value !== '}') {
     // Each entry must be a list (key val) or (... obj)
     if (tokens[0].value !== '(') {
-      throw new Error(`Expected '(' for property entry in #{...}, got '${tokens[0].value}'`);
+      throw new SchemeReadError(`expected '(' for property entry, got '${tokens[0].value}'`, 'object literal');
     }
 
     // Read the entry as a list
@@ -441,7 +442,7 @@ function readJSObjectLiteral(tokens, state) {
       entryItems.push(readFromTokens(tokens, state));
     }
     if (tokens.length === 0) {
-      throw new Error("Missing ')' in #{...} property entry");
+      throw new SchemeReadError("missing ')' in property entry", 'object literal');
     }
     tokens.shift(); // consume ')'
 
@@ -450,7 +451,7 @@ function readJSObjectLiteral(tokens, state) {
       entryItems[0] instanceof Symbol &&
       entryItems[0].name === '...') {
       if (entryItems.length !== 2) {
-        throw new Error("Spread syntax (... obj) requires exactly one object");
+        throw new SchemeReadError('spread syntax (... obj) requires exactly one object', 'object literal');
       }
       // Mark as spread entry
       entries.push({ spread: true, value: entryItems[1] });
@@ -458,12 +459,12 @@ function readJSObjectLiteral(tokens, state) {
       // Normal (key val) entry
       entries.push({ spread: false, key: entryItems[0], value: entryItems[1] });
     } else {
-      throw new Error(`Property entry must be (key value) or (... obj), got ${entryItems.length} elements`);
+      throw new SchemeReadError(`property entry must be (key value) or (... obj), got ${entryItems.length} elements`, 'object literal');
     }
   }
 
   if (tokens.length === 0) {
-    throw new Error("Missing '}' for #{...}");
+    throw new SchemeReadError("missing '}'", 'object literal');
   }
   tokens.shift(); // consume '}'
 
@@ -526,14 +527,14 @@ function readBytevector(tokens) {
   const bytes = [];
   while (true) {
     if (tokens.length === 0) {
-      throw new Error("Missing ')' for bytevector");
+      throw new SchemeReadError("missing ')'", 'bytevector');
     }
     if (tokens[0].value === ')') break;
 
     const tokenObj = tokens.shift();
     const num = parseInt(tokenObj.value, 10);
     if (isNaN(num) || num < 0 || num > 255) {
-      throw new Error(`Invalid byte value in bytevector: ${tokenObj.value}`);
+      throw new SchemeReadError(`invalid byte value: ${tokenObj.value}`, 'bytevector');
     }
     bytes.push(num);
   }
@@ -567,7 +568,7 @@ function readAtom(token, caseFold = false) {
   // Strings (not case-folded) - handle R7RS escape sequences
   if (token.startsWith('"')) {
     if (token.length < 2 || !token.endsWith('"')) {
-      throw new Error("Unterminated string");
+      throw new SchemeReadError('unterminated string', 'string');
     }
     return processStringEscapes(token.slice(1, -1));
   }
@@ -579,7 +580,7 @@ function readAtom(token, caseFold = false) {
   // readList handles '.' as a delimiter/improper list marker. 
   // If we reach here, '.' appeared where a datum was expected.
   if (symbolName === '.') {
-    throw new Error("Unexpected '.'");
+    throw new SchemeReadError("unexpected '.'", 'symbol');
   }
 
   // JS Property Access: obj.prop1.prop2 -> (js-ref (js-ref obj "prop1") "prop2")
@@ -819,7 +820,7 @@ export function parseNumber(token, exactness) {
     const num = parseInt(rationalMatch[1], 10);
     const den = parseInt(rationalMatch[2], 10);
     if (den === 0) {
-      throw new Error('Division by zero in rational literal');
+      throw new SchemeReadError('division by zero', 'rational');
     }
     return new Rational(num, den);
   }
@@ -894,7 +895,7 @@ function parsePrefixedNumber(token) {
     const num = parseInt(rationalMatch[1], radix);
     const den = parseInt(rationalMatch[2], radix);
     if (isNaN(num) || isNaN(den)) return null;
-    if (den === 0) throw new Error('Division by zero in rational literal');
+    if (den === 0) throw new SchemeReadError('division by zero', 'rational');
 
     if (exactness === 'inexact') {
       return num / den;
@@ -991,7 +992,7 @@ function readCharacter(name) {
   if (name.startsWith('x') && name.length > 1) {
     const codePoint = parseInt(name.slice(1), 16);
     if (isNaN(codePoint)) {
-      throw new Error(`Invalid character hex escape: #\\${name}`);
+      throw new SchemeReadError(`invalid character hex escape: #\\${name}`, 'character');
     }
     return String.fromCodePoint(codePoint);
   }
@@ -1007,7 +1008,7 @@ function readCharacter(name) {
     return name;
   }
 
-  throw new Error(`Unknown character name: #\\${name}`);
+  throw new SchemeReadError(`unknown character name: #\\${name}`, 'character');
 }
 
 // Helper for circular structure resolution
@@ -1039,14 +1040,14 @@ function fixup(obj, visited = new Set()) {
   // Handle Cons pairs
   if (obj instanceof Cons) {
     if (obj.car instanceof Placeholder) {
-      if (!obj.car.resolved) throw new Error(`Reference to undefined label #${obj.car.id}#`);
+      if (!obj.car.resolved) throw new SchemeReadError(`reference to undefined label #${obj.car.id}#`, 'datum label');
       obj.car = obj.car.value;
     } else {
       fixup(obj.car, visited);
     }
 
     if (obj.cdr instanceof Placeholder) {
-      if (!obj.cdr.resolved) throw new Error(`Reference to undefined label #${obj.cdr.id}#`);
+      if (!obj.cdr.resolved) throw new SchemeReadError(`reference to undefined label #${obj.cdr.id}#`, 'datum label');
       obj.cdr = obj.cdr.value;
     } else {
       fixup(obj.cdr, visited);
@@ -1058,7 +1059,7 @@ function fixup(obj, visited = new Set()) {
   if (Array.isArray(obj)) {
     for (let i = 0; i < obj.length; i++) {
       if (obj[i] instanceof Placeholder) {
-        if (!obj[i].resolved) throw new Error(`Reference to undefined label #${obj[i].id}#`);
+        if (!obj[i].resolved) throw new SchemeReadError(`reference to undefined label #${obj[i].id}#`, 'datum label');
         obj[i] = obj[i].value;
       } else {
         fixup(obj[i], visited);

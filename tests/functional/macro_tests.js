@@ -2,6 +2,7 @@ import { globalMacroRegistry } from '../../src/core/interpreter/macro_registry.j
 import { run, assert } from '../harness/helpers.js';
 import { list } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
+import { SchemeUnboundError } from '../../src/core/interpreter/errors.js';
 
 export async function runMacroTests(interpreter, logger) {
     logger.title('Macro Tests');
@@ -128,10 +129,11 @@ export async function runMacroTests(interpreter, logger) {
                 run(interpreter, callCode);
                 logger.fail("Should have thrown Unbound variable error, but succeeded");
             } catch (e) {
-                if (e.message.includes("Unbound variable: my-double")) {
-                    logger.pass("Correctly threw Unbound variable error for out-of-scope macro");
+                // Check error type instead of message string
+                if (e instanceof SchemeUnboundError) {
+                    logger.pass("Correctly threw SchemeUnboundError for out-of-scope macro");
                 } else {
-                    logger.fail(`Threw wrong error: ${e.message}`);
+                    logger.fail(`Threw wrong error type: ${e.constructor.name} - ${e.message}`);
                 }
             }
         }
