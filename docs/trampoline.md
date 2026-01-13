@@ -153,6 +153,100 @@ Continuations work the same way - they are callable JS functions:
 
 See [Interoperability.md](Interoperability.md) for detailed documentation.
 
+## The Sentinel Frame Pattern
+
+### Problem: Nested Interpreter Runs
+
+When JavaScript calls a Scheme closure, we need to run the interpreter again while we're already inside a `run()` call. The challenge: how does the inner run know when to stop?
+
+```
+┌──────────────────────────────────────────────────────┐
+│ Scheme code                                          │
+│   (js-call "array.map" my-scheme-callback)           │
+│        │                                             │
+│        ▼                                             │
+│ ┌────────────────────────────────────────────┐       │
+│ │ JavaScript: array.map()                    │       │
+│ │   for each element:                        │       │
+│ │     callback(element)  ◄── calls Scheme!   │       │
+│ │        │                                   │       │
+│ │        ▼                                   │       │
+│ │   ┌──────────────────────────────────┐     │       │
+│ │   │ Nested Scheme: my-scheme-callback│     │       │
+│ │   │   (process element)              │     │       │
+│ │   │   Returns value                  │     │       │
+│ │   └──────────────────────────────────┘     │       │
+│ │     continues with next element...         │       │
+│ └────────────────────────────────────────────┘       │
+│   Continues after map returns                        │
+└──────────────────────────────────────────────────────┘
+```
+
+### Solution: SentinelFrame as a Stop Marker
+
+`SentinelFrame` is a special frame pushed onto the stack before nested `run()` calls:
+
+```javascript
+// In interpreter.js
+runWithSentinel(ast) {
+    const parentContext = this.getParentContext();
+    const stackWithSentinel = [...parentContext, new SentinelFrame()];
+    return this.run(ast, this.globalEnv, stackWithSentinel);
+}
+```
+
+When the nested computation completes and pops down to `SentinelFrame`:
+
+```javascript
+class SentinelFrame {
+    step(registers, interpreter) {
+        throw new SentinelResult(registers[ANS]);  // Break out!
+    }
+}
+```
+
+The trampoline catches this and returns control to JavaScript:
+
+```javascript
+// In the trampoline loop
+catch (e) {
+    if (e instanceof SentinelResult) {
+        return unpackForJs(e.value);  // Return to JS caller
+    }
+    // ... handle other exceptions
+}
+```
+
+### Why Use Exceptions?
+
+Using `SentinelResult` (a throw) rather than a return flag has advantages:
+
+1. **Immediate exit**: Skips any remaining loop iterations
+2. **Works at any depth**: The nested run could be many call levels deep
+3. **Clean pattern**: Similar to coroutine libraries and continuation systems
+
+### Filtering Sentinels from Continuations
+
+When `call/cc` captures the stack, we must remove `SentinelFrame`s - they're boundary markers that don't make sense in a captured continuation:
+
+```javascript
+// In frames.js
+function filterSentinelFrames(stack) {
+    return stack.filter(f => f.constructor.name !== 'SentinelFrame');
+}
+```
+
+This ensures that invoking a continuation doesn't accidentally terminate early.
+
+### Summary
+
+| Class | Role |
+|-------|------|
+| `SentinelFrame` | "Stop here" marker on the frame stack |
+| `SentinelResult` | Exception to break out of nested `run()` |
+| `jsContextStack` | Tracks parent context for `dynamic-wind` |
+| `filterSentinelFrames()` | Removes markers when capturing continuations |
+
 ## File Organization
 
 The stepable code is organized as:
