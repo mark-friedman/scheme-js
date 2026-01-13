@@ -58,6 +58,17 @@ cd scheme-js-4
     [http://localhost:8080/web/ui.html](http://localhost:8080/web/ui.html)
 3.  Start typing Scheme code!
 
+### Embedding the REPL
+You can embed the REPL in any webpage using the web component:
+
+```html
+<script type="module" src="dist/scheme.js"></script>
+<script type="module" src="dist/scheme-repl.js"></script>
+<scheme-repl></scheme-repl>
+```
+
+See `dist/repl-demo.html` for a complete example.
+
 ## 🧪 Testing
 
 The project uses a custom universal test runner that works in both Node.js and the Browser.

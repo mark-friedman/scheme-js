@@ -2607,7 +2607,7 @@ Standard Scheme procedures (like `<`) were undefined in the REPLs because bootst
 - `node repl.js -e '(force (delay 42))'` → `42`
 - `node repl.js -e '(char-upcase #\a)'` → `"A"`
 
-# JavaScript Class Support and `this` Binding Walkthrough
+# JavaScript Class Support and `this` Binding Walkthrough (2026-01-12)
 
 The project now supports defining and using JavaScript-compatible classes directly from Scheme, with seamless interoperability and correct `this` context management.
 
@@ -2687,7 +2687,7 @@ All tests are passing, including 15+ new tests specifically for classes and `thi
 TEST SUMMARY: 1251 passed, 0 failed, 3 skipped
 ========================================
 
-# Walkthrough: Extended Dot Notation
+# Walkthrough: Extended Dot Notation (2026-01-12)
 
 I have generalized the parser to support JavaScript-style dot notation for property access on *any* expression, provided there is no whitespace between the expression and the dot.
 
@@ -2723,3 +2723,52 @@ This prevents conflicts with Scheme's dot usage (e.g. improper lists `(a . b)`).
 All tests passed:
 - `dot_access_tests.scm` covers string, vector, list, and object property access.
 - Existing tests (`class_tests.scm`, etc.) passed with no regressions.
+
+# REPL Web Component Implementation Walkthrough (2026-01-13)
+
+I have successfully packaged the browser-based REPL as a web component `<scheme-repl>` that can be easily embedded in any web page.
+
+## Key Changes
+
+### 1. Refactored REPL Logic (`web/repl.js`)
+- Standardized `setupRepl` to accept a `rootElement` (Shadow DOM support) and a dependency object (dependency injection).
+- Exported `replStyles` and `replTemplate` for reuse.
+- **Paste Area Enabled**: The "Paste larger expressions" area is now fully functional and visible within the component.
+
+### 2. Exposed Interpreter Internals (`src/packaging/scheme_entry.js`)
+- Updated `dist/scheme.js` to export parser, analyzer, and printer utilities.
+- This allows the web component to reuse the core interpreter logic instead of bundling its own copy.
+
+### 3. Created Web Component (`src/packaging/scheme_repl_wc.js`)
+- Implemented `SchemeRepl` class.
+- Uses **Dependency Injection**: Passes core interpreter functions (imported from `scheme.js`) into `setupRepl`.
+- **Optimization**: resulting `dist/scheme-repl.js` is ~20KB (down from ~210KB), as it no longer duplicates the interpreter code.
+
+### 4. Build Configuration (`rollup.config.js`)
+- Configured to build `dist/scheme-repl.js`.
+- Treats `scheme.js` as an external dependency.
+
+### 5. Code Quality Improvements
+- Refactored `getCursorPos` in `web/repl.js` to remove unused variables and improve readability.
+- Cleaned up duplicate comments in `src/packaging/scheme_entry.js`.
+- Reduced file size of `dist/scheme-repl.js` by ~90% through proper dependency management.
+- **Fixed Shadow DOM Selection Issue**: Updated `getCursorPos` to use `rootElement.getSelection()` when available, resolving multiline input bugs where the cursor position was incorrectly reported as -1.
+
+## Verification
+Verified using `dist/repl-demo.html`.
+
+### Functionality Verified
+1. **Interactive REPL**: Typing `(+ 10 20)` yields `30`.
+2. **State Persistence**: Variables defined (`(define x 100)`) persist.
+3. **Paste Area**: Typing `(+ 100 200)` in the paste area and clicking "Run" yields `300`.
+4. **Visuals**: Rainbow parentheses and syntax highlighting are active.
+5. **Advanced UI**:
+   - **Rainbow Parentheses**: Confirmed nested parens `((()))` cycle through colors.
+   - **Multi-line**: Confirmed hitting Enter on incomplete expressions `(define ...` auto-indents and continues input.
+
+## Usage
+```html
+<script type="module" src="./scheme.js"></script>
+<script type="module" src="./scheme-repl.js"></script>
+<scheme-repl></scheme-repl>
+```

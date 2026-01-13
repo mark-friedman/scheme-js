@@ -31,6 +31,7 @@ Created build system to package the interpreter for Node.js and Browser use.
 | Rollup Build | ✅ | Produces ESM bundles |
 | Core Bundle | ✅ | `dist/scheme.js` with `schemeEval` API |
 | HTML Adapter | ✅ | `<script type="text/scheme">` support |
+| Web Component | ✅ | `<scheme-repl>` custom element |
 | Shared Environment | ✅ | All scripts run in same interpreter instance |
 | **Bundled Libraries** | ✅ | Embeds Scheme sources into the JS bundle for file-free loading |
 

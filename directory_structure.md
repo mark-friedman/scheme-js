@@ -11,6 +11,7 @@ The codebase follows a two-tier architecture: JavaScript core and Scheme librari
 ├── src/
 │   ├── packaging/                  # Bundling and distribution logic
 │   │   ├── scheme_entry.js         # Core bundle entry point
+│   │   ├── scheme_repl_wc.js       # Web Component entry point
 │   │   └── html_adapter.js         # HTML script tag adapter
 │   │
 │   └── core/                       # The Core (JS Interpreter + Scheme subset)
