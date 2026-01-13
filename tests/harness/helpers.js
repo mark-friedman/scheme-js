@@ -110,7 +110,21 @@ function safeStringify(obj) {
     }
 }
 
-export function createTestLogger({ verbose = false } = {}) {
+/**
+ * Creates a test logger for tracking test results.
+ * @param {Object|boolean} [options={}] - Options object or boolean for verbosity.
+ * @returns {Object} Logger object.
+ */
+export function createTestLogger(options = {}) {
+    let verbose = false;
+    if (typeof options === 'boolean') {
+        verbose = options;
+    } else if (options && typeof options.verbose !== 'undefined') {
+        verbose = options.verbose;
+    } else if (typeof process !== 'undefined' && process.argv) {
+        verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
+    }
+
     let passCount = 0;
     let failCount = 0;
     let skipCount = 0;

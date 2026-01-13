@@ -2772,7 +2772,7 @@ Verified using `dist/repl-demo.html`.
 <script type="module" src="./scheme-repl.js"></script>
 <scheme-repl></scheme-repl>
 ```
-# Walkthrough: Split io.js into Modules
+# Walkthrough: Split io.js into Modules (2026-01-13)
 
 I have successfully refactored the monolithic `src/core/primitives/io.js` into a set of focused, modular files under `src/core/primitives/io/`. This improves codebase organization, maintainability, and makes it easier to extend I/O functionality in the future.
 
@@ -2853,3 +2853,4 @@ node run_tests_node.js
 -   **Better Encapsulation**: Global state is managed in `primitives.js`, not mixed with class definitions.
 -   **Robustness**: Improved `read` logic for datum labels and comments.
 -   **Maintainability**: `printer.js` and `reader_bridge.js` separate complex logic handling from basic port I/O.
+-   **Testability**: Updated `createTestLogger` in `tests/harness/helpers.js` to automatically detect the `--verbose` (or `-v`) flag from the command line. This allows running individual test files directly with verbose output.
