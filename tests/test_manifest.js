@@ -53,6 +53,7 @@ export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
     { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
+    { path: 'integration/cond_expand_library_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: true },
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
@@ -72,6 +73,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/parameter_tests.scm',
     'tests/core/scheme/hygiene_tests.scm',
     'tests/core/scheme/case_lambda_tests.scm',
+    'tests/core/scheme/cond_expand_tests.scm',
     'tests/core/scheme/lazy_tests.scm',
     'tests/core/scheme/time_tests.scm',
     'tests/core/scheme/eval_tests.scm',

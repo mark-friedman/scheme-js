@@ -2854,3 +2854,31 @@ node run_tests_node.js
 -   **Robustness**: Improved `read` logic for datum labels and comments.
 -   **Maintainability**: `printer.js` and `reader_bridge.js` separate complex logic handling from basic port I/O.
 -   **Testability**: Updated `createTestLogger` in `tests/harness/helpers.js` to automatically detect the `--verbose` (or `-v`) flag from the command line. This allows running individual test files directly with verbose output.
+
+# Walkthrough: Unified Test Logging & cond-expand Support (2026-01-13)
+
+I have unified the test logging mechanism across Scheme and JavaScript, and completed the implementation of the R7RS `cond-expand` syntax.
+
+## Changes
+
+### 1. Unified Test Logging
+- **`run_scheme_tests_lib.js`**: Updated to use `writeString` for reporting expected/actual values, matching the Scheme representation.
+- **`logger.title`**: Added `native-log-title` binding to support visual grouping in Scheme test output.
+- **`test.scm`**: Updated `test-group` macro to emit title logs.
+
+### 2. cond-expand Implementation
+- **`library_parser.js`**: Refactored to support recursive `cond-expand` clauses within `define-library`.
+- **Feature Support**: Added support for `include-ci` and `include-library-declarations` within `cond-expand`.
+- **Tests**:
+  - Created `tests/core/scheme/cond_expand_tests.scm` for expression-level tests.
+  - Created `tests/integration/cond_expand_library_tests.js` for nested library declaration tests.
+
+## Verification Results
+
+Ran all tests with `node run_tests_node.js`:
+```
+TEST SUMMARY: 1365 passed, 0 failed, 3 skipped
+```
+- `cond-expand` expression tests passed.
+- Nested `cond-expand` in libraries passed.
+- Test output is now granular and consistent.
