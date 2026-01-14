@@ -33,7 +33,9 @@ export function parse(input, options = {}) {
       expressions.push(fixup(expr));
     }
   } catch (e) {
-    console.error(`Parse error in input: "${input.substring(0, 100)}${input.length > 100 ? '...' : ''}"`);
+    if (!options.suppressLog) {
+      console.error(`Parse error in input: "${input.substring(0, 100)}${input.length > 100 ? '...' : ''}"`);
+    }
     throw e;
   }
   return expressions;

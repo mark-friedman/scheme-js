@@ -131,7 +131,7 @@ export function readExpressionFromPort(port) {
         }
 
         try {
-            const result = parse(buffer);
+            const result = parse(buffer, { suppressLog: true });
             if (result.length > 0) {
                 return result[0];
             }

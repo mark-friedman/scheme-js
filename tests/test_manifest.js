@@ -18,6 +18,11 @@ export const unitTests = [
     { path: 'core/interpreter/error_tests.js', fn: 'runErrorTests', needsInterpreter: false },
     { path: 'core/interpreter/syntax_object_tests.js', fn: 'runSyntaxObjectTests', needsInterpreter: false },
     { path: 'core/interpreter/state_isolation_tests.js', fn: 'runStateIsolationTests', needsInterpreter: false },
+    // IO Unit Tests
+    { path: 'core/primitives/io/string_port_tests.js', fn: 'runStringPortTests', needsInterpreter: false },
+    { path: 'core/primitives/io/bytevector_port_tests.js', fn: 'runBytevectorPortTests', needsInterpreter: false },
+    { path: 'core/primitives/io/file_port_tests.js', fn: 'runFilePortTests', needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/printer_tests.js', fn: 'runPrinterTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)

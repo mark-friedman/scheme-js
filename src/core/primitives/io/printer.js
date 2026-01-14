@@ -30,6 +30,7 @@ export function displayString(val) {
     }
     if (val instanceof Cons) return consToString(val, displayString);
     if (Array.isArray(val)) return vectorToString(val, displayString);
+    if (val instanceof Uint8Array) return bytevectorToString(val);
     if (val instanceof Symbol) return val.name; // Symbol - display doesn't wrap
     if (val === EOF_OBJECT) return '#<eof>';
     if (val instanceof Port) return val.toString();
@@ -71,6 +72,7 @@ export function writeString(val) {
     }
     if (val instanceof Cons) return consToString(val, writeString);
     if (Array.isArray(val)) return vectorToString(val, writeString);
+    if (val instanceof Uint8Array) return bytevectorToString(val);
     if (val instanceof Symbol) {
         // Symbol - check if it needs |...| escaping
         return writeSymbol(val.name);
@@ -260,6 +262,8 @@ export function writeStringShared(val) {
             }
         }
 
+        if (obj instanceof Uint8Array) return bytevectorToString(obj);
+
         return String(obj);
     }
 
@@ -271,7 +275,8 @@ export function writeStringShared(val) {
         while (current instanceof Cons) {
             // Check if this cons is shared and already referenced
             const info = seen.get(current);
-            if (info && info.id !== null && emitted.has(current) && current !== cons) {
+            if (info && info.id !== null && emitted.has(current) &&
+                (current !== cons || parts.length > 0)) {
                 // Terminate with improper tail reference
                 return '(' + parts.join(' ') + ' . #' + info.id + '#)';
             }
@@ -329,4 +334,8 @@ function consToString(cons, elemFn) {
  */
 function vectorToString(vec, elemFn) {
     return '#(' + vec.map(elemFn).join(' ') + ')';
+}
+
+function bytevectorToString(bv) {
+    return '#u8(' + Array.from(bv).join(' ') + ')';
 }
