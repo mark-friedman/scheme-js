@@ -9,6 +9,7 @@
     "benchmark": "node benchmarks/run_benchmarks.js",
     "benchmark:save": "node benchmarks/save_baseline.js",
     "benchmark:compare": "node benchmarks/compare_baseline.js",
+    "pretest": "npm run build",
     "prebuild": "node scripts/generate_bundled_libraries.js",
     "build": "rollup -c"
   },
