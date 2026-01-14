@@ -103,6 +103,14 @@ export async function createComplianceRunner(fileLoader, logger) {
         }
     });
 
+    interpreter.globalEnv.bindings.set('native-log-title', (title) => {
+        if (logger.title) {
+            logger.title(title);
+        } else {
+            console.log(`\n=== ${title} ===`);
+        }
+    });
+
     // Inject skip reporter
     interpreter.globalEnv.bindings.set('native-report-test-skip', (name, reason) => {
         if (logger.skip) {
