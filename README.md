@@ -34,7 +34,7 @@ Key modules in `interpreter/`:
 -   **`frames.js`**: Continuation frame classes.
 -   **`library_loader.js`**: R7RS `define-library` and `import` support.
 
-For a detailed breakdown of the internal file structure, see [directory_structure.md](./directory_structure.md).
+For a detailed breakdown of the internal file structure, see [docs/architecture.md](./docs/architecture.md#directory-structure).
 
 ## 🚀 Getting Started
 
@@ -88,8 +88,7 @@ node run_tests_node.js
 
 We maintain detailed documentation for the project internals:
 
--   [**Directory Structure**](./directory_structure.md): Detailed map of the codebase and where files belong.
--   [**Architecture**](./docs/architecture.md): High-level architecture overview.
+-   [**Architecture & Directory Structure**](./docs/architecture.md): High-level design and detailed file map.
 -   [**Trampoline Execution**](./docs/trampoline.md): A deep dive into how the interpreter handles stack frames and TCO.
 -   [**Hygiene Implementation**](./docs/hygiene_implementation.md): How macro hygiene works.
 -   [**Changes**](./CHANGES.md): A log of major implementation steps, walkthroughs of features, and refactors.
