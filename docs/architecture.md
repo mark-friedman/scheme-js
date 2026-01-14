@@ -74,7 +74,16 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   ├── values.js           # Closure, Continuation, TailCall, Values
 │       │   ├── cons.js             # Cons cells + list utilities
 │       │   ├── symbol.js           # Symbol interning
-│       │   ├── reader.js           # S-expression parser
+│       │   ├── reader.js           # S-expression parser (re-exports from reader/)
+│       │   ├── reader/             # Reader submodules
+│       │   │   ├── index.js        # Barrel export + parse() entry
+│       │   │   ├── tokenizer.js    # Tokenization
+│       │   │   ├── parser.js       # Core parsing logic
+│       │   │   ├── number_parser.js # Number parsing with R7RS prefixes
+│       │   │   ├── dot_access.js   # JS property access syntax
+│       │   │   ├── string_utils.js # String/symbol escape processing
+│       │   │   ├── character.js    # Character literal parsing
+│       │   │   └── datum_labels.js # Circular reference handling
 │       │   ├── analyzer.js         # S-exp → AST conversion
 │       │   ├── syntax_rules.js     # syntax-rules transformer
 │       │   ├── syntax_object.js    # SyntaxObject and ScopeBindingRegistry
@@ -84,8 +93,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   ├── library_loader.js   # Library loading + barrel (re-exports)
 │       │   ├── library_registry.js # Feature + library registries
 │       │   ├── library_parser.js   # define-library parser
-│       │   ├── analysis/           # Syntactic analysis modules
-│       │   └── reader/             # Reader submodules (Future)
+│       │   └── analysis/           # Syntactic analysis modules
 │       │
 │       ├── primitives/             # Native procedures (+, cons, etc.)
 │       │   ├── index.js            # Creates global environment

@@ -2882,3 +2882,49 @@ TEST SUMMARY: 1365 passed, 0 failed, 3 skipped
 - `cond-expand` expression tests passed.
 - Nested `cond-expand` in libraries passed.
 - Test output is now granular and consistent.
+# Walkthrough: Modular Reader & Documentation Consolidation (2026-01-14)
+
+I have refactored the reader into focused submodules for better maintainability and consolidated architectural documentation into a single source of truth.
+
+## Changes
+
+### 1. Modular Reader Extraction
+The monolithic `reader.js` (1075 lines) was split into focused modules under `src/core/interpreter/reader/`:
+- **`tokenizer.js`**: Lexical analysis and block comment stripping.
+- **`parser.js`**: Core S-expression parsing logic.
+- **`number_parser.js`**: R7RS-compliant numeric literal parsing.
+- **`dot_access.js`**: Extended dot notation (`.prop`) processing.
+- **`string_utils.js`**: String and symbol escape handling.
+- **`character.js`**: Character literal parsing.
+- **`datum_labels.js`**: Circular reference resolution (`#n=`, `#n#`).
+- **`index.js`**: Main entry point and barrel export.
+
+The original `src/core/interpreter/reader.js` now serves as a backward-compatible re-export layer.
+
+### 2. Documentation Consolidation
+- Merged `directory_structure.md` into `docs/architecture.md` under a new **Directory Structure** section.
+- Updated `README.md` to point to the consolidated architecture document.
+- Deleted the redundant `directory_structure.md` file.
+
+### 3. Expanded Unit Testing
+- Added comprehensive unit tests for the new tokenizer and number parser submodules:
+  - `tests/core/interpreter/reader/tokenizer_tests.js`
+  - `tests/core/interpreter/reader/number_parser_tests.js`
+- Verified all core reader functionality (quotes, vectors, dots, datum labels) remain fully functional.
+
+## Verification Results
+
+### Automated Tests
+Ran all tests with `node run_tests_node.js`:
+```text
+========================================
+TEST SUMMARY: 1447 passed, 0 failed, 3 skipped
+========================================
+```
+- All new unit tests (82 additional tests) passed.
+- No regressions in existing reader or functional suites.
+
+### Key Improvements
+- **Maintainability**: The reader is now decomposed into logical units, making it easier to debug specific parsing features (like number prefixes or datum labels).
+- **Documentation Accuracy**: The architecture document now includes a comprehensive file-by-file breakdown, ensuring the "single source of truth" principle.
+- **Test Coverage**: Significantly increased granularity of reader tests, covering edge cases in tokenization and numeric prefixes.

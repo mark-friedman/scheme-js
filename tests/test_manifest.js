@@ -23,6 +23,9 @@ export const unitTests = [
     { path: 'core/primitives/io/bytevector_port_tests.js', fn: 'runBytevectorPortTests', needsInterpreter: false },
     { path: 'core/primitives/io/file_port_tests.js', fn: 'runFilePortTests', needsInterpreter: false, nodeOnly: true },
     { path: 'core/primitives/io/printer_tests.js', fn: 'runPrinterTests', needsInterpreter: false },
+    // Reader Unit Tests
+    { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
+    { path: 'core/interpreter/reader/number_parser_tests.js', fn: 'runNumberParserTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)

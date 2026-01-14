@@ -15,6 +15,7 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Exceptions:** `error`, `raise`, `raise-continuable`, `with-exception-handler`, `guard` ✅
 - **JS Exception Integration:** Scheme handlers catch JavaScript errors ✅
 - **Type Predicates:** `number?`, `boolean?`, `procedure?`, `list?`, `symbol?`, `error-object?` ✅
+- **Reader Refactor:** Modularized `reader.js` into focused submodules with expanded unit testing ✅
 - **Type/Arity/Range Checking:** All primitives validate inputs ✅
 
 **Incomplete:**
