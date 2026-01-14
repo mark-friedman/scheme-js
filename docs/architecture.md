@@ -52,6 +52,15 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 /
 ├── repl.js                         # Node.js REPL entry point
 ├── rollup.config.js                # Rollup bundling configuration
+├── .github/                        # CI/CD Workflows
+│   └── workflows/
+│       └── ci.yml                  # GitHub Actions CI (Tests + Benchmarks)
+├── benchmarks/                     # Performance Benchmarks
+│   ├── run_benchmarks.js           # Core benchmark runner
+│   ├── save_baseline.js            # Create/update baseline
+│   ├── compare_baseline.js         # Compare current vs baseline
+│   ├── baseline.json               # Recorded baseline metrics
+│   └── *.scm                       # Benchmark definitions (arithmetic, mixed...)
 ├── src/
 │   ├── packaging/                  # Bundling and distribution logic
 │   │   ├── scheme_entry.js         # Core bundle entry point

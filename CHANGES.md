@@ -2928,3 +2928,53 @@ TEST SUMMARY: 1447 passed, 0 failed, 3 skipped
 - **Maintainability**: The reader is now decomposed into logical units, making it easier to debug specific parsing features (like number prefixes or datum labels).
 - **Documentation Accuracy**: The architecture document now includes a comprehensive file-by-file breakdown, ensuring the "single source of truth" principle.
 - **Test Coverage**: Significantly increased granularity of reader tests, covering edge cases in tokenization and numeric prefixes.
+# Walkthrough: Performance Benchmarking & CI Integration (2026-01-14)
+
+I have integrated automated performance benchmarking into the CI pipeline to track regressions and established a baseline for current interpreter performance.
+
+## Changes
+
+### 1. CI/CD Infrastructure
+- **`.github/workflows/ci.yml`**: Created a GitHub Actions workflow that automatically runs the full test suite and performance benchmarks on every push and pull request.
+
+### 2. Benchmarking Suite
+- **`benchmarks/save_baseline.js`**: A new script to execute the benchmark suite and save the results as a versioned baseline.
+- **`benchmarks/compare_baseline.js`**: A comparison utility that runs current benchmarks against the stored baseline, reporting performance deltas and warning about regressions.
+- **`benchmarks/baseline.json`**: Initial performance baseline consisting of 12 benchmarks across arithmetic, non-numeric, and JS interop categories.
+
+### 3. NPM Integration
+- Updated `package.json` with standardized scripts:
+  - `npm test`: Runs the Node.js test runner.
+  - `npm run benchmark`: Executes the benchmark suite.
+  - `npm run benchmark:save`: Updates the local baseline.
+  - `npm run benchmark:compare`: Runs comparison with regression detection.
+
+### 4. Documentation
+- Added a **📊 Benchmarks** section to `README.md` explaining how to run and manage performance tests.
+
+## Verification Results
+
+### Automated Tests
+Ran the new pipeline locally via npm:
+```text
+========================================
+TEST SUMMARY: 1447 passed, 0 failed, 3 skipped
+========================================
+```
+
+### Benchmark Comparison
+Verified that `npm run benchmark:compare` correctly identifies performance stability:
+```text
+| Benchmark            | Baseline | Current | Change | Status |
+|----------------------|----------|---------|--------|--------|
+| sum-to-1M            | 2314     | 2302    | -0.5%  | ⚪      |
+| factorial-100x1K     | 273      | 273     | +0.0%  | ⚪      |
+| ...                  | ...      | ...     | ...    | ...    |
+
+✅ All benchmarks within acceptable range
+```
+
+### Key Improvements
+- **Regression Detection**: Automatic warnings (>20% slowdown) and failures (>50% slowdown) ensure performance doesn't degrade as new features are added.
+- **Developer Workflow**: Simple npm commands make it easy for developers to verify performance locally before pushing changes.
+- **Standardization**: Unified internal test and benchmark execution under the standard `npm` interface.

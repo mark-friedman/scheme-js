@@ -84,6 +84,22 @@ node run_tests_node.js
 2.  Navigate to `http://localhost:8080/web/ui.html`.
 3.  The test suite runs automatically in the console on load. Check the browser developer console (F12) to see the results.
 
+## 📊 Benchmarks
+
+The project includes a performance benchmark suite for tracking regressions.
+
+### Running Benchmarks
+```bash
+npm run benchmark          # Run benchmarks and display results
+npm run benchmark:save     # Save current results as baseline
+npm run benchmark:compare  # Compare against baseline
+```
+
+Benchmarks cover:
+- **Arithmetic**: Sum, factorial, Fibonacci, Collatz
+- **Non-Numeric**: List operations, symbol lookup
+- **JS Interop**: Cross-boundary calls, data conversion
+
 ## 📚 Documentation
 
 We maintain detailed documentation for the project internals:
