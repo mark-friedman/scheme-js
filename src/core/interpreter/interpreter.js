@@ -294,7 +294,7 @@ export class Interpreter {
           }
 
           // No handler found - propagate to JS caller
-          console.error("Native JavaScript error caught in interpreter:", e);
+          console.info("Native JavaScript error caught in interpreter:", e);
           throw e;
         }
       }
