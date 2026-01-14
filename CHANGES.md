@@ -3033,3 +3033,55 @@ Verified that `npm run benchmark:compare` correctly identifies performance stabi
 - **Regression Detection**: Automatic warnings (>20% slowdown) and failures (>50% slowdown) ensure performance doesn't degrade as new features are added.
 - **Developer Workflow**: Simple npm commands make it easy for developers to verify performance locally before pushing changes.
 - **Standardization**: Unified internal test and benchmark execution under the standard `npm` interface.
+
+# Walkthrough: Macro Debugging Guide (2026-01-14)
+
+Created a comprehensive debugging guide for `syntax-rules` macros to assist developers in troubleshooting expansion issues.
+
+## Changes
+
+### 1. New Documentation
+- **[docs/macro_debugging.md](file:///Users/mark/code/scheme-js-4/docs/macro_debugging.md)**: A practical guide covering "Unbound variable", "Wrong value captured", "Literal not matching", and "Infinite expansion" symptoms.
+- Included troubleshooting examples and general debugging tips.
+
+### 2. Integration
+- **README.md**: Added link to the guide in the Documentation section.
+- **docs/architecture.md**: Added to the directory structure and Related Documentation lists.
+
+# Walkthrough: Pure Marks Hygiene Refactor (2026-01-14)
+
+Refactored the macro hygiene system from a hybrid gensym-based renaming approach to a pure Dybvig-style marks/scopes approach.
+
+## Changes
+
+### 1. Core Hygiene — `syntax_rules.js`
+- **Removed**: `gensym()`, `resetGensymCounter()`, and `findIntroducedBindings()` (~140 lines of code).
+- **Refactored**: `transcribe()` and `transcribeLiteral()` now distinguish bindings solely by attaching scope sets to identifiers. Every expansion generates a unique `expansionScope` mark.
+- **Removed**: Internal `renameMap` management, simplifying the transcription logic.
+
+### 2. Documentation Consolidation
+- **[docs/hygiene.md](file:///Users/mark/code/scheme-js-4/docs/hygiene.md)**: Merged theoretical overviews and implementation details into a single, comprehensive document.
+- **Academic References**: Added citations for Matthew Flatt's "Sets of Scopes" and Dybvig's work on syntactic abstraction.
+- **Cleanup**: Deleted the now-redundant `docs/hygiene_implementation.md`.
+
+### 3. Test Coverage
+- **[tests/core/scheme/macro_hygiene_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/macro_hygiene_tests.scm)**: Added 10 targeted tests for:
+    - User variable collision prevention.
+    - Multiple expansion scope isolation.
+    - Intentional capture prevention (verifying hygiene).
+    - Referential transparency for free variables.
+- **Cleanup**: Removed `resetGensymCounter` from `hygiene_tests.js` and `state_control.js`.
+
+## Verification Results
+
+### Automated Tests
+All 1457 tests (including the 10 new ones) pass successfully.
+
+```text
+========================================
+TEST SUMMARY: 1457 passed, 0 failed, 3 skipped
+========================================
+```
+
+### Key Insight
+This refactor aligns the implementation with modern "sets of scopes" models (like Racket's), providing a more elegant and theoretically robust hygiene mechanism without the need for unique name generation.

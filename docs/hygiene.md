@@ -1,136 +1,161 @@
 # Hygienic Macro Implementation
 
-## The Two Components of the Hygiene System
+This document explains how macro hygiene is implemented in the Scheme interpreter.
 
-### 1. Marks (Scopes) — For Referential Transparency
+## Overview
 
-* **Purpose**: Ensure free variables in macro templates resolve to their meaning at the macro definition site
-* **Implemented in**: [syntax_object.js](../src/core/interpreter/syntax_object.js)
-* **Mechanism**: Each identifier carries a set of scope IDs that determine which binding it refers to
-* **Example**: In `transcribe()` in [syntax_rules.js](../src/core/interpreter/syntax_rules.js), free variables get wrapped with `SyntaxObject` containing the `definingScope`:
+The implementation uses **pure Dybvig-style scopes (marks)** to achieve hygiene. Unlike traditional rename-based systems that use gensyms, this approach keeps all original identifier names but attaches scope marks that distinguish bindings.
+
+This prevents:
+1. **Accidental capture** — Macro-introduced bindings don't capture user variables
+2. **Referential transparency** — Free variables in templates resolve in their definition context
+
+## Key Concepts
+
+### Scope Marks
+
+Each identifier can carry a set of **scope marks** (integers). When macros expand:
+- Every macro expansion gets a **unique expansion scope**
+- All template identifiers (both introduced bindings and free variables) get marked with this scope
+- Pattern variables are substituted and scope-flipped
 
 ```javascript
-// Free variable: mark with defining scope for referential transparency
-if (definingScope !== null &&
-   !SPECIAL_FORMS.has(name) &&
-   !globalMacroRegistry.isMacro(name)) {
-   return new SyntaxObject(name, new Set([definingScope]));
+// In syntax_object.js
+class SyntaxObject {
+  constructor(name, scopes = new Set()) {
+    this.name = name;    // Original identifier name
+    this.scopes = scopes; // Set<number> of scope marks
+  }
 }
 ```
 
-### 2. Renaming (Gensym) — For Hygiene Proper
+### Why Pure Marks?
 
-* **Purpose**: Prevent macro-introduced bindings from capturing user variables
-* **Implemented in**: `compileSyntaxRules()` and `transcribe()` in [syntax_rules.js](../src/core/interpreter/syntax_rules.js)
-* **Mechanism**: Identifiers introduced by the template in binding positions get renamed to fresh symbols
-* **Example**: If a macro introduces a `let` binding `tmp`, it gets renamed to `tmp#1`, `tmp#2`, etc.
-
-```javascript
-// Generate fresh names for introduced bindings
-const renameMap = new Map();
-for (const name of introducedBindings) {
-   renameMap.set(name, gensym(name));  // tmp → tmp#1
-}
-```
-
-### 3. Captured Environment — For Lexical Scoping
-
-* **Purpose**: Allow macros to reference bindings from their definition site (not just globals)
-* **Implemented in**: `compileSyntaxRules()` via the `capturedEnv` parameter
-* **Mechanism**: The syntactic environment at macro definition is captured and used during transcription to resolve free variables
-
-```javascript
-// In analyzer.js - analyzeDefineSyntax
-const transformer = compileSyntaxRules(literals, clauses, definingScope, ellipsisName, syntacticEnv);
-```
-
-This enables patterns like:
+Two identifiers with the same name but different scope sets are **distinct bindings**:
 
 ```scheme
+;; Macro introduces 'tmp' with scope mark #1
+;; User's 'tmp' has no scope marks
+;; They are different identifiers!
+```
+
+This eliminates the theoretical edge case where gensym-generated names could collide with user code.
+
+## The Expansion Process
+
+### 1. Pattern Matching
+
+`matchPattern()` matches input against the macro pattern, collecting pattern variable bindings. Input identifiers get "anti-marked" by flipping the expansion scope.
+
+### 2. Transcription
+
+`transcribe()` builds the output with the `expansionScope`:
+
+- **Pattern variables** → substituted with matched input (scope-flipped)
+- **All other identifiers** → marked with `expansionScope` via `flipScope()`
+
+```javascript
+// Simplified from transcribe()
+if (bindings.has(template)) {
+    // Pattern variable: substitute with scope flip
+    return flipScopeInExpression(bindings.get(template), expansionScope);
+}
+// All other identifiers: mark with expansion scope
+return template.flipScope(expansionScope);
+```
+
+### 3. Resolution
+
+When looking up a binding, the `ScopeBindingRegistry` finds the binding whose scopes are a **maximal subset** of the identifier's scopes:
+
+```javascript
+// Simplified resolution
+resolve(syntaxObj) {
+  const candidates = this.bindings.get(syntaxObj.name);
+  // Find binding with largest scope set that is subset of syntaxObj.scopes
+  return bestMatch;
+}
+```
+
+## Example: swap! Macro
+
+```scheme
+(define-syntax swap!
+  (syntax-rules ()
+    ((swap! a b)
+     (let ((tmp a))
+       (set! a b)
+       (set! b tmp)))))
+
+(let ((tmp 100))
+  (let ((x 1) (y 2))
+    (swap! x y)
+    tmp)) ; → 100 (not captured!)
+```
+
+**Expansion with pure marks:**
+1. Expansion scope #42 is created
+2. Template `tmp` gets marked: `tmp{#42}`
+3. User's `tmp` has no marks: `tmp{}`
+4. These are different identifiers!
+5. Output: `(let ((tmp{#42} x)) (set! x y) (set! y tmp{#42}))`
+6. User's `tmp{}` is unaffected
+
+## Lexical Capture
+
+Macros can capture bindings from their lexical definition site via `capturedEnv`:
+
+```scheme
+;; Macro captures 'n' from definition site
 (let ((n 100))
   (let-syntax ((add-n (syntax-rules ()
                         ((add-n x) (+ x n)))))
     (add-n 5)))  ; → 105
+
+;; Works even with shadowing at use site
+(let ((x 100))
+  (let-syntax ((get-x (syntax-rules ()
+                        ((get-x) x))))
+    (let ((x 999))  ; Shadowing doesn't affect macro
+      (get-x))))    ; → 100
 ```
 
-## Why You Need All Three
+## Comparison Semantics
 
-These solve different hygiene problems:
+### bound-identifier=?
 
-1. **Marks alone** can't prevent capture in all cases:
-   ```scheme
-   (let-syntax ((bad (syntax-rules () ((bad x) (let ((x 1)) x)))))
-     (bad 5))  ; Without renaming: binds x twice!
-   ```
+Two identifiers are `bound-identifier=?` if they have:
+- The same name
+- The same set of scope marks
 
-2. **Renaming alone** doesn't provide referential transparency:
-   ```scheme
-   (let ((+ *))
-     (let-syntax ((double (syntax-rules () ((double x) (+ x x)))))
-       (double 3)))  ; Should use global +, not shadowed *
-   ```
+Used for literal matching in patterns.
 
-3. **Without captured environment**, local bindings can't be referenced:
-   ```scheme
-   (let ((helper (lambda (x) (* x 2))))
-     (define-syntax my-double
-       (syntax-rules ()
-         ((my-double x) (helper x)))))
-   (my-double 5)  ; Should find local helper
-   ```
+### free-identifier=?
+
+Two identifiers are `free-identifier=?` if they resolve to the same binding. Used for comparing literals at the use site vs definition site.
 
 ## File Structure
 
 | File | Purpose |
 |------|---------|
-| [syntax_object.js](../src/core/interpreter/syntax_object.js) | `SyntaxObject`, `ScopeBindingRegistry`, scope utilities |
-| [syntax_rules.js](../src/core/interpreter/syntax_rules.js) | `compileSyntaxRules`, pattern matching, transcription |
-| [identifier_utils.js](../src/core/interpreter/identifier_utils.js) | Shared identifier helpers (`getIdentifierName`, `isEllipsisIdentifier`) |
-| [macro_registry.js](../src/core/interpreter/macro_registry.js) | Global macro name registry |
-| [analyzer.js](../src/core/interpreter/analyzer.js) | `analyzeDefineSyntax`, `ScopedVariable` creation |
-
-## The Full Picture
-
-The implementation uses a hybrid approach:
-
-* **Dybvig-style marks** for resolving free references to their definition-site bindings
-* **Traditional renaming (gensym)** for introduced bindings to prevent capture
-* **Captured environments** for lexical scoping of macro-local bindings
-
-This is a pragmatic and correct design. Pure marks systems (like the full Dybvig algorithm) can eliminate renaming, but they require more complex tracking of mark propagation through all identifiers.
-
-## Advantages of Pure Marks Systems
-
-### 1. Compositional Macro Expansion
-
-* **Problem with gensym**: Renaming happens at expansion time, which can break when macros expand to other macros
-* **Marks solution**: All identifiers carry their history through multiple expansion phases
-
-### 2. Correct syntax-case Support
-
-Advanced macros need to manipulate syntax objects directly, compare identifiers, and construct new bindings. Pure marks provide operations like:
-* `bound-identifier=?` (do these bind the same?)
-* `free-identifier=?` (do these refer to the same thing?)
-* `datum->syntax` (create identifiers with specific scopes)
-
-### 3. No Name Pollution
-
-* **Gensym approach**: Creates symbols like `tmp#1`, `tmp#2`, `tmp#3`...
-  - These accumulate in the symbol table
-  - Can be visible in error messages
-* **Pure marks**: Identifiers keep their original names, just with different scope sets
-  - Error messages show the original name
-  - More debugger-friendly
-
-## Why the Hybrid Approach Makes Sense
-
-Despite these advantages, the hybrid approach is pragmatic because:
-
-1. **Simplicity**: Much easier to implement correctly for `syntax-rules`
-2. **No false captures**: Gensym guarantees freshness; marks require careful scope tracking
-3. **Good enough**: For `syntax-rules` (vs. full `syntax-case`), the hybrid works perfectly
-4. **Incremental path**: Full marks support can be added later if/when `syntax-case` is implemented
+| `syntax_object.js` | `SyntaxObject`, `ScopeBindingRegistry`, scope utilities |
+| `syntax_rules.js` | `compileSyntaxRules`, pattern matching, transcription |
+| `identifier_utils.js` | Shared identifier helpers (`getIdentifierName`, `isEllipsisIdentifier`) |
+| `macro_registry.js` | Global macro name registry |
+| `analyzer.js` | `analyzeDefineSyntax`, `ScopedVariable` creation |
 
 ## Related Documentation
 
-- [hygiene_implementation.md](./hygiene_implementation.md) — Detailed implementation walkthrough with examples
+- [macro_debugging.md](./macro_debugging.md) — Troubleshooting common macro issues
+
+## References
+
+This implementation draws on ideas from:
+
+- **Matthew Flatt**, "Binding as Sets of Scopes" (POPL 2016). The core "sets of scopes" model where identifiers carry scope sets and binding resolution uses maximal subset matching.
+
+- **R. Kent Dybvig, Robert Hieb, and Carl Bruggeman**, "Syntactic Abstraction in Scheme" (Lisp and Symbolic Computation, 1993). The foundational work on `syntax-case` and hygienic macro expansion with marks.
+
+- **Eugene E. Kohlbecker, Daniel P. Friedman, Matthias Felleisen, and Bruce Duba**, "Hygienic Macro Expansion" (LFP 1986). The original paper introducing hygiene and the concept of preventing accidental capture.
+
+- **William D. Clinger**, "Hygienic Macros Through Explicit Renaming" (Lisp Pointers, 1991). An alternative approach using explicit renaming that influenced early implementations.

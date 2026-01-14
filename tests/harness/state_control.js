@@ -13,7 +13,6 @@ import {
     globalScopeRegistry
 } from '../../src/core/interpreter/syntax_object.js';
 
-import { resetGensymCounter } from '../../src/core/interpreter/syntax_rules.js';
 import { resetGlobalMacroRegistry } from '../../src/core/interpreter/macro_registry.js';
 import { resetUniqueIdCounter } from '../../src/core/interpreter/analyzer.js';
 import { clearLibraryRegistry } from '../../src/core/interpreter/library_registry.js';
@@ -21,11 +20,11 @@ import { clearLibraryRegistry } from '../../src/core/interpreter/library_registr
 /**
  * Clears all global state in the interpreter subsystem.
  * Call this before running an isolated test or suite.
+ * Note: resetGensymCounter removed as part of pure marks hygiene refactor.
  */
 export function clearGlobalState() {
     // Reset counters
     resetScopeCounter();
-    resetGensymCounter();
     resetUniqueIdCounter();
 
     // Clear registries and caches

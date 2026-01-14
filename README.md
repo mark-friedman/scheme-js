@@ -106,7 +106,8 @@ We maintain detailed documentation for the project internals:
 
 -   [**Architecture & Directory Structure**](./docs/architecture.md): High-level design and detailed file map.
 -   [**Trampoline Execution**](./docs/trampoline.md): A deep dive into how the interpreter handles stack frames and TCO.
--   [**Hygiene Implementation**](./docs/hygiene_implementation.md): How macro hygiene works.
+-   [**Hygiene Implementation**](./docs/hygiene.md): How macro hygiene works using pure marks/scopes.
+-   [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
 -   [**Changes**](./CHANGES.md): A log of major implementation steps, walkthroughs of features, and refactors.
 
 ## 🛠️ Code Standards
