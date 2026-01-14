@@ -539,13 +539,9 @@ export function runIOTests(interpreter, logger) {
         e.message.includes('browser'), true);
     }
 
-    try {
-      run(interpreter, `(file-exists? "test.txt")`);
-      logger.fail("file-exists? in browser - should throw");
-    } catch (e) {
-      assert(logger, "file-exists? browser error",
-        e.message.includes('browser'), true);
-    }
+    // In browser, file-exists? should return #f (safe default)
+    result = run(interpreter, `(file-exists? "test.txt")`);
+    assert(logger, "file-exists? in browser returns #f", result, false);
   }
 }
 
