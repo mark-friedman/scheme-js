@@ -3207,3 +3207,34 @@ Both `evaluateLibraryDefinition` and `evaluateLibraryDefinitionSync` now delegat
 TEST SUMMARY: 1482 passed, 0 failed, 3 skipped
 Exit code: 0
 ```
+
+---
+
+# Walkthrough: Scheme Code Fixes
+
+## 2026-01-15
+
+Completed two Scheme library improvements.
+
+## Changes
+
+### 1. `define-values` Scalability
+Refactored the [define-values macro](file:///Users/mark/code/scheme-js-4/src/core/scheme/control.scm) to use a recursive pattern:
+- Previously: Explicit patterns for 1, 2, 3 variables only
+- Now: Uses recursive `"extract"` and `"extract-rest"` helpers to support **any number of variables**
+
+Added new tests in [define_values_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/define_values_tests.scm):
+- 4, 5, and 6 variable versions
+- 3 variables with rest parameter
+
+### 2. Error Message Audit
+Audited error messages in `list.scm`, `numbers.scm`, and `parameter.scm`.
+- **Result**: All files already use the consistent `"proc: expected type"` format
+- No changes needed
+
+## Verification Results
+
+```
+TEST SUMMARY: 1486 passed, 0 failed, 3 skipped
+Exit code: 0
+```

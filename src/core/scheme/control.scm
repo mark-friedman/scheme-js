@@ -112,8 +112,9 @@
 
 ;; /**
 ;;  * Define multiple variables from multiple values.
-;;  * Supports various patterns: (define-values () expr), (define-values (a) expr),
-;;  * (define-values (a b) expr), (define-values (a b . rest) expr), (define-values x expr).
+;;  * Uses a recursive pattern to support any number of variables.
+;;  * Supports: (define-values () expr), (define-values (a b c ...) expr),
+;;  * (define-values (a b . rest) expr), (define-values name expr).
 ;;  *
 ;;  * @param {list|symbol} formals - Variable(s) to define.
 ;;  * @param {expression} expr - Expression producing multiple values.
@@ -123,33 +124,48 @@
     ;; Empty formals - just evaluate for side effects
     ((define-values () expr)
      (call-with-values (lambda () expr) (lambda () (if #f #f))))
-    ;; Single variable in parens
+
+    ;; Single variable in parens - direct assignment
     ((define-values (var) expr)
      (define var (call-with-values (lambda () expr) (lambda (x) x))))
-    ;; Two variables - use begin+define pattern with temp list
-    ((define-values (var1 var2) expr)
+
+    ;; Multiple variables without rest - use recursive helper
+    ;; First capture all values as a list, then extract each one
+    ((define-values (var0 var1 ...) expr)
      (begin
        (define temp-vals (call-with-values (lambda () expr) list))
-       (define var1 (car temp-vals))
-       (define var2 (cadr temp-vals))))
-    ;; Three variables - use a temporary list to capture values
-    ((define-values (var1 var2 var3) expr)
+       (define-values "extract" (var0 var1 ...) temp-vals)))
+
+    ;; Rest variable pattern: (a b . rest)
+    ((define-values (var0 var1 ... . rest) expr)
      (begin
        (define temp-vals (call-with-values (lambda () expr) list))
-       (define var1 (car temp-vals))
-       (define var2 (cadr temp-vals))
-       (define var3 (caddr temp-vals))))
-    ;; Two variables with rest - use a temporary list to capture values
-    ((define-values (var1 var2 . rest) expr)
-     (begin
-       (define temp-vals (call-with-values (lambda () expr) list))
-       (define var1 (car temp-vals))
-       (define var2 (cadr temp-vals))
-       (define rest (cddr temp-vals))))
+       (define-values "extract-rest" (var0 var1 ...) rest temp-vals)))
+
     ;; Single variable without parens (gets all values as list)
     ;; NOTE: This pattern must be LAST as bare `var` matches any expression
     ((define-values var expr)
-     (define var (call-with-values (lambda () expr) list)))))
+     (define var (call-with-values (lambda () expr) list)))
+
+    ;; Recursive extraction helper - base case
+    ((define-values "extract" (var) temp-vals)
+     (define var (car temp-vals)))
+
+    ;; Recursive extraction helper - multiple remaining
+    ((define-values "extract" (var0 var1 ...) temp-vals)
+     (begin
+       (define var0 (car temp-vals))
+       (define-values "extract" (var1 ...) (cdr temp-vals))))
+
+    ;; Rest extraction helper - base case (no more regular vars)
+    ((define-values "extract-rest" () rest temp-vals)
+     (define rest temp-vals))
+
+    ;; Rest extraction helper - extract one var, continue
+    ((define-values "extract-rest" (var0 var1 ...) rest temp-vals)
+     (begin
+       (define var0 (car temp-vals))
+       (define-values "extract-rest" (var1 ...) rest (cdr temp-vals))))))
 
 ;; /**
 ;;  * Case dispatch.

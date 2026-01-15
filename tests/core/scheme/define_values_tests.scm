@@ -37,6 +37,32 @@
       (let ()
         (define-values x (values 1 2 3))
         x))
+    
+    ;; ===== Tests for 4+ variables (recursive pattern) =====
+    
+    (test "define-values four vars"
+      10
+      (let ()
+        (define-values (a b c d) (values 1 2 3 4))
+        (+ a b c d)))
+    
+    (test "define-values five vars"
+      15
+      (let ()
+        (define-values (a b c d e) (values 1 2 3 4 5))
+        (+ a b c d e)))
+    
+    (test "define-values six vars"
+      21
+      (let ()
+        (define-values (a b c d e f) (values 1 2 3 4 5 6))
+        (+ a b c d e f)))
+    
+    (test "define-values three with rest"
+      '(4 5 6)
+      (let ()
+        (define-values (a b c . rest) (values 1 2 3 4 5 6))
+        rest))
   )
   
   ;; ===== Pattern variable hygiene =====
