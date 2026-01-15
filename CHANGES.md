@@ -3085,3 +3085,58 @@ TEST SUMMARY: 1457 passed, 0 failed, 3 skipped
 
 ### Key Insight
 This refactor aligns the implementation with modern "sets of scopes" models (like Racket's), providing a more elegant and theoretically robust hygiene mechanism without the need for unique name generation.
+
+---
+
+# Walkthrough: InterpreterContext Extraction (2026-01-14)
+
+Implemented task 10.3.1: Encapsulated all global mutable state into a single `InterpreterContext` class, enabling isolated interpreter instances.
+
+## Changes
+
+### 1. New Module — `context.js`
+Created [src/core/interpreter/context.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/context.js):
+- `InterpreterContext` class containing all state (scopeCounter, syntaxInternCache, macroRegistry, libraryRegistry, features)
+- `globalContext` singleton for backward compatibility
+- Helper methods: `freshScope()`, `freshUniqueId()`, `reset()`, etc.
+
+### 2. Interpreter Integration
+- Added optional `context` parameter to `Interpreter` constructor
+- Defaults to `globalContext` when not provided
+
+### 3. Analyzer Threading
+Added `ctx` parameter to 22+ analyzer functions:
+- `analyze`, `generateUniqueName`, `analyzeIf`, `analyzeLambda`, `analyzeLet`, `analyzeLetRec`
+- `analyzeSet`, `analyzeDefine`, `analyzeApplication`, `expandQuasiquote`, etc.
+
+### 4. createInterpreter() Options
+Updated [src/core/interpreter/index.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/index.js):
+```javascript
+// Default: shared global context
+const { interpreter, env } = createInterpreter();
+
+// Isolated: fresh context for sandboxed REPL
+const { interpreter, env, context } = createInterpreter({ isolated: true });
+```
+
+### 5. Test Harness Simplification
+Updated [tests/harness/state_control.js](file:///Users/mark/code/scheme-js-4/tests/harness/state_control.js):
+- Simplified from 6 imports to 2
+- Now uses `globalContext.reset()` instead of individual reset functions
+
+### 6. Test Coverage
+- 21 isolation tests in `multi_interpreter_tests.js`
+- 6 updated tests in `state_isolation_tests.js`
+
+## Verification Results
+
+```text
+TEST SUMMARY: 1482 passed, 0 failed, 3 skipped
+Chibi Compliance: 902 passed, 12 failed (pre-existing)
+```
+
+## Architecture Benefits
+- **Test Isolation**: Each test can use a fresh context
+- **Multi-tenancy**: Multiple interpreters can run in parallel
+- **Backward Compatible**: Existing code uses `globalContext` automatically
+- **Sandboxed REPLs**: Use `createInterpreter({ isolated: true })`

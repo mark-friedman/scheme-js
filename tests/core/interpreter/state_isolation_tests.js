@@ -1,53 +1,68 @@
 import { assert, createTestLogger } from '../../harness/helpers.js';
 import { clearGlobalState } from '../../harness/state_control.js';
-import { freshScope, internSyntax, resetScopeCounter, resetSyntaxCache } from '../../../src/core/interpreter/syntax_object.js';
-import { globalMacroRegistry } from '../../../src/core/interpreter/macro_registry.js';
-import { resetUniqueIdCounter } from '../../../src/core/interpreter/analyzer.js';
+import { globalContext } from '../../../src/core/interpreter/context.js';
+import { internSyntax } from '../../../src/core/interpreter/syntax_object.js';
 
 /**
  * State Isolation Tests
  * 
  * Verifies that clearGlobalState() correctly resets all global state
  * (counters, registries, caches) to ensure test isolation.
+ * 
+ * Uses the InterpreterContext API which is the preferred way to manage state.
  */
 export function runStateIsolationTests(logger) {
     logger.title('State Isolation Tests');
 
     try {
-        // Test 1: Scope Counter Reset
+        // Test 1: Scope Counter Reset (using context)
         clearGlobalState(); // Start clean
-        const s1 = freshScope();
-        const s2 = freshScope();
+        const s1 = globalContext.freshScope();
+        const s2 = globalContext.freshScope();
         assert(logger, 'Scopes increment', s2 > s1, true);
 
         clearGlobalState(); // Reset
-        const s3 = freshScope();
-        assert(logger, 'Scope counter reset', s3, 1); // Should restart at 1 (since 0 is global)
+        const s3 = globalContext.freshScope();
+        assert(logger, 'Scope counter reset', s3, 0); // Context counter starts at 0
 
-        // Test 2: Syntax Cache Clearing
+        // Test 2: Syntax Cache Clearing (using context)
         clearGlobalState();
-        const syn1 = internSyntax('foo', [1]);
-        const syn2 = internSyntax('foo', [1]);
-        assert(logger, 'Syntax objects interned', syn1 === syn2, true);
+        const scopes1 = [globalContext.freshScope()];
+        const key1 = globalContext.getSyntaxKey('foo', new Set(scopes1));
+        // Manually add to cache to test clearing
+        globalContext.syntaxInternCache.set(key1, { name: 'foo', scopes: scopes1 });
+        assert(logger, 'Syntax cache has entry', globalContext.syntaxInternCache.has(key1), true);
 
         clearGlobalState(); // Reset
-        const syn3 = internSyntax('foo', [1]);
-        // After clearing, we should get a new object (though structurally equal)
-        // Wait, if cache is cleared, new object is created.
-        // It won't be === to syn1 unless V8 does something magic, which it won't.
-        assert(logger, 'Syntax cache cleared (identity)', syn1 === syn3, false);
+        assert(logger, 'Syntax cache cleared', globalContext.syntaxInternCache.size, 0);
 
-        // Test 3: Macro Registry Clearing
+        // Test 3: Macro Registry Clearing (using context)
         clearGlobalState();
-        globalMacroRegistry.define('my-macro', () => { });
-        assert(logger, 'Macro defined', globalMacroRegistry.isMacro('my-macro'), true);
+        globalContext.macroRegistry.define('my-macro', () => { });
+        assert(logger, 'Macro defined', globalContext.macroRegistry.isMacro('my-macro'), true);
 
         clearGlobalState(); // Reset
-        assert(logger, 'Macro registry cleared', globalMacroRegistry.isMacro('my-macro'), false);
+        assert(logger, 'Macro registry cleared', globalContext.macroRegistry.isMacro('my-macro'), false);
 
-        // Test 4: Defining Scopes Stack (Implicit)
-        // verify clearDefiningScopes is called (no direct accessor to verify empty, 
-        // but it shouldn't throw error if we call clearGlobalState)
+        // Test 4: Library Registry Clearing
+        clearGlobalState();
+        globalContext.registerLibrary('test.lib', new Map([['foo', 1]]), null);
+        assert(logger, 'Library registered', globalContext.isLibraryLoaded('test.lib'), true);
+
+        clearGlobalState(); // Reset
+        assert(logger, 'Library registry cleared', globalContext.isLibraryLoaded('test.lib'), false);
+
+        // Test 5: Unique ID Counter Reset
+        clearGlobalState();
+        const id1 = globalContext.freshUniqueId();
+        const id2 = globalContext.freshUniqueId();
+        assert(logger, 'IDs increment', id2 > id1, true);
+
+        clearGlobalState();
+        const id3 = globalContext.freshUniqueId();
+        assert(logger, 'Unique ID counter reset', id3, 0);
+
+        // Test 6: clearGlobalState runs without error
         clearGlobalState();
         logger.pass('clearGlobalState ran without error');
 

@@ -28,6 +28,7 @@ import { Rational } from '../primitives/rational.js';
 import { Complex } from '../primitives/complex.js';
 import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, globalScopeRegistry, freshScope, getCurrentDefiningScopes, GLOBAL_SCOPE_ID, registerBindingWithCurrentScopes, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
+import { globalContext } from './context.js';
 
 /**
  * Analyzes an S-expression and converts it to our AST object tree.
@@ -64,14 +65,28 @@ class SyntacticEnv {
   }
 }
 
+// Module-level fallback counter (for backwards compatibility)
 let _uniqueIdCounter = 0;
-function generateUniqueName(baseName) {
+
+/**
+ * Generates a unique name for a variable binding.
+ * Uses context if provided, otherwise falls back to module-level counter.
+ * @param {string} baseName - Base name for the variable
+ * @param {InterpreterContext} [context] - Optional context for isolation
+ * @returns {string} Unique variable name
+ */
+function generateUniqueName(baseName, context = null) {
+  if (context) {
+    return `${baseName}_$${context.freshUniqueId()}`;
+  }
+  // Fallback to global counter for backwards compatibility
   _uniqueIdCounter++;
   return `${baseName}_$${_uniqueIdCounter}`;
 }
 
 /**
  * Resets the unique ID counter. Used for test isolation.
+ * @deprecated Use context.resetUniqueIdCounter() instead
  */
 export function resetUniqueIdCounter() {
   _uniqueIdCounter = 0;
@@ -80,7 +95,10 @@ export function resetUniqueIdCounter() {
 // Current macro registry stack for scoped expansion
 let currentMacroRegistry = globalMacroRegistry;
 
-export function analyze(exp, syntacticEnv = null) {
+export function analyze(exp, syntacticEnv = null, context = null) {
+  // Use global context if none provided
+  const ctx = context || globalContext;
+
   if (!syntacticEnv) {
     syntacticEnv = new SyntacticEnv();
   }
@@ -88,6 +106,7 @@ export function analyze(exp, syntacticEnv = null) {
   if (exp instanceof Executable) {
     return exp;
   }
+
 
   // console.log("Analyzing:", exp instanceof Cons ? JSON.stringify(exp) : exp.toString());
   if (exp === null) {
@@ -137,7 +156,7 @@ export function analyze(exp, syntacticEnv = null) {
         const transformer = currentMacroRegistry.lookup(opNameForMacro);
         try {
           const expanded = transformer(exp, syntacticEnv);
-          return analyze(expanded, syntacticEnv);
+          return analyze(expanded, syntacticEnv, ctx);
         } catch (e) {
           throw new Error(`Error expanding macro ${opNameForMacro}: ${e.message}`);
         }
@@ -151,28 +170,28 @@ export function analyze(exp, syntacticEnv = null) {
     if (opName) {
       switch (opName) {
         case 'quote': return analyzeQuote(exp);
-        case 'lambda': return analyzeLambda(exp, syntacticEnv);
-        case 'if': return analyzeIf(exp, syntacticEnv);
-        case 'set!': return analyzeSet(exp, syntacticEnv);
-        case 'define': return analyzeDefine(exp, syntacticEnv);
-        case 'let': return analyzeLet(exp, syntacticEnv);
-        case 'letrec': return analyzeLetRec(exp, syntacticEnv);
-        case 'begin': return analyzeBegin(exp, syntacticEnv);
-        case 'import': return analyzeImport(exp);
-        case 'define-library': return analyzeDefineLibrary(exp);
+        case 'lambda': return analyzeLambda(exp, syntacticEnv, ctx);
+        case 'if': return analyzeIf(exp, syntacticEnv, ctx);
+        case 'set!': return analyzeSet(exp, syntacticEnv, ctx);
+        case 'define': return analyzeDefine(exp, syntacticEnv, ctx);
+        case 'let': return analyzeLet(exp, syntacticEnv, ctx);
+        case 'letrec': return analyzeLetRec(exp, syntacticEnv, ctx);
+        case 'begin': return analyzeBegin(exp, syntacticEnv, ctx);
+        case 'import': return analyzeImport(exp, ctx);
+        case 'define-library': return analyzeDefineLibrary(exp, ctx);
 
 
         // Restored cases
-        case 'quasiquote': return expandQuasiquote(cadr(exp), syntacticEnv); // Pass env to quasiquote!
-        case 'define-syntax': return analyzeDefineSyntax(exp, syntacticEnv);
-        case 'let-syntax': return analyzeLetSyntax(exp, syntacticEnv);
-        case 'letrec-syntax': return analyzeLetrecSyntax(exp, syntacticEnv);
-        case 'cond-expand': return analyze(expandCondExpand(exp), syntacticEnv);
+        case 'quasiquote': return expandQuasiquote(cadr(exp), syntacticEnv, ctx);
+        case 'define-syntax': return analyzeDefineSyntax(exp, syntacticEnv, ctx);
+        case 'let-syntax': return analyzeLetSyntax(exp, syntacticEnv, ctx);
+        case 'letrec-syntax': return analyzeLetrecSyntax(exp, syntacticEnv, ctx);
+        case 'cond-expand': return analyze(expandCondExpand(exp), syntacticEnv, ctx);
       }
     }
 
     // Application
-    return analyzeApplication(exp, syntacticEnv);
+    return analyzeApplication(exp, syntacticEnv, ctx);
   }
 
   throw new Error(`Analyzer error: Unknown expression type: ${exp}`);
@@ -420,23 +439,23 @@ function analyzeWithCurrentMacroRegistry(exp, syntacticEnv) {
 // Quasiquote Expansion
 // =============================================================================
 
-function expandQuasiquote(exp, syntacticEnv, nesting = 0) {
+function expandQuasiquote(exp, syntacticEnv, ctx, nesting = 0) {
   // 1. Handle (quasiquote x)
   if (isTaggedList(exp, 'quasiquote')) {
     return listApp('list', [
       new LiteralNode(intern('quasiquote')),
-      expandQuasiquote(cadr(exp), syntacticEnv, nesting + 1)
+      expandQuasiquote(cadr(exp), syntacticEnv, ctx, nesting + 1)
     ]);
   }
 
   // 2. Handle (unquote x)
   if (isTaggedList(exp, 'unquote')) {
     if (nesting === 0) {
-      return analyze(cadr(exp), syntacticEnv);
+      return analyze(cadr(exp), syntacticEnv, ctx);
     } else {
       return listApp('list', [
         new LiteralNode(intern('unquote')),
-        expandQuasiquote(cadr(exp), syntacticEnv, nesting - 1)
+        expandQuasiquote(cadr(exp), syntacticEnv, ctx, nesting - 1)
       ]);
     }
   }
@@ -448,7 +467,7 @@ function expandQuasiquote(exp, syntacticEnv, nesting = 0) {
     } else {
       return listApp('list', [
         new LiteralNode(intern('unquote-splicing')),
-        expandQuasiquote(cadr(exp), syntacticEnv, nesting - 1)
+        expandQuasiquote(cadr(exp), syntacticEnv, ctx, nesting - 1)
       ]);
     }
   }
@@ -459,15 +478,15 @@ function expandQuasiquote(exp, syntacticEnv, nesting = 0) {
     if (isTaggedList(exp.car, 'unquote-splicing') && nesting === 0) {
       // (unquote-splicing x) . rest -> (append x (expand rest))
       return listApp('append', [
-        analyze(cadr(exp.car), syntacticEnv),
-        expandQuasiquote(exp.cdr, syntacticEnv, nesting)
+        analyze(cadr(exp.car), syntacticEnv, ctx),
+        expandQuasiquote(exp.cdr, syntacticEnv, ctx, nesting)
       ]);
     }
 
     // Regular cons: (cons (expand car) (expand cdr))
     return listApp('cons', [
-      expandQuasiquote(exp.car, syntacticEnv, nesting),
-      expandQuasiquote(exp.cdr, syntacticEnv, nesting)
+      expandQuasiquote(exp.car, syntacticEnv, ctx, nesting),
+      expandQuasiquote(exp.cdr, syntacticEnv, ctx, nesting)
     ]);
   }
 
@@ -485,11 +504,11 @@ function expandQuasiquote(exp, syntacticEnv, nesting = 0) {
     if (hasSplicing) {
       // Convert to list, expand, then use list->vector
       const listForm = exp.reduceRight((acc, el) => cons(el, acc), null);
-      const expandedList = expandQuasiquote(listForm, syntacticEnv, nesting);
+      const expandedList = expandQuasiquote(listForm, syntacticEnv, ctx, nesting);
       return listApp('list->vector', [expandedList]);
     } else {
       // No splicing - expand each element and use vector
-      const expandedElements = exp.map(e => expandQuasiquote(e, syntacticEnv, nesting));
+      const expandedElements = exp.map(e => expandQuasiquote(e, syntacticEnv, ctx, nesting));
       return listApp('vector', expandedElements);
     }
   }
@@ -555,22 +574,22 @@ function analyzeQuote(exp) {
   return new LiteralNode(unwrapSyntax(text));
 }
 
-function analyzeIf(exp, syntacticEnv) {
+function analyzeIf(exp, syntacticEnv, ctx) {
   // (if test consequent [alternative])
-  const test = analyze(cadr(exp), syntacticEnv);
-  const consequent = analyze(caddr(exp), syntacticEnv);
+  const test = analyze(cadr(exp), syntacticEnv, ctx);
+  const consequent = analyze(caddr(exp), syntacticEnv, ctx);
   let alternative;
 
   if (cdddr(exp) === null) {
     alternative = new LiteralNode(undefined); // Unspecified return
   } else {
-    alternative = analyze(cadddr(exp), syntacticEnv);
+    alternative = analyze(cadddr(exp), syntacticEnv, ctx);
   }
 
   return new IfNode(test, consequent, alternative);
 }
 
-function analyzeLambda(exp, syntacticEnv) {
+function analyzeLambda(exp, syntacticEnv, ctx) {
   // (lambda (params...) body...) 
   const paramsPart = cadr(exp);
   const body = cddr(exp);
@@ -590,9 +609,9 @@ function analyzeLambda(exp, syntacticEnv) {
   if (curr instanceof Cons === false && (curr instanceof Symbol || isSyntaxObject(curr))) {
     restParamRaw = curr;
     const name = (curr instanceof Symbol) ? curr.name : syntaxName(curr);
-    restParamRenamed = generateUniqueName(name);
+    restParamRenamed = generateUniqueName(name, ctx);
     newEnv = newEnv.extend(curr, restParamRenamed);
-    return new LambdaNode(newParams, analyzeBody(body, newEnv), restParamRenamed);
+    return new LambdaNode(newParams, analyzeBody(body, newEnv, ctx), restParamRenamed);
   }
 
   while (curr instanceof Cons) {
@@ -601,7 +620,7 @@ function analyzeLambda(exp, syntacticEnv) {
       throw new Error('lambda: parameter must be a symbol');
     }
     const name = (param instanceof Symbol) ? param.name : syntaxName(param);
-    const renamed = generateUniqueName(name);
+    const renamed = generateUniqueName(name, ctx);
 
     newParams.push(renamed);
     newEnv = newEnv.extend(param, renamed);
@@ -613,7 +632,7 @@ function analyzeLambda(exp, syntacticEnv) {
     if (curr instanceof Symbol || isSyntaxObject(curr)) {
       restParamRaw = curr;
       const name = (curr instanceof Symbol) ? curr.name : syntaxName(curr);
-      restParamRenamed = generateUniqueName(name);
+      restParamRenamed = generateUniqueName(name, ctx);
       newEnv = newEnv.extend(curr, restParamRenamed);
     } else {
       // nil is ok
@@ -621,22 +640,22 @@ function analyzeLambda(exp, syntacticEnv) {
   }
 
   // Lambda bodies establish a new scope for macros (internal syntax definitions)
-  return new LambdaNode(newParams, analyzeScopedBody(body, newEnv), restParamRenamed);
+  return new LambdaNode(newParams, analyzeScopedBody(body, newEnv, ctx), restParamRenamed);
 }
 
-function analyzeScopedBody(body, syntacticEnv) {
+function analyzeScopedBody(body, syntacticEnv, ctx) {
   // Create a new local registry with the current as parent
   const localRegistry = new MacroRegistry(currentMacroRegistry);
   const savedRegistry = currentMacroRegistry;
   currentMacroRegistry = localRegistry;
   try {
-    return analyzeBody(body, syntacticEnv);
+    return analyzeBody(body, syntacticEnv, ctx);
   } finally {
     currentMacroRegistry = savedRegistry;
   }
 }
 
-function analyzeBody(body, syntacticEnv) {
+function analyzeBody(body, syntacticEnv, ctx) {
   const bodyArray = toArray(body);
 
   // Pre-scan for internal defines and extend syntactic environment
@@ -674,19 +693,19 @@ function analyzeBody(body, syntacticEnv) {
     }
   }
 
-  const exprs = bodyArray.map(e => analyze(e, extendedEnv));
+  const exprs = bodyArray.map(e => analyze(e, extendedEnv, ctx));
   if (exprs.length === 1) {
     return exprs[0];
   }
   return new BeginNode(exprs);
 }
 
-function analyzeBegin(exp, syntacticEnv) {
+function analyzeBegin(exp, syntacticEnv, ctx) {
   const body = cdr(exp);
-  return analyzeBody(body, syntacticEnv);
+  return analyzeBody(body, syntacticEnv, ctx);
 }
 
-function analyzeLet(exp, syntacticEnv) {
+function analyzeLet(exp, syntacticEnv, ctx) {
   // (let ((var binding) ...) body...)
   const bindings = cadr(exp);
   const body = cddr(exp);
@@ -718,7 +737,7 @@ function analyzeLet(exp, syntacticEnv) {
     const initialCall = cons(loopName, valsList);
 
     const letrecExp = list(intern('letrec'), letrecBindings, initialCall);
-    return analyzeLetRec(letrecExp, syntacticEnv);
+    return analyzeLetRec(letrecExp, syntacticEnv, ctx);
   }
 
   const vars = [];
@@ -735,13 +754,13 @@ function analyzeLet(exp, syntacticEnv) {
     const valObj = cadr(pair);
 
     const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
-    const renamed = generateUniqueName(name);
+    const renamed = generateUniqueName(name, ctx);
 
     vars.push(renamed);
     renos.push({ id: varObj, name: renamed });
 
     // Analyze init expressions in the inherited OUTER environment (parallel binding)
-    args.push(analyze(valObj, syntacticEnv));
+    args.push(analyze(valObj, syntacticEnv, ctx));
 
     curr = curr.cdr;
   }
@@ -753,12 +772,12 @@ function analyzeLet(exp, syntacticEnv) {
 
   // Let bodies establish a new scope for macros
   return new TailAppNode(
-    new LambdaNode(vars, analyzeScopedBody(body, newEnv)),
+    new LambdaNode(vars, analyzeScopedBody(body, newEnv, ctx)),
     args
   );
 }
 
-function analyzeLetRec(exp, syntacticEnv) {
+function analyzeLetRec(exp, syntacticEnv, ctx) {
   // (letrec ((var val) ...) body...)
   const bindings = cadr(exp);
   const body = cddr(exp);
@@ -777,7 +796,7 @@ function analyzeLetRec(exp, syntacticEnv) {
     const varObj = car(pair);
 
     const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
-    const renamed = generateUniqueName(name);
+    const renamed = generateUniqueName(name, ctx);
 
     vars.push(renamed);
     renos.push({ id: varObj, name: renamed, valObj: cadr(pair) });
@@ -788,7 +807,7 @@ function analyzeLetRec(exp, syntacticEnv) {
 
   // Analyze vals in newEnv
   for (const r of renos) {
-    args.push(analyze(r.valObj, newEnv));
+    args.push(analyze(r.valObj, newEnv, ctx));
   }
 
   // Construct LetRec nodes. 
@@ -812,7 +831,7 @@ function analyzeLetRec(exp, syntacticEnv) {
   }
 
   // Letrec bodies establish a new scope for macros
-  const bodyExpr = analyzeScopedBody(body, newEnv);
+  const bodyExpr = analyzeScopedBody(body, newEnv, ctx);
   // Sequence: set!... body
   const seq = new BeginNode([...setExprs, bodyExpr]);
 
@@ -822,9 +841,9 @@ function analyzeLetRec(exp, syntacticEnv) {
   );
 }
 
-function analyzeSet(exp, syntacticEnv) {
+function analyzeSet(exp, syntacticEnv, ctx) {
   const varObj = cadr(exp);
-  const valExpr = analyze(caddr(exp), syntacticEnv);
+  const valExpr = analyze(caddr(exp), syntacticEnv, ctx);
 
   // Check for JS property access form: (set! (js-ref obj "prop") val)
   // The reader transforms obj.prop to (js-ref obj "prop"), so when we see
@@ -835,7 +854,7 @@ function analyzeSet(exp, syntacticEnv) {
 
     if (opName === 'js-ref') {
       // Transform to (js-set! obj "prop" value)
-      const objExpr = analyze(cadr(varObj), syntacticEnv);
+      const objExpr = analyze(cadr(varObj), syntacticEnv, ctx);
       const propName = caddr(varObj); // string literal for property name
       return new TailAppNode(
         new VariableNode('js-set!'),
@@ -854,7 +873,7 @@ function analyzeSet(exp, syntacticEnv) {
   return new SetNode(name, valExpr);
 }
 
-function analyzeDefine(exp, syntacticEnv) {
+function analyzeDefine(exp, syntacticEnv, ctx) {
   const head = cadr(exp);
   if (head instanceof Cons) {
     // Function definition: (define (name . args) . body)
@@ -864,14 +883,14 @@ function analyzeDefine(exp, syntacticEnv) {
     const body = cddr(exp);
 
     const lambdaExp = cons(intern('lambda'), cons(args, body));
-    const valExpr = analyzeLambda(lambdaExp, syntacticEnv);
+    const valExpr = analyzeLambda(lambdaExp, syntacticEnv, ctx);
 
     const name = (nameObj instanceof Symbol) ? nameObj.name : syntaxName(nameObj);
     return new DefineNode(name, valExpr);
   }
 
   const varObj = head;
-  const valExpr = analyze(caddr(exp), syntacticEnv);
+  const valExpr = analyze(caddr(exp), syntacticEnv, ctx);
 
   // Define always targets the current environment frame in runtime.
   // We do NOT rename defines, as they might be exported/global.
@@ -879,7 +898,7 @@ function analyzeDefine(exp, syntacticEnv) {
   return new DefineNode(name, valExpr);
 }
 
-function analyzeApplication(exp, syntacticEnv) {
+function analyzeApplication(exp, syntacticEnv, ctx) {
   const fileArray = toArray(exp);
   // Debug: check for null args
   if (fileArray.some(x => x === null)) {
@@ -896,9 +915,9 @@ function analyzeApplication(exp, syntacticEnv) {
       (isSyntaxObject(opCar) ? syntaxName(opCar) : null);
 
     if (opName === 'js-ref') {
-      const objExpr = analyze(cadr(operator), syntacticEnv);
+      const objExpr = analyze(cadr(operator), syntacticEnv, ctx);
       const methodName = caddr(operator); // Should be a string literal "method"
-      const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv));
+      const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv, ctx));
 
       return new TailAppNode(
         new VariableNode('js-invoke'),
@@ -907,47 +926,47 @@ function analyzeApplication(exp, syntacticEnv) {
     }
   }
 
-  const funcExpr = analyze(operator, syntacticEnv);
-  const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv));
+  const funcExpr = analyze(operator, syntacticEnv, ctx);
+  const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv, ctx));
   return new TailAppNode(funcExpr, argExprs);
 }
 
-function analyzeCallCC(exp, syntacticEnv) {
-  const proc = analyze(cadr(exp), syntacticEnv);
+function analyzeCallCC(exp, syntacticEnv, ctx) {
+  const proc = analyze(cadr(exp), syntacticEnv, ctx);
   return new CallCCNode(proc);
 }
 
-function analyzeCallWithValues(exp, syntacticEnv) {
-  const producer = analyze(cadr(exp), syntacticEnv);
-  const consumer = analyze(caddr(exp), syntacticEnv);
+function analyzeCallWithValues(exp, syntacticEnv, ctx) {
+  const producer = analyze(cadr(exp), syntacticEnv, ctx);
+  const consumer = analyze(caddr(exp), syntacticEnv, ctx);
   return new CallWithValuesNode(producer, consumer);
 }
 
-function analyzeDynamicWind(exp, syntacticEnv) {
-  const before = analyze(cadr(exp), syntacticEnv);
-  const thunk = analyze(caddr(exp), syntacticEnv);
-  const after = analyze(cadddr(exp), syntacticEnv);
+function analyzeDynamicWind(exp, syntacticEnv, ctx) {
+  const before = analyze(cadr(exp), syntacticEnv, ctx);
+  const thunk = analyze(caddr(exp), syntacticEnv, ctx);
+  const after = analyze(cadddr(exp), syntacticEnv, ctx);
   return new DynamicWindInit(before, thunk, after);
 }
 
-function analyzeWithExceptionHandler(exp, syntacticEnv) {
-  const handler = analyze(cadr(exp), syntacticEnv);
-  const thunk = analyze(caddr(exp), syntacticEnv);
+function analyzeWithExceptionHandler(exp, syntacticEnv, ctx) {
+  const handler = analyze(cadr(exp), syntacticEnv, ctx);
+  const thunk = analyze(caddr(exp), syntacticEnv, ctx);
   return new WithExceptionHandlerInit(handler, thunk);
 }
 
-function analyzeRaise(exp, syntacticEnv, continuable = false) {
-  const obj = analyze(cadr(exp), syntacticEnv);
+function analyzeRaise(exp, syntacticEnv, ctx, continuable = false) {
+  const obj = analyze(cadr(exp), syntacticEnv, ctx);
   return new RaiseNode(obj, continuable);
 }
 
-export function analyzeImport(exp) {
+export function analyzeImport(exp, ctx) {
   // exp is (import spec1 spec2 ...)
   const specs = toArray(cdr(exp)).map(spec => parseImportSet(spec));
   return new ImportNode(specs, loadLibrarySync, applyImports, analyze);
 }
 
-function analyzeDefineLibrary(exp) {
+function analyzeDefineLibrary(exp, ctx) {
   const libDef = parseDefineLibrary(exp);
   return new DefineLibraryNode(libDef, evaluateLibraryDefinitionSync, analyze);
 }

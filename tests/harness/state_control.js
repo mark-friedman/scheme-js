@@ -2,37 +2,23 @@
  * Test Harness: State Control
  * 
  * Provides utilities to clear global state between tests.
- * This is crucial because the Scheme implementation relies on some global Singletons
- * (e.g., Syntax Object interning, Macro Registry) which persist across Interpreter instances.
+ * Uses the InterpreterContext to manage all state centrally.
  */
 
-import {
-    resetScopeCounter,
-    resetSyntaxCache,
-    clearDefiningScopes,
-    globalScopeRegistry
-} from '../../src/core/interpreter/syntax_object.js';
-
-import { resetGlobalMacroRegistry } from '../../src/core/interpreter/macro_registry.js';
-import { resetUniqueIdCounter } from '../../src/core/interpreter/analyzer.js';
-import { clearLibraryRegistry } from '../../src/core/interpreter/library_registry.js';
+import { globalContext } from '../../src/core/interpreter/context.js';
+import { globalScopeRegistry, clearDefiningScopes } from '../../src/core/interpreter/syntax_object.js';
 
 /**
  * Clears all global state in the interpreter subsystem.
  * Call this before running an isolated test or suite.
- * Note: resetGensymCounter removed as part of pure marks hygiene refactor.
+ * 
+ * Uses the centralized InterpreterContext for most state management.
  */
 export function clearGlobalState() {
-    // Reset counters
-    resetScopeCounter();
-    resetUniqueIdCounter();
+    // Reset the global context (counters, caches, registries)
+    globalContext.reset();
 
-    // Clear registries and caches
-    resetSyntaxCache();
+    // Clear scope binding registry (not yet managed by context)
     clearDefiningScopes();
-    clearLibraryRegistry();
-    resetGlobalMacroRegistry();
-
-    // Clear global scope bindings (for top-level defines)
     globalScopeRegistry.clear();
 }

@@ -1,6 +1,7 @@
 import { Values, isSchemeClosure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
+import { globalContext } from './context.js';
 
 /**
  * Finds the nearest ExceptionHandlerFrame on the stack.
@@ -124,7 +125,18 @@ class SentinelResult {
  * Manages the top-level trampoline loop and register state.
  */
 export class Interpreter {
-  constructor() {
+  /**
+   * Creates a new interpreter instance.
+   * @param {InterpreterContext} [context] - Optional context for state isolation.
+   *   If not provided, uses the global shared context.
+   */
+  constructor(context = null) {
+    /**
+     * The interpreter context containing all mutable state.
+     * @type {InterpreterContext}
+     */
+    this.context = context || globalContext;
+
     /**
      * The global environment for the interpreter.
      * @type {Environment | null}
@@ -141,6 +153,7 @@ export class Interpreter {
      */
     this.jsContextStack = [];
   }
+
 
   /**
    * Pushes the current Scheme context before calling into JS.
