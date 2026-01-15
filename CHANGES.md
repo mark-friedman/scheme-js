@@ -3140,3 +3140,43 @@ Chibi Compliance: 902 passed, 12 failed (pre-existing)
 - **Multi-tenancy**: Multiple interpreters can run in parallel
 - **Backward Compatible**: Existing code uses `globalContext` automatically
 - **Sandboxed REPLs**: Use `createInterpreter({ isolated: true })`
+# Walkthrough: Analyzer Modularization and Macro State Fixes
+
+I have successfully modularized the `analyzer.js` and resolved critical issues related to macro expansion state and AST leakage. The interpreter now uses a modular handler registry for special forms, and `InterpreterContext` correctly manages isolated macro registries.
+
+## Changes
+
+### 1. Analyzer Modularization
+The `analyzer.js` has been refactored into a modular system. The logic for special forms has been extracted into dedicated modules:
+- `analyzers/core_forms.js`: Core Scheme forms like `quote`, `lambda`, `if`, and `define`.
+- `analyzers/control_forms.js`: Control flow forms (most moved to primitives for better arg evaluation).
+- `analyzers/module_forms.js`: Module-related forms like `import` and `define-library`.
+- `analyzers/registry.js` & `index.js`: Centralized dispatch and registration system.
+
+### 2. Macro State Management
+Fixed a major regression where built-in macros were invisible to the analyzer when using custom `InterpreterContext` instances.
+- `InterpreterContext` now initializes its `macroRegistry` as a child of the `globalMacroRegistry`.
+- `ctx.currentMacroRegistry` is correctly threaded through all analyzer functions, replacing module-level state.
+- `globalContext` is explicitly synchronized with the bootstrap macro registry.
+
+### 3. AST Leakage and Primitive Standardized
+Resolved the `application: not a procedure: lambdanode` error by identifying that `dynamic-wind` and `call/cc` should be treated as primitives.
+- Reverted several procedures from special forms back to primitives to ensure arguments (like thunks) are evaluated to `Closure` objects before being applied.
+- This fixed issues where `LambdaNode` AST objects were leaking into the runtime evaluator.
+
+## Verification Results
+
+### Automated Tests
+Successfully restored the full test suite to parity.
+- **Pass Count**: 1482 passed
+- **Fail Count**: 0 failed
+- **Skipped**: 3 skipped
+- All integration and multi-interpreter isolation tests pass.
+
+```bash
+TEST SUMMARY: 1482 passed, 0 failed, 3 skipped
+Exit code: 0
+```
+
+### Manual Verification
+Verified that `InterpreterContext` isolation works as expected, preventing macro definitions in one context from leaking into another while still providing access to the standard numeric and control macros.

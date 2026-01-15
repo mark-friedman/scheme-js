@@ -9,7 +9,7 @@
  * - Sandboxed evaluation
  */
 
-import { MacroRegistry } from './macro_registry.js';
+import { MacroRegistry, globalMacroRegistry } from './macro_registry.js';
 
 // =============================================================================
 // Scope Binding Registry (moved from syntax_object.js)
@@ -106,8 +106,10 @@ export class InterpreterContext {
         this.scopeRegistry = new ScopeBindingRegistry();
         /** Library scope → Environment map */
         this.libraryScopeEnvMap = new Map();
-        /** Macro transformer registry */
-        this.macroRegistry = new MacroRegistry();
+        /** Macro transformer registry (global for this context) - isolated but sees global macros */
+        this.macroRegistry = new MacroRegistry(globalMacroRegistry);
+        /** Current macro registry stack for scoped expansion (transient during analysis) */
+        this.currentMacroRegistry = this.macroRegistry;
         /** Loaded libraries: key → { exports, env } */
         this.libraryRegistry = new Map();
         /** Feature flags for cond-expand */
@@ -322,6 +324,8 @@ export class InterpreterContext {
  * This maintains backwards compatibility with existing code.
  */
 export const globalContext = new InterpreterContext();
+globalContext.macroRegistry = globalMacroRegistry;
+globalContext.currentMacroRegistry = globalMacroRegistry;
 
 /**
  * Gets the current context (for transitional code).

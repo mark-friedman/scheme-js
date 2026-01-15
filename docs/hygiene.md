@@ -142,7 +142,9 @@ Two identifiers are `free-identifier=?` if they resolve to the same binding. Use
 | `syntax_rules.js` | `compileSyntaxRules`, pattern matching, transcription |
 | `identifier_utils.js` | Shared identifier helpers (`getIdentifierName`, `isEllipsisIdentifier`) |
 | `macro_registry.js` | Global macro name registry |
-| `analyzer.js` | `analyzeDefineSyntax`, `ScopedVariable` creation |
+| `analyzer.js` | S-exp → AST dispatcher |
+| `analyzers/core_forms.js` | `analyzeDefineSyntax` and other special forms |
+| `analyzers/registry.js` | Central handler registry |
 
 ## Related Documentation
 

@@ -65,7 +65,7 @@ The `step()` method on every `Executable` (AST node or Frame) returns a boolean:
 The interpreter has two types of `Executable` objects:
 
 ### AST Nodes
-Created by the Analyzer. Represent the structure of Scheme code:
+Created by the Analyzer dispatcher and its modular handlers in `analyzers/`. Represent the structure of Scheme code:
 - `Literal`, `Variable`, `Lambda` - Atomic expressions
 - `If`, `Let`, `Define`, `TailApp` - Compound expressions
 

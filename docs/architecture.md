@@ -25,7 +25,8 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 | `ast_nodes.js` | AST node classes (Literal, If, Lambda...) |
 | `frames.js` | Continuation frame classes |
 | `reader.js` | S-expression parser |
-| `analyzer.js` | S-exp → AST conversion |
+| `analyzer.js` | Dispatcher for S-exp → AST conversion |
+| `analyzers/` | Modular handlers for special forms |
 | `library_registry.js` | Feature + library registries |
 | `library_parser.js` | define-library parser |
 | `library_loader.js` | Library loading orchestration |
@@ -93,7 +94,13 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   │   ├── string_utils.js # String/symbol escape processing
 │       │   │   ├── character.js    # Character literal parsing
 │       │   │   └── datum_labels.js # Circular reference handling
-│       │   ├── analyzer.js         # S-exp → AST conversion
+│       │   ├── analyzer.js         # S-exp → AST dispatcher
+│       │   ├── analyzers/          # Modular special form handlers
+│       │   │   ├── index.js        # Registry initialization
+│       │   │   ├── registry.js     # Central handler registry
+│       │   │   ├── core_forms.js   # quote, lambda, if, define
+│       │   │   ├── control_forms.js # with-exception-handler, raise
+│       │   │   └── module_forms.js  # import, define-library, cond-expand
 │       │   ├── syntax_rules.js     # syntax-rules transformer
 │       │   ├── syntax_object.js    # SyntaxObject and ScopeBindingRegistry
 │       │   ├── macro_registry.js   # Macro registry
@@ -101,9 +108,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   ├── type_check.js       # Type checking utilities for primitives
 │       │   ├── library_loader.js   # Library loading + barrel (re-exports)
 │       │   ├── library_registry.js # Feature + library registries
-│       │   ├── library_parser.js   # define-library parser
-│       │   └── analysis/           # Syntactic analysis modules
-│       │
+│       │   └── library_parser.js   # define-library parser
 │       ├── primitives/             # Native procedures (+, cons, etc.)
 │       │   ├── index.js            # Creates global environment
 │       │   ├── math.js             # Arithmetic and numeric operations
@@ -112,6 +117,12 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   ├── vector.js           # Vector operations
 │       │   ├── control.js          # apply, map, call/cc
 │       │   ├── char.js             # Character predicates and operations
+│       │   ├── complex.js          # Complex number support
+│       │   ├── rational.js         # Rational number support
+│       │   ├── process_context.js  # exit, command-line, etc.
+│       │   ├── time.js             # current-second, current-jiffy
+│       │   ├── bytevector.js       # Bytevector operations (R7RS §6.9)
+│       │   ├── class.js            # define-class support
 │       │   ├── io/                 # Port system and I/O primitives
 │       │   │   ├── index.js        # Barrel export
 │       │   │   ├── ports.js        # Port base classes
@@ -127,7 +138,6 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   ├── exception.js        # Exception handling primitives
 │       │   ├── interop.js          # JavaScript interop utilities
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
-│       │   ├── bytevector.js       # Bytevector operations (R7RS §6.9)
 │       │   └── gc.js               # GC-related utilities
 │       │
 │       └── scheme/                 # Core Scheme subset (base library)
@@ -140,6 +150,11 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │           ├── read.sld            # (scheme read) library declaration
 │           ├── file.sld            # (scheme file) library declaration
 │           ├── repl.sld            # (scheme repl) library declaration
+│           ├── complex.sld         # (scheme complex) library declaration
+│           ├── eval.sld            # (scheme eval) library declaration
+│           ├── lazy.sld            # (scheme lazy) library declaration
+│           ├── process-context.sld # (scheme process-context)
+│           ├── time.sld            # (scheme time) library declaration
 │           ├── macros.scm          # Core macros: and, let, letrec, cond
 │           ├── equality.scm        # Deep equality: equal?
 │           ├── cxr.scm             # All 28 cxr accessors
@@ -172,13 +187,18 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │   ├── core/                       # Tests for src/core/
 │   │   ├── interpreter/            # Tests for interpreter modules
 │   │   │   ├── unit_tests.js
+│   │   │   ├── reader/             # Reader submodule tests
 │   │   │   ├── reader_tests.js
-│   │   │   ├── analyzer_tests.js
+│   │   │   ├── nodes_tests.js      # AST node behavior tests
+│   │   │   ├── frames_tests.js     # Continuation frame tests
 │   │   │   ├── primitives_tests.js
 │   │   │   ├── winders_tests.js
 │   │   │   ├── syntax_rules_tests.js
+│   │   │   ├── syntax_object_tests.js # Hygiene and scope tests
 │   │   │   ├── data_tests.js
-│   │   │   └── error_tests.js
+│   │   │   ├── error_tests.js
+│   │   │   ├── interpreter_tests.js # Top-level interpreter logic
+│   │   │   └── state_isolation_tests.js # Multi-context isolation tests
 │   │   │
 │   │   ├── primitives/             # Tests for primitives
 │   │   │   └── io/                 # I/O unit tests
@@ -189,13 +209,18 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │   │   │
 │   │   └── scheme/                 # Scheme-based tests
 │   │       ├── test.scm            # Scheme test harness
-│   │       ├── primitive_tests.scm
-│   │       ├── boot_tests.scm
-│   │       ├── tco_tests.scm
+│   │       ├── primitive_tests.scm # Core primitives
+│   │       ├── boot_tests.scm      # Environment bootstrap
+│   │       ├── tco_tests.scm       # Tail call optimization
 │   │       ├── dynamic_wind_tests.scm
 │   │       ├── exception_tests.scm
-│   │       ├── hygiene_tests.scm
+│   │       ├── hygiene_tests.scm    # Basic hygiene
+│   │       ├── macro_hygiene_tests.scm # Advanced hygiene suite
 │   │       ├── parameter_tests.scm
+│   │       ├── number_tests.scm     # Numeric tower (r7rs)
+│   │       ├── list_tests.scm       # List library (r7rs)
+│   │       ├── record_tests.scm     # Record types
+│   │       ├── eval_tests.scm       # eval and environment
 │   │       ├── repl_tests.scm
 │   │       ├── cond_expand_tests.scm # cond-expand expression tests
 │   │       └── compliance/         # R7RS conformance tests
@@ -249,7 +274,8 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 4. **Tests mirror source**: `tests/core/` tests `src/core/`.
 5. **Split Stepables**: AST nodes in `ast_nodes.js`, frames in `frames.js`, shared base in `stepables_base.js`.
 6. **Split Library Loader**: Registry in `library_registry.js`, parser in `library_parser.js`, loader logic in `library_loader.js`.
-7. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.
+7. **Modular Analyzer**: `analyzer.js` acts as a dispatcher to themed handlers in `analyzers/`, ensuring the analysis phase is extensible and isolated.
+8. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.
 
 ## Related Documentation
 
