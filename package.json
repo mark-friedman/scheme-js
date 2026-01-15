@@ -5,7 +5,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "node run_tests_node.js",
+    "test": "node --expose-gc run_tests_node.js",
     "benchmark": "node benchmarks/run_benchmarks.js",
     "benchmark:save": "node benchmarks/save_baseline.js",
     "benchmark:compare": "node benchmarks/compare_baseline.js",
