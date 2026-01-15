@@ -3180,3 +3180,30 @@ Exit code: 0
 
 ### Manual Verification
 Verified that `InterpreterContext` isolation works as expected, preventing macro definitions in one context from leaking into another while still providing access to the standard numeric and control macros.
+
+---
+
+# Walkthrough: Library Loader Consolidation
+
+## 2026-01-15
+
+Consolidated async/sync library loader functions to eliminate ~150 lines of duplicated code.
+
+## Changes
+
+### 1. Core Evaluation Function
+Created `evaluateLibraryDefinitionCore()` in [library_loader.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/library_loader.js):
+- Contains all shared logic: environment creation, import processing, include handling, body execution, export building
+- Uses a strategy pattern with `loadLibrary()` and `resolveFile()` callbacks
+
+### 2. Simplified Wrappers
+Both `evaluateLibraryDefinition` and `evaluateLibraryDefinitionSync` now delegate to the core function:
+- **Async version**: Pre-resolves all I/O operations into caches, then calls core with sync accessors
+- **Sync version**: Direct delegation with Promise guard
+
+## Verification Results
+
+```
+TEST SUMMARY: 1482 passed, 0 failed, 3 skipped
+Exit code: 0
+```
