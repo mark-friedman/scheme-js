@@ -10,6 +10,7 @@ import { cdr, toArray, Cons, cons, list } from '../cons.js';
 import { loadLibrarySync, parseImportSet, applyImports, parseDefineLibrary, evaluateLibraryDefinitionSync, evaluateFeatureRequirement } from '../library_loader.js';
 import { Symbol, intern } from '../symbol.js';
 import { registerHandler } from './registry.js';
+import { SchemeSyntaxError } from '../errors.js';
 
 // Set by analyzer initialization
 let analyze;
@@ -59,7 +60,7 @@ function expandCondExpand(exp) {
             return cons(intern('begin'), list(...clauseArr.slice(1)));
         }
     }
-    throw new Error('cond-expand: no matching clause and no else');
+    throw new SchemeSyntaxError('no matching clause and no else', exp, 'cond-expand');
 }
 
 

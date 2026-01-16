@@ -22,6 +22,7 @@ import { globalContext } from '../context.js';
 import { MacroRegistry } from '../macro_registry.js';
 import { registerHandler } from './registry.js';
 import { compileSyntaxRules } from '../syntax_rules.js';
+import { SchemeSyntaxError } from '../errors.js';
 
 // These will be set by the analyzer when it initializes
 let analyze;
@@ -80,7 +81,7 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
     const body = cddr(exp);
 
     if (body === null) {
-        throw new Error('lambda: body cannot be empty');
+        throw new SchemeSyntaxError('body cannot be empty', exp, 'lambda');
     }
 
     const newParams = [];
@@ -100,7 +101,7 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
     while (curr instanceof Cons) {
         const param = curr.car;
         if (!(param instanceof Symbol) && !isSyntaxObject(param)) {
-            throw new Error('lambda: parameter must be a symbol');
+            throw new SchemeSyntaxError('parameter must be a symbol', param, 'lambda');
         }
         const name = (param instanceof Symbol) ? param.name : syntaxName(param);
         const renamed = generateUniqueName(name, ctx);
@@ -403,7 +404,7 @@ function analyzeDefineSyntax(exp, syntacticEnv = null, ctx) {
 function analyzeLetSyntax(exp, syntacticEnv, ctx) {
     const bindings = cadr(exp);
     const body = cddr(exp);
-    if (body === null) throw new Error('let-syntax: body cannot be empty');
+    if (body === null) throw new SchemeSyntaxError('body cannot be empty', exp, 'let-syntax');
 
     const localRegistry = new MacroRegistry(ctx.currentMacroRegistry);
     let curr = bindings;
@@ -429,7 +430,7 @@ function analyzeLetSyntax(exp, syntacticEnv, ctx) {
 function analyzeLetrecSyntax(exp, syntacticEnv, ctx) {
     const bindings = cadr(exp);
     const body = cddr(exp);
-    if (body === null) throw new Error('letrec-syntax: body cannot be empty');
+    if (body === null) throw new SchemeSyntaxError('body cannot be empty', exp, 'letrec-syntax');
 
     const localRegistry = new MacroRegistry(ctx.currentMacroRegistry);
     const savedRegistry = ctx.currentMacroRegistry;
@@ -456,10 +457,10 @@ function analyzeLetrecSyntax(exp, syntacticEnv, ctx) {
 }
 
 function compileTransformerSpec(transformerSpec, syntacticEnv = null) {
-    if (!(transformerSpec instanceof Cons)) throw new Error('Transformer must be (syntax-rules ...)');
+    if (!(transformerSpec instanceof Cons)) throw new SchemeSyntaxError('Transformer must be (syntax-rules ...)', transformerSpec, 'syntax-rules');
     const keyword = car(transformerSpec);
     const keywordName = (keyword instanceof Symbol) ? keyword.name : (isSyntaxObject(keyword) ? syntaxName(keyword) : null);
-    if (keywordName !== 'syntax-rules') throw new Error('Transformer must be (syntax-rules ...)');
+    if (keywordName !== 'syntax-rules') throw new SchemeSyntaxError('Transformer must be (syntax-rules ...)', transformerSpec, 'syntax-rules');
 
     let literalsList = cadr(transformerSpec);
     const clausesList = cddr(transformerSpec);
@@ -492,7 +493,7 @@ function expandQuasiquote(exp, syntacticEnv, ctx, nesting = 0) {
         return listApp('list', [new LiteralNode(intern('unquote')), expandQuasiquote(cadr(exp), syntacticEnv, ctx, nesting - 1)]);
     }
     if (isTaggedList(exp, 'unquote-splicing')) {
-        if (nesting === 0) throw new Error("unquote-splicing not allowed at top level");
+        if (nesting === 0) throw new SchemeSyntaxError('unquote-splicing not allowed at top level', exp, 'quasiquote');
         return listApp('list', [new LiteralNode(intern('unquote-splicing')), expandQuasiquote(cadr(exp), syntacticEnv, ctx, nesting - 1)]);
     }
     if (exp instanceof Cons) {

@@ -5,6 +5,8 @@
  * Rationals are represented as numerator/denominator pairs, always reduced.
  */
 
+import { SchemeTypeError, SchemeRangeError } from '../interpreter/errors.js';
+
 // =============================================================================
 // Helper Functions
 // =============================================================================
@@ -46,13 +48,13 @@ export class Rational {
      */
     constructor(numerator, denominator = 1) {
         if (!Number.isInteger(numerator)) {
-            throw new Error('Rational: numerator must be an integer');
+            throw new SchemeTypeError('Rational', 1, 'integer', numerator);
         }
         if (!Number.isInteger(denominator)) {
-            throw new Error('Rational: denominator must be an integer');
+            throw new SchemeTypeError('Rational', 2, 'integer', denominator);
         }
         if (denominator === 0) {
-            throw new Error('Rational: division by zero');
+            throw new SchemeRangeError('Rational', 'denominator', 1, Infinity, denominator);
         }
 
         // Ensure denominator is positive
@@ -76,7 +78,7 @@ export class Rational {
         if (Number.isInteger(n)) {
             return new Rational(n, 1);
         }
-        throw new Error('Cannot convert inexact number to exact rational');
+        throw new SchemeTypeError('Rational.fromNumber', 1, 'exact integer', n);
     }
 
     /**
@@ -147,7 +149,7 @@ export class Rational {
      */
     divide(other) {
         if (other.numerator === 0) {
-            throw new Error('Rational: division by zero');
+            throw new SchemeRangeError('Rational.divide', 'divisor', -Infinity, -1, 0);
         }
         return new Rational(
             this.numerator * other.denominator,

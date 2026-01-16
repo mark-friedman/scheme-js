@@ -6,6 +6,7 @@
  */
 
 import { Rational } from './rational.js';
+import { SchemeTypeError, SchemeError } from '../interpreter/errors.js';
 
 // Helper for component arithmetic (Number/Rational)
 function add(a, b) {
@@ -53,7 +54,7 @@ export class Complex {
     constructor(real, imag) {
         if ((typeof real !== 'number' && !(real instanceof Rational)) ||
             (typeof imag !== 'number' && !(imag instanceof Rational))) {
-            throw new Error('Complex: real and imaginary parts must be numbers or Rationals');
+            throw new SchemeTypeError('Complex', 1, 'number or Rational', typeof real !== 'number' && !(real instanceof Rational) ? real : imag);
         }
         this.real = real;
         this.imag = imag;
@@ -131,7 +132,7 @@ export class Complex {
         if (iZero) {
             return toNum(this.real);
         }
-        throw new Error('Cannot convert complex with non-zero imaginary part to real');
+        throw new SchemeError('Complex.toNumber: cannot convert complex with non-zero imaginary part to real', [this], 'Complex.toNumber');
     }
 
     /**

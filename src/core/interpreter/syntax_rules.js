@@ -5,6 +5,7 @@ import { globalContext } from './context.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { SPECIAL_FORMS } from './library_registry.js';
 import { getIdentifierName, isEllipsisIdentifier } from './identifier_utils.js';
+import { SchemeSyntaxError } from './errors.js';
 
 // =============================================================================
 // Hygiene Support
@@ -96,7 +97,7 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
         const macroName = exp instanceof Cons && (exp.car instanceof Symbol || exp.car instanceof SyntaxObject)
             ? (exp.car instanceof Symbol ? exp.car.name : exp.car.name)
             : 'unknown';
-        throw new Error(`No matching clause for macro '${macroName}': ${exp}`);
+        throw new SchemeSyntaxError(`No matching clause for macro '${macroName}'`, exp, macroName);
     };
 }
 
@@ -287,12 +288,12 @@ function mergeBindings(target, source, isEllipsis) {
             const list = target.get(key);
             if (!Array.isArray(list)) {
                 // Should not happen if pattern is well-formed (vars don't repeat)
-                throw new Error(`Pattern variable '${key}' used in both ellipsis and non-ellipsis context`);
+                throw new SchemeSyntaxError(`Pattern variable '${key}' used in both ellipsis and non-ellipsis context`, null, 'syntax-rules');
             }
             list.push(val);
         } else {
             if (target.has(key)) {
-                throw new Error(`Duplicate pattern variable '${key}'`);
+                throw new SchemeSyntaxError(`Duplicate pattern variable '${key}'`, null, 'syntax-rules');
             }
             target.set(key, val);
         }
@@ -456,14 +457,14 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
             const listVars = varsInItem.filter(v => Array.isArray(bindings.get(v)));
 
             if (listVars.length === 0) {
-                throw new Error("Ellipsis template must contain at least one pattern variable bound to a list");
+                throw new SchemeSyntaxError('Ellipsis template must contain at least one pattern variable bound to a list', null, 'syntax-rules');
             }
 
             // Check lengths of list vars
             const lengths = listVars.map(v => bindings.get(v).length);
             const len = lengths[0];
             if (!lengths.every(l => l === len)) {
-                throw new Error("Ellipsis expansion: variable lengths do not match");
+                throw new SchemeSyntaxError('Ellipsis expansion: variable lengths do not match', null, 'syntax-rules');
             }
 
             // Expand N times

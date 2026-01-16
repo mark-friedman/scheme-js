@@ -5,6 +5,7 @@
  */
 
 import { assertString } from '../../core/interpreter/type_check.js';
+import { SchemeTypeError, SchemeError } from '../../core/interpreter/errors.js';
 
 /**
  * Interop primitives exported to Scheme.
@@ -30,7 +31,7 @@ export const interopPrimitives = {
     'js-ref': (obj, prop) => {
         assertString('js-ref', 2, prop);
         if (obj === null || obj === undefined) {
-            throw new Error(`js-ref: cannot access property "${prop}" on ${obj}`);
+            throw new SchemeError(`js-ref: cannot access property "${prop}" on ${obj}`, [obj, prop], 'js-ref');
         }
         return obj[prop];
     },
@@ -46,7 +47,7 @@ export const interopPrimitives = {
     'js-set!': (obj, prop, value) => {
         assertString('js-set!', 2, prop);
         if (obj === null || obj === undefined) {
-            throw new Error(`js-set!: cannot set property "${prop}" on ${obj}`);
+            throw new SchemeError(`js-set!: cannot set property "${prop}" on ${obj}`, [obj, prop], 'js-set!');
         }
         obj[prop] = value;
         return undefined;
@@ -63,11 +64,11 @@ export const interopPrimitives = {
     'js-invoke': (obj, method, ...args) => {
         assertString('js-invoke', 2, method);
         if (obj === null || obj === undefined) {
-            throw new Error(`js-invoke: cannot call method "${method}" on ${obj}`);
+            throw new SchemeError(`js-invoke: cannot call method "${method}" on ${obj}`, [obj, method], 'js-invoke');
         }
         const func = obj[method];
         if (typeof func !== 'function') {
-            throw new Error(`js-invoke: property "${method}" is not a function on ${obj}`);
+            throw new SchemeTypeError('js-invoke', 2, 'function', func);
         }
         return func.apply(obj, args);
     },
@@ -117,7 +118,7 @@ export const interopPrimitives = {
             if (obj && typeof obj === 'object') {
                 Object.assign(result, obj);
             } else if (obj !== null && obj !== undefined) {
-                throw new Error(`js-obj-merge: expected object, got ${typeof obj}`);
+                throw new SchemeTypeError('js-obj-merge', 0, 'object', obj);
             }
         }
         return result;

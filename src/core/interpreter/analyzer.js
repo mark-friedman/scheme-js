@@ -27,6 +27,7 @@ import { Complex } from '../primitives/complex.js';
 import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, globalScopeRegistry, GLOBAL_SCOPE_ID, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
 import { globalContext } from './context.js';
+import { SchemeSyntaxError } from './errors.js';
 import {
   initHandlers,
   registerAllHandlers,
@@ -122,7 +123,7 @@ export function analyze(exp, syntacticEnv = null, context = null) {
   // console.log("Analyzing:", exp instanceof Cons ? JSON.stringify(exp) : exp.toString());
   if (exp === null) {
     console.error("Analyze called with null!");
-    throw new Error('Analyze: cannot analyze null (empty list)');
+    throw new SchemeSyntaxError('cannot analyze null (empty list)', null, 'analyze');
   }
   if (typeof exp === 'number') {
     return new LiteralNode(exp);
@@ -169,7 +170,7 @@ export function analyze(exp, syntacticEnv = null, context = null) {
           const expanded = transformer(exp, syntacticEnv);
           return analyze(expanded, syntacticEnv, ctx);
         } catch (e) {
-          throw new Error(`Error expanding macro ${opNameForMacro}: ${e.message}`);
+          throw new SchemeSyntaxError(`Error expanding macro: ${e.message}`, exp, opNameForMacro);
         }
       }
     }
@@ -189,7 +190,7 @@ export function analyze(exp, syntacticEnv = null, context = null) {
     return analyzeApplication(exp, syntacticEnv, ctx);
   }
 
-  throw new Error(`Analyzer error: Unknown expression type: ${exp}`);
+  throw new SchemeSyntaxError(`Unknown expression type`, exp, 'analyze');
 }
 
 

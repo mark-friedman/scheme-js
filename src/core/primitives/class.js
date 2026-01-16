@@ -6,6 +6,7 @@
 
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertSymbol } from '../interpreter/type_check.js';
+import { SchemeTypeError } from '../interpreter/errors.js';
 
 /**
  * Class primitives exported to Scheme.
@@ -68,7 +69,7 @@ export const classPrimitives = {
     'class-method-set!': (cls, name, proc) => {
         const methodName = typeof name === 'string' ? name : name.name;
         if (typeof proc !== 'function') {
-            throw new Error(`class-method-set!: method must be a procedure, got ${typeof proc}`);
+            throw new SchemeTypeError('class-method-set!', 3, 'procedure', proc);
         }
         cls.prototype[methodName] = proc;
     }

@@ -1,4 +1,5 @@
 import { assert, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
+import { SchemeUnboundError } from '../../src/core/interpreter/errors.js';
 
 /**
  * Runs JS Global Interop tests.
@@ -49,7 +50,7 @@ export function runJsGlobalTests(interpreter, logger) {
         run(interpreter, `nonExistentVar123`);
         logger.fail("Should throw for non-existent variable");
     } catch (e) {
-        assert(logger, "Error for unbound variable", e.message, "Unbound variable: nonExistentVar123");
+        assert(logger, "Error type for unbound variable", e instanceof SchemeUnboundError || e.name === 'SchemeUnboundError', true);
     }
 
     // 7. set! on non-existent variable still throws
@@ -57,7 +58,7 @@ export function runJsGlobalTests(interpreter, logger) {
         run(interpreter, `(set! nonExistentVar456 1)`);
         logger.fail("Should throw set! for non-existent variable");
     } catch (e) {
-        assert(logger, "Error for set! unbound variable", e.message, "set!: unbound variable: nonExistentVar456");
+        assert(logger, "Error type for set! unbound variable", e instanceof SchemeUnboundError || e.name === 'SchemeUnboundError', true);
     }
 
     // Cleanup

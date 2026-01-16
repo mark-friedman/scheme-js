@@ -12,6 +12,7 @@ import { assertNumber, assertInteger, assertArity } from '../interpreter/type_ch
 import { Values } from '../interpreter/values.js';
 import { Rational, isRational } from './rational.js';
 import { Complex, isComplex, makeRectangular, makePolar } from './complex.js';
+import { SchemeTypeError, SchemeRangeError, SchemeError } from '../interpreter/errors.js';
 
 // =============================================================================
 // Generic Arithmetic Helpers
@@ -26,7 +27,7 @@ function toComplex(n) {
 function toRational(n) {
     if (isRational(n)) return n;
     if (Number.isInteger(n)) return Rational.fromNumber(n);
-    throw new Error('Cannot convert inexact to rational');
+    throw new SchemeTypeError('toRational', 1, 'exact integer', n);
 }
 
 function genericAdd(a, b) {
@@ -376,7 +377,7 @@ export const mathPrimitives = {
         if (typeof x === 'number') return Number.isFinite(x);
         if (isRational(x)) return true;
         if (isComplex(x)) return Number.isFinite(x.real) && Number.isFinite(x.imag);
-        throw new Error('finite?: expected number');
+        throw new SchemeTypeError('finite?', 1, 'number', x);
     },
 
     /**
@@ -388,7 +389,7 @@ export const mathPrimitives = {
         if (typeof x === 'number') return !Number.isFinite(x) && !Number.isNaN(x);
         if (isRational(x)) return false;
         if (isComplex(x)) return !Number.isFinite(x.real) || !Number.isFinite(x.imag);
-        throw new Error('infinite?: expected number');
+        throw new SchemeTypeError('infinite?', 1, 'number', x);
     },
 
     /**
@@ -400,7 +401,7 @@ export const mathPrimitives = {
         if (typeof x === 'number') return Number.isNaN(x);
         if (isRational(x)) return false;
         if (isComplex(x)) return Number.isNaN(x.real) || Number.isNaN(x.imag);
-        throw new Error('nan?: expected number');
+        throw new SchemeTypeError('nan?', 1, 'number', x);
     },
 
     // =========================================================================
@@ -415,7 +416,7 @@ export const mathPrimitives = {
     'numerator': (q) => {
         if (isRational(q)) return q.numerator;
         if (typeof q === 'number' && Number.isInteger(q)) return q;
-        throw new Error('numerator: expected rational number');
+        throw new SchemeTypeError('numerator', 1, 'rational number', q);
     },
 
     /**
@@ -426,7 +427,7 @@ export const mathPrimitives = {
     'denominator': (q) => {
         if (isRational(q)) return q.denominator;
         if (typeof q === 'number' && Number.isInteger(q)) return 1;
-        throw new Error('denominator: expected rational number');
+        throw new SchemeTypeError('denominator', 1, 'rational number', q);
     },
 
     // =========================================================================
@@ -468,7 +469,7 @@ export const mathPrimitives = {
         if (isComplex(z)) return z.real;
         if (typeof z === 'number') return z;
         if (isRational(z)) return z.toNumber();
-        throw new Error('real-part: expected number');
+        throw new SchemeTypeError('real-part', 1, 'number', z);
     },
 
     /**
@@ -480,7 +481,7 @@ export const mathPrimitives = {
         if (isComplex(z)) return z.imag;
         if (typeof z === 'number') return 0;
         if (isRational(z)) return 0;
-        throw new Error('imag-part: expected number');
+        throw new SchemeTypeError('imag-part', 1, 'number', z);
     },
 
     /**
@@ -492,7 +493,7 @@ export const mathPrimitives = {
         if (isComplex(z)) return z.magnitude();
         if (typeof z === 'number') return Math.abs(z);
         if (isRational(z)) return Math.abs(z.toNumber());
-        throw new Error('magnitude: expected number');
+        throw new SchemeTypeError('magnitude', 1, 'number', z);
     },
 
     /**
@@ -504,7 +505,7 @@ export const mathPrimitives = {
         if (isComplex(z)) return z.angle();
         if (typeof z === 'number') return z >= 0 ? 0 : Math.PI;
         if (isRational(z)) return z.toNumber() >= 0 ? 0 : Math.PI;
-        throw new Error('angle: expected number');
+        throw new SchemeTypeError('angle', 1, 'number', z);
     },
 
     // =========================================================================
@@ -591,7 +592,7 @@ export const mathPrimitives = {
     'sqrt': (x) => {
         assertNumber('sqrt', 1, x);
         // TODO: Complex sqrt
-        if (isComplex(x)) throw new Error('sqrt: complex not fully supported');
+        if (isComplex(x)) throw new SchemeError('sqrt: complex not fully supported', [x], 'sqrt');
         const val = isRational(x) ? x.toNumber() : x; // Returns inexact
         return Math.sqrt(val);
     },
@@ -603,7 +604,7 @@ export const mathPrimitives = {
      */
     'sin': (x) => {
         assertNumber('sin', 1, x);
-        if (isComplex(x)) throw new Error('sin: complex not fully supported');
+        if (isComplex(x)) throw new SchemeError('sin: complex not fully supported', [x], 'sin');
         const val = isRational(x) ? x.toNumber() : x;
         return Math.sin(val);
     },
@@ -615,7 +616,7 @@ export const mathPrimitives = {
      */
     'cos': (x) => {
         assertNumber('cos', 1, x);
-        if (isComplex(x)) throw new Error('cos: complex not fully supported');
+        if (isComplex(x)) throw new SchemeError('cos: complex not fully supported', [x], 'cos');
         const val = isRational(x) ? x.toNumber() : x;
         return Math.cos(val);
     },
@@ -627,7 +628,7 @@ export const mathPrimitives = {
      */
     'tan': (x) => {
         assertNumber('tan', 1, x);
-        if (isComplex(x)) throw new Error('tan: complex not fully supported');
+        if (isComplex(x)) throw new SchemeError('tan: complex not fully supported', [x], 'tan');
         const val = isRational(x) ? x.toNumber() : x;
         return Math.tan(val);
     },
@@ -679,7 +680,7 @@ export const mathPrimitives = {
      */
     'log': (x) => {
         assertNumber('log', 1, x);
-        if (isComplex(x)) throw new Error('log: complex not fully supported');
+        if (isComplex(x)) throw new SchemeError('log: complex not fully supported', [x], 'log');
         const val = isRational(x) ? x.toNumber() : x;
         return Math.log(val);
     },
@@ -691,7 +692,7 @@ export const mathPrimitives = {
      */
     'exp': (x) => {
         assertNumber('exp', 1, x);
-        if (isComplex(x)) throw new Error('exp: complex not fully supported');
+        if (isComplex(x)) throw new SchemeError('exp: complex not fully supported', [x], 'exp');
         const val = isRational(x) ? x.toNumber() : x;
         return Math.exp(val);
     },
@@ -709,7 +710,7 @@ export const mathPrimitives = {
     'exact-integer-sqrt': (k) => {
         assertInteger('exact-integer-sqrt', 1, k);
         if (k < 0) {
-            throw new Error('exact-integer-sqrt: expected non-negative integer');
+            throw new SchemeRangeError('exact-integer-sqrt', 'k', 0, Infinity, k);
         }
         const s = Math.floor(Math.sqrt(k));
         const r = k - s * s;
@@ -729,7 +730,7 @@ export const mathPrimitives = {
         assertInteger('floor/', 1, n1);
         assertInteger('floor/', 2, n2);
         if (n2 === 0) {
-            throw new Error('floor/: division by zero');
+            throw new SchemeRangeError('floor/', 'divisor', -Infinity, -1, 0);
         }
         const q = Math.floor(n1 / n2);
         const r = n1 - n2 * q;
@@ -749,7 +750,7 @@ export const mathPrimitives = {
         assertInteger('truncate/', 1, n1);
         assertInteger('truncate/', 2, n2);
         if (n2 === 0) {
-            throw new Error('truncate/: division by zero');
+            throw new SchemeRangeError('truncate/', 'divisor', -Infinity, -1, 0);
         }
         const q = Math.trunc(n1 / n2);
         const r = n1 - n2 * q;
@@ -767,7 +768,7 @@ export const mathPrimitives = {
         assertInteger('floor-quotient', 1, n1);
         assertInteger('floor-quotient', 2, n2);
         if (n2 === 0) {
-            throw new Error('floor-quotient: division by zero');
+            throw new SchemeRangeError('floor-quotient', 'divisor', -Infinity, -1, 0);
         }
         return Math.floor(n1 / n2);
     },
@@ -783,7 +784,7 @@ export const mathPrimitives = {
         assertInteger('floor-remainder', 1, n1);
         assertInteger('floor-remainder', 2, n2);
         if (n2 === 0) {
-            throw new Error('floor-remainder: division by zero');
+            throw new SchemeRangeError('floor-remainder', 'divisor', -Infinity, -1, 0);
         }
         const q = Math.floor(n1 / n2);
         return n1 - n2 * q;
@@ -800,7 +801,7 @@ export const mathPrimitives = {
         assertInteger('truncate-quotient', 1, n1);
         assertInteger('truncate-quotient', 2, n2);
         if (n2 === 0) {
-            throw new Error('truncate-quotient: division by zero');
+            throw new SchemeRangeError('truncate-quotient', 'divisor', -Infinity, -1, 0);
         }
         return Math.trunc(n1 / n2);
     },
@@ -816,7 +817,7 @@ export const mathPrimitives = {
         assertInteger('truncate-remainder', 1, n1);
         assertInteger('truncate-remainder', 2, n2);
         if (n2 === 0) {
-            throw new Error('truncate-remainder: division by zero');
+            throw new SchemeRangeError('truncate-remainder', 'divisor', -Infinity, -1, 0);
         }
         return n1 % n2;
     },
@@ -865,7 +866,7 @@ export const mathPrimitives = {
         }
         if (isRational(z)) return z; // Already exact
         if (isComplex(z)) {
-            throw new Error('exact: cannot convert complex to exact');
+            throw new SchemeTypeError('exact', 1, 'real number', z);
         }
         return z;
     },
