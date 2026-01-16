@@ -58,15 +58,17 @@
   (be-like-begin2 sequence2)
   (test 4 (sequence2 1 2 3 4))
 
-  (define-syntax be-like-begin3
-    (syntax-rules ()
-      ((be-like-begin3 name)
-       (define-syntax name
-         (syntax-rules dots ()
-           ((name expr dots)
-            (begin expr dots)))))))
-  (be-like-begin3 sequence3)
-  (test 5 (sequence3 2 3 4 5))
+  ;; Testing custom ellipsis (dots) - inner syntax-rules uses ..., escaped by (dots ...)
+  (begin
+    (define-syntax be-like-begin3
+      (syntax-rules dots ()
+        ((be-like-begin3 name)
+         (define-syntax name
+           (dots (syntax-rules ()
+                   ((name expr ...)
+                    (begin expr ...))))))))
+    (be-like-begin3 sequence3)
+    (test 5 (sequence3 2 3 4 5)))
 
   ;; ellipsis escape
   (define-syntax elli-esc-1

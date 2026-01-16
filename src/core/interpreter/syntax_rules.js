@@ -434,9 +434,10 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
             carName = (template.car.name instanceof Symbol) ? template.car.name.name : template.car.name;
         }
 
-        // Escaped ellipsis (... <template>)
-        // Per R7RS 4.3.2, (... <template>) means <template> is treated literally
-        if (carName === '...') {
+        // Escaped ellipsis (<ellipsis> <template>)
+        // Per R7RS 4.3.2, (<ellipsis> <template>) means <template> is treated literally
+        // This applies to the custom ellipsis name if one was specified
+        if (carName === ellipsisName) {
             if (template.cdr instanceof Cons && template.cdr.cdr === null) {
                 return transcribeLiteral(template.cdr.car, bindings, expansionScope);
             }

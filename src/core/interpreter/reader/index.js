@@ -25,7 +25,8 @@ export { Placeholder, fixup } from './datum_labels.js';
  */
 export function parse(input, options = {}) {
     // State object for parsing context
-    const state = {
+    // Use provided state or create new one
+    const state = options.state || {
         caseFold: options.caseFold || false,
         labels: new Map()
     };
