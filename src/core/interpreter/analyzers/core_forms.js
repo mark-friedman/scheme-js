@@ -17,10 +17,10 @@ import {
 } from '../ast.js';
 import { Cons, cons, list, car, cdr, toArray, cadr, cddr, caddr, cdddr } from '../cons.js';
 import { Symbol, intern } from '../symbol.js';
-import { isSyntaxObject, syntaxName, unwrapSyntax } from '../syntax_object.js';
+import { isSyntaxObject, syntaxName, unwrapSyntax, GLOBAL_SCOPE_ID } from '../syntax_object.js';
+import { globalContext } from '../context.js';
 import { MacroRegistry } from '../macro_registry.js';
 import { registerHandler } from './registry.js';
-import { getCurrentDefiningScopes, GLOBAL_SCOPE_ID } from '../syntax_object.js';
 import { compileSyntaxRules } from '../syntax_rules.js';
 
 // These will be set by the analyzer when it initializes
@@ -390,7 +390,7 @@ function analyzeDefineSyntax(exp, syntacticEnv = null, ctx) {
                 curr = curr.cdr;
             }
 
-            const currentScopes = getCurrentDefiningScopes();
+            const currentScopes = globalContext.getDefiningScopes();
             const definingScope = currentScopes.length > 0 ? currentScopes[currentScopes.length - 1] : GLOBAL_SCOPE_ID;
             const transformer = compileSyntaxRules(literals, clauses, definingScope, ellipsisName, syntacticEnv);
             ctx.currentMacroRegistry.define(name, transformer);
@@ -478,7 +478,7 @@ function compileTransformerSpec(transformerSpec, syntacticEnv = null) {
         curr = curr.cdr;
     }
 
-    const currentScopes = getCurrentDefiningScopes();
+    const currentScopes = globalContext.getDefiningScopes();
     const definingScope = currentScopes.length > 0 ? currentScopes[currentScopes.length - 1] : GLOBAL_SCOPE_ID;
     return compileSyntaxRules(literals, clauses, definingScope, '...', syntacticEnv);
 }

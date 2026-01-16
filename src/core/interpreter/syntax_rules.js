@@ -1,6 +1,7 @@
 import { Cons, cons, list } from './cons.js';
 import { Symbol, intern } from './symbol.js';
-import { SyntaxObject, freshScope, globalScopeRegistry, internSyntax, flipScopeInExpression, identifierEquals, lookupLibraryEnv, unwrapSyntax } from './syntax_object.js';
+import { SyntaxObject, globalScopeRegistry, internSyntax, flipScopeInExpression, identifierEquals, unwrapSyntax } from './syntax_object.js';
+import { globalContext } from './context.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { SPECIAL_FORMS } from './library_registry.js';
 import { getIdentifierName, isEllipsisIdentifier } from './identifier_utils.js';
@@ -65,7 +66,7 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
         // This is the core of Dybvig-style hygiene - each expansion gets its own scope
         // so identifiers transcribed in this expansion are distinguishable from
         // identifiers transcribed in other expansions (including nested macros).
-        const expansionScope = freshScope();
+        const expansionScope = globalContext.freshScope();
 
         for (const clause of clauses) {
             const template = clause[1];
@@ -81,7 +82,7 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
 
             // Pass useSiteEnv for free-identifier=? comparison on literals
             // Determine definition environment for literal comparison
-            const definitionEnv = capturedEnv || (definingScope !== null ? lookupLibraryEnv(definingScope) : null);
+            const definitionEnv = capturedEnv || (definingScope !== null ? globalContext.lookupLibraryEnv(definingScope) : null);
             const bindings = matchPattern(pattern, input, literalIds, ellipsisName, useSiteEnv, expansionScope, definitionEnv);
 
             if (bindings) {

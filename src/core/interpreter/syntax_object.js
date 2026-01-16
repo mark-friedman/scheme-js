@@ -8,45 +8,39 @@
  * - A "scope" represents a lexical context (macro definition, expansion, binding form)
  * - Each identifier tracks which scopes it's been through via "marks"
  * - Resolution finds the binding whose scopes are a subset of the identifier's scopes
+ * 
+ * All mutable state is delegated to the globalContext from context.js for proper isolation.
  */
 
 import { Symbol, intern } from './symbol.js';
 import { Cons } from './cons.js';
 import { SchemeTypeError } from './errors.js';
+import { globalContext } from './context.js';
 
 // =============================================================================
-// Scope Management
+// Scope Management (delegated to globalContext)
 // =============================================================================
-
-/** Counter for generating unique scope IDs */
-let scopeCounter = 0;
 
 /**
  * Creates a fresh scope identifier.
+ * Delegates to globalContext for isolation.
  * @returns {number} A unique scope ID
  */
 export function freshScope() {
-    return ++scopeCounter;
+    return globalContext.freshScope();
 }
 
 /**
  * Resets the scope counter. Used for testing.
+ * @deprecated Use globalContext.reset() instead
  */
 export function resetScopeCounter() {
-    scopeCounter = 0;
+    globalContext.resetScopeCounter();
 }
 
 // =============================================================================
-// Syntax Object Interning
+// Syntax Object Interning (delegated to globalContext)
 // =============================================================================
-
-/**
- * Cache for interned SyntaxObjects.
- * Key: name|scope1,scope2,... (sorted)
- * Value: SyntaxObject
- * @type {Map<string, SyntaxObject>}
- */
-const syntaxInternCache = new Map();
 
 /**
  * Generates a cache key for a syntax object.
@@ -66,32 +60,35 @@ function getSyntaxKey(name, scopes) {
  * This ensures that identifiers with the same name and scopes are object-identical,
  * which is required for using them as keys in Map-based environments.
  * 
+ * Delegates to globalContext's syntaxInternCache for isolation.
+ * 
  * @param {string} name 
  * @param {Set<number>|Array<number>} scopes 
- * @param {Object} context - Context is currently ignored for identity
+ * @param {Object} context - Source location info (optional, for error messages)
  * @returns {SyntaxObject}
  */
 export function internSyntax(name, scopes, context = null) {
     const scopeSet = scopes instanceof Set ? scopes : new Set(scopes);
     const key = getSyntaxKey(name, scopeSet);
 
-    if (syntaxInternCache.has(key)) {
-        return syntaxInternCache.get(key);
+    if (globalContext.syntaxInternCache.has(key)) {
+        return globalContext.syntaxInternCache.get(key);
     }
 
     // Note: We use the constructor directly here.
     // The constructor does NOT intern automatically to allow temporary objects if needed,
     // but typically internSyntax should be used.
     const obj = new SyntaxObject(name, scopeSet, context);
-    syntaxInternCache.set(key, obj);
+    globalContext.syntaxInternCache.set(key, obj);
     return obj;
 }
 
 /**
  * Clear the intern cache. Used for testing/reset.
+ * @deprecated Use globalContext.reset() instead
  */
 export function resetSyntaxCache() {
-    syntaxInternCache.clear();
+    globalContext.syntaxInternCache.clear();
 }
 
 /**
@@ -101,32 +98,33 @@ export function resetSyntaxCache() {
 export const GLOBAL_SCOPE_ID = 0;
 
 // =============================================================================
-// Library Scope Environment Map
+// Library Scope Environment Map (delegated to globalContext)
 // =============================================================================
 
 /**
- * Maps a library's defining scope ID to its runtime Environment.
- * Used by GlobalRef to resolve bindings within the correct library environment.
+ * Alias to globalContext.libraryScopeEnvMap for backwards compatibility.
  * @type {Map<number, Environment>}
  */
-export const libraryScopeEnvMap = new Map();
+export const libraryScopeEnvMap = globalContext.libraryScopeEnvMap;
 
 /**
  * Associates a library scope with its environment.
+ * Delegates to globalContext for isolation.
  * @param {number} scope 
  * @param {Environment} env 
  */
 export function registerLibraryScope(scope, env) {
-    libraryScopeEnvMap.set(scope, env);
+    globalContext.registerLibraryScope(scope, env);
 }
 
 /**
  * Retrieves the environment associated with a library scope.
+ * Delegates to globalContext for isolation.
  * @param {number} scope 
  * @returns {Environment|undefined}
  */
 export function lookupLibraryEnv(scope) {
-    return libraryScopeEnvMap.get(scope);
+    return globalContext.lookupLibraryEnv(scope);
 }
 
 // =============================================================================
@@ -364,40 +362,36 @@ export function syntaxName(obj) {
 }
 
 // =============================================================================
-// Current Defining Scopes (for library loading)
+// Current Defining Scopes (delegated to globalContext)
 // =============================================================================
-
-/**
- * Stack of currently active defining scopes.
- * When a library is being loaded, its scope is pushed here.
- * Define forms register bindings with all active scopes.
- */
-let currentDefiningScopes = [];
 
 /**
  * Push a defining scope onto the stack.
  * Call this when entering a library or module context.
+ * Delegates to globalContext for isolation.
  * @param {number} scope - The scope ID
  */
 export function pushDefiningScope(scope) {
-    currentDefiningScopes.push(scope);
+    globalContext.pushDefiningScope(scope);
 }
 
 /**
  * Pop the current defining scope from the stack.
  * Call this when exiting a library or module context.
+ * Delegates to globalContext for isolation.
  * @returns {number|undefined} The popped scope ID
  */
 export function popDefiningScope() {
-    return currentDefiningScopes.pop();
+    return globalContext.popDefiningScope();
 }
 
 /**
  * Get all currently active defining scopes.
+ * Delegates to globalContext for isolation.
  * @returns {number[]} Array of scope IDs
  */
 export function getCurrentDefiningScopes() {
-    return [...currentDefiningScopes];
+    return globalContext.getDefiningScopes();
 }
 
 /**
@@ -418,19 +412,21 @@ export class GlobalRef {
 /**
  * Register a binding with all currently active scopes.
  * Call this when a define is evaluated during library loading.
+ * Delegates to globalContext for isolation.
  * 
  * @param {string} name - The binding name
  * @param {any} [value] - The bound value (unused if GlobalRef is preferred)
  */
 export function registerBindingWithCurrentScopes(name, value) {
+    const definingScopes = globalContext.getDefiningScopes();
     // Determine scope set (default to GLOBAL_SCOPE_ID if empty)
-    const scopes = currentDefiningScopes.length > 0
-        ? new Set(currentDefiningScopes)
+    const scopes = definingScopes.length > 0
+        ? new Set(definingScopes)
         : new Set([GLOBAL_SCOPE_ID]);
 
     // Determine the specific defining scope (for Environment resolution)
-    const definingScope = currentDefiningScopes.length > 0
-        ? currentDefiningScopes[currentDefiningScopes.length - 1]
+    const definingScope = definingScopes.length > 0
+        ? definingScopes[definingScopes.length - 1]
         : null;
 
     // Always bind as a GlobalRef to ensure dynamic lookup in the environment
@@ -439,9 +435,10 @@ export function registerBindingWithCurrentScopes(name, value) {
 
 /**
  * Clear the defining scope stack. Used for testing.
+ * @deprecated Use globalContext.reset() instead
  */
 export function clearDefiningScopes() {
-    currentDefiningScopes = [];
+    globalContext.definingScopes = [];
 }
 
 /**

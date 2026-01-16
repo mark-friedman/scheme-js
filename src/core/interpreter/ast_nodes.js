@@ -9,7 +9,8 @@
 import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
 import { createClosure, createContinuation, isSchemeClosure, isSchemeContinuation } from './values.js';
 import * as FrameRegistry from './frame_registry.js';
-import { GlobalRef, lookupLibraryEnv } from './syntax_object.js';
+import { GlobalRef } from './syntax_object.js';
+import { globalContext } from './context.js';
 import { SchemeError } from './errors.js';
 
 // =============================================================================
@@ -105,7 +106,7 @@ export class ScopedVariable extends Executable {
                     let found = false;
 
                     if (resolved.scope) {
-                        const libEnv = lookupLibraryEnv(resolved.scope);
+                        const libEnv = globalContext.lookupLibraryEnv(resolved.scope);
                         if (libEnv) {
                             // Try to lookup in library env (findEnv avoids throwing if missing)
                             if (libEnv.findEnv(resolved.name)) {

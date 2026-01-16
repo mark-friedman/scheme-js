@@ -6,19 +6,24 @@
  */
 
 import { globalContext } from '../../src/core/interpreter/context.js';
-import { globalScopeRegistry, clearDefiningScopes } from '../../src/core/interpreter/syntax_object.js';
 
 /**
  * Clears all global state in the interpreter subsystem.
  * Call this before running an isolated test or suite.
  * 
- * Uses the centralized InterpreterContext for most state management.
+ * All mutable state is now managed through the globalContext,
+ * so a single reset() call clears everything:
+ * - Scope counters
+ * - Syntax intern cache
+ * - Library scope environment map
+ * - Scope registry
+ * - Macro registry
+ * - Library registry
+ * - Defining scopes stack
  */
 export function clearGlobalState() {
-    // Reset the global context (counters, caches, registries)
     globalContext.reset();
-
-    // Clear scope binding registry (not yet managed by context)
-    clearDefiningScopes();
-    globalScopeRegistry.clear();
+    // Also clear the scope registry which is exported separately
+    globalContext.scopeRegistry.clear();
 }
+

@@ -126,6 +126,9 @@ export class InterpreterContext {
 
         /** Baseline macro names for reset */
         this.baselineMacroNames = null;
+
+        /** Stack of currently active defining scopes (for library loading) */
+        this.definingScopes = [];
     }
 
     // =========================================================================
@@ -312,6 +315,55 @@ export class InterpreterContext {
         this.libraryScopeEnvMap.clear();
         this.resetMacroRegistry();
         this.libraryRegistry.clear();
+        this.definingScopes = [];
+    }
+
+    // =========================================================================
+    // Defining Scope Stack (for library loading)
+    // =========================================================================
+
+    /**
+     * Push a defining scope onto the stack.
+     * Call this when entering a library or module context.
+     * @param {number} scope - The scope ID
+     */
+    pushDefiningScope(scope) {
+        this.definingScopes.push(scope);
+    }
+
+    /**
+     * Pop the current defining scope from the stack.
+     * Call this when exiting a library or module context.
+     * @returns {number|undefined} The popped scope ID
+     */
+    popDefiningScope() {
+        return this.definingScopes.pop();
+    }
+
+    /**
+     * Get all currently active defining scopes.
+     * @returns {number[]} Array of scope IDs
+     */
+    getDefiningScopes() {
+        return [...this.definingScopes];
+    }
+
+    /**
+     * Register a library scope with its environment.
+     * @param {number} scope - The scope ID
+     * @param {Environment} env - The library's environment
+     */
+    registerLibraryScope(scope, env) {
+        this.libraryScopeEnvMap.set(scope, env);
+    }
+
+    /**
+     * Look up the environment for a library scope.
+     * @param {number} scope - The scope ID
+     * @returns {Environment|undefined}
+     */
+    lookupLibraryEnv(scope) {
+        return this.libraryScopeEnvMap.get(scope);
     }
 }
 

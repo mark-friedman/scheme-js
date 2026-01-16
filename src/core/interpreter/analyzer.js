@@ -25,7 +25,7 @@ import { Cons, cons, list, car, cdr, toArray, cadr, caddr, cadddr } from './cons
 import { Rational } from '../primitives/rational.js';
 import { Complex } from '../primitives/complex.js';
 import { Symbol, intern } from './symbol.js';
-import { SyntaxObject, globalScopeRegistry, freshScope, getCurrentDefiningScopes, GLOBAL_SCOPE_ID, registerBindingWithCurrentScopes, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
+import { SyntaxObject, globalScopeRegistry, GLOBAL_SCOPE_ID, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
 import { globalContext } from './context.js';
 import {
   initHandlers,

@@ -10,7 +10,7 @@ import { Symbol } from './symbol.js';
 import { Environment } from './environment.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { parse } from './reader.js';
-import { freshScope, pushDefiningScope, popDefiningScope, registerLibraryScope } from './syntax_object.js';
+import { globalContext } from './context.js';
 import { SchemeLibraryError } from './errors.js';
 
 // Import from focused modules
@@ -229,9 +229,9 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
     }
 
     // Execute body with a defining scope for referential transparency
-    const libraryScope = freshScope();
-    registerLibraryScope(libraryScope, libEnv);
-    pushDefiningScope(libraryScope);
+    const libraryScope = globalContext.freshScope();
+    globalContext.registerLibraryScope(libraryScope, libEnv);
+    globalContext.pushDefiningScope(libraryScope);
 
     try {
         for (const expr of libDef.body) {
@@ -239,7 +239,7 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
             interpreter.run(ast, libEnv);
         }
     } finally {
-        popDefiningScope();
+        globalContext.popDefiningScope();
     }
 
     // Build exports map
