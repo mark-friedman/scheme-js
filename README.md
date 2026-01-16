@@ -5,7 +5,10 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 ## 🎯 Goals
 
 ### Language Goals
-- **R7RS-Small Compliance**: Strictly follow the standard.
+- **Global Environment**: Scheme closures and continuations are first-class JavaScript functions. JavaScript global definitions (on `window` or `globalThis`) are automatically visible in the Scheme global environment.
+- **Node.js REPL**: Full-featured interactive REPL with history, multiline support, and colorful output.
+- **Browser-Ready**: Easy integration via a custom `<scheme-repl>` web component or standard `<script>` tags.
+- **R7RS-Small**: High degree of compatibility with the R7RS-small standard (see [R7RS Libraries](#r7rs-libraries)).
 - **Tail Call Optimization (TCO)**: Proper handling of tail recursion (even when interleaved with JS) using a trampoline architecture.
 - **First-Class Continuations**: Full support for `call/cc`, including `dynamic-wind` and multiple return values.
 - **JavaScript Interop**: Seamless calling between Scheme and JavaScript, including shared data structures and transparent boundary crossing.
@@ -15,183 +18,274 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 - **Maintainability**: Clear separation of AST, Runtime, and Library code.
 - **Testability**: Comprehensive test suite running in both Node.js and Browser environments.
 
-## 🏗️ Architecture
+---
 
-The project follows a **Two-Tier Architecture**:
-1.  **JavaScript Core**: The interpreter engine that executes Scheme code (`src/core/interpreter/`).
-2.  **Scheme Libraries**: The standard library implemented in Scheme itself (`src/core/scheme/`, `src/lib/`).
+## 📦 Installation
 
-### The Core (`src/core/`)
-The foundational layer is currently implemented and stable:
--   **`interpreter/`**: Trampoline interpreter with TCO via heap-managed frames.
--   **`primitives/`**: Native JavaScript implementations of core procedures (+, cons, etc.).
--   **`scheme/`**: Core Scheme subset (`base.scm`) defining macros like `and`, `let`, `cond`.
-
-Key modules in `interpreter/`:
--   **`interpreter.js`**: Trampoline execution loop.
--   **`stepables_base.js`**: Register constants and `Executable` base class.
--   **`ast_nodes.js`**: AST node classes (Literal, If, Lambda, etc.).
--   **`frames.js`**: Continuation frame classes.
--   **`library_loader.js`**: R7RS `define-library` and `import` support.
-
-For a detailed breakdown of the internal file structure, see [docs/architecture.md](./docs/architecture.md#directory-structure).
-
-## 🚀 Getting Started
-
-### Prerequisites
--   **Node.js**: v14+ (for running tests and CLI/server).
--   **Modern Browser**: (Optional) For running the Web REPL.
-
-### Installation
+### From Source
 Clone the repository:
 ```bash
 git clone https://github.com/mark-friedman/scheme-js-4.git
 cd scheme-js-4
 ```
 
-### Running the Web REPL
-1.  Start a local HTTP server in the project root:
+### Build Distribution Bundles
+```bash
+npm install
+npm run build
+```
+
+This produces the following files in `dist/`:
+- `scheme.js` — Core interpreter with `schemeEval` API
+- `scheme-repl.js` — `<scheme-repl>` Web Component
+- `scheme-html.js` — `<script type="text/scheme">` support
+
+---
+
+## 🚀 Getting Started
+
+### Node.js REPL (from source)
+
+Run the interactive REPL directly from source:
+```bash
+node repl.js
+```
+
+#### Execute an expression
+```bash
+node repl.js -e "(+ 1 2 3)"
+# Output: 6
+```
+
+#### Run a Scheme file
+```bash
+node repl.js myprogram.scm
+```
+
+### Browser REPL (from source)
+
+1. Start a local HTTP server in the project root:
     ```bash
     python3 -m http.server 8080
     ```
-2.  Open your browser to:
-    [http://localhost:8080/web/ui.html](http://localhost:8080/web/ui.html)
-3.  Start typing Scheme code!
 
-### Embedding the REPL
-You can embed the REPL in any webpage using the web component:
+2. Open your browser to:
+    [http://localhost:8080/web/index.html](http://localhost:8080/web/index.html)
+
+3. Start typing Scheme code in the interactive shell!
+
+---
+
+## 📦 Using the Built Packages
+
+After running `npm run build`, you can use the distribution bundles in various ways.
+
+### Using `<scheme-repl>` Web Component
+
+Embed a full REPL in any webpage:
 
 ```html
-<script type="module" src="dist/scheme.js"></script>
-<script type="module" src="dist/scheme-repl.js"></script>
-<scheme-repl></scheme-repl>
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Import Scheme implementation and Web Component -->
+    <script type="module" src="dist/scheme.js"></script>
+    <script type="module" src="dist/scheme-repl.js"></script>
+</head>
+<body>
+    <scheme-repl></scheme-repl>
+</body>
+</html>
 ```
 
-See `dist/repl-demo.html` for a complete example.
+See `dist/repl-demo.html` for a complete working example.
+
+### Using `<script type="text/scheme">`
+
+Run Scheme code inline in HTML and interact with the DOM:
+
+```html
+<!-- Import Scheme implementation and HTML adapter -->
+<script type="module" src="dist/scheme.js"></script>
+<script type="module" src="dist/scheme-html.js"></script>
+
+<button id="click-me">Click Count: 0</button>
+
+<script type="text/scheme">
+  (import (scheme base) (scheme-js interop))
+  
+  (let ((count 0)
+        (btn (document.getElementById "click-me")))
+    (btn.addEventListener "click"
+      (lambda (event)
+        (set! count (+ count 1))
+        (set! btn.textContent (string-append "Click Count: " (number->string count))))))
+</script>
+```
+
+### Using the JavaScript API
+
+Import and use the interpreter programmatically:
+
+```html
+<script type="module">
+import { schemeEval } from './dist/scheme.js';
+
+// Evaluate Scheme expressions
+const result = schemeEval('(+ 1 2 3)');
+console.log(result); // 6
+
+// Define and call functions
+schemeEval('(define (greet name) (string-append "Hello, " name "!"))');
+const greeting = schemeEval('(greet "World")');
+console.log(greeting); // "Hello, World!"
+</script>
+```
+
+---
 
 ## 🧪 Testing
 
 The project uses a custom universal test runner that works in both Node.js and the Browser.
 
 ### Run All Tests (Node.js)
-Execute the complete test suite including unit, functional, and integration tests:
 ```bash
 node run_tests_node.js
 ```
 
 ### Run Browser Tests
-1.  Ensure the HTTP server is running (see above).
-2.  Navigate to `http://localhost:8080/web/ui.html`.
-3.  The test suite runs automatically in the console on load. Check the browser developer console (F12) to see the results.
+1. Ensure the HTTP server is running (see above).
+2. Navigate to `http://localhost:8080/web/tests.html`.
+3. The test suite runs automatically in the console on load.
+
+---
 
 ## 📊 Benchmarks
 
 The project includes a performance benchmark suite for tracking regressions.
 
-### Running Benchmarks
 ```bash
 npm run benchmark          # Run benchmarks and display results
 npm run benchmark:save     # Save current results as baseline
 npm run benchmark:compare  # Compare against baseline
 ```
 
-Benchmarks cover:
-- **Arithmetic**: Sum, factorial, Fibonacci, Collatz
-- **Non-Numeric**: List operations, symbol lookup
-- **JS Interop**: Cross-boundary calls, data conversion
+Benchmarks cover arithmetic, list operations, and JS interop.
 
-## 📚 Documentation
+---
 
-We maintain detailed documentation for the project internals:
+## 🔌 JavaScript Interoperability
 
--   [**Architecture & Directory Structure**](./docs/architecture.md): High-level design and detailed file map.
--   [**Trampoline Execution**](./docs/trampoline.md): A deep dive into how the interpreter handles stack frames and TCO.
--   [**Hygiene Implementation**](./docs/hygiene.md): How macro hygiene works using pure marks/scopes.
--   [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
--   [**Changes**](./CHANGES.md): A log of major implementation steps, walkthroughs of features, and refactors.
+This implementation provides deep integration between Scheme and JavaScript. See [docs/Interoperability.md](./docs/Interoperability.md) for complete technical details.
 
-## 🛠️ Code Standards
+### Library: `(scheme-js interop)`
 
--   **Style**: We use ES Modules (`import`/`export`) throughout. All functions are documented with JSDoc. Scheme code is written in a style that is similar to JSDoc.
--   **Testing**: We follow a "Dual Environment" rule - every new feature must represent correct behavior in both Node.js V8 and standard browser engines.
--   **Code Quality**: We separate "step-able" logic (instructions for the machine) from runtime state (values and environments).
+Import with: `(import (scheme-js interop))`
 
-## Limitations
+| Procedure | Description | Example |
+|-----------|-------------|---------|
+| `(js-eval str)` | Evaluate JavaScript code | `(js-eval "Math.PI")` → `3.14159...` |
+| `(js-ref obj prop)` | Access object property | `(js-ref console "log")` |
+| `(js-set! obj prop val)` | Set object property | `(js-set! obj "x" 42)` |
+| `(js-invoke obj method args...)` | Call object method | `(js-invoke console "log" "Hi")` |
+| `(js-obj key val ...)` | Create JS object | `(js-obj 'x 1 'y 2)` → `{x: 1, y: 2}` |
 
-### Hygiene
+### Dot Notation Syntax
 
-The current implementation addresses **accidental capture** (macro bindings don't capture user variables). It does NOT fully address **reference transparency** for free variables in templates that reference non-global bindings at macro definition time. However:
-- Special forms (`if`, `let`, etc.) are recognized by the analyzer
-- Primitives are globally bound
-- These cover 99% of practical `syntax-rules` use cases
-
-What is NOT handled are local definition-site bindings — If a macro is defined inside a let that binds a helper, and that name is shadowed at the expansion site:
+Access JavaScript object properties using familiar dot notation:
 
 ```scheme
-;; Macro defined inside a let with a local helper
-(let ((helper (lambda (x) (* x 2))))      ;; definition-site binding
-  (define-syntax my-double
-    (syntax-rules ()
-      ((my-double x) (helper x)))))
-;; Later, at expansion site:
-(let ((helper (lambda (x) (+ x 1))))      ;; shadows helper!
-  (my-double 5))
-;; BUG: Returns 6 (expansion-site helper) instead of 10 (definition-site helper)
+;; Property access
+(define obj (js-eval "({name: 'alice', age: 30})"))
+obj.name          ;; => "alice"
+obj.age           ;; => 30
+
+;; Chained access
+(define nested (js-eval "({a: {b: {c: 42}}})"))
+nested.a.b.c      ;; => 42
+
+;; Property mutation
+(set! obj.name "bob")
+obj.name          ;; => "bob"
+
+;; Method call
+(obj.method args) ;; => (js-invoke obj "method" args)
 ```
 
-Why this is rare in practice:
-- `define-syntax` is almost always used at top level in R7RS
-- Macros typically only reference globally-bound names
-- Special forms are immune (they're recognized syntactically)
+**Under the hood:**
+| Input | Transformed To |
+|:------|:---------------|
+| `obj.prop` | `(js-ref obj "prop")` |
+| `(obj.method arg)` | `(js-invoke obj "method" arg)` |
+| `(set! obj.prop val)` | `(js-set! obj "prop" val)` |
 
-### Exact/Inexact Numbers
+### Object Literal Syntax `#{...}`
 
-R7RS distinguishes between **exact** numbers (integers, rationals - mathematically precise) and **inexact** numbers (floating-point - approximate). The `exact` and `inexact` procedures convert between these representations, and `exact?`/`inexact?` test which category a number belongs to.
+Create JavaScript objects using a concise literal syntax:
 
-**JavaScript Limitation:**
-JavaScript has only one numeric type (`number`), which is an IEEE 754 double-precision float. There is no native way to distinguish between `5` (an exact integer) and `5.0` (an inexact float) - they are identical values:
+```scheme
+;; Basic object
+#{(x 1) (y 2)}              ;; => {x: 1, y: 2}
+
+;; With expressions
+#{(sum (+ 1 2)) (pi 3.14)}  ;; => {sum: 3, pi: 3.14}
+
+;; Spread syntax
+(define base #{(a 1) (b 2)})
+#{(... base) (c 3)}         ;; => {a: 1, b: 2, c: 3}
+```
+
+### Callable Closures
+
+Scheme closures are callable JavaScript functions:
+
+```scheme
+;; Define a Scheme function
+(define square (lambda (x) (* x x)))
+
+;; Store it in a JS variable
+(js-eval "var myFunc = null")
+(set! myFunc square)
+```
 
 ```javascript
-5 === 5.0  // true in JavaScript
+// Call it from JavaScript!
+myFunc(7);  // Returns 49
 ```
 
-**Current Implementation:**
-Our implementation uses `Number.isInteger()` to distinguish exact from inexact:
-- Integers (`5`, `-42`) are considered **exact**
-- Non-integers (`3.14`, `0.5`) are considered **inexact**
-- `Rational` objects are always **exact**
+---
 
-**Semantic Differences from R7RS:**
+## ⏳ Promise Library: `(scheme-js promise)`
 
-| Operation | R7RS Expected | Our Result |
-|-----------|---------------|------------|
-| `(inexact 5)` | Inexact `5.0` | `5` (still exact by our predicate) |
-| `(inexact? (inexact 5))` | `#t` | `#f` ❌ |
-| `(exact 3.0)` | Exact `3` | `3` (correct by coincidence) |
+Import with: `(import (scheme-js promise))`
 
-**Practical Impact:**
-- Most Scheme programs don't rely on the exact/inexact distinction for integers
-- Arithmetic works correctly - only the `exact?`/`inexact?` predicates are affected
-- Rationals (`1/2`, `3/4`) are fully supported and always exact
-- This is documented as a known limitation
+Provides transparent interoperability with JavaScript Promises.
 
-**Future Improvement:**
-See `r7rs_roadmap.md` for potential approaches to fix this, including:
-- Creating an `InexactNumber` wrapper class
-- Using a tag map to track exactness separately
+| Procedure | Description |
+|-----------|-------------|
+| `(js-promise? obj)` | Returns `#t` if obj is a Promise |
+| `(make-js-promise executor)` | Create Promise with `(lambda (resolve reject) ...)` |
+| `(js-promise-resolve value)` | Create resolved Promise |
+| `(js-promise-reject reason)` | Create rejected Promise |
+| `(js-promise-then p handler)` | Attach fulfillment handler |
+| `(js-promise-catch p handler)` | Attach rejection handler |
+| `(js-promise-finally p thunk)` | Attach cleanup handler |
+| `(js-promise-all list)` | Wait for all promises |
+| `(js-promise-race list)` | Wait for first to settle |
+| `(js-promise-all-settled list)` | Wait for all to settle |
+| `(js-promise-map f p)` | Apply function to resolved value |
+| `(js-promise-chain p f ...)` | Chain promise-returning functions |
+| `(async-lambda formals body ...)` | Macro for CPS transformation |
 
-### JavaScript Promise Interoperability
-
-The `(scheme-js promise)` library provides transparent interoperability with JavaScript Promises using a CPS (Continuation-Passing Style) approach.
-
-**Basic Usage:**
-
+**Example:**
 ```scheme
 (import (scheme-js promise))
 
-;; Create and work with promises
 (define p (js-promise-resolve 42))
-(js-promise-then p (lambda (x) (display x)))
+(js-promise-then p
+  (lambda (x)
+    (display x)
+    (newline)))
 
 ;; Chain promises
 (js-promise-chain (fetch-url "http://example.com")
@@ -199,22 +293,163 @@ The `(scheme-js promise)` library provides transparent interoperability with Jav
   (lambda (data) (process data)))
 ```
 
-**Available Procedures:**
+---
 
-| Procedure | Description |
-|-----------|-------------|
-| `(js-promise? obj)` | Returns `#t` if obj is a JavaScript Promise |
-| `(make-js-promise executor)` | Creates a Promise with `(lambda (resolve reject) ...)` |
-| `(js-promise-resolve value)` | Creates a resolved Promise |
-| `(js-promise-reject reason)` | Creates a rejected Promise |
-| `(js-promise-then p handler)` | Attaches fulfillment handler |
-| `(js-promise-catch p handler)` | Attaches rejection handler |
-| `(js-promise-all list)` | Waits for all promises |
-| `(js-promise-race list)` | Waits for first to settle |
-| `(js-promise-map f p)` | Apply function to resolved value |
-| `(js-promise-chain p f ...)` | Chain promise-returning functions |
+## 📖 R7RS Libraries
 
-**Limitations with `call/cc`:**
+The following R7RS-small standard libraries are supported:
+
+| Library | Description |
+|---------|-------------|
+| `(scheme base)` | Core Scheme procedures and macros |
+| `(scheme case-lambda)` | Multi-arity procedure dispatch |
+| `(scheme char)` | Character predicates and case conversion |
+| `(scheme complex)` | Complex number operations |
+| `(scheme cxr)` | Extended car/cdr accessors (caar, cadr, etc.) |
+| `(scheme eval)` | `eval` and `environment` |
+| `(scheme file)` | File I/O (Node.js only) |
+| `(scheme lazy)` | `delay`, `force`, `make-promise`, `promise?` |
+| `(scheme process-context)` | `command-line`, `exit`, `get-environment-variable` |
+| `(scheme read)` | `read` procedure |
+| `(scheme repl)` | `interaction-environment` |
+| `(scheme time)` | `current-second`, `current-jiffy`, `jiffies-per-second` |
+| `(scheme write)` | `display`, `write`, `newline` |
+
+**Extension Libraries:**
+
+| Library | Description |
+|---------|-------------|
+| `(scheme-js interop)` | JavaScript interop (`js-eval`, `js-ref`, etc.) |
+| `(scheme-js promise)` | JavaScript Promise integration |
+
+---
+
+## 🔧 Extensions Beyond R7RS-Small
+
+### Macros
+
+Standard R7RS macros plus extensions:
+
+| Macro | Description |
+|-------|-------------|
+| `and`, `or` | Short-circuit boolean operations |
+| `let`, `let*`, `letrec`, `letrec*` | Binding forms |
+| `cond`, `case` | Conditional dispatch (with `=>` support) |
+| `when`, `unless` | One-armed conditionals |
+| `do` | Iteration construct |
+| `guard` | Exception handling |
+| `let-values`, `let*-values`, `define-values` | Multiple value bindings |
+| `define-record-type` | R7RS record definitions |
+| `case-lambda` | Multi-arity procedure dispatch |
+| `define-class` | **Extension:** JS-compatible class definitions |
+
+### `define-class` (Extension)
+
+Define Scheme classes compatible with JavaScript inheritance:
+
+```scheme
+(define-class Point
+  (make-point x y)
+  point?
+  (fields
+    (x point-x set-point-x!)
+    (y point-y set-point-y!))
+  (methods
+    (distance ((self) other)
+      (let ((dx (- (point-x other) (point-x self)))
+            (dy (- (point-y other) (point-y self))))
+        (sqrt (+ (* dx dx) (* dy dy)))))))
+
+(define p1 (make-point 0 0))
+(define p2 (make-point 3 4))
+((point-distance p1) p2)  ;; => 5
+```
+
+### Additional Procedures
+
+| Procedure | Library | Description |
+|-----------|---------|-------------|
+| `load` | REPL | Load and execute a Scheme file (Node.js only) |
+
+---
+
+## 📚 Documentation
+
+Detailed documentation for project internals:
+
+- [**Architecture & Directory Structure**](./docs/architecture.md): High-level design and detailed file map.
+- [**Trampoline Execution**](./docs/trampoline.md): How the interpreter handles stack frames and TCO.
+- [**Hygiene Implementation**](./docs/hygiene.md): How macro hygiene works using pure marks/scopes.
+- [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
+- [**JavaScript Interoperability**](./docs/Interoperability.md): Deep JS integration and callable closures.
+- [**Changes**](./CHANGES.md): A log of major implementation steps and walkthroughs.
+- [**R7RS Roadmap**](./r7rs_roadmap.md): Compliance progress and future plans.
+
+---
+
+## 🏗️ Architecture
+
+The project follows a **Two-Tier Architecture**:
+1. **JavaScript Core**: The interpreter engine (`src/core/interpreter/`).
+2. **Scheme Libraries**: The standard library in Scheme (`src/core/scheme/`).
+
+### Core Components (`src/core/interpreter/`)
+- **`interpreter.js`**: Trampoline execution loop.
+- **`stepables_base.js`**: Register constants and `Executable` base class.
+- **`ast_nodes.js`**: AST node classes (Literal, If, Lambda, etc.).
+- **`frames.js`**: Continuation frame classes.
+- **`library_loader.js`**: R7RS `define-library` and `import` support.
+
+### Extensions (`src/extras/`)
+- **`primitives/interop.js`**: JS interop procedures.
+- **`primitives/promise.js`**: Promise library primitives.
+- **`scheme/`**: Library definitions for extras.
+
+For a detailed breakdown, see [docs/architecture.md](./docs/architecture.md).
+
+---
+
+## ⚠️ Limitations
+
+### Hygiene
+
+The current implementation addresses **accidental capture** (macro bindings don't capture user variables). It does NOT fully address **reference transparency** for free variables in templates that reference non-global bindings at macro definition time.
+
+What is NOT handled are local definition-site bindings:
+
+```scheme
+;; Macro defined inside a let with a local helper
+(let ((helper (lambda (x) (* x 2))))
+  (define-syntax my-double
+    (syntax-rules ()
+      ((my-double x) (helper x)))))
+;; Later, at expansion site:
+(let ((helper (lambda (x) (+ x 1))))
+  (my-double 5))
+;; BUG: Returns 6 (expansion-site helper) instead of 10
+```
+
+**Why this is rare in practice:**
+- `define-syntax` is almost always used at top level in R7RS
+- Macros typically only reference globally-bound names
+- Special forms are immune (they're recognized syntactically)
+
+### Exact/Inexact Numbers
+
+JavaScript has only one numeric type (IEEE 754 double). Our implementation uses `Number.isInteger()` to distinguish exact from inexact:
+- Integers (`5`, `-42`) are considered **exact**
+- Non-integers (`3.14`, `0.5`) are considered **inexact**
+- `Rational` objects are always **exact**
+
+| Operation | R7RS Expected | Our Result |
+|-----------|---------------|------------|
+| `(inexact 5)` | Inexact `5.0` | `5` (still exact by our predicate) |
+| `(inexact? (inexact 5))` | `#t` | `#f` ❌ |
+| `(exact 3.0)` | Exact `3` | `3` (correct by coincidence) |
+
+**Practical Impact:** Most programs don't rely on the exact/inexact distinction for integers.
+
+### Promise and `call/cc` Interaction
 
 Using `call/cc` across promise boundaries has limitations:
 
@@ -228,12 +463,18 @@ Using `call/cc` across promise boundaries has limitations:
         (+ x 1)))))   ; Never executes
 ```
 
-**Why this happens:**
-1. Each `promise-then` callback runs in a fresh interpreter invocation
-2. Continuations captured inside a callback only escape *that* callback
-3. The JavaScript Promise chain is abandoned, not just the Scheme continuation
+Each `promise-then` callback runs in a fresh interpreter invocation. Continuations captured inside a callback only escape *that* callback, abandoning the JavaScript Promise chain.
 
-**Safe patterns:**
-- Use `call/cc` within a single callback (before any `await` points)
-- Avoid jumping out of promise chains with continuations
-- Consider using explicit error handling with `promise-catch`
+---
+
+## 🛠️ Code Standards
+
+- **Style**: ES Modules (`import`/`export`), JSDoc documentation.
+- **Testing**: Dual environment - all features must work in both Node.js and browsers.
+- **Code Quality**: Strict separation of step-able logic from runtime state.
+
+---
+
+## 📄 License
+
+MIT License
