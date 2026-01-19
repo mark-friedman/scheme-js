@@ -60,3 +60,44 @@
   (test "3.14 is a number" #t (number? 3.14))
   (test "1.5 parsed as number" 1.5 1.5)
   (test "0.5 parsed as number" 0.5 0.5))
+
+;; ============================================================================
+;; js-typeof Tests
+;; ============================================================================
+
+(test-group "js-typeof primitive"
+  (test "js-typeof number" "number" (js-typeof 42))
+  (test "js-typeof string" "string" (js-typeof "hello"))
+  (test "js-typeof boolean" "boolean" (js-typeof #t))
+  ;; Note: In this Scheme implementation, lists/vectors might be objects or arrays
+  ;; Vectors are arrays -> "object"
+  (test "js-typeof vector" "object" (js-typeof #(1 2 3)))
+  ;; Functions (Scheme procedures) are callable -> "function"
+  (test "js-typeof lambda" "function" (js-typeof (lambda (x) x)))
+  ;; Undefined
+  (test "js-typeof undefined" "undefined" (js-typeof (js-eval "undefined")))
+)
+
+;; ============================================================================
+;; js-undefined Tests
+;; ============================================================================
+
+(test-group "js-undefined primitive"
+  (test "js-undefined is undefined" "undefined" (js-typeof js-undefined))
+  (test "compare with raw undefined" #t (eq? js-undefined (js-eval "undefined")))
+  (test "compare with null" #f (eq? js-undefined (js-eval "null")))
+  ;; Check that it is NOT equal to false
+  (test "undefined is not false" #f (eq? js-undefined #f))
+)
+
+;; ============================================================================
+;; js-undefined? Tests
+;; ============================================================================
+
+(test-group "js-undefined? predicate"
+  (test "js-undefined? with undefined" #t (js-undefined? js-undefined))
+  (test "js-undefined? with raw undefined" #t (js-undefined? (js-eval "undefined")))
+  (test "js-undefined? with null" #f (js-undefined? (js-eval "null")))
+  (test "js-undefined? with number" #f (js-undefined? 0))
+  (test "js-undefined? with false" #f (js-undefined? #f))
+)

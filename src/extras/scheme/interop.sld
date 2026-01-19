@@ -11,4 +11,7 @@
     js-set!
     js-invoke
     js-obj
-    js-obj-merge))
+    js-obj-merge
+    js-typeof
+    js-undefined
+    js-undefined?))

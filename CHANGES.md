@@ -3278,3 +3278,46 @@ I verified the interactive `<script type="text/scheme">` example by creating a t
 ## Documentation Links
 - [README.md](./README.md)
 - [Interoperability.md](./docs/Interoperability.md)
+# Walkthrough: JS typeof and undefined Primitives
+
+I have implemented three new primitives to improve JavaScript interoperability, specifically for checking types and handling `undefined` without needing explicit `js-eval` calls.
+
+## Changes
+
+### 1. New Primitives
+Added the following primitives to `src/extras/primitives/interop.js` and exported them in `src/extras/scheme/interop.sld`:
+
+- **`js-typeof`**: Returns the `typeof` a value as a string.
+- **`js-undefined`**: A constant representing the JavaScript `undefined` value.
+- **`js-undefined?`**: A predicate that returns `#t` if the value is `undefined`.
+
+### 2. Documentation
+Updated `docs/Interoperability.md` to include these new primitives in the "JS Interop Primitives" table.
+
+### 3. Tests
+Added new test groups to `tests/extras/scheme/jsref_tests.scm` covering:
+- `js-typeof` with numbers, strings, booleans, vectors (objects), functions, and undefined.
+- `js-undefined` identity and uniqueness (not null, not false).
+- `js-undefined?` predicate behavior.
+
+## Verification Results
+
+### Automated Tests
+Ran `node run_tests_node.js` to verify all tests pass.
+
+```
+=== js-typeof primitive ===
+(test "js-typeof number" "number" (js-typeof 42))
+(test "js-typeof string" "string" (js-typeof "hello"))
+...
+
+=== js-undefined primitive ===
+(test "js-undefined is undefined" "undefined" (js-typeof js-undefined))
+...
+
+=== js-undefined? predicate ===
+(test "js-undefined? with undefined" #t (js-undefined? js-undefined))
+...
+
+TEST SUMMARY: 1501 passed, 0 failed, 3 skipped
+```

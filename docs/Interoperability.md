@@ -144,6 +144,9 @@ The following procedures provide low-level access to JavaScript:
 | `(js-invoke obj method args ...)` | Invokes a method on a JS object. |
 | `(js-obj k1 v1 ...)` | Creates a plain JS object from key-value pairs. |
 | `(js-obj-merge obj ...)` | Merges multiple JS objects. |
+| `(js-typeof val)` | Returns the JavaScript `typeof` as a string. |
+| `js-undefined` | The JavaScript `undefined` value. |
+| `(js-undefined? val)` | Returns `#t` if val is `undefined` or `null`. |
 
 ---
 

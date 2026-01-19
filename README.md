@@ -189,6 +189,9 @@ Import with: `(import (scheme-js interop))`
 | `(js-set! obj prop val)` | Set object property | `(js-set! obj "x" 42)` |
 | `(js-invoke obj method args...)` | Call object method | `(js-invoke console "log" "Hi")` |
 | `(js-obj key val ...)` | Create JS object | `(js-obj 'x 1 'y 2)` → `{x: 1, y: 2}` |
+| `(js-typeof val)` | Get JS type | `(js-typeof 42)` → `"number"` |
+| `js-undefined` | JS undefined value | `(eq? x js-undefined)` |
+| `(js-undefined? val)` | Undefined predicate | `(js-undefined? x)` → `#t` |
 
 ### Dot Notation Syntax
 

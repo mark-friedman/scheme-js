@@ -122,5 +122,28 @@ export const interopPrimitives = {
             }
         }
         return result;
+    },
+
+    /**
+     * Returns the type of a JavaScript value.
+     * @param {*} val - The value to check.
+     * @returns {string} The result of `typeof val`.
+     */
+    'js-typeof': (val) => {
+        return typeof val;
+    },
+
+    /**
+     * The JavaScript `undefined` value.
+     */
+    'js-undefined': undefined,
+
+    /**
+     * Checks if a value is JavaScript undefined or null.
+     * @param {*} val - The value to check.
+     * @returns {boolean} True if val is undefined or null (roughly equivalent to void).
+     */
+    'js-undefined?': (val) => {
+         return val === undefined;
     }
 };
