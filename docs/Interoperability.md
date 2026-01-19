@@ -147,6 +147,9 @@ The following procedures provide low-level access to JavaScript:
 | `(js-typeof val)` | Returns the JavaScript `typeof` as a string. |
 | `js-undefined` | The JavaScript `undefined` value. |
 | `(js-undefined? val)` | Returns `#t` if val is `undefined` or `null`. |
+| `js-null` | The JavaScript `null` value. |
+| `(js-null? val)` | Returns `#t` if val is `null`. |
+| `(js-new constructor args ...)` | Creates a new instance using the `new` operator. |
 
 ---
 

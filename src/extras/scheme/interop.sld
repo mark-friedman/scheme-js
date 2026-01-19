@@ -14,4 +14,7 @@
     js-obj-merge
     js-typeof
     js-undefined
-    js-undefined?))
+    js-undefined?
+    js-null
+    js-null?
+    js-new))

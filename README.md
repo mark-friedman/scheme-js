@@ -5,13 +5,13 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 ## 🎯 Goals
 
 ### Language Goals
-- **Global Environment**: Scheme closures and continuations are first-class JavaScript functions. JavaScript global definitions (on `window` or `globalThis`) are automatically visible in the Scheme global environment.
+- **Global Environment**: JavaScript global definitions (on `window` or `globalThis`) are automatically visible in the Scheme global environment.
 - **Node.js REPL**: Full-featured interactive REPL with history, multiline support, and colorful output.
 - **Browser-Ready**: Easy integration via a custom `<scheme-repl>` web component or standard `<script>` tags.
 - **R7RS-Small**: High degree of compatibility with the R7RS-small standard (see [R7RS Libraries](#r7rs-libraries)).
 - **Tail Call Optimization (TCO)**: Proper handling of tail recursion (even when interleaved with JS) using a trampoline architecture.
 - **First-Class Continuations**: Full support for `call/cc`, including `dynamic-wind` and multiple return values.
-- **JavaScript Interop**: Seamless calling between Scheme and JavaScript, including shared data structures and transparent boundary crossing.
+- **JavaScript Interop**: Seamless calling between Scheme and JavaScript, including shared data structures and transparent boundary crossing. Scheme closures and continuations are first-class JavaScript functions.
 
 ### Architectural Goals
 - **Layered Design**: Build complex features (macros, data structures) on top of a minimal, robust kernel.
@@ -189,9 +189,32 @@ Import with: `(import (scheme-js interop))`
 | `(js-set! obj prop val)` | Set object property | `(js-set! obj "x" 42)` |
 | `(js-invoke obj method args...)` | Call object method | `(js-invoke console "log" "Hi")` |
 | `(js-obj key val ...)` | Create JS object | `(js-obj 'x 1 'y 2)` → `{x: 1, y: 2}` |
+| `(js-obj-merge obj ...)` | Merge objects | `(js-obj-merge obj1 obj2)` → `{...obj1, ...obj2}` |
 | `(js-typeof val)` | Get JS type | `(js-typeof 42)` → `"number"` |
 | `js-undefined` | JS undefined value | `(eq? x js-undefined)` |
 | `(js-undefined? val)` | Undefined predicate | `(js-undefined? x)` → `#t` |
+| `js-null` | JS null value | `(eq? x js-null)` |
+| `(js-null? val)` | Null predicate | `(js-null? x)` → `#t` |
+| `(js-new constructor args...)` | Instantiate JS class | `(js-new Date 2024 0 1)` |
+
+### Instantiating JavaScript Classes
+
+Use `js-new` to create instances of JavaScript classes with the `new` operator:
+
+```scheme
+;; JavaScript globals are automatically available
+(define now (js-new Date))
+(define birthday (js-new Date 1990 0 1))
+
+;; Standard library classes
+(define my-map (js-new Map))
+(my-map.set "key" "value")
+(my-map.get "key")  ;; => "value"
+
+;; Create arrays with specific length
+(define arr (js-new Array 10))
+arr.length  ;; => 10
+```
 
 ### Dot Notation Syntax
 
@@ -348,8 +371,23 @@ Standard R7RS macros plus extensions:
 
 ### `define-class` (Extension)
 
-Define Scheme classes compatible with JavaScript inheritance:
+Define Scheme classes compatible with JavaScript inheritance.
 
+**Basic syntax:**
+```scheme
+(define-class ClassName [ParentClass]
+  (constructor-name params...)
+  predicate-name
+  (fields
+    (field-name accessor [mutator])
+    ...)
+  (methods
+    (method-name ((self) params...)
+      body...)
+    ...))
+```
+
+**Basic example:**
 ```scheme
 (define-class Point
   (make-point x y)
@@ -367,6 +405,38 @@ Define Scheme classes compatible with JavaScript inheritance:
 (define p2 (make-point 3 4))
 ((point-distance p1) p2)  ;; => 5
 ```
+
+**Inheritance example:**
+```scheme
+;; Extend Point with a color field
+(define-class ColoredPoint Point
+  (make-colored-point x y color)
+  colored-point?
+  (fields
+    (color point-color set-point-color!))
+  (methods
+    (describe ((self))
+      (string-append 
+        (point-color self) 
+        " point at (" 
+        (number->string (point-x self))
+        ", "
+        (number->string (point-y self))
+        ")"))))
+
+(define cp (make-colored-point 3 4 "red"))
+(point-x cp)              ;; => 3 (inherited accessor)
+((point-distance cp) p1)  ;; => 5 (inherited method)
+((colored-point-describe cp))  ;; => "red point at (3, 4)"
+```
+
+**Features:**
+- **Inheritance**: Optional parent class for extending existing classes
+- **Constructor**: Automatically calls parent constructor if present
+- **Fields**: Define accessors and optional mutators
+- **Methods**: Added to JavaScript prototype for JS interop
+- **Predicates**: Type checking with generated predicate function
+
 
 ### Additional Procedures
 

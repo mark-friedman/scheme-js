@@ -101,3 +101,51 @@
   (test "js-undefined? with number" #f (js-undefined? 0))
   (test "js-undefined? with false" #f (js-undefined? #f))
 )
+
+;; ============================================================================
+;; js-null Tests
+;; ============================================================================
+
+(test-group "js-null primitive"
+  (test "js-null is null" "object" (js-typeof js-null))
+  (test "compare with raw null" #t (eq? js-null (js-eval "null")))
+  (test "compare with undefined" #f (eq? js-null (js-eval "undefined")))
+  ;; Check that it is NOT equal to false
+  (test "null is not false" #f (eq? js-null #f))
+)
+
+;; ============================================================================
+;; js-null? Tests
+;; ============================================================================
+
+(test-group "js-null? predicate"
+  (test "js-null? with null" #t (js-null? js-null))
+  (test "js-null? with raw null" #t (js-null? (js-eval "null")))
+  (test "js-null? with undefined" #f (js-null? (js-eval "undefined")))
+  (test "js-null? with number" #f (js-null? 0))
+  (test "js-null? with false" #f (js-null? #f))
+)
+
+;; ============================================================================
+;; js-new Tests
+;; ============================================================================
+
+(test-group "js-new primitive"
+  ;; Test with Date constructor
+  (define my-date (js-new Date 2024 0 15))
+  (test "js-new Date creates object" "object" (js-typeof my-date))
+  (test "js-new Date year" 2024 (my-date.getFullYear))
+  (test "js-new Date month" 0 (my-date.getMonth))
+  (test "js-new Date day" 15 (my-date.getDate))
+  
+  ;; Test with Map constructor
+  (define my-map (js-new Map))
+  (test "js-new Map creates object" "object" (js-typeof my-map))
+  (my-map.set "key" "value")
+  (test "js-new Map functionality" "value" (my-map.get "key"))
+  
+  ;; Test with Array constructor
+  (define my-array (js-new Array 5))
+  (test "js-new Array creates object" "object" (js-typeof my-array))
+  (test "js-new Array length" 5 my-array.length)
+)

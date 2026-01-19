@@ -144,6 +144,33 @@ export const interopPrimitives = {
      * @returns {boolean} True if val is undefined or null (roughly equivalent to void).
      */
     'js-undefined?': (val) => {
-         return val === undefined;
+        return val === undefined;
+    },
+
+    /**
+     * The JavaScript `null` value.
+     */
+    'js-null': null,
+
+    /**
+     * Checks if a value is JavaScript null.
+     * @param {*} val - The value to check.
+     * @returns {boolean} True if val is null.
+     */
+    'js-null?': (val) => {
+        return val === null;
+    },
+
+    /**
+     * Creates a new instance of a JavaScript class using the `new` operator.
+     * @param {Function} constructor - The constructor function or class.
+     * @param {...*} args - Arguments to pass to the constructor.
+     * @returns {Object} The new instance.
+     */
+    'js-new': (constructor, ...args) => {
+        if (typeof constructor !== 'function') {
+            throw new SchemeTypeError('js-new', 1, 'function', constructor);
+        }
+        return new constructor(...args);
     }
 };
