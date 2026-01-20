@@ -77,4 +77,83 @@
         (get-output-string out)))
   )
   
+  ;; ===== object printing tests =====
+  
+  (test-group "object printing"
+    
+    (test "write simple object"
+      "#{(a 1) (b 2)}"
+      (let ((out (open-output-string)))
+        (write #{(a 1) (b 2)} out)
+        (get-output-string out)))
+    
+    (test "display object with string value"
+      "#{(name hello)}"
+      (let ((out (open-output-string)))
+        (display #{(name "hello")} out)
+        (get-output-string out)))
+    
+    (test "write object with string value"
+      "#{(name \"hello\")}"
+      (let ((out (open-output-string)))
+        (write #{(name "hello")} out)
+        (get-output-string out)))
+    
+    (test "write empty object"
+      "#{}"
+      (let ((out (open-output-string)))
+        (write #{} out)
+        (get-output-string out)))
+  )
+  
+  ;; ===== roundtrip tests (write -> read -> equal?) =====
+  
+  (test-group "roundtrip"
+    
+    ;; Objects: equal? doesn't support JS objects, so compare written forms
+    ;; The round trip is: write -> read -> eval -> write, check strings match
+    (test "object roundtrip"
+      #t
+      (let* ((obj #{(a 1) (b "hello")})
+             (write-str (lambda (x) 
+                          (let ((p (open-output-string)))
+                            (write x p)
+                            (get-output-string p))))
+             (str1 (write-str obj))
+             (readback (eval (read (open-input-string str1)) (interaction-environment)))
+             (str2 (write-str readback)))
+        (string=? str1 str2)))
+    
+    ;; Vectors: equal? supports vectors
+    (test "vector roundtrip"
+      #t
+      (let* ((vec #(1 2 3 "test"))
+             (str (let ((p (open-output-string)))
+                    (write vec p)
+                    (get-output-string p))))
+        (equal? vec (read (open-input-string str)))))
+    
+    ;; Nested objects: compare written forms
+    (test "nested object roundtrip"
+      #t
+      (let* ((obj #{(inner #{(x 1)})})
+             (write-str (lambda (x) 
+                          (let ((p (open-output-string)))
+                            (write x p)
+                            (get-output-string p))))
+             (str1 (write-str obj))
+             (readback (eval (read (open-input-string str1)) (interaction-environment)))
+             (str2 (write-str readback)))
+        (string=? str1 str2)))
+    
+    ;; Lists: equal? supports lists
+    (test "list roundtrip"
+      #t
+      (let* ((lst '(1 2 (3 4) "test"))
+             (str (let ((p (open-output-string)))
+                    (write lst p)
+                    (get-output-string p))))
+        (equal? lst (read (open-input-string str)))))
+  )
+  
 ) ;; end test-group

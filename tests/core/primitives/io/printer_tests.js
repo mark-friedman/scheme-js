@@ -42,6 +42,45 @@ export function runPrinterTests(logger) {
     const shared = new Cons(100, null);
     const dag = new Cons(shared, new Cons(shared, null));
     assert(logger, "write shared dag", writeStringShared(dag), "(#0=(100) #0#)");
+
+    // Objects
+    logger.title("Object Printing");
+
+    // Simple object
+    const simpleObj = { a: 1, b: 2 };
+    assert(logger, "display simple object", displayString(simpleObj), "#{(a 1) (b 2)}");
+    assert(logger, "write simple object", writeString(simpleObj), "#{(a 1) (b 2)}");
+
+    // Empty object
+    const emptyObj = {};
+    assert(logger, "display empty object", displayString(emptyObj), "#{}");
+
+    // Object with string value
+    const objWithString = { name: "alice" };
+    assert(logger, "display object with string", displayString(objWithString), '#{(name alice)}');
+    assert(logger, "write object with string", writeString(objWithString), '#{(name "alice")}');
+
+    // Nested object
+    const nestedObj = { outer: { inner: 1 } };
+    assert(logger, "display nested object", displayString(nestedObj), "#{(outer #{(inner 1)})}");
+
+    // Object with special key (needs quoting)
+    const specialKeyObj = { "foo bar": 1 };
+    assert(logger, "write object with special key", writeString(specialKeyObj), '#{("foo bar" 1)}');
+
+    // Object with numeric-looking key
+    const numKeyObj = { "123": 456 };
+    assert(logger, "write object with numeric key", writeString(numKeyObj), '#{("123" 456)}');
+
+    // Circular object (write-shared)
+    const circObj = { name: "root" };
+    circObj.self = circObj;
+    assert(logger, "write shared circular object", writeStringShared(circObj), '#0=#{(name "root") (self #0#)}');
+
+    // Object containing shared sub-object
+    const innerObj = { x: 1 };
+    const objWithShared = { a: innerObj, b: innerObj };
+    assert(logger, "write shared nested object", writeStringShared(objWithShared), "#{(a #0=#{(x 1)}) (b #0#)}");
 }
 
 // Allow direct execution

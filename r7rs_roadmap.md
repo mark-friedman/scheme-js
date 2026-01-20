@@ -17,6 +17,7 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Type Predicates:** `number?`, `boolean?`, `procedure?`, `list?`, `symbol?`, `error-object?` ✅
 - **Reader Refactor:** Modularized `reader.js` into focused submodules with expanded unit testing ✅
 - **Type/Arity/Range Checking:** All primitives validate inputs ✅
+- **Object Printing:** Proper `#{(key val)...}` syntax for JS objects with circular support ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete
@@ -364,6 +365,7 @@ Implemented the remaining R7RS standard libraries:
 | **JS Subclassing** | Mechanism to define Scheme classes that subclass native JS classes (`define-class`). | ✅ |
 | **`this` Binding** | Correct handling and lexical binding of `this` in Scheme methods. | ✅ |
 | **Iterable Lists** | Make `Cons` implement JS Iterable protocol. | ❌ |
+| **Object Printing** | Proper reader syntax and circular support for JS objects. | ✅ |
 
 ---
 

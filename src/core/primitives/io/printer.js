@@ -39,8 +39,9 @@ export function displayString(val) {
         if (name === 'Closure') return val.toString();
         return `#<procedure ${name}>`;
     }
-    if (val && val.type === 'record') {
-        return `#<${val.typeDescriptor.name}>`;
+    // Handle object-like values (plain objects, records, class instances)
+    if (isObjectLike(val)) {
+        return objectToString(val, displayString);
     }
     return String(val);
 }
@@ -99,8 +100,9 @@ export function writeString(val) {
         // Character objects would be handled separately
         return '"' + val + '"';
     }
-    if (val && val.type === 'record') {
-        return `#<${val.typeDescriptor.name}>`;
+    // Handle object-like values (plain objects, records, class instances)
+    if (isObjectLike(val)) {
+        return objectToString(val, writeString);
     }
     return String(val);
 }
@@ -183,8 +185,8 @@ export function writeStringShared(val) {
         if (obj === null || typeof obj !== 'object') return;
         if (typeof obj === 'function') return;
 
-        // Skip non-compound types
-        if (!(obj instanceof Cons) && !Array.isArray(obj)) return;
+        // Skip non-compound types (but include object-like values)
+        if (!(obj instanceof Cons) && !Array.isArray(obj) && !isObjectLike(obj)) return;
 
         if (seen.has(obj)) {
             const info = seen.get(obj);
@@ -200,6 +202,13 @@ export function writeStringShared(val) {
             } else if (Array.isArray(obj)) {
                 for (const elem of obj) {
                     countOccurrences(elem);
+                }
+            } else if (isObjectLike(obj)) {
+                // Traverse object values for circular reference detection
+                for (const key of Object.keys(obj)) {
+                    if (key !== 'type' && key !== 'typeDescriptor') {
+                        countOccurrences(obj[key]);
+                    }
                 }
             }
         }
@@ -224,7 +233,7 @@ export function writeStringShared(val) {
                 .replace(/\t/g, '\\t') + '"';
         }
         if (typeof obj === 'number') return String(obj);
-        if (obj && obj.name && obj.description === undefined) return obj.name; // Symbol
+        if (obj instanceof Symbol) return writeSymbol(obj.name); // Symbol
         if (obj === EOF_OBJECT) return '#<eof>';
         if (obj instanceof Port) return obj.toString();
         if (typeof obj === 'function') {
@@ -232,12 +241,8 @@ export function writeStringShared(val) {
             if (name === 'Closure') return obj.toString();
             return `#<procedure ${name}>`;
         }
-        if (obj && obj.type === 'record') {
-            return `#<${obj.typeDescriptor.name}>`;
-        }
-
         // Handle compound types with sharing detection
-        if (obj instanceof Cons || Array.isArray(obj)) {
+        if (obj instanceof Cons || Array.isArray(obj) || isObjectLike(obj)) {
             const info = seen.get(obj);
             if (info && info.id !== null) {
                 if (emitted.has(obj)) {
@@ -248,16 +253,20 @@ export function writeStringShared(val) {
                     emitted.add(obj);
                     if (obj instanceof Cons) {
                         return `#${info.id}=${consToStringShared(obj, emit)}`;
-                    } else {
+                    } else if (Array.isArray(obj)) {
                         return `#${info.id}=${vectorToStringShared(obj, emit)}`;
+                    } else {
+                        return `#${info.id}=${objectToStringShared(obj, emit)}`;
                     }
                 }
             } else {
                 // Not shared - normal output
                 if (obj instanceof Cons) {
                     return consToStringShared(obj, emit);
-                } else {
+                } else if (Array.isArray(obj)) {
                     return vectorToStringShared(obj, emit);
+                } else {
+                    return objectToStringShared(obj, emit);
                 }
             }
         }
@@ -265,6 +274,24 @@ export function writeStringShared(val) {
         if (obj instanceof Uint8Array) return bytevectorToString(obj);
 
         return String(obj);
+    }
+
+    function objectToStringShared(obj, emitFn) {
+        const entries = Object.entries(obj).filter(([key]) => {
+            return key !== 'type' && key !== 'typeDescriptor';
+        });
+
+        if (entries.length === 0) {
+            return '#{}';
+        }
+
+        const parts = entries.map(([key, value]) => {
+            const keyStr = formatObjectKey(key);
+            const valStr = emitFn(value);
+            return `(${keyStr} ${valStr})`;
+        });
+
+        return '#{' + parts.join(' ') + '}';
     }
 
     function consToStringShared(cons, emitFn) {
@@ -338,4 +365,77 @@ function vectorToString(vec, elemFn) {
 
 function bytevectorToString(bv) {
     return '#u8(' + Array.from(bv).join(' ') + ')';
+}
+
+// ============================================================================
+// Object Printing Helpers
+// ============================================================================
+
+/**
+ * Checks if a value should be printed as a JS object literal #{...}.
+ * Includes plain objects, records, and class instances.
+ * Excludes arrays, typed arrays, Cons cells, Ports, closures, etc.
+ * @param {*} val - The value to check.
+ * @returns {boolean} True if val should print as #{...}.
+ */
+function isObjectLike(val) {
+    if (val === null || typeof val !== 'object') return false;
+    if (Array.isArray(val)) return false;
+    if (val instanceof Uint8Array) return false;
+    if (val instanceof Cons) return false;
+    if (val instanceof Port) return false;
+    if (val instanceof Symbol) return false;
+    if (val === EOF_OBJECT) return false;
+    // Check for char objects
+    if (val.type === 'char') return false;
+    // It's an object-like value (plain object, record, or class instance)
+    return true;
+}
+
+/**
+ * Converts a JavaScript object to its reader syntax representation.
+ * Format: #{(key1 val1) (key2 val2) ...}
+ * Keys that are valid Scheme identifiers are unquoted; others are quoted strings.
+ * @param {Object} obj - The object to convert.
+ * @param {Function} elemFn - Function to convert values (displayString or writeString).
+ * @returns {string} The #{...} representation.
+ */
+function objectToString(obj, elemFn) {
+    const entries = Object.entries(obj).filter(([key]) => {
+        // Skip internal properties like 'type', 'typeDescriptor' for records
+        // But include all user-defined fields
+        return key !== 'type' && key !== 'typeDescriptor';
+    });
+
+    if (entries.length === 0) {
+        return '#{}';
+    }
+
+    const parts = entries.map(([key, value]) => {
+        const keyStr = formatObjectKey(key);
+        const valStr = elemFn(value);
+        return `(${keyStr} ${valStr})`;
+    });
+
+    return '#{' + parts.join(' ') + '}';
+}
+
+/**
+ * Formats an object key for printing.
+ * Valid Scheme identifiers are unquoted; others are quoted strings.
+ * @param {string} key - The object key.
+ * @returns {string} Formatted key.
+ */
+function formatObjectKey(key) {
+    // Use the same logic as symbolNeedsEscaping to determine if quoting is needed
+    if (symbolNeedsEscaping(key)) {
+        // Quote the key as a string
+        return '"' + key
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t') + '"';
+    }
+    return key;
 }

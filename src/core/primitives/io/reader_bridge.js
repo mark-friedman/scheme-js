@@ -22,6 +22,7 @@ export function readExpressionFromPort(port) {
     while (true) {
         let hitEOF = false;
         let parenDepth = 0;
+        let braceDepth = 0;  // Track object literal braces
         let inString = false;
         let inVerticalBar = false;
         let escaped = false;
@@ -44,9 +45,10 @@ export function readExpressionFromPort(port) {
 
             // Check for atom delimiters when we are reading a top-level atom
             // Delimiters: whitespace, (, ), ", ;
-            if (started && parenDepth === 0 && !inString && !inVerticalBar) {
+            if (started && parenDepth === 0 && braceDepth === 0 && !inString && !inVerticalBar) {
                 if (/\s/.test(next) ||
                     next === '(' || next === ')' ||
+                    next === '{' || next === '}' ||
                     next === '"' || next === ';') {
                     break;
                 }
@@ -105,8 +107,8 @@ export function readExpressionFromPort(port) {
             if (ch === '"') {
                 inString = !inString;
                 started = true;
-                if (!inString && parenDepth === 0) {
-                    // Finished string at top level
+                if (!inString && parenDepth === 0 && braceDepth === 0) {
+                    // Finished string at top level (outside all parens and braces)
                     break;
                 }
             } else if (!inString) {
@@ -115,7 +117,15 @@ export function readExpressionFromPort(port) {
                     started = true;
                 } else if (ch === ')') {
                     parenDepth--;
-                    if (parenDepth <= 0 && started) {
+                    if (parenDepth <= 0 && braceDepth <= 0 && started) {
+                        break;
+                    }
+                } else if (ch === '{') {
+                    braceDepth++;
+                    started = true;
+                } else if (ch === '}') {
+                    braceDepth--;
+                    if (parenDepth <= 0 && braceDepth <= 0 && started) {
                         break;
                     }
                 } else if (ch === '#') {
@@ -127,6 +137,12 @@ export function readExpressionFromPort(port) {
                         port.readChar();
                         buffer += '(';
                         parenDepth++;
+                        started = true;
+                    } else if (n === '{') {
+                        // Object literal start: #{
+                        port.readChar();
+                        buffer += '{';
+                        braceDepth++;
                         started = true;
                     } else if (n === 'u' || n === 'U') {
                         // Possibly #u8( bytevector
@@ -150,7 +166,7 @@ export function readExpressionFromPort(port) {
                 } else if (!started && !/\s/.test(ch)) {
                     // Started a hidden atom (symbol, number, etc)
                     started = true;
-                } else if (started && parenDepth === 0 && /\s/.test(ch)) {
+                } else if (started && parenDepth === 0 && braceDepth === 0 && /\s/.test(ch)) {
                     // Ended an atom at top level (Should be caught by peek check above)
                     break;
                 }

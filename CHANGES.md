@@ -3372,3 +3372,31 @@ This is transformed at the analyzer level to `(class-super-call this 'methodName
   - Explicit super call with custom args
   - Super call with computed args
   - Super method call syntax
+
+# 2026-01-20: Proper Object Printing and Reader Support
+
+Implemented proper object printing with reader syntax `#{(key val)...}` and circular structure support. Modified `reader_bridge.js` to ensure object literals can be read correctly from ports.
+
+## Changes
+
+### 1. Printer Updates (`src/core/primitives/io/printer.js`)
+- Implemented `isObjectLike`, `objectToString`, and `objectToStringShared` helpers.
+- Plain JS objects, records, and class instances now print using the object literal syntax instead of `[object Object]`.
+- Added support for datum labels (`#n=`, `#n#`) in circular and shared objects within `write-shared`.
+- **Bug Fix**: Fixed symbol detection in `writeStringShared` which was incorrectly matching plain objects with a `name` property.
+
+### 2. Reader Bridge Fixes (`src/core/primitives/io/reader_bridge.js`)
+- Added `braceDepth` tracking for `{` and `}` to allow the reader to correctly collect full object literal "chunks" from ports.
+- Added explicit handling for the `#{` token start.
+- **Bug Fixes**: 
+  - Fixed an issue where strings ending inside an object literal (e.g., `#{(a \"s\")}`) caused the reader to break early.
+  - Fixed an issue where whitespace following a nested list in an object literal (e.g., `#{(a 1) (b 2)}`) caused premature parsing.
+
+### 3. Testing
+- Added comprehensive unit tests for object printing in `tests/core/primitives/io/printer_tests.js`.
+- Added roundtrip tests in `tests/core/scheme/write_tests.scm` verifying that objects, vectors, and lists can be written and successfully read back (using `write` -> `read` -> `eval` -> `write` equality).
+
+## Verification Results
+- **All 1546 tests pass** ✓
+- Verified circular object support: `#0=#{(self #0#)}`
+- Verified nested and escaped string support within object literals.
