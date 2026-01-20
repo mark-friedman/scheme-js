@@ -227,14 +227,30 @@ function analyzeApplication(exp, syntacticEnv, ctx) {
   const operator = fileArray[0];
 
   // Check for JS Method Call: (js-ref obj "method")(args...) -> (js-invoke obj "method" args...)
+  // Special case: (js-ref super "method")(args...) -> (class-super-call this 'method args...)
   if (operator instanceof Cons) {
     const opCar = car(operator);
     const opName = (opCar instanceof Symbol) ? opCar.name : (isSyntaxObject(opCar) ? syntaxName(opCar) : null);
     if (opName === 'js-ref') {
-      const objExpr = analyze(cadr(operator), syntacticEnv, ctx);
+      const objExpr = cadr(operator);
       const methodName = caddr(operator);
+
+      // Check if object is 'super' - transform to class-super-call
+      const objName = (objExpr instanceof Symbol) ? objExpr.name :
+        (isSyntaxObject(objExpr) ? syntaxName(objExpr) : null);
+      if (objName === 'super') {
+        // Transform (super.methodName args...) to (class-super-call this 'methodName args...)
+        const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv, ctx));
+        return new TailAppNode(
+          new VariableNode('class-super-call'),
+          [new VariableNode('this'), new LiteralNode(intern(methodName)), ...argExprs]
+        );
+      }
+
+      // Normal js-ref optimization
+      const analyzedObj = analyze(objExpr, syntacticEnv, ctx);
       const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv, ctx));
-      return new TailAppNode(new VariableNode('js-invoke'), [objExpr, new LiteralNode(methodName), ...argExprs]);
+      return new TailAppNode(new VariableNode('js-invoke'), [analyzedObj, new LiteralNode(methodName), ...argExprs]);
     }
   }
 

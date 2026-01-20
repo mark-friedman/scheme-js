@@ -11,9 +11,12 @@ export function runClassInteropTests(interpreter, logger) {
   // 1. Defining a class in Scheme and using it in JS
   run(interpreter, `
         (define-class <Person>
-          (Person name age)
+          Person
           person?
           (fields (name person-name) (age person-age))
+          (constructor (name age)
+            (set! this.name name)
+            (set! this.age age))
           (methods
             (greet (other) (string-append "Hello " other ", I am " this.name))))
     `);
@@ -83,9 +86,13 @@ export function runClassInteropTests(interpreter, logger) {
   // 7. Inheritance check in JS
   run(interpreter, `
         (define-class <Employee> <Person>
-          (Employee name age job)
+          Employee
           employee?
           (fields (job employee-job))
+          (constructor (name age job)
+            (set! this.name name)
+            (set! this.age age)
+            (set! this.job job))
           (methods
             (work () (string-append this.name " is working as " this.job))))
     `);

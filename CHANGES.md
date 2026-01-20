@@ -3321,3 +3321,54 @@ Ran `node run_tests_node.js` to verify all tests pass.
 
 TEST SUMMARY: 1501 passed, 0 failed, 3 skipped
 ```
+
+---
+
+# 2026-01-19: Enhanced `define-class` with Custom Constructors and Super Calls
+
+Added comprehensive support for custom constructors and `super` calls in the `define-class` macro.
+
+## New Features
+
+### 1. Constructor Clause with Explicit Super Call
+The `(constructor ...)` clause now supports custom initialization logic with explicit `(super ...)` calls:
+
+```scheme
+(define-class ColoredPoint Point
+  make-colored-point
+  colored-point?
+  (fields (color point-color))
+  (constructor (x y color)
+    (super x y)              ;; Custom args to parent constructor
+    (set! this.color color))
+  (methods ...))
+```
+
+### 2. Super Method Calls with Nice Syntax
+Methods can now call parent implementations using `super.methodName`:
+
+```scheme
+(methods
+  (magnitude ()
+    (+ 100 (super.magnitude))))  ;; Calls parent's magnitude method
+```
+
+This is transformed at the analyzer level to `(class-super-call this 'methodName args...)`.
+
+## Implementation Details
+
+### Files Modified
+- **src/core/primitives/class.js**: Added `make-class-with-init` primitive with two-phase construction (`superArgsFn` + `initFn`), and `class-super-call` for parent method invocation
+- **src/core/scheme/macros.scm**: Updated `define-class` macro with patterns for super-only, super-with-body, and no-super cases
+- **src/core/interpreter/analyzer.js**: Added transformation of `(super.methodName ...)` to `(class-super-call this 'methodName ...)`
+
+### New Primitives
+- `make-class-with-init`: Creates class with custom super args function and init function
+- `class-super-call`: Calls parent method with correct `this` binding
+
+## Verification
+- All 1528 tests pass
+- New tests added in `tests/extras/scheme/class_tests.scm`:
+  - Explicit super call with custom args
+  - Super call with computed args
+  - Super method call syntax

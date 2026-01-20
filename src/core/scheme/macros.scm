@@ -193,6 +193,10 @@
 ;;  */
 (define-syntax define-class-method
   (syntax-rules ()
+    ;; With parent (ignored for now - super access via class-super-call primitive)
+    ((define-class-method type parent (name (param ...) body ...))
+     (class-method-set! type 'name (lambda (param ...) body ...)))
+    ;; Without parent
     ((define-class-method type (name (param ...) body ...))
      (class-method-set! type 'name (lambda (param ...) body ...)))))
 
@@ -203,34 +207,109 @@
 ;;  *
 ;;  * Syntax:
 ;;  * (define-class type [parent]
-;;  *   (constructor constructor-tag ...)
+;;  *   constructor-name
 ;;  *   predicate
 ;;  *   (fields (field-tag accessor [modifier]) ...)
+;;  *   [(constructor (params ...) body ...)]
 ;;  *   (methods (method-name (params ...) body ...) ...))
+;;  *
+;;  * If constructor clause is omitted:
+;;  *   - Without parent: fields become constructor params, sets them automatically
+;;  *   - With parent: passes all field params to super, then sets own fields
+;;  *
+;;  * If constructor clause is present:
+;;  *   - With parent: must call (super args...) before using this
+;;  *   - Body can initialize fields and perform other setup
 ;;  */
 (define-syntax define-class
-  (syntax-rules (fields methods)
-    ;; Form with parent class
+  (syntax-rules (fields methods constructor super)
+    ;; Form with parent + constructor with ONLY (super ...) - no init body
     ((define-class type parent
-       (constructor-name field-tag ...)
+       constructor-name
        predicate
        (fields (field-tag-spec accessor . more) ...)
-       (methods (method-name params . body) ...))
+       (constructor (param ...) (super super-arg ...))
+       (methods (method-name method-params . method-body) ...))
      (begin
-       (define type (make-class 'type parent '(field-tag-spec ...) '(field-tag ...)))
-       (define constructor-name (record-constructor type))
+       (define type (make-class-with-init 'type parent '(field-tag-spec ...) '(param ...)
+                      (lambda (param ...) (vector super-arg ...))  ;; superArgsFn
+                      #f))                                         ;; no initFn
+       (define constructor-name type)
        (define predicate (record-predicate type))
        (define-class-field type field-tag-spec accessor . more) ...
-       (define-class-method type (method-name params . body)) ...))
-    ;; Form without parent class
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form with parent + constructor with (super ...) AND body
+    ((define-class type parent
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (constructor (param ...) (super super-arg ...) body0 body ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class-with-init 'type parent '(field-tag-spec ...) '(param ...)
+                      (lambda (param ...) (vector super-arg ...))  ;; superArgsFn
+                      (lambda (param ...) body0 body ...)))        ;; initFn
+       (define constructor-name type)
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form with parent + constructor WITHOUT (super ...) - pass all args to super
+    ((define-class type parent
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (constructor (param ...) body ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class-with-init 'type parent '(field-tag-spec ...) '(param ...)
+                      #f                                  ;; superArgsFn = null, use all args
+                      (lambda (param ...) body ...)))     ;; initFn
+       (define constructor-name type)
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form without parent + custom constructor clause
     ((define-class type
-       (constructor-name field-tag ...)
+       constructor-name
        predicate
        (fields (field-tag-spec accessor . more) ...)
-       (methods (method-name params . body) ...))
+       (constructor (param ...) body ...)
+       (methods (method-name method-params . method-body) ...))
      (begin
-       (define type (make-class 'type #f '(field-tag-spec ...) '(field-tag ...)))
+       (define type (make-class-with-init 'type #f '(field-tag-spec ...) '(param ...)
+                      #f                                  ;; no super for no-parent
+                      (lambda (param ...) body ...)))     ;; initFn
+       (define constructor-name type)
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type (method-name method-params . method-body)) ...))
+
+    ;; Form with parent, no constructor clause (default behavior)
+    ((define-class type parent
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class 'type parent '(field-tag-spec ...) '(field-tag-spec ...)))
        (define constructor-name (record-constructor type))
        (define predicate (record-predicate type))
        (define-class-field type field-tag-spec accessor . more) ...
-       (define-class-method type (method-name params . body)) ...))))
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form without parent, no constructor clause (default behavior)
+    ((define-class type
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class 'type #f '(field-tag-spec ...) '(field-tag-spec ...)))
+       (define constructor-name (record-constructor type))
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type (method-name method-params . method-body)) ...))))
+

@@ -261,6 +261,20 @@ Create JavaScript objects using a concise literal syntax:
 #{(... base) (c 3)}         ;; => {a: 1, b: 2, c: 3}
 ```
 
+> [!IMPORTANT]
+> **Literal Evaluation Semantics:** The `#{}` object literal syntax evaluates its values at runtime (like JavaScript), while `#()` vector literals do not evaluate their contents (following R7RS standard). When nesting object literals (or any evaluated expressions) inside vectors, use `(vector ...)` instead of `#(...)` to ensure the objects are evaluated:
+> 
+> ```scheme
+> ;; Correct - objects are evaluated:
+> (vector #{(x 1)} #{(y 2)})
+> ;; => [object, object]
+> 
+> ;; Incorrect - creates unevaluated expressions:
+> #(#{(x 1)} #{(y 2)})
+> ;; => [cons-cell, cons-cell]
+> ```
+
+
 ### Callable Closures
 
 Scheme closures are callable JavaScript functions:
@@ -373,16 +387,18 @@ Standard R7RS macros plus extensions:
 
 Define Scheme classes compatible with JavaScript inheritance.
 
-**Basic syntax:**
+**Syntax:**
 ```scheme
 (define-class ClassName [ParentClass]
-  (constructor-name params...)
+  constructor-name
   predicate-name
   (fields
     (field-name accessor [mutator])
     ...)
+  [(constructor (params...)
+    body...)]
   (methods
-    (method-name ((self) params...)
+    (method-name (params...)
       body...)
     ...))
 ```
@@ -390,52 +406,45 @@ Define Scheme classes compatible with JavaScript inheritance.
 **Basic example:**
 ```scheme
 (define-class Point
-  (make-point x y)
+  make-point
   point?
-  (fields
-    (x point-x set-point-x!)
-    (y point-y set-point-y!))
+  (fields (x point-x) (y point-y))
+  (constructor (x y)
+    (set! this.x x)
+    (set! this.y y))
   (methods
-    (distance ((self) other)
-      (let ((dx (- (point-x other) (point-x self)))
-            (dy (- (point-y other) (point-y self))))
-        (sqrt (+ (* dx dx) (* dy dy)))))))
+    (magnitude ()
+      (sqrt (+ (* this.x this.x) (* this.y this.y))))))
 
-(define p1 (make-point 0 0))
-(define p2 (make-point 3 4))
-((point-distance p1) p2)  ;; => 5
+(define p (make-point 3 4))
+(p.magnitude)  ;; => 5
 ```
 
-**Inheritance example:**
+**Custom constructor with explicit super call:**
 ```scheme
-;; Extend Point with a color field
 (define-class ColoredPoint Point
-  (make-colored-point x y color)
+  make-colored-point
   colored-point?
-  (fields
-    (color point-color set-point-color!))
+  (fields (color point-color))
+  (constructor (x y color)
+    (super x y)              ;; Call parent constructor with custom args
+    (set! this.color color))
   (methods
-    (describe ((self))
-      (string-append 
-        (point-color self) 
-        " point at (" 
-        (number->string (point-x self))
-        ", "
-        (number->string (point-y self))
-        ")"))))
+    (describe ()
+      (string-append this.color " point"))))
 
 (define cp (make-colored-point 3 4 "red"))
-(point-x cp)              ;; => 3 (inherited accessor)
-((point-distance cp) p1)  ;; => 5 (inherited method)
-((colored-point-describe cp))  ;; => "red point at (3, 4)"
+(cp.magnitude)  ;; => 5 (inherited)
+(cp.describe)   ;; => "red point"
 ```
 
 **Features:**
-- **Inheritance**: Optional parent class for extending existing classes
-- **Constructor**: Automatically calls parent constructor if present
+- **Inheritance**: Optional parent class
+- **Constructor clause**: Custom initialization with `this` binding
+- **Explicit super call**: `(super arg...)` to pass specific args to parent constructor
+- **Super method calls**: `(super.methodName args...)` to call parent methods
 - **Fields**: Define accessors and optional mutators
-- **Methods**: Added to JavaScript prototype for JS interop
-- **Predicates**: Type checking with generated predicate function
+- **Methods**: Use `this` to access instance properties
 
 
 ### Additional Procedures

@@ -7,12 +7,15 @@
 
 (test-group "define-class-tests"
 
-;; 1. Basic Class
+;; 1. Basic Class (no constructor clause - uses defaults)
 (define-class <Point>
-  (Point x y)
+  Point
   point?
   (fields (x point-x point-x-set!)
           (y point-y point-y-set!))
+  (constructor (x y)
+    (set! this.x x)
+    (set! this.y y))
   (methods
     (magnitude () (sqrt (+ (* this.x this.x) (* this.y this.y))))
     (move! (dx dy)
@@ -29,10 +32,15 @@
 (test "point-x after move" 4 (point-x p1))
 (test "point-y after move" 6 (point-y p1))
 
+;; 2. Inheritance with custom constructor
 (define-class <ColorPoint> <Point>
-  (ColorPoint x y color)
+  ColorPoint
   color-point?
   (fields (color color-point-color))
+  (constructor (x y color)
+    (set! this.x x)
+    (set! this.y y)
+    (set! this.color color))
   (methods
     (describe () (list this.x this.y this.color))))
 
@@ -45,9 +53,11 @@
 
 ;; 3. 'this' as expression
 (define-class <SelfAware>
-  (SelfAware)
+  SelfAware
   self-aware?
   (fields)
+  (constructor ()
+    #t) ;; empty constructor body
   (methods
     (get-self () this)))
 
@@ -56,9 +66,11 @@
 
 ;; 4. Nested 'this'
 (define-class <Nested>
-  (Nested val)
+  Nested
   nested?
   (fields (val nested-val))
+  (constructor (val)
+    (set! this.val val))
   (methods
     (get-closure ()
       (lambda () this.val))))
@@ -73,9 +85,11 @@
 (test "bind procedure from Scheme" 25 (add10 15))
 
 (define-class <Greeter>
-  (Greeter name)
+  Greeter
   greeter?
   (fields (name greeter-name))
+  (constructor (name)
+    (set! this.name name))
   (methods
     (greet (other) (string-append "Hi " other ", I'm " this.name))))
 
@@ -100,5 +114,64 @@
 (define base #{(a 1) (b 2)})
 (test "#{...} spread" 3 (js-ref #{(... base) (c 3)} "c"))
 (test "#{...} spread override" 99 (js-ref #{(... base) (a 99)} "a"))
+
+;; 9. Custom constructor with computed initialization
+(define-class <Counter>
+  Counter
+  counter?
+  (fields (count counter-count))
+  (constructor (initial)
+    (set! this.count (* initial 10)))  ;; Computed initialization
+  (methods
+    (get () this.count)))
+
+(define c1 (Counter 5))
+(test "custom constructor computed init" 50 (c1.get))
+
+;; 10. Explicit super() call with custom args
+(define-class <PointWithLabel> <Point>
+  PointWithLabel
+  point-with-label?
+  (fields (label point-label))
+  (constructor (x y label)
+    (super x y)  ;; Explicit super call with only x, y
+    (set! this.label label))
+  (methods
+    (describe () (string-append this.label ": " (number->string (point-x this)) "," (number->string (point-y this))))))
+
+(define pwl (PointWithLabel 3 4 "Origin"))
+(test "point-with-label x" 3 (point-x pwl))
+(test "point-with-label y" 4 (point-y pwl))
+(test "point-with-label label" "Origin" (point-label pwl))
+(test "point-with-label describe" "Origin: 3,4" (pwl.describe))
+(test "point-with-label magnitude" 5 (pwl.magnitude))
+
+;; 11. Super call with different args than constructor
+(define-class <HardcodedPoint> <Point>
+  HardcodedPoint
+  hardcoded-point?
+  (fields)
+  (constructor (scale)
+    (super (* scale 3) (* scale 4)))  ;; Hardcoded pattern with computed args
+  (methods))
+
+(define hp (HardcodedPoint 2))
+(test "hardcoded point x" 6 (point-x hp))
+(test "hardcoded point y" 8 (point-y hp))
+(test "hardcoded point magnitude" 10 (hp.magnitude))
+
+;; 12. Super method call with nice syntax
+(define-class <ExtendedPoint> <Point>
+  ExtendedPoint
+  extended-point?
+  (fields)
+  (constructor (x y)
+    (super x y))
+  (methods
+    (magnitude ()
+      (+ 100 (super.magnitude)))))  ;; Nice syntax - analyzer transforms to class-super-call
+
+(define ep (ExtendedPoint 3 4))
+(test "super method call" 105 (ep.magnitude))
 
 ) ;; end test-group
