@@ -495,26 +495,22 @@ For a detailed breakdown, see [docs/architecture.md](./docs/architecture.md).
 
 ### Hygiene
 
-The current implementation addresses **accidental capture** (macro bindings don't capture user variables). It does NOT fully address **reference transparency** for free variables in templates that reference non-global bindings at macro definition time.
+The macro system implements full **referential transparency** for `syntax-rules` macros:
 
-What is NOT handled are local definition-site bindings:
+- **Accidental capture prevention**: Macro-introduced bindings don't capture user variables
+- **Definition-site bindings**: Free variables in macro templates correctly reference bindings from where the macro was defined, not where it's expanded
 
 ```scheme
 ;; Macro defined inside a let with a local helper
 (let ((helper (lambda (x) (* x 2))))
   (define-syntax my-double
     (syntax-rules ()
-      ((my-double x) (helper x)))))
-;; Later, at expansion site:
-(let ((helper (lambda (x) (+ x 1))))
-  (my-double 5))
-;; BUG: Returns 6 (expansion-site helper) instead of 10
+      ((my-double x) (helper x))))
+  ;; Use later, even with shadowed 'helper':
+  (let ((helper (lambda (x) (+ x 1))))
+    (my-double 5)))
+;; Returns 10 (uses definition-site helper, not expansion-site)
 ```
-
-**Why this is rare in practice:**
-- `define-syntax` is almost always used at top level in R7RS
-- Macros typically only reference globally-bound names
-- Special forms are immune (they're recognized syntactically)
 
 ### Exact/Inexact Numbers
 

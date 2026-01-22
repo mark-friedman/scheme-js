@@ -96,6 +96,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/define_values_tests.scm',
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',
+    'tests/core/scheme/r7rs-pitfalls.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',
     'tests/extras/scheme/promise_interop_tests.scm',

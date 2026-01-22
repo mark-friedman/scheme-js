@@ -3462,3 +3462,53 @@ Credit: [Al Petrofsky (comp.lang.scheme)](https://groups.google.com/g/comp.lang.
 TEST SUMMARY: 1546 passed, 0 failed, 3 skipped
 ========================================
 ```
+
+# Walkthrough: Syntactic Keyword Shadowing (2026-01-21)
+
+Fixed R7RS compliance for shadowing syntactic keywords with local variable bindings.
+
+## Problem
+
+R7RS specifies that "local variable bindings may shadow keyword bindings." This test was failing:
+
+```scheme
+((lambda (begin) (begin 1 2 3)) (lambda lambda lambda))
+;; Was returning: 3 (begin treated as special form)
+;; Should return: (1 2 3) (begin treated as procedure call)
+```
+
+When `begin` is bound as a parameter, the inner `(begin 1 2 3)` should call the bound procedure, not the `begin` special form.
+
+## Solution
+
+Modified the analyzer to check if an operator is lexically shadowed before dispatching to special form handlers:
+
+```javascript
+// Check if operator is a special form keyword (only if not shadowed locally)
+// R7RS: "local variable bindings may shadow keyword bindings"
+if (!isShadowed) {
+  const handler = getHandler(opName);
+  // ...
+}
+```
+
+## Changes
+
+### [src/core/interpreter/analyzer.js](./src/core/interpreter/analyzer.js)
+- Added `!isShadowed` check before special form handler dispatch (line ~178)
+- Special forms like `begin`, `if`, `lambda`, `set!` etc. can now be shadowed by local bindings
+
+### [tests/core/scheme/r7rs-pitfalls.scm](./tests/core/scheme/r7rs-pitfalls.scm)
+- Created new R7RS pitfalls test suite with 20+ tests (converted from R5RS pitfalls)
+- Re-enabled test 4.2 ("begin as parameter name")
+
+## Verification
+
+- **Test 4.2**: Now returns `(1 2 3)` as expected
+- **Full Test Suite**: 1568 passed, 0 failed, 4 skipped
+
+```
+========================================
+TEST SUMMARY: 1568 passed, 0 failed, 4 skipped
+========================================
+```

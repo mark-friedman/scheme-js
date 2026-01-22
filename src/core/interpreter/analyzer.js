@@ -175,14 +175,17 @@ export function analyze(exp, syntacticEnv = null, context = null) {
       }
     }
 
-    // Check if operator is a special form keyword
-    const opName = (operator instanceof Symbol) ? operator.name :
-      (isSyntaxObject(operator) ? syntaxName(operator) : null);
+    // Check if operator is a special form keyword (only if not shadowed locally)
+    // R7RS: "local variable bindings may shadow keyword bindings"
+    if (!isShadowed) {
+      const opName = (operator instanceof Symbol) ? operator.name :
+        (isSyntaxObject(operator) ? syntaxName(operator) : null);
 
-    if (opName) {
-      const handler = getHandler(opName);
-      if (handler) {
-        return handler(exp, syntacticEnv, ctx);
+      if (opName) {
+        const handler = getHandler(opName);
+        if (handler) {
+          return handler(exp, syntacticEnv, ctx);
+        }
       }
     }
 
