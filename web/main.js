@@ -1,6 +1,6 @@
 import { createInterpreter } from '../src/core/interpreter/index.js';
 import { setupRepl } from './repl.js';
-import { setFileResolver } from '../src/core/interpreter/library_loader.js';
+import { setFileResolver, loadLibrary } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { prettyPrint } from '../src/core/interpreter/printer.js';
@@ -17,7 +17,16 @@ import { isCompleteExpression, findMatchingDelimiter } from '../src/core/interpr
     setFileResolver(async (libraryName) => {
         // libraryName is like ['scheme', 'base'] OR ['scheme', 'macros.scm']
         const fileName = libraryName[libraryName.length - 1];
-        const searchDirs = ['../src/core/scheme/', '../src/extras/scheme/'];
+        const namespace = libraryName[0];
+
+        // Determine search directories based on namespace
+        // scheme/* libraries are in core, scheme-js/* are in extras
+        let searchDirs;
+        if (namespace === 'scheme-js') {
+            searchDirs = ['../src/extras/scheme/', '../src/core/scheme/'];
+        } else {
+            searchDirs = ['../src/core/scheme/', '../src/extras/scheme/'];
+        }
 
         // If it already has an extension (like macros.scm), try that first
         if (fileName.endsWith('.sld') || fileName.endsWith('.scm')) {
@@ -44,8 +53,30 @@ import { isCompleteExpression, findMatchingDelimiter } from '../src/core/interpr
     try {
         console.log("Bootstrapping REPL environment...");
 
-        // Import R7RS-small libraries and scheme-js extras
-        // Excludes (scheme file) and (scheme process-context) which require Node.js
+        // List of libraries to pre-load asynchronously
+        // The loadLibrary function caches them, so subsequent sync lookups will work
+        const librariesToLoad = [
+            ['scheme', 'base'],
+            ['scheme', 'write'],
+            ['scheme', 'read'],
+            ['scheme', 'repl'],
+            ['scheme', 'lazy'],
+            ['scheme', 'case-lambda'],
+            ['scheme', 'eval'],
+            ['scheme', 'time'],
+            ['scheme', 'complex'],
+            ['scheme', 'cxr'],
+            ['scheme', 'char'],
+            ['scheme-js', 'promise'],
+            ['scheme-js', 'interop']
+        ];
+
+        // Pre-load all libraries asynchronously (this populates the cache)
+        for (const libName of librariesToLoad) {
+            await loadLibrary(libName, analyze, interpreter, env);
+        }
+
+        // Now run the import statement synchronously - libraries are cached
         const imports = `
             (import (scheme base)
                     (scheme write)
