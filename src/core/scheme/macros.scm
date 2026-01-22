@@ -73,12 +73,24 @@
 ;;  * @param {...*} body - Body expressions to evaluate.
 ;;  * @returns {*} Result of the last expression in the body.
 ;;  */
+;; R7RS-compliant letrec: all inits are evaluated before any assignments.
+;; This is critical for correct call/cc behavior within letrec.
+;; 
+;; Credit: Al Petrofsky's elegant list-based approach
+;; https://groups.google.com/g/comp.lang.scheme/c/FB1HgUx5d2s
+;;
+;; The strategy:
+;; 1. Create all variables bound to undefined
+;; 2. Evaluate all inits into a list (single temp variable)
+;; 3. Iteratively pop from the list and assign each var
+;; 4. Run body
 (define-syntax letrec
   (syntax-rules ()
-    ((letrec ((var init) ...) body ...)
+    ((_ ((var init) ...) . body)
      (let ((var 'undefined) ...)
-       (set! var init) ...
-       (let () body ...)))))
+       (let ((temp (list init ...)))
+         (begin (set! var (car temp)) (set! temp (cdr temp))) ...
+         (let () . body))))))
 
 ;; /**
 ;;  * Sequential recursive binding construct.

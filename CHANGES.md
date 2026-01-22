@@ -3400,3 +3400,65 @@ Implemented proper object printing with reader syntax `#{(key val)...}` and circ
 - **All 1546 tests pass** ✓
 - Verified circular object support: `#0=#{(self #0#)}`
 - Verified nested and escaped string support within object literals.
+
+# Walkthrough: Fix Letrec Call/CC Bug (2026-01-21)
+
+Fixed a subtle R7RS compliance bug in `letrec` where init expressions were evaluated and assigned sequentially instead of all being evaluated before any assignments.
+
+## Problem
+
+The old `letrec` macro:
+
+```scheme
+(let ((var 'undefined) ...)
+  (set! var init) ...       ;; BUG: eval and assign each var sequentially
+  (let () body ...))
+```
+
+This violated R7RS which requires all inits to be evaluated first, then all assignments performed. This caused incorrect behavior with `call/cc`:
+
+```scheme
+(let ((cont #f))
+  (letrec ((x (call/cc (lambda (c) (set! cont c) 0)))
+           (y (call/cc (lambda (c) (set! cont c) 0))))
+    (if cont
+        (let ((c cont))
+          (set! cont #f) (set! x 1) (set! y 1) (c 0))
+        (+ x y))))
+;; Was returning 1 (wrong), should return 0 (correct)
+```
+
+## Solution
+
+Implemented Al Petrofsky's elegant list-based approach:
+
+```scheme
+(define-syntax letrec
+  (syntax-rules ()
+    ((_ ((var init) ...) . body)
+     (let ((var 'undefined) ...)
+       (let ((temp (list init ...)))        ;; Evaluate ALL inits into a list
+         (begin (set! var (car temp)) (set! temp (cdr temp))) ...
+         (let () . body))))))
+```
+
+Credit: [Al Petrofsky (comp.lang.scheme)](https://groups.google.com/g/comp.lang.scheme/c/FB1HgUx5d2s)
+
+## Changes
+
+### [src/core/scheme/macros.scm](./src/core/scheme/macros.scm)
+- Replaced `letrec` macro with R7RS-compliant version using Al Petrofsky's list-based approach
+- Only O(1) temp variable needed instead of O(n) nested lambdas
+- Properly sequences: all inits evaluated → all assignments → body
+
+## Verification
+
+### Automated Tests
+- **R5RS Pitfall Test 1.1**: Now returns `0` (was incorrectly returning `1`)
+- **Full Test Suite**: 1546 passed, 0 failed, 3 skipped
+
+```
+========================================
+TEST SUMMARY: 1546 passed, 0 failed, 3 skipped
+========================================
+```
