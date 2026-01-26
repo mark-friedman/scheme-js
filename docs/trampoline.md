@@ -20,12 +20,13 @@ The interpreter state is modeled as a simple register machine with four register
 | `ctl` | `CTL` (1) | **Control** - The next AST node or Frame to execute |
 | `env` | `ENV` (2) | **Environment** - Current lexical environment |
 | `fstack` | `FSTACK` (3) | **Frame Stack** - The continuation (stack of pending operations) |
+| `this` | `THIS` (4) | **This Context** - The current JavaScript `this` binding |
 
 ```javascript
 // In interpreter.js
-import { ANS, CTL, ENV, FSTACK } from './stepables.js';
-const registers = [null, ast, env, [...initialStack]];
-//                 ANS   CTL  ENV  FSTACK
+import { ANS, CTL, ENV, FSTACK, THIS } from './stepables.js';
+const registers = [null, ast, env, [...initialStack], thisContext];
+//                 ANS   CTL  ENV  FSTACK             THIS
 ```
 
 ## The Trampoline Loop
@@ -255,9 +256,9 @@ The stepable code is organized as:
 |------|----------|
 | `stepables_base.js` | Register constants (`ANS`, `CTL`, `ENV`, `FSTACK`) + `Executable` base class |
 | `ast_nodes.js` | All AST node classes (Literal, Variable, Lambda, If, etc.) |
-| `frames.js` | All continuation frame classes (LetFrame, AppFrame, etc.) |
+| `frames.js` | Most continuation frame classes (LetFrame, AppFrame, etc.) |
 | `stepables.js` | Barrel file re-exporting everything (backwards compatibility) |
-| `interpreter.js` | The trampoline loop and state management |
+| `interpreter.js` | The trampoline loop, state management, and SentinelFrame |
 | `frame_registry.js` | Factory functions to avoid circular imports |
 | `winders.js` | Dynamic-wind stack walking utilities |
 
