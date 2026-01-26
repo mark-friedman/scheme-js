@@ -4,14 +4,15 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 
 ## 🎯 Goals
 
-### Language Goals
-- **Global Environment**: JavaScript global definitions (on `window` or `globalThis`) are automatically visible in the Scheme global environment.
-- **Node.js REPL**: Full-featured interactive REPL with history, multiline support, and colorful output.
-- **Browser-Ready**: Easy integration via a custom `<scheme-repl>` web component or standard `<script>` tags.
+### Implementation Highlights
 - **R7RS-Small**: High degree of compatibility with the R7RS-small standard (see [R7RS Libraries](#r7rs-libraries)).
-- **Tail Call Optimization (TCO)**: Proper handling of tail recursion (even when interleaved with JS) using a trampoline architecture.
-- **First-Class Continuations**: Full support for `call/cc`, including `dynamic-wind` and multiple return values.
+- **Tail Call Optimization (TCO)**: Proper tail recursion by the interpreter. Interleaved JS and Scheme code may still cause stack overflow.
+- **First-Class Continuations**: Full support for `call/cc`.
 - **JavaScript Interop**: Seamless calling between Scheme and JavaScript, including shared data structures and transparent boundary crossing. Scheme closures and continuations are first-class JavaScript functions.
+- **Global Environment**: JavaScript global definitions (on `window` or `globalThis`) are automatically visible in the Scheme global environment.
+- **Node.js REPL**: Full-featured interactive REPL with history, multiline support, and paren matching.
+- **Browser REPL**: Interactive browser-based REPL via a custom `<scheme-repl>` web component.
+- **Browser Scriptng**: Replace JavaScript in web apps with `<script type="text/scheme">` tags.  Direct Scheme evaluation by JavaScript is also supprted.
 
 ### Architectural Goals
 - **Layered Design**: Build complex features (macros, data structures) on top of a minimal, robust kernel.
