@@ -3512,3 +3512,47 @@ if (!isShadowed) {
 TEST SUMMARY: 1568 passed, 0 failed, 4 skipped
 ========================================
 ```
+
+# Walkthrough: Trampoline Documentation Verification & createJsBridge Removal (2026-01-26)
+
+I have verified the core execution model documentation and removed the deprecated `createJsBridge` mechanism in favor of intrinsically callable Scheme closures.
+
+## Changes
+
+### Documentation Updates
+
+#### [trampoline.md](./docs/trampoline.md)
+- Added the `THIS` (4) register to the register machine description and code snippets.
+- Clarified that `SentinelFrame` is located in `interpreter.js` rather than `frames.js`.
+- Verified that the trampoline loop and `runWithSentinel` logic matches the current implementation.
+
+### Core Interpreter Refactoring
+
+#### [interpreter.js](./src/core/interpreter/interpreter.js)
+- Removed the deprecated `createJsBridge` method. Scheme closures and continuations are now created as callable JavaScript functions by default.
+
+### Primitives & Interop
+
+#### [promise.js](./src/extras/primitives/promise.js)
+- Updated `wrapSchemeCallback` to remove the call to `createJsBridge`. It now returns the procedure directly if it matches the callable function contract.
+
+### Test Suite Improvements
+
+#### [interpreter_tests.js](./tests/core/interpreter/interpreter_tests.js)
+- Restored missing unit tests for `Interpreter.step` executing a Frame.
+- Added a test to verify that closures created via `createClosure` are natively callable JS functions.
+
+#### [unit_tests.js](./tests/core/interpreter/unit_tests.js)
+- Connected the orphaned `interpreter_tests.js` to the main unit test suite, ensuring these internal logic tests are now continuously verified.
+
+#### Other Tests
+- Updated `interop_tests.js` and `multiple_values_tests.js` to remove legacy `createJsBridge` calls.
+
+## Verification Results
+
+### Automated Tests
+Ran the full test suite (`node run_tests_node.js`):
+```
+TEST SUMMARY: 1572 passed, 0 failed, 4 skipped
+```
+All tests passed, including the newly connected interpreter unit tests and the existing promise interop tests.
