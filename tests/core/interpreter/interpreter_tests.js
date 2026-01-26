@@ -13,10 +13,10 @@ export function runInterpreterTests(logger) {
     assert(logger, "Global env set", interpreter.globalEnv.mocked, true);
 
     // 2. Step Logic (Mocked)
-    // registers: [ans, ctl, env, fstack]
+
 
     // Case A: AST Step
-    // ctl has .step() -> called
+
     let stepCalled = false;
     const mockAst = {
         step: (regs) => {
@@ -31,7 +31,7 @@ export function runInterpreterTests(logger) {
     assert(logger, "Step returns true (from AST)", res1, true);
 
     // Case B: Frame Stack Restore
-    // ctl is null (value returned), or just a generic Frame object in CTL
+
     let frameStepCalled = false;
     const mockFrame = {
         step: (regs) => {
@@ -56,8 +56,6 @@ export function runInterpreterTests(logger) {
     // Test: The result of createClosure is a function
     assert(logger, "Closures are callable functions", typeof callableClosure, 'function');
 
-    // Note: We can't easily execute it without mocking runWithSentinel on the interpreter
-    // or creating an AST node setup, but testing it's a function is sufficient to verify
-    // the "Callable JS Function" contract which replaced createJsBridge.
+
 
 }

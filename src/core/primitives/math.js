@@ -5,7 +5,7 @@
  * Implements R7RS §6.2 numeric operations.
  * 
  * NOTE: Only primitives that REQUIRE JavaScript are implemented here.
- * Higher-level numeric procedures are in core.scm.
+ * Higher-level numeric procedures are in core/primitives/scheme
  */
 
 import { assertNumber, assertInteger, assertArity } from '../interpreter/type_check.js';

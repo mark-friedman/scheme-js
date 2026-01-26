@@ -36,7 +36,6 @@ export function runUnitTests(interpreter, logger) {
         gEnv.lookup('z');
         logger.fail("Unit: env.lookup (unbound) - FAILED to throw");
     } catch (e) {
-        // Check error type instead of message string
         assert(logger, "Unit: env.lookup (unbound)", e instanceof SchemeUnboundError, true);
     }
 
@@ -56,7 +55,6 @@ export function runUnitTests(interpreter, logger) {
         setChild.set('z', 99); // SetNode on unbound variable should throw
         logger.fail("Unit: env.set (unbound) - FAILED to throw");
     } catch (e) {
-        // Check error type instead of message string
         assert(logger, "Unit: env.set (unbound throws)", e instanceof SchemeUnboundError, true);
     }
 
@@ -99,7 +97,6 @@ export function runUnitTests(interpreter, logger) {
             parse(")");
             logger.fail("Reader: Unexpected ')' - FAILED to throw");
         } catch (e) {
-            // Check error type instead of message string
             assert(logger, "Reader: Unexpected ')'", e instanceof SchemeReadError, true);
         }
 
@@ -197,7 +194,6 @@ export function runUnitTests(interpreter, logger) {
     }
 }
 
-// Allow running directly via node
 // Allow running directly via node
 if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
     const { interpreter } = createTestEnv();
