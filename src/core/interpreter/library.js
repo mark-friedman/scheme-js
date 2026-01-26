@@ -32,11 +32,6 @@ export class LibraryRegistry {
             if (module.install) {
                 module.install(env);
             } else if (module.default) {
-                // If default export is a function, call it?
-                // Or if it's an object of primitives?
-                // Let's assume it exports a 'install' function or object of primitives.
-                // If it's just primitives, we can add them.
-                // For now, let's just log.
                 console.log(`Imported native module: ${path}`);
             }
         } catch (e) {
