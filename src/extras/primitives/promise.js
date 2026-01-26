@@ -20,13 +20,13 @@ import { SchemeTypeError } from '../../core/interpreter/errors.js';
  * @returns {Function} A JavaScript function that can be called by Promise.then()
  */
 function wrapSchemeCallback(proc, interpreter) {
-    if (typeof proc === 'function' && !(proc instanceof Closure)) {
-        // Already a JS function, use directly
+    // If it's a function (plain JS function, new-style Closure, or new-style Continuation)
+    // we can use it directly.
+    if (typeof proc === 'function') {
         return proc;
     }
 
-    // It's a Scheme Closure - use the interpreter's bridge mechanism
-    return interpreter.createJsBridge(proc);
+    throw new SchemeTypeError('wrapSchemeCallback', 1, 'procedure', proc);
 }
 
 /**

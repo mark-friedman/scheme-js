@@ -175,18 +175,9 @@ export function runInteropTests(interpreter, logger) {
             if (n === 0) return "pong-done";
             // Call scheme-ping
             const ping = interpreter.globalEnv.lookup('scheme-ping');
-            // 'ping' is a Closure.
-            // Since we are in JS, we need to manually wrap it if we want to call it?
-            // OR, since we are in a JS function called by Scheme, 'ping' might be raw Closure.
-            // Wait, 'lookup' returns the raw value from the environment.
-            // The environment holds the Closure object.
-            // So 'ping' is a Closure.
-            // We must use interpreter.createJsBridge(ping) to call it!
-            // OR use interpreter.run directly.
-
-            // Using createJsBridge is cleaner:
-            const bridge = interpreter.createJsBridge(ping);
-            return bridge(n - 1);
+            // 'ping' is a callable Closure function.
+            // We can call it directly!
+            return ping(n - 1);
         });
 
         run(interpreter, `

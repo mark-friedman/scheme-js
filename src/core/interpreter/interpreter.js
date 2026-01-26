@@ -353,30 +353,7 @@ export class Interpreter {
     return this.runWithSentinel(ast, thisContext);
   }
 
-  /**
-   * Creates a JS-callable wrapper for a Scheme closure.
-   * 
-   * @deprecated Closures are now created as callable functions directly.
-   *             This method is kept for backward compatibility.
-   * @param {Function} closure - A Scheme closure (callable function with marker).
-   * @param {Array} parentStack - The parent frame stack for context.
-   * @returns {Function} A callable wrapper (or the closure itself if already callable).
-   */
-  createJsBridge(closure, parentStack = []) {
-    // If it's already a callable Scheme closure, it can be called directly.
-    // This method is now essentially a passthrough for new-style closures.
-    if (isSchemeClosure(closure)) {
-      return closure;
-    }
 
-    // Legacy path for old-style Closure instances (during migration)
-    return (...jsArgs) => {
-      const argLiterals = jsArgs.map(val => new LiteralNode(val));
-      const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
-      const stackWithSentinel = [...parentStack, new SentinelFrame()];
-      return this.run(ast, this.globalEnv, stackWithSentinel);
-    };
-  }
 
   /**
    * Executes a single step of the computation.

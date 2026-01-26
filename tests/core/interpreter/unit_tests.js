@@ -7,6 +7,7 @@ import { assert, createTestLogger, createTestEnv } from '../../harness/helpers.j
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
 import { SchemeUnboundError, SchemeReadError } from '../../../src/core/interpreter/errors.js';
+import { runInterpreterTests } from './interpreter_tests.js';
 
 /**
  * Runs all unit tests.
@@ -15,6 +16,9 @@ import { SchemeUnboundError, SchemeReadError } from '../../../src/core/interpret
  */
 export function runUnitTests(interpreter, logger) {
     logger.title('Running Unit Tests...');
+
+    // Run interpreter internal logic tests
+    runInterpreterTests(logger);
 
     // --- Environment Unit Tests ---
     const gEnv = new Environment(null, new Map([['a', 1]]));

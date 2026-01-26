@@ -1,6 +1,6 @@
 import { assert, createTestLogger } from '../../harness/helpers.js';
 import { Interpreter } from '../../../src/core/interpreter/interpreter.js';
-import { Closure } from '../../../src/core/interpreter/values.js';
+import { Closure, createClosure } from '../../../src/core/interpreter/values.js';
 
 export function runInterpreterTests(logger) {
     logger.title('Running Interpreter Unit Tests...');
@@ -31,36 +31,33 @@ export function runInterpreterTests(logger) {
     assert(logger, "Step returns true (from AST)", res1, true);
 
     // Case B: Frame Stack Restore
-    // ctl is null (value returned), stack has frame
-    const mockFrame = { step: () => { } }; // logic handled in loop?
-    // Interpreter.step logic:
-    // If ctl.step() returns false:
-    //   Wait, interpreter.step returns what ctl.step returns.
-    //   If ctl is null?
-    //   Interpreter.step expects registers[1] (ctl) to be an object with step().
-    //   If ctl is null, step() throws or fails?
-    //   Let's check interpreter.js.
-    //   Interpreter.ts: if (ctl.step(registers)) ...
-    //   So step() is only called if ctl is not null?
-    //   No, step() calls ctl.step(). If ctl is null it would crash.
-    //   But the loop handles the "step returned false" case.
+    // ctl is null (value returned), or just a generic Frame object in CTL
+    let frameStepCalled = false;
+    const mockFrame = {
+        step: (regs) => {
+            frameStepCalled = true;
+            return false; // halt
+        }
+    };
+    // Registers for frame step:
+    const regs2 = [null, mockFrame, null, []];
+    const res2 = interpreter.step(regs2);
 
-    // This unit test verifies that `interpreter.step` simply delegates to `ctl.step`.
-    // The "loop logic" (handling false return) is in `interpreter.run`, not `step`.
-    // So `interpreter.step` is just a helper?
-    // Let's verify `interpreter.js` content.
-    // `step(registers) { const ctl = registers[1]; return ctl.step(registers); }`
-    // If so, testing it is trivial.
+    assert(logger, "Step calls Frame.step", frameStepCalled, true);
+    assert(logger, "Step returns false (from Frame)", res2, false);
 
-    // 3. createJsBridge
-    // Wraps a Closure in a JS function.
-    const mockClosure = new Closure(['x'], { step: () => { } }, {});
-    const bridge = interpreter.createJsBridge(mockClosure);
 
-    assert(logger, "Bridge is function", typeof bridge, 'function');
+    // 3. Callable Closures
+    // Verify that closures are callable JS functions.
+    // We use createClosure factory to simulate a real closure creation.
+    const mockSchemaBody = { step: () => { } };
+    const callableClosure = createClosure(['x'], mockSchemaBody, {}, null, interpreter);
 
-    // Invoking the bridge triggers a nested run.
-    // We can't easily test that without full machinery.
-    // But we verified it exists.
+    // Test: The result of createClosure is a function
+    assert(logger, "Closures are callable functions", typeof callableClosure, 'function');
+
+    // Note: We can't easily execute it without mocking runWithSentinel on the interpreter
+    // or creating an AST node setup, but testing it's a function is sufficient to verify
+    // the "Callable JS Function" contract which replaced createJsBridge.
 
 }
