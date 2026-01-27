@@ -3521,7 +3521,7 @@ I have verified the core execution model documentation and removed the deprecate
 
 ### Documentation Updates
 
-#### [trampoline.md](./docs/trampoline.md)
+#### [trampoline.md](docs/core-interpreter-implementation.md)
 - Added the `THIS` (4) register to the register machine description and code snippets.
 - Clarified that `SentinelFrame` is located in `interpreter.js` rather than `frames.js`.
 - Verified that the trampoline loop and `runWithSentinel` logic matches the current implementation.

@@ -461,7 +461,8 @@ Define Scheme classes compatible with JavaScript inheritance.
 Detailed documentation for project internals:
 
 - [**Architecture & Directory Structure**](./docs/architecture.md): High-level design and detailed file map.
-- [**Trampoline Execution**](./docs/trampoline.md): How the interpreter handles stack frames and TCO.
+- [**Core Interpreter Implementation**](docs/core-interpreter-implementation.md): How the interpreter handles stack 
+  frames, continuations and TCO.
 - [**Hygiene Implementation**](./docs/hygiene.md): How macro hygiene works using pure marks/scopes.
 - [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
 - [**JavaScript Interoperability**](./docs/Interoperability.md): Deep JS integration and callable closures.

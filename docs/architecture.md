@@ -253,7 +253,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       └── cond_expand_library_tests.js # cond-expand in libraries
 │
 ├── docs/
-│   ├── trampoline.md               # Execution model details
+│   ├── core-interpreter-implementation.md               # Execution model details
 │   ├── Interoperability.md         # JS/Scheme interop design
 │   ├── hygeine.md                  # Macro hygiene notes
 │   ├── macro_debugging.md          # Macro troubleshooting guide
@@ -279,7 +279,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 
 ## Related Documentation
 
-- [trampoline.md](trampoline.md) — Execution model details
+- [core-interpreter-implementation.md](core-interpreter-implementation.md) — Execution model details
 - [hygiene.md](hygiene.md) — Macro hygiene algorithm (pure marks)
 - [macro_debugging.md](macro_debugging.md) — Troubleshooting common macro issues
 - [r7rs_roadmap.md](../r7rs_roadmap.md) — Implementation progress
