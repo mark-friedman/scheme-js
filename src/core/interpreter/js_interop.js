@@ -141,18 +141,6 @@ export function jsToSchemeDeep(val) {
             return val;
         }
 
-        // Create new instance
-        // Assuming (make-js-object) takes no args or we set props manually?
-        // Plan: "Record instance duplicates properties".
-        // Implementation: Instantiate and assign.
-
-        // We need to know how JsObjectRecord constructor works.
-        // Usually `new JsObjectRecord(field1, field2...)`
-        // But `js-object` is special. It likely has NO defined fields in defining-record-type?
-        // Or we define it as having *standard* fields?
-        // PLAN: "define-record-type js-object ... instances are just JS objects"
-        // SO checking `JsObjectRecord` might just be a class wrapper.
-
         const rec = new JsObjectRecord();
         for (const [k, v] of Object.entries(val)) {
             rec[k] = jsToSchemeDeep(v);

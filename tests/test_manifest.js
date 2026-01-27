@@ -88,6 +88,7 @@ export const schemeTestFiles = [
     'tests/extras/scheme/promise_tests.scm',
     'tests/extras/scheme/promise_interop_tests.scm',
     'tests/extras/scheme/jsref_tests.scm',
+    'tests/extras/scheme/js_conversion_tests.scm',
 ];
 
 /**
