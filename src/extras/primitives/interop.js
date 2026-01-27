@@ -5,6 +5,7 @@
  */
 
 import { assertString } from '../../core/interpreter/type_check.js';
+import { jsToScheme } from '../../core/interpreter/js_interop.js';
 
 /**
  * Interop primitives exported to Scheme.
@@ -17,7 +18,7 @@ export const interopPrimitives = {
      */
     'js-eval': (code) => {
         assertString('js-eval', 1, code);
-        return (1, eval)(code);
+        return jsToScheme((1, eval)(code));
     },
 
     /**
@@ -25,14 +26,14 @@ export const interopPrimitives = {
      * Used by the reader's dot notation: obj.prop -> (js-ref obj "prop")
      * @param {Object} obj - The object to access.
      * @param {string} prop - The property name.
-     * @returns {*} The property value.
+     * @returns {*} The property value (converted to Scheme via jsToScheme).
      */
     'js-ref': (obj, prop) => {
         assertString('js-ref', 2, prop);
         if (obj === null || obj === undefined) {
             throw new Error(`js-ref: cannot access property "${prop}" on ${obj}`);
         }
-        return obj[prop];
+        return jsToScheme(obj[prop]);
     },
 
     /**

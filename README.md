@@ -117,41 +117,36 @@ Why this is rare in practice:
 - Macros typically only reference globally-bound names
 - Special forms are immune (they're recognized syntactically)
 
-### Exact/Inexact Numbers
+### Exact/Inexact Numbers (Full Numeric Tower)
 
-R7RS distinguishes between **exact** numbers (integers, rationals - mathematically precise) and **inexact** numbers (floating-point - approximate). The `exact` and `inexact` procedures convert between these representations, and `exact?`/`inexact?` test which category a number belongs to.
+R7RS distinguishes between **exact** numbers (mathematically precise) and **inexact** numbers (approximate). Our implementation provides a full R7RS-compliant numeric tower by leveraging JavaScript's native types and custom classes.
 
-**JavaScript Limitation:**
-JavaScript has only one numeric type (`number`), which is an IEEE 754 double-precision float. There is no native way to distinguish between `5` (an exact integer) and `5.0` (an inexact float) - they are identical values:
+| Category | Internal Representation | Exactness |
+|----------|-------------------------|-----------|
+| **Integers** | JavaScript `BigInt` | **Exact** |
+| **Reals** | JavaScript `Number` (IEEE 754) | **Inexact** |
+| **Rationals** | `Rational` (BigInt Numerator/Denominator) | **Exact** |
+| **Complex** | `Complex` (Exact or Inexact components) | **Varies** |
 
-```javascript
-5 === 5.0  // true in JavaScript
-```
+#### Key Features
+- **Arbitrary Precision**: Exact integers use `BigInt`, allowing for calculations with hundreds of digits (e.g., `(factorial 100)`) without precision loss.
+- **R7RS Semantics**: `exact?` and `inexact?` predicates work correctly. `5/1` is an exact integer, while `5.0` is an inexact real.
+- **Rational Support**: Exact fractions like `1/3` are preserved and correctly handled in all arithmetic operations.
 
-**Current Implementation:**
-Our implementation uses `Number.isInteger()` to distinguish exact from inexact:
-- Integers (`5`, `-42`) are considered **exact**
-- Non-integers (`3.14`, `0.5`) are considered **inexact**
-- `Rational` objects are always **exact**
+#### JavaScript Interop Boundary
+To maintain safe interoperability with standard JavaScript code, the following rules apply at the language boundary:
 
-**Semantic Differences from R7RS:**
+1.  **Scheme → JS**:
+    - **Safe Integers**: `BigInt` values within the safe range (`±2^53 - 1`) are automatically converted to standard JS `Number` types.
+    - **Large Integers**: `BigInt` values exceeding this range throw an error during conversion to prevent silent precision loss (unless using explicit conversion).
+    - **Rationals/Complex**: Converted to their closest `Number` representation or passed as opaque objects.
+2.  **JS → Scheme**:
+    - JavaScript **integers** are automatically converted to `BigInt` and treated as **exact** (preserving Scheme's preference for exactness).
+    - JavaScript **non-integers** (floats) are imported as standard `Number` types and treated as **inexact** reals.
+    - JavaScript `BigInt` values are imported as **exact** integers.
 
-| Operation | R7RS Expected | Our Result |
-|-----------|---------------|------------|
-| `(inexact 5)` | Inexact `5.0` | `5` (still exact by our predicate) |
-| `(inexact? (inexact 5))` | `#t` | `#f` ❌ |
-| `(exact 3.0)` | Exact `3` | `3` (correct by coincidence) |
-
-**Practical Impact:**
-- Most Scheme programs don't rely on the exact/inexact distinction for integers
-- Arithmetic works correctly - only the `exact?`/`inexact?` predicates are affected
-- Rationals (`1/2`, `3/4`) are fully supported and always exact
-- This is documented as a known limitation
-
-**Future Improvement:**
-See `r7rs_roadmap.md` for potential approaches to fix this, including:
-- Creating an `InexactNumber` wrapper class
-- Using a tag map to track exactness separately
+> [!NOTE]
+> For performance-critical code where exactness is not required, see the `r7rs_roadmap.md` for planned optimizations like the `define-js-native` mode.
 
 ### JavaScript Promise Interoperability
 

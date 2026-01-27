@@ -380,6 +380,26 @@ Implemented arbitrary-precision exact integers using `BigInt`, exact rationals, 
 
 ---
 
+## Numeric Performance Optimization
+**Target:** Reduce boundary friction and arithmetic overhead
+
+Following the implementation of the full numeric tower, several optimizations have been identified to mitigate the performance impact of `BigInt` operations and JavaScript boundary conversions.
+
+| Priority | Optimization | Effort | Impact | Notes |
+|----------|--------------|--------|--------|-------|
+| **High** | Precompute `MIN_SAFE_BIG`/`MAX_SAFE_BIG` | 5 min | Minor | Faster safe-range checks in `schemeToJs`. |
+| **High** | Skip internal conversions | 1 hour | Significant | Add `external` flag to `run()` to skip `unpackForJs` during library loading and macro expansion. |
+| **Medium** | LRU cache for BigInt→Number | 30 min | Moderate | Helps when the same exact integers cross the JS boundary repeatedly. |
+| **Medium** | Smart shallow convert | 1 hour | Moderate | Fast-path for primitive arrays/vectors to avoid recursive overhead in `schemeToJsDeep`. |
+| **Low** | `SchemeInt` wrapper class | 2-4 h | Variable | Persistent caching of Number representation on the integer object itself. |
+| **Low** | `define-js-native` mode | 4-8 h | High | Opt-in pragma to use JS Numbers directly for performance-critical hot loops where exactness is not required. |
+
+> [!TIP]
+> **Boundary Friction vs. Arithmetic:** Profiling indicates that for many workloads, the cost of converting `BigInt` to `Number` at the JS boundary is more significant than the `BigInt` arithmetic itself. The "High" priority items address the most frequent conversion points.
+
+
+---
+
 ## Phase 16: Developer Experience
 **Target:** Debugging and usability
 
@@ -459,26 +479,6 @@ Consider running the [Chibi Scheme R7RS test suite](https://github.com/ashinn/ch
 ---
 
 ## Future Improvements (Deferred)
-
-### Full R7RS Exactness with BigInt (Planned)
-
-A design has been created to implement proper R7RS exactness semantics using JavaScript's `BigInt` for exact integers:
-
-**Core Approach:**
-- **Exact integers**: `BigInt` (e.g., `5n`)
-- **Inexact reals**: `Number` (e.g., `5.0`)
-- **Exact rationals**: `Rational` class with `BigInt` numerator/denominator and `exact` flag
-- **Complex numbers**: `Complex` class with `exact` flag, parts can be any numeric type
-
-**Key Features:**
-- Reader parses `5` as `BigInt`, `5.0` as `Number`
-- `#e` and `#i` prefixes force exactness
-- Structural preservation: `(inexact 1/3)` keeps rational structure
-- JS interop: automatic `BigInt` → `Number` conversion at call boundary
-
-See `implementation_plan.md` in the artifacts directory for full design.
-
----
 
 ### High-Precision Inexact Numbers (Future)
 

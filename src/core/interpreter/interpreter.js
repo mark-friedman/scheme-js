@@ -35,6 +35,10 @@ import { schemeToJs, schemeToJsDeep } from './js_interop.js';
  * Unpacks a Values object to its first value for JS interop (Option C).
  * Also performs Scheme->JS conversion based on the 'js-auto-convert' parameter.
  * 
+ * By default, uses deep conversion (schemeToJsDeep) which converts Lists to Arrays,
+ * Vectors to Arrays, Records to Objects. Set jsAutoConvert = false to preserve
+ * Scheme composite types.
+ * 
  * @param {*} result - The result to unpack
  * @param {Interpreter} interpreter - The interpreter instance (for env lookup)
  * @returns {*} Converted value
@@ -45,8 +49,8 @@ function unpackForJs(result, interpreter) {
   }
 
   // Check 'js-auto-convert' parameter
-  // If undefined or true, use deep conversion.
-  // If false, use shallow conversion.
+  // Default to deep conversion (true).
+  // Set to false to preserve Scheme data structures.
 
   let autoConvert = true;
   if (interpreter && interpreter.jsAutoConvert === false) {

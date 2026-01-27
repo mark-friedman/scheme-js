@@ -67,24 +67,12 @@ export function schemeToJsDeep(val) {
     if (val instanceof Char) return val.toString();
     if (val instanceof Rational) return val.toNumber();
 
-    // 2. Lists -> Array
-    if (val instanceof Cons) {
-        const arr = [];
-        let curr = val;
-        // Simple cycle check for MVP: Max depth or Set? 
-        // Plan says: "No circular ref support (throws Error)" - stack overflow is acceptable for MVP.
-        while (curr instanceof Cons) {
-            arr.push(schemeToJsDeep(curr.car));
-            curr = curr.cdr;
-        }
-        if (curr !== null) {
-            throw new Error("Cannot convert improper list to JS Array");
-        }
-        return arr;
-    }
-    if (val === null) return []; // '() -> []
+    // Cons/Lists are preserved as Scheme types (not converted to Arrays).
+    // This preserves Scheme semantics for internal operations.
+    // Users can explicitly use scheme->js-deep-list if they need list->array conversion.
+    // Cons instances and null (empty list) pass through unchanged.
 
-    // Vectors are Arrays in this implementation
+    // Vectors are Arrays in this implementation - recursively convert elements
     if (Array.isArray(val)) {
         return val.map(schemeToJsDeep);
     }
@@ -115,16 +103,30 @@ export function schemeToJsDeep(val) {
 // ============================================================================
 
 /**
+ * Convert JS integer Number to BigInt for Scheme compatibility.
+ * Scheme uses BigInt for exact integers; JS integers should become BigInt.
+ */
+function maybeIntToBigInt(val) {
+    if (typeof val === 'number' && Number.isInteger(val) && Number.isFinite(val)) {
+        return BigInt(val);
+    }
+    return val;
+}
+
+/**
  * Shallow conversion JS -> Scheme.
  */
 export function jsToScheme(val) {
-    return val;
+    return maybeIntToBigInt(val);
 }
 
 /**
  * Deep recursive conversion JS -> Scheme.
  */
 export function jsToSchemeDeep(val) {
+    // Convert integers to BigInt
+    val = maybeIntToBigInt(val);
+
     if (isPrimitive(val)) return val;
 
     // Arrays -> Vector

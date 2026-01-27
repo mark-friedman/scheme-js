@@ -226,23 +226,25 @@ While the core interoperability layer handles values "as-is" (shallow), the `(sc
 
 | Scheme Type | `scheme->js-deep` | `js->scheme-deep` | JS Type |
 | :--- | :--- | :--- | :--- |
-| `Pair`/`List` | **Array** (recursive) | N/A | `Array` |
+| `Pair`/`List` | **Preserved** (not converted) | N/A | N/A |
 | `Vector` | **Array** (recursive) | **Vector** (recursive) | `Array` |
 | `Record` | **Object** (recursive) | N/A | `Object` |
 | `js-object` | **Object** (unwrap) | **js-object** (recursive) | `Object` |
 | `BigInt` | `Number` (if safe*) | `BigInt` (identity) | `BigInt` |
+| JS integer | N/A | `BigInt` | `Number` |
 | Other | Identity | Identity | Other |
 
-* *Note: BigInt->Number conversion throws an error if the value is outside the safe integer range.*
+> [!NOTE]
+> - **Lists are preserved**: Scheme lists (Cons pairs) are NOT converted to JS Arrays. They remain as Scheme data structures. Use `list->vector` first if you need an array.
+> - **JS integers become BigInt**: Integer Numbers from JS are converted to BigInt for correct Scheme numeric semantics.
+> - **BigInt safety**: BigInt->Number throws if outside the safe integer range.
 
 ### Automatic Boundary Conversion
 
 The `js-auto-convert` parameter controls whether this conversion happens automatically at the API boundary.
 
-- **Default (`#t`)**:
-    - **Scheme calling JS**: Arguments are deeply converted to JS. Return values are deeply converted to Scheme.
-    - **JS calling Scheme**: Arguments are deeply converted to Scheme. Return values are deeply converted to JS.
-- **Disabled (`#f`)**: No conversion occurs. Values are passed as raw references.
+- **Default (`#t`)**: Deep conversion is applied automatically.
+- **Disabled (`#f`)**: Values are passed as raw references (no conversion).
 
 ```scheme
 (parameterize ((js-auto-convert #f))

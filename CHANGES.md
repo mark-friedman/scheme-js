@@ -2714,8 +2714,8 @@ Implemented a robust system for converting complex data structures between Schem
 
 ### Deep Conversion
 New procedures in `(scheme-js js-conversion)` library provided:
-- `(scheme->js-deep val)`: Recursively converts Scheme Lists/Vectors to JS Arrays, and Records to JS Objects.
-- `(js->scheme-deep val)`: Recursively converts JS Arrays to Scheme Vectors, and JS Objects to Scheme `js-object` records.
+- `(scheme->js-deep val)`: Recursively converts Scheme Vectors to JS Arrays, and Records to JS Objects. Lists (Cons pairs) are preserved.
+- `(js->scheme-deep val)`: Recursively converts JS Arrays to Scheme Vectors, JS Objects to Scheme `js-object` records, and JS integers to BigInt.
 
 ### Bi-Directional Auto-Conversion
 Introduced the `js-auto-convert` parameter (default `#t`).
