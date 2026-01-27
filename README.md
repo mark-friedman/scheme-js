@@ -212,27 +212,43 @@ The `(scheme-js js-conversion)` library provides a robust system for converting 
 
 **Features:**
 - **Automatic Conversion**: The `js-auto-convert` parameter (default `#t`) automatically handles deep conversion of arguments and return values at the JS boundary.
-- **Deep Conversion Procedures**:
-  - `(scheme->js-deep val)`: Recursively converts Scheme lists/vectors to JS arrays and records to JS objects.
-  - `(js->scheme-deep val)`: Recursively converts JS arrays to Scheme vectors and JS objects to `js-object` records.
 - **Bi-Directional**: Works seamlessly for both Scheme calling JS and JS calling Scheme.
 - **Safe BigInts**: Errors are thrown when converting BigInts outside the safe JavaScript integer range to prevent silent precision loss.
+
+**Exported Procedures:**
+
+| Procedure | Description |
+|-----------|-------------|
+| `(scheme->js val)` | Shallow conversion: Scheme values to JS (BigInt→Number if safe). |
+| `(scheme->js-deep val)` | Deep conversion: Vectors → Arrays, Records → Objects. |
+| `(js->scheme val)` | Shallow conversion: JS values to Scheme (Number→BigInt if int). |
+| `(js->scheme-deep val)` | Deep conversion: Arrays → Vectors, Objects → `js-object` records. |
+| `(js-auto-convert [bool])` | Parameter to control automatic boundary conversion (default `#t`). |
+| `(make-js-object)` | Creates a new empty `js-object` wrapper. |
+| `(js-object? obj)` | Returns `#t` if `obj` is a `js-object` record. |
+| `(js-ref obj key)` | Access a property on a JS object (key is a string). |
+| `(js-set! obj key val)` | Set a property on a JS object. |
 
 **Usage:**
 
 ```scheme
 (import (scheme-js js-conversion))
 
-;; JS Array -> Scheme Vector (deep)
+;; JS Array → Scheme Vector (deep)
 (define vec (js->scheme-deep (js-eval "[1, 2, [3]]")))
 
-;; Scheme List -> JS Array (deep)
-(js-call "console.log" (scheme->js-deep '(1 2 (3))))
+;; Scheme Vector → JS Array (deep)
+(js-call "console.log" (scheme->js-deep #(1 2 3)))
 
 ;; Accessing JS Objects
 (define obj (js->scheme-deep (js-eval "({x: 10})")))
-(display (js-ref obj "x")) ; -> 10
+(display (js-ref obj "x")) ; → 10
 (js-set! obj "y" 20)
+
+;; Creating and using js-object records
+(define my-obj (make-js-object))
+(js-set! my-obj "name" "example")
+(display (js-object? my-obj)) ; → #t
 ```
 
 **Limitations:**
