@@ -36,7 +36,7 @@ import { schemeToJs, schemeToJsDeep } from './js_interop.js';
  * Unpacks a Values object to its first value for JS interop (Option C).
  * Also performs Scheme->JS conversion based on the 'js-auto-convert' parameter.
  * 
- * By default, uses deep conversion (schemeToJsDeep) which converts Lists to Arrays,
+ * By default, uses deep conversion (schemeToJsDeep) which converts 
  * Vectors to Arrays, Records to Objects. Set jsAutoConvert = false to preserve
  * Scheme composite types.
  * 
@@ -330,7 +330,9 @@ export class Interpreter {
           }
 
           // No handler found - propagate to JS caller
-          console.info("Native JavaScript error caught in interpreter:", e);
+          if (!(e instanceof SchemeError)) {
+            console.error("Native JavaScript error caught in interpreter:", e);
+          }
           throw e;
         }
       }

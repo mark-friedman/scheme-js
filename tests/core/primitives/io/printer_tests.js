@@ -9,7 +9,7 @@ export function runPrinterTests(logger) {
     // Basics
     assert(logger, "display null", displayString(null), "()");
     assert(logger, "display true", displayString(true), "#t");
-    assert(logger, "display number", displayString(42), "42");
+    assert(logger, "display number", displayString(42), "42.0");
     assert(logger, "display string", displayString("hello"), "hello");
     assert(logger, "write string", writeString("hello"), '"hello"');
 
@@ -22,11 +22,11 @@ export function runPrinterTests(logger) {
 
     // Lists
     const list = new Cons(1, new Cons(2, null));
-    assert(logger, "display list", displayString(list), "(1 2)");
+    assert(logger, "display list", displayString(list), "(1.0 2.0)");
 
     // Vectors
     const vec = [1, 2, 3];
-    assert(logger, "display vector", displayString(vec), "#(1 2 3)");
+    assert(logger, "display vector", displayString(vec), "#(1.0 2.0 3.0)");
 
     // Bytevectors
     const bv = new Uint8Array([10, 20]);
@@ -37,19 +37,19 @@ export function runPrinterTests(logger) {
     // Shared
     const cell = new Cons(1, null);
     cell.cdr = cell; // cycle
-    assert(logger, "write shared cycle", writeStringShared(cell), "#0=(1 . #0#)");
+    assert(logger, "write shared cycle", writeStringShared(cell), "#0=(1.0 . #0#)");
 
     const shared = new Cons(100, null);
     const dag = new Cons(shared, new Cons(shared, null));
-    assert(logger, "write shared dag", writeStringShared(dag), "(#0=(100) #0#)");
+    assert(logger, "write shared dag", writeStringShared(dag), "(#0=(100.0) #0#)");
 
     // Objects
     logger.title("Object Printing");
 
     // Simple object
     const simpleObj = { a: 1, b: 2 };
-    assert(logger, "display simple object", displayString(simpleObj), "#{(a 1) (b 2)}");
-    assert(logger, "write simple object", writeString(simpleObj), "#{(a 1) (b 2)}");
+    assert(logger, "display simple object", displayString(simpleObj), "#{(a 1.0) (b 2.0)}");
+    assert(logger, "write simple object", writeString(simpleObj), "#{(a 1.0) (b 2.0)}");
 
     // Empty object
     const emptyObj = {};
@@ -62,15 +62,15 @@ export function runPrinterTests(logger) {
 
     // Nested object
     const nestedObj = { outer: { inner: 1 } };
-    assert(logger, "display nested object", displayString(nestedObj), "#{(outer #{(inner 1)})}");
+    assert(logger, "display nested object", displayString(nestedObj), "#{(outer #{(inner 1.0)})}");
 
     // Object with special key (needs quoting)
     const specialKeyObj = { "foo bar": 1 };
-    assert(logger, "write object with special key", writeString(specialKeyObj), '#{("foo bar" 1)}');
+    assert(logger, "write object with special key", writeString(specialKeyObj), '#{("foo bar" 1.0)}');
 
     // Object with numeric-looking key
     const numKeyObj = { "123": 456 };
-    assert(logger, "write object with numeric key", writeString(numKeyObj), '#{("123" 456)}');
+    assert(logger, "write object with numeric key", writeString(numKeyObj), '#{("123" 456.0)}');
 
     // Circular object (write-shared)
     const circObj = { name: "root" };
@@ -80,7 +80,7 @@ export function runPrinterTests(logger) {
     // Object containing shared sub-object
     const innerObj = { x: 1 };
     const objWithShared = { a: innerObj, b: innerObj };
-    assert(logger, "write shared nested object", writeStringShared(objWithShared), "#{(a #0=#{(x 1)}) (b #0#)}");
+    assert(logger, "write shared nested object", writeStringShared(objWithShared), "#{(a #0=#{(x 1.0)}) (b #0#)}");
 }
 
 // Allow direct execution

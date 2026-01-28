@@ -1,6 +1,9 @@
 import { Cons } from '../../interpreter/cons.js';
 import { Symbol } from '../../interpreter/symbol.js';
 import { Port, EOF_OBJECT } from './ports.js';
+import { Rational } from '../rational.js';
+import { Complex } from '../complex.js';
+import { Char } from '../char_class.js';
 
 // ============================================================================
 // Printer Logic (Display/Write)
@@ -26,7 +29,12 @@ export function displayString(val) {
         if (val === Infinity) return '+inf.0';
         if (val === -Infinity) return '-inf.0';
         if (Number.isNaN(val)) return '+nan.0';
-        return String(val);
+        // Ensure inexactness is visible for integers
+        let s = String(val);
+        if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
+            s += '.0';
+        }
+        return s;
     }
     if (val instanceof Cons) return consToString(val, displayString);
     if (Array.isArray(val)) return vectorToString(val, displayString);
@@ -39,6 +47,7 @@ export function displayString(val) {
         if (name === 'Closure') return val.toString();
         return `#<procedure ${name}>`;
     }
+    if (val instanceof Char) return val.toString();
     // Handle object-like values (plain objects, records, class instances)
     if (isObjectLike(val)) {
         return objectToString(val, displayString);
@@ -69,7 +78,12 @@ export function writeString(val) {
         if (val === Infinity) return '+inf.0';
         if (val === -Infinity) return '-inf.0';
         if (Number.isNaN(val)) return '+nan.0';
-        return String(val);
+        // Ensure inexactness is visible for integers
+        let s = String(val);
+        if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
+            s += '.0';
+        }
+        return s;
     }
     if (val instanceof Cons) return consToString(val, writeString);
     if (Array.isArray(val)) return vectorToString(val, writeString);
@@ -85,20 +99,14 @@ export function writeString(val) {
         if (name === 'Closure') return val.toString();
         return `#<procedure ${name}>`;
     }
-    if (val && typeof val === 'object' && val.type === 'char') {
+    if (val instanceof Char) {
         // Character representation
-        const ch = val.value;
+        const ch = val.toString();
         if (ch === ' ') return '#\\space';
         if (ch === '\n') return '#\\newline';
         if (ch === '\t') return '#\\tab';
         if (ch === '\r') return '#\\return';
         return '#\\' + ch;
-    }
-    // If it's just a single character string representing a char
-    if (typeof val === 'string' && val.length === 1) {
-        // This is called from write context - but strings should be quoted
-        // Character objects would be handled separately
-        return '"' + val + '"';
     }
     // Handle object-like values (plain objects, records, class instances)
     if (isObjectLike(val)) {
@@ -232,7 +240,16 @@ export function writeStringShared(val) {
                 .replace(/\r/g, '\\r')
                 .replace(/\t/g, '\\t') + '"';
         }
-        if (typeof obj === 'number') return String(obj);
+        if (typeof obj === 'number') {
+            if (obj === Infinity) return '+inf.0';
+            if (obj === -Infinity) return '-inf.0';
+            if (Number.isNaN(obj)) return '+nan.0';
+            let s = String(obj);
+            if (Number.isInteger(obj) && !s.includes('.') && !s.includes('e')) {
+                s += '.0';
+            }
+            return s;
+        }
         if (obj instanceof Symbol) return writeSymbol(obj.name); // Symbol
         if (obj === EOF_OBJECT) return '#<eof>';
         if (obj instanceof Port) return obj.toString();
@@ -387,7 +404,9 @@ function isObjectLike(val) {
     if (val instanceof Symbol) return false;
     if (val === EOF_OBJECT) return false;
     // Check for char objects
-    if (val.type === 'char') return false;
+    if (val instanceof Char) return false;
+    if (val instanceof Rational) return false;
+    if (val instanceof Complex) return false;
     // It's an object-like value (plain object, record, or class instance)
     return true;
 }

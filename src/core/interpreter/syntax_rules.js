@@ -329,9 +329,7 @@ function transcribeLiteral(template, bindings, expansionScope) {
         }
 
         // All other identifiers: mark with expansion scope (pure marks hygiene)
-        if (expansionScope !== null &&
-            !SPECIAL_FORMS.has(name) &&
-            !globalMacroRegistry.isMacro(name)) {
+        if (expansionScope !== null) {
             if (template instanceof SyntaxObject) {
                 return template.flipScope(expansionScope);
             }
@@ -404,12 +402,7 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
         }
 
         // All other identifiers (free variables, introduced bindings): mark with expansion scope
-        // This is the core of pure marks hygiene - introduced bindings get the same
-        // treatment as free variables, making them distinguishable by scope sets
-        if (expansionScope !== null &&
-            !SPECIAL_FORMS.has(name) &&
-            !globalMacroRegistry.isMacro(name)) {
-
+        if (expansionScope !== null) {
             if (template instanceof SyntaxObject) {
                 return template.flipScope(expansionScope);
             }

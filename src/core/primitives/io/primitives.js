@@ -238,14 +238,20 @@ export const ioPrimitives = {
     'read-u8': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-u8');
-        if (port.readU8) return port.readU8();
+        if (port.readU8) {
+            const b = port.readU8();
+            return b === EOF_OBJECT ? b : BigInt(b);
+        }
         throw new Error('read-u8: expected binary input port');
     },
 
     'peek-u8': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'peek-u8');
-        if (port.peekU8) return port.peekU8();
+        if (port.peekU8) {
+            const b = port.peekU8();
+            return b === EOF_OBJECT ? b : BigInt(b);
+        }
         throw new Error('peek-u8: expected binary input port');
     },
 
@@ -275,7 +281,7 @@ export const ioPrimitives = {
         // Accept Char objects or single-character strings
         let charStr;
         if (char instanceof Char) {
-            charStr = char.char;
+            charStr = char.toString();
         } else if (typeof char === 'string' && char.length === 1) {
             charStr = char;
         } else {
@@ -295,11 +301,11 @@ export const ioPrimitives = {
 
         if (args.length >= 1 && isOutputPort(args[0])) {
             port = args[0];
-            if (args.length >= 2) start = args[1];
-            if (args.length >= 3) end = args[2];
+            if (args.length >= 2) start = Number(args[1]);
+            if (args.length >= 3) end = Number(args[2]);
         } else if (args.length >= 1) {
-            start = args[0];
-            if (args.length >= 2) end = args[1];
+            start = Number(args[0]);
+            if (args.length >= 2) end = Number(args[1]);
         }
 
         requireOpenOutputPort(port, 'write-string');

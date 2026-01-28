@@ -38,11 +38,13 @@ function isPrimitive(val) {
  * Shallow conversion from Scheme to JS.
  */
 export function schemeToJs(val) {
+    // Convert BigInt to Number for JS API calls
+    // (JS APIs like Date, Math, etc. require Number, not BigInt)
     if (typeof val === 'bigint') {
         if (val >= Number.MIN_SAFE_INTEGER && val <= Number.MAX_SAFE_INTEGER) {
             return Number(val);
         }
-        throw new Error(`BigInt ${val} is outside safe integer range for generic JS conversion. Use (js-auto-convert #f) or convert manually.`);
+        throw new Error(`BigInt ${val} is outside safe integer range for JS API call.`);
     }
     if (val instanceof Char) return val.toString();
     if (val instanceof Rational) return val.toNumber();
@@ -55,13 +57,9 @@ export function schemeToJs(val) {
  */
 export function schemeToJsDeep(val) {
     // 1. Primitive Conversion (Shallow Check first)
-    // NOTE: We duplicate BigInt check to avoid double-call overhead/logic split
+    // Preserve BigInt - numeric tower uses BigInt for exact integers
     if (typeof val === 'bigint') {
-        // Same safety check
-        if (val >= Number.MIN_SAFE_INTEGER && val <= Number.MAX_SAFE_INTEGER) {
-            return Number(val);
-        }
-        throw new Error(`BigInt ${val} is outside safe integer range for deep JS conversion. Use (js-auto-convert #f) or convert manually.`);
+        return val;
     }
 
     if (val instanceof Char) return val.toString();

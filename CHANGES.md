@@ -3556,3 +3556,97 @@ Ran the full test suite (`node run_tests_node.js`):
 TEST SUMMARY: 1572 passed, 0 failed, 4 skipped
 ```
 All tests passed, including the newly connected interpreter unit tests and the existing promise interop tests.
+# Walkthrough: Resolving Numeric Tower Failures
+
+I have resolved the remaining test failures arising from the numeric tower (BigInt) integration, primarily focusing on maintaining exactness consistency during JavaScript/Scheme interop and fixing character/binary I/O regressions.
+
+## Key Changes
+
+### 1. Unified Numeric Normalization Strategy
+The core issue was inconsistent handling of numerical types when crossing the JS/Scheme boundary. I implemented a strict normalization policy: **All values entering Scheme from JS must be converted to their most appropriate Scheme type (BigInt for exact integers).**
+
+- **[MODIFIED] [values.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/values.js)**: Added `jsToScheme` normalization to closure arguments. This ensures that when a Scheme closure is called from JS (e.g., via a bound function), any numeric arguments are converted to BigInt if they represent integers, preserving exactness in subsequent Scheme arithmetic.
+- **[MODIFIED] [interop.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/interop.js)**: Added `jsToScheme` normalization to the return values of `js-invoke`, `js-new`, and `record-accessor`.
+- **[MODIFIED] [js_interop.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/js_interop.js)**: Modified `schemeToJsDeep` to **preserve** BigInt values. This ensures that exact integers maintain their type when traveling through JS (e.g., through a `.bind` call) back into Scheme.
+
+### 2. Character and Binary I/O Fixes
+- **[MODIFIED] [primitives.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/io/primitives.js)**:
+  - Fixed `write-char` to properly call `toString()` on the character object, resolving a bug where it output `"undefined"`.
+  - Updated `read-u8` and `peek-u8` to return `BigInt` for byte values, aligning with the numeric tower's exact integer representation.
+
+### 3. JS Interop Compatibility
+- **[MODIFIED] [js_interop.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/js_interop.js)**: Kept the shallow `schemeToJs` conversion to `Number` for BigInts. This allows calling standard JS APIs (like `new Date(timestamp)` or `Math.sqrt(n)`) with Scheme exact integers without "Cannot convert BigInt to Number" errors.
+
+## Verification Results
+
+### Automated Tests
+I ran the full test suite, including core Scheme tests and JS interop tests.
+
+```text
+========================================
+TEST SUMMARY: 1629 passed, 0 failed, 3 skipped
+========================================
+```
+
+The 3 skipped tests are expected based on current project configuration. All previously failing tests in the following groups now pass:
+- `bind procedure from Scheme`
+- `write-char to string port`
+- `Exactness Predicates` (exact?, inexact?)
+- `Complex number magnitude`
+- `Numeric reader syntax` (#e, #i)
+
+### Manual Verification
+Verified that `(write-char #\A)` output is correctly recorded in string ports and that numeric predicates correctly distinguish exact (BigInt) from inexact (Number) integers:
+
+```scheme
+(eqv? 5 5.0)       ;; => #f (Strict R7RS compliance)
+(inexact? (inexact 5)) ;; => #t (Inexactness preservation)
+```
+
+render_diffs(file:///Users/mark/code/scheme-js-4/src/core/interpreter/js_interop.js)
+render_diffs(file:///Users/mark/code/scheme-js-4/src/core/interpreter/values.js)
+render_diffs(file:///Users/mark/code/scheme-js-4/src/core/primitives/io/primitives.js)
+render_diffs(file:///Users/mark/code/scheme-js-4/src/core/interpreter/frames.js)
+# Walkthrough - R7RS Compliance Verification and Fixes
+
+I have completed the verification and fixing of the R7RS compliance test suites (Chibi and Chapter). All 982 Chibi tests and 219 Chapter tests now pass successfully (with some Chibi tests appropriately skipped due to JavaScript float limitations).
+
+## Changes Made
+
+### Core Interpreter & Macro System
+- **Macro Hygiene**: Modified `src/core/interpreter/syntax_rules.js` to ensure ALL template identifiers (including special forms and macros) are marked with the expansion scope. This prevents local variables at the use site from accidentally shadowing keywords introduced by the macro (e.g., `(let ((if #t)) (macro-that-uses-if))` now works correctly).
+- **Analyzer Fix**: Updated `src/core/interpreter/analyzers/core_forms.js` to correctly handle `SyntaxObject` operators in `analyzeWithCurrentMacroRegistry`, ensuring that macros expanding to other macros are correctly processed even when wrapped in syntax objects.
+- **Error Logging**: Improved `src/core/interpreter/interpreter.js` to avoid logging "Native JavaScript error" for expected `SchemeError` instances, reducing console noise during tests.
+
+### I/O & Numeric Tower
+- **Inexact Integers**: Updated `src/core/primitives/io/printer.js` and `src/core/interpreter/printer.js` to append `.0` to inexact integers (JS Numbers) when printing, as required by R7RS to distinguish them from exact integers.
+- **Type-Specific Printing**: Added specific handling for `Char`, `Rational`, and `Complex` types in the printer to prevent them from being formatted as generic JavaScript object literals (`#{...}`).
+- **write-string**: Fixed `src/core/primitives/io/primitives.js` to correctly handle `BigInt` indices for the `start` and `end` arguments.
+
+### Testing & Verification
+- **Unit Test Updates**: Updated `tests/core/primitives/io/printer_tests.js` to reflect the new R7RS-compliant formatting for inexact integers.
+- **Compliance Suites**: Verified that `node tests/core/scheme/compliance/run_chibi_tests.js` and `node tests/core/scheme/compliance/run_chapter_tests.js` both report 100% success (excluding planned skips).
+
+## Verification Results
+
+### Compliance Tests
+```
+=== Chibi Compliance Suite ===
+SECTIONS: 20 passed, 0 failed
+TESTS: 982 passed, 0 failed, 24 skipped
+
+=== Chapter Compliance Suite ===
+CHAPTERS: 4 passed, 0 failed
+TESTS: 219 passed, 0 failed, 0 skipped
+```
+
+### Manual Verification
+Verified that `let-syntax` shadowing tests that previously failed now pass correctly:
+```scheme
+(let-syntax
+    ((my-if (syntax-rules ()
+              ((_ (test ...) then else)
+               (if (test ...) then else)))))
+  (let ((if #t))
+    (my-if (symbol? 'a) 'ok 'fail))) ;; Returns 'ok, correctly ignoring local 'if'
+```

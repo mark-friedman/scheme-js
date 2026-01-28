@@ -12,6 +12,7 @@
 
 import { LiteralNode, TailAppNode } from './ast_nodes.js';
 import { Cons } from './cons.js';
+import { jsToScheme } from './js_interop.js';
 
 // =============================================================================
 // Marker Symbols for Type Identification
@@ -72,7 +73,8 @@ export function createClosure(params, body, env, restParam, interpreter) {
     // Create the callable wrapper
     const closure = function (...jsArgs) {
         // Build the invocation AST: apply this closure to the given args
-        const argLiterals = jsArgs.map(val => new LiteralNode(val));
+        // Normalize args entering Scheme from JS
+        const argLiterals = jsArgs.map(val => new LiteralNode(jsToScheme(val)));
         const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
 
         // Run through the interpreter with a sentinel frame to capture result

@@ -73,7 +73,8 @@ export const interopPrimitives = {
         }
         // Convert Scheme values to JS (e.g., BigInt -> Number)
         const jsArgs = args.map(schemeToJs);
-        return func.apply(obj, jsArgs);
+        // Convert return value back to Scheme (e.g., Number -> BigInt)
+        return jsToScheme(func.apply(obj, jsArgs));
     },
 
     /**
@@ -176,6 +177,7 @@ export const interopPrimitives = {
         }
         // Convert Scheme values to JS (e.g., BigInt -> Number)
         const jsArgs = args.map(schemeToJs);
+        // Note: Don't convert the returned object - it's a JS class instance
         return new constructor(...jsArgs);
     }
 };

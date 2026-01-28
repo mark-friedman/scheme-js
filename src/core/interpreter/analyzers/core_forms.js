@@ -43,8 +43,9 @@ export function initCoreForms(deps) {
 function analyzeWithCurrentMacroRegistry(exp, syntacticEnv, ctx) {
     if (exp instanceof Cons) {
         const tag = exp.car;
-        if (tag instanceof Symbol && ctx.currentMacroRegistry.isMacro(tag.name)) {
-            const transformer = ctx.currentMacroRegistry.lookup(tag.name);
+        const tagName = (tag instanceof Symbol) ? tag.name : (isSyntaxObject(tag) ? syntaxName(tag) : null);
+        if (tagName && ctx.currentMacroRegistry.isMacro(tagName)) {
+            const transformer = ctx.currentMacroRegistry.lookup(tagName);
             const expanded = transformer(exp, syntacticEnv);
             return analyzeWithCurrentMacroRegistry(expanded, syntacticEnv, ctx);
         }

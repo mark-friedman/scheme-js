@@ -7,6 +7,7 @@
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
+import { jsToScheme } from '../interpreter/js_interop.js';
 
 /**
  * Record primitives exported to Scheme.
@@ -77,7 +78,8 @@ export const recordPrimitives = {
             if (!(obj instanceof rtd)) {
                 throw new SchemeTypeError(`${fieldName} accessor`, 1, rtd.name, obj);
             }
-            return obj[fieldName];
+            // Convert JS values to Scheme (e.g., Number -> BigInt)
+            return jsToScheme(obj[fieldName]);
         };
     },
 
