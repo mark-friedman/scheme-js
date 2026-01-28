@@ -3,7 +3,7 @@ import { Environment } from '../interpreter/environment.js';
 import { globalScopeRegistry, GLOBAL_SCOPE_ID } from '../interpreter/syntax_object.js';
 
 import { mathPrimitives } from './math.js';
-import { ioPrimitives } from './io.js';
+import { ioPrimitives } from './io/index.js';
 import { listPrimitives } from './list.js';
 import { vectorPrimitives } from './vector.js';
 import { recordPrimitives } from './record.js';
@@ -21,6 +21,7 @@ import { bytevectorPrimitives } from './bytevector.js';
 import { syntaxPrimitives } from './syntax.js';
 import { getPromisePrimitives } from '../../extras/primitives/promise.js';
 import { jsInteropPrimitives } from './js_interop_primitives.js';
+import { classPrimitives } from './class.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -62,6 +63,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(syntaxPrimitives);
     addPrimitives(getPromisePrimitives(interpreter));
     addPrimitives(jsInteropPrimitives);
+    addPrimitives(classPrimitives);
 
     return new Environment(null, bindings);
 }

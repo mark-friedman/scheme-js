@@ -172,6 +172,8 @@ export function runInteropTests(interpreter, logger) {
         // 3. Ping-Pong Recursion (TCO check across boundaries? No, JS stack grows)
         // We just want to verify it works for small N.
         interpreter.globalEnv.bindings.set('js-pong', (n) => {
+            // Convert BigInt to Number for JS arithmetic
+            if (typeof n === 'bigint') n = Number(n);
             if (n === 0) return "pong-done";
 
 

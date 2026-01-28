@@ -5,7 +5,7 @@
  */
 
 import { assertString } from '../../core/interpreter/type_check.js';
-import { jsToScheme } from '../../core/interpreter/js_interop.js';
+import { jsToScheme, schemeToJs } from '../../core/interpreter/js_interop.js';
 import { SchemeTypeError, SchemeError } from '../../core/interpreter/errors.js';
 
 /**
@@ -71,7 +71,9 @@ export const interopPrimitives = {
         if (typeof func !== 'function') {
             throw new SchemeTypeError('js-invoke', 2, 'function', func);
         }
-        return func.apply(obj, args);
+        // Convert Scheme values to JS (e.g., BigInt -> Number)
+        const jsArgs = args.map(schemeToJs);
+        return func.apply(obj, jsArgs);
     },
 
     /**
@@ -172,6 +174,8 @@ export const interopPrimitives = {
         if (typeof constructor !== 'function') {
             throw new SchemeTypeError('js-new', 1, 'function', constructor);
         }
-        return new constructor(...args);
+        // Convert Scheme values to JS (e.g., BigInt -> Number)
+        const jsArgs = args.map(schemeToJs);
+        return new constructor(...jsArgs);
     }
 };

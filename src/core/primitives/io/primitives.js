@@ -11,6 +11,7 @@ import { displayString, writeString, writeStringShared } from './printer.js';
 import { readExpressionFromPort } from './reader_bridge.js';
 import { list } from '../../interpreter/cons.js';
 import { intern } from '../../interpreter/symbol.js';
+import { Char } from '../char_class.js';
 
 // ============================================================================
 // Current Ports (Global State)
@@ -221,6 +222,8 @@ export const ioPrimitives = {
     },
 
     'read-string': (k, ...args) => {
+        // Handle BigInt k by converting to Number
+        if (typeof k === 'bigint') k = Number(k);
         if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) throw new Error('read-string: expected non-negative integer');
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-string');
@@ -255,6 +258,8 @@ export const ioPrimitives = {
     },
 
     'read-bytevector': (k, ...args) => {
+        // Handle BigInt k by converting to Number
+        if (typeof k === 'bigint') k = Number(k);
         if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) throw new Error('read-bytevector: expected non-negative integer');
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-bytevector');
@@ -267,10 +272,18 @@ export const ioPrimitives = {
     // --------------------------------------------------------------------------
 
     'write-char': (char, ...args) => {
-        if (typeof char !== 'string' || char.length !== 1) throw new Error('write-char: expected character');
+        // Accept Char objects or single-character strings
+        let charStr;
+        if (char instanceof Char) {
+            charStr = char.char;
+        } else if (typeof char === 'string' && char.length === 1) {
+            charStr = char;
+        } else {
+            throw new Error('write-char: expected character');
+        }
         const port = args.length > 0 ? args[0] : currentOutputPort;
         requireOpenOutputPort(port, 'write-char');
-        port.writeChar(char);
+        port.writeChar(charStr);
         return undefined;
     },
 
@@ -299,6 +312,8 @@ export const ioPrimitives = {
     // --------------------------------------------------------------------------
 
     'write-u8': (byte, ...args) => {
+        // Handle BigInt byte by converting to Number
+        if (typeof byte === 'bigint') byte = Number(byte);
         if (!Number.isInteger(byte) || byte < 0 || byte > 255) throw new Error('write-u8: expected byte (0-255)');
         const port = args.length > 0 ? args[0] : currentOutputPort;
         requireOpenOutputPort(port, 'write-u8');

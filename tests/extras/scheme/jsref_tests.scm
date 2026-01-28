@@ -66,7 +66,10 @@
 ;; ============================================================================
 
 (test-group "js-typeof primitive"
-  (test "js-typeof number" "number" (js-typeof 42))
+  ;; Exact integers are BigInt in Scheme-JS
+  (test "js-typeof exact integer" "bigint" (js-typeof 42))
+  ;; Inexact numbers are JS Number
+  (test "js-typeof inexact number" "number" (js-typeof 3.14))
   (test "js-typeof string" "string" (js-typeof "hello"))
   (test "js-typeof boolean" "boolean" (js-typeof #t))
   ;; Note: In this Scheme implementation, lists/vectors might be objects or arrays
