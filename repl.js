@@ -115,8 +115,8 @@ async function bootstrapInterpreter() {
                     (scheme-js promise)
                     (scheme-js interop))
         `;
-        for (const exp of parse(imports)) {
-            interpreter.run(analyze(exp), env);
+        for (const sexp of parse(imports)) {
+            interpreter.run(analyze(sexp), env, [], undefined, { jsAutoConvert: 'raw' });
         }
     } catch (e) {
         console.error("Failed to bootstrap REPL environment:", e);
@@ -137,7 +137,7 @@ async function startRepl() {
         let result;
         for (const exp of s_exps) {
             const ast = analyze(exp);
-            result = interpreter.run(ast, env);
+            result = interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
         }
         return result;
     };

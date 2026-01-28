@@ -15,44 +15,7 @@ import { Char } from '../char_class.js';
  * @returns {string}
  */
 export function displayString(val) {
-    if (typeof val === 'function' || val && val.constructor && val.constructor.name === 'Closure') {
-        const name = val.constructor ? val.constructor.name : 'Unknown';
-        if (name === 'Closure') return val.toString();
-        return `#<procedure ${name}>`;
-    }
-    if (val === null) return '()';
-    if (val === true) return '#t';
-    if (val === false) return '#f';
-    if (typeof val === 'string') return val;  // display doesn't quote strings
-    if (typeof val === 'number') {
-        // R7RS special value formatting
-        if (val === Infinity) return '+inf.0';
-        if (val === -Infinity) return '-inf.0';
-        if (Number.isNaN(val)) return '+nan.0';
-        // Ensure inexactness is visible for integers
-        let s = String(val);
-        if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
-            s += '.0';
-        }
-        return s;
-    }
-    if (val instanceof Cons) return consToString(val, displayString);
-    if (Array.isArray(val)) return vectorToString(val, displayString);
-    if (val instanceof Uint8Array) return bytevectorToString(val);
-    if (val instanceof Symbol) return val.name; // Symbol - display doesn't wrap
-    if (val === EOF_OBJECT) return '#<eof>';
-    if (val instanceof Port) return val.toString();
-    if (typeof val === 'function') {
-        const name = val.constructor ? val.constructor.name : 'Unknown';
-        if (name === 'Closure') return val.toString();
-        return `#<procedure ${name}>`;
-    }
-    if (val instanceof Char) return val.toString();
-    // Handle object-like values (plain objects, records, class instances)
-    if (isObjectLike(val)) {
-        return objectToString(val, displayString);
-    }
-    return String(val);
+    return genericToString(val, 'display');
 }
 
 /**
@@ -61,11 +24,49 @@ export function displayString(val) {
  * @returns {string}
  */
 export function writeString(val) {
+    return genericToString(val, 'write');
+}
+
+/**
+ * Internal generic string conversion with mode support.
+ * @param {*} val - Value to convert
+ * @param {'display'|'write'} mode - Printer mode
+ * @returns {string}
+ */
+function genericToString(val, mode) {
+    // 1. Primitive shared values
     if (val === null) return '()';
     if (val === true) return '#t';
     if (val === false) return '#f';
+    if (val === EOF_OBJECT) return '#<eof>';
+    if (val instanceof Port) return val.toString();
+
+    // 2. Numbers (Shared logic)
+    if (typeof val === 'number') {
+        if (val === Infinity) return '+inf.0';
+        if (val === -Infinity) return '-inf.0';
+        if (Number.isNaN(val)) return '+nan.0';
+        let s = String(val);
+        if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
+            s += '.0';
+        }
+        return s;
+    }
+    if (typeof val === 'bigint') return String(val);
+    if (val instanceof Rational) return val.toString();
+    if (val instanceof Complex) return val.toString();
+
+    // 3. Procedures (Shared logic)
+    if (typeof val === 'function' || (val && val.constructor && val.constructor.name === 'Closure')) {
+        const name = val.constructor ? val.constructor.name : 'Unknown';
+        if (name === 'Closure') return val.toString();
+        return `#<procedure ${name}>`;
+    }
+
+    // 4. Strings (Mode-specific)
     if (typeof val === 'string') {
-        // Escape and quote strings
+        if (mode === 'display') return val;
+        // write: escape and quote
         return '"' + val
             .replace(/\\/g, '\\\\')
             .replace(/"/g, '\\"')
@@ -73,34 +74,18 @@ export function writeString(val) {
             .replace(/\r/g, '\\r')
             .replace(/\t/g, '\\t') + '"';
     }
-    if (typeof val === 'number') {
-        // R7RS special value formatting
-        if (val === Infinity) return '+inf.0';
-        if (val === -Infinity) return '-inf.0';
-        if (Number.isNaN(val)) return '+nan.0';
-        // Ensure inexactness is visible for integers
-        let s = String(val);
-        if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
-            s += '.0';
-        }
-        return s;
-    }
-    if (val instanceof Cons) return consToString(val, writeString);
-    if (Array.isArray(val)) return vectorToString(val, writeString);
-    if (val instanceof Uint8Array) return bytevectorToString(val);
+
+    // 5. Symbols (Mode-specific)
     if (val instanceof Symbol) {
-        // Symbol - check if it needs |...| escaping
+        if (mode === 'display') return val.name;
+        // write: check for escaping
         return writeSymbol(val.name);
     }
-    if (val === EOF_OBJECT) return '#<eof>';
-    if (val instanceof Port) return val.toString();
-    if (typeof val === 'function') {
-        const name = val.constructor ? val.constructor.name : 'Unknown';
-        if (name === 'Closure') return val.toString();
-        return `#<procedure ${name}>`;
-    }
+
+    // 6. Characters (Mode-specific)
     if (val instanceof Char) {
-        // Character representation
+        if (mode === 'display') return val.toString();
+        // write: Scheme representation
         const ch = val.toString();
         if (ch === ' ') return '#\\space';
         if (ch === '\n') return '#\\newline';
@@ -108,10 +93,18 @@ export function writeString(val) {
         if (ch === '\r') return '#\\return';
         return '#\\' + ch;
     }
-    // Handle object-like values (plain objects, records, class instances)
+
+    // 7. Compound Structures (Recursive with same mode)
+    const elemFn = mode === 'display' ? displayString : writeString;
+    if (val instanceof Cons) return consToString(val, elemFn);
+    if (Array.isArray(val)) return vectorToString(val, elemFn);
+    if (val instanceof Uint8Array) return bytevectorToString(val);
+
+    // 8. Object-like (Records, JS Objects)
     if (isObjectLike(val)) {
-        return objectToString(val, writeString);
+        return objectToString(val, elemFn);
     }
+
     return String(val);
 }
 

@@ -536,7 +536,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             const sexps = parse(code);
             let result;
             for (const sexp of sexps) {
-                result = interpreter.run(analyze(sexp), globalEnv);
+                result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
             }
             addToHistory(prettyPrint(result), 'result');
         } catch (e) {
@@ -609,7 +609,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                 const sexps = parse(code);
                 let result;
                 for (const sexp of sexps) {
-                    result = interpreter.run(analyze(sexp), globalEnv);
+                    result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
                 }
                 addToHistory(prettyPrint(result), 'result');
             } catch (e) {

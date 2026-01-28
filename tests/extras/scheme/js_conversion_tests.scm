@@ -36,21 +36,26 @@
   )
 
   (test-group "js-auto-convert Parameter"
-    (test "default value is #t" 
+    (test "default value is 'deep" 
           (js-auto-convert) 
-          #t)
+          'deep)
     
-    (test "parameterize can change value"
-          (parameterize ((js-auto-convert #f))
+    (test "parameterize can change value to 'shallow"
+          (parameterize ((js-auto-convert 'shallow))
             (js-auto-convert))
-          #f)
+          'shallow)
+
+    (test "parameterize can change value to 'raw"
+          (parameterize ((js-auto-convert 'raw))
+            (js-auto-convert))
+          'raw)
     
     (test "value restored after parameterize"
           (begin
-            (parameterize ((js-auto-convert #f))
+            (parameterize ((js-auto-convert 'shallow))
               'ignored)
             (js-auto-convert))
-          #t)
+          'deep)
   )
 
   (test-group "js-object Record Type"

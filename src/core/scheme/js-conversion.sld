@@ -36,8 +36,9 @@
     ;; Parameter: js-auto-convert
     ;; ------------------------------------------------------------------------
     ;; Controls whether automatic deep conversion happens at JS boundaries.
-    ;; Default is #t.
-    (define js-auto-convert (make-parameter #t))
+    ;; Possible values: 'deep, 'shallow, 'raw.
+    ;; Default is 'deep.
+    (define js-auto-convert (make-parameter 'deep))
     
     ;; ------------------------------------------------------------------------
     ;; Record Type: js-object

@@ -33,47 +33,51 @@ function wrapJsError(e) {
 import { schemeToJs, schemeToJsDeep } from './js_interop.js';
 
 /**
- * Unpacks a Values object to its first value for JS interop (Option C).
- * Also performs Scheme->JS conversion based on the 'js-auto-convert' parameter.
- * 
- * By default, uses deep conversion (schemeToJsDeep) which converts 
- * Vectors to Arrays, Records to Objects. Set jsAutoConvert = false to preserve
- * Scheme composite types.
- * 
+ * Unpacks a Values object to its first value for JS interop.
+ * Also performs Scheme->JS number and char conversion.
+ *
+ * By default, uses deep conversion (schemeToJsDeep) which recursively
+ * converts within vectors, records and objects
+ *
  * @param {*} result - The result to unpack
- * @param {Interpreter} interpreter - The interpreter instance (for env lookup)
+ * @param {Interpreter} interpreter - The interpreter instance
+ * @param {Object} [options={}] - Conversion options (passed to schemeToJsDeep)
  * @returns {*} Converted value
  */
-function unpackForJs(result, interpreter) {
+function unpackForJs(result, interpreter, options = {}) {
   if (result instanceof Values) {
     result = result.first();
   }
 
-  // Check 'js-auto-convert' parameter
-  // Default to deep conversion (true).
-  // Set to false to preserve Scheme data structures.
+  // Determine conversion mode. Priority:
+  // 1. Explicit option passed to run()
+  // 2. Global interpreter setting
+  // 3. Default ('deep')
+  const mode = options.jsAutoConvert || (interpreter ? (interpreter.jsAutoConvert ?? 'deep') : 'deep');
 
-  let autoConvert = true;
-  if (interpreter && interpreter.jsAutoConvert === false) {
-    autoConvert = false;
+  if (mode === 'raw') {
+    return result;
   }
-
-  if (autoConvert) {
-    return schemeToJsDeep(result);
-  } else {
+  if (mode === 'deep' || mode === true) {
+    return schemeToJsDeep(result, options);
+  }
+  if (mode === 'shallow' || mode === false) {
     return schemeToJs(result);
   }
+
+  // Fallback to deep for any unknown mode
+  return schemeToJsDeep(result, options);
 }
 
 /**
  * SentinelFrame - Boundary Marker for JavaScript ↔ Scheme Transitions
- * 
+ *
  * ## Purpose
  * SentinelFrame is pushed onto the frame stack when JavaScript code calls back
  * into Scheme (e.g., when JS invokes a Scheme closure that was passed as a callback).
  * It serves as a "stop marker" that tells the interpreter when to exit the nested
  * `run()` call and return control to JavaScript.
- * 
+ *
  * ## The Problem It Solves
  * Consider this scenario:
  * ```scheme
@@ -82,24 +86,24 @@ function unpackForJs(result, interpreter) {
  * Here, Scheme calls JS, which then calls back into Scheme for each element.
  * Without SentinelFrame, when `my-scheme-function` completes, the interpreter
  * would keep running frames from the *outer* Scheme computation, which is wrong.
- * 
+ *
  * ## How It Works
  * 1. When JS calls a Scheme closure via `runWithSentinel()`:
  *    - A new SentinelFrame is pushed onto the stack
  *    - The inner `run()` loop starts executing
- * 
+ *
  * 2. When the closure's body completes:
  *    - The interpreter pops frames until it reaches SentinelFrame
  *    - SentinelFrame's `step()` throws `SentinelResult` with the answer
- * 
+ *
  * 3. The outer `run()` catches `SentinelResult`:
  *    - Returns the wrapped value to JavaScript
  *    - Execution continues in JS land
- * 
+ *
  * ## Relationship with jsContextStack
  * SentinelFrame works together with `jsContextStack` for proper `dynamic-wind`
  * handling. See `pushJsContext()` and `getParentContext()`.
- * 
+ *
  * @see runWithSentinel - Creates the stack with a SentinelFrame
  * @see SentinelResult - The exception thrown to terminate the nested run
  * @see frames.js filterSentinelFrames - Removes SentinelFrames from continuation copies
@@ -109,7 +113,7 @@ class SentinelFrame {
    * Executes when the interpreter reaches this frame.
    * This means the nested Scheme computation has completed.
    * We throw SentinelResult to break out of the inner run() loop.
-   * 
+   *
    * @param {Array} registers - The interpreter registers [ans, ctl, env, fstack, this]
    * @param {Interpreter} interpreter - The interpreter instance
    * @throws {SentinelResult} Always throws to signal completion
@@ -124,14 +128,14 @@ class SentinelFrame {
 
 /**
  * SentinelResult - Control Flow Exception for Nested Run Termination
- * 
+ *
  * This is thrown by SentinelFrame to signal that a nested `run()` call
  * has completed successfully. It's caught in the trampoline loop (line ~225)
  * and causes the run to return the wrapped value to its JavaScript caller.
- * 
+ *
  * Note: This is NOT an error. It's a control flow mechanism similar to
  * how some systems use exceptions for non-local returns.
- * 
+ *
  * @see SentinelFrame - The frame that throws this
  */
 class SentinelResult {
@@ -218,9 +222,10 @@ export class Interpreter {
    * @param {Environment} [env] - The environment to run in. Defaults to globalEnv.
    * @param {Array} [initialStack] - Initial frame stack.
    * @param {*} [thisContext] - The JavaScript 'this' context.
+   * @param {Object} [options={}] - Options for unpacking the result (passed to unpackForJs).
    * @returns {*} The final result of the computation.
    */
-  run(ast, env = this.globalEnv, initialStack = [], thisContext = undefined) {
+  run(ast, env = this.globalEnv, initialStack = [], thisContext = undefined, options = {}) {
     if (!this.globalEnv) {
       throw new SchemeError("Interpreter global environment is not set. Call setGlobalEnv() first.");
     }
@@ -257,7 +262,7 @@ export class Interpreter {
             // --- Fate #1: Normal Termination ---
             // Stack is empty, computation is done.
             // Closures are now callable functions, no wrapping needed.
-            return unpackForJs(registers[ANS]);
+            return unpackForJs(registers[ANS], this, options);
           }
 
           // --- Fate #2: Restore a Frame ---
@@ -297,7 +302,7 @@ export class Interpreter {
               const fstack = registers[FSTACK];
               if (fstack.length === 0) {
                 // Done - closures are callable, no wrapping needed
-                return unpackForJs(registers[ANS], this);
+                return unpackForJs(registers[ANS], this, options);
               }
 
               // Pop next frame and continue
@@ -314,7 +319,7 @@ export class Interpreter {
 
           // Check for SentinelResult (Control Flow for JS Interop)
           if (e instanceof SentinelResult) {
-            return unpackForJs(e.value, this);
+            return unpackForJs(e.value, this, options);
           }
 
           // Check if there's an ExceptionHandlerFrame on the stack
@@ -346,22 +351,29 @@ export class Interpreter {
    * Used when JavaScript code calls a Scheme closure.
    * The sentinel ensures the nested run terminates properly.
    * Uses the parent context from jsContextStack for proper dynamic-wind handling.
-   * 
+   *
    * @param {Executable} ast - The AST to execute.
    * @param {*} [thisContext] - The value for the 'this' register.
    * @returns {*} The result of the computation.
    */
-  runWithSentinel(ast, thisContext = undefined) {
+  /**
+   * Runs an AST with a sentinel frame on the stack.
+   * @param {Executable} ast - The AST to execute.
+   * @param {*} [thisContext] - The value for the 'this' register.
+   * @param {Object} [options={}] - Options for unpacking the result.
+   * @returns {*} The result of the computation.
+   */
+  runWithSentinel(ast, thisContext = undefined, options = {}) {
     // Get the parent context (the Scheme stack at the point where we entered JS)
     const parentContext = this.getParentContext();
     const stackWithSentinel = [...parentContext, new SentinelFrame()];
-    return this.run(ast, this.globalEnv, stackWithSentinel, thisContext);
+    return this.run(ast, this.globalEnv, stackWithSentinel, thisContext, options);
   }
 
   /**
    * Invokes a captured continuation from JavaScript.
    * This is called when JS code invokes a callable continuation.
-   * 
+   *
    * @param {Function} continuation - The callable continuation (with fstack attached).
    * @param {*} value - The value to pass to the continuation.
    * @param {*} [thisContext] - The value for the 'this' register.

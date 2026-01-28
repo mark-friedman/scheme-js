@@ -3650,3 +3650,33 @@ Verified that `let-syntax` shadowing tests that previously failed now pass corre
   (let ((if #t))
     (my-if (symbol? 'a) 'ok 'fail))) ;; Returns 'ok, correctly ignoring local 'if'
 ```
+
+## January 28, 2026 - JS Interop Standardization & Printer Enhancements
+
+Standardized the Scheme-to-JavaScript conversion logic, specifically for `BigInt` handling, and expanded the printer test coverage to include more of the numeric tower.
+
+### Changes
+
+- **JS Interop Standardization**:
+  - Modified `schemeToJsDeep` to convert `BigInt` values to JavaScript `Number` types (within the safe integer range) by default.
+  - Introduced a `convertBigInt` option to `schemeToJsDeep`, `unpackForJs`, and `Interpreter.run` to allow preserving numerical exactness.
+  - Configured the Scheme-to-JS Bridge (`createClosure`) to disable BigInt conversion to maintain exactness for internal calls that happen to cross the JS boundary (e.g., via `bind`).
+  - Added a `'raw'` mode to `interpreter.jsAutoConvert` for preserving original Scheme values (used by the REPL).
+  - Updated `js-invoke` and `js-new` to use deep conversion for their arguments.
+- **Printer Enhancements**:
+  - Added unit tests for Correct R7RS formatting of Exact Integers, Rationals, and Complex numbers in `printer_tests.js`.
+
+### Verification Results
+
+All **1633 tests passed**, confirming that the conversion changes are stable and that the Bridge correctly preserves exactness for Scheme-side interop tests.
+### January 28, 2026 - JS Auto-Convert Refactoring
+
+I refactored the `jsAutoConvert` logic to use consistent string modes (`'deep'`, `'shallow'`, `'raw'`) and addressed the issue of incorrect number formatting in the REPL.
+
+- **Per-Call Options**: Updated `unpackForJs` (via `Interpreter.run`) to respect a `jsAutoConvert` option passed in the `options` object. This avoids the need for global state changes on the interpreter.
+- **REPL High-Fidelity Printing**: Configured both the Node and Browser REPLs to use `'raw'` mode when calling `interpreter.run`. This ensures the REPL receives original Scheme objects (like `BigInt` for exact integers), allowing the printer to display them correctly (e.g., `42` instead of `42.0`).
+- **Parameter Standardization**: Updated the `js-auto-convert` Scheme parameter in `js-conversion.sld` to use `'deep` as its default value and updated the corresponding tests.
+
+#### Verification Results
+
+All **1653 tests passed**, confirming that the conversion changes are stable and that the REPL now correctly preserves numerical exactness in its output.

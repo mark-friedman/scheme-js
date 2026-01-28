@@ -5,7 +5,7 @@
  */
 
 import { assertString } from '../../core/interpreter/type_check.js';
-import { jsToScheme, schemeToJs } from '../../core/interpreter/js_interop.js';
+import { jsToScheme, schemeToJs, schemeToJsDeep } from '../../core/interpreter/js_interop.js';
 import { SchemeTypeError, SchemeError } from '../../core/interpreter/errors.js';
 
 /**
@@ -72,7 +72,8 @@ export const interopPrimitives = {
             throw new SchemeTypeError('js-invoke', 2, 'function', func);
         }
         // Convert Scheme values to JS (e.g., BigInt -> Number)
-        const jsArgs = args.map(schemeToJs);
+        // Use deep conversion to handle nested structures
+        const jsArgs = args.map(schemeToJsDeep);
         // Convert return value back to Scheme (e.g., Number -> BigInt)
         return jsToScheme(func.apply(obj, jsArgs));
     },
@@ -176,7 +177,7 @@ export const interopPrimitives = {
             throw new SchemeTypeError('js-new', 1, 'function', constructor);
         }
         // Convert Scheme values to JS (e.g., BigInt -> Number)
-        const jsArgs = args.map(schemeToJs);
+        const jsArgs = args.map(schemeToJsDeep);
         // Note: Don't convert the returned object - it's a JS class instance
         return new constructor(...jsArgs);
     }

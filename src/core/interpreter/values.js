@@ -77,8 +77,9 @@ export function createClosure(params, body, env, restParam, interpreter) {
         const argLiterals = jsArgs.map(val => new LiteralNode(jsToScheme(val)));
         const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
 
-        // Run through the interpreter with a sentinel frame to capture result
-        return interpreter.runWithSentinel(ast, this);
+        // Run through the interpreter with a sentinel frame to capture result.
+        // We preserve BigInt exactness for internal calls that cross JS boundary.
+        return interpreter.runWithSentinel(ast, this, { convertBigInt: false });
     };
 
     // Attach marker and closure data

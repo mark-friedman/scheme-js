@@ -36,6 +36,11 @@ function isPrimitive(val) {
 
 /**
  * Shallow conversion from Scheme to JS.
+
+ - BigInt: converted to Number within safe range (default)
+ - Rational: converted to Number, but may lose precision
+ - Char: converted to String
+ - Other: returned as-is
  */
 export function schemeToJs(val) {
     // Convert BigInt to Number for JS API calls
@@ -53,26 +58,38 @@ export function schemeToJs(val) {
 }
 
 /**
- * Deep recursive conversion from Scheme to JS.
+ * Deep converts a Scheme value to its JavaScript equivalent.
+ *
+ * - BigInt: converted to Number within safe range (default)
+ * - Rational: converted to Number, but may lose precision
+ * - Char: converted to String
+ * - Vector: recursively converted to Array
+ * - JsObjectRecord: recursively converted to plain Object
+ * - Other: returned as-is
+ *
+ * @param {*} val - Value to convert
+ * @param {Object} [options={}] - Conversion options
+ * @param {boolean} [options.convertBigInt=true] - Whether to convert BigInt to Number
+ * @returns {*} Converted value
  */
-export function schemeToJsDeep(val) {
+export function schemeToJsDeep(val, options = {}) {
+    const convertBigInt = options.convertBigInt !== false;
+
     // 1. Primitive Conversion (Shallow Check first)
-    // Preserve BigInt - numeric tower uses BigInt for exact integers
     if (typeof val === 'bigint') {
-        return val;
+        if (!convertBigInt) return val;
+        if (val >= Number.MIN_SAFE_INTEGER && val <= Number.MAX_SAFE_INTEGER) {
+            return Number(val);
+        }
+        throw new Error(`BigInt ${val} is outside safe integer range for JS API call.`);
     }
 
     if (val instanceof Char) return val.toString();
     if (val instanceof Rational) return val.toNumber();
 
-    // Cons/Lists are preserved as Scheme types (not converted to Arrays).
-    // This preserves Scheme semantics for internal operations.
-    // Users can explicitly use scheme->js-deep-list if they need list->array conversion.
-    // Cons instances and null (empty list) pass through unchanged.
-
     // Vectors are Arrays in this implementation - recursively convert elements
     if (Array.isArray(val)) {
-        return val.map(schemeToJsDeep);
+        return val.map(v => schemeToJsDeep(v, options));
     }
 
     // 4. js-object Record -> JS Object (Unwrap)
@@ -87,7 +104,7 @@ export function schemeToJsDeep(val) {
         const obj = {};
         // Copy own enumerable properties, recursively converting
         for (const key of Object.keys(val)) {
-            obj[key] = schemeToJsDeep(val[key]);
+            obj[key] = schemeToJsDeep(val[key], options);
         }
         return obj;
     }

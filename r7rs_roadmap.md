@@ -18,6 +18,8 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Reader Refactor:** Modularized `reader.js` into focused submodules with expanded unit testing ✅
 - **Type/Arity/Range Checking:** All primitives validate inputs ✅
 - **Full Numeric Tower:** BigInt exactness, Rationals, and Complex numbers successfully implemented and fully verified across all JS-interop scenarios ✅
+- **Printer:** Expanded coverage for exact integers, rationals, and complex numbers ✅
+- **Interop Standardization:** `schemeToJsDeep` BigInt conversion standardized; 'raw' mode and Bridge exactness preservation implemented ✅
 - **Chibi R7RS Compliance:** **982 passed, 0 failed, 24 skipped** (100% of applicable tests) ✅
 - **Chapter R7RS Compliance:** **219 passed, 0 failed, 0 skipped** (100% compliance) ✅
 - **Macro Hygiene:** Pure marks hygiene system fully verified with standard compliance tests. ✅
