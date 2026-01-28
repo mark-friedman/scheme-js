@@ -100,6 +100,20 @@
       (test "js-set! creates new property"
             (js-ref obj "c")
             3)
+      
+      (js-set! (js-eval "globalThis") "tmpObj" obj)
+      (js-set! obj "big" 100)
+      (test "js-set! performs conversion (stored as number)"
+            (js-eval "typeof globalThis.tmpObj.big")
+            "number")
     )
+  )
+
+  (test-group "js-obj conversion"
+    (begin
+      (js-set! (js-eval "globalThis") "tmpObj2" (js-obj "val" 42))
+      (test "js-obj performs conversion"
+            (js-eval "typeof globalThis.tmpObj2.val")
+            "number"))
   )
 )
