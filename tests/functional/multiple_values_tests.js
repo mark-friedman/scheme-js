@@ -82,8 +82,9 @@ export function runMultipleValuesTests(interpreter, logger) {
   // 11. JS calling Scheme function that returns multiple values
   run(interpreter, "(define (return-multi) (values 10 20 30))");
   const multiFunc = interpreter.globalEnv.lookup('return-multi');
-  const bridge = interpreter.createJsBridge(multiFunc, []);
-  const jsResult = bridge();
+
+  // multiFunc is a callable Scheme closure
+  const jsResult = multiFunc();
   // Should get first value when called from JS
   const jsFirstVal = jsResult instanceof Values ? jsResult.first() : jsResult;
   assert(logger, "JS interop: first value from multi", jsFirstVal, 10);

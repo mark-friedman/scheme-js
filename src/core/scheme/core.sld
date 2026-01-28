@@ -13,6 +13,7 @@
     ;; Macros
     and or let let* letrec cond
     define-record-type define-record-field
+    define-class define-class-field define-class-method
     
     ;; Deep equality
     equal?

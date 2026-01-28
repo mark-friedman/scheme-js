@@ -15,9 +15,11 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Exceptions:** `error`, `raise`, `raise-continuable`, `with-exception-handler`, `guard` ✅
 - **JS Exception Integration:** Scheme handlers catch JavaScript errors ✅
 - **Type Predicates:** `number?`, `boolean?`, `procedure?`, `list?`, `symbol?`, `error-object?` ✅
+- **Reader Refactor:** Modularized `reader.js` into focused submodules with expanded unit testing ✅
 - **Type/Arity/Range Checking:** All primitives validate inputs ✅
 - **Full Numeric Tower:** BigInt exactness, Rationals, and Complex numbers successfully implemented and verified ✅
 - **Chibi R7RS Compliance:** **982 passed, 0 failed, 24 skipped** (97.6% pass rate) ✅
+- **Object Printing:** Proper `#{(key val)...}` syntax for JS objects with circular support ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete
@@ -33,9 +35,11 @@ Created build system to package the interpreter for Node.js and Browser use.
 | Rollup Build | ✅ | Produces ESM bundles |
 | Core Bundle | ✅ | `dist/scheme.js` with `schemeEval` API |
 | HTML Adapter | ✅ | `<script type="text/scheme">` support |
+| Web Component | ✅ | `<scheme-repl>` custom element |
 | Shared Environment | ✅ | All scripts run in same interpreter instance |
+| **Bundled Libraries** | ✅ | Embeds Scheme sources into the JS bundle for file-free loading |
 
-**Deliverable:** `src/packaging/` and `rollup.config.js`.
+**Deliverable:** `src/packaging/`, `rollup.config.js`, and `scripts/generate_bundled_libraries.js`.
 
 ---
 
@@ -354,14 +358,16 @@ Implemented the remaining R7RS standard libraries:
 ---
 
 
-## Phase 14: Advanced Interop
+## Phase 14: Advanced Interop ✅
 **Target:** Enhance Scheme <-> JS usability
 
-| Feature | Description |
-|---------|-------------|
-| **Dot-Syntax** | Concise syntax for JS method calls (e.g. `(.log console "Hello")`). |
-| **Iterable Lists** | Make `Cons` implement JS Iterable protocol for easier use with `Array.from`, spread syntax, etc. |
-| **JS Subclassing** | Mechanism to define Scheme records that subclass native JS classes. |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Dot-Syntax** | Concise syntax for JS property access and method calls (e.g. `obj.method`). | ✅ |
+| **JS Subclassing** | Mechanism to define Scheme classes that subclass native JS classes (`define-class`). | ✅ |
+| **`this` Binding** | Correct handling and lexical binding of `this` in Scheme methods. | ✅ |
+| **Iterable Lists** | Make `Cons` implement JS Iterable protocol. | ❌ |
+| **Object Printing** | Proper reader syntax and circular support for JS objects. | ✅ |
 
 ---
 
@@ -410,11 +416,11 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
-## Phase 18: Modular Analyzer Refactoring (Future)
-**Target:** Improve analyzer architecture for extensibility.
+## Phase 18: Modular Analyzer Refactoring ✅
+**Target:** Improve analyzer architecture for extensibility and maintainability.
 
 > [!NOTE]
-> An experimental class-based `SyntacticAnalyzer` with pluggable special form handlers was prototyped but never integrated. It was removed during code cleanup (Dec 2024).
+> The `analyzer.js` has been successfully refactored to use a modular handler registry. This decouples special form logic into themed modules and allows for isolated macro registry state.
 
 ### Potential Benefits
 | Benefit | Description |
@@ -528,4 +534,21 @@ For improved async semantics and cleaner control flow, consider implementing **d
 - Could coexist with existing `call/cc`
 
 **Decision:** Deferred. Consider after JavaScript Promise integration is battle-tested.
+
+---
+
+### Extended Syntax: Bracket Access (Future)
+
+Consider implementing `(expr)[key]` notation for computed property access, similar to JavaScript.
+
+**Motivation:**
+- Computed property access is common in JS interop.
+- Current `.prop` syntax only supports static keys.
+- Reader refactor for dotted notation makes implementation feasible (identifying `[` adjacent to expression).
+
+**Considerations:**
+- Conflict with Scheme implementations using `[]` as synonyms for `()`.
+- Need to decide if `[]` should be reserved for this syntax or strictly brackets-as-parens.
+
+**Decision:** Deferred pending user feedback on syntax preferences.
 

@@ -95,15 +95,29 @@ async function bootstrapInterpreter() {
         return result;
     });
 
-    // Load standard libraries
+    // Load standard libraries via import statement
     try {
-        // Use synchronous loading
-        loadLibrarySync(['scheme', 'repl'], analyze, interpreter, env);
-        loadLibrarySync(['scheme', 'complex'], analyze, interpreter, env);
-
-        // Import them into global environment
-        const importAst = analyze(['import', ['scheme', 'base'], ['scheme', 'repl'], ['scheme', 'write'], ['scheme', 'complex']]);
-        interpreter.run(importAst, env);
+        // Import R7RS-small libraries and scheme-js extras
+        const imports = `
+            (import (scheme base)
+                    (scheme write)
+                    (scheme read)
+                    (scheme repl)
+                    (scheme lazy)
+                    (scheme case-lambda)
+                    (scheme eval)
+                    (scheme time)
+                    (scheme complex)
+                    (scheme cxr)
+                    (scheme char)
+                    (scheme file)
+                    (scheme process-context)
+                    (scheme-js promise)
+                    (scheme-js interop))
+        `;
+        for (const exp of parse(imports)) {
+            interpreter.run(analyze(exp), env);
+        }
     } catch (e) {
         console.error("Failed to bootstrap REPL environment:", e);
         process.exit(1);

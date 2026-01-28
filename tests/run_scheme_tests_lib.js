@@ -1,6 +1,7 @@
 import { run } from './harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
+import { writeString } from '../src/core/primitives/io/printer.js';
 
 export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
     logger.title('Running Scheme Tests...');
@@ -54,6 +55,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     // Extension libraries
     const promiseExports = await loadLibrary(['scheme-js', 'promise'], analyze, interpreter, interpreter.globalEnv);
     const jsConversionExports = await loadLibrary(['scheme-js', 'js-conversion'], analyze, interpreter, interpreter.globalEnv);
+    const interopExports = await loadLibrary(['scheme-js', 'interop'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
     applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });
@@ -61,6 +63,8 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     applyImports(interpreter.globalEnv, evalExports, { libraryName: ['scheme', 'eval'] });
     applyImports(interpreter.globalEnv, promiseExports, { libraryName: ['scheme-js', 'promise'] });
     applyImports(interpreter.globalEnv, jsConversionExports, { libraryName: ['scheme-js', 'js-conversion'] });
+    applyImports(interpreter.globalEnv, interopExports, { libraryName: ['scheme-js', 'interop'] });
+
     // Note: time and process-context primitives are loaded via primitives/index.js
 
     // Reload macros because hygiene_tests.js clears globalMacroRegistry
@@ -72,11 +76,17 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
 
     // Inject native reporter
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
+        const expectedStr = writeString(expected);
+        const actualStr = writeString(actual);
         if (passed) {
-            logger.pass(`${name} (Expected: ${expected}, Got: ${actual})`);
+            logger.pass(`${name} (Expected: ${expectedStr}, Got: ${actualStr})`);
         } else {
-            logger.fail(`${name} (Expected: ${expected}, Got: ${actual})`);
+            logger.fail(`${name} (Expected: ${expectedStr}, Got: ${actualStr})`);
         }
+    });
+
+    interpreter.globalEnv.bindings.set('native-log-title', (title) => {
+        logger.title(title);
     });
 
     interpreter.globalEnv.bindings.set('native-report-test-skip', (name, reason) => {
@@ -91,7 +101,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
 
     // 3. Run each test file
     for (const file of testFiles) {
-        logger.log(`Running ${file}...`);
+        console.log(`Running Scheme test: ${file}`);
 
         // Use the loader to read the file content
         const code = await fileLoader(file); // Changed: pass file directly to loader, loader handles relativity

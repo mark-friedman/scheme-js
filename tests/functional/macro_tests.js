@@ -2,6 +2,7 @@ import { globalMacroRegistry } from '../../src/core/interpreter/macro_registry.j
 import { run, assert } from '../harness/helpers.js';
 import { list } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
+import { SchemeUnboundError } from '../../src/core/interpreter/errors.js';
 
 export async function runMacroTests(interpreter, logger) {
     logger.title('Macro Tests');
@@ -105,6 +106,67 @@ export async function runMacroTests(interpreter, logger) {
 
         const tmpVal = run(interpreter, `tmp`);
         assert(logger, 'Hygiene: Renaming (avoid capture)', tmpVal, 20);
+
+        // Test 8: Internal define-syntax scoping
+        // define-syntax inside let should not leak to outer scope
+        {
+            const code = `
+                (let
+                  ((helper (lambda (x) (* x 2))))
+                    (define-syntax my-double (syntax-rules () ((my-double x) (helper x)))))
+            `;
+
+            try {
+                run(interpreter, code);
+                logger.pass('Internal define-syntax definition succeeded');
+            } catch (e) {
+                logger.fail(`Internal define-syntax definition failed: ${e.message}`);
+            }
+
+            // Attempt to call my-double outside the let
+            const callCode = `(my-double 5)`;
+            try {
+                run(interpreter, callCode);
+                logger.fail("Should have thrown Unbound variable error, but succeeded");
+            } catch (e) {
+                // Check error type instead of message string
+                if (e instanceof SchemeUnboundError) {
+                    logger.pass("Correctly threw SchemeUnboundError for out-of-scope macro");
+                } else {
+                    logger.fail(`Threw wrong error type: ${e.constructor.name} - ${e.message}`);
+                }
+            }
+        }
+
+        // Test 9: Local macro masking global macro
+        {
+            // Define global macro
+            run(interpreter, `
+                (define-syntax masked-foo (syntax-rules () ((_) 'global)))
+            `);
+
+            // Mask locally
+            const code = `
+                (let ()
+                    (define-syntax masked-foo (syntax-rules () ((_) 'local)))
+                    (masked-foo))
+            `;
+
+            const result = run(interpreter, code);
+            if (result && result.name === 'local') {
+                logger.pass("Local macro masked global macro");
+            } else {
+                logger.fail(`Local macro failed to mask global. Got: ${result}`);
+            }
+
+            // Verify global is restored
+            const resultGlobal = run(interpreter, `(masked-foo)`);
+            if (resultGlobal && resultGlobal.name === 'global') {
+                logger.pass("Global macro restored after let");
+            } else {
+                logger.fail(`Global macro not restored. Got: ${resultGlobal}`);
+            }
+        }
 
     } catch (e) {
         logger.fail(`Macro tests crashed: ${e.message}`);

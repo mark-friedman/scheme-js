@@ -46,7 +46,14 @@ export const recordPrimitives = {
      * @returns {Function} Constructor function.
      */
     'record-constructor': (rtd) => {
-        return (...args) => new rtd(...args);
+        const ctor = function (...args) {
+            return new rtd(...args);
+        };
+        // Ensure instanceof works in JS if rtd is a class/constructor
+        if (rtd.prototype) {
+            ctor.prototype = rtd.prototype;
+        }
+        return ctor;
     },
 
     /**

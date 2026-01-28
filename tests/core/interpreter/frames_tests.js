@@ -42,10 +42,6 @@ export function runFramesTests(logger) {
     assert(logger, "SetFrame sets value", setEnv.last[0] === "x" && setEnv.last[1] === 99, true);
     assert(logger, "SetFrame sets ans (undefined)", regs3[0], undefined);
     assert(logger, "SetFrame does NOT set ctl (continues to loop)", regs3[1], null); // step returns undefined? 
-    // Wait, frames usually return undefined in step? 
-    // They modify registers. IfNode ctl is null, loop checks fstack.
-    // SetFrame.step modifies registers[1] (ctl) to null implied? 
-    // No, step returns nothing. ctl is null. Correct.
 
     // 3. BeginFrame
     // (begin exp1 exp2) -> evaluates exp1, then BeginFrame gets result, sets ctl to exp2
@@ -62,10 +58,6 @@ export function runFramesTests(logger) {
 
     // 4. LetFrame
     // (let ((x 1)) body)
-    // Actually LetFrame is simpler? R7RS `let` desugared to `LambdaNode` + `App`.
-    // Layer 1 `LetNode` might be simple binding?
-    // LetFrame (env, var, body)
-    // Step: ans is val. extend env. run body.
     const letEnv = { extend: (k, v) => ({ parent: letEnv, k, v }) };
     const body = new LiteralNode("body");
     const letFrame = new LetFrame(letEnv, "x", body);

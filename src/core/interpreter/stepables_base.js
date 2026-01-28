@@ -21,6 +21,8 @@ export const CTL = 1;
 export const ENV = 2;
 /** Frame stack register - holds continuation frames */
 export const FSTACK = 3;
+/** This context register - holds current JavaScript 'this' context */
+export const THIS = 4;
 
 /**
  * @typedef {[any, Executable, Environment, Array<Executable>]} Registers

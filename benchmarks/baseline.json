@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-01-14T19:15:58.014Z",
+  "nodeVersion": "v24.11.1",
+  "results": {
+    "sum-to-1M": 2314,
+    "factorial-100x1K": 273,
+    "fib-30": 5667,
+    "division-chain-1K": null,
+    "collatz-10K": 4449,
+    "list-reverse-100K": 1222,
+    "map-filter-10K": 89,
+    "append-loop-1K": 9,
+    "symbol-lookup-100K": 1007,
+    "js-calls-10K": 74,
+    "js-roundtrip-10K": 41,
+    "array-convert-10K": 61,
+    "nested-convert": 33
+  }
+}

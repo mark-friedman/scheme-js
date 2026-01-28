@@ -8,11 +8,13 @@
  * All frames extend Executable and implement a step() method.
  */
 
-import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
+import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
 import { isSchemeClosure, isSchemeContinuation, TailCall, ContinuationUnwind, Values } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { Cons } from './cons.js';
-import { registerBindingWithCurrentScopes } from './syntax_object.js';
+import { globalContext } from './context.js';
+import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
+import { SchemeApplicationError } from './errors.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
@@ -21,6 +23,30 @@ import { LiteralNode, TailAppNode, RestoreContinuation, RaiseNode } from './ast_
 // =============================================================================
 // Helper Functions
 // =============================================================================
+
+/**
+ * Register a binding with all currently active scopes.
+ * Called when a define is evaluated during library loading.
+ * Uses globalContext for scope tracking.
+ * 
+ * @param {string} name - The binding name
+ * @param {any} [value] - The bound value (unused if GlobalRef is preferred)
+ */
+function registerBindingWithCurrentScopes(name, value) {
+    const definingScopes = globalContext.getDefiningScopes();
+    // Determine scope set (default to GLOBAL_SCOPE_ID if empty)
+    const scopes = definingScopes.length > 0
+        ? new Set(definingScopes)
+        : new Set([GLOBAL_SCOPE_ID]);
+
+    // Determine the specific defining scope (for Environment resolution)
+    const definingScope = definingScopes.length > 0
+        ? definingScopes[definingScopes.length - 1]
+        : null;
+
+    // Always bind as a GlobalRef to ensure dynamic lookup in the environment
+    globalScopeRegistry.bind(name, scopes, new GlobalRef(name, definingScope));
+}
 
 /**
  * Filters out SentinelFrames from a stack.
@@ -272,9 +298,21 @@ export class AppFrame extends Executable {
                 // Extend environment with required params + rest param
                 const allParams = [...func.params, func.restParam];
                 const allArgs = [...requiredArgs, restList];
-                registers[ENV] = func.env.extendMany(allParams, allArgs);
+                let newEnv = func.env.extendMany(allParams, allArgs);
+                // Bind 'this' pseudo-variable if available (method call)
+                if (registers[THIS] !== undefined) {
+                    registers[ENV] = newEnv.extend('this', registers[THIS]);
+                } else {
+                    registers[ENV] = newEnv;
+                }
             } else {
-                registers[ENV] = func.env.extendMany(func.params, args);
+                let newEnv = func.env.extendMany(func.params, args);
+                // Bind 'this' pseudo-variable if available (method call)
+                if (registers[THIS] !== undefined) {
+                    registers[ENV] = newEnv.extend('this', registers[THIS]);
+                } else {
+                    registers[ENV] = newEnv;
+                }
             }
             return true;
         }
@@ -317,7 +355,7 @@ export class AppFrame extends Executable {
             return false;
         }
 
-        throw new Error(`Not a function: ${func}`);
+        throw new SchemeApplicationError(func);
     }
 
     /**

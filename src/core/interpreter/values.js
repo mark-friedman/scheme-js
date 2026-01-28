@@ -76,7 +76,7 @@ export function createClosure(params, body, env, restParam, interpreter) {
         const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
 
         // Run through the interpreter with a sentinel frame to capture result
-        return interpreter.runWithSentinel(ast);
+        return interpreter.runWithSentinel(ast, this);
     };
 
     // Attach marker and closure data
@@ -116,7 +116,7 @@ export function createContinuation(fstack, interpreter) {
         }
 
         // Invoke the continuation through the interpreter
-        return interpreter.invokeContinuation(continuation, value);
+        return interpreter.invokeContinuation(continuation, value, this);
     };
 
     // Attach marker and continuation data

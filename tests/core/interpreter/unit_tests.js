@@ -6,6 +6,8 @@ import { LiteralNode, VariableNode, IfNode, LetNode, LetRecNode, LambdaNode, Tai
 import { assert, createTestLogger, createTestEnv } from '../../harness/helpers.js';
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
+import { SchemeUnboundError, SchemeReadError } from '../../../src/core/interpreter/errors.js';
+import { runInterpreterTests } from './interpreter_tests.js';
 
 /**
  * Runs all unit tests.
@@ -14,6 +16,9 @@ import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
  */
 export function runUnitTests(interpreter, logger) {
     logger.title('Running Unit Tests...');
+
+    // Run interpreter internal logic tests
+    runInterpreterTests(logger);
 
     // --- Environment Unit Tests ---
     const gEnv = new Environment(null, new Map([['a', 1]]));
@@ -31,7 +36,7 @@ export function runUnitTests(interpreter, logger) {
         gEnv.lookup('z');
         logger.fail("Unit: env.lookup (unbound) - FAILED to throw");
     } catch (e) {
-        assert(logger, "Unit: env.lookup (unbound)", e.message, "Unbound variable: z");
+        assert(logger, "Unit: env.lookup (unbound)", e instanceof SchemeUnboundError, true);
     }
 
     // Test `set`
@@ -50,7 +55,7 @@ export function runUnitTests(interpreter, logger) {
         setChild.set('z', 99); // SetNode on unbound variable should throw
         logger.fail("Unit: env.set (unbound) - FAILED to throw");
     } catch (e) {
-        assert(logger, "Unit: env.set (unbound throws)", e.message, "set!: unbound variable: z");
+        assert(logger, "Unit: env.set (unbound throws)", e instanceof SchemeUnboundError, true);
     }
 
     // --- Parser Unit Tests ---
@@ -92,21 +97,21 @@ export function runUnitTests(interpreter, logger) {
             parse(")");
             logger.fail("Reader: Unexpected ')' - FAILED to throw");
         } catch (e) {
-            assert(logger, "Reader: Unexpected ')'", e.message, "Unexpected ')'");
+            assert(logger, "Reader: Unexpected ')'", e instanceof SchemeReadError, true);
         }
 
         try {
             parse("(+ 1 2");
             logger.fail("Reader: Missing ')' - FAILED to throw");
         } catch (e) {
-            assert(logger, "Reader: Missing ')'", e.message, "Missing ')'");
+            assert(logger, "Reader: Missing ')'", e instanceof SchemeReadError, true);
         }
 
         try {
             parse("(");
             logger.fail("Reader: Unexpected EOF - FAILED to throw");
         } catch (e) {
-            assert(logger, "Reader: Unexpected EOF", e.message, "Missing ')'");
+            assert(logger, "Reader: Unexpected EOF", e instanceof SchemeReadError, true);
         }
 
     } catch (e) {
@@ -189,7 +194,6 @@ export function runUnitTests(interpreter, logger) {
     }
 }
 
-// Allow running directly via node
 // Allow running directly via node
 if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
     const { interpreter } = createTestEnv();

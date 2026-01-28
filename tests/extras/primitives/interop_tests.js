@@ -177,12 +177,11 @@ export function runInteropTests(interpreter, logger) {
 
 
             // Call scheme-ping
-            // 'ping' is a Closure.
             const ping = interpreter.globalEnv.lookup('scheme-ping');
+            // 'ping' is a callable Closure function.
+            // We can call it directly!
+            return ping(n - 1);
 
-            // Using createJsBridge is cleaner:
-            const bridge = interpreter.createJsBridge(ping);
-            return bridge(Number(n) - 1);
         });
 
         run(interpreter, `

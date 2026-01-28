@@ -80,17 +80,6 @@ export async function runSyntaxRulesTests(interpreter, logger) {
 
     // (my-pairs (1 2) (3 4)) -> (list (list 1 2) (list 3 4)) -> ((1 2) (3 4))
     // Note: 'list' primitive must exist.
-    // We can use 'quote' to verify structure if list is not available, but list should be available.
-    // Let's assume 'list' is available (it is in primitives/list.js).
-
-    // Wait, 'list' primitive might not be in global env yet?
-    // Let's check primitives/index.js later.
-    // For now, let's use 'quote' or 'cons'.
-
-    // Actually, let's just use 'begin' to return the last value, 
-    // or rely on 'list' if we are confident.
-    // Let's check if 'list' is available.
-
   } catch (e) {
     logger.fail(`Syntax-Rules tests crashed: ${e.message}`);
   } finally {

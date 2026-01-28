@@ -5,6 +5,7 @@
  */
 
 import { Symbol } from './symbol.js';
+import { SchemeTypeError } from './errors.js';
 
 /**
  * Represents a Scheme pair (cons cell).
@@ -125,7 +126,7 @@ export function cadddr(cons) { return cons.cdr.cdr.cdr.car; }
 export function toArray(list) {
     if (list === null) return [];
     if (!(list instanceof Cons)) {
-        throw new Error(`toArray: expected list, got ${typeof list}: ${list}`);
+        throw new SchemeTypeError('toArray', 1, 'list', list);
     }
     return list.toArray();
 }

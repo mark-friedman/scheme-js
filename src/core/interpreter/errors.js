@@ -146,3 +146,93 @@ export class SchemeRangeError extends SchemeError {
         this.actualVal = actualVal;
     }
 }
+
+/**
+ * Error during reading/parsing of Scheme code.
+ */
+export class SchemeReadError extends SchemeError {
+    /**
+     * @param {string} message - Error description
+     * @param {string} [context] - What was being read (e.g., "list", "string")
+     * @param {number} [line] - Line number if available
+     * @param {number} [column] - Column number if available
+     */
+    constructor(message, context = null, line = null, column = null) {
+        const location = line !== null ? ` at line ${line}` : '';
+        const fullMessage = context
+            ? `read: ${message} (while reading ${context})${location}`
+            : `read: ${message}${location}`;
+        super(fullMessage, [], 'read');
+        this.name = 'SchemeReadError';
+        this.context = context;
+        this.line = line;
+        this.column = column;
+    }
+}
+
+/**
+ * Error for syntax violations in Scheme code.
+ */
+export class SchemeSyntaxError extends SchemeError {
+    /**
+     * @param {string} message - Error description
+     * @param {*} form - The problematic form (for display)
+     * @param {string} [context] - What special form or macro was being analyzed
+     */
+    constructor(message, form = null, context = null) {
+        const prefix = context ? `${context}: ` : '';
+        super(`${prefix}${message}`, form ? [form] : [], context);
+        this.name = 'SchemeSyntaxError';
+        this.form = form;
+        this.context = context;
+    }
+}
+
+/**
+ * Error for unbound variables.
+ */
+export class SchemeUnboundError extends SchemeError {
+    /**
+     * @param {string} varName - The unbound variable name
+     * @param {boolean} [isSet] - True if this was a set! operation
+     */
+    constructor(varName, isSet = false) {
+        const operation = isSet ? 'set!' : 'reference';
+        const message = `${operation}: unbound variable: ${varName}`;
+        super(message, [varName], isSet ? 'set!' : null);
+        this.name = 'SchemeUnboundError';
+        this.varName = varName;
+        this.isSet = isSet;
+    }
+}
+
+/**
+ * Error for library loading issues.
+ */
+export class SchemeLibraryError extends SchemeError {
+    /**
+     * @param {string} message - Error description
+     * @param {string} libraryName - Library identifier (e.g., "(scheme base)")
+     */
+    constructor(message, libraryName = null) {
+        const prefix = libraryName ? `library ${libraryName}: ` : 'library: ';
+        super(`${prefix}${message}`, libraryName ? [libraryName] : []);
+        this.name = 'SchemeLibraryError';
+        this.libraryName = libraryName;
+    }
+}
+
+/**
+ * Error for applying non-procedures.
+ */
+export class SchemeApplicationError extends SchemeError {
+    /**
+     * @param {*} notAProc - The value that was attempted to be called
+     */
+    constructor(notAProc) {
+        const typeName = getTypeName(notAProc);
+        super(`application: not a procedure: ${typeName}`, [notAProc]);
+        this.name = 'SchemeApplicationError';
+        this.notAProc = notAProc;
+    }
+}

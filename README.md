@@ -4,162 +4,329 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 
 ## 🎯 Goals
 
-### Language Goals
-- **R7RS-Small Compliance**: Strictly follow the standard.
-- **Tail Call Optimization (TCO)**: Proper handling of tail recursion (even when interleaved with JS) using a trampoline architecture.
-- **First-Class Continuations**: Full support for `call/cc`, including `dynamic-wind` and multiple return values.
-- **JavaScript Interop**: Seamless calling between Scheme and JavaScript, including shared data structures and transparent boundary crossing.
+### Implementation Highlights
+- **R7RS-Small**: High degree of compatibility with the R7RS-small standard (see [R7RS Libraries](#r7rs-libraries)).
+- **Tail Call Optimization (TCO)**: Proper tail recursion by the interpreter. Interleaved JS and Scheme code may still cause stack overflow.
+- **First-Class Continuations**: Full support for `call/cc`.
+- **JavaScript Interop**: Seamless calling between Scheme and JavaScript, including shared data structures and transparent boundary crossing. Scheme closures and continuations are first-class JavaScript functions.
+- **Global Environment**: JavaScript global definitions (on `window` or `globalThis`) are automatically visible in the Scheme global environment.
+- **Node.js REPL**: Full-featured interactive REPL with history, multiline support, and paren matching.
+- **Browser REPL**: Interactive browser-based REPL via a custom `<scheme-repl>` web component.
+- **Browser Scriptng**: Replace JavaScript in web apps with `<script type="text/scheme">` tags.  Direct Scheme evaluation by JavaScript is also supprted.
 
 ### Architectural Goals
 - **Layered Design**: Build complex features (macros, data structures) on top of a minimal, robust kernel.
 - **Maintainability**: Clear separation of AST, Runtime, and Library code.
 - **Testability**: Comprehensive test suite running in both Node.js and Browser environments.
 
-## 🏗️ Architecture
+---
 
-The project follows a **Two-Tier Architecture**:
-1.  **JavaScript Core**: The interpreter engine that executes Scheme code (`src/core/interpreter/`).
-2.  **Scheme Libraries**: The standard library implemented in Scheme itself (`src/core/scheme/`, `src/lib/`).
+## 📦 Installation
 
-### The Core (`src/core/`)
-The foundational layer is currently implemented and stable:
--   **`interpreter/`**: Trampoline interpreter with TCO via heap-managed frames.
--   **`primitives/`**: Native JavaScript implementations of core procedures (+, cons, etc.).
--   **`scheme/`**: Core Scheme subset (`base.scm`) defining macros like `and`, `let`, `cond`.
-
-Key modules in `interpreter/`:
--   **`interpreter.js`**: Trampoline execution loop.
--   **`stepables_base.js`**: Register constants and `Executable` base class.
--   **`ast_nodes.js`**: AST node classes (Literal, If, Lambda, etc.).
--   **`frames.js`**: Continuation frame classes.
--   **`library_loader.js`**: R7RS `define-library` and `import` support.
-
-For a detailed breakdown of the internal file structure, see [directory_structure.md](./directory_structure.md).
-
-## 🚀 Getting Started
-
-### Prerequisites
--   **Node.js**: v14+ (for running tests and CLI/server).
--   **Modern Browser**: (Optional) For running the Web REPL.
-
-### Installation
+### From Source
 Clone the repository:
 ```bash
 git clone https://github.com/mark-friedman/scheme-js-4.git
 cd scheme-js-4
 ```
 
-### Running the Web REPL
-1.  Start a local HTTP server in the project root:
+### Build Distribution Bundles
+```bash
+npm install
+npm run build
+```
+
+This produces the following files in `dist/`:
+- `scheme.js` — Core interpreter with `schemeEval` API
+- `scheme-repl.js` — `<scheme-repl>` Web Component
+- `scheme-html.js` — `<script type="text/scheme">` support
+
+---
+
+## 🚀 Getting Started
+
+### Node.js REPL (from source)
+
+Run the interactive REPL directly from source:
+```bash
+node repl.js
+```
+
+#### Execute an expression
+```bash
+node repl.js -e "(+ 1 2 3)"
+# Output: 6
+```
+
+#### Run a Scheme file
+```bash
+node repl.js myprogram.scm
+```
+
+### Browser REPL (from source)
+
+1. Start a local HTTP server in the project root:
     ```bash
     python3 -m http.server 8080
     ```
-2.  Open your browser to:
-    [http://localhost:8080/web/ui.html](http://localhost:8080/web/ui.html)
-3.  Start typing Scheme code!
+
+2. Open your browser to:
+    [http://localhost:8080/web/index.html](http://localhost:8080/web/index.html)
+
+3. Start typing Scheme code in the interactive shell!
+
+---
+
+## 📦 Using the Built Packages
+
+After running `npm run build`, you can use the distribution bundles in various ways.
+
+### Using `<scheme-repl>` Web Component
+
+Embed a full REPL in any webpage:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Import Scheme implementation and Web Component -->
+    <script type="module" src="dist/scheme.js"></script>
+    <script type="module" src="dist/scheme-repl.js"></script>
+</head>
+<body>
+    <scheme-repl></scheme-repl>
+</body>
+</html>
+```
+
+See `dist/repl-demo.html` for a complete working example.
+
+### Using `<script type="text/scheme">`
+
+Run Scheme code inline in HTML and interact with the DOM:
+
+```html
+<!-- Import Scheme implementation and HTML adapter -->
+<script type="module" src="dist/scheme.js"></script>
+<script type="module" src="dist/scheme-html.js"></script>
+
+<button id="click-me">Click Count: 0</button>
+
+<script type="text/scheme">
+  (import (scheme base) (scheme-js interop))
+  
+  (let ((count 0)
+        (btn (document.getElementById "click-me")))
+    (btn.addEventListener "click"
+      (lambda (event)
+        (set! count (+ count 1))
+        (set! btn.textContent (string-append "Click Count: " (number->string count))))))
+</script>
+```
+
+### Using the JavaScript API
+
+Import and use the interpreter programmatically:
+
+```html
+<script type="module">
+import { schemeEval } from './dist/scheme.js';
+
+// Evaluate Scheme expressions
+const result = schemeEval('(+ 1 2 3)');
+console.log(result); // 6
+
+// Define and call functions
+schemeEval('(define (greet name) (string-append "Hello, " name "!"))');
+const greeting = schemeEval('(greet "World")');
+console.log(greeting); // "Hello, World!"
+</script>
+```
+
+---
 
 ## 🧪 Testing
 
 The project uses a custom universal test runner that works in both Node.js and the Browser.
 
 ### Run All Tests (Node.js)
-Execute the complete test suite including unit, functional, and integration tests:
 ```bash
 node run_tests_node.js
 ```
 
 ### Run Browser Tests
-1.  Ensure the HTTP server is running (see above).
-2.  Navigate to `http://localhost:8080/web/ui.html`.
-3.  The test suite runs automatically in the console on load. Check the browser developer console (F12) to see the results.
+1. Ensure the HTTP server is running (see above).
+2. Navigate to `http://localhost:8080/web/tests.html`.
+3. The test suite runs automatically in the console on load.
 
-## 📚 Documentation
+---
 
-We maintain detailed documentation for the project internals:
+## 📊 Benchmarks
 
--   [**Directory Structure**](./directory_structure.md): Detailed map of the codebase and where files belong.
--   [**Architecture**](./docs/architecture.md): High-level architecture overview.
--   [**Trampoline Execution**](./docs/trampoline.md): A deep dive into how the interpreter handles stack frames and TCO.
--   [**Hygiene Implementation**](./docs/hygiene_implementation.md): How macro hygiene works.
--   [**Changes**](./CHANGES.md): A log of major implementation steps, walkthroughs of features, and refactors.
+The project includes a performance benchmark suite for tracking regressions.
 
-## 🛠️ Code Standards
-
--   **Style**: We use ES Modules (`import`/`export`) throughout. All functions are documented with JSDoc. Scheme code is written in a style that is similar to JSDoc.
--   **Testing**: We follow a "Dual Environment" rule - every new feature must represent correct behavior in both Node.js V8 and standard browser engines.
--   **Code Quality**: We separate "step-able" logic (instructions for the machine) from runtime state (values and environments).
-
-## Limitations
-
-### Hygiene
-
-The current implementation addresses **accidental capture** (macro bindings don't capture user variables). It does NOT fully address **reference transparency** for free variables in templates that reference non-global bindings at macro definition time. However:
-- Special forms (`if`, `let`, etc.) are recognized by the analyzer
-- Primitives are globally bound
-- These cover 99% of practical `syntax-rules` use cases
-
-What is NOT handled are local definition-site bindings — If a macro is defined inside a let that binds a helper, and that name is shadowed at the expansion site:
-
-```scheme
-;; Macro defined inside a let with a local helper
-(let ((helper (lambda (x) (* x 2))))      ;; definition-site binding
-  (define-syntax my-double
-    (syntax-rules ()
-      ((my-double x) (helper x)))))
-;; Later, at expansion site:
-(let ((helper (lambda (x) (+ x 1))))      ;; shadows helper!
-  (my-double 5))
-;; BUG: Returns 6 (expansion-site helper) instead of 10 (definition-site helper)
+```bash
+npm run benchmark          # Run benchmarks and display results
+npm run benchmark:save     # Save current results as baseline
+npm run benchmark:compare  # Compare against baseline
 ```
 
-Why this is rare in practice:
-- `define-syntax` is almost always used at top level in R7RS
-- Macros typically only reference globally-bound names
-- Special forms are immune (they're recognized syntactically)
+Benchmarks cover arithmetic, list operations, and JS interop.
 
-### Exact/Inexact Numbers (Full Numeric Tower)
+---
 
-R7RS distinguishes between **exact** numbers (mathematically precise) and **inexact** numbers (approximate). Our implementation provides a full R7RS-compliant numeric tower by leveraging JavaScript's native types and custom classes.
+## 🔌 JavaScript Interoperability
 
-| Category | Internal Representation | Exactness |
-|----------|-------------------------|-----------|
-| **Integers** | JavaScript `BigInt` | **Exact** |
-| **Reals** | JavaScript `Number` (IEEE 754) | **Inexact** |
-| **Rationals** | `Rational` (BigInt Numerator/Denominator) | **Exact** |
-| **Complex** | `Complex` (Exact or Inexact components) | **Varies** |
+This implementation provides deep integration between Scheme and JavaScript. See [docs/Interoperability.md](./docs/Interoperability.md) for complete technical details.
 
-#### Key Features
-- **Arbitrary Precision**: Exact integers use `BigInt`, allowing for calculations with hundreds of digits (e.g., `(factorial 100)`) without precision loss.
-- **R7RS Semantics**: `exact?` and `inexact?` predicates work correctly. `5/1` is an exact integer, while `5.0` is an inexact real.
-- **Rational Support**: Exact fractions like `1/3` are preserved and correctly handled in all arithmetic operations.
+### Library: `(scheme-js interop)`
 
-#### JavaScript Interop Boundary
-To maintain safe interoperability with standard JavaScript code, the following rules apply at the language boundary:
+Import with: `(import (scheme-js interop))`
 
-1.  **Scheme → JS**:
-    - **Safe Integers**: `BigInt` values within the safe range (`±2^53 - 1`) are automatically converted to standard JS `Number` types.
-    - **Large Integers**: `BigInt` values exceeding this range throw an error during conversion to prevent silent precision loss (unless using explicit conversion).
-    - **Rationals/Complex**: Converted to their closest `Number` representation or passed as opaque objects.
-2.  **JS → Scheme**:
-    - JavaScript **integers** are automatically converted to `BigInt` and treated as **exact** (preserving Scheme's preference for exactness).
-    - JavaScript **non-integers** (floats) are imported as standard `Number` types and treated as **inexact** reals.
-    - JavaScript `BigInt` values are imported as **exact** integers.
+| Procedure | Description | Example |
+|-----------|-------------|---------|
+| `(js-eval str)` | Evaluate JavaScript code | `(js-eval "Math.PI")` → `3.14159...` |
+| `(js-ref obj prop)` | Access object property | `(js-ref console "log")` |
+| `(js-set! obj prop val)` | Set object property | `(js-set! obj "x" 42)` |
+| `(js-invoke obj method args...)` | Call object method | `(js-invoke console "log" "Hi")` |
+| `(js-obj key val ...)` | Create JS object | `(js-obj 'x 1 'y 2)` → `{x: 1, y: 2}` |
+| `(js-obj-merge obj ...)` | Merge objects | `(js-obj-merge obj1 obj2)` → `{...obj1, ...obj2}` |
+| `(js-typeof val)` | Get JS type | `(js-typeof 42)` → `"number"` |
+| `js-undefined` | JS undefined value | `(eq? x js-undefined)` |
+| `(js-undefined? val)` | Undefined predicate | `(js-undefined? x)` → `#t` |
+| `js-null` | JS null value | `(eq? x js-null)` |
+| `(js-null? val)` | Null predicate | `(js-null? x)` → `#t` |
+| `(js-new constructor args...)` | Instantiate JS class | `(js-new Date 2024 0 1)` |
 
-> [!NOTE]
-> For performance-critical code where exactness is not required, see the `r7rs_roadmap.md` for planned optimizations like the `define-js-native` mode.
+### Instantiating JavaScript Classes
 
-### JavaScript Promise Interoperability
+Use `js-new` to create instances of JavaScript classes with the `new` operator:
 
-The `(scheme-js promise)` library provides transparent interoperability with JavaScript Promises using a CPS (Continuation-Passing Style) approach.
+```scheme
+;; JavaScript globals are automatically available
+(define now (js-new Date))
+(define birthday (js-new Date 1990 0 1))
 
-**Basic Usage:**
+;; Standard library classes
+(define my-map (js-new Map))
+(my-map.set "key" "value")
+(my-map.get "key")  ;; => "value"
 
+;; Create arrays with specific length
+(define arr (js-new Array 10))
+arr.length  ;; => 10
+```
+
+### Dot Notation Syntax
+
+Access JavaScript object properties using familiar dot notation:
+
+```scheme
+;; Property access
+(define obj (js-eval "({name: 'alice', age: 30})"))
+obj.name          ;; => "alice"
+obj.age           ;; => 30
+
+;; Chained access
+(define nested (js-eval "({a: {b: {c: 42}}})"))
+nested.a.b.c      ;; => 42
+
+;; Property mutation
+(set! obj.name "bob")
+obj.name          ;; => "bob"
+
+;; Method call
+(obj.method args) ;; => (js-invoke obj "method" args)
+```
+
+**Under the hood:**
+| Input | Transformed To |
+|:------|:---------------|
+| `obj.prop` | `(js-ref obj "prop")` |
+| `(obj.method arg)` | `(js-invoke obj "method" arg)` |
+| `(set! obj.prop val)` | `(js-set! obj "prop" val)` |
+
+### Object Literal Syntax `#{...}`
+
+Create JavaScript objects using a concise literal syntax:
+
+```scheme
+;; Basic object
+#{(x 1) (y 2)}              ;; => {x: 1, y: 2}
+
+;; With expressions
+#{(sum (+ 1 2)) (pi 3.14)}  ;; => {sum: 3, pi: 3.14}
+
+;; Spread syntax
+(define base #{(a 1) (b 2)})
+#{(... base) (c 3)}         ;; => {a: 1, b: 2, c: 3}
+```
+
+> [!IMPORTANT]
+> **Literal Evaluation Semantics:** The `#{}` object literal syntax evaluates its values at runtime (like JavaScript), while `#()` vector literals do not evaluate their contents (following R7RS standard). When nesting object literals (or any evaluated expressions) inside vectors, use `(vector ...)` instead of `#(...)` to ensure the objects are evaluated:
+> 
+> ```scheme
+> ;; Correct - objects are evaluated:
+> (vector #{(x 1)} #{(y 2)})
+> ;; => [object, object]
+> 
+> ;; Incorrect - creates unevaluated expressions:
+> #(#{(x 1)} #{(y 2)})
+> ;; => [cons-cell, cons-cell]
+> ```
+
+
+### Callable Closures
+
+Scheme closures are callable JavaScript functions:
+
+```scheme
+;; Define a Scheme function
+(define square (lambda (x) (* x x)))
+
+;; Store it in a JS variable
+(js-eval "var myFunc = null")
+(set! myFunc square)
+```
+
+```javascript
+// Call it from JavaScript!
+myFunc(7);  // Returns 49
+```
+
+---
+
+## ⏳ Promise Library: `(scheme-js promise)`
+
+Import with: `(import (scheme-js promise))`
+
+Provides transparent interoperability with JavaScript Promises.
+
+| Procedure | Description |
+|-----------|-------------|
+| `(js-promise? obj)` | Returns `#t` if obj is a Promise |
+| `(make-js-promise executor)` | Create Promise with `(lambda (resolve reject) ...)` |
+| `(js-promise-resolve value)` | Create resolved Promise |
+| `(js-promise-reject reason)` | Create rejected Promise |
+| `(js-promise-then p handler)` | Attach fulfillment handler |
+| `(js-promise-catch p handler)` | Attach rejection handler |
+| `(js-promise-finally p thunk)` | Attach cleanup handler |
+| `(js-promise-all list)` | Wait for all promises |
+| `(js-promise-race list)` | Wait for first to settle |
+| `(js-promise-all-settled list)` | Wait for all to settle |
+| `(js-promise-map f p)` | Apply function to resolved value |
+| `(js-promise-chain p f ...)` | Chain promise-returning functions |
+| `(async-lambda formals body ...)` | Macro for CPS transformation |
+
+**Example:**
 ```scheme
 (import (scheme-js promise))
 
-;; Create and work with promises
 (define p (js-promise-resolve 42))
-(js-promise-then p (lambda (x) (display x)))
+(js-promise-then p
+  (lambda (x)
+    (display x)
+    (newline)))
 
 ;; Chain promises
 (js-promise-chain (fetch-url "http://example.com")
@@ -167,22 +334,202 @@ The `(scheme-js promise)` library provides transparent interoperability with Jav
   (lambda (data) (process data)))
 ```
 
-**Available Procedures:**
+---
 
-| Procedure | Description |
-|-----------|-------------|
-| `(js-promise? obj)` | Returns `#t` if obj is a JavaScript Promise |
-| `(make-js-promise executor)` | Creates a Promise with `(lambda (resolve reject) ...)` |
-| `(js-promise-resolve value)` | Creates a resolved Promise |
-| `(js-promise-reject reason)` | Creates a rejected Promise |
-| `(js-promise-then p handler)` | Attaches fulfillment handler |
-| `(js-promise-catch p handler)` | Attaches rejection handler |
-| `(js-promise-all list)` | Waits for all promises |
-| `(js-promise-race list)` | Waits for first to settle |
-| `(js-promise-map f p)` | Apply function to resolved value |
-| `(js-promise-chain p f ...)` | Chain promise-returning functions |
+## 📖 R7RS Libraries
 
-**Limitations with `call/cc`:**
+The following R7RS-small standard libraries are supported:
+
+| Library | Description |
+|---------|-------------|
+| `(scheme base)` | Core Scheme procedures and macros |
+| `(scheme case-lambda)` | Multi-arity procedure dispatch |
+| `(scheme char)` | Character predicates and case conversion |
+| `(scheme complex)` | Complex number operations |
+| `(scheme cxr)` | Extended car/cdr accessors (caar, cadr, etc.) |
+| `(scheme eval)` | `eval` and `environment` |
+| `(scheme file)` | File I/O (Node.js only) |
+| `(scheme lazy)` | `delay`, `force`, `make-promise`, `promise?` |
+| `(scheme process-context)` | `command-line`, `exit`, `get-environment-variable` |
+| `(scheme read)` | `read` procedure |
+| `(scheme repl)` | `interaction-environment` |
+| `(scheme time)` | `current-second`, `current-jiffy`, `jiffies-per-second` |
+| `(scheme write)` | `display`, `write`, `newline` |
+
+**Extension Libraries:**
+
+| Library | Description |
+|---------|-------------|
+| `(scheme-js interop)` | JavaScript interop (`js-eval`, `js-ref`, etc.) |
+| `(scheme-js promise)` | JavaScript Promise integration |
+
+---
+
+## 🔧 Extensions Beyond R7RS-Small
+
+### Macros
+
+Standard R7RS macros plus extensions:
+
+| Macro | Description |
+|-------|-------------|
+| `and`, `or` | Short-circuit boolean operations |
+| `let`, `let*`, `letrec`, `letrec*` | Binding forms |
+| `cond`, `case` | Conditional dispatch (with `=>` support) |
+| `when`, `unless` | One-armed conditionals |
+| `do` | Iteration construct |
+| `guard` | Exception handling |
+| `let-values`, `let*-values`, `define-values` | Multiple value bindings |
+| `define-record-type` | R7RS record definitions |
+| `case-lambda` | Multi-arity procedure dispatch |
+| `define-class` | **Extension:** JS-compatible class definitions |
+
+### `define-class` (Extension)
+
+Define Scheme classes compatible with JavaScript inheritance.
+
+**Syntax:**
+```scheme
+(define-class ClassName [ParentClass]
+  constructor-name
+  predicate-name
+  (fields
+    (field-name accessor [mutator])
+    ...)
+  [(constructor (params...)
+    body...)]
+  (methods
+    (method-name (params...)
+      body...)
+    ...))
+```
+
+**Basic example:**
+```scheme
+(define-class Point
+  make-point
+  point?
+  (fields (x point-x) (y point-y))
+  (constructor (x y)
+    (set! this.x x)
+    (set! this.y y))
+  (methods
+    (magnitude ()
+      (sqrt (+ (* this.x this.x) (* this.y this.y))))))
+
+(define p (make-point 3 4))
+(p.magnitude)  ;; => 5
+```
+
+**Custom constructor with explicit super call:**
+```scheme
+(define-class ColoredPoint Point
+  make-colored-point
+  colored-point?
+  (fields (color point-color))
+  (constructor (x y color)
+    (super x y)              ;; Call parent constructor with custom args
+    (set! this.color color))
+  (methods
+    (describe ()
+      (string-append this.color " point"))))
+
+(define cp (make-colored-point 3 4 "red"))
+(cp.magnitude)  ;; => 5 (inherited)
+(cp.describe)   ;; => "red point"
+```
+
+**Features:**
+- **Inheritance**: Optional parent class
+- **Constructor clause**: Custom initialization with `this` binding
+- **Explicit super call**: `(super arg...)` to pass specific args to parent constructor
+- **Super method calls**: `(super.methodName args...)` to call parent methods
+- **Fields**: Define accessors and optional mutators
+- **Methods**: Use `this` to access instance properties
+
+
+### Additional Procedures
+
+| Procedure | Library | Description |
+|-----------|---------|-------------|
+| `load` | REPL | Load and execute a Scheme file (Node.js only) |
+
+---
+
+## 📚 Documentation
+
+Detailed documentation for project internals:
+
+- [**Architecture & Directory Structure**](./docs/architecture.md): High-level design and detailed file map.
+- [**Core Interpreter Implementation**](docs/core-interpreter-implementation.md): How the interpreter handles stack 
+  frames, continuations and TCO.
+- [**Hygiene Implementation**](./docs/hygiene.md): How macro hygiene works using pure marks/scopes.
+- [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
+- [**JavaScript Interoperability**](./docs/Interoperability.md): Deep JS integration and callable closures.
+- [**Changes**](./CHANGES.md): A log of major implementation steps and walkthroughs.
+- [**R7RS Roadmap**](./r7rs_roadmap.md): Compliance progress and future plans.
+
+---
+
+## 🏗️ Architecture
+
+The project follows a **Two-Tier Architecture**:
+1. **JavaScript Core**: The interpreter engine (`src/core/interpreter/`).
+2. **Scheme Libraries**: The standard library in Scheme (`src/core/scheme/`).
+
+### Core Components (`src/core/interpreter/`)
+- **`interpreter.js`**: Trampoline execution loop.
+- **`stepables_base.js`**: Register constants and `Executable` base class.
+- **`ast_nodes.js`**: AST node classes (Literal, If, Lambda, etc.).
+- **`frames.js`**: Continuation frame classes.
+- **`library_loader.js`**: R7RS `define-library` and `import` support.
+
+### Extensions (`src/extras/`)
+- **`primitives/interop.js`**: JS interop procedures.
+- **`primitives/promise.js`**: Promise library primitives.
+- **`scheme/`**: Library definitions for extras.
+
+For a detailed breakdown, see [docs/architecture.md](./docs/architecture.md).
+
+---
+
+## ⚠️ Limitations
+
+### Hygiene
+
+The macro system implements full **referential transparency** for `syntax-rules` macros:
+
+- **Accidental capture prevention**: Macro-introduced bindings don't capture user variables
+- **Definition-site bindings**: Free variables in macro templates correctly reference bindings from where the macro was defined, not where it's expanded
+
+```scheme
+;; Macro defined inside a let with a local helper
+(let ((helper (lambda (x) (* x 2))))
+  (define-syntax my-double
+    (syntax-rules ()
+      ((my-double x) (helper x))))
+  ;; Use later, even with shadowed 'helper':
+  (let ((helper (lambda (x) (+ x 1))))
+    (my-double 5)))
+;; Returns 10 (uses definition-site helper, not expansion-site)
+```
+
+### Exact/Inexact Numbers
+
+JavaScript has only one numeric type (IEEE 754 double). Our implementation uses `Number.isInteger()` to distinguish exact from inexact:
+- Integers (`5`, `-42`) are considered **exact**
+- Non-integers (`3.14`, `0.5`) are considered **inexact**
+- `Rational` objects are always **exact**
+
+| Operation | R7RS Expected | Our Result |
+|-----------|---------------|------------|
+| `(inexact 5)` | Inexact `5.0` | `5` (still exact by our predicate) |
+| `(inexact? (inexact 5))` | `#t` | `#f` ❌ |
+| `(exact 3.0)` | Exact `3` | `3` (correct by coincidence) |
+
+**Practical Impact:** Most programs don't rely on the exact/inexact distinction for integers.
+
+### Promise and `call/cc` Interaction
 
 Using `call/cc` across promise boundaries has limitations:
 
@@ -196,61 +543,18 @@ Using `call/cc` across promise boundaries has limitations:
         (+ x 1)))))   ; Never executes
 ```
 
-**Why this happens:**
-1. Each `promise-then` callback runs in a fresh interpreter invocation
-2. Continuations captured inside a callback only escape *that* callback
-3. The JavaScript Promise chain is abandoned, not just the Scheme continuation
+Each `promise-then` callback runs in a fresh interpreter invocation. Continuations captured inside a callback only escape *that* callback, abandoning the JavaScript Promise chain.
 
-**Safe patterns:**
-- Use `call/cc` within a single callback (before any `await` points)
-- Avoid jumping out of promise chains with continuations
-- Consider using explicit error handling with `promise-catch`
+---
 
-### Deep JavaScript Interoperability
+## 🛠️ Code Standards
 
-The `(scheme-js js-conversion)` library provides a robust system for converting complex data structures between Scheme and JavaScript.
+- **Style**: ES Modules (`import`/`export`), JSDoc documentation.
+- **Testing**: Dual environment - all features must work in both Node.js and browsers.
+- **Code Quality**: Strict separation of step-able logic from runtime state.
 
-**Features:**
-- **Automatic Conversion**: The `js-auto-convert` parameter (default `#t`) automatically handles deep conversion of arguments and return values at the JS boundary.
-- **Bi-Directional**: Works seamlessly for both Scheme calling JS and JS calling Scheme.
-- **Safe BigInts**: Errors are thrown when converting BigInts outside the safe JavaScript integer range to prevent silent precision loss.
+---
 
-**Exported Procedures:**
+## 📄 License
 
-| Procedure | Description |
-|-----------|-------------|
-| `(scheme->js val)` | Shallow conversion: Scheme values to JS (BigInt→Number if safe). |
-| `(scheme->js-deep val)` | Deep conversion: Vectors → Arrays, Records → Objects. |
-| `(js->scheme val)` | Shallow conversion: JS values to Scheme (Number→BigInt if int). |
-| `(js->scheme-deep val)` | Deep conversion: Arrays → Vectors, Objects → `js-object` records. |
-| `(js-auto-convert [bool])` | Parameter to control automatic boundary conversion (default `#t`). |
-| `(make-js-object)` | Creates a new empty `js-object` wrapper. |
-| `(js-object? obj)` | Returns `#t` if `obj` is a `js-object` record. |
-| `(js-ref obj key)` | Access a property on a JS object (key is a string). |
-| `(js-set! obj key val)` | Set a property on a JS object. |
-
-**Usage:**
-
-```scheme
-(import (scheme-js js-conversion))
-
-;; JS Array → Scheme Vector (deep)
-(define vec (js->scheme-deep (js-eval "[1, 2, [3]]")))
-
-;; Scheme Vector → JS Array (deep)
-(js-call "console.log" (scheme->js-deep #(1 2 3)))
-
-;; Accessing JS Objects
-(define obj (js->scheme-deep (js-eval "({x: 10})")))
-(display (js-ref obj "x")) ; → 10
-(js-set! obj "y" 20)
-
-;; Creating and using js-object records
-(define my-obj (make-js-object))
-(js-set! my-obj "name" "example")
-(display (js-object? my-obj)) ; → #t
-```
-
-**Limitations:**
-- **Circular References**: Deep conversion does **not** support circular data structures. Attempting to convert a circular structure will result in a stack overflow error.
-
+MIT License

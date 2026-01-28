@@ -9,6 +9,7 @@
 import { toArray } from '../../core/interpreter/cons.js';
 import { Closure } from '../../core/interpreter/values.js';
 import { assertProcedure, isList } from '../../core/interpreter/type_check.js';
+import { SchemeTypeError } from '../../core/interpreter/errors.js';
 
 /**
  * Creates a JavaScript-callable wrapper for a Scheme procedure.
@@ -19,13 +20,13 @@ import { assertProcedure, isList } from '../../core/interpreter/type_check.js';
  * @returns {Function} A JavaScript function that can be called by Promise.then()
  */
 function wrapSchemeCallback(proc, interpreter) {
-    if (typeof proc === 'function' && !(proc instanceof Closure)) {
-        // Already a JS function, use directly
+    // If it's a function (plain JS function, new-style Closure, or new-style Continuation)
+    // we can use it directly.
+    if (typeof proc === 'function') {
         return proc;
     }
 
-    // It's a Scheme Closure - use the interpreter's bridge mechanism
-    return interpreter.createJsBridge(proc);
+    throw new SchemeTypeError('wrapSchemeCallback', 1, 'procedure', proc);
 }
 
 /**
@@ -95,7 +96,7 @@ export function getPromisePrimitives(interpreter) {
          */
         'js-promise-then': (promise, onFulfilled, onRejected) => {
             if (!(promise instanceof Promise)) {
-                throw new Error('js-promise-then: first argument must be a Promise');
+                throw new SchemeTypeError('js-promise-then', 1, 'Promise', promise);
             }
             assertProcedure('js-promise-then', 2, onFulfilled);
 
@@ -119,7 +120,7 @@ export function getPromisePrimitives(interpreter) {
          */
         'js-promise-catch': (promise, onRejected) => {
             if (!(promise instanceof Promise)) {
-                throw new Error('js-promise-catch: first argument must be a Promise');
+                throw new SchemeTypeError('js-promise-catch', 1, 'Promise', promise);
             }
             assertProcedure('js-promise-catch', 2, onRejected);
 
@@ -136,7 +137,7 @@ export function getPromisePrimitives(interpreter) {
          */
         'js-promise-finally': (promise, onFinally) => {
             if (!(promise instanceof Promise)) {
-                throw new Error('js-promise-finally: first argument must be a Promise');
+                throw new SchemeTypeError('js-promise-finally', 1, 'Promise', promise);
             }
             assertProcedure('js-promise-finally', 2, onFinally);
 
@@ -157,7 +158,7 @@ export function getPromisePrimitives(interpreter) {
             } else if (Array.isArray(promises)) {
                 arr = promises;
             } else {
-                throw new Error('js-promise-all: argument must be a list of promises');
+                throw new SchemeTypeError('js-promise-all', 1, 'list of promises', promises);
             }
 
             return Promise.all(arr);
@@ -176,7 +177,7 @@ export function getPromisePrimitives(interpreter) {
             } else if (Array.isArray(promises)) {
                 arr = promises;
             } else {
-                throw new Error('js-promise-race: argument must be a list of promises');
+                throw new SchemeTypeError('js-promise-race', 1, 'list of promises', promises);
             }
 
             return Promise.race(arr);
@@ -196,7 +197,7 @@ export function getPromisePrimitives(interpreter) {
             } else if (Array.isArray(promises)) {
                 arr = promises;
             } else {
-                throw new Error('js-promise-all-settled: argument must be a list of promises');
+                throw new SchemeTypeError('js-promise-all-settled', 1, 'list of promises', promises);
             }
 
             return Promise.allSettled(arr);

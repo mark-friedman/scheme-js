@@ -17,6 +17,15 @@ export const unitTests = [
     { path: 'core/interpreter/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
     { path: 'core/interpreter/error_tests.js', fn: 'runErrorTests', needsInterpreter: false },
     { path: 'core/interpreter/syntax_object_tests.js', fn: 'runSyntaxObjectTests', needsInterpreter: false },
+    { path: 'core/interpreter/state_isolation_tests.js', fn: 'runStateIsolationTests', needsInterpreter: false },
+    // IO Unit Tests
+    { path: 'core/primitives/io/string_port_tests.js', fn: 'runStringPortTests', needsInterpreter: false },
+    { path: 'core/primitives/io/bytevector_port_tests.js', fn: 'runBytevectorPortTests', needsInterpreter: false },
+    { path: 'core/primitives/io/file_port_tests.js', fn: 'runFilePortTests', needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/printer_tests.js', fn: 'runPrinterTests', needsInterpreter: false },
+    // Reader Unit Tests
+    { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
+    { path: 'core/interpreter/reader/number_parser_tests.js', fn: 'runNumberParserTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)
@@ -39,13 +48,16 @@ export const functionalTests = [
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: false },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
+    { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
 ];
 
 // Integration Tests
 export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
+    { path: 'integration/multi_interpreter_tests.js', fn: 'runMultiInterpreterTests', async: true, needsInterpreter: true },
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
     { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
+    { path: 'integration/cond_expand_library_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: true },
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
@@ -65,6 +77,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/parameter_tests.scm',
     'tests/core/scheme/hygiene_tests.scm',
     'tests/core/scheme/case_lambda_tests.scm',
+    'tests/core/scheme/cond_expand_tests.scm',
     'tests/core/scheme/lazy_tests.scm',
     'tests/core/scheme/time_tests.scm',
     'tests/core/scheme/eval_tests.scm',
@@ -84,12 +97,16 @@ export const schemeTestFiles = [
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',
     'tests/core/scheme/bigint_exactness_tests.scm',
+    'tests/core/scheme/r7rs-pitfalls.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',
     'tests/extras/scheme/promise_interop_tests.scm',
     'tests/extras/scheme/jsref_tests.scm',
     'tests/extras/scheme/js_conversion_tests.scm',
+    'tests/extras/scheme/class_tests.scm',
+    'tests/extras/scheme/dot_access_tests.scm',
 ];
+
 
 /**
  * Runs a single test module with the given path prefix.
@@ -160,6 +177,7 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
     // Functional tests
     try {
         for (const test of functionalTests) {
+            console.log(`Running functional test: ${test.path}`);
             await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {

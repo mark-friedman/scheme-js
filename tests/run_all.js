@@ -20,7 +20,14 @@ async function runAll() {
     const { runSchemeTests } = await import('./run_scheme_tests_lib.js');
 
     const { interpreter } = createTestEnv();
-    const logger = createTestLogger();
+
+    // Parse arguments
+    const verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
+    const logger = createTestLogger({ verbose });
+
+    if (verbose) {
+        console.log('Verbose mode enabled');
+    }
 
     // File loader for tests that need it
     const nodeFileLoader = async (relativePath) => {

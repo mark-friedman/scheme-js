@@ -24,5 +24,13 @@ export default [
       file: 'dist/scheme-html.js',
       format: 'es'
     }
+  },
+  {
+    input: 'src/packaging/scheme_repl_wc.js',
+    external: ['./scheme.js'], // Crucial: treat scheme.js as external
+    output: {
+      file: 'dist/scheme-repl.js',
+      format: 'es'
+    }
   }
 ];

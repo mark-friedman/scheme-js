@@ -17,6 +17,7 @@ We use a "shared representation" model:
 | **Boolean** | Raw JS Boolean | `'boolean'` | `#t` is `true`, `#f` is `false`. |
 | **Vector** | Raw JS Array | `Array.isArray()` | `(vector 1 2)` is `[1, 2]`. |
 | **Bytevector** | Raw JS `Uint8Array` | `instanceof Uint8Array` | `(bytevector 1 2 3)` is `Uint8Array([1,2,3])`. |
+| **JS Object** | Raw JS Object | `'object'` | Can be created via `js-obj` or `#{...}` syntax. |
 | **Void/Undefined** | Raw JS `undefined` | `'undefined'` | Used for `(if #f #t)`. |
 | **Procedure** | **Callable Function** | `typeof === 'function'` | **Directly callable from JS!** |
 | **Continuation** | **Callable Function** | `typeof === 'function'` | **Directly callable from JS!** |
@@ -31,28 +32,7 @@ We use a "shared representation" model:
 
 ### How It Works
 
-When a `lambda` expression is evaluated, the interpreter creates a **callable JavaScript function** with attached Scheme metadata:
-
-```javascript
-// In values.js - createClosure factory function
-function createClosure(params, body, env, restParam, interpreter) {
-    // Create a callable JS function
-    const closure = function(...jsArgs) {
-        const argLiterals = jsArgs.map(val => new LiteralNode(val));
-        const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
-        return interpreter.runWithSentinel(ast);
-    };
-    
-    // Attach Scheme metadata
-    closure[SCHEME_CLOSURE] = true;
-    closure.params = params;
-    closure.body = body;
-    closure.env = env;
-    closure.restParam = restParam;
-    
-    return closure;
-}
-```
+When a `lambda` expression is evaluated, the interpreter creates a **callable JavaScript function** with attached Scheme metadata. See [docs/architecture.md](./architecture.md) for technical details on the `Values.js` factory.
 
 ### Usage Examples
 
@@ -67,51 +47,44 @@ function createClosure(params, body, env, restParam, interpreter) {
 myCallback(7);  // Returns 49
 ```
 
-```scheme
-;; Store a closure in a vector and call it
-(define callbacks (vector (lambda () "hello") (lambda () "world")))
-((vector-ref callbacks 0))  ;; Returns "hello"
-```
-
 ### Continuations From JS
 
-Continuations are also callable:
+Continuations are also callable and can be invoked from JS to jump back into a Scheme execution context:
 
 ```scheme
 (define saved-k #f)
 (+ 100 (call/cc (lambda (k) 
-                  (set! saved-k k)
-                  10)))
+                   (set! saved-k k)
+                   10)))
 ;; Returns 110
 
 ;; Later, from JavaScript:
 saved-k(50)  ;; Returns 150
 ```
 
+### Multiple Values in JavaScript
+
+If a Scheme function returns multiple values (via `(values ...)`) to a JavaScript caller, JavaScript only receives the **first value**.
+
+```scheme
+(define (get-results) (values 1 2 3))
+```
+
+```javascript
+const result = getResults(); // Returns 1
+```
+
+---
+
 ## Dynamic-Wind Context Tracking
 
 When Scheme calls a JavaScript function, the interpreter tracks the current "Scheme context" (the frame stack including all `dynamic-wind` frames). If that JavaScript code calls back into Scheme via a callable closure or continuation, the proper context is preserved for correct `dynamic-wind` unwinding/rewinding.
 
-This is implemented via `jsContextStack` in the interpreter:
+This is implemented via a context stack in the interpreter that preserves the Scheme stack state across the JavaScript boundary.
 
-```javascript
-// Before calling a JS function from Scheme:
-interpreter.pushJsContext(registers[FSTACK]);
+## Type Identification
 
-// After JS returns:
-interpreter.popJsContext();
-
-// When re-entering Scheme, the parent context is used:
-runWithSentinel(ast) {
-    const parentContext = this.getParentContext();
-    const stackWithSentinel = [...parentContext, new SentinelFrame()];
-    return this.run(ast, this.globalEnv, stackWithSentinel);
-}
-```
-
-## Type Checking
-
-The type checking functions `isSchemeClosure()` and `isSchemeContinuation()` use marker symbols to distinguish Scheme callables from regular JavaScript functions:
+The types can be identified from JavaScript using the following markers:
 
 ```javascript
 import { isSchemeClosure, isSchemeContinuation } from './values.js';
@@ -127,126 +100,131 @@ if (isSchemeContinuation(fn)) {
 }
 ```
 
-## TCO Semantics
+## TCO and `call/cc` Semantics
 
-The design maintains TCO:
+- **TCO:** Scheme-to-Scheme calls are tail-recursive. JS-to-Scheme calls start a new interpreter loop, which is then tail-recursive internally.
+- **`call/cc`:** Invoking a continuation from JS effectively **aborts** the JS callback (if it was called from Scheme) or simply jumps into the Scheme context (if it was a standalone call). The captured Scheme context is restored, replacing the current Scheme future.
+- **Callable Closures**: Scheme procedures can be stored in JS variables and called like native functions.
+- **Global JS Access**: JavaScript global variables (on `window` or `node global`) are automatically accessible in Scheme.
 
-- **Scheme-to-Scheme:** The interpreter loop handles these calls by updating registers. The JavaScript stack does not grow.
-- **Scheme-to-JS:** When Scheme calls a JS function (like `Math.max`), it is a "leaf" call. The JS stack grows by one frame, returns a value, and shrinks.
-- **JS-to-Scheme:** When JS calls a callable Scheme closure, a new interpreter loop is started via `runWithSentinel()`. Within that loop, Scheme execution is fully tail-recursive.
+---
 
-> [!WARNING]
-> Infinite mutual recursion between JS and Scheme (JS calls Scheme which calls JS which calls Scheme...) is bounded by the JS engine's stack size. This is an unavoidable consequence of interoperating with a non-TCO language.
+## Global JavaScript Access
 
-## `call/cc` Semantics
+The Scheme interpreter's global environment automatically falls back to the JavaScript global context (`globalThis`) for any unbound variable. This allows you to access browser APIs, Node.js globals, or variables defined in other `<script>` tags directly by name.
 
-- **Capturing:** `call/cc` captures the `fstack` (continuation frames). This only contains Scheme frames, not native JS stack frames.
-- **Restoring (Scheme context):** Invoking a continuation replaces the `fstack`. The interpreter jumps to the captured context.
-- **Restoring (JS context):** If a JS callback invokes a continuation, this effectively **aborts** the JS callback. The captured Scheme context is restored, abandoning the rest of the JS callback logic. This is correct Scheme semantics - invoking a continuation *replaces* the future.
+### Reading Global Variables
 
-## Backwards Compatibility
-
-The legacy `createJsBridge()` method is still available but is now essentially a passthrough for callable closures:
-
-```javascript
-createJsBridge(closure, parentStack = []) {
-    // If it's already a callable Scheme closure, return it directly
-    if (isSchemeClosure(closure)) {
-        return closure;
-    }
-    // Legacy path for old-style Closure instances (during migration)
-    return (...jsArgs) => { /* ... */ };
-}
+```scheme
+(display console)        ;; Accesses globalThis.console
+(display window.location) ;; Accesses window.location via dot notation
+(define my-val someGlobal) ;; Accesses a variable defined in another JS file
 ```
+
+### Writing Global Variables
+
+You can also use `set!` to modify global JavaScript variables:
+
+```scheme
+(set! document.title "My Scheme App")
+(set! myGlobalVar 123)
+```
+
+---
+
+## JS Interop Primitives `(scheme-js interop)`
+
+The following procedures provide low-level access to JavaScript:
+
+| Procedure | Description |
+|-----------|-------------|
+| `(js-eval str)` | Evaluates a string as JavaScript code. |
+| `(js-ref obj prop)` | Accesses a property on a JS object. |
+| `(js-set! obj prop val)` | Sets a property on a JS object. |
+| `(js-invoke obj method args ...)` | Invokes a method on a JS object. |
+| `(js-obj k1 v1 ...)` | Creates a plain JS object from key-value pairs. |
+| `(js-obj-merge obj ...)` | Merges multiple JS objects. |
+| `(js-typeof val)` | Returns the JavaScript `typeof` as a string. |
+| `js-undefined` | The JavaScript `undefined` value. |
+| `(js-undefined? val)` | Returns `#t` if val is `undefined` or `null`. |
+| `js-null` | The JavaScript `null` value. |
+| `(js-null? val)` | Returns `#t` if val is `null`. |
+| `(js-new constructor args ...)` | Creates a new instance using the `new` operator. |
+
+---
 
 ## JS Property Access Syntax
 
-The reader provides JS-style dot notation for accessing JavaScript object properties:
+The reader provides concise syntax for common interop tasks:
 
-### Reading Properties
+### Dot Notation
 
-```scheme
-;; Define a JS object
-(define obj (js-eval "({name: 'alice', age: 30})"))
+The reader transforms dot notation into property access. When used in the operator position of a list, the analyzer further optimizes these into method calls.
 
-;; Access properties using dot notation
-obj.name    ;; => "alice"
-obj.age     ;; => 30
-
-;; Chained property access
-(define nested (js-eval "({a: {b: {c: 42}}})"))
-nested.a.b.c  ;; => 42
-```
-
-### Writing Properties
-
-Use `set!` with dot notation to modify properties:
-
-```scheme
-(define obj (js-eval "({x: 0})"))
-(set! obj.x 42)
-obj.x  ;; => 42
-
-;; Chained property set
-(define nested (js-eval "({a: {b: 0}})"))
-(set! nested.a.b 99)
-nested.a.b  ;; => 99
-```
-
-### Under the Hood
-
-The reader transforms dot notation at read time:
-
-| Input | Transformed To |
-|:------|:---------------|
-| `obj.prop` | `(js-ref obj "prop")` |
-| `obj.a.b` | `(js-ref (js-ref obj "a") "b")` |
-| `(set! obj.prop val)` | `(js-set! obj "prop" val)` |
+| Input | Transformed To (Reader) | Optimized To (Analyzer) |
+|:------|:------------------------|:-------------------------|
+| `obj.prop` | `(js-ref obj "prop")` | - |
+| `(obj.method arg)` | `((js-ref obj "method") arg)` | `(js-invoke obj "method" arg)` |
+| `obj.a.b` | `(js-ref (js-ref obj "a") "b")` | - |
+| `(set! obj.prop val)` | `(js-set! obj "prop" val)` | - |
 
 > [!NOTE]
-> Numbers with dots like `3.14` are parsed as numbers, not property access.
+> Standard Scheme number syntax takes precedence. `3.14` is a number, not a property access on `3`.
 
-## Summary
+### The `this` Pseudo-Variable
 
-1. **Execution Model:** The interpreter registers hold raw JS values and class instances for Scheme-specific types.
-2. **Scheme calling JS:** The evaluator invokes JS functions directly with `func(...args)`.
-3. **JS calling Scheme:** Closures and continuations are callable functions. No explicit wrapping needed.
-4. **Context Tracking:** The `jsContextStack` ensures proper `dynamic-wind` handling across boundaries.
-5. **Type Identification:** Marker symbols (`SCHEME_CLOSURE`, `SCHEME_CONTINUATION`) distinguish Scheme callables from regular JS functions.
-
-6. **Property Access:** Use `obj.prop` syntax to access JS object properties, and `(set! obj.prop val)` to modify them.
-
-This design provides "Transparent Interoperability" - closures stored in JS globals, arrays, Maps, or any data structure can be invoked directly without special handling.
-
-## Deep Data Conversion
-
-While the core interoperability layer handles values "as-is" (shallow), the `(scheme-js js-conversion)` library offers deep, recursive conversion between language types.
-
-### Conversion Mapping
-
-| Scheme Type | `scheme->js-deep` | `js->scheme-deep` | JS Type |
-| :--- | :--- | :--- | :--- |
-| `Pair`/`List` | **Preserved** (not converted) | N/A | N/A |
-| `Vector` | **Array** (recursive) | **Vector** (recursive) | `Array` |
-| `Record` | **Object** (recursive) | N/A | `Object` |
-| `js-object` | **Object** (unwrap) | **js-object** (recursive) | `Object` |
-| `BigInt` | `Number` (if safe*) | `BigInt` (identity) | `BigInt` |
-| JS integer | N/A | `BigInt` | `Number` |
-| Other | Identity | Identity | Other |
-
-> [!NOTE]
-> - **Lists are preserved**: Scheme lists (Cons pairs) are NOT converted to JS Arrays. They remain as Scheme data structures. Use `list->vector` first if you need an array.
-> - **JS integers become BigInt**: Integer Numbers from JS are converted to BigInt for correct Scheme numeric semantics.
-> - **BigInt safety**: BigInt->Number throws if outside the safe integer range.
-
-### Automatic Boundary Conversion
-
-The `js-auto-convert` parameter controls whether this conversion happens automatically at the API boundary.
-
-- **Default (`#t`)**: Deep conversion is applied automatically.
-- **Disabled (`#f`)**: Values are passed as raw references (no conversion).
+When a Scheme closure is invoked from JavaScript as a method (or via `js-invoke`), the JavaScript `this` context is automatically bound to a pseudo-variable named `this` within the closure's scope.
 
 ```scheme
-(parameterize ((js-auto-convert #f))
-  (js-call "processLargeData" scheme-data)) ;; Passed efficiently without copying
+(define obj #{(name "Alice")})
+(js-set! obj "greet" (lambda (msg) 
+                       (string-append msg ", " this.name)))
+
+(obj.greet "Hello") ;; => "Hello, Alice"
 ```
+
+
+### Object Literal Syntax `#{...}`
+
+Create JavaScript objects using a concise syntax:
+
+```scheme
+#{(x 1) (y 2)}              ;; => {x: 1, y: 2}
+#{(sum (+ 1 2)) (pi 3.14)}  ;; => {sum: 3, pi: 3.14}
+
+;; Spread syntax
+(define base #{(a 1) (b 2)})
+#{(... base) (c 3)}         ;; => {a: 1, b: 2, c: 3}
+```
+
+This syntax expands to calls to `js-obj` and `js-obj-merge` at read-time.
+
+---
+
+## Class Interoperability: `define-class`
+
+You can define Scheme classes that are compatible with JavaScript's class system and inheritance.
+
+```scheme
+(define-class ColoredPoint Point
+  (make-colored-point x y color)
+  colored-point?
+  (fields
+    (color point-color set-point-color!))
+  (methods
+    (get-description ((self))
+      (string-append (point-color self) " point"))))
+```
+
+- **Inheritance:** `ColoredPoint` can extend a JS class or another Scheme class.
+- **Constructors:** `make-colored-point` calls `super()` automatically if a parent exists.
+- **Methods:** Methods are added to the JavaScript prototype, making them accessible to JS code.
+- **`this` Binding:** Methods are called with `self` explicitly passed, but also have access to the JS `this` if needed via the implementation details.
+
+---
+
+## JS Promise Interoperability `(scheme-js promise)`
+
+The Promise library provides CPS-style hooks for working with JS Promises. While `call/cc` cannot jump back *into* an awaited JavaScript frame (due to JS engine limitations), the `(scheme-js promise)` library provides safe patterns for asynchronous execution in Scheme.
+
+See the README for a full list of `js-promise-` procedures.

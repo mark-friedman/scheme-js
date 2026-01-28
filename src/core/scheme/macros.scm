@@ -73,12 +73,24 @@
 ;;  * @param {...*} body - Body expressions to evaluate.
 ;;  * @returns {*} Result of the last expression in the body.
 ;;  */
+;; R7RS-compliant letrec: all inits are evaluated before any assignments.
+;; This is critical for correct call/cc behavior within letrec.
+;; 
+;; Credit: Al Petrofsky's elegant list-based approach
+;; https://groups.google.com/g/comp.lang.scheme/c/FB1HgUx5d2s
+;;
+;; The strategy:
+;; 1. Create all variables bound to undefined
+;; 2. Evaluate all inits into a list (single temp variable)
+;; 3. Iteratively pop from the list and assign each var
+;; 4. Run body
 (define-syntax letrec
   (syntax-rules ()
-    ((letrec ((var init) ...) body ...)
+    ((_ ((var init) ...) . body)
      (let ((var 'undefined) ...)
-       (set! var init) ...
-       (let () body ...)))))
+       (let ((temp (list init ...)))
+         (begin (set! var (car temp)) (set! temp (cdr temp))) ...
+         (let () . body))))))
 
 ;; /**
 ;;  * Sequential recursive binding construct.
@@ -175,3 +187,141 @@
        (define constructor (record-constructor type))
        (define predicate (record-predicate type))
        (define-record-field type field-tag accessor . more) ...))))
+
+;; /**
+;;  * Internal helper for defining class fields.
+;;  */
+(define-syntax define-class-field
+  (syntax-rules ()
+    ((define-class-field type field-tag accessor)
+     (define accessor (record-accessor type 'field-tag)))
+    ((define-class-field type field-tag accessor modifier)
+     (begin
+       (define accessor (record-accessor type 'field-tag))
+       (define modifier (record-modifier type 'field-tag))))))
+
+;; /**
+;;  * Internal helper for defining class methods.
+;;  */
+(define-syntax define-class-method
+  (syntax-rules ()
+    ;; With parent (ignored for now - super access via class-super-call primitive)
+    ((define-class-method type parent (name (param ...) body ...))
+     (class-method-set! type 'name (lambda (param ...) body ...)))
+    ;; Without parent
+    ((define-class-method type (name (param ...) body ...))
+     (class-method-set! type 'name (lambda (param ...) body ...)))))
+
+;; /**
+;;  * Defines a new JS-compatible class.
+;;  * Creates a constructor, a type predicate, accessors/modifiers for fields,
+;;  * and methods on the class prototype.
+;;  *
+;;  * Syntax:
+;;  * (define-class type [parent]
+;;  *   constructor-name
+;;  *   predicate
+;;  *   (fields (field-tag accessor [modifier]) ...)
+;;  *   [(constructor (params ...) body ...)]
+;;  *   (methods (method-name (params ...) body ...) ...))
+;;  *
+;;  * If constructor clause is omitted:
+;;  *   - Without parent: fields become constructor params, sets them automatically
+;;  *   - With parent: passes all field params to super, then sets own fields
+;;  *
+;;  * If constructor clause is present:
+;;  *   - With parent: must call (super args...) before using this
+;;  *   - Body can initialize fields and perform other setup
+;;  */
+(define-syntax define-class
+  (syntax-rules (fields methods constructor super)
+    ;; Form with parent + constructor with ONLY (super ...) - no init body
+    ((define-class type parent
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (constructor (param ...) (super super-arg ...))
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class-with-init 'type parent '(field-tag-spec ...) '(param ...)
+                      (lambda (param ...) (vector super-arg ...))  ;; superArgsFn
+                      #f))                                         ;; no initFn
+       (define constructor-name type)
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form with parent + constructor with (super ...) AND body
+    ((define-class type parent
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (constructor (param ...) (super super-arg ...) body0 body ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class-with-init 'type parent '(field-tag-spec ...) '(param ...)
+                      (lambda (param ...) (vector super-arg ...))  ;; superArgsFn
+                      (lambda (param ...) body0 body ...)))        ;; initFn
+       (define constructor-name type)
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form with parent + constructor WITHOUT (super ...) - pass all args to super
+    ((define-class type parent
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (constructor (param ...) body ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class-with-init 'type parent '(field-tag-spec ...) '(param ...)
+                      #f                                  ;; superArgsFn = null, use all args
+                      (lambda (param ...) body ...)))     ;; initFn
+       (define constructor-name type)
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form without parent + custom constructor clause
+    ((define-class type
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (constructor (param ...) body ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class-with-init 'type #f '(field-tag-spec ...) '(param ...)
+                      #f                                  ;; no super for no-parent
+                      (lambda (param ...) body ...)))     ;; initFn
+       (define constructor-name type)
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type (method-name method-params . method-body)) ...))
+
+    ;; Form with parent, no constructor clause (default behavior)
+    ((define-class type parent
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class 'type parent '(field-tag-spec ...) '(field-tag-spec ...)))
+       (define constructor-name (record-constructor type))
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type parent (method-name method-params . method-body)) ...))
+
+    ;; Form without parent, no constructor clause (default behavior)
+    ((define-class type
+       constructor-name
+       predicate
+       (fields (field-tag-spec accessor . more) ...)
+       (methods (method-name method-params . method-body) ...))
+     (begin
+       (define type (make-class 'type #f '(field-tag-spec ...) '(field-tag-spec ...)))
+       (define constructor-name (record-constructor type))
+       (define predicate (record-predicate type))
+       (define-class-field type field-tag-spec accessor . more) ...
+       (define-class-method type (method-name method-params . method-body)) ...))))
+

@@ -7,14 +7,14 @@ I have implemented the basic infrastructure for macros in the Scheme interpreter
 ### 1. Macro Registry
 I created a `MacroRegistry` class to manage macro transformers. This registry maps macro names to transformer functions.
 
-[src/syntax/macro_registry.js](file:///Users/mark/code/scheme-js-4/src/syntax/macro_registry.js)
+[src/syntax/macro_registry.js](./src/syntax/macro_registry.js)
 
 ### 2. Analyzer Update
 I updated the `Analyzer` to check for macro calls during the analysis phase. If a macro is encountered, it is expanded using the registered transformer, and the result is recursively analyzed.
 
 I also added support for parsing the `define-syntax` special form, although for now it acts as a placeholder since we don't have a way to evaluate transformers at expansion time yet.
 
-[src/syntax/analyzer.js](file:///Users/mark/code/scheme-js-4/src/syntax/analyzer.js)
+[src/syntax/analyzer.js](./src/syntax/analyzer.js)
 
 ### 3. Functional Tests
 I added a new test suite `tests/functional/macro_tests.js` to verify:
@@ -22,7 +22,7 @@ I added a new test suite `tests/functional/macro_tests.js` to verify:
 - Recursive macro expansion.
 - `define-syntax` parsing.
 
-[tests/functional/macro_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/macro_tests.js)
+[tests/functional/macro_tests.js](./tests/functional/macro_tests.js)
 
 ## Verification Results
 
@@ -50,12 +50,12 @@ I created `src/syntax/syntax_rules.js` which implements:
 - **`transcribe`**: Expands templates using bindings from the match.
 - **Ellipsis Support**: Implemented basic ellipsis (`...`) support for matching zero or more items and expanding them.
 
-[src/syntax/syntax_rules.js](file:///Users/mark/code/scheme-js-4/src/syntax/syntax_rules.js)
+[src/syntax/syntax_rules.js](./src/syntax/syntax_rules.js)
 
 ### 2. Analyzer Integration
 I updated `src/syntax/analyzer.js` to recognize `(syntax-rules ...)` forms within `define-syntax`. It compiles the specification into a transformer function and registers it.
 
-[src/syntax/analyzer.js](file:///Users/mark/code/scheme-js-4/src/syntax/analyzer.js)
+[src/syntax/analyzer.js](./src/syntax/analyzer.js)
 
 ### 3. Functional Tests
 I added `tests/functional/syntax_rules_tests.js` covering:
@@ -64,7 +64,7 @@ I added `tests/functional/syntax_rules_tests.js` covering:
 - Ellipsis expansion (e.g., `begin`, `let-values` style).
 - Recursive macros (e.g., `and`).
 
-[tests/functional/syntax_rules_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/syntax_rules_tests.js)
+[tests/functional/syntax_rules_tests.js](./tests/functional/syntax_rules_tests.js)
 
 ## Verification Results
 
@@ -182,12 +182,12 @@ I have added JSDoc-style comments to the core Scheme library files and test file
 
 ### Library Documentation
 
-#### [lib/boot.scm](file:///Users/mark/code/scheme-js-4/lib/boot.scm)
+#### [lib/boot.scm](./lib/boot.scm)
 Added JSDoc-style comments to:
 - `and`, `let`, `letrec`, `cond`, `define-record-field`, `define-record-type` (macros)
 - `equal?`, `native-report-test-result` (functions)
 
-#### [lib/test.scm](file:///Users/mark/code/scheme-js-4/lib/test.scm)
+#### [lib/test.scm](./lib/test.scm)
 Added JSDoc-style comments to:
 - `*test-failures*`, `*test-passes*` (variables)
 - `test-report`, `report-test-result`, `assert-equal` (functions)
@@ -195,7 +195,7 @@ Added JSDoc-style comments to:
 
 ### Test Documentation
 
-#### [tests/scheme/record_tests.scm](file:///Users/mark/code/scheme-js-4/tests/scheme/record_tests.scm)
+#### [tests/scheme/record_tests.scm](./tests/scheme/record_tests.scm)
 - Added documentation to `Point` and `Rect` record type definitions.
 
 ## Verification Results
@@ -734,7 +734,7 @@ Now, the macro's `temp` is renamed to a unique gensym (`temp#1`), preventing cap
 
 ## Changes Made
 
-### [syntax_rules.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/syntax_rules.js)
+### [syntax_rules.js](./src/core/interpreter/syntax_rules.js)
 
 1. **Added gensym support** (lines 12-28)
    - `gensym(baseName)` — generates unique symbols like `temp#1`
@@ -758,7 +758,7 @@ Now, the macro's `temp` is renamed to a unique gensym (`temp#1`), preventing cap
    - Accepts `renameMap` parameter
    - Uses rename map to substitute introduced bindings
 
-### [hygiene_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/hygiene_tests.js) [NEW]
+### [hygiene_tests.js](./tests/functional/hygiene_tests.js) [NEW]
 
 7 comprehensive hygiene tests:
 - `swap!` with user's `temp` variable
@@ -767,7 +767,7 @@ Now, the macro's `temp` is renamed to a unique gensym (`temp#1`), preventing cap
 - Lambda parameter hygiene
 - Multiple expansions get unique gensyms
 
-### [test_manifest.js](file:///Users/mark/code/scheme-js-4/tests/test_manifest.js)
+### [test_manifest.js](./tests/test_manifest.js)
 
 Added `hygiene_tests.js` to functional test suite.
 
@@ -833,23 +833,23 @@ Implemented complete R7RS-compliant exception handling with 432 tests passing.
 
 | File | Purpose |
 |------|---------|
-| [errors.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/errors.js) | `SchemeError`, `SchemeTypeError`, `SchemeArityError`, `SchemeRangeError` |
-| [type_check.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/type_check.js) | Type predicates (`isPair`, `isList`, etc.) and assertions |
-| [exception.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/exception.js) | R7RS exception primitives |
-| [error_tests.js](file:///Users/mark/code/scheme-js-4/tests/core/interpreter/error_tests.js) | 22 unit tests for error classes |
-| [exception_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/exception_tests.scm) | 14 Scheme exception tests |
-| [exception_interop_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/exception_interop_tests.js) | 10 JS/Scheme interop tests |
+| [errors.js](./src/core/interpreter/errors.js) | `SchemeError`, `SchemeTypeError`, `SchemeArityError`, `SchemeRangeError` |
+| [type_check.js](./src/core/interpreter/type_check.js) | Type predicates (`isPair`, `isList`, etc.) and assertions |
+| [exception.js](./src/core/primitives/exception.js) | R7RS exception primitives |
+| [error_tests.js](./tests/core/interpreter/error_tests.js) | 22 unit tests for error classes |
+| [exception_tests.scm](./tests/core/scheme/exception_tests.scm) | 14 Scheme exception tests |
+| [exception_interop_tests.js](./tests/functional/exception_interop_tests.js) | 10 JS/Scheme interop tests |
 
 ## Modified Files
 
 | File | Changes |
 |------|---------|
-| [stepables.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/stepables.js) | `RaiseNode`, `InvokeExceptionHandler`, `ExceptionHandlerFrame`, `RaiseContinuableResumeFrame` |
-| [ast.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/ast.js) | Exported new nodes/frames |
-| [control.scm](file:///Users/mark/code/scheme-js-4/src/core/scheme/control.scm) | `guard`, `guard-clauses` macros |
-| [control.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/control.sld) | Exported `guard` |
-| [base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld) | Exported exception primitives + guard |
-| [index.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/index.js) | Registered exception primitives |
+| [stepables.js](./src/core/interpreter/stepables.js) | `RaiseNode`, `InvokeExceptionHandler`, `ExceptionHandlerFrame`, `RaiseContinuableResumeFrame` |
+| [ast.js](./src/core/interpreter/ast.js) | Exported new nodes/frames |
+| [control.scm](./src/core/scheme/control.scm) | `guard`, `guard-clauses` macros |
+| [control.sld](./src/core/scheme/control.sld) | Exported `guard` |
+| [base.sld](./src/core/scheme/base.sld) | Exported exception primitives + guard |
+| [index.js](./src/core/primitives/index.js) | Registered exception primitives |
 
 ## Key Implementation Details
 
@@ -889,21 +889,21 @@ Added comprehensive input validation to all Scheme procedures.
 
 | File | Changes |
 |------|---------|
-| [math.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/math.js) | Added `assertNumber` to +, -, *, /, =, <, >, modulo. Added `number?` |
-| [list.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/list.js) | Converted to `assertPair`, `SchemeTypeError`. Added `list?` |
-| [vector.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/vector.js) | Used `assertVector`, `assertIndex`, `assertInteger` |
-| [string.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/string.js) | Added `assertString`, `assertNumber`, `assertSymbol` |
-| [control.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/control.js) | Added `assertProcedure` for dynamic-wind, call-with-values. Added `procedure?` |
-| [record.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/record.js) | Converted to `SchemeTypeError` |
-| [eq.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/eq.js) | Added `not`, `boolean?` |
-| [interop.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/interop.js) | Added `assertString` for `js-eval` |
+| [math.js](./src/core/primitives/math.js) | Added `assertNumber` to +, -, *, /, =, <, >, modulo. Added `number?` |
+| [list.js](./src/core/primitives/list.js) | Converted to `assertPair`, `SchemeTypeError`. Added `list?` |
+| [vector.js](./src/core/primitives/vector.js) | Used `assertVector`, `assertIndex`, `assertInteger` |
+| [string.js](./src/core/primitives/string.js) | Added `assertString`, `assertNumber`, `assertSymbol` |
+| [control.js](./src/core/primitives/control.js) | Added `assertProcedure` for dynamic-wind, call-with-values. Added `procedure?` |
+| [record.js](./src/core/primitives/record.js) | Converted to `SchemeTypeError` |
+| [eq.js](./src/core/primitives/eq.js) | Added `not`, `boolean?` |
+| [interop.js](./src/core/primitives/interop.js) | Added `assertString` for `js-eval` |
 
-## Scheme Procedures ([core.scm](file:///Users/mark/code/scheme-js-4/src/core/scheme/core.scm))
+## Scheme Procedures ([core.scm](./src/core/scheme/core.scm))
 
 - `map` - Validates proc is `procedure?`, list is `list?`
 - `memq`, `memv`, `member` - Validate list is `list?`
 
-## Special Forms ([analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js))
+## Special Forms ([analyzer.js](./src/core/interpreter/analyzer.js))
 
 - `analyzeIf` - Validates 2-3 arguments
 - `analyzeLet` - Validates binding structure  
@@ -912,7 +912,7 @@ Added comprehensive input validation to all Scheme procedures.
 - `analyzeSet` - Validates symbol argument
 - `analyzeDefine` - Improved error messages
 
-## Exports ([base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld))
+## Exports ([base.sld](./src/core/scheme/base.sld))
 
 Added exports: `number?`, `boolean?`, `not`, `procedure?`, `list?`
 
@@ -926,7 +926,7 @@ Added test infrastructure and additional predicate.
 
 | File | Purpose |
 |------|---------|
-| [error_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/error_tests.scm) | 5 Scheme tests for error checking |
+| [error_tests.scm](./tests/core/scheme/error_tests.scm) | 5 Scheme tests for error checking |
 
 ## Changes
 
@@ -959,13 +959,13 @@ Previously, JS errors (like type errors from `(+ "a" 1)`) bypassed Scheme except
 
 ## Changes
 
-### [interpreter.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/interpreter.js)
+### [interpreter.js](./src/core/interpreter/interpreter.js)
 
 - Added `findExceptionHandler(fstack)` - searches stack for ExceptionHandlerFrame
 - Added `wrapJsError(e)` - wraps JS Error as SchemeError if needed
 - Modified catch block to route JS errors through RaiseNode when handler present
 
-### [js_exception_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/js_exception_tests.js) [NEW]
+### [js_exception_tests.js](./tests/functional/js_exception_tests.js) [NEW]
 
 8 new tests covering:
 - Basic type error catch
@@ -997,9 +997,9 @@ Fixed the interpreter to correctly handle rest parameters in lambda and define f
 
 | File | Changes |
 |------|---------|
-| [analyzer.js](file:///workspaces/scheme-js-4/src/core/interpreter/analyzer.js) | Updated `analyzeLambda` and `analyzeDefine` to parse `(x y . rest)` |
-| [stepables.js](file:///workspaces/scheme-js-4/src/core/interpreter/stepables.js) | `Lambda` stores `restParam`, `AppFrame` collects excess args into list |
-| [values.js](file:///workspaces/scheme-js-4/src/core/interpreter/values.js) | `Closure` stores `restParam` |
+| [analyzer.js](/workspaces/scheme-js-4/src/core/interpreter/analyzer.js) | Updated `analyzeLambda` and `analyzeDefine` to parse `(x y . rest)` |
+| [stepables.js](/workspaces/scheme-js-4/src/core/interpreter/stepables.js) | `Lambda` stores `restParam`, `AppFrame` collects excess args into list |
+| [values.js](/workspaces/scheme-js-4/src/core/interpreter/values.js) | `Closure` stores `restParam` |
 
 ## Core.scm Refactoring
 
@@ -1007,11 +1007,11 @@ Split the monolithic `core.scm` (723 lines) into organized files:
 
 | File | Contents |
 |------|----------|
-| [macros.scm](file:///workspaces/scheme-js-4/src/core/scheme/macros.scm) | `and`, `let`, `letrec`, `cond`, `define-record-type` |
-| [equality.scm](file:///workspaces/scheme-js-4/src/core/scheme/equality.scm) | `equal?` |
-| [cxr.scm](file:///workspaces/scheme-js-4/src/core/scheme/cxr.scm) | All 28 cxr accessors |
-| [numbers.scm](file:///workspaces/scheme-js-4/src/core/scheme/numbers.scm) | Variadic `=`, `<`, `>`, predicates, `min`/`max`, `gcd`/`lcm`, `round` |
-| [list.scm](file:///workspaces/scheme-js-4/src/core/scheme/list.scm) | `map`, `for-each`, `memq`/`v`, `assq`/`v`, `length`, `reverse`, etc. |
+| [macros.scm](/workspaces/scheme-js-4/src/core/scheme/macros.scm) | `and`, `let`, `letrec`, `cond`, `define-record-type` |
+| [equality.scm](/workspaces/scheme-js-4/src/core/scheme/equality.scm) | `equal?` |
+| [cxr.scm](/workspaces/scheme-js-4/src/core/scheme/cxr.scm) | All 28 cxr accessors |
+| [numbers.scm](/workspaces/scheme-js-4/src/core/scheme/numbers.scm) | Variadic `=`, `<`, `>`, predicates, `min`/`max`, `gcd`/`lcm`, `round` |
+| [list.scm](/workspaces/scheme-js-4/src/core/scheme/list.scm) | `map`, `for-each`, `memq`/`v`, `assq`/`v`, `length`, `reverse`, etc. |
 
 ## Test Fixes
 
@@ -1033,16 +1033,16 @@ I have successfully resolved the issue where standard Scheme macros were unbound
 
 ### 1. Library System & `(scheme repl)`
 Implemented the `(scheme repl)` library, which now serves as the entry point for the REPL environment. It imports `(scheme base)`, leveraging the library system's dependency management to ensure all standard bindings are available.
-- [repl.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/repl.sld)
+- [repl.sld](./src/core/scheme/repl.sld)
 
 ### 2. Top-Level `import` Support
 Implemented support for the `import` special form at the top level of the interpreter. This allows the REPL and user code to manage dependencies using standard syntax.
-- **Analyzer**: Updated [analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js) to handle `import`.
-- **AST**: Added `ImportNode` to [stepables.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/stepables.js) to execute imports.
-- **Loader**: Added `getLibraryExports` to [library_loader.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/library_loader.js) for synchronous lookup.
+- **Analyzer**: Updated [analyzer.js](./src/core/interpreter/analyzer.js) to handle `import`.
+- **AST**: Added `ImportNode` to [stepables.js](./src/core/interpreter/stepables.js) to execute imports.
+- **Loader**: Added `getLibraryExports` to [library_loader.js](./src/core/interpreter/library_loader.js) for synchronous lookup.
 
 ### 3. Refined Bootstrap Process
-Updated [main.js](file:///Users/mark/code/scheme-js-4/web/main.js) to use a cleaner, more standard-compliant bootstrap logic:
+Updated [main.js](./web/main.js) to use a cleaner, more standard-compliant bootstrap logic:
 1.  Asynchronously load `(scheme repl)` (which automatically loads `(scheme base)`).
 2.  Execute `(import (scheme base) (scheme repl))` using the interpreter.
 3.  This correctly populates the environment with procedures and macros (like `or`, `when`) without manual Javascript intervention.
@@ -1059,10 +1059,10 @@ I performed a fresh verification in the browser (see recording below). The boots
 | `(when #t "success")` | `"success"` |
 | `(interaction-environment)` | `[object Object]` |
 
-![Refined Bootstrap Verification](file:///Users/mark/.gemini/antigravity/brain/641af666-b2bb-45a8-a595-fde34bace0c9/verify_refined_bootstrap_final_1766189128960.webp)
+![Refined Bootstrap Verification](/Users/mark/.gemini/antigravity/brain/641af666-b2bb-45a8-a595-fde34bace0c9/verify_refined_bootstrap_final_1766189128960.webp)
 
 ### Automated Tests
-Updated [repl_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/repl_tests.scm) to use the new `import` syntax, and confirmed it passes in the Node.js test runner:
+Updated [repl_tests.scm](./tests/core/scheme/repl_tests.scm) to use the new `import` syntax, and confirmed it passes in the Node.js test runner:
 
 ```bash
 === Running Scheme Tests... ===
@@ -1093,20 +1093,20 @@ Implemented comprehensive R7RS character, string, and vector primitives:
 
 ### Reader Enhancement
 
-Modified [reader.js](file:///workspaces/scheme-js-4/src/core/interpreter/reader.js) to parse R7RS character literals:
+Modified [reader.js](/workspaces/scheme-js-4/src/core/interpreter/reader.js) to parse R7RS character literals:
 
 - `#\a` → character 'a'
 - `#\newline`, `#\space`, `#\tab` → named characters
 - `#\x41` → hex escape (character 'A')
 
-render_diffs(file:///workspaces/scheme-js-4/src/core/interpreter/reader.js)
+render_diffs(/workspaces/scheme-js-4/src/core/interpreter/reader.js)
 
 ### New Files
 
 | File | Description |
 |------|-------------|
-| [char.js](file:///workspaces/scheme-js-4/src/core/primitives/char.js) | Character primitives (26 procedures) |
-| [char.sld](file:///workspaces/scheme-js-4/src/core/scheme/char.sld) | `(scheme char)` library definition |
+| [char.js](/workspaces/scheme-js-4/src/core/primitives/char.js) | Character primitives (26 procedures) |
+| [char.sld](/workspaces/scheme-js-4/src/core/scheme/char.sld) | `(scheme char)` library definition |
 
 ### Character Primitives
 
@@ -1125,9 +1125,9 @@ render_diffs(file:///workspaces/scheme-js-4/src/core/interpreter/reader.js)
 
 ### Expanded File
 
-Complete rewrite of [string.js](file:///workspaces/scheme-js-4/src/core/primitives/string.js) with R7RS §6.7 primitives.
+Complete rewrite of [string.js](/workspaces/scheme-js-4/src/core/primitives/string.js) with R7RS §6.7 primitives.
 
-render_diffs(file:///workspaces/scheme-js-4/src/core/primitives/string.js)
+render_diffs(/workspaces/scheme-js-4/src/core/primitives/string.js)
 
 ### String Primitives
 
@@ -1151,9 +1151,9 @@ render_diffs(file:///workspaces/scheme-js-4/src/core/primitives/string.js)
 
 ### Expanded File
 
-Enhanced [vector.js](file:///workspaces/scheme-js-4/src/core/primitives/vector.js) with additional R7RS operations.
+Enhanced [vector.js](/workspaces/scheme-js-4/src/core/primitives/vector.js) with additional R7RS operations.
 
-render_diffs(file:///workspaces/scheme-js-4/src/core/primitives/vector.js)
+render_diffs(/workspaces/scheme-js-4/src/core/primitives/vector.js)
 
 ### New Vector Primitives
 
@@ -1172,7 +1172,7 @@ render_diffs(file:///workspaces/scheme-js-4/src/core/primitives/vector.js)
 
 ### base.sld Exports
 
-Updated [base.sld](file:///workspaces/scheme-js-4/src/core/scheme/base.sld):
+Updated [base.sld](/workspaces/scheme-js-4/src/core/scheme/base.sld):
 
 ```scheme
 ;; Characters
@@ -1197,7 +1197,7 @@ vector->string string->vector
 
 ### Type Checking
 
-Added [assertChar](file:///workspaces/scheme-js-4/src/core/interpreter/type_check.js#L252-262) helper for character validation.
+Added [assertChar](/workspaces/scheme-js-4/src/core/interpreter/type_check.js#L252-262) helper for character validation.
 
 ---
 
@@ -1474,16 +1474,16 @@ We implemented a systematic renaming of all local variables during the analysis 
 
 ### Key Changes
 
-### 1. Analyzer Alpha-Renaming ([analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js))
+### 1. Analyzer Alpha-Renaming ([analyzer.js](./src/core/interpreter/analyzer.js))
 - **SyntacticEnv**: Introduced a lookup table that maps scoped identifiers (Symbol or SyntaxObject) to unique runtime names.
 - **analyzeLambda & analyzeLet**: These nodes now generate unique names for their parameters/bindings and extend the `SyntacticEnv` before analyzing their bodies.
 - **analyzeVariable**: Now consults the `SyntacticEnv` first. If a renamed mapping exists, it returns a `Variable` with the unique name; otherwise, it falls back to a global lookup (`ScopedVariable`).
 
-### 2. Hygiene Infrastructure ([syntax_object.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/syntax_object.js))
+### 2. Hygiene Infrastructure ([syntax_object.js](./src/core/interpreter/syntax_object.js))
 - **identifierEquals**: Implemented a robust comparison that considers both the name and the scope set of an identifier, ensuring that macro-introduced identifiers are correctly distinguished from original source identifiers.
 - **Helper Functions**: Added `unwrapSyntax`, `syntaxName`, and `syntaxScopes` to simplify identifier processing in the analyzer.
 
-### 3. Stability and Robustness ([stepables.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/stepables.js))
+### 3. Stability and Robustness ([stepables.js](./src/core/interpreter/stepables.js))
 - **ensureExecutable**: Added a helper to handle cases where primitives return a mixture of raw values (from data) and AST nodes. This ensures that `TailApp` always receives executable targets, preventing "ctl.step is not a function" errors.
 - **Automatic AST Detection**: Updated the `analyze` function to detect if an expression is already an `Executable` node, preventing double-wrapping if a macro expansion or sub-analyzer returns an AST node directly.
 
@@ -1533,9 +1533,9 @@ Changed `analyzeVariable` to use `globalScopeRegistry` directly:
 ```
 
 ## Changes
-- [analyzer.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js#L176): Fixed `ScopedVariable` creation
-- [core.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/core.sld): Removed `param-dynamic-bind` export
-- [base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld): Removed `param-dynamic-bind` export
+- [analyzer.js](./src/core/interpreter/analyzer.js#L176): Fixed `ScopedVariable` creation
+- [core.sld](./src/core/scheme/core.sld): Removed `param-dynamic-bind` export
+- [base.sld](./src/core/scheme/base.sld): Removed `param-dynamic-bind` export
 
 ## Verification
 ```
@@ -1576,11 +1576,11 @@ Changed macro lookup to use scoped registry:
 **Effect**: Nested `let-syntax` can see macros from outer scopes.
 
 ### 4. Removed param-dynamic-bind Export Workaround
-- [core.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/core.sld): Removed `param-dynamic-bind` from exports
-- [base.sld](file:///Users/mark/code/scheme-js-4/src/core/scheme/base.sld): Removed `param-dynamic-bind` from exports
+- [core.sld](./src/core/scheme/core.sld): Removed `param-dynamic-bind` from exports
+- [base.sld](./src/core/scheme/base.sld): Removed `param-dynamic-bind` from exports
 
 ## Tests Added
-Created [hygiene_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/hygiene_tests.scm) with 10 tests:
+Created [hygiene_tests.scm](./tests/core/scheme/hygiene_tests.scm) with 10 tests:
 - Referential transparency (3 tests)
 - let-syntax scoping (4 tests)  
 - letrec-syntax (2 tests)
@@ -1627,14 +1627,14 @@ This task focused on two main areas:
 ## Detailed Fixes Applied
 
 ### Macro System
-- [analyzer.js:146,192,253,288,327,338,366](file:///Users/mark/code/scheme-js-4/src/core/interpreter/analyzer.js): Pass `syntacticEnv` through macro compilation.
-- [syntax_rules.js:53,91,457,484,580,590](file:///Users/mark/code/scheme-js-4/src/core/interpreter/syntax_rules.js): Implement lexical resolution in `transcribe`.
+- [analyzer.js:146,192,253,288,327,338,366](./src/core/interpreter/analyzer.js): Pass `syntacticEnv` through macro compilation.
+- [syntax_rules.js:53,91,457,484,580,590](./src/core/interpreter/syntax_rules.js): Implement lexical resolution in `transcribe`.
 
 ### Test Infrastructure
-- [helpers.js:58,114,131](file:///Users/mark/code/scheme-js-4/tests/helpers.js): Add `skip(logger, desc, reason)` and update `createTestLogger`.
-- [test_runner.js:29,39,44](file:///Users/mark/code/scheme-js-4/web/test_runner.js): Add skip support to browser UI.
-- [test.scm:17,49,79](file:///Users/mark/code/scheme-js-4/tests/core/scheme/test.scm): Add `test-skip` and `*test-skips*`.
-- [io_tests.js:517-535,556-566](file:///Users/mark/code/scheme-js-4/tests/functional/io_tests.js): Implement environment-conditional skips.
+- [helpers.js:58,114,131](./tests/helpers.js): Add `skip(logger, desc, reason)` and update `createTestLogger`.
+- [test_runner.js:29,39,44](./web/test_runner.js): Add skip support to browser UI.
+- [test.scm:17,49,79](./tests/core/scheme/test.scm): Add `test-skip` and `*test-skips*`.
+- [io_tests.js:517-535,556-566](./tests/functional/io_tests.js): Implement environment-conditional skips.
 
 ---
 
@@ -2215,156 +2215,6 @@ node repl.js -e "(+ 1 2 3)"
 # Run Chibi compliance test library load
 node repl.js -e '(load "tests/core/scheme/compliance/chibi_original/test.sld") (import (chibi test)) (test-begin "foo")'
 ```
-# Walkthrough: Resolving Scheme Test Failures
-
-I have successfully resolved all remaining Scheme test failures by correctly implementing R7RS exactness semantics for complex numbers, fixing a bug in the bytevector reader, and aligning test expectations with the new BigInt-based numeric system.
-
-## Changes Made
-
-### Core Interpreter
-
-#### [reader.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/reader.js)
-- **Fixed `readBytevector`**: Replaced `parseInt(token, 10)` with `parseNumber(token)`. This allows bytevector literals to contain bytes in any radix (e.g., `#u8(#x41 #o101 65)`), as required by R7RS.
-- **Improved Complex Parsing**: Updated `parseNumber` and `parsePrefixedNumber` to handle exactness prefixes (`#e`, `#i`) and exponent suffixes (`s`, `f`, `d`, `l`) consistently for complex numbers. If any part is inexact, the entire number is now marked inexact.
-
-### Numeric Primitives
-
-#### [complex.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/complex.js)
-- **Added `exact` flag**: The `Complex` class now carries an explicit `exact` flag.
-- **Part Coercion**: The constructor now enforces that if a complex number is inexact, both parts are coerced to `Number` (inexact). This ensures consistency when comparing complex numbers like `1.0+2i` and `1.0+2.0i`.
-- **Robust Equality**: Updated `equals` to handle mixed-type comparisons (BigInt vs Number) for real and imaginary parts.
-
-#### [math.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/math.js)
-- **Updated `isExact` and `exact?`**: Now correctly check the `.exact` property on `Complex` instances.
-- **Preserved Exactness**: Updated `magnitude` and `angle` to return exact results for exact real inputs (e.g., `(magnitude 5)` -> `5`, `(angle 5)` -> `0`).
-
-### Scheme Compliance Tests
-
-#### [reader_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/reader_tests.scm)
-- Updated expected values for exponent suffix tests (`1s2`, `1f2`, etc.) to be inexact (`100.0` or `#i100`), aligning with R7RS where these suffixes force inexactness.
-
-#### [complex_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/complex_tests.scm)
-- Updated expected values for `make-polar`, `magnitude`, and `angle` to match R7RS exactness rules. Exact inputs now yield exact results where appropriate.
-
-#### [base_prefix_tests.scm](file:///Users/mark/code/scheme-js-4/tests/core/scheme/base_prefix_tests.scm)
-- Updated `#i10` test to expect an inexact result (`10.0`).
-
-## Verification Results
-
-### Automated Tests
-Ran the full test suite in Node.js:
-```bash
-node run_tests_node.js
-```
-**Results:**
-- **Tests passing**: 1176
-- **Tests failing**: 0
-- **Tests skipped**: 3
-
-### Manual Verification
-Verified that the REPL can now correctly load bytevectors with hex literals:
-```scheme
-> (read (open-input-string "#u8(#x41)"))
-#u8(65)
-```
-Verified that exactness is correctly tracked across complex operations:
-```scheme
-> (exact? 1+2i)
-#t
-> (exact? 1.0+2i)
-#f
-> (eqv? 1.0+2i #i1+2i)
-#t
-```
-
-# Chibi R7RS Compliance Fixes (2025-12-30)
-
-## Summary
-
-Resolved all remaining Chibi R7RS compliance test failures, achieving **982 passed, 0 failed, 24 skipped**.
-
-Starting point: 906 passed, 2 failed, 64 skipped
-**Net improvement: +76 tests passing, 0 failures, -40 skips**
-
-## Bug Fixes
-
-### Exact Rational Reciprocal
-**File:** `src/core/primitives/math.js`
-
-The `/` primitive incorrectly used inexact `1` for reciprocals of Rationals:
-
-```diff
-- res = genericDiv(typeof first === 'bigint' ? 1n : 1, first);
-+ res = genericDiv(isExact(first) ? 1n : 1, first);
-```
-
-This broke harmonic mean calculations like `(/ 497/1800)` returning inexact `3.62...` instead of exact `1800/497`.
-
-### Complex Infinity Formatting
-**File:** `src/core/primitives/complex.js`
-
-Added `+` prefix for positive infinity in complex number output:
-
-```scheme
-;; Before: inf.0+inf.0i
-;; After:  +inf.0+inf.0i
-```
-
-### Negative Zero Formatting
-**Files:** `src/core/primitives/string.js`, `src/core/primitives/complex.js`
-
-JavaScript's `(-0).toString()` returns `"0"`, losing the sign. Added:
-
-```javascript
-if (Object.is(num, -0)) return '-0.0';
-```
-
-### null-environment 5 BigInt Comparison
-**File:** `src/core/primitives/control.js`
-
-Scheme passes BigInt `5n`, but `5n !== 5` with strict equality. Fixed:
-
-```javascript
-const v = typeof version === 'bigint' ? Number(version) : version;
-```
-
-### Test Runner False Negatives
-**File:** `tests/core/scheme/compliance/chibi_runner_lib.js`
-
-Scheme incremented `*test-failures*` before the JS `deepEqual` fallback could rescue tests. Added counter correction:
-
-```javascript
-if (!passed && trulyPassed) {
-  run(interpreter, '(set! *test-failures* (- *test-failures* 1))');
-  run(interpreter, '(set! *test-passes* (+ *test-passes* 1))');
-}
-```
-
-## Tests Unskipped
-
-| Test Category | Count |
-|---------------|-------|
-| #e prefix exactness | 3 |
-| 0/10 normalization | 2 |
-| Complex infinity formatting | 2 |
-| null-environment 5 | 1 |
-| Harmonic mean | 1 |
-| -0.0 formatting | 2 |
-| Char disjointness | 2 |
-| (inexact? (inexact 5)) core test | 1 |
-
-## Final Test Results
-
-| Suite | Passed | Failed | Skipped |
-|-------|--------|--------|---------|
-| Core | 1177 | 0 | 2 |
-| Chibi | 982 | 0 | 24 |
-
-## Remaining 24 Chibi Skips
-
-- **12 string immutability** (JavaScript strings are immutable by design)
-- **11 FP precision** (denormal numbers, sqrt precision, geometric mean)
-- **1 geometric mean precision** (FP calculation differs slightly)
 
 ---
 
@@ -2684,7 +2534,7 @@ Updated `DefineFrame` and `SetFrame` in `frames.js` to return `undefined` instea
 
 ### Changes
 
-#### [frames.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/frames.js)
+#### [frames.js](./src/core/interpreter/frames.js)
 - `DefineFrame.step()`: Changed from `registers[ANS] = this.name` to `registers[ANS] = undefined`
 - `SetFrame.step()`: Changed from `registers[ANS] = value` to `registers[ANS] = undefined`
 
@@ -2705,41 +2555,1004 @@ TEST SUMMARY: 1209 passed, 0 failed, 3 skipped
 
 ---
 
+# REPL UI Alignment and Selection Fixes (2026-01-05)
 
-# Deep JavaScript Interoperability (2026-01-05)
+Resolved persistent UI glitches in the Node.js REPL related to multiline input and text selection.
 
-Implemented a robust system for converting complex data structures between Scheme and JavaScript, enabling seamless data exchange.
+## Improvements
 
-## Features
+### Consistent Alignment
+- Fixed a bug where horizontal text shifting occurred after evaluating an expression in multiline mode.
+- Ensured that primary prompts (`> `) and continuation prompts (`... `) are perfectly aligned vertically.
 
-### Deep Conversion
-New procedures in `(scheme-js js-conversion)` library provided:
-- `(scheme->js-deep val)`: Recursively converts Scheme Vectors to JS Arrays, and Records to JS Objects. Lists (Cons pairs) are preserved.
-- `(js->scheme-deep val)`: Recursively converts JS Arrays to Scheme Vectors, JS Objects to Scheme `js-object` records, and JS integers to BigInt.
+### Selection Protection
+- Modified the REPL output stream to prevent system prompts from being included when the user selects or copies text from the terminal.
 
-### Bi-Directional Auto-Conversion
-Introduced the `js-auto-convert` parameter (default `#t`).
-- When enabled, arguments passed to JS functions and return values from JS functions are automatically deeply converted.
-- When disabled (`#f`), values are passed as-is (opaque handles).
+### History Mode
+- Ensured that alignment is preserved when browsing through multiline history entries.
 
-### BigInt Safety
-Conversion automatically checks `BigInt` values. If a Scheme exact integer is outside the safe JavaScript integer range (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`), conversion throws an error prevents silent precision loss.
+---
 
-## New API
+# REPL Environment Binding Fixes & Bundled Library Support (2026-01-12)
 
-```scheme
-(import (scheme-js js-conversion))
+Fixed unbound standard procedures in REPLs and API, and implemented a "file-free" library loading mechanism for bundled deployments.
 
-;; Manual Deep Conversion
-(define js-arr (scheme->js-deep '(1 2 3)))  ;; -> [1, 2, 3]
-(define scm-vec (js->scheme-deep js-arr))   ;; -> #(1 2 3)
+## Problem Solved
 
-;; JS Object Access
-(define obj (js->scheme-deep (js-eval "({x: 10})")))
-(js-ref obj "x") ;; -> 10
-```
+Standard Scheme procedures (like `<`) were undefined in the REPLs because bootstrap `import` statements were being constructed as JavaScript arrays. The `analyze` function treats arrays as literals, resulting in a `LiteralNode` instead of an `ImportNode`.
+
+## Key Changes
+
+### Fixed Import Parsing
+- Updated `repl.js` and `web/main.js` to use `parse()` to generate proper Scheme `Cons` structures for bootstrap `import` forms.
+- Expanded the default set of imported libraries to include nearly all R7RS-small libraries (`base`, `write`, `read`, `repl`, `lazy`, `case-lambda`, `eval`, `time`, `complex`, `cxr`, `char`) plus `scheme-js` extras.
+
+### Bundled Library System
+- Created `scripts/generate_bundled_libraries.js` which scans Scheme library sources (`.sld`, `.scm`) and embeds them as strings in `src/packaging/bundled_libraries.js`.
+- Added a `prebuild` script to `package.json` to ensure bundled sources are always up to date.
+- Updated `src/packaging/scheme_entry.js` to use a custom `fileResolver` that reads from these embedded strings, allowing the interpreter to function in restricted environments (like web browsers or bundles) without file system access.
+
+### (scheme-js interop) Library
+- Formalized the JS interop primitives into a standard library: `(scheme-js interop)`.
+- Exports `js-eval`, `js-ref` (property access), and `js-set!` (property mutation).
 
 ## Verification
 
-- **Functional Tests**: Comprehensive coverage of implementation logic including nested structures.
-- **Regression Tests**: Confirmed 0 regressions in Chibi (982 tests) and Chapter (219 tests) compliance suites.
+### Automated Tests
+- All 1227 tests passing.
+- Verified that `schemeEval` from the bundled `dist/scheme.js` correctly loads and executes code using standard libraries.
+
+### Manual Verification
+- `node repl.js -e '(< 1 2)'` → `#t`
+- `node repl.js -e '(force (delay 42))'` → `42`
+- `node repl.js -e '(char-upcase #\a)'` → `"A"`
+
+# JavaScript Class Support and `this` Binding Walkthrough (2026-01-12)
+
+The project now supports defining and using JavaScript-compatible classes directly from Scheme, with seamless interoperability and correct `this` context management.
+
+## Key Accomplishments
+
+### 1. `this` Context Support
+- **Infrastructure**: Added a `THIS` register to the interpreter to track the JavaScript `this` context.
+- **Propagation**: Modified the interpreter, closures, and continuations to capture and propagate `thisContext` across execution boundaries.
+- **Lexical Binding**: Updated `AppFrame` to bind the symbol `'this` in the Scheme environment during method calls, respecting lexical scoping in nested closures.
+
+### 2. JS Interop and Method Calls
+- **`js-invoke` Primitive**: Implemented `js-invoke` for robust method calls on JS objects from Scheme.
+- **Dot Notation Expansion**: Extended the analyzer to transform `obj.method(...)` syntax into `(js-invoke obj "method" ...)` calls.
+- **Extension Libraries**: Created and bootstrapped `(scheme-js interop)` for interop primitives.
+
+### 3. Class Implementation
+- **`make-class` Primitive**: Creates native JS classes with support for inheritance, constructor parameter mapping, and field initialization.
+- **Callable Classes**: Scheme-defined classes can be called directly as functions (returning a new instance) or with `new` in JavaScript.
+- **`define-class` Macro**: Provided a high-level Scheme interface for class definitions, following R7RS `define-record-type` conventions.
+
+## Implementation Details
+
+### `make-class` (src/core/primitives/class.js)
+The `make-class` primitive now returns a "Callable Wrapper" that acts as both a JS class and a regular function:
+```javascript
+const Wrapper = function(...args) {
+    if (new.target) {
+        return Reflect.construct(InternalClass, args, new.target);
+    }
+    return new InternalClass(...args);
+};
+Object.setPrototypeOf(Wrapper, InternalClass);
+Wrapper.prototype = InternalClass.prototype;
+```
+
+### `this` Binding (src/core/interpreter/frames.js)
+`AppFrame` now binds `this` lexically, but avoids shadowing when no new `this` context is provide (e.g., in a plain function call from the top level):
+```javascript
+if (registers[THIS] !== undefined) {
+    registers[ENV] = newEnv.extend('this', registers[THIS]);
+} else {
+    registers[ENV] = newEnv;
+}
+```
+
+## Proof of Work: Automated Tests
+
+All tests are passing, including 15+ new tests specifically for classes and `this` binding.
+
+### Test Results
+```text
+=== Running tests/extras/scheme/class_tests.scm... ===
+✅ PASS: point?
+✅ PASS: point-x
+✅ PASS: point-y
+✅ PASS: p1.magnitude
+✅ PASS: point-x after move
+✅ PASS: point-y after move
+✅ PASS: color-point?
+✅ PASS: color-point is point
+✅ PASS: point-x inherited
+✅ PASS: cp1.color
+✅ PASS: cp1.describe
+✅ PASS: get-self
+✅ PASS: nested closure 'this'
+✅ PASS: tests/extras/scheme/class_tests.scm PASSED
+
+=== Running tests/functional/class_interop_tests.js... ===
+✅ PASS: Person instance in JS
+✅ PASS: Person methods in JS
+✅ PASS: Employee inheritance in JS
+✅ PASS: Custom bind on Scheme closure
+✅ PASS: Custom bind on Scheme method
+```
+
+========================================
+TEST SUMMARY: 1251 passed, 0 failed, 3 skipped
+========================================
+
+# Walkthrough: Extended Dot Notation (2026-01-12)
+
+I have generalized the parser to support JavaScript-style dot notation for property access on *any* expression, provided there is no whitespace between the expression and the dot.
+
+## Summary
+
+Previously, dot notation (`obj.prop`) was only supported for simple symbols. I have extended this to support:
+- String literals: `"abc".length` -> 3
+- Vector literals: `#(1 2 3).length` -> 3
+- Expression results: `(vector 1 2).length` -> 2
+- JS Object literals: `#{("a" 1)}.a` -> 1
+- Chained access: `expr.prop1.prop2`
+
+## Key Mechanism
+
+The tokenizer was refactored to be **whitespace-aware**. It now flags whether a token was preceded by whitespace.
+The reader uses this flag to distinguish between:
+- `expr.prop` (adjacent): Interpreted as property access -> `(js-ref expr "prop")`
+- `expr .prop` (space): Interpreted as two separate datums (`expr` and symbol `.prop`).
+
+This prevents conflicts with Scheme's dot usage (e.g. improper lists `(a . b)`).
+
+## Changes
+
+- **`src/core/interpreter/reader.js`**:
+    - `tokenize`: Returns objects `{ value, hasPrecedingSpace }`.
+    - `readFromTokens`, `readList`, `readVector`, etc.: Updated to handle token objects.
+    - `handleDotAccess`: New helper function that performs the lookahead and transformation for `js-ref`.
+
+- **`tests/extras/scheme/dot_access_tests.scm`**: New test suite verifying valid and invalid usage.
+
+## Verification
+
+All tests passed:
+- `dot_access_tests.scm` covers string, vector, list, and object property access.
+- Existing tests (`class_tests.scm`, etc.) passed with no regressions.
+
+# REPL Web Component Implementation Walkthrough (2026-01-13)
+
+I have successfully packaged the browser-based REPL as a web component `<scheme-repl>` that can be easily embedded in any web page.
+
+## Key Changes
+
+### 1. Refactored REPL Logic (`web/repl.js`)
+- Standardized `setupRepl` to accept a `rootElement` (Shadow DOM support) and a dependency object (dependency injection).
+- Exported `replStyles` and `replTemplate` for reuse.
+- **Paste Area Enabled**: The "Paste larger expressions" area is now fully functional and visible within the component.
+
+### 2. Exposed Interpreter Internals (`src/packaging/scheme_entry.js`)
+- Updated `dist/scheme.js` to export parser, analyzer, and printer utilities.
+- This allows the web component to reuse the core interpreter logic instead of bundling its own copy.
+
+### 3. Created Web Component (`src/packaging/scheme_repl_wc.js`)
+- Implemented `SchemeRepl` class.
+- Uses **Dependency Injection**: Passes core interpreter functions (imported from `scheme.js`) into `setupRepl`.
+- **Optimization**: resulting `dist/scheme-repl.js` is ~20KB (down from ~210KB), as it no longer duplicates the interpreter code.
+
+### 4. Build Configuration (`rollup.config.js`)
+- Configured to build `dist/scheme-repl.js`.
+- Treats `scheme.js` as an external dependency.
+
+### 5. Code Quality Improvements
+- Refactored `getCursorPos` in `web/repl.js` to remove unused variables and improve readability.
+- Cleaned up duplicate comments in `src/packaging/scheme_entry.js`.
+- Reduced file size of `dist/scheme-repl.js` by ~90% through proper dependency management.
+- **Fixed Shadow DOM Selection Issue**: Updated `getCursorPos` to use `rootElement.getSelection()` when available, resolving multiline input bugs where the cursor position was incorrectly reported as -1.
+
+## Verification
+Verified using `dist/repl-demo.html`.
+
+### Functionality Verified
+1. **Interactive REPL**: Typing `(+ 10 20)` yields `30`.
+2. **State Persistence**: Variables defined (`(define x 100)`) persist.
+3. **Paste Area**: Typing `(+ 100 200)` in the paste area and clicking "Run" yields `300`.
+4. **Visuals**: Rainbow parentheses and syntax highlighting are active.
+5. **Advanced UI**:
+   - **Rainbow Parentheses**: Confirmed nested parens `((()))` cycle through colors.
+   - **Multi-line**: Confirmed hitting Enter on incomplete expressions `(define ...` auto-indents and continues input.
+
+## Usage
+```html
+<script type="module" src="./scheme.js"></script>
+<script type="module" src="./scheme-repl.js"></script>
+<scheme-repl></scheme-repl>
+```
+# Walkthrough: Split io.js into Modules (2026-01-13)
+
+I have successfully refactored the monolithic `src/core/primitives/io.js` into a set of focused, modular files under `src/core/primitives/io/`. This improves codebase organization, maintainability, and makes it easier to extend I/O functionality in the future.
+
+## Changes
+
+### 1. Created New Modules
+
+The `io.js` file (1,933 lines) was split into the following modules:
+
+-   **`src/core/primitives/io/ports.js`**:
+    -   Contains the `Port` base class.
+    -   Exports predicates: `isPort`, `isInputPort`, `isOutputPort`.
+    -   Exports `EOF_OBJECT`.
+    -   Exports utilities: `requireOpenInputPort`, `requireOpenOutputPort`.
+
+-   **`src/core/primitives/io/string_port.js`**:
+    -   `StringInputPort`: Reads from a string (supports operations like `read-char`, `read-line`).
+    -   `StringOutputPort`: Collects output into an internal string buffer (for `open-output-string`).
+
+-   **`src/core/primitives/io/file_port.js`**:
+    -   `FileInputPort`: Wraps Node.js `fs.readFileSync` (reads entire file to memory currently).
+    -   `FileOutputPort`: Wraps Node.js `fs.writeFileSync`/`appendFileSync`.
+    -   Includes strict Node.js environment detection to prevent browser crashes.
+    -   Exports `fileExists` and `deleteFile` helpers.
+    -   Logic for browser compatibility (dynamic import of `fs`).
+
+-   **`src/core/primitives/io/bytevector_port.js`**:
+    -   `BytevectorInputPort`: Reads from `Uint8Array`.
+    -   `BytevectorOutputPort`: Writes to `Uint8Array` (expandable).
+
+-   **`src/core/primitives/io/console_port.js`**:
+    -   `ConsoleOutputPort`: Simple wrapper around `process.stdout`/`console.log`.
+
+-   **`src/core/primitives/io/printer.js`**:
+    -   Extracted all `display` and `write` logic.
+    -   Handles `writeString`, `writeSimple`, `writeShared` (datum labels).
+    -   Dependencies: `Symbol`, `Cons`.
+
+-   **`src/core/primitives/io/reader_bridge.js`**:
+    -   Implements `readExpressionFromPort`.
+    -   Handles reading from a port until a complete S-expression is formed.
+    -   Improved logic to handle comments and datum labels (`#n=`) correctly by re-trying parse on "unexpected end of input".
+
+-   **`src/core/primitives/io/primitives.js`**:
+    -   Defines the `ioPrimitives` map exported to Scheme.
+    -   Manages global state: `current-input-port`, `current-output-port`, `current-error-port`.
+    -   Implements Scheme primitives: `open-input-file`, `call-with-input-file`, `with-output-to-file`, `features`, etc.
+
+-   **`src/core/primitives/io/index.js`**:
+    -   Barrel file exporting `ioPrimitives` and all Port classes.
+
+### 2. Updated References
+
+-   Updated `src/core/primitives/index.js` to import from `./io/index.js`.
+-   Updated `tests/core/scheme/compliance/chibi_runner_lib.js` imports.
+-   Deleted `src/core/primitives/io.js`.
+
+## Verification Results
+
+### Automatic Tests
+All tests passed, including I/O specific tests and general regression tests.
+
+```bash
+node tests/functional/io_tests.js
+# ...
+# Passed
+```
+
+Full suite:
+```bash
+node run_tests_node.js
+# ...
+# TEST SUMMARY: 1284 passed, 0 failed, 3 skipped
+```
+
+### Key Improvements
+-   **Modular Design**: Each port type is isolated.
+-   **Better Encapsulation**: Global state is managed in `primitives.js`, not mixed with class definitions.
+-   **Robustness**: Improved `read` logic for datum labels and comments.
+-   **Maintainability**: `printer.js` and `reader_bridge.js` separate complex logic handling from basic port I/O.
+-   **Testability**: Updated `createTestLogger` in `tests/harness/helpers.js` to automatically detect the `--verbose` (or `-v`) flag from the command line. This allows running individual test files directly with verbose output.
+
+# Walkthrough: Unified Test Logging & cond-expand Support (2026-01-13)
+
+I have unified the test logging mechanism across Scheme and JavaScript, and completed the implementation of the R7RS `cond-expand` syntax.
+
+## Changes
+
+### 1. Unified Test Logging
+- **`run_scheme_tests_lib.js`**: Updated to use `writeString` for reporting expected/actual values, matching the Scheme representation.
+- **`logger.title`**: Added `native-log-title` binding to support visual grouping in Scheme test output.
+- **`test.scm`**: Updated `test-group` macro to emit title logs.
+
+### 2. cond-expand Implementation
+- **`library_parser.js`**: Refactored to support recursive `cond-expand` clauses within `define-library`.
+- **Feature Support**: Added support for `include-ci` and `include-library-declarations` within `cond-expand`.
+- **Tests**:
+  - Created `tests/core/scheme/cond_expand_tests.scm` for expression-level tests.
+  - Created `tests/integration/cond_expand_library_tests.js` for nested library declaration tests.
+
+## Verification Results
+
+Ran all tests with `node run_tests_node.js`:
+```
+TEST SUMMARY: 1365 passed, 0 failed, 3 skipped
+```
+- `cond-expand` expression tests passed.
+- Nested `cond-expand` in libraries passed.
+- Test output is now granular and consistent.
+# Walkthrough: Modular Reader & Documentation Consolidation (2026-01-14)
+
+I have refactored the reader into focused submodules for better maintainability and consolidated architectural documentation into a single source of truth.
+
+## Changes
+
+### 1. Modular Reader Extraction
+The monolithic `reader.js` (1075 lines) was split into focused modules under `src/core/interpreter/reader/`:
+- **`tokenizer.js`**: Lexical analysis and block comment stripping.
+- **`parser.js`**: Core S-expression parsing logic.
+- **`number_parser.js`**: R7RS-compliant numeric literal parsing.
+- **`dot_access.js`**: Extended dot notation (`.prop`) processing.
+- **`string_utils.js`**: String and symbol escape handling.
+- **`character.js`**: Character literal parsing.
+- **`datum_labels.js`**: Circular reference resolution (`#n=`, `#n#`).
+- **`index.js`**: Main entry point and barrel export.
+
+The original `src/core/interpreter/reader.js` now serves as a backward-compatible re-export layer.
+
+### 2. Documentation Consolidation
+- Merged `directory_structure.md` into `docs/architecture.md` under a new **Directory Structure** section.
+- Updated `README.md` to point to the consolidated architecture document.
+- Deleted the redundant `directory_structure.md` file.
+
+### 3. Expanded Unit Testing
+- Added comprehensive unit tests for the new tokenizer and number parser submodules:
+  - `tests/core/interpreter/reader/tokenizer_tests.js`
+  - `tests/core/interpreter/reader/number_parser_tests.js`
+- Verified all core reader functionality (quotes, vectors, dots, datum labels) remain fully functional.
+
+## Verification Results
+
+### Automated Tests
+Ran all tests with `node run_tests_node.js`:
+```text
+========================================
+TEST SUMMARY: 1447 passed, 0 failed, 3 skipped
+========================================
+```
+- All new unit tests (82 additional tests) passed.
+- No regressions in existing reader or functional suites.
+
+### Key Improvements
+- **Maintainability**: The reader is now decomposed into logical units, making it easier to debug specific parsing features (like number prefixes or datum labels).
+- **Documentation Accuracy**: The architecture document now includes a comprehensive file-by-file breakdown, ensuring the "single source of truth" principle.
+- **Test Coverage**: Significantly increased granularity of reader tests, covering edge cases in tokenization and numeric prefixes.
+# Walkthrough: Performance Benchmarking & CI Integration (2026-01-14)
+
+I have integrated automated performance benchmarking into the CI pipeline to track regressions and established a baseline for current interpreter performance.
+
+## Changes
+
+### 1. CI/CD Infrastructure
+- **`.github/workflows/ci.yml`**: Created a GitHub Actions workflow that automatically runs the full test suite and performance benchmarks on every push and pull request.
+
+### 2. Benchmarking Suite
+- **`benchmarks/save_baseline.js`**: A new script to execute the benchmark suite and save the results as a versioned baseline.
+- **`benchmarks/compare_baseline.js`**: A comparison utility that runs current benchmarks against the stored baseline, reporting performance deltas and warning about regressions.
+- **`benchmarks/baseline.json`**: Initial performance baseline consisting of 12 benchmarks across arithmetic, non-numeric, and JS interop categories.
+
+### 3. NPM Integration
+- Updated `package.json` with standardized scripts:
+  - `npm test`: Runs the Node.js test runner.
+  - `npm run benchmark`: Executes the benchmark suite.
+  - `npm run benchmark:save`: Updates the local baseline.
+  - `npm run benchmark:compare`: Runs comparison with regression detection.
+
+### 4. Documentation
+- Added a **📊 Benchmarks** section to `README.md` explaining how to run and manage performance tests.
+
+## Verification Results
+
+### Automated Tests
+Ran the new pipeline locally via npm:
+```text
+========================================
+TEST SUMMARY: 1447 passed, 0 failed, 3 skipped
+========================================
+```
+
+### Benchmark Comparison
+Verified that `npm run benchmark:compare` correctly identifies performance stability:
+```text
+| Benchmark            | Baseline | Current | Change | Status |
+|----------------------|----------|---------|--------|--------|
+| sum-to-1M            | 2314     | 2302    | -0.5%  | ⚪      |
+| factorial-100x1K     | 273      | 273     | +0.0%  | ⚪      |
+| ...                  | ...      | ...     | ...    | ...    |
+
+✅ All benchmarks within acceptable range
+```
+
+### Key Improvements
+- **Regression Detection**: Automatic warnings (>20% slowdown) and failures (>50% slowdown) ensure performance doesn't degrade as new features are added.
+- **Developer Workflow**: Simple npm commands make it easy for developers to verify performance locally before pushing changes.
+- **Standardization**: Unified internal test and benchmark execution under the standard `npm` interface.
+# Walkthrough: Performance Benchmarking & CI Integration (2026-01-14)
+
+I have integrated automated performance benchmarking into the CI pipeline to track regressions and established a baseline for current interpreter performance.
+
+## Changes
+
+### 1. CI/CD Infrastructure
+- **`.github/workflows/ci.yml`**: Created a GitHub Actions workflow that automatically runs the full test suite and performance benchmarks on every push and pull request.
+
+### 2. Benchmarking Suite
+- **`benchmarks/save_baseline.js`**: A new script to execute the benchmark suite and save the results as a versioned baseline.
+- **`benchmarks/compare_baseline.js`**: A comparison utility that runs current benchmarks against the stored baseline, reporting performance deltas and warning about regressions.
+- **`benchmarks/baseline.json`**: Initial performance baseline consisting of 12 benchmarks across arithmetic, non-numeric, and JS interop categories.
+
+### 3. NPM Integration
+- Updated `package.json` with standardized scripts:
+  - `npm test`: Runs the Node.js test runner.
+  - `npm run benchmark`: Executes the benchmark suite.
+  - `npm run benchmark:save`: Updates the local baseline.
+  - `npm run benchmark:compare`: Runs comparison with regression detection.
+
+### 4. Documentation
+- Added a **📊 Benchmarks** section to `README.md` explaining how to run and manage performance tests.
+- **Verification Plan**: Updated to include build steps and regression monitoring.
+
+### 5. Build Pipeline Integration (2026-01-14)
+- **`package.json`**: Added `"pretest": "npm run build"` to ensure that all local test runs (and thus the `dist/scheme.js` consumed by `tests/test_bundle.js`) are always based on the latest source code.
+- **`.github/workflows/ci.yml`**: Added an explicit "Build project" step before running tests to ensure the CI environment correctly prepares the distribution files required for integration tests.
+
+## Verification Results
+
+### Automated Tests
+Ran the new pipeline locally via npm:
+```text
+========================================
+TEST SUMMARY: 1447 passed, 0 failed, 3 skipped
+========================================
+```
+
+### Benchmark Comparison
+Verified that `npm run benchmark:compare` correctly identifies performance stability:
+```text
+| Benchmark            | Baseline | Current | Change | Status |
+|----------------------|----------|---------|--------|--------|
+| sum-to-1M            | 2314     | 2302    | -0.5%  | ⚪      |
+| factorial-100x1K     | 273      | 273     | +0.0%  | ⚪      |
+| ...                  | ...      | ...     | ...    | ...    |
+
+✅ All benchmarks within acceptable range
+```
+
+### Key Improvements
+- **Regression Detection**: Automatic warnings (>20% slowdown) and failures (>50% slowdown) ensure performance doesn't degrade as new features are added.
+- **Developer Workflow**: Simple npm commands make it easy for developers to verify performance locally before pushing changes.
+- **Standardization**: Unified internal test and benchmark execution under the standard `npm` interface.
+
+# Walkthrough: Macro Debugging Guide (2026-01-14)
+
+Created a comprehensive debugging guide for `syntax-rules` macros to assist developers in troubleshooting expansion issues.
+
+## Changes
+
+### 1. New Documentation
+- **[docs/macro_debugging.md](./docs/macro_debugging.md)**: A practical guide covering "Unbound variable", "Wrong value captured", "Literal not matching", and "Infinite expansion" symptoms.
+- Included troubleshooting examples and general debugging tips.
+
+### 2. Integration
+- **README.md**: Added link to the guide in the Documentation section.
+- **docs/architecture.md**: Added to the directory structure and Related Documentation lists.
+
+# Walkthrough: Pure Marks Hygiene Refactor (2026-01-14)
+
+Refactored the macro hygiene system from a hybrid gensym-based renaming approach to a pure Dybvig-style marks/scopes approach.
+
+## Changes
+
+### 1. Core Hygiene — `syntax_rules.js`
+- **Removed**: `gensym()`, `resetGensymCounter()`, and `findIntroducedBindings()` (~140 lines of code).
+- **Refactored**: `transcribe()` and `transcribeLiteral()` now distinguish bindings solely by attaching scope sets to identifiers. Every expansion generates a unique `expansionScope` mark.
+- **Removed**: Internal `renameMap` management, simplifying the transcription logic.
+
+### 2. Documentation Consolidation
+- **[docs/hygiene.md](./docs/hygiene.md)**: Merged theoretical overviews and implementation details into a single, comprehensive document.
+- **Academic References**: Added citations for Matthew Flatt's "Sets of Scopes" and Dybvig's work on syntactic abstraction.
+- **Cleanup**: Deleted the now-redundant `docs/hygiene_implementation.md`.
+
+### 3. Test Coverage
+- **[tests/core/scheme/macro_hygiene_tests.scm](./tests/core/scheme/macro_hygiene_tests.scm)**: Added 10 targeted tests for:
+    - User variable collision prevention.
+    - Multiple expansion scope isolation.
+    - Intentional capture prevention (verifying hygiene).
+    - Referential transparency for free variables.
+- **Cleanup**: Removed `resetGensymCounter` from `hygiene_tests.js` and `state_control.js`.
+
+## Verification Results
+
+### Automated Tests
+All 1457 tests (including the 10 new ones) pass successfully.
+
+```text
+========================================
+TEST SUMMARY: 1457 passed, 0 failed, 3 skipped
+========================================
+```
+
+### Key Insight
+This refactor aligns the implementation with modern "sets of scopes" models (like Racket's), providing a more elegant and theoretically robust hygiene mechanism without the need for unique name generation.
+
+---
+
+# Walkthrough: InterpreterContext Extraction (2026-01-14)
+
+Implemented task 10.3.1: Encapsulated all global mutable state into a single `InterpreterContext` class, enabling isolated interpreter instances.
+
+## Changes
+
+### 1. New Module — `context.js`
+Created [src/core/interpreter/context.js](./src/core/interpreter/context.js):
+- `InterpreterContext` class containing all state (scopeCounter, syntaxInternCache, macroRegistry, libraryRegistry, features)
+- `globalContext` singleton for backward compatibility
+- Helper methods: `freshScope()`, `freshUniqueId()`, `reset()`, etc.
+
+### 2. Interpreter Integration
+- Added optional `context` parameter to `Interpreter` constructor
+- Defaults to `globalContext` when not provided
+
+### 3. Analyzer Threading
+Added `ctx` parameter to 22+ analyzer functions:
+- `analyze`, `generateUniqueName`, `analyzeIf`, `analyzeLambda`, `analyzeLet`, `analyzeLetRec`
+- `analyzeSet`, `analyzeDefine`, `analyzeApplication`, `expandQuasiquote`, etc.
+
+### 4. createInterpreter() Options
+Updated [src/core/interpreter/index.js](./src/core/interpreter/index.js):
+```javascript
+// Default: shared global context
+const { interpreter, env } = createInterpreter();
+
+// Isolated: fresh context for sandboxed REPL
+const { interpreter, env, context } = createInterpreter({ isolated: true });
+```
+
+### 5. Test Harness Simplification
+Updated [tests/harness/state_control.js](./tests/harness/state_control.js):
+- Simplified from 6 imports to 2
+- Now uses `globalContext.reset()` instead of individual reset functions
+
+### 6. Test Coverage
+- 21 isolation tests in `multi_interpreter_tests.js`
+- 6 updated tests in `state_isolation_tests.js`
+
+## Verification Results
+
+```text
+TEST SUMMARY: 1482 passed, 0 failed, 3 skipped
+Chibi Compliance: 902 passed, 12 failed (pre-existing)
+```
+
+## Architecture Benefits
+- **Test Isolation**: Each test can use a fresh context
+- **Multi-tenancy**: Multiple interpreters can run in parallel
+- **Backward Compatible**: Existing code uses `globalContext` automatically
+- **Sandboxed REPLs**: Use `createInterpreter({ isolated: true })`
+# Walkthrough: Analyzer Modularization and Macro State Fixes
+
+I have successfully modularized the `analyzer.js` and resolved critical issues related to macro expansion state and AST leakage. The interpreter now uses a modular handler registry for special forms, and `InterpreterContext` correctly manages isolated macro registries.
+
+## Changes
+
+### 1. Analyzer Modularization
+The `analyzer.js` has been refactored into a modular system. The logic for special forms has been extracted into dedicated modules:
+- `analyzers/core_forms.js`: Core Scheme forms like `quote`, `lambda`, `if`, and `define`.
+- `analyzers/control_forms.js`: Control flow forms (most moved to primitives for better arg evaluation).
+- `analyzers/module_forms.js`: Module-related forms like `import` and `define-library`.
+- `analyzers/registry.js` & `index.js`: Centralized dispatch and registration system.
+
+### 2. Macro State Management
+Fixed a major regression where built-in macros were invisible to the analyzer when using custom `InterpreterContext` instances.
+- `InterpreterContext` now initializes its `macroRegistry` as a child of the `globalMacroRegistry`.
+- `ctx.currentMacroRegistry` is correctly threaded through all analyzer functions, replacing module-level state.
+- `globalContext` is explicitly synchronized with the bootstrap macro registry.
+
+### 3. AST Leakage and Primitive Standardized
+Resolved the `application: not a procedure: lambdanode` error by identifying that `dynamic-wind` and `call/cc` should be treated as primitives.
+- Reverted several procedures from special forms back to primitives to ensure arguments (like thunks) are evaluated to `Closure` objects before being applied.
+- This fixed issues where `LambdaNode` AST objects were leaking into the runtime evaluator.
+
+## Verification Results
+
+### Automated Tests
+Successfully restored the full test suite to parity.
+- **Pass Count**: 1482 passed
+- **Fail Count**: 0 failed
+- **Skipped**: 3 skipped
+- All integration and multi-interpreter isolation tests pass.
+
+```bash
+TEST SUMMARY: 1482 passed, 0 failed, 3 skipped
+Exit code: 0
+```
+
+### Manual Verification
+Verified that `InterpreterContext` isolation works as expected, preventing macro definitions in one context from leaking into another while still providing access to the standard numeric and control macros.
+
+---
+
+# Walkthrough: Library Loader Consolidation
+
+## 2026-01-15
+
+Consolidated async/sync library loader functions to eliminate ~150 lines of duplicated code.
+
+## Changes
+
+### 1. Core Evaluation Function
+Created `evaluateLibraryDefinitionCore()` in [library_loader.js](./src/core/interpreter/library_loader.js):
+- Contains all shared logic: environment creation, import processing, include handling, body execution, export building
+- Uses a strategy pattern with `loadLibrary()` and `resolveFile()` callbacks
+
+### 2. Simplified Wrappers
+Both `evaluateLibraryDefinition` and `evaluateLibraryDefinitionSync` now delegate to the core function:
+- **Async version**: Pre-resolves all I/O operations into caches, then calls core with sync accessors
+- **Sync version**: Direct delegation with Promise guard
+
+## Verification Results
+
+```
+TEST SUMMARY: 1482 passed, 0 failed, 3 skipped
+Exit code: 0
+```
+
+---
+
+# Walkthrough: Scheme Code Fixes
+
+## 2026-01-15
+
+Completed two Scheme library improvements.
+
+## Changes
+
+### 1. `define-values` Scalability
+Refactored the [define-values macro](./src/core/scheme/control.scm) to use a recursive pattern:
+- Previously: Explicit patterns for 1, 2, 3 variables only
+- Now: Uses recursive `"extract"` and `"extract-rest"` helpers to support **any number of variables**
+
+Added new tests in [define_values_tests.scm](./tests/core/scheme/define_values_tests.scm):
+- 4, 5, and 6 variable versions
+- 3 variables with rest parameter
+
+### 2. Error Message Audit
+Audited error messages in `list.scm`, `numbers.scm`, and `parameter.scm`.
+- **Result**: All files already use the consistent `"proc: expected type"` format
+- No changes needed
+
+## Verification Results
+
+```
+TEST SUMMARY: 1486 passed, 0 failed, 3 skipped
+Exit code: 0
+```
+
+---
+
+# Documentation Update Walkthrough - 2026-01-16
+
+I have comprehensively updated the project documentation to accurately reflect the current state of the implementation, particularly regarding JavaScript interoperability and R7RS compliance.
+
+## Key Changes
+
+### `README.md` Overhaul
+- **Comprehensive Usage**: Added detailed instructions for Node.js REPL, Browser REPL, Web Components, and Script tags.
+- **Interactive Script Tag**: Added a compelling example of an interactive `<script type="text/scheme">` that manages state and manipulates the DOM in response to button clicks.
+- **R7RS Libraries**: Added a table showing the 13 supported R7RS standard libraries and extension libraries.
+- **JS Interop**: Documented all primitives (`js-eval`, `js-ref`, `js-set!`, `js-invoke`, `js-obj`, `js-obj-merge`).
+- **Global JS Access**: Explicitly stated that `globalThis`/`window` definitions are available in the Scheme global environment.
+- **Syntax Extensions**: Documented Dot Notation (`obj.prop`) and Object Literal syntax (`#{...}`).
+- **Macro Documentation**: Added examples for `case-lambda` and `define-class`.
+- **Architecture & Limitations**: Updated architectural overview and documented current limitations (hygiene, numeric exactness, Promise/`call/cc` interaction).
+
+### `docs/Interoperability.md` Update
+- **Global JavaScript Access**: Added a new section explaining the automatic fallback to `globalThis` for unbound variables, enabling direct access to browser and Node.js APIs.
+- **Feature Completeness**: Documented `js-invoke`, `js-obj`, and `js-obj-merge` which were previously missing.
+- **Syntax Correction**: Corrected the documentation for dot notation. Method calls use the `(obj.method args)` syntax.
+- **`this` Binding**: Documented how the `this` context is automatically bound to a `this` pseudo-variable in Scheme closures.
+- **Multiple Values**: Added the behavior for multiple values (JS receives only the first value).
+- **Type Mapping**: Updated the data conversion table with more accurate and comprehensive information.
+- **Class Implementation**: Documented `define-class` for creating JS-compatible classes.
+
+## Verification Results
+
+### JavaScript Interoperability & Classes
+I verified the documentation by running live examples in the Node.js REPL, confirming that `(obj.method args)` correctly binds `this` and that `define-class` creates functional JS-compatible classes.
+
+### Browser Interactive Script Tag
+I verified the interactive `<script type="text/scheme">` example by creating a test page and using the browser tool to interact with it. The test confirms that clicking the button (bound via a Scheme event listener) correctly updates the DOM.
+
+
+## Documentation Links
+- [README.md](./README.md)
+- [Interoperability.md](./docs/Interoperability.md)
+# Walkthrough: JS typeof and undefined Primitives
+
+I have implemented three new primitives to improve JavaScript interoperability, specifically for checking types and handling `undefined` without needing explicit `js-eval` calls.
+
+## Changes
+
+### 1. New Primitives
+Added the following primitives to `src/extras/primitives/interop.js` and exported them in `src/extras/scheme/interop.sld`:
+
+- **`js-typeof`**: Returns the `typeof` a value as a string.
+- **`js-undefined`**: A constant representing the JavaScript `undefined` value.
+- **`js-undefined?`**: A predicate that returns `#t` if the value is `undefined`.
+
+### 2. Documentation
+Updated `docs/Interoperability.md` to include these new primitives in the "JS Interop Primitives" table.
+
+### 3. Tests
+Added new test groups to `tests/extras/scheme/jsref_tests.scm` covering:
+- `js-typeof` with numbers, strings, booleans, vectors (objects), functions, and undefined.
+- `js-undefined` identity and uniqueness (not null, not false).
+- `js-undefined?` predicate behavior.
+
+## Verification Results
+
+### Automated Tests
+Ran `node run_tests_node.js` to verify all tests pass.
+
+```
+=== js-typeof primitive ===
+(test "js-typeof number" "number" (js-typeof 42))
+(test "js-typeof string" "string" (js-typeof "hello"))
+...
+
+=== js-undefined primitive ===
+(test "js-undefined is undefined" "undefined" (js-typeof js-undefined))
+...
+
+=== js-undefined? predicate ===
+(test "js-undefined? with undefined" #t (js-undefined? js-undefined))
+...
+
+TEST SUMMARY: 1501 passed, 0 failed, 3 skipped
+```
+
+---
+
+# 2026-01-19: Enhanced `define-class` with Custom Constructors and Super Calls
+
+Added comprehensive support for custom constructors and `super` calls in the `define-class` macro.
+
+## New Features
+
+### 1. Constructor Clause with Explicit Super Call
+The `(constructor ...)` clause now supports custom initialization logic with explicit `(super ...)` calls:
+
+```scheme
+(define-class ColoredPoint Point
+  make-colored-point
+  colored-point?
+  (fields (color point-color))
+  (constructor (x y color)
+    (super x y)              ;; Custom args to parent constructor
+    (set! this.color color))
+  (methods ...))
+```
+
+### 2. Super Method Calls with Nice Syntax
+Methods can now call parent implementations using `super.methodName`:
+
+```scheme
+(methods
+  (magnitude ()
+    (+ 100 (super.magnitude))))  ;; Calls parent's magnitude method
+```
+
+This is transformed at the analyzer level to `(class-super-call this 'methodName args...)`.
+
+## Implementation Details
+
+### Files Modified
+- **src/core/primitives/class.js**: Added `make-class-with-init` primitive with two-phase construction (`superArgsFn` + `initFn`), and `class-super-call` for parent method invocation
+- **src/core/scheme/macros.scm**: Updated `define-class` macro with patterns for super-only, super-with-body, and no-super cases
+- **src/core/interpreter/analyzer.js**: Added transformation of `(super.methodName ...)` to `(class-super-call this 'methodName ...)`
+
+### New Primitives
+- `make-class-with-init`: Creates class with custom super args function and init function
+- `class-super-call`: Calls parent method with correct `this` binding
+
+## Verification
+- All 1528 tests pass
+- New tests added in `tests/extras/scheme/class_tests.scm`:
+  - Explicit super call with custom args
+  - Super call with computed args
+  - Super method call syntax
+
+# 2026-01-20: Proper Object Printing and Reader Support
+
+Implemented proper object printing with reader syntax `#{(key val)...}` and circular structure support. Modified `reader_bridge.js` to ensure object literals can be read correctly from ports.
+
+## Changes
+
+### 1. Printer Updates (`src/core/primitives/io/printer.js`)
+- Implemented `isObjectLike`, `objectToString`, and `objectToStringShared` helpers.
+- Plain JS objects, records, and class instances now print using the object literal syntax instead of `[object Object]`.
+- Added support for datum labels (`#n=`, `#n#`) in circular and shared objects within `write-shared`.
+- **Bug Fix**: Fixed symbol detection in `writeStringShared` which was incorrectly matching plain objects with a `name` property.
+
+### 2. Reader Bridge Fixes (`src/core/primitives/io/reader_bridge.js`)
+- Added `braceDepth` tracking for `{` and `}` to allow the reader to correctly collect full object literal "chunks" from ports.
+- Added explicit handling for the `#{` token start.
+- **Bug Fixes**: 
+  - Fixed an issue where strings ending inside an object literal (e.g., `#{(a \"s\")}`) caused the reader to break early.
+  - Fixed an issue where whitespace following a nested list in an object literal (e.g., `#{(a 1) (b 2)}`) caused premature parsing.
+
+### 3. Testing
+- Added comprehensive unit tests for object printing in `tests/core/primitives/io/printer_tests.js`.
+- Added roundtrip tests in `tests/core/scheme/write_tests.scm` verifying that objects, vectors, and lists can be written and successfully read back (using `write` -> `read` -> `eval` -> `write` equality).
+
+## Verification Results
+- **All 1546 tests pass** ✓
+- Verified circular object support: `#0=#{(self #0#)}`
+- Verified nested and escaped string support within object literals.
+
+# Walkthrough: Fix Letrec Call/CC Bug (2026-01-21)
+
+Fixed a subtle R7RS compliance bug in `letrec` where init expressions were evaluated and assigned sequentially instead of all being evaluated before any assignments.
+
+## Problem
+
+The old `letrec` macro:
+
+```scheme
+(let ((var 'undefined) ...)
+  (set! var init) ...       ;; BUG: eval and assign each var sequentially
+  (let () body ...))
+```
+
+This violated R7RS which requires all inits to be evaluated first, then all assignments performed. This caused incorrect behavior with `call/cc`:
+
+```scheme
+(let ((cont #f))
+  (letrec ((x (call/cc (lambda (c) (set! cont c) 0)))
+           (y (call/cc (lambda (c) (set! cont c) 0))))
+    (if cont
+        (let ((c cont))
+          (set! cont #f) (set! x 1) (set! y 1) (c 0))
+        (+ x y))))
+;; Was returning 1 (wrong), should return 0 (correct)
+```
+
+## Solution
+
+Implemented Al Petrofsky's elegant list-based approach:
+
+```scheme
+(define-syntax letrec
+  (syntax-rules ()
+    ((_ ((var init) ...) . body)
+     (let ((var 'undefined) ...)
+       (let ((temp (list init ...)))        ;; Evaluate ALL inits into a list
+         (begin (set! var (car temp)) (set! temp (cdr temp))) ...
+         (let () . body))))))
+```
+
+Credit: [Al Petrofsky (comp.lang.scheme)](https://groups.google.com/g/comp.lang.scheme/c/FB1HgUx5d2s)
+
+## Changes
+
+### [src/core/scheme/macros.scm](./src/core/scheme/macros.scm)
+- Replaced `letrec` macro with R7RS-compliant version using Al Petrofsky's list-based approach
+- Only O(1) temp variable needed instead of O(n) nested lambdas
+- Properly sequences: all inits evaluated → all assignments → body
+
+## Verification
+
+### Automated Tests
+- **R5RS Pitfall Test 1.1**: Now returns `0` (was incorrectly returning `1`)
+- **Full Test Suite**: 1546 passed, 0 failed, 3 skipped
+
+```
+========================================
+TEST SUMMARY: 1546 passed, 0 failed, 3 skipped
+========================================
+```
+
+# Walkthrough: Syntactic Keyword Shadowing (2026-01-21)
+
+Fixed R7RS compliance for shadowing syntactic keywords with local variable bindings.
+
+## Problem
+
+R7RS specifies that "local variable bindings may shadow keyword bindings." This test was failing:
+
+```scheme
+((lambda (begin) (begin 1 2 3)) (lambda lambda lambda))
+;; Was returning: 3 (begin treated as special form)
+;; Should return: (1 2 3) (begin treated as procedure call)
+```
+
+When `begin` is bound as a parameter, the inner `(begin 1 2 3)` should call the bound procedure, not the `begin` special form.
+
+## Solution
+
+Modified the analyzer to check if an operator is lexically shadowed before dispatching to special form handlers:
+
+```javascript
+// Check if operator is a special form keyword (only if not shadowed locally)
+// R7RS: "local variable bindings may shadow keyword bindings"
+if (!isShadowed) {
+  const handler = getHandler(opName);
+  // ...
+}
+```
+
+## Changes
+
+### [src/core/interpreter/analyzer.js](./src/core/interpreter/analyzer.js)
+- Added `!isShadowed` check before special form handler dispatch (line ~178)
+- Special forms like `begin`, `if`, `lambda`, `set!` etc. can now be shadowed by local bindings
+
+### [tests/core/scheme/r7rs-pitfalls.scm](./tests/core/scheme/r7rs-pitfalls.scm)
+- Created new R7RS pitfalls test suite with 20+ tests (converted from R5RS pitfalls)
+- Re-enabled test 4.2 ("begin as parameter name")
+
+## Verification
+
+- **Test 4.2**: Now returns `(1 2 3)` as expected
+- **Full Test Suite**: 1568 passed, 0 failed, 4 skipped
+
+```
+========================================
+TEST SUMMARY: 1568 passed, 0 failed, 4 skipped
+========================================
+```
+
+# Walkthrough: Trampoline Documentation Verification & createJsBridge Removal (2026-01-26)
+
+I have verified the core execution model documentation and removed the deprecated `createJsBridge` mechanism in favor of intrinsically callable Scheme closures.
+
+## Changes
+
+### Documentation Updates
+
+#### [trampoline.md](docs/core-interpreter-implementation.md)
+- Added the `THIS` (4) register to the register machine description and code snippets.
+- Clarified that `SentinelFrame` is located in `interpreter.js` rather than `frames.js`.
+- Verified that the trampoline loop and `runWithSentinel` logic matches the current implementation.
+
+### Core Interpreter Refactoring
+
+#### [interpreter.js](./src/core/interpreter/interpreter.js)
+- Removed the deprecated `createJsBridge` method. Scheme closures and continuations are now created as callable JavaScript functions by default.
+
+### Primitives & Interop
+
+#### [promise.js](./src/extras/primitives/promise.js)
+- Updated `wrapSchemeCallback` to remove the call to `createJsBridge`. It now returns the procedure directly if it matches the callable function contract.
+
+### Test Suite Improvements
+
+#### [interpreter_tests.js](./tests/core/interpreter/interpreter_tests.js)
+- Restored missing unit tests for `Interpreter.step` executing a Frame.
+- Added a test to verify that closures created via `createClosure` are natively callable JS functions.
+
+#### [unit_tests.js](./tests/core/interpreter/unit_tests.js)
+- Connected the orphaned `interpreter_tests.js` to the main unit test suite, ensuring these internal logic tests are now continuously verified.
+
+#### Other Tests
+- Updated `interop_tests.js` and `multiple_values_tests.js` to remove legacy `createJsBridge` calls.
+
+## Verification Results
+
+### Automated Tests
+Ran the full test suite (`node run_tests_node.js`):
+```
+TEST SUMMARY: 1572 passed, 0 failed, 4 skipped
+```
+All tests passed, including the newly connected interpreter unit tests and the existing promise interop tests.

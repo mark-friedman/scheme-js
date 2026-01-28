@@ -7,6 +7,7 @@
 
 import { toArray } from './cons.js';
 import { Symbol } from './symbol.js';
+import { SchemeSyntaxError } from './errors.js';
 
 // =============================================================================
 // Feature Registry (for cond-expand)
@@ -99,14 +100,14 @@ export function evaluateFeatureRequirement(requirement) {
         case 'not':
             // Negation
             if (arr.length !== 2) {
-                throw new Error('cond-expand: (not) requires exactly one argument');
+                throw new SchemeSyntaxError('(not) requires exactly one argument', requirement, 'cond-expand');
             }
             return !evaluateFeatureRequirement(arr[1]);
 
         case 'library':
             // Check if library is available (loaded or loadable)
             if (arr.length !== 2) {
-                throw new Error('cond-expand: (library) requires a library name');
+                throw new SchemeSyntaxError('(library) requires a library name', requirement, 'cond-expand');
             }
             const libName = toArray(arr[1]);
             const libKey = libraryNameToKey(libName);

@@ -91,6 +91,15 @@ export async function createChapterComplianceRunner(fileLoader, logger) {
         }
     });
 
+    // Inject title reporter for test-group
+    interpreter.globalEnv.bindings.set('native-log-title', (title) => {
+        if (logger.title) {
+            logger.title(title);
+        } else {
+            console.log(`\n=== ${title} ===`);
+        }
+    });
+
     const harnessCode = await fileLoader('tests/core/scheme/test.scm');
     run(interpreter, harnessCode);
 

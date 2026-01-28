@@ -60,3 +60,92 @@
   (test "3.14 is a number" #t (number? 3.14))
   (test "1.5 parsed as number" 1.5 1.5)
   (test "0.5 parsed as number" 0.5 0.5))
+
+;; ============================================================================
+;; js-typeof Tests
+;; ============================================================================
+
+(test-group "js-typeof primitive"
+  (test "js-typeof number" "number" (js-typeof 42))
+  (test "js-typeof string" "string" (js-typeof "hello"))
+  (test "js-typeof boolean" "boolean" (js-typeof #t))
+  ;; Note: In this Scheme implementation, lists/vectors might be objects or arrays
+  ;; Vectors are arrays -> "object"
+  (test "js-typeof vector" "object" (js-typeof #(1 2 3)))
+  ;; Functions (Scheme procedures) are callable -> "function"
+  (test "js-typeof lambda" "function" (js-typeof (lambda (x) x)))
+  ;; Undefined
+  (test "js-typeof undefined" "undefined" (js-typeof (js-eval "undefined")))
+)
+
+;; ============================================================================
+;; js-undefined Tests
+;; ============================================================================
+
+(test-group "js-undefined primitive"
+  (test "js-undefined is undefined" "undefined" (js-typeof js-undefined))
+  (test "compare with raw undefined" #t (eq? js-undefined (js-eval "undefined")))
+  (test "compare with null" #f (eq? js-undefined (js-eval "null")))
+  ;; Check that it is NOT equal to false
+  (test "undefined is not false" #f (eq? js-undefined #f))
+)
+
+;; ============================================================================
+;; js-undefined? Tests
+;; ============================================================================
+
+(test-group "js-undefined? predicate"
+  (test "js-undefined? with undefined" #t (js-undefined? js-undefined))
+  (test "js-undefined? with raw undefined" #t (js-undefined? (js-eval "undefined")))
+  (test "js-undefined? with null" #f (js-undefined? (js-eval "null")))
+  (test "js-undefined? with number" #f (js-undefined? 0))
+  (test "js-undefined? with false" #f (js-undefined? #f))
+)
+
+;; ============================================================================
+;; js-null Tests
+;; ============================================================================
+
+(test-group "js-null primitive"
+  (test "js-null is null" "object" (js-typeof js-null))
+  (test "compare with raw null" #t (eq? js-null (js-eval "null")))
+  (test "compare with undefined" #f (eq? js-null (js-eval "undefined")))
+  ;; Check that it is NOT equal to false
+  (test "null is not false" #f (eq? js-null #f))
+)
+
+;; ============================================================================
+;; js-null? Tests
+;; ============================================================================
+
+(test-group "js-null? predicate"
+  (test "js-null? with null" #t (js-null? js-null))
+  (test "js-null? with raw null" #t (js-null? (js-eval "null")))
+  (test "js-null? with undefined" #f (js-null? (js-eval "undefined")))
+  (test "js-null? with number" #f (js-null? 0))
+  (test "js-null? with false" #f (js-null? #f))
+)
+
+;; ============================================================================
+;; js-new Tests
+;; ============================================================================
+
+(test-group "js-new primitive"
+  ;; Test with Date constructor
+  (define my-date (js-new Date 2024 0 15))
+  (test "js-new Date creates object" "object" (js-typeof my-date))
+  (test "js-new Date year" 2024 (my-date.getFullYear))
+  (test "js-new Date month" 0 (my-date.getMonth))
+  (test "js-new Date day" 15 (my-date.getDate))
+  
+  ;; Test with Map constructor
+  (define my-map (js-new Map))
+  (test "js-new Map creates object" "object" (js-typeof my-map))
+  (my-map.set "key" "value")
+  (test "js-new Map functionality" "value" (my-map.get "key"))
+  
+  ;; Test with Array constructor
+  (define my-array (js-new Array 5))
+  (test "js-new Array creates object" "object" (js-typeof my-array))
+  (test "js-new Array length" 5 my-array.length)
+)
