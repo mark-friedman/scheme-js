@@ -168,6 +168,16 @@ export async function runMacroTests(interpreter, logger) {
             }
         }
 
+        // Test 10: Custom Ellipsis Identifier
+        // (syntax-rules ::: () ...)
+        run(interpreter, `
+            (define-syntax list-custom-ellipsis
+                (syntax-rules ::: ()
+                    ((_ x :::) (list x :::))))
+        `);
+        const ellipsisResult = run(interpreter, `(list-custom-ellipsis 1 2 3)`);
+        assert(logger, "Custom ellipsis (:::) supported", ellipsisResult, [1, 2, 3]);
+
     } catch (e) {
         logger.fail(`Macro tests crashed: ${e.message}`);
     } finally {
