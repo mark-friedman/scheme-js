@@ -27,13 +27,15 @@
     (- (current-jiffy) start)))
 
 ;; Test 8: Build vector and pass to JS (tests deep conversion)
+;; Test 8: Deep conversion (Scheme -> JS) - Arguments
+;; Measures cost of deep converting arguments when calling JS
 (define (build-and-pass n)
   (let ((arr (make-vector n 0)))
     (do ((i 0 (+ i 1)))
         ((>= i n))
       (vector-set! arr i i))
-    ;; Force conversion by passing to JS
-    (scheme->js-deep arr)))
+    ;; Arguments are deeply converted by default
+    (js-invoke benchmark-helper "noop" arr)))
 
 (define (time-array-conversion)
   (let ((start (current-jiffy)))
@@ -47,7 +49,7 @@
         acc
         (loop (- i 1) (cons i acc)))))
 
-;; Test 9: Build nested list and convert
+;; Test 9: Nested deep conversion (Scheme -> JS) - Arguments
 (define (build-nested-list depth width)
   (if (= depth 0)
       (build-list-interop width)
@@ -56,5 +58,24 @@
 
 (define (time-nested-conversion)
   (let ((start (current-jiffy)))
-    (scheme->js-deep (build-nested-list 3 10))  ; 10^3 = 1000 leaves
+    (js-invoke benchmark-helper "noop" (build-nested-list 3 10))  ; 10^3 = 1000 leaves
     (- (current-jiffy) start)))
+
+;; Test 10: JS -> Scheme Return Value (Shallow)
+;; The 'echo' method returns the JS array/object as-is.
+;; Currently this should be fast as it shallow-wraps.
+(define (time-js-return-shallow)
+  (let ((vec (make-vector 10000 0)))
+    ;; Pre-convert to JS array so we only measure return cost
+    (let ((js-arr (scheme->js-deep vec)))
+      (let ((start (current-jiffy)))
+        ;; 'echo' returns the JS array, which is shallow converted to a vector (or kept as js-object?)
+        (js-invoke benchmark-helper "echo" js-arr)
+        (- (current-jiffy) start)))))
+
+;; Test 11: Full Roundtrip (Deep Args -> Shallow Return)
+(define (time-roundtrip-conversion)
+  (let ((vec (make-vector 10000 0)))
+    (let ((start (current-jiffy)))
+      (js-invoke benchmark-helper "echo" vec)
+      (- (current-jiffy) start))))

@@ -61,6 +61,16 @@ async function runBenchmarks() {
     }
     console.log('Standard library loaded.');
 
+    // Inject benchmark helper for interop tests
+    const helper = {
+        noop: () => { },
+        echo: (x) => x,
+        processArray: (arr) => arr, // Returns same array (identity)
+        processNestedList: (obj) => obj // Returns same object
+    };
+    env.define('benchmark-helper', helper);
+
+
     // Load benchmark definitions
     console.log('Loading benchmark definitions...');
     loadSchemeFile(interpreter, env, path.join(__dirname, 'benchmark_arithmetic.scm'));
@@ -111,6 +121,8 @@ async function runBenchmarks() {
             { name: 'js-roundtrip-10K', expr: '(time-roundtrip)', category: 'JS Interop' },
             { name: 'array-convert-10K', expr: '(time-array-conversion)', category: 'JS Interop' },
             { name: 'nested-convert', expr: '(time-nested-conversion)', category: 'JS Interop' },
+            { name: 'js-return-shallow-10K', expr: '(time-js-return-shallow)', category: 'JS Interop' },
+            { name: 'full-roundtrip-10K', expr: '(time-roundtrip-conversion)', category: 'JS Interop' },
         );
     }
 
