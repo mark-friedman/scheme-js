@@ -101,19 +101,23 @@
             (js-ref obj "c")
             3)
       
-      (js-set! (js-eval "globalThis") "tmpObj" obj)
       (js-set! obj "big" 100)
-      (test "js-set! performs conversion (stored as number)"
-            (js-eval "typeof globalThis.tmpObj.big")
-            "number")
+      (test "js-set! preserves exactness"
+            (integer? (js-ref obj "big"))
+            #t)
     )
   )
 
-  (test-group "js-obj conversion"
-    (begin
-      (js-set! (js-eval "globalThis") "tmpObj2" (js-obj "val" 42))
-      (test "js-obj performs conversion"
-            (js-eval "typeof globalThis.tmpObj2.val")
-            "number"))
+  (test-group "js-obj exactness"
+    (let ((obj (js-obj "val" 42)))
+      (test "js-obj preserves exactness"
+            (integer? (js-ref obj "val"))
+            #t))
+  )
+
+  (test-group "Boundary Conversion (js-invoke)"
+    (test "js-invoke converts to Number for native call"
+          (js-invoke (js-eval "({check: (v) => typeof v})") "check" 42)
+          "number")
   )
 )

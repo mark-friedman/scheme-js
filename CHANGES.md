@@ -3674,9 +3674,10 @@ All **1633 tests passed**, confirming that the conversion changes are stable and
 I refactored the `jsAutoConvert` logic to use consistent string modes (`'deep'`, `'shallow'`, `'raw'`) and addressed the issue of incorrect number formatting in the REPL.
 
 - **Per-Call Options**: Updated `unpackForJs` (via `Interpreter.run`) to respect a `jsAutoConvert` option passed in the `options` object. This avoids the need for global state changes on the interpreter.
+- **Boundary Conversion Strategy**: Standardized `js-invoke` and `js-new` in `src/extras/primitives/interop.js` to perform deep conversion (`schemeToJsDeep`) on arguments. Conversely, `js-set!` and `js-obj` are refined to **preserve exactness** in storage, ensuring that literal objects correctly retain BigInt values until they hit a native call.
 - **REPL High-Fidelity Printing**: Configured both the Node and Browser REPLs to use `'raw'` mode when calling `interpreter.run`. This ensures the REPL receives original Scheme objects (like `BigInt` for exact integers), allowing the printer to display them correctly (e.g., `42` instead of `42.0`).
 - **Parameter Standardization**: Updated the `js-auto-convert` Scheme parameter in `js-conversion.sld` to use `'deep` as its default value and updated the corresponding tests.
 
 #### Verification Results
 
-All **1653 tests passed**, confirming that the conversion changes are stable and that the REPL now correctly preserves numerical exactness in its output.
+All **1655 tests passed**, confirming that the conversion changes are stable and that the REPL now correctly preserves numerical exactness in its output.

@@ -50,8 +50,7 @@ export const interopPrimitives = {
         if (obj === null || obj === undefined) {
             throw new SchemeError(`js-set!: cannot set property "${prop}" on ${obj}`, [obj, prop], 'js-set!');
         }
-        // Convert Scheme values to JS (e.g., BigInt -> Number)
-        obj[prop] = schemeToJsDeep(value);
+        obj[prop] = value;
         return undefined;
     },
 
@@ -107,7 +106,7 @@ export const interopPrimitives = {
             } else {
                 keyStr = String(key);
             }
-            obj[keyStr] = schemeToJsDeep(val);
+            obj[keyStr] = val;
         }
         return obj;
     },
