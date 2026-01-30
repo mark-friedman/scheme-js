@@ -7,6 +7,7 @@
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
+import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 
 /**
  * Class primitives exported to Scheme.
@@ -56,6 +57,7 @@ export const classPrimitives = {
         Wrapper.prototype = InternalClass.prototype;
         // Mark it so we can identify it's a class wrapper
         Wrapper.isSchemeClass = true;
+        Wrapper[SCHEME_PRIMITIVE] = true;
 
         return Wrapper;
     },
@@ -164,6 +166,7 @@ export const classPrimitives = {
         Object.setPrototypeOf(Wrapper, InternalClass);
         Wrapper.prototype = InternalClass.prototype;
         Wrapper.isSchemeClass = true;
+        Wrapper[SCHEME_PRIMITIVE] = true;
         if (parent) {
             Wrapper._schemeParent = parent;
         }

@@ -9,8 +9,9 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
-import { isSchemeClosure, isSchemeContinuation, TailCall, ContinuationUnwind, Values } from './values.js';
+import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
+import { schemeToJsDeep } from './js_interop.js';
 import { Cons } from './cons.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
@@ -333,7 +334,21 @@ export class AppFrame extends Executable {
 
             let result;
             try {
-                result = func(...args);
+                // If it's a foreign JS function (not a Scheme closure/primitive),
+                // auto-convert arguments (e.g., BigInt -> Number)
+                let appliedArgs = args;
+                if (!isSchemePrimitive(func)) {
+                    // Respect the current js-auto-convert mode
+                    const mode = interpreter.jsAutoConvert ?? 'deep';
+                    if (mode === 'deep' || mode === true) {
+                        appliedArgs = args.map(a => schemeToJsDeep(a));
+                    } else if (mode === 'shallow' || mode === false) {
+                        // We use a light conversion for shallow mode
+                        appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
+                    }
+                }
+
+                result = func(...appliedArgs);
             } finally {
                 // Pop the context after JS returns (or throws)
                 interpreter.popJsContext();

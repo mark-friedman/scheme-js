@@ -79,3 +79,30 @@
     (let ((start (current-jiffy)))
       (js-invoke benchmark-helper "echo" vec)
       (- (current-jiffy) start))))
+
+;; --- New Benchmarks for JS Interop Fixes ---
+
+;; Test 12: Direct JS Call (exercises AppFrame.step conversion)
+(define js-noop (js-ref benchmark-helper "noop"))
+(define (js-direct-call-loop n)
+  (let loop ((i 0))
+    (when (< i n)
+      (js-noop i) ; Passing i as BigInt, triggers conversion to Number
+      (loop (+ i 1)))))
+
+(define (time-js-direct-calls)
+  (let ((start (current-jiffy)))
+    (js-direct-call-loop 10000)
+    (- (current-jiffy) start)))
+
+;; Test 13: Scheme Primitive Overhead (exercises isSchemePrimitive check)
+(define (primitive-overhead-loop n)
+  (let loop ((i 0))
+    (when (< i n)
+      (+ i 1) ; Simple primitive call
+      (loop (+ i 1)))))
+
+(define (time-primitive-overhead)
+  (let ((start (current-jiffy)))
+    (primitive-overhead-loop 10000)
+    (- (current-jiffy) start)))

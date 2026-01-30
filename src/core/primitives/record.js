@@ -8,6 +8,7 @@ import { toArray } from '../interpreter/cons.js';
 import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
 import { jsToScheme } from '../interpreter/js_interop.js';
+import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 
 /**
  * Record primitives exported to Scheme.
@@ -50,6 +51,7 @@ export const recordPrimitives = {
         const ctor = function (...args) {
             return new rtd(...args);
         };
+        ctor[SCHEME_PRIMITIVE] = true;
         // Ensure instanceof works in JS if rtd is a class/constructor
         if (rtd.prototype) {
             ctor.prototype = rtd.prototype;
@@ -63,7 +65,9 @@ export const recordPrimitives = {
      * @returns {Function} Predicate function.
      */
     'record-predicate': (rtd) => {
-        return (obj) => obj instanceof rtd;
+        const pred = (obj) => obj instanceof rtd;
+        pred[SCHEME_PRIMITIVE] = true;
+        return pred;
     },
 
     /**
@@ -74,13 +78,15 @@ export const recordPrimitives = {
      */
     'record-accessor': (rtd, field) => {
         const fieldName = field.name;
-        return (obj) => {
+        const acc = (obj) => {
             if (!(obj instanceof rtd)) {
                 throw new SchemeTypeError(`${fieldName} accessor`, 1, rtd.name, obj);
             }
             // Convert JS values to Scheme (e.g., Number -> BigInt)
             return jsToScheme(obj[fieldName]);
         };
+        acc[SCHEME_PRIMITIVE] = true;
+        return acc;
     },
 
     /**
@@ -91,11 +97,13 @@ export const recordPrimitives = {
      */
     'record-modifier': (rtd, field) => {
         const fieldName = field.name;
-        return (obj, val) => {
+        const mod = (obj, val) => {
             if (!(obj instanceof rtd)) {
                 throw new SchemeTypeError(`${fieldName} modifier`, 1, rtd.name, obj);
             }
             obj[fieldName] = val;
         };
+        mod[SCHEME_PRIMITIVE] = true;
+        return mod;
     }
 };

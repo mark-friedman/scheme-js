@@ -61,8 +61,8 @@
   (test-group "js-object Record Type"
     (let ((obj (make-js-object)))
       (test "make-js-object creates object"
-            (js-object? obj)
-            #t)
+            #t
+            (js-object? obj))
       
       (test "js-object? returns false for other types"
             (js-object? '())

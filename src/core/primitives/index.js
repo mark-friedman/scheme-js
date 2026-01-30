@@ -1,6 +1,7 @@
 
 import { Environment } from '../interpreter/environment.js';
 import { globalScopeRegistry, GLOBAL_SCOPE_ID } from '../interpreter/syntax_object.js';
+import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 
 import { mathPrimitives } from './math.js';
 import { ioPrimitives } from './io/index.js';
@@ -37,6 +38,10 @@ export function createGlobalEnvironment(interpreter) {
     // Helper to add primitives
     const addPrimitives = (prims) => {
         for (const [name, fn] of Object.entries(prims)) {
+            // Mark as Scheme-aware so interpreter doesn't auto-convert args
+            if (typeof fn === 'function') {
+                fn[SCHEME_PRIMITIVE] = true;
+            }
             bindings.set(name, fn); // No wrapper needed!
 
             // Register for hygienic macro expansion

@@ -11,9 +11,10 @@ import { intern } from '../../src/core/interpreter/symbol.js';
  * Helper to run code from strings.
  * @param {Interpreter} interpreter
  * @param {string} code
+ * @param {Object} [options={}] - Options for interpreter.run
  * @returns {*}
  */
-export function run(interpreter, code) {
+export function run(interpreter, code, options = {}) {
     // Parse the code, which may contain multiple expressions
     const asts = parse(code);
     if (asts.length === 0) return undefined;
@@ -28,7 +29,7 @@ export function run(interpreter, code) {
         ast = analyze(list(intern('begin'), ...asts));
     }
 
-    return interpreter.run(ast);
+    return interpreter.run(ast, undefined, [], undefined, options);
 }
 
 /**

@@ -123,6 +123,8 @@ async function runBenchmarks() {
             { name: 'nested-convert', expr: '(time-nested-conversion)', category: 'JS Interop' },
             { name: 'js-return-shallow-10K', expr: '(time-js-return-shallow)', category: 'JS Interop' },
             { name: 'full-roundtrip-10K', expr: '(time-roundtrip-conversion)', category: 'JS Interop' },
+            { name: 'js-direct-calls-10K', expr: '(time-js-direct-calls)', category: 'JS Interop' },
+            { name: 'primitive-overhead-10K', expr: '(time-primitive-overhead)', category: 'Scheme Overhead' },
         );
     }
 

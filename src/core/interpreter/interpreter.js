@@ -53,7 +53,7 @@ function unpackForJs(result, interpreter, options = {}) {
   // 1. Explicit option passed to run()
   // 2. Global interpreter setting
   // 3. Default ('deep')
-  const mode = options.jsAutoConvert || (interpreter ? (interpreter.jsAutoConvert ?? 'deep') : 'deep');
+  const mode = options.jsAutoConvert ?? (interpreter?.jsAutoConvert ?? 'deep');
 
   if (mode === 'raw') {
     return result;

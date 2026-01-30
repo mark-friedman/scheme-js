@@ -30,6 +30,12 @@ export const SCHEME_CLOSURE = Symbol.for('scheme.closure');
  */
 export const SCHEME_CONTINUATION = Symbol.for('scheme.continuation');
 
+/**
+ * Symbol used to mark JavaScript functions as Scheme-aware primitives.
+ * @type {symbol}
+ */
+export const SCHEME_PRIMITIVE = Symbol.for('scheme.primitive');
+
 // =============================================================================
 // Type Checking Functions
 // =============================================================================
@@ -50,6 +56,20 @@ export function isSchemeClosure(x) {
  */
 export function isSchemeContinuation(x) {
     return typeof x === 'function' && x[SCHEME_CONTINUATION] === true;
+}
+
+/**
+ * Checks if a value is a Scheme-aware function (closure, continuation, or primitive).
+ * Used by the interop layer to decide whether to auto-convert arguments.
+ * @param {*} x - Value to check
+ * @returns {boolean}
+ */
+export function isSchemePrimitive(x) {
+    return typeof x === 'function' && (
+        x[SCHEME_PRIMITIVE] === true ||
+        x[SCHEME_CLOSURE] === true ||
+        x[SCHEME_CONTINUATION] === true
+    );
 }
 
 // =============================================================================
@@ -78,8 +98,8 @@ export function createClosure(params, body, env, restParam, interpreter) {
         const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
 
         // Run through the interpreter with a sentinel frame to capture result.
-        // We preserve BigInt exactness for internal calls that cross JS boundary.
-        return interpreter.runWithSentinel(ast, this, { convertBigInt: false });
+        // Unpacking will respect the default interop policy (deep conversion by default).
+        return interpreter.runWithSentinel(ast, this);
     };
 
     // Attach marker and closure data

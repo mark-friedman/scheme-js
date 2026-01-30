@@ -3721,3 +3721,53 @@ Running the benchmarks (`node benchmarks/run_benchmarks.js`) yields:
 The benchmarks now accurately reflect the current system behavior:
 - **Inputs to JS**: Deeply converted (Safe, Expensive).
 - **Outputs from JS**: Shallowly converted (Fast, Unsafe reference).
+
+
+# 2026-01-30 - JS Interop Boundary Conversion Fixes
+# Walkthrough - JS Interop Boundary Conversion Fixes
+
+Identified and resolved issues where Scheme values (especially BigInts) were leaking into JavaScript without proper conversion, causing `TypeError` in foreign JS functions.
+
+## Changes
+
+### Core Interpreter
+
+#### [values.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/values.js)
+- Exported `SCHEME_PRIMITIVE` symbol to mark Scheme-aware functions.
+- Implemented `isSchemePrimitive(x)` helper to identify primitives, closures, and continuations.
+- Updated `createClosure` to respect the default interop policy (allowing BigInt conversion when called from JS).
+
+#### [frames.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/frames.js)
+- Updated `AppFrame.step` to conditionally convert arguments before calling JavaScript functions.
+- Arguments are only converted using `schemeToJsDeep` if the target function is **not** Scheme-aware (i.e., it's a foreign JS function).
+
+#### [interpreter.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/interpreter.js)
+- Refined `unpackForJs` for nullish safety using nullish coalescing for options and interpreter settings.
+
+### Primitives & Registry
+
+#### [index.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/index.js)
+- Modified `addPrimitives` to automatically mark all registered built-in primitives as Scheme-aware.
+
+#### [record.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/record.js) and [class.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/class.js)
+- Updated runtime procedure factories (constructors, predicates, accessors) to apply the `SCHEME_PRIMITIVE` marker to newly created functions.
+
+### Project Rules
+#### [rules.md](file:///Users/mark/code/scheme-js-4/.agent/rules/rules.md)
+- Added a mandatory rule to mark all future JavaScript primitives as "Scheme-aware" using the `SCHEME_PRIMITIVE` symbol.
+
+## Verification Results
+
+### Automated Tests
+- Created [interop_conversion_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/interop_conversion_tests.js) to verify:
+    - Auto-conversion for foreign JS functions (e.g., `isNaN`).
+    - Preservation of BigInts for Scheme primitives.
+    - Correct return value conversion for Scheme closures called from JS.
+- All **1657** tests in the suite passed, including:
+    - R7RS compliance tests (Chibi and Chapter).
+    - JS interop and deep conversion tests.
+    - Class and Record system tests.
+
+### Manual Verification
+- Verified that `(isNaN 10)` now returns `#f` instead of throwing a `TypeError`.
+- Confirmed that `(+ 10 20)` still returns an exact integer (`30n`).

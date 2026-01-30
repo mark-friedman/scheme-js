@@ -24,6 +24,7 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Chapter R7RS Compliance:** **219 passed, 0 failed, 0 skipped** (100% compliance) ✅
 - **Macro Hygiene:** Pure marks hygiene system fully verified with standard compliance tests. ✅
 - **Object Printing:** Proper `#{(key val)...}` syntax for JS objects with circular support ✅
+- **JS Interop Conversion Safety:** Implemented "Scheme-aware" primitive marking to prevent breaking Scheme exactness while enabling auto-conversion for foreign JS functions. Verified with 1657+ tests. ✅
 - **JS Interop Benchmarks:** Added realistic interop benchmarks and verified boundary conversion costs (Deep In / Shallow Out) ✅
 
 **Incomplete:**

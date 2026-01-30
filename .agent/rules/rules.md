@@ -25,6 +25,7 @@ trigger: always_on
 - **Modules**: Use ES Modules (`import`/`export`).
 - **Formatting**: Use 2 spaces for indentation.
 - **Exports**: Export functions and classes clearly.
+- **Primitives**: All new JavaScript primitives exposed to Scheme (e.g. in `src/core/primitives/`) MUST be marked as "Scheme-aware" by setting the `SCHEME_PRIMITIVE` symbol (exported from `src/core/interpreter/values.js`) on the function. This is typically handled by the `addPrimitives` helper in `src/core/primitives/index.js`.
 
 ## Scheme Code Rules
 - **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all neccessary type, range, and arity checking.
