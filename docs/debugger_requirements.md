@@ -4,7 +4,7 @@ This document outlines the requirements and constraints for the `scheme-js` debu
 
 ## Core Capabilities
 - **Breakpoint Setting**: Support for setting breakpoints on Scheme source code
-- **Step-by-Step Execution**: Support for basic stepping maneuvers (Step Into, Step Over, Step Out, Resume).
+- **Step-by-Step Execution**: Support for basic stepping maneuvers (Step Into, Step Over, Step Out, Step, Resume).
 - **Source Location Tracking**: Ability to track and display source locations (line, column) for all evaluated Scheme code.
 - **Multiple File Support**: Ability to view, browse, and set breakpoints across multiple JS and Scheme files (`.scm`, `.sld`) and code contexts.
 - **Exception Handling**:
