@@ -1,6 +1,7 @@
 /**
  * @fileoverview Core parser for Scheme S-expressions.
  * Handles lists, vectors, atoms, quotes, and special syntaxes.
+ * Supports source location tracking for debugger integration.
  */
 
 import { Cons, cons, list } from '../cons.js';
@@ -12,6 +13,25 @@ import { processSymbolEscapes, processStringEscapes } from './string_utils.js';
 import { parseNumber } from './number_parser.js';
 import { readCharacter } from './character.js';
 import { Placeholder } from './datum_labels.js';
+import { createSourceInfo } from './tokenizer.js';
+
+/**
+ * Creates a proper list from arguments with source info attached to head.
+ * @param {Object|null} source - Source location info
+ * @param {...*} args - Elements of the list
+ * @returns {Cons|null}
+ */
+function listWithSource(source, ...args) {
+    if (args.length === 0) return null;
+    let head = null;
+    for (let i = args.length - 1; i >= 0; i--) {
+        head = new Cons(args[i], head);
+    }
+    if (head && source) {
+        head.source = source;
+    }
+    return head;
+}
 
 /**
  * Main parser dispatch. Reads one S-expression from tokens.
@@ -108,28 +128,31 @@ export function readFromTokens(tokens, state) {
         return handleDotAccess(placeholder, tokens);
     }
 
+    // Capture source from opening token
+    const source = tokenObj.source;
+
     let result;
     if (token === '(') {
-        result = readList(tokens, state);
+        result = readList(tokens, state, source);
     } else if (token === '#(') {
-        result = readVector(tokens, state);
+        result = readVector(tokens, state, source);
     } else if (token === '#u8(') {
         result = readBytevector(tokens);
     } else if (token === '#{') {
-        result = readJSObjectLiteral(tokens, state);
+        result = readJSObjectLiteral(tokens, state, source);
     } else if (token === ')') {
         throw new SchemeReadError("unexpected ')' - unbalanced parentheses", 'list');
     } else if (token === '}') {
         throw new SchemeReadError("unexpected '}' - unbalanced braces", 'object literal');
     } else if (token === "'") {
-        // Quotes
-        result = list(intern('quote'), readFromTokens(tokens, state));
+        // Quotes - attach source to quote form
+        result = listWithSource(source, intern('quote'), readFromTokens(tokens, state));
     } else if (token === '`') {
-        result = list(intern('quasiquote'), readFromTokens(tokens, state));
+        result = listWithSource(source, intern('quasiquote'), readFromTokens(tokens, state));
     } else if (token === ',') {
-        result = list(intern('unquote'), readFromTokens(tokens, state));
+        result = listWithSource(source, intern('unquote'), readFromTokens(tokens, state));
     } else if (token === ',@') {
-        result = list(intern('unquote-splicing'), readFromTokens(tokens, state));
+        result = listWithSource(source, intern('unquote-splicing'), readFromTokens(tokens, state));
     } else if (token.startsWith('|') && token.endsWith('|')) {
         // Vertical bar delimited symbol |...|
         const inner = token.slice(1, -1);
@@ -146,9 +169,10 @@ export function readFromTokens(tokens, state) {
  * Reads a proper or improper list.
  * @param {Array} tokens
  * @param {Object} state
+ * @param {Object} [openSource] - Source info from opening '('
  * @returns {Cons|null}
  */
-export function readList(tokens, state) {
+export function readList(tokens, state, openSource = null) {
     const listItems = [];
     while (true) {
         if (tokens.length === 0) {
@@ -192,31 +216,57 @@ export function readList(tokens, state) {
                 tokens.shift();
                 readFromTokens(tokens, state);
             }
-            if (tokens.length === 0 || tokens.shift().value !== ')') {
+            const closeToken = tokens.shift();
+            if (!closeToken || closeToken.value !== ')') {
                 throw new SchemeReadError("expected ')' after improper list tail", 'dotted list');
             }
-            // Build improper list
+            // Build improper list with source info on head
             let result = tail;
             for (let i = listItems.length - 1; i >= 0; i--) {
                 result = cons(listItems[i], result);
+            }
+            // Attach source spanning from open to close
+            if (result instanceof Cons && openSource) {
+                result.source = openSource.endColumn !== undefined && closeToken.source
+                    ? createSourceInfo(
+                        openSource.filename,
+                        openSource.line,
+                        openSource.column,
+                        closeToken.source.endLine,
+                        closeToken.source.endColumn
+                    )
+                    : openSource;
             }
             return result;
         }
         listItems.push(readFromTokens(tokens, state));
     }
-    tokens.shift(); // consume ')'
+    const closeToken = tokens.shift(); // consume ')'
 
-    // Build proper list
-    return list(...listItems);
+    // Build proper list with source info on head
+    const result = listWithSource(null, ...listItems);
+    if (result && openSource) {
+        result.source = openSource.endColumn !== undefined && closeToken.source
+            ? createSourceInfo(
+                openSource.filename,
+                openSource.line,
+                openSource.column,
+                closeToken.source.endLine,
+                closeToken.source.endColumn
+            )
+            : openSource;
+    }
+    return result;
 }
 
 /**
  * Reads a vector #(...)
  * @param {Array} tokens
  * @param {Object} state
+ * @param {Object} [openSource] - Source info from opening '#('
  * @returns {Array}
  */
-export function readVector(tokens, state) {
+export function readVector(tokens, state, openSource = null) {
     const elements = [];
     while (true) {
         if (tokens.length === 0) {
@@ -225,17 +275,31 @@ export function readVector(tokens, state) {
         if (tokens[0].value === ')') break;
         elements.push(readFromTokens(tokens, state));
     }
-    tokens.shift(); // consume ')'
-    return elements; // Return raw JS array
+    const closeToken = tokens.shift(); // consume ')'
+
+    // Attach source info to the array (non-standard but useful for debugging)
+    if (openSource) {
+        elements.source = openSource.endColumn !== undefined && closeToken.source
+            ? createSourceInfo(
+                openSource.filename,
+                openSource.line,
+                openSource.column,
+                closeToken.source.endLine,
+                closeToken.source.endColumn
+            )
+            : openSource;
+    }
+    return elements; // Return raw JS array with optional source property
 }
 
 /**
  * Reads a JS object literal #{(key val) ...}
  * @param {Object[]} tokens - Token array
  * @param {Object} state - Reader state
+ * @param {Object} [openSource] - Source info from opening '#{'
  * @returns {Cons} S-expression representing the js-obj call
  */
-export function readJSObjectLiteral(tokens, state) {
+export function readJSObjectLiteral(tokens, state, openSource = null) {
     const entries = [];
 
     while (tokens.length > 0 && tokens[0].value !== '}') {

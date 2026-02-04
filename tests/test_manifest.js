@@ -26,6 +26,11 @@ export const unitTests = [
     // Reader Unit Tests
     { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/number_parser_tests.js', fn: 'runNumberParserTests', needsInterpreter: false },
+    { path: 'core/interpreter/reader/source_location_tests.js', fn: 'runSourceLocationTests', needsInterpreter: false },
+    // Debug Unit Tests
+    { path: 'core/debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
+    { path: 'core/debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
+    { path: 'core/debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)
@@ -49,6 +54,7 @@ export const functionalTests = [
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: false },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
+    { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
 ];
 
 // Integration Tests

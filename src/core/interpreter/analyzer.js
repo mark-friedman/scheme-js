@@ -120,6 +120,13 @@ export function analyze(exp, syntacticEnv = null, context = null) {
     return exp;
   }
 
+  // Helper to attach source from the original expression to the AST node
+  const withSourceFrom = (node, sourceExp) => {
+    if (sourceExp && sourceExp.source) {
+      node.source = sourceExp.source;
+    }
+    return node;
+  };
 
   // console.log("Analyzing:", exp instanceof Cons ? JSON.stringify(exp) : exp.toString());
   if (exp === null) {
@@ -188,13 +195,16 @@ export function analyze(exp, syntacticEnv = null, context = null) {
       if (opName) {
         const handler = getHandler(opName);
         if (handler) {
-          return handler(exp, syntacticEnv, ctx);
+          // Call handler and attach source from the original Cons
+          const node = handler(exp, syntacticEnv, ctx);
+          return withSourceFrom(node, exp);
         }
       }
     }
 
     // Application
-    return analyzeApplication(exp, syntacticEnv, ctx);
+    const node = analyzeApplication(exp, syntacticEnv, ctx);
+    return withSourceFrom(node, exp);
   }
 
   throw new SchemeSyntaxError(`Unknown expression type`, exp, 'analyze');

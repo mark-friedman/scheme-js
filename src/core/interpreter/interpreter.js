@@ -179,6 +179,13 @@ export class Interpreter {
      * @type {Array<Array>}
      */
     this.jsContextStack = [];
+
+    /**
+     * Optional debug runtime for debugging support.
+     * When set, the interpreter will check for breakpoints and stepping before each step.
+     * @type {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
+     */
+    this.debugRuntime = null;
   }
 
 
@@ -400,6 +407,22 @@ export class Interpreter {
    */
   step(registers) {
     const ctl = registers[CTL];
+
+    // Debug hook: check if we should pause before this step
+    if (this.debugRuntime && this.debugRuntime.enabled && ctl.source) {
+      if (this.debugRuntime.shouldPause(ctl.source, registers[ENV])) {
+        this.debugRuntime.pause(ctl.source, registers[ENV]);
+      }
+    }
+
     return ctl.step(registers, this);
+  }
+
+  /**
+   * Sets the debug runtime for this interpreter.
+   * @param {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
+   */
+  setDebugRuntime(debugRuntime) {
+    this.debugRuntime = debugRuntime;
   }
 }

@@ -39,6 +39,31 @@ export const THIS = 4;
  */
 export class Executable {
     /**
+     * Creates a new Executable with optional source location.
+     * @param {Object} [source] - Source location info for debugging
+     * @param {string} [source.filename] - Source file path
+     * @param {number} [source.line] - Line number (1-indexed)
+     * @param {number} [source.column] - Column number (1-indexed)
+     * @param {number} [source.endLine] - End line number
+     * @param {number} [source.endColumn] - End column number
+     */
+    constructor(source = null) {
+        /** @type {Object|null} Source location for debugging */
+        this.source = source;
+    }
+
+    /**
+     * Sets the source location and returns this (fluent interface).
+     * Useful for setting source after construction without modifying constructors.
+     * @param {Object|null} source - Source location info
+     * @returns {this} This instance for chaining
+     */
+    withSource(source) {
+        this.source = source;
+        return this;
+    }
+
+    /**
      * Executes a single step of this node's computation.
      * @param {Registers} registers - The [ans, ctl, env, fstack] registers array.
      * @param {Interpreter} interpreter - The interpreter instance.
