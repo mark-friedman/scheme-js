@@ -3824,3 +3824,45 @@ Verified that setting a breakpoint on a specific line/column correctly triggers 
 - **Phase 3**: Async Execution Model (Non-blocking stepping).
 - **Phase 4**: Exception Debugging (Break on error).
 - **Phase 5**: CDP Bridge (Full Chrome DevTools integration).
+
+# Walkthrough - Phase 3: Async Execution Model & Interop Testing (2026-02-04)
+
+Completed Phase 3 of the Debugger implementation, establishing a robust async execution model that supports periodic yields, interoperates seamlessly with JavaScript, and preserves core Scheme guarantees like TCO and `call/cc`.
+
+## Changes Made
+
+### Core Interpreter
+- Implemented `Interpreter.runAsync()` and `Interpreter.evaluateStringAsync()`.
+- Added configurable yield points: `stepsPerYield` and `onYield` callback.
+- Fixed `evaluateStringAsync` to use the interpreter's context for correct macro resolution.
+
+### Testing Infrastructure
+- **Async Trampoline Tests**: [async_trampoline_tests.js](./tests/core/debug/async_trampoline_tests.js) - 17 tests for core async mechanics.
+- **Async Interop Tests**: [async_interop_tests.js](./tests/core/debug/async_interop_tests.js) - 21 tests for Scheme/JS boundary crossings, interleaved loops, and async boundary management.
+- **Async Mode Functional Tests**: [async_mode_functional_tests.js](./tests/core/debug/async_mode_functional_tests.js) - Stress tests for TCO, `call/cc`, and `dynamic-wind` running under 1-step yield pressure.
+
+### Bug Fixes
+- **Macro Registry Isolation**: Fixed a critical issue in `macro_tests.js`, `syntax_rules_tests.js`, and `hygiene_tests.js` where `globalMacroRegistry.clear()` was wiping out bootstrapped macros like `case`, `when`, and `unless` for subsequent tests in the suite.
+
+## Verification Results
+
+### Automated Tests
+Ran the full test suite with all new async verification tests using `node --expose-gc tests/run_all.js`.
+
+**Result:**
+```
+========================================
+TEST SUMMARY: 1977 passed, 0 failed, 4 skipped
+========================================
+```
+
+### Key Scenarios Verified
+- **TCO Correctness**: Verified that deep tail recursion (10,000+ frames) doesn't grow the stack.
+- **TCO Memory Stability**: Used the `--expose-gc` flag and `garbage-collect-and-get-heap-usage` to verify that memory remains stable during a 50,000-iteration tail-recursive async loop, confirming no heap leaks per frame.
+- **call/cc Correctness**: Verified that continuations can be captured and resumed across multiple yield points and JS boundary crossings.
+- **JS Interop**: Verified Scheme → JS → Scheme and JS → Scheme → JS call chains with nested async yields.
+- **Yield Stress**: Verified that running code with `stepsPerYield: 1` (yielding on every single instruction) still produces identical results to sync execution.
+
+## Next Steps
+- **Phase 4**: Exception Debugging (Break on error).
+- **Phase 5**: Source Map Generation.

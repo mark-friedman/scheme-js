@@ -180,8 +180,5 @@ export async function runMacroTests(interpreter, logger) {
 
     } catch (e) {
         logger.fail(`Macro tests crashed: ${e.message}`);
-    } finally {
-        // Cleanup
-        globalMacroRegistry.clear();
     }
 }

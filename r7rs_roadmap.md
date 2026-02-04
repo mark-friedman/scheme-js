@@ -26,6 +26,8 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Object Printing:** Proper `#{(key val)...}` syntax for JS objects with circular support ✅
 - **JS Interop Conversion Safety:** Implemented "Scheme-aware" primitive marking to prevent breaking Scheme exactness while enabling auto-conversion for foreign JS functions. Verified with 1657+ tests. ✅
 - **JS Interop Benchmarks:** Added realistic interop benchmarks and verified boundary conversion costs (Deep In / Shallow Out) ✅
+- **Async Execution Model:** Implemented `runAsync` and `evaluateStringAsync` with configurable yields. Verified TCO, `call/cc`, and JS interop under async execution with 1977 passing tests. ✅
+- **Debugger Infrastructure:** Implemented `BreakpointManager`, `StackTracer`, `PauseController`, and `StateInspector`. Support for line/column breakpoints and scope inspection. ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete
@@ -412,13 +414,18 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
-## Phase 16: Developer Experience
+## Phase 16: Developer Experience ✅
 **Target:** Debugging and usability
 
-| Feature | Description |
-|---------|-------------|
-| **Source Locations** | Track line/column numbers in AST for better error reporting. |
-| **Stack Traces** | Readable Scheme stack traces (filtering internal JS frames). |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Source Locations** | Track line/column numbers in AST (Lists/Vectors/Quotes). | ✅ |
+| **Stack Traces** | Environment-agnostic `StackTracer` with TCO awareness. | ✅ |
+| **Breakpoints** | Line and column-level precision via `BreakpointManager`. | ✅ |
+| **Async Stepping** | Step-by-step execution with periodic yields. | ✅ |
+| **Scope Inspection** | Full scope chain traversal and CDP value serialization. | ✅ |
+
+**Deliverable:** Core debugger runtime implemented and verified across 1977 tests.
 
 ---
 
