@@ -31,6 +31,7 @@ export const unitTests = [
     { path: 'core/debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
     { path: 'core/debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
     { path: 'core/debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
+    { path: 'core/debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)

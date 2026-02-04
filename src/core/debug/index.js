@@ -8,3 +8,4 @@ export { StackTracer } from './stack_tracer.js';
 export { PauseController } from './pause_controller.js';
 export { SchemeDebugRuntime } from './scheme_debug_runtime.js';
 export { DebugBackend, NoOpDebugBackend, TestDebugBackend } from './debug_backend.js';
+export { StateInspector } from './state_inspector.js';
