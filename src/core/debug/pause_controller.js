@@ -24,6 +24,13 @@ export class PauseController {
 
         /** @type {*} */
         this.pauseData = null;
+
+        /**
+         * Resolver function for the pause promise.
+         * Set when waitForResume() is called, cleared when resume() is called.
+         * @type {Function|null}
+         */
+        this.pauseResolve = null;
     }
 
     /**
@@ -89,13 +96,35 @@ export class PauseController {
 
     /**
      * Resumes execution.
+     * If there's a pending pause promise, resolves it.
      */
     resume() {
+        // Resolve any pending pause promise first
+        if (this.pauseResolve) {
+            const resolve = this.pauseResolve;
+            this.pauseResolve = null;
+            resolve();
+        }
+
         this.state = 'running';
         this.stepMode = null;
         this.targetDepth = null;
         this.pauseReason = null;
         this.pauseData = null;
+    }
+
+    /**
+     * Returns a promise that resolves when resume() is called.
+     * Used by the async interpreter loop to block on pause.
+     * @returns {Promise<void>}
+     */
+    waitForResume() {
+        if (!this.isPaused()) {
+            return Promise.resolve();
+        }
+        return new Promise(resolve => {
+            this.pauseResolve = resolve;
+        });
     }
 
     /**
@@ -165,6 +194,12 @@ export class PauseController {
      * Resets to initial state.
      */
     reset() {
+        // Resolve any pending pause first (allows clean shutdown)
+        if (this.pauseResolve) {
+            this.pauseResolve();
+            this.pauseResolve = null;
+        }
+
         this.state = 'running';
         this.stepMode = null;
         this.targetDepth = null;

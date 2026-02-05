@@ -282,4 +282,4 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 - [core-interpreter-implementation.md](core-interpreter-implementation.md) — Execution model details
 - [hygiene.md](hygiene.md) — Macro hygiene algorithm (pure marks)
 - [macro_debugging.md](macro_debugging.md) — Troubleshooting common macro issues
-- [r7rs_roadmap.md](../r7rs_roadmap.md) — Implementation progress
+- [ROADMAP.md](../ROADMAP.md) — Implementation progress

@@ -119,14 +119,18 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
     let newEnv = syntacticEnv;
     let restParamRenamed = null;
 
+    const originalParams = [];
+    let originalRestParam = null;
+
     let curr = paramsPart;
 
     // Handle variadic syntax: (lambda args body...)
     if (!(curr instanceof Cons) && (curr instanceof Symbol || isSyntaxObject(curr))) {
         const name = (curr instanceof Symbol) ? curr.name : syntaxName(curr);
+        originalRestParam = name;
         restParamRenamed = generateUniqueName(name, ctx);
         newEnv = newEnv.extend(curr, restParamRenamed);
-        return new LambdaNode(newParams, analyzeBody(body, newEnv, ctx), restParamRenamed);
+        return new LambdaNode(newParams, analyzeBody(body, newEnv, ctx), restParamRenamed, 'anonymous', [], originalRestParam);
     }
 
     // Handle fixed or dotted parameter lists: (lambda (x y . z) body...)
@@ -136,6 +140,7 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
             throw new SchemeSyntaxError('parameter must be a symbol', param, 'lambda');
         }
         const name = (param instanceof Symbol) ? param.name : syntaxName(param);
+        originalParams.push(name);
         const renamed = generateUniqueName(name, ctx);
 
         newParams.push(renamed);
@@ -149,14 +154,16 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
     if (curr !== null) {
         if (curr instanceof Symbol || isSyntaxObject(curr)) {
             const name = (curr instanceof Symbol) ? curr.name : syntaxName(curr);
+            originalRestParam = name;
             restParamRenamed = generateUniqueName(name, ctx);
             newEnv = newEnv.extend(curr, restParamRenamed);
         }
     }
 
     // Body is analyzed in a new macro scope (for internal define-syntax)
-    return new LambdaNode(newParams, analyzeScopedBody(body, newEnv, ctx), restParamRenamed);
+    return new LambdaNode(newParams, analyzeScopedBody(body, newEnv, ctx), restParamRenamed, 'anonymous', originalParams, originalRestParam);
 }
+
 
 /**
  * Analyzes a body in a temporary macro registry scope.
@@ -281,6 +288,7 @@ function analyzeLet(exp, syntacticEnv, ctx) {
     const vars = [];
     const args = [];
     const renos = [];
+    const originalParams = [];
     let newEnv = syntacticEnv;
 
     let curr = bindings;
@@ -290,6 +298,7 @@ function analyzeLet(exp, syntacticEnv, ctx) {
         const valObj = cadr(pair);
 
         const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
+        originalParams.push(name);
         const renamed = generateUniqueName(name, ctx);
 
         vars.push(renamed);
@@ -301,11 +310,11 @@ function analyzeLet(exp, syntacticEnv, ctx) {
     }
 
     for (const r of renos) {
-        newEnv = newEnv.extend(r.id, r.name);
+        newEnv = newEnv.extend(r.id, r.name, r.id.name || r.id);
     }
 
     return new TailAppNode(
-        new LambdaNode(vars, analyzeScopedBody(body, newEnv, ctx)),
+        new LambdaNode(vars, analyzeScopedBody(body, newEnv, ctx), null, 'let', originalParams),
         args
     );
 }
@@ -317,12 +326,13 @@ function analyzeLet(exp, syntacticEnv, ctx) {
  */
 function analyzeLetRec(exp, syntacticEnv, ctx) {
     const bindings = cadr(exp);
-    const body = cddr(exp);
+    const body = cdddr(exp);
 
     let newEnv = syntacticEnv;
     const vars = [];
     const args = [];
     const renos = [];
+    const originalParams = [];
 
     // Phase 1: Alpha-rename all variables and extend the environment.
     let curr = bindings;
@@ -331,12 +341,13 @@ function analyzeLetRec(exp, syntacticEnv, ctx) {
         const varObj = car(pair);
 
         const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
+        originalParams.push(name);
         const renamed = generateUniqueName(name, ctx);
 
         vars.push(renamed);
         renos.push({ id: varObj, name: renamed, valObj: cadr(pair) });
 
-        newEnv = newEnv.extend(varObj, renamed);
+        newEnv = newEnv.extend(varObj, renamed, name);
         curr = curr.cdr;
     }
 
@@ -356,7 +367,7 @@ function analyzeLetRec(exp, syntacticEnv, ctx) {
     const seq = new BeginNode([...setExprs, bodyExpr]);
 
     return new TailAppNode(
-        new LambdaNode(vars, seq),
+        new LambdaNode(vars, seq, null, 'letrec', originalParams),
         vars.map(_ => undefinedLit)
     );
 }
@@ -414,16 +425,25 @@ function analyzeDefine(exp, syntacticEnv, ctx) {
         // Desugar to (define f (lambda (args) body...))
         const lambdaExp = cons(intern('lambda'), cons(args, body));
         const valExpr = analyzeLambda(lambdaExp, syntacticEnv, ctx);
-
         const name = (nameObj instanceof Symbol) ? nameObj.name : syntaxName(nameObj);
+
+        // Propagate name to LambdaNode if it was just created
+        if (valExpr instanceof LambdaNode) {
+            valExpr.name = name;
+        }
+
         return new DefineNode(name, valExpr);
     }
 
     // Simple variable definition: (define x 1)
     const varObj = head;
     const valExpr = analyze(caddr(exp), syntacticEnv, ctx);
-
     const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
+
+    if (valExpr instanceof LambdaNode) {
+        valExpr.name = name;
+    }
+
     return new DefineNode(name, valExpr);
 }
 

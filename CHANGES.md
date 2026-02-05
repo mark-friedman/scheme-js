@@ -1236,7 +1236,7 @@ Failed tests:
 | `src/core/primitives/index.js` | Registered `charPrimitives` |
 | `src/core/scheme/char.sld` | **NEW** - `(scheme char)` library |
 | `src/core/scheme/base.sld` | Added character/string/vector exports |
-| `r7rs_roadmap.md` | Updated phases 6-8 status to complete |
+| `ROADMAP.md` | Updated phases 6-8 status to complete |
 
 ---
 
@@ -1258,7 +1258,7 @@ Added ~30 I/O primitives to the interpreter including port predicates, string po
 | `src/core/scheme/base.sld` | Added 20+ I/O exports |
 | `tests/functional/io_tests.js` | **NEW** - Comprehensive I/O tests (~320 lines) |
 | `tests/test_manifest.js` | Added I/O tests to manifest |
-| `r7rs_roadmap.md` | Updated Phase 10 status to complete |
+| `ROADMAP.md` | Updated Phase 10 status to complete |
 | `directory_structure.md` | Added io.js, char.js, new .sld files |
 
 ## Features Implemented
@@ -1647,7 +1647,7 @@ Comprehensive documentation and organization improvements.
 | File | Change |
 |------|--------|
 | `directory_structure.md` | Added 30+ missing files (interpreter, primitives, scheme libs) |
-| `r7rs_roadmap.md` | Fixed test paths, marked `(scheme repl)` as partial |
+| `ROADMAP.md` | Fixed test paths, marked `(scheme repl)` as partial |
 | `docs/hygiene_implementation.md` | **NEW** — Documented mark/rename hygiene algorithm |
 
 ## Phase 4: Test Infrastructure ✅
@@ -1713,7 +1713,7 @@ Identified and removed unused experimental `SyntacticAnalyzer` modular refactor.
 | `src/core/interpreter/analysis/special_forms.js` |
 | `tests/core/interpreter/analyzer_tests.js` |
 
-Added Phase 18 to `r7rs_roadmap.md` documenting this approach for future consideration.
+Added Phase 18 to `ROADMAP.md` documenting this approach for future consideration.
 
 ## Phase 3: Uniform AST Node Naming ✅
 
@@ -2281,7 +2281,7 @@ Documented that `call/cc` across Promise boundaries abandons the Promise chain. 
 | `tests/test_manifest.js` | Added promise tests |
 | `tests/core/interpreter/unit_tests.js` | Fixed `prettyPrint` import path |
 | `README.md` | Added Promise interop documentation |
-| `r7rs_roadmap.md` | Added delimited continuations future direction |
+| `ROADMAP.md` | Added delimited continuations future direction |
 | `directory_structure.md` | Added `src/extras/` documentation |
 
 ## Verification
@@ -3866,3 +3866,45 @@ TEST SUMMARY: 1977 passed, 0 failed, 4 skipped
 ## Next Steps
 - **Phase 4**: Exception Debugging (Break on error).
 - **Phase 5**: Source Map Generation.
+
+# [2026-02-05] Walkthrough: Exception and REPL Debugging Suite
+
+Completed the implementation of Exception Debugging (Phase 4) and full REPL Debugging Integration (Phase 8) for both Node.js and Browser environments.
+
+## Phase 4: Exception Debugging
+
+Allows the interpreter to pause execution when a Scheme exception is raised, enabling inspection of the error state before the stack unwinds.
+
+### Changes Made
+- **[exception_handler.js](file:///Users/mark/code/scheme-js-4/src/core/debug/exception_handler.js)**: Implemented `DebugExceptionHandler` with support for `breakOnCaughtException` and `breakOnUncaughtException`.
+- **[pause_controller.js](file:///Users/mark/code/scheme-js-4/src/core/debug/pause_controller.js)**: Added Promise-based `waitForResume()` and `resume()` for true synchronization between the async interpreter and the debugger.
+- **[interpreter.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/interpreter.js)**: Added hooks in `runAsync` and the catch block to trigger pauses on exceptions.
+- **[exception_debugging_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/exception_debugging_tests.js)**: Added 9 comprehensive tests for pause/resume on exceptions.
+
+---
+
+## Phase 8: REPL Debugging Integration
+
+Integrated the debugging runtime into the interactive REPLs, providing a professional debugging experience in the terminal and web browser.
+
+### Node.js REPL
+- **Instrumentation**: Added hooks for stack tracing (`enterFrame`, `exitFrame`).
+- **Variable Resolution**: Implemented `nameMap` in `Environment` to resolve alpha-renamed variables during `:eval`.
+- **`pause` Primitive**: Exposed `(pause)` to Scheme for manual breakpoints.
+- **Verification**: Verified via `npm run test:repl`.
+
+### Browser REPL
+- **Fixed Infrastructure**: Resolved constructor and method naming mismatches in `web/repl.js`.
+- **UI Enhancements**: Enabled immediate evaluation of colon commands (shortcut: `Enter`).
+- **State Inspection**: Verified that current frame variables can be inspected by name during a pause.
+
+---
+
+## Documentation
+
+- **[debugger_manual.md](file:///Users/mark/code/scheme-js-4/doc/debugger_manual.md)**: Created a detailed user manual for all debugger commands and features.
+
+## Verification Results
+```
+TEST SUMMARY: 1986 passed, 0 failed, 7 skipped
+```

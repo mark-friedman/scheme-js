@@ -457,6 +457,11 @@ export class Interpreter {
           if (this.step(registers)) {
             stepCount++;
 
+            // Check if debugger has paused (e.g., breakpoint, exception)
+            if (this.debugRuntime?.pauseController?.isPaused()) {
+              await this.debugRuntime.pauseController.waitForResume();
+            }
+
             // Check if we should yield to the event loop
             if (stepCount >= stepsPerYield) {
               stepCount = 0;
@@ -502,6 +507,11 @@ export class Interpreter {
 
           if (e instanceof SentinelResult) {
             return unpackForJs(e.value, this, options);
+          }
+
+          // Check if debugger has paused on this exception
+          if (this.debugRuntime?.pauseController?.isPaused()) {
+            await this.debugRuntime.pauseController.waitForResume();
           }
 
           const handlerIndex = findExceptionHandler(registers[FSTACK]);

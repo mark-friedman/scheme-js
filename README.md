@@ -467,7 +467,7 @@ Detailed documentation for project internals:
 - [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
 - [**JavaScript Interoperability**](./docs/Interoperability.md): Deep JS integration and callable closures.
 - [**Changes**](./CHANGES.md): A log of major implementation steps and walkthroughs.
-- [**R7RS Roadmap**](./r7rs_roadmap.md): Compliance progress and future plans.
+- [**Roadmap**](./ROADMAP.md): Compliance progress and future plans.
 
 ---
 

@@ -45,7 +45,7 @@ import {
  * Maps scoped identifiers to unique runtime names.
  * We'll use a custom class for the Syntactic Environment.
  */
-class SyntacticEnv {
+export class SyntacticEnv {
   constructor(parent = null) {
     this.parent = parent;
     this.bindings = []; // Array of { id: SyntaxObject|Symbol, newName: string }

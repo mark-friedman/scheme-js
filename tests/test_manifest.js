@@ -32,6 +32,7 @@ export const unitTests = [
     { path: 'core/debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
     { path: 'core/debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
     { path: 'core/debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
+    { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
 ];
 
 // Functional Tests (all need interpreter)
@@ -59,6 +60,7 @@ export const functionalTests = [
     { path: 'core/debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'core/debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
     { path: 'core/debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
+    { path: 'functional/exception_debugging_tests.js', fn: 'runExceptionDebuggingTests', async: true },
 ];
 
 // Integration Tests

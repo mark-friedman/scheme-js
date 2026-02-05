@@ -5,12 +5,26 @@ import { analyze } from '../src/core/interpreter/analyzer.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { prettyPrint } from '../src/core/interpreter/printer.js';
 import { isCompleteExpression, findMatchingDelimiter } from '../src/core/interpreter/expression_utils.js';
+import {
+    SchemeDebugRuntime,
+    ReplDebugBackend,
+    ReplDebugCommands
+} from '../src/core/debug/index.js';
 
 // --- Main Entry Point ---
 
 (async () => {
     // Create the interpreter instance
     const { interpreter, env } = createInterpreter();
+
+    // Initialize debugger
+    const debugRuntime = new SchemeDebugRuntime();
+    interpreter.debugRuntime = debugRuntime;
+
+    // Add 'pause' primitive for debugging
+    env.define('pause', (source = null, env = null, reason = 'manual pause') => {
+        debugRuntime.pause(source, env, reason);
+    });
 
     // 1. Setup browser-side file resolver
     // This allows the interpreter to load .sld and .scm files via fetch
@@ -107,6 +121,9 @@ import { isCompleteExpression, findMatchingDelimiter } from '../src/core/interpr
         analyze,
         prettyPrint,
         isCompleteExpression,
-        findMatchingDelimiter
+        findMatchingDelimiter,
+        ReplDebugBackend,
+        ReplDebugCommands,
+        SchemeDebugRuntime
     });
 })();

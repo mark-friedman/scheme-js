@@ -9,6 +9,8 @@
 import { BreakpointManager } from './breakpoint_manager.js';
 import { StackTracer } from './stack_tracer.js';
 import { PauseController } from './pause_controller.js';
+import { DebugExceptionHandler } from './exception_handler.js';
+import { StateInspector } from './state_inspector.js';
 
 /**
  * Main debug runtime coordinator.
@@ -24,12 +26,68 @@ export class SchemeDebugRuntime {
         this.breakpointManager = new BreakpointManager();
         this.stackTracer = new StackTracer();
         this.pauseController = new PauseController();
+        this.exceptionHandler = new DebugExceptionHandler(this);
+        this.stateInspector = new StateInspector();
 
         this.onPause = options.onPause || null;
         this.onResume = options.onResume || null;
 
+        /** @type {DebugBackend|null} */
+        this.backend = null;
+
         /** @type {boolean} */
         this.enabled = true;
+    }
+
+    /**
+     * Sets the debug backend and hooks up its event handlers.
+     * @param {DebugBackend} backend 
+     */
+    setBackend(backend) {
+        this.backend = backend;
+        this.onPause = (info) => backend.onPause(info);
+        this.onResume = () => backend.onResume();
+
+        // Also hook up script loading if supported
+        if (backend.onScriptLoaded) {
+            this.onScriptLoaded = (info) => backend.onScriptLoaded(info);
+        }
+    }
+
+    // =========================================================================
+    // Exception Configuration (proxied to exceptionHandler)
+    // =========================================================================
+
+    /**
+     * Gets whether to break on caught exceptions.
+     * @type {boolean}
+     */
+    get breakOnCaughtException() {
+        return this.exceptionHandler.breakOnCaughtException;
+    }
+
+    /**
+     * Sets whether to break on caught exceptions.
+     * @type {boolean}
+     */
+    set breakOnCaughtException(value) {
+        this.exceptionHandler.breakOnCaughtException = value;
+    }
+
+    /**
+     * Gets whether to break on uncaught exceptions.
+     * @type {boolean}
+     */
+    get breakOnUncaughtException() {
+        return this.exceptionHandler.breakOnUncaughtException;
+    }
+
+    /**
+     * Sets whether to break on uncaught exceptions.
+     * @type {boolean}
+     */
+    set breakOnUncaughtException(value) {
+        this.exceptionHandler.breakOnUncaughtException = value;
     }
 
     // =========================================================================
@@ -74,7 +132,7 @@ export class SchemeDebugRuntime {
     resume() {
         this.pauseController.resume();
         if (this.onResume) {
-            this.onResume();
+            this.onResume('resume');
         }
     }
 
@@ -84,7 +142,7 @@ export class SchemeDebugRuntime {
     stepInto() {
         this.pauseController.stepInto();
         if (this.onResume) {
-            this.onResume();
+            this.onResume('stepInto');
         }
     }
 
@@ -94,7 +152,7 @@ export class SchemeDebugRuntime {
     stepOver() {
         this.pauseController.stepOver(this.stackTracer.getDepth());
         if (this.onResume) {
-            this.onResume();
+            this.onResume('stepOver');
         }
     }
 
@@ -104,7 +162,7 @@ export class SchemeDebugRuntime {
     stepOut() {
         this.pauseController.stepOut(this.stackTracer.getDepth());
         if (this.onResume) {
-            this.onResume();
+            this.onResume('stepOut');
         }
     }
 
@@ -167,6 +225,37 @@ export class SchemeDebugRuntime {
                 env
             });
         }
+    }
+
+    /**
+     * Pauses on an exception.
+     * Called by RaiseNode when shouldBreakOnException returns true.
+     * 
+     * @param {Object} raiseNode - The RaiseNode that raised the exception
+     * @param {Object} registers - Current interpreter registers
+     * @returns {boolean} Whether execution was paused
+     */
+    pauseOnException(raiseNode, registers) {
+        // Get source from the raiseNode if available
+        const source = raiseNode.source || null;
+        const exception = raiseNode.exception;
+        const env = registers.env;
+
+        this.pauseController.pause('exception', null);
+
+        if (this.onPause) {
+            this.onPause({
+                reason: 'exception',
+                breakpointId: null,
+                source,
+                stack: this.stackTracer.getStack(),
+                env,
+                exception,
+                continuable: raiseNode.continuable
+            });
+        }
+
+        return true;
     }
 
     /**
@@ -265,6 +354,7 @@ export class SchemeDebugRuntime {
         this.breakpointManager.clearAll();
         this.stackTracer.clear();
         this.pauseController.reset();
+        this.exceptionHandler.reset();
     }
 }
 
