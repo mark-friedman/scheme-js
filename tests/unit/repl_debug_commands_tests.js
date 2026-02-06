@@ -38,7 +38,8 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
             commands.execute(':debug'), ';; Debugging is ON');
 
         assert(logger, 'debug toggle off',
-            commands.execute(':debug off'), ';; Debugging disabled');
+            commands.execute(':debug off'), ';; Debugging disabled\n;; WARNING: Fast Mode enabled. UI will freeze during long computations.');
+
         assert(logger, 'runtime is disabled',
             runtime.enabled, false);
     }

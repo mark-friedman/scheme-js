@@ -62,7 +62,7 @@ async function bootstrapInterpreter() {
             p = path.join(dir, relativePath + '.sld');
             if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
 
-            // Check .scm 
+            // Check .scm
             p = path.join(dir, relativePath + '.scm');
             if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
 
@@ -188,16 +188,7 @@ async function startRepl() {
         rl.prompt();
     });
 
-    // Standard eval helper
-    const schemeEval = (code) => {
-        const s_exps = parse(code);
-        let result;
-        for (const exp of s_exps) {
-            const ast = analyze(exp);
-            result = interpreter.run(ast, env);
-        }
-        return result;
-    };
+
 
     // Check command line args
     const args = process.argv.slice(2);
@@ -211,7 +202,11 @@ async function startRepl() {
                 process.exit(1);
             }
             try {
-                const result = schemeEval(code);
+                const sexps = parse(code);
+                let result;
+                for (const sexp of sexps) {
+                    result = interpreter.run(analyze(sexp), env);
+                }
                 console.log(prettyPrint(result));
                 process.exit(0);
             } catch (e) {
@@ -259,12 +254,20 @@ async function startRepl() {
                     return callback(null, output);
                 }
 
-                // Use evaluateStringAsync to support debugging
-                const result = await interpreter.evaluateStringAsync(cmd, {
-                    stepsPerYield: 100,
-                    jsAutoConvert: 'raw'
-                });
+                const sexps = parse(cmd);
+                let result;
+                for (const sexp of sexps) {
+                    // Check for Fast Mode (Debug Off)
+                    if (runtime && !runtime.enabled) {
+                        // FAST MODE: Synchronous execution for performance
+                        result = interpreter.run(analyze(sexp), env, [], undefined, { jsAutoConvert: 'raw' });
+                    } else {
+                        // DEBUG MODE: Asynchronous execution for breakpoints/stepping
+                        result = await interpreter.runAsync(analyze(sexp), env, { jsAutoConvert: 'raw' });
+                    }
+                }
                 callback(null, result);
+
             } catch (e) {
                 if (isRecoverableError(e)) {
                     return callback(new repl.Recoverable(e));

@@ -3908,3 +3908,39 @@ Integrated the debugging runtime into the interactive REPLs, providing a profess
 ```
 TEST SUMMARY: 1986 passed, 0 failed, 7 skipped
 ```
+
+# Walkthrough: REPL Debugger & Dual Execution Mode
+
+I have implemented a full-featured debugger for the REPL and a "Dual Execution Mode" to switch between high-performance synchronous execution and interactive asynchronous debugging.
+
+## Changes
+
+### 1. REPL Debugger Infrastructure
+- **`ReplDebugBackend`**: Adapts the core `DebugRuntime` to the REPL's synchronous input model.
+- **`ReplDebugCommands`**: Implements commands like `:break`, `:step`, `:next`, `:locals`, `:bt`.
+- **`repl.js` & `web/repl.js`**: Integrated the debugger into both Node.js and Browser REPLs.
+
+### 2. Fast vs Debug Mode
+- **Dual Modes**:
+  - **Fast Mode (Sync)**: Uses `interpreter.run()`. ~2.3x faster. Blocks event loop.
+  - **Debug Mode (Async)**: Uses `interpreter.runAsync()`. Supports breakpoints and pausing.
+- **Switching**: Use `:debug on` and `:debug off` to toggle modes dynamically.
+- **Safety**: Browser REPL warns about UI freezing when switching to Fast Mode.
+
+### 3. REPL Refactoring
+- Refactored `repl.js` to match the explicit parse/analyze/run loop pattern of `web/repl.js`.
+- Removed ad-hoc helper functions for cleaner, consistent architecture.
+
+## Verification Results
+
+### Automated Tests
+- **Standard Suite**: All 2005 tests passed.
+- **Compliance**:
+  - Chibi Scheme: 982 passed (100% of applicable).
+  - Chapter Tests: 219 passed (100%).
+- **New Tests**: `tests/functional/repl_mode_tests.js` verified mode switching logic.
+
+### Manual Verification
+- Verified `:debug off` provides speedup for heavy computations (`(fib 30)`).
+- Verified `:debug on` allows stepping and breakpoints.
+

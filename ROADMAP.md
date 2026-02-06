@@ -28,6 +28,7 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Async Execution Model:** Implemented `runAsync` and `evaluateStringAsync` with configurable yields. Verified TCO, `call/cc`, and JS interop under async execution with 1977 passing tests. ✅
 - **Debugger Infrastructure**: Implemented `BreakpointManager`, `StackTracer`, `PauseController`, and `StateInspector`.
 - **REPL Debugging**: Full integration in Node.js and Browser REPLs with `:bt`, `:locals`, `:eval`, and `:continue`. ✅
+- **Dual Execution Mode**: Dynamic switching between "Fast Mode" (Sync) and "Debug Mode" (Async) in REPLs. ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete

@@ -596,13 +596,21 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             const sexps = parse(code);
             let result;
             for (const sexp of sexps) {
-                // Use runAsync to support debugger pausing
-                result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                // Check debug state
+                if (debugBackend && interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
+                    // FAST MODE (Sync)
+                    // Note: This WILL freeze the browser for long computations
+                    result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
+                } else {
+                    // DEBUG MODE (Async)
+                    result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                }
             }
             // If we hit a breakpoint/pause, the result will be what runAsync returned (or it might still be running)
             if (!debugBackend.isPaused()) {
                 addToHistory(prettyPrint(result), 'result');
             }
+
         } catch (e) {
             console.error('REPL Error:', e);
             addToHistory(`Error: ${e.message}`, 'error');

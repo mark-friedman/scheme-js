@@ -94,8 +94,13 @@ export class ReplDebugCommands {
             return ';; Debugging enabled';
         } else if (val === 'off') {
             this.debugRuntime.disable();
-            return ';; Debugging disabled';
+            let msg = ';; Debugging disabled';
+            if (typeof window !== 'undefined') {
+                msg += '\n;; WARNING: Fast Mode enabled. UI will freeze during long computations.';
+            }
+            return msg;
         }
+
         return ';; Usage: :debug on|off';
     }
 
