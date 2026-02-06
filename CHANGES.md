@@ -1059,8 +1059,6 @@ I performed a fresh verification in the browser (see recording below). The boots
 | `(when #t "success")` | `"success"` |
 | `(interaction-environment)` | `[object Object]` |
 
-![Refined Bootstrap Verification](/Users/mark/.gemini/antigravity/brain/641af666-b2bb-45a8-a595-fde34bace0c9/verify_refined_bootstrap_final_1766189128960.webp)
-
 ### Automated Tests
 Updated [repl_tests.scm](./tests/core/scheme/repl_tests.scm) to use the new `import` syntax, and confirmed it passes in the Node.js test runner:
 
@@ -1616,7 +1614,6 @@ This task focused on two main areas:
 | **Browser** | 662 | 0 | 9 (Node-only) | **671** |
 
 ### Browser Summary
-![Browser Test Summary](/Users/mark/.gemini/antigravity/brain/5d6fdc49-7cdd-4d56-ab4a-892695dc7fb0/test_summary_success_1766548076580.png)
 
 ## Detailed Fixes Applied
 

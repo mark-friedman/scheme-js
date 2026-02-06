@@ -55,8 +55,6 @@ The Scheme debugger and browser DevTools can work in tandem:
 
 The debugger UI provides a premium, "IDE-like" experience within the browser tab.
 
-![Debugger Mockup](/Users/mark/.gemini/antigravity/brain/fa601e62-62c5-4d0f-b59f-041d8122a26c/scheme_debugger_mockup_v1_1769813245542.png)
-
 ### Key Panels
 - **Source Editor**: Highlighted current line and breakpoint markers.
 - **Call Stack**: Visual historical trace of function calls (Logical Stack).
