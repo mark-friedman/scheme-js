@@ -12,8 +12,7 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - Basic macros (`define-syntax`, `syntax-rules`) — **Hygienic!** ✅
 - `eval`, `apply`, Records
 - **Library System Refactor:** Clean core/primitives split, `(scheme base)` is a facade.
-- **Exceptions:** `error`, `raise`, `raise-continuable`, `with-exception-handler`, `guard` ✅
-- **JS Exception Integration:** Scheme handlers catch JavaScript errors ✅
+- **Exceptions:** `error`, `raise`, `raise-continuable`, `with-exception-handler`, `guard`. **Exception Debugging (pause-on-error) fully enabled.** ✅
 - **Type Predicates:** `number?`, `boolean?`, `procedure?`, `list?`, `symbol?`, `error-object?` ✅
 - **Reader Refactor:** Modularized `reader.js` into focused submodules with expanded unit testing ✅
 - **Type/Arity/Range Checking:** All primitives validate inputs ✅
@@ -26,6 +25,10 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **Object Printing:** Proper `#{(key val)...}` syntax for JS objects with circular support ✅
 - **JS Interop Conversion Safety:** Implemented "Scheme-aware" primitive marking to prevent breaking Scheme exactness while enabling auto-conversion for foreign JS functions. Verified with 1657+ tests. ✅
 - **JS Interop Benchmarks:** Added realistic interop benchmarks and verified boundary conversion costs (Deep In / Shallow Out) ✅
+- **Async Execution Model:** Implemented `runAsync` and `evaluateStringAsync` with configurable yields. Verified TCO, `call/cc`, and JS interop under async execution with 1977 passing tests. ✅
+- **Debugger Infrastructure**: Implemented `BreakpointManager`, `StackTracer`, `PauseController`, and `StateInspector`.
+- **REPL Debugging**: Full integration in Node.js and Browser REPLs with `:bt`, `:locals`, `:eval`, and `:continue`. ✅
+- **Dual Execution Mode**: Dynamic switching between "Fast Mode" (Sync) and "Debug Mode" (Async) in REPLs. ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete
@@ -412,13 +415,18 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
-## Phase 16: Developer Experience
+## Phase 16: Developer Experience ✅
 **Target:** Debugging and usability
 
-| Feature | Description |
-|---------|-------------|
-| **Source Locations** | Track line/column numbers in AST for better error reporting. |
-| **Stack Traces** | Readable Scheme stack traces (filtering internal JS frames). |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Source Locations** | Track line/column numbers in AST (Lists/Vectors/Quotes). | ✅ |
+| **Stack Traces** | Environment-agnostic `StackTracer` with TCO awareness. | ✅ |
+| **Breakpoints** | Line and column-level precision via `BreakpointManager`. | ✅ |
+| **Async Stepping** | Step-by-step execution with periodic yields. | ✅ |
+| **Scope Inspection** | Full scope chain traversal and CDP value serialization. | ✅ |
+
+**Deliverable:** Core debugger runtime implemented and verified across 1977 tests.
 
 ---
 
@@ -558,3 +566,32 @@ Consider implementing `(expr)[key]` notation for computed property access, simil
 
 **Decision:** Deferred pending user feedback on syntax preferences.
 
+---
+
+### Debugger: Restartable Conditions (Future)
+
+Consider implementing Common Lisp-style "restartable conditions" for advanced error recovery.
+
+**Motivation:**
+- Classic Lisp REPLs allow navigating the stack when exceptions occur
+- Users can provide alternate values and "restart" computation from specific points
+- Would enable interactive debugging workflows like "use-value", "abort", "retry"
+
+**Current Implementation:**
+- Exception debugging pauses in the catch handler after exception propagates
+- Sufficient for "inspect and continue" workflows
+- Does not support modifying the exception or providing alternate return values
+
+**Complex Approach (Required for Restarts):**
+- Modify `RaiseNode.step()` to return `true` when pausing (signaling more work)
+- Push a "continuation frame" that captures the exception context
+- `resume()` can then continue, suppress, or restart with different values
+- Would require creating a new frame type and restructuring exception propagation
+
+**Benefits:**
+1. Allow "suppressing" an exception (returning a different value instead of re-throwing)
+2. Modify the exception value before continuing  
+3. Choose from multiple restart strategies
+4. Full stack navigation during exception debugging
+
+**Decision:** Deferred. Current simple approach covers typical "inspect and continue" debugging. Revisit if user demand for advanced restart capabilities.

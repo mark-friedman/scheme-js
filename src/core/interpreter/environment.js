@@ -11,30 +11,42 @@ export class Environment {
     constructor(parent = null, bindings = new Map()) {
         this.parent = parent;
         this.bindings = bindings;
+        /** @type {Map<string, string>} Mapping from original name to renamed name */
+        this.nameMap = new Map();
     }
 
     /**
      * Creates a new child environment.
      * @param {string} name - The variable name to bind.
      * @param {*} value - The value to bind.
+     * @param {string} [originalName] - The original name before alpha-renaming.
      * @returns {Environment} A new child environment.
      */
-    extend(name, value) {
-        return new Environment(this, new Map([[name, value]]));
+    extend(name, value, originalName = null) {
+        const env = new Environment(this, new Map([[name, value]]));
+        if (originalName) env.nameMap.set(originalName, name);
+        return env;
     }
 
     /**
      * Creates a new child environment with multiple bindings.
      * @param {Array<string>} names - The variable names.
      * @param {Array<*>} values - The corresponding values.
+     * @param {Array<string>} [originalNames] - The original names before alpha-renaming.
      * @returns {Environment} A new child environment.
      */
-    extendMany(names, values) {
+    extendMany(names, values, originalNames = null) {
         const newBindings = new Map();
+        const newNameMap = new Map();
         for (let i = 0; i < names.length; i++) {
             newBindings.set(names[i], values[i]);
+            if (originalNames && originalNames[i]) {
+                newNameMap.set(originalNames[i], names[i]);
+            }
         }
-        return new Environment(this, newBindings);
+        const env = new Environment(this, newBindings);
+        env.nameMap = newNameMap;
+        return env;
     }
 
     /**

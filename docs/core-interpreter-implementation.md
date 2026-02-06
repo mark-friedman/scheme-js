@@ -52,6 +52,44 @@ while (true) {
 }
 ```
 
+}
+```
+
+## Dual Execution Models
+
+The interpreter supports two execution modes:
+
+### 1. Synchronous Code (`run`)
+- **Use Case**: Fast execution, test suites, bootstrapping, "Fast Mode" in REPL.
+- **Mechanism**: The `while(true)` loop runs until completion.
+- **Blocking**: Blocks the JavaScript event loop.
+- **Debugger**: Cannot pause or step (no async yield points).
+
+### 2. Asynchronous Code (`runAsync`)
+- **Use Case**: Web REPL, "Debug Mode", long-running computations.
+- **Mechanism**: The loop yields to `setTimeout` or `Promise` periodically.
+- **Non-Blocking**: Keeps the UI responsive.
+- **Debugger**: Supports pausing, stepping, and breakpoints.
+
+```javascript
+// In interpreter.js
+async runAsync(ast, env, options) {
+    // ...
+    while (true) {
+        // Yield to event loop if needed
+        if (shouldYield()) await yieldToEventLoop();
+        
+        // Pause if debugger requested
+        if (this.debugRuntime?.isPaused()) {
+            await this.debugRuntime.onPause();
+        }
+        
+        if (this.step(registers)) continue;
+        // ...
+    }
+}
+```
+
 ## Step Return Values
 
 The `step()` method on every `Executable` (AST node or Frame) returns a boolean:
@@ -265,5 +303,5 @@ The stepable code is organized as:
 ## Related Documentation
 
 - [architecture.md](architecture.md) - High-level architecture
-- [directory_structure.md](../directory_structure.md) - File organization
+- [architecture.md](../architecture.md) - File organization
 - [hygiene_implementation.md](hygiene_implementation.md) - Macro hygiene algorithm

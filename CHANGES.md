@@ -1228,7 +1228,7 @@ Failed tests:
 | `src/core/primitives/index.js` | Registered `charPrimitives` |
 | `src/core/scheme/char.sld` | **NEW** - `(scheme char)` library |
 | `src/core/scheme/base.sld` | Added character/string/vector exports |
-| `r7rs_roadmap.md` | Updated phases 6-8 status to complete |
+| `ROADMAP.md` | Updated phases 6-8 status to complete |
 
 ---
 
@@ -1250,7 +1250,7 @@ Added ~30 I/O primitives to the interpreter including port predicates, string po
 | `src/core/scheme/base.sld` | Added 20+ I/O exports |
 | `tests/functional/io_tests.js` | **NEW** - Comprehensive I/O tests (~320 lines) |
 | `tests/test_manifest.js` | Added I/O tests to manifest |
-| `r7rs_roadmap.md` | Updated Phase 10 status to complete |
+| `ROADMAP.md` | Updated Phase 10 status to complete |
 | `directory_structure.md` | Added io.js, char.js, new .sld files |
 
 ## Features Implemented
@@ -1638,7 +1638,7 @@ Comprehensive documentation and organization improvements.
 | File | Change |
 |------|--------|
 | `directory_structure.md` | Added 30+ missing files (interpreter, primitives, scheme libs) |
-| `r7rs_roadmap.md` | Fixed test paths, marked `(scheme repl)` as partial |
+| `ROADMAP.md` | Fixed test paths, marked `(scheme repl)` as partial |
 | `docs/hygiene_implementation.md` | **NEW** — Documented mark/rename hygiene algorithm |
 
 ## Phase 4: Test Infrastructure ✅
@@ -1704,7 +1704,7 @@ Identified and removed unused experimental `SyntacticAnalyzer` modular refactor.
 | `src/core/interpreter/analysis/special_forms.js` |
 | `tests/core/interpreter/analyzer_tests.js` |
 
-Added Phase 18 to `r7rs_roadmap.md` documenting this approach for future consideration.
+Added Phase 18 to `ROADMAP.md` documenting this approach for future consideration.
 
 ## Phase 3: Uniform AST Node Naming ✅
 
@@ -2272,7 +2272,7 @@ Documented that `call/cc` across Promise boundaries abandons the Promise chain. 
 | `tests/test_manifest.js` | Added promise tests |
 | `tests/core/interpreter/unit_tests.js` | Fixed `prettyPrint` import path |
 | `README.md` | Added Promise interop documentation |
-| `r7rs_roadmap.md` | Added delimited continuations future direction |
+| `ROADMAP.md` | Added delimited continuations future direction |
 | `directory_structure.md` | Added `src/extras/` documentation |
 
 ## Verification
@@ -3757,3 +3757,176 @@ Identified and resolved issues where Scheme values (especially BigInts) were lea
 ### Manual Verification
 - Verified that `(isNaN 10)` now returns `#f` instead of throwing a `TypeError`.
 - Confirmed that `(+ 10 20)` still returns an exact integer (`30n`).
+
+# Walkthrough: Scheme Debugger Implementation (Phases 0-2) (2026-02-04)
+
+I have implemented the core infrastructure for a Scheme debugger, including source location tracking, a debug runtime, and state inspection capabilities.
+
+## Changes
+
+### 1. Source Location Tracking & Propagation (Phases 0 & 0.5)
+Implemented full source location tracking from parsing to execution:
+- **Tokenizer**: Updated to track line, column, and filename for every token.
+- **Reader/Cons**: S-expressions now carry a `source` property.
+- **AST Nodes**: Added `source` property to the `Executable` base class.
+- **Analyzer**: Updated to propagate source information from S-expressions to generated AST nodes via a new `withSource` helper.
+
+### 2. Debug Runtime Core (Phase 1)
+Implemented the fundamental components for controlling execution:
+- **`BreakpointManager`**: Manages breakpoints with line/column precision.
+- **`StackTracer`**: Tracks the call stack, supporting both regular and tail-call frames.
+- **`PauseController`**: Manages the debugger's pause state and stepping logic (Step Into, Over, Out).
+- **`SchemeDebugRuntime`**: Central coordinator that integrates the manager, tracer, and controller.
+- **`DebugBackend`**: Abstract interface for protocol adapters (implemented `TestDebugBackend` and `NoOpDebugBackend`).
+- **`Interpreter` Integration**: Added `setDebugRuntime` method and a debug hook in the main execution loop (`step` method) to check for pauses.
+
+### 3. State Inspection (Phase 2)
+Implemented the ability to inspect variables and values during a pause:
+- **`StateInspector`**: Traverses the environment chain to provide a scope list (Local, Closure, Global).
+- **CDP Serialization**: Implemented RemoteObject serialization compatible with the Chrome DevTools Protocol.
+- **Type Support**: Added full serialization support for all Scheme types, including pairs (lists), vectors, symbols, characters (with proper `#\\` notation), rationals, complex numbers, and records.
+- **Robustness**: Added handling for circular structures and large vectors to prevent debugger crashes.
+
+## Verification Results
+
+### Automated Tests
+Successfully integrated **117 new unit tests** and **functional tests** into the manifest. All 1909 project tests now pass.
+
+```
+=== Debug Runtime Tests ===
+✅ PASS: BreakpointManager (30 tests)
+✅ PASS: StackTracer (26 tests)
+✅ PASS: PauseController (32 tests)
+✅ PASS: StateInspector (56 tests)
+✅ PASS: Interpreter Debug Hooks (33 tests)
+
+TOTAL: 1909 passed, 0 failed, 4 skipped
+```
+
+### Functional Verification
+Verified that setting a breakpoint on a specific line/column correctly triggers the `onPause` callback with the expected source location and call stack.
+
+## Next Steps
+- **Phase 3**: Async Execution Model (Non-blocking stepping).
+- **Phase 4**: Exception Debugging (Break on error).
+- **Phase 5**: CDP Bridge (Full Chrome DevTools integration).
+
+# Walkthrough - Phase 3: Async Execution Model & Interop Testing (2026-02-04)
+
+Completed Phase 3 of the Debugger implementation, establishing a robust async execution model that supports periodic yields, interoperates seamlessly with JavaScript, and preserves core Scheme guarantees like TCO and `call/cc`.
+
+## Changes Made
+
+### Core Interpreter
+- Implemented `Interpreter.runAsync()` and `Interpreter.evaluateStringAsync()`.
+- Added configurable yield points: `stepsPerYield` and `onYield` callback.
+- Fixed `evaluateStringAsync` to use the interpreter's context for correct macro resolution.
+
+### Testing Infrastructure
+- **Async Trampoline Tests**: [async_trampoline_tests.js](./tests/core/debug/async_trampoline_tests.js) - 17 tests for core async mechanics.
+- **Async Interop Tests**: [async_interop_tests.js](./tests/core/debug/async_interop_tests.js) - 21 tests for Scheme/JS boundary crossings, interleaved loops, and async boundary management.
+- **Async Mode Functional Tests**: [async_mode_functional_tests.js](./tests/core/debug/async_mode_functional_tests.js) - Stress tests for TCO, `call/cc`, and `dynamic-wind` running under 1-step yield pressure.
+
+### Bug Fixes
+- **Macro Registry Isolation**: Fixed a critical issue in `macro_tests.js`, `syntax_rules_tests.js`, and `hygiene_tests.js` where `globalMacroRegistry.clear()` was wiping out bootstrapped macros like `case`, `when`, and `unless` for subsequent tests in the suite.
+
+## Verification Results
+
+### Automated Tests
+Ran the full test suite with all new async verification tests using `node --expose-gc tests/run_all.js`.
+
+**Result:**
+```
+========================================
+TEST SUMMARY: 1977 passed, 0 failed, 4 skipped
+========================================
+```
+
+### Key Scenarios Verified
+- **TCO Correctness**: Verified that deep tail recursion (10,000+ frames) doesn't grow the stack.
+- **TCO Memory Stability**: Used the `--expose-gc` flag and `garbage-collect-and-get-heap-usage` to verify that memory remains stable during a 50,000-iteration tail-recursive async loop, confirming no heap leaks per frame.
+- **call/cc Correctness**: Verified that continuations can be captured and resumed across multiple yield points and JS boundary crossings.
+- **JS Interop**: Verified Scheme → JS → Scheme and JS → Scheme → JS call chains with nested async yields.
+- **Yield Stress**: Verified that running code with `stepsPerYield: 1` (yielding on every single instruction) still produces identical results to sync execution.
+
+## Next Steps
+- **Phase 4**: Exception Debugging (Break on error).
+- **Phase 5**: Source Map Generation.
+
+# [2026-02-05] Walkthrough: Exception and REPL Debugging Suite
+
+Completed the implementation of Exception Debugging (Phase 4) and full REPL Debugging Integration (Phase 8) for both Node.js and Browser environments.
+
+## Phase 4: Exception Debugging
+
+Allows the interpreter to pause execution when a Scheme exception is raised, enabling inspection of the error state before the stack unwinds.
+
+### Changes Made
+- **[exception_handler.js](file:///Users/mark/code/scheme-js-4/src/core/debug/exception_handler.js)**: Implemented `DebugExceptionHandler` with support for `breakOnCaughtException` and `breakOnUncaughtException`.
+- **[pause_controller.js](file:///Users/mark/code/scheme-js-4/src/core/debug/pause_controller.js)**: Added Promise-based `waitForResume()` and `resume()` for true synchronization between the async interpreter and the debugger.
+- **[interpreter.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/interpreter.js)**: Added hooks in `runAsync` and the catch block to trigger pauses on exceptions.
+- **[exception_debugging_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/exception_debugging_tests.js)**: Added 9 comprehensive tests for pause/resume on exceptions.
+
+---
+
+## Phase 8: REPL Debugging Integration
+
+Integrated the debugging runtime into the interactive REPLs, providing a professional debugging experience in the terminal and web browser.
+
+### Node.js REPL
+- **Instrumentation**: Added hooks for stack tracing (`enterFrame`, `exitFrame`).
+- **Variable Resolution**: Implemented `nameMap` in `Environment` to resolve alpha-renamed variables during `:eval`.
+- **`pause` Primitive**: Exposed `(pause)` to Scheme for manual breakpoints.
+- **Verification**: Verified via `npm run test:repl`.
+
+### Browser REPL
+- **Fixed Infrastructure**: Resolved constructor and method naming mismatches in `web/repl.js`.
+- **UI Enhancements**: Enabled immediate evaluation of colon commands (shortcut: `Enter`).
+- **State Inspection**: Verified that current frame variables can be inspected by name during a pause.
+
+---
+
+## Documentation
+
+- **[debugger_manual.md](file:///Users/mark/code/scheme-js-4/doc/debugger_manual.md)**: Created a detailed user manual for all debugger commands and features.
+
+## Verification Results
+```
+TEST SUMMARY: 1986 passed, 0 failed, 7 skipped
+```
+
+# Walkthrough: REPL Debugger & Dual Execution Mode
+
+I have implemented a full-featured debugger for the REPL and a "Dual Execution Mode" to switch between high-performance synchronous execution and interactive asynchronous debugging.
+
+## Changes
+
+### 1. REPL Debugger Infrastructure
+- **`ReplDebugBackend`**: Adapts the core `DebugRuntime` to the REPL's synchronous input model.
+- **`ReplDebugCommands`**: Implements commands like `:break`, `:step`, `:next`, `:locals`, `:bt`.
+- **`repl.js` & `web/repl.js`**: Integrated the debugger into both Node.js and Browser REPLs.
+
+### 2. Fast vs Debug Mode
+- **Dual Modes**:
+  - **Fast Mode (Sync)**: Uses `interpreter.run()`. ~2.3x faster. Blocks event loop.
+  - **Debug Mode (Async)**: Uses `interpreter.runAsync()`. Supports breakpoints and pausing.
+- **Switching**: Use `:debug on` and `:debug off` to toggle modes dynamically.
+- **Safety**: Browser REPL warns about UI freezing when switching to Fast Mode.
+
+### 3. REPL Refactoring
+- Refactored `repl.js` to match the explicit parse/analyze/run loop pattern of `web/repl.js`.
+- Removed ad-hoc helper functions for cleaner, consistent architecture.
+
+## Verification Results
+
+### Automated Tests
+- **Standard Suite**: All 2005 tests passed.
+- **Compliance**:
+  - Chibi Scheme: 982 passed (100% of applicable).
+  - Chapter Tests: 219 passed (100%).
+- **New Tests**: `tests/functional/repl_mode_tests.js` verified mode switching logic.
+
+### Manual Verification
+- Verified `:debug off` provides speedup for heavy computations (`(fib 30)`).
+- Verified `:debug on` allows stepping and breakpoints.
+

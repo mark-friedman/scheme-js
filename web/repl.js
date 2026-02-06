@@ -227,12 +227,46 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         analyze,
         prettyPrint,
         isCompleteExpression,
-        findMatchingDelimiter
+        findMatchingDelimiter,
+        ReplDebugBackend,
+        ReplDebugCommands,
+        SchemeDebugRuntime
     } = deps;
 
     if (!parse || !analyze || !prettyPrint || !isCompleteExpression || !findMatchingDelimiter) {
         console.error("Missing dependencies for REPL setup. Please pass { parse, analyze, prettyPrint, isCompleteExpression, findMatchingDelimiter }.");
     }
+
+    // Debugger state
+    let debugBackend = null;
+    let debugCommands = null;
+
+    // Initialize debugger if not already present on interpreter
+    if (!interpreter.debugRuntime) {
+        interpreter.debugRuntime = new SchemeDebugRuntime();
+    }
+
+    // Setup backend to output to this REPL
+    debugBackend = new ReplDebugBackend((msg) => addToHistory(msg, 'result'));
+    interpreter.debugRuntime.setBackend(debugBackend);
+    debugCommands = new ReplDebugCommands(interpreter, interpreter.debugRuntime, debugBackend);
+
+    // Watch for pause to change UI state
+    debugBackend.setOnPause(() => {
+        promptColumn.querySelector('.repl-prompt').textContent = 'debug>';
+        shell.classList.add('paused');
+        // Scroll to bottom to show pause message
+        shell.scrollTop = shell.scrollHeight;
+    });
+
+    // Reset on resume
+    const originalOnResume = debugBackend.onResume.bind(debugBackend);
+    debugBackend.onResume = () => {
+        originalOnResume();
+        promptColumn.querySelector('.repl-prompt').textContent = '>';
+        shell.classList.remove('paused');
+    };
+
 
     // DOM elements
     // ... rest of function
@@ -526,9 +560,35 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
     /**
      * Evaluate current input
      */
-    function evaluate() {
+    async function evaluate() {
         const code = (inputArea.textContent || '').trim();
         if (!code) return;
+
+        // Check for debug commands
+        if (code.startsWith(':')) {
+            addToHistory(code, 'input');
+            const result = debugCommands.execute(code);
+            if (result) {
+                addToHistory(result, 'result');
+            }
+            inputArea.textContent = '';
+            highlightLayer.innerHTML = '';
+            resetPrompts();
+            return;
+        }
+
+        // If paused, any input is treated as a debug eval or command
+        if (debugBackend.isPaused()) {
+            addToHistory(code, 'input');
+            const result = debugCommands.handleEval(code);
+            addToHistory(result, 'result');
+
+            inputArea.textContent = '';
+            highlightLayer.innerHTML = '';
+            // Don't reset prompts yet if still paused
+            updatePrompts();
+            return;
+        }
 
         addToHistory(code, 'input');
 
@@ -536,18 +596,36 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             const sexps = parse(code);
             let result;
             for (const sexp of sexps) {
-                result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
+                // Check debug state
+                if (debugBackend && interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
+                    // FAST MODE (Sync)
+                    // Note: This WILL freeze the browser for long computations
+                    result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
+                } else {
+                    // DEBUG MODE (Async)
+                    result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                }
             }
-            addToHistory(prettyPrint(result), 'result');
+            // If we hit a breakpoint/pause, the result will be what runAsync returned (or it might still be running)
+            if (!debugBackend.isPaused()) {
+                addToHistory(prettyPrint(result), 'result');
+            }
+
         } catch (e) {
             console.error('REPL Error:', e);
             addToHistory(`Error: ${e.message}`, 'error');
         }
 
         // Clear
-        inputArea.textContent = '';
-        highlightLayer.innerHTML = '';
-        resetPrompts();
+        if (!debugBackend.isPaused()) {
+            inputArea.textContent = '';
+            highlightLayer.innerHTML = '';
+            resetPrompts();
+        } else {
+            inputArea.textContent = '';
+            highlightLayer.innerHTML = '';
+            updatePrompts();
+        }
     }
 
     // ==================== Event Handlers ====================
@@ -564,7 +642,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                 // Shift+Enter: let browser insert newline
             } else {
                 // Plain Enter
-                if (isCompleteExpression(text) && text.trim()) {
+                if ((text.trim().startsWith(':') || isCompleteExpression(text)) && text.trim()) {
                     e.preventDefault();
                     evaluate();
                 } else {
@@ -599,7 +677,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
 
     // Bind buttons if they exist
     if (replRunBtn && replInput) {
-        replRunBtn.addEventListener('click', () => {
+        replRunBtn.addEventListener('click', async () => {
             const code = replInput.value.trim();
             if (!code) return;
 
@@ -609,9 +687,11 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                 const sexps = parse(code);
                 let result;
                 for (const sexp of sexps) {
-                    result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
+                    result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
                 }
-                addToHistory(prettyPrint(result), 'result');
+                if (!debugBackend.isPaused()) {
+                    addToHistory(prettyPrint(result), 'result');
+                }
             } catch (e) {
                 console.error('REPL Error:', e);
                 addToHistory(`Error: ${e.message}`, 'error');

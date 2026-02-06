@@ -82,7 +82,5 @@ export async function runSyntaxRulesTests(interpreter, logger) {
     // Note: 'list' primitive must exist.
   } catch (e) {
     logger.fail(`Syntax-Rules tests crashed: ${e.message}`);
-  } finally {
-    globalMacroRegistry.clear();
   }
 }

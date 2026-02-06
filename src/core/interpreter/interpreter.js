@@ -179,6 +179,13 @@ export class Interpreter {
      * @type {Array<Array>}
      */
     this.jsContextStack = [];
+
+    /**
+     * Optional debug runtime for debugging support.
+     * When set, the interpreter will check for breakpoints and stepping before each step.
+     * @type {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
+     */
+    this.debugRuntime = null;
   }
 
 
@@ -400,6 +407,154 @@ export class Interpreter {
    */
   step(registers) {
     const ctl = registers[CTL];
+
+    // Debug hook: check if we should pause before this step
+    if (this.debugRuntime && this.debugRuntime.enabled && ctl.source) {
+      if (this.debugRuntime.shouldPause(ctl.source, registers[ENV])) {
+        this.debugRuntime.pause(ctl.source, registers[ENV]);
+      }
+    }
+
     return ctl.step(registers, this);
   }
+
+  /**
+   * Sets the debug runtime for this interpreter.
+   * @param {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
+   */
+  setDebugRuntime(debugRuntime) {
+    this.debugRuntime = debugRuntime;
+  }
+
+  /**
+   * Runs Scheme code asynchronously with periodic yields to the event loop.
+   * This enables non-blocking execution for long-running computations.
+   *
+   * @param {Executable} ast - The AST node to execute.
+   * @param {Environment} [env] - The environment to run in.
+   * @param {Object} [options={}] - Async execution options.
+   * @param {number} [options.stepsPerYield=1000] - Steps between yields.
+   * @param {Function} [options.onYield] - Callback invoked on each yield.
+   * @returns {Promise<*>} The result of the computation.
+   */
+  async runAsync(ast, env = this.globalEnv, options = {}) {
+    const stepsPerYield = options.stepsPerYield ?? 1000;
+    const onYield = options.onYield ?? (() => { });
+
+    if (!this.globalEnv) {
+      throw new SchemeError("Interpreter global environment is not set.");
+    }
+
+    const registers = [null, ast, env, [], undefined];
+    this.depth++;
+
+    try {
+      let stepCount = 0;
+
+      while (true) {
+        try {
+          // Execute one step
+          if (this.step(registers)) {
+            stepCount++;
+
+            // Check if debugger has paused (e.g., breakpoint, exception)
+            if (this.debugRuntime?.pauseController?.isPaused()) {
+              await this.debugRuntime.pauseController.waitForResume();
+            }
+
+            // Check if we should yield to the event loop
+            if (stepCount >= stepsPerYield) {
+              stepCount = 0;
+              onYield();
+              // Yield to event loop
+              await new Promise(resolve => setTimeout(resolve, 0));
+            }
+            continue;
+          }
+
+          // Step returned false - check frame stack
+          const fstack = registers[FSTACK];
+
+          if (fstack.length === 0) {
+            return unpackForJs(registers[ANS], this, options);
+          }
+
+          const frame = fstack.pop();
+          registers[CTL] = frame;
+          continue;
+
+        } catch (e) {
+          if (e.constructor.name === 'ContinuationUnwind') {
+            if (this.depth > 1) throw e;
+
+            const newRegisters = e.registers;
+            registers[ANS] = newRegisters[ANS];
+            registers[ENV] = newRegisters[ENV];
+            registers[FSTACK] = newRegisters[FSTACK];
+
+            if (e.isReturn) {
+              const fstack = registers[FSTACK];
+              if (fstack.length === 0) {
+                return unpackForJs(registers[ANS], this, options);
+              }
+              registers[CTL] = fstack.pop();
+              continue;
+            } else {
+              registers[CTL] = newRegisters[CTL];
+              continue;
+            }
+          }
+
+          if (e instanceof SentinelResult) {
+            return unpackForJs(e.value, this, options);
+          }
+
+          // Check if debugger has paused on this exception
+          if (this.debugRuntime?.pauseController?.isPaused()) {
+            await this.debugRuntime.pauseController.waitForResume();
+          }
+
+          const handlerIndex = findExceptionHandler(registers[FSTACK]);
+          if (handlerIndex !== -1) {
+            registers[CTL] = new RaiseNode(wrapJsError(e), false);
+            continue;
+          }
+
+          throw e;
+        }
+      }
+    } finally {
+      this.depth--;
+    }
+  }
+
+
+
+  /**
+   * Evaluates a Scheme code string asynchronously.
+   *
+   * @param {string} code - The Scheme source code.
+   * @param {Object} [options={}] - Async execution options.
+   * @returns {Promise<*>} The result of the computation.
+   */
+  async evaluateStringAsync(code, options = {}) {
+    const { parse } = await import('./reader.js');
+    const { analyze } = await import('./analyzer.js');
+    const { list } = await import('./cons.js');
+    const { intern } = await import('./symbol.js');
+
+    const expressions = parse(code);
+    if (expressions.length === 0) return null;
+
+    let ast;
+    if (expressions.length === 1) {
+      ast = analyze(expressions[0], undefined, this.context);
+    } else {
+      // Wrap multiple expressions in begin
+      ast = analyze(list(intern('begin'), ...expressions), undefined, this.context);
+    }
+
+    return this.runAsync(ast, this.globalEnv, options);
+  }
 }
+

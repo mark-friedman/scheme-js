@@ -35,17 +35,17 @@ Every time you complete a significant task (a "Walkthrough"), append an entry to
 > [!TIP]
 > Copy the content from your session's `walkthrough.md` artifact if available.
 
-### 2. `r7rs_roadmap.md`
+### 2. `ROADMAP.md`
 
 If the task involved R7RS compliance or roadmap items:
-1.  Open `r7rs_roadmap.md`.
+1.  Open `ROADMAP.md`.
 2.  Mark relevant items as checked `[x]`.
 3.  Add notes if necessary.
 
-### 3. `directory_structure.md`
+### 3. `architecture.md`
 
 If you added, moved, or deleted files/directories:
-1.  Open `directory_structure.md`.
+1.  Open `architecture.md`.
 2.  Update the tree structure to reflect the current state.
 3.  Verify that descriptions are accurate.
 

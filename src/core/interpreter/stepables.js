@@ -47,6 +47,7 @@ export {
     DefineFrame,
     BeginFrame,
     AppFrame,
+    DebugExitFrame,
     DynamicWindSetupFrame,
     WindFrame,
     RestoreValueFrame,

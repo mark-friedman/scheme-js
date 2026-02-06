@@ -106,7 +106,5 @@ export async function runHygieneTests(interpreter, logger) {
   } catch (e) {
     logger.fail(`Hygiene tests crashed: ${e.message}`);
     console.error(e);
-  } finally {
-    globalMacroRegistry.clear();
   }
 }

@@ -204,6 +204,18 @@ export class DefineFrame extends Executable {
 }
 
 /**
+ * Special frame pushed by the debugger to track function exit.
+ */
+export class DebugExitFrame extends Executable {
+    step(registers, interpreter) {
+        if (interpreter.debugRuntime) {
+            interpreter.debugRuntime.exitFrame();
+        }
+        return false;
+    }
+}
+
+/**
  * Frame for a 'begin' expression.
  * Evaluates remaining expressions in sequence, returns the last.
  */
@@ -298,21 +310,42 @@ export class AppFrame extends Executable {
 
                 // Extend environment with required params + rest param
                 const allParams = [...func.params, func.restParam];
+                const allOriginalParams = [...(func.originalParams || func.params), (func.originalRestParam || func.restParam)];
                 const allArgs = [...requiredArgs, restList];
-                let newEnv = func.env.extendMany(allParams, allArgs);
+                let newEnv = func.env.extendMany(allParams, allArgs, allOriginalParams);
                 // Bind 'this' pseudo-variable if available (method call)
                 if (registers[THIS] !== undefined) {
-                    registers[ENV] = newEnv.extend('this', registers[THIS]);
+                    registers[ENV] = newEnv.extend('this', registers[THIS], 'this');
                 } else {
                     registers[ENV] = newEnv;
                 }
+
+                // Instrumentation: enter frame and push exit tracker
+                if (interpreter.debugRuntime) {
+                    interpreter.debugRuntime.enterFrame({
+                        name: func.name || 'anonymous',
+                        env: newEnv,
+                        source: func.source
+                    });
+                    registers[FSTACK].push(new DebugExitFrame());
+                }
             } else {
-                let newEnv = func.env.extendMany(func.params, args);
+                let newEnv = func.env.extendMany(func.params, args, func.originalParams);
                 // Bind 'this' pseudo-variable if available (method call)
                 if (registers[THIS] !== undefined) {
-                    registers[ENV] = newEnv.extend('this', registers[THIS]);
+                    registers[ENV] = newEnv.extend('this', registers[THIS], 'this');
                 } else {
                     registers[ENV] = newEnv;
+                }
+
+                // Instrumentation: enter frame and push exit tracker
+                if (interpreter.debugRuntime) {
+                    interpreter.debugRuntime.enterFrame({
+                        name: func.name || 'anonymous',
+                        env: newEnv,
+                        source: func.source
+                    });
+                    registers[FSTACK].push(new DebugExitFrame());
                 }
             }
             return true;

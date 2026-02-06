@@ -87,9 +87,13 @@ export function isSchemePrimitive(x) {
  * @param {Environment} env - The captured lexical environment.
  * @param {string|null} restParam - Name of rest parameter, or null if none.
  * @param {Interpreter} interpreter - The interpreter instance.
+ * @param {string} [name='anonymous'] - Optional name for debugging.
+ * @param {Object} [source=null] - Optional source location.
+ * @param {Array<string>} [originalParams] - Original parameter names.
+ * @param {string|null} [originalRestParam] - Original rest parameter name.
  * @returns {Function} A callable function representing the Scheme closure.
  */
-export function createClosure(params, body, env, restParam, interpreter) {
+export function createClosure(params, body, env, restParam, interpreter, name = 'anonymous', source = null, originalParams = null, originalRestParam = null) {
     // Create the callable wrapper
     const closure = function (...jsArgs) {
         // Build the invocation AST: apply this closure to the given args
@@ -109,8 +113,15 @@ export function createClosure(params, body, env, restParam, interpreter) {
     closure.env = env;
     closure.restParam = restParam;
 
+    // Set function name safely (function.name is normally read-only)
+    Object.defineProperty(closure, 'name', { value: name, configurable: true });
+    closure.schemeName = name; // Also store in custom property for clarity
+    closure.source = source;
+    closure.originalParams = originalParams || params;
+    closure.originalRestParam = originalRestParam || restParam;
+
     // Custom toString for pretty-printing
-    closure.toString = () => '#<procedure>';
+    closure.toString = () => `#<procedure${name !== 'anonymous' ? ' ' + name : ''}>`;
 
     return closure;
 }

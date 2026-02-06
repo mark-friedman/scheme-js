@@ -38,14 +38,6 @@ class MacroRegistry {
         if (this.parent) return this.parent.lookup(name);
         return undefined;
     }
-
-    /**
-     * Clears all macros (useful for testing).
-     */
-    clear() {
-        this.macros.clear();
-        this.parent = null;
-    }
 }
 
 // Export a singleton instance and the class itself for scoped registries

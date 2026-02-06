@@ -14,10 +14,13 @@ export class Cons {
     /**
      * @param {*} car - The first element.
      * @param {*} cdr - The second element.
+     * @param {Object} [source] - Source location info (for debugger)
      */
-    constructor(car, cdr) {
+    constructor(car, cdr, source = null) {
         this.car = car;
         this.cdr = cdr;
+        /** @type {import('./reader/tokenizer.js').SourceInfo|null} */
+        this.source = source;
     }
 
     toString() {

@@ -146,19 +146,35 @@ export class ScopedVariable extends Executable {
  */
 export class LambdaNode extends Executable {
     /**
-     * @param {Array<string>} params - Array of parameter names.
+     * @param {Array<string>} params - Array of renamed parameter names.
      * @param {Executable} body - The body expression.
-     * @param {string|null} restParam - Name of rest parameter, or null if none.
+     * @param {string|null} restParam - Renamed rest parameter, or null if none.
+     * @param {string} [name='anonymous'] - Optional name for debugging.
+     * @param {Array<string>} [originalParams] - Original parameter names.
+     * @param {string|null} [originalRestParam] - Original rest parameter name.
      */
-    constructor(params, body, restParam = null) {
+    constructor(params, body, restParam = null, name = 'anonymous', originalParams = null, originalRestParam = null) {
         super();
         this.params = params;
         this.body = body;
         this.restParam = restParam;
+        this.name = name;
+        this.originalParams = originalParams || params;
+        this.originalRestParam = originalRestParam || restParam;
     }
 
     step(registers, interpreter) {
-        registers[ANS] = createClosure(this.params, this.body, registers[ENV], this.restParam, interpreter);
+        registers[ANS] = createClosure(
+            this.params,
+            this.body,
+            registers[ENV],
+            this.restParam,
+            interpreter,
+            this.name,
+            this.source,
+            this.originalParams,
+            this.originalRestParam
+        );
         return false;
     }
 
@@ -592,6 +608,15 @@ export class RaiseNode extends Executable {
 
     step(registers, interpreter) {
         const fstack = registers[FSTACK];
+
+        // Check if we should pause on this exception (debug mode)
+        if (interpreter.debugRuntime?.exceptionHandler?.shouldBreakOnException(
+            this.exception, fstack
+        )) {
+            interpreter.debugRuntime.pauseOnException(this, registers);
+            // After pause, execution will continue from here when resumed
+            // The exception handling will proceed normally
+        }
 
         // Search for the nearest ExceptionHandlerFrame
         const ExceptionHandlerFrame = FrameRegistry.getExceptionHandlerFrameClass();

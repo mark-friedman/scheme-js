@@ -19,6 +19,10 @@ import { Closure, Continuation } from './src/core/interpreter/values.js';
 import { LiteralNode } from './src/core/interpreter/ast.js';
 
 import { prettyPrint } from './src/core/interpreter/printer.js';
+import { SchemeDebugRuntime } from './src/core/debug/scheme_debug_runtime.js';
+import { ReplDebugBackend } from './src/core/debug/repl_debug_backend.js';
+import { ReplDebugCommands } from './src/core/debug/repl_debug_commands.js';
+import readline from 'readline';
 
 
 
@@ -58,7 +62,7 @@ async function bootstrapInterpreter() {
             p = path.join(dir, relativePath + '.sld');
             if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
 
-            // Check .scm 
+            // Check .scm
             p = path.join(dir, relativePath + '.scm');
             if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
 
@@ -131,16 +135,60 @@ async function bootstrapInterpreter() {
 async function startRepl() {
     const { interpreter, env } = await bootstrapInterpreter();
 
-    // Standard eval helper
-    const schemeEval = (code) => {
-        const s_exps = parse(code);
-        let result;
-        for (const exp of s_exps) {
-            const ast = analyze(exp);
-            result = interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
-        }
-        return result;
-    };
+    // Initialize Debugger
+    const runtime = new SchemeDebugRuntime();
+    const backend = new ReplDebugBackend(console.log);
+    const commands = new ReplDebugCommands(interpreter, runtime, backend);
+    runtime.setBackend(backend);
+    interpreter.setDebugRuntime(runtime);
+
+    // Add 'pause' primitive for manual debugging
+    // Register primitives
+    env.define('pause', (source = null, env = null, reason = 'manual pause') => {
+        interpreter.debugRuntime?.pause(source, env, reason);
+    });
+
+    // Setup nested loop for Node.js REPL when paused
+    backend.setOnPause((info) => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            prompt: 'debug> '
+        });
+
+        rl.on('line', (line) => {
+            line = line.trim();
+            if (line === '') {
+                rl.prompt();
+                return;
+            }
+
+            if (commands.isDebugCommand(line)) {
+                const output = commands.execute(line);
+                console.log(output);
+
+                const cmd = line.slice(1).split(/\s+/)[0].toLowerCase();
+                const resumeCmds = ['continue', 'c', 'step', 's', 'next', 'n', 'finish', 'fin'];
+                if (resumeCmds.includes(cmd)) {
+                    rl.close();
+                } else {
+                    rl.prompt();
+                }
+            } else {
+                const output = commands.execute(':eval ' + line);
+                console.log(output);
+                rl.prompt();
+            }
+        });
+
+        rl.on('close', () => {
+            // Nested loop closed, presumably because we are resuming
+        });
+
+        rl.prompt();
+    });
+
+
 
     // Check command line args
     const args = process.argv.slice(2);
@@ -154,7 +202,11 @@ async function startRepl() {
                 process.exit(1);
             }
             try {
-                const result = schemeEval(code);
+                const sexps = parse(code);
+                let result;
+                for (const sexp of sexps) {
+                    result = interpreter.run(analyze(sexp), env);
+                }
                 console.log(prettyPrint(result));
                 process.exit(0);
             } catch (e) {
@@ -180,17 +232,42 @@ async function startRepl() {
     // Start Interactive REPL
     console.log('Welcome to Scheme-JS-4 REPL');
 
-    repl.start({
+    const replInstance = repl.start({
         prompt: '> ',
-        eval: (cmd, context, filename, callback) => {
+        eval: async (cmd, context, filename, callback) => {
             cmd = cmd.trim();
             if (cmd === '') {
                 return callback(null);
             }
 
+            // Handle immediate debug commands
+            if (commands.isDebugCommand(cmd)) {
+                const output = commands.execute(cmd);
+                return callback(null, output);
+            }
+
             try {
-                const result = schemeEval(cmd);
+                // If already paused (unlikely to get here if nested loop is active),
+                // treat as eval.
+                if (backend.isPaused()) {
+                    const output = commands.execute(':eval ' + cmd);
+                    return callback(null, output);
+                }
+
+                const sexps = parse(cmd);
+                let result;
+                for (const sexp of sexps) {
+                    // Check for Fast Mode (Debug Off)
+                    if (runtime && !runtime.enabled) {
+                        // FAST MODE: Synchronous execution for performance
+                        result = interpreter.run(analyze(sexp), env, [], undefined, { jsAutoConvert: 'raw' });
+                    } else {
+                        // DEBUG MODE: Asynchronous execution for breakpoints/stepping
+                        result = await interpreter.runAsync(analyze(sexp), env, { jsAutoConvert: 'raw' });
+                    }
+                }
                 callback(null, result);
+
             } catch (e) {
                 if (isRecoverableError(e)) {
                     return callback(new repl.Recoverable(e));
@@ -200,6 +277,7 @@ async function startRepl() {
         },
         writer: (output) => {
             if (output === undefined) return '';
+            if (typeof output === 'string' && output.startsWith(';;')) return output;
             return prettyPrint(output);
         }
     });
