@@ -1099,8 +1099,6 @@ Modified [reader.js](/workspaces/scheme-js-4/src/core/interpreter/reader.js) to 
 - `#\newline`, `#\space`, `#\tab` → named characters
 - `#\x41` → hex escape (character 'A')
 
-render_diffs(/workspaces/scheme-js-4/src/core/interpreter/reader.js)
-
 ### New Files
 
 | File | Description |
@@ -1127,8 +1125,6 @@ render_diffs(/workspaces/scheme-js-4/src/core/interpreter/reader.js)
 
 Complete rewrite of [string.js](/workspaces/scheme-js-4/src/core/primitives/string.js) with R7RS §6.7 primitives.
 
-render_diffs(/workspaces/scheme-js-4/src/core/primitives/string.js)
-
 ### String Primitives
 
 | Category | Primitives |
@@ -1152,8 +1148,6 @@ render_diffs(/workspaces/scheme-js-4/src/core/primitives/string.js)
 ### Expanded File
 
 Enhanced [vector.js](/workspaces/scheme-js-4/src/core/primitives/vector.js) with additional R7RS operations.
-
-render_diffs(/workspaces/scheme-js-4/src/core/primitives/vector.js)
 
 ### New Vector Primitives
 
@@ -3565,17 +3559,17 @@ I have resolved the remaining test failures arising from the numeric tower (BigI
 ### 1. Unified Numeric Normalization Strategy
 The core issue was inconsistent handling of numerical types when crossing the JS/Scheme boundary. I implemented a strict normalization policy: **All values entering Scheme from JS must be converted to their most appropriate Scheme type (BigInt for exact integers).**
 
-- **[MODIFIED] [values.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/values.js)**: Added `jsToScheme` normalization to closure arguments. This ensures that when a Scheme closure is called from JS (e.g., via a bound function), any numeric arguments are converted to BigInt if they represent integers, preserving exactness in subsequent Scheme arithmetic.
-- **[MODIFIED] [interop.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/interop.js)**: Added `jsToScheme` normalization to the return values of `js-invoke`, `js-new`, and `record-accessor`.
-- **[MODIFIED] [js_interop.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/js_interop.js)**: Modified `schemeToJsDeep` to **preserve** BigInt values. This ensures that exact integers maintain their type when traveling through JS (e.g., through a `.bind` call) back into Scheme.
+- **[MODIFIED] [values.js](./src/core/interpreter/values.js)**: Added `jsToScheme` normalization to closure arguments. This ensures that when a Scheme closure is called from JS (e.g., via a bound function), any numeric arguments are converted to BigInt if they represent integers, preserving exactness in subsequent Scheme arithmetic.
+- **[MODIFIED] [interop.js](./src/core/primitives/interop.js)**: Added `jsToScheme` normalization to the return values of `js-invoke`, `js-new`, and `record-accessor`.
+- **[MODIFIED] [js_interop.js](./src/core/interpreter/js_interop.js)**: Modified `schemeToJsDeep` to **preserve** BigInt values. This ensures that exact integers maintain their type when traveling through JS (e.g., through a `.bind` call) back into Scheme.
 
 ### 2. Character and Binary I/O Fixes
-- **[MODIFIED] [primitives.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/io/primitives.js)**:
+- **[MODIFIED] [primitives.js](./src/core/primitives/io/primitives.js)**:
   - Fixed `write-char` to properly call `toString()` on the character object, resolving a bug where it output `"undefined"`.
   - Updated `read-u8` and `peek-u8` to return `BigInt` for byte values, aligning with the numeric tower's exact integer representation.
 
 ### 3. JS Interop Compatibility
-- **[MODIFIED] [js_interop.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/js_interop.js)**: Kept the shallow `schemeToJs` conversion to `Number` for BigInts. This allows calling standard JS APIs (like `new Date(timestamp)` or `Math.sqrt(n)`) with Scheme exact integers without "Cannot convert BigInt to Number" errors.
+- **[MODIFIED] [js_interop.js](./src/core/interpreter/js_interop.js)**: Kept the shallow `schemeToJs` conversion to `Number` for BigInts. This allows calling standard JS APIs (like `new Date(timestamp)` or `Math.sqrt(n)`) with Scheme exact integers without "Cannot convert BigInt to Number" errors.
 
 ## Verification Results
 
@@ -3602,11 +3596,6 @@ Verified that `(write-char #\A)` output is correctly recorded in string ports an
 (eqv? 5 5.0)       ;; => #f (Strict R7RS compliance)
 (inexact? (inexact 5)) ;; => #t (Inexactness preservation)
 ```
-
-render_diffs(file:///Users/mark/code/scheme-js-4/src/core/interpreter/js_interop.js)
-render_diffs(file:///Users/mark/code/scheme-js-4/src/core/interpreter/values.js)
-render_diffs(file:///Users/mark/code/scheme-js-4/src/core/primitives/io/primitives.js)
-render_diffs(file:///Users/mark/code/scheme-js-4/src/core/interpreter/frames.js)
 # Walkthrough - R7RS Compliance Verification and Fixes
 
 I have completed the verification and fixing of the R7RS compliance test suites (Chibi and Chapter). All 982 Chibi tests and 219 Chapter tests now pass successfully (with some Chibi tests appropriately skipped due to JavaScript float limitations).
@@ -3732,34 +3721,34 @@ Identified and resolved issues where Scheme values (especially BigInts) were lea
 
 ### Core Interpreter
 
-#### [values.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/values.js)
+#### [values.js](./src/core/interpreter/values.js)
 - Exported `SCHEME_PRIMITIVE` symbol to mark Scheme-aware functions.
 - Implemented `isSchemePrimitive(x)` helper to identify primitives, closures, and continuations.
 - Updated `createClosure` to respect the default interop policy (allowing BigInt conversion when called from JS).
 
-#### [frames.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/frames.js)
+#### [frames.js](./src/core/interpreter/frames.js)
 - Updated `AppFrame.step` to conditionally convert arguments before calling JavaScript functions.
 - Arguments are only converted using `schemeToJsDeep` if the target function is **not** Scheme-aware (i.e., it's a foreign JS function).
 
-#### [interpreter.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/interpreter.js)
+#### [interpreter.js](./src/core/interpreter/interpreter.js)
 - Refined `unpackForJs` for nullish safety using nullish coalescing for options and interpreter settings.
 
 ### Primitives & Registry
 
-#### [index.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/index.js)
+#### [index.js](./src/core/primitives/index.js)
 - Modified `addPrimitives` to automatically mark all registered built-in primitives as Scheme-aware.
 
-#### [record.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/record.js) and [class.js](file:///Users/mark/code/scheme-js-4/src/core/primitives/class.js)
+#### [record.js](./src/core/primitives/record.js) and [class.js](./src/core/primitives/class.js)
 - Updated runtime procedure factories (constructors, predicates, accessors) to apply the `SCHEME_PRIMITIVE` marker to newly created functions.
 
 ### Project Rules
-#### [rules.md](file:///Users/mark/code/scheme-js-4/.agent/rules/rules.md)
+#### [rules.md](./.agent/rules/rules.md)
 - Added a mandatory rule to mark all future JavaScript primitives as "Scheme-aware" using the `SCHEME_PRIMITIVE` symbol.
 
 ## Verification Results
 
 ### Automated Tests
-- Created [interop_conversion_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/interop_conversion_tests.js) to verify:
+- Created [interop_conversion_tests.js](./tests/functional/interop_conversion_tests.js) to verify:
     - Auto-conversion for foreign JS functions (e.g., `isNaN`).
     - Preservation of BigInts for Scheme primitives.
     - Correct return value conversion for Scheme closures called from JS.

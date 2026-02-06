@@ -9,11 +9,11 @@ The goal is to provide a comprehensive debugging experience for `scheme-js` in t
 - Update `tokenize` to track line and column numbers.
 - Return tokens with `{ value, hasPrecedingSpace, line, column, sourceId }`.
 
-#### [MODIFY] [parser.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/reader/parser.js)
+#### [MODIFY] [parser.js](../src/core/interpreter/reader/parser.js)
 - Update `readFromTokens` to attach location info (`sourceId`, `line`, `column`) to `SyntaxObject`'s `context` field.
 - Ensure list/vector recursion preserves location.
 
-#### [MODIFY] [ast_nodes.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/ast_nodes.js)
+#### [MODIFY] [ast_nodes.js](../src/core/interpreter/ast_nodes.js)
 - Update all AST nodes to store source location (line/column) from their associated syntax objects.
 
 - Add a debugging hook `onStep(registers, interpreter)`.
