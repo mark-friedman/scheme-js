@@ -2,7 +2,18 @@ import { setupRepl, replTemplate, replStyles } from '../../web/repl.js';
 
 // These will be imported at runtime from the sibling scheme.js file
 // NOT bundled into this file
-import { interpreter, env, parse, analyze, prettyPrint, isCompleteExpression, findMatchingDelimiter } from './scheme.js';
+import {
+    interpreter,
+    env,
+    parse,
+    analyze,
+    prettyPrint,
+    isCompleteExpression,
+    findMatchingDelimiter,
+    SchemeDebugRuntime,
+    ReplDebugBackend,
+    ReplDebugCommands
+} from './scheme.js';
 
 class SchemeRepl extends HTMLElement {
     constructor() {
@@ -39,7 +50,10 @@ class SchemeRepl extends HTMLElement {
             analyze,
             prettyPrint,
             isCompleteExpression,
-            findMatchingDelimiter
+            findMatchingDelimiter,
+            SchemeDebugRuntime,
+            ReplDebugBackend,
+            ReplDebugCommands
         });
     }
 }

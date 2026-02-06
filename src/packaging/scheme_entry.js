@@ -5,6 +5,11 @@ import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { setFileResolver } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
+import {
+    SchemeDebugRuntime,
+    ReplDebugBackend,
+    ReplDebugCommands
+} from '../core/debug/index.js';
 
 // Create a single shared interpreter and environment instance
 const { interpreter, env } = createInterpreter();
@@ -102,4 +107,5 @@ export { parse } from '../core/interpreter/reader.js';
 export { analyze } from '../core/interpreter/analyzer.js';
 export { prettyPrint } from '../core/interpreter/printer.js';
 export { isCompleteExpression, findMatchingDelimiter } from '../core/interpreter/expression_utils.js';
+export { SchemeDebugRuntime, ReplDebugBackend, ReplDebugCommands };
 

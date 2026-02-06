@@ -99,7 +99,7 @@ Embed a full REPL in any webpage:
 </html>
 ```
 
-See `dist/repl-demo.html` for a complete working example.
+See `web/gh-pages.html` for a more complete working example.
 
 ### Using `<script type="text/scheme">`
 
