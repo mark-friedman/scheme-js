@@ -484,12 +484,12 @@ class CustomCDPServer {
   
   handleDiscovery(req, res) {
     const response = [{
-      description: 'scheme.js instance',
+      description: 'scheme-js instance',
       devtoolsFrontendUrl: `devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws=127.0.0.1:${this.port}/${this.sessionId}`,
       devtoolsFrontendUrlCompat: `devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=127.0.0.1:${this.port}/${this.sessionId}`,
       faviconUrl: 'https://example.com/scheme-icon.png',
       id: this.sessionId,
-      title: 'scheme.js',
+      title: 'Scheme-JS',
       type: 'node',
       url: 'file:///scheme-app.scm',
       webSocketDebuggerUrl: `ws://127.0.0.1:${this.port}/${this.sessionId}`
@@ -504,7 +504,7 @@ class CustomCDPServer {
   
   handleVersion(req, res) {
     const response = {
-      Browser: 'scheme.js/1.0',
+      Browser: 'scheme-js/1.0',
       'Protocol-Version': '1.3'
     };
     

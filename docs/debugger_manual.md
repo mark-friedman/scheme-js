@@ -1,6 +1,6 @@
-# Scheme.js Debugger Manual
+# Scheme-JS Debugger Manual
 
-This manual describes how to use the interactive debugging tools available in Scheme.js, both in the Node.js REPL and the Browser REPL.
+This manual describes how to use the interactive debugging tools available in Scheme-JS, both in the Node.js REPL and the Browser REPL.
 
 ## Table of Contents
 1. [Getting Started](#getting-started)
@@ -14,7 +14,7 @@ This manual describes how to use the interactive debugging tools available in Sc
 
 ## Getting Started
 
-The Scheme.js debugger allows you to pause execution, inspect local variables, navigate the call stack, and evaluate expressions within the context of a paused program.
+The Scheme-JS debugger allows you to pause execution, inspect local variables, navigate the call stack, and evaluate expressions within the context of a paused program.
 
 - **Node.js REPL**: Start with `node repl.js`.
 - **Browser REPL**: Open `web/index.html` in your browser.

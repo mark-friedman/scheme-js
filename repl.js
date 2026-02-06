@@ -230,7 +230,7 @@ async function startRepl() {
     }
 
     // Start Interactive REPL
-    console.log('Welcome to Scheme-JS-4 REPL');
+    console.log('Welcome to Scheme-JS');
 
     const replInstance = repl.start({
         prompt: '> ',
