@@ -32,7 +32,7 @@ trigger: always_on
 - **Scheme over JS**: Implementations should always be done in Scheme, if possible.  If that's not possible, isolate the minimum that is required in JavaScript and then implement the rest in Scheme.
 
 ## Code Organization
-- **Directory and File Structure**: Follow the directory and file structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
+- **Directory and File Structure**: Follow the directory and file structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.
 - **Scheme Dependencies**: Scheme procedures and special forms should be described in Scheme `.sld` files in libraries using `define-library` to express their exports, dependencies, etc. Generally the `.sld` files only describe the libraries.  The actual implementations should be in separate `.scm` files. For standard Scheme procedures (i.e. the ones in the r7rs-small standard) use appendix A of the r7rs-small standard to determine the libraries that those procedures should be defined in.
 
 
@@ -41,7 +41,7 @@ trigger: always_on
 - **Scheme Doc**: Document all Scheme functions with JSDoc-style comments, using the same format as JSDoc, but with Scheme procedure-level comment syntax (i.e. `;;`).
 - **Internal Documentation**: Document logic inside JavaScript and Scheme functions and procedures using comment syntax appropriate for the language.
 - **Code Sections**: Document the start of associated collections of functions and procedures using comment syntax appropriate for the language.
-- **Directory Structure**: Generally, follow the directory structure outlined in `directory_structure.md`.  If you need to deviate from this structure or add to it, update `directory_structure.md` to reflect the change.
+- **Directory Structure**: Generally, follow the directory structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.
 - **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major talks are completed.
 - **Roadmap**:  Use the `ROADMAP.md` file to record the general progress and plan for the project.  Keep it updated with work that has been done and add to it to reflect work planned for the future.
 - **Cleanup**: Remove any comments that were created just for yourself and/or that don't explain any functionality or algorithmic details.
