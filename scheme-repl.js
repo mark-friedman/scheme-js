@@ -222,7 +222,7 @@ const replTemplate = `
  */
 function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
     // Destructure dependencies or throw error if missing
-    // We allow defaults for backward compatibility if modules were globally loaded, 
+    // We allow defaults for backward compatibility if modules were globally loaded,
     // but better to enforce explicit passing to avoid bundling.
     const {
         parse,
@@ -702,7 +702,7 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
     }
 
     // Welcome
-    addToHistory('Welcome to Scheme.js! Type expressions and press Enter.', 'result');
+    addToHistory('Welcome to Scheme-JS! Type expressions and press Enter.', 'result');
     addToHistory('For incomplete expressions, Enter adds a newline with auto-indent.', 'result');
 
     inputArea.focus();
