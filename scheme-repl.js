@@ -138,12 +138,14 @@ const replStyles = `
       color: #569cd6;
       margin-bottom: 4px;
       padding-left: 24px;
+      white-space: pre-wrap;
     }
 
     .repl-error {
       color: #f14c4c;
       margin-bottom: 4px;
       padding-left: 24px;
+      white-space: pre-wrap;
     }
 
     .repl-history-input {
