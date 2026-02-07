@@ -142,6 +142,8 @@ async function startRepl() {
     runtime.setBackend(backend);
     interpreter.setDebugRuntime(runtime);
 
+    let isEvaluating = false;
+
     // Add 'pause' primitive for manual debugging
     // Register primitives
     env.define('pause', (source = null, env = null, reason = 'manual pause') => {
@@ -235,6 +237,8 @@ async function startRepl() {
     const replInstance = repl.start({
         prompt: '> ',
         eval: async (cmd, context, filename, callback) => {
+            if (isEvaluating) return;
+
             cmd = cmd.trim();
             if (cmd === '') {
                 return callback(null);
@@ -254,7 +258,11 @@ async function startRepl() {
                     return callback(null, output);
                 }
 
+                // Attempt to parse first to catch syntax errors early and check for recoverability
+                // We parse SYNCHRONOUSLY here to detect syntax errors before running
                 const sexps = parse(cmd);
+
+                isEvaluating = true;
                 let result;
                 for (const sexp of sexps) {
                     // Check for Fast Mode (Debug Off)
@@ -273,6 +281,8 @@ async function startRepl() {
                     return callback(new repl.Recoverable(e));
                 }
                 callback(e);
+            } finally {
+                isEvaluating = false;
             }
         },
         writer: (output) => {
