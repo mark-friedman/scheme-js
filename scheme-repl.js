@@ -244,6 +244,7 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
     // Debugger state
     let debugBackend = null;
     let debugCommands = null;
+    let isEvaluating = false;
 
     // Initialize debugger if not already present on interpreter
     if (!interpreter.debugRuntime) {
@@ -565,6 +566,8 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
      * Evaluate current input
      */
     async function evaluate() {
+        if (isEvaluating) return;
+
         const code = (inputArea.textContent || '').trim();
         if (!code) return;
 
@@ -596,6 +599,13 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
 
         addToHistory(code, 'input');
 
+        // Clear input immediately and hide prompt
+        inputArea.textContent = '';
+        highlightLayer.innerHTML = '';
+        const currentLine = rootElement.querySelector('#repl-current-line');
+        if (currentLine) currentLine.style.display = 'none';
+        isEvaluating = true;
+
         try {
             const sexps = parse(code);
             let result;
@@ -618,17 +628,21 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
         } catch (e) {
             console.error('REPL Error:', e);
             addToHistory(`Error: ${e.message}`, 'error');
-        }
+        } finally {
+            isEvaluating = false;
+            if (currentLine) currentLine.style.display = '';
 
-        // Clear
-        if (!debugBackend.isPaused()) {
-            inputArea.textContent = '';
-            highlightLayer.innerHTML = '';
-            resetPrompts();
-        } else {
-            inputArea.textContent = '';
-            highlightLayer.innerHTML = '';
-            updatePrompts();
+            // Post-eval cleanup
+            if (!debugBackend.isPaused()) {
+                inputArea.textContent = '';
+                highlightLayer.innerHTML = '';
+                resetPrompts();
+            } else {
+                inputArea.textContent = '';
+                highlightLayer.innerHTML = '';
+                updatePrompts();
+            }
+            inputArea.focus();
         }
     }
 
@@ -680,10 +694,18 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
     // Bind buttons if they exist
     if (replRunBtn && replInput) {
         replRunBtn.addEventListener('click', async () => {
+            if (isEvaluating) return;
+
             const code = replInput.value.trim();
             if (!code) return;
 
             addToHistory(code, 'input');
+
+            // UI feedback
+            replRunBtn.disabled = true;
+            const currentLine = rootElement.querySelector('#repl-current-line');
+            if (currentLine) currentLine.style.display = 'none';
+            isEvaluating = true;
 
             try {
                 const sexps = parse(code);
@@ -697,9 +719,13 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
             } catch (e) {
                 console.error('REPL Error:', e);
                 addToHistory(`Error: ${e.message}`, 'error');
+            } finally {
+                isEvaluating = false;
+                replRunBtn.disabled = false;
+                if (currentLine) currentLine.style.display = '';
+                replInput.value = '';
+                inputArea.focus();
             }
-
-            replInput.value = '';
         });
     }
 
