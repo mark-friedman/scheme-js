@@ -3930,3 +3930,18 @@ I have implemented a full-featured debugger for the REPL and a "Dual Execution M
 - Verified `:debug off` provides speedup for heavy computations (`(fib 30)`).
 - Verified `:debug on` allows stepping and breakpoints.
 
+
+# Fix: Browser REPL Help Formatting (2026-02-07)
+
+I have fixed an issue where the `:help` command output in the browser-based REPL was missing proper newlines and formatting.
+
+## Changes
+
+### 1. CSS Update in `web/repl.js`
+- Added `white-space: pre-wrap;` to the `.repl-result` and `.repl-error` CSS classes.
+- This ensures that newlines in command output (like help text, backtraces, and error messages) are preserved and displayed correctly in the browser.
+
+## Verification results
+
+- **Build**: Successfully rebuilt the project with `npm run build`, updating `dist/scheme-repl.js`.
+- **Code**: Confirmed the presence of the CSS fix in the bundled output.
