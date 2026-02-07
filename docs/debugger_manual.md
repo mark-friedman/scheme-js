@@ -26,8 +26,8 @@ The Scheme-JS debugger allows you to pause execution, inspect local variables, n
 ### Activation
 Debugging is enabled by default in the REPLs. You can check the status or toggle it using:
 - `:debug` - Show current status.
-- `:debug on` - Enable debugging.
-- `:debug off` - Disable debugging.
+- `:debug on` - Enable debugging. This is the default for the REPLs.
+- `:debug off` - Disable debugging. This can be more performant.
 
 ### Manual Pausing
 The most direct way to enter the debugger is using the `(pause)` primitive. When the interpreter encounters `(pause)`, it halts execution and enters the **debug prompt** (`debug>`).

@@ -1,8 +1,7 @@
 # Scheme R7RS-Small on JavaScript
 
-A faithful, layered implementation of the **Scheme R7RS-Small** standard in JavaScript, designed for correctness, extensibility, and deep JavaScript interoperability.
-
-## 🎯 Goals
+An implementation of the **Scheme R7RS-Small** standard in JavaScript, designed for correctness, extensibility, and 
+deep JavaScript interoperability.
 
 ### Implementation Highlights
 - **R7RS-Small**: High degree of compatibility with the R7RS-small standard (see [R7RS Libraries](#r7rs-libraries)).
@@ -12,7 +11,9 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 - **Global Environment**: JavaScript global definitions (on `window` or `globalThis`) are automatically visible in the Scheme global environment.
 - **Node.js REPL**: Full-featured interactive REPL with history, multiline support, and paren matching.
 - **Browser REPL**: Interactive browser-based REPL via a custom `<scheme-repl>` web component.
-- **Browser Scriptng**: Replace JavaScript in web apps with `<script type="text/scheme">` tags.  Direct Scheme evaluation by JavaScript is also supprted.
+- **Browser Scripting**: Replace JavaScript in web apps with `<script type="text/scheme">` tags.  Direct Scheme 
+  evaluation by JavaScript is also supported.
+- **Debugger**: Basic debugging support in the REPLs for breakpoints, stack navigation, and stepping.
 
 ### Architectural Goals
 - **Layered Design**: Build complex features (macros, data structures) on top of a minimal, robust kernel.
@@ -20,7 +21,10 @@ A faithful, layered implementation of the **Scheme R7RS-Small** standard in Java
 - **Testability**: Comprehensive test suite running in both Node.js and Browser environments.
 
 ---
+### Try it!
+You can try out the browser-based REPL [here](https://try.scheme-js.org).
 
+---
 ## 📦 Installation
 
 ### From Source
@@ -144,14 +148,18 @@ console.log(greeting); // "Hello, World!"
 ```
 
 ---
+### Debugging Tools
+See the [Debugger Manual](./docs/debugger_manual.md) for more details.
+
+---
 
 ## 🧪 Testing
 
 The project uses a custom universal test runner that works in both Node.js and the Browser.
 
-### Run All Tests (Node.js)
+### Run All Tests (via Node.js)
 ```bash
-node run_tests_node.js
+npm run test
 ```
 
 ### Run Browser Tests
@@ -171,7 +179,7 @@ npm run benchmark:save     # Save current results as baseline
 npm run benchmark:compare  # Compare against baseline
 ```
 
-Benchmarks cover arithmetic, list operations, and JS interop.
+Benchmarks cover arithmetic, list operations, JS interop and async vs sync interpreter performance.
 
 ---
 
@@ -462,7 +470,7 @@ Detailed documentation for project internals:
 
 - [**Architecture & Directory Structure**](./docs/architecture.md): High-level design and detailed file map.
 - [**Core Interpreter Implementation**](docs/core-interpreter-implementation.md): How the interpreter handles stack 
-  frames, continuations and TCO.
+  frames, continuations, TCO and dual execution models (synchronous and asynchronous).
 - [**Hygiene Implementation**](./docs/hygiene.md): How macro hygiene works using pure marks/scopes.
 - [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
 - [**JavaScript Interoperability**](./docs/Interoperability.md): Deep JS integration and callable closures.
