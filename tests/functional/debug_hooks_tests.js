@@ -105,6 +105,7 @@ export async function runDebugHooksTests(interpreter, logger) {
     // Test: shouldPause logic works correctly
     {
         const debugRuntime = new SchemeDebugRuntime();
+        debugRuntime.enable();
         debugRuntime.setBreakpoint('test.scm', 10);
 
         // Source matches breakpoint
@@ -129,6 +130,7 @@ export async function runDebugHooksTests(interpreter, logger) {
         });
 
         // Set a breakpoint on line 1 of <unknown> (the default filename from parser)
+        debugRuntime.enable();
         debugRuntime.setBreakpoint('<unknown>', 1);
         interpreter.setDebugRuntime(debugRuntime);
 
