@@ -19,9 +19,9 @@ import { Closure, Continuation } from './src/core/interpreter/values.js';
 import { LiteralNode } from './src/core/interpreter/ast.js';
 
 import { prettyPrint } from './src/core/interpreter/printer.js';
-import { SchemeDebugRuntime } from './src/core/debug/scheme_debug_runtime.js';
-import { ReplDebugBackend } from './src/core/debug/repl_debug_backend.js';
-import { ReplDebugCommands } from './src/core/debug/repl_debug_commands.js';
+import { SchemeDebugRuntime } from './src/debug/scheme_debug_runtime.js';
+import { ReplDebugBackend } from './src/debug/repl_debug_backend.js';
+import { ReplDebugCommands } from './src/debug/repl_debug_commands.js';
 import readline from 'readline';
 
 
@@ -158,7 +158,7 @@ async function startRepl() {
             prompt: 'debug> '
         });
 
-        rl.on('line', (line) => {
+        rl.on('line', async (line) => {
             line = line.trim();
             if (line === '') {
                 rl.prompt();
@@ -166,18 +166,18 @@ async function startRepl() {
             }
 
             if (commands.isDebugCommand(line)) {
-                const output = commands.execute(line);
+                const output = await commands.execute(line);
                 console.log(output);
 
                 const cmd = line.slice(1).split(/\s+/)[0].toLowerCase();
-                const resumeCmds = ['continue', 'c', 'step', 's', 'next', 'n', 'finish', 'fin'];
+                const resumeCmds = ['continue', 'c', 'step', 's', 'next', 'n', 'finish', 'fin', 'abort', 'a'];
                 if (resumeCmds.includes(cmd)) {
                     rl.close();
                 } else {
                     rl.prompt();
                 }
             } else {
-                const output = commands.execute(':eval ' + line);
+                const output = await commands.execute(':eval ' + line);
                 console.log(output);
                 rl.prompt();
             }
@@ -246,7 +246,7 @@ async function startRepl() {
 
             // Handle immediate debug commands
             if (commands.isDebugCommand(cmd)) {
-                const output = commands.execute(cmd);
+                const output = await commands.execute(cmd);
                 return callback(null, output);
             }
 

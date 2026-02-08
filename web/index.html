@@ -94,22 +94,21 @@
       word-break: break-all;
     }
 
-    /* History prompts: fixed width to match input area */
+    /* History prompts: flexible width */
     .repl-history-line .repl-prompt {
-      width: 3ch;
+      min-width: 3ch;
       text-align: right;
       margin-right: 8px;
       flex-shrink: 0;
       user-select: none;
     }
 
-    /* Prompt column: fixed width to prevent shift when adding ... prompts */
+    /* Prompt column: flexible width */
     .repl-prompt-column {
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
-      width: 3ch;
-      /* Width of "..." - prevents width change */
+      min-width: 3ch;
       margin-right: 8px;
       user-select: none;
       pointer-events: none;
@@ -221,12 +220,16 @@
       color: #569cd6;
       margin-bottom: 4px;
       padding-left: 24px;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
     .repl-error {
       color: #f14c4c;
       margin-bottom: 4px;
       padding-left: 24px;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
     .repl-history-input {
@@ -272,6 +275,40 @@
     .paren-indicator.mismatch {
       color: #f14c4c;
     }
+
+    /* Shell Header and Pause Button */
+    .repl-shell-header {
+      background-color: #333;
+      padding: 4px 12px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #aaa;
+    }
+
+    .repl-pause-button {
+      background-color: #f14c4c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      transition: background-color 0.15s;
+    }
+
+    .repl-pause-button:hover {
+      background-color: #d83d3d;
+    }
+
+    .repl-pause-button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
@@ -291,15 +328,21 @@
       <h2 class="text-2xl font-semibold mb-4">REPL</h2>
 
       <!-- Integrated Shell -->
-      <div id="repl-shell" class="repl-shell">
-        <div id="repl-history"></div>
-        <div id="repl-current-line" class="repl-line">
-          <div id="repl-prompt-column" class="repl-prompt-column">
-            <span class="repl-prompt">&gt;</span>
-          </div>
-          <div class="repl-input-wrapper">
-            <div id="repl-highlight-layer" class="repl-highlight-layer" aria-hidden="true"></div>
-            <span id="repl-input-area" class="repl-input" contenteditable="true" spellcheck="false"></span>
+      <div class="repl-shell-container">
+        <div class="repl-shell-header">
+          <span>SCHEME REPL</span>
+          <button id="repl-pause-btn" class="repl-pause-button" style="display: none;">PAUSE</button>
+        </div>
+        <div id="repl-shell" class="repl-shell">
+          <div id="repl-history"></div>
+          <div id="repl-current-line" class="repl-line">
+            <div id="repl-prompt-column" class="repl-prompt-column">
+              <span class="repl-prompt">&gt;</span>
+            </div>
+            <div class="repl-input-wrapper">
+              <div id="repl-highlight-layer" class="repl-highlight-layer" aria-hidden="true"></div>
+              <span id="repl-input-area" class="repl-input" contenteditable="true" spellcheck="false"></span>
+            </div>
           </div>
         </div>
       </div>

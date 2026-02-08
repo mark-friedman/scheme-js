@@ -9,7 +9,7 @@ import {
     SchemeDebugRuntime,
     ReplDebugBackend,
     ReplDebugCommands
-} from '../src/core/debug/index.js';
+} from '../src/debug/index.js';
 
 // --- Main Entry Point ---
 
