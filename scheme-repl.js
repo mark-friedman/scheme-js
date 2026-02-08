@@ -191,9 +191,48 @@ const replStyles = `
     .repl-button:hover {
       background-color: #1d4ed8;
     }
+
+    /* Shell Header and Pause Button */
+    .repl-shell-header {
+      background-color: #333;
+      padding: 4px 12px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #aaa;
+    }
+
+    .repl-pause-button {
+      background-color: #f14c4c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      transition: background-color 0.15s;
+    }
+
+    .repl-pause-button:hover {
+      background-color: #d83d3d;
+    }
+
+    .repl-pause-button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
 `;
 
 const replTemplate = `
+    <div class="repl-shell-container">
+      <div class="repl-shell-header">
+        <span>SCHEME REPL</span>
+        <button id="repl-pause-btn" class="repl-pause-button" style="display: none;">PAUSE</button>
+      </div>
       <div id="repl-shell" class="repl-shell">
         <div id="repl-history"></div>
         <div id="repl-current-line" class="repl-line">
@@ -206,13 +245,14 @@ const replTemplate = `
           </div>
         </div>
       </div>
-      
-      <!-- Paste Area -->
-      <div class="repl-paste-area">
-        <label class="repl-paste-label">Paste larger expressions:</label>
-        <textarea id="repl-input" class="repl-textarea" rows="4" placeholder="(define (factorial n) ...)"></textarea>
-        <button id="repl-run-btn" class="repl-button">Run</button>
-      </div>
+    </div>
+    
+    <!-- Paste Area -->
+    <div class="repl-paste-area">
+      <label class="repl-paste-label">Paste larger expressions:</label>
+      <textarea id="repl-input" class="repl-textarea" rows="4" placeholder="(define (factorial n) ...)"></textarea>
+      <button id="repl-run-btn" class="repl-button">Run</button>
+    </div>
 `;
 
 /**
@@ -258,17 +298,30 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
 
     // Watch for pause to change UI state
     debugBackend.setOnPause(() => {
-        promptColumn.querySelector('.repl-prompt').textContent = 'debug>';
+        const currentLine = rootElement.querySelector('#repl-current-line');
+        if (currentLine) currentLine.style.display = '';
+        if (pauseBtn) pauseBtn.style.display = 'none';
+
+        promptColumn.querySelector('.repl-prompt').textContent = 'debug\u003e';
         shell.classList.add('paused');
         // Scroll to bottom to show pause message
         shell.scrollTop = shell.scrollHeight;
+        inputArea.focus();
     });
 
     // Reset on resume
     const originalOnResume = debugBackend.onResume.bind(debugBackend);
     debugBackend.onResume = () => {
         originalOnResume();
-        promptColumn.querySelector('.repl-prompt').textContent = '>';
+
+        // If we are still in the middle of a long evaluation, hide the prompt again
+        if (isEvaluating) {
+            const currentLine = rootElement.querySelector('#repl-current-line');
+            if (currentLine) currentLine.style.display = 'none';
+            if (pauseBtn) pauseBtn.style.display = 'block';
+        }
+
+        promptColumn.querySelector('.repl-prompt').textContent = '\u003e';
         shell.classList.remove('paused');
     };
 
@@ -281,10 +334,20 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
     const inputArea = rootElement.querySelector('#repl-input-area');
     const highlightLayer = rootElement.querySelector('#repl-highlight-layer');
     const promptColumn = rootElement.querySelector('#repl-prompt-column');
+    const pauseBtn = rootElement.querySelector('#repl-pause-btn');
 
     // Optional elements
     const replInput = rootElement.querySelector('#repl-input');
     const replRunBtn = rootElement.querySelector('#repl-run-btn');
+
+    // ==================== Pause Button Logic ====================
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', () => {
+            if (interpreter.debugRuntime) {
+                interpreter.debugRuntime.pause(null, null, 'manual interrupt');
+            }
+        });
+    }
 
     const PAREN_COLORS = 6;
 
@@ -398,6 +461,8 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
      * Reset prompts to initial state (single >)
      */
     function resetPrompts() {
+        const firstPrompt = promptColumn.querySelector('.repl-prompt');
+        if (firstPrompt) firstPrompt.textContent = '>';
         while (promptColumn.children.length > 1) {
             promptColumn.removeChild(promptColumn.lastChild);
         }
@@ -566,62 +631,57 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
      * Evaluate current input
      */
     async function evaluate() {
-        if (isEvaluating) return;
+        if (isEvaluating && !debugBackend.isPaused()) return;
 
         const code = (inputArea.textContent || '').trim();
         if (!code) return;
 
-        // Check for debug commands
-        if (code.startsWith(':')) {
-            addToHistory(code, 'input');
-            const result = debugCommands.execute(code);
-            if (result) {
-                addToHistory(result, 'result');
-            }
-            inputArea.textContent = '';
-            highlightLayer.innerHTML = '';
-            resetPrompts();
-            return;
-        }
-
-        // If paused, any input is treated as a debug eval or command
-        if (debugBackend.isPaused()) {
-            addToHistory(code, 'input');
-            const result = debugCommands.handleEval(code);
-            addToHistory(result, 'result');
-
-            inputArea.textContent = '';
-            highlightLayer.innerHTML = '';
-            // Don't reset prompts yet if still paused
-            updatePrompts();
-            return;
-        }
-
-        addToHistory(code, 'input');
-
         // Clear input immediately and hide prompt
         inputArea.textContent = '';
         highlightLayer.innerHTML = '';
+
+        isEvaluating = true;
         const currentLine = rootElement.querySelector('#repl-current-line');
         if (currentLine) currentLine.style.display = 'none';
-        isEvaluating = true;
+        if (pauseBtn) pauseBtn.style.display = 'block';
+
+        addToHistory(code, 'input');
 
         try {
+            // Check for debug commands
+            if (code.startsWith(':')) {
+                const result = await debugCommands.execute(code);
+                if (result) {
+                    addToHistory(result, 'result');
+                }
+
+                // If the command was :abort, the main runAsync will throw and be caught below.
+                // If it was just :continue or something else, we let the finally block reset the UI.
+                return;
+            }
+
+            // If paused, any input is treated as a debug eval
+            if (debugBackend.isPaused()) {
+                const result = await debugCommands.handleEval(code);
+                addToHistory(result, 'result');
+                return;
+            }
+
+            // Normal evaluation
             const sexps = parse(code);
             let result;
             for (const sexp of sexps) {
-                // Check debug state
-                if (debugBackend && interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
+                if (interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
                     // FAST MODE (Sync)
-                    // Note: This WILL freeze the browser for long computations
                     result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
                 } else {
                     // DEBUG MODE (Async)
                     result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
                 }
             }
-            // If we hit a breakpoint/pause, the result will be what runAsync returned (or it might still be running)
-            if (!debugBackend.isPaused()) {
+
+            // Only add result if we didn't terminate (paused or aborted)
+            if (!debugBackend.isPaused() && !interpreter.debugRuntime?.pauseController?.isAborted()) {
                 addToHistory(prettyPrint(result), 'result');
             }
 
@@ -630,16 +690,17 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
             addToHistory(`Error: ${e.message}`, 'error');
         } finally {
             isEvaluating = false;
-            if (currentLine) currentLine.style.display = '';
 
-            // Post-eval cleanup
+            // Post-eval UI cleanup
             if (!debugBackend.isPaused()) {
-                inputArea.textContent = '';
-                highlightLayer.innerHTML = '';
+                if (currentLine) currentLine.style.display = '';
+                if (pauseBtn) pauseBtn.style.display = 'none';
+                shell.classList.remove('paused');
                 resetPrompts();
             } else {
-                inputArea.textContent = '';
-                highlightLayer.innerHTML = '';
+                // Stay in debug mode UI
+                if (currentLine) currentLine.style.display = '';
+                if (pauseBtn) pauseBtn.style.display = 'none';
                 updatePrompts();
             }
             inputArea.focus();
@@ -705,6 +766,7 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
             replRunBtn.disabled = true;
             const currentLine = rootElement.querySelector('#repl-current-line');
             if (currentLine) currentLine.style.display = 'none';
+            if (pauseBtn) pauseBtn.style.display = 'block';
             isEvaluating = true;
 
             try {
@@ -723,6 +785,7 @@ function setupRepl(interpreter, globalEnv, rootElement = document, deps = {}) {
                 isEvaluating = false;
                 replRunBtn.disabled = false;
                 if (currentLine) currentLine.style.display = '';
+                if (pauseBtn) pauseBtn.style.display = 'none';
                 replInput.value = '';
                 inputArea.focus();
             }
