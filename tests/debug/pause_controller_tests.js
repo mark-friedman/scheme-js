@@ -1,12 +1,12 @@
 /**
  * @fileoverview Unit tests for PauseController.
- * 
+ *
  * Tests for debugger pause state and stepping logic.
  * Part of Phase 1: Debug Runtime Core.
  */
 
-import { assert } from '../../harness/helpers.js';
-import { PauseController } from '../../../src/core/debug/pause_controller.js';
+import { assert } from '../harness/helpers.js';
+import { PauseController } from '../../src/debug/pause_controller.js';
 
 /**
  * Runs all PauseController tests.

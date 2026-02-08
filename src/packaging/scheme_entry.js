@@ -9,7 +9,7 @@ import {
     SchemeDebugRuntime,
     ReplDebugBackend,
     ReplDebugCommands
-} from '../core/debug/index.js';
+} from '../debug/index.js';
 
 // Create a single shared interpreter and environment instance
 const { interpreter, env } = createInterpreter();

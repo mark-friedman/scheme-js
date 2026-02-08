@@ -3,11 +3,11 @@
  */
 
 import { DebugBackend } from './debug_backend.js';
-import { prettyPrint } from '../interpreter/printer.js';
+import { prettyPrint } from '../core/interpreter/printer.js';
 
 /**
  * REPL debug backend for interactive debugging in browser and Node.js REPLs.
- * 
+ *
  * Provides a pull-based model for REPL interaction.
  * When paused, it can notify the REPL to enter a debug command state.
  */
@@ -26,7 +26,7 @@ export class ReplDebugBackend extends DebugBackend {
 
     /**
      * Sets a callback to be invoked when execution pauses.
-     * @param {Function} cb 
+     * @param {Function} cb
      */
     setOnPause(cb) {
         this.onPauseCallback = cb;

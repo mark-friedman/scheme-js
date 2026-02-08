@@ -1,18 +1,18 @@
 /**
  * @fileoverview Unit tests for StateInspector.
- * 
+ *
  * Tests scope chain traversal and CDP value serialization.
  */
 
-import { assert, createTestLogger } from '../../harness/helpers.js';
-import { Environment } from '../../../src/core/interpreter/environment.js';
-import { StateInspector } from '../../../src/core/debug/state_inspector.js';
-import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
-import { intern } from '../../../src/core/interpreter/symbol.js';
-import { Char } from '../../../src/core/primitives/char_class.js';
-import { Rational } from '../../../src/core/primitives/rational.js';
-import { Complex } from '../../../src/core/primitives/complex.js';
-import { SCHEME_CONTINUATION } from '../../../src/core/interpreter/values.js';
+import { assert, createTestLogger } from '../harness/helpers.js';
+import { Environment } from '../../src/core/interpreter/environment.js';
+import { StateInspector } from '../../src/debug/state_inspector.js';
+import { Cons, cons, list } from '../../src/core/interpreter/cons.js';
+import { intern } from '../../src/core/interpreter/symbol.js';
+import { Char } from '../../src/core/primitives/char_class.js';
+import { Rational } from '../../src/core/primitives/rational.js';
+import { Complex } from '../../src/core/primitives/complex.js';
+import { SCHEME_CONTINUATION } from '../../src/core/interpreter/values.js';
 
 /**
  * Runs all StateInspector tests.

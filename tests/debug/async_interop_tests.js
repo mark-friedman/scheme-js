@@ -1,6 +1,6 @@
 /**
  * @fileoverview Async Interop Stress Tests
- * 
+ *
  * Tests that async execution with yields works correctly at Scheme/JS boundaries:
  * - Scheme → JS → Scheme callback chains
  * - JS → Scheme → JS nested calls
@@ -9,7 +9,7 @@
  * - call/cc across JS boundaries under async
  */
 
-import { assert, run, createTestLogger } from '../../harness/helpers.js';
+import { assert, run, createTestLogger } from '../harness/helpers.js';
 
 /**
  * Runs async interop stress tests.

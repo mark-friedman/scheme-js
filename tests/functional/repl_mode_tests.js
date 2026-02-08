@@ -1,6 +1,6 @@
 
 import { createInterpreter } from '../../src/core/interpreter/index.js';
-import { SchemeDebugRuntime } from '../../src/core/debug/scheme_debug_runtime.js';
+import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
 import { assert, createTestLogger } from '../harness/helpers.js';
 
 const logger = createTestLogger({ verbose: true });
@@ -17,7 +17,7 @@ async function runTests() {
     let runSyncCalled = 0;
     let runAsyncCalled = 0;
 
-    // We hold references to original methods to actually execute if needed, 
+    // We hold references to original methods to actually execute if needed,
     // or we can just mock the return for this test.
     const originalRun = interpreter.run.bind(interpreter);
     const originalRunAsync = interpreter.runAsync.bind(interpreter);

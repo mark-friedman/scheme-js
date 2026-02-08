@@ -31,6 +31,25 @@ export class PauseController {
          * @type {Function|null}
          */
         this.pauseResolve = null;
+
+        /** @type {boolean} */
+        this.aborted = false;
+    }
+
+    /**
+     * Checks if currently aborted.
+     * @returns {boolean}
+     */
+    isAborted() {
+        return this.aborted;
+    }
+
+    /**
+     * Aborts execution.
+     */
+    abort() {
+        this.aborted = true;
+        this.resume();
     }
 
     /**
@@ -205,5 +224,6 @@ export class PauseController {
         this.targetDepth = null;
         this.pauseReason = null;
         this.pauseData = null;
+        this.aborted = false;
     }
 }

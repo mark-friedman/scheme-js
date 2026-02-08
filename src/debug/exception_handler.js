@@ -1,12 +1,12 @@
 /**
  * @fileoverview DebugExceptionHandler - Handles break-on-exception logic.
- * 
+ *
  * Determines when exceptions should trigger debugger pauses based on
  * configuration (break on caught, break on uncaught) and the current
  * exception handler stack state.
  */
 
-import { getExceptionHandlerFrameClass } from '../interpreter/frame_registry.js';
+import { getExceptionHandlerFrameClass } from '../core/interpreter/frame_registry.js';
 
 /**
  * Handles exception debugging logic for the debug runtime.
@@ -34,7 +34,7 @@ export class DebugExceptionHandler {
 
     /**
      * Determines if execution should pause on this exception.
-     * 
+     *
      * @param {*} exception - The exception value
      * @param {Array} fstack - The current frame stack
      * @returns {boolean} True if should pause
@@ -64,7 +64,7 @@ export class DebugExceptionHandler {
     /**
      * Checks if an exception will be caught by a handler in the frame stack.
      * Looks for ExceptionHandlerFrame in the stack.
-     * 
+     *
      * @param {Array} fstack - The current frame stack
      * @returns {boolean} True if an exception handler is present
      */

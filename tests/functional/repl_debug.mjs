@@ -52,11 +52,12 @@ async function test() {
 
         // 2. Test :debug command
         write(':debug');
-        await waitFor('Debugging is ON');
+        await waitFor('Debugging is OFF');
         console.log(':debug works');
 
         // 3. Test breakpoint and pause
         // Define a function
+        write(':debug on');
         write('(define (test-break x) (+ x 1))');
         await waitFor('> ');
 

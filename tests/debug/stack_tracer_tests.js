@@ -1,12 +1,12 @@
 /**
  * @fileoverview Unit tests for StackTracer.
- * 
+ *
  * Tests for call stack tracking with TCO (Tail Call Optimization) awareness.
  * Part of Phase 1: Debug Runtime Core.
  */
 
-import { assert } from '../../harness/helpers.js';
-import { StackTracer } from '../../../src/core/debug/stack_tracer.js';
+import { assert } from '../harness/helpers.js';
+import { StackTracer } from '../../src/debug/stack_tracer.js';
 
 /**
  * Runs all StackTracer tests.

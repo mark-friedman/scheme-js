@@ -28,10 +28,10 @@ export const unitTests = [
     { path: 'core/interpreter/reader/number_parser_tests.js', fn: 'runNumberParserTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/source_location_tests.js', fn: 'runSourceLocationTests', needsInterpreter: false },
     // Debug Unit Tests
-    { path: 'core/debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
-    { path: 'core/debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
-    { path: 'core/debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
-    { path: 'core/debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
+    { path: 'debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
+    { path: 'debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
+    { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
+    { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
 ];
 
@@ -57,9 +57,9 @@ export const functionalTests = [
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
-    { path: 'core/debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
-    { path: 'core/debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
-    { path: 'core/debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
+    { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
+    { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
+    { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
     { path: 'functional/exception_debugging_tests.js', fn: 'runExceptionDebuggingTests', async: true },
 ];
 

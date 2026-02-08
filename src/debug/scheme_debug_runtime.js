@@ -1,6 +1,6 @@
 /**
  * @fileoverview SchemeDebugRuntime - Main coordinator for debugging functionality.
- * 
+ *
  * Integrates BreakpointManager, StackTracer, and PauseController to provide
  * a unified debugging interface. This is the main entry point for debug
  * integration with the interpreter.
@@ -36,12 +36,12 @@ export class SchemeDebugRuntime {
         this.backend = null;
 
         /** @type {boolean} */
-        this.enabled = true;
+        this.enabled = false;
     }
 
     /**
      * Sets the debug backend and hooks up its event handlers.
-     * @param {DebugBackend} backend 
+     * @param {DebugBackend} backend
      */
     setBackend(backend) {
         this.backend = backend;
@@ -173,7 +173,7 @@ export class SchemeDebugRuntime {
     /**
      * Called by interpreter before evaluating an expression.
      * Determines if execution should pause.
-     * 
+     *
      * @param {Object} source - Source location info
      * @param {Object} env - Current environment
      * @returns {boolean} True if should pause
@@ -230,7 +230,7 @@ export class SchemeDebugRuntime {
     /**
      * Pauses on an exception.
      * Called by RaiseNode when shouldBreakOnException returns true.
-     * 
+     *
      * @param {Object} raiseNode - The RaiseNode that raised the exception
      * @param {Object} registers - Current interpreter registers
      * @returns {boolean} Whether execution was paused
@@ -345,6 +345,13 @@ export class SchemeDebugRuntime {
      */
     disable() {
         this.enabled = false;
+    }
+
+    /**
+     * Aborts execution.
+     */
+    abort() {
+        this.pauseController.abort();
     }
 
     /**

@@ -12,7 +12,7 @@ const projectRoot = path.join(__dirname, '..');
 import { createInterpreter } from '../src/core/interpreter/index.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { parse } from '../src/core/interpreter/reader.js';
-import { SchemeDebugRuntime } from '../src/core/debug/scheme_debug_runtime.js';
+import { SchemeDebugRuntime } from '../src/debug/scheme_debug_runtime.js';
 
 // Setup Interpreter
 const { interpreter, env } = createInterpreter();
@@ -46,7 +46,7 @@ const fibCode = `
 (fib 25)
 `;
 
-const ast = analyze(parse(fibCode)[1]); // [1] because [0] is the define, [1] is the (fib 25) call. 
+const ast = analyze(parse(fibCode)[1]); // [1] because [0] is the define, [1] is the (fib 25) call.
 // Actually let's just analyze/run the define first, then benchmark the call.
 
 const defCode = `

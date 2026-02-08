@@ -4,9 +4,9 @@
 
 import { createTestLogger, assert } from '../harness/helpers.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
-import { SchemeDebugRuntime } from '../../src/core/debug/scheme_debug_runtime.js';
-import { ReplDebugBackend } from '../../src/core/debug/repl_debug_backend.js';
-import { ReplDebugCommands } from '../../src/core/debug/repl_debug_commands.js';
+import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
+import { ReplDebugBackend } from '../../src/debug/repl_debug_backend.js';
+import { ReplDebugCommands } from '../../src/debug/repl_debug_commands.js';
 import { Symbol } from '../../src/core/interpreter/symbol.js';
 
 export async function runReplDebugCommandsTests(interpreter, logger) {

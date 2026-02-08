@@ -13,7 +13,7 @@ deep JavaScript interoperability.
 - **Browser REPL**: Interactive browser-based REPL via a custom `<scheme-repl>` web component.
 - **Browser Scripting**: Replace JavaScript in web apps with `<script type="text/scheme">` tags.  Direct Scheme 
   evaluation by JavaScript is also supported.
-- **Debugger**: Basic debugging support in the REPLs for breakpoints, stack navigation, and stepping.
+- **Debugger - _Coming Soon_**: Basic debugging support in the REPLs for breakpoints, stack navigation, and stepping.
 
 ### Architectural Goals
 - **Layered Design**: Build complex features (macros, data structures) on top of a minimal, robust kernel.

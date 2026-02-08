@@ -1,18 +1,18 @@
 /**
  * @fileoverview Async Mode Functional Tests
- * 
+ *
  * Re-runs a subset of critical functional tests using the async execution path
  * to ensure that evaluateStringAsync produces identical results to sync execution.
- * 
+ *
  * This verifies that the async trampoline doesn't introduce any regressions
  * in existing functionality.
  */
 
-import { assert, run, createTestLogger } from '../../harness/helpers.js';
+import { assert, run, createTestLogger } from '../harness/helpers.js';
 
 /**
  * Runs functional tests in async mode.
- * 
+ *
  * Tests selected based on coverage of critical functionality:
  * - Core evaluation patterns
  * - TCO (tail call optimization)
@@ -20,7 +20,7 @@ import { assert, run, createTestLogger } from '../../harness/helpers.js';
  * - Dynamic-wind
  * - Macros and special forms
  * - Error handling
- * 
+ *
  * @param {Interpreter} interpreter - The bootstrapped interpreter
  * @param {Object} logger - Test logger
  */

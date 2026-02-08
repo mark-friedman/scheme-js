@@ -2,10 +2,10 @@
  * @fileoverview REPL Debug Commands parser and executor.
  */
 
-import { parse } from '../interpreter/reader.js';
-import { analyze, SyntacticEnv } from '../interpreter/analyzer.js';
-import { prettyPrint } from '../interpreter/printer.js';
-import { intern } from '../interpreter/symbol.js';
+import { parse } from '../core/interpreter/reader.js';
+import { analyze, SyntacticEnv } from '../core/interpreter/analyzer.js';
+import { prettyPrint } from '../core/interpreter/printer.js';
+import { intern } from '../core/interpreter/symbol.js';
 
 /**
  * Parses and executes REPL debug commands.
@@ -26,7 +26,7 @@ export class ReplDebugCommands {
 
     /**
      * Checks if a string is a debug command.
-     * @param {string} input 
+     * @param {string} input
      * @returns {boolean}
      */
     isDebugCommand(input) {
@@ -35,10 +35,10 @@ export class ReplDebugCommands {
 
     /**
      * Executes a debug command.
-     * @param {string} input 
-     * @returns {string} Output message
+     * @param {string} input
+     * @returns {Promise<string>} Output message
      */
-    execute(input) {
+    async execute(input) {
         const trimmed = input.trim();
         const parts = trimmed.slice(1).split(/\s+/);
         const cmd = parts[0].toLowerCase();
@@ -71,12 +71,18 @@ export class ReplDebugCommands {
             case 'locals':
                 return this.handleLocals();
             case 'eval':
-                return this.handleEval(args.join(' '));
+                return await this.handleEval(args.join(' '));
+            case 'abort':
+            case 'a':
+                return this.handleAbort();
             case 'up':
+            case 'u':
                 return this.handleFrameUp();
             case 'down':
+            case 'd':
                 return this.handleFrameDown();
             case 'help':
+            case 'h':
             case '?':
                 return this.handleHelp();
             default:
@@ -102,6 +108,11 @@ export class ReplDebugCommands {
         }
 
         return ';; Usage: :debug on|off';
+    }
+
+    handleAbort() {
+        this.debugRuntime.abort();
+        return ';; Evaluation aborted';
     }
 
     handleBreak(args) {
@@ -195,7 +206,7 @@ export class ReplDebugCommands {
         return output.trim();
     }
 
-    handleEval(expr) {
+    async handleEval(expr) {
         if (!this.backend.isPaused()) return ';; Not paused';
         if (!expr) return ';; Usage: :eval <expression>';
 
@@ -232,7 +243,15 @@ export class ReplDebugCommands {
             }
 
             const ast = analyze(sexp, syntacticEnv, this.interpreter.context);
-            const result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
+
+            let result;
+            if (this.debugRuntime.enabled) {
+                // Async eval in selected scope
+                result = await this.interpreter.runAsync(ast, env, { jsAutoConvert: 'raw' });
+            } else {
+                // Sync eval (will freeze UI if long)
+                result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
+            }
             return `;; result: ${this.backend.formatValue(result)}`;
         } catch (e) {
             return `;; Error during eval: ${e.message}`;
@@ -272,8 +291,10 @@ export class ReplDebugCommands {
 ;;   :bt / :backtrace  - Show backtrace
 ;;   :locals           - Show local variables
 ;;   :eval <expr>      - Evaluate in selected frame's scope
-;;   :up / :down       - Navigate stack frames
-;;   :help             - Show this help`;
+;;   :abort / :a       - Abort current evaluation and return to prompt
+;;   :up / :u          - Move up the stack
+;;   :down / :d        - Move down the stack
+;;   :help / :h / :?   - Show this help`;
     }
 
     _getSelectedIndex(stack) {

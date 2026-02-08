@@ -1,14 +1,14 @@
 /**
  * @fileoverview Unit tests for AsyncTrampoline.
- * 
+ *
  * Tests that async execution produces identical results to sync execution
  * and that yield points don't corrupt interpreter state.
- * 
+ *
  * Note: These tests use the bootstrapped interpreter passed from the test runner
  * to ensure macros and library functions (like <=) are available.
  */
 
-import { assert, run, createTestLogger } from '../../harness/helpers.js';
+import { assert, run, createTestLogger } from '../harness/helpers.js';
 
 /**
  * Runs all AsyncTrampoline tests.

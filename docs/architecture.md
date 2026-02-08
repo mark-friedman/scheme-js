@@ -167,17 +167,17 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │           ├── parameter.scm       # make-parameter, parameterize
 │           └── repl.scm            # REPL utilities
 │
-│       ├── debug/                  # Debugger Runtime & Tools
-│       │   ├── index.js            # Barrel export
-│       │   ├── scheme_debug_runtime.js # Central debugger coordinator
-│       │   ├── debug_backend.js    # Abstract backend interface
-│       │   ├── breakpoint_manager.js # Breakpoint registry
-│       │   ├── stack_tracer.js     # Logical stack tracking
-│       │   ├── pause_controller.js # Stepping state machine
-│       │   ├── state_inspector.js  # Scope & value inspection
-│       │   ├── exception_handler.js # Error interception
-│       │   ├── repl_debug_backend.js # REPL-specific backend adapter
-│       │   └── repl_debug_commands.js # REPL command parser (:break, :step, etc.)
+│   └── debug/                  # Debugger Runtime & Tools
+│      ├── index.js            # Barrel export
+│      ├── scheme_debug_runtime.js # Central debugger coordinator
+│      ├── debug_backend.js    # Abstract backend interface
+│      ├── breakpoint_manager.js # Breakpoint registry
+│      ├── stack_tracer.js     # Logical stack tracking
+│      ├── pause_controller.js # Stepping state machine
+│      ├── state_inspector.js  # Scope & value inspection
+│      ├── exception_handler.js # Error interception
+│      ├── repl_debug_backend.js # REPL-specific backend adapter
+│      └── repl_debug_commands.js # REPL command parser (:break, :step, etc.)
 │
 │   └── extras/                     # Extension libraries (non-R7RS)
 │       ├── primitives/             # JavaScript primitives for extensions

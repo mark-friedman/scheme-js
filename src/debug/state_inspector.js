@@ -1,16 +1,16 @@
 /**
  * @fileoverview StateInspector for debugger state inspection.
- * 
+ *
  * Provides scope chain traversal and CDP-compatible value serialization.
  * Used by the debug runtime to inspect variables and values during pause.
  */
 
-import { Cons } from '../interpreter/cons.js';
-import { Symbol as SchemeSymbol } from '../interpreter/symbol.js';
-import { Char } from '../primitives/char_class.js';
-import { Rational } from '../primitives/rational.js';
-import { Complex } from '../primitives/complex.js';
-import { isSchemeClosure, isSchemeContinuation } from '../interpreter/values.js';
+import { Cons } from '../core/interpreter/cons.js';
+import { Symbol as SchemeSymbol } from '../core/interpreter/symbol.js';
+import { Char } from '../core/primitives/char_class.js';
+import { Rational } from '../core/primitives/rational.js';
+import { Complex } from '../core/primitives/complex.js';
+import { isSchemeClosure, isSchemeContinuation } from '../core/interpreter/values.js';
 
 /**
  * StateInspector provides debugger state inspection capabilities.
@@ -27,7 +27,7 @@ export class StateInspector {
     /**
      * Gets the scope chain for an environment.
      * Returns an array of scope objects, from innermost to outermost.
-     * 
+     *
      * @param {Environment} env - The environment to inspect
      * @returns {Array<Object>} Array of scope descriptors
      */
@@ -61,7 +61,7 @@ export class StateInspector {
 
     /**
      * Gets the properties (bindings) of a single scope/environment.
-     * 
+     *
      * @param {Environment} env - The environment to inspect
      * @returns {Array<Object>} Array of property descriptors
      */
@@ -83,7 +83,7 @@ export class StateInspector {
 
     /**
      * Serializes a Scheme value to CDP RemoteObject format.
-     * 
+     *
      * @param {*} value - The value to serialize
      * @param {number} [depth=0] - Current recursion depth (for limiting)
      * @returns {Object} CDP RemoteObject representation
@@ -245,7 +245,7 @@ export class StateInspector {
 
     /**
      * Gets an object by its ID (for property inspection).
-     * 
+     *
      * @param {string} objectId - The object ID
      * @returns {*} The registered object, or undefined
      */
@@ -256,7 +256,7 @@ export class StateInspector {
 
     /**
      * Gets the properties of a registered object.
-     * 
+     *
      * @param {string} objectId - The object ID
      * @returns {Array<Object>} Array of property descriptors
      */

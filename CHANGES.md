@@ -3823,9 +3823,9 @@ Completed Phase 3 of the Debugger implementation, establishing a robust async ex
 - Fixed `evaluateStringAsync` to use the interpreter's context for correct macro resolution.
 
 ### Testing Infrastructure
-- **Async Trampoline Tests**: [async_trampoline_tests.js](./tests/core/debug/async_trampoline_tests.js) - 17 tests for core async mechanics.
-- **Async Interop Tests**: [async_interop_tests.js](./tests/core/debug/async_interop_tests.js) - 21 tests for Scheme/JS boundary crossings, interleaved loops, and async boundary management.
-- **Async Mode Functional Tests**: [async_mode_functional_tests.js](./tests/core/debug/async_mode_functional_tests.js) - Stress tests for TCO, `call/cc`, and `dynamic-wind` running under 1-step yield pressure.
+- **Async Trampoline Tests**: [async_trampoline_tests.js](./tests/debug/async_trampoline_tests.js) - 17 tests for core async mechanics.
+- **Async Interop Tests**: [async_interop_tests.js](./tests/debug/async_interop_tests.js) - 21 tests for Scheme/JS boundary crossings, interleaved loops, and async boundary management.
+- **Async Mode Functional Tests**: [async_mode_functional_tests.js](./tests/debug/async_mode_functional_tests.js) - Stress tests for TCO, `call/cc`, and `dynamic-wind` running under 1-step yield pressure.
 
 ### Bug Fixes
 - **Macro Registry Isolation**: Fixed a critical issue in `macro_tests.js`, `syntax_rules_tests.js`, and `hygiene_tests.js` where `globalMacroRegistry.clear()` was wiping out bootstrapped macros like `case`, `when`, and `unless` for subsequent tests in the suite.
@@ -3862,10 +3862,10 @@ Completed the implementation of Exception Debugging (Phase 4) and full REPL Debu
 Allows the interpreter to pause execution when a Scheme exception is raised, enabling inspection of the error state before the stack unwinds.
 
 ### Changes Made
-- **[exception_handler.js](file:///Users/mark/code/scheme-js-4/src/core/debug/exception_handler.js)**: Implemented `DebugExceptionHandler` with support for `breakOnCaughtException` and `breakOnUncaughtException`.
-- **[pause_controller.js](file:///Users/mark/code/scheme-js-4/src/core/debug/pause_controller.js)**: Added Promise-based `waitForResume()` and `resume()` for true synchronization between the async interpreter and the debugger.
-- **[interpreter.js](file:///Users/mark/code/scheme-js-4/src/core/interpreter/interpreter.js)**: Added hooks in `runAsync` and the catch block to trigger pauses on exceptions.
-- **[exception_debugging_tests.js](file:///Users/mark/code/scheme-js-4/tests/functional/exception_debugging_tests.js)**: Added 9 comprehensive tests for pause/resume on exceptions.
+- **[exception_handler.js](./src/debug/exception_handler.js)**: Implemented `DebugExceptionHandler` with support for `breakOnCaughtException` and `breakOnUncaughtException`.
+- **[pause_controller.js](./src/debug/pause_controller.js)**: Added Promise-based `waitForResume()` and `resume()` for true synchronization between the async interpreter and the debugger.
+- **[interpreter.js](./src/core/interpreter/interpreter.js)**: Added hooks in `runAsync` and the catch block to trigger pauses on exceptions.
+- **[exception_debugging_tests.js](./tests/functional/exception_debugging_tests.js)**: Added 9 comprehensive tests for pause/resume on exceptions.
 
 ---
 
@@ -3888,7 +3888,8 @@ Integrated the debugging runtime into the interactive REPLs, providing a profess
 
 ## Documentation
 
-- **[debugger_manual.md](file:///Users/mark/code/scheme-js-4/doc/debugger_manual.md)**: Created a detailed user manual for all debugger commands and features.
+- **[debugger_manual.md](./docs/debugger_manual.md)**: Created a detailed user manual for all debugger commands 
+  and features.
 
 ## Verification Results
 ```
@@ -3945,3 +3946,81 @@ I have fixed an issue where the `:help` command output in the browser-based REPL
 
 - **Build**: Successfully rebuilt the project with `npm run build`, updating `dist/scheme-repl.js`.
 - **Code**: Confirmed the presence of the CSS fix in the bundled output.
+
+# Walkthrough: REPL Evaluation Lock & Pause Button (2026-02-07)
+
+I have implemented evaluation locks in both the browser and Node.js REPLs to prevent concurrent evaluations and ensure sequential execution. Additionally, I added a "PAUSE" button to the browser REPL to interrupt long-running asynchronous evaluations and enter the debugger.
+
+## Changes
+
+### 1. REPL Evaluation Lock
+- **Browser ()**:
+    - Added an `isEvaluating` flag to track state.
+    - Updated `evaluate()` to check this flag and block entry if already evaluating.
+    - Clears input area and hides the current prompt line (`#repl-current-line`) during evaluation.
+    - Uses `try...finally` to restore UI state and reset the evaluating flag.
+- **Node.js (`repl.js`)**:
+    - Added `isEvaluating` flag to the `startRepl` scope.
+    - Updated the custom `eval` handler to block concurrent `runAsync` calls.
+
+### 2. REPL Pause Button (Browser)
+- **UI (`web/index.html`)**:
+    - Added `.repl-shell-header` with a "PAUSE" button above the REPL shell.
+    - Styled the button to be visible only during evaluations.
+- **Logic (`web/repl.js`)**:
+    - Hooked up the Pause button to call `interpreter.debugRuntime.pause(null, null, 'manual interrupt')`.
+    - Fixed an issue where the REPL would block all input while paused. The `evaluate()` function now allows input if the debugger is in a paused state, enabling the use of debug commands like `:c`, `:bt`, and `:locals`.
+    - Managed prompt visibility during the pause/resume lifecycle to ensure the "evaluating" state is correctly represented when execution continues.
+
+## Verification Results
+
+- **Sequential Execution**: Verified that starting a new evaluation while another is running is blocked.
+- **UI Feedback**: Verified the prompt is hidden and the Pause button appears during evaluation.
+- **Debugger Integration**: Verified that clicking "PAUSE" enters the debugger, changes the prompt to `debug>`, and allows entering debug commands.
+- **Resumption**: Verified that entering `:continue` hides the prompt again and resumes execution until completion.
+
+
+## UI Refinements (2026-02-07)
+- **Flexible Prompt Width**: Updated the CSS to allow the prompt column to expand for longer prompts like `debug>`, preventing cursor overlap with the prompt text.
+- **Newline Preservation**: Added `white-space: pre-wrap` to REPL result and error styles in `web/index.html` to ensure formatted output (like backtraces) renders correctly with newlines in the browser.
+
+
+# Walkthrough: Debugger Improvements (Abort & Async Eval)
+
+I have implemented significant improvements to the REPL debugger, focusing on user experience and system stability during long-running evaluations.
+
+## Changes
+
+### 1. Abort Command
+I implemented the `:abort` command (alias `:a`) to allow users to terminate running evaluations and return to the main REPL prompt.
+- **`PauseController`**: added an `aborted` state flag.
+- **`Interpreter`**: updated to check for the aborted state after resuming from a pause.
+- **`ReplDebugCommands`**: added `handleAbort` to trigger the abort sequence.
+- **REPL UI (Browser)**: updated logic to correctly reset the prompt to `>` after an abort.
+- **REPL (Node.js)**: updated nested readline loop to exit upon abort.
+
+### 2. Asynchronous Evaluation
+I converted the REPL's evaluation logic to be fully asynchronous in debug mode.
+- **`ReplDebugCommands`**: `execute` and `handleEval` are now async.
+- **REPLs**: Both Browser and Node.js REPLs now `await` debug commands.
+- This prevents the UI from freezing during long-running debug evaluations (e.g., `:eval (long-loop)`).
+
+### 3. UI Refinements
+- **PAUSE Button**: The pause button now appears for all evaluations, including those initiated from within the debugger.
+- **Prompt Logic**: Fixed issues where the prompt would get stuck in `debug>` mode or fail to reappear.
+
+### 4. Default Behavior
+- The debugger is now **off** by default, pending further improvements
+
+## Verification
+
+### Browser REPL
+- Verified that `:abort` works from a manual pause.
+- Verified that `:abort` works from a nested `:eval` pause.
+- Verified that the prompt correctly resets to `>`.
+- Verified that the UI remains responsive during debug evals.
+
+![Browser Abort Verify](/Users/mark/.gemini/antigravity/brain/380df80f-48b0-4f8d-b755-8909e2514890/repl_final_verify_abort_prompt_1770505409629.webp)
+
+### Node.js REPL
+- Verified that `:abort` exits the debug loop and returns to the main prompt.

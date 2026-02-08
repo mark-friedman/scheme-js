@@ -1,12 +1,12 @@
 /**
  * @fileoverview Functional tests for interpreter debug hooks.
- * 
+ *
  * Tests that the interpreter properly integrates with the debug runtime.
  * Covers breakpoint management, pause/resume, stepping, and state inspection.
  */
 
 import { assert, createTestEnv, run } from '../harness/helpers.js';
-import { SchemeDebugRuntime } from '../../src/core/debug/scheme_debug_runtime.js';
+import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
 
 /**
  * Runs all debug hooks tests.

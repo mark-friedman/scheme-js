@@ -183,7 +183,7 @@ export class Interpreter {
     /**
      * Optional debug runtime for debugging support.
      * When set, the interpreter will check for breakpoints and stepping before each step.
-     * @type {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
+     * @type {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
      */
     this.debugRuntime = null;
   }
@@ -420,7 +420,7 @@ export class Interpreter {
 
   /**
    * Sets the debug runtime for this interpreter.
-   * @param {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
+   * @param {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
    */
   setDebugRuntime(debugRuntime) {
     this.debugRuntime = debugRuntime;
@@ -460,6 +460,11 @@ export class Interpreter {
             // Check if debugger has paused (e.g., breakpoint, exception)
             if (this.debugRuntime?.pauseController?.isPaused()) {
               await this.debugRuntime.pauseController.waitForResume();
+
+              // Check if evaluation was aborted while paused
+              if (this.debugRuntime.pauseController.isAborted()) {
+                throw new SchemeError("Evaluation aborted");
+              }
             }
 
             // Check if we should yield to the event loop

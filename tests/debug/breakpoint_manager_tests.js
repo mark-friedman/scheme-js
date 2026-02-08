@@ -1,12 +1,12 @@
 /**
  * @fileoverview Unit tests for BreakpointManager.
- * 
+ *
  * Tests for setting, removing, and querying breakpoints with line and column
  * precision. Part of Phase 1: Debug Runtime Core.
  */
 
-import { assert } from '../../harness/helpers.js';
-import { BreakpointManager } from '../../../src/core/debug/breakpoint_manager.js';
+import { assert } from '../harness/helpers.js';
+import { BreakpointManager } from '../../src/debug/breakpoint_manager.js';
 
 /**
  * Runs all BreakpointManager tests.

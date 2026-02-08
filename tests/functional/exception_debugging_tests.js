@@ -1,13 +1,13 @@
 /**
  * @fileoverview Tests for exception debugging features.
- * 
+ *
  * These tests verify that the debugger can pause on exceptions,
  * both caught and uncaught, and that the exception state is
  * available for inspection.
  */
 
 import { createTestLogger, assert, skip } from '../harness/helpers.js';
-import { SchemeDebugRuntime } from '../../src/core/debug/scheme_debug_runtime.js';
+import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
 import { RaiseNode } from '../../src/core/interpreter/ast_nodes.js';
 import { Symbol } from '../../src/core/interpreter/symbol.js';
 
