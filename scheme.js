@@ -4018,7 +4018,7 @@ class Interpreter {
     /**
      * Optional debug runtime for debugging support.
      * When set, the interpreter will check for breakpoints and stepping before each step.
-     * @type {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
+     * @type {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
      */
     this.debugRuntime = null;
   }
@@ -4255,7 +4255,7 @@ class Interpreter {
 
   /**
    * Sets the debug runtime for this interpreter.
-   * @param {import('../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
+   * @param {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
    */
   setDebugRuntime(debugRuntime) {
     this.debugRuntime = debugRuntime;
@@ -4295,6 +4295,11 @@ class Interpreter {
             // Check if debugger has paused (e.g., breakpoint, exception)
             if (this.debugRuntime?.pauseController?.isPaused()) {
               await this.debugRuntime.pauseController.waitForResume();
+
+              // Check if evaluation was aborted while paused
+              if (this.debugRuntime.pauseController.isAborted()) {
+                throw new SchemeError("Evaluation aborted");
+              }
             }
 
             // Check if we should yield to the event loop
@@ -14943,6 +14948,25 @@ class PauseController {
          * @type {Function|null}
          */
         this.pauseResolve = null;
+
+        /** @type {boolean} */
+        this.aborted = false;
+    }
+
+    /**
+     * Checks if currently aborted.
+     * @returns {boolean}
+     */
+    isAborted() {
+        return this.aborted;
+    }
+
+    /**
+     * Aborts execution.
+     */
+    abort() {
+        this.aborted = true;
+        this.resume();
     }
 
     /**
@@ -15117,12 +15141,13 @@ class PauseController {
         this.targetDepth = null;
         this.pauseReason = null;
         this.pauseData = null;
+        this.aborted = false;
     }
 }
 
 /**
  * @fileoverview DebugExceptionHandler - Handles break-on-exception logic.
- * 
+ *
  * Determines when exceptions should trigger debugger pauses based on
  * configuration (break on caught, break on uncaught) and the current
  * exception handler stack state.
@@ -15155,7 +15180,7 @@ class DebugExceptionHandler {
 
     /**
      * Determines if execution should pause on this exception.
-     * 
+     *
      * @param {*} exception - The exception value
      * @param {Array} fstack - The current frame stack
      * @returns {boolean} True if should pause
@@ -15185,7 +15210,7 @@ class DebugExceptionHandler {
     /**
      * Checks if an exception will be caught by a handler in the frame stack.
      * Looks for ExceptionHandlerFrame in the stack.
-     * 
+     *
      * @param {Array} fstack - The current frame stack
      * @returns {boolean} True if an exception handler is present
      */
@@ -15220,7 +15245,7 @@ class DebugExceptionHandler {
 
 /**
  * @fileoverview StateInspector for debugger state inspection.
- * 
+ *
  * Provides scope chain traversal and CDP-compatible value serialization.
  * Used by the debug runtime to inspect variables and values during pause.
  */
@@ -15241,7 +15266,7 @@ class StateInspector {
     /**
      * Gets the scope chain for an environment.
      * Returns an array of scope objects, from innermost to outermost.
-     * 
+     *
      * @param {Environment} env - The environment to inspect
      * @returns {Array<Object>} Array of scope descriptors
      */
@@ -15275,7 +15300,7 @@ class StateInspector {
 
     /**
      * Gets the properties (bindings) of a single scope/environment.
-     * 
+     *
      * @param {Environment} env - The environment to inspect
      * @returns {Array<Object>} Array of property descriptors
      */
@@ -15297,7 +15322,7 @@ class StateInspector {
 
     /**
      * Serializes a Scheme value to CDP RemoteObject format.
-     * 
+     *
      * @param {*} value - The value to serialize
      * @param {number} [depth=0] - Current recursion depth (for limiting)
      * @returns {Object} CDP RemoteObject representation
@@ -15459,7 +15484,7 @@ class StateInspector {
 
     /**
      * Gets an object by its ID (for property inspection).
-     * 
+     *
      * @param {string} objectId - The object ID
      * @returns {*} The registered object, or undefined
      */
@@ -15470,7 +15495,7 @@ class StateInspector {
 
     /**
      * Gets the properties of a registered object.
-     * 
+     *
      * @param {string} objectId - The object ID
      * @returns {Array<Object>} Array of property descriptors
      */
@@ -15628,7 +15653,7 @@ class StateInspector {
 
 /**
  * @fileoverview SchemeDebugRuntime - Main coordinator for debugging functionality.
- * 
+ *
  * Integrates BreakpointManager, StackTracer, and PauseController to provide
  * a unified debugging interface. This is the main entry point for debug
  * integration with the interpreter.
@@ -15659,12 +15684,12 @@ class SchemeDebugRuntime {
         this.backend = null;
 
         /** @type {boolean} */
-        this.enabled = true;
+        this.enabled = false;
     }
 
     /**
      * Sets the debug backend and hooks up its event handlers.
-     * @param {DebugBackend} backend 
+     * @param {DebugBackend} backend
      */
     setBackend(backend) {
         this.backend = backend;
@@ -15796,7 +15821,7 @@ class SchemeDebugRuntime {
     /**
      * Called by interpreter before evaluating an expression.
      * Determines if execution should pause.
-     * 
+     *
      * @param {Object} source - Source location info
      * @param {Object} env - Current environment
      * @returns {boolean} True if should pause
@@ -15853,7 +15878,7 @@ class SchemeDebugRuntime {
     /**
      * Pauses on an exception.
      * Called by RaiseNode when shouldBreakOnException returns true.
-     * 
+     *
      * @param {Object} raiseNode - The RaiseNode that raised the exception
      * @param {Object} registers - Current interpreter registers
      * @returns {boolean} Whether execution was paused
@@ -15968,6 +15993,13 @@ class SchemeDebugRuntime {
      */
     disable() {
         this.enabled = false;
+    }
+
+    /**
+     * Aborts execution.
+     */
+    abort() {
+        this.pauseController.abort();
     }
 
     /**
@@ -16171,7 +16203,7 @@ function prettyPrintList(cons) {
 
 /**
  * REPL debug backend for interactive debugging in browser and Node.js REPLs.
- * 
+ *
  * Provides a pull-based model for REPL interaction.
  * When paused, it can notify the REPL to enter a debug command state.
  */
@@ -16190,7 +16222,7 @@ class ReplDebugBackend extends DebugBackend {
 
     /**
      * Sets a callback to be invoked when execution pauses.
-     * @param {Function} cb 
+     * @param {Function} cb
      */
     setOnPause(cb) {
         this.onPauseCallback = cb;
@@ -16316,7 +16348,7 @@ class ReplDebugCommands {
 
     /**
      * Checks if a string is a debug command.
-     * @param {string} input 
+     * @param {string} input
      * @returns {boolean}
      */
     isDebugCommand(input) {
@@ -16325,10 +16357,10 @@ class ReplDebugCommands {
 
     /**
      * Executes a debug command.
-     * @param {string} input 
-     * @returns {string} Output message
+     * @param {string} input
+     * @returns {Promise<string>} Output message
      */
-    execute(input) {
+    async execute(input) {
         const trimmed = input.trim();
         const parts = trimmed.slice(1).split(/\s+/);
         const cmd = parts[0].toLowerCase();
@@ -16361,12 +16393,18 @@ class ReplDebugCommands {
             case 'locals':
                 return this.handleLocals();
             case 'eval':
-                return this.handleEval(args.join(' '));
+                return await this.handleEval(args.join(' '));
+            case 'abort':
+            case 'a':
+                return this.handleAbort();
             case 'up':
+            case 'u':
                 return this.handleFrameUp();
             case 'down':
+            case 'd':
                 return this.handleFrameDown();
             case 'help':
+            case 'h':
             case '?':
                 return this.handleHelp();
             default:
@@ -16392,6 +16430,11 @@ class ReplDebugCommands {
         }
 
         return ';; Usage: :debug on|off';
+    }
+
+    handleAbort() {
+        this.debugRuntime.abort();
+        return ';; Evaluation aborted';
     }
 
     handleBreak(args) {
@@ -16485,7 +16528,7 @@ class ReplDebugCommands {
         return output.trim();
     }
 
-    handleEval(expr) {
+    async handleEval(expr) {
         if (!this.backend.isPaused()) return ';; Not paused';
         if (!expr) return ';; Usage: :eval <expression>';
 
@@ -16522,7 +16565,15 @@ class ReplDebugCommands {
             }
 
             const ast = analyze(sexp, syntacticEnv, this.interpreter.context);
-            const result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
+
+            let result;
+            if (this.debugRuntime.enabled) {
+                // Async eval in selected scope
+                result = await this.interpreter.runAsync(ast, env, { jsAutoConvert: 'raw' });
+            } else {
+                // Sync eval (will freeze UI if long)
+                result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
+            }
             return `;; result: ${this.backend.formatValue(result)}`;
         } catch (e) {
             return `;; Error during eval: ${e.message}`;
@@ -16562,8 +16613,10 @@ class ReplDebugCommands {
 ;;   :bt / :backtrace  - Show backtrace
 ;;   :locals           - Show local variables
 ;;   :eval <expr>      - Evaluate in selected frame's scope
-;;   :up / :down       - Navigate stack frames
-;;   :help             - Show this help`;
+;;   :abort / :a       - Abort current evaluation and return to prompt
+;;   :up / :u          - Move up the stack
+;;   :down / :d        - Move down the stack
+;;   :help / :h / :?   - Show this help`;
     }
 
     _getSelectedIndex(stack) {
