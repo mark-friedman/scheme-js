@@ -6,8 +6,8 @@ This directory contains design documents, research notes, implementation details
 
 ### Architecture & Design
 - **[architecture.md](architecture.md)**: High-level architectural overview of Scheme V4, detailing the core components (Interpreter, AM, Compiler), the compilation pipeline, and the runtime environment.
-- **[chrome_scheme_debugger_design.md](chrome_scheme_debugger_design.md)**: Comprehensive design document for a Chrome-integrated Scheme debugger. It covers the architecture (Debug Runtime, Source Maps, DevTools), implementation phases, and UI considerations.
-- **[external_scheme_debugger_plan.md](external_scheme_debugger_plan.md)**: A plan for implementing an external debugger, likely focusing on the protocol and integration points for remote debugging.
+- **[chrome_scheme_debugger_design.md](archive/chrome_scheme_debugger_design.md)**: Comprehensive design document for a Chrome-integrated Scheme debugger. It covers the architecture (Debug Runtime, Source Maps, DevTools), implementation phases, and UI considerations.
+- **[external_scheme_debugger_plan.md](archive/external_scheme_debugger_plan.md)**: A plan for implementing an external debugger, likely focusing on the protocol and integration points for remote debugging.
 - **[node_devtools_integration.md](node_devtools_integration.md)**: Details the integration with Node.js DevTools, exploring how to bridge the Scheme runtime with Node's inspector protocol.
 - **[debugger_requirements.md](debugger_requirements.md)**: Lists the functional and non-functional requirements for the Scheme debugger, including breakpoints, stepping, and state inspection.
 - **[debugger_research.md](debugger_research.md)**: Research notes on existing debugging techniques and tools, serving as a background for the debugger design.
