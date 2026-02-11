@@ -1,6 +1,6 @@
 /**
  * @fileoverview Abstract DebugBackend interface.
- * 
+ *
  * Defines the interface for debug backends (CDP, REPL, DAP, etc.).
  * The SchemeDebugRuntime calls backend methods to notify of debug events.
  * Backends implement these to provide UI/protocol-specific behavior.
@@ -9,13 +9,13 @@
 /**
  * Abstract base class for debug backends.
  * Subclasses implement protocol-specific behavior (CDP, REPL commands, DAP).
- * 
+ *
  * @abstract
  */
 export class DebugBackend {
     /**
      * Called when execution pauses (breakpoint, step, exception).
-     * 
+     *
      * @abstract
      * @param {Object} pauseInfo - Information about the pause
      * @param {string} pauseInfo.reason - 'breakpoint', 'step', 'exception'
@@ -31,7 +31,7 @@ export class DebugBackend {
 
     /**
      * Called when execution resumes.
-     * 
+     *
      * @abstract
      */
     onResume() {
@@ -40,7 +40,7 @@ export class DebugBackend {
 
     /**
      * Called when a script/file is loaded.
-     * 
+     *
      * @abstract
      * @param {Object} scriptInfo - Script information
      * @param {string} scriptInfo.filename - Script file path
@@ -52,7 +52,7 @@ export class DebugBackend {
 
     /**
      * Called when an exception occurs.
-     * 
+     *
      * @abstract
      * @param {Object} exceptionInfo - Exception information
      * @param {*} exceptionInfo.value - Exception value
@@ -65,7 +65,7 @@ export class DebugBackend {
 
     /**
      * Called when console output occurs.
-     * 
+     *
      * @abstract
      * @param {string} type - 'log', 'warn', 'error', etc.
      * @param {Array} args - Console arguments
@@ -95,23 +95,23 @@ export class TestDebugBackend extends DebugBackend {
         this.resumeEvents = [];
         this.scriptEvents = [];
         this.exceptionEvents = [];
-        this.pendingAction = null;
-        this.actionResolver = null;
+        /** @type {string[]} - Queue of pre-set actions (FIFO) */
+        this.pendingActions = [];
+        /** @type {Function[]} - Stack of pending resolvers (LIFO) */
+        this.actionResolverStack = [];
     }
 
     async onPause(pauseInfo) {
         this.pauseEvents.push(pauseInfo);
 
-        // If there's a pre-set action, return it
-        if (this.pendingAction) {
-            const action = this.pendingAction;
-            this.pendingAction = null;
-            return action;
+        // If there's a pre-set action, return it (FIFO)
+        if (this.pendingActions.length > 0) {
+            return this.pendingActions.shift();
         }
 
-        // Otherwise, wait for external action
+        // Otherwise, wait for external action (LIFO stack for nesting)
         return new Promise(resolve => {
-            this.actionResolver = resolve;
+            this.actionResolverStack.push(resolve);
         });
     }
 
@@ -129,14 +129,16 @@ export class TestDebugBackend extends DebugBackend {
 
     /**
      * Sets the action to return on next pause.
-     * @param {string} action - 'resume', 'stepInto', 'stepOver', 'stepOut'
+     * If a resolver is already waiting, resolves the topmost one (LIFO).
+     * Otherwise queues the action for the next onPause call.
+     * @param {string} action - 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
      */
     setNextAction(action) {
-        if (this.actionResolver) {
-            this.actionResolver(action);
-            this.actionResolver = null;
+        if (this.actionResolverStack.length > 0) {
+            const resolve = this.actionResolverStack.pop();
+            resolve(action);
         } else {
-            this.pendingAction = action;
+            this.pendingActions.push(action);
         }
     }
 
@@ -153,9 +155,9 @@ export class TestDebugBackend extends DebugBackend {
 
 /**
  * REPL Debug Backend Interface
- * 
+ *
  * For REPL integration, the debug backend should implement command handling:
- * 
+ *
  * Commands (entered at REPL prompt during pause):
  *   :break <file> <line> [column]  - Set breakpoint
  *   :unbreak <id>                   - Remove breakpoint
@@ -167,7 +169,7 @@ export class TestDebugBackend extends DebugBackend {
  *   :locals                         - Show local variables
  *   :eval <expr>                    - Evaluate in current scope
  *   :debug on|off                   - Toggle debugging
- * 
+ *
  * The REPL should:
  * 1. Detect pause via onPause callback
  * 2. Enter a debug prompt loop (e.g., "debug> ")

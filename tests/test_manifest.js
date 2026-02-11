@@ -32,7 +32,6 @@ export const unitTests = [
     { path: 'debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
     { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
     { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
-    { path: 'debug/debug_level_tests.js', fn: 'runDebugLevelTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
 ];
 
@@ -62,9 +61,10 @@ export const functionalTests = [
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
-    { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropStressTests', async: true, stress: true },
-    { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
+        { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
     { path: 'functional/exception_debugging_tests.js', fn: 'runExceptionDebuggingTests', async: true },
+    { path: 'debug/debug_integration_tests.js', fn: 'runDebugIntegrationTests', async: true },
+    { path: 'debug/nested_debug_level_tests.js', fn: 'runNestedDebugLevelTests', async: true },
 ];
 
 // Integration Tests

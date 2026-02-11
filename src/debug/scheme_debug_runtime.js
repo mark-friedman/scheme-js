@@ -11,6 +11,7 @@ import { StackTracer } from './stack_tracer.js';
 import { PauseController } from './pause_controller.js';
 import { DebugExceptionHandler } from './exception_handler.js';
 import { StateInspector } from './state_inspector.js';
+import { DebugLevel, DebugLevelStack } from './debug_level.js';
 
 /**
  * Main debug runtime coordinator.
@@ -28,6 +29,7 @@ export class SchemeDebugRuntime {
         this.pauseController = new PauseController();
         this.exceptionHandler = new DebugExceptionHandler(this);
         this.stateInspector = new StateInspector();
+        this.levelStack = new DebugLevelStack();
 
         this.onPause = options.onPause || null;
         this.onResume = options.onResume || null;
@@ -228,6 +230,120 @@ export class SchemeDebugRuntime {
     }
 
     /**
+     * Handles a debug pause asynchronously. Creates a DebugLevel, notifies
+     * the backend, and waits for user action. Supports nested pauses
+     * (e.g. eval during breakpoint hits another breakpoint) via LIFO
+     * resolver stacks in PauseController and the backend.
+     *
+     * @param {Object} source - Source location
+     * @param {Object} env - Current environment
+     * @param {string} [reason='breakpoint'] - Reason for pause
+     * @returns {Promise<string>} The action to take: 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
+     */
+    async handlePause(source, env, reason = 'breakpoint') {
+        let bpId = null;
+        if (reason === 'breakpoint') {
+            for (const bp of this.breakpointManager.getAllBreakpoints()) {
+                if (bp.filename === source?.filename && bp.line === source?.line) {
+                    bpId = bp.id;
+                    break;
+                }
+            }
+        }
+
+        const level = new DebugLevel(
+            this.levelStack.depth(),
+            reason,
+            source,
+            this.stackTracer.getStack(),
+            env,
+            this.levelStack.current()
+        );
+        this.levelStack.push(level);
+
+        this.pauseController.pause(reason, bpId);
+
+        const pauseInfo = {
+            reason,
+            breakpointId: bpId,
+            source,
+            stack: this.stackTracer.getStack(),
+            env,
+            level
+        };
+
+        let action;
+
+        if (this.backend) {
+            this.backend.onPause(pauseInfo).then(act => {
+                this._processAction(act);
+            });
+
+            await this.pauseController.waitForResume();
+
+            if (this.pauseController.isAborted()) {
+                action = 'abort';
+            } else {
+                const stepMode = this.pauseController.getStepMode();
+                if (stepMode) {
+                    action = `step${stepMode.charAt(0).toUpperCase() + stepMode.slice(1)}`;
+                } else {
+                    action = 'resume';
+                }
+            }
+        } else if (this.onPause) {
+            this.onPause(pauseInfo);
+            await this.pauseController.waitForResume();
+
+            if (this.pauseController.isAborted()) {
+                action = 'abort';
+            } else {
+                const stepMode = this.pauseController.getStepMode();
+                if (stepMode) {
+                    action = `step${stepMode.charAt(0).toUpperCase() + stepMode.slice(1)}`;
+                } else {
+                    action = 'resume';
+                }
+            }
+        } else {
+            action = 'resume';
+        }
+
+        this.levelStack.pop();
+        if (this.backend && this.backend.onExitLevel) {
+            this.backend.onExitLevel();
+        }
+
+        return action;
+    }
+
+    /**
+     * Processes an action string from a backend and calls the appropriate method.
+     * @param {string} action - 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
+     * @private
+     */
+    _processAction(action) {
+        switch (action) {
+            case 'stepInto':
+                this.stepInto();
+                break;
+            case 'stepOver':
+                this.stepOver();
+                break;
+            case 'stepOut':
+                this.stepOut();
+                break;
+            case 'abort':
+                this.abort();
+                break;
+            case 'resume':
+            default:
+                this.resume();
+                break;
+        }
+    }
+
+    /**
      * Pauses on an exception.
      * Called by RaiseNode when shouldBreakOnException returns true.
      *
@@ -362,6 +478,7 @@ export class SchemeDebugRuntime {
         this.stackTracer.clear();
         this.pauseController.reset();
         this.exceptionHandler.reset();
+        this.levelStack.popAll();
     }
 }
 

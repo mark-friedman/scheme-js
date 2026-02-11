@@ -4024,3 +4024,66 @@ I converted the REPL's evaluation logic to be fully asynchronous in debug mode.
 
 ### Node.js REPL
 - Verified that `:abort` exits the debug loop and returns to the main prompt.
+
+---
+
+# 2026-02-11: Nested Debug Level Infrastructure & Comprehensive Tests
+
+## Summary
+
+Rebuilt the foundational debug infrastructure that was lost between threads (never committed). This includes the LIFO-based nested pause/resume mechanism, DebugLevel/DebugLevelStack, handlePause on SchemeDebugRuntime, and comprehensive tests.
+
+## Source Changes
+
+### New: `src/debug/debug_level.js`
+- `DebugLevel` class: captures pause context (level, reason, source, stack, env, parentLevel, selectedFrameIndex)
+- `DebugLevelStack` class: manages nested levels with push/pop/popAll/current/depth
+
+### Rewritten: `src/debug/pause_controller.js`
+- Changed from single `pauseResolve` field to `pauseResolveStack` (LIFO array) — enables nested waitForResume calls without orphaning outer resolvers
+- Step commands (`stepInto`, `stepOver`, `stepOut`) now call `_resolveWait()` to unblock the interpreter loop — previously stepping commands caused deadlocks
+- Added `pushExecutionContext`/`popExecutionContext` for isolating stepping state during nested evals
+- Added cooperative polling fields: `shouldYield()`, `onYield()`, `requestPause()` with adaptive yield intervals
+
+### Rewritten: `src/debug/debug_backend.js` (TestDebugBackend)
+- Changed from single `pendingAction`/`actionResolver` to `pendingActions` (FIFO queue) and `actionResolverStack` (LIFO stack) — previously nested onPause calls overwrote the outer resolver, causing deadlocks
+
+### Modified: `src/debug/scheme_debug_runtime.js`
+- Added `handlePause(source, env, reason)` — async method that creates a DebugLevel, notifies the backend, waits for user action, and returns the action string
+- Added `_processAction(action)` — translates action strings to runtime method calls
+- Added `DebugLevelStack` integration (`levelStack` field, imported from `debug_level.js`)
+- `reset()` now clears the level stack
+
+### Modified: `src/debug/index.js`
+- Added barrel exports for `DebugLevel` and `DebugLevelStack`
+
+### Fixed: `tests/test_manifest.js`
+- Removed nonexistent `runAsyncInteropStressTests` entry (from cherry-picked stress commit)
+- Registered `debug_integration_tests.js` and `nested_debug_level_tests.js`
+
+## Test Files
+
+### New: `tests/debug/debug_integration_tests.js` (29 tests)
+- runAsync correctness with debug enabled (no breakpoints)
+- Breakpoint pause/resume with correct result and reason
+- PauseController state verification during onPause callback
+- Step into: breakpoint → remove BP → stepInto → subsequent pause → resume
+- Manual pause via pauseController.pause() during long-running loop
+- Cooperative yielding verification
+- handlePause creates DebugLevel with correct properties
+- Abort during pause throws error
+- handlePause with TestDebugBackend (resume and stepInto actions)
+
+### New: `tests/debug/nested_debug_level_tests.js` (94 tests)
+- DebugLevel constructor and property storage
+- DebugLevelStack push/pop/current/depth/popAll
+- PauseController nested waitForResume: 2-level and 3-level LIFO resolution
+- stepInto resolves topmost waiter only
+- Execution context stack isolation (push/pop, multiple levels, abort persistence)
+- ReplDebugBackend nested onPause with separate action resolvers
+- handlePause with TestDebugBackend: single pause, stepInto, abort, sequential calls, no-backend fallback
+- handlePause nesting: 2 concurrent levels, 3 concurrent levels
+- Mixed actions across nested levels (inner stepInto, outer resume)
+
+## Test Results
+- 2122 passed, 0 failed, 7 skipped (up from 1999 pre-change)
