@@ -274,12 +274,15 @@ export class PauseController {
 
     switch (this.stepMode) {
       case 'into':
+        // Step into: always pause at next expression
         return true;
 
       case 'over':
+        // Step over: pause at same or shallower depth
         return currentDepth <= this.targetDepth;
 
       case 'out':
+        // Step out: pause only at shallower depth
         return currentDepth < this.targetDepth;
 
       default:

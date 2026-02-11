@@ -1,336 +1,392 @@
 /**
- * @fileoverview Integration tests for debug runtime with the interpreter's
- * runAsync method. Tests breakpoint pause/resume, stepping, cooperative
- * yielding, handlePause, and abort behavior.
+ * @fileoverview Integration tests for Phase 2 debug runtime with the interpreter.
+ *
+ * Tests the runDebug() async trampoline with cooperative yielding and debug
+ * pause handling, and the evaluateStringDebug() string-based wrapper.
+ *
+ * These methods integrate the SchemeDebugRuntime with the interpreter's
+ * async execution path, providing breakpoint-aware evaluation with
+ * pause/resume/step support.
  */
 
-import { assert, run, createTestLogger } from '../harness/helpers.js';
+import { assert, run } from '../harness/helpers.js';
 import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
+import { DebugLevel, DebugLevelStack } from '../../src/debug/debug_level.js';
 import { TestDebugBackend } from '../../src/debug/debug_backend.js';
 
 /**
  * Runs all debug integration tests.
- * @param {import('../../src/core/interpreter/interpreter.js').Interpreter} interpreter
- * @param {object} logger - Test logger from createTestLogger
+ * @param {Interpreter} interpreter - The bootstrapped interpreter
+ * @param {Object} logger - Test logger
  */
 export async function runDebugIntegrationTests(interpreter, logger) {
-  logger.title('Debug Integration - runAsync correctness with debug enabled');
-
-  // Helper: sync run
+  // Helper: run sync using the interpreter
   const runSync = (code) => run(interpreter, code);
 
-  // Helper: async run
-  const runAsync = (code, options = {}) => interpreter.evaluateStringAsync(code, options);
+  // Helper: run via the debug-aware async path
+  const runDebug = (code) => interpreter.evaluateStringDebug(code);
 
   // =========================================================================
-  // 1. runAsync correctness with debug enabled (no breakpoints)
+  // runDebug() Correctness — same results as sync run()
   // =========================================================================
+  logger.title('Debug Integration - runDebug() Correctness');
 
+  // Test: Literal number
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-    interpreter.setDebugRuntime(runtime);
+    const syncResult = runSync('42');
+    const debugResult = await runDebug('42');
+    assert(logger, 'literal number', debugResult, syncResult);
+  }
 
-    const syncLiteral = runSync('42');
-    const asyncLiteral = await runAsync('42');
-    assert(logger, 'debug enabled: literal number', asyncLiteral, syncLiteral);
+  // Test: Literal string
+  {
+    const syncResult = runSync('"hello"');
+    const debugResult = await runDebug('"hello"');
+    assert(logger, 'literal string', debugResult, syncResult);
+  }
 
-    const syncArith = runSync('(+ 1 2 3)');
-    const asyncArith = await runAsync('(+ 1 2 3)');
-    assert(logger, 'debug enabled: arithmetic', asyncArith, syncArith);
+  // Test: Literal boolean
+  {
+    const syncResult = runSync('#t');
+    const debugResult = await runDebug('#t');
+    assert(logger, 'literal boolean', debugResult, syncResult);
+  }
 
-    const recursionCode = `
+  // Test: Function call
+  {
+    const syncResult = runSync('(+ 1 2 3)');
+    const debugResult = await runDebug('(+ 1 2 3)');
+    assert(logger, 'function call (+ 1 2 3)', debugResult, syncResult);
+  }
+
+  // Test: Nested expressions
+  {
+    const syncResult = runSync('(* (+ 1 2) (- 10 5))');
+    const debugResult = await runDebug('(* (+ 1 2) (- 10 5))');
+    assert(logger, 'nested expressions', debugResult, syncResult);
+  }
+
+  // Test: Recursive function (factorial)
+  {
+    const code = `
       (define (factorial n)
-        (if (<= n 1) 1 (* n (factorial (- n 1)))))
+        (if (<= n 1)
+            1
+            (* n (factorial (- n 1)))))
       (factorial 10)
     `;
-    const syncRecur = runSync(recursionCode);
-    const asyncRecur = await runAsync(recursionCode);
-    assert(logger, 'debug enabled: recursion', asyncRecur, syncRecur);
+    const syncResult = runSync(code);
+    const debugResult = await runDebug(code);
+    assert(logger, 'recursive factorial', debugResult, syncResult);
+  }
 
-    const tailCode = `
+  // Test: Tail-recursive function (sum-to)
+  {
+    const code = `
       (define (sum-to n acc)
-        (if (<= n 0) acc (sum-to (- n 1) (+ acc n))))
+        (if (<= n 0)
+            acc
+            (sum-to (- n 1) (+ acc n))))
       (sum-to 100 0)
     `;
-    const syncTail = runSync(tailCode);
-    const asyncTail = await runAsync(tailCode);
-    assert(logger, 'debug enabled: tail recursion', asyncTail, syncTail);
-
-    interpreter.setDebugRuntime(null);
+    const syncResult = runSync(code);
+    const debugResult = await runDebug(code);
+    assert(logger, 'tail-recursive sum', debugResult, syncResult);
   }
 
   // =========================================================================
-  // 2. Breakpoint pause/resume
+  // Breakpoint → Pause → Resume Flow
   // =========================================================================
+  logger.title('Debug Integration - Breakpoint Pause/Resume');
 
-  logger.title('Debug Integration - Breakpoint pause/resume');
-
+  // Test: Breakpoint triggers pause, resume produces correct result
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-    interpreter.setDebugRuntime(runtime);
-    runtime.setBreakpoint('<unknown>', 1);
-
-    let pauseCount = 0;
-    let capturedReason = null;
-    runtime.onPause = (info) => {
-      pauseCount++;
-      capturedReason = info.reason;
-      Promise.resolve().then(() => runtime.resume());
-    };
-
-    const result = await runAsync('(+ 1 2)');
-    assert(logger, 'breakpoint: result correct', result, 3);
-    assert(logger, 'breakpoint: paused at least once', pauseCount >= 1, true);
-    assert(logger, 'breakpoint: reason is breakpoint', capturedReason, 'breakpoint');
-
-    interpreter.setDebugRuntime(null);
-  }
-
-  // =========================================================================
-  // 3. PauseController state during breakpoint
-  // =========================================================================
-
-  logger.title('Debug Integration - PauseController state during breakpoint');
-
-  {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-    interpreter.setDebugRuntime(runtime);
-    runtime.setBreakpoint('<unknown>', 1);
-
-    let pausedDuringCallback = null;
-    runtime.onPause = (info) => {
-      pausedDuringCallback = runtime.pauseController.isPaused();
-      Promise.resolve().then(() => runtime.resume());
-    };
-
-    await runAsync('(+ 10 20)');
-    assert(logger, 'pauseController isPaused during onPause', pausedDuringCallback, true);
-
-    interpreter.setDebugRuntime(null);
-  }
-
-  // =========================================================================
-  // 4. Step into
-  // =========================================================================
-
-  logger.title('Debug Integration - Step into');
-
-  {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-    interpreter.setDebugRuntime(runtime);
-    const code = '(define (add-one x) (+ x 1)) (add-one 2)';
-    const bpId = runtime.setBreakpoint('<unknown>', 1);
-
-    const pauseReasons = [];
-    let callCount = 0;
-    runtime.onPause = (info) => {
-      callCount++;
-      pauseReasons.push(info.reason);
-      if (callCount === 1) {
-        // First pause (breakpoint) — remove BP so it doesn't keep firing, then step
-        runtime.removeBreakpoint(bpId);
-        Promise.resolve().then(() => runtime.stepInto());
-      } else {
-        // Subsequent pauses — resume
-        Promise.resolve().then(() => runtime.resume());
+    let pauseInfo = null;
+    const debugRuntime = new SchemeDebugRuntime({
+      onPause: (info) => {
+        pauseInfo = info;
+        // Schedule resume after a tick
+        setTimeout(() => debugRuntime.resume(), 10);
       }
-    };
+    });
 
-    const result = await runAsync(code, { stepsPerYield: 1000 });
-    assert(logger, 'step into: result correct', result, 3);
-    assert(logger, 'step into: at least two pauses', pauseReasons.length >= 2, true);
-    assert(logger, 'step into: first reason is breakpoint', pauseReasons[0], 'breakpoint');
+    debugRuntime.enable();
+    debugRuntime.setBreakpoint('<unknown>', 1);
+    interpreter.setDebugRuntime(debugRuntime);
+
+    const result = await runDebug('(+ 10 20)');
+
+    assert(logger, 'breakpoint pause was triggered', pauseInfo !== null, true);
+    assert(logger, 'pause reason is breakpoint', pauseInfo?.reason, 'breakpoint');
+    assert(logger, 'pause has source info', pauseInfo?.source !== null, true);
+    assert(logger, 'source filename is <unknown>', pauseInfo?.source?.filename, '<unknown>');
+    assert(logger, 'source line is 1', pauseInfo?.source?.line, 1);
+    assert(logger, 'result after resume is correct', result, 30);
+
+    interpreter.setDebugRuntime(null);
+  }
+
+  // Test: PauseController enters paused state during breakpoint
+  {
+    let wasPaused = false;
+    const debugRuntime = new SchemeDebugRuntime({
+      onPause: (info) => {
+        wasPaused = debugRuntime.pauseController.isPaused();
+        setTimeout(() => debugRuntime.resume(), 10);
+      }
+    });
+
+    debugRuntime.enable();
+    debugRuntime.setBreakpoint('<unknown>', 1);
+    interpreter.setDebugRuntime(debugRuntime);
+
+    await runDebug('(+ 1 1)');
+
+    assert(logger, 'pauseController was in paused state', wasPaused, true);
 
     interpreter.setDebugRuntime(null);
   }
 
   // =========================================================================
-  // 5. Manual pause via pauseController.pause()
+  // Stepping (step into)
   // =========================================================================
+  logger.title('Debug Integration - Stepping');
 
-  logger.title('Debug Integration - Manual pause');
-
+  // Test: After breakpoint, stepInto causes another pause with reason 'step'
+  // Uses a multi-expression to ensure there are subsequent source-bearing AST nodes
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-    interpreter.setDebugRuntime(runtime);
-
-    let pauseReceived = false;
-    let yieldCount = 0;
-
-    runtime.onPause = (info) => {
-      pauseReceived = true;
-      Promise.resolve().then(() => runtime.resume());
-    };
-
-    const code = `
-      (define (loop n)
-        (if (<= n 0) 'done (loop (- n 1))))
-      (loop 5000)
-    `;
-
-    const result = await interpreter.evaluateStringAsync(code, {
-      stepsPerYield: 50,
-      onYield: () => {
-        yieldCount++;
-        // On first yield, manually pause via the pause controller + fire onPause
-        if (yieldCount === 1) {
-          runtime.pauseController.pause('manual', null);
-          if (runtime.onPause) {
-            runtime.onPause({ reason: 'manual', source: null, stack: [], env: null });
-          }
+    const pauseReasons = [];
+    let pauseCount = 0;
+    const debugRuntime = new SchemeDebugRuntime({
+      onPause: (info) => {
+        pauseCount++;
+        pauseReasons.push(info.reason);
+        if (pauseCount === 1) {
+          // First pause (breakpoint) — step into
+          setTimeout(() => debugRuntime.stepInto(), 10);
+        } else {
+          // Subsequent pauses — resume to finish
+          setTimeout(() => debugRuntime.resume(), 10);
         }
       }
     });
 
-    assert(logger, 'manual pause: result correct', result.name || result, 'done');
-    assert(logger, 'manual pause: pause was received', pauseReceived, true);
+    debugRuntime.enable();
+    debugRuntime.setBreakpoint('<unknown>', 1);
+    interpreter.setDebugRuntime(debugRuntime);
+
+    const result = await runDebug('(define (f x) (+ x 1)) (f 10)');
+
+    assert(logger, 'stepInto triggered at least 2 pauses', pauseCount >= 2, true);
+    assert(logger, 'first pause reason is breakpoint', pauseReasons[0], 'breakpoint');
+    assert(logger, 'second pause reason is step', pauseReasons[1], 'step');
+    assert(logger, 'result after stepping', result, 11);
 
     interpreter.setDebugRuntime(null);
   }
 
   // =========================================================================
-  // 6. Cooperative yielding in debug mode
+  // Manual Pause via requestPause()
   // =========================================================================
+  logger.title('Debug Integration - Manual Pause');
 
-  logger.title('Debug Integration - Cooperative yielding');
-
+  // Test: requestPause() triggers pause during long-running computation
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-    interpreter.setDebugRuntime(runtime);
-
-    let yieldCount = 0;
-    const code = `
-      (define (loop n)
-        (if (<= n 0) 'done (loop (- n 1))))
-      (loop 500)
-    `;
-
-    const result = await interpreter.evaluateStringAsync(code, {
-      stepsPerYield: 50,
-      onYield: () => { yieldCount++; }
+    let pauseInfo = null;
+    const debugRuntime = new SchemeDebugRuntime({
+      onPause: (info) => {
+        pauseInfo = info;
+        setTimeout(() => debugRuntime.resume(), 10);
+      }
     });
 
-    assert(logger, 'cooperative yield: result correct', result.name || result, 'done');
-    assert(logger, 'cooperative yield: yielded multiple times', yieldCount > 1, true);
+    debugRuntime.enable();
+    interpreter.setDebugRuntime(debugRuntime);
+
+    // Start a long computation; schedule requestPause shortly after
+    const code = `
+      (define (loop n acc)
+        (if (<= n 0)
+            acc
+            (loop (- n 1) (+ acc 1))))
+      (loop 100000 0)
+    `;
+
+    // Schedule a pause request after a small delay
+    setTimeout(() => {
+      debugRuntime.pauseController.requestPause();
+    }, 5);
+
+    const result = await runDebug(code);
+
+    assert(logger, 'manual pause was triggered', pauseInfo !== null, true);
+    assert(logger, 'manual pause reason', pauseInfo?.reason, 'manual');
+    assert(logger, 'result after manual pause resume', result, 100000);
 
     interpreter.setDebugRuntime(null);
   }
 
   // =========================================================================
-  // 7. handlePause creates DebugLevel
+  // Cooperative Yielding
   // =========================================================================
+  logger.title('Debug Integration - Cooperative Yielding');
 
-  logger.title('Debug Integration - handlePause creates DebugLevel');
-
+  // Test: runDebug() yields to the event loop (doesn't block)
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
+    let yieldOccurred = false;
 
-    const fakeSource = { filename: 'test.scm', line: 5, column: 1 };
-    const fakeEnv = {};
+    // Schedule a microtask/timer to check if the event loop is free
+    const yieldPromise = new Promise(resolve => {
+      setTimeout(() => {
+        yieldOccurred = true;
+        resolve();
+      }, 0);
+    });
 
-    let capturedLevel = null;
-    runtime.onPause = (info) => {
-      capturedLevel = info.level;
-      // Resume so handlePause can complete
-      Promise.resolve().then(() => runtime.resume());
-    };
+    const code = `
+      (define (loop n acc)
+        (if (<= n 0)
+            acc
+            (loop (- n 1) (+ acc 1))))
+      (loop 50000 0)
+    `;
 
-    const action = await runtime.handlePause(fakeSource, fakeEnv, 'breakpoint');
+    const resultPromise = runDebug(code);
 
-    assert(logger, 'handlePause: returned resume', action, 'resume');
-    assert(logger, 'handlePause: level was created', capturedLevel !== null, true);
-    assert(logger, 'handlePause: level reason', capturedLevel.reason, 'breakpoint');
-    assert(logger, 'handlePause: level source', capturedLevel.source, fakeSource);
-    assert(logger, 'handlePause: level env', capturedLevel.env, fakeEnv);
-    assert(logger, 'handlePause: levelStack empty after', runtime.levelStack.depth(), 0);
+    // Wait for both the computation and the yield check
+    const result = await resultPromise;
+    await yieldPromise;
+
+    assert(logger, 'event loop yielded during execution', yieldOccurred, true);
+    assert(logger, 'result is correct after yielding', result, 50000);
   }
 
   // =========================================================================
-  // 8. Abort during pause
+  // handlePause Creates DebugLevel
   // =========================================================================
+  logger.title('Debug Integration - DebugLevel on Pause');
 
-  logger.title('Debug Integration - Abort during pause');
-
+  // Test: When paused with a backend, a DebugLevel is created
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-    interpreter.setDebugRuntime(runtime);
-    runtime.setBreakpoint('<unknown>', 1);
+    const backend = new TestDebugBackend();
+    const debugRuntime = new SchemeDebugRuntime();
+    debugRuntime.setBackend(backend);
+    debugRuntime.enable();
+    debugRuntime.setBreakpoint('<unknown>', 1);
 
-    runtime.onPause = (info) => {
-      Promise.resolve().then(() => runtime.abort());
-    };
+    // Pre-set the backend to resume immediately
+    backend.setNextAction('resume');
 
+    interpreter.setDebugRuntime(debugRuntime);
+
+    const result = await runDebug('(+ 5 5)');
+
+    assert(logger, 'backend received pause event', backend.pauseEvents.length >= 1, true);
+    const event = backend.pauseEvents[0];
+    assert(logger, 'pause event has reason', event?.reason, 'breakpoint');
+    assert(logger, 'pause event has source', event?.source !== null, true);
+    assert(logger, 'pause event has env', event?.env !== undefined, true);
+    assert(logger, 'result after backend resume', result, 10);
+
+    interpreter.setDebugRuntime(null);
+  }
+
+  // Test: DebugLevel properties are correct
+  {
+    const levelStack = new DebugLevelStack();
+    const source = { filename: 'test.scm', line: 5, column: 1 };
+    const stack = [{ name: 'my-fn', source }];
+    const env = { test: true };
+
+    const level = new DebugLevel(0, 'breakpoint', source, stack, env, null);
+    levelStack.push(level);
+
+    assert(logger, 'debug level number', level.level, 0);
+    assert(logger, 'debug level reason', level.reason, 'breakpoint');
+    assert(logger, 'debug level source', level.source.filename, 'test.scm');
+    assert(logger, 'debug level stack length', level.stack.length, 1);
+    assert(logger, 'debug level env', level.env.test, true);
+    assert(logger, 'level stack depth', levelStack.depth(), 1);
+
+    levelStack.pop();
+    assert(logger, 'level stack empty after pop', levelStack.depth(), 0);
+  }
+
+  // =========================================================================
+  // Abort During Pause
+  // =========================================================================
+  logger.title('Debug Integration - Abort During Pause');
+
+  // Test: Aborting while paused terminates execution
+  {
     let abortError = null;
+    const debugRuntime = new SchemeDebugRuntime({
+      onPause: (info) => {
+        // Abort instead of resuming
+        setTimeout(() => debugRuntime.abort(), 10);
+      }
+    });
+
+    debugRuntime.enable();
+    debugRuntime.setBreakpoint('<unknown>', 1);
+    interpreter.setDebugRuntime(debugRuntime);
+
     try {
-      await runAsync('(+ 1 2)');
+      await runDebug('(+ 1 2)');
     } catch (e) {
       abortError = e;
     }
 
-    assert(logger, 'abort: threw an error', abortError !== null, true);
-    assert(logger, 'abort: error message mentions abort',
-      abortError && abortError.message && abortError.message.toLowerCase().includes('abort'), true);
+    assert(logger, 'abort throws error', abortError !== null, true);
+    assert(logger, 'abort error message mentions abort',
+      abortError?.message?.toLowerCase().includes('abort'), true);
 
-    // Reset the abort state for subsequent tests
-    runtime.pauseController.reset();
+    // Reset for subsequent tests
+    debugRuntime.pauseController.reset();
     interpreter.setDebugRuntime(null);
   }
 
   // =========================================================================
-  // 9. handlePause with TestDebugBackend — resume
+  // evaluateStringDebug
   // =========================================================================
+  logger.title('Debug Integration - evaluateStringDebug');
 
-  logger.title('Debug Integration - handlePause with TestDebugBackend');
-
+  // Test: evaluateStringDebug produces correct results for string code
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-
-    const backend = new TestDebugBackend();
-    backend.setNextAction('resume');
-    runtime.setBackend(backend);
-
-    const fakeSource = { filename: 'test.scm', line: 10, column: 1 };
-    const fakeEnv = {};
-
-    const action = await runtime.handlePause(fakeSource, fakeEnv, 'breakpoint');
-
-    assert(logger, 'handlePause+backend: action is resume', action, 'resume');
-    assert(logger, 'handlePause+backend: backend received pause', backend.pauseEvents.length, 1);
-    assert(logger, 'handlePause+backend: pause reason', backend.pauseEvents[0].reason, 'breakpoint');
-    assert(logger, 'handlePause+backend: levelStack empty after', runtime.levelStack.depth(), 0);
+    const result = await interpreter.evaluateStringDebug('(+ 100 200)');
+    assert(logger, 'evaluateStringDebug arithmetic', result, 300);
   }
 
-  // =========================================================================
-  // 10. handlePause returns step actions
-  // =========================================================================
-
-  logger.title('Debug Integration - handlePause returns step actions');
-
+  // Test: evaluateStringDebug handles multiple expressions
   {
-    const runtime = new SchemeDebugRuntime();
-    runtime.enable();
-
-    const backend = new TestDebugBackend();
-    backend.setNextAction('stepInto');
-    runtime.setBackend(backend);
-
-    const fakeSource = { filename: 'test.scm', line: 15, column: 1 };
-    const fakeEnv = {};
-
-    const action = await runtime.handlePause(fakeSource, fakeEnv, 'step');
-
-    assert(logger, 'handlePause stepInto: action is stepInto', action, 'stepInto');
-    assert(logger, 'handlePause stepInto: backend received pause', backend.pauseEvents.length, 1);
+    const result = await interpreter.evaluateStringDebug(`
+      (define x-debug-test 42)
+      (+ x-debug-test 8)
+    `);
+    assert(logger, 'evaluateStringDebug multiple expressions', result, 50);
   }
+
+  // Test: evaluateStringDebug with string result
+  {
+    const result = await interpreter.evaluateStringDebug('"debug-test-string"');
+    assert(logger, 'evaluateStringDebug string result', result, 'debug-test-string');
+  }
+
+  // Test: evaluateStringDebug with boolean result
+  {
+    const result = await interpreter.evaluateStringDebug('(> 5 3)');
+    assert(logger, 'evaluateStringDebug boolean result', result, true);
+  }
+
+  // Test: evaluateStringDebug with list result
+  {
+    const syncResult = runSync("'(1 2 3)");
+    const debugResult = await interpreter.evaluateStringDebug("'(1 2 3)");
+    assert(logger, 'evaluateStringDebug list result', debugResult, syncResult);
+  }
+
+  // Final cleanup
+  interpreter.setDebugRuntime(null);
 }
 
 export default runDebugIntegrationTests;

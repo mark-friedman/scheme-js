@@ -46,7 +46,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 | Exceptions | Handler stack, `raise`, `guard` |
 | Parameters | `make-parameter`, `parameterize` |
 | Library Loader | R7RS module system |
-| Debugger | Breakpoints, Stepping, Inspection |
+| Debugger | Breakpoints, Stepping, Inspection, Cooperative Yielding |
 
 
 ## Directory Structure
@@ -169,12 +169,13 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │
 │   └── debug/                  # Debugger Runtime & Tools
 │      ├── index.js            # Barrel export
+│      ├── debug_level.js      # DebugLevel + DebugLevelStack (nested debugger contexts)
 │      ├── scheme_debug_runtime.js # Central debugger coordinator
 │      ├── debug_backend.js    # Abstract backend interface
-│      ├── breakpoint_manager.js # Breakpoint registry
-│      ├── stack_tracer.js     # Logical stack tracking
-│      ├── pause_controller.js # Stepping state machine
-│      ├── state_inspector.js  # Scope & value inspection
+│      ├── breakpoint_manager.js # Breakpoint registry (O(1) lookup, conditional breakpoints)
+│      ├── stack_tracer.js     # Logical stack tracking (original names, TCO-aware)
+│      ├── pause_controller.js # Stepping + cooperative polling (adaptive yield intervals)
+│      ├── state_inspector.js  # Scope & value inspection (nameMap-aware)
 │      ├── exception_handler.js # Error interception
 │      ├── repl_debug_backend.js # REPL-specific backend adapter
 │      └── repl_debug_commands.js # REPL command parser (:break, :step, etc.)

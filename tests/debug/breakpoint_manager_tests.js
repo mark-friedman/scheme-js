@@ -177,6 +177,80 @@ export function runBreakpointManagerTests(logger) {
         // id3 should be different from both id1 and id2
         assert(logger, 'new ID after removal is unique', id3 !== id1 && id3 !== id2, true);
     }
+
+    // Test: hasAny() returns false when empty
+    logger.title('BreakpointManager - hasAny()');
+    {
+        const mgr = new BreakpointManager();
+        assert(logger, 'hasAny false when empty', mgr.hasAny(), false);
+    }
+
+    // Test: hasAny() returns true after setting a breakpoint
+    {
+        const mgr = new BreakpointManager();
+        mgr.setBreakpoint('test.scm', 10);
+        assert(logger, 'hasAny true after setting breakpoint', mgr.hasAny(), true);
+    }
+
+    // Test: hasAny() returns false after clearing all
+    {
+        const mgr = new BreakpointManager();
+        mgr.setBreakpoint('test.scm', 10);
+        mgr.setBreakpoint('test.scm', 20);
+        mgr.clearAll();
+        assert(logger, 'hasAny false after clearAll', mgr.hasAny(), false);
+    }
+
+    // Test: hasAny() returns false after removing last breakpoint
+    {
+        const mgr = new BreakpointManager();
+        const id = mgr.setBreakpoint('test.scm', 10);
+        mgr.removeBreakpoint(id);
+        assert(logger, 'hasAny false after removing last breakpoint', mgr.hasAny(), false);
+    }
+
+    // Test: Conditional breakpoints store condition
+    logger.title('BreakpointManager - Conditional Breakpoints');
+    {
+        const mgr = new BreakpointManager();
+        const id = mgr.setBreakpoint('test.scm', 10, null, { condition: '(> x 5)' });
+        const bp = mgr.getBreakpoint(id);
+
+        assert(logger, 'conditional breakpoint stores condition', bp.condition, '(> x 5)');
+    }
+
+    // Test: Hit count breakpoints store hitCount
+    {
+        const mgr = new BreakpointManager();
+        const id = mgr.setBreakpoint('test.scm', 10, null, { hitCount: 3 });
+        const bp = mgr.getBreakpoint(id);
+
+        assert(logger, 'hit count breakpoint stores hitCount', bp.hitCount, 3);
+        assert(logger, 'hit count breakpoint initializes currentHitCount to 0', bp.currentHitCount, 0);
+    }
+
+    // Test: clearAll removes all breakpoints
+    logger.title('BreakpointManager - clearAll()');
+    {
+        const mgr = new BreakpointManager();
+        mgr.setBreakpoint('test.scm', 10);
+        mgr.setBreakpoint('test.scm', 20);
+        mgr.setBreakpoint('other.scm', 5);
+        mgr.clearAll();
+
+        assert(logger, 'clearAll removes all breakpoints', mgr.getAllBreakpoints().length, 0);
+        assert(logger, 'clearAll hasBreakpoint returns false', mgr.hasBreakpoint({ filename: 'test.scm', line: 10, column: 1 }), false);
+    }
+
+    // Test: Breakpoints have enabled property defaulting to true
+    logger.title('BreakpointManager - Enabled Property');
+    {
+        const mgr = new BreakpointManager();
+        const id = mgr.setBreakpoint('test.scm', 10);
+        const bp = mgr.getBreakpoint(id);
+
+        assert(logger, 'breakpoint enabled defaults to true', bp.enabled, true);
+    }
 }
 
 export default runBreakpointManagerTests;

@@ -75,6 +75,9 @@ export class ReplDebugCommands {
             case 'abort':
             case 'a':
                 return this.handleAbort();
+            case 'toplevel':
+            case 'top':
+                return this.handleToplevel();
             case 'up':
             case 'u':
                 return this.handleFrameUp();
@@ -111,8 +114,28 @@ export class ReplDebugCommands {
     }
 
     handleAbort() {
-        this.debugRuntime.abort();
+        if (this.backend.isPaused()) {
+            this.backend.resolveAction('abort');
+        } else {
+            this.debugRuntime.abort();
+        }
         return ';; Evaluation aborted';
+    }
+
+    /**
+     * Handles :toplevel — pops all debug levels and returns to the top-level REPL.
+     * Sets the abortAll flag on the PauseController so all nested runDebug() calls
+     * will throw, and resolves all pending pause promises via resolveAction.
+     * @returns {string}
+     */
+    handleToplevel() {
+        if (!this.backend.isPaused()) return ';; Not paused';
+        this.debugRuntime.pauseController.abortAll = true;
+        // Resolve all pending action resolvers to unblock all nested levels
+        while (this.backend.isPaused()) {
+            this.backend.resolveAction('abort');
+        }
+        return ';; Returning to top level';
     }
 
     handleBreak(args) {
@@ -149,25 +172,25 @@ export class ReplDebugCommands {
 
     handleStepInto() {
         if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.stepInto();
+        this.backend.resolveAction('stepInto');
         return ';; Stepping into...';
     }
 
     handleStepOver() {
         if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.stepOver();
+        this.backend.resolveAction('stepOver');
         return ';; Stepping over...';
     }
 
     handleStepOut() {
         if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.stepOut();
+        this.backend.resolveAction('stepOut');
         return ';; Stepping out...';
     }
 
     handleContinue() {
         if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.resume();
+        this.backend.resolveAction('resume');
         return ';; Continuing...';
     }
 
@@ -220,7 +243,7 @@ export class ReplDebugCommands {
         try {
             const sexp = parse(expr)[0];
 
-            // Reconstruct SyntacticEnv from the interpreter's Environment nameMap
+            // Reconstruct SyntacticEnv from the interpreter's Environment nameMap.
             // This allows the analyzer to correctly resolve alpha-renamed local variables.
             let syntacticEnv = null;
             let currEnv = env;
@@ -230,7 +253,6 @@ export class ReplDebugCommands {
                 currEnv = currEnv.parent;
             }
 
-            // Reconstruct SyntacticEnv from global upwards
             for (let i = envChain.length - 1; i >= 0; i--) {
                 const frame = envChain[i];
                 const nextSyntacticEnv = new SyntacticEnv(syntacticEnv);
@@ -244,14 +266,11 @@ export class ReplDebugCommands {
 
             const ast = analyze(sexp, syntacticEnv, this.interpreter.context);
 
-            let result;
-            if (this.debugRuntime.enabled) {
-                // Async eval in selected scope
-                result = await this.interpreter.runAsync(ast, env, { jsAutoConvert: 'raw' });
-            } else {
-                // Sync eval (will freeze UI if long)
-                result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
-            }
+            // Debugging stays enabled during eval — if the expression hits a
+            // breakpoint or throws, a nested debug level is created. The
+            // PauseController's execution context stack isolates stepping state,
+            // and the backend's LIFO resolver stack handles nested pauses.
+            const result = await this.interpreter.runDebug(ast, env, { jsAutoConvert: 'raw' });
             return `;; result: ${this.backend.formatValue(result)}`;
         } catch (e) {
             return `;; Error during eval: ${e.message}`;
@@ -291,7 +310,8 @@ export class ReplDebugCommands {
 ;;   :bt / :backtrace  - Show backtrace
 ;;   :locals           - Show local variables
 ;;   :eval <expr>      - Evaluate in selected frame's scope
-;;   :abort / :a       - Abort current evaluation and return to prompt
+;;   :abort / :a       - Pop one debug level
+;;   :toplevel / :top  - Pop all debug levels, return to REPL
 ;;   :up / :u          - Move up the stack
 ;;   :down / :d        - Move down the stack
 ;;   :help / :h / :?   - Show this help`;

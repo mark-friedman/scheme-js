@@ -187,6 +187,82 @@ export function runStackTracerTests(logger) {
 
         assert(logger, 'exitFrame on empty does not throw', tracer.getDepth(), 0);
     }
+
+    // Test: enterFrame with originalName uses it as display name
+    logger.title('StackTracer - originalName Support');
+    {
+        const tracer = new StackTracer();
+        tracer.enterFrame({
+            name: 'foo_123',
+            originalName: 'foo',
+            source: null,
+            env: {}
+        });
+
+        const frame = tracer.getStack()[0];
+        assert(logger, 'enterFrame with originalName uses it as display name', frame.name, 'foo');
+    }
+
+    // Test: enterFrame without originalName uses name
+    {
+        const tracer = new StackTracer();
+        tracer.enterFrame({
+            name: 'bar',
+            source: null,
+            env: {}
+        });
+
+        const frame = tracer.getStack()[0];
+        assert(logger, 'enterFrame without originalName uses name', frame.name, 'bar');
+    }
+
+    // Test: frame stores internalName
+    {
+        const tracer = new StackTracer();
+        tracer.enterFrame({
+            name: 'foo_123',
+            originalName: 'foo',
+            source: null,
+            env: {}
+        });
+
+        const frame = tracer.getStack()[0];
+        assert(logger, 'frame stores internalName from name param', frame.internalName, 'foo_123');
+    }
+
+    // Test: replaceFrame with originalName updates display name
+    {
+        const tracer = new StackTracer();
+        tracer.enterFrame({ name: 'main', source: null, env: {} });
+        tracer.enterFrame({ name: 'loop_1', source: null, env: {} });
+
+        tracer.replaceFrame({
+            name: 'loop_2',
+            originalName: 'loop',
+            source: null,
+            env: {}
+        });
+
+        const frame = tracer.getStack()[1];
+        assert(logger, 'replaceFrame with originalName updates display name', frame.name, 'loop');
+    }
+
+    // Test: replaceFrame preserves internalName when originalName provided
+    {
+        const tracer = new StackTracer();
+        tracer.enterFrame({ name: 'main', source: null, env: {} });
+        tracer.enterFrame({ name: 'recurse_1', source: null, env: {} });
+
+        tracer.replaceFrame({
+            name: 'recurse_2',
+            originalName: 'recurse',
+            source: null,
+            env: {}
+        });
+
+        const frame = tracer.getStack()[1];
+        assert(logger, 'replaceFrame preserves internalName when originalName provided', frame.internalName, 'recurse_2');
+    }
 }
 
 export default runStackTracerTests;

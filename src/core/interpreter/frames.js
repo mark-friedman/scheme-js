@@ -1,10 +1,10 @@
 /**
  * Frame Classes for the Scheme interpreter.
- * 
+ *
  * This module contains all Frame classes. Frames represent "the rest of the
  * computation" and are pushed onto the frame stack (fstack). They are popped
  * and executed after AST nodes complete their immediate work.
- * 
+ *
  * All frames extend Executable and implement a step() method.
  */
 
@@ -29,7 +29,7 @@ import { LiteralNode, TailAppNode, RestoreContinuation, RaiseNode } from './ast_
  * Register a binding with all currently active scopes.
  * Called when a define is evaluated during library loading.
  * Uses globalContext for scope tracking.
- * 
+ *
  * @param {string} name - The binding name
  * @param {any} [value] - The bound value (unused if GlobalRef is preferred)
  */
@@ -324,6 +324,7 @@ export class AppFrame extends Executable {
                 if (interpreter.debugRuntime) {
                     interpreter.debugRuntime.enterFrame({
                         name: func.name || 'anonymous',
+                        originalName: func.originalName || func.name || 'anonymous',
                         env: newEnv,
                         source: func.source
                     });
@@ -342,6 +343,7 @@ export class AppFrame extends Executable {
                 if (interpreter.debugRuntime) {
                     interpreter.debugRuntime.enterFrame({
                         name: func.name || 'anonymous',
+                        originalName: func.originalName || func.name || 'anonymous',
                         env: newEnv,
                         source: func.source
                     });

@@ -30,8 +30,9 @@ export const unitTests = [
     // Debug Unit Tests
     { path: 'debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
     { path: 'debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
-    { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
+    { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false, async: true },
     { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
+    { path: 'debug/debug_level_tests.js', fn: 'runDebugLevelTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
 ];
 

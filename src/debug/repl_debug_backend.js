@@ -1,5 +1,9 @@
 /**
  * @fileoverview REPL Debug Backend for interactive debugging.
+ *
+ * Supports nested debug levels by maintaining stacks of pause info
+ * and action resolvers (LIFO). Each onPause() call pushes a new
+ * entry; resolveAction() pops the topmost one.
  */
 
 import { DebugBackend } from './debug_backend.js';
@@ -10,6 +14,7 @@ import { prettyPrint } from '../core/interpreter/printer.js';
  *
  * Provides a pull-based model for REPL interaction.
  * When paused, it can notify the REPL to enter a debug command state.
+ * Supports nested pauses (e.g. eval during breakpoint hits another breakpoint).
  */
 export class ReplDebugBackend extends DebugBackend {
     /**
@@ -18,10 +23,23 @@ export class ReplDebugBackend extends DebugBackend {
     constructor(outputFn) {
         super();
         this.outputFn = outputFn;
-        this.paused = false;
-        this.pauseInfo = null;
+
+        /**
+         * Stack of pause info objects, one per active debug level.
+         * @type {Object[]}
+         */
+        this._pauseInfoStack = [];
+
+        /**
+         * Stack of action resolvers, one per active debug level.
+         * Each resolver is the resolve function of the Promise returned
+         * by onPause() for that level.
+         * @type {Function[]}
+         */
+        this._actionResolverStack = [];
+
+        /** @type {Function|null} */
         this.onPauseCallback = null;
-        this._pauseActionResolver = null;
     }
 
     /**
@@ -33,13 +51,15 @@ export class ReplDebugBackend extends DebugBackend {
     }
 
     /**
-     * Called when execution pauses.
+     * Called when execution pauses. Pushes a new debug level onto the
+     * internal stacks and returns a promise that resolves when the user
+     * issues a resume/step/abort command for this level.
+     *
      * @param {Object} pauseInfo - Information about the pause
-     * @returns {Promise<string>} Action to take: 'resume', 'stepInto', 'stepOver', 'stepOut'
+     * @returns {Promise<string>} Action to take: 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
      */
     async onPause(pauseInfo) {
-        this.paused = true;
-        this.pauseInfo = pauseInfo;
+        this._pauseInfoStack.push(pauseInfo);
 
         const { reason, source, breakpointId } = pauseInfo;
         const location = source ? `${source.filename}:${source.line}` : 'unknown location';
@@ -55,25 +75,43 @@ export class ReplDebugBackend extends DebugBackend {
             this.onPauseCallback(pauseInfo);
         }
 
-        // Return a promise that resolves when onResume is called with an action.
-        // This allows the runtime to await the user's decision if desired.
         return new Promise(resolve => {
-            this._pauseActionResolver = resolve;
+            this._actionResolverStack.push(resolve);
         });
     }
 
     /**
-     * Called when execution resumes.
+     * Called when execution resumes (by the runtime's onResume callback).
+     * Only prints a status message — level popping is handled by
+     * resolveAction() which already resolved the action promise.
      * @param {string} [action='resume'] - The action that caused resumption
      */
     onResume(action = 'resume') {
-        this.paused = false;
-        this.pauseInfo = null;
         this.outputFn(`;; Resumed`);
+    }
 
-        if (this._pauseActionResolver) {
-            this._pauseActionResolver(action);
-            this._pauseActionResolver = null;
+    /**
+     * Resolves the topmost action resolver without printing ";; Resumed".
+     * Called by REPL commands (:continue, :step, etc.) to unblock the
+     * current debug level. The runtime will call onResume separately
+     * if needed.
+     * @param {string} action - 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
+     */
+    resolveAction(action) {
+        this._popLevel(action);
+    }
+
+    /**
+     * Pops the topmost action resolver and pause info, resolving the
+     * action promise for that level.
+     * @param {string} action - The action to resolve with
+     * @private
+     */
+    _popLevel(action) {
+        if (this._actionResolverStack.length > 0) {
+            const resolve = this._actionResolverStack.pop();
+            this._pauseInfoStack.pop();
+            resolve(action);
         }
     }
 
@@ -113,17 +151,35 @@ export class ReplDebugBackend extends DebugBackend {
 
     /**
      * Checks if the backend is currently in a paused state.
+     * True when any debug level is active.
      * @returns {boolean}
      */
     isPaused() {
-        return this.paused;
+        return this._pauseInfoStack.length > 0;
     }
 
     /**
-     * Gets information about the current pause.
+     * Gets information about the current (topmost) pause.
      * @returns {Object|null}
      */
     getPauseInfo() {
-        return this.pauseInfo;
+        if (this._pauseInfoStack.length === 0) return null;
+        return this._pauseInfoStack[this._pauseInfoStack.length - 1];
+    }
+
+    /**
+     * Gets the current debug nesting depth (number of active pauses).
+     * @returns {number}
+     */
+    getDepth() {
+        return this._pauseInfoStack.length;
+    }
+
+    /**
+     * Called when exiting a debug level (e.g. after handlePause completes).
+     * No-op for REPL backend — level management is handled by resolveAction.
+     */
+    onExitLevel() {
+        // No-op
     }
 }

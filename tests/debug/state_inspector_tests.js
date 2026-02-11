@@ -289,6 +289,58 @@ export async function runStateInspectorTests(logger) {
         assert(logger, 'large vector subtype', result.subtype, 'vector');
         assert(logger, 'large vector description mentions size', result.description.includes('1000'), true);
     }
+    logger.title('StateInspector - Original Names (nameMap)');
+
+    // Test: getLocals returns original names when nameMap exists
+    {
+        const inspector = new StateInspector();
+        const env = new Environment();
+        env.define('x#1', 10);
+        env.define('y#2', 20);
+        env.nameMap.set('x', 'x#1');
+        env.nameMap.set('y', 'y#2');
+
+        const locals = inspector.getLocals(env);
+        assert(logger, 'getLocals returns original name x', locals.has('x') || locals['x'] !== undefined, true);
+        assert(logger, 'getLocals value for x', locals.get ? locals.get('x') : locals['x'], 10);
+    }
+
+    // Test: getLocals without nameMap uses internal names
+    {
+        const inspector = new StateInspector();
+        const env = new Environment();
+        env.define('plain', 42);
+
+        const locals = inspector.getLocals(env);
+        assert(logger, 'getLocals shows plain name', locals.has('plain') || locals['plain'] !== undefined, true);
+    }
+
+    // Test: getScopeProperties uses original names
+    {
+        const inspector = new StateInspector();
+        const env = new Environment();
+        env.define('x#1', 10);
+        env.nameMap.set('x', 'x#1');
+
+        const properties = inspector.getScopeProperties(env);
+        const names = properties.map(p => p.name);
+        assert(logger, 'property uses original name', names.includes('x'), true);
+        assert(logger, 'property does not use internal name', names.includes('x#1'), false);
+    }
+
+    // Test: Mixed: some bindings have original names, some don't
+    {
+        const inspector = new StateInspector();
+        const env = new Environment();
+        env.define('x#1', 10);
+        env.define('global-var', 99);
+        env.nameMap.set('x', 'x#1');
+
+        const properties = inspector.getScopeProperties(env);
+        const names = properties.map(p => p.name);
+        assert(logger, 'renamed binding uses original name', names.includes('x'), true);
+        assert(logger, 'unrenamed binding uses its own name', names.includes('global-var'), true);
+    }
 }
 
 export default runStateInspectorTests;

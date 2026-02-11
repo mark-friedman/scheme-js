@@ -60,17 +60,37 @@ export class StateInspector {
     }
 
     /**
+     * Gets the local variable bindings for an environment, using original
+     * (pre-alpha-rename) names when available via env.nameMap.
+     *
+     * @param {Environment} env - The environment to inspect
+     * @returns {Map<string, *>} Map of display name → value
+     */
+    getLocals(env) {
+        const locals = new Map();
+        const reverseMap = this._buildReverseNameMap(env);
+        for (const [internalName, value] of env.bindings) {
+            const displayName = reverseMap.get(internalName) || internalName;
+            locals.set(displayName, value);
+        }
+        return locals;
+    }
+
+    /**
      * Gets the properties (bindings) of a single scope/environment.
+     * Uses env.nameMap to show original variable names when available.
      *
      * @param {Environment} env - The environment to inspect
      * @returns {Array<Object>} Array of property descriptors
      */
     getScopeProperties(env) {
         const properties = [];
+        const reverseMap = this._buildReverseNameMap(env);
 
-        for (const [name, value] of env.bindings) {
+        for (const [internalName, value] of env.bindings) {
+            const displayName = reverseMap.get(internalName) || internalName;
             properties.push({
-                name,
+                name: displayName,
                 value: this.serializeValue(value),
                 writable: true,
                 configurable: true,
@@ -327,6 +347,23 @@ export class StateInspector {
     // =========================================================================
     // Private Helpers
     // =========================================================================
+
+    /**
+     * Builds a reverse name map (internalName → originalName) from env.nameMap.
+     * Returns an empty Map if nameMap is not present.
+     * @param {Environment} env - The environment
+     * @returns {Map<string, string>} Reverse mapping
+     * @private
+     */
+    _buildReverseNameMap(env) {
+        const reverseMap = new Map();
+        if (env.nameMap) {
+            for (const [original, internal] of env.nameMap) {
+                reverseMap.set(internal, original);
+            }
+        }
+        return reverseMap;
+    }
 
     /**
      * Registers an object and returns its ID.

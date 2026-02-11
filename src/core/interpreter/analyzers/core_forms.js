@@ -1,6 +1,6 @@
 /**
  * Core Form Handlers
- * 
+ *
  * Handlers for fundamental Scheme special forms:
  * quote, if, lambda, let, letrec, set!, define, begin
  */
@@ -42,7 +42,7 @@ export function initCoreForms(deps) {
 /**
  * Helper to analyze an expression while checking for macro expansion first.
  * If the head of the list is a macro, it expands it recursively before analysis.
- * 
+ *
  * @param {*} exp - The Scheme expression to analyze.
  * @param {SyntacticEnv} syntacticEnv - The current syntactic environment.
  * @param {InterpreterContext} ctx - The interpreter context.
@@ -130,7 +130,9 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
         originalRestParam = name;
         restParamRenamed = generateUniqueName(name, ctx);
         newEnv = newEnv.extend(curr, restParamRenamed);
-        return new LambdaNode(newParams, analyzeBody(body, newEnv, ctx), restParamRenamed, 'anonymous', [], originalRestParam);
+        const node = new LambdaNode(newParams, analyzeBody(body, newEnv, ctx), restParamRenamed, 'anonymous', [], originalRestParam);
+        if (exp.source) node.source = exp.source;
+        return node;
     }
 
     // Handle fixed or dotted parameter lists: (lambda (x y . z) body...)
@@ -161,14 +163,16 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
     }
 
     // Body is analyzed in a new macro scope (for internal define-syntax)
-    return new LambdaNode(newParams, analyzeScopedBody(body, newEnv, ctx), restParamRenamed, 'anonymous', originalParams, originalRestParam);
+    const node = new LambdaNode(newParams, analyzeScopedBody(body, newEnv, ctx), restParamRenamed, 'anonymous', originalParams, originalRestParam);
+    if (exp.source) node.source = exp.source;
+    return node;
 }
 
 
 /**
  * Analyzes a body in a temporary macro registry scope.
  * Used for lambda and let bodies to support internal define-syntax.
- * 
+ *
  * @param {Cons} body - The body expressions.
  * @param {SyntacticEnv} syntacticEnv - The current syntactic environment.
  * @param {InterpreterContext} ctx - The interpreter context.
@@ -188,7 +192,7 @@ function analyzeScopedBody(body, syntacticEnv, ctx) {
 /**
  * Analyzes a Scheme body (list of expressions).
  * Implements R7RS internal definition hoisting.
- * 
+ *
  * @param {Cons} body - The body expressions.
  * @param {SyntacticEnv} syntacticEnv - The current syntactic environment.
  * @param {InterpreterContext} ctx - The interpreter context.
@@ -424,6 +428,10 @@ function analyzeDefine(exp, syntacticEnv, ctx) {
 
         // Desugar to (define f (lambda (args) body...))
         const lambdaExp = cons(intern('lambda'), cons(args, body));
+        // Propagate source from original define to synthetic lambda
+        if (exp.source) {
+            lambdaExp.source = exp.source;
+        }
         const valExpr = analyzeLambda(lambdaExp, syntacticEnv, ctx);
         const name = (nameObj instanceof Symbol) ? nameObj.name : syntaxName(nameObj);
 
@@ -472,14 +480,14 @@ export function registerCoreForms() {
 /**
  * Analyzes (define-syntax <name> <transformer-spec>).
  * Compiles syntax-rules and registers them in the current macro registry.
- * 
+ *
  * @param {Cons} exp - The expression.
  * @returns {LiteralNode}
  */
 /**
  * Analyzes (define-syntax <name> <transformer-spec>).
  * Compiles syntax-rules and registers them in the current macro registry.
- * 
+ *
  * @param {Cons} exp - The expression.
  * @param {SyntacticEnv} [syntacticEnv=null] - The environment.
  * @param {InterpreterContext} ctx - The context.
@@ -644,7 +652,7 @@ function compileTransformerSpec(transformerSpec, syntacticEnv = null) {
 /**
  * Expands (quasiquote <exp>) into basic application nodes (cons, list, append).
  * Handles unquote and unquote-splicing with nested levels.
- * 
+ *
  * @param {*} exp - The template.
  * @param {SyntacticEnv} syntacticEnv - environment.
  * @param {InterpreterContext} ctx - context.

@@ -4027,6 +4027,164 @@ I converted the REPL's evaluation logic to be fully asynchronous in debug mode.
 
 ---
 
+# Phase 1: Debugger Core Components Rewrite (2026-02-10)
+
+Rewrote the core debug runtime components as Phase 1 of the new Lisp-style debugger with nested debug levels.
+
+## New Component
+
+### [debug_level.js](./src/debug/debug_level.js) — NEW
+- `DebugLevel` class: represents a paused execution context (level, reason, source, stack, env, parentLevel, selectedFrameIndex)
+- `DebugLevelStack` class: manages nested debug levels with push/pop/popAll/current/depth
+
+## Rewritten Components
+
+### [breakpoint_manager.js](./src/debug/breakpoint_manager.js) — REWRITE
+- O(1) lookup via `locationIndex` Map keyed by `"filename:line"`
+- `hasAny()` method for fast-path optimization
+- Conditional breakpoints: `condition` expression string and `hitCount`
+- Per-breakpoint `enabled` flag
+
+### [stack_tracer.js](./src/debug/stack_tracer.js) — REWRITE
+- `originalName` support: frames store both display name and `internalName`
+- `enterFrame()` and `replaceFrame()` accept `originalName` in frameInfo
+- Display name prefers `originalName` over alpha-renamed `name`
+
+### [pause_controller.js](./src/debug/pause_controller.js) — REWRITE
+- Cooperative polling: `shouldYield()` / `onYield()` with adaptive intervals
+- `requestPause()` switches to emergency yield interval (100 ops vs 10000)
+- `abortAll` flag for `:toplevel` command
+- All existing step/pause/resume behavior preserved
+
+### [state_inspector.js](./src/debug/state_inspector.js) — REWRITE
+- `getLocals(env)` returns Map with original variable names via `env.nameMap`
+- `getScopeProperties(env)` now shows original names instead of alpha-renamed internal names
+- Defensive handling when `nameMap` is missing
+
+### [index.js](./src/debug/index.js) — Updated barrel export with DebugLevel/DebugLevelStack
+
+## Tests
+
+| Test File | Tests |
+|-----------|-------|
+| `tests/debug/debug_level_tests.js` | 22 assertions: creation, defaults, push/pop/popAll/current/depth, nesting |
+| `tests/debug/breakpoint_manager_tests.js` | Extended: hasAny(), conditional breakpoints, clearAll |
+| `tests/debug/stack_tracer_tests.js` | Extended: originalName, internalName, replaceFrame with originalName |
+| `tests/debug/pause_controller_tests.js` | Extended: shouldYield, onYield, requestPause, abortAll, waitForResume promise |
+| `tests/debug/state_inspector_tests.js` | Extended: getLocals with nameMap, getScopeProperties original names |
+
+## Verification
+
+```
+TEST SUMMARY: 2074 passed, 0 failed, 7 skipped
+```
+
+---
+
+# Phase 2: Interpreter Integration — Debug-Aware Async Trampoline (2025-02-10)
+
+## Summary
+
+Integrated the Phase 1 debug runtime components into the interpreter. Replaced `runAsync()`/`evaluateStringAsync()` with `runDebug()`/`evaluateStringDebug()` — a single async execution path that provides cooperative yielding AND debug pause/resume/step support. Removed the synchronous debug hook from `step()` to keep it fast.
+
+## Key Design Decisions
+
+1. **Single async path** — `runDebug()` replaces `runAsync()`. When debug is enabled, it uses `PauseController` adaptive yielding and checks breakpoints/stepping before each step. When debug is disabled, it falls back to periodic step-count yields.
+2. **Debug checks in trampoline, not step()** — `step()` is now a single-line delegation to `registers[CTL].step()`. All debug logic (breakpoints, stepping, manual pause, exception handling) lives in `runDebug()`.
+3. **`handlePause()` on SchemeDebugRuntime** — Creates a `DebugLevel`, pushes it on the `DebugLevelStack`, notifies the backend, and awaits `waitForResume()`. When the backend returns an action, `_processAction()` dispatches to the appropriate method.
+4. **Backward compatibility** — `runAsync()` and `evaluateStringAsync()` remain as deprecated aliases.
+
+## Changed Files
+
+### [interpreter.js](./src/core/interpreter/interpreter.js) — Core interpreter
+- Removed debug hook from `step()` (now single-line)
+- Added `runDebug()` async trampoline with cooperative yielding + debug pause
+- Added `evaluateStringDebug()` string-based wrapper
+- Kept `runAsync()`/`evaluateStringAsync()` as deprecated aliases
+
+### [scheme_debug_runtime.js](./src/debug/scheme_debug_runtime.js) — Central coordinator
+- Added `DebugLevel`/`DebugLevelStack` import and `this.levelStack`
+- Added `handlePause()` — creates DebugLevel, notifies backend, waits for resume
+- Added `_processAction()` — dispatches backend action strings to runtime methods
+- Updated `reset()` to clear `levelStack`
+
+### [pause_controller.js](./src/debug/pause_controller.js) — Cooperative polling
+- Added `_resolveWait()` helper to resolve pause promise
+- `stepInto()`, `stepOver()`, `stepOut()` now resolve `waitForResume()` promise
+
+### [frames.js](./src/core/interpreter/frames.js) — Application frames
+- `AppFrame.step()` now passes `originalName` from `func.originalName` in `enterFrame()`
+
+### [repl_debug_commands.js](./src/debug/repl_debug_commands.js) — REPL commands
+- Updated `handleEval()` to use `runDebug()` and temporarily disable debug during eval
+- Prevents recursive debug pauses (breakpoints, exceptions) during eval
+
+### [repl.js](./repl.js), [web/repl.js](./web/repl.js) — REPL frontends
+- Updated to call `runDebug()` instead of `runAsync()`
+
+### [debug_hooks_tests.js](./tests/functional/debug_hooks_tests.js) — Existing test update
+- Breakpoint integration test now uses `evaluateStringDebug()` (since debug hooks moved to async path)
+
+## New Tests
+
+| Test File | Tests |
+|-----------|-------|
+| `tests/debug/debug_integration_tests.js` | runDebug correctness (vs sync), breakpoint pause/resume, stepping, manual pause, cooperative yielding, DebugLevel creation, abort, evaluateStringDebug |
+
+## Verification
+
+```
+TEST SUMMARY: 2116 passed, 0 failed, 7 skipped
+```
+
+---
+
+# Nested Debug Levels — Fix Recursive Pause Deadlock (2026-02-11)
+
+## Problem
+
+When paused at a breakpoint, `:eval` expressions could not trigger debugging (breakpoints, exception breaks) because debugging was disabled during eval to prevent deadlocks. The root cause: `PauseController` had a single `pauseResolve` promise, so nested `handlePause()` calls overwrote the outer resolver, orphaning it permanently.
+
+## Solution
+
+Made the pause/resume mechanism stack-based (LIFO) to support nested debug levels:
+
+### [pause_controller.js](./src/debug/pause_controller.js)
+- Replaced `pauseResolve` (single field) with `pauseResolveStack` (array) — each `waitForResume()` pushes, each `_resolveWait()` pops
+- Added execution context stack (`pushExecutionContext`/`popExecutionContext`) — saves/restores stepping state for nested `runDebug()` calls so inner step commands don't contaminate outer execution
+- Updated `reset()` to resolve all stacked resolvers and clear context stack
+
+### [repl_debug_backend.js](./src/debug/repl_debug_backend.js)
+- Replaced single `_pauseActionResolver`/`pauseInfo` with LIFO stacks (`_actionResolverStack`, `_pauseInfoStack`)
+- Added `resolveAction(action)` method — single action channel for REPL commands
+- `isPaused()` now derived from stack depth, not a boolean flag
+- `onResume()` only prints status; level management handled by `resolveAction()`
+
+### [repl_debug_commands.js](./src/debug/repl_debug_commands.js)
+- Step/continue/abort commands now go through `backend.resolveAction()` instead of calling `debugRuntime.resume()/stepInto()` directly — eliminates double-processing risk
+- `handleEval()` no longer disables debugging — expressions can hit breakpoints and create nested debug levels
+
+### [debug_backend.js](./src/debug/debug_backend.js) — TestDebugBackend
+- Replaced `pendingAction`/`actionResolver` with `pendingActions` (FIFO queue) and `actionResolverStack` (LIFO stack) for nested pause support
+
+### [interpreter.js](./src/core/interpreter/interpreter.js)
+- `runDebug()` pushes/pops execution context when `depth > 1` (nested eval) to isolate stepping state
+
+## New Tests
+
+| Test File | Tests |
+|-----------|-------|
+| `tests/debug/nested_debug_level_tests.js` | PauseController nested waitForResume (LIFO), execution context stack isolation, ReplDebugBackend nested onPause, handlePause nesting, eval during breakpoint integration |
+
+## Verification
+
+```
+TEST SUMMARY: 2149 passed, 0 failed, 7 skipped
+```
+
+
+---
+
 # 2026-02-11: Nested Debug Level Infrastructure & Comprehensive Tests
 
 ## Summary

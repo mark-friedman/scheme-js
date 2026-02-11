@@ -37,8 +37,9 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
         assert(logger, 'debug status check',
             await commands.execute(':debug'), ';; Debugging is ON');
 
+        const debugOffResult = await commands.execute(':debug off');
         assert(logger, 'debug toggle off',
-            await commands.execute(':debug off'), ';; Debugging disabled\n;; WARNING: Fast Mode enabled. UI will freeze during long computations.');
+            debugOffResult.startsWith(';; Debugging disabled'), true);
 
         assert(logger, 'runtime is disabled',
             runtime.enabled, false);
@@ -75,12 +76,17 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
             env: mockEnv
         });
 
-        // Mock pause state
-        backend.paused = true;
+        // Mock pause state by pushing a fake pause info onto the backend stack
+        backend._pauseInfoStack.push({ reason: 'breakpoint', source: { filename: 'test.scm', line: 20 } });
+
+        // Disable break-on-exception for eval error test — we want the error
+        // to propagate to handleEval's catch, not create a nested debug level.
+        runtime.exceptionHandler.breakOnUncaughtException = false;
 
         const locals = await commands.execute(':locals');
+        // BigInt 42n is serialized with description '42n' by StateInspector
         assert(logger, 'show locals contains variable',
-            locals.includes('debug-var = 42'), true);
+            locals.includes('debug-var') && (locals.includes('42n') || locals.includes('42')), true);
 
         const checkVar = await commands.execute(':eval debug-var');
         assert(logger, 'eval variable direct',
@@ -94,8 +100,9 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
         assert(logger, 'eval error handling',
             evalError.includes('Error during eval'), true);
 
+        runtime.exceptionHandler.breakOnUncaughtException = true;
         runtime.stackTracer.exitFrame();
-        backend.paused = false;
+        backend._pauseInfoStack.pop();
     }
 
     // Test: Stack Navigation
@@ -103,7 +110,7 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
         runtime.stackTracer.enterFrame({ name: 'frame-0', env: interpreter.globalEnv });
         runtime.stackTracer.enterFrame({ name: 'frame-1', env: interpreter.globalEnv });
 
-        backend.paused = true;
+        backend._pauseInfoStack.push({ reason: 'breakpoint' });
 
         assert(logger, 'initial frame is newest',
             commands._getSelectedIndex(runtime.getStack()), 1);
@@ -121,7 +128,7 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
             commands._getSelectedIndex(runtime.getStack()), 1);
 
         runtime.stackTracer.clear();
-        backend.paused = false;
+        backend._pauseInfoStack.pop();
         commands.resetSelection();
     }
 

@@ -41,7 +41,7 @@ function listWithSource(source, ...args) {
  */
 export function readFromTokens(tokens, state) {
     if (tokens.length === 0) {
-        throw new SchemeReadError('unexpected end of input', state.current || 'expression');
+        throw new SchemeReadError('unexpected end of input', state.current || 'expression', null, null, true);
     }
 
     const tokenObj = tokens.shift();
@@ -62,7 +62,7 @@ export function readFromTokens(tokens, state) {
     // Handle datum comments: #; skips the next datum
     if (token === '#;') {
         if (tokens.length === 0) {
-            throw new SchemeReadError('unexpected end of input after #;', 'datum comment');
+            throw new SchemeReadError('unexpected end of input after #;', 'datum comment', null, null, true);
         }
         readFromTokens(tokens, state); // Read and discard next datum
         if (tokens.length === 0) return undefined;
@@ -176,14 +176,14 @@ export function readList(tokens, state, openSource = null) {
     const listItems = [];
     while (true) {
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')'", 'list');
+            throw new SchemeReadError("missing ')'", 'list', null, null, true);
         }
         if (tokens[0].value === ')') break;
 
         // Handle datum comment inside list
         if (tokens[0].value === '#;') {
             tokens.shift(); // consume #;
-            if (tokens.length === 0) throw new SchemeReadError('unexpected end of input', 'datum comment');
+            if (tokens.length === 0) throw new SchemeReadError('unexpected end of input', 'datum comment', null, null, true);
 
             // Can't use datum comment on syntactic markers
             if (tokens[0].value === '.') {
@@ -270,7 +270,7 @@ export function readVector(tokens, state, openSource = null) {
     const elements = [];
     while (true) {
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')'", 'vector');
+            throw new SchemeReadError("missing ')'", 'vector', null, null, true);
         }
         if (tokens[0].value === ')') break;
         elements.push(readFromTokens(tokens, state));
@@ -315,7 +315,7 @@ export function readJSObjectLiteral(tokens, state, openSource = null) {
             entryItems.push(readFromTokens(tokens, state));
         }
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')' in property entry", 'object literal');
+            throw new SchemeReadError("missing ')' in property entry", 'object literal', null, null, true);
         }
         tokens.shift(); // consume ')'
 
@@ -337,7 +337,7 @@ export function readJSObjectLiteral(tokens, state, openSource = null) {
     }
 
     if (tokens.length === 0) {
-        throw new SchemeReadError("missing '}'", 'object literal');
+        throw new SchemeReadError("missing '}'", 'object literal', null, null, true);
     }
     tokens.shift(); // consume '}'
 
@@ -396,7 +396,7 @@ export function readBytevector(tokens) {
     const bytes = [];
     while (true) {
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')'", 'bytevector');
+            throw new SchemeReadError("missing ')'", 'bytevector', null, null, true);
         }
         if (tokens[0].value === ')') break;
 
@@ -442,7 +442,7 @@ export function readAtom(token, caseFold = false) {
     // Strings (not case-folded) - handle R7RS escape sequences
     if (token.startsWith('"')) {
         if (token.length < 2 || !token.endsWith('"')) {
-            throw new SchemeReadError('unterminated string', 'string');
+            throw new SchemeReadError('unterminated string', 'string', null, null, true);
         }
         return processStringEscapes(token.slice(1, -1));
     }

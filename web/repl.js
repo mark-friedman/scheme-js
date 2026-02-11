@@ -46,8 +46,7 @@ export const replStyles = `
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
-      width: 3ch;
-      /* Width of "..." - prevents width change */
+      min-width: 3ch;
       margin-right: 8px;
       user-select: none;
       pointer-events: none;
@@ -300,7 +299,8 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         if (currentLine) currentLine.style.display = '';
         if (pauseBtn) pauseBtn.style.display = 'none';
 
-        promptColumn.querySelector('.repl-prompt').textContent = 'debug\u003e';
+        const depth = debugBackend.getDepth();
+        promptColumn.querySelector('.repl-prompt').textContent = `${depth} debug\u003e`;
         shell.classList.add('paused');
         // Scroll to bottom to show pause message
         shell.scrollTop = shell.scrollHeight;
@@ -653,7 +653,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                     addToHistory(result, 'result');
                 }
 
-                // If the command was :abort, the main runAsync will throw and be caught below.
+                // If the command was :abort, the main runDebug will throw and be caught below.
                 // If it was just :continue or something else, we let the finally block reset the UI.
                 return;
             }
@@ -666,7 +666,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             }
 
             // Normal evaluation
-            const sexps = parse(code);
+            const sexps = parse(code, { filename: '<repl>' });
             let result;
             for (const sexp of sexps) {
                 if (interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
@@ -674,7 +674,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                     result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
                 } else {
                     // DEBUG MODE (Async)
-                    result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                    result = await interpreter.runDebug(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
                 }
             }
 
@@ -684,10 +684,18 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             }
 
         } catch (e) {
-            console.error('REPL Error:', e);
-            addToHistory(`Error: ${e.message}`, 'error');
+            // Silently absorb abort errors — the user already saw the message
+            if (e.message !== 'Evaluation aborted') {
+                console.error('REPL Error:', e);
+                addToHistory(`Error: ${e.message}`, 'error');
+            }
         } finally {
             isEvaluating = false;
+
+            // Reset abortAll flag after evaluation completes
+            if (interpreter.debugRuntime?.pauseController?.abortAll) {
+                interpreter.debugRuntime.pauseController.abortAll = false;
+            }
 
             // Post-eval UI cleanup
             if (!debugBackend.isPaused()) {
@@ -770,17 +778,19 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             isEvaluating = true;
 
             try {
-                const sexps = parse(code);
+                const sexps = parse(code, { filename: '<repl>' });
                 let result;
                 for (const sexp of sexps) {
-                    result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                    result = await interpreter.runDebug(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
                 }
                 if (!debugBackend.isPaused()) {
                     addToHistory(prettyPrint(result), 'result');
                 }
             } catch (e) {
-                console.error('REPL Error:', e);
-                addToHistory(`Error: ${e.message}`, 'error');
+                if (e.message !== 'Evaluation aborted') {
+                    console.error('REPL Error:', e);
+                    addToHistory(`Error: ${e.message}`, 'error');
+                }
             } finally {
                 isEvaluating = false;
                 replRunBtn.disabled = false;

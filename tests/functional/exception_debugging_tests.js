@@ -84,7 +84,7 @@ export async function runExceptionDebuggingTests(interpreter, logger) {
         const raiseNode = new RaiseNode(exceptionVal, false);
 
         try {
-            await interpreter.runAsync(raiseNode, interpreter.globalEnv, { stepsPerYield: 1 });
+            await interpreter.runDebug(raiseNode, interpreter.globalEnv, { stepsPerYield: 1 });
         } catch (e) {
             // Expected - uncaught exception propagates after resume
         }
@@ -118,7 +118,7 @@ export async function runExceptionDebuggingTests(interpreter, logger) {
         const raiseNode = new RaiseNode(exceptionVal, false);
 
         try {
-            await interpreter.runAsync(raiseNode, interpreter.globalEnv, { stepsPerYield: 1 });
+            await interpreter.runDebug(raiseNode, interpreter.globalEnv, { stepsPerYield: 1 });
         } catch (e) {
             // Expected
         }
@@ -150,7 +150,7 @@ export async function runExceptionDebuggingTests(interpreter, logger) {
         const raiseNode = new RaiseNode(new Symbol('resumable'), false);
 
         try {
-            await interpreter.runAsync(raiseNode, interpreter.globalEnv, { stepsPerYield: 1 });
+            await interpreter.runDebug(raiseNode, interpreter.globalEnv, { stepsPerYield: 1 });
         } catch (e) {
             // Exception should still propagate after resume
         }

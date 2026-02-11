@@ -406,16 +406,7 @@ export class Interpreter {
    * @returns {boolean} `true` to continue the trampoline, `false` to halt.
    */
   step(registers) {
-    const ctl = registers[CTL];
-
-    // Debug hook: check if we should pause before this step
-    if (this.debugRuntime && this.debugRuntime.enabled && ctl.source) {
-      if (this.debugRuntime.shouldPause(ctl.source, registers[ENV])) {
-        this.debugRuntime.pause(ctl.source, registers[ENV]);
-      }
-    }
-
-    return ctl.step(registers, this);
+    return registers[CTL].step(registers, this);
   }
 
   /**
@@ -427,20 +418,20 @@ export class Interpreter {
   }
 
   /**
-   * Runs Scheme code asynchronously with periodic yields to the event loop.
-   * This enables non-blocking execution for long-running computations.
+   * Runs Scheme code asynchronously with cooperative yielding and debug support.
+   * This is the single async execution path that replaces runAsync().
+   * When a debugRuntime is attached and enabled, it checks for breakpoints,
+   * stepping, and manual pause at each yield point. When no debugRuntime is
+   * present, it still yields to the event loop periodically for UI responsiveness.
    *
    * @param {Executable} ast - The AST node to execute.
    * @param {Environment} [env] - The environment to run in.
-   * @param {Object} [options={}] - Async execution options.
-   * @param {number} [options.stepsPerYield=1000] - Steps between yields.
+   * @param {Object} [options={}] - Execution options.
+   * @param {number} [options.stepsPerYield=1000] - Steps between yields (used when no debugRuntime).
    * @param {Function} [options.onYield] - Callback invoked on each yield.
    * @returns {Promise<*>} The result of the computation.
    */
-  async runAsync(ast, env = this.globalEnv, options = {}) {
-    const stepsPerYield = options.stepsPerYield ?? 1000;
-    const onYield = options.onYield ?? (() => { });
-
+  async runDebug(ast, env = this.globalEnv, options = {}) {
     if (!this.globalEnv) {
       throw new SchemeError("Interpreter global environment is not set.");
     }
@@ -448,47 +439,97 @@ export class Interpreter {
     const registers = [null, ast, env, [], undefined];
     this.depth++;
 
+    const dr = this.debugRuntime;
+    const pc = dr?.pauseController;
+    const hasDebug = dr && dr.enabled;
+
+    // For nested runDebug() calls (e.g. :eval during a breakpoint pause),
+    // isolate the stepping state so inner step commands don't contaminate
+    // the outer execution. depth > 1 means this is a nested call.
+    const nestedDebug = hasDebug && pc && this.depth > 1;
+    if (nestedDebug) {
+      pc.pushExecutionContext();
+    }
+
+    // Yield configuration: use pauseController's adaptive yielding when
+    // debug is active, otherwise fall back to stepsPerYield option.
+    const stepsPerYield = options.stepsPerYield ?? 1000;
+    const onYield = options.onYield ?? null;
+
     try {
       let stepCount = 0;
 
       while (true) {
         try {
-          // Execute one step
-          if (this.step(registers)) {
-            stepCount++;
+          // --- Cooperative yield check ---
+          if (hasDebug && pc) {
+            if (pc.shouldYield()) {
+              pc.onYield();
+              await new Promise(resolve => setTimeout(resolve, 0));
 
-            // Check if debugger has paused (e.g., breakpoint, exception)
-            if (this.debugRuntime?.pauseController?.isPaused()) {
-              await this.debugRuntime.pauseController.waitForResume();
+              // Check for manual pause during yield
+              if (pc.pauseRequested) {
+                pc.pauseRequested = false;
+                pc.currentYieldInterval = pc.baseYieldInterval;
+                const action = await dr.handlePause(
+                  registers[CTL]?.source || null,
+                  registers[ENV],
+                  'manual'
+                );
+                if (action === 'abort') {
+                  throw new SchemeError("Evaluation aborted");
+                }
+              }
 
-              // Check if evaluation was aborted while paused
-              if (this.debugRuntime.pauseController.isAborted()) {
+              // Check for abort-all
+              if (pc.abortAll) {
                 throw new SchemeError("Evaluation aborted");
               }
             }
+          }
 
-            // Check if we should yield to the event loop
-            if (stepCount >= stepsPerYield) {
-              stepCount = 0;
-              onYield();
-              // Yield to event loop
-              await new Promise(resolve => setTimeout(resolve, 0));
+          // --- Debug pause check (breakpoints, stepping) ---
+          if (hasDebug && registers[CTL]?.source) {
+            if (dr.shouldPause(registers[CTL].source, registers[ENV])) {
+              const reason = pc.getState() === 'stepping' ? 'step' : 'breakpoint';
+              const action = await dr.handlePause(
+                registers[CTL].source,
+                registers[ENV],
+                reason
+              );
+              if (action === 'abort') {
+                throw new SchemeError("Evaluation aborted");
+              }
+            }
+          }
+
+          // --- Execute one step ---
+          if (this.step(registers)) {
+            stepCount++;
+
+            // Non-debug yield: periodic yield for UI responsiveness
+            if (!hasDebug) {
+              if (stepCount >= stepsPerYield) {
+                stepCount = 0;
+                if (onYield) onYield();
+                await new Promise(resolve => setTimeout(resolve, 0));
+              }
             }
             continue;
           }
 
-          // Step returned false - check frame stack
+          // Step returned false — check frame stack
           const fstack = registers[FSTACK];
 
           if (fstack.length === 0) {
             return unpackForJs(registers[ANS], this, options);
           }
 
-          const frame = fstack.pop();
-          registers[CTL] = frame;
+          registers[CTL] = fstack.pop();
           continue;
 
         } catch (e) {
+          // Check for ContinuationUnwind
           if (e.constructor.name === 'ContinuationUnwind') {
             if (this.depth > 1) throw e;
 
@@ -510,15 +551,28 @@ export class Interpreter {
             }
           }
 
+          // Check for SentinelResult
           if (e instanceof SentinelResult) {
             return unpackForJs(e.value, this, options);
           }
 
-          // Check if debugger has paused on this exception
-          if (this.debugRuntime?.pauseController?.isPaused()) {
-            await this.debugRuntime.pauseController.waitForResume();
+          // Debug exception handling: check if should break on this exception
+          if (hasDebug && dr.exceptionHandler.shouldBreakOnException(e, registers[FSTACK])) {
+            // Use CTL source if available; fall back to current stack frame source
+            const exceptionSource = registers[CTL]?.source
+              || dr.stackTracer.getCurrentFrame()?.source
+              || null;
+            const action = await dr.handlePause(
+              exceptionSource,
+              registers[ENV],
+              'exception'
+            );
+            if (action === 'abort') {
+              throw new SchemeError("Evaluation aborted");
+            }
           }
 
+          // Check for Scheme exception handler
           const handlerIndex = findExceptionHandler(registers[FSTACK]);
           if (handlerIndex !== -1) {
             registers[CTL] = new RaiseNode(wrapJsError(e), false);
@@ -529,20 +583,21 @@ export class Interpreter {
         }
       }
     } finally {
+      if (nestedDebug) {
+        pc.popExecutionContext();
+      }
       this.depth--;
     }
   }
 
-
-
   /**
-   * Evaluates a Scheme code string asynchronously.
+   * Evaluates a Scheme code string using the debug-aware async path.
    *
    * @param {string} code - The Scheme source code.
-   * @param {Object} [options={}] - Async execution options.
+   * @param {Object} [options={}] - Execution options.
    * @returns {Promise<*>} The result of the computation.
    */
-  async evaluateStringAsync(code, options = {}) {
+  async evaluateStringDebug(code, options = {}) {
     const { parse } = await import('./reader.js');
     const { analyze } = await import('./analyzer.js');
     const { list } = await import('./cons.js');
@@ -555,11 +610,24 @@ export class Interpreter {
     if (expressions.length === 1) {
       ast = analyze(expressions[0], undefined, this.context);
     } else {
-      // Wrap multiple expressions in begin
       ast = analyze(list(intern('begin'), ...expressions), undefined, this.context);
     }
 
-    return this.runAsync(ast, this.globalEnv, options);
+    return this.runDebug(ast, this.globalEnv, options);
+  }
+
+  /**
+   * @deprecated Use runDebug() instead. This is a compatibility alias.
+   */
+  async runAsync(ast, env = this.globalEnv, options = {}) {
+    return this.runDebug(ast, env, options);
+  }
+
+  /**
+   * @deprecated Use evaluateStringDebug() instead. This is a compatibility alias.
+   */
+  async evaluateStringAsync(code, options = {}) {
+    return this.evaluateStringDebug(code, options);
   }
 }
 

@@ -123,10 +123,14 @@ export async function runDebugHooksTests(interpreter, logger) {
 
     // Test: Breakpoint integration - pause triggers on matching source location
     // This test verifies the full integration: parser -> analyzer -> AST -> interpreter -> debugger
+    // Uses runDebug() since debug hooks are in the async trampoline, not step()
     {
         let pauseInfo = null;
         const debugRuntime = new SchemeDebugRuntime({
-            onPause: (info) => { pauseInfo = info; }
+            onPause: (info) => {
+                pauseInfo = info;
+                setTimeout(() => debugRuntime.resume(), 10);
+            }
         });
 
         // Set a breakpoint on line 1 of <unknown> (the default filename from parser)
@@ -134,7 +138,7 @@ export async function runDebugHooksTests(interpreter, logger) {
         debugRuntime.setBreakpoint('<unknown>', 1);
         interpreter.setDebugRuntime(debugRuntime);
 
-        run(interpreter, '(+ 1 2)');
+        await interpreter.evaluateStringDebug('(+ 1 2)');
 
         assert(logger, 'breakpoint triggered pause', pauseInfo !== null, true);
         if (pauseInfo) {

@@ -1,6 +1,6 @@
 /**
  * Scheme Error Classes
- * 
+ *
  * Provides structured exception types for the Scheme interpreter.
  * All Scheme exceptions inherit from SchemeError.
  */
@@ -156,8 +156,9 @@ export class SchemeReadError extends SchemeError {
      * @param {string} [context] - What was being read (e.g., "list", "string")
      * @param {number} [line] - Line number if available
      * @param {number} [column] - Column number if available
+     * @param {boolean} [incomplete] - Whether the input was incomplete (needs more input) rather than malformed
      */
-    constructor(message, context = null, line = null, column = null) {
+    constructor(message, context = null, line = null, column = null, incomplete = false) {
         const location = line !== null ? ` at line ${line}` : '';
         const fullMessage = context
             ? `read: ${message} (while reading ${context})${location}`
@@ -167,6 +168,7 @@ export class SchemeReadError extends SchemeError {
         this.context = context;
         this.line = line;
         this.column = column;
+        this.incomplete = incomplete;
     }
 }
 

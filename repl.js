@@ -22,7 +22,6 @@ import { prettyPrint } from './src/core/interpreter/printer.js';
 import { SchemeDebugRuntime } from './src/debug/scheme_debug_runtime.js';
 import { ReplDebugBackend } from './src/debug/repl_debug_backend.js';
 import { ReplDebugCommands } from './src/debug/repl_debug_commands.js';
-import readline from 'readline';
 
 
 
@@ -143,54 +142,33 @@ async function startRepl() {
     interpreter.setDebugRuntime(runtime);
 
     let isEvaluating = false;
+    let replInstance = null;
 
     // Add 'pause' primitive for manual debugging
-    // Register primitives
     env.define('pause', (source = null, env = null, reason = 'manual pause') => {
         interpreter.debugRuntime?.pause(source, env, reason);
     });
 
-    // Setup nested loop for Node.js REPL when paused
-    backend.setOnPause((info) => {
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-            prompt: 'debug> '
-        });
+    /**
+     * Updates the REPL prompt based on debug state.
+     * Shows "N debug> " when paused at debug level N, "> " otherwise.
+     */
+    function updatePrompt() {
+        if (!replInstance) return;
+        if (backend.isPaused()) {
+            const depth = backend.getDepth();
+            replInstance.setPrompt(`${depth} debug> `);
+        } else {
+            replInstance.setPrompt('> ');
+        }
+    }
 
-        rl.on('line', async (line) => {
-            line = line.trim();
-            if (line === '') {
-                rl.prompt();
-                return;
-            }
-
-            if (commands.isDebugCommand(line)) {
-                const output = await commands.execute(line);
-                console.log(output);
-
-                const cmd = line.slice(1).split(/\s+/)[0].toLowerCase();
-                const resumeCmds = ['continue', 'c', 'step', 's', 'next', 'n', 'finish', 'fin', 'abort', 'a'];
-                if (resumeCmds.includes(cmd)) {
-                    rl.close();
-                } else {
-                    rl.prompt();
-                }
-            } else {
-                const output = await commands.execute(':eval ' + line);
-                console.log(output);
-                rl.prompt();
-            }
-        });
-
-        rl.on('close', () => {
-            // Nested loop closed, presumably because we are resuming
-        });
-
-        rl.prompt();
+    // When the debugger pauses, update prompt and re-display it.
+    // No separate readline needed — the REPL's own eval handles debug input.
+    backend.setOnPause(() => {
+        updatePrompt();
+        replInstance.displayPrompt(true);
     });
-
-
 
     // Check command line args
     const args = process.argv.slice(2);
@@ -234,55 +212,88 @@ async function startRepl() {
     // Start Interactive REPL
     console.log('Welcome to Scheme-JS');
 
-    const replInstance = repl.start({
+    replInstance = repl.start({
         prompt: '> ',
         eval: async (cmd, context, filename, callback) => {
-            if (isEvaluating) return;
-
             cmd = cmd.trim();
             if (cmd === '') {
                 return callback(null);
             }
 
-            // Handle immediate debug commands
+            // While paused, all input goes to the debug command handler
+            if (backend.isPaused()) {
+                let output;
+                if (commands.isDebugCommand(cmd)) {
+                    output = await commands.execute(cmd);
+                } else {
+                    output = await commands.execute(':eval ' + cmd);
+                }
+                // Update prompt after command (level may have changed)
+                updatePrompt();
+                return callback(null, output);
+            }
+
+            // Handle debug commands when not paused (e.g. :debug on, :break)
             if (commands.isDebugCommand(cmd)) {
                 const output = await commands.execute(cmd);
                 return callback(null, output);
             }
 
+            // Block new evaluations while one is already running
+            if (isEvaluating) return;
+
+            // Parse first to catch syntax errors and check for recoverability
+            let sexps;
             try {
-                // If already paused (unlikely to get here if nested loop is active),
-                // treat as eval.
-                if (backend.isPaused()) {
-                    const output = commands.execute(':eval ' + cmd);
-                    return callback(null, output);
-                }
-
-                // Attempt to parse first to catch syntax errors early and check for recoverability
-                // We parse SYNCHRONOUSLY here to detect syntax errors before running
-                const sexps = parse(cmd);
-
-                isEvaluating = true;
-                let result;
-                for (const sexp of sexps) {
-                    // Check for Fast Mode (Debug Off)
-                    if (runtime && !runtime.enabled) {
-                        // FAST MODE: Synchronous execution for performance
-                        result = interpreter.run(analyze(sexp), env, [], undefined, { jsAutoConvert: 'raw' });
-                    } else {
-                        // DEBUG MODE: Asynchronous execution for breakpoints/stepping
-                        result = await interpreter.runAsync(analyze(sexp), env, { jsAutoConvert: 'raw' });
-                    }
-                }
-                callback(null, result);
-
+                sexps = parse(cmd, { filename: '<repl>', suppressLog: true });
             } catch (e) {
                 if (isRecoverableError(e)) {
                     return callback(new repl.Recoverable(e));
                 }
-                callback(e);
+                return callback(e);
+            }
+
+            // Fast mode (debug off): synchronous execution
+            if (runtime && !runtime.enabled) {
+                try {
+                    isEvaluating = true;
+                    let result;
+                    for (const sexp of sexps) {
+                        result = interpreter.run(analyze(sexp), env, [], undefined, { jsAutoConvert: 'raw' });
+                    }
+                    return callback(null, result);
+                } catch (e) {
+                    return callback(e);
+                } finally {
+                    isEvaluating = false;
+                }
+            }
+
+            // Debug mode: fire-and-forget async execution.
+            // Return from eval immediately so the REPL can accept debug
+            // commands while runDebug() is paused waiting for user action.
+            isEvaluating = true;
+            callback(null);
+
+            try {
+                let result;
+                for (const sexp of sexps) {
+                    result = await interpreter.runDebug(analyze(sexp), env, { jsAutoConvert: 'raw' });
+                }
+                if (result !== undefined) {
+                    console.log(prettyPrint(result));
+                }
+            } catch (e) {
+                if (e.message !== 'Evaluation aborted') {
+                    console.error(`Error: ${e.message}`);
+                }
             } finally {
                 isEvaluating = false;
+                if (runtime.pauseController.abortAll) {
+                    runtime.pauseController.abortAll = false;
+                }
+                updatePrompt();
+                replInstance.displayPrompt(true);
             }
         },
         writer: (output) => {
@@ -295,9 +306,9 @@ async function startRepl() {
 
 function isRecoverableError(error) {
     const msg = error.message;
-    return msg === 'Unexpected EOF' ||
-        msg.includes("Missing ')'") ||
-        msg === 'Unterminated string';
+    return msg.includes('unexpected end of input') ||
+        msg.includes("missing ')'") ||
+        msg.includes('unterminated string');
 }
 
 startRepl();

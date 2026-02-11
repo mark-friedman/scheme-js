@@ -22,37 +22,37 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
     const runSync = (code) => run(interpreter, code);
 
     // Helper: run async using the passed interpreter
-    const runAsync = (code, options = {}) => interpreter.evaluateStringAsync(code, options);
+    const runDebug = (code, options = {}) => interpreter.evaluateStringDebug(code, options);
 
     // Test: Async execution produces same result as sync for literals
     {
         const syncResult = runSync('42');
-        const asyncResult = await runAsync('42');
+        const asyncResult = await runDebug('42');
         assert(logger, 'literal number', asyncResult, syncResult);
     }
 
     {
         const syncResult = runSync('"hello"');
-        const asyncResult = await runAsync('"hello"');
+        const asyncResult = await runDebug('"hello"');
         assert(logger, 'literal string', asyncResult, syncResult);
     }
 
     {
         const syncResult = runSync('#t');
-        const asyncResult = await runAsync('#t');
+        const asyncResult = await runDebug('#t');
         assert(logger, 'literal boolean', asyncResult, syncResult);
     }
 
     // Test: Async execution produces same result for function calls
     {
         const syncResult = runSync('(+ 1 2 3)');
-        const asyncResult = await runAsync('(+ 1 2 3)');
+        const asyncResult = await runDebug('(+ 1 2 3)');
         assert(logger, 'function call +', asyncResult, syncResult);
     }
 
     {
         const syncResult = runSync('(* (+ 1 2) (- 10 5))');
-        const asyncResult = await runAsync('(* (+ 1 2) (- 10 5))');
+        const asyncResult = await runDebug('(* (+ 1 2) (- 10 5))');
         assert(logger, 'nested function calls', asyncResult, syncResult);
     }
 
@@ -66,7 +66,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
       (factorial 10)
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code);
+        const asyncResult = await runDebug(code);
         assert(logger, 'recursive factorial', asyncResult, syncResult);
     }
 
@@ -80,7 +80,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
       (sum-to 100 0)
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code);
+        const asyncResult = await runDebug(code);
         assert(logger, 'tail recursive sum', asyncResult, syncResult);
     }
 
@@ -90,7 +90,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
       (+ 1 (call/cc (lambda (k) (+ 2 (k 10)))))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code);
+        const asyncResult = await runDebug(code);
         assert(logger, 'call/cc escape', asyncResult, syncResult);
     }
 
@@ -104,7 +104,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
         (lambda () (set! log (cons 'after log))))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code);
+        const asyncResult = await runDebug(code);
         assert(logger, 'dynamic-wind result', asyncResult, syncResult);
     }
 
@@ -120,7 +120,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
       z
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 1 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 1 });
         assert(logger, 'state after many yields', asyncResult, syncResult);
     }
 
@@ -131,7 +131,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
       (+ 1 (call/cc (lambda (c) (set! k c) 10)))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'continuation capture with yields', asyncResult, syncResult);
     }
 
@@ -144,7 +144,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
             (+ x y z))))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 1 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 1 });
         assert(logger, 'nested let with yields', asyncResult, syncResult);
     }
 
@@ -161,7 +161,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
       (loop 1000)
     `;
 
-        const result = await interpreter.evaluateStringAsync(code, {
+        const result = await interpreter.evaluateStringDebug(code, {
             stepsPerYield: 50,
             onYield: () => { yieldCount++; }
         });
@@ -181,7 +181,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
       (count 50)
     `;
 
-        const result = await interpreter.evaluateStringAsync(code, {
+        const result = await interpreter.evaluateStringDebug(code, {
             stepsPerYield: 10,
             onYield: () => {
                 // Simulate a pause request on first yield
@@ -207,7 +207,7 @@ export async function runAsyncTrampolineTests(interpreter, logger) {
 
         const syncResult = runSync(code);
 
-        const asyncResult = await interpreter.evaluateStringAsync(code, {
+        const asyncResult = await interpreter.evaluateStringDebug(code, {
             stepsPerYield: 5,
             onYield: () => { yieldCount++; }
         });

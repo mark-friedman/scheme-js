@@ -33,14 +33,14 @@ export function parse(input, options = {}) {
 
     // Strip block comments before tokenizing
     const preprocessed = stripBlockComments(input);
-    const tokens = tokenize(preprocessed);
+    const tokens = tokenize(preprocessed, options.filename);
     const expressions = [];
 
     try {
         while (tokens.length > 0) {
             const expr = readFromTokens(tokens, state);
             // If the expression is a Placeholder, it means top-level #n# (unlikely but possible)
-            // or #n=... which returns the value. 
+            // or #n=... which returns the value.
             // We need to run fixup on the result to resolve internal cycles.
             expressions.push(fixup(expr));
         }

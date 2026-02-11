@@ -241,6 +241,7 @@ export class SchemeDebugRuntime {
      * @returns {Promise<string>} The action to take: 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
      */
     async handlePause(source, env, reason = 'breakpoint') {
+        // Find matching breakpoint ID if applicable
         let bpId = null;
         if (reason === 'breakpoint') {
             for (const bp of this.breakpointManager.getAllBreakpoints()) {
@@ -251,6 +252,7 @@ export class SchemeDebugRuntime {
             }
         }
 
+        // Create debug level
         const level = new DebugLevel(
             this.levelStack.depth(),
             reason,
@@ -261,6 +263,7 @@ export class SchemeDebugRuntime {
         );
         this.levelStack.push(level);
 
+        // Pause the controller
         this.pauseController.pause(reason, bpId);
 
         const pauseInfo = {
@@ -275,12 +278,17 @@ export class SchemeDebugRuntime {
         let action;
 
         if (this.backend) {
+            // Backend returns a promise that resolves with the user's action.
+            // We wire it to resolve the pauseController's wait via _processAction,
+            // then await the pauseController (which supports nested waits via
+            // its LIFO resolver stack).
             this.backend.onPause(pauseInfo).then(act => {
                 this._processAction(act);
             });
 
             await this.pauseController.waitForResume();
 
+            // Determine action from controller state
             if (this.pauseController.isAborted()) {
                 action = 'abort';
             } else {
@@ -292,6 +300,7 @@ export class SchemeDebugRuntime {
                 }
             }
         } else if (this.onPause) {
+            // Callback-based path (used in tests without a full backend)
             this.onPause(pauseInfo);
             await this.pauseController.waitForResume();
 
@@ -309,6 +318,7 @@ export class SchemeDebugRuntime {
             action = 'resume';
         }
 
+        // Pop level and notify backend
         this.levelStack.pop();
         if (this.backend && this.backend.onExitLevel) {
             this.backend.onExitLevel();

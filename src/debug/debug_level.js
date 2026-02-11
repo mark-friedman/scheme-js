@@ -17,9 +17,9 @@ export class DebugLevel {
    * @param {Object|null} source - Source location where paused
    * @param {Array} stack - Stack snapshot at pause point
    * @param {Object} env - Environment at pause point
-   * @param {DebugLevel|null} parentLevel - Parent level (null for top-level)
+   * @param {DebugLevel|null} [parentLevel=null] - Parent level (null for top-level)
    */
-  constructor(level, reason, source, stack, env, parentLevel) {
+  constructor(level, reason, source, stack, env, parentLevel = null) {
     /** @type {number} */
     this.level = level;
     /** @type {string} */
@@ -57,17 +57,21 @@ export class DebugLevelStack {
 
   /**
    * Pops the topmost debug level (used by :abort).
-   * @returns {DebugLevel|undefined}
+   * @returns {DebugLevel|null}
    */
   pop() {
+    if (this.levels.length === 0) return null;
     return this.levels.pop();
   }
 
   /**
    * Pops all debug levels (used by :toplevel).
+   * @returns {DebugLevel[]}
    */
   popAll() {
+    const popped = [...this.levels];
     this.levels = [];
+    return popped;
   }
 
   /**

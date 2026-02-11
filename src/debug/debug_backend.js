@@ -87,6 +87,7 @@ export class NoOpDebugBackend extends DebugBackend {
 
 /**
  * Debug backend that captures events for testing.
+ * Supports nested pauses via action queue and resolver stack.
  */
 export class TestDebugBackend extends DebugBackend {
     constructor() {

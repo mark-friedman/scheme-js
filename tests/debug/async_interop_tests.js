@@ -17,7 +17,7 @@ import { assert, run, createTestLogger } from '../harness/helpers.js';
  * @param {Object} logger - Test logger
  */
 export async function runAsyncInteropTests(interpreter, logger) {
-  const runAsync = (code, options = {}) => interpreter.evaluateStringAsync(code, options);
+  const runDebug = (code, options = {}) => interpreter.evaluateStringDebug(code, options);
 
   logger.title('Async Interop - Scheme → JS → Scheme');
 
@@ -33,7 +33,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
       (js-callback-caller my-callback 21)
     `;
 
-    const result = await runAsync(code, { stepsPerYield: 5 });
+    const result = await runDebug(code, { stepsPerYield: 5 });
     assert(logger, 'Scheme→JS→Scheme callback chain', result, 142);  // 21*2 + 100
   }
 
@@ -47,7 +47,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
          (js-double scheme-add-10 3))  ; (3+10)*2 = 26
     `;
 
-    const result = await runAsync(code, { stepsPerYield: 3 });
+    const result = await runDebug(code, { stepsPerYield: 3 });
     assert(logger, 'Multiple nested callbacks', result, 56);
   }
 
@@ -69,7 +69,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
     `;
 
     jsCounter = 0;
-    await runAsync(code, { stepsPerYield: 2 });
+    await runDebug(code, { stepsPerYield: 2 });
     assert(logger, 'Scheme loop calling JS with yields', jsCounter, 6);
   }
 
@@ -83,7 +83,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
       (js-invoke arr "map" double)
     `;
 
-    const result = await runAsync(code, { stepsPerYield: 5 });
+    const result = await runDebug(code, { stepsPerYield: 5 });
     assert(logger, 'JS array.map with Scheme closure', Array.from(result), [2, 4, 6, 8, 10]);
   }
 
@@ -105,7 +105,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
     `;
 
     sum = 0;
-    const result = await runAsync(code, { stepsPerYield: 1 });
+    const result = await runDebug(code, { stepsPerYield: 1 });
     assert(logger, 'Interleaved loop result', result.name || result, 'done');
     assert(logger, 'JS accumulator correct', sum, 55);  // 1+2+...+10
   }
@@ -129,7 +129,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
     `;
 
     depth = 0;
-    const result = await runAsync(code, { stepsPerYield: 2 });
+    const result = await runDebug(code, { stepsPerYield: 2 });
     assert(logger, 'Mutual recursion result', result.name || result, 'done');
     assert(logger, 'JS depth counter', depth, 6);  // Called 6 times (10,8,6,4,2,0)
   }
@@ -151,7 +151,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
     `;
 
     callCount = 0;
-    const result = await runAsync(code, { stepsPerYield: 50 });
+    const result = await runDebug(code, { stepsPerYield: 50 });
     assert(logger, 'TCO with JS calls result', result, 500500);
     assert(logger, 'JS called expected times', callCount, 1001);  // 1000 + final
   }
@@ -166,7 +166,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
       (deep-tail 50000 0)
     `;
 
-    const result = await runAsync(code, { stepsPerYield: 100 });
+    const result = await runDebug(code, { stepsPerYield: 100 });
     assert(logger, 'Deep tail recursion under async', result, 50000);
   }
 
@@ -186,7 +186,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
           (< (- final-heap initial-heap) 1000000)))
     `;
 
-    const result = await runAsync(code, { stepsPerYield: 100 });
+    const result = await runDebug(code, { stepsPerYield: 100 });
     assert(logger, 'Memory stable during deep tail recursion', result, true);
   }
 
@@ -202,7 +202,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
                       (+ 2 (js-add-100 (k 10))))))
     `;
 
-    const result = await runAsync(code, { stepsPerYield: 2 });
+    const result = await runDebug(code, { stepsPerYield: 2 });
     assert(logger, 'call/cc escape before JS call', result, 11);  // 1 + 10
   }
 
@@ -220,7 +220,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
       result
     `;
 
-    const result = await runAsync(code, { stepsPerYield: 3 });
+    const result = await runDebug(code, { stepsPerYield: 3 });
     assert(logger, 'Continuation from JS callback', result, 43);  // 1 + 42
   }
 
@@ -242,7 +242,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
     `;
 
     log.length = 0;
-    const result = await runAsync(code, { stepsPerYield: 2 });
+    const result = await runDebug(code, { stepsPerYield: 2 });
     assert(logger, 'dynamic-wind result with JS', result, 42);
     assert(logger, 'dynamic-wind JS log order', log, ['before', 'body', 'after']);
   }
@@ -265,7 +265,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
     `;
 
     log.length = 0;
-    const result = await runAsync(code, { stepsPerYield: 2 });
+    const result = await runDebug(code, { stepsPerYield: 2 });
     assert(logger, 'dynamic-wind escape result', result, 99);
     assert(logger, 'dynamic-wind after thunk ran', log.includes('after'), true);
     assert(logger, 'dynamic-wind never not reached', log.includes('never'), false);
@@ -291,7 +291,7 @@ export async function runAsyncInteropTests(interpreter, logger) {
 
     jsState = 0;
     let yieldCount = 0;
-    const result = await interpreter.evaluateStringAsync(code, {
+    const result = await interpreter.evaluateStringDebug(code, {
       stepsPerYield: 3,
       onYield: () => { yieldCount++; }
     });

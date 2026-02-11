@@ -2,7 +2,7 @@
  * @fileoverview Async Mode Functional Tests
  *
  * Re-runs a subset of critical functional tests using the async execution path
- * to ensure that evaluateStringAsync produces identical results to sync execution.
+ * to ensure that evaluateStringDebug produces identical results to sync execution.
  *
  * This verifies that the async trampoline doesn't introduce any regressions
  * in existing functionality.
@@ -26,7 +26,7 @@ import { assert, run, createTestLogger } from '../harness/helpers.js';
  */
 export async function runAsyncModeFunctionalTests(interpreter, logger) {
     const runSync = (code) => run(interpreter, code);
-    const runAsync = (code, options = {}) => interpreter.evaluateStringAsync(code, options);
+    const runDebug = (code, options = {}) => interpreter.evaluateStringDebug(code, options);
 
     logger.title('Async Mode - Core Evaluation');
 
@@ -34,7 +34,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(+ 1 2 3 4 5)';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'arithmetic', asyncResult, syncResult);
     }
 
@@ -42,7 +42,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(* (+ 1 2) (- 10 5) (/ 20 4))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 1 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 1 });
         assert(logger, 'nested expressions', asyncResult, syncResult);
     }
 
@@ -50,7 +50,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(let ((x 10) (y 20)) (+ x y))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'let bindings', asyncResult, syncResult);
     }
 
@@ -58,7 +58,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(let* ((x 10) (y (+ x 5))) (* x y))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'let* bindings', asyncResult, syncResult);
     }
 
@@ -70,7 +70,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
         (even? 10))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 3 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 3 });
         assert(logger, 'letrec mutual recursion', asyncResult, syncResult);
     }
 
@@ -80,7 +80,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(if (> 5 3) "yes" "no")';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'if true branch', asyncResult, syncResult);
     }
 
@@ -93,7 +93,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
         (else "c"))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'cond else branch', asyncResult, syncResult);
     }
 
@@ -106,7 +106,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
         (else "other"))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'case expression', asyncResult, syncResult);
     }
 
@@ -114,14 +114,14 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(and (> 5 3) (< 2 10) "success")';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 1 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 1 });
         assert(logger, 'and expression', asyncResult, syncResult);
     }
 
     {
         const code = '(or #f #f "fallback")';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 1 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 1 });
         assert(logger, 'or expression', asyncResult, syncResult);
     }
 
@@ -135,7 +135,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
       (sum-to 1000 0)
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 50 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 50 });
         assert(logger, 'tail-recursive sum', asyncResult, syncResult);
     }
 
@@ -147,7 +147,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
       (count-down 10000)
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 100 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 100 });
         assert(logger, 'deep tail recursion', asyncResult.name || asyncResult,
             syncResult.name || syncResult);
     }
@@ -158,7 +158,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(+ 1 (call/cc (lambda (k) (+ 2 (k 10)))))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'call/cc escape', asyncResult, syncResult);
     }
 
@@ -170,7 +170,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
       (+ 100 (call/cc (lambda (k) (set! saved-k k) 5)))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'call/cc capture', asyncResult, syncResult);
     }
 
@@ -186,7 +186,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
         (lambda () (set! log (cons 'after log))))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'dynamic-wind result', asyncResult, syncResult);
     }
 
@@ -201,7 +201,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
           (lambda () (set! log (cons 'after log))))))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'dynamic-wind escape', asyncResult, syncResult);
     }
 
@@ -211,7 +211,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(when (> 5 3) "yes")';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'when macro', asyncResult, syncResult);
     }
 
@@ -219,7 +219,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(unless (< 5 3) "yes")';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'unless macro', asyncResult, syncResult);
     }
 
@@ -231,7 +231,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
           ((>= i 10) sum))
     `;
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 3 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 3 });
         assert(logger, 'do loop', asyncResult, syncResult);
     }
 
@@ -241,7 +241,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(map (lambda (x) (* x 2)) (list 1 2 3 4 5))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'map over list', asyncResult, syncResult);
     }
 
@@ -249,7 +249,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(append (list 1 2) (list 3 4 5))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'append', asyncResult, syncResult);
     }
 
@@ -257,7 +257,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(length (list 1 2 3 4 5))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'length', asyncResult, syncResult);
     }
 
@@ -265,7 +265,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(vector-ref (vector 10 20 30) 1)';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'vector-ref', asyncResult, syncResult);
     }
 
@@ -275,7 +275,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(call-with-values (lambda () (values 1 2 3)) +)';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'call-with-values', asyncResult, syncResult);
     }
 
@@ -283,7 +283,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(let-values (((a b) (values 10 20))) (+ a b))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'let-values', asyncResult, syncResult);
     }
 
@@ -293,7 +293,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '(let ((x 42)) `(the answer is ,x))';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'quasiquote unquote', asyncResult, syncResult);
     }
 
@@ -301,7 +301,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     {
         const code = '`(1 2 ,@(list 3 4) 5)';
         const syncResult = runSync(code);
-        const asyncResult = await runAsync(code, { stepsPerYield: 2 });
+        const asyncResult = await runDebug(code, { stepsPerYield: 2 });
         assert(logger, 'quasiquote unquote-splicing', asyncResult, syncResult);
     }
 
@@ -318,7 +318,7 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
       (complex-compute 200)
     `;
         const syncResult = runSync(code);
-        const asyncResult = await interpreter.evaluateStringAsync(code, {
+        const asyncResult = await interpreter.evaluateStringDebug(code, {
             stepsPerYield: 1,  // Yield every single step
             onYield: () => { yieldCount++; }
         });

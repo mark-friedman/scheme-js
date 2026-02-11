@@ -12,7 +12,7 @@ import { PauseController } from '../../src/debug/pause_controller.js';
  * Runs all PauseController tests.
  * @param {Object} logger - Test logger
  */
-export function runPauseControllerTests(logger) {
+export async function runPauseControllerTests(logger) {
     logger.title('PauseController - Initial State');
 
     // Test: Initial state is 'running'
@@ -172,6 +172,110 @@ export function runPauseControllerTests(logger) {
         assert(logger, 'reset sets state to running', ctrl.getState(), 'running');
         assert(logger, 'reset clears step mode', ctrl.getStepMode(), null);
         assert(logger, 'reset clears target depth', ctrl.getTargetDepth(), null);
+    }
+
+    // ==============================
+    // Cooperative Polling Tests
+    // ==============================
+    logger.title('PauseController - Cooperative Polling');
+
+    // Test: shouldYield returns false before interval reached
+    {
+        const ctrl = new PauseController();
+        assert(logger, 'shouldYield false before interval', ctrl.shouldYield(), false);
+    }
+
+    // Test: shouldYield returns true when interval reached
+    {
+        const ctrl = new PauseController();
+        for (let i = 0; i < ctrl.baseYieldInterval - 1; i++) {
+            ctrl.shouldYield();
+        }
+        assert(logger, 'shouldYield true at interval', ctrl.shouldYield(), true);
+    }
+
+    // Test: onYield resets op counter
+    {
+        const ctrl = new PauseController();
+        for (let i = 0; i < ctrl.baseYieldInterval; i++) {
+            ctrl.shouldYield();
+        }
+        ctrl.onYield();
+        assert(logger, 'shouldYield false after onYield', ctrl.shouldYield(), false);
+    }
+
+    // Test: requestPause sets pauseRequested flag
+    {
+        const ctrl = new PauseController();
+        assert(logger, 'pauseRequested initially false', ctrl.pauseRequested, false);
+        ctrl.requestPause();
+        assert(logger, 'requestPause sets pauseRequested', ctrl.pauseRequested, true);
+    }
+
+    // Test: requestPause lowers yield interval
+    {
+        const ctrl = new PauseController();
+        ctrl.requestPause();
+        // After requestPause, the yield interval should be emergency (100)
+        // so shouldYield should return true after emergencyYieldInterval calls
+        for (let i = 0; i < ctrl.emergencyYieldInterval - 1; i++) {
+            ctrl.shouldYield();
+        }
+        assert(logger, 'shouldYield true at emergency interval', ctrl.shouldYield(), true);
+    }
+
+    // Test: resume clears pauseRequested
+    {
+        const ctrl = new PauseController();
+        ctrl.requestPause();
+        ctrl.pause();
+        ctrl.resume();
+        assert(logger, 'resume clears pauseRequested', ctrl.pauseRequested, false);
+    }
+
+    // Test: resume resets yield interval to base
+    {
+        const ctrl = new PauseController();
+        ctrl.requestPause();
+        ctrl.pause();
+        ctrl.resume();
+        assert(logger, 'resume resets currentYieldInterval', ctrl.currentYieldInterval, ctrl.baseYieldInterval);
+    }
+
+    // Test: abortAll flag
+    {
+        const ctrl = new PauseController();
+        assert(logger, 'abortAll initially false', ctrl.abortAll, false);
+        ctrl.abortAll = true;
+        assert(logger, 'abortAll can be set', ctrl.abortAll, true);
+    }
+
+    // Test: reset clears abortAll
+    {
+        const ctrl = new PauseController();
+        ctrl.abortAll = true;
+        ctrl.requestPause();
+        ctrl.opCount = 500;
+        ctrl.reset();
+        assert(logger, 'reset clears abortAll', ctrl.abortAll, false);
+        assert(logger, 'reset clears pauseRequested', ctrl.pauseRequested, false);
+        assert(logger, 'reset clears opCount', ctrl.opCount, 0);
+        assert(logger, 'reset resets currentYieldInterval', ctrl.currentYieldInterval, ctrl.baseYieldInterval);
+    }
+
+    // ==============================
+    // Wait/Resume Promise Tests
+    // ==============================
+    logger.title('PauseController - Wait/Resume Promise');
+
+    // Test: waitForResume returns promise that resolves on resume
+    {
+        const ctrl = new PauseController();
+        ctrl.pause();
+        const p = ctrl.waitForResume();
+        setTimeout(() => ctrl.resume(), 10);
+        await p;
+        assert(logger, 'waitForResume resolves after resume', ctrl.isPaused(), false);
     }
 }
 
