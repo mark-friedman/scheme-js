@@ -142,6 +142,48 @@ export function parseNumber(token, exactness) {
 }
 
 /**
+ * Parses a decimal string (with optional exponent) as an exact Rational or BigInt.
+ * Used when #e prefix is present.
+ * @param {string} str
+ * @returns {Rational|bigint}
+ */
+function parseDecimalAsExact(str) {
+    const lower = str.toLowerCase();
+    if (lower.includes('inf.0') || lower.includes('nan.0')) {
+        throw new SchemeReadError('exactness prefix #e cannot be used with infinities or NaN', 'read');
+    }
+
+    // Normalize exponent
+    const normalized = str.replace(/[sSfFdDlL](?=[+-]?\d)/g, 'e');
+
+    // Split into coefficient and exponent
+    // Use 'e' or 'E' (normalized above to 'e')
+    let [coeffStr, expStr] = normalized.toLowerCase().split('e');
+    let exp = expStr ? BigInt(expStr) : 0n;
+
+    // Handle decimal point in coefficient
+    let fractionalDigits = 0;
+    if (coeffStr.includes('.')) {
+        const parts = coeffStr.split('.');
+        fractionalDigits = parts[1].length;
+        coeffStr = parts[0] + parts[1];
+    }
+
+    let coeff = BigInt(coeffStr);
+
+    // Effective exponent = explicit exponent - number of fractional digits
+    // value = coeff * 10^(exp - fractionalDigits)
+    let effectiveExp = exp - BigInt(fractionalDigits);
+
+    if (effectiveExp >= 0n) {
+        return coeff * (10n ** effectiveExp);
+    } else {
+        const denominator = 10n ** (-effectiveExp);
+        return new Rational(coeff, denominator);
+    }
+}
+
+/**
  * Parses a number with R7RS prefix notation.
  * Handles #x (hex), #o (octal), #b (binary), #d (decimal), #e (exact), #i (inexact)
  * and combinations like #e#x10 or #x#e10
@@ -243,9 +285,15 @@ export function parsePrefixedNumber(token) {
     // Handle special values: +inf.0, -inf.0, +nan.0, -nan.0 (case-insensitive)
     const lowerRest = rest.toLowerCase();
     if (/^[+-]?inf\.0$/.test(lowerRest)) {
+        if (exactness === 'exact') {
+             throw new SchemeReadError('exactness prefix #e cannot be used with infinities or NaN', 'read');
+        }
         return lowerRest.startsWith('-') ? -Infinity : Infinity;
     }
     if (/^[+-]?nan\.0$/.test(lowerRest)) {
+        if (exactness === 'exact') {
+             throw new SchemeReadError('exactness prefix #e cannot be used with infinities or NaN', 'read');
+        }
         return NaN;
     }
 
@@ -255,6 +303,12 @@ export function parsePrefixedNumber(token) {
         if (!/^[+-]?(\d+(\.\d*)?|\.\d+)([eEsSfFdDlL][+-]?\d+)?$/.test(rest)) {
             return null;
         }
+
+        // Exact decimal parsing
+        if (exactness === 'exact') {
+            return parseDecimalAsExact(rest);
+        }
+
         const normalized = rest.replace(/[sSfFdDlL](?=[+-]?\d)/g, 'e');
         result = parseFloat(normalized);
     } else {
