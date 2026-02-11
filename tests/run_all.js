@@ -23,6 +23,7 @@ async function runAll() {
 
     // Parse arguments
     const verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
+    const includeStress = process.argv.includes('--stress');
     const logger = createTestLogger({ verbose });
 
     if (verbose) {
@@ -60,7 +61,7 @@ async function runAll() {
     };
 
     // Run all tests with "./" prefix (we're already in tests/)
-    await runAllFromManifest('./', interpreter, logger, nodeFileLoader, runSchemeTests, loadBootstrap);
+    await runAllFromManifest('./', interpreter, logger, nodeFileLoader, runSchemeTests, loadBootstrap, { includeStress });
 }
 
 runAll();

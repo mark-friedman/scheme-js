@@ -21,33 +21,6 @@ export function runCoreTests(interpreter, logger) {
     result = run(interpreter, `(if (> 10 5) "yes" "no")`);
     assert(logger, "'if' expression (true)", result, 'yes');
 
-    // --- TCO Tests ---
-    logger.title("Tail Call Optimization (TCO)");
-
-    const tcoTest = `
-        (letrec ((loop (lambda (n acc)
-                         (if (= n 0)
-                             acc
-                             (loop (- n 1) (+ acc n))))))
-          (loop 5 0))`;
-
-    result = run(interpreter, tcoTest);
-    assert(logger, "TCO sum (1-5)", result, 15);
-
-    const tcoLargeTest = `
-        (letrec ((loop (lambda (n acc)
-                         (if (= n 0)
-                             acc
-                             (loop (- n 1) (+ acc n))))))
-          (loop 2000000 0))`;
-
-    try {
-        result = run(interpreter, tcoLargeTest);
-        assert(logger, "TCO deep recursion (n=2000000)", result, 2000001000000);
-    } catch (e) {
-        logger.fail(`TCO deep recursion (n=2000000) failed: ${e.message}`);
-    }
-
     // --- Runtime Error Tests ---
     logger.title("Runtime Error Tests");
 
@@ -87,6 +60,40 @@ export function runCoreTests(interpreter, logger) {
     result = run(interpreter, `(letrec ((x x)) x)`);
     // After core.scm macro expansion, the placeholder is the symbol 'undefined
     assert(logger, "Edge: letrec self-reference", result && result.name, 'undefined');
+}
+
+/**
+ * Long-running TCO stress tests for the Scheme interpreter.
+ * @param {Interpreter} interpreter
+ * @param {object} logger
+ */
+export function runCoreStressTests(interpreter, logger) {
+    logger.title("Core TCO Stress Tests");
+
+    // --- TCO Tests ---
+    const tcoTest = `
+        (letrec ((loop (lambda (n acc)
+                         (if (= n 0)
+                             acc
+                             (loop (- n 1) (+ acc n))))))
+          (loop 5 0))`;
+
+    let result = run(interpreter, tcoTest);
+    assert(logger, "TCO sum (1-5)", result, 15);
+
+    const tcoLargeTest = `
+        (letrec ((loop (lambda (n acc)
+                         (if (= n 0)
+                             acc
+                             (loop (- n 1) (+ acc n))))))
+          (loop 2000000 0))`;
+
+    try {
+        result = run(interpreter, tcoLargeTest);
+        assert(logger, "TCO deep recursion (n=2000000)", result, 2000001000000);
+    } catch (e) {
+        logger.fail(`TCO deep recursion (n=2000000) failed: ${e.message}`);
+    }
 }
 
 // Allow running directly via node

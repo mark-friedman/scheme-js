@@ -39,10 +39,24 @@ export async function runEvalApplyTests(interpreter, logger) {
         const res7 = run(interpreter, 'y');
         assert(logger, 'eval define', res7, 200);
 
+    } catch (e) {
+        logger.fail(`Eval/Apply tests crashed: ${e.message}`);
+        console.error(e);
+    }
+}
+
+/**
+ * Long-running Eval/Apply stress tests.
+ * @param {Interpreter} interpreter
+ * @param {object} logger
+ */
+export function runEvalApplyStressTests(interpreter, logger) {
+    logger.title('Eval & Apply Stress Tests');
+
+    try {
         // --- TCO Verification ---
 
         // 8. Apply TCO
-        // If TCO fails, this recursion depth will likely blow the stack (depending on JS engine limits, but 10000 is usually enough)
         run(interpreter, `
             (define (loop-apply n)
                 (if (= n 0)
@@ -53,19 +67,17 @@ export async function runEvalApplyTests(interpreter, logger) {
         assert(logger, 'apply TCO', res8, 'done');
 
         // 9. Eval TCO
-        // Note: We need to quote the expression carefully.
-        // (eval '(loop-eval (- n 1)) ...)
         run(interpreter, `
             (define (loop-eval n)
                 (if (= n 0)
                     'done
                     (eval (list 'loop-eval (- n 1)) (interaction-environment))))
         `);
-        const res9 = run(interpreter, '(loop-eval 2000000)'); // Lower count for eval as it's slower, but still recursive
+        const res9 = run(interpreter, '(loop-eval 2000000)');
         assert(logger, 'eval TCO', res9, 'done');
 
     } catch (e) {
-        logger.fail(`Eval/Apply tests crashed: ${e.message}`);
+        logger.fail(`Eval/Apply stress tests crashed: ${e.message}`);
         console.error(e);
     }
 }

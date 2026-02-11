@@ -159,13 +159,14 @@ The project uses a custom universal test runner that works in both Node.js and t
 
 ### Run All Tests (via Node.js)
 ```bash
-npm run test
+npm run test           # Runs all fast tests (default)
+npm run test -- --stress  # Including long-running TCO/Stress tests
 ```
 
 ### Run Browser Tests
 1. Ensure the HTTP server is running (see above).
 2. Navigate to `http://localhost:8080/web/tests.html`.
-3. The test suite runs automatically in the console on load.
+3. The test suite runs automatically in the console on load. (Note: Stress tests are currently excluded in the browser by default to prevent UI hangs).
 
 ---
 
