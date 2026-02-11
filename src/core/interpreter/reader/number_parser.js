@@ -184,14 +184,12 @@ function parseDecimalAsExact(str) {
 }
 
 /**
- * Parses a number with R7RS prefix notation.
- * Handles #x (hex), #o (octal), #b (binary), #d (decimal), #e (exact), #i (inexact)
- * and combinations like #e#x10 or #x#e10
- * @param {string} token - Token starting with #
- * @returns {number|bigint|Rational|null}
+ * Extracts R7RS prefixes (#e, #i, #b, #o, #d, #x) from the token.
+ * @param {string} token
+ * @returns {{exactness: string|null, radix: number, rest: string}}
  */
-export function parsePrefixedNumber(token) {
-    let exactness = null; // 'exact', 'inexact', or null
+function parsePrefixes(token) {
+    let exactness = null;
     let radix = 10;
     let rest = token;
 
@@ -224,99 +222,117 @@ export function parsePrefixedNumber(token) {
                 rest = rest.substring(2);
                 break;
             default:
-                return null; // Not a numeric prefix
+                // Not a known numeric prefix, stop parsing prefixes
+                // This might happen for things like #\char if passed here,
+                // though parsePrefixedNumber should only be called for numbers.
+                return { exactness, radix, rest };
         }
     }
+    return { exactness, radix, rest };
+}
 
-    // If still starts with #, it's not a valid number
-    if (rest.startsWith('#')) {
-        return null;
+/**
+ * Attempts to parse a rational number string with a given radix.
+ * @param {string} str
+ * @param {number} radix
+ * @param {string|null} exactness
+ * @returns {number|Rational|null}
+ */
+function parseRationalWithRadix(str, radix, exactness) {
+    const rationalMatch = str.match(/^([+-]?[0-9a-fA-F]+)\/([0-9a-fA-F]+)$/);
+    if (!rationalMatch) return null;
+
+    const num = BigInt(parseInt(rationalMatch[1], radix));
+    const den = BigInt(parseInt(rationalMatch[2], radix));
+    if (den === 0n) throw new SchemeReadError('division by zero', 'rational');
+
+    if (exactness === 'inexact') {
+        return Number(num) / Number(den);
+    }
+    const rat = new Rational(num, den);
+    return rat;
+}
+
+/**
+ * Attempts to parse a complex number string with a given radix.
+ * @param {string} str
+ * @param {number} radix
+ * @param {string|null} exactness
+ * @returns {Complex|null}
+ */
+function parseComplexWithRadix(str, radix, exactness) {
+    const complexMatch = str.match(/^([+-]?[0-9a-fA-F.]+)([+-])([0-9a-fA-F.]+)?i$/);
+    if (!complexMatch) return null;
+
+    const parsePart = (s) => {
+        if (!s) return 0n;
+        if (radix === 10 && (s.includes('.') || s.toLowerCase().includes('e'))) return parseFloat(s);
+        return BigInt(parseInt(s, radix));
+    };
+
+    const realPart = parsePart(complexMatch[1]);
+    const sign = complexMatch[2] === '-' ? -1 : 1;
+    const imagStr = complexMatch[3] || '1';
+    let imagPart = parsePart(imagStr);
+
+    // Apply sign
+    if (sign === -1) {
+        if (typeof imagPart === 'bigint') imagPart = -imagPart;
+        else imagPart = -imagPart;
     }
 
-    // Normalize alternative exponent markers for decimal numbers
-    if (radix === 10 && /^[+-]?(\d+\.?\d*|\.\d+)[sSfFdDlL][+-]?\d+$/.test(rest)) {
-        rest = rest.replace(/[sSfFdDlL]/, 'e');
-    }
+    const isResultExact = exactness === 'exact' ? true :
+        (exactness === 'inexact' ? false :
+            (typeof realPart !== 'number' && typeof imagPart !== 'number'));
 
-    // Handle rational with radix: #x10/2 means 16/2 = 8
-    const rationalMatch = rest.match(/^([+-]?[0-9a-fA-F]+)\/([0-9a-fA-F]+)$/);
-    if (rationalMatch) {
-        const num = BigInt(parseInt(rationalMatch[1], radix));
-        const den = BigInt(parseInt(rationalMatch[2], radix));
-        if (den === 0n) throw new SchemeReadError('division by zero', 'rational');
+    return new Complex(realPart, imagPart, isResultExact);
+}
 
-        if (exactness === 'inexact') {
-            return Number(num) / Number(den);
-        }
-        const rat = new Rational(num, den);
-        return rat;
-    }
-
-    // Handle complex with radix: #d10+11i
-    const complexMatch = rest.match(/^([+-]?[0-9a-fA-F.]+)([+-])([0-9a-fA-F.]+)?i$/);
-    if (complexMatch) {
-        const parsePart = (str) => {
-            if (!str) return 0n;
-            if (radix === 10 && (str.includes('.') || str.toLowerCase().includes('e'))) return parseFloat(str);
-            return BigInt(parseInt(str, radix));
-        };
-
-        const realPart = parsePart(complexMatch[1]);
-        const sign = complexMatch[2] === '-' ? -1 : 1;
-        const imagStr = complexMatch[3] || '1';
-        let imagPart = parsePart(imagStr);
-
-        // Apply sign
-        if (sign === -1) {
-            if (typeof imagPart === 'bigint') imagPart = -imagPart;
-            else imagPart = -imagPart;
-        }
-
-        const isResultExact = exactness === 'exact' ? true :
-            (exactness === 'inexact' ? false :
-                (typeof realPart !== 'number' && typeof imagPart !== 'number'));
-
-        return new Complex(realPart, imagPart, isResultExact);
-    }
-
-    // Parse as integer in the given radix
+/**
+ * Parses a real number (integer or decimal) with a given radix.
+ * @param {string} str
+ * @param {number} radix
+ * @param {string|null} exactness
+ * @returns {number|bigint|Rational|null}
+ */
+function parseRealWithRadix(str, radix, exactness) {
     let result;
 
     // Handle special values: +inf.0, -inf.0, +nan.0, -nan.0 (case-insensitive)
-    const lowerRest = rest.toLowerCase();
-    if (/^[+-]?inf\.0$/.test(lowerRest)) {
+    const lowerStr = str.toLowerCase();
+    if (/^[+-]?inf\.0$/.test(lowerStr)) {
         if (exactness === 'exact') {
              throw new SchemeReadError('exactness prefix #e cannot be used with infinities or NaN', 'read');
         }
-        return lowerRest.startsWith('-') ? -Infinity : Infinity;
+        return lowerStr.startsWith('-') ? -Infinity : Infinity;
     }
-    if (/^[+-]?nan\.0$/.test(lowerRest)) {
+    if (/^[+-]?nan\.0$/.test(lowerStr)) {
         if (exactness === 'exact') {
              throw new SchemeReadError('exactness prefix #e cannot be used with infinities or NaN', 'read');
         }
         return NaN;
     }
 
-    if (radix === 10 && (rest.includes('.') || rest.toLowerCase().includes('e') || rest.toLowerCase().includes('s') || rest.toLowerCase().includes('f') || rest.toLowerCase().includes('d') || rest.toLowerCase().includes('l'))) {
+    if (radix === 10 && (str.includes('.') || str.toLowerCase().includes('e') || str.toLowerCase().includes('s') || str.toLowerCase().includes('f') || str.toLowerCase().includes('d') || str.toLowerCase().includes('l'))) {
         // Decimal with fractional part or exponent
         // Validate strict format: optional sign, digits, optional dot, optional digits, optional exponent
-        if (!/^[+-]?(\d+(\.\d*)?|\.\d+)([eEsSfFdDlL][+-]?\d+)?$/.test(rest)) {
+        if (!/^[+-]?(\d+(\.\d*)?|\.\d+)([eEsSfFdDlL][+-]?\d+)?$/.test(str)) {
             return null;
         }
 
         // Exact decimal parsing
         if (exactness === 'exact') {
-            return parseDecimalAsExact(rest);
+            return parseDecimalAsExact(str);
         }
 
-        const normalized = rest.replace(/[sSfFdDlL](?=[+-]?\d)/g, 'e');
+        const normalized = str.replace(/[sSfFdDlL](?=[+-]?\d)/g, 'e');
         result = parseFloat(normalized);
     } else {
         // Integer in given radix -> BigInt (exact)
         // Verify chars
         const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, radix);
-        const checkRest = rest.replace(/^[+-]/, '').toLowerCase();
-        for (const char of checkRest) {
+        const checkStr = str.replace(/^[+-]/, '').toLowerCase();
+        for (const char of checkStr) {
             if (!validChars.includes(char)) return null;
         }
 
@@ -325,31 +341,75 @@ export function parsePrefixedNumber(token) {
         if (radix !== 10) {
             const prefix = radix === 16 ? '0x' : (radix === 8 ? '0o' : '0b');
             try {
-                if (rest.startsWith('-')) {
-                    result = -BigInt(prefix + rest.slice(1));
-                } else if (rest.startsWith('+')) {
-                    result = BigInt(prefix + rest.slice(1));
+                if (str.startsWith('-')) {
+                    result = -BigInt(prefix + str.slice(1));
+                } else if (str.startsWith('+')) {
+                    result = BigInt(prefix + str.slice(1));
                 } else {
-                    result = BigInt(prefix + rest);
+                    result = BigInt(prefix + str);
                 }
             } catch (e) {
                 return null;
             }
         } else {
             try {
-                result = BigInt(rest);
+                result = BigInt(str);
             } catch (e) {
                 return null;
             }
         }
     }
 
-    // BigInt can never be NaN; only check for Number
-    if (typeof result === 'number' && isNaN(result)) {
+    return result;
+}
+
+/**
+ * Parses a number with R7RS prefix notation.
+ * Handles #x (hex), #o (octal), #b (binary), #d (decimal), #e (exact), #i (inexact)
+ * and combinations like #e#x10 or #x#e10
+ * @param {string} token - Token starting with #
+ * @returns {number|bigint|Rational|null}
+ */
+export function parsePrefixedNumber(token) {
+    const { exactness, radix, rest } = parsePrefixes(token);
+
+    // If still starts with #, it's not a valid number (e.g. invalid prefix combo)
+    if (rest.startsWith('#')) {
         return null;
     }
 
-    // Apply exactness
+    // Normalize alternative exponent markers for decimal numbers
+    let workingStr = rest;
+    if (radix === 10 && /^[+-]?(\d+\.?\d*|\.\d+)[sSfFdDlL][+-]?\d+$/.test(rest)) {
+        workingStr = rest.replace(/[sSfFdDlL]/, 'e');
+    }
+
+    // 1. Try Rational
+    const rational = parseRationalWithRadix(workingStr, radix, exactness);
+    if (rational !== null) return rational;
+
+    // 2. Try Complex
+    const complex = parseComplexWithRadix(workingStr, radix, exactness);
+    if (complex !== null) return complex;
+
+    // 3. Try Real (Integer/Decimal)
+    const result = parseRealWithRadix(workingStr, radix, exactness);
+
+    // BigInt can never be NaN; only check for Number
+    if (typeof result === 'number' && Number.isNaN(result)) {
+         // If it's NaN, we must ensure it was explicitly parsed as NaN, otherwise it's a failure (e.g. invalid string)
+         // parseRealWithRadix handles 'nan.0' explicitly.
+         // However, parseFloat('foo') returns NaN.
+         // We only want to return NaN if the input string *looks* like a NaN.
+         if (/^[+-]?nan\.0$/i.test(rest)) {
+             return NaN;
+         }
+         return null;
+    }
+
+    if (result === null) return null;
+
+    // Apply exactness finalization
     if (exactness === 'inexact') {
         // Force to Number (inexact)
         return typeof result === 'bigint' ? Number(result) : result;
