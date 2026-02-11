@@ -98,6 +98,7 @@ export function runUnitTests(interpreter, logger) {
             logger.fail("Reader: Unexpected ')' - FAILED to throw");
         } catch (e) {
             assert(logger, "Reader: Unexpected ')'", e instanceof SchemeReadError, true);
+            assert(logger, "Reader: Unexpected ')' is not incomplete", e.incomplete, false);
         }
 
         try {
@@ -105,6 +106,7 @@ export function runUnitTests(interpreter, logger) {
             logger.fail("Reader: Missing ')' - FAILED to throw");
         } catch (e) {
             assert(logger, "Reader: Missing ')'", e instanceof SchemeReadError, true);
+            assert(logger, "Reader: Missing ')' is incomplete", e.incomplete, true);
         }
 
         try {
@@ -112,6 +114,30 @@ export function runUnitTests(interpreter, logger) {
             logger.fail("Reader: Unexpected EOF - FAILED to throw");
         } catch (e) {
             assert(logger, "Reader: Unexpected EOF", e instanceof SchemeReadError, true);
+            assert(logger, "Reader: Unexpected EOF is incomplete", e.incomplete, true);
+        }
+
+        try {
+            parse('#(1 2');
+            logger.fail("Reader: Incomplete vector - FAILED to throw");
+        } catch (e) {
+            assert(logger, "Reader: Incomplete vector", e instanceof SchemeReadError, true);
+            assert(logger, "Reader: Incomplete vector is incomplete", e.incomplete, true);
+        }
+
+        try {
+            parse('"unterminated');
+            logger.fail("Reader: Unterminated string - FAILED to throw");
+        } catch (e) {
+            assert(logger, "Reader: Unterminated string", e instanceof SchemeReadError, true);
+            assert(logger, "Reader: Unterminated string is incomplete", e.incomplete, true);
+        }
+
+        try {
+            parse("(1 . . 2)");
+            logger.fail("Reader: Bad dotted list - FAILED to throw");
+        } catch (e) {
+            assert(logger, "Reader: Bad dotted list is not incomplete", e.incomplete, false);
         }
 
     } catch (e) {

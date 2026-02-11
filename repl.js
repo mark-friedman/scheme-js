@@ -305,10 +305,7 @@ async function startRepl() {
 }
 
 function isRecoverableError(error) {
-    const msg = error.message;
-    return msg.includes('unexpected end of input') ||
-        msg.includes("missing ')'") ||
-        msg.includes('unterminated string');
+    return error.incomplete === true;
 }
 
 startRepl();
