@@ -32,12 +32,14 @@ export const unitTests = [
     { path: 'debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
     { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
     { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
+    { path: 'debug/debug_level_tests.js', fn: 'runDebugLevelTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
 ];
 
 // Functional Tests (all need interpreter)
 export const functionalTests = [
     { path: 'functional/core_tests.js', fn: 'runCoreTests', async: false },
+    { path: 'functional/core_tests.js', fn: 'runCoreStressTests', async: false, stress: true },
     { path: 'extras/primitives/interop_tests.js', fn: 'runInteropTests', async: false },
     { path: 'functional/quasiquote_tests.js', fn: 'runQuasiquoteTests', async: false },
     { path: 'functional/quote_tests.js', fn: 'runQuoteTests', async: false },
@@ -46,6 +48,7 @@ export const functionalTests = [
     { path: 'functional/hygiene_tests.js', fn: 'runHygieneTests', async: true },
     { path: 'functional/define_tests.js', fn: 'runDefineTests', async: false },
     { path: 'functional/eval_apply_tests.js', fn: 'runEvalApplyTests', async: true },
+    { path: 'functional/eval_apply_tests.js', fn: 'runEvalApplyStressTests', async: true, stress: true },
     { path: 'functional/record_interop_tests.js', fn: 'runRecordInteropTests', async: true, needsLoader: true },
     { path: 'functional/multiple_values_tests.js', fn: 'runMultipleValuesTests', async: false },
     { path: 'functional/exception_interop_tests.js', fn: 'runExceptionInteropTests', async: true },
@@ -59,6 +62,7 @@ export const functionalTests = [
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
+    { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropStressTests', async: true, stress: true },
     { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
     { path: 'functional/exception_debugging_tests.js', fn: 'runExceptionDebuggingTests', async: true },
 ];
@@ -79,7 +83,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/test_harness_tests.scm',
     'tests/core/scheme/boot_tests.scm',
     'tests/core/scheme/record_tests.scm',
-    'tests/core/scheme/tco_tests.scm',
+    { path: 'tests/core/scheme/tco_tests.scm', stress: true },
     'tests/core/scheme/dynamic_wind_tests.scm',
     'tests/core/scheme/dynamic_wind_interop_tests.scm',
     'tests/core/scheme/control_tests.scm',
@@ -168,11 +172,18 @@ export async function runTestModule(pathPrefix, test, interpreter, logger, loade
  * @param {Object} logger - Logger instance
  * @param {Function} loader - File loader for Scheme tests
  * @param {Function} runSchemeTests - Scheme test runner function
+ * @param {Function} loadBootstrap - Function to load bootstrap files
+ * @param {Object} options - Additional options (e.g., includeStress)
  */
-export async function runAllFromManifest(pathPrefix, interpreter, logger, loader, runSchemeTests, loadBootstrap) {
+export async function runAllFromManifest(pathPrefix, interpreter, logger, loader, runSchemeTests, loadBootstrap, options = {}) {
+    const includeStress = options.includeStress || false;
+
+    // Filter tests based on stress flag
+    const filterStress = (tests) => tests.filter(t => includeStress || !t.stress);
+
     // Unit tests (run BEFORE core.scm is loaded to test raw analyzer)
     try {
-        for (const test of unitTests) {
+        for (const test of filterStress(unitTests)) {
             await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {
@@ -188,7 +199,7 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
 
     // Functional tests
     try {
-        for (const test of functionalTests) {
+        for (const test of filterStress(functionalTests)) {
             console.log(`Running functional test: ${test.path}`);
             await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
@@ -198,7 +209,7 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
 
     // Integration tests
     try {
-        for (const test of integrationTests) {
+        for (const test of filterStress(integrationTests)) {
             await runTestModule(pathPrefix, test, interpreter, logger, loader);
         }
     } catch (e) {
@@ -207,8 +218,13 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
 
     // Scheme tests
     if (loader && runSchemeTests) {
+        const filteredSchemeTests = schemeTestFiles.filter(t => {
+            const isStress = typeof t === 'object' ? t.stress : false;
+            return includeStress || !isStress;
+        }).map(t => typeof t === 'object' ? t.path : t);
+
         try {
-            await runSchemeTests(interpreter, logger, schemeTestFiles, loader);
+            await runSchemeTests(interpreter, logger, filteredSchemeTests, loader);
         } catch (e) {
             logger.fail(`Scheme test suite crashed: ${e.message}`);
         }

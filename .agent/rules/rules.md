@@ -19,6 +19,9 @@ trigger: always_on
 - **Structure**: Place new tests in `tests/` and register them in `tests/tests.js`.
 - **Execution**:
   - Run `node run_tests_node.js` to verify changes locally.
+  - Use `node run_tests_node.js --stress` to include long-running TCO and memory stability tests.
+  - Agents SHOULD use the standard `npm run test` (without `--stress`) for routine verification to save time.
+  - The `--stress` flag MUST be used when making changes to the interpreter's TCO logic, memory management, or core evaluation loop.
   - Verify browser compatibility via `http://localhost:8080/ui.html`.
 
 ## JavaScript Code Style
