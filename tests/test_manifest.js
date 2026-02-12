@@ -66,6 +66,7 @@ export const functionalTests = [
     { path: 'functional/exception_debugging_tests.js', fn: 'runExceptionDebuggingTests', async: true },
     { path: 'debug/debug_integration_tests.js', fn: 'runDebugIntegrationTests', async: true },
     { path: 'debug/nested_debug_level_tests.js', fn: 'runNestedDebugLevelTests', async: true },
+    { path: 'debug/repl_debug_session_tests.js', fn: 'runReplDebugSessionTests', async: true },
 ];
 
 // Integration Tests

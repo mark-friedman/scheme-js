@@ -341,8 +341,8 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
     // ==================== Pause Button Logic ====================
     if (pauseBtn) {
         pauseBtn.addEventListener('click', () => {
-            if (interpreter.debugRuntime) {
-                interpreter.debugRuntime.pause(null, null, 'manual interrupt');
+            if (interpreter.debugRuntime?.pauseController) {
+                interpreter.debugRuntime.pauseController.requestPause();
             }
         });
     }
@@ -641,10 +641,38 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         const code = (inputArea.textContent || '').trim();
         if (!code) return;
 
-        // Clear input immediately and hide prompt
+        // Clear input immediately
         inputArea.textContent = '';
         highlightLayer.innerHTML = '';
 
+        // When paused, handle debug commands and eval-in-scope without
+        // touching isEvaluating or the prompt/pause-button UI. The original
+        // top-level evaluation is still awaiting runDebug(); that call owns
+        // isEvaluating and UI state.
+        if (debugBackend.isPaused()) {
+            addToHistory(code, 'input');
+
+            if (code.startsWith(':')) {
+                const result = await debugCommands.execute(code);
+                if (result) {
+                    addToHistory(result, 'result');
+                }
+            } else {
+                const result = await debugCommands.handleEval(code);
+                addToHistory(result, 'result');
+            }
+
+            // After a debug command the debugger may still be paused (e.g.
+            // :bt, :locals) or may have resumed (e.g. :continue, :step).
+            // If still paused, keep showing the debug prompt.
+            if (debugBackend.isPaused()) {
+                updatePrompts();
+            }
+            inputArea.focus();
+            return;
+        }
+
+        // --- Top-level evaluation (not paused) ---
         isEvaluating = true;
         const currentLine = rootElement.querySelector('#repl-current-line');
         if (currentLine) currentLine.style.display = 'none';
@@ -653,26 +681,6 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         addToHistory(code, 'input');
 
         try {
-            // Check for debug commands
-            if (code.startsWith(':')) {
-                const result = await debugCommands.execute(code);
-                if (result) {
-                    addToHistory(result, 'result');
-                }
-
-                // If the command was :abort, the main runDebug will throw and be caught below.
-                // If it was just :continue or something else, we let the finally block reset the UI.
-                return;
-            }
-
-            // If paused, any input is treated as a debug eval
-            if (debugBackend.isPaused()) {
-                const result = await debugCommands.handleEval(code);
-                addToHistory(result, 'result');
-                return;
-            }
-
-            // Normal evaluation
             const sexps = parse(code, { filename: '<repl>' });
             let result;
             for (const sexp of sexps) {

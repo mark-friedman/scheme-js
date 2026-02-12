@@ -4332,3 +4332,34 @@ Redesigned debug commands to properly separate stack frame navigation from debug
 
 ## Test Results
 - 2151 passed, 0 failed, 7 skipped
+
+---
+
+## 2026-02-11: Fix web REPL `:continue` clobbering `isEvaluating` + add REPL debug session tests
+
+### Bug Fixed
+After pausing a long-running computation and continuing with `:c`, the input prompt stayed visible and the PAUSE button disappeared, allowing the user to enter new expressions which would swallow the ongoing computation.
+
+**Root cause:** Debug commands (`:c`, `:s`, etc.) entered while paused went through the same `evaluate()` code path as top-level expressions. The `finally` block set `isEvaluating = false`, clobbering the state owned by the still-running original evaluation. The `onResume` handler then saw `isEvaluating === false` and didn't re-hide the prompt.
+
+**Fix:** Split `evaluate()` into two paths — when `debugBackend.isPaused()`, handle debug commands/eval-in-scope without touching `isEvaluating` or prompt/pause-button UI. Also fixed the PAUSE button to use `pauseController.requestPause()` (the correct async API) instead of the synchronous `pause()` method.
+
+### Tests Added
+Created `tests/debug/repl_debug_session_tests.js` (38 tests) simulating the web REPL's evaluate/pause/resume lifecycle:
+- `isEvaluating` integrity after `:continue`, `:step`, `:next`, `:finish`, `:abort`
+- Demonstrates the old bug (buggy handler clobbers `isEvaluating`)
+- `requestPause` working after `:continue` resumes computation
+- Input gating: expressions while paused route to eval-in-scope
+- Snapshotted stack used for `:bt` instead of live stack
+- Frame selection reset between pause sessions
+- Full pause → continue → pause → continue cycle with real interpreter
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `web/repl.js` | Split `evaluate()` into paused/non-paused paths; fix PAUSE button API |
+| `tests/debug/repl_debug_session_tests.js` | New: 38 REPL debug session lifecycle tests |
+| `tests/test_manifest.js` | Register new test file |
+
+## Test Results
+- 2189 passed, 0 failed, 7 skipped
