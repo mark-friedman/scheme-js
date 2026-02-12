@@ -1,5 +1,10 @@
 /**
  * @fileoverview REPL Debug Commands parser and executor.
+ *
+ * Stack frame navigation (:up, :down, :bt, :locals) is scoped to the
+ * current debug level's captured stack. Each level maintains its own
+ * selected frame index. Debug level navigation (:abort, :top) moves
+ * between levels.
  */
 
 import { parse } from '../core/interpreter/reader.js';
@@ -21,7 +26,24 @@ export class ReplDebugCommands {
         this.interpreter = interpreter;
         this.debugRuntime = debugRuntime;
         this.backend = backend;
-        this.selectedFrameIndex = -1; // -1 means newest (top) frame
+
+        /**
+         * Per-level selected frame index stack. Kept in sync with
+         * backend._pauseInfoStack.length via _syncFrameStack().
+         * -1 means newest (top) frame for that level.
+         * @type {number[]}
+         * @private
+         */
+        this._selectedFrameStack = [];
+
+        /**
+         * Which debug level is currently being viewed (1-indexed).
+         * -1 means the topmost (newest) level. Commands like :bt,
+         * :locals, :up/:down, and :eval operate on this level.
+         * @type {number}
+         * @private
+         */
+        this._viewedLevel = -1;
     }
 
     /**
@@ -84,6 +106,10 @@ export class ReplDebugCommands {
             case 'down':
             case 'd':
                 return this.handleFrameDown();
+            case 'level':
+                return this.handleLevel(args);
+            case 'levels':
+                return this.handleLevels();
             case 'help':
             case 'h':
             case '?':
@@ -115,6 +141,7 @@ export class ReplDebugCommands {
 
     handleAbort() {
         if (this.backend.isPaused()) {
+            this._viewedLevel = -1;
             this.backend.resolveAction('abort');
         } else {
             this.debugRuntime.abort();
@@ -130,6 +157,7 @@ export class ReplDebugCommands {
      */
     handleToplevel() {
         if (!this.backend.isPaused()) return ';; Not paused';
+        this._viewedLevel = -1;
         this.debugRuntime.pauseController.abortAll = true;
         // Resolve all pending action resolvers to unblock all nested levels
         while (this.backend.isPaused()) {
@@ -172,33 +200,131 @@ export class ReplDebugCommands {
 
     handleStepInto() {
         if (!this.backend.isPaused()) return ';; Not paused';
+        this._viewedLevel = -1;
         this.backend.resolveAction('stepInto');
         return ';; Stepping into...';
     }
 
     handleStepOver() {
         if (!this.backend.isPaused()) return ';; Not paused';
+        this._viewedLevel = -1;
         this.backend.resolveAction('stepOver');
         return ';; Stepping over...';
     }
 
     handleStepOut() {
         if (!this.backend.isPaused()) return ';; Not paused';
+        this._viewedLevel = -1;
         this.backend.resolveAction('stepOut');
         return ';; Stepping out...';
     }
 
     handleContinue() {
         if (!this.backend.isPaused()) return ';; Not paused';
+        this._viewedLevel = -1;
         this.backend.resolveAction('resume');
         return ';; Continuing...';
     }
 
+    // =========================================================================
+    // Stack & Level Helpers
+    // =========================================================================
+
+    /**
+     * Synchronizes the internal selected-frame stack with the backend's
+     * pause depth. Pushes -1 (select newest frame) for new levels,
+     * trims if levels have been popped. Also clamps _viewedLevel.
+     * @private
+     */
+    _syncFrameStack() {
+        const depth = this.backend.getDepth();
+        while (this._selectedFrameStack.length < depth) {
+            this._selectedFrameStack.push(-1);
+        }
+        while (this._selectedFrameStack.length > depth) {
+            this._selectedFrameStack.pop();
+        }
+        // Reset viewed level to top when levels change
+        if (this._viewedLevel > depth) {
+            this._viewedLevel = -1;
+        }
+    }
+
+    /**
+     * Gets the effective viewed level (1-indexed). Defaults to the
+     * topmost level when _viewedLevel is -1.
+     * @returns {number} 1-indexed level number
+     * @private
+     */
+    _getViewedLevel() {
+        this._syncFrameStack();
+        const depth = this.backend.getDepth();
+        if (depth === 0) return 0;
+        return this._viewedLevel === -1 ? depth : this._viewedLevel;
+    }
+
+    /**
+     * Gets the pause info for the currently viewed debug level.
+     * @returns {Object|null} Pause info for the viewed level
+     * @private
+     */
+    _getViewedPauseInfo() {
+        const level = this._getViewedLevel();
+        if (level === 0) return null;
+        return this.backend._pauseInfoStack[level - 1] || null;
+    }
+
+    /**
+     * Gets the stack for the currently viewed debug level from its
+     * snapshotted pause info. Falls back to the live stack tracer.
+     * @returns {Array} Stack frames for the viewed level
+     * @private
+     */
+    _getPausedStack() {
+        const pauseInfo = this._getViewedPauseInfo();
+        if (pauseInfo && pauseInfo.stack) return pauseInfo.stack;
+        return this.debugRuntime.getStack();
+    }
+
+    /**
+     * Gets the selected frame index for the currently viewed level.
+     * @param {Array} stack - The stack for the viewed level
+     * @returns {number} Frame index (0 = oldest, stack.length-1 = newest)
+     * @private
+     */
+    _getSelectedIndex(stack) {
+        const level = this._getViewedLevel();
+        if (level === 0) return stack.length - 1;
+        const sel = this._selectedFrameStack[level - 1];
+        if (sel === -1) return stack.length - 1;
+        return Math.min(sel, stack.length - 1);
+    }
+
+    /**
+     * Sets the selected frame index for the currently viewed level.
+     * @param {number} idx - Frame index to select
+     * @private
+     */
+    _setSelectedIndex(idx) {
+        const level = this._getViewedLevel();
+        if (level > 0) {
+            this._selectedFrameStack[level - 1] = idx;
+        }
+    }
+
+    // =========================================================================
+    // Stack Frame Commands (scoped to current level)
+    // =========================================================================
+
     handleBacktrace() {
-        const stack = this.debugRuntime.getStack();
+        const stack = this._getPausedStack();
         if (stack.length === 0) return ';; No call stack info available';
 
-        let output = ';; Call Stack:\n';
+        const totalDepth = this.backend.getDepth();
+        const viewedLevel = this._getViewedLevel();
+        let output = totalDepth > 1
+            ? `;; Call Stack (debug level ${viewedLevel}):\n`
+            : ';; Call Stack:\n';
         // newest first (0 is oldest though, so we reverse for display)
         const displayStack = [...stack].reverse();
         for (let i = 0; i < displayStack.length; i++) {
@@ -213,7 +339,7 @@ export class ReplDebugCommands {
 
     handleLocals() {
         if (!this.backend.isPaused()) return ';; Not paused';
-        const stack = this.debugRuntime.getStack();
+        const stack = this._getPausedStack();
         const idx = this._getSelectedIndex(stack);
         if (idx < 0 || idx >= stack.length) return ';; Invalid frame selected';
 
@@ -233,7 +359,7 @@ export class ReplDebugCommands {
         if (!this.backend.isPaused()) return ';; Not paused';
         if (!expr) return ';; Usage: :eval <expression>';
 
-        const stack = this.debugRuntime.getStack();
+        const stack = this._getPausedStack();
         const idx = this._getSelectedIndex(stack);
         if (idx < 0 || idx >= stack.length) return ';; Invalid frame selected';
 
@@ -278,24 +404,86 @@ export class ReplDebugCommands {
     }
 
     handleFrameUp() {
-        const stack = this.debugRuntime.getStack();
+        const stack = this._getPausedStack();
         let currentIdx = this._getSelectedIndex(stack);
         if (currentIdx > 0) {
-            this.selectedFrameIndex = currentIdx - 1;
-            return `;; Selected frame #${this.selectedFrameIndex}`;
+            const newIdx = currentIdx - 1;
+            this._setSelectedIndex(newIdx);
+            return `;; Selected frame #${newIdx}`;
         }
         return ';; Already at oldest frame';
     }
 
     handleFrameDown() {
-        const stack = this.debugRuntime.getStack();
+        const stack = this._getPausedStack();
         let currentIdx = this._getSelectedIndex(stack);
         if (currentIdx < stack.length - 1) {
-            this.selectedFrameIndex = currentIdx + 1;
-            return `;; Selected frame #${this.selectedFrameIndex}`;
+            const newIdx = currentIdx + 1;
+            this._setSelectedIndex(newIdx);
+            return `;; Selected frame #${newIdx}`;
         }
         return ';; Already at newest frame';
     }
+
+    // =========================================================================
+    // Debug Level Commands
+    // =========================================================================
+
+    /**
+     * Handles :level [N] — switch which debug level is being viewed,
+     * or show the current viewed level.
+     * @param {string[]} args - Optional level number
+     * @returns {string}
+     */
+    handleLevel(args) {
+        const depth = this.backend.getDepth();
+        if (depth === 0) return ';; No active debug levels';
+
+        if (args.length === 0) {
+            const viewed = this._getViewedLevel();
+            return `;; Viewing debug level ${viewed} of ${depth}`;
+        }
+
+        const n = parseInt(args[0], 10);
+        if (isNaN(n) || n < 1 || n > depth) {
+            return `;; Invalid level: ${args[0]}. Valid range: 1..${depth}`;
+        }
+
+        this._viewedLevel = n;
+        const pauseInfo = this.backend._pauseInfoStack[n - 1];
+        const reason = pauseInfo?.reason || 'unknown';
+        const loc = pauseInfo?.source
+            ? `${pauseInfo.source.filename}:${pauseInfo.source.line}`
+            : 'unknown location';
+        return `;; Now viewing level ${n}: ${reason} at ${loc}`;
+    }
+
+    /**
+     * Shows all active debug levels with their pause reason and location.
+     * Marks the currently viewed level with =>.
+     * @returns {string}
+     */
+    handleLevels() {
+        const depth = this.backend.getDepth();
+        if (depth === 0) return ';; No active debug levels';
+
+        const viewed = this._getViewedLevel();
+        let output = ';; Debug Levels:\n';
+        for (let i = depth; i >= 1; i--) {
+            const pauseInfo = this.backend._pauseInfoStack[i - 1];
+            const marker = i === viewed ? '=>' : '  ';
+            const reason = pauseInfo?.reason || 'unknown';
+            const loc = pauseInfo?.source
+                ? `${pauseInfo.source.filename}:${pauseInfo.source.line}`
+                : 'unknown location';
+            output += `;; ${marker} level ${i}: ${reason} at ${loc}\n`;
+        }
+        return output.trim();
+    }
+
+    // =========================================================================
+    // Help
+    // =========================================================================
 
     handleHelp() {
         return `;; Debug Commands:
@@ -307,25 +495,27 @@ export class ReplDebugCommands {
 ;;   :next / :n        - Step over
 ;;   :finish / :fin    - Step out
 ;;   :continue / :c    - Resume execution
+;;
+;; Frame Navigation (within viewed level):
 ;;   :bt / :backtrace  - Show backtrace
 ;;   :locals           - Show local variables
 ;;   :eval <expr>      - Evaluate in selected frame's scope
+;;   :up / :u          - Select older stack frame
+;;   :down / :d        - Select newer stack frame
+;;
+;; Level Navigation:
+;;   :levels           - Show all debug levels
+;;   :level [N]        - View/switch to debug level N
 ;;   :abort / :a       - Pop one debug level
 ;;   :toplevel / :top  - Pop all debug levels, return to REPL
-;;   :up / :u          - Move up the stack
-;;   :down / :d        - Move down the stack
 ;;   :help / :h / :?   - Show this help`;
     }
 
-    _getSelectedIndex(stack) {
-        if (this.selectedFrameIndex === -1) return stack.length - 1;
-        return Math.min(this.selectedFrameIndex, stack.length - 1);
-    }
-
     /**
-     * Resets the selected frame to the top.
+     * Resets all frame selection and level viewing state.
      */
     resetSelection() {
-        this.selectedFrameIndex = -1;
+        this._selectedFrameStack = [];
+        this._viewedLevel = -1;
     }
 }

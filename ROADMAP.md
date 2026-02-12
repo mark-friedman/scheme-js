@@ -27,10 +27,13 @@ A phased plan to achieve full R7RS-small compliance, building on the existing La
 - **JS Interop Benchmarks:** Added realistic interop benchmarks and verified boundary conversion costs (Deep In / Shallow Out) ✅
 - **Async Execution Model:** Implemented `runAsync` and `evaluateStringAsync` with configurable yields. Verified TCO, `call/cc`, and JS interop under async execution with 1977 passing tests. ✅
 - **Debugger Infrastructure**: Implemented `BreakpointManager`, `StackTracer`, `PauseController`, and `StateInspector`.
-- **REPL Debugging**:- [x] Full integration in Node.js and Browser REPLs with `:bt`, `:locals`, `:eval`, and `:continue`. ✅
+- **REPL Debugging**:
+  - [x] Full integration in Node.js and Browser REPLs with `:bt`, `:locals`, `:eval`, and `:continue`. ✅
   - [x] Dynamic switching between "Fast Mode" (Sync) and "Debug Mode" (Async) in REPLs. ✅
   - [x] **REPL Evaluation Lock:** Implemented state-based locking in browser and Node.js REPLs to prevent concurrent evaluations and hide the prompt during long-running operations. ✅
   - [x] **REPL Pause Button:** Added a "PAUSE" button to the browser REPL to interrupt long-running asynchronous evaluations and enter the debugger. ✅
+  - [x] **Per-Level Frame Navigation:** Stack frame commands (`:up`/`:down`/`:bt`/`:locals`) scoped to current debug level. Level navigation via `:level`/`:levels`/`:abort`/`:top`. ✅
+  - [x] **Structured Incomplete-Input Detection:** `SchemeReadError.incomplete` property replaces fragile string matching for multi-line REPL input. ✅
 
 **Incomplete:**
 - **Library system** — `cond-expand` not implemented; full R7RS library clauses incomplete

@@ -368,7 +368,10 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
 
                 const promptSpan = document.createElement('span');
                 promptSpan.className = i === 0 ? 'repl-prompt' : 'repl-prompt continuation';
-                promptSpan.textContent = i === 0 ? '>' : '...';
+                const debugPrompt = debugBackend.isPaused()
+                    ? `${debugBackend.getDepth()} debug>`
+                    : '>';
+                promptSpan.textContent = i === 0 ? debugPrompt : '...';
 
                 const contentSpan = document.createElement('span');
                 contentSpan.className = 'repl-history-input';
@@ -460,7 +463,11 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
      */
     function resetPrompts() {
         const firstPrompt = promptColumn.querySelector('.repl-prompt');
-        if (firstPrompt) firstPrompt.textContent = '>';
+        if (firstPrompt) {
+            firstPrompt.textContent = debugBackend.isPaused()
+                ? `${debugBackend.getDepth()} debug>`
+                : '>';
+        }
         while (promptColumn.children.length > 1) {
             promptColumn.removeChild(promptColumn.lastChild);
         }

@@ -4245,3 +4245,90 @@ Rebuilt the foundational debug infrastructure that was lost between threads (nev
 
 ## Test Results
 - 2122 passed, 0 failed, 7 skipped (up from 1999 pre-change)
+
+---
+
+# REPL Debugger Refinements (2025-02-11)
+
+Bug fixes and design improvements to the REPL debugger for both Node.js and Browser REPLs.
+
+## Multi-line Input Fix
+
+Fixed broken multi-line expression entry in the Node.js REPL.
+
+### Problem
+Entering incomplete expressions (e.g., `(define (foo x)`) printed a noisy `Parse error in input:` message and threw instead of prompting for more input.
+
+### Root Cause
+1. `parse()` logged errors to console before `isRecoverableError()` could check them.
+2. `isRecoverableError()` checked wrong error message strings (e.g., `"Missing ')'"` vs actual `"missing ')'"`).
+
+### Fix
+- Added `suppressLog: true` to the REPL's `parse()` call.
+- Added `incomplete` property to `SchemeReadError` — set to `true` at 9 throw sites in the parser that represent incomplete input (unexpected end of input, missing delimiters, unterminated strings).
+- Replaced string-matching in `isRecoverableError()` with `error.incomplete === true`.
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `src/core/interpreter/errors.js` | Added `incomplete` parameter to `SchemeReadError` |
+| `src/core/interpreter/reader/parser.js` | Marked 9 incomplete-input throw sites with `incomplete: true` |
+| `repl.js` | Added `suppressLog: true`, rewrote `isRecoverableError()` |
+| `tests/core/interpreter/unit_tests.js` | Added 8 tests for `incomplete` property |
+
+## Debug State Fixes
+
+Fixed stale debug state between debug sessions.
+
+### Problems
+1. `:locals` and `:bt` showed data from previous debug sessions (used live stack tracer instead of snapshotted stack).
+2. `selectedFrameIndex` persisted across sessions, so `:up` in one session affected the next.
+
+### Fix
+- Commands now read the snapshotted stack from `backend.getPauseInfo()` instead of `debugRuntime.getStack()`.
+- Frame selection resets automatically when a new pause is detected.
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `src/debug/repl_debug_commands.js` | Added `_getPausedStack()`, auto-reset on new pause |
+
+## Debug Prompt Display Fix (Browser)
+
+Fixed the browser REPL showing `>` instead of `N debug>` in the history when entering commands while paused.
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `web/repl.js` | `addToHistory()` and `resetPrompts()` now respect debug pause state |
+
+## Per-Level Frame Navigation
+
+Redesigned debug commands to properly separate stack frame navigation from debug level navigation, following MIT/GNU Scheme conventions.
+
+### Design
+- **Stack frame commands** (`:up`, `:down`, `:bt`, `:locals`, `:eval`) operate within the currently viewed debug level's captured stack. They cannot cross level boundaries.
+- **Debug level commands** (`:abort`, `:top`, `:level`, `:levels`) navigate between levels.
+- Each level maintains its own independent frame selection.
+
+### New Commands
+| Command | Description |
+|---------|-------------|
+| `:levels` | Show all active debug levels with reason and location |
+| `:level [N]` | View/switch to debug level N without popping |
+| `:abort` / `:a` | Pop one debug level |
+| `:toplevel` / `:top` | Pop all debug levels, return to REPL |
+
+### Implementation
+- Replaced single `selectedFrameIndex` with `_selectedFrameStack` (one entry per level).
+- Added `_viewedLevel` to allow inspecting any level without popping.
+- Frame stack syncs lazily with backend pause depth via `_syncFrameStack()`.
+- All resume/step/abort commands reset `_viewedLevel` to topmost.
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `src/debug/repl_debug_commands.js` | Full rewrite: per-level frame selection, viewed level, new commands |
+
+## Test Results
+- 2151 passed, 0 failed, 7 skipped
