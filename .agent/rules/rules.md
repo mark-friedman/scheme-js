@@ -20,7 +20,7 @@ trigger: always_on
 - **Execution**:
   - Run `node run_tests_node.js` to verify changes locally.
   - Use `node run_tests_node.js --stress` to include long-running TCO and memory stability tests.
-  - Agents SHOULD use the standard `npm run test` (without `--stress`) for routine verification to save time.
+  - Agents SHOULD mostly use the standard `npm run test` (without `--stress`) for routine verification to save time, but occasionally should use `node run_tests_node.js --stress` just to make sure.
   - The `--stress` flag MUST be used when making changes to the interpreter's TCO logic, memory management, or core evaluation loop.
   - Verify browser compatibility via `http://localhost:8080/ui.html`.
 
