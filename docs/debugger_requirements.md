@@ -3,6 +3,9 @@
 This document outlines the requirements and constraints for the `scheme-js` debugger, as specified by the user during the investigation and planning phase.
 
 ## Core Capabilities
+- **Browser use**: The primary use for this is when Scheme is used within web apps in a browser
+- **Script tag support**: The debugger needs to recognize, properly display, allow breakpoints and stepping of Scheme code that is used in `script` tags
+- **Chrome Debugger**: It should operate within Chrome Dev Tools
 - **Breakpoint Setting**: Support for setting breakpoints on Scheme source code
 - **Step-by-Step Execution**: Support for basic stepping maneuvers (Step Into, Step Over, Step Out, Step, Resume).
 - **Source Location Tracking**: Ability to track and display source locations (line, column) for all evaluated Scheme code.
@@ -23,4 +26,4 @@ This document outlines the requirements and constraints for the `scheme-js` debu
 
 ## Performance & Optimization
 - **Toggleability**: Debugging overhead must be minimal when the feature is disabled.
-- **Execution Model**: Use an asynchronous execution model (e.g., async trampoline) only when debugging to maintain UI responsiveness without freezing the tab.
+- **Reasonable**: Debugging overhead should be less than 20% when the Chrome dev tools panel is open
