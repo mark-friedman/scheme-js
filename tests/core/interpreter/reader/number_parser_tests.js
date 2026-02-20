@@ -113,6 +113,50 @@ export function runNumberParserTests(logger) {
 
     assert(logger, 'decimal inf', parsePrefixedNumber('#d+inf.0'), Infinity);
     assert(logger, 'decimal nan', Number.isNaN(parsePrefixedNumber('#d+nan.0')), true);
+
+    logger.title('parsePrefixedNumber - exact decimal (Issue #6)');
+
+    {
+        const r = parsePrefixedNumber('#e1.223');
+        assert(logger, '#e1.223 is Rational', r instanceof Rational, true);
+        assert(logger, '#e1.223 numerator', r.numerator, 1223n);
+        assert(logger, '#e1.223 denominator', r.denominator, 1000n);
+        assert(logger, '#e1.223 is exact', r.exact, true);
+    }
+
+    {
+        const r = parsePrefixedNumber('#e1.2e2');
+        assert(logger, '#e1.2e2 is BigInt', typeof r === 'bigint', true);
+        assert(logger, '#e1.2e2 value', r, 120n);
+    }
+
+    {
+        const r = parsePrefixedNumber('#e1.2e-1');
+        assert(logger, '#e1.2e-1 is Rational', r instanceof Rational, true);
+        assert(logger, '#e1.2e-1 numerator', r.numerator, 3n); // 12/100 -> 3/25
+        assert(logger, '#e1.2e-1 denominator', r.denominator, 25n);
+    }
+
+    // Different exponent markers
+    assert(logger, '#e1s2', parsePrefixedNumber('#e1s2'), 100n);
+    assert(logger, '#e1f2', parsePrefixedNumber('#e1f2'), 100n);
+    assert(logger, '#e1d2', parsePrefixedNumber('#e1d2'), 100n);
+    assert(logger, '#e1l2', parsePrefixedNumber('#e1l2'), 100n);
+
+    // Error cases
+    try {
+        parsePrefixedNumber('#e+inf.0');
+        logger.fail('Should throw error for #e+inf.0');
+    } catch (e) {
+        assert(logger, 'Error for #e+inf.0', e.message.includes('exactness'), true);
+    }
+
+    try {
+        parsePrefixedNumber('#e+nan.0');
+        logger.fail('Should throw error for #e+nan.0');
+    } catch (e) {
+        assert(logger, 'Error for #e+nan.0', e.message.includes('exactness'), true);
+    }
 }
 
 export default runNumberParserTests;
