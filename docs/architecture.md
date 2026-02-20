@@ -178,7 +178,14 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │      ├── state_inspector.js  # Scope & value inspection (nameMap-aware)
 │      ├── exception_handler.js # Error interception
 │      ├── repl_debug_backend.js # REPL-specific backend adapter
-│      └── repl_debug_commands.js # REPL command parser (:break, :step, etc.)
+│      ├── repl_debug_commands.js # REPL command parser (:break, :step, etc.)
+│      └── devtools/            # Chrome DevTools Integration
+│          ├── index.js         # Barrel export
+│          ├── sourcemap_generator.js # V3 source map generation + VLQ encoder
+│          ├── probe_generator.js # Probe script generation (one JS fn per Scheme line)
+│          ├── source_registry.js # Source & probe management + script injection
+│          ├── devtools_debug.js # DevToolsDebugIntegration (trampoline→probe bridge)
+│          └── env_proxy.js     # Environment proxy for DevTools Scope pane
 │
 │   └── extras/                     # Extension libraries (non-R7RS)
 │       ├── primitives/             # JavaScript primitives for extensions

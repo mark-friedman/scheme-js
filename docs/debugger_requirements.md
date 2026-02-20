@@ -15,6 +15,8 @@ This document outlines the requirements and constraints for the `scheme-js` debu
     - Option to break on both caught and uncaught errors/exceptions.
 - **State Inspection**: A way to inspect lexical environments and global variables during execution.
 - **Stack Traces**: Display of call stacks, with special consideration for maintaining logical traces in the presence of Tail Call Optimization (TCO).
+- **Professional Quality**: This debugger should be something that a professional web app builder and Scheme/Lisp 
+  programmer should find familiar, comfortable and useful.
 
 ## Polyglot Interoperability**:
 - **JS-to-Scheme Step-In**: Seamless transition from the browser's native debugger into Scheme source code.
