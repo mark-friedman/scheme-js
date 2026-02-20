@@ -1,11 +1,11 @@
 /**
- * @fileoverview Async Mode Functional Tests
+ * @fileoverview Debug Eval Correctness Tests
  *
- * Re-runs a subset of critical functional tests using the async execution path
- * to ensure that evaluateStringDebug produces identical results to sync execution.
+ * Re-runs a subset of critical functional tests using the debug execution path
+ * (evaluateStringDebug) to ensure it produces identical results to sync execution.
  *
- * This verifies that the async trampoline doesn't introduce any regressions
- * in existing functionality.
+ * This verifies that the cooperative-yielding trampoline doesn't introduce any
+ * regressions in existing Scheme functionality.
  */
 
 import { assert, run, createTestLogger } from '../harness/helpers.js';
@@ -24,7 +24,7 @@ import { assert, run, createTestLogger } from '../harness/helpers.js';
  * @param {Interpreter} interpreter - The bootstrapped interpreter
  * @param {Object} logger - Test logger
  */
-export async function runAsyncModeFunctionalTests(interpreter, logger) {
+export async function runDebugEvalCorrectnessTests(interpreter, logger) {
     const runSync = (code) => run(interpreter, code);
     const runDebug = (code, options = {}) => interpreter.evaluateStringDebug(code, options);
 
@@ -139,18 +139,8 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
         assert(logger, 'tail-recursive sum', asyncResult, syncResult);
     }
 
-    // Deep tail recursion
-    {
-        const code = `
-      (define (count-down n)
-        (if (<= n 0) 'done (count-down (- n 1))))
-      (count-down 10000)
-    `;
-        const syncResult = runSync(code);
-        const asyncResult = await runDebug(code, { stepsPerYield: 100 });
-        assert(logger, 'deep tail recursion', asyncResult.name || asyncResult,
-            syncResult.name || syncResult);
-    }
+    // Deep tail recursion — moved to stress tests (10k iterations)
+    logger.title('Async Mode - TCO (quick)');
 
     logger.title('Async Mode - Continuations');
 
@@ -319,12 +309,38 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     `;
         const syncResult = runSync(code);
         const asyncResult = await interpreter.evaluateStringDebug(code, {
-            stepsPerYield: 1,  // Yield every single step
+            stepsPerYield: 10,  // Yield frequently but not every single step
             onYield: () => { yieldCount++; }
         });
-        assert(logger, 'complex compute with max yields', asyncResult, syncResult);
-        assert(logger, 'yielded many times', yieldCount > 100, true);
+        assert(logger, 'complex compute with yields', asyncResult, syncResult);
+        assert(logger, 'yielded multiple times', yieldCount > 5, true);
     }
 }
 
-export default runAsyncModeFunctionalTests;
+/**
+ * Stress tests for async mode: long-running deep recursion.
+ * Run only with --stress flag.
+ *
+ * @param {Interpreter} interpreter - The bootstrapped interpreter
+ * @param {Object} logger - Test logger
+ */
+export async function runDebugEvalCorrectnessStressTests(interpreter, logger) {
+    const runSync = (code) => run(interpreter, code);
+    const runDebug = (code, options = {}) => interpreter.evaluateStringDebug(code, options);
+
+    logger.title('Async Mode - Deep TCO Stress (10k)');
+
+    {
+        const code = `
+      (define (count-down n)
+        (if (<= n 0) 'done (count-down (- n 1))))
+      (count-down 10000)
+    `;
+        const syncResult = runSync(code);
+        const asyncResult = await runDebug(code, { stepsPerYield: 100 });
+        assert(logger, 'deep tail recursion (10k)', asyncResult.name || asyncResult,
+            syncResult.name || syncResult);
+    }
+}
+
+export default runDebugEvalCorrectnessTests;

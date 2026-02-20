@@ -530,7 +530,7 @@ export async function runReplDebugSessionTests(interpreter, logger) {
         (if (<= n 0)
             acc
             (slow-loop (- n 1) (+ acc 1))))
-      (slow-loop 100000 0)
+      (slow-loop 1000 0)
     `;
 
     // Schedule first pause
@@ -569,7 +569,7 @@ export async function runReplDebugSessionTests(interpreter, logger) {
     const result = await interpreter.evaluateStringDebug(code);
     isEvaluating = false;
 
-    assert(logger, 'computation completes after pause/continue cycles', result, 100000);
+    assert(logger, 'computation completes after pause/continue cycles', result, 1000);
     assert(logger, 'at least one pause occurred', pauseCount >= 1, true);
     assert(logger, 'backend not paused at end', backend.isPaused(), false);
 

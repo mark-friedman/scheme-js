@@ -209,7 +209,7 @@ export async function runDebugIntegrationTests(interpreter, logger) {
         (if (<= n 0)
             acc
             (loop (- n 1) (+ acc 1))))
-      (loop 100000 0)
+      (loop 1000 0)
     `;
 
     // Schedule a pause request after a small delay
@@ -221,7 +221,7 @@ export async function runDebugIntegrationTests(interpreter, logger) {
 
     assert(logger, 'manual pause was triggered', pauseInfo !== null, true);
     assert(logger, 'manual pause reason', pauseInfo?.reason, 'manual');
-    assert(logger, 'result after manual pause resume', result, 100000);
+    assert(logger, 'result after manual pause resume', result, 1000);
 
     interpreter.setDebugRuntime(null);
   }

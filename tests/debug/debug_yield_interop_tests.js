@@ -1,12 +1,13 @@
 /**
- * @fileoverview Async Interop Stress Tests
+ * @fileoverview Debug Yield Interop Tests
  *
- * Tests that async execution with yields works correctly at Scheme/JS boundaries:
+ * Tests that the cooperative-yielding debug execution path works correctly
+ * at Scheme/JS boundaries:
  * - Scheme → JS → Scheme callback chains
  * - JS → Scheme → JS nested calls
  * - Interleaved loops with yields
- * - TCO under async execution
- * - call/cc across JS boundaries under async
+ * - TCO under yielding execution
+ * - call/cc across JS boundaries under yielding
  */
 
 import { assert, run, createTestLogger } from '../harness/helpers.js';
@@ -16,7 +17,7 @@ import { assert, run, createTestLogger } from '../harness/helpers.js';
  * @param {Interpreter} interpreter - The bootstrapped interpreter
  * @param {Object} logger - Test logger
  */
-export async function runAsyncInteropTests(interpreter, logger) {
+export async function runDebugYieldInteropTests(interpreter, logger) {
   const runDebug = (code, options = {}) => interpreter.evaluateStringDebug(code, options);
 
   logger.title('Async Interop - Scheme → JS → Scheme');
@@ -156,41 +157,6 @@ export async function runAsyncInteropTests(interpreter, logger) {
     assert(logger, 'JS called expected times', callCount, 1001);  // 1000 + final
   }
 
-  // Test: Deep tail recursion doesn't blow stack under async
-  {
-    const code = `
-      (define (deep-tail n acc)
-        (if (<= n 0)
-            acc
-            (deep-tail (- n 1) (+ acc 1))))
-      (deep-tail 50000 0)
-    `;
-
-    const result = await runDebug(code, { stepsPerYield: 100 });
-    assert(logger, 'Deep tail recursion under async', result, 50000);
-  }
-
-  // Test: Deep tail recursion doesn't blow stack and maintains stable memory
-  {
-    const code = `
-      (define (deep-tail-mem n acc)
-        (if (<= n 0)
-            acc
-            (deep-tail-mem (- n 1) (+ acc 1))))
-      
-      (let ((initial-heap (garbage-collect-and-get-heap-usage)))
-        (deep-tail-mem 50000 0)
-        (let ((final-heap (garbage-collect-and-get-heap-usage)))
-          ;; Check if memory grew by more than 1MB (allowing for small transients)
-          ;; In a truly leaking scenario, 50k frames would be many MBs.
-          (< (- final-heap initial-heap) 1000000)))
-    `;
-
-    const result = await runDebug(code, { stepsPerYield: 100 });
-    assert(logger, 'Memory stable during deep tail recursion', result, true);
-  }
-
-
   logger.title('Async Interop - call/cc Across Boundaries');
 
   // Test: call/cc captured before JS call, invoked after yields
@@ -302,4 +268,50 @@ export async function runAsyncInteropTests(interpreter, logger) {
   }
 }
 
-export default runAsyncInteropTests;
+/**
+ * Stress tests for async interop: deep recursion (50k iterations) and memory stability.
+ * Run only with --stress flag.
+ *
+ * @param {Interpreter} interpreter - The bootstrapped interpreter
+ * @param {Object} logger - Test logger
+ */
+export async function runDebugYieldInteropStressTests(interpreter, logger) {
+  const runDebug = (code, options = {}) => interpreter.evaluateStringDebug(code, options);
+
+  logger.title('Async Interop - Deep TCO Stress');
+
+  // Test: Deep tail recursion doesn't blow stack under async
+  {
+    const code = `
+      (define (deep-tail n acc)
+        (if (<= n 0)
+            acc
+            (deep-tail (- n 1) (+ acc 1))))
+      (deep-tail 50000 0)
+    `;
+
+    const result = await runDebug(code, { stepsPerYield: 100 });
+    assert(logger, 'Deep tail recursion under async (50k)', result, 50000);
+  }
+
+  // Test: Deep tail recursion and stable memory
+  {
+    const code = `
+      (define (deep-tail-mem n acc)
+        (if (<= n 0)
+            acc
+            (deep-tail-mem (- n 1) (+ acc 1))))
+      
+      (let ((initial-heap (garbage-collect-and-get-heap-usage)))
+        (deep-tail-mem 50000 0)
+        (let ((final-heap (garbage-collect-and-get-heap-usage)))
+          ;; Check if memory grew by more than 1MB
+          (< (- final-heap initial-heap) 1000000)))
+    `;
+
+    const result = await runDebug(code, { stepsPerYield: 100 });
+    assert(logger, 'Memory stable during deep tail recursion (50k)', result, true);
+  }
+}
+
+export default runDebugYieldInteropTests;

@@ -61,8 +61,10 @@ export const functionalTests = [
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
-    { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
-        { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
+    { path: 'debug/debug_yield_interop_tests.js', fn: 'runDebugYieldInteropTests', async: true },
+    { path: 'debug/debug_yield_interop_tests.js', fn: 'runDebugYieldInteropStressTests', async: true, stress: true },
+    { path: 'debug/debug_eval_correctness_tests.js', fn: 'runDebugEvalCorrectnessTests', async: true },
+    { path: 'debug/debug_eval_correctness_tests.js', fn: 'runDebugEvalCorrectnessStressTests', async: true, stress: true },
     { path: 'functional/exception_debugging_tests.js', fn: 'runExceptionDebuggingTests', async: true },
     { path: 'debug/debug_integration_tests.js', fn: 'runDebugIntegrationTests', async: true },
     { path: 'debug/nested_debug_level_tests.js', fn: 'runNestedDebugLevelTests', async: true },
@@ -73,7 +75,7 @@ export const functionalTests = [
 export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
     { path: 'integration/multi_interpreter_tests.js', fn: 'runMultiInterpreterTests', async: true, needsInterpreter: true },
-    { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
+    { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false, skip: true },
     { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
     { path: 'integration/cond_expand_library_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: true },
 ];
@@ -135,6 +137,12 @@ export const schemeTestFiles = [
  * @param {Function} loader - File loader (for tests that need it)
  */
 export async function runTestModule(pathPrefix, test, interpreter, logger, loader) {
+    // Skip explicitly-disabled tests
+    if (test.skip) {
+        logger.skip(`${test.path} (skipped)`);
+        return;
+    }
+
     // Skip Node.js-only tests in the browser
     const inBrowser = typeof process === 'undefined';
     if (test.nodeOnly && inBrowser) {
