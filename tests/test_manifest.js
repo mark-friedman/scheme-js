@@ -41,6 +41,9 @@ export const unitTests = [
     // DevTools Integration Unit Tests (Phase 2)
     { path: 'debug/devtools/env_proxy_tests.js', fn: 'runEnvProxyTests', needsInterpreter: false, async: true },
     { path: 'debug/devtools/devtools_debug_tests.js', fn: 'runDevToolsDebugTests', needsInterpreter: false, async: true },
+    // DevTools Integration Unit Tests (Phase 5)
+    { path: 'debug/devtools/scheme_debug_api_tests.js', fn: 'runSchemeDebugApiTests', needsInterpreter: false, async: true },
+    { path: 'debug/devtools/extension_sidebar_tests.js', fn: 'runExtensionSidebarTests', needsInterpreter: false, async: true },
 ];
 
 

@@ -4464,3 +4464,68 @@ Added `console.createTask` async stack tagging so Chrome DevTools' native Call S
 
 ## Test Results
 - 2382 passed, 0 failed, 8 skipped
+
+
+# Phase 5: Chrome DevTools Extension — Scheme Stack Sidebar
+
+## What Was Built
+
+Phase 5 adds a Chrome DevTools extension that provides a **Scheme Stack** sidebar in the Sources panel. When paused at a Scheme breakpoint, developers can:
+- View the full Scheme call stack with function names and source locations
+- Click frames to navigate to source code and inspect per-frame variables
+- See TCO badges showing tail-call optimization counts
+- Use Step Into/Over/Out buttons for Scheme-level stepping
+
+## Changes Made
+
+### New: `__schemeDebug` Global API
+
+#### [devtools_debug.js](file:///Users/mark/code/scheme-js-4/src/debug/devtools/devtools_debug.js)
+- Added `installSchemeDebugAPI(interpreter)` method (120 lines)
+- Installs `globalThis.__schemeDebug` with methods:
+  - `getStack()` — returns Scheme call stack with names, sources, TCO counts
+  - `getLocals(frameIndex)` — returns serialized variables for a frame
+  - `getSource(frameIndex)` — returns source location for a frame
+  - `eval(code, [frameIndex])` — evaluates Scheme in a frame's environment
+  - `stepInto()`, `stepOver()`, `stepOut()` — delegates to probe runtime
+
+render_diffs(file:///Users/mark/code/scheme-js-4/src/debug/devtools/devtools_debug.js)
+
+### New: Sidebar Rendering Helpers
+
+#### [sidebar_helpers.js](file:///Users/mark/code/scheme-js-4/src/debug/devtools/sidebar_helpers.js)
+- `formatSource()` — extracts basename + line from source objects
+- `escapeHtml()` — prevents XSS in rendered HTML
+- `formatValue()` — maps Scheme types to CSS classes
+- `buildFrameListHtml()` — renders frame list with TCO badges
+- `buildVariablesHtml()` — renders variable display with type coloring
+
+### New: Chrome Extension Scaffold
+
+| File | Purpose |
+|---|---|
+| [manifest.json](file:///Users/mark/code/scheme-js-4/extension/manifest.json) | Manifest V3 with `devtools_page` and `debugger` permission |
+| [devtools.html](file:///Users/mark/code/scheme-js-4/extension/devtools.html) | Entry point loading devtools.js |
+| [devtools.js](file:///Users/mark/code/scheme-js-4/extension/devtools.js) | Creates "Scheme Stack" sidebar pane |
+| [background.js](file:///Users/mark/code/scheme-js-4/extension/background.js) | CDP event routing + auto-blackboxing |
+| [panel/sidebar.html](file:///Users/mark/code/scheme-js-4/extension/panel/sidebar.html) | Sidebar layout with toolbar, frame list, variables |
+| [panel/sidebar.js](file:///Users/mark/code/scheme-js-4/extension/panel/sidebar.js) | Frame rendering, click navigation, step controls |
+| [panel/sidebar.css](file:///Users/mark/code/scheme-js-4/extension/panel/sidebar.css) | Dark theme matching DevTools |
+
+### Bug Fix
+
+#### [source_registry_tests.js](file:///Users/mark/code/scheme-js-4/tests/debug/devtools/source_registry_tests.js)
+- Fixed pre-existing bug: test clobbered `__schemeProbeRuntime` without restoring it
+
+render_diffs(file:///Users/mark/code/scheme-js-4/tests/debug/devtools/source_registry_tests.js)
+
+## Tests
+
+### New Test Files
+- [scheme_debug_api_tests.js](file:///Users/mark/code/scheme-js-4/tests/debug/devtools/scheme_debug_api_tests.js) — 39 tests covering getStack, getLocals, getSource, eval, stepping, and API installation
+- [extension_sidebar_tests.js](file:///Users/mark/code/scheme-js-4/tests/debug/devtools/extension_sidebar_tests.js) — Tests for formatSource, escapeHtml, formatValue, buildFrameListHtml, buildVariablesHtml
+
+### Test Results
+```
+TEST SUMMARY: 2457 passed, 0 failed, 8 skipped
+```

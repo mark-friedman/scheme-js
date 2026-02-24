@@ -1,0 +1,232 @@
+/**
+ * Sidebar CSS — Dark theme matching Chrome DevTools.
+ * Provides styling for frame list, variables, TCO badges, and step buttons.
+ */
+
+/* =========================================================================
+   Base / Reset
+   ========================================================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: '.SFNSMono-Regular', 'Menlo', 'Monaco', 'Consolas',
+               'Liberation Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #e8eaed;
+  background: #202124;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* =========================================================================
+   Toolbar (Step Buttons)
+   ========================================================================= */
+
+.toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px 6px;
+  background: #292a2d;
+  border-bottom: 1px solid #3c4043;
+}
+
+.toolbar button {
+  background: #3c4043;
+  color: #e8eaed;
+  border: 1px solid #5f6368;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.toolbar button:hover {
+  background: #4a4d51;
+  border-color: #8ab4f8;
+}
+
+.toolbar button:active {
+  background: #5f6368;
+}
+
+/* =========================================================================
+   Sections
+   ========================================================================= */
+
+.section {
+  border-bottom: 1px solid #3c4043;
+}
+
+.section-header {
+  padding: 4px 6px;
+  font-weight: bold;
+  font-size: 11px;
+  color: #9aa0a6;
+  background: #292a2d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* =========================================================================
+   Frame List
+   ========================================================================= */
+
+.frames {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.frame {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 6px 3px 12px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.frame:hover {
+  background: #35363a;
+}
+
+.frame.selected {
+  background: #1a73e8;
+  color: #fff;
+}
+
+.frame.selected .frame-source {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.frame-name {
+  color: #e8eaed;
+  flex-shrink: 0;
+}
+
+.frame-source {
+  color: #9aa0a6;
+  font-size: 10px;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================================
+   TCO Badge
+   ========================================================================= */
+
+.tco-badge {
+  display: inline-block;
+  background: #5f6368;
+  color: #fdd663;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  line-height: 1.2;
+  vertical-align: baseline;
+}
+
+/* =========================================================================
+   Variables
+   ========================================================================= */
+
+.variables {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.variable {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 2px 6px 2px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.var-name {
+  color: #9aa0a6;
+  flex-shrink: 0;
+}
+
+.var-separator {
+  color: #5f6368;
+  flex-shrink: 0;
+}
+
+.var-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Value type coloring — matches DevTools conventions */
+.var-value.number {
+  color: #78dce8;
+}
+
+.var-value.string {
+  color: #a9dc76;
+}
+
+.var-value.boolean {
+  color: #78dce8;
+}
+
+.var-value.function {
+  color: #ab9df2;
+}
+
+.var-value.symbol {
+  color: #ffd866;
+}
+
+.var-value.object {
+  color: #e8eaed;
+}
+
+.var-value.undefined {
+  color: #5f6368;
+  font-style: italic;
+}
+
+/* =========================================================================
+   Empty Message
+   ========================================================================= */
+
+.empty-message {
+  padding: 8px 12px;
+  color: #5f6368;
+  font-style: italic;
+}
+
+/* =========================================================================
+   Status Bar
+   ========================================================================= */
+
+.status {
+  padding: 4px 6px;
+  font-size: 10px;
+  color: #5f6368;
+  background: #292a2d;
+  border-top: 1px solid #3c4043;
+  text-align: center;
+}
+
+.status.paused {
+  color: #fdd663;
+  font-weight: bold;
+}

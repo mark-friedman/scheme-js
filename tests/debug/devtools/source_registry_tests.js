@@ -76,6 +76,7 @@ export function runSourceRegistryTests(logger) {
 
   // Test: Probe functions are callable and accept envProxy
   {
+    const savedRuntime = globalThis.__schemeProbeRuntime;
     globalThis.__schemeProbeRuntime = { hit: () => { } };
     const registry = new SchemeSourceRegistry();
     regSource(registry, 'scheme://app/test.scm', '(+ 1 2)\n', 'external');
@@ -90,6 +91,8 @@ export function runSourceRegistryTests(logger) {
       threw = true;
     }
     assert(logger, 'probe function is callable with envProxy', threw, false);
+    // Restore the real probe runtime
+    globalThis.__schemeProbeRuntime = savedRuntime;
   }
 
   logger.title('SchemeSourceRegistry - Multiple Sources');

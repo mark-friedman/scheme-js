@@ -187,6 +187,16 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │          ├── devtools_debug.js # DevToolsDebugIntegration (trampoline→probe bridge)
 │          └── env_proxy.js     # Environment proxy for DevTools Scope pane
 │
+│   └── extension/              # Chrome DevTools Extension (Scheme Stack Sidebar)
+│       ├── manifest.json       # Manifest V3 configuration
+│       ├── background.js       # Background service worker (CDP event routing)
+│       ├── devtools.js         # Entry script creating sidebar pane
+│       ├── devtools.html       # DevTools page
+│       └── panel/              # Sidebar UI components
+│           ├── sidebar.html    # Layout (toolbar, frame list, variables)
+│           ├── sidebar.js      # Rendering and interaction logic
+│           └── sidebar.css     # DevTools dark theme styles
+│
 │   └── extras/                     # Extension libraries (non-R7RS)
 │       ├── primitives/             # JavaScript primitives for extensions
 │       │   ├── interop.js          # JS interop: js-eval, js-ref, js-set!

@@ -14,6 +14,10 @@
  */
 
 import { createEnvProxy } from './env_proxy.js';
+import { parse } from '../../core/interpreter/reader.js';
+import { analyze } from '../../core/interpreter/analyzer.js';
+import { list } from '../../core/interpreter/cons.js';
+import { intern } from '../../core/interpreter/symbol.js';
 
 /**
  * Bridges the interpreter trampoline to Chrome DevTools via probe scripts.
@@ -212,6 +216,138 @@ export class DevToolsDebugIntegration {
     }
     // No tasks or no createTask — call directly
     probe(envProxy);
+  }
+
+  // =========================================================================
+  // Phase 5: __schemeDebug Global API
+  // =========================================================================
+
+  /**
+   * Installs the `__schemeDebug` global API on `globalThis`.
+   *
+   * This API is the bridge between the Chrome DevTools extension (running
+   * in extension context) and the interpreter's internal state (running in
+   * page context). The extension calls these methods via
+   * `chrome.devtools.inspectedWindow.eval()`.
+   *
+   * @param {import('../../core/interpreter/interpreter.js').Interpreter} interpreter
+   *   The interpreter instance to inspect.
+   */
+  installSchemeDebugAPI(interpreter) {
+    const self = this;
+
+    globalThis.__schemeDebug = {
+      /**
+       * Gets the current Scheme call stack.
+       * @returns {Array<{name: string, source: {filename: string, line: number, column: number}|null, tcoCount: number}>}
+       */
+      getStack() {
+        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
+        return frames.map(f => ({
+          name: f.name,
+          source: f.source || null,
+          tcoCount: f.tcoCount || 0
+        }));
+      },
+
+      /**
+       * Gets the local variable bindings for a specific stack frame.
+       * @param {number} frameIndex - Index into the stack (0 = bottom, length-1 = top)
+       * @returns {Array<{name: string, value: string, type: string, subtype: string|null}>}
+       */
+      getLocals(frameIndex) {
+        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
+        if (frameIndex < 0 || frameIndex >= frames.length) return [];
+        const env = frames[frameIndex].env;
+        const inspector = interpreter.debugRuntime?.stateInspector;
+        if (!env || !inspector) return [];
+
+        const locals = inspector.getLocals(env);
+        const result = [];
+        for (const [name, value] of locals) {
+          const serialized = inspector.serializeValue(value);
+          result.push({
+            name,
+            value: serialized.description || String(value),
+            type: serialized.type,
+            subtype: serialized.subtype || null
+          });
+        }
+        return result;
+      },
+
+      /**
+       * Gets source info for a specific stack frame.
+       * @param {number} frameIndex
+       * @returns {{filename: string, line: number, column: number}|null}
+       */
+      getSource(frameIndex) {
+        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
+        if (frameIndex < 0 || frameIndex >= frames.length) return null;
+        return frames[frameIndex].source || null;
+      },
+
+      /**
+       * Evaluates a Scheme expression in the context of a specific stack frame.
+       * Uses the synchronous run() path (parse → analyze → run).
+       * @param {string} code - Scheme expression to evaluate
+       * @param {number} [frameIndex] - Frame index (defaults to top frame)
+       * @returns {string} Result as a string
+       */
+      eval(code, frameIndex) {
+        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
+        const idx = frameIndex ?? (frames.length - 1);
+        if (idx < 0 || idx >= frames.length) return '#<error: invalid frame>';
+        const env = frames[idx].env;
+        try {
+          // Use synchronous path: parse → analyze → run
+          const expressions = parse(code);
+          if (expressions.length === 0) return '';
+
+          let ast;
+          if (expressions.length === 1) {
+            ast = analyze(expressions[0]);
+          } else {
+            ast = analyze(list(intern('begin'), ...expressions));
+          }
+
+          const result = interpreter.run(ast, env);
+          return String(result);
+        } catch (e) {
+          return `#<error: ${e.message}>`;
+        }
+      },
+
+      /**
+       * Issue a Step Into command.
+       * V8 will pause at the next distinct Scheme expression.
+       */
+      stepInto() {
+        if (globalThis.__schemeProbeRuntime) {
+          globalThis.__schemeProbeRuntime.stepInto();
+        }
+      },
+
+      /**
+       * Issue a Step Over command.
+       * V8 will pause at the next expression at the same or shallower depth.
+       */
+      stepOver() {
+        if (globalThis.__schemeProbeRuntime) {
+          globalThis.__schemeProbeRuntime.stepOver();
+        }
+      },
+
+      /**
+       * Issue a Step Out command.
+       * V8 will pause at the first expression after the current function returns.
+       */
+      stepOut() {
+        if (globalThis.__schemeProbeRuntime) {
+          globalThis.__schemeProbeRuntime.stepOut();
+        }
+      }
+    };
   }
 
   // =========================================================================
