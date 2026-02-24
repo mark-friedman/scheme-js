@@ -186,6 +186,14 @@ export class Interpreter {
      * @type {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
      */
     this.debugRuntime = null;
+
+    /**
+     * Optional Chrome DevTools debug integration.
+     * When set and enabled, the interpreter calls probe functions on source location
+     * changes, allowing DevTools to show Scheme source and support breakpoints.
+     * @type {import('../../debug/devtools/devtools_debug.js').DevToolsDebugIntegration|null}
+     */
+    this.devtoolsDebug = null;
   }
 
 
@@ -250,10 +258,21 @@ export class Interpreter {
     // Track recursion depth
     this.depth++;
 
+    // Cache DevTools reference for hot loop (null check is cheaper than property access)
+    const devtoolsDebug = this.devtoolsDebug;
+
     // The Top-Level Trampoline
     try {
       while (true) {
         try {
+          // DevTools probe check (only when enabled, only on source change)
+          if (devtoolsDebug?.enabled) {
+            const src = registers[CTL]?.source;
+            if (src) {
+              devtoolsDebug.maybeHit(src, registers[ENV]);
+            }
+          }
+
           // The `step` method returns `true` to continue the trampoline
           // (a tail call) or `false` to halt (a value return).
           if (this.step(registers)) {
@@ -451,6 +470,9 @@ export class Interpreter {
       pc.pushExecutionContext();
     }
 
+    // Cache DevTools reference for hot loop
+    const devtoolsDebugAsync = this.devtoolsDebug;
+
     // Yield configuration: use pauseController's adaptive yielding when
     // debug is active, otherwise fall back to stepsPerYield option.
     const stepsPerYield = options.stepsPerYield ?? 1000;
@@ -485,6 +507,14 @@ export class Interpreter {
               if (pc.abortAll) {
                 throw new SchemeError("Evaluation aborted");
               }
+            }
+          }
+
+          // --- DevTools probe check (source location tracking) ---
+          if (devtoolsDebugAsync?.enabled) {
+            const src = registers[CTL]?.source;
+            if (src) {
+              devtoolsDebugAsync.maybeHit(src, registers[ENV]);
             }
           }
 
@@ -593,8 +623,17 @@ export class Interpreter {
   /**
    * Evaluates a Scheme code string using the debug-aware async path.
    *
+   * When a DevTools integration is active (`this.devtoolsDebug`), each
+   * evaluation is assigned a stable `scheme://repl/eval-N.scm` URL (or the
+   * caller-supplied `options.sourceUrl`) so that the generated probe script
+   * can be registered and source-mapped back to the Scheme code.  Without
+   * this, `source.filename` in the trampoline is always `'<unknown>'` and
+   * `maybeHit()` never resolves an exprId.
+   *
    * @param {string} code - The Scheme source code.
    * @param {Object} [options={}] - Execution options.
+   * @param {string} [options.sourceUrl] - Explicit source URL for DevTools registration.
+   *   If omitted and devtoolsDebug is active, a URL is auto-generated.
    * @returns {Promise<*>} The result of the computation.
    */
   async evaluateStringDebug(code, options = {}) {
@@ -603,8 +642,28 @@ export class Interpreter {
     const { list } = await import('./cons.js');
     const { intern } = await import('./symbol.js');
 
-    const expressions = parse(code);
+    // Determine source URL for DevTools registration (when active)
+    let sourceUrl = options.sourceUrl ?? null;
+    const devtools = this.devtoolsDebug;
+    if (devtools?.enabled && !sourceUrl) {
+      // Auto-generate a stable REPL eval URL using a per-interpreter counter
+      if (this._replEvalCounter === undefined) this._replEvalCounter = 0;
+      sourceUrl = `scheme://repl/eval-${this._replEvalCounter++}.scm`;
+    }
+
+    // Parse with filename so AST nodes carry the correct source location
+    const expressions = parse(code, sourceUrl ? { filename: sourceUrl } : {});
     if (expressions.length === 0) return null;
+
+    // Register the source with DevTools so probes fire for this eval
+    if (devtools?.enabled && sourceUrl) {
+      const registry = devtools.sourceRegistry;
+      if (registry && !registry.hasSource(sourceUrl)) {
+        registry.register(sourceUrl, code, 'repl', expressions);
+      }
+      // Reset dedup state so the first expression in this eval fires its probe
+      devtools.resetHitTracking();
+    }
 
     let ast;
     if (expressions.length === 1) {
@@ -615,6 +674,7 @@ export class Interpreter {
 
     return this.runDebug(ast, this.globalEnv, options);
   }
+
 
   /**
    * @deprecated Use runDebug() instead. This is a compatibility alias.

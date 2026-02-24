@@ -295,7 +295,11 @@ export class AppFrame extends Executable {
         if (isSchemeClosure(func)) {
             registers[CTL] = func.body;
 
-            // Handle rest parameter if present
+            // Propagate closure source to body so the DevTools trampoline probe
+            // can find the correct source location on the very first step inside.
+            if (func.source && !func.body.source) {
+                func.body.source = func.source;
+            }
             if (func.restParam) {
                 // Required params get their args, rest param gets remaining as list
                 const requiredCount = func.params.length;

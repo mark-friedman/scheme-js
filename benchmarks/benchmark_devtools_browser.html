@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DevTools Overhead — Browser Benchmark</title>
+    <style>
+        body {
+            font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            margin: 2em;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #569cd6;
+            font-size: 1.4em;
+        }
+
+        h2 {
+            color: #4ec9b0;
+            font-size: 1.1em;
+            margin-top: 1.5em;
+        }
+
+        .status {
+            color: #b5cea8;
+        }
+
+        .error {
+            color: #f44747;
+        }
+
+        .result {
+            margin-left: 1.5em;
+        }
+
+        .overhead-positive {
+            color: #f44747;
+        }
+
+        .overhead-negative {
+            color: #6a9955;
+        }
+
+        .overhead-neutral {
+            color: #b5cea8;
+        }
+
+        pre {
+            background: #252526;
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 0.5em 1.5em;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1em;
+            margin-top: 1em;
+        }
+
+        button:hover {
+            background: #1177bb;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        #output {
+            white-space: pre-wrap;
+        }
+
+        .note {
+            background: #1a3a4a;
+            border-left: 3px solid #569cd6;
+            padding: 0.5em 1em;
+            margin: 1em 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>DevTools Async Stack Tagging — Browser Benchmark</h1>
+
+    <div class="note">
+        This benchmark measures the real overhead of <code>console.createTask</code>
+        in Chrome. It compares: (1) baseline, (2) StackTracer only, (3) taskStack
+        tracking without createTask, (4) real console.createTask calls.<br>
+        <strong>Run in Chrome 106+ for accurate results.</strong>
+    </div>
+
+    <button id="runBtn" onclick="runBenchmark()">Run Benchmark</button>
+    <pre id="output"></pre>
+
+    <script type="module">
+        import { createInterpreter } from '../src/core/interpreter/index.js';
+        import { parse } from '../src/core/interpreter/reader.js';
+        import { analyze } from '../src/core/interpreter/analyzer.js';
+        import { DevToolsDebugIntegration } from '../src/debug/devtools/devtools_debug.js';
+        import { SchemeSourceRegistry } from '../src/debug/devtools/source_registry.js';
+        import SchemeDebugRuntime from '../src/debug/scheme_debug_runtime.js';
+
+        const out = document.getElementById('output');
+        const btn = document.getElementById('runBtn');
+
+        function log(msg) {
+            out.textContent += msg + '\n';
+        }
+
+        function evalScheme(interpreter, env, code) {
+            const exprs = parse(code);
+            let result;
+            for (const expr of exprs) {
+                const ast = analyze(expr);
+                result = interpreter.run(ast, env);
+            }
+            return result;
+        }
+
+        function bench(fn, runs = 7) {
+            const times = [];
+            for (let i = 0; i < runs; i++) {
+                const start = performance.now();
+                fn();
+                times.push(performance.now() - start);
+            }
+            times.sort((a, b) => a - b);
+            return times[Math.floor(times.length / 2)];
+        }
+
+        async function loadSchemeFiles(interpreter, env) {
+            const files = [
+                '../src/core/scheme/macros.scm',
+                '../src/core/scheme/equality.scm',
+                '../src/core/scheme/cxr.scm',
+                '../src/core/scheme/numbers.scm',
+                '../src/core/scheme/list.scm',
+                '../src/core/scheme/control.scm',
+            ];
+            for (const file of files) {
+                const resp = await fetch(file);
+                const code = await resp.text();
+                evalScheme(interpreter, env, code);
+            }
+        }
+
+        window.runBenchmark = async function () {
+            btn.disabled = true;
+            out.textContent = '';
+
+            try {
+                log('Setting up interpreter...');
+                const { interpreter, env } = createInterpreter();
+                await loadSchemeFiles(interpreter, env);
+
+                // Wrapper functions discard the result to avoid BigInt-to-JS conversion errors.
+                evalScheme(interpreter, env, `
+          (define (fib n)
+            (if (<= n 1) n
+              (+ (fib (- n 1)) (fib (- n 2)))))
+
+          (define (factorial n)
+            (if (<= n 1) 1
+              (* n (factorial (- n 1)))))
+
+          (define (sum-to n)
+            (define (loop i acc)
+              (if (> i n) acc
+                (loop (+ i 1) (+ acc i))))
+            (loop 1 0))
+
+          (define (bench-fib) (fib 25) (if #f #f))
+          (define (bench-fact) (factorial 500) (if #f #f))
+          (define (bench-sum) (sum-to 50000) (if #f #f))
+        `);
+
+                const hasCreateTask = typeof console.createTask === 'function';
+                log(`console.createTask available: ${hasCreateTask}`);
+                log('');
+
+                const RUNS = 7;
+                const FIB = '(bench-fib)';
+                const FACT = '(bench-fact)';
+                const SUM = '(bench-sum)';
+                const results = {};
+
+                // 1. Baseline
+                log('--- Baseline (no debug) ---');
+                if (interpreter.debugRuntime) {
+                    interpreter.debugRuntime = null;
+                }
+                results.baseline = {
+                    fib: bench(() => evalScheme(interpreter, env, FIB), RUNS),
+                    fact: bench(() => evalScheme(interpreter, env, FACT), RUNS),
+                    sum: bench(() => evalScheme(interpreter, env, SUM), RUNS),
+                };
+                log(`  fib(25):       ${results.baseline.fib.toFixed(2)} ms`);
+                log(`  factorial(500): ${results.baseline.fact.toFixed(2)} ms`);
+                log(`  sum-to(50000): ${results.baseline.sum.toFixed(2)} ms`);
+
+                // 2. StackTracer only
+                log('\n--- With StackTracer ---');
+                const debugRuntime = new SchemeDebugRuntime();
+                debugRuntime.enable();
+                interpreter.setDebugRuntime(debugRuntime);
+
+                results.stackTracer = {
+                    fib: bench(() => evalScheme(interpreter, env, FIB), RUNS),
+                    fact: bench(() => evalScheme(interpreter, env, FACT), RUNS),
+                    sum: bench(() => evalScheme(interpreter, env, SUM), RUNS),
+                };
+                log(`  fib(25):       ${results.stackTracer.fib.toFixed(2)} ms`);
+                log(`  factorial(500): ${results.stackTracer.fact.toFixed(2)} ms`);
+                log(`  sum-to(50000): ${results.stackTracer.sum.toFixed(2)} ms`);
+
+                // 3. TaskStack (no createTask)
+                log('\n--- With TaskStack (no createTask) ---');
+                const registry = new SchemeSourceRegistry();
+                const devtools = new DevToolsDebugIntegration(registry);
+                devtools.hasCreateTask = false;
+                debugRuntime.setDevToolsIntegration(devtools);
+
+                results.taskStackOnly = {
+                    fib: bench(() => evalScheme(interpreter, env, FIB), RUNS),
+                    fact: bench(() => evalScheme(interpreter, env, FACT), RUNS),
+                    sum: bench(() => evalScheme(interpreter, env, SUM), RUNS),
+                };
+                log(`  fib(25):       ${results.taskStackOnly.fib.toFixed(2)} ms`);
+                log(`  factorial(500): ${results.taskStackOnly.fact.toFixed(2)} ms`);
+                log(`  sum-to(50000): ${results.taskStackOnly.sum.toFixed(2)} ms`);
+
+                // 4. Real createTask (if available) or mock
+                if (hasCreateTask) {
+                    log('\n--- With REAL console.createTask ---');
+                    devtools.hasCreateTask = true;
+                } else {
+                    log('\n--- With Mock createTask (no real createTask available) ---');
+                    console.createTask = (name) => ({ run: (fn) => fn() });
+                    devtools.hasCreateTask = true;
+                }
+
+                results.withCreateTask = {
+                    fib: bench(() => evalScheme(interpreter, env, FIB), RUNS),
+                    fact: bench(() => evalScheme(interpreter, env, FACT), RUNS),
+                    sum: bench(() => evalScheme(interpreter, env, SUM), RUNS),
+                };
+                log(`  fib(25):       ${results.withCreateTask.fib.toFixed(2)} ms`);
+                log(`  factorial(500): ${results.withCreateTask.fact.toFixed(2)} ms`);
+                log(`  sum-to(50000): ${results.withCreateTask.sum.toFixed(2)} ms`);
+
+                if (!hasCreateTask) delete console.createTask;
+
+                // Summary
+                log('\n' + '='.repeat(55));
+                log('Overhead vs Baseline');
+                log('='.repeat(55));
+
+                const pct = (val, base) => {
+                    const p = ((val / base - 1) * 100).toFixed(1);
+                    return p >= 0 ? `+${p}%` : `${p}%`;
+                };
+
+                for (const [name, key] of [['fib(25)', 'fib'], ['factorial(500)', 'fact'], ['sum-to(50000)', 'sum']]) {
+                    const b = results.baseline[key];
+                    log(`  ${name}:`);
+                    log(`    Baseline:          ${b.toFixed(2)} ms`);
+                    log(`    + StackTracer:     ${results.stackTracer[key].toFixed(2)} ms (${pct(results.stackTracer[key], b)})`);
+                    log(`    + TaskStack:       ${results.taskStackOnly[key].toFixed(2)} ms (${pct(results.taskStackOnly[key], b)})`);
+                    log(`    + createTask:      ${results.withCreateTask[key].toFixed(2)} ms (${pct(results.withCreateTask[key], b)})`);
+                }
+
+            } catch (err) {
+                log(`\nERROR: ${err.message}\n${err.stack}`);
+            }
+
+            btn.disabled = false;
+        };
+    </script>
+</body>
+
+</html>

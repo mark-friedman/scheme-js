@@ -37,6 +37,9 @@ export class SchemeDebugRuntime {
         /** @type {DebugBackend|null} */
         this.backend = null;
 
+        /** @type {import('./devtools/devtools_debug.js').DevToolsDebugIntegration|null} */
+        this.devtoolsDebug = null;
+
         /** @type {boolean} */
         this.enabled = false;
     }
@@ -54,6 +57,16 @@ export class SchemeDebugRuntime {
         if (backend.onScriptLoaded) {
             this.onScriptLoaded = (info) => backend.onScriptLoaded(info);
         }
+    }
+
+    /**
+     * Sets the DevTools integration for async stack tagging.
+     * When set, frame enter/exit/replace hooks are forwarded to the
+     * DevTools integration for console.createTask management.
+     * @param {import('./devtools/devtools_debug.js').DevToolsDebugIntegration} integration
+     */
+    setDevToolsIntegration(integration) {
+        this.devtoolsDebug = integration;
     }
 
     // =========================================================================
@@ -390,6 +403,7 @@ export class SchemeDebugRuntime {
      */
     enterFrame(frameInfo) {
         this.stackTracer.enterFrame(frameInfo);
+        this.devtoolsDebug?.onEnterFrame(frameInfo);
     }
 
     /**
@@ -397,6 +411,7 @@ export class SchemeDebugRuntime {
      */
     exitFrame() {
         this.stackTracer.exitFrame();
+        this.devtoolsDebug?.onExitFrame();
     }
 
     /**
@@ -405,6 +420,7 @@ export class SchemeDebugRuntime {
      */
     replaceFrame(frameInfo) {
         this.stackTracer.replaceFrame(frameInfo);
+        this.devtoolsDebug?.onReplaceFrame(frameInfo);
     }
 
     // =========================================================================

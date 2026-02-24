@@ -34,7 +34,15 @@ export const unitTests = [
     { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
     { path: 'debug/debug_level_tests.js', fn: 'runDebugLevelTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
+    // DevTools Integration Unit Tests (Phase 1)
+    { path: 'debug/devtools/sourcemap_generator_tests.js', fn: 'runSourceMapGeneratorTests', needsInterpreter: false },
+    { path: 'debug/devtools/probe_generator_tests.js', fn: 'runProbeGeneratorTests', needsInterpreter: false },
+    { path: 'debug/devtools/source_registry_tests.js', fn: 'runSourceRegistryTests', needsInterpreter: false },
+    // DevTools Integration Unit Tests (Phase 2)
+    { path: 'debug/devtools/env_proxy_tests.js', fn: 'runEnvProxyTests', needsInterpreter: false, async: true },
+    { path: 'debug/devtools/devtools_debug_tests.js', fn: 'runDevToolsDebugTests', needsInterpreter: false, async: true },
 ];
+
 
 // Functional Tests (all need interpreter)
 export const functionalTests = [

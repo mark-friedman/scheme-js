@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DevTools Debugger Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #569cd6; }
+    pre { background: #2d2d2d; padding: 12px; border-radius: 4px; }
+    .success { color: #6a9955; }
+    .info { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <h1>🔧 DevTools Debugger Integration Test</h1>
+  <p class="info">Open Chrome DevTools → Sources panel to verify:</p>
+  <ol class="info">
+    <li>Look in the file tree for <code>scheme://app/...</code> or <code>scheme://inline/...</code> URLs</li>
+    <li>Click on a Scheme source file — you should see the original Scheme code</li>
+    <li>Try setting a breakpoint on a Scheme line (click the line number gutter)</li>
+    <li>Reload the page — breakpoints should fire and pause at the Scheme line</li>
+    <li>Use Step Over / Step Into to advance through Scheme code</li>
+    <li>Check the Scope pane — Scheme variables should appear in the "With Block" scope</li>
+  </ol>
+  <pre id="output">Loading...</pre>
+
+  <!-- Load the interpreter (un-bundled, direct ES modules) -->
+  <script type="module">
+    import { createInterpreter } from '../src/core/interpreter/index.js';
+    import { parse } from '../src/core/interpreter/reader.js';
+    import { analyze } from '../src/core/interpreter/analyzer.js';
+    import { list } from '../src/core/interpreter/cons.js';
+    import { intern } from '../src/core/interpreter/symbol.js';
+    import { setFileResolver, loadLibrary } from '../src/core/interpreter/library_loader.js';
+    import { SchemeSourceRegistry } from '../src/debug/devtools/source_registry.js';
+    import { DevToolsDebugIntegration } from '../src/debug/devtools/devtools_debug.js';
+
+    const output = document.getElementById('output');
+    function log(msg) {
+      output.textContent += msg + '\n';
+    }
+
+    (async () => {
+      try {
+        // Create interpreter
+        const { interpreter, env } = createInterpreter();
+        log('✅ Interpreter created');
+
+        // Setup file resolver for browser (fetch .sld/.scm files)
+        setFileResolver(async (libraryName) => {
+          const fileName = libraryName[libraryName.length - 1];
+          const namespace = libraryName[0];
+          const searchDirs = namespace === 'scheme-js'
+            ? ['../src/extras/scheme/', '../src/core/scheme/']
+            : ['../src/core/scheme/', '../src/extras/scheme/'];
+
+          if (fileName.endsWith('.sld') || fileName.endsWith('.scm')) {
+            for (const dir of searchDirs) {
+              const r = await fetch(dir + fileName);
+              if (r.ok) return r.text();
+            }
+            throw new Error(`Failed to load ${fileName}`);
+          }
+          for (const dir of searchDirs) {
+            const sld = await fetch(dir + fileName + '.sld');
+            if (sld.ok) return sld.text();
+            const scm = await fetch(dir + fileName + '.scm');
+            if (scm.ok) return scm.text();
+          }
+          throw new Error(`Library not found: ${libraryName.join('.')}`);
+        });
+
+        // Bootstrap standard libraries
+        log('⏳ Loading standard libraries...');
+        const libs = [['scheme', 'base'], ['scheme', 'write']];
+        for (const lib of libs) {
+          await loadLibrary(lib, analyze, interpreter, env);
+        }
+        for (const exp of parse('(import (scheme base) (scheme write))')) {
+          interpreter.run(analyze(exp), env);
+        }
+        log('✅ Standard libraries loaded');
+
+        // Create source registry and DevTools integration
+        const registry = new SchemeSourceRegistry();
+        globalThis.__schemeSourceRegistry = registry;
+        const devtools = new DevToolsDebugIntegration(registry);
+        devtools.enable();
+        interpreter.devtoolsDebug = devtools;
+        log('✅ Source registry + DevTools integration created');
+
+        // Register and execute a Scheme source
+        const factorialCode = `(define (factorial n)
+  (if (<= n 1)
+      1
+      (* n (factorial (- n 1)))))
+
+(factorial 10)
+`;
+
+        const factorialUrl = 'scheme://app/factorial.scm';
+        registry.register(factorialUrl, factorialCode, 'external');
+        log('✅ Source registered: ' + factorialUrl);
+        log('   Probes: ' + (registry.getProbe(factorialUrl, 1) ? 'YES' : 'NO'));
+
+        // Parse with sourceId so AST nodes carry correct filename
+        const expressions = parse(factorialCode, { filename: factorialUrl });
+        let ast;
+        if (expressions.length === 1) {
+          ast = analyze(expressions[0]);
+        } else {
+          ast = analyze(list(intern('begin'), ...expressions));
+        }
+
+        const result = interpreter.run(ast, env);
+        log('✅ factorial(10) = ' + result);
+
+        // Register a second source
+        const helloCode = `(define greeting "Hello from Scheme!")
+greeting
+`;
+        const helloUrl = 'scheme://inline/script-0.scm';
+        registry.register(helloUrl, helloCode, 'inline');
+
+        const helloExprs = parse(helloCode, { filename: helloUrl });
+        const helloAst = analyze(list(intern('begin'), ...helloExprs));
+        const helloResult = interpreter.run(helloAst, env);
+        log('✅ greeting = ' + helloResult);
+
+        log('');
+        log('Now open DevTools → Sources panel.');
+        log('Look for "scheme://app/factorial.scm" in the source tree.');
+        log('You should see the Scheme source code with line numbers.');
+
+      } catch (e) {
+        log('❌ Error: ' + e.message);
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>

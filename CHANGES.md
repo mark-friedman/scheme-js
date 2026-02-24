@@ -4363,3 +4363,104 @@ Created `tests/debug/repl_debug_session_tests.js` (38 tests) simulating the web 
 
 ## Test Results
 - 2189 passed, 0 failed, 7 skipped
+
+---
+
+## 2026-02-20: Chrome DevTools Debugger — Phases 1 & 2 (Source Registry, Probes, Trampoline Integration)
+
+Implemented the foundational infrastructure for Chrome DevTools debugging of Scheme code, allowing Scheme source to appear in DevTools' Sources pane with breakpoints and stepping.
+
+### Phase 1: Source Infrastructure
+
+| File | Change |
+|------|--------|
+| `src/debug/devtools/source_registry.js` | **NEW** — `SchemeSourceRegistry`: registers Scheme sources, maps expression IDs to source locations, stores probe functions |
+| `src/debug/devtools/probe_generator.js` | **NEW** — Generates JavaScript probe scripts from Scheme source, one probe per expression annotated with source maps |
+| `src/debug/devtools/sourcemap_generator.js` | **NEW** — Generates inline source maps mapping probe JS back to original Scheme source |
+| `src/debug/devtools/probe_runtime.js` | **NEW** — Global `__schemeProbeRuntime` object called by probe scripts for breakpoint/stepping logic |
+| `src/debug/devtools/index.js` | **NEW** — Barrel exports for DevTools module |
+| `tests/debug/devtools/probe_generator_tests.js` | **NEW** — Tests for probe generation |
+| `tests/debug/devtools/sourcemap_generator_tests.js` | **NEW** — Tests for source map generation |
+| `tests/debug/devtools/source_registry_tests.js` | **NEW** — Tests for source registry |
+
+### Phase 2: Trampoline Integration
+
+| File | Change |
+|------|--------|
+| `src/debug/devtools/devtools_debug.js` | **NEW** — `DevToolsDebugIntegration` class: bridges interpreter trampoline to DevTools via probe scripts, `maybeHit()` with deduplication |
+| `src/debug/devtools/env_proxy.js` | **NEW** — `createEnvProxy()`: JavaScript Proxy exposing Scheme environment bindings to DevTools Scope pane |
+| `tests/debug/devtools/devtools_debug_tests.js` | **NEW** — Tests for maybeHit deduplication, probe invocation, env proxy caching, end-to-end trampoline integration |
+| `tests/debug/devtools/env_proxy_tests.js` | **NEW** — Tests for environment proxy behavior |
+
+### Key Design Decisions
+- **Probe-based approach**: Each Scheme expression gets a JavaScript "probe" function with source maps pointing back to original Scheme. DevTools sees these as JS functions mapped to Scheme source.
+- **Deduplication**: `maybeHit()` skips redundant probe calls for same-line sub-expressions, but fires for re-entries (recursive calls to the same location with a different environment).
+- **Environment proxy**: Uses JavaScript `Proxy` to lazily expose Scheme bindings, with alpha-rename reverse mapping so users see original names.
+
+## Test Results
+- 2310 passed, 0 failed, 8 skipped
+
+---
+
+## 2026-02-23: Chrome DevTools Debugger — Phase 3 (Variable Inspection)
+
+Enhanced how Scheme variables are displayed in the Chrome DevTools Scope pane when execution is paused.
+
+### Two-Layer Display Approach
+
+1. **Hybrid `formatForDevTools()`**: JS primitives pass through natively; Scheme-specific types (lists, symbols, characters, closures, records) are wrapped in `SchemeDisplayValue` with the Scheme print representation.
+2. **Custom Formatters**: Registers a `window.devtoolsFormatters` entry that renders `SchemeDisplayValue` as styled, unquoted Scheme text with type-specific coloring.
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/debug/devtools/env_proxy.js` | Added `SchemeDisplayValue` class, `formatForDevTools()` with hybrid display, name filtering for alpha-renamed identifiers, record formatting |
+| `src/debug/devtools/custom_formatters.js` | **NEW** — Custom DevTools formatter with type-specific styling (numbers green, symbols teal, procedures purple, etc.) |
+| `src/debug/devtools/index.js` | Updated exports |
+| `tests/debug/devtools/env_proxy_tests.js` | Added Phase 3 tests: value formatting, name filtering, SchemeDisplayValue, custom formatters |
+
+### Key Details
+- BigInts in safe integer range display as plain numbers (no `n` suffix); larger BigInts use Scheme print format
+- Records display as `#<point x: 1 y: 2>` with type name and field values
+- Name filtering hides internal alpha-renamed identifiers (e.g., `x_42`) when original names (e.g., `x`) are available
+
+## Test Results
+- 2382 passed, 0 failed, 8 skipped
+
+---
+
+## 2026-02-23: Chrome DevTools Debugger — Phase 4 (Async Stack Tagging)
+
+Added `console.createTask` async stack tagging so Chrome DevTools' native Call Stack pane shows Scheme function names under an "Async" separator when paused at a breakpoint.
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/debug/devtools/devtools_debug.js` | Added `taskStack`, `hasCreateTask` detection, `onEnterFrame()`/`onExitFrame()`/`onReplaceFrame()` frame hooks, `fireProbe()` wrapping; updated `maybeHit()` to use `fireProbe()` |
+| `src/debug/scheme_debug_runtime.js` | Added `devtoolsDebug` property, `setDevToolsIntegration()` method; wired `enterFrame`/`exitFrame`/`replaceFrame` to call DevTools hooks |
+| `tests/debug/devtools/devtools_debug_tests.js` | Added Phase 4 tests: task stack basics, TCO replacement, fireProbe wrapping (mock createTask), no-op fallback, maybeHit integration |
+| `benchmarks/benchmark_devtools_overhead.js` | **NEW** — Node.js benchmark measuring overhead of task tracking |
+| `benchmarks/benchmark_devtools_browser.html` | **NEW** — Browser benchmark with real `console.createTask` for accurate V8 measurement |
+
+### Benchmark Results (Node.js)
+
+| Benchmark | Baseline | + StackTracer | + TaskStack | + Mock createTask |
+|-----------|----------|---------------|-------------|-------------------|
+| fib(25) | 599 ms | 665 ms (+10.9%) | 662 ms (+10.5%) | 670 ms (+11.8%) |
+| factorial(500) | 1.56 ms | 1.56 ms (−0.2%) | 1.56 ms (−0.2%) | 1.61 ms (+2.7%) |
+| sum-to(50000) | 132 ms | 4,821 ms (+3541%) | 4,893 ms (+3596%) | 4,942 ms (+3632%) |
+
+### Benchmark Results (Browser, Chrome with real `console.createTask`)
+
+| Benchmark | Baseline | + StackTracer | + TaskStack | + createTask |
+|-----------|----------|---------------|-------------|--------------|
+| fib(25) | 537 ms | 576 ms (+7.2%) | 572 ms (+6.6%) | 798 ms (+48.6%) |
+| factorial(500) | 1.40 ms | 1.30 ms (−7.1%) | 1.20 ms (−14.3%) | 1.60 ms (+14.3%) |
+| sum-to(50000) | 114 ms | 1,043 ms (+812%) | 962 ms (+741%) | 823 ms (+620%) |
+
+**Key finding**: Phase 4's taskStack push/pop adds ~0-1% on top of StackTracer. The dominant cost is the existing StackTracer (enter/exit frame per call). Real `console.createTask` adds ~48% overhead on call-heavy workloads (fib) due to V8 internal stack capture, but this is acceptable since debugging is opt-in.
+
+## Test Results
+- 2382 passed, 0 failed, 8 skipped
