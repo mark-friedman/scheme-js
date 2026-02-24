@@ -253,7 +253,8 @@ export const SYNTAX_KEYWORDS = new Set([
     'define-syntax', 'let-syntax', 'letrec-syntax',
     'syntax-rules', '...', 'else', '=>', 'import', 'export',
     'define-library', 'include', 'include-ci', 'include-library-declarations',
-    'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation'
+    'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation',
+    'define-macro'
 ]);
 
 /**
@@ -266,7 +267,7 @@ export const SPECIAL_FORMS = new Set([
     'if', 'let', 'letrec', 'lambda', 'set!', 'define', 'begin',
     'quote', 'quasiquote', 'unquote', 'unquote-splicing',
     // Macro-related
-    'define-syntax', 'let-syntax', 'letrec-syntax',
+    'define-syntax', 'let-syntax', 'letrec-syntax', 'define-macro',
     // Control flow
     'call/cc', 'call-with-current-continuation',
     // Module system
