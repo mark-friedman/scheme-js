@@ -8,9 +8,9 @@
  * source-mapped back to the original Scheme code, Chrome DevTools shows
  * Scheme source, allows setting breakpoints, and supports stepping.
  *
- * Phase 2: Basic maybeHit() with probe calling and env proxy.
- * Phase 4: Async stack tagging via console.createTask — Scheme function
- *          names appear in the native Call Stack under an "Async" separator.
+ * Provides maybeHit() with probe calling and env proxy, plus async stack
+ * tagging via console.createTask — Scheme function names appear in the
+ * native Call Stack under an "Async" separator.
  */
 
 import { createEnvProxy } from './env_proxy.js';
@@ -18,6 +18,26 @@ import { parse } from '../../core/interpreter/reader.js';
 import { analyze } from '../../core/interpreter/analyzer.js';
 import { list } from '../../core/interpreter/cons.js';
 import { intern } from '../../core/interpreter/symbol.js';
+import { SchemeError } from '../../core/interpreter/errors.js';
+
+/**
+ * A wrapper exception thrown to trigger Chrome DevTools' "Pause on exceptions".
+ * Extends SchemeError to remain compatible with the interpreter's error handling.
+ */
+export class SchemeRuntimeException extends SchemeError {
+  /**
+   * @param {Error|SchemeError|string} schemeError - The original error or message
+   * @param {Object} source - The source location where the error occurred
+   */
+  constructor(schemeError, source) {
+    const message = schemeError.message || String(schemeError);
+    const sourceLoc = source ? ` at ${source?.filename}:${source?.line}` : '';
+    super(`Scheme Error: ${message}${sourceLoc}`, [], 'raise');
+    this.name = 'SchemeRuntimeException';
+    this.schemeValue = schemeError;
+    this.schemeSource = source;
+  }
+}
 
 /**
  * Bridges the interpreter trampoline to Chrome DevTools via probe scripts.
@@ -43,7 +63,7 @@ export class DevToolsDebugIntegration {
     this.enabled = false;
 
     /**
-     * Last hit source key ("filename:line") to avoid redundant probe calls.
+     * Last hit source key ("filename:line:column") to avoid redundant probe calls.
      * Multi-step expressions that stay on the same line only fire one probe.
      * @type {string|null}
      */
@@ -148,6 +168,65 @@ export class DevToolsDebugIntegration {
   }
 
   // =========================================================================
+  // Phase 6: Exception Handling & Stepping Control
+  // =========================================================================
+
+  /**
+   * Called when the interpreter catches a Scheme exception.
+   * Pauses at the Scheme source location via the probe mechanism (debugger;),
+   * then returns so the trampoline can continue with normal exception handling.
+   *
+   * Previously this threw a SchemeRuntimeException, but that escaped the
+   * trampoline's catch block, broke Scheme exception handlers, and caused
+   * DevTools to pause in interpreter JS code instead of Scheme source.
+   *
+   * @param {*} exception - The Scheme exception value or Error
+   * @param {Object} source - The source location where it was raised
+   * @param {import('../../core/interpreter/environment.js').Environment} env - The environment
+   */
+  onException(exception, source, env) {
+    if (!this.enabled || !source) return;
+
+    // Resolve exprId to fire probe at exception location
+    const exprId = this.sourceRegistry.getExprId(source.filename, source.line, source.column);
+    if (!exprId) return;
+
+    const probe = this.sourceRegistry.getProbe(source.filename, exprId);
+    if (!probe) return;
+
+    // Use or create env proxy
+    if (env !== this.currentEnvRef) {
+      this.currentEnvProxy = createEnvProxy(env);
+      this.currentEnvRef = env;
+    }
+
+    // Set force-pause flag so the probe's hit() returns true and debugger; fires.
+    // This pauses V8 at the Scheme source location (via the source-mapped probe),
+    // not at the interpreter's throw site.
+    if (globalThis.__schemeProbeRuntime) {
+      globalThis.__schemeProbeRuntime._exceptionPause = true;
+    }
+
+    // Fire the probe — hit() will see _exceptionPause and trigger debugger;
+    // V8 pauses synchronously here, then resumes when the user continues.
+    this.fireProbe(probe, this.currentEnvProxy);
+
+    // Return without throwing — the trampoline continues with its normal
+    // exception handling (Scheme exception handlers, propagation, etc.)
+  }
+
+  /**
+   * Aborts any active stepping operation (e.g., Step Into, Step Over).
+   * Used when execution takes a non-local jump (like call/cc) that would
+   * invalidate the stepping stop conditions.
+   */
+  abortStepping() {
+    if (globalThis.__schemeProbeRuntime && typeof globalThis.__schemeProbeRuntime.abortStepping === 'function') {
+      globalThis.__schemeProbeRuntime.abortStepping();
+    }
+  }
+
+  // =========================================================================
   // Phase 4: Async Stack Tagging
   // =========================================================================
 
@@ -234,8 +313,6 @@ export class DevToolsDebugIntegration {
    *   The interpreter instance to inspect.
    */
   installSchemeDebugAPI(interpreter) {
-    const self = this;
-
     globalThis.__schemeDebug = {
       /**
        * Gets the current Scheme call stack.

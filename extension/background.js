@@ -14,6 +14,15 @@
 const tabState = new Map();
 
 /**
+ * Stores the most recent Debugger.paused params per tab.
+ * Used by evaluateWhilePaused() to call Debugger.evaluateOnCallFrame,
+ * which works reliably while paused (unlike inspectedWindow.eval /
+ * Runtime.evaluate which may fail or return stale data).
+ * @type {Map<number, Object>}
+ */
+const lastPauseParams = new Map();
+
+/**
  * Blackbox patterns for auto-hiding interpreter scripts.
  * These patterns match generated probe scripts and runtime internals.
  */
@@ -24,7 +33,11 @@ const BLACKBOX_PATTERNS = [
     '.*env_proxy\\.js$',
     '.*interpreter\\.js$',
     '.*ast\\.js$',
-    '.*values\\.js$'
+    '.*values\\.js$',
+    // Bundled distribution files (anchored to dist/ to avoid matching user files)
+    '.*/dist/scheme\\.js$',
+    '.*/dist/scheme\\.es\\.js$',
+    '.*/dist/scheme-html\\.js$'
 ];
 
 // =========================================================================
@@ -77,15 +90,86 @@ async function detachFromTab(tabId) {
 
 /**
  * Checks if a paused event is from a Scheme probe.
- * Scheme probe functions have names starting with "__scheme_E".
+ * Scans the top few call frames for a probe function name starting
+ * with "__scheme_E". We scan multiple frames (not just the top) because
+ * instrumentation wrappers like task.run() can sometimes interpose frames.
  *
  * @param {Object} params - CDP Debugger.paused parameters
  * @returns {boolean} True if this is a Scheme probe pause
  */
 function isSchemeProbe(params) {
     if (!params.callFrames || params.callFrames.length === 0) return false;
-    const topFrame = params.callFrames[0];
-    return topFrame.functionName && topFrame.functionName.startsWith('__scheme_E');
+    // Check the top few frames for a probe function
+    const framesToCheck = Math.min(params.callFrames.length, 5);
+    for (let i = 0; i < framesToCheck; i++) {
+        const frame = params.callFrames[i];
+        if (frame.functionName && frame.functionName.startsWith('__scheme_E')) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Checks if a paused event is a Scheme exception.
+ * Exception pauses won't have __scheme_E* probe frames at the top, but
+ * they will have call frames whose URLs reference scheme:// or scheme-probe://
+ * source-mapped files.
+ *
+ * @param {Object} params - CDP Debugger.paused parameters
+ * @returns {boolean} True if this is a Scheme exception pause
+ */
+function isSchemeException(params) {
+    if (params.reason !== 'exception') return false;
+    if (!params.callFrames || params.callFrames.length === 0) return false;
+    return params.callFrames.some(frame => {
+        const url = frame.url || '';
+        return url.startsWith('scheme://') || url.startsWith('scheme-probe://');
+    });
+}
+
+/**
+ * Evaluates a JS expression while the page is paused, using CDP
+ * Debugger.evaluateOnCallFrame. This is reliable while paused, unlike
+ * inspectedWindow.eval / Runtime.evaluate.
+ *
+ * Prefers the first probe call frame (__scheme_E*) since those are in the
+ * probe IIFE scope where __schemeProbeRuntime is a closure parameter.
+ * Falls back to the topmost frame if no probe frame is found (e.g.,
+ * during exception pauses).
+ *
+ * @param {number} tabId - Chrome tab ID
+ * @param {string} expression - JS expression to evaluate
+ * @returns {Promise<*>} The evaluation result value
+ */
+async function evaluateWhilePaused(tabId, expression) {
+    const pauseParams = lastPauseParams.get(tabId);
+    if (!pauseParams || !pauseParams.callFrames || pauseParams.callFrames.length === 0) {
+        throw new Error('Not paused or no call frames available');
+    }
+
+    // Prefer the probe frame (__scheme_E*) — it has the correct IIFE closure
+    // scope. Fall back to the topmost frame if no probe frame is found.
+    let callFrameId = pauseParams.callFrames[0].callFrameId;
+    for (const frame of pauseParams.callFrames) {
+        if (frame.functionName && frame.functionName.startsWith('__scheme_E')) {
+            callFrameId = frame.callFrameId;
+            break;
+        }
+    }
+
+    const result = await chrome.debugger.sendCommand({ tabId }, 'Debugger.evaluateOnCallFrame', {
+        callFrameId,
+        expression,
+        silent: true,
+        returnByValue: true
+    });
+
+    if (result.exceptionDetails) {
+        throw new Error(result.exceptionDetails.text || 'evaluation error');
+    }
+
+    return result.result?.value;
 }
 
 /**
@@ -96,8 +180,11 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
     const tabId = source.tabId;
 
     if (method === 'Debugger.paused') {
-        // Only notify sidebar for Scheme probe pauses
-        if (isSchemeProbe(params)) {
+        // Store pause params for evaluateOnCallFrame
+        lastPauseParams.set(tabId, params);
+
+        // Notify sidebar for Scheme probe pauses and Scheme exception pauses
+        if (isSchemeProbe(params) || isSchemeException(params)) {
             chrome.runtime.sendMessage({
                 type: 'debugger-paused',
                 tabId,
@@ -108,6 +195,8 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
             });
         }
     } else if (method === 'Debugger.resumed') {
+        lastPauseParams.delete(tabId);
+
         chrome.runtime.sendMessage({
             type: 'debugger-resumed',
             tabId
@@ -122,6 +211,7 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
  */
 chrome.tabs.onRemoved.addListener((tabId) => {
     tabState.delete(tabId);
+    lastPauseParams.delete(tabId);
 });
 
 /**
@@ -129,6 +219,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
  */
 chrome.debugger.onDetach.addListener((source, reason) => {
     tabState.delete(source.tabId);
+    lastPauseParams.delete(source.tabId);
     console.log(`[Scheme Stack] Detached from tab ${source.tabId}: ${reason}`);
 });
 
@@ -150,6 +241,52 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         detachFromTab(message.tabId).then(() => {
             sendResponse({ success: true });
         });
+        return true;
+    }
+
+    if (message.type === 'resume-debugger') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.resume').then(() => {
+            sendResponse({ success: true });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
+    // Evaluate an expression while paused using Debugger.evaluateOnCallFrame.
+    // This is reliable while paused, unlike inspectedWindow.eval.
+    if (message.type === 'eval-paused') {
+        evaluateWhilePaused(message.tabId, message.expression).then(result => {
+            sendResponse({ success: true, result });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
+    // Step commands: evaluate step expression while paused, then resume.
+    // Uses globalThis to avoid with(envProxy) scope interference in probe frames.
+    // Always resumes even if the eval fails, to prevent the debugger from getting stuck.
+    if (message.type === 'scheme-step-into' ||
+        message.type === 'scheme-step-over' ||
+        message.type === 'scheme-step-out') {
+        const stepMethod = message.type.replace('scheme-', '');
+        const camelCase = stepMethod.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        const expression = `globalThis.__schemeProbeRuntime.${camelCase}()`;
+
+        (async () => {
+            try {
+                await evaluateWhilePaused(message.tabId, expression);
+            } catch (e) {
+                console.warn(`[Scheme Stack] Step eval failed (will resume anyway):`, e.message);
+            }
+            try {
+                await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.resume');
+                sendResponse({ success: true });
+            } catch (e) {
+                sendResponse({ success: false, error: e.message });
+            }
+        })();
         return true;
     }
 });

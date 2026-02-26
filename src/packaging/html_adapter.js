@@ -5,6 +5,7 @@ import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { SchemeSourceRegistry } from '../debug/devtools/source_registry.js';
 import { DevToolsDebugIntegration } from '../debug/devtools/devtools_debug.js';
+import { SchemeDebugRuntime } from '../debug/scheme_debug_runtime.js';
 
 /**
  * Checks whether DevTools debugging is requested via any supported mechanism.
@@ -47,10 +48,21 @@ async function runScripts() {
     // Store on window for DevTools extension access
     globalThis.__schemeSourceRegistry = sourceRegistry;
 
+    // Create the debug runtime (stack tracer, state inspector, etc.)
+    // This must be created BEFORE any scripts run so frame enter/exit hooks fire.
+    const debugRuntime = new SchemeDebugRuntime();
+    debugRuntime.enable();
+    interpreter.setDebugRuntime(debugRuntime);
+
     const devtools = new DevToolsDebugIntegration(sourceRegistry);
     devtools.enable();
     devtools.enableTracking(); // Optional, for diagnostics
     interpreter.devtoolsDebug = devtools;
+
+    // Wire the DevTools integration into the debug runtime for async stack tagging
+    debugRuntime.setDevToolsIntegration(devtools);
+
+    devtools.installSchemeDebugAPI(interpreter); // Expose API to DevTools Extension
   }
 
   let inlineIndex = 0;
@@ -65,10 +77,12 @@ async function runScripts() {
           throw new Error(`Failed to load Scheme script: ${script.src}`);
         }
         code = await response.text();
-        sourceId = `scheme://app${new URL(script.src, location.href).pathname}`;
+        const url = new URL(script.src, location.href);
+        const filename = url.pathname.split('/').pop() || `external-${inlineIndex++}.scm`;
+        sourceId = `scheme://scheme-sources/${filename}`;
       } else {
         code = script.textContent;
-        sourceId = `scheme://inline/script-${inlineIndex++}.scm`;
+        sourceId = `scheme://inline-scripts/script-${inlineIndex++}.scm`;
       }
 
       // Parse with sourceId so AST nodes carry the correct filename

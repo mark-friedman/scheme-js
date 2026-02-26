@@ -1,7 +1,8 @@
 /**
  * @fileoverview Source map V3 generator for probe scripts.
  *
- * Generates V3 source maps that map each probe function's `void 0;` statement
+ * Generates V3 source maps that map each probe function's
+ * `with (envProxy) { if (__schemeProbeRuntime.hit(id)) { debugger; } }` body
  * back to the corresponding Scheme source line. Uses a lightweight VLQ encoder
  * with no external dependencies.
  */
@@ -57,8 +58,11 @@ export function encodeVLQ(value) {
  *   Line 1: (function(__schemeProbeRegistry, __schemeProbeRuntime) {
  *   Line 2:   const probes = {};
  *   Line 3:   (blank line)
- *   Line 4:   // Expr 1: <comment>        <- first Scheme line starts here
- *   Line 5:   probes[1] = new Function ...
+ *   Line 4:   probes[1] = function __scheme_E1(envProxy) {    <- first probe entry starts here
+ *   Line 5:     with (envProxy) { if (__schemeProbeRuntime.hit(1)) { debugger; } }
+ *   Line 6:   };
+ *
+ * Each expression produces 3 lines: declaration, body, close.
  *
  * @const {number}
  */
@@ -88,7 +92,6 @@ export function generateProbeSourceMap(schemeUrl, probeUrl, schemeContent, expre
   }
 
   // Track previous values for delta encoding
-  let prevGeneratedCol = 0;
   let prevSourceIndex = 0;
   let prevOriginalLine = 0;
   let prevOriginalCol = 0;
@@ -109,15 +112,14 @@ export function generateProbeSourceMap(schemeUrl, probeUrl, schemeContent, expre
 
     // Delta encode from previous values
     const segment =
-      encodeVLQ(generatedCol - prevGeneratedCol) +
+      encodeVLQ(generatedCol) + // Generated column is absolute for the first segment on a line
       encodeVLQ(sourceIndex - prevSourceIndex) +
       encodeVLQ(originalLine - prevOriginalLine) +
       encodeVLQ(originalCol - prevOriginalCol);
 
     mappingSegments.push(segment);
 
-    // Update previous values (generated column resets per line)
-    prevGeneratedCol = generatedCol;
+    // Update previous values tracked across the whole file
     prevSourceIndex = sourceIndex;
     prevOriginalLine = originalLine;
     prevOriginalCol = originalCol;

@@ -360,14 +360,14 @@ export function createEnvProxy(env) {
 
   return new Proxy(Object.create(null), {
     has(target, prop) {
+      if (prop === Symbol.unscopables) return false;
       if (typeof prop !== 'string') return false;
-      if (prop === globalThis.Symbol.unscopables) return false;
       // Check if this binding exists via original name or direct name
       return reverseNameMap.has(prop) || env.findEnv(prop) !== null;
     },
 
     get(target, prop) {
-      if (prop === globalThis.Symbol.unscopables) return undefined;
+      if (prop === Symbol.unscopables) return undefined;
       if (typeof prop !== 'string') return undefined;
 
       // Try original name first (reverse lookup from nameMap)

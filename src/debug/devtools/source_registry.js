@@ -54,20 +54,23 @@ export class SchemeSourceRegistry {
    * @param {Array<*>} expressions - Parsed S-expressions with source info
    */
   register(url, content, origin, expressions) {
-    const lines = content.length > 0
-      ? content.split('\n').filter((_, i, arr) => i < arr.length - 1 || arr[arr.length - 1] !== '').length
-      : 0;
-
     const splitLines = content.length > 0 ? content.split('\n') : [];
     if (splitLines.length > 0 && splitLines[splitLines.length - 1] === '') {
       splitLines.pop();
     }
-    const lineCount = splitLines.length;
 
-    this.sources.set(url, { content, lines: lineCount, origin });
+    this.sources.set(url, { content, lines: splitLines.length, origin });
 
     // Extract expression spans and assign exprIds
     const spans = this._extractSourceSpans(expressions, url, splitLines);
+
+    // Clear any stale location mappings for this URL before populating new ones
+    const prefix = `${url}:`;
+    for (const key of this.locationToExprId.keys()) {
+      if (key.startsWith(prefix)) {
+        this.locationToExprId.delete(key);
+      }
+    }
 
     // Populate translation map
     for (const span of spans) {
@@ -164,9 +167,9 @@ export class SchemeSourceRegistry {
    * Fallback logic for nearest enclosing span will be added here in the future
    * if exact column matches aren't found.
    *
-   * @param {string} filename 
-   * @param {number} line 
-   * @param {number} column 
+   * @param {string} filename
+   * @param {number} line
+   * @param {number} column
    * @returns {number|null} The exprId or null
    */
   getExprId(filename, line, column) {
@@ -215,15 +218,19 @@ export class SchemeSourceRegistry {
     }
 
     // Evaluate the probe script
-    if (typeof document !== 'undefined' && document.head) {
-      // Browser: inject as <script> tag for proper source map support
-      const script = document.createElement('script');
-      script.textContent = probeScript;
-      document.head.appendChild(script);
-      document.head.removeChild(script);
-    } else {
-      // Node.js: use indirect eval
-      (0, eval)(probeScript);
+    try {
+      if (typeof document !== 'undefined' && document.head) {
+        // Browser: inject as <script> tag for proper source map support
+        const script = document.createElement('script');
+        script.textContent = probeScript;
+        document.head.appendChild(script);
+        document.head.removeChild(script);
+      } else {
+        // Node.js: use indirect eval
+        (0, eval)(probeScript);
+      }
+    } catch (e) {
+      console.warn(`Failed to install probe script for ${url}:`, e);
     }
 
     // Capture the probes that were registered by the script

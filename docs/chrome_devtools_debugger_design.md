@@ -1791,9 +1791,9 @@ Users should blackbox the following scripts:
 | `frame_registry.js` | Frame factories |
 | `devtools_debug.js` | DevTools integration (maybeHit) |
 
-### 12.3 Auto-Blackboxing (Optional Extension)
+### 12.3 Auto-Blackboxing (Automated via Extension)
 
-A lightweight Chrome extension can auto-configure blackbox patterns:
+The Chrome extension built in Phase 5 automatically configures blackbox patterns via the `Debugger.setBlackboxPatterns` Chrome Debugger Protocol command. This ensures the "Gold Standard" Developer Experience without requiring any manual configuration from the user.
 
 ```javascript
 // background.js for chrome extension
@@ -1819,7 +1819,7 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
 
 ### 12.4 Manual Blackboxing Instructions
 
-For users without the extension, we provide documentation:
+For users not using the companion Chrome extension, manual configuration is required:
 
 > 1. Open Chrome DevTools → Settings (gear icon) → Ignore List
 > 2. Enable "Add content scripts to ignore list"

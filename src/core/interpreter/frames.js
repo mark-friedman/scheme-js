@@ -325,7 +325,7 @@ export class AppFrame extends Executable {
                 }
 
                 // Instrumentation: enter frame and push exit tracker
-                if (interpreter.debugRuntime) {
+                if (interpreter.debugRuntime && interpreter.debugRuntime.enabled) {
                     interpreter.debugRuntime.enterFrame({
                         name: func.name || 'anonymous',
                         originalName: func.originalName || func.name || 'anonymous',
@@ -344,7 +344,7 @@ export class AppFrame extends Executable {
                 }
 
                 // Instrumentation: enter frame and push exit tracker
-                if (interpreter.debugRuntime) {
+                if (interpreter.debugRuntime && interpreter.debugRuntime.enabled) {
                     interpreter.debugRuntime.enterFrame({
                         name: func.name || 'anonymous',
                         originalName: func.originalName || func.name || 'anonymous',
@@ -462,6 +462,10 @@ export class AppFrame extends Executable {
             registers[FSTACK] = [...filteredStack];
             registers[ANS] = value;
 
+            if (interpreter.devtoolsDebug?.enabled) {
+                interpreter.devtoolsDebug.abortStepping();
+            }
+
             if (interpreter.depth > 1) {
                 throw new ContinuationUnwind(registers, true);
             }
@@ -481,6 +485,10 @@ export class AppFrame extends Executable {
         }
 
         registers[CTL] = firstAction;
+
+        if (interpreter.devtoolsDebug?.enabled) {
+            interpreter.devtoolsDebug.abortStepping();
+        }
 
         // CRITICAL: Unwind JS stack (Tail Call Mode)
         if (interpreter.depth > 1) {

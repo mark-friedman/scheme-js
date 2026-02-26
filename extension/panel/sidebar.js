@@ -2,8 +2,11 @@
  * @fileoverview Sidebar panel logic for the Scheme Stack extension.
  *
  * Receives debugger-paused / debugger-resumed messages from the background
- * script and uses __schemeDebug page-side API (via inspectedWindow.eval)
- * to render the Scheme call stack, variables, and TCO info.
+ * script and uses __schemeDebug page-side API to render the Scheme call
+ * stack, variables, and TCO info. While paused, all page evaluation goes
+ * through the background script's CDP Debugger.evaluateOnCallFrame (via
+ * 'eval-paused' messages), since inspectedWindow.eval uses Runtime.evaluate
+ * which is unreliable while V8 is paused at a debugger statement.
  */
 
 // =========================================================================
@@ -29,12 +32,13 @@ let currentStack = null;
 let selectedFrameIndex = -1;
 
 // =========================================================================
-// Page Evaluation Helper
+// Page Evaluation Helpers
 // =========================================================================
 
 /**
  * Evaluates a JS expression in the inspected page context.
  * Wraps chrome.devtools.inspectedWindow.eval with a Promise.
+ * Use only when the page is NOT paused at a debugger statement.
  *
  * @param {string} expression - JavaScript expression to evaluate
  * @returns {Promise<*>} The eval result
@@ -48,6 +52,31 @@ function evalInPage(expression) {
                 resolve(result);
             }
         });
+    });
+}
+
+/**
+ * Evaluates a JS expression while the page is paused, via the background
+ * script's CDP Debugger.evaluateOnCallFrame. This is reliable while paused,
+ * unlike inspectedWindow.eval which uses Runtime.evaluate.
+ *
+ * @param {string} expression - JavaScript expression to evaluate
+ * @returns {Promise<*>} The eval result
+ */
+function evalWhilePaused(expression) {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+            { type: 'eval-paused', tabId, expression },
+            (response) => {
+                if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                } else if (response && response.success) {
+                    resolve(response.result);
+                } else {
+                    reject(new Error(response?.error || 'eval-paused failed'));
+                }
+            }
+        );
     });
 }
 
@@ -194,7 +223,7 @@ async function selectFrame(frameIndex) {
 
     // Fetch and render variables
     try {
-        const locals = await evalInPage(
+        const locals = await evalWhilePaused(
             `JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`
         );
         renderVariables(JSON.parse(locals));
@@ -204,7 +233,7 @@ async function selectFrame(frameIndex) {
 
     // Navigate editor to source location
     try {
-        const source = await evalInPage(
+        const source = await evalWhilePaused(
             `JSON.stringify(__schemeDebug.getSource(${frameIndex}))`
         );
         const loc = JSON.parse(source);
@@ -235,14 +264,14 @@ async function onPaused() {
 
     try {
         // Check if __schemeDebug is available
-        const hasApi = await evalInPage('typeof __schemeDebug !== "undefined"');
+        const hasApi = await evalWhilePaused('typeof __schemeDebug !== "undefined"');
         if (!hasApi) {
             framesEl.innerHTML = '<div class="empty-message">scheme-js not detected</div>';
             return;
         }
 
         // Fetch the Scheme stack
-        const stackJson = await evalInPage('JSON.stringify(__schemeDebug.getStack())');
+        const stackJson = await evalWhilePaused('JSON.stringify(__schemeDebug.getStack())');
         currentStack = JSON.parse(stackJson);
 
         if (currentStack.length > 0) {
@@ -251,7 +280,7 @@ async function onPaused() {
             renderFrameList(currentStack);
 
             // Fetch variables for top frame
-            const localsJson = await evalInPage(
+            const localsJson = await evalWhilePaused(
                 `JSON.stringify(__schemeDebug.getLocals(${selectedFrameIndex}))`
             );
             renderVariables(JSON.parse(localsJson));
@@ -281,29 +310,33 @@ function onResumed() {
 // Step Button Handlers
 // =========================================================================
 
-btnStepInto.addEventListener('click', async () => {
-    try {
-        await evalInPage('__schemeDebug.stepInto()');
-    } catch (e) { /* ignore */ }
+btnStepInto.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'scheme-step-into', tabId });
 });
 
-btnStepOver.addEventListener('click', async () => {
-    try {
-        await evalInPage('__schemeDebug.stepOver()');
-    } catch (e) { /* ignore */ }
+btnStepOver.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'scheme-step-over', tabId });
 });
 
-btnStepOut.addEventListener('click', async () => {
-    try {
-        await evalInPage('__schemeDebug.stepOut()');
-    } catch (e) { /* ignore */ }
+btnStepOut.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'scheme-step-out', tabId });
 });
+
+// =========================================================================
+// Initialization
+// =========================================================================
+
+// Resolve tabId first so message listener can filter by it
+const tabId = chrome.devtools.inspectedWindow.tabId;
 
 // =========================================================================
 // Message Listener
 // =========================================================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Only handle messages for our inspected tab to prevent cross-tab pollution
+    if (message.tabId !== undefined && message.tabId !== tabId) return;
+
     if (message.type === 'debugger-paused') {
         onPaused();
     } else if (message.type === 'debugger-resumed') {
@@ -311,12 +344,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-// =========================================================================
-// Initialization
-// =========================================================================
-
 // Request the background script to attach the debugger
-const tabId = chrome.devtools.inspectedWindow.tabId;
 chrome.runtime.sendMessage({
     type: 'attach-debugger',
     tabId

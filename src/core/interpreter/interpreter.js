@@ -308,6 +308,9 @@ export class Interpreter {
           // Check for Continuation Unwind
           // We check the constructor name to avoid circular dependency imports if possible.
           if (e.constructor.name === 'ContinuationUnwind') {
+            if (this.devtoolsDebug?.enabled) {
+              this.devtoolsDebug.abortStepping();
+            }
             // If we are nested (depth > 1), strictly propagate up to the top level
             if (this.depth > 1) {
               throw e;
@@ -346,6 +349,11 @@ export class Interpreter {
           // Check for SentinelResult (Control Flow for JS Interop)
           if (e instanceof SentinelResult) {
             return unpackForJs(e.value, this, options);
+          }
+
+          if (this.devtoolsDebug?.enabled) {
+            const exceptionSource = registers[CTL]?.source || null;
+            this.devtoolsDebug.onException(e, exceptionSource, registers[ENV]);
           }
 
           // Check if there's an ExceptionHandlerFrame on the stack
@@ -561,6 +569,9 @@ export class Interpreter {
         } catch (e) {
           // Check for ContinuationUnwind
           if (e.constructor.name === 'ContinuationUnwind') {
+            if (devtoolsDebugAsync?.enabled) {
+              devtoolsDebugAsync.abortStepping();
+            }
             if (this.depth > 1) throw e;
 
             const newRegisters = e.registers;
@@ -584,6 +595,11 @@ export class Interpreter {
           // Check for SentinelResult
           if (e instanceof SentinelResult) {
             return unpackForJs(e.value, this, options);
+          }
+
+          if (devtoolsDebugAsync?.enabled) {
+            const exceptionSource = registers[CTL]?.source || dr.stackTracer.getCurrentFrame()?.source || null;
+            devtoolsDebugAsync.onException(e, exceptionSource, registers[ENV]);
           }
 
           // Debug exception handling: check if should break on this exception

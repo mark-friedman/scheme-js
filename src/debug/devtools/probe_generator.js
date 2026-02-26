@@ -54,10 +54,12 @@ export function generateProbeScript(schemeUrl, content, expressions, lineOffset 
 
   // One probe function per Scheme source expression
   for (const expr of expressions) {
-    const text = (expr.text || '').replace(/\n/g, ' ').substring(0, 80);
-    // We use a multi-line function so DevTools maps breakpoints to its execution, not creation
-    parts.push(`  probes[${expr.exprId}] = function(envProxy) {`);
-    parts.push(`    with (envProxy) { __schemeProbeRuntime.hit(${expr.exprId}); }`);
+    // We use a multi-line function so DevTools maps breakpoints to its execution, not creation.
+    // The function name __scheme_E(id) is required for background.js to identify it as a probe pause.
+    // The `debugger;` fires HERE (inside the probe), not inside hit(), so that V8 pauses in
+    // the source-mapped probe function and DevTools shows Scheme code, not probe_runtime.js.
+    parts.push(`  probes[${expr.exprId}] = function __scheme_E${expr.exprId}(envProxy) {`);
+    parts.push(`    with (envProxy) { if (__schemeProbeRuntime.hit(${expr.exprId})) { debugger; } }`);
     parts.push(`  };`);
   }
 
