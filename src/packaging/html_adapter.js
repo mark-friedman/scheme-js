@@ -6,6 +6,7 @@ import { intern } from '../core/interpreter/symbol.js';
 import { SchemeSourceRegistry } from '../debug/devtools/source_registry.js';
 import { DevToolsDebugIntegration } from '../debug/devtools/devtools_debug.js';
 import { SchemeDebugRuntime } from '../debug/scheme_debug_runtime.js';
+import { setFileResolver, getFileResolver } from '../core/interpreter/library_loader.js';
 
 /**
  * Checks whether DevTools debugging is requested via any supported mechanism.
@@ -25,6 +26,25 @@ function isDevToolsDebugRequested() {
   if (typeof document !== 'undefined') {
     const scripts = document.querySelectorAll('script[type="text/scheme"][debug]');
     if (scripts.length > 0) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Checks whether library source debugging is requested.
+ * Library debugging generates probes for .sld/.scm files loaded via (import),
+ * making them visible and debuggable in the DevTools Sources panel.
+ * Gated separately since it can be noisy for standard libraries.
+ *
+ * @returns {boolean} True if library debugging should be enabled
+ */
+function isLibraryDebugRequested() {
+  if (globalThis.__SCHEME_JS_DEBUG_LIBRARIES) return true;
+
+  if (typeof location !== 'undefined') {
+    const params = new URLSearchParams(location.search);
+    if (params.get('scheme-debug-libraries') === 'true') return true;
   }
 
   return false;
@@ -63,6 +83,28 @@ async function runScripts() {
     debugRuntime.setDevToolsIntegration(devtools);
 
     devtools.installSchemeDebugAPI(interpreter); // Expose API to DevTools Extension
+
+    // When library debugging is enabled, wrap the file resolver to register
+    // library sources as they are loaded, making them debuggable in DevTools.
+    if (isLibraryDebugRequested()) {
+      const originalResolver = getFileResolver();
+      if (originalResolver) {
+        setFileResolver((libraryName) => {
+          const source = originalResolver(libraryName);
+          // Handle both sync and async resolvers
+          if (source instanceof Promise) {
+            return source.then(code => {
+              const url = devtools.libraryNameToUrl(libraryName);
+              devtools.registerLibrarySource(url, code);
+              return code;
+            });
+          }
+          const url = devtools.libraryNameToUrl(libraryName);
+          devtools.registerLibrarySource(url, source);
+          return source;
+        });
+      }
+    }
   }
 
   let inlineIndex = 0;

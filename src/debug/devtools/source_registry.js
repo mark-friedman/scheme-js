@@ -43,6 +43,21 @@ export class SchemeSourceRegistry {
      * @type {number}
      */
     this._nextExprId = 1;
+
+    /**
+     * Ordered list of REPL source URLs for LRU pruning.
+     * Oldest entries are at the front.
+     * @type {string[]}
+     */
+    this._replSourceQueue = [];
+
+    /**
+     * Maximum number of REPL sources to retain.
+     * When exceeded, the oldest entries are pruned.
+     * Set to a reasonable default; can be overridden for testing.
+     * @type {number}
+     */
+    this.replSourceLimit = 50;
   }
 
   /**
@@ -83,6 +98,35 @@ export class SchemeSourceRegistry {
 
     // Install the probe script and capture the registered probes
     this._installProbeScript(url, probeScript);
+
+    // Track REPL sources for LRU pruning
+    if (origin === 'repl') {
+      this._replSourceQueue.push(url);
+      this._pruneReplSources();
+    }
+  }
+
+  /**
+   * Prunes the oldest REPL sources when the queue exceeds the limit.
+   * Removes source metadata, probes, and location mappings for pruned entries.
+   * Non-REPL sources are never affected.
+   *
+   * @private
+   */
+  _pruneReplSources() {
+    while (this._replSourceQueue.length > this.replSourceLimit) {
+      const oldUrl = this._replSourceQueue.shift();
+      this.sources.delete(oldUrl);
+      this.probes.delete(oldUrl);
+
+      // Remove location mappings for this URL
+      const prefix = `${oldUrl}:`;
+      for (const key of this.locationToExprId.keys()) {
+        if (key.startsWith(prefix)) {
+          this.locationToExprId.delete(key);
+        }
+      }
+    }
   }
 
   /**

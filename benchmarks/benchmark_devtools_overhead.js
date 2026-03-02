@@ -203,25 +203,121 @@ async function main() {
     // Clean up mock
     delete console.createTask;
 
+    // --- Benchmark 5: Full probe calling (DevTools enabled with source registration + probes) ---
+    console.log('\n--- With Full Probe Calling (sources registered, probes fire) ---');
+    const withProbes = {};
+
+    // Register the test code as a debuggable source so probes actually fire
+    const testCode = `
+    (define (fib n)
+      (if (<= n 1) n
+        (+ (fib (- n 1)) (fib (- n 2)))))
+
+    (define (factorial n)
+      (if (<= n 1) 1
+        (* n (factorial (- n 1)))))
+
+    (define (sum-to n)
+      (define (loop i acc)
+        (if (> i n) acc
+          (loop (+ i 1) (+ acc i))))
+      (loop 1 0))
+
+    (define (bench-fib) (fib 25) (if #f #f))
+    (define (bench-fact) (factorial 500) (if #f #f))
+    (define (bench-sum) (sum-to 50000) (if #f #f))
+    `;
+    const testUrl = 'scheme://bench/test.scm';
+    const testExprs = parse(testCode, { filename: testUrl });
+    registry.register(testUrl, testCode, 'external', testExprs);
+    devtoolsDebug.enable();
+    devtoolsDebug.hasCreateTask = false;
+    interpreter.devtoolsDebug = devtoolsDebug;
+
+    // Re-define procedures with the registered source URL so probes fire
+    evalScheme(interpreter, env, testCode);
+
+    const p1 = benchmark(() => evalScheme(interpreter, env, FIB), RUNS);
+    withProbes.fib25 = p1.median;
+    console.log(`  fib(25):       ${p1.median.toFixed(2)} ms`);
+
+    const p2 = benchmark(() => evalScheme(interpreter, env, FACT), RUNS);
+    withProbes.fact500 = p2.median;
+    console.log(`  factorial(500): ${p2.median.toFixed(2)} ms`);
+
+    const p3 = benchmark(() => evalScheme(interpreter, env, SUM), RUNS);
+    withProbes.sum50k = p3.median;
+    console.log(`  sum-to(50000): ${p3.median.toFixed(2)} ms`);
+
+    // Disable probes for next section
+    interpreter.devtoolsDebug = null;
+
+    // --- Benchmark 6: Probe generation speed ---
+    console.log('\n--- Probe Generation Speed ---');
+
+    // Generate a large Scheme file (~1000 lines)
+    let largeCode = '';
+    for (let i = 0; i < 200; i++) {
+        largeCode += `(define (func-${i} x)\n`;
+        largeCode += `  (if (<= x 0) x\n`;
+        largeCode += `    (+ (func-${i} (- x 1))\n`;
+        largeCode += `       (* x ${i})\n`;
+        largeCode += `       (- x ${i + 1}))))\n\n`;
+    }
+    console.log(`  Generated source: ${largeCode.split('\n').length} lines, ${largeCode.length} bytes`);
+
+    const genRegistry = new SchemeSourceRegistry();
+    const genUrl = 'scheme://bench/large.scm';
+    const genExprs = parse(largeCode, { filename: genUrl });
+
+    const gen = benchmark(() => {
+        genRegistry.register(genUrl, largeCode, 'external', genExprs);
+    }, RUNS);
+    console.log(`  Probe generation: ${gen.median.toFixed(2)} ms (target: <100 ms)`);
+
+    // --- Benchmark 7: maybeHit throughput (no line change) ---
+    console.log('\n--- maybeHit() Throughput (no line change) ---');
+
+    const hitDevtools = new DevToolsDebugIntegration(new SchemeSourceRegistry());
+    hitDevtools.enable();
+    const hitSource = { filename: 'scheme://bench/hit.scm', line: 1, column: 1 };
+    const hitEnv = {};
+
+    // Pre-seed the dedup cache so we measure the fast-path (same key + same env = skip)
+    hitDevtools.lastHitKey = `${hitSource.filename}:${hitSource.line}:${hitSource.column}`;
+    hitDevtools.lastHitEnv = hitEnv;
+
+    const iterations = 2_000_000;
+    const hitStart = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        hitDevtools.maybeHit(hitSource, hitEnv);
+    }
+    const hitElapsed = performance.now() - hitStart;
+    const hitsPerSec = (iterations / (hitElapsed / 1000)).toFixed(0);
+    console.log(`  ${iterations.toLocaleString()} calls in ${hitElapsed.toFixed(2)} ms`);
+    console.log(`  Throughput: ${Number(hitsPerSec).toLocaleString()}/sec (target: >1M/sec)`);
+
     // --- Summary ---
     console.log('\n' + '='.repeat(60));
     console.log('Summary: Overhead vs Baseline');
     console.log('='.repeat(60));
 
-    const reportOverhead = (name, base, debug, devtools, mock) => {
+    const reportOverhead = (name, base, debug, devtools, mock, probes) => {
         const debugPct = ((debug / base - 1) * 100).toFixed(1);
         const devtoolsPct = ((devtools / base - 1) * 100).toFixed(1);
         const mockPct = ((mock / base - 1) * 100).toFixed(1);
+        const probesPct = ((probes / base - 1) * 100).toFixed(1);
         console.log(`  ${name}:`);
         console.log(`    Baseline:            ${base.toFixed(2)} ms`);
         console.log(`    + StackTracer:       ${debug.toFixed(2)} ms (${debugPct}%)`);
         console.log(`    + TaskStack (no CT): ${devtools.toFixed(2)} ms (${devtoolsPct}%)`);
         console.log(`    + Mock createTask:   ${mock.toFixed(2)} ms (${mockPct}%)`);
+        console.log(`    + Full Probes:       ${probes.toFixed(2)} ms (${probesPct}%)`);
     };
 
-    reportOverhead('fib(25)', baseline.fib25, debugOnly.fib25, withDevtools.fib25, withMock.fib25);
-    reportOverhead('factorial(500)', baseline.fact500, debugOnly.fact500, withDevtools.fact500, withMock.fact500);
-    reportOverhead('sum-to(50000)', baseline.sum50k, debugOnly.sum50k, withDevtools.sum50k, withMock.sum50k);
+    reportOverhead('fib(25)', baseline.fib25, debugOnly.fib25, withDevtools.fib25, withMock.fib25, withProbes.fib25);
+    reportOverhead('factorial(500)', baseline.fact500, debugOnly.fact500, withDevtools.fact500, withMock.fact500, withProbes.fact500);
+    reportOverhead('sum-to(50000)', baseline.sum50k, debugOnly.sum50k, withDevtools.sum50k, withMock.sum50k, withProbes.sum50k);
 
     console.log('\nNote: For real console.createTask overhead, use benchmark_devtools_browser.html in Chrome.');
 }

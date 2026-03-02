@@ -1,6 +1,6 @@
 /**
  * R7RS Library Loader
- * 
+ *
  * Handles loading libraries from files and orchestrating the import process.
  * Re-exports registry and parser functionality for backwards compatibility.
  */
@@ -35,6 +35,7 @@ export {
     evaluateFeatureRequirement,
     // Library registry
     setFileResolver,
+    getFileResolver,
     libraryNameToKey,
     isLibraryLoaded,
     getLibraryExports,
@@ -52,7 +53,7 @@ export { parseDefineLibrary, parseImportSet } from './library_parser.js';
 
 /**
  * Loads a library by name.
- * 
+ *
  * @param {string[]} libraryName - Library name parts
  * @param {Function} analyze - The analyze function
  * @param {Object} interpreter - The interpreter instance
@@ -89,7 +90,7 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
 
 /**
  * Loads a library by name synchronously (Node.js only).
- * 
+ *
  * @param {string[]} libraryName - Library name parts
  * @param {Function} analyze - The analyze function
  * @param {Object} interpreter - The interpreter instance
@@ -134,7 +135,7 @@ export function loadLibrarySync(libraryName, analyze, interpreter, baseEnv) {
 
 /**
  * Core library evaluation logic shared between async and sync versions.
- * 
+ *
  * @param {Object} libDef - The parsed library definition
  * @param {Function} analyze - The analyze function
  * @param {Object} interpreter - The interpreter instance
@@ -268,7 +269,7 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
 
 /**
  * Evaluates a parsed library definition and registers it (async version).
- * 
+ *
  * @param {Object} libDef - The parsed library definition
  * @param {Function} analyze - The analyze function
  * @param {Object} interpreter - The interpreter instance
@@ -361,7 +362,7 @@ export async function evaluateLibraryDefinition(libDef, analyze, interpreter, ba
 
 /**
  * Evaluates a parsed library definition synchronously.
- * 
+ *
  * @param {Object} libDef - The parsed library definition
  * @param {Function} analyze - The analyze function
  * @param {Object} interpreter - The interpreter instance
@@ -389,7 +390,7 @@ export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, base
 
 /**
  * Applies import filters to add bindings to an environment.
- * 
+ *
  * @param {Environment} env - Target environment
  * @param {Map} exports - Source library exports
  * @param {Object} importSpec - Import specification
@@ -436,7 +437,7 @@ export function applyImports(env, exports, importSpec) {
 
 /**
  * Creates (scheme primitives) exports from the global environment.
- * 
+ *
  * @param {Environment} globalEnv - The global environment with primitives
  * @returns {Map<string, *>} The exports map
  */

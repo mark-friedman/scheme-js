@@ -16,6 +16,11 @@
             color: #569cd6;
         }
 
+        h2 {
+            color: #4ec9b0;
+            margin-top: 1.5em;
+        }
+
         pre {
             background: #2d2d2d;
             padding: 12px;
@@ -29,42 +34,285 @@
         .info {
             color: #dcdcaa;
         }
+
+        .scenario {
+            border-left: 3px solid #569cd6;
+            padding-left: 12px;
+            margin: 8px 0;
+        }
+
+        .scenario input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        details {
+            margin: 4px 0;
+        }
+
+        summary {
+            cursor: pointer;
+            color: #ce9178;
+        }
     </style>
 
     <!-- Load the main bundle and run inline scripts automatically -->
-    <!-- Note: We must serve this over a local server like `npx http-server` for fetch to work for external script -->
+    <!-- Serve via: npx http-server from project root -->
     <script type="module" src="../../dist/scheme.js"></script>
     <script type="module" src="../../dist/scheme-html.js"></script>
 </head>
 
 <body>
-    <h1>🔍 Manual DevTools Debugging Test</h1>
-    <p class="info">Open Chrome DevTools → Sources panel to verify:</p>
-    <ol class="info">
-        <li>Ensure <code>scheme-debug=true</code> is in the URL or a script tag has the <code>debug</code> attribute.
-        </li>
-        <li>Look in the file tree for <code>scheme://inline/script-0.scm</code> and
-            <code>scheme://app/.../manual_script.scm</code>.</li>
-        <li>Set a breakpoint and refresh — execution should pause, including on recursive calls. ✅</li>
-    </ol>
-    <p class="info">The "Scheme Stack" sidebar (extension) shows call stack and variables when paused.
-        Step Into / Over / Out buttons use interpreter-managed stepping.</p>
+    <h1>🔍 DevTools Debugger — Manual Verification</h1>
+    <p class="info">
+        Open Chrome DevTools → Sources panel. Ensure <code>?scheme-debug=true</code> is in the URL
+        or a <code>&lt;script&gt;</code> tag below has the <code>debug</code> attribute.
+    </p>
 
+    <h2>Test Sources</h2>
     <pre id="output">Execution results will appear in the DevTools console.</pre>
 
-    <!-- Inline Script -->
-    <script type="text/scheme" debug>
-    (display "--- Running Inline Script ---\n")
-    (define (greet name)
-      (string-append "Hello, " name " from inline code!"))
+    <!-- ============================================================ -->
+    <!-- Test Scripts                                                  -->
+    <!-- ============================================================ -->
 
+    <!-- Inline Script (scenarios 9, 1, 2, 3, 4, 5, 8) -->
+    <script type="text/scheme" debug>
+    (display "--- Inline Script Loaded ---\n")
+
+    ;; Simple function for breakpoint / stepping tests
+    (define (greet name)
+      (string-append "Hello, " name "!"))
+
+    ;; Recursive function for Step Into / Step Out / TCO tests
+    (define (factorial n)
+      (if (<= n 1) 1
+          (* n (factorial (- n 1)))))
+
+    ;; Tail-recursive function for TCO test (scenario 12)
+    (define (sum-tail n acc)
+      (if (<= n 0) acc
+          (sum-tail (- n 1) (+ acc n))))
+
+    ;; Nested calls for call stack / sub-expression tests
+    (define (compute x)
+      (+ (* x x) (factorial x) (sum-tail x 0)))
+
+    ;; Execute
     (display (greet "Developer"))
+    (display "\n")
+    (display (string-append "factorial(5) = " (number->string (factorial 5))))
+    (display "\n")
+    (display (string-append "sum-tail(100) = " (number->string (sum-tail 100 0))))
+    (display "\n")
+    (display (string-append "compute(4) = " (number->string (compute 4))))
     (display "\n")
   </script>
 
-    <!-- External Script -->
-    <!-- The path is relative to the directory from where the HTML is served. Let's assume you serve from project root. -->
+    <!-- External Script (scenario 10, 13) -->
     <script type="text/scheme" src="manual_script.scm" debug></script>
+
+    <!-- ============================================================ -->
+    <!-- Verification Checklist                                        -->
+    <!-- ============================================================ -->
+
+    <h2>Verification Checklist</h2>
+    <p class="info">Work through each scenario. Check the box when verified.</p>
+
+    <h2>Core Debugging</h2>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>1. Basic Breakpoint</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Set a breakpoint on the <code>(if (&lt;= n 1) ...)</code> line in factorial.
+                Reload → verify execution pauses at that line.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>2. Step Into (Scheme→Scheme)</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause at <code>(compute 4)</code>. Step Into → should enter the body of <code>compute</code>.
+                Step Into again → should enter <code>(* x x)</code> or <code>(factorial x)</code>.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>3. Step Over Expression</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause inside <code>compute</code>. Step Over <code>(factorial x)</code> →
+                it should evaluate without entering factorial's body, stopping at <code>(sum-tail x 0)</code>.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>4. Sub-Expression Stepping</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause at <code>(* n (factorial (- n 1)))</code>. Step Into repeatedly →
+                should progress through sub-expressions: <code>(- n 1)</code>, <code>(factorial ...)</code>, etc.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>5. Step Out</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause inside <code>factorial</code>. Click Step Out → should resume and pause
+                at the caller's next expression (e.g., back in <code>compute</code>).</p>
+        </details>
+    </div>
+
+    <h2>Source Types</h2>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>9. Inline Script</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Look in Sources for <code>scheme://inline-scripts/script-0.scm</code>.
+                Should show the inline Scheme code with correct line numbers.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>10. External File</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Look in Sources for <code>scheme://scheme-sources/manual_script.scm</code>.
+                Should show the external Scheme file content.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>13. Multiple Files</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Set breakpoints in both inline and external scripts.
+                Verify both fire correctly on reload.</p>
+        </details>
+    </div>
+
+    <h2>Variable Inspection</h2>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>8. Variables in Scope Pane</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause inside <code>factorial</code> with <code>n=5</code>.
+                Check the Scope pane → should show <code>n: 5</code> under "With Block".</p>
+        </details>
+    </div>
+
+    <h2>Error Handling</h2>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>11. Exception</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Add <code>(error "test error")</code> to a script. Enable "Pause on caught exceptions" in DevTools.
+                Verify DevTools pauses at the Scheme source location, not internal JS code.</p>
+        </details>
+    </div>
+
+    <h2>Tail Call Optimization</h2>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>12. TCO</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Set a breakpoint inside <code>sum-tail</code>. Let it hit a few times →
+                verify no stack overflow occurs. The extension sidebar should show TCO badges.</p>
+        </details>
+    </div>
+
+    <h2>Async Stack / Extension (Requires Extension)</h2>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>15. Async Stack (Alt D)</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause inside a nested call (e.g., <code>factorial</code> called from <code>compute</code>).
+                Check the native Call Stack → should show "Async" separator with
+                <code>scheme: factorial</code>, <code>scheme: compute</code> labels.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>16. Sidebar Frame List (Alt E)</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause in nested call → the Scheme Stack sidebar should show the full
+                call stack with function names and source locations.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>17. Sidebar Frame Click (Alt E)</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Click a non-top frame in the sidebar → the editor should navigate
+                to that frame's source file and line.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>18. Sidebar Variables (Alt E)</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Click a non-top frame → the Variables section should show that
+                frame's local bindings, not the top frame's.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>19. TCO Badge (Alt E)</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Pause in <code>sum-tail</code> → sidebar should show a
+                <code>TCO×N</code> badge on the tail-called frame.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>20. Sidebar Step Buttons (Alt E)</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>Use the Step Into/Over/Out buttons in the sidebar → verify
+                correct Scheme-level stepping (not JS-level).</p>
+        </details>
+    </div>
+
+    <h2>Console API</h2>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>21. Console API: getStack()</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>While paused, type <code>__schemeDebug.getStack()</code> in Console →
+                should return array of frame objects with name, source, tcoCount.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>22. Console Stepping</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>While paused, type <code>__schemeDebug.stepInto()</code> then press Resume →
+                should step into the next Scheme expression.</p>
+        </details>
+    </div>
+
+    <div class="scenario">
+        <label><input type="checkbox"> <b>23. Console Eval</b></label>
+        <details>
+            <summary>Steps</summary>
+            <p>While paused inside factorial with <code>n=5</code>, type
+                <code>__schemeDebug.eval("(+ n 1)")</code> → should return <code>"6"</code>.</p>
+        </details>
+    </div>
+
 </body>
 
 </html>

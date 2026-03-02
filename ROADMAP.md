@@ -435,6 +435,28 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
+## Phase 16b: Chrome DevTools Debugger Integration ✅
+**Target:** Seamless Scheme debugging inside Chrome DevTools
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Probe Script System** | Per-expression JS probes source-mapped to Scheme code. | ✅ |
+| **Trampoline Integration** | `maybeHit()` in interpreter hot loop with dedup. | ✅ |
+| **Interpreter-Managed Stepping** | Step Into/Over/Out via depth tracking. | ✅ |
+| **Variable Inspection** | `with(envProxy)` exposes Scheme bindings in Scope pane. | ✅ |
+| **Async Stack Tagging** | `console.createTask` shows Scheme frames in Call Stack. | ✅ |
+| **Extension Sidebar** | Scheme Stack sidebar with frame list, variables, step buttons. | ✅ |
+| **Boundary Handling** | JS↔Scheme stepping with auto-blackboxing. | ✅ |
+| **Exception Integration** | `debugger;` at Scheme source on errors. | ✅ |
+| **REPL Source Registration** | Dynamic eval probes with LRU pruning. | ✅ |
+| **Library Source Registration** | Optional probe generation for library files. | ✅ |
+| **Extension Packaging** | `scripts/package_extension.js` creates distributable zip. | ✅ |
+| **Performance** | Probe gen <5ms/1K lines, maybeHit >12M/sec. | ✅ |
+
+**Deliverable:** Full DevTools debugging with 2493 passing tests. See `docs/devtools_usage_guide.md`.
+
+---
+
 ## Phase 18: Modular Analyzer Refactoring ✅
 **Target:** Improve analyzer architecture for extensibility and maintainability.
 

@@ -906,7 +906,7 @@ Added comprehensive input validation to all Scheme procedures.
 ## Special Forms ([analyzer.js](./src/core/interpreter/analyzer.js))
 
 - `analyzeIf` - Validates 2-3 arguments
-- `analyzeLet` - Validates binding structure  
+- `analyzeLet` - Validates binding structure
 - `analyzeLetRec` - Validates binding structure
 - `analyzeLambda` - Validates param symbols, body not empty
 - `analyzeSet` - Validates symbol argument
@@ -1171,7 +1171,7 @@ Updated [base.sld](/workspaces/scheme-js-4/src/core/scheme/base.sld):
 char? char=? char<? char>? char<=? char>=?
 char->integer integer->char
 
-;; Strings  
+;; Strings
 string? make-string string string-length string-ref
 string=? string<? string>? string<=? string>=?
 substring string-append string-copy
@@ -1379,7 +1379,7 @@ This was the most complex part of the implementation, solving the problem of int
 
 - **Problem**: Internal library definitions like `param-dynamic-bind` (used by the `parameterize` macro in `scheme core`) were defined in library-specific environments but `GlobalRef` only looked in the global environment.
 
-- **Solution**: 
+- **Solution**:
   - Introduced `libraryScopeEnvMap` in `syntax_object.js` to map library defining scopes to their runtime environments.
   - Updated `library_loader.js` to register this mapping when loading libraries via `registerLibraryScope(libraryScope, libEnv)`.
   - Updated `GlobalRef` to carry the defining scope ID.
@@ -1399,7 +1399,7 @@ This was the most complex part of the implementation, solving the problem of int
 ### Hygiene Tests (`tests/functional/macro_tests.js`)
 All 8 tests pass:
 - ✅ **Standard Library Capture**: `(syntax-rules () ((_) (list 1 2)))` works even if `list` is shadowed locally
-- ✅ **User Global Capture**: `(syntax-rules () ((_) global-var))` works even if `global-var` is shadowed locally  
+- ✅ **User Global Capture**: `(syntax-rules () ((_) global-var))` works even if `global-var` is shadowed locally
 - ✅ **Renaming**: Macro-introduced variables don't clash with user variables
 
 ### Regression Tests
@@ -1500,7 +1500,7 @@ The fix was verified using a targeted reproduction test case and the full system
      (guard (e (else (if (string? e) e "not-string")))
        expr))))
 
-(test "error" (test-guard-binding (raise "error"))) 
+(test "error" (test-guard-binding (raise "error")))
 ;; Previously failed with "Unbound variable: e" or "global"
 ;; Now correctly returns "error"
 
@@ -1574,7 +1574,7 @@ Changed macro lookup to use scoped registry:
 ## Tests Added
 Created [hygiene_tests.scm](./tests/core/scheme/hygiene_tests.scm) with 10 tests:
 - Referential transparency (3 tests)
-- let-syntax scoping (4 tests)  
+- let-syntax scoping (4 tests)
 - letrec-syntax (2 tests)
 - Hygiene edge cases (1 test)
 
@@ -2151,7 +2151,7 @@ I have implemented a robust Node.js REPL application for the Scheme interpreter 
 
 - **Interactive REPL**: Run `node repl.js` to start the session.
 - **Multi-line Input**: The REPL detects incomplete expressions (open parentheses, unclosed strings) and prompts for continuation.
-- **File Loading**: Use `(load "filename.scm")` to load Scheme scripts into the current environment. 
+- **File Loading**: Use `(load "filename.scm")` to load Scheme scripts into the current environment.
 - **Library Imports**: Use `(import (lib name))` to import R7RS libraries synchronously.
 - **File Execution**: Run `node repl.js <file.scm>` to execute a Scheme file.
 - **Expression Evaluation**: Run `node repl.js -e "<expr>"` to evaluate a single expression and exit.
@@ -2314,7 +2314,7 @@ TEST SUMMARY: 1166 passed, 0 failed, 3 skipped
 (js-promise-then p (lambda (x) (display x)))
 
 ;; Create promise with executor
-(define p2 (make-js-promise 
+(define p2 (make-js-promise
              (lambda (resolve reject)
                (resolve (* 6 7)))))
 
@@ -3379,7 +3379,7 @@ Implemented proper object printing with reader syntax `#{(key val)...}` and circ
 ### 2. Reader Bridge Fixes (`src/core/primitives/io/reader_bridge.js`)
 - Added `braceDepth` tracking for `{` and `}` to allow the reader to correctly collect full object literal "chunks" from ports.
 - Added explicit handling for the `#{` token start.
-- **Bug Fixes**: 
+- **Bug Fixes**:
   - Fixed an issue where strings ending inside an object literal (e.g., `#{(a \"s\")}`) caused the reader to break early.
   - Fixed an issue where whitespace following a nested list in an object literal (e.g., `#{(a 1) (b 2)}`) caused premature parsing.
 
@@ -3888,7 +3888,7 @@ Integrated the debugging runtime into the interactive REPLs, providing a profess
 
 ## Documentation
 
-- **[debugger_manual.md](./docs/debugger_manual.md)**: Created a detailed user manual for all debugger commands 
+- **[debugger_manual.md](./docs/debugger_manual.md)**: Created a detailed user manual for all debugger commands
   and features.
 
 ## Verification Results
@@ -4528,4 +4528,174 @@ render_diffs(file:///Users/mark/code/scheme-js-4/tests/debug/devtools/source_reg
 ### Test Results
 ```
 TEST SUMMARY: 2457 passed, 0 failed, 8 skipped
+```
+
+---
+
+# Phase 6: Chrome DevTools — Boundary Handling & Exception Integration (2026-02-26)
+
+## Summary
+
+Implemented seamless JS ↔ Scheme boundary crossing, exception pausing at Scheme source locations, reliable evaluation while paused via CDP, stepping abort on non-local jumps (`call/cc`), and hardened the Chrome extension for real-world use. Corresponds to Phase 6 of `docs/chrome_devtools_debugger_design.md`.
+
+## Changes
+
+### Exception Handling (Steps 6.5–6.6)
+
+#### [devtools_debug.js](./src/debug/devtools/devtools_debug.js)
+- Added `SchemeRuntimeException` class extending `SchemeError` for DevTools exception identification.
+- Added `onException(exception, source, env)` — fires a probe at the Scheme source location so V8 pauses there (via `_exceptionPause` flag), then returns without throwing so normal Scheme exception handling continues.
+- Added `abortStepping()` — cancels active stepping when execution takes a non-local jump (e.g., `call/cc`).
+
+#### [interpreter.js](./src/core/interpreter/interpreter.js)
+- Wired `devtoolsDebug.onException()` into both sync and async trampoline catch blocks.
+- Wired `devtoolsDebug.abortStepping()` into `ContinuationUnwind` handlers.
+
+#### [frames.js](./src/core/interpreter/frames.js)
+- Added `devtoolsDebug.abortStepping()` calls in continuation invocation and tail-call unwind paths (Step 6.4: `call/cc` across boundaries).
+- Changed `debugRuntime` guard to also check `.enabled` property.
+
+### Probe Architecture Rework
+
+#### [probe_generator.js](./src/debug/devtools/probe_generator.js)
+- Probe functions now have named identifiers (`__scheme_E{id}`) so `background.js` can identify them as probe pauses.
+- Moved `debugger;` into the probe function itself (`if (hit(id)) { debugger; }`) instead of inside `hit()`, so V8 pauses in source-mapped Scheme code.
+
+#### [probe_runtime.js](./src/debug/devtools/probe_runtime.js)
+- `hit()` now returns a boolean instead of calling `debugger;` directly.
+- Added `_exceptionPause` flag support — `onException()` sets it, `hit()` consumes it.
+- Added `abortStepping()` method.
+
+### Chrome Extension Hardening (Steps 6.1–6.3)
+
+#### [background.js](./extension/background.js)
+- Added `evaluateWhilePaused()` using CDP `Debugger.evaluateOnCallFrame` — reliable while V8 is paused (unlike `Runtime.evaluate`).
+- Added `isSchemeException()` to detect exception pauses from Scheme source-mapped frames.
+- Added `lastPauseParams` map for per-tab pause state tracking.
+- Added message handlers: `resume-debugger`, `eval-paused`, `scheme-step-into`, `scheme-step-over`, `scheme-step-out`.
+- Extended blackbox patterns to cover `dist/scheme.js`, `dist/scheme.es.js`, `dist/scheme-html.js`.
+- `isSchemeProbe()` now scans the top 5 frames (not just the top) to handle instrumentation wrappers.
+
+#### [sidebar.js](./extension/panel/sidebar.js)
+- Added `evalWhilePaused()` helper routing through background script's CDP evaluation.
+- Switched all paused-state evaluation (`getStack`, `getLocals`, `getSource`) from `evalInPage` to `evalWhilePaused`.
+- Step buttons now send messages to background script instead of using `evalInPage`.
+- Added tab ID filtering on incoming messages to prevent cross-tab pollution.
+- Moved `tabId` resolution before message listener registration.
+
+#### [manifest.json](./extension/manifest.json)
+- Added `host_permissions: ["<all_urls>"]` for CDP access.
+
+### Source Registry & Sourcemap Fixes
+
+#### [source_registry.js](./src/debug/devtools/source_registry.js)
+- Clears stale location mappings on re-registration to prevent phantom breakpoints.
+- Wrapped probe script injection in try-catch.
+
+#### [sourcemap_generator.js](./src/debug/devtools/sourcemap_generator.js)
+- Fixed VLQ encoding: generated column is now absolute for the first segment on each line.
+- Removed stale `prevGeneratedCol` tracking.
+- Updated header comment to match new probe function structure.
+
+### HTML Adapter
+
+#### [html_adapter.js](./src/packaging/html_adapter.js)
+- Creates `SchemeDebugRuntime` and wires it into the interpreter before scripts run.
+- Calls `devtools.installSchemeDebugAPI()` to expose the `__schemeDebug` API.
+- Improved source URL generation: external scripts use `scheme://scheme-sources/{filename}`, inline scripts use `scheme://inline-scripts/script-{n}.scm`.
+
+### Minor Fixes
+- **env_proxy.js**: Use `Symbol.unscopables` directly instead of `globalThis.Symbol.unscopables`.
+- **.gitignore**: Added `.npm-cache/` directory.
+
+## New Test Files (Step 6.7)
+
+| File | Tests |
+|------|-------|
+| [boundary_exception_tests.js](./tests/debug/devtools/boundary_exception_tests.js) | JS→Scheme calls, Scheme→JS calls, exception propagation, `abortStepping` on `call/cc` |
+
+## Test Results
+```
+TEST SUMMARY: 2493 passed, 0 failed, 8 skipped
+```
+
+---
+
+# Phase 7: Chrome DevTools — Polish & Documentation (2026-02-27)
+
+## Summary
+
+Implemented REPL source registration with LRU pruning, library source registration for DevTools debugging, extension packaging script, comprehensive manual verification page, expanded benchmarks, and documentation. Corresponds to Phase 7 of `docs/chrome_devtools_debugger_design.md`.
+
+## Changes
+
+### REPL Source Registration (Step 7.2)
+
+#### [devtools_debug.js](./src/debug/devtools/devtools_debug.js)
+- Added `_replEvalCounter` — monotonically increasing counter (persists across disable/enable cycles to avoid URL collisions with persisted breakpoints).
+- Added `getNextReplSourceId()` — returns `scheme://repl/eval-N.scm` URLs.
+- Added `registerReplEval(code)` — parses code with a unique REPL URL, registers it with the source registry, and generates probe scripts. Returns `{ sourceId, expressions }`.
+
+#### [source_registry.js](./src/debug/devtools/source_registry.js)
+- Added `_replSourceQueue` — ordered list of REPL source URLs for LRU tracking.
+- Added `replSourceLimit` — configurable maximum REPL sources (default: 50).
+- Added `_pruneReplSources()` — evicts oldest REPL sources (metadata, probes, and location mappings) when the limit is exceeded. Non-REPL sources are never affected.
+- Added `hasSource(url)` and `getSourceInfo(url)` query methods.
+
+#### [web/repl.js](./web/repl.js)
+- Both sync and async REPL eval paths now call `registerReplEval()` when DevTools debugging is enabled, so each REPL input gets its own `scheme://repl/eval-N.scm` source with probe scripts and source maps visible in the Sources panel.
+
+### Library Source Registration (Step 7.3)
+
+#### [devtools_debug.js](./src/debug/devtools/devtools_debug.js)
+- Added `registerLibrarySource(url, code)` — parses and registers library files for DevTools debugging.
+- Added `libraryNameToUrl(libraryName)` — converts `['scheme', 'base']` to `scheme://lib/scheme/base.sld`.
+
+#### [html_adapter.js](./src/packaging/html_adapter.js)
+- Added `isLibraryDebugRequested()` — checks `__SCHEME_JS_DEBUG_LIBRARIES` global or `?scheme-debug-libraries=true` URL parameter.
+- When library debugging is enabled, wraps the file resolver to intercept library loads and register them via `registerLibrarySource()`, making `.sld`/`.scm` files visible and debuggable in DevTools Sources.
+
+#### [library_loader.js](./src/core/interpreter/library_loader.js)
+- Exported `getFileResolver()` to allow the HTML adapter to wrap the existing resolver.
+
+### Extension Packaging (Step 7.4)
+
+#### [scripts/package_extension.js](./scripts/package_extension.js) [NEW]
+- Creates distributable zip of the Chrome extension for sideloading.
+
+### Manual Verification Page (Step 7.6)
+
+#### [tests/debug/manual_verification.html](./tests/debug/manual_verification.html)
+- Expanded from a basic test page into a comprehensive interactive verification checklist covering all 13+ scenarios from §17.3 of the design doc.
+- Added test functions: `factorial`, `sum-tail` (TCO), `compute` (nested calls).
+- Added checkboxes for: basic breakpoints, Step Into/Over/Out, sub-expression stepping, variable inspection, exception pausing, TCO badges, async stack tags, sidebar frame navigation, console API.
+
+### Performance Benchmarking (Step 7.1)
+
+#### [benchmarks/benchmark_devtools_overhead.js](./benchmarks/benchmark_devtools_overhead.js)
+- Added **Benchmark 5**: Full probe calling with source registration and probes firing.
+- Added **Benchmark 6**: Probe generation speed for ~1000-line files.
+- Added **Benchmark 7**: `maybeHit()` throughput measurement (target: >1M/sec).
+- Updated summary to report "Full Probes" overhead alongside baseline/StackTracer/TaskStack/createTask.
+
+### Documentation (Step 7.5)
+
+#### [docs/devtools_usage_guide.md](./docs/devtools_usage_guide.md) [NEW]
+- User guide for DevTools debugging.
+
+#### [docs/architecture.md](./docs/architecture.md)
+- Updated directory tree to include `probe_runtime.js`, `sidebar_helpers.js`, `custom_formatters.js`, `scripts/` directory, and documentation files.
+
+#### [ROADMAP.md](./ROADMAP.md)
+- Added Phase 16b: Chrome DevTools Debugger Integration (✅ complete) summarizing all implemented features.
+
+## New Test Files
+
+| File | Tests |
+|------|-------|
+| [repl_library_registration_tests.js](./tests/debug/devtools/repl_library_registration_tests.js) | REPL URL generation, counter persistence, source registration, probe generation, LRU pruning, library registration, library URL convention, idempotent re-registration, library immunity to REPL pruning |
+
+## Test Results
+```
+TEST SUMMARY: 2493 passed, 0 failed, 8 skipped
 ```

@@ -681,7 +681,15 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         addToHistory(code, 'input');
 
         try {
-            const sexps = parse(code, { filename: '<repl>' });
+            // When DevTools debugging is enabled, register this eval input
+            // as a debuggable source with probe scripts and source maps.
+            let sexps;
+            if (interpreter.devtoolsDebug?.enabled) {
+                const { sourceId, expressions } = interpreter.devtoolsDebug.registerReplEval(code);
+                sexps = expressions;
+            } else {
+                sexps = parse(code, { filename: '<repl>' });
+            }
             let result;
             for (const sexp of sexps) {
                 if (interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
@@ -793,7 +801,13 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             isEvaluating = true;
 
             try {
-                const sexps = parse(code, { filename: '<repl>' });
+                let sexps;
+                if (interpreter.devtoolsDebug?.enabled) {
+                    const { expressions } = interpreter.devtoolsDebug.registerReplEval(code);
+                    sexps = expressions;
+                } else {
+                    sexps = parse(code, { filename: '<repl>' });
+                }
                 let result;
                 for (const sexp of sexps) {
                     result = await interpreter.runDebug(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });

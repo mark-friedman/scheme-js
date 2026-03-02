@@ -182,10 +182,13 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │      └── devtools/            # Chrome DevTools Integration
 │          ├── index.js         # Barrel export
 │          ├── sourcemap_generator.js # V3 source map generation + VLQ encoder
-│          ├── probe_generator.js # Probe script generation (one JS fn per Scheme line)
-│          ├── source_registry.js # Source & probe management + script injection
-│          ├── devtools_debug.js # DevToolsDebugIntegration (trampoline→probe bridge)
-│          └── env_proxy.js     # Environment proxy for DevTools Scope pane
+│          ├── probe_generator.js # Probe script generation (one JS fn per Scheme expression)
+│          ├── probe_runtime.js # __schemeProbeRuntime global (hit, stepping, breakpoints)
+│          ├── source_registry.js # Source & probe management + script injection + REPL LRU
+│          ├── devtools_debug.js # DevToolsDebugIntegration (trampoline→probe bridge, REPL/library registration)
+│          ├── env_proxy.js     # Environment proxy for DevTools Scope pane
+│          ├── sidebar_helpers.js # Sidebar data formatting utilities
+│          └── custom_formatters.js # Chrome custom formatters for Scheme values
 │
 │   └── extension/              # Chrome DevTools Extension (Scheme Stack Sidebar)
 │       ├── manifest.json       # Manifest V3 configuration
@@ -285,12 +288,18 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       ├── library_loader_tests.js
 │       └── cond_expand_library_tests.js # cond-expand in libraries
 │
+├── scripts/
+│   ├── generate_bundled_libraries.js # Embeds Scheme sources into JS bundle
+│   └── package_extension.js       # Packages Chrome extension for distribution
+│
 ├── docs/
 │   ├── core-interpreter-implementation.md               # Execution model details
 │   ├── Interoperability.md         # JS/Scheme interop design
 │   ├── hygeine.md                  # Macro hygiene notes
 │   ├── macro_debugging.md          # Macro troubleshooting guide
 │   ├── architecture.md             # High-level architecture
+│   ├── chrome_devtools_debugger_design.md # DevTools debugger architecture & plan
+│   ├── devtools_usage_guide.md    # DevTools debugger user guide
 │   └── REFERENCES.md               # Academic references
 │
 └── web/

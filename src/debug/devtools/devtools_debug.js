@@ -19,6 +19,7 @@ import { analyze } from '../../core/interpreter/analyzer.js';
 import { list } from '../../core/interpreter/cons.js';
 import { intern } from '../../core/interpreter/symbol.js';
 import { SchemeError } from '../../core/interpreter/errors.js';
+import { SchemeSourceRegistry } from './source_registry.js';
 
 /**
  * A wrapper exception thrown to trigger Chrome DevTools' "Pause on exceptions".
@@ -104,6 +105,16 @@ export class DevToolsDebugIntegration {
      * @type {string[]|null}
      */
     this._hitHistory = null;
+
+    // ----- Phase 7: REPL & Library Registration -----
+
+    /**
+     * Counter for generating unique REPL eval source IDs.
+     * Increments monotonically across disable/enable cycles to avoid
+     * URL collisions with persisted breakpoints.
+     * @type {number}
+     */
+    this._replEvalCounter = 0;
 
     // ----- Phase 4: Async Stack Tagging -----
 
@@ -224,6 +235,58 @@ export class DevToolsDebugIntegration {
     if (globalThis.__schemeProbeRuntime && typeof globalThis.__schemeProbeRuntime.abortStepping === 'function') {
       globalThis.__schemeProbeRuntime.abortStepping();
     }
+  }
+
+  // =========================================================================
+  // Phase 7: REPL & Library Source Registration
+  // =========================================================================
+
+  /**
+   * Returns the next unique REPL source URL and increments the counter.
+   * URL follows the convention `scheme://repl/eval-N.scm`.
+   *
+   * @returns {string} A unique REPL source URL
+   */
+  getNextReplSourceId() {
+    return `scheme://repl/eval-${this._replEvalCounter++}.scm`;
+  }
+
+  /**
+   * Registers a REPL eval input as a debuggable source.
+   * Parses the code with a unique `scheme://repl/eval-N.scm` URL,
+   * registers it with the source registry, and generates probe scripts.
+   *
+   * @param {string} code - The Scheme source code entered in the REPL
+   * @returns {{sourceId: string, expressions: Array}} The assigned URL and parsed expressions
+   */
+  registerReplEval(code) {
+    const sourceId = this.getNextReplSourceId();
+    const expressions = parse(code, { filename: sourceId });
+    this.sourceRegistry.register(sourceId, code, 'repl', expressions);
+    return { sourceId, expressions };
+  }
+
+  /**
+   * Registers a library source file for DevTools debugging.
+   * Parses the code and generates probe scripts so that library code
+   * is visible and debuggable in the Sources panel.
+   *
+   * @param {string} url - Canonical URL (e.g., 'scheme://lib/scheme/base.sld')
+   * @param {string} code - The library source code
+   */
+  registerLibrarySource(url, code) {
+    const expressions = parse(code, { filename: url });
+    this.sourceRegistry.register(url, code, 'library', expressions);
+  }
+
+  /**
+   * Converts a library name array to a canonical DevTools URL.
+   *
+   * @param {string[]} libraryName - Library name parts (e.g., ['scheme', 'base'])
+   * @returns {string} Canonical URL (e.g., 'scheme://lib/scheme/base.sld')
+   */
+  libraryNameToUrl(libraryName) {
+    return `scheme://lib/${libraryName.join('/')}.sld`;
   }
 
   // =========================================================================
