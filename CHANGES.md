@@ -4699,3 +4699,88 @@ Implemented REPL source registration with LRU pruning, library source registrati
 ```
 TEST SUMMARY: 2493 passed, 0 failed, 8 skipped
 ```
+
+# Phase 1: Custom DevTools Panel Shell + CodeMirror (2026-03-04)
+
+Replaced the Sources sidebar pane with a top-level "Scheme-JS" DevTools panel.
+This is Phase 1 of the larger debugger rewrite that moves from probe-based
+debugging to cooperative pausing.
+
+## Summary
+
+Created a "Scheme-JS" tab in Chrome DevTools containing a CodeMirror 6 source
+viewer and a source-file list sidebar. No debugging logic yet — that comes in
+Phase 2. The probe-based infrastructure is unchanged; only the extension UI
+entry point was replaced.
+
+## New Files
+
+### Extension Build
+
+| File | Purpose |
+|------|---------|
+| `extension/build/build-panel.js` | esbuild script; bundles `panel-src/` into `extension/panel/panel.js` |
+
+### Panel Source (`extension/panel-src/`)
+
+| File | Purpose |
+|------|---------|
+| `panel-src/main.js` | Entry point: initializes editor + source list, handles splitter drag |
+| `panel-src/language/scheme-mode.js` | CodeMirror 6 StreamParser for Scheme (parens, strings, chars, comments, keywords, numbers, booleans) |
+| `panel-src/components/editor.js` | Read-only CodeMirror editor with dark DevTools theme, line numbers, Scheme highlighting |
+| `panel-src/components/source-list.js` | Source file list; fetches from `__schemeDebug.getSources()`, populates on click |
+| `panel-src/protocol/scheme-bridge.js` | `evalInPage()` / `isSchemeDebugAvailable()` / `getSources()` / `getSourceContent()` wrappers around `chrome.devtools.inspectedWindow.eval` |
+
+### Panel UI (`extension/panel/`)
+
+| File | Purpose |
+|------|---------|
+| `panel/panel.html` | Two-pane layout: source list sidebar + CodeMirror editor area |
+| `panel/panel.css` | Dark theme matching Chrome DevTools (VS Code-style token colors) |
+
+## Modified Files
+
+### Extension
+
+| File | Change |
+|------|--------|
+| `extension/devtools.js` | Replaced `createSidebarPane('Scheme Stack', ...)` with `chrome.devtools.panels.create('Scheme-JS', ...)` |
+| `extension/manifest.json` | Name → "Scheme-JS Debugger", version → 0.2.0 |
+
+### Core Debugger API
+
+| File | Change |
+|------|--------|
+| `src/debug/devtools/devtools_debug.js` | Added `getSources()` and `getSourceContent(url)` to `__schemeDebug` global API; captured `this.sourceRegistry` locally in `installSchemeDebugAPI` for closure access |
+
+### Project Config
+
+| File | Change |
+|------|--------|
+| `package.json` | Added `build:panel` and `build:panel:watch` npm scripts; added `esbuild` and CodeMirror 6 packages as devDependencies |
+
+## New Tests
+
+| File | Tests Added |
+|------|-------------|
+| `tests/debug/devtools/scheme_debug_api_tests.js` | 16 new tests for `getSources()` and `getSourceContent()` API methods: empty registry, multi-source registration with correct url/content/origin/lines, unknown URL returns null, inline source retrieval; also added `getSources` and `getSourceContent` to the API availability checks |
+
+## Architecture Notes
+
+- The old sidebar files (`panel/sidebar.html`, `sidebar.js`, `sidebar.css`) are
+  still present but no longer loaded by the extension.
+- `dist/scheme.js` and `dist/scheme-html.js` are unaffected — CodeMirror is
+  extension-only and never bundled into the user-facing dist files.
+- The esbuild bundle (`panel/panel.js`) is ~535 KB (unminified) and is committed
+  to the repo alongside the source. Run `npm run build:panel` to rebuild it.
+
+## Deliverable
+
+A "Scheme-JS" tab appears in Chrome DevTools. When the inspected page runs
+Scheme code via `<script type="text/scheme">`, the registered source files
+appear in the file list. Clicking a file loads it into the CodeMirror viewer.
+
+## Test Results
+```
+TEST SUMMARY: 2509 passed, 0 failed, 8 skipped
+```

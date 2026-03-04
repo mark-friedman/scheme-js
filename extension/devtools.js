@@ -1,14 +1,17 @@
 /**
- * @fileoverview DevTools entry point for the Scheme Stack extension.
+ * @fileoverview DevTools entry point for the Scheme-JS extension.
  *
- * Creates a sidebar pane in the Sources panel that displays the
- * Scheme call stack when paused at a breakpoint.
+ * Creates a top-level "Scheme-JS" panel in Chrome DevTools,
+ * replacing the old Sources sidebar pane.
  */
 
-// Create the "Scheme Stack" sidebar pane in the Sources panel
-chrome.devtools.panels.sources.createSidebarPane(
-    'Scheme Stack',
-    (sidebar) => {
-        sidebar.setPage('panel/sidebar.html');
-    }
+// Create the top-level "Scheme-JS" panel
+chrome.devtools.panels.create(
+  'Scheme-JS',          // Panel title (shown as a tab in DevTools)
+  '',                   // Icon URL (empty = no icon)
+  'panel/panel.html',   // Panel page
+  (_panel) => {
+    // Panel created — nothing to do here for Phase 1.
+    // Phase 2 will add onShown/onHidden listeners.
+  }
 );

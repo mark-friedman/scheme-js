@@ -376,6 +376,7 @@ export class DevToolsDebugIntegration {
    *   The interpreter instance to inspect.
    */
   installSchemeDebugAPI(interpreter) {
+    const sourceRegistry = this.sourceRegistry;
     globalThis.__schemeDebug = {
       /**
        * Gets the current Scheme call stack.
@@ -425,6 +426,27 @@ export class DevToolsDebugIntegration {
         const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
         if (frameIndex < 0 || frameIndex >= frames.length) return null;
         return frames[frameIndex].source || null;
+      },
+
+      /**
+       * Gets all registered Scheme sources.
+       * Returns an array of { url, content, lines, origin } objects.
+       * Used by the DevTools panel to populate the source file list.
+       *
+       * @returns {Array<{url: string, content: string, lines: number, origin: string}>}
+       */
+      getSources() {
+        return sourceRegistry.getAllSources();
+      },
+
+      /**
+       * Gets the content of a specific source URL.
+       * @param {string} url - The scheme:// URL of the source
+       * @returns {string|null} The source content, or null if not registered
+       */
+      getSourceContent(url) {
+        const info = sourceRegistry.getSourceInfo(url);
+        return info ? info.content : null;
       },
 
       /**

@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Scheme Stack – scheme-js Debugger",
-    "version": "0.1.0",
-    "description": "Adds a Scheme Stack sidebar to Chrome DevTools Sources panel for scheme-js debugging.",
+    "name": "Scheme-JS Debugger",
+    "version": "0.2.0",
+    "description": "Top-level Scheme-JS DevTools panel for debugging scheme-js programs.",
     "devtools_page": "devtools.html",
     "background": {
         "service_worker": "background.js"

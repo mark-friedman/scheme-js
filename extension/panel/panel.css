@@ -1,0 +1,249 @@
+/**
+ * Panel CSS — Adaptive theme for the Scheme-JS DevTools panel.
+ *
+ * Uses CSS custom properties so that a single set of structural rules
+ * serves both dark and light DevTools themes. Chrome DevTools extension
+ * panels respond to `prefers-color-scheme` based on the DevTools theme
+ * setting, so `@media (prefers-color-scheme: light)` fires correctly
+ * when the user switches DevTools to light mode.
+ *
+ * Dark palette: Dracula-inspired, matching the CodeMirror dark theme.
+ * Light palette: GitHub-light-inspired, matching the CodeMirror light theme.
+ */
+
+/* =========================================================================
+   Theme tokens — dark (default)
+   ========================================================================= */
+
+:root {
+  /* Panel chrome */
+  --bg:                   #282a36;
+  --fg:                   #f8f8f2;
+  --toolbar-bg:           #21222c;
+  --toolbar-border:       #44475a;
+  --title-fg:             #f8f8f2;
+  --status-fg:            #8d93ac;
+
+  /* Sidebar */
+  --sidebar-bg:           #21222c;
+  --sidebar-border:       #44475a;
+  --sidebar-header-fg:    #8d93ac;
+  --sidebar-item-fg:      #e0e0e0;
+  --sidebar-item-hover:   #2d2f3f;
+  --sidebar-selected-bg:  #44475a;
+  --sidebar-selected-fg:  #f8f8f2;
+  --sidebar-selected-bar: #ff79c6;
+  --sidebar-empty-fg:     #6272a4;
+
+  /* Splitter */
+  --splitter-bg:          #44475a;
+  --splitter-hover:       #ff79c6;
+
+  /* Editor area */
+  --editor-bg:            #282a36;
+}
+
+/* =========================================================================
+   Theme tokens — light (when DevTools is in light mode)
+   ========================================================================= */
+
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Panel chrome */
+    --bg:                   #f3f3f3;
+    --fg:                   #24292f;
+    --toolbar-bg:           #f3f3f3;
+    --toolbar-border:       #d8d8d8;
+    --title-fg:             #24292f;
+    --status-fg:            #6e7781;
+
+    /* Sidebar */
+    --sidebar-bg:           #f3f3f3;
+    --sidebar-border:       #d8d8d8;
+    --sidebar-header-fg:    #57606a;
+    --sidebar-item-fg:      #24292f;
+    --sidebar-item-hover:   #e8e8e8;
+    --sidebar-selected-bg:  #dbeafe;
+    --sidebar-selected-fg:  #0550ae;
+    --sidebar-selected-bar: #0550ae;
+    --sidebar-empty-fg:     #6e7781;
+
+    /* Splitter */
+    --splitter-bg:          #d8d8d8;
+    --splitter-hover:       #0550ae;
+
+    /* Editor area */
+    --editor-bg:            #ffffff;
+  }
+}
+
+/* =========================================================================
+   Base / Reset
+   ========================================================================= */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: '.SFNSMono-Regular', 'Menlo', 'Monaco', 'Consolas',
+               'Liberation Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* =========================================================================
+   Toolbar
+   ========================================================================= */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--toolbar-bg);
+  border-bottom: 1px solid var(--toolbar-border);
+  height: 28px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.toolbar-title {
+  font-weight: bold;
+  color: var(--title-fg);
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.status-bar {
+  margin-left: auto;
+  color: var(--status-fg);
+  font-size: 11px;
+}
+
+/* =========================================================================
+   Main layout (horizontal split: sidebar | editor)
+   ========================================================================= */
+
+.main-layout {
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 28px); /* subtract toolbar height */
+  overflow: hidden;
+}
+
+/* =========================================================================
+   Left sidebar (source file list)
+   ========================================================================= */
+
+.sidebar {
+  width: 220px;
+  min-width: 120px;
+  max-width: 50%;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--sidebar-header-fg);
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.source-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 2px 0;
+}
+
+.source-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--sidebar-item-fg);
+  font-size: 12px;
+  border-left: 2px solid transparent;
+  transition: background 0.1s;
+}
+
+.source-item:hover {
+  background: var(--sidebar-item-hover);
+}
+
+.source-item.selected {
+  background: var(--sidebar-selected-bg);
+  border-left-color: var(--sidebar-selected-bar);
+  color: var(--sidebar-selected-fg);
+}
+
+.source-empty {
+  padding: 12px 10px;
+  color: var(--sidebar-empty-fg);
+  font-size: 11px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* =========================================================================
+   Splitter (drag handle between sidebar and editor)
+   ========================================================================= */
+
+.splitter {
+  width: 4px;
+  background: var(--splitter-bg);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.splitter:hover,
+.splitter.dragging {
+  background: var(--splitter-hover);
+}
+
+/* =========================================================================
+   Editor area
+   ========================================================================= */
+
+.editor-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-bg);
+}
+
+.editor-container {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* CodeMirror overrides: ensure editor fills the container */
+.editor-container .cm-editor {
+  height: 100%;
+}
+
+.editor-container .cm-scroller {
+  overflow: auto;
+}

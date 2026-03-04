@@ -400,6 +400,103 @@ export async function runSchemeDebugApiTests(logger) {
             typeof globalThis.__schemeDebug.stepOver, 'function');
         assert(logger, 'stepOut is a function',
             typeof globalThis.__schemeDebug.stepOut, 'function');
+        assert(logger, 'getSources is a function',
+            typeof globalThis.__schemeDebug.getSources, 'function');
+        assert(logger, 'getSourceContent is a function',
+            typeof globalThis.__schemeDebug.getSourceContent, 'function');
+    }
+
+    // =========================================================================
+    // getSources — source list
+    // =========================================================================
+    logger.title('__schemeDebug API - getSources');
+
+    // Test: getSources returns empty array when no sources registered
+    {
+        createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const sources = api.getSources();
+        assert(logger, 'getSources returns array', Array.isArray(sources), true);
+        assert(logger, 'empty registry yields empty list', sources.length, 0);
+    }
+
+    // Test: getSources returns registered sources
+    {
+        const { registry } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const code1 = '(define x 1)';
+        const code2 = '(define y 2)\n(define z 3)';
+        const url1 = 'scheme://scheme-sources/a.scm';
+        const url2 = 'scheme://inline-scripts/script-0.scm';
+
+        const exprs1 = (await import('../../../src/core/interpreter/reader.js'))
+            .parse(code1, { filename: url1 });
+        const exprs2 = (await import('../../../src/core/interpreter/reader.js'))
+            .parse(code2, { filename: url2 });
+
+        registry.register(url1, code1, 'external', exprs1);
+        registry.register(url2, code2, 'inline', exprs2);
+
+        const sources = api.getSources();
+        assert(logger, 'getSources returns 2 sources', sources.length, 2);
+
+        const s1 = sources.find(s => s.url === url1);
+        assert(logger, 'source 1 url', !!s1, true);
+        assert(logger, 'source 1 content', s1.content, code1);
+        assert(logger, 'source 1 origin', s1.origin, 'external');
+        assert(logger, 'source 1 lines', s1.lines, 1);
+
+        const s2 = sources.find(s => s.url === url2);
+        assert(logger, 'source 2 url', !!s2, true);
+        assert(logger, 'source 2 origin', s2.origin, 'inline');
+        assert(logger, 'source 2 lines', s2.lines, 2);
+    }
+
+    // =========================================================================
+    // getSourceContent — fetch content by URL
+    // =========================================================================
+    logger.title('__schemeDebug API - getSourceContent');
+
+    // Test: getSourceContent returns content for a registered URL
+    {
+        const { registry } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const code = '(define answer 42)';
+        const url = 'scheme://scheme-sources/answer.scm';
+        const exprs = (await import('../../../src/core/interpreter/reader.js'))
+            .parse(code, { filename: url });
+        registry.register(url, code, 'external', exprs);
+
+        const content = api.getSourceContent(url);
+        assert(logger, 'getSourceContent returns string', typeof content, 'string');
+        assert(logger, 'getSourceContent returns correct content', content, code);
+    }
+
+    // Test: getSourceContent returns null for unknown URL
+    {
+        createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const content = api.getSourceContent('scheme://nonexistent/x.scm');
+        assert(logger, 'unknown URL returns null', content, null);
+    }
+
+    // Test: getSourceContent for inline script
+    {
+        const { registry } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const code = '(+ 1 2)';
+        const url = 'scheme://inline-scripts/script-0.scm';
+        const exprs = (await import('../../../src/core/interpreter/reader.js'))
+            .parse(code, { filename: url });
+        registry.register(url, code, 'inline', exprs);
+
+        const content = api.getSourceContent(url);
+        assert(logger, 'inline source content retrieved', content, code);
     }
 
     // Clean up global
