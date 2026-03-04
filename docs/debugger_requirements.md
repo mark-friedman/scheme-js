@@ -4,23 +4,23 @@ This document outlines the requirements and constraints for the `scheme-js` debu
 
 ## Core Capabilities
 - **Browser use**: The primary use for this is when Scheme is used within web apps in a browser
-- **Script tag support**: The debugger needs to recognize, properly display, allow breakpoints and stepping of Scheme code that is used in `script` tags
+- **Script tag support**: The debugger needs to recognize, properly display, allow breakpoints and stepping of Scheme code that is used in `script` tags.  That code may be in a separate file or within `script` tags in an HTML file.
 - **Chrome Debugger**: It should operate within Chrome Dev Tools
-- **Breakpoint Setting**: Support for setting breakpoints on Scheme source code
+- **Breakpoint Setting**: Support for setting breakpoints on Scheme expressions in source code.  The Scheme source code may be in a separate file or within `script` tags in an HTML file.
 - **Step-by-Step Execution**: Support for basic stepping maneuvers (Step Into, Step Over, Step Out, Step, Resume).
 - **Source Location Tracking**: Ability to track and display source locations (line, column) for all evaluated Scheme code.
-- **Multiple File Support**: Ability to view, browse, and set breakpoints across multiple JS and Scheme files (`.scm`, `.sld`) and code contexts.
+- **Multiple File Support**: Ability to view, browse, and set breakpoints across multiple HTML, JS and Scheme files (`.scm`, `.sld`) and code contexts.
 - **Exception Handling**:
     - Support for "Break on Exception".
     - Option to break on both caught and uncaught errors/exceptions.
 - **State Inspection**: A way to inspect lexical environments and global variables during execution.
 - **Stack Traces**: Display of call stacks, with special consideration for maintaining logical traces in the presence of Tail Call Optimization (TCO).
-- **Professional Quality**: This debugger should be something that a professional web app builder and Scheme/Lisp 
+- **Professional Quality**: This debugger should be something that a professional web app builder and Scheme/Lisp
   programmer should find familiar, comfortable and useful.
 
 ## Polyglot Interoperability**:
-- **JS-to-Scheme Step-In**: Seamless transition from the browser's native debugger into Scheme source code.
-- **Scheme-to-JS Step-In**: Ability to hand off execution to the native debugger when entering JavaScript.
+- **JS-to-Scheme Step-In and Step-Out**: Seamless transition from JavaScript debugging into Scheme source code.
+- **Scheme-to-JS Step-In and Step-Out**: Seamless transition from Scheme debugging into JavaScript.
 - **Boundary Synchronization**: Handling of "Step Over" and "Step Into" across the language boundary, including implicit calls (e.g., native functions stored in variables or `globalThis`).
 
 ## Modularity

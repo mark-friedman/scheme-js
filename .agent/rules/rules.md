@@ -38,8 +38,11 @@ trigger: always_on
 - **Directory and File Structure**: Follow the directory and file structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.
 - **Scheme Dependencies**: Scheme procedures and special forms should be described in Scheme `.sld` files in libraries using `define-library` to express their exports, dependencies, etc. Generally the `.sld` files only describe the libraries.  The actual implementations should be in separate `.scm` files. For standard Scheme procedures (i.e. the ones in the r7rs-small standard) use appendix A of the r7rs-small standard to determine the libraries that those procedures should be defined in.
 
+## Documentation about Scheme-JS
+- **Design and Internals**: There are a bunch of files in the `docs` directory documenting various part of the design of Scheme-JS.  See the `docs/README.md` for more information on those files.
+- **User-facing Documentation**:  The `README.md` at the root of this project contains a lot of information on the purpose, features and use of Scheme-JS.
 
-## Documentation
+## Commenting and Documentation Creation and Maintenance
 - **JSDoc**: Document all JavaScript functions with JSDoc.
 - **Scheme Doc**: Document all Scheme functions with JSDoc-style comments, using the same format as JSDoc, but with Scheme procedure-level comment syntax (i.e. `;;`).
 - **Internal Documentation**: Document logic inside JavaScript and Scheme functions and procedures using comment syntax appropriate for the language.
@@ -48,6 +51,7 @@ trigger: always_on
 - **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major talks are completed.
 - **Roadmap**:  Use the `ROADMAP.md` file to record the general progress and plan for the project.  Keep it updated with work that has been done and add to it to reflect work planned for the future.
 - **Cleanup**: Remove any comments that were created just for yourself and/or that don't explain any functionality or algorithmic details.
+
 ## Tools
 ### Scheme Conformance
 - **Execution Based Conformance**: You can use the website at https://try.scheme.org/ to execute any Scheme code on a standard implementation.  This is not a substitute for testing, but it can be helpful for debugging or if you're unsure about the behavior of a Scheme language feature.
