@@ -48,7 +48,8 @@ trigger: always_on
 - **Internal Documentation**: Document logic inside JavaScript and Scheme functions and procedures using comment syntax appropriate for the language.
 - **Code Sections**: Document the start of associated collections of functions and procedures using comment syntax appropriate for the language.
 - **Directory Structure**: Generally, follow the directory structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.
-- **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major talks are completed.
+- **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major tasks or phases of work are completed.
+- **Architecture**: After completing any major task or phase of work, update `docs/architecture.md` to reflect the new structure.
 - **Roadmap**:  Use the `ROADMAP.md` file to record the general progress and plan for the project.  Keep it updated with work that has been done and add to it to reflect work planned for the future.
 - **Cleanup**: Remove any comments that were created just for yourself and/or that don't explain any functionality or algorithmic details.
 
