@@ -8,13 +8,13 @@
 </head>
 
 <body>
-  <!-- Top toolbar (placeholder for Phase 2 controls) -->
+  <!-- Top toolbar — debug.js mounts the debug controls into #toolbar-debug -->
   <div id="toolbar" class="toolbar">
     <span class="toolbar-title">Scheme-JS</span>
-    <span id="status-bar" class="status-bar">Ready</span>
+    <div id="toolbar-debug"></div>
   </div>
 
-  <!-- Main split layout -->
+  <!-- Main split layout: sidebar | editor | right panel -->
   <div id="main-layout" class="main-layout">
 
     <!-- Left sidebar: source file list -->
@@ -23,12 +23,25 @@
       <div id="source-list" class="source-list"></div>
     </div>
 
-    <!-- Splitter handle -->
+    <!-- Splitter handle (sidebar ↔ editor) -->
     <div id="splitter" class="splitter"></div>
 
-    <!-- Right area: editor -->
+    <!-- Center: CodeMirror editor -->
     <div id="editor-area" class="editor-area">
       <div id="editor-container" class="editor-container"></div>
+    </div>
+
+    <!-- Right panel: call stack + variables (shown when paused) -->
+    <div id="right-panel" class="right-panel">
+      <div class="panel-section">
+        <div class="section-header">Call Stack</div>
+        <div id="call-stack-container" class="section-content"></div>
+      </div>
+      <div class="section-divider"></div>
+      <div class="panel-section">
+        <div class="section-header">Variables</div>
+        <div id="variables-container" class="section-content"></div>
+      </div>
     </div>
 
   </div>

@@ -41,6 +41,34 @@
 
   /* Editor area */
   --editor-bg:            #282a36;
+
+  /* Toolbar debug buttons */
+  --btn-bg:               #44475a;
+  --btn-fg:               #f8f8f2;
+  --btn-border:           #6272a4;
+  --btn-hover-bg:         #6272a4;
+  --btn-disabled-fg:      #44475a;
+  --btn-disabled-border:  #383a4d;
+
+  /* Right panel (call stack + variables) */
+  --right-panel-bg:       #21222c;
+  --right-panel-border:   #44475a;
+  --section-header-fg:    #8d93ac;
+  --section-divider:      #44475a;
+  --frame-bg-hover:       #2d2f3f;
+  --frame-bg-selected:    #44475a;
+  --frame-badge-scheme:   #bd93f9;
+  --frame-name-fg:        #f8f8f2;
+  --frame-source-fg:      #6272a4;
+  --frame-tco-fg:         #ff79c6;
+  --var-name-fg:          #8be9fd;
+  --var-sep-fg:           #6272a4;
+  --var-number-fg:        #bd93f9;
+  --var-boolean-fg:       #ff79c6;
+  --var-string-fg:        #f1fa8c;
+  --var-null-fg:          #6272a4;
+  --var-other-fg:         #f8f8f2;
+  --empty-fg:             #6272a4;
 }
 
 /* =========================================================================
@@ -74,6 +102,34 @@
 
     /* Editor area */
     --editor-bg:            #ffffff;
+
+    /* Toolbar debug buttons */
+    --btn-bg:               #e8e8e8;
+    --btn-fg:               #24292f;
+    --btn-border:           #d0d7de;
+    --btn-hover-bg:         #d0d7de;
+    --btn-disabled-fg:      #c0c0c0;
+    --btn-disabled-border:  #e0e0e0;
+
+    /* Right panel */
+    --right-panel-bg:       #f6f8fa;
+    --right-panel-border:   #d0d7de;
+    --section-header-fg:    #57606a;
+    --section-divider:      #d0d7de;
+    --frame-bg-hover:       #eaf5fb;
+    --frame-bg-selected:    #dbeafe;
+    --frame-badge-scheme:   #8250df;
+    --frame-name-fg:        #24292f;
+    --frame-source-fg:      #6e7781;
+    --frame-tco-fg:         #cf222e;
+    --var-name-fg:          #0550ae;
+    --var-sep-fg:           #6e7781;
+    --var-number-fg:        #0550ae;
+    --var-boolean-fg:       #cf222e;
+    --var-string-fg:        #0a3069;
+    --var-null-fg:          #6e7781;
+    --var-other-fg:         #24292f;
+    --empty-fg:             #6e7781;
   }
 }
 
@@ -247,3 +303,203 @@ html, body {
 .editor-container .cm-scroller {
   overflow: auto;
 }
+
+/* =========================================================================
+   Toolbar debug controls
+   ========================================================================= */
+
+/* Container created by toolbar.js inside #toolbar-debug */
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-btn {
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid var(--btn-border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  min-width: 24px;
+  text-align: center;
+  transition: background 0.1s;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: var(--btn-hover-bg);
+}
+
+.toolbar-btn:disabled {
+  color: var(--btn-disabled-fg);
+  border-color: var(--btn-disabled-border);
+  cursor: default;
+}
+
+.toolbar-status {
+  margin-left: 8px;
+  color: var(--status-fg);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* =========================================================================
+   Right panel (call stack + variables)
+   ========================================================================= */
+
+.right-panel {
+  width: 220px;
+  min-width: 160px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--right-panel-bg);
+  border-left: 1px solid var(--right-panel-border);
+  overflow: hidden;
+}
+
+.panel-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 80px;
+}
+
+.section-header {
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--section-header-fg);
+  background: var(--right-panel-bg);
+  border-bottom: 1px solid var(--section-divider);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--section-divider);
+  flex-shrink: 0;
+}
+
+.section-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 0;
+}
+
+/* =========================================================================
+   Call stack frames
+   ========================================================================= */
+
+.call-stack-frame {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.1s;
+}
+
+.call-stack-frame:hover {
+  background: var(--frame-bg-hover);
+}
+
+.call-stack-frame.selected {
+  background: var(--frame-bg-selected);
+}
+
+.call-stack-empty {
+  padding: 8px;
+  color: var(--empty-fg);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.frame-badge {
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+
+.frame-badge-scheme {
+  background: var(--frame-badge-scheme);
+  color: #fff;
+}
+
+.frame-name {
+  color: var(--frame-name-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.frame-source {
+  color: var(--frame-source-fg);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.frame-tco {
+  color: var(--frame-tco-fg);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* =========================================================================
+   Variables panel
+   ========================================================================= */
+
+.variables-panel {
+  padding: 2px 0;
+}
+
+.variables-empty {
+  padding: 8px;
+  color: var(--empty-fg);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.variable-row {
+  display: flex;
+  align-items: baseline;
+  padding: 2px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.var-name {
+  color: var(--var-name-fg);
+  flex-shrink: 0;
+}
+
+.var-sep {
+  color: var(--var-sep-fg);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.var-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.var-type-number  { color: var(--var-number-fg); }
+.var-type-boolean { color: var(--var-boolean-fg); }
+.var-type-string  { color: var(--var-string-fg); }
+.var-type-null    { color: var(--var-null-fg); }
+.var-type-other   { color: var(--var-other-fg); }

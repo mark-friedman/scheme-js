@@ -16,6 +16,22 @@ import { Placeholder } from './datum_labels.js';
 import { createSourceInfo } from './tokenizer.js';
 
 /**
+ * Wrapper for self-evaluating literals (numbers, strings, booleans) that
+ * carries source location info. JS primitives can't have properties, so
+ * this wrapper lets the analyzer propagate source to the AST node.
+ */
+export class SourcedValue {
+  /**
+   * @param {*} value - The primitive value
+   * @param {Object} source - Source location info
+   */
+  constructor(value, source) {
+    this.value = value;
+    this.source = source;
+  }
+}
+
+/**
  * Creates a proper list from arguments with source info attached to head.
  * @param {Object|null} source - Source location info
  * @param {...*} args - Elements of the list
@@ -160,6 +176,14 @@ export function readFromTokens(tokens, state) {
         result = intern(name);
     } else {
         result = readAtom(token, state.caseFold);
+    }
+
+    // Attach source location to symbol results so the analyzer can propagate
+    // it to VariableNode AST nodes. For interned symbols (shared objects),
+    // this overwrites any previous source, which is correct as long as
+    // analysis runs before the next parse.
+    if (source && result instanceof Symbol) {
+        result.source = source;
     }
 
     return handleDotAccess(result, tokens);

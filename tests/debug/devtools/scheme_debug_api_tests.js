@@ -334,46 +334,57 @@ export async function runSchemeDebugApiTests(logger) {
     }
 
     // =========================================================================
-    // Stepping delegation
+    // Stepping delegation (cooperative, via debugRuntime PauseController)
     // =========================================================================
     logger.title('__schemeDebug API - Stepping');
 
-    // Test: stepInto delegates to probe runtime
+    // Test: stepInto delegates to debugRuntime, transitions state to 'stepping'
     {
-        createTestSetup();
+        const { debugRuntime } = createTestSetup();
         const api = globalThis.__schemeDebug;
-        const runtime = globalThis.__schemeProbeRuntime;
 
-        // Record state before
-        const wasStepping = runtime._stepping;
-
+        // Must be paused first for stepInto to make sense
+        debugRuntime.pauseController.pause('test');
         api.stepInto();
-        assert(logger, 'stepInto sets _stepping', runtime._stepping, true);
 
-        // Reset
-        runtime._stepping = wasStepping;
+        assert(logger, 'stepInto transitions to stepping state',
+            debugRuntime.pauseController.getState(), 'stepping');
+        assert(logger, 'stepInto sets stepMode to into',
+            debugRuntime.pauseController.getStepMode(), 'into');
+
+        debugRuntime.pauseController.reset();
     }
 
-    // Test: stepOver delegates to probe runtime
+    // Test: stepOver delegates to debugRuntime, transitions state to 'stepping'
     {
-        createTestSetup();
+        const { debugRuntime } = createTestSetup();
         const api = globalThis.__schemeDebug;
-        const runtime = globalThis.__schemeProbeRuntime;
 
+        debugRuntime.pauseController.pause('test');
         api.stepOver();
-        assert(logger, 'stepOver sets _stepping', runtime._stepping, true);
-        runtime._stepping = false;
+
+        assert(logger, 'stepOver transitions to stepping state',
+            debugRuntime.pauseController.getState(), 'stepping');
+        assert(logger, 'stepOver sets stepMode to over',
+            debugRuntime.pauseController.getStepMode(), 'over');
+
+        debugRuntime.pauseController.reset();
     }
 
-    // Test: stepOut delegates to probe runtime
+    // Test: stepOut delegates to debugRuntime, transitions state to 'stepping'
     {
-        createTestSetup();
+        const { debugRuntime } = createTestSetup();
         const api = globalThis.__schemeDebug;
-        const runtime = globalThis.__schemeProbeRuntime;
 
+        debugRuntime.pauseController.pause('test');
         api.stepOut();
-        assert(logger, 'stepOut sets _stepping', runtime._stepping, true);
-        runtime._stepping = false;
+
+        assert(logger, 'stepOut transitions to stepping state',
+            debugRuntime.pauseController.getState(), 'stepping');
+        assert(logger, 'stepOut sets stepMode to out',
+            debugRuntime.pauseController.getStepMode(), 'out');
+
+        debugRuntime.pauseController.reset();
     }
 
     // =========================================================================
@@ -404,6 +415,20 @@ export async function runSchemeDebugApiTests(logger) {
             typeof globalThis.__schemeDebug.getSources, 'function');
         assert(logger, 'getSourceContent is a function',
             typeof globalThis.__schemeDebug.getSourceContent, 'function');
+        assert(logger, 'activate is a function',
+            typeof globalThis.__schemeDebug.activate, 'function');
+        assert(logger, 'setBreakpoint is a function',
+            typeof globalThis.__schemeDebug.setBreakpoint, 'function');
+        assert(logger, 'removeBreakpoint is a function',
+            typeof globalThis.__schemeDebug.removeBreakpoint, 'function');
+        assert(logger, 'getAllBreakpoints is a function',
+            typeof globalThis.__schemeDebug.getAllBreakpoints, 'function');
+        assert(logger, 'getCurrentLocation is a function',
+            typeof globalThis.__schemeDebug.getCurrentLocation, 'function');
+        assert(logger, 'getStatus is a function',
+            typeof globalThis.__schemeDebug.getStatus, 'function');
+        assert(logger, 'resume is a function',
+            typeof globalThis.__schemeDebug.resume, 'function');
     }
 
     // =========================================================================
@@ -497,6 +522,203 @@ export async function runSchemeDebugApiTests(logger) {
 
         const content = api.getSourceContent(url);
         assert(logger, 'inline source content retrieved', content, code);
+    }
+
+    // =========================================================================
+    // activate — enables debug mode and returns status
+    // =========================================================================
+    logger.title('__schemeDebug API - activate');
+
+    // Test: activate returns active:true when debugRuntime is enabled
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const result = api.activate();
+        assert(logger, 'activate returns object', typeof result, 'object');
+        assert(logger, 'activate returns active:true when enabled', result.active, true);
+        assert(logger, 'activate needsReload:false when already active', result.needsReload, false);
+    }
+
+    // Test: activate sets globalThis.__SCHEME_JS_DEBUG for next page load
+    {
+        createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const prevFlag = globalThis.__SCHEME_JS_DEBUG;
+        api.activate();
+        assert(logger, 'activate sets __SCHEME_JS_DEBUG', !!globalThis.__SCHEME_JS_DEBUG, true);
+
+        // Restore
+        globalThis.__SCHEME_JS_DEBUG = prevFlag;
+    }
+
+    // =========================================================================
+    // setBreakpoint / removeBreakpoint / getAllBreakpoints
+    // =========================================================================
+    logger.title('__schemeDebug API - breakpoint management');
+
+    // Test: setBreakpoint returns an ID string
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const id = api.setBreakpoint('scheme://test.scm', 5);
+        assert(logger, 'setBreakpoint returns string id', typeof id, 'string');
+        assert(logger, 'setBreakpoint id starts with bp-', id.startsWith('bp-'), true);
+
+        debugRuntime.breakpointManager.clearAll();
+    }
+
+    // Test: setBreakpoint adds to breakpointManager
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        api.setBreakpoint('scheme://test.scm', 10, 3);
+        const bps = debugRuntime.breakpointManager.getAllBreakpoints();
+        assert(logger, 'breakpoint was added to manager', bps.length, 1);
+        assert(logger, 'breakpoint has correct filename', bps[0].filename, 'scheme://test.scm');
+        assert(logger, 'breakpoint has correct line', bps[0].line, 10);
+        assert(logger, 'breakpoint has correct column', bps[0].column, 3);
+
+        debugRuntime.breakpointManager.clearAll();
+    }
+
+    // Test: removeBreakpoint removes from breakpointManager
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const id = api.setBreakpoint('scheme://test.scm', 5);
+        assert(logger, 'before remove: 1 breakpoint', debugRuntime.breakpointManager.hasAny(), true);
+
+        const removed = api.removeBreakpoint(id);
+        assert(logger, 'removeBreakpoint returns true', removed, true);
+        assert(logger, 'after remove: 0 breakpoints', debugRuntime.breakpointManager.hasAny(), false);
+    }
+
+    // Test: removeBreakpoint returns false for unknown ID
+    {
+        createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const result = api.removeBreakpoint('bp-nonexistent');
+        assert(logger, 'removeBreakpoint unknown returns false', result, false);
+    }
+
+    // Test: getAllBreakpoints returns all breakpoints
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        api.setBreakpoint('scheme://a.scm', 1);
+        api.setBreakpoint('scheme://b.scm', 2);
+        const all = api.getAllBreakpoints();
+
+        assert(logger, 'getAllBreakpoints returns array', Array.isArray(all), true);
+        assert(logger, 'getAllBreakpoints returns 2 breakpoints', all.length, 2);
+
+        debugRuntime.breakpointManager.clearAll();
+    }
+
+    // =========================================================================
+    // getStatus — current debugger state
+    // =========================================================================
+    logger.title('__schemeDebug API - getStatus');
+
+    // Test: getStatus returns active:true when debugRuntime enabled
+    {
+        createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const status = api.getStatus();
+        assert(logger, 'getStatus returns object', typeof status, 'object');
+        assert(logger, 'getStatus active:true when enabled', status.active, true);
+        assert(logger, 'getStatus state is running initially', status.state, 'running');
+        assert(logger, 'getStatus reason is null initially', status.reason, null);
+    }
+
+    // Test: getStatus reflects paused state
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        debugRuntime.pauseController.pause('breakpoint');
+        const status = api.getStatus();
+
+        assert(logger, 'getStatus state is paused', status.state, 'paused');
+        assert(logger, 'getStatus reason is breakpoint', status.reason, 'breakpoint');
+
+        debugRuntime.pauseController.reset();
+    }
+
+    // =========================================================================
+    // getCurrentLocation — current pause source location
+    // =========================================================================
+    logger.title('__schemeDebug API - getCurrentLocation');
+
+    // Test: getCurrentLocation returns null when not paused
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        // Not paused, stack empty
+        const loc = api.getCurrentLocation();
+        assert(logger, 'getCurrentLocation null when not paused/empty', loc, null);
+    }
+
+    // Test: getCurrentLocation returns top frame source when paused
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        const source = { filename: 'scheme://test.scm', line: 7, column: 2 };
+        debugRuntime.enterFrame({
+            name: 'foo', originalName: 'foo', source, env: new Environment()
+        });
+        debugRuntime.pauseController.pause('breakpoint');
+
+        const loc = api.getCurrentLocation();
+        assert(logger, 'getCurrentLocation returns source', loc !== null, true);
+        assert(logger, 'getCurrentLocation filename', loc?.filename, 'scheme://test.scm');
+        assert(logger, 'getCurrentLocation line', loc?.line, 7);
+
+        debugRuntime.exitFrame();
+        debugRuntime.pauseController.reset();
+    }
+
+    // =========================================================================
+    // resume — unpauses execution
+    // =========================================================================
+    logger.title('__schemeDebug API - resume');
+
+    // Test: resume transitions paused state to running
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        debugRuntime.pauseController.pause('breakpoint');
+        assert(logger, 'before resume: state is paused',
+            debugRuntime.pauseController.getState(), 'paused');
+
+        api.resume();
+
+        assert(logger, 'after resume: state is running',
+            debugRuntime.pauseController.getState(), 'running');
+        assert(logger, 'after resume: reason is null',
+            debugRuntime.pauseController.getPauseReason(), null);
+    }
+
+    // Test: resume when already running is a safe no-op
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        // Should not throw
+        api.resume();
+        assert(logger, 'resume when running: still running',
+            debugRuntime.pauseController.getState(), 'running');
     }
 
     // Clean up global

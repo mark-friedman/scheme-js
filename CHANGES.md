@@ -4784,3 +4784,137 @@ appear in the file list. Clicking a file loads it into the CodeMirror viewer.
 ```
 TEST SUMMARY: 2509 passed, 0 failed, 8 skipped
 ```
+
+---
+
+# Walkthrough: Chrome DevTools Panel — Phase 2 (Cooperative Breakpoints + Pause/Resume) (2026-03-04)
+
+Phase 2 of the Scheme-JS DevTools panel replaces probe-based debugging with cooperative pausing via `PauseController`, and wires up the full panel UI for breakpoint, pause, step, and variable inspection.
+
+## What Changed
+
+### `src/debug/devtools/devtools_debug.js`
+- Expanded `__schemeDebug` global API with: `activate()`, `setBreakpoint()`, `removeBreakpoint()`, `getAllBreakpoints()`, `getCurrentLocation()`, `getStatus()`, `resume()`, `stepInto()`, `stepOver()`, `stepOut()` — all delegating to `interpreter.debugRuntime`
+- `stepInto/Over/Out` now delegate to `SchemeDebugRuntime` (cooperative) instead of `__schemeProbeRuntime` (probe-based)
+- Wires `dr.onPause` / `dr.onResume` callbacks to dispatch `CustomEvent('scheme-debug-paused')` / `CustomEvent('scheme-debug-resumed')` on `window`, guarded by `typeof window.dispatchEvent === 'function'`
+
+### `src/packaging/html_adapter.js`
+- When debug mode is active, uses `await interpreter.runAsync(ast, env)` instead of sync `interpreter.run(ast, env)`, allowing `PauseController.waitForResume()` to block execution cooperatively
+
+### `extension/content_script.js` (new)
+- Listens for `scheme-debug-paused` and `scheme-debug-resumed` CustomEvents on `window`, relays them to the DevTools panel via `chrome.runtime.sendMessage`
+
+### `extension/manifest.json`
+- Added `content_scripts` entry to inject `content_script.js` into all pages
+
+### `extension/panel-src/protocol/scheme-bridge.js`
+- Added wrappers for all new `__schemeDebug` API methods: `activate`, `getStatus`, `getStack`, `getLocals`, `resume`, `stepInto`, `stepOver`, `stepOut`, `setBreakpoint`, `removeBreakpoint`, `getAllBreakpoints`
+
+### `extension/panel-src/components/toolbar.js` (new)
+- Debug controls: Resume (▶), Step Into (⬇), Step Over (↷), Step Out (⬆) buttons + status text
+- Buttons are disabled when running, enabled via `setPaused()`; keyboard shortcuts F8/F10/F11
+
+### `extension/panel-src/components/call-stack.js` (new)
+- Renders Scheme call stack frames (most recent first) with SCM badge, function name, source location, TCO count
+- Clicking a frame selects it and triggers `onSelectFrame` callback
+
+### `extension/panel-src/components/variables.js` (new)
+- Renders local variable bindings with type-colored values (`number`, `boolean`, `string`, etc.)
+
+### `extension/panel-src/components/editor.js`
+- Added breakpoint gutter (click to toggle red dot) backed by `StateField`/`StateEffect`
+- Added current-line highlight (yellow bar) via `EditorView.decorations.compute()`
+- Fixed import: `Decoration` from `@codemirror/view`, `RangeSetBuilder` from `@codemirror/state`
+- New `createEditor` signature: `(container, onBreakpointToggle)` → adds `highlightLine(line)`, `setBreakpoints(lines)` to returned API
+
+### `extension/panel-src/main.js`
+- Imports and initializes all new components (toolbar, call-stack, variables)
+- Listens for `chrome.runtime.onMessage` to handle `scheme-debug-paused` / `scheme-debug-resumed`
+- On pause: `toolbar.setPaused()`, `callStack.setFrames()` (auto-triggers frame selection), which loads locals and highlights the source line
+- Breakpoint toggle in editor → `setBreakpoint` / `removeBreakpoint` via bridge, with ID tracking in a Map
+- On resume: clears all debug state (highlight, stack, variables)
+- Calls `activate()` on startup; shows "Reload page" message if debug not yet active
+
+### `extension/panel/panel.html`
+- Added `#toolbar-debug` div for toolbar component to mount into
+- Added `#right-panel` with `.panel-section` containers for call stack and variables
+
+### `extension/panel/panel.css`
+- Added CSS custom properties for buttons, right panel, frame/variable colors (dark + light)
+- Added styles for: `.toolbar-btn`, `.toolbar-status`, `.right-panel`, `.panel-section`, `.section-header`, `.section-content`, `.call-stack-frame`, `.frame-badge-scheme`, `.variable-row`, `.var-type-*`
+
+### `tests/debug/devtools/scheme_debug_api_tests.js`
+- Updated stepping tests to use `pauseController.getState()` / `getStepMode()` instead of `__schemeProbeRuntime._stepping`
+- Added tests for: `activate()`, `setBreakpoint/removeBreakpoint/getAllBreakpoints`, `getStatus()`, `getCurrentLocation()`, `resume()`
+
+## Test Results
+```
+TEST SUMMARY: 2549 passed, 0 failed, 8 skipped
+```
+
+---
+
+# Phase 2: Cooperative Scheme Breakpoints + Pause/Resume
+
+## Problem
+
+After Phase 1 introduced the panel shell, two bugs emerged when wiring up actual pause behavior:
+
+1. **Scripts stopped executing**: Scheme scripts in debug-enabled pages would hang after the first `display`, because `handlePause()` called `await waitForResume()` — blocking forever when no panel was connected to call `resume()`.
+
+2. **Breakpoints didn't pause**: Even when breakpoints were set and pre-loaded from localStorage, the pause mechanism blocked without the panel being registered to respond.
+
+## Root Cause
+
+`devtools_debug.js`'s `installSchemeDebugAPI()` sets `dr.onPause` unconditionally when running in browser context. `handlePause()` entered the blocking `await waitForResume()` path whenever `dr.onPause` was set — even with no panel connected.
+
+## Fixes
+
+### `panelConnected` flag (`src/debug/scheme_debug_runtime.js`)
+- Added `panelConnected = false` field to `SchemeDebugRuntime`
+- Added `resumeTimeout = 30000` (ms) for safety — configurable in tests
+- `handlePause()` now only enters the blocking wait when `panelConnected && onPause`
+- When `onPause` is set but `panelConnected` is false: fire-and-auto-resume (no block)
+- 30-second safety timeout auto-resumes and clears `panelConnected` if panel stops responding
+
+### `activate()` saves panelConnected to localStorage (`src/debug/devtools/devtools_debug.js`)
+- `activate()` now also writes `localStorage.setItem('schemeJS_panelConnected', 'true')`
+- This persists the panel-connected state for the next page reload
+
+### `activate_debug.js` reads panelConnected (`extension/activate_debug.js`)
+- Runs in MAIN world at `document_start` (before any scripts)
+- Now reads `schemeJS_panelConnected` from localStorage and sets `globalThis.__SCHEME_JS_PANELCONNECTED`
+
+### `html_adapter.js` applies panelConnected early (`src/packaging/html_adapter.js`)
+- After restoring pre-loaded breakpoints, checks `__SCHEME_JS_PANELCONNECTED`
+- If set, applies `debugRuntime.panelConnected = true` BEFORE any Scheme scripts run
+- This is the critical timing fix: breakpoints now block during page-load script execution
+
+### Panel re-activates on navigation (`extension/panel-src/main.js`)
+- Extracts `activateAndRefresh()` function
+- Listens for `chrome.devtools.network.onNavigated` and re-calls `activateAndRefresh()` after 500ms
+- This ensures `activate()` is called after each page reload, saving the flag for the next reload
+
+### Content script safety (`extension/content_script.js`)
+- Added `.catch(() => {})` to `chrome.runtime.sendMessage` calls to prevent uncaught rejections when the panel is not open
+
+## Tests Added
+
+### `tests/debug/cooperative_pause_tests.js` — new sections:
+- **Panel Connection**: `panelConnected` defaults false, `activate()` sets it, breakpoints fire without blocking when false, async panel resume works
+- **panelConnected from localStorage**: full activate_debug.js + html_adapter.js simulation
+- **Timeout Safety**: `resumeTimeout = 1` (1ms), stale panelConnected, no resume called → auto-resumes and clears flag
+
+### `tests/debug/diagnostic.html` (updated)
+- 8 browser tests: API presence, getSources, setBreakpoint, getStatus, activate, debug runtime active, panelConnected after activate, localStorage persistence
+
+### `tests/debug/breakpoint_flow_test.html` (new)
+- End-to-end browser test: pre-sets `__SCHEME_JS_DEBUG`, `__SCHEME_JS_PANELCONNECTED`, `__SCHEME_JS_BREAKPOINTS` — simulates activate_debug.js
+- Registers `scheme-debug-paused` CustomEvent listener before modules load (non-module script)
+- Runs Scheme code with a pre-loaded breakpoint → verifies pause fires at correct line → auto-resumes → verifies execution completes
+- 5 browser tests, all passing
+
+## Test Results
+- Node.js: 2349 passed (4 new tests added)
+- Browser diagnostic: 8/8 PASS
+- Browser breakpoint flow: 5/5 PASS

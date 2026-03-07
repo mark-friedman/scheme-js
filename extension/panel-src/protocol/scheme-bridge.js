@@ -66,3 +66,154 @@ export async function getSourceContent(url) {
     return null;
   }
 }
+
+/**
+ * Activates debug mode in the page.
+ * @returns {Promise<{active: boolean, needsReload: boolean}>}
+ */
+export async function activate() {
+  try {
+    const json = await evalInPage('JSON.stringify(__schemeDebug.activate())');
+    return JSON.parse(json);
+  } catch {
+    return { active: false, needsReload: true };
+  }
+}
+
+/**
+ * Gets the current debugger status.
+ * @returns {Promise<{state: string, reason: string|null, active: boolean}>}
+ */
+export async function getStatus() {
+  try {
+    const json = await evalInPage('JSON.stringify(__schemeDebug.getStatus())');
+    return JSON.parse(json);
+  } catch {
+    return { state: 'inactive', reason: null, active: false };
+  }
+}
+
+/**
+ * Gets the current Scheme call stack.
+ * @returns {Promise<Array<{name: string, source: Object|null, tcoCount: number}>>}
+ */
+export async function getStack() {
+  try {
+    const json = await evalInPage('JSON.stringify(__schemeDebug.getStack())');
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Gets the local variable bindings for a specific stack frame.
+ * @param {number} frameIndex - Index into the stack (0 = bottom, length-1 = top)
+ * @returns {Promise<Array<{name: string, value: string, type: string, subtype: string|null}>>}
+ */
+export async function getLocals(frameIndex) {
+  try {
+    const json = await evalInPage(`JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`);
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Acknowledges that the panel has received the pause event.
+ * Cancels the safety timeout so the pause waits indefinitely
+ * for an explicit resume/step/abort from the user.
+ * @returns {Promise<void>}
+ */
+export async function ackPause() {
+  try {
+    await evalInPage('__schemeDebug.ackPause(); undefined');
+  } catch { /* ignore */ }
+}
+
+/**
+ * Resumes execution from a pause.
+ * @returns {Promise<void>}
+ */
+export async function resume() {
+  try {
+    await evalInPage('__schemeDebug.resume(); undefined');
+  } catch { /* ignore */ }
+}
+
+/**
+ * Steps into the next expression.
+ * @returns {Promise<void>}
+ */
+export async function stepInto() {
+  try {
+    await evalInPage('__schemeDebug.stepInto(); undefined');
+  } catch { /* ignore */ }
+}
+
+/**
+ * Steps over the current expression.
+ * @returns {Promise<void>}
+ */
+export async function stepOver() {
+  try {
+    await evalInPage('__schemeDebug.stepOver(); undefined');
+  } catch { /* ignore */ }
+}
+
+/**
+ * Steps out of the current function.
+ * @returns {Promise<void>}
+ */
+export async function stepOut() {
+  try {
+    await evalInPage('__schemeDebug.stepOut(); undefined');
+  } catch { /* ignore */ }
+}
+
+/**
+ * Sets a breakpoint at a specific source location.
+ * @param {string} url - Source URL
+ * @param {number} line - 1-indexed line number
+ * @returns {Promise<string|null>} Breakpoint ID, or null on failure
+ */
+export async function setBreakpoint(url, line) {
+  try {
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}))`
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Removes a breakpoint by ID.
+ * @param {string} id - Breakpoint ID
+ * @returns {Promise<boolean>}
+ */
+export async function removeBreakpoint(id) {
+  try {
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.removeBreakpoint(${JSON.stringify(id)}))`
+    );
+    return JSON.parse(json);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Gets all currently set breakpoints.
+ * @returns {Promise<Array<{id: string, filename: string, line: number, column: number|null}>>}
+ */
+export async function getAllBreakpoints() {
+  try {
+    const json = await evalInPage('JSON.stringify(__schemeDebug.getAllBreakpoints())');
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}

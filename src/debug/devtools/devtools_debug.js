@@ -481,35 +481,205 @@ export class DevToolsDebugIntegration {
       },
 
       /**
+       * Enables debug mode for future page loads.
+       * Sets globalThis.__SCHEME_JS_DEBUG so that on next reload, the
+       * interpreter is started in debug mode. Returns the current active state.
+       *
+       * @returns {{active: boolean, needsReload: boolean}}
+       */
+      activate() {
+        globalThis.__SCHEME_JS_DEBUG = true;
+        const dr = interpreter.debugRuntime;
+        const active = !!(dr?.enabled);
+        // Mark the panel as connected so handlePause() blocks (waits for
+        // resume commands) instead of auto-resuming.
+        if (dr) dr.panelConnected = true;
+        // Persist to sessionStorage so activate_debug.js can read it at
+        // document_start on the next page reload and set panelConnected
+        // BEFORE any Scheme scripts execute. sessionStorage is tab-scoped,
+        // preventing contamination of other tabs/pages on the same origin.
+        try { sessionStorage.setItem('schemeJS_panelConnected', 'true'); } catch {}
+        return { active, needsReload: !active };
+      },
+
+      /**
+       * Sets a breakpoint at the specified source location.
+       * Delegates to the BreakpointManager on the debug runtime.
+       *
+       * @param {string} url - Source URL (e.g., 'scheme://scheme-sources/app.scm')
+       * @param {number} line - Line number (1-indexed)
+       * @param {number|null} [column=null] - Column number (1-indexed), or null for line-level
+       * @returns {string|null} Breakpoint ID, or null if debug not active
+       */
+      setBreakpoint(url, line, column = null) {
+        const dr = interpreter.debugRuntime;
+        if (!dr) return null;
+        return dr.setBreakpoint(url, line, column);
+      },
+
+      /**
+       * Removes a breakpoint by ID.
+       *
+       * @param {string} id - Breakpoint ID returned from setBreakpoint
+       * @returns {boolean} True if removed, false if not found
+       */
+      removeBreakpoint(id) {
+        const dr = interpreter.debugRuntime;
+        if (!dr) return false;
+        return dr.removeBreakpoint(id);
+      },
+
+      /**
+       * Gets all currently set breakpoints.
+       * @returns {Array<{id: string, filename: string, line: number, column: number|null}>}
+       */
+      getAllBreakpoints() {
+        const dr = interpreter.debugRuntime;
+        if (!dr) return [];
+        return dr.getAllBreakpoints();
+      },
+
+      /**
+       * Gets the current source location (top of call stack).
+       * Returns null when not paused or stack is empty.
+       *
+       * @returns {{filename: string, line: number, column: number}|null}
+       */
+      getCurrentLocation() {
+        const dr = interpreter.debugRuntime;
+        if (!dr) return null;
+        const frame = dr.stackTracer.getCurrentFrame();
+        return frame?.source || null;
+      },
+
+      /**
+       * Gets the current debugger status.
+       * When paused, includes the source location of the pause point.
+       *
+       * @returns {{state: string, reason: string|null, active: boolean, source: Object|null}}
+       */
+      getStatus() {
+        const dr = interpreter.debugRuntime;
+        if (!dr) return { state: 'inactive', reason: null, active: false, source: null };
+        const state = dr.pauseController.getState();
+        let source = null;
+        if (state === 'paused') {
+          // Get the current pause source from the active debug level
+          const level = dr.levelStack.current();
+          source = level?.source || null;
+        }
+        return {
+          state,
+          reason: dr.pauseController.getPauseReason(),
+          active: dr.enabled,
+          source
+        };
+      },
+
+      /**
+       * Acknowledges that the panel has received the pause event.
+       * Cancels the safety timeout so the pause waits indefinitely
+       * for an explicit resume/step/abort from the user.
+       */
+      ackPause() {
+        const dr = interpreter.debugRuntime;
+        if (dr) dr.ackPause();
+      },
+
+      /**
+       * Resumes execution from a pause.
+       * Delegates to the debug runtime's resume(), which resolves
+       * the pending waitForResume() promise in the interpreter trampoline.
+       */
+      resume() {
+        const dr = interpreter.debugRuntime;
+        if (dr) dr.resume();
+      },
+
+      /**
        * Issue a Step Into command.
-       * V8 will pause at the next distinct Scheme expression.
+       * Transitions from paused to stepping-into via the PauseController.
+       * The interpreter will pause at the next distinct Scheme expression.
        */
       stepInto() {
-        if (globalThis.__schemeProbeRuntime) {
-          globalThis.__schemeProbeRuntime.stepInto();
-        }
+        const dr = interpreter.debugRuntime;
+        if (dr) dr.stepInto();
       },
 
       /**
        * Issue a Step Over command.
-       * V8 will pause at the next expression at the same or shallower depth.
+       * Transitions from paused to stepping-over via the PauseController.
+       * The interpreter will pause at the next expression at same or shallower depth.
        */
       stepOver() {
-        if (globalThis.__schemeProbeRuntime) {
-          globalThis.__schemeProbeRuntime.stepOver();
-        }
+        const dr = interpreter.debugRuntime;
+        if (dr) dr.stepOver();
       },
 
       /**
        * Issue a Step Out command.
-       * V8 will pause at the first expression after the current function returns.
+       * Transitions from paused to stepping-out via the PauseController.
+       * The interpreter will pause at the first expression after the current function returns.
        */
       stepOut() {
-        if (globalThis.__schemeProbeRuntime) {
-          globalThis.__schemeProbeRuntime.stepOut();
-        }
+        const dr = interpreter.debugRuntime;
+        if (dr) dr.stepOut();
       }
     };
+
+    // Wire up pause/resume events so the content script can relay
+    // pause notifications to the DevTools panel.
+    //
+    // We dispatch BOTH:
+    //   1. CustomEvent — for same-world listeners (test pages, direct page listeners)
+    //   2. window.postMessage — for cross-world relay (content script in ISOLATED world)
+    //
+    // Chrome's CustomEvent.detail is null when read from a different world
+    // (MAIN → ISOLATED). postMessage uses structured clone, which correctly
+    // copies data across the world boundary.
+    const dr = interpreter.debugRuntime;
+    if (dr && typeof window !== 'undefined' && typeof window.dispatchEvent === 'function' && typeof CustomEvent !== 'undefined') {
+      /**
+       * When the interpreter hits a breakpoint or step, dispatch
+       * 'scheme-debug-paused' via CustomEvent and postMessage so the
+       * content script can relay it to the panel.
+       *
+       * @param {{reason: string, source: Object|null, stack: Array}} info
+       */
+      dr.onPause = (info) => {
+        const detail = {
+          reason: info.reason || 'breakpoint',
+          source: info.source || null,
+          stack: (info.stack || []).map(f => ({
+            name: f.name,
+            source: f.source || null,
+            tcoCount: f.tcoCount || 0
+          }))
+        };
+        // CustomEvent for same-world listeners (test pages, direct page listeners)
+        window.dispatchEvent(new CustomEvent('scheme-debug-paused', { detail }));
+        // postMessage for cross-world relay (content script in ISOLATED world)
+        window.postMessage({ type: 'scheme-debug-paused', detail }, '*');
+      };
+
+      /**
+       * When execution resumes, dispatch 'scheme-debug-resumed' so the
+       * panel can update its state.
+       *
+       * Only fires for actual resumes ('resume' or 'timeout'), NOT for
+       * stepping actions. Stepping immediately re-pauses, so the panel
+       * should stay in its "paused" state to avoid flicker and the need
+       * to click Resume multiple times.
+       *
+       * @param {string} action - 'resume', 'timeout', 'stepInto', 'stepOver', 'stepOut'
+       */
+      dr.onResume = (action) => {
+        if (action === 'resume' || action === 'timeout') {
+          window.dispatchEvent(new CustomEvent('scheme-debug-resumed'));
+          window.postMessage({ type: 'scheme-debug-resumed' }, '*');
+        }
+      };
+    }
   }
 
   // =========================================================================

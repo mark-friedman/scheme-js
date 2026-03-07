@@ -154,6 +154,7 @@ export async function runDebugIntegrationTests(interpreter, logger) {
 
   // Test: After breakpoint, stepInto causes another pause with reason 'step'
   // Uses a multi-expression to ensure there are subsequent source-bearing AST nodes
+  // panelConnected must be true so handlePause blocks and waits for stepInto/resume
   {
     const pauseReasons = [];
     let pauseCount = 0;
@@ -172,6 +173,7 @@ export async function runDebugIntegrationTests(interpreter, logger) {
     });
 
     debugRuntime.enable();
+    debugRuntime.panelConnected = true;
     debugRuntime.setBreakpoint('<unknown>', 1);
     interpreter.setDebugRuntime(debugRuntime);
 
@@ -274,8 +276,9 @@ export async function runDebugIntegrationTests(interpreter, logger) {
     debugRuntime.enable();
     debugRuntime.setBreakpoint('<unknown>', 1);
 
-    // Pre-set the backend to resume immediately
-    backend.setNextAction('resume');
+    // Pre-set enough resume actions for all sub-expressions on line 1
+    // (the Cons cell (+ 5 5) and the symbol + both match the line breakpoint)
+    for (let i = 0; i < 10; i++) backend.setNextAction('resume');
 
     interpreter.setDebugRuntime(debugRuntime);
 
@@ -318,6 +321,7 @@ export async function runDebugIntegrationTests(interpreter, logger) {
   logger.title('Debug Integration - Abort During Pause');
 
   // Test: Aborting while paused terminates execution
+  // panelConnected must be true so handlePause blocks and waits for abort
   {
     let abortError = null;
     const debugRuntime = new SchemeDebugRuntime({
@@ -328,6 +332,7 @@ export async function runDebugIntegrationTests(interpreter, logger) {
     });
 
     debugRuntime.enable();
+    debugRuntime.panelConnected = true;
     debugRuntime.setBreakpoint('<unknown>', 1);
     interpreter.setDebugRuntime(debugRuntime);
 

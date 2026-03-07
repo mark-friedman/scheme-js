@@ -84,6 +84,28 @@ async function runScripts() {
 
     devtools.installSchemeDebugAPI(interpreter); // Expose API to DevTools Extension
 
+    // Restore any pre-loaded breakpoints (set by activate_debug.js from
+    // localStorage before page scripts run). This ensures breakpoints are
+    // in the BreakpointManager before the first Scheme expression executes.
+    if (globalThis.__SCHEME_JS_BREAKPOINTS) {
+      for (const { url, line } of globalThis.__SCHEME_JS_BREAKPOINTS) {
+        try {
+          debugRuntime.setBreakpoint(url, line);
+        } catch {
+          // Ignore invalid entries
+        }
+      }
+    }
+
+    // If the DevTools panel was connected in the previous session (flag set
+    // by activate_debug.js from localStorage), mark panelConnected=true now
+    // so handlePause() will block at breakpoints during script execution.
+    // The panel will call activate() again after the page loads, which saves
+    // the flag for the next reload.
+    if (globalThis.__SCHEME_JS_PANELCONNECTED) {
+      debugRuntime.panelConnected = true;
+    }
+
     // When library debugging is enabled, wrap the file resolver to register
     // library sources as they are loaded, making them debuggable in DevTools.
     if (isLibraryDebugRequested()) {
@@ -107,7 +129,11 @@ async function runScripts() {
     }
   }
 
+  // Pass 1: Fetch, parse, and register ALL sources before executing any.
+  // This ensures all sources are visible in the DevTools panel even when
+  // execution pauses at a breakpoint in the first script.
   let inlineIndex = 0;
+  const prepared = [];
 
   for (const script of scripts) {
     try {
@@ -127,8 +153,9 @@ async function runScripts() {
         sourceId = `scheme://inline-scripts/script-${inlineIndex++}.scm`;
       }
 
-      // Parse with sourceId so AST nodes carry the correct filename
-      const expressions = parse(code, { filename: sourceId });
+      // Parse with sourceId so AST nodes carry the correct filename.
+      // wrapLiterals wraps top-level primitive values for breakpoint source tracking.
+      const expressions = parse(code, { filename: sourceId, wrapLiterals: true });
       if (expressions.length === 0) continue;
 
       // Register source for DevTools probe generation
@@ -144,11 +171,26 @@ async function runScripts() {
         ast = analyze(list(intern('begin'), ...expressions));
       }
 
-      // Execute using the interpreter directly
-      interpreter.run(ast, env);
+      prepared.push({ ast, sourceId });
 
     } catch (err) {
-      console.error('Error executing Scheme script:', err);
+      console.error('Error loading Scheme script:', err);
+    }
+  }
+
+  // Pass 2: Execute all scripts sequentially.
+  // When debug is active, use the async path so the cooperative pause
+  // mechanism (PauseController.waitForResume) can block execution at
+  // breakpoints and step boundaries without freezing the browser.
+  for (const { ast, sourceId } of prepared) {
+    try {
+      if (debugEnabled) {
+        await interpreter.runAsync(ast, env);
+      } else {
+        interpreter.run(ast, env);
+      }
+    } catch (err) {
+      console.error(`Error executing Scheme script ${sourceId}:`, err);
     }
   }
 }

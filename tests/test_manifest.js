@@ -47,6 +47,8 @@ export const unitTests = [
     // DevTools Integration Tests (Phase 6)
     { path: 'debug/devtools/boundary_exception_tests.js', fn: 'runBoundaryTests', needsInterpreter: false, async: true },
     { path: 'debug/devtools/boundary_exception_tests.js', fn: 'runExceptionTests', needsInterpreter: false, async: true },
+    // Cooperative Pause Flow (Panel Phase 2)
+    { path: 'debug/cooperative_pause_tests.js', fn: 'runCooperativePauseTests', needsInterpreter: false, async: true },
     // DevTools Integration Tests (Phase 7)
     { path: 'debug/devtools/repl_library_registration_tests.js', fn: 'runReplRegistrationTests', needsInterpreter: false },
     { path: 'debug/devtools/repl_library_registration_tests.js', fn: 'runLibraryRegistrationTests', needsInterpreter: false },

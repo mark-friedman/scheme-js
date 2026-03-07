@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scheme-JS PostMessage Relay Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #569cd6; }
+    .pass { color: #6a9955; }
+    .fail { color: #f44747; }
+    .info { color: #dcdcaa; }
+    .test-row { margin: 4px 0; padding: 4px 8px; }
+  </style>
+
+  <!--
+    This test verifies that BOTH CustomEvent and postMessage fire with
+    correct detail when a breakpoint is hit. This exercises the dual-channel
+    dispatch added to support cross-world relay (MAIN → ISOLATED).
+
+    No Chrome extension required — runs standalone in a browser.
+  -->
+  <script>
+    // --- Simulate activate_debug.js ---
+    globalThis.__SCHEME_JS_DEBUG = true;
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+    globalThis.__SCHEME_JS_BREAKPOINTS = [
+      { url: 'scheme://inline-scripts/script-0.scm', line: 2 }
+    ];
+
+    window._executionStartTime = Date.now();
+
+    // --- Track CustomEvent (same-world) ---
+    window._customEventDetail = null;
+    window._customEventResumed = false;
+    window.addEventListener('scheme-debug-paused', function(e) {
+      window._customEventDetail = e.detail;
+      console.log('[Test] CustomEvent scheme-debug-paused fired:', e.detail?.source);
+      // Auto-resume
+      setTimeout(function() {
+        if (typeof globalThis.__schemeDebug !== 'undefined') {
+          globalThis.__schemeDebug.resume();
+        }
+      }, 10);
+    });
+    window.addEventListener('scheme-debug-resumed', function() {
+      window._customEventResumed = true;
+      console.log('[Test] CustomEvent scheme-debug-resumed fired');
+    });
+
+    // --- Track postMessage (cross-world compatible) ---
+    window._postMessageDetail = null;
+    window._postMessageResumed = false;
+    window.addEventListener('message', function(e) {
+      if (e.source !== window) return;
+      if (e.data && e.data.type === 'scheme-debug-paused') {
+        window._postMessageDetail = e.data.detail;
+        console.log('[Test] postMessage scheme-debug-paused received:', e.data.detail?.source);
+      } else if (e.data && e.data.type === 'scheme-debug-resumed') {
+        window._postMessageResumed = true;
+        console.log('[Test] postMessage scheme-debug-resumed received');
+      }
+    });
+  </script>
+
+  <!-- Module scripts are deferred and run AFTER the above non-module scripts -->
+  <script type="module" src="../../dist/scheme.js"></script>
+  <script type="module" src="../../dist/scheme-html.js"></script>
+</head>
+<body>
+  <h1>PostMessage Relay Test</h1>
+  <p class="info">
+    Tests dual-channel dispatch (CustomEvent + postMessage) for cross-world relay.<br>
+    Breakpoint on line 2. Expects both channels to fire with correct detail.
+  </p>
+
+  <div id="output">Running... (waiting up to 3s)</div>
+
+  <!--
+    Line 1: (define x 10)
+    LINE 2: (define y 20)     <- breakpoint here
+    Line 3: (+ x y)
+  -->
+  <script type="text/scheme" debug>
+(define x 10)
+(define y 20)
+(+ x y)
+  </script>
+
+  <script type="module">
+    const output = document.getElementById('output');
+
+    // Wait for Scheme scripts to complete
+    await new Promise(r => setTimeout(r, 2000));
+
+    const elapsed = Date.now() - window._executionStartTime;
+    const results = [];
+
+    function pass(name) {
+      results.push('<div class="test-row pass">PASS: ' + name + '</div>');
+      console.log('PASS: ' + name);
+    }
+    function fail(name, detail) {
+      results.push('<div class="test-row fail">FAIL: ' + name + ' — ' + detail + '</div>');
+      console.error('FAIL: ' + name + ' — ' + detail);
+    }
+
+    // Test 1: CustomEvent fired with detail
+    const ce = window._customEventDetail;
+    if (ce !== null) {
+      pass('CustomEvent fired with detail');
+    } else {
+      fail('CustomEvent fired with detail', 'detail was null');
+    }
+
+    // Test 2: postMessage fired with detail
+    const pm = window._postMessageDetail;
+    if (pm !== null) {
+      pass('postMessage fired with detail');
+    } else {
+      fail('postMessage fired with detail', 'detail was null');
+    }
+
+    // Test 3: CustomEvent detail has correct source line
+    if (ce && ce.source && ce.source.line === 2) {
+      pass('CustomEvent detail.source.line === 2');
+    } else {
+      fail('CustomEvent detail.source.line === 2',
+        'got ' + JSON.stringify(ce && ce.source));
+    }
+
+    // Test 4: postMessage detail has correct source line
+    if (pm && pm.source && pm.source.line === 2) {
+      pass('postMessage detail.source.line === 2');
+    } else {
+      fail('postMessage detail.source.line === 2',
+        'got ' + JSON.stringify(pm && pm.source));
+    }
+
+    // Test 5: Both details have matching source.line
+    if (ce && pm && ce.source && pm.source && ce.source.line === pm.source.line) {
+      pass('Both channels report same source.line');
+    } else {
+      fail('Both channels report same source.line',
+        'CE=' + JSON.stringify(ce && ce.source) + ' PM=' + JSON.stringify(pm && pm.source));
+    }
+
+    // Test 6: CustomEvent resumed fired
+    if (window._customEventResumed) {
+      pass('CustomEvent scheme-debug-resumed fired');
+    } else {
+      fail('CustomEvent scheme-debug-resumed fired', 'never received');
+    }
+
+    // Test 7: postMessage resumed fired
+    if (window._postMessageResumed) {
+      pass('postMessage scheme-debug-resumed fired');
+    } else {
+      fail('postMessage scheme-debug-resumed fired', 'never received');
+    }
+
+    // Test 8: No 5-second delay (execution completed promptly)
+    if (elapsed < 3000) {
+      pass('Execution completed in ' + elapsed + 'ms (no timeout hang)');
+    } else {
+      fail('Execution timing', 'took ' + elapsed + 'ms — possible timeout hang');
+    }
+
+    // Test 9: postMessage detail has stack array
+    if (pm && Array.isArray(pm.stack)) {
+      pass('postMessage detail has stack array (' + pm.stack.length + ' frames)');
+    } else {
+      fail('postMessage detail has stack array', 'missing or not array');
+    }
+
+    // Test 10: postMessage detail has reason
+    if (pm && pm.reason === 'breakpoint') {
+      pass('postMessage detail.reason === "breakpoint"');
+    } else {
+      fail('postMessage detail.reason === "breakpoint"',
+        'got ' + JSON.stringify(pm && pm.reason));
+    }
+
+    output.innerHTML = results.join('');
+  </script>
+</body>
+</html>

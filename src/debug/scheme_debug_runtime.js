@@ -42,6 +42,43 @@ export class SchemeDebugRuntime {
 
         /** @type {boolean} */
         this.enabled = false;
+
+        /**
+         * Whether a debug panel/frontend is connected and ready to receive
+         * pause events and send resume commands. When false, handlePause()
+         * will auto-resume instead of blocking forever.
+         * Set to true by __schemeDebug.activate() from the DevTools panel.
+         * Also set from __SCHEME_JS_PANELCONNECTED (written by activate_debug.js
+         * from sessionStorage) before scripts run.
+         * @type {boolean}
+         */
+        this.panelConnected = false;
+
+        /**
+         * Milliseconds to wait for the panel to acknowledge the pause before
+         * auto-resuming. Guards against stale panelConnected flags (e.g. when
+         * sessionStorage says the panel is connected but DevTools was actually
+         * closed). Once the panel calls ackPause(), the timeout is cancelled
+         * and the pause waits indefinitely for an explicit resume/step/abort.
+         * Override to a small value in tests to avoid waiting.
+         * @type {number}
+         */
+        this.resumeTimeout = 5000;
+
+        /**
+         * Whether the current pause has been acknowledged by the panel.
+         * Set to true by ackPause(), reset on each new pause.
+         * When true, the safety timeout is cancelled.
+         * @type {boolean}
+         */
+        this.pauseAcknowledged = false;
+
+        /**
+         * Handle for the current safety timeout, so ackPause() can cancel it.
+         * @type {ReturnType<typeof setTimeout>|null}
+         * @private
+         */
+        this._resumeTimeoutHandle = null;
     }
 
     /**
@@ -140,6 +177,19 @@ export class SchemeDebugRuntime {
     // =========================================================================
     // Step Control
     // =========================================================================
+
+    /**
+     * Acknowledges that the panel has received the pause event and is
+     * displaying the paused UI. Cancels the safety timeout so the pause
+     * waits indefinitely for an explicit resume/step/abort from the user.
+     */
+    ackPause() {
+        this.pauseAcknowledged = true;
+        if (this._resumeTimeoutHandle !== null) {
+            clearTimeout(this._resumeTimeoutHandle);
+            this._resumeTimeoutHandle = null;
+        }
+    }
 
     /**
      * Resumes execution.
@@ -312,10 +362,38 @@ export class SchemeDebugRuntime {
                     action = 'resume';
                 }
             }
-        } else if (this.onPause) {
-            // Callback-based path (used in tests without a full backend)
+        } else if (this.onPause && this.panelConnected) {
+            // Callback-based path: only block when a panel is connected and
+            // ready to send resume/step commands. Without panelConnected,
+            // we'd block forever since nobody would call resume().
+            this.pauseAcknowledged = false;
+            this._resumeTimeoutHandle = null;
             this.onPause(pauseInfo);
+
+            // Safety timeout: auto-resume if the panel doesn't acknowledge
+            // within resumeTimeout ms. Guards against stale panelConnected
+            // flags (e.g. localStorage says connected but DevTools was closed).
+            // If the panel calls ackPause(), this timeout is cancelled and
+            // the pause waits indefinitely for user action.
+            if (this.resumeTimeout > 0 && !this.pauseAcknowledged) {
+                this._resumeTimeoutHandle = setTimeout(() => {
+                    this._resumeTimeoutHandle = null;
+                    if (this.pauseController.isPaused() && !this.pauseAcknowledged) {
+                        this.panelConnected = false; // Suppress future blocking pauses
+                        this.pauseController.resume();
+                        // Notify listeners so the panel can update its state
+                        if (this.onResume) {
+                            this.onResume('timeout');
+                        }
+                    }
+                }, this.resumeTimeout);
+            }
+
             await this.pauseController.waitForResume();
+            if (this._resumeTimeoutHandle !== null) {
+                clearTimeout(this._resumeTimeoutHandle);
+                this._resumeTimeoutHandle = null;
+            }
 
             if (this.pauseController.isAborted()) {
                 action = 'abort';
@@ -327,6 +405,11 @@ export class SchemeDebugRuntime {
                     action = 'resume';
                 }
             }
+        } else if (this.onPause) {
+            // Fire-and-forget: notify listener but don't block (no panel connected)
+            this.onPause(pauseInfo);
+            this.pauseController.resume();
+            action = 'resume';
         } else {
             action = 'resume';
         }

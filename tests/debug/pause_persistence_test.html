@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scheme-JS Pause Persistence Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #569cd6; }
+    .info { color: #dcdcaa; }
+    #status { color: #569cd6; font-size: 18px; margin: 20px 0; }
+  </style>
+
+  <!--
+    This test page hits a breakpoint and does NOT auto-resume.
+    Instead it calls ackPause() to cancel the safety timeout,
+    then waits for an external resume (from the test harness or panel).
+    Used by Puppeteer E2E tests to verify pauses persist.
+  -->
+  <script>
+    globalThis.__SCHEME_JS_DEBUG = true;
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+    globalThis.__SCHEME_JS_BREAKPOINTS = [
+      { url: 'scheme://inline-scripts/script-0.scm', line: 2 }
+    ];
+
+    // Track state
+    window._pauseTime = null;
+    window._resumeTime = null;
+    window._executionComplete = false;
+
+    window.addEventListener('scheme-debug-paused', function(e) {
+      window._pauseTime = Date.now();
+      document.getElementById('status').textContent = 'PAUSED';
+      console.log('[Test] Paused at', e.detail?.source);
+      // Acknowledge the pause — cancels the safety timeout
+      if (typeof globalThis.__schemeDebug !== 'undefined') {
+        globalThis.__schemeDebug.ackPause();
+      }
+      // Do NOT resume — wait for external action
+    });
+
+    window.addEventListener('scheme-debug-resumed', function() {
+      window._resumeTime = Date.now();
+      document.getElementById('status').textContent = 'RESUMED';
+      console.log('[Test] Resumed');
+    });
+
+    // postMessage version too
+    window.addEventListener('message', function(e) {
+      if (e.source !== window) return;
+      if (e.data?.type === 'scheme-debug-paused' && !window._pauseTime) {
+        window._pauseTime = Date.now();
+      }
+    });
+  </script>
+
+  <script type="module" src="../../dist/scheme.js"></script>
+  <script type="module" src="../../dist/scheme-html.js"></script>
+</head>
+<body>
+  <h1>Pause Persistence Test</h1>
+  <p class="info">
+    Breakpoint on line 2. Calls ackPause() but does NOT resume.<br>
+    Execution should stay paused until explicitly resumed.
+  </p>
+  <div id="status">WAITING</div>
+
+  <script type="text/scheme" debug>
+(define x 10)
+(define y 20)
+(+ x y)
+  </script>
+
+  <!-- This script checks if execution completed (it shouldn't if paused) -->
+  <script type="module">
+    // Give enough time for any timeout to fire (if it would)
+    await new Promise(r => setTimeout(r, 8000));
+    if (!window._resumeTime) {
+      // Still paused after 8 seconds — good!
+      window._executionComplete = false;
+      document.getElementById('status').textContent = 'STILL_PAUSED';
+    } else {
+      window._executionComplete = true;
+      document.getElementById('status').textContent = 'COMPLETED';
+    }
+  </script>
+</body>
+</html>

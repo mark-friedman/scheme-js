@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Puppeteer E2E Test Page</title>
+
+  <!--
+    This page is driven by Puppeteer tests (run_extension_tests.mjs).
+    It does NOT auto-resume on pause — the test script controls all
+    breakpoint, resume, and step interactions via __schemeDebug.
+
+    Debug flags are set before module scripts load so that the interpreter
+    starts in debug mode with panelConnected=true.
+  -->
+  <script>
+    // Enable debug mode and panel-connected flag
+    globalThis.__SCHEME_JS_DEBUG = true;
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+    // No pre-loaded breakpoints — Puppeteer sets them dynamically
+    globalThis.__SCHEME_JS_BREAKPOINTS = [];
+
+    // Track all pause/resume events for Puppeteer to query
+    window._pauseEvents = [];
+    window._resumeEvents = [];
+    window._executionComplete = false;
+    window._executionResult = null;
+    window._executionError = null;
+
+    window.addEventListener('scheme-debug-paused', function(e) {
+      window._pauseEvents.push(e.detail);
+    });
+    window.addEventListener('scheme-debug-resumed', function() {
+      window._resumeEvents.push(Date.now());
+    });
+  </script>
+
+  <script type="module" src="../../dist/scheme.js"></script>
+  <script type="module" src="../../dist/scheme-html.js"></script>
+</head>
+<body>
+  <h1>Puppeteer E2E Test Page</h1>
+  <div id="status">loading</div>
+  <pre id="scheme-output"></pre>
+
+  <!--
+    Inline script with several functions for testing breakpoints,
+    stepping, call stack, and variable inspection.
+
+    Lines (relative to this script block):
+      1: (define (add a b) (+ a b))
+      2: (define (double x) (* x 2))
+      3: (define (compute x) (add (double x) x))
+      4: (define (factorial n) (if (<= n 1) 1 (* n (factorial (- n 1)))))
+      5: (define greeting "hello")
+      6: greeting
+      7: 42
+      8: (display (string-append "result=" (number->string (compute 5)) "\n"))
+      9: (display (string-append "fact5=" (number->string (factorial 5)) "\n"))
+  -->
+  <script type="text/scheme" debug>
+(define (add a b) (+ a b))
+(define (double x) (* x 2))
+(define (compute x) (add (double x) x))
+(define (factorial n) (if (<= n 1) 1 (* n (factorial (- n 1)))))
+(define greeting "hello")
+greeting
+42
+(display (string-append "result=" (number->string (compute 5)) "\n"))
+(display (string-append "fact5=" (number->string (factorial 5)) "\n"))
+  </script>
+
+  <!-- External script for multi-file testing -->
+  <script type="text/scheme" src="manual_script.scm" debug></script>
+
+  <script type="module">
+    // Mark execution complete after all Scheme scripts finish
+    // (module scripts run after Scheme scripts due to scheme-html.js deferral)
+    await new Promise(r => setTimeout(r, 500));
+    window._executionComplete = true;
+    document.getElementById('status').textContent = 'ready';
+  </script>
+</body>
+</html>

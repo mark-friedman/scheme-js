@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scheme-JS Breakpoint Flow Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #569cd6; }
+    .pass { color: #6a9955; }
+    .fail { color: #f44747; }
+    .info { color: #dcdcaa; }
+    .test-row { margin: 4px 0; padding: 4px 8px; }
+  </style>
+
+  <!--
+    Non-module scripts run during HTML parsing, BEFORE deferred module scripts.
+    We set the debug flags and register the CustomEvent listener here so
+    they're in place when scheme-html.js runs and starts executing Scheme code.
+
+    The pause CustomEvent fires synchronously inside handlePause() before
+    runDebug() ever yields, so the listener must be registered before
+    scheme-html.js evaluates.
+  -->
+  <script>
+    // --- Simulate activate_debug.js ---
+    globalThis.__SCHEME_JS_DEBUG = true;
+    // Simulate a panel being connected (as if activate_debug.js read localStorage)
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+    // Pre-load a breakpoint on line 3 of the inline script
+    globalThis.__SCHEME_JS_BREAKPOINTS = [
+      { url: 'scheme://inline-scripts/script-0.scm', line: 3 }
+    ];
+
+    // --- Simulate the DevTools panel's CustomEvent listener ---
+    // Must be registered BEFORE module scripts run (non-module scripts execute first)
+    window._testPauseInfo = null;
+    window._testResumed = false;
+
+    window.addEventListener('scheme-debug-paused', function(e) {
+      window._testPauseInfo = e.detail;
+      console.log('[Test] scheme-debug-paused fired:', e.detail?.source);
+      // Auto-resume after a short delay (simulates panel handling the event)
+      setTimeout(function() {
+        if (typeof globalThis.__schemeDebug !== 'undefined') {
+          globalThis.__schemeDebug.resume();
+        }
+      }, 50);
+    });
+
+    window.addEventListener('scheme-debug-resumed', function() {
+      window._testResumed = true;
+      console.log('[Test] scheme-debug-resumed fired');
+    });
+  </script>
+
+  <!-- Module scripts are deferred and run AFTER the above non-module scripts -->
+  <script type="module" src="../../dist/scheme.js"></script>
+  <script type="module" src="../../dist/scheme-html.js"></script>
+</head>
+<body>
+  <h1>Breakpoint Flow Test</h1>
+  <p class="info">
+    Tests the full cooperative pause flow without the Chrome extension.<br>
+    Pre-loads breakpoint on line 3. Expects pause + auto-resume + execution to complete.
+  </p>
+
+  <div id="output">Running... (waiting up to 5s)</div>
+
+  <!--
+    Line 1: (define (greet name) ...)
+    Line 2: (define (factorial n) ...)
+    LINE 3: (define (sum n) ...)   ← breakpoint here
+    Line 4: (display ...)          ← should still execute after resume
+  -->
+  <script type="text/scheme" debug>
+(define (greet name) (string-append "Hello, " name "!"))
+(define (factorial n) (if (<= n 1) 1 (* n (factorial (- n 1)))))
+(define (sum n) (if (<= n 0) 0 (+ n (sum (- n 1)))))
+(display (string-append (greet "World") " fact(4)=" (number->string (factorial 4)) " sum(5)=" (number->string (sum 5)) "\n"))
+  </script>
+
+  <script type="module">
+    const output = document.getElementById('output');
+
+    // Wait for Scheme scripts to complete (they run async via runDebug + pause/resume)
+    await new Promise(r => setTimeout(r, 4000));
+
+    const results = [];
+
+    function pass(name) {
+      results.push(`<div class="test-row pass">PASS: ${name}</div>`);
+      console.log(`PASS: ${name}`);
+    }
+    function fail(name, detail) {
+      results.push(`<div class="test-row fail">FAIL: ${name} — ${detail}</div>`);
+      console.error(`FAIL: ${name} — ${detail}`);
+    }
+
+    // Test 1: __schemeDebug API exists
+    if (typeof globalThis.__schemeDebug !== 'undefined') {
+      pass('__schemeDebug API exists');
+    } else {
+      fail('__schemeDebug API exists', 'undefined');
+    }
+
+    // Test 2: pause event fired
+    const pauseInfo = window._testPauseInfo;
+    if (pauseInfo !== null) {
+      pass(`scheme-debug-paused event fired`);
+    } else {
+      fail('scheme-debug-paused event fired', 'event never received');
+    }
+
+    // Test 3: paused at correct line
+    if (pauseInfo?.source?.line === 3) {
+      pass(`paused at correct line (3) in ${pauseInfo.source.filename.split('/').pop()}`);
+    } else {
+      fail('paused at correct line', `got ${JSON.stringify(pauseInfo?.source)}`);
+    }
+
+    // Test 4: resumed event fired
+    if (window._testResumed) {
+      pass('scheme-debug-resumed event fired after resume()');
+    } else {
+      fail('scheme-debug-resumed event fired', 'event never received');
+    }
+
+    // Test 5: execution completed (display output appeared in console)
+    // We verify by checking the sources are registered (script finished loading)
+    const sources = globalThis.__schemeDebug?.getSources() || [];
+    if (sources.length >= 1) {
+      pass(`execution completed — ${sources.length} source(s) registered`);
+    } else {
+      fail('execution completed', 'no sources registered');
+    }
+
+    output.innerHTML = results.join('');
+  </script>
+</body>
+</html>

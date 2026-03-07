@@ -667,8 +667,13 @@ export class Interpreter {
       sourceUrl = `scheme://repl/eval-${this._replEvalCounter++}.scm`;
     }
 
-    // Parse with filename so AST nodes carry the correct source location
-    const expressions = parse(code, sourceUrl ? { filename: sourceUrl } : {});
+    // Parse with filename so AST nodes carry the correct source location.
+    // wrapLiterals wraps top-level primitive values in SourcedValue so
+    // the analyzer can attach source info for breakpoint matching.
+    const expressions = parse(code, {
+      ...(sourceUrl ? { filename: sourceUrl } : {}),
+      wrapLiterals: true
+    });
     if (expressions.length === 0) return null;
 
     // Register the source with DevTools so probes fire for this eval

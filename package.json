@@ -14,7 +14,8 @@
     "prebuild": "node scripts/generate_bundled_libraries.js",
     "build": "rollup -c && cp web/gh-pages.html dist/index.html",
     "build:panel": "node extension/build/build-panel.js",
-    "build:panel:watch": "node extension/build/build-panel.js --watch"
+    "build:panel:watch": "node extension/build/build-panel.js --watch",
+    "test:extension": "node tests/extension/run_extension_tests.mjs"
   },
   "private": true,
   "devDependencies": {
@@ -25,6 +26,7 @@
     "@codemirror/state": "^6.5.4",
     "@codemirror/view": "^6.39.16",
     "esbuild": "^0.27.3",
+    "puppeteer": "^24.38.0",
     "rollup": "^4.54.0"
   }
 }

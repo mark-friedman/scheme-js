@@ -29,6 +29,7 @@ import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, globalScopeRegistry, GLOBAL_SCOPE_ID, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
 import { globalContext } from './context.js';
 import { SchemeSyntaxError } from './errors.js';
+import { SourcedValue } from './reader/parser.js';
 import {
   initHandlers,
   registerAllHandlers,
@@ -133,6 +134,12 @@ export function analyze(exp, syntacticEnv = null, context = null) {
     console.error("Analyze called with null!");
     throw new SchemeSyntaxError('cannot analyze null (empty list)', null, 'analyze');
   }
+  // Unwrap SourcedValue (literal with source info from parser)
+  if (exp instanceof SourcedValue) {
+    const node = new LiteralNode(exp.value);
+    node.source = exp.source;
+    return node;
+  }
   if (typeof exp === 'number') {
     return new LiteralNode(exp);
   }
@@ -157,7 +164,7 @@ export function analyze(exp, syntacticEnv = null, context = null) {
   }
 
   if (exp instanceof Symbol || isSyntaxObject(exp)) {
-    return analyzeVariable(exp, syntacticEnv, ctx);
+    return withSourceFrom(analyzeVariable(exp, syntacticEnv, ctx), exp);
   }
 
   if (exp instanceof Cons) {

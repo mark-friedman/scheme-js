@@ -246,8 +246,15 @@ export async function runNestedDebugLevelTests(interpreter, logger) {
 
     assert(logger, 'backend is paused', backend.isPaused(), true);
 
-    // Resolve the breakpoint pause with resume
-    backend.resolveAction('resume');
+    // Resolve all breakpoint pauses (symbols now have source info,
+    // so multiple sub-expressions on line 1 may each trigger a pause)
+    const drainPauses = async () => {
+      while (backend.isPaused()) {
+        backend.resolveAction('resume');
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+    };
+    await drainPauses();
     const result = await evalPromise;
 
     assert(logger, 'eval completes after resume', result, 30);

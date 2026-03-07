@@ -2582,7 +2582,7 @@ EditorState.changeFilter = changeFilter;
 EditorState.transactionFilter = transactionFilter;
 EditorState.transactionExtender = transactionExtender;
 Compartment.reconfigure = /* @__PURE__ */ StateEffect.define();
-function combineConfig(configs, defaults, combine = {}) {
+function combineConfig(configs, defaults2, combine = {}) {
   let result = {};
   for (let config of configs)
     for (let key of Object.keys(config)) {
@@ -2595,9 +2595,9 @@ function combineConfig(configs, defaults, combine = {}) {
       else
         throw new Error("Config merge conflict for field " + key);
     }
-  for (let key in defaults)
+  for (let key in defaults2)
     if (result[key] === void 0)
-      result[key] = defaults[key];
+      result[key] = defaults2[key];
   return result;
 }
 var RangeValue = class {
@@ -11789,7 +11789,23 @@ GutterMarker.prototype.startSide = GutterMarker.prototype.endSide = -1;
 GutterMarker.prototype.point = true;
 var gutterLineClass = /* @__PURE__ */ Facet.define();
 var gutterWidgetClass = /* @__PURE__ */ Facet.define();
+var defaults = {
+  class: "",
+  renderEmptyElements: false,
+  elementStyle: "",
+  markers: () => RangeSet.empty,
+  lineMarker: () => null,
+  widgetMarker: () => null,
+  lineMarkerChange: null,
+  initialSpacer: null,
+  updateSpacer: null,
+  domEventHandlers: {},
+  side: "before"
+};
 var activeGutters = /* @__PURE__ */ Facet.define();
+function gutter(config) {
+  return [gutters(), activeGutters.of({ ...defaults, ...config })];
+}
 var unfixGutters = /* @__PURE__ */ Facet.define({
   combine: (values) => values.some((x) => x)
 });
@@ -15956,6 +15972,32 @@ var layoutTheme = EditorView.theme({
     padding: "0 8px 0 4px",
     minWidth: "36px",
     textAlign: "right"
+  },
+  // Breakpoint gutter: narrow column on the left
+  ".cm-breakpoint-gutter": {
+    width: "16px",
+    cursor: "pointer",
+    padding: "0"
+  },
+  ".cm-breakpoint-gutter .cm-gutterElement": {
+    width: "16px",
+    padding: "0",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  // Current-line highlight for the debug arrow
+  ".cm-debug-current-line": {
+    backgroundColor: "rgba(255, 193, 7, 0.15) !important",
+    borderLeft: "3px solid #ffc107"
+  },
+  // Breakpoint dot in the gutter
+  ".cm-breakpoint-dot": {
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    backgroundColor: "#ff5555",
+    display: "inline-block"
   }
 });
 var darkEditorTheme = EditorView.theme(
@@ -15978,21 +16020,13 @@ var darkEditorTheme = EditorView.theme(
 var darkHighlight = HighlightStyle.define([
   { tag: tags.comment, color: "#8d93ac", fontStyle: "italic" },
   { tag: tags.string, color: "#f1fa8c" },
-  // yellow
   { tag: tags.number, color: "#bd93f9" },
-  // purple
   { tag: tags.keyword, color: "#ff79c6", fontWeight: "bold" },
-  // pink
   { tag: [tags.atom, tags.bool], color: "#8be9fd" },
-  // cyan
   { tag: tags.meta, color: "#ff79c6" },
-  // pink (quote, `)
   { tag: tags.definition(tags.variableName), color: "#50fa7b" },
-  // green (predicates)
   { tag: tags.variableName, color: "#f8f8f2" },
-  // foreground
   { tag: tags.bracket, color: "#f8f8f2" },
-  // foreground
   { tag: tags.invalid, color: "#ff5555", textDecoration: "underline" }
 ]);
 var lightEditorTheme = EditorView.theme(
@@ -16015,32 +16049,115 @@ var lightEditorTheme = EditorView.theme(
 var lightHighlight = HighlightStyle.define([
   { tag: tags.comment, color: "#6e7781", fontStyle: "italic" },
   { tag: tags.string, color: "#0a3069" },
-  // navy
   { tag: tags.number, color: "#0550ae" },
-  // blue
   { tag: tags.keyword, color: "#cf222e", fontWeight: "bold" },
-  // red
   { tag: [tags.atom, tags.bool], color: "#0550ae" },
-  // blue
   { tag: tags.meta, color: "#8250df" },
-  // purple (quote, `)
   { tag: tags.definition(tags.variableName), color: "#116329" },
-  // dark green
   { tag: tags.variableName, color: "#24292f" },
-  // foreground
   { tag: tags.bracket, color: "#24292f" },
-  // foreground
   { tag: tags.invalid, color: "#cf222e", textDecoration: "underline" }
 ]);
 var themeCompartment = new Compartment();
 function makeThemeExtension(dark) {
   return dark ? [darkEditorTheme, syntaxHighlighting(darkHighlight)] : [lightEditorTheme, syntaxHighlighting(lightHighlight)];
 }
-function createEditor(container) {
+var toggleBreakpointEffect = StateEffect.define();
+var setBreakpointsEffect = StateEffect.define();
+var breakpointField = StateField.define({
+  create: () => /* @__PURE__ */ new Set(),
+  update(breakpoints, tr) {
+    let updated = breakpoints;
+    for (const effect of tr.effects) {
+      if (effect.is(toggleBreakpointEffect)) {
+        const line = effect.value;
+        updated = new Set(updated);
+        if (updated.has(line)) {
+          updated.delete(line);
+        } else {
+          updated.add(line);
+        }
+      } else if (effect.is(setBreakpointsEffect)) {
+        updated = effect.value;
+      }
+    }
+    return updated;
+  }
+});
+var BreakpointMarker = class extends GutterMarker {
+  /** @returns {Node} */
+  toDOM() {
+    const dot = document.createElement("div");
+    dot.className = "cm-breakpoint-dot";
+    return dot;
+  }
+};
+var breakpointMarker = new BreakpointMarker();
+var setCurrentLineEffect = StateEffect.define();
+var currentLineField = StateField.define({
+  create: () => null,
+  update(line, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setCurrentLineEffect)) {
+        return effect.value;
+      }
+    }
+    return line;
+  },
+  provide: (field) => EditorView.decorations.from(field, (currentLine) => {
+    if (currentLine === null) return Decoration.none;
+    const builder = new RangeSetBuilder();
+    return builder.finish();
+  })
+});
+var currentLinePlugin = EditorView.decorations.compute(
+  [currentLineField],
+  (state) => {
+    const lineNo = state.field(currentLineField);
+    if (lineNo === null) return Decoration.none;
+    try {
+      const lineInfo = state.doc.line(lineNo);
+      return Decoration.set([
+        Decoration.line({ class: "cm-debug-current-line" }).range(lineInfo.from)
+      ]);
+    } catch {
+      return Decoration.none;
+    }
+  }
+);
+function createEditor(container, onBreakpointToggle2) {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
   const state = EditorState.create({
     doc: "",
     extensions: [
+      // Breakpoint gutter (left of line numbers)
+      breakpointField,
+      gutter({
+        class: "cm-breakpoint-gutter",
+        markers: (view2) => {
+          const bps = view2.state.field(breakpointField);
+          const builder = new RangeSetBuilder();
+          for (let i = 1; i <= view2.state.doc.lines; i++) {
+            if (bps.has(i)) {
+              const line = view2.state.doc.line(i);
+              builder.add(line.from, line.from, breakpointMarker);
+            }
+          }
+          return builder.finish();
+        },
+        domEventHandlers: {
+          mousedown(view2, line) {
+            const lineNo = view2.state.doc.lineAt(line.from).number;
+            view2.dispatch({ effects: toggleBreakpointEffect.of(lineNo) });
+            const isNowSet = view2.state.field(breakpointField).has(lineNo);
+            if (onBreakpointToggle2) onBreakpointToggle2(lineNo, isNowSet);
+            return true;
+          }
+        }
+      }),
+      // Current-line highlight
+      currentLineField,
+      currentLinePlugin,
       lineNumbers(),
       highlightActiveLine(),
       schemeLanguage,
@@ -16050,10 +16167,7 @@ function createEditor(container) {
       EditorView.lineWrapping
     ]
   });
-  const view = new EditorView({
-    state,
-    parent: container
-  });
+  const view = new EditorView({ state, parent: container });
   prefersDark.addEventListener("change", (e) => {
     view.dispatch({
       effects: themeCompartment.reconfigure(makeThemeExtension(e.matches))
@@ -16061,11 +16175,11 @@ function createEditor(container) {
   });
   function setContent(content2) {
     view.dispatch({
-      changes: {
-        from: 0,
-        to: view.state.doc.length,
-        insert: content2
-      }
+      changes: { from: 0, to: view.state.doc.length, insert: content2 },
+      effects: [
+        setCurrentLineEffect.of(null),
+        setBreakpointsEffect.of(/* @__PURE__ */ new Set())
+      ]
     });
   }
   function scrollToLine(line) {
@@ -16077,7 +16191,16 @@ function createEditor(container) {
     } catch {
     }
   }
-  return { view, setContent, scrollToLine };
+  function highlightLine(line) {
+    view.dispatch({ effects: setCurrentLineEffect.of(line ?? null) });
+    if (line !== null) {
+      scrollToLine(line);
+    }
+  }
+  function setBreakpoints(lines) {
+    view.dispatch({ effects: setBreakpointsEffect.of(new Set(lines)) });
+  }
+  return { view, setContent, scrollToLine, highlightLine, setBreakpoints };
 }
 
 // extension/panel-src/protocol/scheme-bridge.js
@@ -16106,6 +16229,98 @@ async function getSources() {
     return JSON.parse(json);
   } catch {
     return [];
+  }
+}
+async function getSourceContent(url) {
+  try {
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+async function activate() {
+  try {
+    const json = await evalInPage("JSON.stringify(__schemeDebug.activate())");
+    return JSON.parse(json);
+  } catch {
+    return { active: false, needsReload: true };
+  }
+}
+async function getStatus() {
+  try {
+    const json = await evalInPage("JSON.stringify(__schemeDebug.getStatus())");
+    return JSON.parse(json);
+  } catch {
+    return { state: "inactive", reason: null, active: false };
+  }
+}
+async function getStack() {
+  try {
+    const json = await evalInPage("JSON.stringify(__schemeDebug.getStack())");
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
+async function getLocals(frameIndex) {
+  try {
+    const json = await evalInPage(`JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`);
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
+async function ackPause() {
+  try {
+    await evalInPage("__schemeDebug.ackPause(); undefined");
+  } catch {
+  }
+}
+async function resume() {
+  try {
+    await evalInPage("__schemeDebug.resume(); undefined");
+  } catch {
+  }
+}
+async function stepInto() {
+  try {
+    await evalInPage("__schemeDebug.stepInto(); undefined");
+  } catch {
+  }
+}
+async function stepOver() {
+  try {
+    await evalInPage("__schemeDebug.stepOver(); undefined");
+  } catch {
+  }
+}
+async function stepOut() {
+  try {
+    await evalInPage("__schemeDebug.stepOut(); undefined");
+  } catch {
+  }
+}
+async function setBreakpoint(url, line) {
+  try {
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}))`
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+async function removeBreakpoint(id) {
+  try {
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.removeBreakpoint(${JSON.stringify(id)}))`
+    );
+    return JSON.parse(json);
+  } catch {
+    return false;
   }
 }
 
@@ -16170,30 +16385,385 @@ function escapeAttr(text) {
   return escapeHtml(text).replace(/"/g, "&quot;");
 }
 
+// extension/panel-src/components/toolbar.js
+function createToolbar(container, callbacks) {
+  const toolbar2 = document.createElement("div");
+  toolbar2.className = "toolbar-controls";
+  function makeButton(icon, title, onClick) {
+    const btn = document.createElement("button");
+    btn.className = "toolbar-btn";
+    btn.title = title;
+    btn.textContent = icon;
+    btn.disabled = true;
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+  const resumeBtn = makeButton("\u25B6", "Resume (F8)", () => callbacks.onResume());
+  const stepIntoBtn = makeButton("\u2B07", "Step Into (F11)", () => callbacks.onStepInto());
+  const stepOverBtn = makeButton("\u21B7", "Step Over (F10)", () => callbacks.onStepOver());
+  const stepOutBtn = makeButton("\u2B06", "Step Out (Shift+F11)", () => callbacks.onStepOut());
+  const statusEl = document.createElement("span");
+  statusEl.className = "toolbar-status";
+  statusEl.textContent = "Running";
+  toolbar2.appendChild(resumeBtn);
+  toolbar2.appendChild(stepIntoBtn);
+  toolbar2.appendChild(stepOverBtn);
+  toolbar2.appendChild(stepOutBtn);
+  toolbar2.appendChild(statusEl);
+  container.appendChild(toolbar2);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "F8") {
+      e.preventDefault();
+      callbacks.onResume();
+    }
+    if (e.key === "F11" && !e.shiftKey) {
+      e.preventDefault();
+      callbacks.onStepInto();
+    }
+    if (e.key === "F10") {
+      e.preventDefault();
+      callbacks.onStepOver();
+    }
+    if (e.key === "F11" && e.shiftKey) {
+      e.preventDefault();
+      callbacks.onStepOut();
+    }
+  });
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+  function setPaused() {
+    resumeBtn.disabled = false;
+    stepIntoBtn.disabled = false;
+    stepOverBtn.disabled = false;
+    stepOutBtn.disabled = false;
+  }
+  function setRunning() {
+    resumeBtn.disabled = true;
+    stepIntoBtn.disabled = true;
+    stepOverBtn.disabled = true;
+    stepOutBtn.disabled = true;
+  }
+  return { setStatus, setPaused, setRunning };
+}
+
+// extension/panel-src/components/call-stack.js
+function createCallStack(container, onSelectFrame2) {
+  let frames = [];
+  let selectedIndex = -1;
+  container.className = "call-stack";
+  function render() {
+    container.innerHTML = "";
+    if (frames.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "call-stack-empty";
+      empty.textContent = "No stack frames";
+      container.appendChild(empty);
+      return;
+    }
+    for (let i = frames.length - 1; i >= 0; i--) {
+      const frame = frames[i];
+      const item = document.createElement("div");
+      item.className = "call-stack-frame";
+      if (i === selectedIndex) {
+        item.classList.add("selected");
+      }
+      const badge = document.createElement("span");
+      badge.className = "frame-badge frame-badge-scheme";
+      badge.textContent = "SCM";
+      item.appendChild(badge);
+      const nameEl = document.createElement("span");
+      nameEl.className = "frame-name";
+      nameEl.textContent = frame.name || "<anonymous>";
+      item.appendChild(nameEl);
+      if (frame.source) {
+        const srcEl = document.createElement("span");
+        srcEl.className = "frame-source";
+        const filename = frame.source.filename.split("/").pop();
+        srcEl.textContent = ` ${filename}:${frame.source.line}`;
+        item.appendChild(srcEl);
+      }
+      if (frame.tcoCount > 0) {
+        const tcoEl = document.createElement("span");
+        tcoEl.className = "frame-tco";
+        tcoEl.textContent = `\xD7${frame.tcoCount + 1}`;
+        tcoEl.title = `${frame.tcoCount + 1} tail calls collapsed`;
+        item.appendChild(tcoEl);
+      }
+      const frameIndex = i;
+      item.addEventListener("click", () => {
+        selectedIndex = frameIndex;
+        render();
+        onSelectFrame2(frameIndex, frame);
+      });
+      container.appendChild(item);
+    }
+  }
+  function setFrames(newFrames, suppressAutoSelect = false) {
+    frames = newFrames || [];
+    selectedIndex = frames.length > 0 ? frames.length - 1 : -1;
+    render();
+    if (!suppressAutoSelect && selectedIndex >= 0 && onSelectFrame2) {
+      onSelectFrame2(selectedIndex, frames[selectedIndex]);
+    }
+  }
+  function clear() {
+    frames = [];
+    selectedIndex = -1;
+    render();
+  }
+  function getSelectedIndex() {
+    return selectedIndex;
+  }
+  render();
+  return { setFrames, clear, getSelectedIndex };
+}
+
+// extension/panel-src/components/variables.js
+function createVariables(container) {
+  container.className = "variables-panel";
+  function typeClass(type) {
+    switch (type) {
+      case "number":
+        return "var-type-number";
+      case "boolean":
+        return "var-type-boolean";
+      case "string":
+        return "var-type-string";
+      case "null":
+        return "var-type-null";
+      default:
+        return "var-type-other";
+    }
+  }
+  function setLocals(locals) {
+    container.innerHTML = "";
+    if (!locals || locals.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "variables-empty";
+      empty.textContent = "No local bindings";
+      container.appendChild(empty);
+      return;
+    }
+    for (const { name: name2, value, type } of locals) {
+      const row = document.createElement("div");
+      row.className = "variable-row";
+      const nameEl = document.createElement("span");
+      nameEl.className = "var-name";
+      nameEl.textContent = name2;
+      row.appendChild(nameEl);
+      const sep = document.createElement("span");
+      sep.className = "var-sep";
+      sep.textContent = ": ";
+      row.appendChild(sep);
+      const valueEl = document.createElement("span");
+      valueEl.className = `var-value ${typeClass(type)}`;
+      valueEl.textContent = value;
+      valueEl.title = type;
+      row.appendChild(valueEl);
+      container.appendChild(row);
+    }
+  }
+  function clear() {
+    container.innerHTML = "";
+  }
+  return { setLocals, clear };
+}
+
 // extension/panel-src/main.js
-var editorContainer = document.getElementById("editor-container");
+var toolbarDebug = document.getElementById("toolbar-debug");
 var sourceListContainer = document.getElementById("source-list");
-var statusBar = document.getElementById("status-bar");
-var editor = createEditor(editorContainer);
-function onSelectSource(url, content2) {
-  editor.setContent(content2 || "");
-  setStatus(`Viewing: ${url.split("/").pop()}`);
-}
-var sourceList = createSourceList(sourceListContainer, onSelectSource);
-function setStatus(text) {
-  statusBar.textContent = text;
-}
-async function refresh() {
-  setStatus("Refreshing...");
-  await sourceList.refresh();
-  setStatus("Ready");
-}
-refresh();
-if (typeof chrome !== "undefined" && chrome.devtools?.panels) {
-  window.addEventListener("focus", () => refresh());
-}
+var editorContainer = document.getElementById("editor-container");
+var callStackContainer = document.getElementById("call-stack-container");
+var variablesContainer = document.getElementById("variables-container");
 var sidebar = document.getElementById("sidebar");
 var splitter = document.getElementById("splitter");
+var currentSourceUrl = null;
+var breakpointIds = /* @__PURE__ */ new Map();
+async function saveBreakpointsToPage() {
+  const entries = [];
+  for (const key of breakpointIds.keys()) {
+    const lastColon = key.lastIndexOf(":");
+    const url = key.substring(0, lastColon);
+    const line = parseInt(key.substring(lastColon + 1), 10);
+    entries.push({ url, line });
+  }
+  try {
+    await evalInPage(
+      `localStorage.setItem('schemeJS_breakpoints', ${JSON.stringify(JSON.stringify(entries))})`
+    );
+  } catch {
+  }
+}
+async function syncBreakpointsFromInterpreter() {
+  try {
+    const json = await evalInPage("JSON.stringify(__schemeDebug.getAllBreakpoints())");
+    const bps = JSON.parse(json);
+    for (const bp of bps) {
+      breakpointIds.set(`${bp.filename}:${bp.line}`, bp.id);
+    }
+  } catch {
+  }
+}
+function getBreakpointLinesForUrl(url) {
+  const lines = /* @__PURE__ */ new Set();
+  for (const key of breakpointIds.keys()) {
+    const lastColon = key.lastIndexOf(":");
+    const bpUrl = key.substring(0, lastColon);
+    if (bpUrl === url) {
+      lines.add(parseInt(key.substring(lastColon + 1), 10));
+    }
+  }
+  return lines;
+}
+var toolbar = createToolbar(toolbarDebug, {
+  onResume: () => resume(),
+  onStepInto: () => stepInto(),
+  onStepOver: () => stepOver(),
+  onStepOut: () => stepOut()
+});
+var variables = createVariables(variablesContainer);
+async function onSelectFrame(frameIndex, frame) {
+  try {
+    const locals = await getLocals(frameIndex);
+    variables.setLocals(locals);
+  } catch {
+    variables.clear();
+  }
+  if (frame.source) {
+    const url = frame.source.filename;
+    if (url !== currentSourceUrl) {
+      await loadSource(url);
+    }
+    editor.highlightLine(frame.source.line);
+  } else {
+    editor.highlightLine(null);
+  }
+}
+var callStack = createCallStack(callStackContainer, onSelectFrame);
+async function onBreakpointToggle(line, isNowSet) {
+  if (!currentSourceUrl) return;
+  const key = `${currentSourceUrl}:${line}`;
+  if (isNowSet) {
+    const id = await setBreakpoint(currentSourceUrl, line);
+    if (id) {
+      breakpointIds.set(key, id);
+      saveBreakpointsToPage();
+    }
+  } else {
+    const id = breakpointIds.get(key);
+    if (id) {
+      await removeBreakpoint(id);
+      breakpointIds.delete(key);
+      saveBreakpointsToPage();
+    }
+  }
+}
+var editor = createEditor(editorContainer, onBreakpointToggle);
+async function loadSource(url) {
+  const content2 = await getSourceContent(url);
+  if (content2 === null) return;
+  currentSourceUrl = url;
+  editor.setContent(content2);
+  const lines = getBreakpointLinesForUrl(url);
+  if (lines.size > 0) {
+    editor.setBreakpoints(lines);
+  }
+}
+function onSelectSource(url, content2) {
+  currentSourceUrl = url;
+  editor.setContent(content2 || "");
+  editor.highlightLine(null);
+  const lines = getBreakpointLinesForUrl(url);
+  if (lines.size > 0) {
+    editor.setBreakpoints(lines);
+  }
+  toolbar.setStatus(`Viewing: ${url.split("/").pop()}`);
+}
+var sourceList = createSourceList(sourceListContainer, onSelectSource);
+async function onPaused(detail) {
+  const reason = detail.reason === "step" ? "Paused (step)" : "Paused at breakpoint";
+  toolbar.setStatus(reason);
+  toolbar.setPaused();
+  ackPause();
+  const stack = detail.stack || [];
+  callStack.setFrames(
+    stack,
+    /* suppressAutoSelect */
+    true
+  );
+  const pauseSource = detail.source;
+  if (pauseSource && pauseSource.filename) {
+    if (pauseSource.filename !== currentSourceUrl) {
+      await loadSource(pauseSource.filename);
+    }
+    editor.highlightLine(pauseSource.line);
+  }
+  if (stack.length > 0) {
+    try {
+      const locals = await getLocals(stack.length - 1);
+      variables.setLocals(locals);
+    } catch {
+      variables.clear();
+    }
+  }
+}
+function onResumed() {
+  toolbar.setStatus("Running");
+  toolbar.setRunning();
+  callStack.clear();
+  variables.clear();
+  editor.highlightLine(null);
+  refresh();
+}
+if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === "scheme-debug-paused") {
+      onPaused(message.detail || {});
+    } else if (message.type === "scheme-debug-resumed") {
+      onResumed();
+    }
+  });
+}
+async function refresh() {
+  toolbar.setStatus("Refreshing...");
+  await sourceList.refresh();
+  toolbar.setStatus("Ready");
+}
+async function activateAndRefresh() {
+  try {
+    const result = await activate();
+    if (result.needsReload) {
+      toolbar.setStatus("Reload page to enable debugging");
+    } else {
+      await syncBreakpointsFromInterpreter();
+      await refresh();
+      const status = await getStatus();
+      if (status.state === "paused") {
+        const stack = await getStack();
+        onPaused({ reason: status.reason || "breakpoint", source: status.source || null, stack });
+      }
+    }
+  } catch {
+    await refresh();
+  }
+}
+activateAndRefresh();
+if (typeof chrome !== "undefined" && chrome.devtools?.network) {
+  chrome.devtools.network.onNavigated.addListener(() => {
+    setTimeout(() => activateAndRefresh(), 500);
+  });
+}
+var lastRefreshTime = 0;
+if (typeof chrome !== "undefined" && chrome.devtools?.panels) {
+  window.addEventListener("focus", () => {
+    const now = Date.now();
+    if (now - lastRefreshTime > 2e3) {
+      lastRefreshTime = now;
+      refresh();
+    }
+  });
+}
 var dragging = false;
 var dragStartX = 0;
 var dragStartWidth = 0;

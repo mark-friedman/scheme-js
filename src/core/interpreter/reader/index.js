@@ -4,12 +4,12 @@
  */
 
 import { tokenize, stripBlockComments } from './tokenizer.js';
-import { readFromTokens } from './parser.js';
+import { readFromTokens, SourcedValue } from './parser.js';
 import { fixup } from './datum_labels.js';
 
 // Re-export for consumers who need specific functions
 export { tokenize, stripBlockComments } from './tokenizer.js';
-export { readFromTokens, readList, readVector, readAtom, readBytevector, readJSObjectLiteral } from './parser.js';
+export { readFromTokens, readList, readVector, readAtom, readBytevector, readJSObjectLiteral, SourcedValue } from './parser.js';
 export { parseNumber, parsePrefixedNumber } from './number_parser.js';
 export { handleDotAccess, buildPropertyAccessForm } from './dot_access.js';
 export { processStringEscapes, processSymbolEscapes } from './string_utils.js';
@@ -38,11 +38,22 @@ export function parse(input, options = {}) {
 
     try {
         while (tokens.length > 0) {
+            // Capture token source before reading, for wrapping primitives
+            const tokenSource = options.wrapLiterals && tokens[0]?.source
+              ? tokens[0].source : null;
             const expr = readFromTokens(tokens, state);
             // If the expression is a Placeholder, it means top-level #n# (unlikely but possible)
             // or #n=... which returns the value.
             // We need to run fixup on the result to resolve internal cycles.
-            expressions.push(fixup(expr));
+            let result = fixup(expr);
+            // Wrap top-level primitive literals in SourcedValue so the analyzer
+            // can propagate source location to the LiteralNode AST node.
+            // Only done when wrapLiterals is set (debug evaluation paths).
+            if (tokenSource && (typeof result === 'number' || typeof result === 'string' ||
+                typeof result === 'boolean' || typeof result === 'bigint')) {
+              result = new SourcedValue(result, tokenSource);
+            }
+            expressions.push(result);
         }
     } catch (e) {
         if (!options.suppressLog) {
