@@ -324,13 +324,13 @@ export async function runSchemeDebugApiTests(logger) {
         assert(logger, 'eval error starts with #<error:', result.startsWith('#<error:'), true);
     }
 
-    // Test: eval with invalid frame index
+    // Test: eval with invalid frame index falls back to global env
     {
         createTestSetup();
         const api = globalThis.__schemeDebug;
 
         const result = api.eval('(+ 1 2)', 999);
-        assert(logger, 'eval with invalid frame returns error', result.startsWith('#<error:'), true);
+        assert(logger, 'eval with invalid frame falls back to global env', result, '3');
     }
 
     // =========================================================================

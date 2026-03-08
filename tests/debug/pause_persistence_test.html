@@ -78,10 +78,14 @@
     if (!window._resumeTime) {
       // Still paused after 8 seconds — good!
       window._executionComplete = false;
-      document.getElementById('status').textContent = 'STILL_PAUSED';
+      // Only update status if the resume handler hasn't already set it
+      const el = document.getElementById('status');
+      if (el.textContent !== 'RESUMED') {
+        el.textContent = 'STILL_PAUSED';
+      }
     } else {
       window._executionComplete = true;
-      document.getElementById('status').textContent = 'COMPLETED';
+      // Don't overwrite 'RESUMED' — it's the correct final state
     }
   </script>
 </body>

@@ -459,8 +459,13 @@ export class DevToolsDebugIntegration {
       eval(code, frameIndex) {
         const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
         const idx = frameIndex ?? (frames.length - 1);
-        if (idx < 0 || idx >= frames.length) return '#<error: invalid frame>';
-        const env = frames[idx].env;
+        // Use the specified frame's env, or fall back to global env for top-level pauses
+        let env;
+        if (idx >= 0 && idx < frames.length) {
+          env = frames[idx].env;
+        } else {
+          env = interpreter.globalEnv;
+        }
         try {
           // Use synchronous path: parse → analyze → run
           const expressions = parse(code);

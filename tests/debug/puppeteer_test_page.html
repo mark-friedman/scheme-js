@@ -16,8 +16,11 @@
     // Enable debug mode and panel-connected flag
     globalThis.__SCHEME_JS_DEBUG = true;
     globalThis.__SCHEME_JS_PANELCONNECTED = true;
-    // No pre-loaded breakpoints — Puppeteer sets them dynamically
-    globalThis.__SCHEME_JS_BREAKPOINTS = [];
+    // Default: no pre-loaded breakpoints.
+    // evaluateOnNewDocument may have already set this — don't overwrite.
+    if (!globalThis.__SCHEME_JS_BREAKPOINTS) {
+      globalThis.__SCHEME_JS_BREAKPOINTS = [];
+    }
 
     // Track all pause/resume events for Puppeteer to query
     window._pauseEvents = [];
