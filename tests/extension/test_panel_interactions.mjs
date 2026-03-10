@@ -50,6 +50,20 @@ window.__mockState = {
   stack: [],
   locals: [],
   breakpoints: [],
+  expressions: {
+    // Default expressions matching the default inline source content
+    'scheme://inline-scripts/script-0.scm': [
+      { exprId: 1, line: 1, column: 1, endLine: 1, endColumn: 26 },
+      { exprId: 2, line: 1, column: 16, endLine: 1, endColumn: 22 },
+      { exprId: 3, line: 2, column: 1, endLine: 2, endColumn: 28 },
+      { exprId: 4, line: 3, column: 1, endLine: 3, endColumn: 41 },
+      { exprId: 5, line: 4, column: 1, endLine: 5, endColumn: 46 },
+    ],
+    'scheme://scheme-sources/manual_script.scm': [
+      { exprId: 10, line: 2, column: 1, endLine: 4, endColumn: 42 },
+      { exprId: 11, line: 5, column: 1, endLine: 5, endColumn: 17 },
+    ],
+  },
   activateResult: { active: true, needsReload: false },
   evalResults: {},  // code -> result mapping for debugEval
   resumeCalled: false,
@@ -122,12 +136,20 @@ window.chrome = {
           } else if (expression.includes('stepOut()')) {
             state.stepOutCalled = true;
             result = undefined;
+          } else if (expression.includes('getExpressions(')) {
+            const urlMatch = expression.match(/getExpressions\\("([^"]+)"\\)/);
+            if (urlMatch) {
+              const exprs = state.expressions ? (state.expressions[urlMatch[1]] || []) : [];
+              result = JSON.stringify(exprs);
+            }
           } else if (expression.includes('setBreakpoint(')) {
-            const bpMatch = expression.match(/setBreakpoint\\("([^"]+)",\\s*(\\d+)\\)/);
+            // Match both setBreakpoint("url", line) and setBreakpoint("url", line, col)
+            const bpMatch = expression.match(/setBreakpoint\\("([^"]+)",\\s*(\\d+)(?:,\\s*(\\d+))?\\)/);
             if (bpMatch) {
               const id = 'bp-' + (state.nextBreakpointId++);
-              state.breakpointsSet.push({ url: bpMatch[1], line: parseInt(bpMatch[2]), id });
-              state.breakpoints.push({ id, filename: bpMatch[1], line: parseInt(bpMatch[2]), column: null });
+              const col = bpMatch[3] ? parseInt(bpMatch[3]) : null;
+              state.breakpointsSet.push({ url: bpMatch[1], line: parseInt(bpMatch[2]), column: col, id });
+              state.breakpoints.push({ id, filename: bpMatch[1], line: parseInt(bpMatch[2]), column: col });
               result = JSON.stringify(id);
             }
           } else if (expression.includes('removeBreakpoint(')) {
@@ -984,6 +1006,284 @@ export async function testPanelEmptyVariablesMessage(browser, extensionId) {
   });
   assert('Empty variables shows "No local bindings"',
     emptyMsg === 'No local bindings', `got: "${emptyMsg}"`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Expression highlight appears on pause with endLine/endColumn
+// =========================================================================
+
+export async function testPanelExpressionHighlightOnPause(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Expression Highlight on Pause ---');
+
+  if (!extensionId) {
+    assert('Panel expr highlight: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Fire a pause event with expression range (endLine/endColumn)
+  await firePauseEvent(panelPage, {
+    reason: 'breakpoint',
+    source: {
+      filename: 'scheme://inline-scripts/script-0.scm',
+      line: 1,
+      column: 1,
+      endLine: 1,
+      endColumn: 26,
+    },
+    stack: [{ name: 'add', source: null, tcoCount: 0 }],
+  });
+
+  // Check that expression highlight exists
+  const hasExprHighlight = await panelPage.evaluate(() =>
+    !!document.querySelector('.cm-debug-current-expr')
+  );
+  assert('Expression highlight appears on pause', hasExprHighlight);
+
+  // Also check line highlight exists
+  const hasLineHighlight = await panelPage.evaluate(() =>
+    !!document.querySelector('.cm-debug-current-line')
+  );
+  assert('Line highlight also appears on pause', hasLineHighlight);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Expression highlight clears on resume
+// =========================================================================
+
+export async function testPanelExpressionHighlightClears(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Expression Highlight Clears ---');
+
+  if (!extensionId) {
+    assert('Panel expr clear: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Pause with expression range
+  await firePauseEvent(panelPage, {
+    reason: 'breakpoint',
+    source: {
+      filename: 'scheme://inline-scripts/script-0.scm',
+      line: 1, column: 1, endLine: 1, endColumn: 26,
+    },
+    stack: [],
+  });
+
+  // Verify highlight exists
+  let hasExpr = await panelPage.evaluate(() =>
+    !!document.querySelector('.cm-debug-current-expr')
+  );
+  assert('Expression highlight present before resume', hasExpr);
+
+  // Resume
+  await fireResumeEvent(panelPage);
+
+  // Verify highlight is gone
+  hasExpr = await panelPage.evaluate(() =>
+    !!document.querySelector('.cm-debug-current-expr')
+  );
+  assert('Expression highlight gone after resume', !hasExpr);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Diamond markers appear on breakpoint line with multiple expressions
+// =========================================================================
+
+export async function testPanelDiamondMarkersOnBreakpointLine(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Diamond Markers on Breakpoint Line ---');
+
+  if (!extensionId) {
+    assert('Panel diamonds: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Wait for initial load
+  await new Promise(r => setTimeout(r, 500));
+
+  // Click gutter to set a line breakpoint on line 1 (which has multiple expressions
+  // in mock data: exprId 1 at col 1 and exprId 2 at col 16)
+  const gutterTarget = await panelPage.evaluate(() => {
+    const bpGutter = document.querySelector('.cm-breakpoint-gutter');
+    if (!bpGutter) return null;
+    const bpRect = bpGutter.getBoundingClientRect();
+    const lineNums = document.querySelectorAll('.cm-lineNumbers .cm-gutterElement');
+    const visibleNums = Array.from(lineNums).filter(el => el.offsetHeight > 0);
+    if (visibleNums.length < 1) return null;
+    // Click on the first visible line number gutter element (line 1)
+    const lineRect = visibleNums[0].getBoundingClientRect();
+    return { x: bpRect.x + bpRect.width / 2, y: lineRect.y + lineRect.height / 2 };
+  });
+
+  if (gutterTarget) {
+    await panelPage.mouse.click(gutterTarget.x, gutterTarget.y);
+    await new Promise(r => setTimeout(r, 500));
+
+    // Check that a breakpoint dot appeared
+    const hasDot = await panelPage.evaluate(() =>
+      !!document.querySelector('.cm-breakpoint-dot')
+    );
+    assert('Gutter dot appears after click', hasDot);
+
+    // Check that diamond markers appeared (hollow diamonds for sub-expressions)
+    const diamonds = await panelPage.evaluate(() => {
+      const els = document.querySelectorAll('.cm-expr-diamond');
+      return Array.from(els).map(el => ({
+        text: el.textContent,
+        active: el.classList.contains('cm-expr-diamond-active'),
+        line: el.dataset.line,
+        column: el.dataset.column,
+      }));
+    });
+
+    assert('Diamond markers appear on breakpoint line', diamonds.length >= 1,
+      `found ${diamonds.length} diamonds: ${JSON.stringify(diamonds)}`);
+
+    if (diamonds.length >= 1) {
+      assert('Diamond is hollow (not active)', diamonds[0].active === false);
+      assert('Diamond is ◇', diamonds[0].text === '◇');
+    }
+  } else {
+    assert('Could find gutter to click', false, 'gutter not found');
+  }
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Clicking diamond sets expression breakpoint
+// =========================================================================
+
+export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Diamond Click Sets Breakpoint ---');
+
+  if (!extensionId) {
+    assert('Panel diamond click: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+  await new Promise(r => setTimeout(r, 500));
+
+  // Set a line breakpoint on line 1 to trigger diamond display
+  const gutterTarget = await panelPage.evaluate(() => {
+    const bpGutter = document.querySelector('.cm-breakpoint-gutter');
+    if (!bpGutter) return null;
+    const bpRect = bpGutter.getBoundingClientRect();
+    const lineNums = document.querySelectorAll('.cm-lineNumbers .cm-gutterElement');
+    const visibleNums = Array.from(lineNums).filter(el => el.offsetHeight > 0);
+    if (visibleNums.length < 1) return null;
+    const lineRect = visibleNums[0].getBoundingClientRect();
+    return { x: bpRect.x + bpRect.width / 2, y: lineRect.y + lineRect.height / 2 };
+  });
+
+  if (!gutterTarget) {
+    assert('Could find gutter to click', false, 'gutter not found');
+    await panelPage.close();
+    return;
+  }
+
+  await panelPage.mouse.click(gutterTarget.x, gutterTarget.y);
+  await new Promise(r => setTimeout(r, 500));
+
+  // Reset breakpoint tracking (the line BP was already recorded)
+  await panelPage.evaluate(() => {
+    window.__mockState.breakpointsSet = [];
+  });
+
+  // Now click the first diamond marker
+  const clicked = await panelPage.evaluate(() => {
+    const diamond = document.querySelector('.cm-expr-diamond');
+    if (!diamond) return false;
+    diamond.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    return true;
+  });
+  await new Promise(r => setTimeout(r, 500));
+
+  assert('Found and clicked a diamond', clicked);
+
+  if (clicked) {
+    // Check that setBreakpoint was called with a column
+    const bpSet = await panelPage.evaluate(() => window.__mockState.breakpointsSet);
+    assert('setBreakpoint called on diamond click', bpSet.length >= 1,
+      `called ${bpSet.length} times: ${JSON.stringify(bpSet)}`);
+
+    if (bpSet.length >= 1) {
+      const bp = bpSet[bpSet.length - 1];
+      assert('Expression breakpoint has column',
+        bp.column !== null && bp.column !== undefined,
+        `column: ${bp.column}`);
+    }
+
+    // Diamond should now be filled (active)
+    const activeDiamonds = await panelPage.evaluate(() => {
+      const els = document.querySelectorAll('.cm-expr-diamond-active');
+      return els.length;
+    });
+    assert('Diamond is now active (filled)', activeDiamonds >= 1,
+      `found ${activeDiamonds} active diamonds`);
+
+    // Expression breakpoint highlight should also appear
+    const hasExprBp = await panelPage.evaluate(() =>
+      !!document.querySelector('.cm-expr-breakpoint')
+    );
+    assert('Expression breakpoint highlight appears', hasExprBp);
+  }
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Diamonds appear on paused line
+// =========================================================================
+
+export async function testPanelDiamondsOnPausedLine(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Diamonds on Paused Line ---');
+
+  if (!extensionId) {
+    assert('Panel paused diamonds: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Pause on line 1 (which has multiple expressions in mock data)
+  await firePauseEvent(panelPage, {
+    reason: 'breakpoint',
+    source: {
+      filename: 'scheme://inline-scripts/script-0.scm',
+      line: 1, column: 1, endLine: 1, endColumn: 26,
+    },
+    stack: [{ name: 'add', source: null, tcoCount: 0 }],
+  });
+
+  // Diamonds should appear on the paused line even without a line breakpoint
+  const diamonds = await panelPage.evaluate(() => {
+    const els = document.querySelectorAll('.cm-expr-diamond');
+    return els.length;
+  });
+  assert('Diamonds appear on paused line', diamonds >= 1,
+    `found ${diamonds} diamonds`);
+
+  // Resume — diamonds should disappear (no breakpoints set)
+  await fireResumeEvent(panelPage);
+
+  const diamondsAfter = await panelPage.evaluate(() => {
+    const els = document.querySelectorAll('.cm-expr-diamond');
+    return els.length;
+  });
+  assert('Diamonds cleared after resume', diamondsAfter === 0,
+    `found ${diamondsAfter} diamonds`);
 
   await panelPage.close();
 }

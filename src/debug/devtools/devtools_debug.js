@@ -440,6 +440,24 @@ export class DevToolsDebugIntegration {
       },
 
       /**
+       * Gets the expression spans for a source URL.
+       * Each span describes a single AST expression with its location range,
+       * enabling expression-level breakpoints and highlighting in the panel.
+       *
+       * @param {string} url - The scheme:// URL of the source
+       * @returns {Array<{exprId: number, line: number, column: number, endLine: number, endColumn: number}>}
+       */
+      getExpressions(url) {
+        return sourceRegistry.getExpressions(url).map(s => ({
+          exprId: s.exprId,
+          line: s.line,
+          column: s.column,
+          endLine: s.endLine,
+          endColumn: s.endColumn,
+        }));
+      },
+
+      /**
        * Gets the content of a specific source URL.
        * @param {string} url - The scheme:// URL of the source
        * @returns {string|null} The source content, or null if not registered

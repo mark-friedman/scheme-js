@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Expression Highlight Test</title>
+  <style>
+    body { font-family: monospace; margin: 20px; }
+    .pass { color: green; }
+    .fail { color: red; font-weight: bold; }
+    #results { margin-top: 10px; }
+    .result-line { padding: 2px 0; }
+  </style>
+</head>
+<body>
+  <h2>Expression Highlight Test</h2>
+  <p>Tests expression-level breakpoints and pause source spans.</p>
+  <div id="results">Running...</div>
+
+  <script>
+    // Pre-set breakpoints with column before scheme-html.js loads
+    globalThis.__SCHEME_JS_DEBUG = true;
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+
+    // Set an expression-level breakpoint: line 2, column 3 = (+ a b) inside (define (add a b) ...)
+    globalThis.__SCHEME_JS_BREAKPOINTS = [
+      { url: 'scheme://inline-scripts/script-0.scm', line: 2, column: 3 }
+    ];
+  </script>
+
+  <script type="text/scheme">
+(define (add a b)
+  (+ a b))
+(add 1 2)
+  </script>
+
+  <script type="module">
+    const resultsEl = document.getElementById('results');
+    const results = [];
+    let allPassed = true;
+
+    function assert(name, condition, detail) {
+      const passed = !!condition;
+      if (!passed) allPassed = false;
+      results.push({ name, passed, detail });
+    }
+
+    function renderResults() {
+      resultsEl.innerHTML = results.map(r => {
+        const cls = r.passed ? 'pass' : 'fail';
+        const status = r.passed ? 'PASS' : 'FAIL';
+        const detail = r.detail ? ` (${r.detail})` : '';
+        return `<div class="result-line ${cls}">[${status}] ${r.name}${detail}</div>`;
+      }).join('');
+      resultsEl.innerHTML += `<br><strong>${allPassed ? 'ALL PASSED' : 'SOME FAILED'}</strong>`;
+    }
+
+    // Wait for the interpreter to finish and check results
+    async function runTests() {
+      // Wait for __schemeDebug to be available
+      for (let i = 0; i < 50; i++) {
+        if (typeof globalThis.__schemeDebug !== 'undefined') break;
+        await new Promise(r => setTimeout(r, 100));
+      }
+
+      assert('__schemeDebug available', typeof globalThis.__schemeDebug !== 'undefined');
+
+      if (typeof globalThis.__schemeDebug === 'undefined') {
+        renderResults();
+        return;
+      }
+
+      // Check status — should be paused at the expression breakpoint
+      const status = globalThis.__schemeDebug.getStatus();
+      assert('Debug is active', status.active);
+
+      if (status.state === 'paused') {
+        assert('Paused state detected', true);
+        assert('Pause has source', !!status.source);
+
+        if (status.source) {
+          assert('Source has filename', !!status.source.filename);
+          assert('Source line is 2', status.source.line === 2,
+            `got line ${status.source.line}`);
+          assert('Source has endLine', status.source.endLine !== undefined,
+            `endLine: ${status.source.endLine}`);
+          assert('Source has endColumn', status.source.endColumn !== undefined,
+            `endColumn: ${status.source.endColumn}`);
+        }
+
+        // Test getExpressions API
+        const url = status.source?.filename;
+        if (url) {
+          const expressions = globalThis.__schemeDebug.getExpressions(url);
+          assert('getExpressions returns spans', expressions.length > 0,
+            `got ${expressions.length} spans`);
+
+          if (expressions.length > 0) {
+            const first = expressions[0];
+            assert('Span has exprId', typeof first.exprId === 'number');
+            assert('Span has line', typeof first.line === 'number');
+            assert('Span has column', typeof first.column === 'number');
+            assert('Span has endLine', first.endLine !== undefined);
+            assert('Span has endColumn', first.endColumn !== undefined);
+          }
+        }
+
+        // Resume to let execution complete
+        globalThis.__schemeDebug.resume();
+      } else {
+        // Not paused — breakpoint may not have fired (e.g., column didn't match)
+        assert('Paused at expression breakpoint', false,
+          `state was ${status.state}`);
+      }
+
+      renderResults();
+    }
+
+    runTests();
+  </script>
+</body>
+</html>

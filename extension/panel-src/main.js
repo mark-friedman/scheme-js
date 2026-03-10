@@ -23,6 +23,7 @@ import { createVariables } from './components/variables.js';
 import {
   evalInPage,
   getSourceContent,
+  getExpressions,
   activate,
   getStatus,
   getStack,
@@ -56,7 +57,15 @@ const splitter           = document.getElementById('splitter');
 let currentSourceUrl = null;
 
 /**
- * Maps "${url}:${line}" -> breakpoint ID (from interpreter) for removal.
+ * Expression spans for the currently loaded source.
+ * Populated by loadSource/onSelectSource via getExpressions().
+ * @type {Array<{exprId: number, line: number, column: number, endLine: number, endColumn: number}>}
+ */
+let currentExpressions = [];
+
+/**
+ * Maps "${url}:${line}:${column}" -> breakpoint ID (from interpreter) for removal.
+ * Column is "null" for line-level breakpoints, or a number for expression breakpoints.
  * @type {Map<string, string>}
  */
 const breakpointIds = new Map();
@@ -73,10 +82,14 @@ const breakpointIds = new Map();
 async function saveBreakpointsToPage() {
   const entries = [];
   for (const key of breakpointIds.keys()) {
-    const lastColon = key.lastIndexOf(':');
-    const url = key.substring(0, lastColon);
-    const line = parseInt(key.substring(lastColon + 1), 10);
-    entries.push({ url, line });
+    // Key format: "${url}:${line}:${column}" where column may be "null"
+    const parts = key.split(':');
+    const column = parts.pop();
+    const line = parts.pop();
+    const url = parts.join(':');
+    const entry = { url, line: parseInt(line, 10) };
+    if (column !== 'null') entry.column = parseInt(column, 10);
+    entries.push(entry);
   }
   try {
     await evalInPage(
@@ -95,27 +108,59 @@ async function syncBreakpointsFromInterpreter() {
     const json = await evalInPage('JSON.stringify(__schemeDebug.getAllBreakpoints())');
     const bps = JSON.parse(json);
     for (const bp of bps) {
-      breakpointIds.set(`${bp.filename}:${bp.line}`, bp.id);
+      breakpointIds.set(`${bp.filename}:${bp.line}:${bp.column}`, bp.id);
     }
   } catch { /* ignore */ }
 }
 
 /**
- * Returns the set of stored breakpoint line numbers for a specific URL.
+ * Returns the set of stored line-level breakpoint line numbers for a specific URL.
  *
  * @param {string} url - Source URL to filter by
- * @returns {Set<number>} Line numbers with breakpoints for this URL
+ * @returns {Set<number>} Line numbers with line-level breakpoints for this URL
  */
 function getBreakpointLinesForUrl(url) {
   const lines = new Set();
   for (const key of breakpointIds.keys()) {
-    const lastColon = key.lastIndexOf(':');
-    const bpUrl = key.substring(0, lastColon);
-    if (bpUrl === url) {
-      lines.add(parseInt(key.substring(lastColon + 1), 10));
+    // Key format: "${url}:${line}:${column}"
+    const parts = key.split(':');
+    const column = parts.pop();
+    const line = parts.pop();
+    const bpUrl = parts.join(':');
+    // Only include line-level breakpoints (column === "null") in the gutter
+    if (bpUrl === url && column === 'null') {
+      lines.add(parseInt(line, 10));
     }
   }
   return lines;
+}
+
+/**
+ * Returns expression breakpoint spans for a URL, looked up from currentExpressions.
+ *
+ * @param {string} url - Source URL
+ * @returns {Array<{line: number, column: number, endLine: number, endColumn: number}>}
+ */
+function getExpressionBreakpointsForUrl(url) {
+  const spans = [];
+  for (const key of breakpointIds.keys()) {
+    const parts = key.split(':');
+    const column = parts.pop();
+    const line = parts.pop();
+    const bpUrl = parts.join(':');
+    if (bpUrl === url && column !== 'null') {
+      // Find the matching expression span
+      const lineNum = parseInt(line, 10);
+      const colNum = parseInt(column, 10);
+      const span = currentExpressions.find(
+        e => e.line === lineNum && e.column === colNum
+      );
+      if (span) {
+        spans.push({ line: span.line, column: span.column, endLine: span.endLine, endColumn: span.endColumn });
+      }
+    }
+  }
+  return spans;
 }
 
 // =========================================================================
@@ -162,8 +207,19 @@ async function onSelectFrame(frameIndex, frame) {
       await loadSource(url);
     }
     editor.highlightLine(frame.source.line);
+
+    // Highlight expression range if available
+    if (frame.source.endLine != null && frame.source.endColumn != null) {
+      editor.highlightExpression(
+        frame.source.line, frame.source.column,
+        frame.source.endLine, frame.source.endColumn
+      );
+    } else {
+      editor.highlightExpression(null);
+    }
   } else {
     editor.highlightLine(null);
+    editor.highlightExpression(null);
   }
 }
 
@@ -182,7 +238,7 @@ const callStack = createCallStack(callStackContainer, onSelectFrame);
  */
 async function onBreakpointToggle(line, isNowSet) {
   if (!currentSourceUrl) return;
-  const key = `${currentSourceUrl}:${line}`;
+  const key = `${currentSourceUrl}:${line}:null`;
   if (isNowSet) {
     const id = await setBreakpoint(currentSourceUrl, line);
     if (id) {
@@ -197,9 +253,104 @@ async function onBreakpointToggle(line, isNowSet) {
       saveBreakpointsToPage();
     }
   }
+  // Show/hide diamond markers on this line
+  refreshDiamondMarkers();
 }
 
-const editor = createEditor(editorContainer, onBreakpointToggle);
+/**
+ * Called when the user clicks an inline diamond marker to toggle an expression breakpoint.
+ *
+ * @param {number} line - 1-indexed line number
+ * @param {number} column - 1-indexed column number
+ */
+async function onDiamondClick(line, column) {
+  if (!currentSourceUrl) return;
+
+  const key = `${currentSourceUrl}:${line}:${column}`;
+  const existingId = breakpointIds.get(key);
+
+  if (existingId) {
+    // Remove existing expression breakpoint
+    await removeBreakpoint(existingId);
+    breakpointIds.delete(key);
+  } else {
+    // Set new expression breakpoint
+    const id = await setBreakpoint(currentSourceUrl, line, column);
+    if (id) {
+      breakpointIds.set(key, id);
+    }
+  }
+
+  saveBreakpointsToPage();
+  refreshDiamondMarkers();
+
+  // Refresh expression breakpoint highlights
+  const exprBps = getExpressionBreakpointsForUrl(currentSourceUrl);
+  editor.setExpressionBreakpoints(exprBps);
+}
+
+const editor = createEditor(editorContainer, onBreakpointToggle, onDiamondClick);
+
+/** The currently paused line (1-indexed), or null when running. @type {number|null} */
+let currentPausedLine = null;
+
+/**
+ * Recomputes and updates the inline diamond markers in the editor.
+ *
+ * Diamonds appear at expression start positions on lines that:
+ *   1. Have a line-level breakpoint (gutter dot), OR
+ *   2. Are the current paused line
+ *
+ * Each diamond is either filled (◆, active expression breakpoint) or hollow (◇).
+ * Clicking a diamond toggles an expression breakpoint at that position.
+ */
+function refreshDiamondMarkers() {
+  if (!currentSourceUrl || currentExpressions.length === 0) {
+    editor.setDiamondMarkers([]);
+    return;
+  }
+
+  // Collect lines that should show diamonds
+  const diamondLines = new Set();
+  const bpLines = getBreakpointLinesForUrl(currentSourceUrl);
+  for (const line of bpLines) diamondLines.add(line);
+  if (currentPausedLine !== null) diamondLines.add(currentPausedLine);
+
+  if (diamondLines.size === 0) {
+    editor.setDiamondMarkers([]);
+    return;
+  }
+
+  // Only show diamonds on lines with multiple expressions (otherwise the
+  // line-level breakpoint is sufficient). Also skip the outermost expression
+  // on a line since that's what the line breakpoint already covers.
+  const exprsByLine = new Map();
+  for (const expr of currentExpressions) {
+    if (!diamondLines.has(expr.line)) continue;
+    // Only include expressions that START on this line
+    if (!exprsByLine.has(expr.line)) exprsByLine.set(expr.line, []);
+    exprsByLine.get(expr.line).push(expr);
+  }
+
+  const markers = [];
+  for (const [lineNum, exprs] of exprsByLine) {
+    // Skip lines with only one expression (the line breakpoint handles it)
+    if (exprs.length <= 1) continue;
+
+    // Sort by column to show diamonds left-to-right
+    exprs.sort((a, b) => a.column - b.column);
+
+    // Skip the outermost (first/leftmost) expression — that's the line BP
+    for (let i = 1; i < exprs.length; i++) {
+      const expr = exprs[i];
+      const key = `${currentSourceUrl}:${expr.line}:${expr.column}`;
+      const active = breakpointIds.has(key);
+      markers.push({ line: expr.line, column: expr.column, active });
+    }
+  }
+
+  editor.setDiamondMarkers(markers);
+}
 
 // =========================================================================
 // Source loading
@@ -217,11 +368,23 @@ async function loadSource(url) {
   currentSourceUrl = url;
   editor.setContent(content);
 
-  // Show breakpoints for this file from our local persistent state
+  // Fetch expression spans for this source
+  currentExpressions = await getExpressions(url);
+
+  // Show line-level breakpoints in the gutter
   const lines = getBreakpointLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
+
+  // Show expression-level breakpoints as inline highlights
+  const exprBps = getExpressionBreakpointsForUrl(url);
+  if (exprBps.length > 0) {
+    editor.setExpressionBreakpoints(exprBps);
+  }
+
+  // Show diamond markers on breakpoint and paused lines
+  refreshDiamondMarkers();
 }
 
 /**
@@ -231,16 +394,28 @@ async function loadSource(url) {
  * @param {string} url - scheme:// URL of the selected source
  * @param {string} content - The source code
  */
-function onSelectSource(url, content) {
+async function onSelectSource(url, content) {
   currentSourceUrl = url;
   editor.setContent(content || '');
   editor.highlightLine(null);
 
-  // Sync breakpoints for this file from local state
+  // Fetch expression spans for this source
+  currentExpressions = await getExpressions(url);
+
+  // Sync line-level breakpoints for this file from local state
   const lines = getBreakpointLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
+
+  // Sync expression-level breakpoints
+  const exprBps = getExpressionBreakpointsForUrl(url);
+  if (exprBps.length > 0) {
+    editor.setExpressionBreakpoints(exprBps);
+  }
+
+  // Show diamond markers on breakpoint lines
+  refreshDiamondMarkers();
 
   toolbar.setStatus(`Viewing: ${url.split('/').pop()}`);
 }
@@ -281,6 +456,20 @@ async function onPaused(detail) {
       await loadSource(pauseSource.filename);
     }
     editor.highlightLine(pauseSource.line);
+
+    // Highlight the exact expression range if available
+    if (pauseSource.endLine != null && pauseSource.endColumn != null) {
+      editor.highlightExpression(
+        pauseSource.line, pauseSource.column,
+        pauseSource.endLine, pauseSource.endColumn
+      );
+    } else {
+      editor.highlightExpression(null);
+    }
+
+    // Show diamond markers on the paused line (+ any breakpoint lines)
+    currentPausedLine = pauseSource.line;
+    refreshDiamondMarkers();
   }
 
   // Load locals for the top frame (if any)
@@ -303,6 +492,9 @@ function onResumed() {
   callStack.clear();
   variables.clear();
   editor.highlightLine(null);
+  editor.highlightExpression(null);
+  currentPausedLine = null;
+  refreshDiamondMarkers();
   // Re-query sources in case new scripts were processed while paused
   refresh();
 }

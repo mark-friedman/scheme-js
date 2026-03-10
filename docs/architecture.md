@@ -46,7 +46,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 | Exceptions | Handler stack, `raise`, `guard` |
 | Parameters | `make-parameter`, `parameterize` |
 | Library Loader | R7RS module system |
-| Debugger | Breakpoints, Stepping, Inspection, Cooperative Yielding |
+| Debugger | Breakpoints (line + expression-level), Stepping, Inspection, Cooperative Yielding |
 
 
 ## Directory Structure
@@ -184,7 +184,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │          ├── sourcemap_generator.js # V3 source map generation + VLQ encoder
 │          ├── probe_generator.js # Probe script generation (one JS fn per Scheme expression)
 │          ├── probe_runtime.js # __schemeProbeRuntime global (hit, stepping, breakpoints)
-│          ├── source_registry.js # Source & probe management + script injection + REPL LRU
+│          ├── source_registry.js # Source & probe management + expression spans + script injection + REPL LRU
 │          ├── devtools_debug.js # DevToolsDebugIntegration (trampoline→probe bridge, REPL/library registration)
 │          ├── env_proxy.js     # Environment proxy for DevTools Scope pane
 │          ├── sidebar_helpers.js # Sidebar data formatting utilities
@@ -212,13 +212,15 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │           ├── language/
 │           │   └── scheme-mode.js    # CodeMirror 6 Scheme language mode (lezer)
 │           ├── components/
-│           │   ├── editor.js         # CodeMirror 6 viewer (breakpoint gutter, line highlight)
+│           │   ├── editor.js         # CodeMirror 6 viewer (breakpoint gutter, line highlight,
+│           │   │                     #   expression highlight, diamond markers, expression BPs)
 │           │   ├── toolbar.js        # Debug controls: Resume, Step Into/Over/Out + status
 │           │   ├── call-stack.js     # Call stack panel (Scheme frames, TCO-aware)
 │           │   ├── variables.js      # Variables panel (locals for selected frame)
 │           │   └── source-list.js    # Source file browser (fetches from __schemeDebug)
 │           └── protocol/
 │               └── scheme-bridge.js  # inspectedWindow.eval wrappers for __schemeDebug API
+│                                    #   (getSources, getExpressions, setBreakpoint w/ column, etc.)
 │
 │   └── extras/                     # Extension libraries (non-R7RS)
 │       ├── primitives/             # JavaScript primitives for extensions

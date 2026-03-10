@@ -88,9 +88,9 @@ async function runScripts() {
     // localStorage before page scripts run). This ensures breakpoints are
     // in the BreakpointManager before the first Scheme expression executes.
     if (globalThis.__SCHEME_JS_BREAKPOINTS) {
-      for (const { url, line } of globalThis.__SCHEME_JS_BREAKPOINTS) {
+      for (const { url, line, column } of globalThis.__SCHEME_JS_BREAKPOINTS) {
         try {
-          debugRuntime.setBreakpoint(url, line);
+          debugRuntime.setBreakpoint(url, line, column || null);
         } catch {
           // Ignore invalid entries
         }

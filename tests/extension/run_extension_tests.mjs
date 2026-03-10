@@ -53,6 +53,10 @@ import {
   testPanelCallStackTCO, testPanelBreakpointGutterToggle,
   testPanelStepReasonStatus, testPanelPauseNavigatesEditor,
   testPanelCallStackBadges, testPanelEmptyVariablesMessage,
+  testPanelExpressionHighlightOnPause, testPanelExpressionHighlightClears,
+  testPanelDiamondMarkersOnBreakpointLine,
+  testPanelDiamondClickSetsBreakpoint,
+  testPanelDiamondsOnPausedLine,
 } from './test_panel_interactions.mjs';
 
 // =========================================================================
@@ -119,6 +123,12 @@ async function runTests() {
       testPanelPauseNavigatesEditor,
       testPanelCallStackBadges,
       testPanelEmptyVariablesMessage,
+      // Expression-level breakpoints (Phase 3)
+      testPanelExpressionHighlightOnPause,
+      testPanelExpressionHighlightClears,
+      testPanelDiamondMarkersOnBreakpointLine,
+      testPanelDiamondClickSetsBreakpoint,
+      testPanelDiamondsOnPausedLine,
     ];
 
     if (extensionId) {

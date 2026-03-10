@@ -4918,3 +4918,78 @@ After Phase 1 introduced the panel shell, two bugs emerged when wiring up actual
 - Node.js: 2349 passed (4 new tests added)
 - Browser diagnostic: 8/8 PASS
 - Browser breakpoint flow: 5/5 PASS
+
+---
+
+# Walkthrough: Phase 3 — Expression-Level Breakpoints + Current Expression Highlighting (03-10-26)
+
+Phase 3 adds sub-expression precision to the Scheme-JS debugger. Instead of just highlighting the current line on pause, the panel now highlights the exact sub-expression being evaluated. Users can also set breakpoints on individual sub-expressions within a line using Chrome DevTools-style inline diamond markers.
+
+## Key Features
+
+1. **Current expression highlighting** — on pause, the exact sub-expression (character range) is highlighted with a yellow background in the CodeMirror editor, not just the line
+2. **`getExpressions(url)` API** — exposes AST expression span data (`{exprId, line, column, endLine, endColumn}`) through the full stack: SourceRegistry → `__schemeDebug` → scheme-bridge → panel
+3. **Inline diamond markers (◆/◇)** — Chrome DevTools-style clickable indicators appear at expression boundaries on lines with breakpoints or the current paused line. Click a diamond to toggle an expression-level breakpoint
+4. **Expression breakpoint highlights** — active expression breakpoints show a red inline highlight, distinct from line-level gutter dots
+
+## Backend Changes
+
+### `src/debug/devtools/source_registry.js`
+- Added `this.expressionSpans = new Map()` (url → span array) to constructor
+- Stores spans in `register()` after `_extractSourceSpans()`
+- Cleans up spans in `_pruneReplSources()`
+- Added `getExpressions(url)` method returning the span array for a URL
+
+### `src/debug/devtools/devtools_debug.js`
+- Added `getExpressions(url)` to the `__schemeDebug` page-side API
+- Updated `setBreakpoint(url, line, column = null)` to accept optional column parameter for expression-level breakpoints
+
+### `src/packaging/html_adapter.js`
+- Updated `__SCHEME_JS_BREAKPOINTS` pre-loading loop to pass `column || null` through to `setBreakpoint()`
+
+## Panel Changes
+
+### `extension/panel-src/protocol/scheme-bridge.js`
+- Added `getExpressions(url)` bridge function (inspectedWindow.eval wrapper)
+- Updated `setBreakpoint(url, line, column = null)` to pass column when non-null
+
+### `extension/panel-src/components/editor.js`
+- **Current expression highlight**: `setCurrentExpressionEffect` + `currentExpressionField` + `currentExpressionPlugin` — yellow background on the paused sub-expression
+- **Diamond markers**: `DiamondWidget extends WidgetType` renders ◆ (active) / ◇ (available) at expression boundaries with mousedown click handlers. `diamondMarkersField` + `setDiamondMarkersEffect` + `diamondMarkersPlugin` manage state
+- **Expression breakpoint highlights**: `expressionBreakpointField` + `setExpressionBreakpointsEffect` + `expressionBreakpointPlugin` — red background on active expression breakpoints
+- **Helper**: `spanToOffsets(doc, line, column, endLine, endColumn)` — converts 1-indexed line/column to CodeMirror doc offsets
+- **New public methods**: `highlightExpression()`, `setExpressionBreakpoints()`, `setDiamondMarkers()`
+- **Updated**: `createEditor(container, onBreakpointToggle, onDiamondClick)` signature
+
+### `extension/panel-src/main.js`
+- Breakpoint key format changed to `"${url}:${line}:${column}"` (column is `"null"` for line-level breakpoints)
+- `currentExpressions` and `currentPausedLine` state variables track loaded expression spans and pause position
+- `refreshDiamondMarkers()` computes diamonds for lines with breakpoints or the current paused line; skips the outermost expression on each line (covered by the line breakpoint); shows diamonds for sub-expressions only on lines with >1 expression
+- `onDiamondClick(line, column)` toggles expression-level breakpoints
+- `onPaused()` highlights the exact expression range and refreshes diamonds
+- `onResumed()` clears expression highlight and diamonds
+- `onSelectFrame()` highlights expression range if the frame has span data
+- `loadSource()` and `onSelectSource()` fetch expressions, show expression BPs, and refresh diamonds
+
+## Tests Added
+
+### `tests/debug/expression_breakpoint_tests.js` (10 unit tests)
+- `getExpressions()` for unknown URL, after register, span fields, persistence, REPL pruning, re-registration, JSON serialization
+- Column breakpoints: creation, exact column matching, line+column coexistence, removal independence
+
+### `tests/debug/expression_highlight_test.html` (browser integration)
+- Sets `__SCHEME_JS_PANELCONNECTED` + breakpoints with column before scheme-html.js loads
+- Verifies pause source includes `endLine`/`endColumn`
+- Verifies `getExpressions()` returns expression spans
+
+### `tests/extension/test_panel_interactions.mjs` (5 Puppeteer E2E tests)
+- `testPanelExpressionHighlightOnPause` — verifies `.cm-debug-current-expr` appears on pause
+- `testPanelExpressionHighlightClears` — verifies highlight gone after resume
+- `testPanelDiamondMarkersOnBreakpointLine` — clicks gutter, verifies ◇ diamonds appear
+- `testPanelDiamondClickSetsBreakpoint` — clicks diamond, verifies `setBreakpoint` called with column, diamond becomes ◆
+- `testPanelDiamondsOnPausedLine` — verifies diamonds appear on pause line, cleared on resume
+
+## Test Results
+- Node.js: 2392 passed, 0 failed (10 new tests)
+- Puppeteer E2E: 147 passed, 0 failed (5 new tests)
+- Browser expression highlight test: all assertions pass

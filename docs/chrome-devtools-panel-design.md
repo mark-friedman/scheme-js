@@ -135,7 +135,7 @@ Full cooperative Scheme debugging without CDP.
 
 1. Add `__schemeDebug.getExpressions(url)` — returns expression spans from SourceRegistry
 2. Highlight current expression on pause using CodeMirror `Decoration.mark()` with exact span
-3. Ctrl+click on expressions to set expression-level breakpoints
+3. Click on intra-line diamond indicators preceding expressions to set expression-level breakpoints
 4. Visual indicators: gutter dots for line breakpoints, inline highlights for expression breakpoints
 
 ### Phase 4: Lazy CDP + JS Debugging
@@ -211,7 +211,7 @@ Bundled into `extension/panel/panel.js` via esbuild. Packages:
 ### Per-Phase Testing
 - **Phase 1**: Load an HTML page with `<script type="text/scheme">`, open DevTools, verify "Scheme-JS" tab appears with source displayed in CodeMirror
 - **Phase 2**: Set a breakpoint in the editor, reload page, verify interpreter pauses and panel shows stack/variables. Step through code. Resume.
-- **Phase 3**: Ctrl+click an expression, verify expression-level breakpoint. Verify current expression is highlighted on pause.
+- **Phase 3**: Click on an intra-line diamond preceding and expression, verify expression-level breakpoint. Verify current expression is highlighted on pause.
 - **Phase 4**: Set breakpoint in a .js file shown in the panel. Verify CDP attaches with notification. Step through JS. Verify unified call stack.
 - **Phase 5**: Debug HTML file with inline Scheme + JS. Step from Scheme into JS and back.
 

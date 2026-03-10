@@ -173,15 +173,36 @@ export async function stepOut() {
 }
 
 /**
+ * Fetches the expression spans for a source URL.
+ * Each span describes a single AST expression with its location range,
+ * enabling expression-level breakpoints and highlighting.
+ *
+ * @param {string} url - The scheme:// URL of the source
+ * @returns {Promise<Array<{exprId: number, line: number, column: number, endLine: number, endColumn: number}>>}
+ */
+export async function getExpressions(url) {
+  try {
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
+    );
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Sets a breakpoint at a specific source location.
  * @param {string} url - Source URL
  * @param {number} line - 1-indexed line number
+ * @param {number|null} [column=null] - Column number (1-indexed), or null for line-level
  * @returns {Promise<string|null>} Breakpoint ID, or null on failure
  */
-export async function setBreakpoint(url, line) {
+export async function setBreakpoint(url, line, column = null) {
   try {
+    const colArg = column !== null ? `, ${column}` : '';
     const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}))`
+      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}${colArg}))`
     );
     return JSON.parse(json);
   } catch {

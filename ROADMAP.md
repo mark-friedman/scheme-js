@@ -457,6 +457,41 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
+## Phase 16c: Cooperative Debugger Panel (Phase 2) ✅
+**Target:** Line-level breakpoints, pause/resume, stepping in custom panel
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Cooperative Pausing** | `panelConnected` flag + `PauseController` blocking loop | ✅ |
+| **Panel Activation** | `activate()` persists to localStorage for reload survival | ✅ |
+| **Breakpoint Gutter** | Click gutter to toggle line breakpoints | ✅ |
+| **Pause/Resume** | Status bar + toolbar buttons, auto-source navigation | ✅ |
+| **Stepping** | Step Into / Step Over / Step Out via toolbar | ✅ |
+| **Call Stack** | TCO-aware frame list with badge indicators | ✅ |
+| **Variable Inspection** | Per-frame locals with color-coded types | ✅ |
+| **Cross-World Relay** | postMessage-based content_script relay (CustomEvent fallback) | ✅ |
+| **Timeout Safety** | 30s auto-resume if panel goes dark | ✅ |
+
+**Deliverable:** Full cooperative debugging with 2349 passing tests.
+
+---
+
+## Phase 16d: Expression-Level Breakpoints (Phase 3) ✅
+**Target:** Sub-expression precision for breakpoints and pause highlighting
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Expression Highlighting** | Yellow highlight on exact sub-expression during pause | ✅ |
+| **`getExpressions(url)` API** | Exposes AST expression spans through full stack | ✅ |
+| **Diamond Markers** | Chrome DevTools-style ◆/◇ inline indicators at expression boundaries | ✅ |
+| **Expression Breakpoints** | Column-level breakpoints via diamond click, red inline highlight | ✅ |
+| **Breakpoint Key Format** | Unified `url:line:column` format (column="null" for line-level) | ✅ |
+| **Column Pre-loading** | `__SCHEME_JS_BREAKPOINTS` supports column parameter | ✅ |
+
+**Deliverable:** Expression-level debugging with 2392 unit tests + 147 Puppeteer E2E tests passing.
+
+---
+
 ## Phase 18: Modular Analyzer Refactoring ✅
 **Target:** Improve analyzer architecture for extensibility and maintainability.
 

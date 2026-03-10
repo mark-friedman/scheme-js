@@ -18,7 +18,7 @@
 
 import {
   EditorView, lineNumbers, highlightActiveLine, gutter, GutterMarker,
-  Decoration,
+  Decoration, WidgetType,
 } from '@codemirror/view';
 import {
   EditorState, Compartment, StateField, StateEffect, RangeSetBuilder,
@@ -70,6 +70,37 @@ const layoutTheme = EditorView.theme({
   '.cm-debug-current-line': {
     backgroundColor: 'rgba(255, 193, 7, 0.15) !important',
     borderLeft: '3px solid #ffc107',
+  },
+  // Current expression highlight (exact sub-expression being executed)
+  '.cm-debug-current-expr': {
+    backgroundColor: 'rgba(255, 193, 7, 0.35) !important',
+    borderBottom: '2px solid #ffc107',
+    borderRadius: '2px',
+  },
+  // Expression breakpoint highlight (user-set column-level breakpoint)
+  '.cm-expr-breakpoint': {
+    backgroundColor: 'rgba(255, 85, 85, 0.2)',
+    borderBottom: '2px solid #ff5555',
+    borderRadius: '2px',
+  },
+  // Inline expression diamond markers (Chrome DevTools-style)
+  '.cm-expr-diamond': {
+    cursor: 'pointer',
+    color: '#6272a4',
+    fontSize: '8px',
+    lineHeight: '1',
+    verticalAlign: 'middle',
+    padding: '0 1px',
+    userSelect: 'none',
+    opacity: '0.6',
+    transition: 'opacity 0.15s',
+  },
+  '.cm-expr-diamond:hover': {
+    opacity: '1',
+  },
+  '.cm-expr-diamond-active': {
+    color: '#ff5555',
+    opacity: '1',
   },
   // Breakpoint dot in the gutter
   '.cm-breakpoint-dot': {
@@ -284,6 +315,236 @@ const currentLinePlugin = EditorView.decorations.compute(
 );
 
 // =========================================================================
+// Current expression decoration (exact sub-expression when paused)
+// =========================================================================
+
+/**
+ * StateEffect for setting the current expression range or null.
+ * Accepts { from: number, to: number } (doc offsets) or null to clear.
+ * @type {import('@codemirror/state').StateEffectType<{from: number, to: number}|null>}
+ */
+const setCurrentExpressionEffect = StateEffect.define();
+
+/**
+ * StateField that stores the current expression range (doc offsets) or null.
+ */
+const currentExpressionField = StateField.define({
+  create: () => null,
+  update(range, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setCurrentExpressionEffect)) {
+        return effect.value;
+      }
+    }
+    return range;
+  },
+});
+
+/**
+ * Decoration that applies `.cm-debug-current-expr` to the current expression range.
+ */
+const currentExpressionPlugin = EditorView.decorations.compute(
+  [currentExpressionField],
+  (state) => {
+    const range = state.field(currentExpressionField);
+    if (!range) return Decoration.none;
+
+    try {
+      return Decoration.set([
+        Decoration.mark({ class: 'cm-debug-current-expr' }).range(range.from, range.to),
+      ]);
+    } catch {
+      return Decoration.none;
+    }
+  }
+);
+
+// =========================================================================
+// Inline expression diamond markers (Chrome DevTools-style)
+// =========================================================================
+
+/**
+ * StateEffect for setting inline expression diamond markers.
+ * Each marker represents a breakable sub-expression on a line.
+ * Accepts an array of { pos: number, active: boolean, line: number, column: number }.
+ * - pos: document offset where the diamond appears
+ * - active: true if an expression breakpoint is set here (filled diamond)
+ * - line/column: 1-indexed source location (passed back on click)
+ * @type {import('@codemirror/state').StateEffectType<Array>}
+ */
+const setDiamondMarkersEffect = StateEffect.define();
+
+/**
+ * StateField that stores the current diamond marker descriptors.
+ */
+const diamondMarkersField = StateField.define({
+  create: () => [],
+  update(markers, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setDiamondMarkersEffect)) {
+        return effect.value;
+      }
+    }
+    return markers;
+  },
+});
+
+/**
+ * Callback holder for diamond click events.
+ * Set by createEditor; called with (line, column) when a diamond is clicked.
+ * @type {{fn: Function|null}}
+ */
+const diamondClickCallback = { fn: null };
+
+/**
+ * Widget that renders a small diamond (◆ or ◇) at an expression boundary.
+ * Filled = active breakpoint, hollow = available but not set.
+ */
+class DiamondWidget extends WidgetType {
+  /**
+   * @param {boolean} active - Whether this expression has an active breakpoint
+   * @param {number} line - 1-indexed line number
+   * @param {number} column - 1-indexed column number
+   */
+  constructor(active, line, column) {
+    super();
+    this.active = active;
+    this.line = line;
+    this.column = column;
+  }
+
+  /** @returns {HTMLElement} */
+  toDOM() {
+    const span = document.createElement('span');
+    span.className = this.active ? 'cm-expr-diamond cm-expr-diamond-active' : 'cm-expr-diamond';
+    span.textContent = this.active ? '◆' : '◇';
+    span.title = this.active
+      ? `Expression breakpoint (line ${this.line}, col ${this.column}) — click to remove`
+      : `Click to set expression breakpoint (line ${this.line}, col ${this.column})`;
+    span.dataset.line = String(this.line);
+    span.dataset.column = String(this.column);
+    span.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (diamondClickCallback.fn) {
+        diamondClickCallback.fn(this.line, this.column);
+      }
+    });
+    return span;
+  }
+
+  /** @param {DiamondWidget} other */
+  eq(other) {
+    return this.active === other.active && this.line === other.line && this.column === other.column;
+  }
+
+  get estimatedHeight() { return -1; }
+  ignoreEvent() { return false; }
+}
+
+/**
+ * Decoration computed from diamondMarkersField — renders diamond widgets
+ * at each marker position.
+ */
+const diamondMarkersPlugin = EditorView.decorations.compute(
+  [diamondMarkersField],
+  (state) => {
+    const markers = state.field(diamondMarkersField);
+    if (markers.length === 0) return Decoration.none;
+
+    try {
+      const sorted = [...markers].sort((a, b) => a.pos - b.pos);
+      const decos = [];
+      for (const m of sorted) {
+        decos.push(
+          Decoration.widget({
+            widget: new DiamondWidget(m.active, m.line, m.column),
+            side: -1, // Before the expression text
+          }).range(m.pos)
+        );
+      }
+      return Decoration.set(decos);
+    } catch {
+      return Decoration.none;
+    }
+  }
+);
+
+// =========================================================================
+// Expression breakpoint highlight marks (background for active diamonds)
+// =========================================================================
+
+/**
+ * StateEffect for setting expression breakpoint highlight ranges.
+ * Accepts an array of { from: number, to: number } (doc offsets).
+ * @type {import('@codemirror/state').StateEffectType<Array<{from: number, to: number}>>}
+ */
+const setExpressionBreakpointsEffect = StateEffect.define();
+
+/**
+ * StateField that stores expression breakpoint ranges (doc offsets).
+ */
+const expressionBreakpointField = StateField.define({
+  create: () => [],
+  update(ranges, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setExpressionBreakpointsEffect)) {
+        return effect.value;
+      }
+    }
+    return ranges;
+  },
+});
+
+/**
+ * Decoration that applies `.cm-expr-breakpoint` to active expression breakpoint ranges.
+ */
+const expressionBreakpointPlugin = EditorView.decorations.compute(
+  [expressionBreakpointField],
+  (state) => {
+    const ranges = state.field(expressionBreakpointField);
+    if (ranges.length === 0) return Decoration.none;
+
+    try {
+      const sorted = [...ranges].sort((a, b) => a.from - b.from);
+      return Decoration.set(
+        sorted.map(r => Decoration.mark({ class: 'cm-expr-breakpoint' }).range(r.from, r.to))
+      );
+    } catch {
+      return Decoration.none;
+    }
+  }
+);
+
+// =========================================================================
+// Helper: convert 1-indexed line/column to doc offsets
+// =========================================================================
+
+/**
+ * Converts 1-indexed line/column span to 0-based document offsets.
+ * Columns are 1-indexed in the reader, CodeMirror uses 0-indexed from line start.
+ *
+ * @param {import('@codemirror/state').Text} doc - CodeMirror document
+ * @param {number} line - 1-indexed start line
+ * @param {number} column - 1-indexed start column
+ * @param {number} endLine - 1-indexed end line
+ * @param {number} endColumn - 1-indexed end column
+ * @returns {{from: number, to: number}|null} Doc offsets, or null if out of range
+ */
+function spanToOffsets(doc, line, column, endLine, endColumn) {
+  try {
+    const startLine = doc.line(line);
+    const from = startLine.from + (column - 1);
+    const eLine = doc.line(endLine);
+    const to = eLine.from + (endColumn - 1);
+    if (from < 0 || to > doc.length || from > to) return null;
+    return { from, to };
+  } catch {
+    return null;
+  }
+}
+
+// =========================================================================
 // Editor component
 // =========================================================================
 
@@ -296,15 +557,20 @@ const currentLinePlugin = EditorView.decorations.compute(
  * @param {HTMLElement} container - DOM element to mount the editor into
  * @param {function(number, boolean): void} [onBreakpointToggle]
  *   Called when a breakpoint is toggled. Arguments: (1-indexed line, isNowSet).
+ * @param {function(number, number): void} [onDiamondClick]
+ *   Called when a diamond marker is clicked. Arguments: (1-indexed line, 1-indexed column).
  * @returns {{
  *   view: EditorView,
  *   setContent: function(string): void,
  *   scrollToLine: function(number): void,
  *   highlightLine: function(number|null): void,
  *   setBreakpoints: function(Set<number>): void,
+ *   highlightExpression: function(number|null, number|null, number|null, number|null): void,
+ *   setExpressionBreakpoints: function(Array<{line: number, column: number, endLine: number, endColumn: number}>): void,
+ *   setDiamondMarkers: function(Array<{line: number, column: number, active: boolean}>): void,
  * }}
  */
-export function createEditor(container, onBreakpointToggle) {
+export function createEditor(container, onBreakpointToggle, onDiamondClick) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
   const state = EditorState.create({
@@ -341,6 +607,18 @@ export function createEditor(container, onBreakpointToggle) {
       currentLineField,
       currentLinePlugin,
 
+      // Current expression highlight
+      currentExpressionField,
+      currentExpressionPlugin,
+
+      // Expression breakpoint highlights (background marks for active diamonds)
+      expressionBreakpointField,
+      expressionBreakpointPlugin,
+
+      // Inline diamond markers at expression boundaries
+      diamondMarkersField,
+      diamondMarkersPlugin,
+
       lineNumbers(),
       highlightActiveLine(),
       schemeLanguage,
@@ -352,6 +630,9 @@ export function createEditor(container, onBreakpointToggle) {
   });
 
   const view = new EditorView({ state, parent: container });
+
+  // Wire up diamond click callback
+  diamondClickCallback.fn = onDiamondClick || null;
 
   // Re-theme when DevTools switches between dark and light mode.
   prefersDark.addEventListener('change', (e) => {
@@ -372,6 +653,9 @@ export function createEditor(container, onBreakpointToggle) {
       effects: [
         setCurrentLineEffect.of(null),
         setBreakpointsEffect.of(new Set()),
+        setCurrentExpressionEffect.of(null),
+        setExpressionBreakpointsEffect.of([]),
+        setDiamondMarkersEffect.of([]),
       ],
     });
   }
@@ -415,5 +699,71 @@ export function createEditor(container, onBreakpointToggle) {
     view.dispatch({ effects: setBreakpointsEffect.of(new Set(lines)) });
   }
 
-  return { view, setContent, scrollToLine, highlightLine, setBreakpoints };
+  /**
+   * Highlights the exact expression range in the editor (e.g., when paused).
+   * Pass all nulls to clear the highlight.
+   *
+   * @param {number|null} line - 1-indexed start line, or null to clear
+   * @param {number|null} col - 1-indexed start column, or null to clear
+   * @param {number|null} endLine - 1-indexed end line, or null to clear
+   * @param {number|null} endCol - 1-indexed end column, or null to clear
+   */
+  function highlightExpression(line, col, endLine, endCol) {
+    if (line == null || col == null || endLine == null || endCol == null) {
+      view.dispatch({ effects: setCurrentExpressionEffect.of(null) });
+      return;
+    }
+    const offsets = spanToOffsets(view.state.doc, line, col, endLine, endCol);
+    if (offsets) {
+      view.dispatch({ effects: setCurrentExpressionEffect.of(offsets) });
+    } else {
+      view.dispatch({ effects: setCurrentExpressionEffect.of(null) });
+    }
+  }
+
+  /**
+   * Sets inline highlights for expression-level breakpoints.
+   * Replaces any existing expression breakpoint highlights.
+   *
+   * @param {Array<{line: number, column: number, endLine: number, endColumn: number}>} spans
+   *   Array of 1-indexed line/column spans
+   */
+  function setExpressionBreakpoints(spans) {
+    const ranges = [];
+    for (const s of spans) {
+      const offsets = spanToOffsets(view.state.doc, s.line, s.column, s.endLine, s.endColumn);
+      if (offsets) ranges.push(offsets);
+    }
+    view.dispatch({ effects: setExpressionBreakpointsEffect.of(ranges) });
+  }
+
+  /**
+   * Sets inline diamond markers at expression boundaries.
+   * Diamonds appear at the start of each breakable sub-expression on lines
+   * that have a line breakpoint or are the current paused line.
+   *
+   * @param {Array<{line: number, column: number, active: boolean}>} markers
+   *   Array of 1-indexed line/column positions with active state.
+   *   `active` = true renders a filled diamond (◆), false renders hollow (◇).
+   */
+  function setDiamondMarkers(markers) {
+    const resolved = [];
+    for (const m of markers) {
+      try {
+        const lineInfo = view.state.doc.line(m.line);
+        const pos = lineInfo.from + (m.column - 1);
+        if (pos >= 0 && pos <= view.state.doc.length) {
+          resolved.push({ pos, active: m.active, line: m.line, column: m.column });
+        }
+      } catch {
+        // Line out of range — skip
+      }
+    }
+    view.dispatch({ effects: setDiamondMarkersEffect.of(resolved) });
+  }
+
+  return {
+    view, setContent, scrollToLine, highlightLine, setBreakpoints,
+    highlightExpression, setExpressionBreakpoints, setDiamondMarkers,
+  };
 }

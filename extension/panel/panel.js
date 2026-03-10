@@ -15991,6 +15991,37 @@ var layoutTheme = EditorView.theme({
     backgroundColor: "rgba(255, 193, 7, 0.15) !important",
     borderLeft: "3px solid #ffc107"
   },
+  // Current expression highlight (exact sub-expression being executed)
+  ".cm-debug-current-expr": {
+    backgroundColor: "rgba(255, 193, 7, 0.35) !important",
+    borderBottom: "2px solid #ffc107",
+    borderRadius: "2px"
+  },
+  // Expression breakpoint highlight (user-set column-level breakpoint)
+  ".cm-expr-breakpoint": {
+    backgroundColor: "rgba(255, 85, 85, 0.2)",
+    borderBottom: "2px solid #ff5555",
+    borderRadius: "2px"
+  },
+  // Inline expression diamond markers (Chrome DevTools-style)
+  ".cm-expr-diamond": {
+    cursor: "pointer",
+    color: "#6272a4",
+    fontSize: "8px",
+    lineHeight: "1",
+    verticalAlign: "middle",
+    padding: "0 1px",
+    userSelect: "none",
+    opacity: "0.6",
+    transition: "opacity 0.15s"
+  },
+  ".cm-expr-diamond:hover": {
+    opacity: "1"
+  },
+  ".cm-expr-diamond-active": {
+    color: "#ff5555",
+    opacity: "1"
+  },
   // Breakpoint dot in the gutter
   ".cm-breakpoint-dot": {
     width: "8px",
@@ -16125,7 +16156,148 @@ var currentLinePlugin = EditorView.decorations.compute(
     }
   }
 );
-function createEditor(container, onBreakpointToggle2) {
+var setCurrentExpressionEffect = StateEffect.define();
+var currentExpressionField = StateField.define({
+  create: () => null,
+  update(range, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setCurrentExpressionEffect)) {
+        return effect.value;
+      }
+    }
+    return range;
+  }
+});
+var currentExpressionPlugin = EditorView.decorations.compute(
+  [currentExpressionField],
+  (state) => {
+    const range = state.field(currentExpressionField);
+    if (!range) return Decoration.none;
+    try {
+      return Decoration.set([
+        Decoration.mark({ class: "cm-debug-current-expr" }).range(range.from, range.to)
+      ]);
+    } catch {
+      return Decoration.none;
+    }
+  }
+);
+var setDiamondMarkersEffect = StateEffect.define();
+var diamondMarkersField = StateField.define({
+  create: () => [],
+  update(markers, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setDiamondMarkersEffect)) {
+        return effect.value;
+      }
+    }
+    return markers;
+  }
+});
+var diamondClickCallback = { fn: null };
+var DiamondWidget = class extends WidgetType {
+  /**
+   * @param {boolean} active - Whether this expression has an active breakpoint
+   * @param {number} line - 1-indexed line number
+   * @param {number} column - 1-indexed column number
+   */
+  constructor(active, line, column) {
+    super();
+    this.active = active;
+    this.line = line;
+    this.column = column;
+  }
+  /** @returns {HTMLElement} */
+  toDOM() {
+    const span = document.createElement("span");
+    span.className = this.active ? "cm-expr-diamond cm-expr-diamond-active" : "cm-expr-diamond";
+    span.textContent = this.active ? "\u25C6" : "\u25C7";
+    span.title = this.active ? `Expression breakpoint (line ${this.line}, col ${this.column}) \u2014 click to remove` : `Click to set expression breakpoint (line ${this.line}, col ${this.column})`;
+    span.dataset.line = String(this.line);
+    span.dataset.column = String(this.column);
+    span.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (diamondClickCallback.fn) {
+        diamondClickCallback.fn(this.line, this.column);
+      }
+    });
+    return span;
+  }
+  /** @param {DiamondWidget} other */
+  eq(other) {
+    return this.active === other.active && this.line === other.line && this.column === other.column;
+  }
+  get estimatedHeight() {
+    return -1;
+  }
+  ignoreEvent() {
+    return false;
+  }
+};
+var diamondMarkersPlugin = EditorView.decorations.compute(
+  [diamondMarkersField],
+  (state) => {
+    const markers = state.field(diamondMarkersField);
+    if (markers.length === 0) return Decoration.none;
+    try {
+      const sorted = [...markers].sort((a, b) => a.pos - b.pos);
+      const decos = [];
+      for (const m of sorted) {
+        decos.push(
+          Decoration.widget({
+            widget: new DiamondWidget(m.active, m.line, m.column),
+            side: -1
+            // Before the expression text
+          }).range(m.pos)
+        );
+      }
+      return Decoration.set(decos);
+    } catch {
+      return Decoration.none;
+    }
+  }
+);
+var setExpressionBreakpointsEffect = StateEffect.define();
+var expressionBreakpointField = StateField.define({
+  create: () => [],
+  update(ranges, tr) {
+    for (const effect of tr.effects) {
+      if (effect.is(setExpressionBreakpointsEffect)) {
+        return effect.value;
+      }
+    }
+    return ranges;
+  }
+});
+var expressionBreakpointPlugin = EditorView.decorations.compute(
+  [expressionBreakpointField],
+  (state) => {
+    const ranges = state.field(expressionBreakpointField);
+    if (ranges.length === 0) return Decoration.none;
+    try {
+      const sorted = [...ranges].sort((a, b) => a.from - b.from);
+      return Decoration.set(
+        sorted.map((r) => Decoration.mark({ class: "cm-expr-breakpoint" }).range(r.from, r.to))
+      );
+    } catch {
+      return Decoration.none;
+    }
+  }
+);
+function spanToOffsets(doc2, line, column, endLine, endColumn) {
+  try {
+    const startLine = doc2.line(line);
+    const from = startLine.from + (column - 1);
+    const eLine = doc2.line(endLine);
+    const to = eLine.from + (endColumn - 1);
+    if (from < 0 || to > doc2.length || from > to) return null;
+    return { from, to };
+  } catch {
+    return null;
+  }
+}
+function createEditor(container, onBreakpointToggle2, onDiamondClick2) {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
   const state = EditorState.create({
     doc: "",
@@ -16158,6 +16330,15 @@ function createEditor(container, onBreakpointToggle2) {
       // Current-line highlight
       currentLineField,
       currentLinePlugin,
+      // Current expression highlight
+      currentExpressionField,
+      currentExpressionPlugin,
+      // Expression breakpoint highlights (background marks for active diamonds)
+      expressionBreakpointField,
+      expressionBreakpointPlugin,
+      // Inline diamond markers at expression boundaries
+      diamondMarkersField,
+      diamondMarkersPlugin,
       lineNumbers(),
       highlightActiveLine(),
       schemeLanguage,
@@ -16168,6 +16349,7 @@ function createEditor(container, onBreakpointToggle2) {
     ]
   });
   const view = new EditorView({ state, parent: container });
+  diamondClickCallback.fn = onDiamondClick2 || null;
   prefersDark.addEventListener("change", (e) => {
     view.dispatch({
       effects: themeCompartment.reconfigure(makeThemeExtension(e.matches))
@@ -16178,7 +16360,10 @@ function createEditor(container, onBreakpointToggle2) {
       changes: { from: 0, to: view.state.doc.length, insert: content2 },
       effects: [
         setCurrentLineEffect.of(null),
-        setBreakpointsEffect.of(/* @__PURE__ */ new Set())
+        setBreakpointsEffect.of(/* @__PURE__ */ new Set()),
+        setCurrentExpressionEffect.of(null),
+        setExpressionBreakpointsEffect.of([]),
+        setDiamondMarkersEffect.of([])
       ]
     });
   }
@@ -16200,7 +16385,50 @@ function createEditor(container, onBreakpointToggle2) {
   function setBreakpoints(lines) {
     view.dispatch({ effects: setBreakpointsEffect.of(new Set(lines)) });
   }
-  return { view, setContent, scrollToLine, highlightLine, setBreakpoints };
+  function highlightExpression(line, col, endLine, endCol) {
+    if (line == null || col == null || endLine == null || endCol == null) {
+      view.dispatch({ effects: setCurrentExpressionEffect.of(null) });
+      return;
+    }
+    const offsets = spanToOffsets(view.state.doc, line, col, endLine, endCol);
+    if (offsets) {
+      view.dispatch({ effects: setCurrentExpressionEffect.of(offsets) });
+    } else {
+      view.dispatch({ effects: setCurrentExpressionEffect.of(null) });
+    }
+  }
+  function setExpressionBreakpoints(spans) {
+    const ranges = [];
+    for (const s of spans) {
+      const offsets = spanToOffsets(view.state.doc, s.line, s.column, s.endLine, s.endColumn);
+      if (offsets) ranges.push(offsets);
+    }
+    view.dispatch({ effects: setExpressionBreakpointsEffect.of(ranges) });
+  }
+  function setDiamondMarkers(markers) {
+    const resolved = [];
+    for (const m of markers) {
+      try {
+        const lineInfo = view.state.doc.line(m.line);
+        const pos = lineInfo.from + (m.column - 1);
+        if (pos >= 0 && pos <= view.state.doc.length) {
+          resolved.push({ pos, active: m.active, line: m.line, column: m.column });
+        }
+      } catch {
+      }
+    }
+    view.dispatch({ effects: setDiamondMarkersEffect.of(resolved) });
+  }
+  return {
+    view,
+    setContent,
+    scrollToLine,
+    highlightLine,
+    setBreakpoints,
+    highlightExpression,
+    setExpressionBreakpoints,
+    setDiamondMarkers
+  };
 }
 
 // extension/panel-src/protocol/scheme-bridge.js
@@ -16303,10 +16531,21 @@ async function stepOut() {
   } catch {
   }
 }
-async function setBreakpoint(url, line) {
+async function getExpressions(url) {
   try {
     const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}))`
+      `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
+    );
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
+async function setBreakpoint(url, line, column = null) {
+  try {
+    const colArg = column !== null ? `, ${column}` : "";
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}${colArg}))`
     );
     return JSON.parse(json);
   } catch {
@@ -16579,14 +16818,18 @@ var variablesContainer = document.getElementById("variables-container");
 var sidebar = document.getElementById("sidebar");
 var splitter = document.getElementById("splitter");
 var currentSourceUrl = null;
+var currentExpressions = [];
 var breakpointIds = /* @__PURE__ */ new Map();
 async function saveBreakpointsToPage() {
   const entries = [];
   for (const key of breakpointIds.keys()) {
-    const lastColon = key.lastIndexOf(":");
-    const url = key.substring(0, lastColon);
-    const line = parseInt(key.substring(lastColon + 1), 10);
-    entries.push({ url, line });
+    const parts = key.split(":");
+    const column = parts.pop();
+    const line = parts.pop();
+    const url = parts.join(":");
+    const entry = { url, line: parseInt(line, 10) };
+    if (column !== "null") entry.column = parseInt(column, 10);
+    entries.push(entry);
   }
   try {
     await evalInPage(
@@ -16600,7 +16843,7 @@ async function syncBreakpointsFromInterpreter() {
     const json = await evalInPage("JSON.stringify(__schemeDebug.getAllBreakpoints())");
     const bps = JSON.parse(json);
     for (const bp of bps) {
-      breakpointIds.set(`${bp.filename}:${bp.line}`, bp.id);
+      breakpointIds.set(`${bp.filename}:${bp.line}:${bp.column}`, bp.id);
     }
   } catch {
   }
@@ -16608,13 +16851,35 @@ async function syncBreakpointsFromInterpreter() {
 function getBreakpointLinesForUrl(url) {
   const lines = /* @__PURE__ */ new Set();
   for (const key of breakpointIds.keys()) {
-    const lastColon = key.lastIndexOf(":");
-    const bpUrl = key.substring(0, lastColon);
-    if (bpUrl === url) {
-      lines.add(parseInt(key.substring(lastColon + 1), 10));
+    const parts = key.split(":");
+    const column = parts.pop();
+    const line = parts.pop();
+    const bpUrl = parts.join(":");
+    if (bpUrl === url && column === "null") {
+      lines.add(parseInt(line, 10));
     }
   }
   return lines;
+}
+function getExpressionBreakpointsForUrl(url) {
+  const spans = [];
+  for (const key of breakpointIds.keys()) {
+    const parts = key.split(":");
+    const column = parts.pop();
+    const line = parts.pop();
+    const bpUrl = parts.join(":");
+    if (bpUrl === url && column !== "null") {
+      const lineNum = parseInt(line, 10);
+      const colNum = parseInt(column, 10);
+      const span = currentExpressions.find(
+        (e) => e.line === lineNum && e.column === colNum
+      );
+      if (span) {
+        spans.push({ line: span.line, column: span.column, endLine: span.endLine, endColumn: span.endColumn });
+      }
+    }
+  }
+  return spans;
 }
 var toolbar = createToolbar(toolbarDebug, {
   onResume: () => resume(),
@@ -16636,14 +16901,25 @@ async function onSelectFrame(frameIndex, frame) {
       await loadSource(url);
     }
     editor.highlightLine(frame.source.line);
+    if (frame.source.endLine != null && frame.source.endColumn != null) {
+      editor.highlightExpression(
+        frame.source.line,
+        frame.source.column,
+        frame.source.endLine,
+        frame.source.endColumn
+      );
+    } else {
+      editor.highlightExpression(null);
+    }
   } else {
     editor.highlightLine(null);
+    editor.highlightExpression(null);
   }
 }
 var callStack = createCallStack(callStackContainer, onSelectFrame);
 async function onBreakpointToggle(line, isNowSet) {
   if (!currentSourceUrl) return;
-  const key = `${currentSourceUrl}:${line}`;
+  const key = `${currentSourceUrl}:${line}:null`;
   if (isNowSet) {
     const id = await setBreakpoint(currentSourceUrl, line);
     if (id) {
@@ -16658,26 +16934,90 @@ async function onBreakpointToggle(line, isNowSet) {
       saveBreakpointsToPage();
     }
   }
+  refreshDiamondMarkers();
 }
-var editor = createEditor(editorContainer, onBreakpointToggle);
+async function onDiamondClick(line, column) {
+  if (!currentSourceUrl) return;
+  const key = `${currentSourceUrl}:${line}:${column}`;
+  const existingId = breakpointIds.get(key);
+  if (existingId) {
+    await removeBreakpoint(existingId);
+    breakpointIds.delete(key);
+  } else {
+    const id = await setBreakpoint(currentSourceUrl, line, column);
+    if (id) {
+      breakpointIds.set(key, id);
+    }
+  }
+  saveBreakpointsToPage();
+  refreshDiamondMarkers();
+  const exprBps = getExpressionBreakpointsForUrl(currentSourceUrl);
+  editor.setExpressionBreakpoints(exprBps);
+}
+var editor = createEditor(editorContainer, onBreakpointToggle, onDiamondClick);
+var currentPausedLine = null;
+function refreshDiamondMarkers() {
+  if (!currentSourceUrl || currentExpressions.length === 0) {
+    editor.setDiamondMarkers([]);
+    return;
+  }
+  const diamondLines = /* @__PURE__ */ new Set();
+  const bpLines = getBreakpointLinesForUrl(currentSourceUrl);
+  for (const line of bpLines) diamondLines.add(line);
+  if (currentPausedLine !== null) diamondLines.add(currentPausedLine);
+  if (diamondLines.size === 0) {
+    editor.setDiamondMarkers([]);
+    return;
+  }
+  const exprsByLine = /* @__PURE__ */ new Map();
+  for (const expr of currentExpressions) {
+    if (!diamondLines.has(expr.line)) continue;
+    if (!exprsByLine.has(expr.line)) exprsByLine.set(expr.line, []);
+    exprsByLine.get(expr.line).push(expr);
+  }
+  const markers = [];
+  for (const [lineNum, exprs] of exprsByLine) {
+    if (exprs.length <= 1) continue;
+    exprs.sort((a, b) => a.column - b.column);
+    for (let i = 1; i < exprs.length; i++) {
+      const expr = exprs[i];
+      const key = `${currentSourceUrl}:${expr.line}:${expr.column}`;
+      const active = breakpointIds.has(key);
+      markers.push({ line: expr.line, column: expr.column, active });
+    }
+  }
+  editor.setDiamondMarkers(markers);
+}
 async function loadSource(url) {
   const content2 = await getSourceContent(url);
   if (content2 === null) return;
   currentSourceUrl = url;
   editor.setContent(content2);
+  currentExpressions = await getExpressions(url);
   const lines = getBreakpointLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
+  const exprBps = getExpressionBreakpointsForUrl(url);
+  if (exprBps.length > 0) {
+    editor.setExpressionBreakpoints(exprBps);
+  }
+  refreshDiamondMarkers();
 }
-function onSelectSource(url, content2) {
+async function onSelectSource(url, content2) {
   currentSourceUrl = url;
   editor.setContent(content2 || "");
   editor.highlightLine(null);
+  currentExpressions = await getExpressions(url);
   const lines = getBreakpointLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
+  const exprBps = getExpressionBreakpointsForUrl(url);
+  if (exprBps.length > 0) {
+    editor.setExpressionBreakpoints(exprBps);
+  }
+  refreshDiamondMarkers();
   toolbar.setStatus(`Viewing: ${url.split("/").pop()}`);
 }
 var sourceList = createSourceList(sourceListContainer, onSelectSource);
@@ -16698,6 +17038,18 @@ async function onPaused(detail) {
       await loadSource(pauseSource.filename);
     }
     editor.highlightLine(pauseSource.line);
+    if (pauseSource.endLine != null && pauseSource.endColumn != null) {
+      editor.highlightExpression(
+        pauseSource.line,
+        pauseSource.column,
+        pauseSource.endLine,
+        pauseSource.endColumn
+      );
+    } else {
+      editor.highlightExpression(null);
+    }
+    currentPausedLine = pauseSource.line;
+    refreshDiamondMarkers();
   }
   if (stack.length > 0) {
     try {
@@ -16714,6 +17066,9 @@ function onResumed() {
   callStack.clear();
   variables.clear();
   editor.highlightLine(null);
+  editor.highlightExpression(null);
+  currentPausedLine = null;
+  refreshDiamondMarkers();
   refresh();
 }
 if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {

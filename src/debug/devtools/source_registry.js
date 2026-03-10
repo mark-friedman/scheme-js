@@ -39,6 +39,14 @@ export class SchemeSourceRegistry {
     this.locationToExprId = new Map();
 
     /**
+     * Map of scheme URL → array of expression span objects.
+     * Each span has { exprId, line, column, endLine, endColumn }.
+     * Used by the panel for expression-level breakpoints and highlighting.
+     * @type {Map<string, Array<{exprId: number, line: number, column: number, endLine: number, endColumn: number}>>}
+     */
+    this.expressionSpans = new Map();
+
+    /**
      * Global expression ID counter.
      * @type {number}
      */
@@ -79,6 +87,9 @@ export class SchemeSourceRegistry {
     // Extract expression spans and assign exprIds
     const spans = this._extractSourceSpans(expressions, url, splitLines);
 
+    // Store expression spans for panel access (expression-level breakpoints/highlighting)
+    this.expressionSpans.set(url, spans);
+
     // Clear any stale location mappings for this URL before populating new ones
     const prefix = `${url}:`;
     for (const key of this.locationToExprId.keys()) {
@@ -118,6 +129,7 @@ export class SchemeSourceRegistry {
       const oldUrl = this._replSourceQueue.shift();
       this.sources.delete(oldUrl);
       this.probes.delete(oldUrl);
+      this.expressionSpans.delete(oldUrl);
 
       // Remove location mappings for this URL
       const prefix = `${oldUrl}:`;
@@ -232,6 +244,17 @@ export class SchemeSourceRegistry {
     const probes = this.probes.get(url);
     if (!probes) return null;
     return probes[exprId] || null;
+  }
+
+  /**
+   * Gets the expression spans for a source URL.
+   * Each span describes a single AST expression with its location range.
+   *
+   * @param {string} url - Source URL
+   * @returns {Array<{exprId: number, line: number, column: number, endLine: number, endColumn: number}>}
+   */
+  getExpressions(url) {
+    return this.expressionSpans.get(url) || [];
   }
 
   /**
