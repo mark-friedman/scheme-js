@@ -33,7 +33,7 @@ export function parse(input, options = {}) {
 
     // Strip block comments before tokenizing
     const preprocessed = stripBlockComments(input);
-    const tokens = tokenize(preprocessed, options.filename);
+    const tokens = tokenize(preprocessed, options.filename, options.lineOffset || 0);
     const expressions = [];
 
     try {

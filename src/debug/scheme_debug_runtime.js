@@ -308,7 +308,8 @@ export class SchemeDebugRuntime {
                 breakpointId: bpId,
                 source,
                 stack: this.stackTracer.getStack(),
-                env
+                env,
+                data: this.pauseController.getPauseData()
             });
         }
     }
@@ -360,7 +361,8 @@ export class SchemeDebugRuntime {
             source,
             stack: this.stackTracer.getStack(),
             env,
-            level
+            level,
+            data: this.pauseController.getPauseData()
         };
 
         let action;

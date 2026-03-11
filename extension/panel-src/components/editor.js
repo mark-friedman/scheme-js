@@ -27,6 +27,7 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 import { schemeLanguage } from '../language/scheme-mode.js';
 import { javascript } from '@codemirror/lang-javascript';
+import { html } from '@codemirror/lang-html';
 
 // =========================================================================
 // Shared structural styles (layout only — no colors)
@@ -654,10 +655,26 @@ export function createEditor(container, onBreakpointToggle, onDiamondClick) {
    * Optionally switches the language mode (Scheme or JavaScript).
    *
    * @param {string} content - The source code to display
-   * @param {'scheme'|'javascript'} [language='scheme'] - Syntax highlighting mode
+   * @param {'scheme'|'javascript'|'html'} [language='scheme'] - Syntax highlighting mode
    */
   function setContent(content, language = 'scheme') {
-    const langExtension = language === 'javascript' ? javascript() : schemeLanguage;
+    let langExtension;
+    if (language === 'javascript') {
+      langExtension = javascript();
+    } else if (language === 'html') {
+      langExtension = html({
+        nestedLanguages: [
+          {
+            tag: "script",
+            attrs: attrs => attrs.type === "text/scheme" || attrs.type === "text/x-scheme",
+            parser: schemeLanguage.parser
+          }
+        ]
+      });
+    } else {
+      langExtension = schemeLanguage;
+    }
+    
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: content },
       effects: [

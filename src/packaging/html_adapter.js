@@ -129,15 +129,30 @@ async function runScripts() {
     }
   }
 
+  // Fetch host HTML for correct source mapping of inline scripts
+  let fullHtml = null;
+  let documentUrl = null;
+  if (debugEnabled && typeof document !== 'undefined' && location.href) {
+    try {
+      const res = await fetch(location.href);
+      if (res.ok) {
+        fullHtml = await res.text();
+        documentUrl = location.href;
+      }
+    } catch (e) { /* ignore */ }
+  }
+
   // Pass 1: Fetch, parse, and register ALL sources before executing any.
   // This ensures all sources are visible in the DevTools panel even when
   // execution pauses at a breakpoint in the first script.
   let inlineIndex = 0;
   const prepared = [];
+  const allInlineExpressions = [];
 
   for (const script of scripts) {
     try {
       let code, sourceId;
+      let lineOffset = 0;
 
       if (script.src) {
         const response = await fetch(script.src);
@@ -150,18 +165,32 @@ async function runScripts() {
         sourceId = `scheme://scheme-sources/${filename}`;
       } else {
         code = script.textContent;
-        sourceId = `scheme://inline-scripts/script-${inlineIndex++}.scm`;
+        if (fullHtml && documentUrl) {
+          sourceId = documentUrl;
+          const codeIndex = fullHtml.indexOf(code);
+          if (codeIndex !== -1) {
+            const beforeCode = fullHtml.substring(0, codeIndex);
+            lineOffset = (beforeCode.match(/\n/g) || []).length;
+          }
+        } else {
+          sourceId = `scheme://inline-scripts/script-${inlineIndex++}.scm`;
+        }
       }
 
       // Parse with sourceId so AST nodes carry the correct filename.
       // wrapLiterals wraps top-level primitive values for breakpoint source tracking.
-      const expressions = parse(code, { filename: sourceId, wrapLiterals: true });
+      const expressions = parse(code, { filename: sourceId, wrapLiterals: true, lineOffset });
       if (expressions.length === 0) continue;
 
       // Register source for DevTools probe generation
       if (sourceRegistry) {
-        const origin = script.src ? 'external' : 'inline';
-        sourceRegistry.register(sourceId, code, origin, expressions);
+        if (!script.src && fullHtml && documentUrl) {
+          // Accumulate inline expressions to register the whole HTML file later
+          allInlineExpressions.push(...expressions);
+        } else {
+          const origin = script.src ? 'external' : 'inline';
+          sourceRegistry.register(sourceId, code, origin, expressions);
+        }
       }
 
       let ast;
@@ -176,6 +205,11 @@ async function runScripts() {
     } catch (err) {
       console.error('Error loading Scheme script:', err);
     }
+  }
+
+  // Register the full HTML file integrating all inline scripts
+  if (debugEnabled && sourceRegistry && fullHtml && documentUrl && allInlineExpressions.length > 0) {
+    sourceRegistry.register(documentUrl, fullHtml, 'inline', allInlineExpressions);
   }
 
   // Pass 2: Execute all scripts sequentially.

@@ -83,12 +83,13 @@ export function stripBlockComments(input) {
  * 
  * @param {string} input - Source code (after block comment stripping)
  * @param {string} [filename='<unknown>'] - Source file name for error messages
+ * @param {number} [lineOffset=0] - Starting line offset
  * @returns {Array<{value: string, hasPrecedingSpace: boolean, source: SourceInfo}>} Token array
  */
-export function tokenize(input, filename = '<unknown>') {
+export function tokenize(input, filename = '<unknown>', lineOffset = 0) {
     const tokens = [];
     let pos = 0;
-    let line = 1;
+    let line = 1 + lineOffset;
     let column = 1;
     let isStart = true;
 

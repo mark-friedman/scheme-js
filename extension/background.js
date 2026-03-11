@@ -416,4 +416,51 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         return true;
     }
+
+    // =====================================================================
+    // Phase 5: Boundary Breakpoint management via CDP
+    // =====================================================================
+
+    // Set a one-shot breakpoint on the function stored in globalThis.__schemeBoundaryTarget
+    if (message.type === 'set-boundary-breakpoint') {
+        (async () => {
+            try {
+                // 1. Get the target function object
+                const evalResult = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Runtime.evaluate', {
+                    expression: 'globalThis.__schemeBoundaryTarget'
+                });
+                const objectId = evalResult.result?.objectId;
+                if (!objectId) throw new Error("No boundary target found (not a function)");
+
+                // 2. Get its internal properties to find [[FunctionLocation]]
+                const props = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Runtime.getProperties', {
+                    objectId: objectId,
+                    ownProperties: false,
+                    accessorPropertiesOnly: false,
+                    generatePreview: false
+                });
+
+                let location = null;
+                for (const prop of props.internalProperties || []) {
+                    if (prop.name === '[[FunctionLocation]]' && prop.value && prop.value.value) {
+                        location = prop.value.value;
+                        break;
+                    }
+                }
+
+                if (!location) throw new Error("Could not find function location");
+
+                // 3. Set a breakpoint at that location
+                const bpResult = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.setBreakpoint', {
+                    location: location
+                });
+
+                sendResponse({ success: true, breakpointId: bpResult.breakpointId });
+            } catch(e) {
+                // If it fails (e.g. built-in native function without [[FunctionLocation]]), we just fail gracefully.
+                sendResponse({ success: false, error: e.message });
+            }
+        })();
+        return true;
+    }
 });

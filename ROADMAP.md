@@ -492,6 +492,34 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
+## Phase 16e: Javascript Interop Debugging (Phase 4) ✅
+**Target:** Unified Scheme/JS Debugging inside DevTools
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Async Stack Tagging** | Uses `console.createTask` to connect async evaluations to their initiation points. | ✅ |
+| **Unified Call Stack** | Interleaves Scheme frames and JS frames logically when paused in JS. | ✅ |
+| **JS Scope Inspection** | Views native JavaScript locals and closures from the panel using CDP `Debugger.getPossibleBreakpoints`. | ✅ |
+| **JS Stepping** | Routes step-over/into/out commands to CDP natively when paused in JS. | ✅ |
+
+**Deliverable:** Seamless Scheme ↔ JS interop debugging with Puppeteer tests passing.
+
+---
+
+## Phase 16f: Mixed HTML Files + Boundary Stepping (Phase 5) ✅
+**Target:** HTML source maps and Scheme → JS boundary step-into support
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Mixed Editor Support** | CodeMirror configuration for HTML parsing with nested JS/Scheme highlighting. | ✅ |
+| **HTML Source offsets** | `<script>` tag line offsets injected into `SchemeSourceRegistry` parser for accurate line mappings. | ✅ |
+| **Breakpoint Routing** | Gutter click routing to JS or Scheme bridges depending on tag boundaries. | ✅ |
+| **Scheme -> JS Boundary Stepping** | "Step Into" cooperatively yields when hitting a JS primitive to auto-attach CDP, set a native breakpoint, and resume to hand control to V8. | ✅ |
+
+**Deliverable:** HTML debugging fully supported. Tested with Node.js parser tests and Puppeteer UI automation.
+
+---
+
 ## Phase 18: Modular Analyzer Refactoring ✅
 **Target:** Improve analyzer architecture for extensibility and maintainability.
 

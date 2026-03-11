@@ -59,11 +59,31 @@ export function isJSFile(url) {
   // Check for known Scheme extensions
   const lower = url.toLowerCase();
   if (lower.endsWith('.scm') || lower.endsWith('.sld') || lower.endsWith('.ss')) return false;
+  // HTML files are mixed, so they aren't strictly JS files.
+  // We handle them specifically in setBreakpoint.
+  if (lower.endsWith('.html') || lower.endsWith('.htm')) return false;
   // Check for JS extensions
   if (lower.endsWith('.js') || lower.endsWith('.mjs') || lower.endsWith('.ts') ||
       lower.endsWith('.jsx') || lower.endsWith('.tsx')) return true;
   // For URLs without clear extension (e.g., inline scripts), assume JS if not scheme://
   return !url.startsWith('scheme://');
+}
+
+/**
+ * Checks if a specific line in an HTML file contains Scheme code.
+ * @param {string} url - Source URL
+ * @param {number} line - 1-indexed line number
+ * @returns {Promise<boolean>}
+ */
+async function isSchemeLine(url, line) {
+  const expressions = await schemeBridge.getExpressions(url);
+  // If any expression spans this line, it's considered Scheme code
+  for (const expr of expressions) {
+    if (line >= expr.line && line <= expr.endLine) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // =========================================================================
@@ -220,6 +240,17 @@ export async function stepOut() {
  * @returns {Promise<string|null>} Breakpoint ID
  */
 export async function setBreakpoint(url, line, column = null) {
+  const lower = url.toLowerCase();
+  // Handle mixed HTML files by analyzing the requested line
+  if (lower.endsWith('.html') || lower.endsWith('.htm')) {
+    const isScheme = await isSchemeLine(url, line);
+    if (isScheme) {
+      return schemeBridge.setBreakpoint(url, line, column);
+    } else {
+      return cdpBridge.setJSBreakpoint(url, line - 1);
+    }
+  }
+
   if (isJSFile(url)) {
     // CDP uses 0-indexed line numbers
     return cdpBridge.setJSBreakpoint(url, line - 1);
@@ -236,7 +267,14 @@ export async function setBreakpoint(url, line, column = null) {
  * @returns {Promise<boolean>} True if removed
  */
 export async function removeBreakpoint(id, url) {
-  if (isJSFile(url)) {
+  const lower = url.toLowerCase();
+  if (lower.endsWith('.html') || lower.endsWith('.htm')) {
+    // Breakpoint IDs format differ between Scheme ("<url>:<line>:<col>") and CDP (opaque strings).
+    // Try Scheme first; if it isn't found/removed, try CDP.
+    const removedScheme = await schemeBridge.removeBreakpoint(id);
+    if (removedScheme) return true;
+    return cdpBridge.removeJSBreakpoint(id);
+  } else if (isJSFile(url)) {
     return cdpBridge.removeJSBreakpoint(id);
   } else {
     return schemeBridge.removeBreakpoint(id);
@@ -327,6 +365,18 @@ export function init() {
  * @param {Object} detail - Pause detail from the __schemeDebug API
  */
 export async function handleSchemePause(detail) {
+  if (detail.reason === 'boundary') {
+    // 1. Attach CDP and set a native break on the boundary target
+    const bpId = await cdpBridge.setBoundaryBreakpoint();
+    
+    // We successfully set a JS breakpoint (or failed, e.g. built-in native).
+    // In either case, automatically resume the Scheme interpreter.
+    // If successful, V8 will immediately pause at the new breakpoint.
+    // If not, it acts as a "Step Over" since we can't step into built-ins.
+    await schemeBridge.resume();
+    return;
+  }
+
   currentPauseContext = 'scheme';
   schemeCallFrames = detail.stack || [];
   cdpCallFrames = [];  // CDP frames not relevant for Scheme pauses

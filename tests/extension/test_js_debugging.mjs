@@ -223,6 +223,9 @@ window.chrome = {
         response = { success: true };
       } else if (message.type === 'get-js-source') {
         response = { success: true, source: state.jsSource };
+      } else if (message.type === 'set-boundary-breakpoint') {
+        state.boundaryBreakpointsSet = (state.boundaryBreakpointsSet || 0) + 1;
+        response = { success: true, breakpointId: 'boundary-bp-' + (state.nextBreakpointId++) };
       }
 
       if (callback) setTimeout(() => callback(response), 10);
@@ -1009,6 +1012,54 @@ export async function testCurrentLineHighlightOnJSPause(browser, extensionId) {
   );
 
   assert('Editor shows current-line highlight on JS pause', hasHighlight);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Scheme→JS Boundary Stepping
+// =========================================================================
+
+export async function testBoundaryStepping(browser, extensionId) {
+  console.log('\n--- Test Group: Boundary Stepping ---');
+  if (!extensionId) { assert('Boundary stepping: extension loaded', false, 'no extension ID'); return; }
+
+  const panelPage = await openCDPMockedPanel(browser, extensionId);
+
+  // Initialize mock state
+  await panelPage.evaluate(() => {
+    window.__mockState.boundaryBreakpointsSet = 0;
+    window.__mockState.resumeCalled = false;
+  });
+
+  // Simulate a boundary pause
+  await panelPage.evaluate(() => {
+    const detail = {
+      reason: 'boundary',
+      source: { filename: 'test.scm', line: 1 },
+      stack: [{ name: 'test', source: { filename: 'test.scm', line: 1 }, tcoCount: 0 }],
+      data: { funcName: 'nativeFunc' }
+    };
+    window.__fireMessage({ type: 'scheme-debug-paused', detail });
+  });
+
+  await new Promise(r => setTimeout(r, 500));
+
+  // The panel SHOULD NOT show a pause UI
+  const bodyClass = await panelPage.evaluate(() => document.body.className);
+  assert('Panel hides boundary pauses (not paused)', !bodyClass.includes('paused'));
+
+  // CDP should be attached
+  const cdpAttached = await panelPage.evaluate(() => window.__mockState.cdpAttached);
+  assert('Boundary pause auto-attaches CDP', cdpAttached === true);
+
+  // set-boundary-breakpoint should have been called
+  const boundaryBps = await panelPage.evaluate(() => window.__mockState.boundaryBreakpointsSet);
+  assert('Boundary breakpoint was requested via CDP', boundaryBps > 0);
+
+  // Scheme native pause should be auto resumed
+  const schemeResume = await panelPage.evaluate(() => window.__mockState.resumeCalled);
+  assert('Scheme interpreter automatically resumed after boundary breakpoint', schemeResume === true);
 
   await panelPage.close();
 }

@@ -53,4 +53,8 @@ export function runReaderTests(logger) {
     assert(logger, "Multiple spaces", parse("   1   ")[0], 1);
     assert(logger, "Newlines", parse("\n1\n")[0], 1);
 
+    // 8. Line Offset
+    const l1 = parse("(define x 1)\n(define y 2)", { lineOffset: 10 });
+    assert(logger, "Line offset first expr", l1[0].source.line, 11);
+    assert(logger, "Line offset second expr", l1[1].source.line, 12);
 }

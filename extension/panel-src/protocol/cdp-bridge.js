@@ -263,6 +263,39 @@ export async function removeJSBreakpoint(breakpointId) {
 }
 
 // =========================================================================
+// Phase 5: Boundary Breakpoint
+// =========================================================================
+
+/**
+ * Sets a native JS breakpoint on the function stored in `globalThis.__schemeBoundaryTarget`.
+ * Auto-attaches CDP if not yet attached.
+ *
+ * @returns {Promise<string|null>} CDP breakpoint ID, or null on failure (e.g., built-in function)
+ */
+export async function setBoundaryBreakpoint() {
+  if (!attached) {
+    const ok = await attachCDP();
+    if (!ok) return null;
+    for (const fn of listeners.scriptParsed) {
+      fn({ type: 'cdp-attached' });
+    }
+  }
+
+  try {
+    const response = await sendToBackground({
+      type: 'set-boundary-breakpoint',
+      tabId: getTabId(),
+    });
+    if (response.success) {
+      return response.breakpointId || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// =========================================================================
 // JS Source Fetching
 // =========================================================================
 

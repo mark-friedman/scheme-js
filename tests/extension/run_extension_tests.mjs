@@ -80,6 +80,7 @@ import {
   testJSCallsSchemeShowsBothFrames,
   testButtonsEnabledDuringJSPause,
   testCurrentLineHighlightOnJSPause,
+  testBoundaryStepping,
 } from './test_js_debugging.mjs';
 
 // Phase 4: JS interop integration tests (real page, no mocks)
@@ -199,6 +200,7 @@ async function runTests() {
       testJSCallsSchemeShowsBothFrames,
       testButtonsEnabledDuringJSPause,
       testCurrentLineHighlightOnJSPause,
+      testBoundaryStepping,
     ];
 
     if (extensionId) {

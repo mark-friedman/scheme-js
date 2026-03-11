@@ -712,6 +712,15 @@ export class DevToolsDebugIntegration {
             tcoCount: f.tcoCount || 0
           }))
         };
+        
+        // Export boundary target to globalThis for CDP to pick up
+        if (info.reason === 'boundary' && info.data) {
+           detail.funcName = info.data.funcName;
+           if (info.data.func) {
+               globalThis.__schemeBoundaryTarget = info.data.func;
+           }
+        }
+        
         // CustomEvent for same-world listeners (test pages, direct page listeners)
         window.dispatchEvent(new CustomEvent('scheme-debug-paused', { detail }));
         // postMessage for cross-world relay (content script in ISOLATED world)

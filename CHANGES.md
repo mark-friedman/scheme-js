@@ -5104,3 +5104,31 @@ Test the full user flow: open DevTools → click Scheme-JS panel tab → interac
 Puppeteer E2E: 214 passed, 0 failed
 ```
 
+
+
+# Phase 5: Mixed HTML Files + Boundary Stepping
+
+## Summary of Changes
+
+### Mixed HTML Editor Support
+- Added `@codemirror/lang-html` dependency to properly handle mixed-language sources containing both HTML tags and embedded scripts.
+- Configured the CodeMirror editor (`extension/panel-src/components/editor.js`) to parse and highlight both `<script type="text/scheme">` (using our custom `scheme-js` highlighter) and regular `<script>` blocks (using the standard JS highlighter) within the same `.html` document.
+
+### HTML Source Registration & Line Offsets
+- Updated the Scheme lexer and parser (`src/core/interpreter/reader/lexer.js`, `parser.js`) to accept a new `lineOffset` property, enabling the parser to map AST nodes to their physical locations in a host HTML file rather than assuming 1-based start.
+- Modified `src/packaging/html_adapter.js` to fetch and submit the entire host HTML document string to the `SchemeSourceRegistry`, retaining the context for breakpoints.
+
+### Breakpoint Routing in HTML
+- Updated `extension/panel-src/protocol/unified-debugger.js` to map script tag locations inside HTML documents.
+- Augmented breakpoint logic (`setBreakpoint` / `removeBreakpoint`) to correctly route debugging requests: clicking the gutter on a Scheme block in an HTML file uses our custom `schemeBridge`, while clicking a JS block routes natively to `cdpBridge`.
+
+### Scheme &rarr; JS Boundary Stepping
+- Modified the Scheme evaluator (`AppFrame.step` in `src/core/interpreter/frames.js`) to yield cooperatively with the pause reason `'boundary'` when the user is in "Step Into" mode and is about to evaluate a native JS primitive function.
+- Extended the DevTools PauseController and SchemeDebugRuntime to formally track `'boundary'` pauses.
+- When `unified-debugger.js` receives a `'boundary'` pause, it automatically attaches CDP (if not yet attached), injects a native V8 breakpoint on the target JavaScript function (`setBoundaryBreakpoint`), and immediately auto-resumes the Scheme interpreter. This seamlessly passes control down to Chrome's native debugger exactly as execution enters JavaScript.
+
+## Verification
+- Added a series of `lineOffset` assertions to `tests/core/interpreter/reader_tests.js`.
+- Included new core boundary testing logic in `tests/debug/pause_controller_boundary_tests.js`.
+- Created an end-to-end Puppeteer UI suite (`testBoundaryStepping` inside `tests/extension/test_js_debugging.mjs`) orchestrating a simulated Scheme-to-JS boundary crossing pause via `schema-debug-paused` mock messages.
+- Both the Node.js unit tests (`npm run test`) and the browser extension integration suite (`npm run test:extension`) pass successfully.

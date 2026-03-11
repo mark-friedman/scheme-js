@@ -60,6 +60,54 @@ function filterSentinelFrames(stack) {
     return stack.filter(f => f.constructor.name !== 'SentinelFrame');
 }
 
+/**
+ * Applies a JavaScript function with proper conversion and tail call handling.
+ * Shared by AppFrame and BoundaryCallFrame.
+ */
+function applyJsFunction(func, args, registers, interpreter) {
+    // CRITICAL: Push the current Scheme context before calling JS.
+    // This allows callable closures/continuations invoked by JS to
+    // properly track dynamic-wind frames for unwinding/rewinding.
+    interpreter.pushJsContext(registers[FSTACK]);
+
+    let result;
+    try {
+        // If it's a foreign JS function (not a Scheme closure/primitive),
+        // auto-convert arguments (e.g., BigInt -> Number)
+        let appliedArgs = args;
+        if (!isSchemePrimitive(func)) {
+            // Respect the current js-auto-convert mode
+            const mode = interpreter.jsAutoConvert ?? 'deep';
+            if (mode === 'deep' || mode === true) {
+                appliedArgs = args.map(a => schemeToJsDeep(a));
+            } else if (mode === 'shallow' || mode === false) {
+                // We use a light conversion for shallow mode
+                appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
+            }
+        }
+
+        result = func(...appliedArgs);
+    } finally {
+        // Pop the context after JS returns (or throws)
+        interpreter.popJsContext();
+    }
+
+    if (result instanceof TailCall) {
+        const target = result.func;
+        if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
+            const tailArgs = result.args || [];
+            const argLiterals = tailArgs.map(a => new LiteralNode(a));
+            registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
+            return true;
+        }
+        registers[CTL] = target;
+        return true;
+    }
+
+    registers[ANS] = result;
+    return false;
+}
+
 // =============================================================================
 // Frames - Let/Letrec
 // =============================================================================
@@ -366,47 +414,19 @@ export class AppFrame extends Executable {
         // 3. JS FUNCTION APPLICATION
         // Regular JavaScript functions (including callable closures passed to JS)
         if (typeof func === 'function') {
-            // CRITICAL: Push the current Scheme context before calling JS.
-            // This allows callable closures/continuations invoked by JS to
-            // properly track dynamic-wind frames for unwinding/rewinding.
-            interpreter.pushJsContext(registers[FSTACK]);
-
-            let result;
-            try {
-                // If it's a foreign JS function (not a Scheme closure/primitive),
-                // auto-convert arguments (e.g., BigInt -> Number)
-                let appliedArgs = args;
-                if (!isSchemePrimitive(func)) {
-                    // Respect the current js-auto-convert mode
-                    const mode = interpreter.jsAutoConvert ?? 'deep';
-                    if (mode === 'deep' || mode === true) {
-                        appliedArgs = args.map(a => schemeToJsDeep(a));
-                    } else if (mode === 'shallow' || mode === false) {
-                        // We use a light conversion for shallow mode
-                        appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
-                    }
+            if (interpreter.debugRuntime && interpreter.debugRuntime.enabled && !isSchemePrimitive(func)) {
+                const pc = interpreter.debugRuntime.pauseController;
+                if (pc && pc.getStepMode() === 'into') {
+                    // Trigger a boundary pause
+                    pc.pause('boundary', { funcName: func.name || 'anonymous' });
+                    // Push a frame to do the actual JS call when resumed
+                    registers[FSTACK].push(new BoundaryCallFrame(func, args));
+                    registers[ANS] = undefined;
+                    return false;
                 }
-
-                result = func(...appliedArgs);
-            } finally {
-                // Pop the context after JS returns (or throws)
-                interpreter.popJsContext();
             }
 
-            if (result instanceof TailCall) {
-                const target = result.func;
-                if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
-                    const tailArgs = result.args || [];
-                    const argLiterals = tailArgs.map(a => new LiteralNode(a));
-                    registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
-                    return true;
-                }
-                registers[CTL] = target;
-                return true;
-            }
-
-            registers[ANS] = result;
-            return false;
+            return applyJsFunction(func, args, registers, interpreter);
         }
 
         throw new SchemeApplicationError(func);
@@ -496,6 +516,32 @@ export class AppFrame extends Executable {
         }
 
         return true;
+    }
+}
+
+// =============================================================================
+// Frames - Boundary Stepping
+// =============================================================================
+
+/**
+ * Frame used to actually invoke a native JS function after a 'boundary' pause.
+ * When the debugger resumes, this frame is popped and the call happens.
+ */
+export class BoundaryCallFrame extends Executable {
+    /**
+     * @param {Function} func - The native JS function to call.
+     * @param {Array<*>} args - Evaluated arguments.
+     */
+    constructor(func, args) {
+        super();
+        this.func = func;
+        this.args = args;
+        // Make sure it looks like a frame with a name for the call stack
+        this.name = `[JS Boundary: ${func.name || 'anonymous'}]`;
+    }
+
+    step(registers, interpreter) {
+        return applyJsFunction(this.func, this.args, registers, interpreter);
     }
 }
 
@@ -721,5 +767,6 @@ registerFrames({
     CallWithValuesFrame,
     ExceptionHandlerFrame,
     RaiseContinuableResumeFrame,
-    RaiseNonContinuableResumeFrame
+    RaiseNonContinuableResumeFrame,
+    BoundaryCallFrame
 });
