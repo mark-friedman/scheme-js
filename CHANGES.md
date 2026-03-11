@@ -4993,3 +4993,114 @@ Phase 3 adds sub-expression precision to the Scheme-JS debugger. Instead of just
 - Node.js: 2392 passed, 0 failed (10 new tests)
 - Puppeteer E2E: 147 passed, 0 failed (5 new tests)
 - Browser expression highlight test: all assertions pass
+
+---
+
+# Phase 4: Lazy CDP + JS Debugging, Top-Level Fix & E2E Investigation (2026-03-11)
+
+## Summary
+
+Phase 4 adds lazy CDP attachment for JavaScript debugging, a unified debugger that routes commands to the correct bridge (Scheme or CDP) based on file type, call stack merging for mixed Scheme/JS debugging, top-level debugging fix (synthetic frames), and comprehensive JS↔Scheme Puppeteer integration tests.
+
+## New: CDP Bridge — `extension/panel-src/protocol/cdp-bridge.js`
+
+Manages Chrome DevTools Protocol communication for JavaScript debugging via the background service worker:
+- **Lazy attachment**: `attachCDP()` / `detachCDP()` — only attaches when JS debugging is needed (e.g., first JS breakpoint set)
+- **Step/resume**: `resumeCDP()`, `stepIntoCDP()`, `stepOverCDP()`, `stepOutCDP()` delegating to `Debugger.*` via background
+- **JS breakpoints**: `setJSBreakpoint(url, lineNumber)` (auto-attaches), `removeJSBreakpoint(breakpointId)`
+- **Source fetching**: `getJSSource(scriptId)`, `getScriptUrl(scriptId)` with `scriptParsed` cache
+- **Event listeners**: `onCDPPaused()`, `onCDPResumed()`, `onScriptParsed()` — wired from background message relay
+
+## New: Unified Debugger — `extension/panel-src/protocol/unified-debugger.js`
+
+Routes debugging commands to the correct bridge based on file type and current pause context:
+- **File type detection**: `isJSFile(url)` — distinguishes `.js`/`.mjs`/`.ts` from `scheme://`/`.scm`/`.sld`
+- **Call stack merging**: `mergeCallStacks(schemeFrames, jsFrames)` — interleaves JS frames (top) with Scheme frames (bottom), filters internal interpreter/extension frames, annotates each frame with `language: 'scheme'|'js'`
+- **Unified commands**: `resume()`, `stepInto()`, `stepOver()`, `stepOut()`, `setBreakpoint()`, `removeBreakpoint()` — all route to correct bridge based on `currentPauseContext` or URL
+- **Unified events**: `onPaused(callback)`, `onResumed(callback)` — single listener for both bridges
+- **Scheme/JS pause handlers**: `handleSchemePause(detail)`, `handleSchemeResume()`, plus CDP pause wiring via `init()`
+
+## Modified: `extension/background.js`
+
+Added CDP message handlers for the panel's cdp-bridge:
+- `attach-debugger` / `detach-debugger` — connects/disconnects `chrome.debugger` to inspected tab
+- `cdp-step-into`, `cdp-step-over`, `cdp-step-out` — V8 Debugger stepping commands
+- `set-js-breakpoint` — `Debugger.setBreakpointByUrl`
+- `get-js-source` — `Debugger.getScriptSource`
+- CDP event relay: `Debugger.paused` → `cdp-paused`, `Debugger.resumed` → `cdp-resumed`, `Debugger.scriptParsed` → `cdp-script-parsed`
+
+## Modified: `extension/panel-src/components/call-stack.js`
+
+- Added `[JS]` badge alongside existing `[SCM]` badge based on `frame.language`
+- Frames from CDP show JavaScript-style source locations
+
+## Modified: `extension/panel-src/main.js`
+
+- All step/resume/breakpoint commands routed through `unified-debugger` instead of direct `scheme-bridge`
+- Scheme pause/resume messages from content script now go through `unifiedDebugger.handleSchemePause()`/`handleSchemeResume()`
+- `onPaused()` handles both Scheme and CDP pauses; detects JS files via `unifiedDebugger.isJSFile()`
+- `init()` initializes unified debugger and wires its events to the panel
+
+## Top-Level Debugging Bug Fix
+
+### Problem
+`StackTracer` only creates frames on function entry, so `getStack()` and `getLocals()` returned empty arrays when paused at top-level Scheme code.
+
+### Fix
+
+| File | Change |
+|------|--------|
+| `src/debug/scheme_debug_runtime.js` | Added `_currentPauseEnv`/`_currentPauseSource` fields, set during `pause()`/`handlePause()`, cleared on `resume()` and step methods |
+| `src/debug/devtools/devtools_debug.js` | `getStack()` creates synthetic `<top-level>` frame when paused with empty stack; `getLocals()` uses stored pause env for synthetic frame |
+
+### Line Number Discovery
+`textContent` of `<script>` tags includes the leading newline after `>`, so the tokenizer (starting at `line = 1`) assigns line **2** to the first real expression. All test breakpoints and assertions were adjusted for this +1 offset.
+
+## JS↔Scheme Interop Test Infrastructure
+
+### New: `tests/debug/puppeteer_js_test_page.html`
+Dedicated test page for JS↔Scheme interop debugging. Contains:
+- JavaScript helper functions: `jsDouble(n)`, `jsAdd(a, b)`, `window.jsHelper.compute(n)`
+- Scheme code with both top-level JS calls (lines 2-3) and a function wrapping JS calls (lines 4-10)
+- Standalone self-test with `__SCHEME_JS_PUPPETEER` mode for Puppeteer control vs auto-resume
+
+### New: `tests/extension/test_js_interop.mjs` (9 tests)
+
+| Test | Description |
+|------|-------------|
+| `testJSInteropPageSelfTest` | Page loads and self-tests pass in standalone mode |
+| `testBreakpointAtJSCallSite` | Breakpoint on top-level `(jsDouble 7)` — pauses, shows stack |
+| `testStepIntoJSFromScheme` | Step into from top-level JS call — advances with step reason |
+| `testStepOverJSFromScheme` | Step over top-level JS call — advances past line 2 |
+| `testStepOutFromJSBoundary` | Step out from inside function at JS call boundary |
+| `testVariablesAtJSBoundary` | Top-level locals visible (user-defined `doubled` filtered from stdlib) |
+| `testMultipleBreakpointsAcrossJSCalls` | Breakpoints on line 2 (top-level) and line 5 (in-function) both hit |
+| `testDotNotationJSCall` | Breakpoint on `(window.jsHelper.compute x)` — step over dot notation |
+| `testStoredJSFunctionCall` | Breakpoint on `(my-fn x)` where `my-fn = jsDouble` — step into works |
+| `testCallStackAtJSBoundary` | Non-empty call stack with frame names inside function |
+| `testStepThroughJSInteropSequence` | Step over multiple lines from top-level through JS calls |
+
+## True E2E DevTools Panel — Feasibility Investigation
+
+### Goal
+Test the full user flow: open DevTools → click Scheme-JS panel tab → interact with panel UI.
+
+### Investigation (6 probe iterations)
+
+| Approach | Result |
+|---|---|
+| `_targetInfo` Page hack | ❌ Property absent in current Puppeteer |
+| CDPSession to DevTools target | ✅ Works (got `document.title`, frame tree) |
+| Keyboard shortcuts via CDP | ❌ Don't reach DevTools UI |
+| JS shadow DOM walk for panel tab | ❌ Tab hidden behind closed shadow roots |
+| CDP `DOM.performSearch` for "Scheme-JS" | ✅ Found 1 result (devtools.html iframe, not menu item) |
+| Click overflow menu + find dropdown item | ❌ Dropdown renders in unreachable layer |
+
+### Conclusion
+**Not feasible.** Panel tab sits in DevTools' overflow menu (">>"), which uses closed shadow roots and renders dropdown menus in a layer CDP cannot access. No Puppeteer API exists for activating custom DevTools panels.
+
+## Test Results
+```
+Puppeteer E2E: 214 passed, 0 failed
+```
+
