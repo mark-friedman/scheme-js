@@ -2,7 +2,7 @@
 
 ## Context
 
-The current debugger uses a sidebar pane in Chrome's Sources tab (`chrome.devtools.panels.sources.createSidebarPane`), which has several UX problems: the sidebar is buried below other panels, must be manually opened, triggers a scary "started debugging" banner via `chrome.debugger.attach()`, and creates confusion between JS and Scheme debugging controls (two sets of step buttons, scope panels, call stacks).
+The previous debugger used a sidebar pane in Chrome's Sources tab (`chrome.devtools.panels.sources.createSidebarPane`), which has several UX problems: the sidebar is buried below other panels, must be manually opened, triggers a scary "started debugging" banner via `chrome.debugger.attach()`, and creates confusion between JS and Scheme debugging controls (two sets of step buttons, scope panels, call stacks).
 
 The goal is to replace this with a **top-level custom DevTools panel** ("Scheme-JS") that owns both Scheme and JavaScript debugging in a unified interface. The panel uses **cooperative pausing** for Scheme (no banner needed) and **lazy CDP attachment** for JS interop (banner only when stepping into JS).
 
@@ -207,6 +207,10 @@ Bundled into `extension/panel/panel.js` via esbuild. Packages:
 **No impact on `dist/scheme.js` or `dist/scheme-html.js`**. Users never see CodeMirror.
 
 ## Verification
+
+### Puppeteer Tests
+- **UI Tests**: Create Puppeteer tests in `tests/extension` directory for testing the UI of the extension.  Every user interaction should be tested.  
+- **Running Puppeteer Tests**: Use `npm run test:extension` to run the Puppeteer tests.  
 
 ### Per-Phase Testing
 - **Phase 1**: Load an HTML page with `<script type="text/scheme">`, open DevTools, verify "Scheme-JS" tab appears with source displayed in CodeMirror

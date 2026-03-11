@@ -23,6 +23,14 @@ const tabState = new Map();
 const lastPauseParams = new Map();
 
 /**
+ * Tracks parsed script URLs by tab and scriptId.
+ * Populated by Debugger.scriptParsed events, forwarded to the panel
+ * so it can map scriptIds to URLs for JS source display.
+ * @type {Map<number, Map<string, string>>} tabId → (scriptId → URL)
+ */
+const scriptUrlMaps = new Map();
+
+/**
  * Blackbox patterns for auto-hiding interpreter scripts.
  * These patterns match generated probe scripts and runtime internals.
  */
@@ -174,7 +182,8 @@ async function evaluateWhilePaused(tabId, expression) {
 
 /**
  * Handles CDP debugger events.
- * Routes Debugger.paused and Debugger.resumed to the sidebar.
+ * Routes Debugger.paused and Debugger.resumed to the panel.
+ * Also tracks Debugger.scriptParsed for JS source URL mapping.
  */
 chrome.debugger.onEvent.addListener((source, method, params) => {
     const tabId = source.tabId;
@@ -183,7 +192,7 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
         // Store pause params for evaluateOnCallFrame
         lastPauseParams.set(tabId, params);
 
-        // Notify sidebar for Scheme probe pauses and Scheme exception pauses
+        // Notify panel for Scheme probe pauses and Scheme exception pauses
         if (isSchemeProbe(params) || isSchemeException(params)) {
             chrome.runtime.sendMessage({
                 type: 'debugger-paused',
@@ -191,7 +200,18 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
                 callFrames: params.callFrames,
                 reason: params.reason
             }).catch(() => {
-                // Sidebar may not be open yet — ignore
+                // Panel may not be open yet — ignore
+            });
+        } else {
+            // Non-Scheme pause (JS breakpoint, exception, etc.)
+            // Forward to panel as a CDP-specific pause event
+            chrome.runtime.sendMessage({
+                type: 'cdp-paused',
+                tabId,
+                callFrames: params.callFrames,
+                reason: params.reason
+            }).catch(() => {
+                // Panel may not be open yet — ignore
             });
         }
     } else if (method === 'Debugger.resumed') {
@@ -201,8 +221,34 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
             type: 'debugger-resumed',
             tabId
         }).catch(() => {
-            // Sidebar may not be open yet — ignore
+            // Panel may not be open yet — ignore
         });
+        chrome.runtime.sendMessage({
+            type: 'cdp-resumed',
+            tabId
+        }).catch(() => {
+            // Panel may not be open yet — ignore
+        });
+    } else if (method === 'Debugger.scriptParsed') {
+        // Track script URLs for JS source display in the panel
+        const scriptId = params.scriptId;
+        const url = params.url || '';
+        if (url && !url.startsWith('scheme://') && !url.startsWith('scheme-probe://')) {
+            if (!scriptUrlMaps.has(tabId)) {
+                scriptUrlMaps.set(tabId, new Map());
+            }
+            scriptUrlMaps.get(tabId).set(scriptId, url);
+
+            // Forward to panel
+            chrome.runtime.sendMessage({
+                type: 'cdp-script-parsed',
+                tabId,
+                scriptId,
+                url,
+            }).catch(() => {
+                // Panel may not be open yet — ignore
+            });
+        }
     }
 });
 
@@ -212,6 +258,7 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
 chrome.tabs.onRemoved.addListener((tabId) => {
     tabState.delete(tabId);
     lastPauseParams.delete(tabId);
+    scriptUrlMaps.delete(tabId);
 });
 
 /**
@@ -220,11 +267,12 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.debugger.onDetach.addListener((source, reason) => {
     tabState.delete(source.tabId);
     lastPauseParams.delete(source.tabId);
+    scriptUrlMaps.delete(source.tabId);
     console.log(`[Scheme Stack] Detached from tab ${source.tabId}: ${reason}`);
 });
 
 // =========================================================================
-// Message Handling (from sidebar)
+// Message Handling (from panel / sidebar)
 // =========================================================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -287,6 +335,85 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 sendResponse({ success: false, error: e.message });
             }
         })();
+        return true;
+    }
+
+    // =====================================================================
+    // Phase 4: Native V8 CDP step commands (for JS debugging)
+    // =====================================================================
+
+    // Native V8 Step Into — used when paused at a JS breakpoint
+    if (message.type === 'cdp-step-into') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.stepInto').then(() => {
+            sendResponse({ success: true });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
+    // Native V8 Step Over — used when paused at a JS breakpoint
+    if (message.type === 'cdp-step-over') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.stepOver').then(() => {
+            sendResponse({ success: true });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
+    // Native V8 Step Out — used when paused at a JS breakpoint
+    if (message.type === 'cdp-step-out') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.stepOut').then(() => {
+            sendResponse({ success: true });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
+    // =====================================================================
+    // Phase 4: JS Breakpoint management via CDP
+    // =====================================================================
+
+    // Set a JS breakpoint by URL and line number
+    if (message.type === 'set-js-breakpoint') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.setBreakpointByUrl', {
+            url: message.url,
+            lineNumber: message.lineNumber,
+        }).then(result => {
+            sendResponse({ success: true, breakpointId: result.breakpointId });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
+    // Remove a JS breakpoint by CDP breakpoint ID
+    if (message.type === 'remove-js-breakpoint') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.removeBreakpoint', {
+            breakpointId: message.breakpointId,
+        }).then(() => {
+            sendResponse({ success: true });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
+    // =====================================================================
+    // Phase 4: JS Source fetching via CDP
+    // =====================================================================
+
+    // Get the source of a JS script by scriptId
+    if (message.type === 'get-js-source') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.getScriptSource', {
+            scriptId: message.scriptId,
+        }).then(result => {
+            sendResponse({ success: true, source: result.scriptSource });
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
         return true;
     }
 });

@@ -26,6 +26,7 @@ import {
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 import { schemeLanguage } from '../language/scheme-mode.js';
+import { javascript } from '@codemirror/lang-javascript';
 
 // =========================================================================
 // Shared structural styles (layout only — no colors)
@@ -191,6 +192,12 @@ const lightHighlight = HighlightStyle.define([
 // =========================================================================
 
 const themeCompartment = new Compartment();
+
+/**
+ * Compartment for hot-swapping entre Scheme and JavaScript language modes.
+ * @type {import('@codemirror/state').Compartment}
+ */
+const languageCompartment = new Compartment();
 
 /**
  * Bundles an editor theme + highlight style into a single extension value.
@@ -621,7 +628,7 @@ export function createEditor(container, onBreakpointToggle, onDiamondClick) {
 
       lineNumbers(),
       highlightActiveLine(),
-      schemeLanguage,
+      languageCompartment.of(schemeLanguage),
       layoutTheme,
       themeCompartment.of(makeThemeExtension(prefersDark.matches)),
       EditorView.editable.of(false),
@@ -642,12 +649,15 @@ export function createEditor(container, onBreakpointToggle, onDiamondClick) {
   });
 
   /**
-   * Replaces the editor content with new Scheme source text.
+   * Replaces the editor content with new source text.
    * Clears current-line highlight when content changes.
+   * Optionally switches the language mode (Scheme or JavaScript).
    *
    * @param {string} content - The source code to display
+   * @param {'scheme'|'javascript'} [language='scheme'] - Syntax highlighting mode
    */
-  function setContent(content) {
+  function setContent(content, language = 'scheme') {
+    const langExtension = language === 'javascript' ? javascript() : schemeLanguage;
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: content },
       effects: [
@@ -656,6 +666,7 @@ export function createEditor(container, onBreakpointToggle, onDiamondClick) {
         setCurrentExpressionEffect.of(null),
         setExpressionBreakpointsEffect.of([]),
         setDiamondMarkersEffect.of([]),
+        languageCompartment.reconfigure(langExtension),
       ],
     });
   }

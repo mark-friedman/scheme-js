@@ -5,11 +5,16 @@
  *   - Toolbar: debug controls (Resume, Step Into/Over/Out) + status
  *   - Source list: file browser, click to load into editor
  *   - Editor: CodeMirror source viewer with breakpoint gutter
- *   - Call stack: displays Scheme frames when paused
+ *   - Call stack: displays Scheme and JS frames when paused
  *   - Variables: displays locals for the selected frame
  *
- * Pause/resume notifications arrive via chrome.runtime.onMessage relayed
- * from the content script, which listens for CustomEvents on window.
+ * Pause/resume notifications arrive from two sources:
+ *   1. Scheme: via chrome.runtime.onMessage relayed from the content script
+ *   2. JS: via CDP events forwarded from background.js
+ *
+ * All step/resume/breakpoint commands are routed through the unified debugger,
+ * which determines whether to use the Scheme bridge or CDP bridge based on
+ * the current pause context and file type.
  *
  * Breakpoints are persisted to chrome.storage.local so they survive page
  * reloads. On activation, stored breakpoints are re-sent to the interpreter.
@@ -29,13 +34,9 @@ import {
   getStack,
   getLocals,
   ackPause,
-  resume,
-  stepInto,
-  stepOver,
-  stepOut,
-  setBreakpoint,
-  removeBreakpoint,
 } from './protocol/scheme-bridge.js';
+import * as unifiedDebugger from './protocol/unified-debugger.js';
+import * as cdpBridge from './protocol/cdp-bridge.js';
 
 // =========================================================================
 // DOM elements
@@ -55,6 +56,9 @@ const splitter           = document.getElementById('splitter');
 
 /** Currently displayed source URL. @type {string|null} */
 let currentSourceUrl = null;
+
+/** Whether CDP is attached (used for "JS debugging enabled" notification). */
+let cdpAttached = false;
 
 /**
  * Expression spans for the currently loaded source.
@@ -168,10 +172,10 @@ function getExpressionBreakpointsForUrl(url) {
 // =========================================================================
 
 const toolbar = createToolbar(toolbarDebug, {
-  onResume:   () => resume(),
-  onStepInto: () => stepInto(),
-  onStepOver: () => stepOver(),
-  onStepOut:  () => stepOut(),
+  onResume:   () => unifiedDebugger.resume(),
+  onStepInto: () => unifiedDebugger.stepInto(),
+  onStepOver: () => unifiedDebugger.stepOver(),
+  onStepOut:  () => unifiedDebugger.stepOut(),
 });
 
 // =========================================================================
@@ -192,6 +196,44 @@ const variables = createVariables(variablesContainer);
  * @param {import('./components/call-stack.js').StackFrame} frame
  */
 async function onSelectFrame(frameIndex, frame) {
+  // JS frames have their own variable inspection via CDP scope chain
+  if (frame.language === 'js') {
+    // Display JS scope variables from the CDP scope chain
+    if (frame._cdpScopeChain && frame._cdpScopeChain.length > 0) {
+      const jsLocals = [];
+      for (const scope of frame._cdpScopeChain) {
+        if (scope.type === 'local' || scope.type === 'closure') {
+          // CDP scope objects are ObjectPreview — we'd need Runtime.getProperties
+          // For now, show scope type as a placeholder
+          jsLocals.push({
+            name: `[${scope.type}]`,
+            value: scope.name || 'scope',
+            type: 'other',
+            subtype: null,
+          });
+        }
+      }
+      variables.setLocals(jsLocals.length > 0 ? jsLocals : []);
+    } else {
+      variables.clear();
+    }
+
+    // Navigate editor to JS source
+    if (frame.source) {
+      const url = frame.source.filename;
+      if (url !== currentSourceUrl) {
+        await loadJSSource(url, frame._cdpScriptId);
+      }
+      editor.highlightLine(frame.source.line);
+      editor.highlightExpression(null);
+    } else {
+      editor.highlightLine(null);
+      editor.highlightExpression(null);
+    }
+    return;
+  }
+
+  // Scheme frames — existing behavior
   // Load locals for this frame
   try {
     const locals = await getLocals(frameIndex);
@@ -240,7 +282,7 @@ async function onBreakpointToggle(line, isNowSet) {
   if (!currentSourceUrl) return;
   const key = `${currentSourceUrl}:${line}:null`;
   if (isNowSet) {
-    const id = await setBreakpoint(currentSourceUrl, line);
+    const id = await unifiedDebugger.setBreakpoint(currentSourceUrl, line);
     if (id) {
       breakpointIds.set(key, id);
       saveBreakpointsToPage();
@@ -248,13 +290,19 @@ async function onBreakpointToggle(line, isNowSet) {
   } else {
     const id = breakpointIds.get(key);
     if (id) {
-      await removeBreakpoint(id);
+      await unifiedDebugger.removeBreakpoint(id, currentSourceUrl);
       breakpointIds.delete(key);
       saveBreakpointsToPage();
     }
   }
   // Show/hide diamond markers on this line
   refreshDiamondMarkers();
+
+  // If CDP just auto-attached, update the notification
+  if (cdpBridge.isAttached() && !cdpAttached) {
+    cdpAttached = true;
+    showCDPNotification();
+  }
 }
 
 /**
@@ -271,11 +319,11 @@ async function onDiamondClick(line, column) {
 
   if (existingId) {
     // Remove existing expression breakpoint
-    await removeBreakpoint(existingId);
+    await unifiedDebugger.removeBreakpoint(existingId, currentSourceUrl);
     breakpointIds.delete(key);
   } else {
     // Set new expression breakpoint
-    const id = await setBreakpoint(currentSourceUrl, line, column);
+    const id = await unifiedDebugger.setBreakpoint(currentSourceUrl, line, column);
     if (id) {
       breakpointIds.set(key, id);
     }
@@ -388,6 +436,57 @@ async function loadSource(url) {
 }
 
 /**
+ * Loads a JavaScript source file into the editor from CDP.
+ * Switches the editor to JavaScript syntax highlighting mode.
+ *
+ * @param {string} url - JS file URL
+ * @param {string} [scriptId] - CDP script ID (used to fetch source from CDP)
+ */
+async function loadJSSource(url, scriptId) {
+  let content = null;
+
+  // Try fetching via CDP if we have a scriptId
+  if (scriptId && cdpBridge.isAttached()) {
+    content = await cdpBridge.getJSSource(scriptId);
+  }
+
+  if (content === null) {
+    content = `// Source not available: ${url}`;
+  }
+
+  currentSourceUrl = url;
+  // No expression spans for JS files
+  currentExpressions = [];
+  editor.setContent(content, 'javascript');
+
+  // Show line-level breakpoints in the gutter (if any were set on this JS file)
+  const lines = getBreakpointLinesForUrl(url);
+  if (lines.size > 0) {
+    editor.setBreakpoints(lines);
+  }
+
+  // Only update status if not currently paused (avoid overwriting pause status)
+  if (currentPausedLine === null) {
+    toolbar.setStatus(`Viewing: ${url.split('/').pop()}`);
+  }
+}
+
+/**
+ * Shows a "JavaScript debugging enabled" notification in the toolbar.
+ * Called once when CDP first attaches (triggered by setJSBreakpoint auto-attach).
+ */
+function showCDPNotification() {
+  const toolbarEl = document.querySelector('.toolbar-controls');
+  if (toolbarEl && !document.querySelector('.cdp-notification')) {
+    const notification = document.createElement('span');
+    notification.className = 'cdp-notification';
+    notification.textContent = '⚡ JS debugging enabled';
+    notification.title = 'Chrome Debugger Protocol is attached for JavaScript debugging';
+    toolbarEl.appendChild(notification);
+  }
+}
+
+/**
  * Called when a source file is clicked in the file list.
  * Loads the content and syncs breakpoints for the selected file.
  *
@@ -432,33 +531,46 @@ const sourceList = createSourceList(sourceListContainer, onSelectSource);
 
 /**
  * Called when the interpreter pauses (breakpoint or step).
+ * Handles both Scheme and CDP pauses via the unified debugger.
  *
- * @param {{reason: string, source: Object|null, stack: Array}} detail
+ * @param {{reason: string, source: Object|null, stack: Array, context: string}} detail
  */
 async function onPaused(detail) {
   const reason = detail.reason === 'step' ? 'Paused (step)' : 'Paused at breakpoint';
-  toolbar.setStatus(reason);
+  const context = detail.context || 'scheme';
+  const suffix = context === 'js' ? ' [JS]' : '';
+  toolbar.setStatus(reason + suffix);
   toolbar.setPaused();
 
-  // Acknowledge the pause so the safety timeout is cancelled.
-  // Without this, the interpreter auto-resumes after resumeTimeout ms
-  // (safety net for stale panelConnected flags).
-  ackPause();
+  // Acknowledge the pause so the safety timeout is cancelled (Scheme pauses only)
+  if (context === 'scheme') {
+    ackPause();
+  }
 
-  const stack = detail.stack || [];
+  const stack = detail.frames || detail.stack || [];
   callStack.setFrames(stack, /* suppressAutoSelect */ true);
 
-  // Use detail.source (the actual pause location) for highlighting,
-  // NOT the top stack frame's source (which points to the function definition).
+  // Use detail.source (the actual pause location) for highlighting
   const pauseSource = detail.source;
   if (pauseSource && pauseSource.filename) {
+    const isJS = unifiedDebugger.isJSFile(pauseSource.filename);
+
+    // Set paused line BEFORE loading source (so loadJSSource knows we're paused)
+    currentPausedLine = pauseSource.line;
+
     if (pauseSource.filename !== currentSourceUrl) {
-      await loadSource(pauseSource.filename);
+      if (isJS) {
+        // Find the CDP frame with this source to get scriptId
+        const jsFrame = stack.find(f => f.language === 'js' && f.source?.filename === pauseSource.filename);
+        await loadJSSource(pauseSource.filename, jsFrame?._cdpScriptId);
+      } else {
+        await loadSource(pauseSource.filename);
+      }
     }
     editor.highlightLine(pauseSource.line);
 
-    // Highlight the exact expression range if available
-    if (pauseSource.endLine != null && pauseSource.endColumn != null) {
+    // Highlight the exact expression range if available (Scheme only)
+    if (!isJS && pauseSource.endLine != null && pauseSource.endColumn != null) {
       editor.highlightExpression(
         pauseSource.line, pauseSource.column,
         pauseSource.endLine, pauseSource.endColumn
@@ -468,17 +580,37 @@ async function onPaused(detail) {
     }
 
     // Show diamond markers on the paused line (+ any breakpoint lines)
-    currentPausedLine = pauseSource.line;
     refreshDiamondMarkers();
   }
 
-  // Load locals for the top frame (if any)
+  // Load locals for the top frame
   if (stack.length > 0) {
-    try {
-      const locals = await getLocals(stack.length - 1);
-      variables.setLocals(locals);
-    } catch {
-      variables.clear();
+    const topFrame = stack[stack.length - 1];
+    if (topFrame.language === 'js') {
+      // JS locals are retrieved from CDP scope chain (basic display)
+      if (topFrame._cdpScopeChain) {
+        const jsLocals = [];
+        for (const scope of topFrame._cdpScopeChain) {
+          if (scope.type === 'local' || scope.type === 'closure') {
+            jsLocals.push({
+              name: `[${scope.type}]`,
+              value: scope.name || 'scope',
+              type: 'other',
+              subtype: null,
+            });
+          }
+        }
+        variables.setLocals(jsLocals);
+      } else {
+        variables.clear();
+      }
+    } else {
+      try {
+        const locals = await getLocals(stack.length - 1);
+        variables.setLocals(locals);
+      } catch {
+        variables.clear();
+      }
     }
   }
 }
@@ -506,12 +638,26 @@ function onResumed() {
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message) => {
     if (message.type === 'scheme-debug-paused') {
-      onPaused(message.detail || {});
+      // Route through unified debugger for consistent handling
+      unifiedDebugger.handleSchemePause(message.detail || {});
     } else if (message.type === 'scheme-debug-resumed') {
-      onResumed();
+      unifiedDebugger.handleSchemeResume();
     }
   });
 }
+
+// Initialize the unified debugger and wire its events to the panel
+unifiedDebugger.init();
+unifiedDebugger.onPaused((event) => onPaused(event));
+unifiedDebugger.onResumed(() => onResumed());
+
+// Track CDP attachment for the UI notification
+cdpBridge.onScriptParsed((event) => {
+  if (event.type === 'cdp-attached' && !cdpAttached) {
+    cdpAttached = true;
+    showCDPNotification();
+  }
+});
 
 // =========================================================================
 // Refresh source list on panel show / page navigation

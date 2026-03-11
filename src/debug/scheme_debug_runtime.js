@@ -79,6 +79,21 @@ export class SchemeDebugRuntime {
          * @private
          */
         this._resumeTimeoutHandle = null;
+
+        /**
+         * Environment at the current pause point. Stored so getStack()/getLocals()
+         * can create a synthetic "top-level" frame when no function frames exist.
+         * @type {Object|null}
+         * @private
+         */
+        this._currentPauseEnv = null;
+
+        /**
+         * Source location at the current pause point.
+         * @type {Object|null}
+         * @private
+         */
+        this._currentPauseSource = null;
     }
 
     /**
@@ -195,6 +210,8 @@ export class SchemeDebugRuntime {
      * Resumes execution.
      */
     resume() {
+        this._currentPauseEnv = null;
+        this._currentPauseSource = null;
         this.pauseController.resume();
         if (this.onResume) {
             this.onResume('resume');
@@ -268,6 +285,10 @@ export class SchemeDebugRuntime {
      * @param {string} [reason='breakpoint'] - Reason for pause
      */
     pause(source, env, reason = 'breakpoint') {
+        // Store pause context for getStack()/getLocals() top-level frame
+        this._currentPauseEnv = env;
+        this._currentPauseSource = source;
+
         // Find matching breakpoint ID if this was a breakpoint hit
         let bpId = null;
         if (reason === 'breakpoint') {
@@ -304,6 +325,10 @@ export class SchemeDebugRuntime {
      * @returns {Promise<string>} The action to take: 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
      */
     async handlePause(source, env, reason = 'breakpoint') {
+        // Store pause context for getStack()/getLocals() top-level frame
+        this._currentPauseEnv = env;
+        this._currentPauseSource = source;
+
         // Find matching breakpoint ID if applicable
         let bpId = null;
         if (reason === 'breakpoint') {

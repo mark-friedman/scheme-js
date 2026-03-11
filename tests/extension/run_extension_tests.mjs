@@ -59,6 +59,44 @@ import {
   testPanelDiamondsOnPausedLine,
 } from './test_panel_interactions.mjs';
 
+// Phase 4: JS debugging tests (CDP bridge + unified debugger)
+import {
+  testJSPauseShowsJSFrames,
+  testUnifiedCallStackInterleaving,
+  testUnifiedCallStackBadges,
+  testJSStepInto,
+  testJSStepOver,
+  testJSStepOut,
+  testJSResumeFromPause,
+  testSchemeStepStillWorks,
+  testCDPResumeUpdatesUI,
+  testJSFrameClickLoadsJSSource,
+  testEditorSwitchesToJSHighlighting,
+  testSwitchBetweenSchemeAndJSFrames,
+  testJSVariablesDisplayed,
+  testPanelShowsSchemeSourcesAsDefault,
+  testJSPauseToolbarStatus,
+  testSchemeCallsJSShowsBothFrames,
+  testJSCallsSchemeShowsBothFrames,
+  testButtonsEnabledDuringJSPause,
+  testCurrentLineHighlightOnJSPause,
+} from './test_js_debugging.mjs';
+
+// Phase 4: JS interop integration tests (real page, no mocks)
+import {
+  testJSInteropPageSelfTest,
+  testBreakpointAtJSCallSite,
+  testStepIntoJSFromScheme,
+  testStepOverJSFromScheme,
+  testStepOutFromJSBoundary,
+  testVariablesAtJSBoundary,
+  testMultipleBreakpointsAcrossJSCalls,
+  testDotNotationJSCall,
+  testStoredJSFunctionCall,
+  testCallStackAtJSBoundary,
+  testStepThroughJSInteropSequence,
+} from './test_js_interop.mjs';
+
 // =========================================================================
 // Main runner
 // =========================================================================
@@ -89,6 +127,18 @@ async function runTests() {
       testPausePersistence,
       testBreakpointAPI,
       testBreakpointFlowPage,
+      // Phase 4: JS interop integration tests (real page-side debugging)
+      testJSInteropPageSelfTest,
+      testBreakpointAtJSCallSite,
+      testStepIntoJSFromScheme,
+      testStepOverJSFromScheme,
+      testStepOutFromJSBoundary,
+      testVariablesAtJSBoundary,
+      testMultipleBreakpointsAcrossJSCalls,
+      testDotNotationJSCall,
+      testStoredJSFunctionCall,
+      testCallStackAtJSBoundary,
+      testStepThroughJSInteropSequence,
     ];
 
     for (const testFn of pageTests) {
@@ -129,6 +179,26 @@ async function runTests() {
       testPanelDiamondMarkersOnBreakpointLine,
       testPanelDiamondClickSetsBreakpoint,
       testPanelDiamondsOnPausedLine,
+      // Phase 4: JS debugging interaction tests (CDP mock)
+      testJSPauseShowsJSFrames,
+      testUnifiedCallStackInterleaving,
+      testUnifiedCallStackBadges,
+      testJSStepInto,
+      testJSStepOver,
+      testJSStepOut,
+      testJSResumeFromPause,
+      testSchemeStepStillWorks,
+      testCDPResumeUpdatesUI,
+      testJSFrameClickLoadsJSSource,
+      testEditorSwitchesToJSHighlighting,
+      testSwitchBetweenSchemeAndJSFrames,
+      testJSVariablesDisplayed,
+      testPanelShowsSchemeSourcesAsDefault,
+      testJSPauseToolbarStatus,
+      testSchemeCallsJSShowsBothFrames,
+      testJSCallsSchemeShowsBothFrames,
+      testButtonsEnabledDuringJSPause,
+      testCurrentLineHighlightOnJSPause,
     ];
 
     if (extensionId) {

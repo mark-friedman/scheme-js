@@ -1,16 +1,17 @@
 /**
  * @fileoverview Call Stack component for the Scheme-JS DevTools panel.
  *
- * Renders a list of Scheme call stack frames when execution is paused.
+ * Renders a list of call stack frames when execution is paused,
+ * supporting both Scheme and JavaScript frames with distinct badges.
  * Clicking a frame selects it, triggering a callback so the editor can
  * navigate to the frame's source location and the variables panel can
  * display that frame's locals.
  *
  * Each frame shows:
- *   - Language badge ([SCM])
+ *   - Language badge ([SCM] green or [JS] blue)
  *   - Function name (or <anonymous>)
  *   - Source filename:line (if available)
- *   - TCO count badge if > 0
+ *   - TCO count badge if > 0 (Scheme frames only)
  */
 
 /**
@@ -18,6 +19,7 @@
  * @property {string} name - Function name
  * @property {{filename: string, line: number, column: number}|null} source
  * @property {number} tcoCount - Number of tail calls collapsed
+ * @property {'scheme'|'js'} [language='scheme'] - Frame language type
  */
 
 /**
@@ -64,10 +66,16 @@ export function createCallStack(container, onSelectFrame) {
         item.classList.add('selected');
       }
 
-      // Language badge
+      // Language badge — [SCM] (green) or [JS] (blue)
+      const language = frame.language || 'scheme';
       const badge = document.createElement('span');
-      badge.className = 'frame-badge frame-badge-scheme';
-      badge.textContent = 'SCM';
+      if (language === 'js') {
+        badge.className = 'frame-badge frame-badge-js';
+        badge.textContent = 'JS';
+      } else {
+        badge.className = 'frame-badge frame-badge-scheme';
+        badge.textContent = 'SCM';
+      }
       item.appendChild(badge);
 
       // Function name
@@ -85,7 +93,7 @@ export function createCallStack(container, onSelectFrame) {
         item.appendChild(srcEl);
       }
 
-      // TCO badge
+      // TCO badge (Scheme frames only)
       if (frame.tcoCount > 0) {
         const tcoEl = document.createElement('span');
         tcoEl.className = 'frame-tco';

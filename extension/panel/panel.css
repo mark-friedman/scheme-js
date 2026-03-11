@@ -58,6 +58,7 @@
   --frame-bg-hover:       #2d2f3f;
   --frame-bg-selected:    #44475a;
   --frame-badge-scheme:   #bd93f9;
+  --frame-badge-js:       #8be9fd;
   --frame-name-fg:        #f8f8f2;
   --frame-source-fg:      #6272a4;
   --frame-tco-fg:         #ff79c6;
@@ -119,6 +120,7 @@
     --frame-bg-hover:       #eaf5fb;
     --frame-bg-selected:    #dbeafe;
     --frame-badge-scheme:   #8250df;
+    --frame-badge-js:       #0969da;
     --frame-name-fg:        #24292f;
     --frame-source-fg:      #6e7781;
     --frame-tco-fg:         #cf222e;
@@ -437,6 +439,19 @@ html, body {
 .frame-badge-scheme {
   background: var(--frame-badge-scheme);
   color: #fff;
+}
+
+.frame-badge-js {
+  background: var(--frame-badge-js);
+  color: #000;
+}
+
+/* CDP notifications (shown when JS debugging is enabled) */
+.cdp-notification {
+  font-size: 10px;
+  color: var(--frame-badge-js);
+  margin-left: 4px;
+  opacity: 0.85;
 }
 
 .frame-name {

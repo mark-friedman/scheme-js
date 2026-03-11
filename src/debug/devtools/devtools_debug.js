@@ -380,28 +380,61 @@ export class DevToolsDebugIntegration {
     globalThis.__schemeDebug = {
       /**
        * Gets the current Scheme call stack.
+       * When paused at top-level (no function frames), a synthetic
+       * "top-level" frame is included so getStack() always returns at
+       * least one frame during a pause.
        * @returns {Array<{name: string, source: {filename: string, line: number, column: number}|null, tcoCount: number}>}
        */
       getStack() {
-        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
-        return frames.map(f => ({
+        const runtime = interpreter.debugRuntime;
+        const frames = runtime?.stackTracer.getStack() || [];
+        const mapped = frames.map(f => ({
           name: f.name,
           source: f.source || null,
           tcoCount: f.tcoCount || 0
         }));
+
+        // If paused at top-level (no function frames), add a synthetic frame
+        // so the stack is never empty during a pause.
+        if (mapped.length === 0 && runtime?.isPaused() && runtime._currentPauseEnv) {
+          mapped.push({
+            name: '<top-level>',
+            source: runtime._currentPauseSource || null,
+            tcoCount: 0,
+            _synthetic: true
+          });
+        }
+
+        return mapped;
       },
 
       /**
        * Gets the local variable bindings for a specific stack frame.
+       * Supports the synthetic top-level frame created by getStack().
        * @param {number} frameIndex - Index into the stack (0 = bottom, length-1 = top)
        * @returns {Array<{name: string, value: string, type: string, subtype: string|null}>}
        */
       getLocals(frameIndex) {
-        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
-        if (frameIndex < 0 || frameIndex >= frames.length) return [];
-        const env = frames[frameIndex].env;
-        const inspector = interpreter.debugRuntime?.stateInspector;
-        if (!env || !inspector) return [];
+        const runtime = interpreter.debugRuntime;
+        const frames = runtime?.stackTracer.getStack() || [];
+        const inspector = runtime?.stateInspector;
+        if (!inspector) return [];
+
+        let env;
+
+        if (frames.length === 0 && runtime?.isPaused() && runtime._currentPauseEnv) {
+          // Synthetic top-level frame: use the pause environment
+          if (frameIndex === 0) {
+            env = runtime._currentPauseEnv;
+          } else {
+            return [];
+          }
+        } else {
+          if (frameIndex < 0 || frameIndex >= frames.length) return [];
+          env = frames[frameIndex].env;
+        }
+
+        if (!env) return [];
 
         const locals = inspector.getLocals(env);
         const result = [];

@@ -10,14 +10,59 @@ import { resolve, dirname, extname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { readFile, stat } from 'fs/promises';
+import { execSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// =========================================================================
+// macOS Chrome focus-stealing fix
+// =========================================================================
+
+/**
+ * Patches Chrome for Testing's Info.plist to add LSBackgroundOnly=true.
+ * This tells macOS to treat Chrome as a background-only app — no Dock icon,
+ * no focus stealing, no activation when windows are created.
+ *
+ * Only needed on macOS. Modifies the CfT bundle in-place (safe since it's
+ * only used for testing and managed by Puppeteer's cache).
+ *
+ * @param {string} chromePath - Path to the Chrome executable
+ */
+async function patchChromeInfoPlist(chromePath) {
+  // Chrome path: .../Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing
+  // Info.plist:  .../Google Chrome for Testing.app/Contents/Info.plist
+  const contentsDir = resolve(dirname(chromePath), '..');
+  const plistPath = join(contentsDir, 'Info.plist');
+
+  try {
+    // Check if LSBackgroundOnly is already set
+    const result = execSync(
+      `/usr/libexec/PlistBuddy -c "Print :LSBackgroundOnly" "${plistPath}" 2>&1`,
+      { encoding: 'utf8', timeout: 5000 }
+    ).trim();
+    if (result === 'true') return; // Already patched
+  } catch {
+    // Key doesn't exist yet — add it
+  }
+
+  try {
+    execSync(
+      `/usr/libexec/PlistBuddy -c "Add :LSBackgroundOnly bool true" "${plistPath}" 2>/dev/null || ` +
+      `/usr/libexec/PlistBuddy -c "Set :LSBackgroundOnly true" "${plistPath}"`,
+      { timeout: 5000 }
+    );
+    console.log('[test harness] Patched Chrome Info.plist with LSBackgroundOnly=true');
+  } catch (e) {
+    console.warn('[test harness] Could not patch Info.plist:', e.message);
+  }
+}
 export const projectRoot = resolve(__dirname, '../..');
 export const extensionPath = resolve(projectRoot, 'extension');
 export const port = parseInt(process.env.TEST_PORT || '8081', 10);
 
 export const BASE_URL = `http://127.0.0.1:${port}`;
 export const TEST_PAGE = `${BASE_URL}/tests/debug/puppeteer_test_page.html`;
+export const JS_TEST_PAGE = `${BASE_URL}/tests/debug/puppeteer_js_test_page.html`;
 export const INLINE_URL = 'scheme://inline-scripts/script-0.scm';
 export const EXTERNAL_URL = 'scheme://scheme-sources/manual_script.scm';
 
@@ -131,11 +176,25 @@ export async function launchTestBrowser() {
 
   // Use Puppeteer's Chrome for Testing (CfT) — system Chrome does not
   // reliably load unpacked extensions via --load-extension.
+  //
+  // On macOS, Chrome steals focus when launched headed. We patch the
+  // Info.plist to add LSBackgroundOnly=true, which tells macOS to treat
+  // Chrome as a background-only app (no Dock icon, no focus stealing).
+  const chromePath = puppeteer.executablePath();
+  if (process.platform === 'darwin') {
+    await patchChromeInfoPlist(chromePath);
+  }
+
   const chromeArgs = [
     `--disable-extensions-except=${extensionPath}`,
     `--load-extension=${extensionPath}`,
     '--no-first-run',
     '--no-default-browser-check',
+    // Prevent background throttling — avoids disconnections when the user
+    // activates their screensaver or switches to another app.
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
   ];
   const browser = await puppeteer.launch({
     headless: false, // Extensions require headed mode

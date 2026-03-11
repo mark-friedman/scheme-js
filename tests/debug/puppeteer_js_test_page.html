@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scheme-JS / JavaScript Debugging Integration Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #569cd6; }
+    .pass { color: #6a9955; }
+    .fail { color: #f44747; }
+    .info { color: #dcdcaa; }
+    .test-row { margin: 4px 0; padding: 4px 8px; }
+  </style>
+
+  <!--
+    This test page exercises JavaScript <-> Scheme interop for debugging.
+    It tests BOTH top-level and in-function JS calls.
+
+    IMPORTANT: textContent of the script tag includes a leading newline
+    after the closing >, so line 1 is empty. All Scheme code starts at line 2.
+
+    Scheme line map (actual line numbers as seen by the parser):
+      Line 1:  (empty — newline after script tag)
+      Line 2:  (define doubled (jsDouble 7))
+      Line 3:  (define summed (jsAdd 10 20))
+      Line 4:  (define (test-interop x)
+      Line 5:    (let ((d (jsDouble x))
+      Line 6:          (s (jsAdd x 100)))
+      Line 7:      (let ((my-fn jsDouble))
+      Line 8:        (let ((via-var (my-fn x))
+      Line 9:              (via-dot (window.jsHelper.compute x)))
+      Line 10:         (list d s via-var via-dot)))))
+      Line 11: (define result (test-interop 5))
+      Line 12: (display ...)
+  -->
+
+  <!-- Pre-load debug flags and breakpoints before scheme-html.js runs -->
+  <script>
+    globalThis.__SCHEME_JS_DEBUG = true;
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+
+    // Only set default breakpoints if Puppeteer hasn't already injected them.
+    if (!globalThis.__SCHEME_JS_PUPPETEER) {
+      // Line 2 = (define doubled (jsDouble 7)) — the first real expression
+      globalThis.__SCHEME_JS_BREAKPOINTS = [
+        { url: 'scheme://inline-scripts/script-0.scm', line: 2 }
+      ];
+    }
+
+    // --- JavaScript functions for interop testing ---
+
+    /**
+     * Doubles a number. Called from Scheme as (jsDouble n).
+     * @param {number} n - Number to double
+     * @returns {number} n * 2
+     */
+    function jsDouble(n) {
+      return n * 2;
+    }
+
+    /**
+     * Adds two numbers. Called from Scheme as (jsAdd a b).
+     * @param {number} a - First operand
+     * @param {number} b - Second operand
+     * @returns {number} a + b
+     */
+    function jsAdd(a, b) {
+      return a + b;
+    }
+
+    /**
+     * A helper object with a compute method.
+     * Called from Scheme as (window.jsHelper.compute n).
+     */
+    window.jsHelper = {
+      compute: function(n) {
+        return n + 100;
+      }
+    };
+
+    // --- Pause/resume listener (for standalone self-testing only) ---
+    window._testPauseInfo = null;
+    window._testResumed = false;
+    window._testPauseCount = 0;
+
+    window.addEventListener('scheme-debug-paused', function(e) {
+      window._testPauseInfo = e.detail;
+      window._testPauseCount++;
+      console.log('[Test] scheme-debug-paused fired:', e.detail?.source);
+      // Auto-resume only in standalone mode (not when Puppeteer controls pauses)
+      if (!globalThis.__SCHEME_JS_PUPPETEER) {
+        setTimeout(function() {
+          if (typeof globalThis.__schemeDebug !== 'undefined') {
+            globalThis.__schemeDebug.resume();
+          }
+        }, 50);
+      }
+    });
+
+    window.addEventListener('scheme-debug-resumed', function() {
+      window._testResumed = true;
+      console.log('[Test] scheme-debug-resumed fired');
+    });
+  </script>
+
+  <!-- Load Scheme interpreter and HTML adapter -->
+  <script type="module" src="../../dist/scheme.js"></script>
+  <script type="module" src="../../dist/scheme-html.js"></script>
+</head>
+<body>
+  <h1>JS ↔ Scheme Debugging Integration</h1>
+  <p class="info">
+    Tests JS/Scheme interop with debugging at both top-level and inside functions.
+  </p>
+
+  <div id="output">Running... (waiting up to 8s)</div>
+
+  <script type="text/scheme" debug>
+(define doubled (jsDouble 7))
+(define summed (jsAdd 10 20))
+(define (test-interop x)
+  (let ((d (jsDouble x))
+        (s (jsAdd x 100)))
+    (let ((my-fn jsDouble))
+      (let ((via-var (my-fn x))
+            (via-dot (window.jsHelper.compute x)))
+        (list d s via-var via-dot)))))
+(define result (test-interop 5))
+(display (string-append
+  "doubled=" (number->string doubled)
+  " summed=" (number->string summed)
+  " result=" (number->string (car result))
+  "\n"))
+  </script>
+
+  <!-- Test verification script (standalone self-test) -->
+  <script type="module">
+    const output = document.getElementById('output');
+
+    // Wait for Scheme scripts to complete
+    await new Promise(r => setTimeout(r, 6000));
+
+    const results = [];
+
+    function pass(name) {
+      results.push(`<div class="test-row pass">PASS: ${name}</div>`);
+      console.log(`PASS: ${name}`);
+    }
+    function fail(name, detail) {
+      results.push(`<div class="test-row fail">FAIL: ${name} — ${detail}</div>`);
+      console.error(`FAIL: ${name} — ${detail}`);
+    }
+
+    // Test 1: __schemeDebug API exists
+    if (typeof globalThis.__schemeDebug !== 'undefined') {
+      pass('__schemeDebug API exists');
+    } else {
+      fail('__schemeDebug API exists', 'undefined');
+    }
+
+    // Test 2: Pause event fired
+    if (window._testPauseInfo !== null) {
+      pass('scheme-debug-paused event fired');
+    } else {
+      fail('scheme-debug-paused event fired', 'event never received');
+    }
+
+    // Test 3: Resume event fired
+    if (window._testResumed) {
+      pass('scheme-debug-resumed event fired');
+    } else {
+      fail('scheme-debug-resumed event fired', 'event never received');
+    }
+
+    // Test 4: Execution completed
+    try {
+      const sources = globalThis.__schemeDebug?.getSources() || [];
+      if (sources.length >= 1) {
+        pass(`execution completed — ${sources.length} source(s)`);
+      } else {
+        fail('execution completed', 'no sources registered');
+      }
+    } catch (e) {
+      fail('execution completed', e.message);
+    }
+
+    output.innerHTML = results.join('');
+  </script>
+</body>
+</html>

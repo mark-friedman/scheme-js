@@ -14,15 +14,16 @@ trigger: always_on
 - Most tests should be written BEFORE the code that is being tested is written. Sometimes you'll realize after writing the code that you need to write additional tests for it and that's ok.  It's also ok to occasionally rewrite tests to make them more correct or more effective or cover more cases.
 
 ## Testing
-- **Dual Environment**: All tests must run in both Node.js and the browser.
+- **Dual Environment**: All unit tests must run in both Node.js and the browser, unless the test is specific to one or the other.
   - Use `if (typeof process !== 'undefined')` to guard Node.js-specific code (like `process.exitCode` or `import.meta.url` checks).
-- **Structure**: Place new tests in `tests/` and register them in `tests/tests.js`.
+- **Structure**: Place new tests within `tests/` and register them in `tests/test_manifest.js`.
 - **Execution**:
   - Run `node run_tests_node.js` to verify changes locally.
   - Use `node run_tests_node.js --stress` to include long-running TCO and memory stability tests.
   - Agents SHOULD mostly use the standard `npm run test` (without `--stress`) for routine verification to save time, but occasionally should use `node run_tests_node.js --stress` just to make sure.
   - The `--stress` flag MUST be used when making changes to the interpreter's TCO logic, memory management, or core evaluation loop.
   - Verify browser compatibility via `http://localhost:8080/ui.html`.
+- **Puppeteer**: Use puppeteer to test UI interactions involving the devtools debugger Chrome extension in `extension`.  See `tests/extension/run_extension_tests.mjs` for the test runner root of those tests.
 
 ## JavaScript Code Style
 - **Modules**: Use ES Modules (`import`/`export`).
@@ -31,7 +32,7 @@ trigger: always_on
 - **Primitives**: All new JavaScript primitives exposed to Scheme (e.g. in `src/core/primitives/`) MUST be marked as "Scheme-aware" by setting the `SCHEME_PRIMITIVE` symbol (exported from `src/core/interpreter/values.js`) on the function. This is typically handled by the `addPrimitives` helper in `src/core/primitives/index.js`.
 
 ## Scheme Code Rules
-- **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all neccessary type, range, and arity checking.
+- **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all necessary type, range, and arity checking.
 - **Scheme over JS**: Implementations should always be done in Scheme, if possible.  If that's not possible, isolate the minimum that is required in JavaScript and then implement the rest in Scheme.
 
 ## Code Organization
@@ -52,6 +53,9 @@ trigger: always_on
 - **Architecture**: After completing any major task or phase of work, update `docs/architecture.md` to reflect the new structure.
 - **Roadmap**:  Use the `ROADMAP.md` file to record the general progress and plan for the project.  Keep it updated with work that has been done and add to it to reflect work planned for the future.
 - **Cleanup**: Remove any comments that were created just for yourself and/or that don't explain any functionality or algorithmic details.
+
+## Memory
+- **MEMORY.md**: If a directory has a `MEMORY.md` file in it, that file contains useful information about code or features related to that directory.  Read that file for that information and update it with new useful, related, information as you modify or add new code or features related to that directory.
 
 ## Tools
 ### Scheme Conformance
