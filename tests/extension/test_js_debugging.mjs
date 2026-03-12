@@ -22,7 +22,7 @@
  * with CDP-specific message routing and state tracking.
  */
 
-import { assert } from './test_harness.mjs';
+import { assert, INLINE_URL } from './test_harness.mjs';
 
 // =========================================================================
 // Extended mock chrome API for CDP testing
@@ -37,7 +37,7 @@ const CDP_MOCK_CHROME_SCRIPT = `
 window.__mockState = {
   sources: [
     {
-      url: 'scheme://inline-scripts/script-0.scm',
+      url: '${INLINE_URL}',
       content: '(define (add a b) (+ a b))\\n(define (double x) (* x 2))\\n(define (compute n) (add (double n) n))\\n(define (factorial n)\\n  (if (<= n 1) 1 (* n (factorial (- n 1)))))\\n(define greeting "hello")\\ngreeting\\n42\\n(display (string-append "result=" (number->string (compute 5)) "\\\\n"))\\n(display (string-append "fact5=" (number->string (factorial 5)) "\\\\n"))',
       lines: 10,
       origin: 'inline'
@@ -55,7 +55,7 @@ window.__mockState = {
   locals: [],
   breakpoints: [],
   expressions: {
-    'scheme://inline-scripts/script-0.scm': [
+    '${INLINE_URL}': [
       { exprId: 1, line: 1, column: 1, endLine: 1, endColumn: 26 },
       { exprId: 2, line: 1, column: 16, endLine: 1, endColumn: 22 },
     ],
@@ -131,18 +131,23 @@ window.chrome = {
             result = JSON.stringify(state.breakpoints);
           } else if (expression.includes('ackPause()')) {
             state.ackPauseCalled = true;
+            state.lastAction = 'ackPause';
             result = undefined;
           } else if (expression.includes('resume()')) {
             state.resumeCalled = true;
+            state.lastAction = 'resume';
             result = undefined;
           } else if (expression.includes('stepInto()')) {
             state.stepIntoCalled = true;
+            state.lastAction = 'stepInto';
             result = undefined;
           } else if (expression.includes('stepOver()')) {
             state.stepOverCalled = true;
+            state.lastAction = 'stepOver';
             result = undefined;
           } else if (expression.includes('stepOut()')) {
             state.stepOutCalled = true;
+            state.lastAction = 'stepOut';
             result = undefined;
           } else if (expression.includes('getExpressions(')) {
             const urlMatch = expression.match(/getExpressions\\("([^"]+)"\\)/);
@@ -342,8 +347,8 @@ const JS_CALL_FRAMES = [
 ];
 
 const SCHEME_STACK = [
-  { name: '<top-level>', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 8, column: 0 }, tcoCount: 0 },
-  { name: 'compute', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 3, column: 0 }, tcoCount: 0 },
+  { name: '<top-level>', source: { filename: INLINE_URL, line: 8, column: 0 }, tcoCount: 0 },
+  { name: 'compute', source: { filename: INLINE_URL, line: 3, column: 0 }, tcoCount: 0 },
 ];
 
 // =========================================================================
@@ -436,7 +441,7 @@ export async function testUnifiedCallStackBadges(browser, extensionId) {
   // Mixed pause: Scheme pause with stack
   await fireSchemePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 3, column: 0 },
+    source: { filename: INLINE_URL, line: 3, column: 0 },
     stack: SCHEME_STACK,
   });
 
@@ -592,7 +597,7 @@ export async function testSchemeStepStillWorks(browser, extensionId) {
   // Pause at Scheme frame
   await fireSchemePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 3, column: 0 },
+    source: { filename: INLINE_URL, line: 3, column: 0 },
     stack: SCHEME_STACK,
   });
 
@@ -735,17 +740,17 @@ export async function testSwitchBetweenSchemeAndJSFrames(browser, extensionId) {
   const panelPage = await openCDPMockedPanel(browser, extensionId);
 
   // Set up Scheme locals for frame index 0
-  await panelPage.evaluate(() => {
+  await panelPage.evaluate((inlineUrl) => {
     window.__mockState.cdpAttached = true;
     window.__mockState.locals = {
       0: [{ name: 'x', value: '10', type: 'number', subtype: null }],
       1: [{ name: 'n', value: '5', type: 'number', subtype: null }],
     };
     window.__mockState.stack = [
-      { name: '<top-level>', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 8, column: 0 }, tcoCount: 0 },
-      { name: 'compute', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 3, column: 0 }, tcoCount: 0 },
+      { name: '<top-level>', source: { filename: inlineUrl, line: 8, column: 0 }, tcoCount: 0 },
+      { name: 'compute', source: { filename: inlineUrl, line: 3, column: 0 }, tcoCount: 0 },
     ];
-  });
+  }, INLINE_URL);
 
   // Fire a CDP pause (JS frames will be on top, Scheme frames below)
   await fireCDPPauseEvent(panelPage, {
@@ -882,12 +887,12 @@ export async function testSchemeCallsJSShowsBothFrames(browser, extensionId) {
   const panelPage = await openCDPMockedPanel(browser, extensionId);
 
   // Simulate: Scheme called a JS function (CDP pause with Scheme stack available)
-  await panelPage.evaluate(() => {
+  await panelPage.evaluate((inlineUrl) => {
     window.__mockState.stack = [
-      { name: '<top-level>', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 8, column: 0 }, tcoCount: 0 },
-      { name: 'compute', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 3, column: 0 }, tcoCount: 0 },
+      { name: '<top-level>', source: { filename: inlineUrl, line: 8, column: 0 }, tcoCount: 0 },
+      { name: 'compute', source: { filename: inlineUrl, line: 3, column: 0 }, tcoCount: 0 },
     ];
-  });
+  }, INLINE_URL);
 
   await fireCDPPauseEvent(panelPage, {
     callFrames: [{
@@ -931,10 +936,10 @@ export async function testJSCallsSchemeShowsBothFrames(browser, extensionId) {
   // Simulate: JS called Scheme — Scheme pause with JS frames still in CDP
   await fireSchemePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 3, column: 0 },
+    source: { filename: INLINE_URL, line: 3, column: 0 },
     stack: [
-      { name: '<top-level>', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 8, column: 0 }, tcoCount: 0 },
-      { name: 'schemeCallbackFromJS', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 3, column: 0 }, tcoCount: 0 },
+      { name: '<top-level>', source: { filename: INLINE_URL, line: 8, column: 0 }, tcoCount: 0 },
+      { name: 'schemeCallbackFromJS', source: { filename: INLINE_URL, line: 3, column: 0 }, tcoCount: 0 },
     ],
   });
 

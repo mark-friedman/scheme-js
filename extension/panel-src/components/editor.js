@@ -24,6 +24,8 @@ import {
   EditorState, Compartment, StateField, StateEffect, RangeSetBuilder,
 } from '@codemirror/state';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { search, searchKeymap } from '@codemirror/search';
+import { keymap } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
 import { schemeLanguage } from '../language/scheme-mode.js';
 import { javascript } from '@codemirror/lang-javascript';
@@ -630,6 +632,8 @@ export function createEditor(container, onBreakpointToggle, onDiamondClick) {
       lineNumbers(),
       highlightActiveLine(),
       languageCompartment.of(schemeLanguage),
+      search({ top: true }),
+      keymap.of(searchKeymap),
       layoutTheme,
       themeCompartment.of(makeThemeExtension(prefersDark.matches)),
       EditorView.editable.of(false),

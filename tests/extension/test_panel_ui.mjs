@@ -25,11 +25,14 @@ export async function testPanelUIStructure(browser, extensionId) {
     mainLayout: !!document.getElementById('main-layout'),
     sidebar: !!document.getElementById('sidebar'),
     sourceList: !!document.getElementById('source-list'),
-    editorArea: !!document.getElementById('editor-area'),
+    editorArea: !!document.querySelector('.editor-area'),
     editorContainer: !!document.getElementById('editor-container'),
+    consoleSplitter: !!document.getElementById('console-splitter'),
+    consoleContainer: !!document.getElementById('console-container'),
     rightPanel: !!document.getElementById('right-panel'),
     callStackContainer: !!document.getElementById('call-stack-container'),
     variablesContainer: !!document.getElementById('variables-container'),
+    breakpointsContainer: !!document.getElementById('breakpoints-container'),
   }));
 
   assert('Panel has #toolbar', elements.toolbar);
@@ -37,11 +40,14 @@ export async function testPanelUIStructure(browser, extensionId) {
   assert('Panel has #main-layout', elements.mainLayout);
   assert('Panel has #sidebar', elements.sidebar);
   assert('Panel has #source-list', elements.sourceList);
-  assert('Panel has #editor-area', elements.editorArea);
+  assert('Panel has .editor-area', elements.editorArea);
   assert('Panel has #editor-container', elements.editorContainer);
+  assert('Panel has #console-splitter', elements.consoleSplitter);
+  assert('Panel has #console-container', elements.consoleContainer);
   assert('Panel has #right-panel', elements.rightPanel);
   assert('Panel has #call-stack-container', elements.callStackContainer);
   assert('Panel has #variables-container', elements.variablesContainer);
+  assert('Panel has #breakpoints-container', elements.breakpointsContainer);
 
   // Check toolbar title
   const title = await panelPage.evaluate(() =>
@@ -218,6 +224,75 @@ export async function testPanelSourceListEmpty(browser, extensionId) {
   // It may show a placeholder or be empty.
   assert('Source list rendered (no crash)',
     sourceItems.childCount >= 0, `${sourceItems.childCount} children`);
+
+  await panelPage.close();
+}
+
+// --- Theme Switching ---
+
+export async function testThemeSwitching(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Theme Switching ---');
+
+  if (!extensionId) {
+    assert('Panel theme: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await browser.newPage();
+  
+  // Inject a minimal chrome.devtools mock
+  await panelPage.evaluateOnNewDocument(() => {
+    window.chrome = window.chrome || {};
+    window.chrome.devtools = {
+      panels: {
+        themeName: 'light',
+        onThemeChanged: {
+          addListener: function(f) {
+            this._listeners = this._listeners || [];
+            this._listeners.push(f);
+          },
+          _listeners: []
+        }
+      }
+    };
+  });
+
+  await panelPage.goto(
+    `chrome-extension://${extensionId}/panel/panel.html`,
+    { waitUntil: 'domcontentloaded' }
+  );
+  await new Promise(r => setTimeout(r, 1000));
+
+  // We mock a theme change event by calling the global `updateTheme` function
+  // if it's not exposed, we can directly dispatch to the listener, or we can just 
+  // simulate the chrome.devtools.panels.themeName behavior if we had a full DevTools mock.
+  // The simplest is to mock chrome.devtools in the page context before main.js loads,
+  // but tests/extension/test_helpers.mjs injects mockDevTools already.
+
+  const result = await panelPage.evaluate(() => {
+    // Check initial layout
+    const initialList = Array.from(document.documentElement.classList);
+    
+    // Fire theme change to 'dark'
+    if (window.chrome.devtools.panels.onThemeChanged._listeners) {
+      window.chrome.devtools.panels.onThemeChanged._listeners.forEach(f => f('dark'));
+    }
+    const darkList = Array.from(document.documentElement.classList);
+    
+    // Fire theme change to 'light'
+    if (window.chrome.devtools.panels.onThemeChanged._listeners) {
+      window.chrome.devtools.panels.onThemeChanged._listeners.forEach(f => f('light'));
+    }
+    const lightList = Array.from(document.documentElement.classList);
+
+    return { initialList, darkList, lightList };
+  });
+
+  assert('Dark theme sets .theme-dark', result.darkList.includes('theme-dark'));
+  assert('Dark theme removes .theme-light', !result.darkList.includes('theme-light'));
+  
+  assert('Light theme sets .theme-light', result.lightList.includes('theme-light'));
+  assert('Light theme removes .theme-dark', !result.lightList.includes('theme-dark'));
 
   await panelPage.close();
 }

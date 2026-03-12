@@ -23,12 +23,14 @@
       <div id="source-list" class="source-list"></div>
     </div>
 
-    <!-- Splitter handle (sidebar ↔ editor) -->
+    <!-- Splitter -->
     <div id="splitter" class="splitter"></div>
 
-    <!-- Center: CodeMirror editor -->
-    <div id="editor-area" class="editor-area">
+    <!-- Center area: editor + console -->
+    <div class="editor-area">
       <div id="editor-container" class="editor-container"></div>
+      <div id="console-splitter" class="console-splitter"></div>
+      <div id="console-container" class="console-container"></div>
     </div>
 
     <!-- Right panel: call stack + variables (shown when paused) -->
@@ -41,6 +43,11 @@
       <div class="panel-section">
         <div class="section-header">Variables</div>
         <div id="variables-container" class="section-content"></div>
+      </div>
+      <div class="section-divider"></div>
+      <div class="panel-section">
+        <div class="section-header">Breakpoints</div>
+        <div id="breakpoints-container" class="section-content"></div>
       </div>
     </div>
 

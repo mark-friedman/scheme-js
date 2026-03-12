@@ -2,7 +2,7 @@
  * @fileoverview Tests for debug API activation, source registration, and execution timing.
  */
 
-import { assert, TEST_PAGE } from './test_harness.mjs';
+import { assert, TEST_PAGE, INLINE_URL } from './test_harness.mjs';
 import { openTestPage, getSources, getStatus } from './test_helpers.mjs';
 
 // --- Activation & Sources ---
@@ -25,7 +25,7 @@ export async function testActivationAndSources(browser) {
   assert('At least 2 sources registered (inline + external)', sources.length >= 2,
     `got ${sources.length}: ${sources.map(s => s.url).join(', ')}`);
 
-  const inlineSrc = sources.find(s => s.url.includes('inline'));
+  const inlineSrc = sources.find(s => s.url === INLINE_URL);
   const externalSrc = sources.find(s => s.url.includes('manual_script'));
   assert('Inline source is registered', !!inlineSrc, `urls: ${sources.map(s => s.url)}`);
   assert('External source is registered', !!externalSrc, `urls: ${sources.map(s => s.url)}`);

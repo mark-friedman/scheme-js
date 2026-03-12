@@ -121,6 +121,24 @@ export async function getLocals(frameIndex) {
 }
 
 /**
+ * Evaluates an expression within the context of a specific stack frame.
+ * @param {string} expression - The Scheme expression to evaluate
+ * @param {number} frameIndex - Index into the stack (0 = bottom, length-1 = top)
+ * @returns {Promise<{success: boolean, result: string, error: string|null}>}
+ */
+export async function evalInFrame(expression, frameIndex) {
+  try {
+    const json = await evalInPage(
+      `JSON.stringify(__schemeDebug.eval(${JSON.stringify(expression)}, ${frameIndex}))`
+    );
+    const result = JSON.parse(json);
+    return { success: true, result: result, error: null };
+  } catch (err) {
+    return { success: false, result: null, error: err.message };
+  }
+}
+
+/**
  * Acknowledges that the panel has received the pause event.
  * Cancels the safety timeout so the pause waits indefinitely
  * for an explicit resume/step/abort from the user.

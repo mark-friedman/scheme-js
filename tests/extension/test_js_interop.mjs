@@ -29,7 +29,7 @@
  * Tests use only the page-side __schemeDebug API (no extension panel).
  */
 
-import { assert, recordCrash, JS_TEST_PAGE } from './test_harness.mjs';
+import { assert, recordCrash, JS_TEST_PAGE, INLINE_URL } from './test_harness.mjs';
 import {
   waitForDebugAPI, waitForPause, waitForRunning,
   setBP, getStatus, getStack, getLocals,
@@ -37,7 +37,7 @@ import {
   drainPauses,
 } from './test_helpers.mjs';
 
-const INLINE_SCM = 'scheme://inline-scripts/script-0.scm';
+const INLINE_SCM = INLINE_URL;
 
 // Well-known standard library names to filter from top-level locals
 const STDLIB_NAMES = new Set([

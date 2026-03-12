@@ -282,6 +282,30 @@ export async function removeBreakpoint(id, url) {
 }
 
 // =========================================================================
+// Unified Eval Command
+// =========================================================================
+
+/**
+ * Evaluates an expression within a specific call frame context.
+ * Routes to CDP or Scheme bridge based on the frame's language.
+ *
+ * @param {Object} frame - A unified stack frame object (from getUnifiedFrames/onPaused)
+ * @param {number} schemeFrameIndex - The index of this frame within the Scheme-only stack
+ * @param {string} expression - The expression to evaluate
+ * @returns {Promise<{success: boolean, result: any, error: string|null}>}
+ */
+export async function evalInFrame(frame, schemeFrameIndex, expression) {
+  if (frame.language === 'js') {
+    if (frame._cdpCallFrameId) {
+      return cdpBridge.evalInJSFrame(frame._cdpCallFrameId, expression);
+    }
+    return { success: false, result: null, error: 'No CDP call frame ID available' };
+  } else {
+    return schemeBridge.evalInFrame(expression, schemeFrameIndex);
+  }
+}
+
+// =========================================================================
 // Unified Event Listeners
 // =========================================================================
 

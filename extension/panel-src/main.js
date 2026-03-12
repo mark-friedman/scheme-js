@@ -25,6 +25,8 @@ import { createSourceList } from './components/source-list.js';
 import { createToolbar } from './components/toolbar.js';
 import { createCallStack } from './components/call-stack.js';
 import { createVariables } from './components/variables.js';
+import { createBreakpointsList } from './components/breakpoints.js';
+import { createConsole } from './components/console.js';
 import {
   evalInPage,
   getSourceContent,
@@ -47,12 +49,19 @@ const sourceListContainer = document.getElementById('source-list');
 const editorContainer    = document.getElementById('editor-container');
 const callStackContainer = document.getElementById('call-stack-container');
 const variablesContainer = document.getElementById('variables-container');
+const breakpointsContainer = document.getElementById('breakpoints-container');
+const consoleContainer   = document.getElementById('console-container');
 const sidebar            = document.getElementById('sidebar');
 const splitter           = document.getElementById('splitter');
 
 // =========================================================================
 // State
 // =========================================================================
+
+// Expose unifiedDebugger on window for testing
+if (typeof window !== 'undefined') {
+  window.unifiedDebugger = unifiedDebugger;
+}
 
 /** Currently displayed source URL. @type {string|null} */
 let currentSourceUrl = null;
@@ -100,6 +109,7 @@ async function saveBreakpointsToPage() {
       `localStorage.setItem('schemeJS_breakpoints', ${JSON.stringify(JSON.stringify(entries))})`
     );
   } catch { /* ignore */ }
+  refreshBreakpointsPanel();
 }
 
 /**
@@ -114,6 +124,7 @@ async function syncBreakpointsFromInterpreter() {
     for (const bp of bps) {
       breakpointIds.set(`${bp.filename}:${bp.line}:${bp.column}`, bp.id);
     }
+    refreshBreakpointsPanel();
   } catch { /* ignore */ }
 }
 
@@ -185,6 +196,77 @@ const toolbar = createToolbar(toolbarDebug, {
 const variables = createVariables(variablesContainer);
 
 // =========================================================================
+// Initialize breakpoints list
+// =========================================================================
+
+const breakpointsList = createBreakpointsList(breakpointsContainer, {
+  onClickBreakpoint: async (url, line, column) => {
+    try {
+      if (url !== currentSourceUrl) {
+        if (unifiedDebugger.isJSFile(url)) {
+          await loadJSSource(url);
+        } else {
+          await loadSource(url);
+        }
+      }
+      editor.highlightLine(line);
+    } catch (err) {
+      console.error('[breakpoint-click] navigation error:', err);
+    }
+  },
+  onRemoveBreakpoint: async (id, url, line, column) => {
+    const key = column ? `${url}:${line}:${column}` : `${url}:${line}:null`;
+    if (breakpointIds.has(key)) {
+      await unifiedDebugger.removeBreakpoint(id, url);
+      breakpointIds.delete(key);
+      saveBreakpointsToPage();
+      
+      // If the removed breakpoint was on the currently viewed source, update the editor
+      if (url === currentSourceUrl) {
+        if (column) {
+          refreshDiamondMarkers();
+          const exprBps = getExpressionBreakpointsForUrl(url);
+          editor.setExpressionBreakpoints(exprBps);
+        } else {
+          const lines = getBreakpointLinesForUrl(url);
+          editor.setBreakpoints(lines); // This will clear the gutter dot
+          refreshDiamondMarkers();
+        }
+      }
+    }
+  }
+});
+
+function refreshBreakpointsPanel() {
+  const bps = [];
+  for (const [key, id] of breakpointIds.entries()) {
+    const parts = key.split(':');
+    const columnStr = parts.pop();
+    const line = parseInt(parts.pop(), 10);
+    const url = parts.join(':');
+    const column = columnStr === 'null' ? null : parseInt(columnStr, 10);
+    bps.push({ id, filename: url, line, column });
+  }
+  breakpointsList.setBreakpoints(bps);
+}
+
+// =========================================================================
+// Initialize eval console
+// =========================================================================
+
+let selectedUnifiedFrame = null;
+let selectedSchemeFrameIndex = 0;
+
+const evalConsole = createConsole(consoleContainer, {
+  onEvaluate: async (expression) => {
+    if (!selectedUnifiedFrame) {
+      return { success: false, error: 'Not paused', result: null };
+    }
+    return unifiedDebugger.evalInFrame(selectedUnifiedFrame, selectedSchemeFrameIndex, expression);
+  }
+});
+
+// =========================================================================
 // Initialize call stack
 // =========================================================================
 
@@ -196,6 +278,18 @@ const variables = createVariables(variablesContainer);
  * @param {import('./components/call-stack.js').StackFrame} frame
  */
 async function onSelectFrame(frameIndex, frame) {
+  selectedUnifiedFrame = frame;
+  
+  // Calculate scheme frame index (bottom up, skipping JS frames)
+  const unifiedFrames = unifiedDebugger.getUnifiedFrames();
+  let jsFrameCountBelow = 0;
+  for (let i = frameIndex - 1; i >= 0; i--) {
+    if (unifiedFrames[i].language === 'js') {
+      jsFrameCountBelow++;
+    }
+  }
+  selectedSchemeFrameIndex = frameIndex - jsFrameCountBelow;
+
   // JS frames have their own variable inspection via CDP scope chain
   if (frame.language === 'js') {
     // Display JS scope variables from the CDP scope chain
@@ -433,6 +527,11 @@ async function loadSource(url) {
 
   // Show diamond markers on breakpoint and paused lines
   refreshDiamondMarkers();
+
+  // Only update status if not currently paused (avoid overwriting pause status)
+  if (currentPausedLine === null) {
+    toolbar.setStatus(`Viewing: ${url.split('/').pop()}`);
+  }
 }
 
 /**
@@ -466,6 +565,7 @@ async function loadJSSource(url, scriptId) {
   }
 
   // Only update status if not currently paused (avoid overwriting pause status)
+  console.log('[loadSource] currentPausedLine:', currentPausedLine, 'setting status to:', `Viewing: ${url.split('/').pop()}`);
   if (currentPausedLine === null) {
     toolbar.setStatus(`Viewing: ${url.split('/').pop()}`);
   }
@@ -623,6 +723,9 @@ function onResumed() {
   toolbar.setRunning();
   callStack.clear();
   variables.clear();
+  evalConsole.clear();
+  selectedUnifiedFrame = null;
+  selectedSchemeFrameIndex = 0;
   editor.highlightLine(null);
   editor.highlightExpression(null);
   currentPausedLine = null;
@@ -744,6 +847,7 @@ splitter.addEventListener('mousedown', (e) => {
   document.body.style.userSelect = 'none';
 });
 
+
 document.addEventListener('mousemove', (e) => {
   if (!dragging) return;
   const delta = e.clientX - dragStartX;
@@ -758,3 +862,56 @@ document.addEventListener('mouseup', () => {
   document.body.style.cursor = '';
   document.body.style.userSelect = '';
 });
+
+// =========================================================================
+// Console Splitter drag behavior (editor ↕ console)
+// =========================================================================
+
+const consoleSplitter = document.getElementById('console-splitter');
+let draggingConsole = false;
+let dragStartY = 0;
+let dragStartHeight = 0;
+
+consoleSplitter.addEventListener('mousedown', (e) => {
+  draggingConsole = true;
+  dragStartY = e.clientY;
+  dragStartHeight = consoleContainer.offsetHeight;
+  consoleSplitter.classList.add('dragging');
+  document.body.style.cursor = 'row-resize';
+  document.body.style.userSelect = 'none';
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!draggingConsole) return;
+  const delta = dragStartY - e.clientY;
+  const newHeight = Math.max(50, Math.min(600, dragStartHeight + delta));
+  consoleContainer.style.height = `${newHeight}px`;
+});
+
+document.addEventListener('mouseup', () => {
+  if (!draggingConsole) return;
+  draggingConsole = false;
+  consoleSplitter.classList.remove('dragging');
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+});
+
+// =========================================================================
+// DevTools Theme Matching
+// =========================================================================
+
+if (typeof chrome !== 'undefined' && chrome.devtools && chrome.devtools.panels) {
+  const updateTheme = (themeName) => {
+    if (themeName === 'default' || themeName === 'light') {
+      document.documentElement.classList.add('theme-light');
+      document.documentElement.classList.remove('theme-dark');
+    } else {
+      document.documentElement.classList.add('theme-dark');
+      document.documentElement.classList.remove('theme-light');
+    }
+  };
+  
+  updateTheme(chrome.devtools.panels.themeName);
+  
+  chrome.devtools.panels.onThemeChanged.addListener(updateTheme);
+}

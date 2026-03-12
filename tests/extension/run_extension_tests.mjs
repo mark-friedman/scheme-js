@@ -39,9 +39,13 @@ import { testPostMessageRelay, testPausePersistence, testBreakpointFlowPage } fr
 
 // Panel UI tests (static)
 import {
-  testPanelUIStructure, testPanelToolbarButtons,
-  testPanelCallStackEmpty, testPanelVariablesEmpty,
-  testPanelCSSLoaded, testPanelSourceListEmpty,
+  testPanelUIStructure,
+  testPanelToolbarButtons,
+  testPanelCallStackEmpty,
+  testPanelVariablesEmpty,
+  testPanelCSSLoaded,
+  testPanelSourceListEmpty,
+  testThemeSwitching
 } from './test_panel_ui.mjs';
 
 // Panel interaction tests (mocked chrome APIs)
@@ -57,7 +61,17 @@ import {
   testPanelDiamondMarkersOnBreakpointLine,
   testPanelDiamondClickSetsBreakpoint,
   testPanelDiamondsOnPausedLine,
+  testPanelBreakpointsList,
+  testPanelBreakpointsNavigation,
+  testKeyboardShortcuts,
+  testCodeMirrorSearch
 } from './test_panel_interactions.mjs';
+
+import {
+  testConsoleEvaluation,
+  testConsoleHistory,
+  testConsoleClear
+} from './test_console.mjs';
 
 // Phase 4: JS debugging tests (CDP bridge + unified debugger)
 import {
@@ -159,6 +173,7 @@ async function runTests() {
       testPanelVariablesEmpty,
       testPanelCSSLoaded,
       testPanelSourceListEmpty,
+      testThemeSwitching,
       // Interaction tests (mocked chrome APIs)
       testPanelSourcesLoad,
       testPanelSourceSwitch,
@@ -180,7 +195,14 @@ async function runTests() {
       testPanelDiamondMarkersOnBreakpointLine,
       testPanelDiamondClickSetsBreakpoint,
       testPanelDiamondsOnPausedLine,
-      // Phase 4: JS debugging interaction tests (CDP mock)
+      // Phase 6: Breakpoints and Console
+      testPanelBreakpointsList,
+      testPanelBreakpointsNavigation,
+      testConsoleEvaluation,
+      testConsoleHistory,
+      testConsoleClear,
+      testKeyboardShortcuts,
+      testCodeMirrorSearch,
       testJSPauseShowsJSFrames,
       testUnifiedCallStackInterleaving,
       testUnifiedCallStackBadges,

@@ -17,7 +17,7 @@
  *   - chrome.storage.local is stubbed (in-memory)
  */
 
-import { assert } from './test_harness.mjs';
+import { assert, INLINE_URL } from './test_harness.mjs';
 
 // =========================================================================
 // Mock chrome API injection script
@@ -28,12 +28,12 @@ import { assert } from './test_harness.mjs';
  * chrome API before the panel bundle loads. The mock routes all
  * evalInPage calls through a dispatcher keyed on the expression string.
  */
-const MOCK_CHROME_SCRIPT = `
+export const MOCK_CHROME_SCRIPT = `
 // Mock state — tests can modify this to change what the panel "sees"
 window.__mockState = {
   sources: [
     {
-      url: 'scheme://inline-scripts/script-0.scm',
+      url: '${INLINE_URL}',
       content: '(define (add a b) (+ a b))\\n(define (double x) (* x 2))\\n(define (compute n) (add (double n) n))\\n(define (factorial n)\\n  (if (<= n 1) 1 (* n (factorial (- n 1)))))\\n(define greeting "hello")\\ngreeting\\n42\\n(display (string-append "result=" (number->string (compute 5)) "\\\\n"))\\n(display (string-append "fact5=" (number->string (factorial 5)) "\\\\n"))',
       lines: 10,
       origin: 'inline'
@@ -52,7 +52,7 @@ window.__mockState = {
   breakpoints: [],
   expressions: {
     // Default expressions matching the default inline source content
-    'scheme://inline-scripts/script-0.scm': [
+    '${INLINE_URL}': [
       { exprId: 1, line: 1, column: 1, endLine: 1, endColumn: 26 },
       { exprId: 2, line: 1, column: 16, endLine: 1, endColumn: 22 },
       { exprId: 3, line: 2, column: 1, endLine: 2, endColumn: 28 },
@@ -123,18 +123,23 @@ window.chrome = {
             result = JSON.stringify(state.breakpoints);
           } else if (expression.includes('ackPause()')) {
             state.ackPauseCalled = true;
+            state.lastAction = 'ackPause';
             result = undefined;
           } else if (expression.includes('resume()')) {
             state.resumeCalled = true;
+            state.lastAction = 'resume';
             result = undefined;
           } else if (expression.includes('stepInto()')) {
             state.stepIntoCalled = true;
+            state.lastAction = 'stepInto';
             result = undefined;
           } else if (expression.includes('stepOver()')) {
             state.stepOverCalled = true;
+            state.lastAction = 'stepOver';
             result = undefined;
           } else if (expression.includes('stepOut()')) {
             state.stepOutCalled = true;
+            state.lastAction = 'stepOut';
             result = undefined;
           } else if (expression.includes('getExpressions(')) {
             const urlMatch = expression.match(/getExpressions\\("([^"]+)"\\)/);
@@ -466,8 +471,8 @@ export async function testPanelResumeUpdatesUI(browser, extensionId) {
   // First, pause
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 },
-    stack: [{ name: 'factorial', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 }, tcoCount: 0 }],
+    source: { filename: INLINE_URL, line: 5 },
+    stack: [{ name: 'compute', source: { filename: INLINE_URL, line: 5 } }]
   });
 
   // Verify we're in paused state
@@ -528,7 +533,7 @@ export async function testPanelResumeButtonClick(browser, extensionId) {
   // Pause first to enable buttons
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 },
+    source: { filename: INLINE_URL, line: 4, column: 0 },
     stack: [],
   });
 
@@ -566,7 +571,7 @@ export async function testPanelStepButtonClicks(browser, extensionId) {
   // Pause to enable buttons
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 },
+    source: { filename: INLINE_URL, line: 4, column: 0 },
     stack: [],
   });
 
@@ -591,7 +596,7 @@ export async function testPanelStepButtonClicks(browser, extensionId) {
   // Re-pause (step might have been consumed)
   await firePauseEvent(panelPage, {
     reason: 'step',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 5, column: 0 },
+    source: { filename: INLINE_URL, line: 5, column: 0 },
     stack: [],
   });
 
@@ -608,7 +613,7 @@ export async function testPanelStepButtonClicks(browser, extensionId) {
   // Re-pause
   await firePauseEvent(panelPage, {
     reason: 'step',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 6, column: 0 },
+    source: { filename: INLINE_URL, line: 6, column: 0 },
     stack: [{ name: 'factorial', source: null, tcoCount: 0 }],
   });
 
@@ -653,10 +658,10 @@ export async function testPanelFrameSelectionUpdatesVariables(browser, extension
   // Pause with a 2-frame stack
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 },
+    source: { filename: INLINE_URL, line: 4, column: 0 },
     stack: [
-      { name: '<top-level>', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 10, column: 0 }, tcoCount: 0 },
-      { name: 'factorial', source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 }, tcoCount: 0 },
+      { name: '<top-level>', source: { filename: INLINE_URL, line: 10, column: 0 }, tcoCount: 0 },
+      { name: 'factorial', source: { filename: INLINE_URL, line: 4, column: 0 }, tcoCount: 0 },
     ],
   });
 
@@ -718,7 +723,7 @@ export async function testPanelVariableTypeColors(browser, extensionId) {
 
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 1, column: 0 },
+    source: { filename: INLINE_URL, line: 1, column: 0 },
     stack: [{ name: 'test', source: null, tcoCount: 0 }],
   });
 
@@ -773,7 +778,7 @@ export async function testPanelCallStackTCO(browser, extensionId) {
 
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 },
+    source: { filename: INLINE_URL, line: 4, column: 0 },
     stack: [
       { name: '<top-level>', source: null, tcoCount: 0 },
       { name: 'factorial', source: null, tcoCount: 3 },
@@ -880,7 +885,7 @@ export async function testPanelStepReasonStatus(browser, extensionId) {
   // Fire pause with reason 'step'
   await firePauseEvent(panelPage, {
     reason: 'step',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 5, column: 0 },
+    source: { filename: INLINE_URL, line: 5, column: 0 },
     stack: [],
   });
 
@@ -952,7 +957,7 @@ export async function testPanelCallStackBadges(browser, extensionId) {
 
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 4, column: 0 },
+    source: { filename: INLINE_URL, line: 4, column: 0 },
     stack: [
       { name: '<top-level>', source: null, tcoCount: 0 },
       { name: 'factorial', source: null, tcoCount: 0 },
@@ -996,7 +1001,7 @@ export async function testPanelEmptyVariablesMessage(browser, extensionId) {
 
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
-    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 1, column: 0 },
+    source: { filename: INLINE_URL, line: 1, column: 0 },
     stack: [{ name: 'test', source: null, tcoCount: 0 }],
   });
 
@@ -1023,12 +1028,11 @@ export async function testPanelExpressionHighlightOnPause(browser, extensionId) 
   }
 
   const panelPage = await openMockedPanel(browser, extensionId);
-
-  // Fire a pause event with expression range (endLine/endColumn)
+    // Fire a pause event with expression range (endLine/endColumn)
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
     source: {
-      filename: 'scheme://inline-scripts/script-0.scm',
+      filename: INLINE_URL,
       line: 1,
       column: 1,
       endLine: 1,
@@ -1070,7 +1074,7 @@ export async function testPanelExpressionHighlightClears(browser, extensionId) {
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
     source: {
-      filename: 'scheme://inline-scripts/script-0.scm',
+      filename: INLINE_URL,
       line: 1, column: 1, endLine: 1, endColumn: 26,
     },
     stack: [],
@@ -1261,7 +1265,7 @@ export async function testPanelDiamondsOnPausedLine(browser, extensionId) {
   await firePauseEvent(panelPage, {
     reason: 'breakpoint',
     source: {
-      filename: 'scheme://inline-scripts/script-0.scm',
+      filename: INLINE_URL,
       line: 1, column: 1, endLine: 1, endColumn: 26,
     },
     stack: [{ name: 'add', source: null, tcoCount: 0 }],
@@ -1284,6 +1288,257 @@ export async function testPanelDiamondsOnPausedLine(browser, extensionId) {
   });
   assert('Diamonds cleared after resume', diamondsAfter === 0,
     `found ${diamondsAfter} diamonds`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Breakpoints Panel Population and Removal
+// =========================================================================
+
+export async function testPanelBreakpointsList(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Breakpoints List ---');
+
+  if (!extensionId) {
+    assert('Panel breakpoints list: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Reset breakpoint tracking
+  await panelPage.evaluate(() => {
+    window.__mockState.breakpointsSet = [];
+    window.__mockState.breakpointsRemoved = [];
+  });
+
+  // Set a breakpoint via gutter click (the normal panel flow that populates breakpointIds)
+  await new Promise(r => setTimeout(r, 500));
+
+  const clickTarget = await panelPage.evaluate(() => {
+    const bpGutter = document.querySelector('.cm-breakpoint-gutter');
+    if (!bpGutter) return null;
+    const bpRect = bpGutter.getBoundingClientRect();
+
+    // Find the 3rd line number element to get Y coordinate (same as gutter toggle test)
+    const lineNums = document.querySelectorAll('.cm-lineNumbers .cm-gutterElement');
+    const visibleNums = Array.from(lineNums).filter(el => el.offsetHeight > 0);
+    if (visibleNums.length < 3) return null;
+
+    const lineRect = visibleNums[2].getBoundingClientRect();
+    return {
+      x: bpRect.x + bpRect.width / 2,
+      y: lineRect.y + lineRect.height / 2,
+    };
+  });
+
+  if (!clickTarget) {
+    assert('Could find gutter to click for breakpoint', false, 'gutter not found');
+    await panelPage.close();
+    return;
+  }
+
+  await panelPage.mouse.click(clickTarget.x, clickTarget.y);
+  await new Promise(r => setTimeout(r, 500));
+
+  // Check if it appeared in the breakpoints panel list
+  let bpItems = await panelPage.evaluate(() => {
+    const items = document.querySelectorAll('#breakpoints-container .breakpoint-item');
+    return Array.from(items).map(el => el.textContent);
+  });
+
+  assert('Breakpoint panel has 1 item', bpItems.length === 1, `got ${bpItems.length}`);
+  if (bpItems.length === 1) {
+    assert('Breakpoint item shows filename',
+      bpItems[0].includes('script-0.scm'),
+      `got: "${bpItems[0]}"`);
+  }
+
+  // Click the remove button in the panel
+  await panelPage.evaluate(() => {
+    const removeBtn = document.querySelector('#breakpoints-container .breakpoint-remove');
+    if (removeBtn) removeBtn.click();
+  });
+  await new Promise(r => setTimeout(r, 500));
+
+  // Verify the list is empty
+  bpItems = await panelPage.evaluate(() => {
+    return document.querySelectorAll('#breakpoints-container .breakpoint-item').length;
+  });
+  assert('Breakpoint panel is empty after removal', bpItems === 0, `got ${bpItems}`);
+
+  // Verify unifiedDebugger was called to remove it
+  const removedBps = await panelPage.evaluate(() => window.__mockState.breakpointsRemoved);
+  assert('unifiedDebugger.removeBreakpoint was called', removedBps.length > 0, `got ${removedBps.length}`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Breakpoints Panel Navigation
+// =========================================================================
+
+export async function testPanelBreakpointsNavigation(browser, extensionId) {
+  console.log('\n--- Test Group: Panel Breakpoints Navigation ---');
+
+  if (!extensionId) {
+    assert('Panel breakpoints nav: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Set a breakpoint on the first source via gutter click (line 4)
+  await new Promise(r => setTimeout(r, 500));
+
+  const clickTarget = await panelPage.evaluate(() => {
+    const bpGutter = document.querySelector('.cm-breakpoint-gutter');
+    if (!bpGutter) return null;
+    const bpRect = bpGutter.getBoundingClientRect();
+
+    const lineNums = document.querySelectorAll('.cm-lineNumbers .cm-gutterElement');
+    const visibleNums = Array.from(lineNums).filter(el => el.offsetHeight > 0);
+    if (visibleNums.length < 3) return null;
+
+    const lineRect = visibleNums[2].getBoundingClientRect();
+    return {
+      x: bpRect.x + bpRect.width / 2,
+      y: lineRect.y + lineRect.height / 2,
+    };
+  });
+
+  if (!clickTarget) {
+    assert('Could find gutter to click for breakpoint', false, 'gutter not found');
+    await panelPage.close();
+    return;
+  }
+
+  await panelPage.mouse.click(clickTarget.x, clickTarget.y);
+  await new Promise(r => setTimeout(r, 500));
+
+  // Verify breakpoint was set
+  const bpCount = await panelPage.evaluate(() =>
+    document.querySelectorAll('#breakpoints-container .breakpoint-item').length
+  );
+  assert('Breakpoint was set in first source', bpCount >= 1, `got ${bpCount}`);
+
+  // Switch to the second source
+  await panelPage.evaluate(() => {
+    const items = document.querySelectorAll('#source-list .source-item');
+    if (items[1]) items[1].click();
+  });
+  await new Promise(r => setTimeout(r, 500));
+
+  let status = await panelPage.evaluate(() => document.querySelector('.toolbar-status')?.textContent);
+  assert('Now viewing second source', status?.includes('manual_script'), `got: "${status}"`);
+
+  // Click the breakpoint item to navigate back
+  await panelPage.evaluate(() => {
+    const bpItem = document.querySelector('#breakpoints-container .breakpoint-item');
+    if (bpItem) bpItem.click();
+  });
+  await new Promise(r => setTimeout(r, 1000));
+
+  // Verify we navigated back to the first source
+  status = await panelPage.evaluate(() => document.querySelector('.toolbar-status')?.textContent);
+  assert('Clicking breakpoint navigated back to first source', status?.includes('script-0'), `got: "${status}"`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Keyboard Shortcuts
+// =========================================================================
+
+export async function testKeyboardShortcuts(browser, extensionId) {
+  console.log('\n--- Test Group: Keyboard Shortcuts ---');
+
+  if (!extensionId) {
+    assert('Keyboard shortcuts test: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // We are paused initially based on mock data in openMockedPanel
+  await firePauseEvent(panelPage, {
+    reason: 'breakpoint',
+    source: { filename: INLINE_URL, line: 1 },
+    stack: [{ name: 'add', source: null, tcoCount: 0 }],
+  });
+
+  // Test F8 (Resume)
+  await panelPage.evaluate(() => {
+    window.__mockState.lastAction = null;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F8' }));
+  });
+  await new Promise(r => setTimeout(r, 100));
+  let lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
+  assert('F8 triggers unifiedDebugger.resume', lastAction === 'resume', `got: ${lastAction}`);
+
+  // Test F10 (Step Over)
+  await panelPage.evaluate(() => {
+    window.__mockState.lastAction = null;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10' }));
+  });
+  await new Promise(r => setTimeout(r, 100));
+  lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
+  assert('F10 triggers unifiedDebugger.stepOver', lastAction === 'stepOver', `got: ${lastAction}`);
+
+  // Test F11 (Step Into)
+  await panelPage.evaluate(() => {
+    window.__mockState.lastAction = null;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F11', shiftKey: false }));
+  });
+  await new Promise(r => setTimeout(r, 100));
+  lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
+  assert('F11 triggers unifiedDebugger.stepInto', lastAction === 'stepInto', `got: ${lastAction}`);
+
+  // Test Shift+F11 (Step Out)
+  await panelPage.evaluate(() => {
+    window.__mockState.lastAction = null;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F11', shiftKey: true }));
+  });
+  await new Promise(r => setTimeout(r, 100));
+  lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
+  assert('Shift+F11 triggers unifiedDebugger.stepOut', lastAction === 'stepOut', `got: ${lastAction}`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: CodeMirror Search
+// =========================================================================
+
+export async function testCodeMirrorSearch(browser, extensionId) {
+  console.log('\n--- Test Group: CodeMirror Search ---');
+
+  if (!extensionId) {
+    assert('CodeMirror search test: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Press Meta+F (Mac) or Ctrl+F (Windows/Linux) to open search panel
+  await panelPage.evaluate(() => {
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const evt = new KeyboardEvent('keydown', {
+      key: 'f',
+      metaKey: isMac,
+      ctrlKey: !isMac,
+      bubbles: true,
+      cancelable: true
+    });
+    document.querySelector('.cm-content').dispatchEvent(evt);
+  });
+  await new Promise(r => setTimeout(r, 500));
+
+  // Check if search panel appeared
+  const searchPanelMatches = await panelPage.evaluate(() => {
+    return document.querySelectorAll('.cm-search').length;
+  });
+  assert('CodeMirror search panel is visible', searchPanelMatches > 0, `Search panels found: ${searchPanelMatches}`);
 
   await panelPage.close();
 }

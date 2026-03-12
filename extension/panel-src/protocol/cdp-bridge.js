@@ -203,6 +203,28 @@ export async function stepOutCDP() {
   } catch { /* ignore */ }
 }
 
+/**
+ * Evaluates a JS expression in a specific call frame.
+ * @param {string} callFrameId
+ * @param {string} expression
+ * @returns {Promise<{success: boolean, result: any, error: string|null}>}
+ */
+export async function evalInJSFrame(callFrameId, expression) {
+  if (!attached) return { success: false, result: null, error: 'CDP not attached' };
+  try {
+    const response = await sendToBackground({
+      type: 'eval-in-js-frame',
+      tabId: getTabId(),
+      callFrameId,
+      expression,
+    });
+    return response;
+  } catch (err) {
+    return { success: false, result: null, error: err.message };
+  }
+}
+
+
 // =========================================================================
 // JS Breakpoints via CDP
 // =========================================================================

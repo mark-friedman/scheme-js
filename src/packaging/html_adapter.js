@@ -165,16 +165,8 @@ async function runScripts() {
         sourceId = `scheme://scheme-sources/${filename}`;
       } else {
         code = script.textContent;
-        if (fullHtml && documentUrl) {
-          sourceId = documentUrl;
-          const codeIndex = fullHtml.indexOf(code);
-          if (codeIndex !== -1) {
-            const beforeCode = fullHtml.substring(0, codeIndex);
-            lineOffset = (beforeCode.match(/\n/g) || []).length;
-          }
-        } else {
-          sourceId = `scheme://inline-scripts/script-${inlineIndex++}.scm`;
-        }
+        sourceId = `scheme://inline-scripts/script-${inlineIndex++}.scm`;
+        lineOffset = 0;
       }
 
       // Parse with sourceId so AST nodes carry the correct filename.
@@ -184,13 +176,8 @@ async function runScripts() {
 
       // Register source for DevTools probe generation
       if (sourceRegistry) {
-        if (!script.src && fullHtml && documentUrl) {
-          // Accumulate inline expressions to register the whole HTML file later
-          allInlineExpressions.push(...expressions);
-        } else {
-          const origin = script.src ? 'external' : 'inline';
-          sourceRegistry.register(sourceId, code, origin, expressions);
-        }
+        const origin = script.src ? 'external' : 'inline';
+        sourceRegistry.register(sourceId, code, origin, expressions);
       }
 
       let ast;
@@ -202,14 +189,9 @@ async function runScripts() {
 
       prepared.push({ ast, sourceId });
 
-    } catch (err) {
-      console.error('Error loading Scheme script:', err);
+    } catch (e) {
+      console.error(`Error processing Scheme script ${sourceId || 'inline'}:`, e);
     }
-  }
-
-  // Register the full HTML file integrating all inline scripts
-  if (debugEnabled && sourceRegistry && fullHtml && documentUrl && allInlineExpressions.length > 0) {
-    sourceRegistry.register(documentUrl, fullHtml, 'inline', allInlineExpressions);
   }
 
   // Pass 2: Execute all scripts sequentially.

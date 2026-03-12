@@ -312,6 +312,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
+    // Evaluate an expression in a specific JS call frame context
+    if (message.type === 'eval-in-js-frame') {
+        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.evaluateOnCallFrame', {
+            callFrameId: message.callFrameId,
+            expression: message.expression,
+            silent: true,
+            returnByValue: true
+        }).then(result => {
+            if (result.exceptionDetails) {
+                sendResponse({ success: false, error: result.exceptionDetails.text || 'evaluation error' });
+            } else {
+                sendResponse({ success: true, result: result.result?.value });
+            }
+        }).catch(e => {
+            sendResponse({ success: false, error: e.message });
+        });
+        return true;
+    }
+
     // Step commands: evaluate step expression while paused, then resume.
     // Uses globalThis to avoid with(envProxy) scope interference in probe frames.
     // Always resumes even if the eval fails, to prevent the debugger from getting stuck.

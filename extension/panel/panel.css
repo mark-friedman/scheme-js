@@ -78,15 +78,12 @@
 
 @media (prefers-color-scheme: light) {
   :root {
-    /* Panel chrome */
     --bg:                   #f3f3f3;
     --fg:                   #24292f;
     --toolbar-bg:           #f3f3f3;
     --toolbar-border:       #d8d8d8;
     --title-fg:             #24292f;
     --status-fg:            #6e7781;
-
-    /* Sidebar */
     --sidebar-bg:           #f3f3f3;
     --sidebar-border:       #d8d8d8;
     --sidebar-header-fg:    #57606a;
@@ -96,23 +93,15 @@
     --sidebar-selected-fg:  #0550ae;
     --sidebar-selected-bar: #0550ae;
     --sidebar-empty-fg:     #6e7781;
-
-    /* Splitter */
     --splitter-bg:          #d8d8d8;
     --splitter-hover:       #0550ae;
-
-    /* Editor area */
     --editor-bg:            #ffffff;
-
-    /* Toolbar debug buttons */
     --btn-bg:               #e8e8e8;
     --btn-fg:               #24292f;
     --btn-border:           #d0d7de;
     --btn-hover-bg:         #d0d7de;
     --btn-disabled-fg:      #c0c0c0;
     --btn-disabled-border:  #e0e0e0;
-
-    /* Right panel */
     --right-panel-bg:       #f6f8fa;
     --right-panel-border:   #d0d7de;
     --section-header-fg:    #57606a;
@@ -133,6 +122,52 @@
     --var-other-fg:         #24292f;
     --empty-fg:             #6e7781;
   }
+}
+
+:root.theme-light {
+    --bg:                   #f3f3f3;
+    --fg:                   #24292f;
+    --toolbar-bg:           #f3f3f3;
+    --toolbar-border:       #d8d8d8;
+    --title-fg:             #24292f;
+    --status-fg:            #6e7781;
+    --sidebar-bg:           #f3f3f3;
+    --sidebar-border:       #d8d8d8;
+    --sidebar-header-fg:    #57606a;
+    --sidebar-item-fg:      #24292f;
+    --sidebar-item-hover:   #e8e8e8;
+    --sidebar-selected-bg:  #dbeafe;
+    --sidebar-selected-fg:  #0550ae;
+    --sidebar-selected-bar: #0550ae;
+    --sidebar-empty-fg:     #6e7781;
+    --splitter-bg:          #d8d8d8;
+    --splitter-hover:       #0550ae;
+    --editor-bg:            #ffffff;
+    --btn-bg:               #e8e8e8;
+    --btn-fg:               #24292f;
+    --btn-border:           #d0d7de;
+    --btn-hover-bg:         #d0d7de;
+    --btn-disabled-fg:      #c0c0c0;
+    --btn-disabled-border:  #e0e0e0;
+    --right-panel-bg:       #f6f8fa;
+    --right-panel-border:   #d0d7de;
+    --section-header-fg:    #57606a;
+    --section-divider:      #d0d7de;
+    --frame-bg-hover:       #eaf5fb;
+    --frame-bg-selected:    #dbeafe;
+    --frame-badge-scheme:   #8250df;
+    --frame-badge-js:       #0969da;
+    --frame-name-fg:        #24292f;
+    --frame-source-fg:      #6e7781;
+    --frame-tco-fg:         #cf222e;
+    --var-name-fg:          #0550ae;
+    --var-sep-fg:           #6e7781;
+    --var-number-fg:        #0550ae;
+    --var-boolean-fg:       #cf222e;
+    --var-string-fg:        #0a3069;
+    --var-null-fg:          #6e7781;
+    --var-other-fg:         #24292f;
+    --empty-fg:             #6e7781;
 }
 
 /* =========================================================================
@@ -294,7 +329,7 @@ html, body {
 .editor-container {
   flex: 1;
   overflow: hidden;
-  height: 100%;
+  min-height: 100px;
 }
 
 /* CodeMirror overrides: ensure editor fills the container */
@@ -305,6 +340,123 @@ html, body {
 .editor-container .cm-scroller {
   overflow: auto;
 }
+
+/* =========================================================================
+   Console area
+   ========================================================================= */
+
+.console-splitter {
+  height: 4px;
+  background: var(--splitter-bg);
+  cursor: row-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.console-splitter:hover,
+.console-splitter.dragging {
+  background: var(--splitter-hover);
+}
+
+.console-container {
+  height: 200px;
+  min-height: 50px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-top: 1px solid var(--toolbar-border);
+}
+
+.eval-console {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.console-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.console-entry {
+  display: flex;
+  align-items: baseline;
+  padding: 2px 4px;
+  border-bottom: 1px solid transparent;
+}
+
+.console-entry:hover {
+  background: var(--sidebar-item-hover);
+}
+
+.console-icon {
+  width: 16px;
+  flex-shrink: 0;
+  color: var(--status-fg);
+  font-weight: bold;
+}
+
+.console-command .console-icon {
+  color: var(--frame-badge-scheme);
+}
+
+.console-error .console-icon {
+  color: var(--frame-tco-fg);
+}
+
+.console-text {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-input-container {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-top: 1px solid var(--toolbar-border);
+  background: var(--sidebar-bg);
+}
+
+.console-prompt {
+  color: var(--frame-badge-scheme);
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.console-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-family: monospace;
+  font-size: 12px;
+  outline: none;
+}
+
+.console-input::placeholder {
+  color: var(--empty-fg);
+}
+
+.console-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.console-clear-btn:hover {
+  opacity: 1;
+}
+
 
 /* =========================================================================
    Toolbar debug controls
@@ -518,3 +670,67 @@ html, body {
 .var-type-string  { color: var(--var-string-fg); }
 .var-type-null    { color: var(--var-null-fg); }
 .var-type-other   { color: var(--var-other-fg); }
+
+/* =========================================================================
+   Breakpoints list
+   ========================================================================= */
+
+.breakpoints-empty {
+  padding: 8px;
+  color: var(--empty-fg);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.breakpoint-item {
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+  transition: background 0.1s;
+}
+
+.breakpoint-item:hover {
+  background: var(--frame-bg-hover);
+}
+
+.breakpoint-icon {
+  color: var(--frame-badge-scheme);
+  font-size: 9px;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.breakpoint-file {
+  color: var(--frame-name-fg);
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
+.breakpoint-location {
+  color: var(--frame-source-fg);
+  margin-left: 2px;
+  flex-grow: 1;
+}
+
+.breakpoint-remove {
+  color: var(--frame-source-fg);
+  opacity: 0;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+.breakpoint-item:hover .breakpoint-remove {
+  opacity: 1;
+}
+
+.breakpoint-remove:hover {
+  color: var(--frame-tco-fg);
+}
