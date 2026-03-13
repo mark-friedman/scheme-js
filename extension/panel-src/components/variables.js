@@ -63,6 +63,8 @@ export function createVariables(container) {
     for (const { name, value, type } of locals) {
       const row = document.createElement('div');
       row.className = 'variable-row';
+      row.dataset.testid = 'variable-row';
+      row.dataset.varName = name;
 
       const nameEl = document.createElement('span');
       nameEl.className = 'var-name';

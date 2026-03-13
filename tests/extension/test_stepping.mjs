@@ -2,7 +2,7 @@
  * @fileoverview Tests for step into, step over, and step out operations.
  */
 
-import { assert, INLINE_URL } from './test_harness.mjs';
+import { assert, INLINE_URL, waitFor } from './test_harness.mjs';
 import {
   openTestPageWithBreakpoints,
   waitForPause, getStatus, getStack, ackPause,
@@ -106,7 +106,10 @@ export async function testStepOut(browser) {
   if (insideCall) {
     // Step out — should return to the caller
     await doStepOut(page);
-    await new Promise(r => setTimeout(r, 300));
+    await waitFor(async () => {
+      const s = await getStatus(page);
+      return s.state === 'paused' || s.state === 'running';
+    }, 3000);
 
     const statusAfter = await getStatus(page);
     if (statusAfter.state === 'paused') {

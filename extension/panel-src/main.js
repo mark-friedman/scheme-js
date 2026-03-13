@@ -39,6 +39,8 @@ import {
 } from './protocol/scheme-bridge.js';
 import * as unifiedDebugger from './protocol/unified-debugger.js';
 import * as cdpBridge from './protocol/cdp-bridge.js';
+import * as bpState from './breakpoint-state.js';
+import { initSplitter } from './splitter.js';
 
 // =========================================================================
 // DOM elements
@@ -75,108 +77,6 @@ let cdpAttached = false;
  * @type {Array<{exprId: number, line: number, column: number, endLine: number, endColumn: number}>}
  */
 let currentExpressions = [];
-
-/**
- * Maps "${url}:${line}:${column}" -> breakpoint ID (from interpreter) for removal.
- * Column is "null" for line-level breakpoints, or a number for expression breakpoints.
- * @type {Map<string, string>}
- */
-const breakpointIds = new Map();
-
-// =========================================================================
-// Breakpoint persistence (localStorage in page context)
-// =========================================================================
-
-/**
- * Persists the current breakpoint set to the page's localStorage.
- * Uses evalInPage to write into the inspected page's storage, where
- * activate_debug.js can read it at document_start on next reload.
- */
-async function saveBreakpointsToPage() {
-  const entries = [];
-  for (const key of breakpointIds.keys()) {
-    // Key format: "${url}:${line}:${column}" where column may be "null"
-    const parts = key.split(':');
-    const column = parts.pop();
-    const line = parts.pop();
-    const url = parts.join(':');
-    const entry = { url, line: parseInt(line, 10) };
-    if (column !== 'null') entry.column = parseInt(column, 10);
-    entries.push(entry);
-  }
-  try {
-    await evalInPage(
-      `localStorage.setItem('schemeJS_breakpoints', ${JSON.stringify(JSON.stringify(entries))})`
-    );
-  } catch { /* ignore */ }
-  refreshBreakpointsPanel();
-}
-
-/**
- * Loads the breakpoint list from the interpreter's current state.
- * Called after activation to sync the panel's local map with
- * whatever breakpoints were pre-loaded by activate_debug.js.
- */
-async function syncBreakpointsFromInterpreter() {
-  try {
-    const json = await evalInPage('JSON.stringify(__schemeDebug.getAllBreakpoints())');
-    const bps = JSON.parse(json);
-    for (const bp of bps) {
-      breakpointIds.set(`${bp.filename}:${bp.line}:${bp.column}`, bp.id);
-    }
-    refreshBreakpointsPanel();
-  } catch { /* ignore */ }
-}
-
-/**
- * Returns the set of stored line-level breakpoint line numbers for a specific URL.
- *
- * @param {string} url - Source URL to filter by
- * @returns {Set<number>} Line numbers with line-level breakpoints for this URL
- */
-function getBreakpointLinesForUrl(url) {
-  const lines = new Set();
-  for (const key of breakpointIds.keys()) {
-    // Key format: "${url}:${line}:${column}"
-    const parts = key.split(':');
-    const column = parts.pop();
-    const line = parts.pop();
-    const bpUrl = parts.join(':');
-    // Only include line-level breakpoints (column === "null") in the gutter
-    if (bpUrl === url && column === 'null') {
-      lines.add(parseInt(line, 10));
-    }
-  }
-  return lines;
-}
-
-/**
- * Returns expression breakpoint spans for a URL, looked up from currentExpressions.
- *
- * @param {string} url - Source URL
- * @returns {Array<{line: number, column: number, endLine: number, endColumn: number}>}
- */
-function getExpressionBreakpointsForUrl(url) {
-  const spans = [];
-  for (const key of breakpointIds.keys()) {
-    const parts = key.split(':');
-    const column = parts.pop();
-    const line = parts.pop();
-    const bpUrl = parts.join(':');
-    if (bpUrl === url && column !== 'null') {
-      // Find the matching expression span
-      const lineNum = parseInt(line, 10);
-      const colNum = parseInt(column, 10);
-      const span = currentExpressions.find(
-        e => e.line === lineNum && e.column === colNum
-      );
-      if (span) {
-        spans.push({ line: span.line, column: span.column, endLine: span.endLine, endColumn: span.endColumn });
-      }
-    }
-  }
-  return spans;
-}
 
 // =========================================================================
 // Initialize toolbar
@@ -215,21 +115,21 @@ const breakpointsList = createBreakpointsList(breakpointsContainer, {
     }
   },
   onRemoveBreakpoint: async (id, url, line, column) => {
-    const key = column ? `${url}:${line}:${column}` : `${url}:${line}:null`;
-    if (breakpointIds.has(key)) {
+    if (bpState.has(url, line, column)) {
       await unifiedDebugger.removeBreakpoint(id, url);
-      breakpointIds.delete(key);
-      saveBreakpointsToPage();
-      
+      bpState.remove(url, line, column);
+      bpState.saveToPage();
+      refreshBreakpointsPanel();
+
       // If the removed breakpoint was on the currently viewed source, update the editor
       if (url === currentSourceUrl) {
         if (column) {
           refreshDiamondMarkers();
-          const exprBps = getExpressionBreakpointsForUrl(url);
+          const exprBps = bpState.getExpressionBreakpointsForUrl(url, currentExpressions);
           editor.setExpressionBreakpoints(exprBps);
         } else {
-          const lines = getBreakpointLinesForUrl(url);
-          editor.setBreakpoints(lines); // This will clear the gutter dot
+          const lines = bpState.getLinesForUrl(url);
+          editor.setBreakpoints(lines);
           refreshDiamondMarkers();
         }
       }
@@ -237,17 +137,11 @@ const breakpointsList = createBreakpointsList(breakpointsContainer, {
   }
 });
 
+/**
+ * Refreshes the breakpoints panel from the current state.
+ */
 function refreshBreakpointsPanel() {
-  const bps = [];
-  for (const [key, id] of breakpointIds.entries()) {
-    const parts = key.split(':');
-    const columnStr = parts.pop();
-    const line = parseInt(parts.pop(), 10);
-    const url = parts.join(':');
-    const column = columnStr === 'null' ? null : parseInt(columnStr, 10);
-    bps.push({ id, filename: url, line, column });
-  }
-  breakpointsList.setBreakpoints(bps);
+  breakpointsList.setBreakpoints(bpState.getAllBreakpoints());
 }
 
 // =========================================================================
@@ -279,7 +173,7 @@ const evalConsole = createConsole(consoleContainer, {
  */
 async function onSelectFrame(frameIndex, frame) {
   selectedUnifiedFrame = frame;
-  
+
   // Calculate scheme frame index (bottom up, skipping JS frames)
   const unifiedFrames = unifiedDebugger.getUnifiedFrames();
   let jsFrameCountBelow = 0;
@@ -297,8 +191,6 @@ async function onSelectFrame(frameIndex, frame) {
       const jsLocals = [];
       for (const scope of frame._cdpScopeChain) {
         if (scope.type === 'local' || scope.type === 'closure') {
-          // CDP scope objects are ObjectPreview — we'd need Runtime.getProperties
-          // For now, show scope type as a placeholder
           jsLocals.push({
             name: `[${scope.type}]`,
             value: scope.name || 'scope',
@@ -374,19 +266,20 @@ const callStack = createCallStack(callStackContainer, onSelectFrame);
  */
 async function onBreakpointToggle(line, isNowSet) {
   if (!currentSourceUrl) return;
-  const key = `${currentSourceUrl}:${line}:null`;
   if (isNowSet) {
     const id = await unifiedDebugger.setBreakpoint(currentSourceUrl, line);
     if (id) {
-      breakpointIds.set(key, id);
-      saveBreakpointsToPage();
+      bpState.set(currentSourceUrl, line, null, id);
+      bpState.saveToPage();
+      refreshBreakpointsPanel();
     }
   } else {
-    const id = breakpointIds.get(key);
+    const id = bpState.getId(currentSourceUrl, line, null);
     if (id) {
       await unifiedDebugger.removeBreakpoint(id, currentSourceUrl);
-      breakpointIds.delete(key);
-      saveBreakpointsToPage();
+      bpState.remove(currentSourceUrl, line, null);
+      bpState.saveToPage();
+      refreshBreakpointsPanel();
     }
   }
   // Show/hide diamond markers on this line
@@ -408,26 +301,26 @@ async function onBreakpointToggle(line, isNowSet) {
 async function onDiamondClick(line, column) {
   if (!currentSourceUrl) return;
 
-  const key = `${currentSourceUrl}:${line}:${column}`;
-  const existingId = breakpointIds.get(key);
+  const existingId = bpState.getId(currentSourceUrl, line, column);
 
   if (existingId) {
     // Remove existing expression breakpoint
     await unifiedDebugger.removeBreakpoint(existingId, currentSourceUrl);
-    breakpointIds.delete(key);
+    bpState.remove(currentSourceUrl, line, column);
   } else {
     // Set new expression breakpoint
     const id = await unifiedDebugger.setBreakpoint(currentSourceUrl, line, column);
     if (id) {
-      breakpointIds.set(key, id);
+      bpState.set(currentSourceUrl, line, column, id);
     }
   }
 
-  saveBreakpointsToPage();
+  bpState.saveToPage();
+  refreshBreakpointsPanel();
   refreshDiamondMarkers();
 
   // Refresh expression breakpoint highlights
-  const exprBps = getExpressionBreakpointsForUrl(currentSourceUrl);
+  const exprBps = bpState.getExpressionBreakpointsForUrl(currentSourceUrl, currentExpressions);
   editor.setExpressionBreakpoints(exprBps);
 }
 
@@ -443,7 +336,7 @@ let currentPausedLine = null;
  *   1. Have a line-level breakpoint (gutter dot), OR
  *   2. Are the current paused line
  *
- * Each diamond is either filled (◆, active expression breakpoint) or hollow (◇).
+ * Each diamond is either filled (active expression breakpoint) or hollow.
  * Clicking a diamond toggles an expression breakpoint at that position.
  */
 function refreshDiamondMarkers() {
@@ -454,7 +347,7 @@ function refreshDiamondMarkers() {
 
   // Collect lines that should show diamonds
   const diamondLines = new Set();
-  const bpLines = getBreakpointLinesForUrl(currentSourceUrl);
+  const bpLines = bpState.getLinesForUrl(currentSourceUrl);
   for (const line of bpLines) diamondLines.add(line);
   if (currentPausedLine !== null) diamondLines.add(currentPausedLine);
 
@@ -469,7 +362,6 @@ function refreshDiamondMarkers() {
   const exprsByLine = new Map();
   for (const expr of currentExpressions) {
     if (!diamondLines.has(expr.line)) continue;
-    // Only include expressions that START on this line
     if (!exprsByLine.has(expr.line)) exprsByLine.set(expr.line, []);
     exprsByLine.get(expr.line).push(expr);
   }
@@ -485,8 +377,7 @@ function refreshDiamondMarkers() {
     // Skip the outermost (first/leftmost) expression — that's the line BP
     for (let i = 1; i < exprs.length; i++) {
       const expr = exprs[i];
-      const key = `${currentSourceUrl}:${expr.line}:${expr.column}`;
-      const active = breakpointIds.has(key);
+      const active = bpState.has(currentSourceUrl, expr.line, expr.column);
       markers.push({ line: expr.line, column: expr.column, active });
     }
   }
@@ -514,13 +405,13 @@ async function loadSource(url) {
   currentExpressions = await getExpressions(url);
 
   // Show line-level breakpoints in the gutter
-  const lines = getBreakpointLinesForUrl(url);
+  const lines = bpState.getLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
 
   // Show expression-level breakpoints as inline highlights
-  const exprBps = getExpressionBreakpointsForUrl(url);
+  const exprBps = bpState.getExpressionBreakpointsForUrl(url, currentExpressions);
   if (exprBps.length > 0) {
     editor.setExpressionBreakpoints(exprBps);
   }
@@ -559,13 +450,12 @@ async function loadJSSource(url, scriptId) {
   editor.setContent(content, 'javascript');
 
   // Show line-level breakpoints in the gutter (if any were set on this JS file)
-  const lines = getBreakpointLinesForUrl(url);
+  const lines = bpState.getLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
 
   // Only update status if not currently paused (avoid overwriting pause status)
-  console.log('[loadSource] currentPausedLine:', currentPausedLine, 'setting status to:', `Viewing: ${url.split('/').pop()}`);
   if (currentPausedLine === null) {
     toolbar.setStatus(`Viewing: ${url.split('/').pop()}`);
   }
@@ -580,7 +470,7 @@ function showCDPNotification() {
   if (toolbarEl && !document.querySelector('.cdp-notification')) {
     const notification = document.createElement('span');
     notification.className = 'cdp-notification';
-    notification.textContent = '⚡ JS debugging enabled';
+    notification.textContent = '\u26A1 JS debugging enabled';
     notification.title = 'Chrome Debugger Protocol is attached for JavaScript debugging';
     toolbarEl.appendChild(notification);
   }
@@ -602,13 +492,13 @@ async function onSelectSource(url, content) {
   currentExpressions = await getExpressions(url);
 
   // Sync line-level breakpoints for this file from local state
-  const lines = getBreakpointLinesForUrl(url);
+  const lines = bpState.getLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
 
   // Sync expression-level breakpoints
-  const exprBps = getExpressionBreakpointsForUrl(url);
+  const exprBps = bpState.getExpressionBreakpointsForUrl(url, currentExpressions);
   if (exprBps.length > 0) {
     editor.setExpressionBreakpoints(exprBps);
   }
@@ -786,7 +676,8 @@ async function activateAndRefresh() {
       toolbar.setStatus('Reload page to enable debugging');
     } else {
       // Sync panel state with breakpoints already set in the interpreter
-      await syncBreakpointsFromInterpreter();
+      await bpState.syncFromInterpreter();
+      refreshBreakpointsPanel();
       await refresh();
       // Check if the page is already paused (we may have missed the event
       // due to timing — content_script runs at document_idle, but Scheme
@@ -803,15 +694,14 @@ async function activateAndRefresh() {
 }
 
 // Activate debug mode and do initial refresh.
-// activate() saves schemeJS_panelConnected to localStorage so that on the
-// NEXT page reload, activate_debug.js can set panelConnected=true on the
-// runtime BEFORE any Scheme scripts execute, enabling breakpoint pausing.
 activateAndRefresh();
 
 // Re-activate and refresh after each page navigation so the panel stays in
 // sync with the new page's sources and breakpoints.
 if (typeof chrome !== 'undefined' && chrome.devtools?.network) {
   chrome.devtools.network.onNavigated.addListener(() => {
+    // Clear stale script caches from the previous page
+    cdpBridge.clearNavigationCache();
     // Brief delay to let the page scripts finish before we query the interpreter
     setTimeout(() => activateAndRefresh(), 500);
   });
@@ -831,69 +721,23 @@ if (typeof chrome !== 'undefined' && chrome.devtools?.panels) {
 }
 
 // =========================================================================
-// Splitter drag behavior (sidebar ↔ editor)
+// Splitter drag behavior
 // =========================================================================
 
-let dragging = false;
-let dragStartX = 0;
-let dragStartWidth = 0;
-
-splitter.addEventListener('mousedown', (e) => {
-  dragging = true;
-  dragStartX = e.clientX;
-  dragStartWidth = sidebar.offsetWidth;
-  splitter.classList.add('dragging');
-  document.body.style.cursor = 'col-resize';
-  document.body.style.userSelect = 'none';
+initSplitter(splitter, {
+  direction: 'horizontal',
+  target: sidebar,
+  min: 120,
+  max: 600,
 });
-
-
-document.addEventListener('mousemove', (e) => {
-  if (!dragging) return;
-  const delta = e.clientX - dragStartX;
-  const newWidth = Math.max(120, Math.min(600, dragStartWidth + delta));
-  sidebar.style.width = `${newWidth}px`;
-});
-
-document.addEventListener('mouseup', () => {
-  if (!dragging) return;
-  dragging = false;
-  splitter.classList.remove('dragging');
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
-});
-
-// =========================================================================
-// Console Splitter drag behavior (editor ↕ console)
-// =========================================================================
 
 const consoleSplitter = document.getElementById('console-splitter');
-let draggingConsole = false;
-let dragStartY = 0;
-let dragStartHeight = 0;
-
-consoleSplitter.addEventListener('mousedown', (e) => {
-  draggingConsole = true;
-  dragStartY = e.clientY;
-  dragStartHeight = consoleContainer.offsetHeight;
-  consoleSplitter.classList.add('dragging');
-  document.body.style.cursor = 'row-resize';
-  document.body.style.userSelect = 'none';
-});
-
-document.addEventListener('mousemove', (e) => {
-  if (!draggingConsole) return;
-  const delta = dragStartY - e.clientY;
-  const newHeight = Math.max(50, Math.min(600, dragStartHeight + delta));
-  consoleContainer.style.height = `${newHeight}px`;
-});
-
-document.addEventListener('mouseup', () => {
-  if (!draggingConsole) return;
-  draggingConsole = false;
-  consoleSplitter.classList.remove('dragging');
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
+initSplitter(consoleSplitter, {
+  direction: 'vertical',
+  target: consoleContainer,
+  min: 50,
+  max: 600,
+  invert: true,
 });
 
 // =========================================================================
@@ -910,8 +754,8 @@ if (typeof chrome !== 'undefined' && chrome.devtools && chrome.devtools.panels) 
       document.documentElement.classList.remove('theme-light');
     }
   };
-  
+
   updateTheme(chrome.devtools.panels.themeName);
-  
+
   chrome.devtools.panels.onThemeChanged.addListener(updateTheme);
 }

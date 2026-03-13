@@ -136,6 +136,43 @@ export function assert(name, condition, detail) {
   }
 }
 
+/**
+ * Polls a condition function until it returns true, or times out.
+ * Use instead of fixed `setTimeout` waits in tests for more reliable,
+ * faster test execution.
+ *
+ * @param {Function} conditionFn - Async function that returns truthy when condition is met
+ * @param {number} [timeout=5000] - Maximum wait time in ms
+ * @param {number} [interval=50] - Polling interval in ms
+ * @returns {Promise<boolean>} True if condition was met, false if timed out
+ */
+export async function waitFor(conditionFn, timeout = 5000, interval = 50) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    try {
+      if (await conditionFn()) return true;
+    } catch { /* condition threw — keep polling */ }
+    await new Promise(r => setTimeout(r, interval));
+  }
+  return false;
+}
+
+/**
+ * Polls a Puppeteer page condition until it returns true, or times out.
+ * The condition is evaluated in the page context.
+ *
+ * @param {import('puppeteer').Page} page - Puppeteer page
+ * @param {string} conditionJs - JS expression that returns truthy when ready
+ * @param {number} [timeout=5000] - Maximum wait time in ms
+ * @returns {Promise<boolean>} True if condition was met
+ */
+export async function waitForPage(page, conditionJs, timeout = 5000) {
+  return waitFor(
+    () => page.evaluate(conditionJs).catch(() => false),
+    timeout
+  );
+}
+
 /** @returns {{ passed: number, failed: number, failures: string[] }} */
 export function getResults() {
   return { passed, failed, failures };

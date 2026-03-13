@@ -15,6 +15,9 @@ This directory contains design documents, research notes, implementation details
 - **[debugger_manual.md](debugger_manual.md)**: A user manual for the Scheme debugger, explaining how to activate it, set breakpoints, step through code, and inspect variables in both Node.js and Browser REPLs.
 - **[macro_debugging.md](macro_debugging.md)**: A guide for troubleshooting `syntax-rules` macros, covering common issues like unbound variables, accidental capture, and infinite expansion.
 
+### Internal Flows
+- **[debugging-flows.md](debugging-flows.md)**: Cross-cutting documentation of three key debugging flows: the breakpoint lifecycle, probe mechanism, and panelConnected protocol. Traces data through all files involved.
+
 ### Implementation Details
 - **[core-interpreter-implementation.md](core-interpreter-implementation.md)**: A detailed explanation of the core interpreter's implementation. It covers the trampoline loop, stack frame management, and the execution model.
 - **[core-interpreter-implementation-citations.md](core-interpreter-implementation-citations.md)**: Contains citations and references for the algorithms and techniques used in the core interpreter.

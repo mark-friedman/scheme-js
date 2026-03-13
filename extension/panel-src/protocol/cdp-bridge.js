@@ -22,6 +22,7 @@ let attaching = false;
 
 /**
  * Cached script URL map from Debugger.scriptParsed events.
+ * Cleared on page navigation to prevent stale entries.
  * @type {Map<string, string>} scriptId → URL
  */
 const scriptUrlMap = new Map();
@@ -111,7 +112,8 @@ export async function attachCDP() {
     });
     attached = response.success === true;
     return attached;
-  } catch {
+  } catch (e) {
+    console.warn('[cdp-bridge] attachCDP failed:', e.message);
     return false;
   } finally {
     attaching = false;
@@ -130,7 +132,9 @@ export async function detachCDP() {
       type: 'detach-debugger',
       tabId: getTabId(),
     });
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[cdp-bridge] detachCDP failed:', e.message);
+  }
   attached = false;
   scriptUrlMap.clear();
 }
@@ -141,6 +145,15 @@ export async function detachCDP() {
  */
 export function isAttached() {
   return attached;
+}
+
+/**
+ * Clears cached state on page navigation.
+ * Should be called when the inspected page reloads so that stale
+ * scriptIds from the previous page don't linger.
+ */
+export function clearNavigationCache() {
+  scriptUrlMap.clear();
 }
 
 // =========================================================================
@@ -158,7 +171,9 @@ export async function resumeCDP() {
       type: 'resume-debugger',
       tabId: getTabId(),
     });
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[cdp-bridge] resumeCDP failed:', e.message);
+  }
 }
 
 /**
@@ -172,7 +187,9 @@ export async function stepIntoCDP() {
       type: 'cdp-step-into',
       tabId: getTabId(),
     });
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[cdp-bridge] stepIntoCDP failed:', e.message);
+  }
 }
 
 /**
@@ -186,7 +203,9 @@ export async function stepOverCDP() {
       type: 'cdp-step-over',
       tabId: getTabId(),
     });
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[cdp-bridge] stepOverCDP failed:', e.message);
+  }
 }
 
 /**
@@ -200,7 +219,9 @@ export async function stepOutCDP() {
       type: 'cdp-step-out',
       tabId: getTabId(),
     });
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[cdp-bridge] stepOutCDP failed:', e.message);
+  }
 }
 
 /**
@@ -259,7 +280,8 @@ export async function setJSBreakpoint(url, lineNumber) {
       return response.breakpointId || null;
     }
     return null;
-  } catch {
+  } catch (e) {
+    console.warn('[cdp-bridge] setJSBreakpoint failed:', e.message);
     return null;
   }
 }
@@ -279,7 +301,8 @@ export async function removeJSBreakpoint(breakpointId) {
       breakpointId,
     });
     return response.success === true;
-  } catch {
+  } catch (e) {
+    console.warn('[cdp-bridge] removeJSBreakpoint failed:', e.message);
     return false;
   }
 }
@@ -312,7 +335,8 @@ export async function setBoundaryBreakpoint() {
       return response.breakpointId || null;
     }
     return null;
-  } catch {
+  } catch (e) {
+    console.warn('[cdp-bridge] setBoundaryBreakpoint failed:', e.message);
     return null;
   }
 }
@@ -339,7 +363,8 @@ export async function getJSSource(scriptId) {
       return response.source || null;
     }
     return null;
-  } catch {
+  } catch (e) {
+    console.warn('[cdp-bridge] getJSSource failed:', e.message);
     return null;
   }
 }

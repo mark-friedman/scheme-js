@@ -2,7 +2,7 @@
  * @fileoverview Tests for the Eval Console UI.
  */
 
-import { assert, INLINE_URL } from './test_harness.mjs';
+import { assert, INLINE_URL, waitForPage } from './test_harness.mjs';
 import { openPanelPage } from './test_helpers.mjs';
 import { MOCK_CHROME_SCRIPT } from './test_panel_interactions.mjs';
 
@@ -58,7 +58,7 @@ async function openMockedPanel(browser, extensionId) {
     `chrome-extension://${extensionId}/panel/panel.html`,
     { waitUntil: 'domcontentloaded' }
   );
-  await new Promise(r => setTimeout(r, 1500));
+  await waitForPage(panelPage, `document.querySelectorAll('#source-list .source-item').length > 0`);
 
   // Fire a mock pause event so the console's onEvaluate check passes
   // (it requires selectedUnifiedFrame to be non-null)
@@ -75,14 +75,14 @@ async function openMockedPanel(browser, extensionId) {
       }
     });
   }, INLINE_URL);
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('Paused')`);
 
   // Click the top frame in the call stack to set selectedUnifiedFrame
   await panelPage.evaluate(() => {
     const frames = document.querySelectorAll('#call-stack-container .call-stack-frame');
     if (frames.length > 0) frames[frames.length - 1].click();
   });
-  await new Promise(r => setTimeout(r, 200));
+  await waitForPage(panelPage, `document.querySelector('#call-stack-container .call-stack-frame.selected') !== null`);
 
   return panelPage;
 }
@@ -103,7 +103,7 @@ export async function testConsoleEvaluation(browser, extensionId) {
     input.value = '(+ 1 2)';
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelectorAll('#console-output .console-message').length >= 2`);
 
   // Check the output
   const output = await panelPage.evaluate(() => {
@@ -127,7 +127,7 @@ export async function testConsoleEvaluation(browser, extensionId) {
     input.value = 'invalid-syntax';
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelectorAll('#console-output .console-message').length >= 4`);
 
   const output2 = await panelPage.evaluate(() => {
     const items = document.querySelectorAll('#console-output .console-message');
@@ -167,7 +167,7 @@ export async function testConsoleHistory(browser, extensionId) {
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     }, 100);
   });
-  await new Promise(r => setTimeout(r, 1000));
+  await waitForPage(panelPage, `document.querySelectorAll('#console-output .console-message').length >= 4`);
 
   // Press ArrowUp twice
   await panelPage.evaluate(() => {
@@ -214,7 +214,7 @@ export async function testConsoleClear(browser, extensionId) {
     input.value = '(+ 1 2)';
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelectorAll('#console-output .console-message').length > 0`);
 
   // Check output exists
   let numMessages = await panelPage.evaluate(() => document.querySelectorAll('#console-output .console-message').length);
@@ -225,7 +225,7 @@ export async function testConsoleClear(browser, extensionId) {
     const clearBtn = document.querySelector('#console-clear');
     if (clearBtn) clearBtn.click();
   });
-  await new Promise(r => setTimeout(r, 200));
+  await waitForPage(panelPage, `document.querySelectorAll('#console-output .console-message').length === 0`);
 
   // Check output is empty
   numMessages = await panelPage.evaluate(() => document.querySelectorAll('#console-output .console-message').length);

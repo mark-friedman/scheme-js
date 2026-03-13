@@ -62,6 +62,9 @@ export function createCallStack(container, onSelectFrame) {
       const frame = frames[i];
       const item = document.createElement('div');
       item.className = 'call-stack-frame';
+      item.dataset.testid = 'call-stack-frame';
+      item.dataset.frameIndex = String(i);
+      item.dataset.frameName = frame.name || '<anonymous>';
       if (i === selectedIndex) {
         item.classList.add('selected');
       }

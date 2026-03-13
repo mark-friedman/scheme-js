@@ -5,7 +5,7 @@
  * helpers used by all test modules.
  */
 
-import { TEST_PAGE } from './test_harness.mjs';
+import { TEST_PAGE, waitForPage } from './test_harness.mjs';
 
 /**
  * Waits for __schemeDebug API to be available on the page.
@@ -206,7 +206,7 @@ export async function openPanelPage(browser, extensionId) {
     `chrome-extension://${extensionId}/panel/panel.html`,
     { waitUntil: 'domcontentloaded' }
   );
-  await new Promise(r => setTimeout(r, 1000));
+  await waitForPage(panelPage, `!!document.querySelector('#source-list') || !!document.querySelector('.toolbar-status')`);
   return panelPage;
 }
 

@@ -97,6 +97,17 @@ import {
   testBoundaryStepping,
 } from './test_js_debugging.mjs';
 
+// Error path tests
+import {
+  testEvalTimeout,
+  testEvalError,
+  testMissingSchemeDebug,
+  testMalformedPauseEvent,
+  testGetLocalsFailure,
+  testCDPSendMessageFailure,
+  testUnknownSourceContent,
+} from './test_error_paths.mjs';
+
 // Phase 4: JS interop integration tests (real page, no mocks)
 import {
   testJSInteropPageSelfTest,
@@ -116,8 +127,27 @@ import {
 // Main runner
 // =========================================================================
 
+// Parse --only filter: `--only panel_interactions,console` runs only matching test modules
+const onlyArg = process.argv.find(a => a.startsWith('--only'));
+const onlyFilters = onlyArg ? onlyArg.split('=')[1]?.split(',') || process.argv[process.argv.indexOf('--only') + 1]?.split(',') : null;
+
+/**
+ * Checks if a test function should run based on --only filter.
+ * Matches against the function name or the source module name.
+ * @param {Function} fn
+ * @param {string} moduleName
+ * @returns {boolean}
+ */
+function shouldRun(fn, moduleName) {
+  if (!onlyFilters) return true;
+  return onlyFilters.some(f =>
+    moduleName.includes(f) || fn.name?.toLowerCase().includes(f.toLowerCase())
+  );
+}
+
 async function runTests() {
   console.log('\nScheme-JS Comprehensive Puppeteer E2E Tests');
+  if (onlyFilters) console.log(`Filter: ${onlyFilters.join(', ')}`);
   console.log('='.repeat(55));
 
   const { server, browser, extensionId } = await launchTestBrowser();
@@ -125,38 +155,39 @@ async function runTests() {
   try {
     // Page-side API tests (no extension ID needed)
     const pageTests = [
-      testActivationAndSources,
-      testExecutionTiming,
-      testBreakpointPauseResume,
-      testCallStack,
-      testVariableInspection,
-      testEvalDuringPause,
-      testStepInto,
-      testStepOver,
-      testStepOut,
-      testMultipleBreakpoints,
-      testVariableBreakpoint,
-      testLiteralBreakpoint,
-      testExternalFileBreakpoint,
-      testPostMessageRelay,
-      testPausePersistence,
-      testBreakpointAPI,
-      testBreakpointFlowPage,
+      ['activation', testActivationAndSources],
+      ['activation', testExecutionTiming],
+      ['breakpoints', testBreakpointPauseResume],
+      ['inspection', testCallStack],
+      ['inspection', testVariableInspection],
+      ['inspection', testEvalDuringPause],
+      ['stepping', testStepInto],
+      ['stepping', testStepOver],
+      ['stepping', testStepOut],
+      ['breakpoints', testMultipleBreakpoints],
+      ['breakpoints', testVariableBreakpoint],
+      ['breakpoints', testLiteralBreakpoint],
+      ['breakpoints', testExternalFileBreakpoint],
+      ['relay', testPostMessageRelay],
+      ['relay', testPausePersistence],
+      ['breakpoints', testBreakpointAPI],
+      ['relay', testBreakpointFlowPage],
       // Phase 4: JS interop integration tests (real page-side debugging)
-      testJSInteropPageSelfTest,
-      testBreakpointAtJSCallSite,
-      testStepIntoJSFromScheme,
-      testStepOverJSFromScheme,
-      testStepOutFromJSBoundary,
-      testVariablesAtJSBoundary,
-      testMultipleBreakpointsAcrossJSCalls,
-      testDotNotationJSCall,
-      testStoredJSFunctionCall,
-      testCallStackAtJSBoundary,
-      testStepThroughJSInteropSequence,
+      ['js_interop', testJSInteropPageSelfTest],
+      ['js_interop', testBreakpointAtJSCallSite],
+      ['js_interop', testStepIntoJSFromScheme],
+      ['js_interop', testStepOverJSFromScheme],
+      ['js_interop', testStepOutFromJSBoundary],
+      ['js_interop', testVariablesAtJSBoundary],
+      ['js_interop', testMultipleBreakpointsAcrossJSCalls],
+      ['js_interop', testDotNotationJSCall],
+      ['js_interop', testStoredJSFunctionCall],
+      ['js_interop', testCallStackAtJSBoundary],
+      ['js_interop', testStepThroughJSInteropSequence],
     ];
 
-    for (const testFn of pageTests) {
+    for (const [mod, testFn] of pageTests) {
+      if (!shouldRun(testFn, mod)) continue;
       try {
         await testFn(browser);
       } catch (err) {
@@ -167,66 +198,75 @@ async function runTests() {
     // Panel UI tests (require extension ID)
     const panelTests = [
       // Static structure tests
-      testPanelUIStructure,
-      testPanelToolbarButtons,
-      testPanelCallStackEmpty,
-      testPanelVariablesEmpty,
-      testPanelCSSLoaded,
-      testPanelSourceListEmpty,
-      testThemeSwitching,
+      ['panel_ui', testPanelUIStructure],
+      ['panel_ui', testPanelToolbarButtons],
+      ['panel_ui', testPanelCallStackEmpty],
+      ['panel_ui', testPanelVariablesEmpty],
+      ['panel_ui', testPanelCSSLoaded],
+      ['panel_ui', testPanelSourceListEmpty],
+      ['panel_ui', testThemeSwitching],
       // Interaction tests (mocked chrome APIs)
-      testPanelSourcesLoad,
-      testPanelSourceSwitch,
-      testPanelPauseUpdatesUI,
-      testPanelResumeUpdatesUI,
-      testPanelResumeButtonClick,
-      testPanelStepButtonClicks,
-      testPanelFrameSelectionUpdatesVariables,
-      testPanelVariableTypeColors,
-      testPanelCallStackTCO,
-      testPanelBreakpointGutterToggle,
-      testPanelStepReasonStatus,
-      testPanelPauseNavigatesEditor,
-      testPanelCallStackBadges,
-      testPanelEmptyVariablesMessage,
+      ['panel_interactions', testPanelSourcesLoad],
+      ['panel_interactions', testPanelSourceSwitch],
+      ['panel_interactions', testPanelPauseUpdatesUI],
+      ['panel_interactions', testPanelResumeUpdatesUI],
+      ['panel_interactions', testPanelResumeButtonClick],
+      ['panel_interactions', testPanelStepButtonClicks],
+      ['panel_interactions', testPanelFrameSelectionUpdatesVariables],
+      ['panel_interactions', testPanelVariableTypeColors],
+      ['panel_interactions', testPanelCallStackTCO],
+      ['panel_interactions', testPanelBreakpointGutterToggle],
+      ['panel_interactions', testPanelStepReasonStatus],
+      ['panel_interactions', testPanelPauseNavigatesEditor],
+      ['panel_interactions', testPanelCallStackBadges],
+      ['panel_interactions', testPanelEmptyVariablesMessage],
       // Expression-level breakpoints (Phase 3)
-      testPanelExpressionHighlightOnPause,
-      testPanelExpressionHighlightClears,
-      testPanelDiamondMarkersOnBreakpointLine,
-      testPanelDiamondClickSetsBreakpoint,
-      testPanelDiamondsOnPausedLine,
+      ['panel_interactions', testPanelExpressionHighlightOnPause],
+      ['panel_interactions', testPanelExpressionHighlightClears],
+      ['panel_interactions', testPanelDiamondMarkersOnBreakpointLine],
+      ['panel_interactions', testPanelDiamondClickSetsBreakpoint],
+      ['panel_interactions', testPanelDiamondsOnPausedLine],
       // Phase 6: Breakpoints and Console
-      testPanelBreakpointsList,
-      testPanelBreakpointsNavigation,
-      testConsoleEvaluation,
-      testConsoleHistory,
-      testConsoleClear,
-      testKeyboardShortcuts,
-      testCodeMirrorSearch,
-      testJSPauseShowsJSFrames,
-      testUnifiedCallStackInterleaving,
-      testUnifiedCallStackBadges,
-      testJSStepInto,
-      testJSStepOver,
-      testJSStepOut,
-      testJSResumeFromPause,
-      testSchemeStepStillWorks,
-      testCDPResumeUpdatesUI,
-      testJSFrameClickLoadsJSSource,
-      testEditorSwitchesToJSHighlighting,
-      testSwitchBetweenSchemeAndJSFrames,
-      testJSVariablesDisplayed,
-      testPanelShowsSchemeSourcesAsDefault,
-      testJSPauseToolbarStatus,
-      testSchemeCallsJSShowsBothFrames,
-      testJSCallsSchemeShowsBothFrames,
-      testButtonsEnabledDuringJSPause,
-      testCurrentLineHighlightOnJSPause,
-      testBoundaryStepping,
+      ['panel_interactions', testPanelBreakpointsList],
+      ['panel_interactions', testPanelBreakpointsNavigation],
+      ['console', testConsoleEvaluation],
+      ['console', testConsoleHistory],
+      ['console', testConsoleClear],
+      ['panel_interactions', testKeyboardShortcuts],
+      ['panel_interactions', testCodeMirrorSearch],
+      ['js_debugging', testJSPauseShowsJSFrames],
+      ['js_debugging', testUnifiedCallStackInterleaving],
+      ['js_debugging', testUnifiedCallStackBadges],
+      ['js_debugging', testJSStepInto],
+      ['js_debugging', testJSStepOver],
+      ['js_debugging', testJSStepOut],
+      ['js_debugging', testJSResumeFromPause],
+      ['js_debugging', testSchemeStepStillWorks],
+      ['js_debugging', testCDPResumeUpdatesUI],
+      ['js_debugging', testJSFrameClickLoadsJSSource],
+      ['js_debugging', testEditorSwitchesToJSHighlighting],
+      ['js_debugging', testSwitchBetweenSchemeAndJSFrames],
+      ['js_debugging', testJSVariablesDisplayed],
+      ['js_debugging', testPanelShowsSchemeSourcesAsDefault],
+      ['js_debugging', testJSPauseToolbarStatus],
+      ['js_debugging', testSchemeCallsJSShowsBothFrames],
+      ['js_debugging', testJSCallsSchemeShowsBothFrames],
+      ['js_debugging', testButtonsEnabledDuringJSPause],
+      ['js_debugging', testCurrentLineHighlightOnJSPause],
+      ['js_debugging', testBoundaryStepping],
+      // Error path tests
+      ['error_paths', testEvalTimeout],
+      ['error_paths', testEvalError],
+      ['error_paths', testMissingSchemeDebug],
+      ['error_paths', testMalformedPauseEvent],
+      ['error_paths', testGetLocalsFailure],
+      ['error_paths', testCDPSendMessageFailure],
+      ['error_paths', testUnknownSourceContent],
     ];
 
     if (extensionId) {
-      for (const testFn of panelTests) {
+      for (const [mod, testFn] of panelTests) {
+        if (!shouldRun(testFn, mod)) continue;
         try {
           await testFn(browser, extensionId);
         } catch (err) {

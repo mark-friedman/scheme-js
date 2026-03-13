@@ -17,198 +17,15 @@
  *   - chrome.storage.local is stubbed (in-memory)
  */
 
-import { assert, INLINE_URL } from './test_harness.mjs';
+import { assert, INLINE_URL, waitFor, waitForPage } from './test_harness.mjs';
+import { MOCK_CHROME_SCRIPT } from './test_mock_chrome.mjs';
 
-// =========================================================================
-// Mock chrome API injection script
-// =========================================================================
+// Re-export for backward compatibility (test_console.mjs imports from here)
+export { MOCK_CHROME_SCRIPT };
 
-/**
- * JavaScript to inject via evaluateOnNewDocument that creates a mock
- * chrome API before the panel bundle loads. The mock routes all
- * evalInPage calls through a dispatcher keyed on the expression string.
- */
-export const MOCK_CHROME_SCRIPT = `
-// Mock state — tests can modify this to change what the panel "sees"
-window.__mockState = {
-  sources: [
-    {
-      url: '${INLINE_URL}',
-      content: '(define (add a b) (+ a b))\\n(define (double x) (* x 2))\\n(define (compute n) (add (double n) n))\\n(define (factorial n)\\n  (if (<= n 1) 1 (* n (factorial (- n 1)))))\\n(define greeting "hello")\\ngreeting\\n42\\n(display (string-append "result=" (number->string (compute 5)) "\\\\n"))\\n(display (string-append "fact5=" (number->string (factorial 5)) "\\\\n"))',
-      lines: 10,
-      origin: 'inline'
-    },
-    {
-      url: 'scheme://scheme-sources/manual_script.scm',
-      content: ';; External test script\\n(define (fib n)\\n  (if (<= n 1) n\\n    (+ (fib (- n 1)) (fib (- n 2)))))\\n(display (fib 10))',
-      lines: 5,
-      origin: 'external'
-    }
-  ],
-  status: { state: 'running', reason: null, active: true },
-  paused: false,
-  stack: [],
-  locals: [],
-  breakpoints: [],
-  expressions: {
-    // Default expressions matching the default inline source content
-    '${INLINE_URL}': [
-      { exprId: 1, line: 1, column: 1, endLine: 1, endColumn: 26 },
-      { exprId: 2, line: 1, column: 16, endLine: 1, endColumn: 22 },
-      { exprId: 3, line: 2, column: 1, endLine: 2, endColumn: 28 },
-      { exprId: 4, line: 3, column: 1, endLine: 3, endColumn: 41 },
-      { exprId: 5, line: 4, column: 1, endLine: 5, endColumn: 46 },
-    ],
-    'scheme://scheme-sources/manual_script.scm': [
-      { exprId: 10, line: 2, column: 1, endLine: 4, endColumn: 42 },
-      { exprId: 11, line: 5, column: 1, endLine: 5, endColumn: 17 },
-    ],
-  },
-  activateResult: { active: true, needsReload: false },
-  evalResults: {},  // code -> result mapping for debugEval
-  resumeCalled: false,
-  stepIntoCalled: false,
-  stepOverCalled: false,
-  stepOutCalled: false,
-  ackPauseCalled: false,
-  breakpointsSet: [],     // { url, line } entries from setBreakpoint calls
-  breakpointsRemoved: [], // IDs from removeBreakpoint calls
-  nextBreakpointId: 1,
-};
-
-// Captured message listeners from panel code
-window.__messageListeners = [];
-
-// Helper to fire a message to all registered listeners
-window.__fireMessage = function(message) {
-  for (const listener of window.__messageListeners) {
-    listener(message);
-  }
-};
-
-// Build the mock chrome object
-window.chrome = {
-  devtools: {
-    inspectedWindow: {
-      eval: function(expression, callback) {
-        const state = window.__mockState;
-        let result = undefined;
-        let error = null;
-
-        try {
-          // Route based on expression content
-          if (expression.includes('typeof __schemeDebug')) {
-            result = true;
-          } else if (expression.includes('getSources()')) {
-            result = JSON.stringify(state.sources);
-          } else if (expression.includes('getSourceContent(')) {
-            const urlMatch = expression.match(/getSourceContent\\("([^"]+)"\\)/);
-            if (urlMatch) {
-              const src = state.sources.find(s => s.url === urlMatch[1]);
-              result = JSON.stringify(src ? src.content : null);
-            }
-          } else if (expression.includes('activate()')) {
-            result = JSON.stringify(state.activateResult);
-          } else if (expression.includes('getStatus()')) {
-            result = JSON.stringify(state.status);
-          } else if (expression.includes('getStack()')) {
-            result = JSON.stringify(state.stack);
-          } else if (expression.includes('getLocals(')) {
-            const idxMatch = expression.match(/getLocals\\((\\d+)\\)/);
-            const idx = idxMatch ? parseInt(idxMatch[1]) : 0;
-            // Return locals for the requested frame index
-            const locals = Array.isArray(state.locals[idx]) ? state.locals[idx] : (state.locals || []);
-            result = JSON.stringify(locals);
-          } else if (expression.includes('getAllBreakpoints()')) {
-            result = JSON.stringify(state.breakpoints);
-          } else if (expression.includes('ackPause()')) {
-            state.ackPauseCalled = true;
-            state.lastAction = 'ackPause';
-            result = undefined;
-          } else if (expression.includes('resume()')) {
-            state.resumeCalled = true;
-            state.lastAction = 'resume';
-            result = undefined;
-          } else if (expression.includes('stepInto()')) {
-            state.stepIntoCalled = true;
-            state.lastAction = 'stepInto';
-            result = undefined;
-          } else if (expression.includes('stepOver()')) {
-            state.stepOverCalled = true;
-            state.lastAction = 'stepOver';
-            result = undefined;
-          } else if (expression.includes('stepOut()')) {
-            state.stepOutCalled = true;
-            state.lastAction = 'stepOut';
-            result = undefined;
-          } else if (expression.includes('getExpressions(')) {
-            const urlMatch = expression.match(/getExpressions\\("([^"]+)"\\)/);
-            if (urlMatch) {
-              const exprs = state.expressions ? (state.expressions[urlMatch[1]] || []) : [];
-              result = JSON.stringify(exprs);
-            }
-          } else if (expression.includes('setBreakpoint(')) {
-            // Match both setBreakpoint("url", line) and setBreakpoint("url", line, col)
-            const bpMatch = expression.match(/setBreakpoint\\("([^"]+)",\\s*(\\d+)(?:,\\s*(\\d+))?\\)/);
-            if (bpMatch) {
-              const id = 'bp-' + (state.nextBreakpointId++);
-              const col = bpMatch[3] ? parseInt(bpMatch[3]) : null;
-              state.breakpointsSet.push({ url: bpMatch[1], line: parseInt(bpMatch[2]), column: col, id });
-              state.breakpoints.push({ id, filename: bpMatch[1], line: parseInt(bpMatch[2]), column: col });
-              result = JSON.stringify(id);
-            }
-          } else if (expression.includes('removeBreakpoint(')) {
-            const rmMatch = expression.match(/removeBreakpoint\\("([^"]+)"\\)/);
-            if (rmMatch) {
-              state.breakpointsRemoved.push(rmMatch[1]);
-              state.breakpoints = state.breakpoints.filter(bp => bp.id !== rmMatch[1]);
-              result = JSON.stringify(true);
-            }
-          } else if (expression.includes('localStorage.setItem')) {
-            // breakpoint persistence — ignore in tests
-            result = undefined;
-          } else {
-            // Unknown expression — return undefined
-            result = undefined;
-          }
-        } catch (e) {
-          error = { value: e.message };
-        }
-
-        // Simulate async callback
-        setTimeout(() => callback(result, error), 10);
-      }
-    },
-    network: {
-      onNavigated: { addListener: function() {} }
-    },
-    panels: {}
-  },
-  runtime: {
-    onMessage: {
-      addListener: function(listener) {
-        window.__messageListeners.push(listener);
-      }
-    }
-  },
-  storage: {
-    local: {
-      _data: {},
-      get: function(keys, callback) {
-        const result = {};
-        for (const k of (Array.isArray(keys) ? keys : [keys])) {
-          if (k in this._data) result[k] = this._data[k];
-        }
-        if (callback) callback(result);
-      },
-      set: function(items, callback) {
-        Object.assign(this._data, items);
-        if (callback) callback();
-      }
-    }
-  }
-};
-`;
+// The MOCK_CHROME_SCRIPT is now defined in test_mock_chrome.mjs.
+// The following inline definition is kept commented as a reference for
+// understanding the mock structure but is no longer used.
 
 // =========================================================================
 // Helper: open panel with mocks
@@ -227,8 +44,8 @@ async function openMockedPanel(browser, extensionId) {
     `chrome-extension://${extensionId}/panel/panel.html`,
     { waitUntil: 'domcontentloaded' }
   );
-  // Wait for panel to initialize (activateAndRefresh + source loading)
-  await new Promise(r => setTimeout(r, 1500));
+  // Wait for panel to initialize — source list items appear when ready
+  await waitForPage(panelPage, `document.querySelectorAll('#source-list .source-item').length > 0`);
   return panelPage;
 }
 
@@ -241,8 +58,8 @@ async function firePauseEvent(panelPage, detail) {
   await panelPage.evaluate((d) => {
     window.__fireMessage({ type: 'scheme-debug-paused', detail: d });
   }, detail);
-  // Let the panel process the event
-  await new Promise(r => setTimeout(r, 300));
+  // Wait for toolbar to show paused status
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('Paused')`);
 }
 
 /**
@@ -253,7 +70,8 @@ async function fireResumeEvent(panelPage) {
   await panelPage.evaluate(() => {
     window.__fireMessage({ type: 'scheme-debug-resumed' });
   });
-  await new Promise(r => setTimeout(r, 300));
+  // Wait for toolbar to show running status
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent === 'Ready'`);
 }
 
 // =========================================================================
@@ -326,7 +144,8 @@ export async function testPanelSourceSwitch(browser, extensionId) {
     const items = document.querySelectorAll('#source-list .source-item');
     if (items[1]) items[1].click();
   });
-  await new Promise(r => setTimeout(r, 300));
+  // Wait for the status bar to reflect the new source
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('manual_script')`);
 
   // Editor should now show external script content
   const editorContent = await panelPage.evaluate(() => {
@@ -546,7 +365,7 @@ export async function testPanelResumeButtonClick(browser, extensionId) {
     const resumeBtn = btns.find(b => b.title.includes('Resume'));
     if (resumeBtn) resumeBtn.click();
   });
-  await new Promise(r => setTimeout(r, 200));
+  await waitForPage(panelPage, `window.__mockState.resumeCalled === true`);
 
   const resumeCalled = await panelPage.evaluate(() => window.__mockState.resumeCalled);
   assert('Clicking Resume calls resume()', resumeCalled === true);
@@ -588,7 +407,7 @@ export async function testPanelStepButtonClicks(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Step Into'))?.click();
   });
-  await new Promise(r => setTimeout(r, 200));
+  await waitForPage(panelPage, `window.__mockState.stepIntoCalled === true`);
 
   let stepIntoCalled = await panelPage.evaluate(() => window.__mockState.stepIntoCalled);
   assert('Clicking Step Into calls stepInto()', stepIntoCalled === true);
@@ -605,7 +424,7 @@ export async function testPanelStepButtonClicks(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Step Over'))?.click();
   });
-  await new Promise(r => setTimeout(r, 200));
+  await waitForPage(panelPage, `window.__mockState.stepOverCalled === true`);
 
   let stepOverCalled = await panelPage.evaluate(() => window.__mockState.stepOverCalled);
   assert('Clicking Step Over calls stepOver()', stepOverCalled === true);
@@ -622,7 +441,7 @@ export async function testPanelStepButtonClicks(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Step Out'))?.click();
   });
-  await new Promise(r => setTimeout(r, 200));
+  await waitForPage(panelPage, `window.__mockState.stepOutCalled === true`);
 
   let stepOutCalled = await panelPage.evaluate(() => window.__mockState.stepOutCalled);
   assert('Clicking Step Out calls stepOut()', stepOutCalled === true);
@@ -666,6 +485,9 @@ export async function testPanelFrameSelectionUpdatesVariables(browser, extension
   });
 
   // The panel auto-loads locals for the top frame (index 1)
+  // Wait for variables to populate
+  await waitForPage(panelPage, `document.querySelectorAll('#variables-container .variable-row').length >= 2`);
+
   // Check variables show n and acc
   let vars = await panelPage.evaluate(() => {
     const rows = document.querySelectorAll('#variables-container .variable-row');
@@ -680,7 +502,10 @@ export async function testPanelFrameSelectionUpdatesVariables(browser, extension
     // frames[0] = factorial (top), frames[1] = top-level (bottom)
     if (frames[1]) frames[1].click();
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `(() => {
+    const rows = document.querySelectorAll('#variables-container .variable-row');
+    return Array.from(rows).some(r => r.textContent.includes('x'));
+  })()`);
 
   // Variables should now show x (frame 0's locals)
   vars = await panelPage.evaluate(() => {
@@ -726,6 +551,9 @@ export async function testPanelVariableTypeColors(browser, extensionId) {
     source: { filename: INLINE_URL, line: 1, column: 0 },
     stack: [{ name: 'test', source: null, tcoCount: 0 }],
   });
+
+  // Wait for variables to populate
+  await waitForPage(panelPage, `document.querySelectorAll('#variables-container .variable-row').length === 5`);
 
   const varInfo = await panelPage.evaluate(() => {
     const rows = document.querySelectorAll('#variables-container .variable-row');
@@ -824,7 +652,7 @@ export async function testPanelBreakpointGutterToggle(browser, extensionId) {
   // CodeMirror gutter handlers use mousedown events via domEventHandlers.
   // We use the Puppeteer mouse to click at the right coordinates.
   // Wait for CodeMirror to render
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `!!document.querySelector('.cm-lineNumbers .cm-gutterElement')`);
 
   // The breakpoint gutter has no child elements when empty (CM6 optimizes).
   // Use the line number gutter to determine the Y coordinate, then click
@@ -848,7 +676,7 @@ export async function testPanelBreakpointGutterToggle(browser, extensionId) {
 
   if (clickTarget) {
     await panelPage.mouse.click(clickTarget.x, clickTarget.y);
-    await new Promise(r => setTimeout(r, 500));
+    await waitForPage(panelPage, `!!document.querySelector('.cm-breakpoint-dot')`);
 
     // Check if a breakpoint dot appeared
     const hasDot = await panelPage.evaluate(() =>
@@ -922,6 +750,9 @@ export async function testPanelPauseNavigatesEditor(browser, extensionId) {
     },
     stack: [{ name: 'fib', source: { filename: 'scheme://scheme-sources/manual_script.scm', line: 3, column: 0 }, tcoCount: 0 }],
   });
+
+  // Wait for editor to switch to the external source
+  await waitForPage(panelPage, `document.querySelector('.cm-content')?.textContent?.includes('fib')`);
 
   // Editor should now show the external script
   const editorContent = await panelPage.evaluate(() => {
@@ -1004,6 +835,9 @@ export async function testPanelEmptyVariablesMessage(browser, extensionId) {
     source: { filename: INLINE_URL, line: 1, column: 0 },
     stack: [{ name: 'test', source: null, tcoCount: 0 }],
   });
+
+  // Wait for variables component to render (empty state)
+  await waitForPage(panelPage, `!!document.querySelector('#variables-container .variables-empty')`);
 
   const emptyMsg = await panelPage.evaluate(() => {
     const el = document.querySelector('#variables-container .variables-empty');
@@ -1112,8 +946,8 @@ export async function testPanelDiamondMarkersOnBreakpointLine(browser, extension
 
   const panelPage = await openMockedPanel(browser, extensionId);
 
-  // Wait for initial load
-  await new Promise(r => setTimeout(r, 500));
+  // Wait for CodeMirror to render
+  await waitForPage(panelPage, `!!document.querySelector('.cm-lineNumbers .cm-gutterElement')`);
 
   // Click gutter to set a line breakpoint on line 1 (which has multiple expressions
   // in mock data: exprId 1 at col 1 and exprId 2 at col 16)
@@ -1131,7 +965,8 @@ export async function testPanelDiamondMarkersOnBreakpointLine(browser, extension
 
   if (gutterTarget) {
     await panelPage.mouse.click(gutterTarget.x, gutterTarget.y);
-    await new Promise(r => setTimeout(r, 500));
+    // Wait for breakpoint dot AND diamond markers to appear
+    await waitForPage(panelPage, `!!document.querySelector('.cm-breakpoint-dot') && document.querySelectorAll('.cm-expr-diamond').length > 0`);
 
     // Check that a breakpoint dot appeared
     const hasDot = await panelPage.evaluate(() =>
@@ -1177,7 +1012,7 @@ export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) 
   }
 
   const panelPage = await openMockedPanel(browser, extensionId);
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `!!document.querySelector('.cm-lineNumbers .cm-gutterElement')`);
 
   // Set a line breakpoint on line 1 to trigger diamond display
   const gutterTarget = await panelPage.evaluate(() => {
@@ -1198,7 +1033,8 @@ export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) 
   }
 
   await panelPage.mouse.click(gutterTarget.x, gutterTarget.y);
-  await new Promise(r => setTimeout(r, 500));
+  // Wait for breakpoint dot AND diamond markers
+  await waitForPage(panelPage, `!!document.querySelector('.cm-breakpoint-dot') && document.querySelectorAll('.cm-expr-diamond').length > 0`);
 
   // Reset breakpoint tracking (the line BP was already recorded)
   await panelPage.evaluate(() => {
@@ -1212,7 +1048,7 @@ export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) 
     diamond.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
     return true;
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `window.__mockState.breakpointsSet.length > 0`);
 
   assert('Found and clicked a diamond', clicked);
 
@@ -1229,6 +1065,9 @@ export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) 
         `column: ${bp.column}`);
     }
 
+    // Wait for diamond to become active and expression highlight to appear
+    await waitForPage(panelPage, `document.querySelectorAll('.cm-expr-diamond-active').length >= 1`);
+
     // Diamond should now be filled (active)
     const activeDiamonds = await panelPage.evaluate(() => {
       const els = document.querySelectorAll('.cm-expr-diamond-active');
@@ -1238,6 +1077,7 @@ export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) 
       `found ${activeDiamonds} active diamonds`);
 
     // Expression breakpoint highlight should also appear
+    await waitForPage(panelPage, `!!document.querySelector('.cm-expr-breakpoint')`);
     const hasExprBp = await panelPage.evaluate(() =>
       !!document.querySelector('.cm-expr-breakpoint')
     );
@@ -1313,7 +1153,7 @@ export async function testPanelBreakpointsList(browser, extensionId) {
   });
 
   // Set a breakpoint via gutter click (the normal panel flow that populates breakpointIds)
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `!!document.querySelector('.cm-lineNumbers .cm-gutterElement')`);
 
   const clickTarget = await panelPage.evaluate(() => {
     const bpGutter = document.querySelector('.cm-breakpoint-gutter');
@@ -1339,7 +1179,7 @@ export async function testPanelBreakpointsList(browser, extensionId) {
   }
 
   await panelPage.mouse.click(clickTarget.x, clickTarget.y);
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `!!document.querySelector('#breakpoints-container .breakpoint-item')`);
 
   // Check if it appeared in the breakpoints panel list
   let bpItems = await panelPage.evaluate(() => {
@@ -1359,7 +1199,7 @@ export async function testPanelBreakpointsList(browser, extensionId) {
     const removeBtn = document.querySelector('#breakpoints-container .breakpoint-remove');
     if (removeBtn) removeBtn.click();
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelectorAll('#breakpoints-container .breakpoint-item').length === 0`);
 
   // Verify the list is empty
   bpItems = await panelPage.evaluate(() => {
@@ -1389,7 +1229,7 @@ export async function testPanelBreakpointsNavigation(browser, extensionId) {
   const panelPage = await openMockedPanel(browser, extensionId);
 
   // Set a breakpoint on the first source via gutter click (line 4)
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `!!document.querySelector('.cm-lineNumbers .cm-gutterElement')`);
 
   const clickTarget = await panelPage.evaluate(() => {
     const bpGutter = document.querySelector('.cm-breakpoint-gutter');
@@ -1414,7 +1254,7 @@ export async function testPanelBreakpointsNavigation(browser, extensionId) {
   }
 
   await panelPage.mouse.click(clickTarget.x, clickTarget.y);
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelectorAll('#breakpoints-container .breakpoint-item').length >= 1`);
 
   // Verify breakpoint was set
   const bpCount = await panelPage.evaluate(() =>
@@ -1427,7 +1267,7 @@ export async function testPanelBreakpointsNavigation(browser, extensionId) {
     const items = document.querySelectorAll('#source-list .source-item');
     if (items[1]) items[1].click();
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('manual_script')`);
 
   let status = await panelPage.evaluate(() => document.querySelector('.toolbar-status')?.textContent);
   assert('Now viewing second source', status?.includes('manual_script'), `got: "${status}"`);
@@ -1437,7 +1277,7 @@ export async function testPanelBreakpointsNavigation(browser, extensionId) {
     const bpItem = document.querySelector('#breakpoints-container .breakpoint-item');
     if (bpItem) bpItem.click();
   });
-  await new Promise(r => setTimeout(r, 1000));
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('script-0')`);
 
   // Verify we navigated back to the first source
   status = await panelPage.evaluate(() => document.querySelector('.toolbar-status')?.textContent);
@@ -1472,7 +1312,7 @@ export async function testKeyboardShortcuts(browser, extensionId) {
     window.__mockState.lastAction = null;
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F8' }));
   });
-  await new Promise(r => setTimeout(r, 100));
+  await waitForPage(panelPage, `window.__mockState.lastAction === 'resume'`);
   let lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
   assert('F8 triggers unifiedDebugger.resume', lastAction === 'resume', `got: ${lastAction}`);
 
@@ -1481,7 +1321,7 @@ export async function testKeyboardShortcuts(browser, extensionId) {
     window.__mockState.lastAction = null;
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10' }));
   });
-  await new Promise(r => setTimeout(r, 100));
+  await waitForPage(panelPage, `window.__mockState.lastAction === 'stepOver'`);
   lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
   assert('F10 triggers unifiedDebugger.stepOver', lastAction === 'stepOver', `got: ${lastAction}`);
 
@@ -1490,7 +1330,7 @@ export async function testKeyboardShortcuts(browser, extensionId) {
     window.__mockState.lastAction = null;
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F11', shiftKey: false }));
   });
-  await new Promise(r => setTimeout(r, 100));
+  await waitForPage(panelPage, `window.__mockState.lastAction === 'stepInto'`);
   lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
   assert('F11 triggers unifiedDebugger.stepInto', lastAction === 'stepInto', `got: ${lastAction}`);
 
@@ -1499,7 +1339,7 @@ export async function testKeyboardShortcuts(browser, extensionId) {
     window.__mockState.lastAction = null;
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F11', shiftKey: true }));
   });
-  await new Promise(r => setTimeout(r, 100));
+  await waitForPage(panelPage, `window.__mockState.lastAction === 'stepOut'`);
   lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
   assert('Shift+F11 triggers unifiedDebugger.stepOut', lastAction === 'stepOut', `got: ${lastAction}`);
 
@@ -1532,7 +1372,7 @@ export async function testCodeMirrorSearch(browser, extensionId) {
     });
     document.querySelector('.cm-content').dispatchEvent(evt);
   });
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelectorAll('.cm-search').length > 0`);
 
   // Check if search panel appeared
   const searchPanelMatches = await panelPage.evaluate(() => {

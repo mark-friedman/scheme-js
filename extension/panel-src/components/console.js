@@ -59,6 +59,8 @@ export function createConsole(container, { onEvaluate }) {
   function appendOutput(content, isError = false, isCommand = false) {
     const entry = document.createElement('div');
     entry.className = 'console-message';
+    entry.dataset.testid = 'console-message';
+    entry.dataset.messageType = isCommand ? 'command' : (isError ? 'error' : 'result');
     if (isError) entry.classList.add('error');
     if (isCommand) entry.classList.add('console-command');
 
@@ -131,8 +133,11 @@ export function createConsole(container, { onEvaluate }) {
 
       appendOutput(code, false, true);
       
-      // Save history
+      // Save history (cap at 100 entries to prevent unbounded growth)
       history.push(code);
+      if (history.length > 100) {
+        history.splice(0, history.length - 100);
+      }
       historyIndex = history.length;
       inputField.value = '';
       currentInput = '';

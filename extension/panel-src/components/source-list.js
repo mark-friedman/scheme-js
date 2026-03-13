@@ -49,22 +49,10 @@ export function createSourceList(container, onSelectSource) {
     const items = sources.map(src => {
       const isSelected = src.url === selectedUrl;
       const name = displayName(src.url);
-      return `<div class="source-item${isSelected ? ' selected' : ''}" data-url="${escapeAttr(src.url)}" title="${escapeAttr(src.url)}">${escapeHtml(name)}</div>`;
+      return `<div class="source-item${isSelected ? ' selected' : ''}" data-testid="source-item" data-url="${escapeAttr(src.url)}" title="${escapeAttr(src.url)}">${escapeHtml(name)}</div>`;
     });
 
     container.innerHTML = items.join('');
-
-    container.querySelectorAll('.source-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const url = el.dataset.url;
-        const src = sources.find(s => s.url === url);
-        if (src) {
-          selectedUrl = url;
-          render(); // re-render to update selection
-          onSelectSource(url, src.content);
-        }
-      });
-    });
   }
 
   /**
@@ -93,6 +81,19 @@ export function createSourceList(container, onSelectSource) {
       render(); // shows "no sources" message
     }
   }
+
+  // Use event delegation so we don't re-attach click listeners on every render
+  container.addEventListener('click', (e) => {
+    const el = e.target.closest('.source-item');
+    if (!el) return;
+    const url = el.dataset.url;
+    const src = sources.find(s => s.url === url);
+    if (src) {
+      selectedUrl = url;
+      render(); // re-render to update selection
+      onSelectSource(url, src.content);
+    }
+  });
 
   // Initial render placeholder
   container.innerHTML = '<div class="source-empty">Loading sources...</div>';

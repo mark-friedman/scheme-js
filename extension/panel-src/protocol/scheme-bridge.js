@@ -30,7 +30,8 @@ export function evalInPage(expression) {
 export async function isSchemeDebugAvailable() {
   try {
     return await evalInPage('typeof __schemeDebug !== "undefined"');
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] isSchemeDebugAvailable failed:', e.message);
     return false;
   }
 }
@@ -45,7 +46,8 @@ export async function getSources() {
   try {
     const json = await evalInPage('JSON.stringify(__schemeDebug.getSources())');
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] getSources failed:', e.message);
     return [];
   }
 }
@@ -62,7 +64,8 @@ export async function getSourceContent(url) {
       `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
     );
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] getSourceContent failed:', e.message);
     return null;
   }
 }
@@ -75,7 +78,8 @@ export async function activate() {
   try {
     const json = await evalInPage('JSON.stringify(__schemeDebug.activate())');
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] activate failed:', e.message);
     return { active: false, needsReload: true };
   }
 }
@@ -88,7 +92,8 @@ export async function getStatus() {
   try {
     const json = await evalInPage('JSON.stringify(__schemeDebug.getStatus())');
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] getStatus failed:', e.message);
     return { state: 'inactive', reason: null, active: false };
   }
 }
@@ -101,7 +106,8 @@ export async function getStack() {
   try {
     const json = await evalInPage('JSON.stringify(__schemeDebug.getStack())');
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] getStack failed:', e.message);
     return [];
   }
 }
@@ -115,7 +121,8 @@ export async function getLocals(frameIndex) {
   try {
     const json = await evalInPage(`JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`);
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] getLocals failed:', e.message);
     return [];
   }
 }
@@ -147,7 +154,9 @@ export async function evalInFrame(expression, frameIndex) {
 export async function ackPause() {
   try {
     await evalInPage('__schemeDebug.ackPause(); undefined');
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[scheme-bridge] ackPause failed:', e.message);
+  }
 }
 
 /**
@@ -157,7 +166,9 @@ export async function ackPause() {
 export async function resume() {
   try {
     await evalInPage('__schemeDebug.resume(); undefined');
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[scheme-bridge] resume failed:', e.message);
+  }
 }
 
 /**
@@ -167,7 +178,9 @@ export async function resume() {
 export async function stepInto() {
   try {
     await evalInPage('__schemeDebug.stepInto(); undefined');
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[scheme-bridge] stepInto failed:', e.message);
+  }
 }
 
 /**
@@ -177,7 +190,9 @@ export async function stepInto() {
 export async function stepOver() {
   try {
     await evalInPage('__schemeDebug.stepOver(); undefined');
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[scheme-bridge] stepOver failed:', e.message);
+  }
 }
 
 /**
@@ -187,7 +202,9 @@ export async function stepOver() {
 export async function stepOut() {
   try {
     await evalInPage('__schemeDebug.stepOut(); undefined');
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('[scheme-bridge] stepOut failed:', e.message);
+  }
 }
 
 /**
@@ -204,7 +221,8 @@ export async function getExpressions(url) {
       `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
     );
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] getExpressions failed:', e.message);
     return [];
   }
 }
@@ -223,7 +241,8 @@ export async function setBreakpoint(url, line, column = null) {
       `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}${colArg}))`
     );
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] setBreakpoint failed:', e.message);
     return null;
   }
 }
@@ -239,7 +258,8 @@ export async function removeBreakpoint(id) {
       `JSON.stringify(__schemeDebug.removeBreakpoint(${JSON.stringify(id)}))`
     );
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] removeBreakpoint failed:', e.message);
     return false;
   }
 }
@@ -252,7 +272,8 @@ export async function getAllBreakpoints() {
   try {
     const json = await evalInPage('JSON.stringify(__schemeDebug.getAllBreakpoints())');
     return JSON.parse(json);
-  } catch {
+  } catch (e) {
+    console.warn('[scheme-bridge] getAllBreakpoints failed:', e.message);
     return [];
   }
 }

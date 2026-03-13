@@ -14,6 +14,27 @@ globalThis.__schemeProbeRuntime = {
     _exceptionPause: false,
 
     /**
+     * Current step mode — determines how depth is compared.
+     * @type {'into'|'over'|'out'|null}
+     */
+    _stepMode: null,
+
+    /**
+     * Stack depth when stepping was initiated. Used by step-over (pause at
+     * same or shallower depth) and step-out (pause at shallower depth).
+     * @type {number}
+     */
+    _stepStartDepth: 0,
+
+    /**
+     * Function that returns the current Scheme call stack depth.
+     * Injected by devtools_debug.js when installing the __schemeDebug API,
+     * so the probe runtime can make depth-aware stepping decisions.
+     * @type {(() => number)|null}
+     */
+    _getDepth: null,
+
+    /**
      * Called by the probe script at each Scheme expression.
      * Returns true if the probe should pause (via `debugger;` in the probe
      * function itself), false otherwise. The `debugger;` must fire inside
@@ -37,10 +58,12 @@ globalThis.__schemeProbeRuntime = {
             return true;
         }
 
-        // Stepping (Step Into / Step Over / Step Out) is manually handled here
-        // because Native Chrome CDP drops into interpreter JS files.
+        // Stepping (Step Into / Step Over / Step Out) with depth awareness.
+        // Native Chrome CDP stepping drops into interpreter JS files, so we
+        // handle Scheme-level stepping here using stack depth.
         if (this._stepping && this._shouldStopForStep(exprId)) {
             this._stepping = false;
+            this._stepMode = null;
             return true;
         }
 
@@ -48,18 +71,38 @@ globalThis.__schemeProbeRuntime = {
     },
 
     /**
-     * Determines if execution should pause for stepping.
-     * Placeholder: always returns true, so all step modes currently behave
-     * as Step Into. To be fully implemented in Phase 2.5
-     * (Interpreter-Managed Stepping).
+     * Determines if execution should pause for stepping based on step mode
+     * and current stack depth.
+     *
+     * - Step Into: always pauses at the next expression
+     * - Step Over: pauses when depth <= start depth (same or shallower)
+     * - Step Out: pauses when depth < start depth (shallower only)
      *
      * @param {number} exprId
      * @returns {boolean}
      * @private
      */
     _shouldStopForStep(exprId) {
+        // Step Into always stops at the next expression
+        if (!this._stepMode || this._stepMode === 'into') {
+            return true;
+        }
+
+        const currentDepth = this._getDepth ? this._getDepth() : 0;
+
+        if (this._stepMode === 'over') {
+            // Step Over: pause at same or shallower depth
+            return currentDepth <= this._stepStartDepth;
+        }
+
+        if (this._stepMode === 'out') {
+            // Step Out: pause only at shallower depth
+            return currentDepth < this._stepStartDepth;
+        }
+
         return true;
     },
+
     // ---------------------------------------------------------------------------
     // APIs for the DevTools Extension Sidebar
     // ---------------------------------------------------------------------------
@@ -74,26 +117,31 @@ globalThis.__schemeProbeRuntime = {
 
     /**
      * Begins a Step Into operation. The next `hit()` call will pause.
-     * Currently all step modes behave identically (as Step Into).
      */
     stepInto() {
         this._stepping = true;
+        this._stepMode = 'into';
+        this._stepStartDepth = 0; // Not needed for step into
     },
 
     /**
-     * Begins a Step Over operation. Currently behaves as Step Into;
-     * depth-aware logic will be added in Phase 2.5.
+     * Begins a Step Over operation. Pauses at the next expression at
+     * the same or shallower call depth.
      */
     stepOver() {
         this._stepping = true;
+        this._stepMode = 'over';
+        this._stepStartDepth = this._getDepth ? this._getDepth() : 0;
     },
 
     /**
-     * Begins a Step Out operation. Currently behaves as Step Into;
-     * depth-aware logic will be added in Phase 2.5.
+     * Begins a Step Out operation. Pauses at the next expression at
+     * a shallower call depth (after returning from the current function).
      */
     stepOut() {
         this._stepping = true;
+        this._stepMode = 'out';
+        this._stepStartDepth = this._getDepth ? this._getDepth() : 0;
     },
 
     /**
@@ -101,6 +149,7 @@ globalThis.__schemeProbeRuntime = {
      */
     resume() {
         this._stepping = false;
+        this._stepMode = null;
     },
 
     /**
@@ -108,5 +157,6 @@ globalThis.__schemeProbeRuntime = {
      */
     abortStepping() {
         this._stepping = false;
+        this._stepMode = null;
     }
 };

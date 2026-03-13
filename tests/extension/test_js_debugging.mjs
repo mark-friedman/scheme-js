@@ -22,239 +22,12 @@
  * with CDP-specific message routing and state tracking.
  */
 
-import { assert, INLINE_URL } from './test_harness.mjs';
+import { assert, INLINE_URL, waitForPage } from './test_harness.mjs';
+import { CDP_MOCK_CHROME_SCRIPT } from './test_mock_chrome.mjs';
 
-// =========================================================================
-// Extended mock chrome API for CDP testing
-// =========================================================================
+// The CDP_MOCK_CHROME_SCRIPT is now defined in test_mock_chrome.mjs.
+// The following inline definition is removed to eliminate duplication.
 
-/**
- * JavaScript to inject that extends the mock chrome API with CDP support.
- * Adds chrome.runtime.sendMessage tracking and CDP event simulation.
- */
-const CDP_MOCK_CHROME_SCRIPT = `
-// Mock state — tests can modify this to change what the panel "sees"
-window.__mockState = {
-  sources: [
-    {
-      url: '${INLINE_URL}',
-      content: '(define (add a b) (+ a b))\\n(define (double x) (* x 2))\\n(define (compute n) (add (double n) n))\\n(define (factorial n)\\n  (if (<= n 1) 1 (* n (factorial (- n 1)))))\\n(define greeting "hello")\\ngreeting\\n42\\n(display (string-append "result=" (number->string (compute 5)) "\\\\n"))\\n(display (string-append "fact5=" (number->string (factorial 5)) "\\\\n"))',
-      lines: 10,
-      origin: 'inline'
-    },
-    {
-      url: 'scheme://scheme-sources/manual_script.scm',
-      content: ';; External test script\\n(define (fib n)\\n  (if (<= n 1) n\\n    (+ (fib (- n 1)) (fib (- n 2)))))\\n(display (fib 10))',
-      lines: 5,
-      origin: 'external'
-    }
-  ],
-  status: { state: 'running', reason: null, active: true },
-  paused: false,
-  stack: [],
-  locals: [],
-  breakpoints: [],
-  expressions: {
-    '${INLINE_URL}': [
-      { exprId: 1, line: 1, column: 1, endLine: 1, endColumn: 26 },
-      { exprId: 2, line: 1, column: 16, endLine: 1, endColumn: 22 },
-    ],
-    'scheme://scheme-sources/manual_script.scm': [],
-  },
-  activateResult: { active: true, needsReload: false },
-  evalResults: {},
-  resumeCalled: false,
-  stepIntoCalled: false,
-  stepOverCalled: false,
-  stepOutCalled: false,
-  ackPauseCalled: false,
-  breakpointsSet: [],
-  breakpointsRemoved: [],
-  nextBreakpointId: 1,
-
-  // Phase 4 CDP-specific state
-  cdpAttached: false,
-  cdpMessages: [],       // All messages sent via chrome.runtime.sendMessage
-  jsBreakpointsSet: [],  // { url, lineNumber } entries
-  jsBreakpointsRemoved: [],
-  cdpStepIntoCalled: false,
-  cdpStepOverCalled: false,
-  cdpStepOutCalled: false,
-  cdpResumeCalled: false,
-  cdpDetachCalled: false,
-  jsSource: 'function jsAdd(a, b) {\\n  return a + b;\\n}\\n\\nfunction jsDouble(x) {\\n  return x * 2;\\n}\\n',
-};
-
-// Captured message listeners from panel code
-window.__messageListeners = [];
-
-// Helper to fire a message to all registered listeners
-window.__fireMessage = function(message) {
-  for (const listener of window.__messageListeners) {
-    listener(message);
-  }
-};
-
-// Build the mock chrome object
-window.chrome = {
-  devtools: {
-    inspectedWindow: {
-      tabId: 42,
-      eval: function(expression, callback) {
-        const state = window.__mockState;
-        let result = undefined;
-        let error = null;
-
-        try {
-          if (expression.includes('typeof __schemeDebug')) {
-            result = true;
-          } else if (expression.includes('getSources()')) {
-            result = JSON.stringify(state.sources);
-          } else if (expression.includes('getSourceContent(')) {
-            const urlMatch = expression.match(/getSourceContent\\("([^"]+)"\\)/);
-            if (urlMatch) {
-              const src = state.sources.find(s => s.url === urlMatch[1]);
-              result = JSON.stringify(src ? src.content : null);
-            }
-          } else if (expression.includes('activate()')) {
-            result = JSON.stringify(state.activateResult);
-          } else if (expression.includes('getStatus()')) {
-            result = JSON.stringify(state.status);
-          } else if (expression.includes('getStack()')) {
-            result = JSON.stringify(state.stack);
-          } else if (expression.includes('getLocals(')) {
-            const idxMatch = expression.match(/getLocals\\((\\d+)\\)/);
-            const idx = idxMatch ? parseInt(idxMatch[1]) : 0;
-            const locals = Array.isArray(state.locals[idx]) ? state.locals[idx] : (state.locals || []);
-            result = JSON.stringify(locals);
-          } else if (expression.includes('getAllBreakpoints()')) {
-            result = JSON.stringify(state.breakpoints);
-          } else if (expression.includes('ackPause()')) {
-            state.ackPauseCalled = true;
-            state.lastAction = 'ackPause';
-            result = undefined;
-          } else if (expression.includes('resume()')) {
-            state.resumeCalled = true;
-            state.lastAction = 'resume';
-            result = undefined;
-          } else if (expression.includes('stepInto()')) {
-            state.stepIntoCalled = true;
-            state.lastAction = 'stepInto';
-            result = undefined;
-          } else if (expression.includes('stepOver()')) {
-            state.stepOverCalled = true;
-            state.lastAction = 'stepOver';
-            result = undefined;
-          } else if (expression.includes('stepOut()')) {
-            state.stepOutCalled = true;
-            state.lastAction = 'stepOut';
-            result = undefined;
-          } else if (expression.includes('getExpressions(')) {
-            const urlMatch = expression.match(/getExpressions\\("([^"]+)"\\)/);
-            if (urlMatch) {
-              const exprs = state.expressions ? (state.expressions[urlMatch[1]] || []) : [];
-              result = JSON.stringify(exprs);
-            }
-          } else if (expression.includes('setBreakpoint(')) {
-            const bpMatch = expression.match(/setBreakpoint\\("([^"]+)",\\s*(\\d+)(?:,\\s*(\\d+))?\\)/);
-            if (bpMatch) {
-              const id = 'bp-' + (state.nextBreakpointId++);
-              const col = bpMatch[3] ? parseInt(bpMatch[3]) : null;
-              state.breakpointsSet.push({ url: bpMatch[1], line: parseInt(bpMatch[2]), column: col, id });
-              state.breakpoints.push({ id, filename: bpMatch[1], line: parseInt(bpMatch[2]), column: col });
-              result = JSON.stringify(id);
-            }
-          } else if (expression.includes('removeBreakpoint(')) {
-            const rmMatch = expression.match(/removeBreakpoint\\("([^"]+)"\\)/);
-            if (rmMatch) {
-              state.breakpointsRemoved.push(rmMatch[1]);
-              state.breakpoints = state.breakpoints.filter(bp => bp.id !== rmMatch[1]);
-              result = JSON.stringify(true);
-            }
-          } else if (expression.includes('localStorage.setItem')) {
-            result = undefined;
-          } else {
-            result = undefined;
-          }
-        } catch (e) {
-          error = { value: e.message };
-        }
-
-        setTimeout(() => callback(result, error), 10);
-      }
-    },
-    network: {
-      onNavigated: { addListener: function() {} }
-    },
-    panels: {}
-  },
-  runtime: {
-    onMessage: {
-      addListener: function(listener) {
-        window.__messageListeners.push(listener);
-      }
-    },
-    sendMessage: function(message, callback) {
-      const state = window.__mockState;
-      state.cdpMessages.push(message);
-
-      let response = { success: true };
-
-      // Route CDP messages
-      if (message.type === 'attach-debugger') {
-        state.cdpAttached = true;
-        response = { success: true };
-      } else if (message.type === 'detach-debugger') {
-        state.cdpAttached = false;
-        state.cdpDetachCalled = true;
-        response = { success: true };
-      } else if (message.type === 'resume-debugger') {
-        state.cdpResumeCalled = true;
-        response = { success: true };
-      } else if (message.type === 'cdp-step-into') {
-        state.cdpStepIntoCalled = true;
-        response = { success: true };
-      } else if (message.type === 'cdp-step-over') {
-        state.cdpStepOverCalled = true;
-        response = { success: true };
-      } else if (message.type === 'cdp-step-out') {
-        state.cdpStepOutCalled = true;
-        response = { success: true };
-      } else if (message.type === 'set-js-breakpoint') {
-        state.jsBreakpointsSet.push({ url: message.url, lineNumber: message.lineNumber });
-        response = { success: true, breakpointId: 'jsbp-' + (state.nextBreakpointId++) };
-      } else if (message.type === 'remove-js-breakpoint') {
-        state.jsBreakpointsRemoved.push(message.breakpointId);
-        response = { success: true };
-      } else if (message.type === 'get-js-source') {
-        response = { success: true, source: state.jsSource };
-      } else if (message.type === 'set-boundary-breakpoint') {
-        state.boundaryBreakpointsSet = (state.boundaryBreakpointsSet || 0) + 1;
-        response = { success: true, breakpointId: 'boundary-bp-' + (state.nextBreakpointId++) };
-      }
-
-      if (callback) setTimeout(() => callback(response), 10);
-    },
-    lastError: null,
-  },
-  storage: {
-    local: {
-      _data: {},
-      get: function(keys, callback) {
-        const result = {};
-        for (const k of (Array.isArray(keys) ? keys : [keys])) {
-          if (k in this._data) result[k] = this._data[k];
-        }
-        if (callback) callback(result);
-      },
-      set: function(items, callback) {
-        Object.assign(this._data, items);
-        if (callback) callback();
-      }
-    }
-  }
-};
-`;
 
 // =========================================================================
 // Helper: open panel with CDP mocks
@@ -273,7 +46,7 @@ async function openCDPMockedPanel(browser, extensionId) {
     `chrome-extension://${extensionId}/panel/panel.html`,
     { waitUntil: 'domcontentloaded' }
   );
-  await new Promise(r => setTimeout(r, 1500));
+  await waitForPage(panelPage, `document.querySelectorAll('#source-list .source-item').length > 0`);
   return panelPage;
 }
 
@@ -286,7 +59,7 @@ async function fireCDPPauseEvent(panelPage, detail) {
   await panelPage.evaluate((d) => {
     window.__fireMessage({ type: 'cdp-paused', ...d });
   }, detail);
-  await new Promise(r => setTimeout(r, 400));
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('Paused')`);
 }
 
 /**
@@ -298,7 +71,7 @@ async function fireSchemePauseEvent(panelPage, detail) {
   await panelPage.evaluate((d) => {
     window.__fireMessage({ type: 'scheme-debug-paused', detail: d });
   }, detail);
-  await new Promise(r => setTimeout(r, 400));
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('Paused')`);
 }
 
 /**
@@ -309,7 +82,7 @@ async function fireCDPResumeEvent(panelPage) {
   await panelPage.evaluate(() => {
     window.__fireMessage({ type: 'cdp-resumed' });
   });
-  await new Promise(r => setTimeout(r, 300));
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent === 'Ready'`);
 }
 
 /**
@@ -320,7 +93,7 @@ async function fireSchemeResumeEvent(panelPage) {
   await panelPage.evaluate(() => {
     window.__fireMessage({ type: 'scheme-debug-resumed' });
   });
-  await new Promise(r => setTimeout(r, 300));
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent === 'Ready'`);
 }
 
 // Sample JS and Scheme call frames for testing
@@ -488,7 +261,7 @@ export async function testJSStepInto(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Step Into'))?.click();
   });
-  await new Promise(r => setTimeout(r, 300));
+  await waitForPage(panelPage, `window.__mockState.cdpStepIntoCalled === true`);
 
   const called = await panelPage.evaluate(() => window.__mockState.cdpStepIntoCalled);
   assert('Step Into calls CDP step into', called === true);
@@ -517,7 +290,7 @@ export async function testJSStepOver(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Step Over'))?.click();
   });
-  await new Promise(r => setTimeout(r, 300));
+  await waitForPage(panelPage, `window.__mockState.cdpStepOverCalled === true`);
 
   const called = await panelPage.evaluate(() => window.__mockState.cdpStepOverCalled);
   assert('Step Over calls CDP step over', called === true);
@@ -546,7 +319,7 @@ export async function testJSStepOut(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Step Out'))?.click();
   });
-  await new Promise(r => setTimeout(r, 300));
+  await waitForPage(panelPage, `window.__mockState.cdpStepOutCalled === true`);
 
   const called = await panelPage.evaluate(() => window.__mockState.cdpStepOutCalled);
   assert('Step Out calls CDP step out', called === true);
@@ -576,7 +349,7 @@ export async function testJSResumeFromPause(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Resume'))?.click();
   });
-  await new Promise(r => setTimeout(r, 300));
+  await waitForPage(panelPage, `window.__mockState.cdpResumeCalled === true`);
 
   const called = await panelPage.evaluate(() => window.__mockState.cdpResumeCalled);
   assert('Resume calls CDP resume', called === true);
@@ -611,7 +384,7 @@ export async function testSchemeStepStillWorks(browser, extensionId) {
     const btns = Array.from(document.querySelectorAll('#toolbar-debug .toolbar-btn'));
     btns.find(b => b.title.includes('Step Into'))?.click();
   });
-  await new Promise(r => setTimeout(r, 300));
+  await waitForPage(panelPage, `window.__mockState.stepIntoCalled === true`);
 
   const schemeStepCalled = await panelPage.evaluate(() => window.__mockState.stepIntoCalled);
   const cdpStepCalled = await panelPage.evaluate(() => window.__mockState.cdpStepIntoCalled);
@@ -682,8 +455,7 @@ export async function testJSFrameClickLoadsJSSource(browser, extensionId) {
   });
 
   // The top frame should be auto-selected; check editor has JS content
-  // Wait a bit for the source to load
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `document.querySelector('.cm-content')?.textContent?.includes('function')`);
 
   const editorContent = await panelPage.evaluate(() => {
     const cm = document.querySelector('.cm-content');
@@ -713,7 +485,10 @@ export async function testEditorSwitchesToJSHighlighting(browser, extensionId) {
     reason: 'other',
   });
 
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `(() => {
+    const t = document.querySelector('.cm-content')?.textContent || '';
+    return t.includes('function') || t.includes('return');
+  })()`);
 
   // Check that the editor is displaying content (JS highlighting is applied internally
   // via CodeMirror — we verify the language mode is set by checking the content loaded)
@@ -769,7 +544,9 @@ export async function testSwitchBetweenSchemeAndJSFrames(browser, extensionId) {
     }
     return false;
   });
-  await new Promise(r => setTimeout(r, 500));
+  if (clickedScheme) {
+    await waitForPage(panelPage, `document.querySelector('.cm-content')?.textContent?.includes('define')`);
+  }
 
   if (clickedScheme) {
     // Editor should now show Scheme content
@@ -1010,7 +787,7 @@ export async function testCurrentLineHighlightOnJSPause(browser, extensionId) {
     reason: 'other',
   });
 
-  await new Promise(r => setTimeout(r, 500));
+  await waitForPage(panelPage, `!!document.querySelector('.cm-debug-current-line')`);
 
   const hasHighlight = await panelPage.evaluate(() =>
     !!document.querySelector('.cm-debug-current-line')
@@ -1048,7 +825,8 @@ export async function testBoundaryStepping(browser, extensionId) {
     window.__fireMessage({ type: 'scheme-debug-paused', detail });
   });
 
-  await new Promise(r => setTimeout(r, 500));
+  // Wait for the full boundary handling chain: attach CDP → set boundary BP → resume
+  await waitForPage(panelPage, `window.__mockState.resumeCalled === true`);
 
   // The panel SHOULD NOT show a pause UI
   const bodyClass = await panelPage.evaluate(() => document.body.className);

@@ -45,6 +45,8 @@ export function createBreakpointsList(container, { onClickBreakpoint, onRemoveBr
     for (const bp of sorted) {
       const item = document.createElement('div');
       item.className = 'breakpoint-item';
+      item.dataset.testid = 'breakpoint-item';
+      item.dataset.bpId = bp.id;
 
       // Checkbox / Icon to show it's a breakpoint
       const icon = document.createElement('span');

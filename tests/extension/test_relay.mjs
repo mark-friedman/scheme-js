@@ -84,7 +84,10 @@ export async function testPausePersistence(browser) {
 
   // Explicit resume
   await page.evaluate(() => globalThis.__schemeDebug?.resume());
-  await new Promise(r => setTimeout(r, 1000));
+  await page.waitForFunction(
+    () => document.getElementById('status')?.textContent === 'RESUMED',
+    { timeout: 5000 }
+  );
 
   const afterResume = await page.evaluate(() => ({
     status: document.getElementById('status')?.textContent,

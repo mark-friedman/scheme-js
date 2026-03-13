@@ -40,20 +40,21 @@ export function createToolbar(container, callbacks) {
    * @param {function(): void} onClick
    * @returns {HTMLButtonElement}
    */
-  function makeButton(icon, title, onClick) {
+  function makeButton(icon, title, testId, onClick) {
     const btn = document.createElement('button');
     btn.className = 'toolbar-btn';
     btn.title = title;
+    btn.dataset.testid = testId;
     btn.textContent = icon;
     btn.disabled = true; // Disabled until paused
     btn.addEventListener('click', onClick);
     return btn;
   }
 
-  const resumeBtn   = makeButton('▶', 'Resume (F8)',           () => callbacks.onResume());
-  const stepIntoBtn = makeButton('⬇', 'Step Into (F11)',       () => callbacks.onStepInto());
-  const stepOverBtn = makeButton('↷', 'Step Over (F10)',       () => callbacks.onStepOver());
-  const stepOutBtn  = makeButton('⬆', 'Step Out (Shift+F11)', () => callbacks.onStepOut());
+  const resumeBtn   = makeButton('▶', 'Resume (F8)',           'btn-resume',    () => callbacks.onResume());
+  const stepIntoBtn = makeButton('⬇', 'Step Into (F11)',       'btn-step-into', () => callbacks.onStepInto());
+  const stepOverBtn = makeButton('↷', 'Step Over (F10)',       'btn-step-over', () => callbacks.onStepOver());
+  const stepOutBtn  = makeButton('⬆', 'Step Out (Shift+F11)', 'btn-step-out',  () => callbacks.onStepOut());
 
   const statusEl = document.createElement('span');
   statusEl.className = 'toolbar-status';

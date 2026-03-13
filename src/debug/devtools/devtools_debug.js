@@ -683,6 +683,14 @@ export class DevToolsDebugIntegration {
       }
     };
 
+    // Wire up depth getter for probe runtime stepping.
+    // The probe runtime needs to know the current Scheme call stack depth
+    // so that step-over and step-out can make depth-aware pause decisions.
+    if (globalThis.__schemeProbeRuntime) {
+      globalThis.__schemeProbeRuntime._getDepth =
+        () => interpreter.debugRuntime?.stackTracer.getDepth() ?? 0;
+    }
+
     // Wire up pause/resume events so the content script can relay
     // pause notifications to the DevTools panel.
     //

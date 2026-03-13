@@ -5132,3 +5132,114 @@ Puppeteer E2E: 214 passed, 0 failed
 - Included new core boundary testing logic in `tests/debug/pause_controller_boundary_tests.js`.
 - Created an end-to-end Puppeteer UI suite (`testBoundaryStepping` inside `tests/extension/test_js_debugging.mjs`) orchestrating a simulated Scheme-to-JS boundary crossing pause via `schema-debug-paused` mock messages.
 - Both the Node.js unit tests (`npm run test`) and the browser extension integration suite (`npm run test:extension`) pass successfully.
+
+# Walkthrough: DevTools Debugging System Review Implementation (03-13-26)
+
+Implemented the prioritized recommendations from the comprehensive code review of the Scheme-JS DevTools debugging subsystem.
+
+## High Priority Changes
+
+### 1. Depth-Aware Probe Stepping
+- **`src/debug/devtools/probe_runtime.js`**: Replaced the placeholder `_shouldStopForStep()` (which always returned `true`, making step-over and step-out behave identically to step-into) with depth-aware logic:
+  - Added `_stepMode` ('into'/'over'/'out'), `_stepStartDepth`, and `_getDepth` callback
+  - Step Into: always pauses at next expression
+  - Step Over: pauses when `currentDepth <= stepStartDepth`
+  - Step Out: pauses when `currentDepth < stepStartDepth`
+- **`src/debug/devtools/devtools_debug.js`**: Wired up the `_getDepth` callback in `installSchemeDebugAPI()` to read from `interpreter.debugRuntime.stackTracer.getDepth()`
+
+### 2. Breakpoint Key Format Fix
+- **`extension/panel-src/breakpoint-state.js`** (new): Extracted all breakpoint state management from `main.js` into a dedicated module. Replaced fragile string-concatenated keys (`"${url}:${line}:${column}"` with colon delimiter that collides with URLs) with structured JSON keys (`JSON.stringify([url, line, column])`). Provides clean API: `bpKey()`, `parseBpKey()`, `has()`, `getId()`, `set()`, `remove()`, `getLinesForUrl()`, `getExpressionBreakpointsForUrl()`, `getAllBreakpoints()`, `saveToPage()`, `syncFromInterpreter()`
+
+### 3. Error Visibility in Bridge Layer
+- **`extension/panel-src/protocol/scheme-bridge.js`**: Replaced ~15 silent `catch { return fallback; }` blocks with `catch (e) { console.warn('[scheme-bridge] methodName failed:', e.message); return fallback; }` — errors are now visible in the console for debugging
+- **`extension/panel-src/protocol/cdp-bridge.js`**: Same treatment for all CDP bridge methods
+
+## Medium Priority Changes
+
+### 4. Main.js Refactoring
+- **`extension/panel-src/main.js`**: Reduced from 918 lines to ~575 lines by extracting:
+  - Breakpoint state management → `breakpoint-state.js`
+  - Splitter drag behavior → `splitter.js`
+  - Removed debug `console.log` in `loadJSSource`
+- **`extension/panel-src/splitter.js`** (new): Generic drag-to-resize splitter supporting horizontal and vertical orientations with configurable min/max/invert
+
+### 5. Unbounded Growth Caps
+- **`extension/panel-src/components/console.js`**: Console history capped at 100 entries (was unbounded)
+- **`extension/panel-src/protocol/cdp-bridge.js`**: Added `clearNavigationCache()` method; called from `main.js` on page navigation to clear stale `scriptUrlMap` entries
+
+### 6. Source List Listener Fix
+- **`extension/panel-src/components/source-list.js`**: Replaced per-render click listener attachment with event delegation on the container element (single listener registered once)
+
+### 7. Shared Mock Infrastructure
+- **`tests/extension/test_mock_chrome.mjs`** (new): Extracted the duplicated ~200-line mock chrome API script into a shared module with composable `buildMockChromeScript({ cdp, extraState, extraScript })` builder. Provides pre-built `MOCK_CHROME_SCRIPT` (base) and `CDP_MOCK_CHROME_SCRIPT` (with CDP support)
+- **`tests/extension/test_panel_interactions.mjs`**: Removed inline mock definition, re-exports from shared module
+- **`tests/extension/test_js_debugging.mjs`**: Removed inline CDP mock definition, imports from shared module
+
+## Verification
+- All 2415 tests pass (`npm test`)
+- Panel bundle builds successfully (`npm run build:panel`)
+- Full project build succeeds (`npm run build`)
+
+# Walkthrough: DevTools Test Quality Improvements (03-13-26)
+
+Implemented the lower-priority code review recommendations focused on test quality, documentation, and DX improvements.
+
+## Task 9: Replace Fixed Timeouts with Condition-Based Polling
+
+Added `waitFor()` and `waitForPage()` utilities to `tests/extension/test_harness.mjs`:
+- `waitFor(conditionFn, timeout, interval)` — polls a local JS function until it returns truthy
+- `waitForPage(page, expression, timeout)` — polls a Puppeteer page via `page.evaluate()` until the expression is truthy
+
+Replaced all fixed `setTimeout` delays across the test suite with condition-based polling:
+- **`test_panel_interactions.mjs`**: ~20 fixed timeouts replaced with `waitForPage()` conditions (source switch, frame selection, variable type colors, pause navigation, empty variables message, diamond markers, diamond active state)
+- **`test_js_debugging.mjs`**: ~16 timeouts replaced in helper functions and individual tests
+- **`test_console.mjs`**: All timeouts replaced
+- **`test_helpers.mjs`**: `openPanelPage` 1000ms startup timeout replaced with condition polling
+- **`test_panel_ui.mjs`**: Theme switch test timeout replaced
+- **`test_relay.mjs`**: Resume 1000ms replaced with `page.waitForFunction()`; intentional 7000ms ackPause test retained
+- **`test_stepping.mjs`**: Step-out 300ms replaced with condition polling
+
+## Task 10: data-testid Attributes for Stable Test Selectors
+
+Added `data-testid` attributes to all key panel components for reliable test selection:
+- **`toolbar.js`**: `data-testid="btn-resume"`, `btn-step-into`, `btn-step-over`, `btn-step-out`
+- **`call-stack.js`**: `data-testid="call-stack-frame"`, `data-frame-index`, `data-frame-name`
+- **`source-list.js`**: `data-testid="source-item"` on each source item
+- **`variables.js`**: `data-testid="variable-row"`, `data-var-name`
+- **`breakpoints.js`**: `data-testid="breakpoint-item"`, `data-bp-id`
+- **`console.js`**: `data-testid="console-message"`, `data-message-type`
+
+## Task 11: Cross-Cutting Debugging Flow Documentation
+
+Created **`docs/debugging-flows.md`** — comprehensive documentation of three flows that span multiple files:
+
+1. **Breakpoint Lifecycle**: Full trace from gutter click through editor → main.js → unified-debugger → scheme-bridge → devtools_debug.js → breakpoint_manager.js, and the reverse path from interpreter → handlePause → content_script → panel
+2. **Probe Mechanism**: Registration flow (html_adapter → sourceRegistry → probe script generation + source maps), execution flow (trampoline → maybeHit → envProxy → probe function → `debugger;`), and deduplication strategy
+3. **panelConnected Protocol**: Problem statement, activation sequence, persistence across page reload (3-stage cascade), pause blocking behavior, and cross-world relay
+
+Added entry for `debugging-flows.md` in `docs/README.md`.
+
+## Task 12: Error Path Tests
+
+Created **`tests/extension/test_error_paths.mjs`** with 7 test functions (12 assertions) covering failure scenarios:
+- `testEvalTimeout` — panel handles hung `getSources()` call gracefully
+- `testEvalError` — panel handles `getSources()` returning an error object
+- `testMissingSchemeDebug` — panel shows "not detected" when `__schemeDebug` is absent
+- `testMalformedPauseEvent` — panel handles pause events with missing fields or null detail
+- `testGetLocalsFailure` — panel shows empty variables when `getLocals()` throws
+- `testCDPSendMessageFailure` — panel handles CDP `sendMessage` returning error responses
+- `testUnknownSourceContent` — panel shows paused state even when source URL is unrecognized
+
+Registered all error path tests in `run_extension_tests.mjs` under the `error_paths` module.
+
+## Bonus: --only Filter for Test Runner
+
+Added `--only <filter>` CLI argument to `tests/extension/run_extension_tests.mjs`:
+- Syntax: `--only panel_interactions,console` or `--only=js_debugging`
+- Matches against module tag (e.g. `panel_interactions`, `js_debugging`, `error_paths`) or function name
+- All test entries tagged with module strings in the runner arrays
+- Enables running a subset of extension tests without executing the full 258-test suite
+
+## Verification
+- All 258 extension tests pass (`npm run test:extension`)
+- All 2415 unit tests pass (`npm test`)

@@ -15,17 +15,21 @@ Chrome DevTools extension for debugging Scheme in the browser.
 - `tests/` — All tests; run via `npm test`
 - `dist/` — Built output (rollup)
 
-## Chrome Extension — Current State (Phase 1 done)
+## Chrome Extension — Current State
 - `extension/devtools.js` — Creates top-level "Scheme-JS" panel via `chrome.devtools.panels.create`
 - `extension/panel/panel.html` + `panel.css` + `panel.js` (bundled) — New panel UI
 - `extension/panel-src/` — Panel source (main.js, components/, protocol/, language/)
+- `extension/panel-src/main.js` — Panel entry point (~575 lines, refactored from 918)
+- `extension/panel-src/breakpoint-state.js` — Breakpoint state management (JSON-keyed Map)
+- `extension/panel-src/splitter.js` — Generic drag-to-resize splitter
 - `extension/panel-src/language/scheme-mode.js` — CodeMirror 6 StreamParser for Scheme
 - `extension/panel-src/components/editor.js` — CodeMirror editor (read-only, dark theme)
-- `extension/panel-src/components/source-list.js` — Source file list (fetches from __schemeDebug)
-- `extension/panel-src/protocol/scheme-bridge.js` — inspectedWindow.eval wrapper
+- `extension/panel-src/components/source-list.js` — Source file list (event delegation)
+- `extension/panel-src/components/console.js` — REPL console (history capped at 100)
+- `extension/panel-src/protocol/scheme-bridge.js` — inspectedWindow.eval wrapper (with error logging)
+- `extension/panel-src/protocol/cdp-bridge.js` — CDP via background.js (with error logging + nav cache clearing)
 - `extension/build/build-panel.js` — esbuild script; outputs extension/panel/panel.js
 - `npm run build:panel` — builds the panel bundle
-- Old sidebar files (sidebar.html/js/css) still exist but are no longer used
 
 ## __schemeDebug API (page-side, installed by devtools_debug.js)
 - `getStack()`, `getLocals(frameIndex)`, `getSource(frameIndex)`, `eval(code, frameIndex)`
@@ -33,14 +37,19 @@ Chrome DevTools extension for debugging Scheme in the browser.
 - `getSourceContent(url)` — returns content of a specific source
 - `getExpressions(url)` — returns expression spans [{exprId, line, column, endLine, endColumn}]
 - `setBreakpoint(url, line, column?)` — column param enables expression-level breakpoints
-- `stepInto()`, `stepOver()`, `stepOut()` — delegates to __schemeProbeRuntime (probe-based)
+- `stepInto()`, `stepOver()`, `stepOut()` — delegates to PauseController (cooperative), probe runtime has depth-aware stepping
 
 ## Testing
-- `npm test` — runs all tests (2392+)
-- `npm run test:extension` — Puppeteer E2E tests (166+ tests, extension loaded in headed Chrome)
+- `npm test` — runs all tests (2415+)
+- `npm run test:extension` — Puppeteer E2E tests (258+ tests, extension loaded in headed Chrome)
+- `npm run test:extension -- --only <filter>` — Run subset of tests (e.g., `--only console,panel_interactions`)
 - Tests must pass in Node.js and browser
 - New features need tests in `tests/`
 - `tests/extension/run_extension_tests.mjs` — Puppeteer E2E: page-side API + panel UI tests
+- `tests/extension/test_mock_chrome.mjs` — Shared mock chrome API infrastructure (composable via `buildMockChromeScript()`)
+- `tests/extension/test_error_paths.mjs` — Error path tests (eval timeout, missing API, malformed events)
+- `tests/extension/test_harness.mjs` — `waitFor()` and `waitForPage()` for condition-based polling (replaces fixed timeouts)
+- Components use `data-testid` attributes for stable test selectors
 
 ## Puppeteer Extension Testing — Key Discovery
 - System Chrome (145+) does NOT load unpacked extensions via `--load-extension`
@@ -113,7 +122,7 @@ Chrome DevTools extension for debugging Scheme in the browser.
 - Diamonds appear on lines with line breakpoints + current paused line
 - Click diamond → toggles column-level expression breakpoint
 - `setExpressionBreakpoints(spans)` — red background highlight on active expression BPs
-- Breakpoint key format: `"${url}:${line}:${column}"` (column="null" for line-level)
+- Breakpoint key format: `JSON.stringify([url, line, column])` — structured JSON keys (replaces fragile colon-delimited format)
 - html_adapter.js passes `column` through __SCHEME_JS_BREAKPOINTS pre-loading
 
 ## Phase 2 Test Pages

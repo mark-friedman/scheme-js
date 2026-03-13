@@ -3,7 +3,7 @@
  * call stack, variables, CSS loading, source list, and CodeMirror editor.
  */
 
-import { assert } from './test_harness.mjs';
+import { assert, waitForPage } from './test_harness.mjs';
 import { openPanelPage } from './test_helpers.mjs';
 
 // --- Panel UI Structure ---
@@ -261,7 +261,7 @@ export async function testThemeSwitching(browser, extensionId) {
     `chrome-extension://${extensionId}/panel/panel.html`,
     { waitUntil: 'domcontentloaded' }
   );
-  await new Promise(r => setTimeout(r, 1000));
+  await waitForPage(panelPage, `!!document.querySelector('.toolbar-status')`);
 
   // We mock a theme change event by calling the global `updateTheme` function
   // if it's not exposed, we can directly dispatch to the listener, or we can just 
