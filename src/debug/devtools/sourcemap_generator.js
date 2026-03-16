@@ -141,9 +141,10 @@ export function generateProbeSourceMap(schemeUrl, probeUrl, schemeContent, expre
   // Encode as base64
   const json = JSON.stringify(sourceMap);
 
-  // Use btoa if available (browser), otherwise Buffer (Node.js)
+  // Use btoa if available (browser), otherwise Buffer (Node.js).
+  // btoa only handles Latin1, so encode UTF-8 via encodeURIComponent first.
   if (typeof btoa === 'function') {
-    return btoa(json);
+    return btoa(unescape(encodeURIComponent(json)));
   }
   return Buffer.from(json).toString('base64');
 }

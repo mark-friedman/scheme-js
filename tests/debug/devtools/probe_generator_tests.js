@@ -176,4 +176,62 @@ export function runProbeGeneratorTests(logger) {
     // At least we check if valid probes are generated.
     assert(logger, 'probe exists for parsed content', result.probeScript.includes('probes[1] ='), true);
   }
+
+  logger.title('Probe Generator - Unicode Source Content');
+
+  // Test: generateProbeScript does not throw on non-Latin1 unicode source content.
+  // The embedded source map uses btoa() internally; prior to the fix, btoa() would
+  // throw InvalidCharacterError for source code containing characters outside Latin1
+  // (e.g. Greek letters like λ, CJK ideographs, emoji).
+  {
+    const content = '(define λ (lambda (x) x))\n(λ 42)\n';
+    const url = 'scheme://app/unicode-lambda.scm';
+    const spans = getMockSpans(url, content);
+
+    let threw = false;
+    let result = null;
+    try {
+      result = generateProbeScript(url, content, spans);
+    } catch (e) {
+      threw = true;
+    }
+    assert(logger, 'probe generation with λ identifier does not throw', threw, false);
+    assert(logger, 'probe generation with λ produces a probe script', typeof result?.probeScript, 'string');
+  }
+
+  // Test: Unicode in string literals does not break probe generation.
+  {
+    const content = '(define msg "こんにちは世界")\n(display msg)\n';
+    const url = 'scheme://app/unicode-cjk.scm';
+    const spans = getMockSpans(url, content);
+
+    let threw = false;
+    try {
+      generateProbeScript(url, content, spans);
+    } catch (e) {
+      threw = true;
+    }
+    assert(logger, 'probe generation with CJK string literal does not throw', threw, false);
+  }
+
+  // Test: Mix of ASCII and non-Latin1 content succeeds and embeds a valid source map.
+  {
+    const content = '(define x "café")\n(define y "αβγ")\n(+ 1 2)\n';
+    const url = 'scheme://app/unicode-mixed.scm';
+    const spans = getMockSpans(url, content);
+    const result = generateProbeScript(url, content, spans);
+
+    // Verify the sourceMappingURL is present and decodable.
+    const mapMatch = result.probeScript.match(/sourceMappingURL=data:application\/json;base64,([A-Za-z0-9+/=]+)/);
+    assert(logger, 'unicode probe script contains sourceMappingURL', mapMatch !== null, true);
+
+    if (mapMatch) {
+      const base64 = mapMatch[1];
+      // Reverse the btoa(unescape(encodeURIComponent(json))) encoding.
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))));
+      assert(logger, 'unicode probe source map has version 3', decoded.version, 3);
+      assert(logger, 'unicode source map preserves non-ASCII in sourcesContent',
+        decoded.sourcesContent[0].includes('café') && decoded.sourcesContent[0].includes('αβγ'), true);
+    }
+  }
 }

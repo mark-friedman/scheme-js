@@ -26,7 +26,7 @@
  * @returns {VariablesAPI}
  */
 export function createVariables(container) {
-  container.className = 'variables-panel';
+  container.classList.add('variables-panel');
 
   /**
    * Maps a type name to a CSS class for coloring.

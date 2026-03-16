@@ -56,6 +56,8 @@ export const unitTests = [
     // DevTools Integration Tests (Phase 7)
     { path: 'debug/devtools/repl_library_registration_tests.js', fn: 'runReplRegistrationTests', needsInterpreter: false },
     { path: 'debug/devtools/repl_library_registration_tests.js', fn: 'runLibraryRegistrationTests', needsInterpreter: false },
+    // Packaging
+    { path: 'packaging/html_adapter_parse_tests.js', fn: 'runHtmlAdapterParseTests', needsInterpreter: false },
 ];
 
 

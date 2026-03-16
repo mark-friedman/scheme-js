@@ -40,7 +40,7 @@ export function createCallStack(container, onSelectFrame) {
   let frames = [];
   let selectedIndex = -1;
 
-  container.className = 'call-stack';
+  container.classList.add('call-stack');
 
   /**
    * Renders the current frames array into the container.

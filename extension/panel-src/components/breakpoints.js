@@ -18,7 +18,7 @@
 export function createBreakpointsList(container, { onClickBreakpoint, onRemoveBreakpoint }) {
   let breakpoints = [];
 
-  container.className = 'breakpoints-list';
+  container.classList.add('breakpoints-list');
 
   /**
    * Renders the current breakpoints array into the container.

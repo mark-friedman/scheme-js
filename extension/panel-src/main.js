@@ -573,6 +573,19 @@ async function onPaused(detail) {
     refreshDiamondMarkers();
   }
 
+  // Set the selected frame to the top frame so eval console works immediately.
+  // (callStack.setFrames uses suppressAutoSelect so onSelectFrame is not called.)
+  if (stack.length > 0) {
+    const topFrameIndex = stack.length - 1;
+    selectedUnifiedFrame = stack[topFrameIndex];
+    // Compute scheme frame index: subtract JS frames below the top
+    let jsCount = 0;
+    for (let i = 0; i < topFrameIndex; i++) {
+      if (stack[i].language === 'js') jsCount++;
+    }
+    selectedSchemeFrameIndex = topFrameIndex - jsCount;
+  }
+
   // Load locals for the top frame
   if (stack.length > 0) {
     const topFrame = stack[stack.length - 1];

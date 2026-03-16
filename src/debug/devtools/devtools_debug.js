@@ -14,10 +14,10 @@
  */
 
 import { createEnvProxy } from './env_proxy.js';
-import { parse } from '../../core/interpreter/reader.js';
-import { analyze } from '../../core/interpreter/analyzer.js';
-import { list } from '../../core/interpreter/cons.js';
-import { intern } from '../../core/interpreter/symbol.js';
+import { parse as _defaultParse } from '../../core/interpreter/reader.js';
+import { analyze as _defaultAnalyze } from '../../core/interpreter/analyzer.js';
+import { list as _defaultList } from '../../core/interpreter/cons.js';
+import { intern as _defaultIntern } from '../../core/interpreter/symbol.js';
 import { SchemeError } from '../../core/interpreter/errors.js';
 import { SchemeSourceRegistry } from './source_registry.js';
 
@@ -48,13 +48,34 @@ export class DevToolsDebugIntegration {
   /**
    * @param {import('./source_registry.js').SchemeSourceRegistry} sourceRegistry
    *   The registry of loaded Scheme sources and their probe functions.
+   * @param {Object} [interpreterUtils] - Core interpreter utilities from the shared
+   *   module instance. When provided, these override the module-level defaults,
+   *   ensuring that `analyze` (and thus `ImportNode`) captures the correctly
+   *   configured `loadLibrarySync` from the shared bundle rather than a bundled
+   *   copy where `fileResolver` is null.
+   * @param {Function} [interpreterUtils.parse]
+   * @param {Function} [interpreterUtils.analyze]
+   * @param {Function} [interpreterUtils.list]
+   * @param {Function} [interpreterUtils.intern]
    */
-  constructor(sourceRegistry) {
+  constructor(sourceRegistry, { parse, analyze, list, intern } = {}) {
     /**
      * The source registry providing probe function lookup.
      * @type {import('./source_registry.js').SchemeSourceRegistry}
      */
     this.sourceRegistry = sourceRegistry;
+
+    /**
+     * Core interpreter utilities — parse, analyze, list, intern.
+     * Injected via constructor to ensure the shared bundle instance is used in
+     * production (avoiding the null-fileResolver problem in rollup splits).
+     * Falls back to the module-level imports for backwards compatibility in tests.
+     * @private
+     */
+    this._parse = parse || _defaultParse;
+    this._analyze = analyze || _defaultAnalyze;
+    this._list = list || _defaultList;
+    this._intern = intern || _defaultIntern;
 
     /**
      * Whether DevTools debugging is currently active.
@@ -261,7 +282,7 @@ export class DevToolsDebugIntegration {
    */
   registerReplEval(code) {
     const sourceId = this.getNextReplSourceId();
-    const expressions = parse(code, { filename: sourceId });
+    const expressions = this._parse(code, { filename: sourceId });
     this.sourceRegistry.register(sourceId, code, 'repl', expressions);
     return { sourceId, expressions };
   }
@@ -275,7 +296,7 @@ export class DevToolsDebugIntegration {
    * @param {string} code - The library source code
    */
   registerLibrarySource(url, code) {
-    const expressions = parse(code, { filename: url });
+    const expressions = this._parse(code, { filename: url });
     this.sourceRegistry.register(url, code, 'library', expressions);
   }
 
@@ -377,6 +398,7 @@ export class DevToolsDebugIntegration {
    */
   installSchemeDebugAPI(interpreter) {
     const sourceRegistry = this.sourceRegistry;
+    const { _parse, _analyze, _list, _intern } = this;
     globalThis.__schemeDebug = {
       /**
        * Gets the current Scheme call stack.
@@ -436,9 +458,22 @@ export class DevToolsDebugIntegration {
 
         if (!env) return [];
 
+        // When in the global env, filter out system-defined bindings (primitives +
+        // standard library procs loaded during bootstrap). html_adapter.js snapshots
+        // env._systemBindingNames before running user scripts; any binding whose
+        // internal key is in that set was defined by the system, not the user.
+        const systemNames = (env.parent === null) ? env._systemBindingNames : null;
+
         const locals = inspector.getLocals(env);
         const result = [];
         for (const [name, value] of locals) {
+          // Skip system-defined names in the global scope
+          if (systemNames) {
+            const internalName = env.nameMap?.get(name);
+            if (systemNames.has(name) || (internalName && systemNames.has(internalName))) {
+              continue;
+            }
+          }
           const serialized = inspector.serializeValue(value);
           result.push({
             name,
@@ -519,14 +554,14 @@ export class DevToolsDebugIntegration {
         }
         try {
           // Use synchronous path: parse → analyze → run
-          const expressions = parse(code);
+          const expressions = _parse(code);
           if (expressions.length === 0) return '';
 
           let ast;
           if (expressions.length === 1) {
-            ast = analyze(expressions[0]);
+            ast = _analyze(expressions[0]);
           } else {
-            ast = analyze(list(intern('begin'), ...expressions));
+            ast = _analyze(_list(_intern('begin'), ...expressions));
           }
 
           const result = interpreter.run(ast, env);

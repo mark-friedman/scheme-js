@@ -109,3 +109,12 @@ export { prettyPrint } from '../core/interpreter/printer.js';
 export { isCompleteExpression, findMatchingDelimiter } from '../core/interpreter/expression_utils.js';
 export { SchemeDebugRuntime, ReplDebugBackend, ReplDebugCommands };
 
+// Export core data-structure and library utilities so that html_adapter.js (bundled
+// separately as scheme-html.js) can import these from the same module instance as
+// the interpreter.  Without this, rollup would inline separate copies of
+// library_registry.js into scheme-html.js, giving it a fileResolver = null that is
+// disconnected from the one set here during bootstrap.
+export { list, cons } from '../core/interpreter/cons.js';
+export { intern } from '../core/interpreter/symbol.js';
+export { setFileResolver, getFileResolver } from '../core/interpreter/library_loader.js';
+

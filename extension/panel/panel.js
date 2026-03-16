@@ -23546,7 +23546,7 @@ function createToolbar(container, callbacks) {
 function createCallStack(container, onSelectFrame2) {
   let frames = [];
   let selectedIndex = -1;
-  container.className = "call-stack";
+  container.classList.add("call-stack");
   function render() {
     container.innerHTML = "";
     if (frames.length === 0) {
@@ -23625,7 +23625,7 @@ function createCallStack(container, onSelectFrame2) {
 
 // extension/panel-src/components/variables.js
 function createVariables(container) {
-  container.className = "variables-panel";
+  container.classList.add("variables-panel");
   function typeClass(type) {
     switch (type) {
       case "number":
@@ -23679,7 +23679,7 @@ function createVariables(container) {
 // extension/panel-src/components/breakpoints.js
 function createBreakpointsList(container, { onClickBreakpoint, onRemoveBreakpoint }) {
   let breakpoints = [];
-  container.className = "breakpoints-list";
+  container.classList.add("breakpoints-list");
   function render() {
     container.innerHTML = "";
     if (breakpoints.length === 0) {
@@ -24802,6 +24802,15 @@ async function onPaused2(detail) {
       editor.highlightExpression(null);
     }
     refreshDiamondMarkers();
+  }
+  if (stack.length > 0) {
+    const topFrameIndex = stack.length - 1;
+    selectedUnifiedFrame = stack[topFrameIndex];
+    let jsCount = 0;
+    for (let i = 0; i < topFrameIndex; i++) {
+      if (stack[i].language === "js") jsCount++;
+    }
+    selectedSchemeFrameIndex = topFrameIndex - jsCount;
   }
   if (stack.length > 0) {
     const topFrame = stack[stack.length - 1];

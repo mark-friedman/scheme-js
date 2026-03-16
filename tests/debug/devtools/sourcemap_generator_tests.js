@@ -159,4 +159,71 @@ export function runSourceMapGeneratorTests(logger) {
 
     assert(logger, 'empty source map is valid', json.version, 3);
   }
+
+  logger.title('Source Map Generation - Unicode Content');
+
+  // Test: Source map generation does not throw on non-Latin1 unicode content.
+  // Previously btoa() would throw InvalidCharacterError for any character
+  // outside the Latin1 range (e.g. λ, Chinese characters, emoji).
+  {
+    const content = '(define greeting "こんにちは世界")\n(define λ 42)\n';
+    const schemeUrl = 'scheme://app/unicode-test.scm';
+    const spans = getMockSpans(schemeUrl, content);
+
+    let threw = false;
+    let base64 = null;
+    try {
+      base64 = generateProbeSourceMap(
+        schemeUrl,
+        'scheme-probe://app/unicode-test.scm.probe.js',
+        content,
+        spans
+      );
+    } catch (e) {
+      threw = true;
+    }
+    assert(logger, 'unicode source map generation does not throw', threw, false);
+    assert(logger, 'unicode source map returns non-empty base64 string',
+      typeof base64 === 'string' && base64.length > 0, true);
+  }
+
+  // Test: Decoded unicode source map has correct structure and preserves content.
+  // The encoding uses btoa(unescape(encodeURIComponent(json))), so decoding
+  // requires decodeURIComponent(escape(atob(base64))).
+  {
+    const content = '(define x "héllo λ world")\n(define y "日本語")\n';
+    const schemeUrl = 'scheme://app/unicode-decode.scm';
+    const spans = getMockSpans(schemeUrl, content);
+    const base64 = generateProbeSourceMap(
+      schemeUrl,
+      'scheme-probe://app/unicode-decode.scm.probe.js',
+      content,
+      spans
+    );
+
+    // Decode: reverse the btoa(unescape(encodeURIComponent(...))) encoding.
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))));
+    assert(logger, 'unicode source map decodes to valid version-3 JSON', decoded.version, 3);
+    assert(logger, 'unicode source map source URL is preserved', decoded.sources[0], schemeUrl);
+    assert(logger, 'unicode source map preserves λ in sourcesContent',
+      decoded.sourcesContent[0].includes('λ'), true);
+    assert(logger, 'unicode source map preserves CJK chars in sourcesContent',
+      decoded.sourcesContent[0].includes('日本語'), true);
+  }
+
+  // Test: Latin1-range content (ASCII + accented chars) still works.
+  {
+    const content = '(define x "café résumé naïve")\n';
+    const schemeUrl = 'scheme://app/latin1-test.scm';
+    const spans = getMockSpans(schemeUrl, content);
+    const base64 = generateProbeSourceMap(
+      schemeUrl,
+      'scheme-probe://app/latin1-test.scm.probe.js',
+      content,
+      spans
+    );
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))));
+    assert(logger, 'Latin1-range content source map is valid', decoded.version, 3);
+    assert(logger, 'Latin1-range content is preserved', decoded.sourcesContent[0].includes('café'), true);
+  }
 }

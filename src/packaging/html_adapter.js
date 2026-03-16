@@ -1,12 +1,16 @@
-import { schemeEvalAsync, interpreter, env } from './scheme_entry.js';
-import { parse } from '../core/interpreter/reader.js';
-import { analyze } from '../core/interpreter/analyzer.js';
-import { list } from '../core/interpreter/cons.js';
-import { intern } from '../core/interpreter/symbol.js';
+// Import core interpreter utilities from scheme_entry.js so that the rollup
+// rewrite-import plugin treats them as external (served from scheme.js).  This
+// ensures html_adapter.js shares the *same* library_registry instance as the
+// interpreter — in particular the same fileResolver — rather than getting its
+// own bundled copy where fileResolver is always null.
+import {
+  schemeEvalAsync, interpreter, env,
+  parse, analyze, list, intern,
+  setFileResolver, getFileResolver,
+} from './scheme_entry.js';
 import { SchemeSourceRegistry } from '../debug/devtools/source_registry.js';
 import { DevToolsDebugIntegration } from '../debug/devtools/devtools_debug.js';
 import { SchemeDebugRuntime } from '../debug/scheme_debug_runtime.js';
-import { setFileResolver, getFileResolver } from '../core/interpreter/library_loader.js';
 
 /**
  * Checks whether DevTools debugging is requested via any supported mechanism.
@@ -74,7 +78,7 @@ async function runScripts() {
     debugRuntime.enable();
     interpreter.setDebugRuntime(debugRuntime);
 
-    const devtools = new DevToolsDebugIntegration(sourceRegistry);
+    const devtools = new DevToolsDebugIntegration(sourceRegistry, { parse, analyze, list, intern });
     devtools.enable();
     devtools.enableTracking(); // Optional, for diagnostics
     interpreter.devtoolsDebug = devtools;
@@ -150,8 +154,9 @@ async function runScripts() {
   const allInlineExpressions = [];
 
   for (const script of scripts) {
+    let sourceId;
     try {
-      let code, sourceId;
+      let code;
       let lineOffset = 0;
 
       if (script.src) {
@@ -171,7 +176,12 @@ async function runScripts() {
 
       // Parse with sourceId so AST nodes carry the correct filename.
       // wrapLiterals wraps top-level primitive values for breakpoint source tracking.
-      const expressions = parse(code, { filename: sourceId, wrapLiterals: true, lineOffset });
+      const rawExpressions = parse(code, { filename: sourceId, wrapLiterals: true, lineOffset });
+
+      // Filter out null values: parse() returns null for a bare '()' (empty list)
+      // at the top level, which analyze() cannot handle.  Such expressions are
+      // syntactically valid Scheme data but not valid top-level forms.
+      const expressions = rawExpressions.filter(e => e !== null);
       if (expressions.length === 0) continue;
 
       // Register source for DevTools probe generation
@@ -192,6 +202,13 @@ async function runScripts() {
     } catch (e) {
       console.error(`Error processing Scheme script ${sourceId || 'inline'}:`, e);
     }
+  }
+
+  // Snapshot the set of system-defined binding names in the global env so the
+  // debugger can filter them from the Variables panel (showing only user-defined
+  // bindings instead of hundreds of standard library names).
+  if (!env._systemBindingNames && env.bindings) {
+    env._systemBindingNames = new Set(env.bindings.keys());
   }
 
   // Pass 2: Execute all scripts sequentially.
