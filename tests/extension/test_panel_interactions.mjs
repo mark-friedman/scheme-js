@@ -1065,7 +1065,7 @@ export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) 
         `column: ${bp.column}`);
     }
 
-    // Wait for diamond to become active and expression highlight to appear
+    // Wait for diamond to become active (filled ◆ is the only visual indicator)
     await waitForPage(panelPage, `document.querySelectorAll('.cm-expr-diamond-active').length >= 1`);
 
     // Diamond should now be filled (active)
@@ -1075,13 +1075,6 @@ export async function testPanelDiamondClickSetsBreakpoint(browser, extensionId) 
     });
     assert('Diamond is now active (filled)', activeDiamonds >= 1,
       `found ${activeDiamonds} active diamonds`);
-
-    // Expression breakpoint highlight should also appear
-    await waitForPage(panelPage, `!!document.querySelector('.cm-expr-breakpoint')`);
-    const hasExprBp = await panelPage.evaluate(() =>
-      !!document.querySelector('.cm-expr-breakpoint')
-    );
-    assert('Expression breakpoint highlight appears', hasExprBp);
   }
 
   await panelPage.close();

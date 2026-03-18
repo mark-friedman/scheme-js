@@ -114,6 +114,16 @@ Chrome DevTools extension for debugging Scheme in the browser.
 - content_script.js listens on 'message' event (postMessage), not CustomEvent
 - Tests that use onPause with stepInto/abort MUST set panelConnected=true
 
+## Auto-Resume (background.js)
+- Scheme probe pauses (`debugger;` in generated probe functions) are auto-resumed by `background.js`
+  via CDP `Debugger.resume`, so Chrome's Sources tab never stays paused on Scheme code
+- `isSchemeProbe(params)` — checks top 5 call frames for `__scheme_E*` function name
+- `isSchemeException(params)` — checks `reason === 'exception'` + frames with `scheme://` URLs
+- The Scheme-JS panel receives its pause via the **cooperative channel** (content script postMessage
+  relay → `scheme-debug-paused` message), independent of CDP events
+- Non-Scheme pauses (real JS breakpoints) are forwarded to the panel as `cdp-paused`
+- Old sidebar files (`panel/sidebar.html`, `panel/sidebar.js`, `panel/sidebar.css`) removed
+
 ## Phase 3 Key Mechanisms
 - `SourceRegistry.expressionSpans` — Map<url, span[]> stored during register()
 - `getExpressions(url)` on SourceRegistry + __schemeDebug API + scheme-bridge
@@ -124,6 +134,8 @@ Chrome DevTools extension for debugging Scheme in the browser.
 - `setExpressionBreakpoints(spans)` — red background highlight on active expression BPs
 - Breakpoint key format: `JSON.stringify([url, line, column])` — structured JSON keys (replaces fragile colon-delimited format)
 - html_adapter.js passes `column` through __SCHEME_JS_BREAKPOINTS pre-loading
+- Diamond colors are theme-aware: dark mode uses `#8be9fd` (cyan)/`#ff79c6` (pink), light mode uses
+  `#6272a4`/`#dc3545` — defined in `darkEditorTheme`/`lightEditorTheme` inside the theme compartment
 
 ## Phase 2 Test Pages
 - tests/debug/diagnostic.html — 8 browser tests, no extension needed

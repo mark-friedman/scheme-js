@@ -1,9 +1,16 @@
 /**
- * @fileoverview Background service worker for the Scheme Stack extension.
+ * @fileoverview Background service worker for the Scheme-JS DevTools extension.
  *
- * Attaches to the inspected tab's debugger to listen for CDP events
- * (Debugger.paused, Debugger.resumed) and forwards them to the sidebar
- * panel. Also handles auto-blackboxing of interpreter internals.
+ * Manages CDP debugger attachment and event handling:
+ *   - Attaches to inspected tabs to intercept Debugger.paused/resumed events
+ *   - Auto-resumes Scheme probe pauses (so Chrome's Sources tab never stays
+ *     paused on `debugger;` statements in generated probe functions)
+ *   - Forwards non-Scheme CDP pause events to the panel for JS debugging
+ *   - Handles step commands, breakpoint management, and eval-while-paused
+ *   - Auto-blackboxes interpreter internals
+ *
+ * The Scheme-JS panel receives pause notifications via a separate cooperative
+ * channel (content script postMessage relay), independent of CDP events.
  */
 
 // =========================================================================
@@ -192,15 +199,14 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
         // Store pause params for evaluateOnCallFrame
         lastPauseParams.set(tabId, params);
 
-        // Notify panel for Scheme probe pauses and Scheme exception pauses
         if (isSchemeProbe(params) || isSchemeException(params)) {
-            chrome.runtime.sendMessage({
-                type: 'debugger-paused',
-                tabId,
-                callFrames: params.callFrames,
-                reason: params.reason
-            }).catch(() => {
-                // Panel may not be open yet — ignore
+            // Scheme probe/exception pause: auto-resume CDP immediately so
+            // Chrome's Sources tab never stays paused on the `debugger;`
+            // statement. The Scheme-JS panel receives its pause notification
+            // via the cooperative channel (content script postMessage relay),
+            // which is independent of CDP events.
+            chrome.debugger.sendCommand({ tabId }, 'Debugger.resume').catch(() => {
+                // Tab may have closed — ignore
             });
         } else {
             // Non-Scheme pause (JS breakpoint, exception, etc.)
@@ -272,7 +278,7 @@ chrome.debugger.onDetach.addListener((source, reason) => {
 });
 
 // =========================================================================
-// Message Handling (from panel / sidebar)
+// Message Handling (from panel)
 // =========================================================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

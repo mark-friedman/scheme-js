@@ -5,7 +5,7 @@
 // own bundled copy where fileResolver is always null.
 import {
   schemeEvalAsync, interpreter, env,
-  parse, analyze, list, intern,
+  parse, analyze, list, intern, prettyPrint,
   setFileResolver, getFileResolver,
 } from './scheme_entry.js';
 import { SchemeSourceRegistry } from '../debug/devtools/source_registry.js';
@@ -78,7 +78,7 @@ async function runScripts() {
     debugRuntime.enable();
     interpreter.setDebugRuntime(debugRuntime);
 
-    const devtools = new DevToolsDebugIntegration(sourceRegistry, { parse, analyze, list, intern });
+    const devtools = new DevToolsDebugIntegration(sourceRegistry, { parse, analyze, list, intern, prettyPrint });
     devtools.enable();
     devtools.enableTracking(); // Optional, for diagnostics
     interpreter.devtoolsDebug = devtools;
@@ -108,6 +108,11 @@ async function runScripts() {
     // the flag for the next reload.
     if (globalThis.__SCHEME_JS_PANELCONNECTED) {
       debugRuntime.panelConnected = true;
+      // Also tell the probe runtime so hit() returns false and debugger;
+      // doesn't fire (which would block the trampoline in Sources tab).
+      if (globalThis.__schemeProbeRuntime) {
+        globalThis.__schemeProbeRuntime._panelConnected = true;
+      }
     }
 
     // When library debugging is enabled, wrap the file resolver to register
@@ -209,6 +214,25 @@ async function runScripts() {
   // bindings instead of hundreds of standard library names).
   if (!env._systemBindingNames && env.bindings) {
     env._systemBindingNames = new Set(env.bindings.keys());
+  }
+
+  // Sync pre-loaded breakpoints (from __SCHEME_JS_BREAKPOINTS) with the probe
+  // runtime. These were registered with BreakpointManager before sources were
+  // loaded, but the probe runtime needs exprIds which are only available after
+  // Pass 1 (source registration). Now that sources are registered, wire them up.
+  if (debugEnabled && globalThis.__schemeDebug && globalThis.__SCHEME_JS_BREAKPOINTS) {
+    for (const { url, line, column } of globalThis.__SCHEME_JS_BREAKPOINTS) {
+      try {
+        const spans = sourceRegistry.getExpressions(url);
+        const col = column || null;
+        for (const span of spans) {
+          if (span.line !== line) continue;
+          if (col === null || span.column === col) {
+            globalThis.__schemeProbeRuntime?.setBreakpoint(span.exprId);
+          }
+        }
+      } catch { /* ignore invalid entries */ }
+    }
   }
 
   // Pass 2: Execute all scripts sequentially.

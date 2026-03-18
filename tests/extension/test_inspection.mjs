@@ -121,15 +121,15 @@ export async function testEvalDuringPause(browser) {
 
   // Eval a simple expression
   const result1 = await debugEval(page, '(+ 10 20)');
-  assert('Eval (+ 10 20) during pause returns 30', result1 === '30', `got: ${result1}`);
+  assert('Eval (+ 10 20) during pause returns 30', result1 === '30.0', `got: ${result1}`);
 
   // Eval that accesses defined variables (greeting was defined on line 5)
   const result2 = await debugEval(page, 'greeting');
-  assert('Eval greeting returns "hello"', result2 === 'hello', `got: ${result2}`);
+  assert('Eval greeting returns "hello"', result2 === '"hello"', `got: ${result2}`);
 
   // Eval with string result
   const result3 = await debugEval(page, '(string-append "hi " "there")');
-  assert('Eval string-append', result3 === 'hi there', `got: ${result3}`);
+  assert('Eval string-append', result3 === '"hi there"', `got: ${result3}`);
 
   // Resume and complete
   await doResume(page);

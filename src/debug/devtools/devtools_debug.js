@@ -18,6 +18,7 @@ import { parse as _defaultParse } from '../../core/interpreter/reader.js';
 import { analyze as _defaultAnalyze } from '../../core/interpreter/analyzer.js';
 import { list as _defaultList } from '../../core/interpreter/cons.js';
 import { intern as _defaultIntern } from '../../core/interpreter/symbol.js';
+import { prettyPrint as _defaultPrettyPrint } from '../../core/interpreter/printer.js';
 import { SchemeError } from '../../core/interpreter/errors.js';
 import { SchemeSourceRegistry } from './source_registry.js';
 
@@ -57,8 +58,9 @@ export class DevToolsDebugIntegration {
    * @param {Function} [interpreterUtils.analyze]
    * @param {Function} [interpreterUtils.list]
    * @param {Function} [interpreterUtils.intern]
+   * @param {Function} [interpreterUtils.prettyPrint]
    */
-  constructor(sourceRegistry, { parse, analyze, list, intern } = {}) {
+  constructor(sourceRegistry, { parse, analyze, list, intern, prettyPrint } = {}) {
     /**
      * The source registry providing probe function lookup.
      * @type {import('./source_registry.js').SchemeSourceRegistry}
@@ -76,6 +78,7 @@ export class DevToolsDebugIntegration {
     this._analyze = analyze || _defaultAnalyze;
     this._list = list || _defaultList;
     this._intern = intern || _defaultIntern;
+    this._prettyPrint = prettyPrint || _defaultPrettyPrint;
 
     /**
      * Whether DevTools debugging is currently active.
@@ -136,6 +139,14 @@ export class DevToolsDebugIntegration {
      * @type {number}
      */
     this._replEvalCounter = 0;
+
+    /**
+     * Maps breakpoint ID → Set of probe exprIds registered for it.
+     * Used to remove the corresponding probe breakpoints when a
+     * BreakpointManager breakpoint is removed.
+     * @type {Map<string, Set<number>>}
+     */
+    this._probeBreakpointMap = new Map();
 
     // ----- Phase 4: Async Stack Tagging -----
 
@@ -398,7 +409,8 @@ export class DevToolsDebugIntegration {
    */
   installSchemeDebugAPI(interpreter) {
     const sourceRegistry = this.sourceRegistry;
-    const { _parse, _analyze, _list, _intern } = this;
+    const probeBreakpointMap = this._probeBreakpointMap;
+    const { _parse, _analyze, _list, _intern, _prettyPrint } = this;
     globalThis.__schemeDebug = {
       /**
        * Gets the current Scheme call stack.
@@ -477,7 +489,7 @@ export class DevToolsDebugIntegration {
           const serialized = inspector.serializeValue(value);
           result.push({
             name,
-            value: serialized.description || String(value),
+            value: _prettyPrint(value),
             type: serialized.type,
             subtype: serialized.subtype || null
           });
@@ -565,7 +577,7 @@ export class DevToolsDebugIntegration {
           }
 
           const result = interpreter.run(ast, env);
-          return String(result);
+          return _prettyPrint(result);
         } catch (e) {
           return `#<error: ${e.message}>`;
         }
@@ -585,6 +597,11 @@ export class DevToolsDebugIntegration {
         // Mark the panel as connected so handlePause() blocks (waits for
         // resume commands) instead of auto-resuming.
         if (dr) dr.panelConnected = true;
+        // Also tell the probe runtime so hit() returns false and debugger;
+        // doesn't fire (which would block the trampoline in Sources tab).
+        if (globalThis.__schemeProbeRuntime) {
+          globalThis.__schemeProbeRuntime._panelConnected = true;
+        }
         // Persist to sessionStorage so activate_debug.js can read it at
         // document_start on the next page reload and set panelConnected
         // BEFORE any Scheme scripts execute. sessionStorage is tab-scoped,
@@ -595,7 +612,9 @@ export class DevToolsDebugIntegration {
 
       /**
        * Sets a breakpoint at the specified source location.
-       * Delegates to the BreakpointManager on the debug runtime.
+       * Registers with both BreakpointManager (for the cooperative async path) and
+       * __schemeProbeRuntime (for the synchronous run() path used when Scheme
+       * closures are called back from JS event handlers).
        *
        * @param {string} url - Source URL (e.g., 'scheme://scheme-sources/app.scm')
        * @param {number} line - Line number (1-indexed)
@@ -605,11 +624,32 @@ export class DevToolsDebugIntegration {
       setBreakpoint(url, line, column = null) {
         const dr = interpreter.debugRuntime;
         if (!dr) return null;
-        return dr.setBreakpoint(url, line, column);
+        const id = dr.setBreakpoint(url, line, column);
+        if (!id) return null;
+
+        // Also register matching exprIds with the probe runtime so that
+        // breakpoints fire in synchronous Scheme calls (JS → Scheme callbacks).
+        if (globalThis.__schemeProbeRuntime) {
+          const spans = sourceRegistry.getExpressions(url);
+          const exprIds = new Set();
+          for (const span of spans) {
+            if (span.line !== line) continue;
+            if (column === null || span.column === column) {
+              exprIds.add(span.exprId);
+              globalThis.__schemeProbeRuntime.setBreakpoint(span.exprId);
+            }
+          }
+          if (exprIds.size > 0) {
+            probeBreakpointMap.set(id, exprIds);
+          }
+        }
+
+        return id;
       },
 
       /**
        * Removes a breakpoint by ID.
+       * Also deregisters from __schemeProbeRuntime to keep both mechanisms in sync.
        *
        * @param {string} id - Breakpoint ID returned from setBreakpoint
        * @returns {boolean} True if removed, false if not found
@@ -617,6 +657,16 @@ export class DevToolsDebugIntegration {
       removeBreakpoint(id) {
         const dr = interpreter.debugRuntime;
         if (!dr) return false;
+
+        // Remove from probe runtime first
+        const exprIds = probeBreakpointMap.get(id);
+        if (exprIds && globalThis.__schemeProbeRuntime) {
+          for (const exprId of exprIds) {
+            globalThis.__schemeProbeRuntime.removeBreakpoint(exprId);
+          }
+          probeBreakpointMap.delete(id);
+        }
+
         return dr.removeBreakpoint(id);
       },
 

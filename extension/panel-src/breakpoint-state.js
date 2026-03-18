@@ -149,35 +149,6 @@ export function getLinesForUrl(url) {
 }
 
 /**
- * Returns expression breakpoint spans for a URL, looked up from the
- * provided expression spans array.
- *
- * @param {string} url - Source URL
- * @param {Array<{line: number, column: number, endLine: number, endColumn: number}>} expressions
- * @returns {Array<{line: number, column: number, endLine: number, endColumn: number}>}
- */
-export function getExpressionBreakpointsForUrl(url, expressions) {
-  const spans = [];
-  for (const key of breakpointIds.keys()) {
-    const bp = parseBpKey(key);
-    if (bp.url === url && bp.column !== null) {
-      const span = expressions.find(
-        e => e.line === bp.line && e.column === bp.column
-      );
-      if (span) {
-        spans.push({
-          line: span.line,
-          column: span.column,
-          endLine: span.endLine,
-          endColumn: span.endColumn
-        });
-      }
-    }
-  }
-  return spans;
-}
-
-/**
  * Returns all breakpoints as a flat array for the breakpoints panel.
  *
  * @returns {Array<{id: string, filename: string, line: number, column: number|null, key: string}>}

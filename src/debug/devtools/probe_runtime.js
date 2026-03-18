@@ -35,17 +35,43 @@ globalThis.__schemeProbeRuntime = {
     _getDepth: null,
 
     /**
+     * Whether a debug panel/frontend is connected. When true, hit() always
+     * returns false because the cooperative pause channel (handlePause in
+     * the trampoline) handles breakpoints and stepping instead. The probe's
+     * `debugger;` statement must NOT fire when a panel is connected, because
+     * it would cause Chrome's built-in Sources tab to pause synchronously,
+     * blocking the trampoline before handlePause() can run.
+     *
+     * Set by devtools_debug.js activate() and html_adapter.js from
+     * __SCHEME_JS_PANELCONNECTED.
+     * @type {boolean}
+     */
+    _panelConnected: false,
+
+    /**
      * Called by the probe script at each Scheme expression.
      * Returns true if the probe should pause (via `debugger;` in the probe
      * function itself), false otherwise. The `debugger;` must fire inside
      * the source-mapped probe function so that DevTools shows Scheme code,
      * not this runtime file.
      *
+     * When `_panelConnected` is true, always returns false — the cooperative
+     * channel handles pausing instead. The `debugger;` statement is only
+     * useful when debugging via Chrome's Sources tab (no panel connected).
+     *
      * @param {number} exprId - The unique ID of the executing expression
      * @returns {boolean} True if the probe should pause
      */
     hit(exprId) {
         if (!this._active) return false;
+
+        // When a debug panel is connected, skip the debugger; statement
+        // entirely. The cooperative pause channel (handlePause in the
+        // interpreter trampoline) handles breakpoints and stepping.
+        // If we fire debugger; here, Chrome's Sources tab catches it and
+        // pauses V8 synchronously, blocking the trampoline before
+        // handlePause() can dispatch the cooperative pause event.
+        if (this._panelConnected) return false;
 
         // Exception pause takes priority — fired by onException() in devtools_debug.js
         if (this._exceptionPause) {

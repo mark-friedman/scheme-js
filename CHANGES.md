@@ -5243,3 +5243,69 @@ Added `--only <filter>` CLI argument to `tests/extension/run_extension_tests.mjs
 ## Verification
 - All 258 extension tests pass (`npm run test:extension`)
 - All 2415 unit tests pass (`npm test`)
+
+---
+
+# Walkthrough: Debugger Extension Breakpoint Fixes (2026-03-18)
+
+## Problem
+
+Breakpoints set in the Scheme-JS DevTools panel were pausing in Chrome's built-in Sources tab instead of (or in addition to) the Scheme-JS panel. The Scheme-JS panel also failed to show the app as paused. Two root causes were identified:
+
+1. **Probe `debugger;` blocking the cooperative channel**: When a breakpoint was hit, the interpreter's trampoline called `maybeHit()` → `fireProbe()` → `hit()`. If `hit()` returned `true`, a `debugger;` statement fired synchronously in the probe function, causing V8 to pause and block the trampoline before `handlePause()` could dispatch the `scheme-debug-paused` postMessage. The Scheme-JS panel never received the pause event.
+
+2. **Old sidebar orphan files**: Unused `panel/sidebar.html`, `panel/sidebar.js`, `panel/sidebar.css` referenced in comments.
+
+## Changes
+
+### Auto-Resume Scheme Probe Pauses (`extension/background.js`)
+
+Added `isSchemeProbe()` detection to the `Debugger.paused` CDP event handler. When a pause is identified as a Scheme probe, `Debugger.resume` is immediately sent via CDP so the Sources tab never stays paused. The cooperative `scheme-debug-paused` channel handles the actual pause display in the Scheme-JS panel.
+
+### Probe Runtime `_panelConnected` Flag (`src/debug/devtools/probe_runtime.js`)
+
+Added `_panelConnected: false` to `__schemeProbeRuntime`. When `true`, `hit()` unconditionally returns `false`, preventing `debugger;` from firing. The cooperative `handlePause()` in the trampoline handles the pause instead.
+
+This flag is set in two places:
+- **`src/packaging/html_adapter.js`**: On page load/reload, if `__SCHEME_JS_PANELCONNECTED` is set (written to sessionStorage by the panel's `activate()` call on the previous load), sets `_panelConnected = true` before any Scheme scripts execute.
+- **`src/debug/devtools/devtools_debug.js` `activate()`**: When the panel connects to a live page, immediately sets `_panelConnected = true` on the already-running probe runtime.
+
+### Deleted Sidebar Orphan Files
+
+Removed `extension/panel/sidebar.html`, `extension/panel/sidebar.js`, `extension/panel/sidebar.css`.
+
+### Diamond Icon Visibility in Dark Mode (`extension/panel-src/components/editor.js`)
+
+Diamond breakpoint markers (◆/◇) were invisible in dark mode. Moved color/opacity definitions from the static `layoutTheme` into the theme-aware `darkEditorTheme` and `lightEditorTheme` compartments. Dark mode: cyan (`#8be9fd`) inactive, pink (`#ff79c6`) active. Light mode: slate blue inactive, red active.
+
+### `onThemeChanged` → `setThemeChangeHandler` Fix (`extension/panel-src/main.js`)
+
+`chrome.devtools.panels.onThemeChanged` is not a real Chrome API — it was incorrectly assumed to exist. Replaced with the correct `chrome.devtools.panels.setThemeChangeHandler(callback)` (Chrome 99+), guarded by an existence check.
+
+## New Tests
+
+### `tests/extension/test_auto_resume.mjs` (9 tests)
+
+Three tiers testing the auto-resume behavior:
+- **Mock-based**: `testSchemeProbeAutoResumed`, `testNonSchemeProbeNotAutoResumed`
+- **Real page-side**: `testBreakpointPausesCooperatively`, `testBreakpointResumeAndContinue`, `testSteppingWorksAfterAutoResume`
+- **Click-based UI**: `testPanelPauseShowsUIViaCooperativeChannel`, `testPanelResumeClickAfterCooperativePause`, `testPanelStepButtonsAfterCooperativePause`, `testPanelBreakpointSetViaGutterClick`
+
+### `tests/extension/test_cdp_debugger_conflict.mjs` (3 tests)
+
+Tests that directly catch the `debugger;` blocking bug:
+- `testProbeHitSkipsWhenPanelConnected` — wraps `hit()` to verify it never returns `true` when `panelConnected=true` (would have caught the original bug)
+- `testProbeHitSkipsDuringSteppingWhenPanelConnected`
+- `testCooperativePauseWithCDPDebuggerAttached`
+
+### `tests/extension/test_panel_e2e_breakpoint.mjs` (2 tests)
+
+End-to-end integration tests bridging a real Scheme breakpoint to the panel UI:
+- `testRealBreakpointUpdatesPanelUI` — fires a real `scheme-debug-paused` postMessage captured from a live page into a mocked panel; verifies toolbar, call stack, and ackPause
+- `testRealBreakpointSourceLocationInPanel` — verifies correct source line and editor highlight
+
+## Verification
+
+- `npm test`: 2703 passed, 0 failed
+- `npm run test:extension`: 306 passed, 0 failed (up from 295)
+- Manual verification with scheme-blocks confirmed breakpoints now pause in the Scheme-JS panel, not the Sources tab

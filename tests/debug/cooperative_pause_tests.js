@@ -11,7 +11,7 @@
  * This allows debugging the pause flow in Node.js without a browser.
  */
 
-import { assert } from '../harness/helpers.js';
+import { assert, run } from '../harness/helpers.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
 import { SchemeSourceRegistry } from '../../src/debug/devtools/source_registry.js';
@@ -44,6 +44,38 @@ function createDebugInterpreter() {
   const schemeDebug = globalThis.__schemeDebug;
 
   return { interpreter, env, debugRuntime, devtools, sourceRegistry, schemeDebug };
+}
+
+/**
+ * Creates a debug interpreter with the full Scheme bootstrap loaded.
+ * This gives access to standard procedures (>, <, not, equal?, etc.)
+ * and macros (let, cond, when, unless, etc.) — needed for testing
+ * user-defined macros that use standard Scheme.
+ *
+ * @returns {{interpreter, env, debugRuntime, devtools, sourceRegistry, schemeDebug}}
+ */
+async function createFullDebugInterpreter() {
+  const ctx = createDebugInterpreter();
+
+  // Load bootstrap files in dependency order (same as run_all.js)
+  if (typeof process !== 'undefined') {
+    const fs = await import('fs');
+    const bootstrapFiles = [
+      'src/core/scheme/macros.scm',
+      'src/core/scheme/equality.scm',
+      'src/core/scheme/cxr.scm',
+      'src/core/scheme/numbers.scm',
+      'src/core/scheme/list.scm',
+      'src/core/scheme/control.scm',
+      'src/core/scheme/case_lambda.scm',
+    ];
+    for (const file of bootstrapFiles) {
+      const code = fs.readFileSync(file, 'utf8');
+      run(ctx.interpreter, code);
+    }
+  }
+
+  return ctx;
 }
 
 /**
@@ -386,6 +418,182 @@ export async function runCooperativePauseTests(logger) {
     await ctx.interpreter.runDebug(ast, ctx.env);
 
     assert(logger, 'no pause for bp on different file', paused, false);
+  }
+
+  // =====================================================================
+  // Breakpoint inside function body (let macro expansion)
+  // =====================================================================
+
+  logger.title('Cooperative Pause - In-Function Breakpoint (let macro)');
+
+  {
+    const ctx = createDebugInterpreter();
+    const url = 'scheme://test/in-func-bp.scm';
+    // Line 1: define a function
+    // Line 2: function body uses let (a Scheme macro)
+    // Line 4: call the function
+    const code = '(define (f x)\n  (let ((d (* x 2)))\n    d))\n(f 5)';
+    const ast = prepareCode(ctx, code, url);
+    ctx.schemeDebug.setBreakpoint(url, 2);
+    ctx.debugRuntime.panelConnected = true;
+
+    let pausedLine = null;
+    ctx.debugRuntime.onPause = (info) => {
+      pausedLine = info.source?.line;
+      ctx.debugRuntime.resume();
+    };
+
+    await ctx.interpreter.runDebug(ast, ctx.env);
+
+    assert(logger, 'breakpoint on let inside function body fires', pausedLine, 2);
+  }
+
+  // Breakpoint on nested let inside function
+  {
+    const ctx = createDebugInterpreter();
+    const url = 'scheme://test/nested-let-bp.scm';
+    const code = '(define (g x)\n  (let ((a 1))\n    (let ((b 2))\n      (+ a b x))))\n(g 10)';
+    const ast = prepareCode(ctx, code, url);
+    ctx.schemeDebug.setBreakpoint(url, 3);
+    ctx.debugRuntime.panelConnected = true;
+
+    let pausedLine = null;
+    ctx.debugRuntime.onPause = (info) => {
+      pausedLine = info.source?.line;
+      ctx.debugRuntime.resume();
+    };
+
+    await ctx.interpreter.runDebug(ast, ctx.env);
+
+    assert(logger, 'breakpoint on nested let fires at correct line', pausedLine, 3);
+  }
+
+  // =====================================================================
+  // Breakpoint on user-defined macros
+  // =====================================================================
+
+  logger.title('Cooperative Pause - User-Defined Macro Breakpoints');
+
+  // User-defined my-when macro — breakpoint on the macro call line
+  {
+    const ctx = await createFullDebugInterpreter();
+    const url = 'scheme://test/user-macro-when.scm';
+    const code = [
+      '(define-syntax my-when',
+      '  (syntax-rules ()',
+      '    ((my-when test body ...)',
+      '     (if test (begin body ...)))))',
+      '(define (f x)',
+      '  (my-when (> x 0)',
+      '    (* x 2)))',
+      '(f 5)'
+    ].join('\n');
+    const ast = prepareCode(ctx, code, url);
+    ctx.schemeDebug.setBreakpoint(url, 6); // breakpoint on (my-when ...)
+    ctx.debugRuntime.panelConnected = true;
+
+    let pausedLine = null;
+    ctx.debugRuntime.onPause = (info) => {
+      pausedLine = info.source?.line;
+      ctx.debugRuntime.resume();
+    };
+
+    await ctx.interpreter.runDebug(ast, ctx.env);
+
+    assert(logger, 'breakpoint on user-defined my-when macro fires', pausedLine, 6);
+  }
+
+  // User-defined my-let macro — breakpoint on the macro call line inside function
+  {
+    const ctx = await createFullDebugInterpreter();
+    const url = 'scheme://test/user-macro-let.scm';
+    const code = [
+      '(define-syntax my-let',
+      '  (syntax-rules ()',
+      '    ((my-let ((name val) ...) body ...)',
+      '     ((lambda (name ...) body ...) val ...))))',
+      '(define (g x)',
+      '  (my-let ((a (* x 2)))',
+      '    (+ a 1)))',
+      '(g 10)'
+    ].join('\n');
+    const ast = prepareCode(ctx, code, url);
+    ctx.schemeDebug.setBreakpoint(url, 6); // breakpoint on (my-let ...)
+    ctx.debugRuntime.panelConnected = true;
+
+    let pausedLine = null;
+    ctx.debugRuntime.onPause = (info) => {
+      pausedLine = info.source?.line;
+      ctx.debugRuntime.resume();
+    };
+
+    await ctx.interpreter.runDebug(ast, ctx.env);
+
+    assert(logger, 'breakpoint on user-defined my-let macro fires', pausedLine, 6);
+  }
+
+  // User-defined macro — breakpoint on macro at top level
+  {
+    const ctx = await createFullDebugInterpreter();
+    const url = 'scheme://test/user-macro-toplevel.scm';
+    const code = [
+      '(define-syntax my-swap!',
+      '  (syntax-rules ()',
+      '    ((my-swap! a b)',
+      '     (let ((tmp a))',
+      '       (set! a b)',
+      '       (set! b tmp)))))',
+      '(define x 1)',
+      '(define y 2)',
+      '(my-swap! x y)'
+    ].join('\n');
+    const ast = prepareCode(ctx, code, url);
+    ctx.schemeDebug.setBreakpoint(url, 9); // breakpoint on (my-swap! x y)
+    ctx.debugRuntime.panelConnected = true;
+
+    let pausedLine = null;
+    ctx.debugRuntime.onPause = (info) => {
+      pausedLine = info.source?.line;
+      ctx.debugRuntime.resume();
+    };
+
+    await ctx.interpreter.runDebug(ast, ctx.env);
+
+    assert(logger, 'breakpoint on user-defined macro at top level fires', pausedLine, 9);
+  }
+
+  // Nested user-defined macros — breakpoint on inner macro
+  {
+    const ctx = await createFullDebugInterpreter();
+    const url = 'scheme://test/user-macro-nested.scm';
+    // my-unless expands through my-when, which expands to if+begin
+    const code = [
+      '(define-syntax my-when',
+      '  (syntax-rules ()',
+      '    ((my-when test body ...)',
+      '     (if test (begin body ...)))))',
+      '(define-syntax my-unless',
+      '  (syntax-rules ()',
+      '    ((my-unless test body ...)',
+      '     (my-when (not test) body ...))))',
+      '(define (h x)',
+      '  (my-unless (< x 0)',
+      '    (+ x 100)))',
+      '(h 5)'
+    ].join('\n');
+    const ast = prepareCode(ctx, code, url);
+    ctx.schemeDebug.setBreakpoint(url, 10); // breakpoint on (my-unless ...)
+    ctx.debugRuntime.panelConnected = true;
+
+    let pausedLine = null;
+    ctx.debugRuntime.onPause = (info) => {
+      pausedLine = info.source?.line;
+      ctx.debugRuntime.resume();
+    };
+
+    await ctx.interpreter.runDebug(ast, ctx.env);
+
+    assert(logger, 'breakpoint on nested user-defined macro fires', pausedLine, 10);
   }
 
   // =====================================================================

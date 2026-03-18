@@ -97,6 +97,32 @@ import {
   testBoundaryStepping,
 } from './test_js_debugging.mjs';
 
+// Auto-resume tests (cooperative channel vs CDP channel)
+import {
+  testSchemeProbeAutoResumed,
+  testNonSchemeProbeNotAutoResumed,
+  testBreakpointPausesCooperatively,
+  testBreakpointResumeAndContinue,
+  testSteppingWorksAfterAutoResume,
+  testPanelPauseShowsUIViaCooperativeChannel,
+  testPanelResumeClickAfterCooperativePause,
+  testPanelStepButtonsAfterCooperativePause,
+  testPanelBreakpointSetViaGutterClick,
+} from './test_auto_resume.mjs';
+
+// CDP debugger conflict tests (probe debugger; vs cooperative pause)
+import {
+  testProbeHitSkipsWhenPanelConnected,
+  testProbeHitSkipsDuringSteppingWhenPanelConnected,
+  testCooperativePauseWithCDPDebuggerAttached,
+} from './test_cdp_debugger_conflict.mjs';
+
+// E2E breakpoint → panel UI tests
+import {
+  testRealBreakpointUpdatesPanelUI,
+  testRealBreakpointSourceLocationInPanel,
+} from './test_panel_e2e_breakpoint.mjs';
+
 // Error path tests
 import {
   testEvalTimeout,
@@ -184,6 +210,14 @@ async function runTests() {
       ['js_interop', testStoredJSFunctionCall],
       ['js_interop', testCallStackAtJSBoundary],
       ['js_interop', testStepThroughJSInteropSequence],
+      // CDP debugger conflict: probe debugger; vs cooperative pause
+      ['cdp_conflict', testProbeHitSkipsWhenPanelConnected],
+      ['cdp_conflict', testProbeHitSkipsDuringSteppingWhenPanelConnected],
+      ['cdp_conflict', testCooperativePauseWithCDPDebuggerAttached],
+      // Auto-resume: real page-side verification
+      ['auto_resume', testBreakpointPausesCooperatively],
+      ['auto_resume', testBreakpointResumeAndContinue],
+      ['auto_resume', testSteppingWorksAfterAutoResume],
     ];
 
     for (const [mod, testFn] of pageTests) {
@@ -254,6 +288,13 @@ async function runTests() {
       ['js_debugging', testButtonsEnabledDuringJSPause],
       ['js_debugging', testCurrentLineHighlightOnJSPause],
       ['js_debugging', testBoundaryStepping],
+      // Auto-resume: mock-based panel + click-based UI
+      ['auto_resume', testSchemeProbeAutoResumed],
+      ['auto_resume', testNonSchemeProbeNotAutoResumed],
+      ['auto_resume', testPanelPauseShowsUIViaCooperativeChannel],
+      ['auto_resume', testPanelResumeClickAfterCooperativePause],
+      ['auto_resume', testPanelStepButtonsAfterCooperativePause],
+      ['auto_resume', testPanelBreakpointSetViaGutterClick],
       // Error path tests
       ['error_paths', testEvalTimeout],
       ['error_paths', testEvalError],
@@ -262,6 +303,9 @@ async function runTests() {
       ['error_paths', testGetLocalsFailure],
       ['error_paths', testCDPSendMessageFailure],
       ['error_paths', testUnknownSourceContent],
+      // E2E breakpoint → panel UI tests
+      ['panel_e2e', testRealBreakpointUpdatesPanelUI],
+      ['panel_e2e', testRealBreakpointSourceLocationInPanel],
     ];
 
     if (extensionId) {

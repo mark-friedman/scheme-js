@@ -22806,30 +22806,16 @@ var layoutTheme = EditorView.theme({
     borderBottom: "2px solid #ffc107",
     borderRadius: "2px"
   },
-  // Expression breakpoint highlight (user-set column-level breakpoint)
-  ".cm-expr-breakpoint": {
-    backgroundColor: "rgba(255, 85, 85, 0.2)",
-    borderBottom: "2px solid #ff5555",
-    borderRadius: "2px"
-  },
-  // Inline expression diamond markers (Chrome DevTools-style)
+  // Inline expression diamond markers (Chrome DevTools-style).
+  // Structural styles only — colors are set per-theme (dark/light).
   ".cm-expr-diamond": {
     cursor: "pointer",
-    color: "#6272a4",
     fontSize: "8px",
     lineHeight: "1",
     verticalAlign: "middle",
     padding: "0 1px",
     userSelect: "none",
-    opacity: "0.6",
-    transition: "opacity 0.15s"
-  },
-  ".cm-expr-diamond:hover": {
-    opacity: "1"
-  },
-  ".cm-expr-diamond-active": {
-    color: "#ff5555",
-    opacity: "1"
+    transition: "opacity 0.15s, color 0.15s"
   },
   // Breakpoint dot in the gutter
   ".cm-breakpoint-dot": {
@@ -22853,7 +22839,11 @@ var darkEditorTheme = EditorView.theme(
     ".cm-activeLine": { backgroundColor: "#2d2f3f" },
     ".cm-selectionBackground": { backgroundColor: "#44475a !important" },
     "&.cm-focused .cm-selectionBackground": { backgroundColor: "#44475a !important" },
-    ".cm-cursor": { borderLeftColor: "#f8f8f2" }
+    ".cm-cursor": { borderLeftColor: "#f8f8f2" },
+    // Diamond colors for dark mode — use a clearly visible color at decent opacity
+    ".cm-expr-diamond": { color: "#8be9fd", opacity: "0.75" },
+    ".cm-expr-diamond:hover": { color: "#8be9fd", opacity: "1" },
+    ".cm-expr-diamond-active": { color: "#ff79c6", opacity: "1" }
   },
   { dark: true }
 );
@@ -22882,7 +22872,11 @@ var lightEditorTheme = EditorView.theme(
     ".cm-activeLine": { backgroundColor: "#f0f7fb" },
     ".cm-selectionBackground": { backgroundColor: "#b3d7ff !important" },
     "&.cm-focused .cm-selectionBackground": { backgroundColor: "#b3d7ff !important" },
-    ".cm-cursor": { borderLeftColor: "#24292f" }
+    ".cm-cursor": { borderLeftColor: "#24292f" },
+    // Diamond colors for light mode — subdued but visible on white
+    ".cm-expr-diamond": { color: "#6272a4", opacity: "0.65" },
+    ".cm-expr-diamond:hover": { color: "#6272a4", opacity: "1" },
+    ".cm-expr-diamond-active": { color: "#dc3545", opacity: "1" }
   },
   { dark: false }
 );
@@ -23068,33 +23062,6 @@ var diamondMarkersPlugin = EditorView.decorations.compute(
     }
   }
 );
-var setExpressionBreakpointsEffect = StateEffect.define();
-var expressionBreakpointField = StateField.define({
-  create: () => [],
-  update(ranges, tr) {
-    for (const effect of tr.effects) {
-      if (effect.is(setExpressionBreakpointsEffect)) {
-        return effect.value;
-      }
-    }
-    return ranges;
-  }
-});
-var expressionBreakpointPlugin = EditorView.decorations.compute(
-  [expressionBreakpointField],
-  (state) => {
-    const ranges = state.field(expressionBreakpointField);
-    if (ranges.length === 0) return Decoration.none;
-    try {
-      const sorted = [...ranges].sort((a, b) => a.from - b.from);
-      return Decoration.set(
-        sorted.map((r) => Decoration.mark({ class: "cm-expr-breakpoint" }).range(r.from, r.to))
-      );
-    } catch {
-      return Decoration.none;
-    }
-  }
-);
 function spanToOffsets(doc2, line, column, endLine, endColumn) {
   try {
     const startLine = doc2.line(line);
@@ -23143,9 +23110,6 @@ function createEditor(container, onBreakpointToggle2, onDiamondClick2) {
       // Current expression highlight
       currentExpressionField,
       currentExpressionPlugin,
-      // Expression breakpoint highlights (background marks for active diamonds)
-      expressionBreakpointField,
-      expressionBreakpointPlugin,
       // Inline diamond markers at expression boundaries
       diamondMarkersField,
       diamondMarkersPlugin,
@@ -23190,7 +23154,6 @@ function createEditor(container, onBreakpointToggle2, onDiamondClick2) {
         setCurrentLineEffect.of(null),
         setBreakpointsEffect.of(/* @__PURE__ */ new Set()),
         setCurrentExpressionEffect.of(null),
-        setExpressionBreakpointsEffect.of([]),
         setDiamondMarkersEffect.of([]),
         languageCompartment.reconfigure(langExtension)
       ]
@@ -23226,14 +23189,6 @@ function createEditor(container, onBreakpointToggle2, onDiamondClick2) {
       view.dispatch({ effects: setCurrentExpressionEffect.of(null) });
     }
   }
-  function setExpressionBreakpoints(spans) {
-    const ranges = [];
-    for (const s of spans) {
-      const offsets = spanToOffsets(view.state.doc, s.line, s.column, s.endLine, s.endColumn);
-      if (offsets) ranges.push(offsets);
-    }
-    view.dispatch({ effects: setExpressionBreakpointsEffect.of(ranges) });
-  }
   function setDiamondMarkers(markers) {
     const resolved = [];
     for (const m of markers) {
@@ -23255,7 +23210,6 @@ function createEditor(container, onBreakpointToggle2, onDiamondClick2) {
     highlightLine,
     setBreakpoints,
     highlightExpression,
-    setExpressionBreakpoints,
     setDiamondMarkers
   };
 }
@@ -24392,26 +24346,6 @@ function getLinesForUrl(url) {
   }
   return lines;
 }
-function getExpressionBreakpointsForUrl(url, expressions) {
-  const spans = [];
-  for (const key of breakpointIds.keys()) {
-    const bp = parseBpKey(key);
-    if (bp.url === url && bp.column !== null) {
-      const span = expressions.find(
-        (e) => e.line === bp.line && e.column === bp.column
-      );
-      if (span) {
-        spans.push({
-          line: span.line,
-          column: span.column,
-          endLine: span.endLine,
-          endColumn: span.endColumn
-        });
-      }
-    }
-  }
-  return spans;
-}
 function getAllBreakpoints() {
   const bps = [];
   for (const [key, id2] of breakpointIds.entries()) {
@@ -24529,15 +24463,11 @@ var breakpointsList = createBreakpointsList(breakpointsContainer, {
       saveToPage();
       refreshBreakpointsPanel();
       if (url === currentSourceUrl) {
-        if (column) {
-          refreshDiamondMarkers();
-          const exprBps = getExpressionBreakpointsForUrl(url, currentExpressions);
-          editor.setExpressionBreakpoints(exprBps);
-        } else {
+        if (!column) {
           const lines = getLinesForUrl(url);
           editor.setBreakpoints(lines);
-          refreshDiamondMarkers();
         }
+        refreshDiamondMarkers();
       }
     }
   }
@@ -24662,8 +24592,6 @@ async function onDiamondClick(line, column) {
   saveToPage();
   refreshBreakpointsPanel();
   refreshDiamondMarkers();
-  const exprBps = getExpressionBreakpointsForUrl(currentSourceUrl, currentExpressions);
-  editor.setExpressionBreakpoints(exprBps);
 }
 var editor = createEditor(editorContainer, onBreakpointToggle, onDiamondClick);
 var currentPausedLine = null;
@@ -24708,10 +24636,6 @@ async function loadSource(url) {
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
   }
-  const exprBps = getExpressionBreakpointsForUrl(url, currentExpressions);
-  if (exprBps.length > 0) {
-    editor.setExpressionBreakpoints(exprBps);
-  }
   refreshDiamondMarkers();
   if (currentPausedLine === null) {
     toolbar.setStatus(`Viewing: ${url.split("/").pop()}`);
@@ -24754,10 +24678,6 @@ async function onSelectSource(url, content2) {
   const lines = getLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
-  }
-  const exprBps = getExpressionBreakpointsForUrl(url, currentExpressions);
-  if (exprBps.length > 0) {
-    editor.setExpressionBreakpoints(exprBps);
   }
   refreshDiamondMarkers();
   toolbar.setStatus(`Viewing: ${url.split("/").pop()}`);
@@ -24939,5 +24859,7 @@ if (typeof chrome !== "undefined" && chrome.devtools && chrome.devtools.panels) 
     }
   };
   updateTheme(chrome.devtools.panels.themeName);
-  chrome.devtools.panels.onThemeChanged.addListener(updateTheme);
+  if (chrome.devtools.panels.setThemeChangeHandler) {
+    chrome.devtools.panels.setThemeChangeHandler(updateTheme);
+  }
 }

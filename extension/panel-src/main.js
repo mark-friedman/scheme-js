@@ -123,15 +123,11 @@ const breakpointsList = createBreakpointsList(breakpointsContainer, {
 
       // If the removed breakpoint was on the currently viewed source, update the editor
       if (url === currentSourceUrl) {
-        if (column) {
-          refreshDiamondMarkers();
-          const exprBps = bpState.getExpressionBreakpointsForUrl(url, currentExpressions);
-          editor.setExpressionBreakpoints(exprBps);
-        } else {
+        if (!column) {
           const lines = bpState.getLinesForUrl(url);
           editor.setBreakpoints(lines);
-          refreshDiamondMarkers();
         }
+        refreshDiamondMarkers();
       }
     }
   }
@@ -319,9 +315,6 @@ async function onDiamondClick(line, column) {
   refreshBreakpointsPanel();
   refreshDiamondMarkers();
 
-  // Refresh expression breakpoint highlights
-  const exprBps = bpState.getExpressionBreakpointsForUrl(currentSourceUrl, currentExpressions);
-  editor.setExpressionBreakpoints(exprBps);
 }
 
 const editor = createEditor(editorContainer, onBreakpointToggle, onDiamondClick);
@@ -410,12 +403,6 @@ async function loadSource(url) {
     editor.setBreakpoints(lines);
   }
 
-  // Show expression-level breakpoints as inline highlights
-  const exprBps = bpState.getExpressionBreakpointsForUrl(url, currentExpressions);
-  if (exprBps.length > 0) {
-    editor.setExpressionBreakpoints(exprBps);
-  }
-
   // Show diamond markers on breakpoint and paused lines
   refreshDiamondMarkers();
 
@@ -495,12 +482,6 @@ async function onSelectSource(url, content) {
   const lines = bpState.getLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
-  }
-
-  // Sync expression-level breakpoints
-  const exprBps = bpState.getExpressionBreakpointsForUrl(url, currentExpressions);
-  if (exprBps.length > 0) {
-    editor.setExpressionBreakpoints(exprBps);
   }
 
   // Show diamond markers on breakpoint lines
@@ -770,5 +751,7 @@ if (typeof chrome !== 'undefined' && chrome.devtools && chrome.devtools.panels) 
 
   updateTheme(chrome.devtools.panels.themeName);
 
-  chrome.devtools.panels.onThemeChanged.addListener(updateTheme);
+  if (chrome.devtools.panels.setThemeChangeHandler) {
+    chrome.devtools.panels.setThemeChangeHandler(updateTheme);
+  }
 }

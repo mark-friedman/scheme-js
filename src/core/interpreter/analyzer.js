@@ -186,7 +186,12 @@ export function analyze(exp, syntacticEnv = null, context = null) {
         const transformer = ctx.currentMacroRegistry.lookup(opNameForMacro);
         try {
           const expanded = transformer(exp, syntacticEnv);
-          return analyze(expanded, syntacticEnv, ctx);
+          const node = analyze(expanded, syntacticEnv, ctx);
+          // Propagate source from the original macro call to the expanded
+          // AST node, so breakpoints on the macro form (e.g. `let`, `cond`)
+          // fire at the correct source location. The expanded form is a
+          // fresh Cons tree from the macro expander and has no source info.
+          return withSourceFrom(node, exp);
         } catch (e) {
           throw new SchemeSyntaxError(`Error expanding macro: ${e.message}`, exp, opNameForMacro);
         }

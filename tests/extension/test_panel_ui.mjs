@@ -246,13 +246,10 @@ export async function testThemeSwitching(browser, extensionId) {
     window.chrome.devtools = {
       panels: {
         themeName: 'light',
-        onThemeChanged: {
-          addListener: function(f) {
-            this._listeners = this._listeners || [];
-            this._listeners.push(f);
-          },
-          _listeners: []
-        }
+        setThemeChangeHandler: function(f) {
+          this._themeHandler = f;
+        },
+        _themeHandler: null
       }
     };
   });
@@ -274,15 +271,12 @@ export async function testThemeSwitching(browser, extensionId) {
     const initialList = Array.from(document.documentElement.classList);
     
     // Fire theme change to 'dark'
-    if (window.chrome.devtools.panels.onThemeChanged._listeners) {
-      window.chrome.devtools.panels.onThemeChanged._listeners.forEach(f => f('dark'));
-    }
+    const handler = window.chrome.devtools.panels._themeHandler;
+    if (handler) handler('dark');
     const darkList = Array.from(document.documentElement.classList);
-    
+
     // Fire theme change to 'light'
-    if (window.chrome.devtools.panels.onThemeChanged._listeners) {
-      window.chrome.devtools.panels.onThemeChanged._listeners.forEach(f => f('light'));
-    }
+    if (handler) handler('light');
     const lightList = Array.from(document.documentElement.classList);
 
     return { initialList, darkList, lightList };

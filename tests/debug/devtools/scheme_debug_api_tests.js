@@ -160,13 +160,13 @@ export async function runSchemeDebugApiTests(logger) {
         // Find the 'n' entry
         const nEntry = locals.find(l => l.name === 'n');
         assert(logger, 'n entry exists', !!nEntry, true);
-        assert(logger, 'n value is "5"', nEntry.value, '5');
+        assert(logger, 'n value is "5"', nEntry.value, '5.0');
         assert(logger, 'n type is number', nEntry.type, 'number');
 
         // Find the 'result' entry
         const resultEntry = locals.find(l => l.name === 'result');
         assert(logger, 'result entry exists', !!resultEntry, true);
-        assert(logger, 'result value is "120"', resultEntry.value, '120');
+        assert(logger, 'result value is "120"', resultEntry.value, '120.0');
 
         debugRuntime.exitFrame();
     }
@@ -204,13 +204,13 @@ export async function runSchemeDebugApiTests(logger) {
         const locals0 = api.getLocals(0);
         const x = locals0.find(l => l.name === 'x');
         assert(logger, 'frame 0 has x', !!x, true);
-        assert(logger, 'frame 0 x value', x.value, '10');
+        assert(logger, 'frame 0 x value', x.value, '10.0');
 
         // Frame 1 (top) should have y
         const locals1 = api.getLocals(1);
         const y = locals1.find(l => l.name === 'y');
         assert(logger, 'frame 1 has y', !!y, true);
-        assert(logger, 'frame 1 y value', y.value, '20');
+        assert(logger, 'frame 1 y value', y.value, '20.0');
 
         debugRuntime.exitFrame();
         debugRuntime.exitFrame();
@@ -281,7 +281,7 @@ export async function runSchemeDebugApiTests(logger) {
 
         const api = globalThis.__schemeDebug;
         const result = api.eval('(+ n 1)');
-        assert(logger, 'eval (+ n 1) = "6"', result, '6');
+        assert(logger, 'eval (+ n 1) = "6"', result, '6.0');
 
         debugRuntime.exitFrame();
     }
@@ -305,11 +305,11 @@ export async function runSchemeDebugApiTests(logger) {
         const api = globalThis.__schemeDebug;
         // Default (no frameIndex) should use top frame
         const result = api.eval('x');
-        assert(logger, 'eval defaults to top frame', result, '999');
+        assert(logger, 'eval defaults to top frame', result, '999.0');
 
         // Explicit frame 0 (bottom)
         const result0 = api.eval('x', 0);
-        assert(logger, 'eval in frame 0', result0, '100');
+        assert(logger, 'eval in frame 0', result0, '100.0');
 
         debugRuntime.exitFrame();
         debugRuntime.exitFrame();
@@ -330,7 +330,7 @@ export async function runSchemeDebugApiTests(logger) {
         const api = globalThis.__schemeDebug;
 
         const result = api.eval('(+ 1 2)', 999);
-        assert(logger, 'eval with invalid frame falls back to global env', result, '3');
+        assert(logger, 'eval with invalid frame falls back to global env', result, '3.0');
     }
 
     // =========================================================================
@@ -719,6 +719,102 @@ export async function runSchemeDebugApiTests(logger) {
         api.resume();
         assert(logger, 'resume when running: still running',
             debugRuntime.pauseController.getState(), 'running');
+    }
+
+    // =========================================================================
+    // Probe runtime wiring — setBreakpoint / removeBreakpoint sync to probe runtime
+    // =========================================================================
+    logger.title('__schemeDebug API - probe runtime breakpoint wiring');
+
+    // Lazy-import parse so we can register real sources with expression spans
+    const { parse } = await import('../../../src/core/interpreter/reader.js');
+
+    // Test: setBreakpoint with a registered source wires the exprId to probe runtime
+    {
+        const { registry, debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        // Reset any residual probe breakpoints from prior tests
+        globalThis.__schemeProbeRuntime._breakpoints.clear();
+
+        const url = 'scheme://inline-scripts/probe-test.scm';
+        const code = '(define x 42)\n(define y 99)';
+        const exprs = parse(code, { filename: url });
+        registry.register(url, code, 'inline', exprs);
+
+        // Verify expression spans exist for the source
+        const spans = api.getExpressions(url);
+        assert(logger, 'probe test: spans registered', spans.length > 0, true);
+
+        // Set a line-level breakpoint on line 1
+        const id = api.setBreakpoint(url, 1);
+        assert(logger, 'probe test: setBreakpoint returns id', typeof id, 'string');
+
+        // At least one exprId from line 1 should now be in probe runtime
+        const spansOnLine1 = spans.filter(s => s.line === 1);
+        assert(logger, 'probe test: spans on line 1', spansOnLine1.length > 0, true);
+
+        const anyWired = spansOnLine1.some(
+            s => globalThis.__schemeProbeRuntime._breakpoints.has(s.exprId)
+        );
+        assert(logger, 'probe test: exprIds wired to probe runtime', anyWired, true);
+
+        debugRuntime.breakpointManager.clearAll();
+        globalThis.__schemeProbeRuntime._breakpoints.clear();
+    }
+
+    // Test: removeBreakpoint deregisters exprIds from probe runtime
+    {
+        const { registry, debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        globalThis.__schemeProbeRuntime._breakpoints.clear();
+
+        const url = 'scheme://inline-scripts/probe-remove-test.scm';
+        const code = '(define a 1)';
+        const exprs = parse(code, { filename: url });
+        registry.register(url, code, 'inline', exprs);
+
+        const id = api.setBreakpoint(url, 1);
+        const spans = api.getExpressions(url);
+        const spansOnLine1 = spans.filter(s => s.line === 1);
+
+        // Should be wired after set
+        const wiredAfterSet = spansOnLine1.some(
+            s => globalThis.__schemeProbeRuntime._breakpoints.has(s.exprId)
+        );
+        assert(logger, 'probe remove test: wired after set', wiredAfterSet, true);
+
+        // Remove and verify unwired
+        api.removeBreakpoint(id);
+        const wiredAfterRemove = spansOnLine1.some(
+            s => globalThis.__schemeProbeRuntime._breakpoints.has(s.exprId)
+        );
+        assert(logger, 'probe remove test: unwired after remove', wiredAfterRemove, false);
+
+        debugRuntime.breakpointManager.clearAll();
+        globalThis.__schemeProbeRuntime._breakpoints.clear();
+    }
+
+    // Test: setBreakpoint for unregistered source still registers with breakpointManager
+    {
+        const { debugRuntime } = createTestSetup();
+        const api = globalThis.__schemeDebug;
+
+        globalThis.__schemeProbeRuntime._breakpoints.clear();
+
+        // No source registered for this URL
+        const id = api.setBreakpoint('scheme://missing/file.scm', 5);
+        assert(logger, 'unregistered source: id returned', typeof id, 'string');
+
+        // BreakpointManager should have it
+        const bps = debugRuntime.breakpointManager.getAllBreakpoints();
+        assert(logger, 'unregistered source: in breakpointManager', bps.length, 1);
+
+        // No probe exprIds should be set (no spans available)
+        assert(logger, 'unregistered source: no probe wiring', globalThis.__schemeProbeRuntime._breakpoints.size, 0);
+
+        debugRuntime.breakpointManager.clearAll();
     }
 
     // Clean up global
