@@ -601,32 +601,6 @@ function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
     // It extracts the arguments and calls the Scheme closure.
     const jsTransformer = (macroCallExp, useSiteEnv) => {
         const argsList = cdr(macroCallExp); // (arg1 arg2 ...)
-
-        // Invoke the closure with the arguments list
-        // Note: The transformer returns a Scheme expression (AST/Cons)
-        // which the analyzer will then recursively analyze.
-
-        // We use runWithSentinel to ensure proper stack handling if the macro calls back into JS (unlikely but possible)
-        // But for simple closure invocation, we can construct an application AST.
-
-        // However, we have a raw closure object and raw arguments (Cons list).
-        // The simplest way is to use the interpreter's invokeContinuation-like logic or apply primitive logic.
-
-        // Let's manually construct an Apply invocation or similar.
-        // Or simpler: use expansionInterpreter.run with a TailAppNode if we wrap the closure in a LiteralNode.
-
-        // We need to convert the Cons list of args into an array of AST nodes?
-        // No, the closure expects Scheme values (Cons list of syntax).
-        // Wait, (define-macro (f x) ...) expects x to be passed as argument.
-        // The macro call is (f arg1).
-        // So the transformer should be called with `arg1`.
-
-        // If the macro is (define-macro (f . args) ...), it expects `args` as a list.
-        // If the macro is (define-macro (f x) ...), it expects `x`.
-
-        // We need to `apply` the closure to the arguments list.
-        // The `apply` primitive in Scheme does exactly this.
-
         try {
             // Use the expansion interpreter to run (apply closure argsList)
             const applyNode = new TailAppNode(
