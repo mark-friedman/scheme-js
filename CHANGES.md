@@ -4025,7 +4025,7 @@ I converted the REPL's evaluation logic to be fully asynchronous in debug mode.
 ### Node.js REPL
 - Verified that `:abort` exits the debug loop and returns to the main prompt.
 
-# Walkthrough: Implementing define-macro
+# Walkthrough: Implementing define-macro (2026-02-08)
 
 I have implemented the `define-macro` special form, bringing Common Lisp-style unhygienic macros to Scheme-JS.
 
