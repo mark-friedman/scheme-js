@@ -118,7 +118,7 @@ async function bootstrapInterpreter() {
                     (scheme process-context)
                     (scheme-js promise)
                     (scheme-js interop)
-                    (scheme define-macro))
+                    (scheme-js define-macro))
         `;
         for (const sexp of parse(imports)) {
             interpreter.run(analyze(sexp), env, [], undefined, { jsAutoConvert: 'raw' });

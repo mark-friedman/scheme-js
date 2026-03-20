@@ -83,7 +83,7 @@ import {
             ['scheme', 'char'],
             ['scheme-js', 'promise'],
             ['scheme-js', 'interop'],
-            ['scheme', 'define-macro']
+            ['scheme-js', 'define-macro']
         ];
 
         // Pre-load all libraries asynchronously (this populates the cache)
@@ -106,7 +106,7 @@ import {
                     (scheme char)
                     (scheme-js promise)
                     (scheme-js interop)
-                    (scheme define-macro))
+                    (scheme-js define-macro))
         `;
         for (const exp of parse(imports)) {
             interpreter.run(analyze(exp), env);
