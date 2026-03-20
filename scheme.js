@@ -11123,7 +11123,8 @@ const SYNTAX_KEYWORDS = new Set([
     'define-syntax', 'let-syntax', 'letrec-syntax',
     'syntax-rules', '...', 'else', '=>', 'import', 'export',
     'define-library', 'include', 'include-ci', 'include-library-declarations',
-    'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation'
+    'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation',
+    'define-macro'
 ]);
 
 /**
@@ -11136,7 +11137,7 @@ const SPECIAL_FORMS$1 = new Set([
     'if', 'let', 'letrec', 'lambda', 'set!', 'define', 'begin',
     'quote', 'quasiquote', 'unquote', 'unquote-splicing',
     // Macro-related
-    'define-syntax', 'let-syntax', 'letrec-syntax',
+    'define-syntax', 'let-syntax', 'letrec-syntax', 'define-macro',
     // Control flow
     'call/cc', 'call-with-current-continuation',
     // Module system
@@ -12753,6 +12754,7 @@ function registerCoreForms() {
     registerHandler('define', analyzeDefine);
     registerHandler('begin', analyzeBegin);
     registerHandler('define-syntax', analyzeDefineSyntax);
+    registerHandler('define-macro', analyzeDefineMacro);
     registerHandler('let-syntax', analyzeLetSyntax);
     registerHandler('letrec-syntax', analyzeLetrecSyntax);
     registerHandler('quasiquote', (exp, env, ctx) => expandQuasiquote(cadr(exp), env, ctx));
@@ -12828,6 +12830,110 @@ function analyzeDefineSyntax(exp, syntacticEnv = null, ctx) {
             return new LiteralNode(null);
         }
     }
+    return new LiteralNode(null);
+}
+
+/**
+ * Analyzes (define-macro (name args...) body...) or (define-macro name transformer).
+ * Evaluates the transformer immediately in a fresh environment and registers it.
+ *
+ * @param {Cons} exp - The expression.
+ * @param {SyntacticEnv} [syntacticEnv=null] - The environment.
+ * @param {InterpreterContext} ctx - The context.
+ * @returns {LiteralNode}
+ */
+function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
+    const head = cadr(exp);
+    let name;
+    let transformerLambdaAst;
+
+    // Case 1: (define-macro (name args...) body...)
+    if (head instanceof Cons) {
+        const nameObj = car(head);
+        const args = cdr(head);
+        const body = cddr(exp);
+        name = (nameObj instanceof Symbol$1) ? nameObj.name : syntaxName(nameObj);
+
+        // Construct lambda: (lambda args body...)
+        const lambdaExp = cons(intern('lambda'), cons(args, body));
+        transformerLambdaAst = analyzeLambda(lambdaExp, syntacticEnv, ctx);
+    }
+    // Case 2: (define-macro name transformer-proc)
+    else if (head instanceof Symbol$1 || isSyntaxObject(head)) {
+        name = (head instanceof Symbol$1) ? head.name : syntaxName(head);
+        const transformerExp = caddr(exp);
+        transformerLambdaAst = analyze$2(transformerExp, syntacticEnv, ctx);
+    } else {
+        throw new SchemeSyntaxError('Invalid define-macro syntax', exp, 'define-macro');
+    }
+
+    // 1. Create a temporary interpreter with standard primitives
+    // We use a separate context for the expansion environment to avoid polluting
+    // the global state, but we might want to share state in the future.
+    // For now, "expansion time" is a fresh environment with standard library.
+    const expansionInterpreter = new Interpreter(ctx);
+    const expansionEnv = createGlobalEnvironment(expansionInterpreter);
+    expansionInterpreter.setGlobalEnv(expansionEnv);
+
+    // 2. Evaluate the transformer to get a closure
+    let transformerClosure;
+    try {
+        // Run synchronously - transformers must be available immediately
+        transformerClosure = expansionInterpreter.run(transformerLambdaAst, expansionEnv);
+    } catch (e) {
+        throw new SchemeSyntaxError(`Error evaluating macro transformer for '${name}': ${e.message}`, exp, 'define-macro');
+    }
+
+    // 3. Create the JS transformer wrapper
+    // The wrapper receives the macro call expression (name arg1 arg2 ...)
+    // It extracts the arguments and calls the Scheme closure.
+    const jsTransformer = (macroCallExp, useSiteEnv) => {
+        const argsList = cdr(macroCallExp); // (arg1 arg2 ...)
+
+        // Invoke the closure with the arguments list
+        // Note: The transformer returns a Scheme expression (AST/Cons)
+        // which the analyzer will then recursively analyze.
+
+        // We use runWithSentinel to ensure proper stack handling if the macro calls back into JS (unlikely but possible)
+        // But for simple closure invocation, we can construct an application AST.
+
+        // However, we have a raw closure object and raw arguments (Cons list).
+        // The simplest way is to use the interpreter's invokeContinuation-like logic or apply primitive logic.
+
+        // Let's manually construct an Apply invocation or similar.
+        // Or simpler: use expansionInterpreter.run with a TailAppNode if we wrap the closure in a LiteralNode.
+
+        // We need to convert the Cons list of args into an array of AST nodes?
+        // No, the closure expects Scheme values (Cons list of syntax).
+        // Wait, (define-macro (f x) ...) expects x to be passed as argument.
+        // The macro call is (f arg1).
+        // So the transformer should be called with `arg1`.
+
+        // If the macro is (define-macro (f . args) ...), it expects `args` as a list.
+        // If the macro is (define-macro (f x) ...), it expects `x`.
+
+        // We need to `apply` the closure to the arguments list.
+        // The `apply` primitive in Scheme does exactly this.
+
+        try {
+            // Use the expansion interpreter to run (apply closure argsList)
+            const applyNode = new TailAppNode(
+                new VariableNode('apply'),
+                [
+                    new LiteralNode(transformerClosure),
+                    new LiteralNode(argsList)
+                ]
+            );
+
+            return expansionInterpreter.run(applyNode, expansionEnv);
+        } catch (e) {
+            throw new SchemeSyntaxError(`Error expanding macro '${name}': ${e.message}`, macroCallExp, name);
+        }
+    };
+
+    // 4. Register the transformer
+    ctx.currentMacroRegistry.define(name, jsTransformer);
+
     return new LiteralNode(null);
 }
 
@@ -14815,6 +14921,7 @@ const BUNDLED_SOURCES = {
   "repl.sld": ";; (scheme repl) library - R7RS standard\n;;\n;; Provides the interaction environment for REPL use.\n\n(define-library (scheme repl)\n  (import (scheme base))\n  (export interaction-environment)\n  (begin\n    ;; interaction-environment is already a primitive in our system\n    ;; so we just re-export it.\n  ))\n",
   "time.sld": ";; (scheme time) library\n;;\n;; R7RS time procedures using JavaScript Date.\n\n(define-library (scheme time)\n  (import (scheme base))\n  (export current-second current-jiffy jiffies-per-second)\n  (begin\n    ;; /**\n    ;;  * current-second - Returns current time as seconds since epoch.\n    ;;  * @returns {real} Seconds since 1970-01-01 00:00:00 UTC.\n    ;;  */\n    ;; Implemented as JS primitive\n    \n    ;; /**\n    ;;  * current-jiffy - Returns current time in jiffies.\n    ;;  * A jiffy is 1 millisecond in our implementation.\n    ;;  * @returns {integer} Current jiffy count.\n    ;;  */\n    ;; Implemented as JS primitive\n    \n    ;; /**\n    ;;  * jiffies-per-second - Returns the number of jiffies per second.\n    ;;  * @returns {integer} 1000 (milliseconds per second).\n    ;;  */\n    ;; Implemented as JS primitive\n    ))\n",
   "write.sld": ";; R7RS (scheme write) library\n;;\n;; Provides output procedures for formatted writing.\n;; Per R7RS §6.13.3.\n\n(define-library (scheme write)\n  (import (scheme primitives))\n  \n  (export\n    display\n    write\n    ;; write-shared and write-simple are optional extensions\n    ;; that we don't implement yet\n  )\n  \n  (begin\n    ;; Bindings come from primitives\n  ))\n",
+  "define-macro.sld": ";; Library for define-macro support\n;; This library exports the define-macro special form.\n;; It is loaded by default in the REPL environment.\n\n(define-library (scheme-js define-macro)\n  (export define-macro)\n  (import (scheme base))\n)\n",
   "interop.sld": ";; (scheme-js interop) library\n;;\n;; JavaScript interoperability primitives for Scheme.\n;; Provides js-eval, js-ref (property access), and js-set! (property mutation).\n\n(define-library (scheme-js interop)\n  (import (scheme base))\n  (export\n    js-eval\n    js-ref\n    js-set!\n    js-invoke\n    js-obj\n    js-obj-merge\n    js-typeof\n    js-undefined\n    js-undefined?\n    js-null\n    js-null?\n    js-new))\n",
   "promise.scm": ";; JavaScript Promise Interoperability - Scheme Implementation\n;;\n;; This file provides the async-lambda macro which transforms\n;; code with await forms into CPS (Continuation-Passing Style).\n;;\n;; Example:\n;;   (async-lambda (url)\n;;     (let ((response (await (fetch url))))\n;;       (await (parse-json response))))\n;;\n;; Expands to:\n;;   (lambda (url)\n;;     (js-promise-then (fetch url)\n;;       (lambda (response)\n;;         (js-promise-then (parse-json response)\n;;           (lambda (v) v)))))\n\n;; ============================================================================\n;; async-lambda Macro\n;; ============================================================================\n\n;; /**\n;;  * async-lambda - Define a lambda that can use await to suspend on promises.\n;;  * \n;;  * Each (await expr) form becomes a promise-then boundary, transforming\n;;  * the remainder of the body into a continuation callback.\n;;  *\n;;  * @syntax (async-lambda (args ...) body ...)\n;;  * @returns {procedure} A procedure that returns a Promise\n;;  *\n;;  * LIMITATIONS:\n;;  * - call/cc captured BEFORE an await can escape the promise chain when invoked\n;;  * - call/cc captured AFTER an await only captures the current callback scope\n;;  * - TCO works within each callback segment, but not across await boundaries\n;;  */\n(define-syntax async-lambda\n  (syntax-rules ()\n    ;; Base case: body with no await - just return the value\n    ((async-lambda (args ...) body)\n     (lambda (args ...) (js-promise-resolve body)))\n    ;; Entry point for multiple expressions  \n    ((async-lambda (args ...) expr exprs ...)\n     (lambda (args ...)\n       (async-body expr exprs ...)))))\n\n;; /**\n;;  * async-body - Helper macro to process async body expressions.\n;;  * Transforms await forms to promise-then chains.\n;;  */\n(define-syntax async-body\n  (syntax-rules (await let)\n    ;; Single expression - wrap in resolved promise\n    ((async-body expr)\n     (js-promise-resolve expr))\n    ;; Let with await in binding - transform to promise-then\n    ((async-body (let ((var (await promise-expr))) body ...) rest ...)\n     (js-promise-then promise-expr\n       (lambda (var)\n         (async-body body ... rest ...))))\n    ;; Let without await - keep as is, continue processing\n    ((async-body (let ((var val)) body ...) rest ...)\n     (let ((var val))\n       (async-body body ... rest ...)))\n    ;; Non-let expression followed by more - sequence them\n    ((async-body expr rest ...)\n     (js-promise-then (js-promise-resolve expr)\n       (lambda (_)\n         (async-body rest ...))))))\n\n;; ============================================================================\n;; Promise Composition Utilities\n;; ============================================================================\n\n;; /**\n;;  * js-promise-map - Apply a function to the resolved value of a promise.\n;;  * @param {procedure} f - Function to apply\n;;  * @param {promise} p - Promise to map over\n;;  * @returns {promise} A new promise with the mapped value\n;;  */\n(define (js-promise-map f p)\n  (js-promise-then p f))\n\n;; /**\n;;  * js-promise-chain - Chain multiple promise-returning functions.\n;;  * @param {promise} p - Initial promise\n;;  * @param {procedure...} fs - Functions to chain (each takes a value, returns a promise)\n;;  * @returns {promise} Final promise in the chain\n;;  */\n(define (js-promise-chain p . fs)\n  (if (null? fs)\n      p\n      (apply js-promise-chain \n             (js-promise-then p (car fs))\n             (cdr fs))))\n\n\n",
   "promise.sld": ";; (scheme-js promise) library\n;;\n;; JavaScript Promise interoperability for Scheme.\n;; Provides primitives and macros for working with JavaScript Promises\n;; in a CPS-style that preserves TCO within callback segments.\n\n(define-library (scheme-js promise)\n  (import (scheme base))\n  (export \n    ;; Predicates\n    js-promise?\n    ;; Constructors\n    make-js-promise\n    js-promise-resolve\n    js-promise-reject\n    ;; Combinators\n    js-promise-then\n    js-promise-catch\n    js-promise-finally\n    js-promise-all\n    js-promise-race\n    js-promise-all-settled\n    ;; Scheme utilities\n    js-promise-map\n    js-promise-chain\n    ;; Macro for CPS transformation\n    async-lambda)\n  (include \"promise.scm\"))\n"
