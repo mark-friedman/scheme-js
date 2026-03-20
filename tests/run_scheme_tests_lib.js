@@ -56,6 +56,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     const promiseExports = await loadLibrary(['scheme-js', 'promise'], analyze, interpreter, interpreter.globalEnv);
     const jsConversionExports = await loadLibrary(['scheme-js', 'js-conversion'], analyze, interpreter, interpreter.globalEnv);
     const interopExports = await loadLibrary(['scheme-js', 'interop'], analyze, interpreter, interpreter.globalEnv);
+    const defineMacroExports = await loadLibrary(['scheme-js', 'define-macro'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
     applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });
@@ -64,6 +65,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     applyImports(interpreter.globalEnv, promiseExports, { libraryName: ['scheme-js', 'promise'] });
     applyImports(interpreter.globalEnv, jsConversionExports, { libraryName: ['scheme-js', 'js-conversion'] });
     applyImports(interpreter.globalEnv, interopExports, { libraryName: ['scheme-js', 'interop'] });
+    applyImports(interpreter.globalEnv, defineMacroExports, { libraryName: ['scheme-js', 'define-macro'] });
 
     // Note: time and process-context primitives are loaded via primitives/index.js
 

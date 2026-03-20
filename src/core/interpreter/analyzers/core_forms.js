@@ -23,6 +23,8 @@ import { MacroRegistry } from '../macro_registry.js';
 import { registerHandler } from './registry.js';
 import { compileSyntaxRules } from '../syntax_rules.js';
 import { SchemeSyntaxError } from '../errors.js';
+import { Interpreter } from '../interpreter.js';
+import { createGlobalEnvironment } from '../../primitives/index.js';
 
 // These will be set by the analyzer when it initializes
 // to avoid circular dependencies between analyzer.js and core_forms.js.
@@ -464,6 +466,7 @@ export function registerCoreForms() {
     registerHandler('define', analyzeDefine);
     registerHandler('begin', analyzeBegin);
     registerHandler('define-syntax', analyzeDefineSyntax);
+    registerHandler('define-macro', analyzeDefineMacro);
     registerHandler('let-syntax', analyzeLetSyntax);
     registerHandler('letrec-syntax', analyzeLetrecSyntax);
     registerHandler('quasiquote', (exp, env, ctx) => expandQuasiquote(cadr(exp), env, ctx));
@@ -539,6 +542,110 @@ function analyzeDefineSyntax(exp, syntacticEnv = null, ctx) {
             return new LiteralNode(null);
         }
     }
+    return new LiteralNode(null);
+}
+
+/**
+ * Analyzes (define-macro (name args...) body...) or (define-macro name transformer).
+ * Evaluates the transformer immediately in a fresh environment and registers it.
+ *
+ * @param {Cons} exp - The expression.
+ * @param {SyntacticEnv} [syntacticEnv=null] - The environment.
+ * @param {InterpreterContext} ctx - The context.
+ * @returns {LiteralNode}
+ */
+function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
+    const head = cadr(exp);
+    let name;
+    let transformerLambdaAst;
+
+    // Case 1: (define-macro (name args...) body...)
+    if (head instanceof Cons) {
+        const nameObj = car(head);
+        const args = cdr(head);
+        const body = cddr(exp);
+        name = (nameObj instanceof Symbol) ? nameObj.name : syntaxName(nameObj);
+
+        // Construct lambda: (lambda args body...)
+        const lambdaExp = cons(intern('lambda'), cons(args, body));
+        transformerLambdaAst = analyzeLambda(lambdaExp, syntacticEnv, ctx);
+    }
+    // Case 2: (define-macro name transformer-proc)
+    else if (head instanceof Symbol || isSyntaxObject(head)) {
+        name = (head instanceof Symbol) ? head.name : syntaxName(head);
+        const transformerExp = caddr(exp);
+        transformerLambdaAst = analyze(transformerExp, syntacticEnv, ctx);
+    } else {
+        throw new SchemeSyntaxError('Invalid define-macro syntax', exp, 'define-macro');
+    }
+
+    // 1. Create a temporary interpreter with standard primitives
+    // We use a separate context for the expansion environment to avoid polluting
+    // the global state, but we might want to share state in the future.
+    // For now, "expansion time" is a fresh environment with standard library.
+    const expansionInterpreter = new Interpreter(ctx);
+    const expansionEnv = createGlobalEnvironment(expansionInterpreter);
+    expansionInterpreter.setGlobalEnv(expansionEnv);
+
+    // 2. Evaluate the transformer to get a closure
+    let transformerClosure;
+    try {
+        // Run synchronously - transformers must be available immediately
+        transformerClosure = expansionInterpreter.run(transformerLambdaAst, expansionEnv);
+    } catch (e) {
+        throw new SchemeSyntaxError(`Error evaluating macro transformer for '${name}': ${e.message}`, exp, 'define-macro');
+    }
+
+    // 3. Create the JS transformer wrapper
+    // The wrapper receives the macro call expression (name arg1 arg2 ...)
+    // It extracts the arguments and calls the Scheme closure.
+    const jsTransformer = (macroCallExp, useSiteEnv) => {
+        const argsList = cdr(macroCallExp); // (arg1 arg2 ...)
+
+        // Invoke the closure with the arguments list
+        // Note: The transformer returns a Scheme expression (AST/Cons)
+        // which the analyzer will then recursively analyze.
+
+        // We use runWithSentinel to ensure proper stack handling if the macro calls back into JS (unlikely but possible)
+        // But for simple closure invocation, we can construct an application AST.
+
+        // However, we have a raw closure object and raw arguments (Cons list).
+        // The simplest way is to use the interpreter's invokeContinuation-like logic or apply primitive logic.
+
+        // Let's manually construct an Apply invocation or similar.
+        // Or simpler: use expansionInterpreter.run with a TailAppNode if we wrap the closure in a LiteralNode.
+
+        // We need to convert the Cons list of args into an array of AST nodes?
+        // No, the closure expects Scheme values (Cons list of syntax).
+        // Wait, (define-macro (f x) ...) expects x to be passed as argument.
+        // The macro call is (f arg1).
+        // So the transformer should be called with `arg1`.
+
+        // If the macro is (define-macro (f . args) ...), it expects `args` as a list.
+        // If the macro is (define-macro (f x) ...), it expects `x`.
+
+        // We need to `apply` the closure to the arguments list.
+        // The `apply` primitive in Scheme does exactly this.
+
+        try {
+            // Use the expansion interpreter to run (apply closure argsList)
+            const applyNode = new TailAppNode(
+                new VariableNode('apply'),
+                [
+                    new LiteralNode(transformerClosure),
+                    new LiteralNode(argsList)
+                ]
+            );
+
+            return expansionInterpreter.run(applyNode, expansionEnv);
+        } catch (e) {
+            throw new SchemeSyntaxError(`Error expanding macro '${name}': ${e.message}`, macroCallExp, name);
+        }
+    };
+
+    // 4. Register the transformer
+    ctx.currentMacroRegistry.define(name, jsTransformer);
+
     return new LiteralNode(null);
 }
 

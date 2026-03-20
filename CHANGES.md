@@ -906,7 +906,7 @@ Added comprehensive input validation to all Scheme procedures.
 ## Special Forms ([analyzer.js](./src/core/interpreter/analyzer.js))
 
 - `analyzeIf` - Validates 2-3 arguments
-- `analyzeLet` - Validates binding structure  
+- `analyzeLet` - Validates binding structure
 - `analyzeLetRec` - Validates binding structure
 - `analyzeLambda` - Validates param symbols, body not empty
 - `analyzeSet` - Validates symbol argument
@@ -1171,7 +1171,7 @@ Updated [base.sld](/workspaces/scheme-js-4/src/core/scheme/base.sld):
 char? char=? char<? char>? char<=? char>=?
 char->integer integer->char
 
-;; Strings  
+;; Strings
 string? make-string string string-length string-ref
 string=? string<? string>? string<=? string>=?
 substring string-append string-copy
@@ -1379,7 +1379,7 @@ This was the most complex part of the implementation, solving the problem of int
 
 - **Problem**: Internal library definitions like `param-dynamic-bind` (used by the `parameterize` macro in `scheme core`) were defined in library-specific environments but `GlobalRef` only looked in the global environment.
 
-- **Solution**: 
+- **Solution**:
   - Introduced `libraryScopeEnvMap` in `syntax_object.js` to map library defining scopes to their runtime environments.
   - Updated `library_loader.js` to register this mapping when loading libraries via `registerLibraryScope(libraryScope, libEnv)`.
   - Updated `GlobalRef` to carry the defining scope ID.
@@ -1399,7 +1399,7 @@ This was the most complex part of the implementation, solving the problem of int
 ### Hygiene Tests (`tests/functional/macro_tests.js`)
 All 8 tests pass:
 - ✅ **Standard Library Capture**: `(syntax-rules () ((_) (list 1 2)))` works even if `list` is shadowed locally
-- ✅ **User Global Capture**: `(syntax-rules () ((_) global-var))` works even if `global-var` is shadowed locally  
+- ✅ **User Global Capture**: `(syntax-rules () ((_) global-var))` works even if `global-var` is shadowed locally
 - ✅ **Renaming**: Macro-introduced variables don't clash with user variables
 
 ### Regression Tests
@@ -1500,7 +1500,7 @@ The fix was verified using a targeted reproduction test case and the full system
      (guard (e (else (if (string? e) e "not-string")))
        expr))))
 
-(test "error" (test-guard-binding (raise "error"))) 
+(test "error" (test-guard-binding (raise "error")))
 ;; Previously failed with "Unbound variable: e" or "global"
 ;; Now correctly returns "error"
 
@@ -1574,7 +1574,7 @@ Changed macro lookup to use scoped registry:
 ## Tests Added
 Created [hygiene_tests.scm](./tests/core/scheme/hygiene_tests.scm) with 10 tests:
 - Referential transparency (3 tests)
-- let-syntax scoping (4 tests)  
+- let-syntax scoping (4 tests)
 - letrec-syntax (2 tests)
 - Hygiene edge cases (1 test)
 
@@ -2151,7 +2151,7 @@ I have implemented a robust Node.js REPL application for the Scheme interpreter 
 
 - **Interactive REPL**: Run `node repl.js` to start the session.
 - **Multi-line Input**: The REPL detects incomplete expressions (open parentheses, unclosed strings) and prompts for continuation.
-- **File Loading**: Use `(load "filename.scm")` to load Scheme scripts into the current environment. 
+- **File Loading**: Use `(load "filename.scm")` to load Scheme scripts into the current environment.
 - **Library Imports**: Use `(import (lib name))` to import R7RS libraries synchronously.
 - **File Execution**: Run `node repl.js <file.scm>` to execute a Scheme file.
 - **Expression Evaluation**: Run `node repl.js -e "<expr>"` to evaluate a single expression and exit.
@@ -2314,7 +2314,7 @@ TEST SUMMARY: 1166 passed, 0 failed, 3 skipped
 (js-promise-then p (lambda (x) (display x)))
 
 ;; Create promise with executor
-(define p2 (make-js-promise 
+(define p2 (make-js-promise
              (lambda (resolve reject)
                (resolve (* 6 7)))))
 
@@ -3379,7 +3379,7 @@ Implemented proper object printing with reader syntax `#{(key val)...}` and circ
 ### 2. Reader Bridge Fixes (`src/core/primitives/io/reader_bridge.js`)
 - Added `braceDepth` tracking for `{` and `}` to allow the reader to correctly collect full object literal "chunks" from ports.
 - Added explicit handling for the `#{` token start.
-- **Bug Fixes**: 
+- **Bug Fixes**:
   - Fixed an issue where strings ending inside an object literal (e.g., `#{(a \"s\")}`) caused the reader to break early.
   - Fixed an issue where whitespace following a nested list in an object literal (e.g., `#{(a 1) (b 2)}`) caused premature parsing.
 
@@ -3888,7 +3888,7 @@ Integrated the debugging runtime into the interactive REPLs, providing a profess
 
 ## Documentation
 
-- **[debugger_manual.md](./docs/debugger_manual.md)**: Created a detailed user manual for all debugger commands 
+- **[debugger_manual.md](./docs/debugger_manual.md)**: Created a detailed user manual for all debugger commands
   and features.
 
 ## Verification Results
@@ -4024,3 +4024,46 @@ I converted the REPL's evaluation logic to be fully asynchronous in debug mode.
 
 ### Node.js REPL
 - Verified that `:abort` exits the debug loop and returns to the main prompt.
+
+# Walkthrough: Implementing define-macro (2026-02-08)
+
+I have implemented the `define-macro` special form, bringing Common Lisp-style unhygienic macros to Scheme-JS.
+
+## Changes
+
+### 1. Special Form Handler
+- **`src/core/interpreter/analyzers/core_forms.js`**: Added `analyzeDefineMacro`.
+    - It creates a temporary `Interpreter` with a fresh standard environment.
+    - It evaluates the transformer body (which is regular Scheme code) into a closure.
+    - It registers a JS wrapper function in the macro registry that invokes this closure during expansion.
+- **`src/core/interpreter/library_registry.js`**: Added `define-macro` to `SYNTAX_KEYWORDS` and `SPECIAL_FORMS`.
+
+### 2. Library Support
+- **`src/extras/scheme/define-macro.sld`**: Created a library exporting `define-macro` under the `scheme-js` namespace.
+- **`repl.js` & `web/main.js`**: Updated bootstrap logic to import `(scheme-js define-macro)` by default.
+- **`tests/run_scheme_tests_lib.js`**: Updated test runner to include `(scheme-js define-macro)`.
+
+### 3. Verification
+- Created `tests/functional/test_defmacro.scm` demonstrating:
+    - Standard list destructuring: `(define-macro (name . args) ...)`
+    - Explicit transformer: `(define-macro name transformer-proc)`
+    - Usage in expressions.
+- Added to `tests/test_manifest.js`.
+
+## Verification Results
+
+### Automated Tests
+Ran the full test suite.
+
+```
+TEST SUMMARY: 2021 passed, 0 failed, 7 skipped
+```
+
+### Manual Verification
+Ran `node repl.js tests/functional/test_defmacro.scm`.
+
+```
+OK
+Math OK
+Unless OK
+```
