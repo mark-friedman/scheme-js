@@ -35,18 +35,34 @@ globalThis.__schemeProbeRuntime = {
     _getDepth: null,
 
     /**
-     * Whether a debug panel/frontend is connected. When true, hit() always
-     * returns false because the cooperative pause channel (handlePause in
-     * the trampoline) handles breakpoints and stepping instead. The probe's
-     * `debugger;` statement must NOT fire when a panel is connected, because
-     * it would cause Chrome's built-in Sources tab to pause synchronously,
-     * blocking the trampoline before handlePause() can run.
+     * Whether a debug panel/frontend is connected. When true and `_inSyncPath`
+     * is false, hit() returns false — the cooperative pause channel (handlePause
+     * in the async trampoline) handles breakpoints instead. The probe's
+     * `debugger;` statement must NOT fire on the async path when a panel is
+     * connected, because it would cause Chrome's built-in Sources tab to pause
+     * synchronously, blocking the trampoline before handlePause() can run.
+     *
+     * When `_inSyncPath` is true (synchronous `run()` call, e.g. DOM callback),
+     * hit() may still return true so the CDP pause can be forwarded to the panel.
      *
      * Set by devtools_debug.js activate() and html_adapter.js from
      * __SCHEME_JS_PANELCONNECTED.
      * @type {boolean}
      */
     _panelConnected: false,
+
+    /**
+     * Whether the interpreter is currently executing on the synchronous `run()`
+     * path (as opposed to the async `runDebug()` trampoline). Set to true by
+     * `interpreter.run()` at entry and restored to the previous value on exit.
+     *
+     * When true and `_panelConnected` is also true, hit() is allowed to return
+     * true so that breakpoints in DOM callbacks (and other synchronous Scheme
+     * invocations from JS) can be caught via the CDP channel.
+     *
+     * @type {boolean}
+     */
+    _inSyncPath: false,
 
     /**
      * Called by the probe script at each Scheme expression.
@@ -65,13 +81,12 @@ globalThis.__schemeProbeRuntime = {
     hit(exprId) {
         if (!this._active) return false;
 
-        // When a debug panel is connected, skip the debugger; statement
-        // entirely. The cooperative pause channel (handlePause in the
-        // interpreter trampoline) handles breakpoints and stepping.
-        // If we fire debugger; here, Chrome's Sources tab catches it and
-        // pauses V8 synchronously, blocking the trampoline before
-        // handlePause() can dispatch the cooperative pause event.
-        if (this._panelConnected) return false;
+        // When a debug panel is connected on the async (runDebug) path, skip
+        // the debugger; statement entirely — the cooperative pause channel
+        // (handlePause in the async trampoline) handles breakpoints instead.
+        // On the synchronous run() path (_inSyncPath=true), allow the probe
+        // to fire so the CDP pause can be forwarded to the panel.
+        if (this._panelConnected && !this._inSyncPath) return false;
 
         // Exception pause takes priority — fired by onException() in devtools_debug.js
         if (this._exceptionPause) {

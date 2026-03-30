@@ -121,9 +121,12 @@ export function analyze(exp, syntacticEnv = null, context = null) {
     return exp;
   }
 
-  // Helper to attach source from the original expression to the AST node
+  // Helper to attach source from the original expression to the AST node.
+  // Only sets source if the node doesn't already have more specific source info,
+  // to avoid overwriting precise inner sources (e.g. from pattern variable
+  // substitution in macro expansion) with the enclosing form's source.
   const withSourceFrom = (node, sourceExp) => {
-    if (sourceExp && sourceExp.source) {
+    if (!node.source && sourceExp && sourceExp.source) {
       node.source = sourceExp.source;
     }
     return node;
@@ -279,13 +282,40 @@ function analyzeApplication(exp, syntacticEnv, ctx) {
       // Normal js-ref optimization
       const analyzedObj = analyze(objExpr, syntacticEnv, ctx);
       const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv, ctx));
-      return new TailAppNode(new VariableNode('js-invoke'), [analyzedObj, new LiteralNode(methodName), ...argExprs]);
+      const jsInvokeVar = new VariableNode('js-invoke');
+      const methodLit = new LiteralNode(methodName);
+      const node = new TailAppNode(jsInvokeVar, [analyzedObj, methodLit, ...argExprs]);
+      // Propagate source from the application expression to all generated
+      // sub-nodes that lack their own source, so stepping can pause on them.
+      const appSource = exp.source || operator.source;
+      if (appSource) {
+        node.source = appSource;
+        if (!jsInvokeVar.source) jsInvokeVar.source = appSource;
+        if (!methodLit.source) methodLit.source = appSource;
+        if (!analyzedObj.source) analyzedObj.source = appSource;
+        for (const arg of argExprs) {
+          if (!arg.source) arg.source = appSource;
+        }
+      }
+      return node;
     }
   }
 
   const funcExpr = analyze(operator, syntacticEnv, ctx);
   const argExprs = fileArray.slice(1).map(a => analyze(a, syntacticEnv, ctx));
-  return new TailAppNode(funcExpr, argExprs);
+  const node = new TailAppNode(funcExpr, argExprs);
+  // Propagate source from the application expression to sub-expressions
+  // that lack their own source (e.g., string/number literals inside lists
+  // don't get source from the reader). This ensures stepping can pause
+  // on every sub-expression during debug evaluation.
+  const appSource = exp.source;
+  if (appSource) {
+    if (!funcExpr.source) funcExpr.source = appSource;
+    for (const arg of argExprs) {
+      if (!arg.source) arg.source = appSource;
+    }
+  }
+  return node;
 }
 
 

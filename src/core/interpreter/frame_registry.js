@@ -72,9 +72,13 @@ export function createDefineFrame(name, env) {
 
 /**
  * Creates an AppFrame instance.
+ * @param {Array<Executable>} argExprs - Remaining argument expressions.
+ * @param {Array<*>} argValues - Already-evaluated argument values.
+ * @param {Environment} env - The captured environment.
+ * @param {Object|null} [callSiteSource] - Source location of the application expression.
  */
-export function createAppFrame(argExprs, argValues, env) {
-    return new AppFrame(argExprs, argValues, env);
+export function createAppFrame(argExprs, argValues, env, callSiteSource = null) {
+    return new AppFrame(argExprs, argValues, env, callSiteSource);
 }
 
 /**

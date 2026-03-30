@@ -5309,3 +5309,162 @@ End-to-end integration tests bridging a real Scheme breakpoint to the panel UI:
 - `npm test`: 2703 passed, 0 failed
 - `npm run test:extension`: 306 passed, 0 failed (up from 295)
 - Manual verification with scheme-blocks confirmed breakpoints now pause in the Scheme-JS panel, not the Sources tab
+
+# Standalone Debugger Window Migration
+
+Migrated the Scheme-JS debugger from a Chrome DevTools panel (`chrome.devtools.panels.create()`) to a standalone browser window (`chrome.windows.create()`). This solves the critical UX issue where Chrome auto-switches to the Sources tab when `debugger;` fires during sync-path breakpoints (DOM callbacks), hiding the Scheme-JS panel.
+
+## Architecture Changes
+
+| Aspect | Before (DevTools panel) | After (Standalone window) |
+|--------|------------------------|---------------------------|
+| Entry point | `chrome.devtools.panels.create()` | `chrome.windows.create()` via toolbar icon |
+| Page eval | `inspectedWindow.eval()` | `chrome.scripting.executeScript({world:'MAIN'})` |
+| Tab ID | `chrome.devtools.inspectedWindow.tabId` | URL parameter `?tabId=N` |
+| Navigation | `chrome.devtools.network.onNavigated` | `chrome.tabs.onUpdated` |
+| Theme | `chrome.devtools.panels.themeName` | `prefers-color-scheme` media query |
+| Sync breakpoint UX | Sources tab steals focus | Window unaffected |
+| Sync-path V8 state | Auto-resume (snapshot only) | V8 stays paused (full debugging) |
+
+## Files Modified
+
+### New Files
+- `tests/extension/test_standalone_window.mjs` — 6 mock-based tests (19 assertions)
+- `tests/extension/test_standalone_window_e2e.mjs` — 5 E2E tests with real Scheme execution (15 assertions)
+
+### Deleted Files
+- `extension/devtools.js` — No longer needed (was creating DevTools panel)
+- `extension/devtools.html` — No longer needed (was DevTools entry page)
+
+### Modified Files
+- `extension/manifest.json` — Removed `devtools_page`, added `scripting`/`tabs` permissions and `action` block, bumped to v0.3.0
+- `extension/background.js` — Added window lifecycle management (debuggerWindows map, toolbar icon click, window/tab cleanup), sync-path now keeps V8 paused instead of auto-resuming
+- `extension/panel-src/protocol/scheme-bridge.js` — Dual-path eval (scripting.executeScript or inspectedWindow.eval fallback), tabId management
+- `extension/panel-src/protocol/cdp-bridge.js` — Added `evalWhilePaused()`, `schemeStepInto/Over/Out()`, `markAttached()`; imports shared `getTabId()` from scheme-bridge
+- `extension/panel-src/protocol/unified-debugger.js` — Routes scheme-sync commands through CDP, added context-aware `getLocalsForContext()`, `getSourceContentForContext()`, `getExpressionsForContext()`
+- `extension/panel-src/main.js` — TabId from URL params, navigation via tabs.onUpdated, theme via prefers-color-scheme, tabId filtering on messages, uses context-aware getters during pauses
+- `tests/extension/test_mock_chrome.mjs` — Added `buildStandaloneWindowMockScript()`, `eval-paused` and `scheme-step-*` mock handlers
+- `tests/extension/run_extension_tests.mjs` — Registered standalone tests, added page leak cleanup
+
+### Bug Fixes Found During Implementation
+- Fixed race condition in `onSelectSource()` overwriting toolbar status during pauses (guard with `currentPausedLine === null`)
+- Fixed test for diamond markers that checked synchronously instead of waiting for async render
+- Fixed flaky full-suite timeouts caused by leaked browser tabs from crashed tests
+
+## Verification
+
+- `npm test`: 2749 passed, 0 failed
+- `npm run test:extension`: 358 passed, 0 failed (up from 306)
+
+---
+
+# Sync-Path Debugging, Call Stack & Debugger Improvements
+
+Multiple improvements to the debugger extension focusing on synchronous DOM callback debugging, accurate call stack display, variable scope chain, and stepping behavior.
+
+## 1. Sync-Path DOM Callback Debugging
+
+Scheme closures called from synchronous DOM callbacks (e.g. button click handlers) now support full debugging via the panel. Previously, when a probe fired `debugger;` during a synchronous `run()` call, the CDP pause was always auto-resumed without forwarding to the panel.
+
+### `interpreter.js`
+- Sets `__schemeProbeRuntime._inSyncPath = true` on entry to `run()`, restored on exit (nested calls safe)
+- Pre-sets `debugRuntime._currentPauseSource` / `_currentPauseEnv` *before* `maybeHit()` so that when V8 pauses synchronously the state is already available for `getStack()` / `getLocals()`
+
+### `src/debug/devtools/probe_runtime.js`
+- Added `_inSyncPath` flag (default `false`)
+- `hit()` now returns `true` when `_panelConnected && _inSyncPath` (allows the CDP pause to be forwarded to the panel for sync-path breakpoints)
+
+### `extension/background.js`
+- When a probe pause is detected, evaluates `__schemeProbeRuntime._inSyncPath` via `evaluateWhilePaused()`:
+  - **Sync path (`_inSyncPath = true`)**: fetches the Scheme stack via CDP, sends `scheme-sync-paused` message to the panel, and leaves V8 paused for full inspection
+  - **Async path**: auto-resumes immediately as before
+- Added `Runtime.enable` to CDP attach sequence to receive console API events
+- Added `Runtime.consoleAPICalled` handler to forward console output to the panel
+
+### `extension/panel-src/protocol/unified-debugger.js`
+- Added `'scheme-sync'` pause context (alongside existing `'scheme'` and `'js'`)
+- Added `handleSyncSchemePause(message)` — receives the sync-paused message from background.js, sets context, merges call stacks, notifies listeners
+- `resume()`, `stepInto()`, `stepOver()`, `stepOut()` route through CDP for `scheme-sync` context
+- Added context-aware getters: `getLocalsForContext()`, `getSourceContentForContext()`, `getExpressionsForContext()` — route through `cdpBridge.evalWhilePaused()` during sync pauses
+- `evalInFrame()` routes through `evalWhilePaused` during sync-path pauses
+
+### `extension/panel-src/main.js`
+- Added `scheme-sync-paused` message handler that calls `unifiedDebugger.handleSyncSchemePause()`
+- Step buttons now call context-aware getters from unified-debugger
+
+## 2. Call Stack Improvements
+
+### `src/core/interpreter/frames.js`
+- `AppFrame` now stores `callSiteSource` (the source location of the application expression, i.e., *where* the function was called from)
+- `callSiteSource` is propagated through `AppFrame` clones and passed to the debug stack entry when a closure is entered
+- `BoundaryCallFrame` saves the current step state (mode, depth, target) before executing a native JS function and restores it afterward — stepping continues correctly after crossing a JS boundary
+
+### `src/debug/devtools/devtools_debug.js`
+- `getStack()`: overrides the top frame's `source` with `_currentPauseSource` (actual pause location vs. function definition location); adds a synthetic `<top-level>` bottom frame using `callSiteSource` to show where the function was called
+- `getLocals()`: handles the synthetic bottom frame offset; for the top frame uses `_currentPauseEnv`; walks the parent environment chain to expose `scope: 'local' | 'closure' | 'global'` on each variable
+
+### `extension/panel-src/components/variables.js`
+- Variables are now grouped under scope section headers (`Local`, `Closure`, `Global`) when the `scope` field is present
+- Refactored into `createVarRow()` helper for cleaner rendering
+
+## 3. Breakpoint & Stepping Fixes
+
+### `src/debug/scheme_debug_runtime.js`
+- Added `_stepOriginSource`: records the source location when a step command is issued
+- `shouldPause()`: skips re-hitting a breakpoint if the current source matches `_stepOriginSource` (prevents immediately re-pausing at the same line when stepping away from a breakpoint)
+- Step commands (`stepInto`, `stepOver`, `stepOut`) save `_stepOriginSource`; `resume()` clears it
+- `handlePause()` now accepts and forwards a `lastResult` parameter (the value of the previous expression) for step pauses
+
+### `src/core/interpreter/interpreter.js`
+- Passes `lastResult` (the register answer) to `handlePause()` for `'step'` reason pauses
+- Fires a resume event when the evaluation stack empties during stepping, so the panel exits "Paused" state correctly
+
+### `extension/panel-src/main.js`
+- Added 3-second step timeout safety net — if no pause or resume event arrives after a step command, the panel auto-transitions out of "Paused" state
+
+## 4. Source Location Propagation
+
+### `src/core/interpreter/analyzer.js`
+- `withSourceFrom()` now only sets source if the node doesn't already have one (prevents overwriting precise inner sources from macro expansion with the enclosing form's source)
+- Application analysis (`analyzeApplication`) propagates the application expression's source to all generated sub-nodes that lack their own source, enabling more granular stepping
+
+## 5. Breakpoint Deduplication
+
+### `src/debug/devtools/devtools_debug.js`
+- Line-level breakpoints (`setBreakpoint` with no column) now register only the **outermost** expression on the line (smallest column offset), preventing double-fire from nested sub-expressions on the same line
+- Column-level (expression) breakpoints remain exact-match only
+
+## 6. Debugger Window Auto-Focus
+
+### `extension/background.js`
+- `focusDebuggerWindow(tabId)` — focuses the debugger popup whenever a pause occurs (cooperative Scheme pause, sync-path probe pause, or JS CDP pause)
+
+## 7. New Tests
+
+### `tests/extension/test_sync_callback_e2e.mjs` (8 tests)
+Tests for sync-path DOM callback debugging:
+- `testInSyncPathDuringCallback` — `_inSyncPath` is true inside a synchronous Scheme call
+- `testProbeHitReturnsTrue` — `hit()` returns true when `_panelConnected && _inSyncPath`
+- `testCDPPauseDuringSyncCallback` — probe pause is forwarded to the panel during sync callback
+- `testButtonClickTriggersBreakpoint` — button click triggers a breakpoint
+- `testNoBreakpointNoPause` — no false pauses without a breakpoint
+- `testSyncPathCorrectPauseLine` — paused source line is correct
+- `testSyncPathGetLocalsWorks` — `getLocals()` returns correct values during sync pause
+- `testSyncPathSinglePausePerLine` — line-level breakpoints fire exactly once per hit
+
+### `tests/extension/test_standalone_window.mjs` (9 mock-based tests)
+### `tests/extension/test_standalone_window_e2e.mjs` (5 E2E tests)
+Additional standalone window tests including sync pause routing and frame navigation.
+
+### `test_panel_interactions.mjs` additions
+- `testSourceListUpdatesOnPauseNavigation`
+- `testVariableScopeHeaders` — verifies Local/Closure/Global grouping
+- `testStepLastResultDisplay` — verifies last result shown after step
+- `testConsolePageOutput`
+
+## 8. Documentation
+
+- **`docs/chrome_extension_manual.md`** — New user-facing manual for the Chrome extension debugger
+- Updated `docs/architecture.md` and `docs/debugger_requirements.md`
+- Deleted `docs/devtools_usage_guide.md` (superseded by the manual)
+- Updated `extension/MEMORY.md` with sync-path details and `_panelConnected` flag behavior

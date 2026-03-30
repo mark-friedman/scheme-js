@@ -1104,11 +1104,13 @@ export async function testPanelDiamondsOnPausedLine(browser, extensionId) {
     stack: [{ name: 'add', source: null, tcoCount: 0 }],
   });
 
-  // Diamonds should appear on the paused line even without a line breakpoint
-  const diamonds = await panelPage.evaluate(() => {
-    const els = document.querySelectorAll('.cm-expr-diamond');
-    return els.length;
-  });
+  // Diamonds should appear on the paused line even without a line breakpoint.
+  // Wait for them to render (refreshDiamondMarkers runs async after pause).
+  const hasDiamonds = await waitForPage(panelPage,
+    `document.querySelectorAll('.cm-expr-diamond').length >= 1`, 3000);
+  const diamonds = hasDiamonds ? await panelPage.evaluate(() =>
+    document.querySelectorAll('.cm-expr-diamond').length
+  ) : 0;
   assert('Diamonds appear on paused line', diamonds >= 1,
     `found ${diamonds} diamonds`);
 
@@ -1335,6 +1337,235 @@ export async function testKeyboardShortcuts(browser, extensionId) {
   await waitForPage(panelPage, `window.__mockState.lastAction === 'stepOut'`);
   lastAction = await panelPage.evaluate(() => window.__mockState.lastAction);
   assert('Shift+F11 triggers unifiedDebugger.stepOut', lastAction === 'stepOut', `got: ${lastAction}`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Source list updates on pause navigation (Bug 1)
+// =========================================================================
+
+export async function testSourceListUpdatesOnPauseNavigation(browser, extensionId) {
+  console.log('\n--- Test Group: Source List Updates on Pause Navigation ---');
+
+  if (!extensionId) {
+    assert('Source list navigation: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Verify initial selection is first source
+  const initialSelected = await panelPage.evaluate(() => {
+    const items = document.querySelectorAll('#source-list .source-item');
+    return Array.from(items).map(el => ({
+      url: el.dataset.url,
+      selected: el.classList.contains('selected'),
+    }));
+  });
+  assert('Initially first source is selected', initialSelected[0]?.selected === true);
+
+  // Set up locals for pause
+  await panelPage.evaluate(() => {
+    window.__mockState.locals = {
+      0: [{ name: 'x', value: '42', type: 'number', subtype: null }]
+    };
+  });
+
+  // Fire a pause that points to the second source
+  await firePauseEvent(panelPage, {
+    reason: 'breakpoint',
+    source: {
+      filename: 'scheme://scheme-sources/manual_script.scm',
+      line: 3,
+      column: 0,
+    },
+    stack: [{
+      name: 'fib',
+      source: { filename: 'scheme://scheme-sources/manual_script.scm', line: 3, column: 0 },
+      tcoCount: 0,
+    }],
+  });
+
+  // Wait for source list to update (loadSource is async)
+  await waitForPage(panelPage,
+    `document.querySelector('#source-list .source-item:nth-child(2)')?.classList?.contains('selected')`
+  );
+
+  // Source list should now have the second item selected
+  const afterPause = await panelPage.evaluate(() => {
+    const items = document.querySelectorAll('#source-list .source-item');
+    return Array.from(items).map(el => ({
+      url: el.dataset.url,
+      selected: el.classList.contains('selected'),
+    }));
+  });
+  assert('After pause, second source is selected',
+    afterPause[1]?.selected === true,
+    `selection: ${JSON.stringify(afterPause)}`);
+  assert('After pause, first source is NOT selected',
+    afterPause[0]?.selected === false,
+    `selection: ${JSON.stringify(afterPause)}`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Variables show scope sections (Bug 2)
+// =========================================================================
+
+export async function testVariableScopeHeaders(browser, extensionId) {
+  console.log('\n--- Test Group: Variable Scope Headers ---');
+
+  if (!extensionId) {
+    assert('Scope headers: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Set up mock locals with scope information
+  await panelPage.evaluate(() => {
+    window.__mockState.locals = {
+      0: [
+        { name: 'x', value: '10', type: 'number', subtype: null, scope: 'local' },
+        { name: 'y', value: '20', type: 'number', subtype: null, scope: 'local' },
+        { name: 'parent-val', value: '"hello"', type: 'string', subtype: null, scope: 'closure' },
+        { name: 'top-def', value: '42', type: 'number', subtype: null, scope: 'global' },
+      ]
+    };
+  });
+
+  // Fire pause
+  await firePauseEvent(panelPage, {
+    reason: 'breakpoint',
+    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 5, column: 0 },
+    stack: [{
+      name: 'inner-fn',
+      source: { filename: 'scheme://inline-scripts/script-0.scm', line: 5, column: 0 },
+      tcoCount: 0,
+    }],
+  });
+
+  // Wait for variables to render
+  await waitForPage(panelPage, `document.querySelectorAll('#variables-container .variable-row').length >= 4`);
+
+  // Check scope headers
+  const headers = await panelPage.evaluate(() => {
+    const els = document.querySelectorAll('#variables-container .variables-scope-header');
+    return Array.from(els).map(el => el.textContent);
+  });
+  assert('Has Local scope header', headers.includes('Local'), `got: ${JSON.stringify(headers)}`);
+  assert('Has Closure scope header', headers.includes('Closure'), `got: ${JSON.stringify(headers)}`);
+  assert('Has Global scope header', headers.includes('Global'), `got: ${JSON.stringify(headers)}`);
+
+  // Check variable count
+  const varCount = await panelPage.evaluate(() =>
+    document.querySelectorAll('#variables-container .variable-row').length
+  );
+  assert('4 variables displayed across scopes', varCount === 4, `got ${varCount}`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Step reason shows last result (Bug 3c)
+// =========================================================================
+
+export async function testStepLastResultDisplay(browser, extensionId) {
+  console.log('\n--- Test Group: Step Last Result Display ---');
+
+  if (!extensionId) {
+    assert('Step last result: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Set up locals
+  await panelPage.evaluate(() => {
+    window.__mockState.locals = {
+      0: [{ name: 'x', value: '5', type: 'number', subtype: null }]
+    };
+  });
+
+  // Fire a step pause with lastResult
+  await panelPage.evaluate((d) => {
+    window.__fireMessage({ type: 'scheme-debug-paused', detail: d });
+  }, {
+    reason: 'step',
+    lastResult: '42',
+    source: { filename: 'scheme://inline-scripts/script-0.scm', line: 6, column: 0 },
+    stack: [{
+      name: '<top-level>',
+      source: { filename: 'scheme://inline-scripts/script-0.scm', line: 6, column: 0 },
+      tcoCount: 0,
+    }],
+  });
+
+  await waitForPage(panelPage, `document.querySelector('.toolbar-status')?.textContent?.includes('Paused')`);
+
+  const status = await panelPage.evaluate(() =>
+    document.querySelector('.toolbar-status')?.textContent
+  );
+  assert('Status shows step with last result',
+    status?.includes('← 42'),
+    `got: "${status}"`);
+
+  await panelPage.close();
+}
+
+// =========================================================================
+// Test: Console output from page (Feature 6)
+// =========================================================================
+
+export async function testConsolePageOutput(browser, extensionId) {
+  console.log('\n--- Test Group: Console Page Output ---');
+
+  if (!extensionId) {
+    assert('Console page output: extension loaded', false, 'no extension ID');
+    return;
+  }
+
+  const panelPage = await openMockedPanel(browser, extensionId);
+
+  // Send console-api-called messages
+  await panelPage.evaluate(() => {
+    window.__fireMessage({
+      type: 'console-api-called',
+      callType: 'log',
+      args: ['Hello', 'World'],
+    });
+    window.__fireMessage({
+      type: 'console-api-called',
+      callType: 'error',
+      args: ['Something went wrong'],
+    });
+    window.__fireMessage({
+      type: 'console-api-called',
+      callType: 'warn',
+      args: ['Be careful'],
+    });
+  });
+
+  // Wait for console output
+  await waitForPage(panelPage, `document.querySelectorAll('.console-page-output').length >= 3`);
+
+  const outputs = await panelPage.evaluate(() => {
+    const els = document.querySelectorAll('.console-page-output');
+    return Array.from(els).map(el => ({
+      text: el.querySelector('.console-text')?.textContent,
+      type: el.dataset.messageType,
+      isError: el.classList.contains('console-page-error'),
+      isWarn: el.classList.contains('console-page-warn'),
+    }));
+  });
+
+  assert('3 console outputs displayed', outputs.length === 3, `got ${outputs.length}`);
+  assert('First is log', outputs[0]?.text === 'Hello World', `got: "${outputs[0]?.text}"`);
+  assert('Second is error', outputs[1]?.isError === true);
+  assert('Third is warn', outputs[2]?.isWarn === true);
+  assert('Error text correct', outputs[1]?.text === 'Something went wrong');
 
   await panelPage.close();
 }

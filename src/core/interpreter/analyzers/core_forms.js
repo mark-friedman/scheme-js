@@ -317,10 +317,13 @@ function analyzeLet(exp, syntacticEnv, ctx) {
         newEnv = newEnv.extend(r.id, r.name, r.id.name || r.id);
     }
 
-    return new TailAppNode(
-        new LambdaNode(vars, analyzeScopedBody(body, newEnv, ctx), null, 'let', originalParams),
-        args
-    );
+    const lambdaNode = new LambdaNode(vars, analyzeScopedBody(body, newEnv, ctx), null, 'let', originalParams);
+    // Propagate source from the let expression to the desugared lambda
+    // so stepping can track through let bindings.
+    if (exp.source) {
+      lambdaNode.source = exp.source;
+    }
+    return new TailAppNode(lambdaNode, args);
 }
 
 /**

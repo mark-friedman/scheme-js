@@ -22,19 +22,26 @@ export function createSourceList(container, onSelectSource) {
   let selectedUrl = null;
 
   /**
-   * Extracts a display name from a scheme:// URL.
+   * Extracts a display name from a source URL.
+   * Handles both scheme:// URLs (Scheme sources) and full HTTP(S)/file URLs
+   * (HTML documents and JS files registered as page sources).
    * @param {string} url
    * @returns {string}
    */
   function displayName(url) {
-    // scheme://inline-scripts/script-0.scm -> script-0.scm (inline)
+    // scheme://inline-scripts/script-0.scm -> script-0.scm [inline]
     // scheme://scheme-sources/factorial.scm -> factorial.scm
+    // http://localhost:8080/index.html -> index.html [page]
+    // http://localhost:8080/app.js -> app.js [js]
     const basename = url.split('/').pop() || url;
     const origin = url.includes('/inline-scripts/') ? 'inline'
       : url.includes('/repl/') ? 'repl'
       : url.includes('//lib/') ? 'lib'
       : null;
-    return origin ? `${basename} [${origin}]` : basename;
+    if (origin) return `${basename} [${origin}]`;
+    // For non-scheme:// URLs, just show the basename (no label needed)
+    if (!url.startsWith('scheme://')) return basename;
+    return basename;
   }
 
   /**
@@ -98,7 +105,20 @@ export function createSourceList(container, onSelectSource) {
   // Initial render placeholder
   container.innerHTML = '<div class="source-empty">Loading sources...</div>';
 
-  return { refresh };
+  /**
+   * Programmatically selects a URL in the source list.
+   * Used when navigating to a source via breakpoint click, onPaused, or frame selection.
+   *
+   * @param {string} url - The URL to select
+   */
+  function selectUrl(url) {
+    if (url !== selectedUrl) {
+      selectedUrl = url;
+      render();
+    }
+  }
+
+  return { refresh, selectUrl };
 }
 
 /**

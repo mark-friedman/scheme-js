@@ -118,6 +118,23 @@ export class SchemeSourceRegistry {
   }
 
   /**
+   * Registers a non-Scheme page source (HTML document or JS file) for display
+   * in the DevTools sources pane. No probes or expression spans are generated.
+   *
+   * @param {string} url - Canonical URL for this source (e.g. 'http://localhost/index.html')
+   * @param {string} content - The source content
+   * @param {string} origin - Source origin: 'page' for HTML, 'js' for JS files
+   */
+  registerPageSource(url, content, origin) {
+    const splitLines = content.length > 0 ? content.split('\n') : [];
+    if (splitLines.length > 0 && splitLines[splitLines.length - 1] === '') {
+      splitLines.pop();
+    }
+    this.sources.set(url, { content, lines: splitLines.length, origin });
+    // No expression spans, no probes — just metadata for panel display
+  }
+
+  /**
    * Prunes the oldest REPL sources when the queue exceeds the limit.
    * Removes source metadata, probes, and location mappings for pruned entries.
    * Non-REPL sources are never affected.

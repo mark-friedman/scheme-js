@@ -258,6 +258,13 @@ export class Interpreter {
     // Track recursion depth
     this.depth++;
 
+    // Mark the probe runtime as executing on the synchronous path so that
+    // probes can fire for DOM callbacks even when a panel is connected.
+    // Save and restore to handle nested run() calls correctly.
+    const probeRuntime = globalThis.__schemeProbeRuntime;
+    const prevInSyncPath = probeRuntime ? probeRuntime._inSyncPath : false;
+    if (probeRuntime) probeRuntime._inSyncPath = true;
+
     // Cache DevTools reference for hot loop (null check is cheaper than property access)
     const devtoolsDebug = this.devtoolsDebug;
 
@@ -269,6 +276,15 @@ export class Interpreter {
           if (devtoolsDebug?.enabled) {
             const src = registers[CTL]?.source;
             if (src) {
+              // Track current source/env for sync-path pauses BEFORE maybeHit().
+              // When a probe fires debugger; V8 pauses synchronously — any code
+              // after maybeHit() won't execute until resume. getStack()/getLocals()
+              // read these to show the correct pause location and variables.
+              const dr = this.debugRuntime;
+              if (dr) {
+                dr._currentPauseSource = src;
+                dr._currentPauseEnv = registers[ENV];
+              }
               devtoolsDebug.maybeHit(src, registers[ENV]);
             }
           }
@@ -377,6 +393,8 @@ export class Interpreter {
       }
     } finally {
       this.depth--;
+      // Restore sync-path flag so nested run() calls properly save/restore state
+      if (probeRuntime) probeRuntime._inSyncPath = prevInSyncPath;
     }
   }
 
@@ -533,7 +551,8 @@ export class Interpreter {
               const action = await dr.handlePause(
                 registers[CTL].source,
                 registers[ENV],
-                reason
+                reason,
+                reason === 'step' ? registers[ANS] : undefined
               );
               if (action === 'abort') {
                 throw new SchemeError("Evaluation aborted");
@@ -560,6 +579,12 @@ export class Interpreter {
           const fstack = registers[FSTACK];
 
           if (fstack.length === 0) {
+            // If we were stepping, fire a resumed event so the panel
+            // transitions out of "Paused" state when evaluation completes.
+            if (hasDebug && pc && pc.getState() === 'stepping') {
+              pc.resume();
+              if (dr.onResume) dr.onResume('resume');
+            }
             return unpackForJs(registers[ANS], this, options);
           }
 
@@ -582,6 +607,11 @@ export class Interpreter {
             if (e.isReturn) {
               const fstack = registers[FSTACK];
               if (fstack.length === 0) {
+                // Fire resumed event if stepping past end of continuation
+                if (hasDebug && pc && pc.getState() === 'stepping') {
+                  pc.resume();
+                  if (dr.onResume) dr.onResume('resume');
+                }
                 return unpackForJs(registers[ANS], this, options);
               }
               registers[CTL] = fstack.pop();

@@ -118,90 +118,106 @@ window.__fireMessage = function(message) {
 };`;
 
 // =========================================================================
-// Eval dispatcher (scheme-bridge mock)
+// Eval dispatch logic (shared between DevTools and standalone window mocks)
+// =========================================================================
+
+/**
+ * Core eval dispatch logic as a standalone function string.
+ * Dispatches __schemeDebug API calls against __mockState.
+ * Used by both inspectedWindow.eval (DevTools) and
+ * chrome.scripting.executeScript (standalone window) mocks.
+ */
+const EVAL_DISPATCH_FUNCTION = `
+window.__evalDispatch = function(expression) {
+  const state = window.__mockState;
+  let result = undefined;
+  let error = null;
+
+  try {
+    if (expression.includes('typeof __schemeDebug')) {
+      result = true;
+    } else if (expression.includes('getSources()')) {
+      result = JSON.stringify(state.sources);
+    } else if (expression.includes('getSourceContent(')) {
+      const urlMatch = expression.match(/getSourceContent\\("([^"]+)"\\)/);
+      if (urlMatch) {
+        const src = state.sources.find(s => s.url === urlMatch[1]);
+        result = JSON.stringify(src ? src.content : null);
+      }
+    } else if (expression.includes('activate()')) {
+      result = JSON.stringify(state.activateResult);
+    } else if (expression.includes('getStatus()')) {
+      result = JSON.stringify(state.status);
+    } else if (expression.includes('getStack()')) {
+      result = JSON.stringify(state.stack);
+    } else if (expression.includes('getLocals(')) {
+      const idxMatch = expression.match(/getLocals\\((\\d+)\\)/);
+      const idx = idxMatch ? parseInt(idxMatch[1]) : 0;
+      const locals = Array.isArray(state.locals[idx]) ? state.locals[idx] : (state.locals || []);
+      result = JSON.stringify(locals);
+    } else if (expression.includes('getAllBreakpoints()')) {
+      result = JSON.stringify(state.breakpoints);
+    } else if (expression.includes('ackPause()')) {
+      state.ackPauseCalled = true;
+      state.lastAction = 'ackPause';
+      result = undefined;
+    } else if (expression.includes('resume()')) {
+      state.resumeCalled = true;
+      state.lastAction = 'resume';
+      result = undefined;
+    } else if (expression.includes('stepInto()')) {
+      state.stepIntoCalled = true;
+      state.lastAction = 'stepInto';
+      result = undefined;
+    } else if (expression.includes('stepOver()')) {
+      state.stepOverCalled = true;
+      state.lastAction = 'stepOver';
+      result = undefined;
+    } else if (expression.includes('stepOut()')) {
+      state.stepOutCalled = true;
+      state.lastAction = 'stepOut';
+      result = undefined;
+    } else if (expression.includes('getExpressions(')) {
+      const urlMatch = expression.match(/getExpressions\\("([^"]+)"\\)/);
+      if (urlMatch) {
+        const exprs = state.expressions ? (state.expressions[urlMatch[1]] || []) : [];
+        result = JSON.stringify(exprs);
+      }
+    } else if (expression.includes('setBreakpoint(')) {
+      const bpMatch = expression.match(/setBreakpoint\\("([^"]+)",\\s*(\\d+)(?:,\\s*(\\d+))?\\)/);
+      if (bpMatch) {
+        const id = 'bp-' + (state.nextBreakpointId++);
+        const col = bpMatch[3] ? parseInt(bpMatch[3]) : null;
+        state.breakpointsSet.push({ url: bpMatch[1], line: parseInt(bpMatch[2]), column: col, id });
+        state.breakpoints.push({ id, filename: bpMatch[1], line: parseInt(bpMatch[2]), column: col });
+        result = JSON.stringify(id);
+      }
+    } else if (expression.includes('removeBreakpoint(')) {
+      const rmMatch = expression.match(/removeBreakpoint\\("([^"]+)"\\)/);
+      if (rmMatch) {
+        state.breakpointsRemoved.push(rmMatch[1]);
+        state.breakpoints = state.breakpoints.filter(bp => bp.id !== rmMatch[1]);
+        result = JSON.stringify(true);
+      }
+    } else if (expression.includes('localStorage.setItem')) {
+      result = undefined;
+    } else {
+      result = undefined;
+    }
+  } catch (e) {
+    error = { value: e.message };
+  }
+
+  return { result, error };
+};`;
+
+// =========================================================================
+// Eval dispatcher for DevTools mock (uses __evalDispatch)
 // =========================================================================
 
 const EVAL_DISPATCHER_SCRIPT = `
       eval: function(expression, callback) {
-        const state = window.__mockState;
-        let result = undefined;
-        let error = null;
-
-        try {
-          if (expression.includes('typeof __schemeDebug')) {
-            result = true;
-          } else if (expression.includes('getSources()')) {
-            result = JSON.stringify(state.sources);
-          } else if (expression.includes('getSourceContent(')) {
-            const urlMatch = expression.match(/getSourceContent\\("([^"]+)"\\)/);
-            if (urlMatch) {
-              const src = state.sources.find(s => s.url === urlMatch[1]);
-              result = JSON.stringify(src ? src.content : null);
-            }
-          } else if (expression.includes('activate()')) {
-            result = JSON.stringify(state.activateResult);
-          } else if (expression.includes('getStatus()')) {
-            result = JSON.stringify(state.status);
-          } else if (expression.includes('getStack()')) {
-            result = JSON.stringify(state.stack);
-          } else if (expression.includes('getLocals(')) {
-            const idxMatch = expression.match(/getLocals\\((\\d+)\\)/);
-            const idx = idxMatch ? parseInt(idxMatch[1]) : 0;
-            const locals = Array.isArray(state.locals[idx]) ? state.locals[idx] : (state.locals || []);
-            result = JSON.stringify(locals);
-          } else if (expression.includes('getAllBreakpoints()')) {
-            result = JSON.stringify(state.breakpoints);
-          } else if (expression.includes('ackPause()')) {
-            state.ackPauseCalled = true;
-            state.lastAction = 'ackPause';
-            result = undefined;
-          } else if (expression.includes('resume()')) {
-            state.resumeCalled = true;
-            state.lastAction = 'resume';
-            result = undefined;
-          } else if (expression.includes('stepInto()')) {
-            state.stepIntoCalled = true;
-            state.lastAction = 'stepInto';
-            result = undefined;
-          } else if (expression.includes('stepOver()')) {
-            state.stepOverCalled = true;
-            state.lastAction = 'stepOver';
-            result = undefined;
-          } else if (expression.includes('stepOut()')) {
-            state.stepOutCalled = true;
-            state.lastAction = 'stepOut';
-            result = undefined;
-          } else if (expression.includes('getExpressions(')) {
-            const urlMatch = expression.match(/getExpressions\\("([^"]+)"\\)/);
-            if (urlMatch) {
-              const exprs = state.expressions ? (state.expressions[urlMatch[1]] || []) : [];
-              result = JSON.stringify(exprs);
-            }
-          } else if (expression.includes('setBreakpoint(')) {
-            const bpMatch = expression.match(/setBreakpoint\\("([^"]+)",\\s*(\\d+)(?:,\\s*(\\d+))?\\)/);
-            if (bpMatch) {
-              const id = 'bp-' + (state.nextBreakpointId++);
-              const col = bpMatch[3] ? parseInt(bpMatch[3]) : null;
-              state.breakpointsSet.push({ url: bpMatch[1], line: parseInt(bpMatch[2]), column: col, id });
-              state.breakpoints.push({ id, filename: bpMatch[1], line: parseInt(bpMatch[2]), column: col });
-              result = JSON.stringify(id);
-            }
-          } else if (expression.includes('removeBreakpoint(')) {
-            const rmMatch = expression.match(/removeBreakpoint\\("([^"]+)"\\)/);
-            if (rmMatch) {
-              state.breakpointsRemoved.push(rmMatch[1]);
-              state.breakpoints = state.breakpoints.filter(bp => bp.id !== rmMatch[1]);
-              result = JSON.stringify(true);
-            }
-          } else if (expression.includes('localStorage.setItem')) {
-            result = undefined;
-          } else {
-            result = undefined;
-          }
-        } catch (e) {
-          error = { value: e.message };
-        }
-
+        const { result, error } = window.__evalDispatch(expression);
         setTimeout(() => callback(result, error), 10);
       }`;
 
@@ -246,6 +262,30 @@ const CDP_SEND_MESSAGE_SCRIPT = `
       } else if (message.type === 'set-boundary-breakpoint') {
         state.boundaryBreakpointsSet = (state.boundaryBreakpointsSet || 0) + 1;
         response = { success: true, breakpointId: 'boundary-bp-' + (state.nextBreakpointId++) };
+      } else if (message.type === 'eval-paused') {
+        // Route eval-paused through the same __evalDispatch mechanism
+        // so tests can provide mock data via __mockState.locals etc.
+        state.evalPausedCalled = true;
+        const expr = message.expression;
+        try {
+          const dispatched = window.__evalDispatch(expr);
+          if (dispatched.error) {
+            response = { success: false, error: dispatched.error.value || 'eval error' };
+          } else {
+            response = { success: true, result: dispatched.result };
+          }
+        } catch(e) {
+          response = { success: false, error: e.message };
+        }
+      } else if (message.type === 'scheme-step-into') {
+        state.schemeStepIntoCalled = true;
+        response = { success: true };
+      } else if (message.type === 'scheme-step-over') {
+        state.schemeStepOverCalled = true;
+        response = { success: true };
+      } else if (message.type === 'scheme-step-out') {
+        state.schemeStepOutCalled = true;
+        response = { success: true };
       }
 
       if (callback) setTimeout(() => callback(response), 10);
@@ -253,11 +293,11 @@ const CDP_SEND_MESSAGE_SCRIPT = `
     lastError: null,`;
 
 // =========================================================================
-// Chrome object assembly
+// Chrome object assembly (DevTools panel version)
 // =========================================================================
 
 /**
- * Generates the mock chrome object as a JS string.
+ * Generates the mock chrome object for a DevTools panel context.
  *
  * @param {Object} [options]
  * @param {boolean} [options.cdp] - Include CDP support (sendMessage, tabId)
@@ -305,11 +345,92 @@ ${EVAL_DISPATCHER_SCRIPT}
 }
 
 // =========================================================================
+// Chrome object assembly (Standalone window version — no chrome.devtools)
+// =========================================================================
+
+/**
+ * Generates the mock chrome object for a standalone window context.
+ * Uses chrome.scripting.executeScript instead of inspectedWindow.eval.
+ * Has NO chrome.devtools property.
+ *
+ * @param {Object} [options]
+ * @param {boolean} [options.cdp] - Include CDP support (sendMessage)
+ * @returns {string} JS string for window.chrome initialization
+ */
+function generateStandaloneWindowChromeObject(options = {}) {
+  const sendMessageBlock = options.cdp ? CDP_SEND_MESSAGE_SCRIPT : '';
+
+  return `
+window.chrome = {
+  scripting: {
+    executeScript: function(options) {
+      return new Promise(function(resolve) {
+        // Extract the expression from args (callers pass (expr) => eval(expr))
+        var args = options.args || [];
+        var expression = args[0];
+        if (typeof expression === 'string') {
+          var dispatched = window.__evalDispatch(expression);
+          if (dispatched.error) {
+            resolve([{ error: { message: dispatched.error.value || 'eval error' } }]);
+          } else {
+            resolve([{ result: dispatched.result }]);
+          }
+        } else {
+          resolve([{ result: undefined }]);
+        }
+      });
+    }
+  },
+  tabs: {
+    onUpdated: {
+      addListener: function(listener) {
+        window.__tabsOnUpdatedListeners = window.__tabsOnUpdatedListeners || [];
+        window.__tabsOnUpdatedListeners.push(listener);
+      }
+    }
+  },
+  runtime: {
+    onMessage: {
+      addListener: function(listener) {
+        window.__messageListeners.push(listener);
+      }
+    },${sendMessageBlock}
+  },
+  storage: {
+    local: {
+      _data: {},
+      get: function(keys, callback) {
+        var result = {};
+        var keyArr = Array.isArray(keys) ? keys : [keys];
+        for (var i = 0; i < keyArr.length; i++) {
+          if (keyArr[i] in this._data) result[keyArr[i]] = this._data[keyArr[i]];
+        }
+        if (callback) callback(result);
+      },
+      set: function(items, callback) {
+        Object.assign(this._data, items);
+        if (callback) callback();
+      }
+    }
+  }
+};
+
+// Helper to simulate chrome.tabs.onUpdated events
+window.__fireTabsUpdated = function(tabId, changeInfo) {
+  var listeners = window.__tabsOnUpdatedListeners || [];
+  for (var i = 0; i < listeners.length; i++) {
+    listeners[i](tabId, changeInfo);
+  }
+};`;
+}
+
+// =========================================================================
 // Public API
 // =========================================================================
 
 /**
- * Builds a complete mock chrome script ready for evaluateOnNewDocument.
+ * Builds a complete mock chrome script for a DevTools panel context.
+ * Ready for evaluateOnNewDocument.
  *
  * @param {Object} [options]
  * @param {boolean} [options.cdp] - Include CDP support (sendMessage, tabId, CDP state)
@@ -321,7 +442,29 @@ export function buildMockChromeScript(options = {}) {
   return [
     generateMockState(options),
     MESSAGE_LISTENER_SCRIPT,
+    EVAL_DISPATCH_FUNCTION,
     generateChromeObject(options),
+    options.extraScript || '',
+  ].join('\n');
+}
+
+/**
+ * Builds a complete mock chrome script for a standalone window context.
+ * Uses chrome.scripting.executeScript instead of inspectedWindow.eval.
+ * Has NO chrome.devtools property — tests that the panel works without DevTools.
+ *
+ * @param {Object} [options]
+ * @param {boolean} [options.cdp] - Include CDP support (sendMessage)
+ * @param {string} [options.extraState] - Additional JS for __mockState fields
+ * @param {string} [options.extraScript] - Additional JS to append after chrome setup
+ * @returns {string} Complete JS string to inject
+ */
+export function buildStandaloneWindowMockScript(options = {}) {
+  return [
+    generateMockState(options),
+    MESSAGE_LISTENER_SCRIPT,
+    EVAL_DISPATCH_FUNCTION,
+    generateStandaloneWindowChromeObject(options),
     options.extraScript || '',
   ].join('\n');
 }
@@ -337,3 +480,8 @@ export const MOCK_CHROME_SCRIPT = buildMockChromeScript();
  * Equivalent to the original CDP_MOCK_CHROME_SCRIPT in test_js_debugging.mjs.
  */
 export const CDP_MOCK_CHROME_SCRIPT = buildMockChromeScript({ cdp: true });
+
+/**
+ * Pre-built standalone window mock (with CDP) for standalone window tests.
+ */
+export const STANDALONE_WINDOW_MOCK_SCRIPT = buildStandaloneWindowMockScript({ cdp: true });

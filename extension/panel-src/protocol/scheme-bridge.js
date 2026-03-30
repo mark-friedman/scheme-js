@@ -1,26 +1,91 @@
 /**
- * @fileoverview Scheme bridge — wraps chrome.devtools.inspectedWindow.eval
- * to call __schemeDebug API methods in the inspected page context.
+ * @fileoverview Scheme bridge — evaluates __schemeDebug API methods in the
+ * inspected page context. Supports two execution paths:
+ *
+ *   1. Standalone window: chrome.scripting.executeScript({world:'MAIN'})
+ *   2. DevTools panel:    chrome.devtools.inspectedWindow.eval()
+ *
+ * The bridge auto-detects which API is available. Standalone window mode
+ * reads the tabId from a URL parameter; DevTools mode reads it from
+ * chrome.devtools.inspectedWindow.tabId.
  */
+
+// =========================================================================
+// Tab ID management
+// =========================================================================
+
+/**
+ * Tab ID for the page being debugged.
+ * Set from URL params (standalone window) or chrome.devtools (DevTools panel).
+ * @type {number|null}
+ */
+let _tabId = null;
+
+/**
+ * Sets the tab ID for the inspected page.
+ * @param {number} id - Chrome tab ID
+ */
+export function setTabId(id) {
+  _tabId = id;
+}
+
+/**
+ * Gets the tab ID. Falls back to chrome.devtools.inspectedWindow.tabId
+ * if not explicitly set (backward compatibility with DevTools panel mode).
+ * @returns {number|null}
+ */
+export function getTabId() {
+  if (_tabId !== null) return _tabId;
+  if (typeof chrome !== 'undefined' && chrome.devtools?.inspectedWindow) {
+    _tabId = chrome.devtools.inspectedWindow.tabId;
+  }
+  return _tabId;
+}
+
+// =========================================================================
+// Page evaluation
+// =========================================================================
 
 /**
  * Evaluates a JavaScript expression in the inspected page context.
- * Returns the result or throws on error.
+ * Uses chrome.scripting.executeScript when available (standalone window),
+ * falls back to chrome.devtools.inspectedWindow.eval (DevTools panel).
  *
  * @param {string} expression - JavaScript expression to evaluate
  * @returns {Promise<*>} Resolved with the result value
  */
 export function evalInPage(expression) {
-  return new Promise((resolve, reject) => {
-    chrome.devtools.inspectedWindow.eval(expression, (result, exceptionInfo) => {
-      if (exceptionInfo) {
-        const msg = exceptionInfo.value || exceptionInfo.description || 'eval error';
-        reject(new Error(msg));
-      } else {
-        resolve(result);
+  // Standalone window path: chrome.scripting.executeScript
+  if (typeof chrome !== 'undefined' && chrome.scripting?.executeScript && _tabId !== null) {
+    return chrome.scripting.executeScript({
+      target: { tabId: _tabId },
+      func: (expr) => eval(expr),
+      args: [expression],
+      world: 'MAIN',
+    }).then((results) => {
+      if (!results || results.length === 0) throw new Error('No script result');
+      if (results[0].error) {
+        throw new Error(results[0].error.message || 'eval error');
       }
+      return results[0].result;
     });
-  });
+  }
+
+  // DevTools panel path: inspectedWindow.eval
+  if (typeof chrome !== 'undefined' && chrome.devtools?.inspectedWindow?.eval) {
+    return new Promise((resolve, reject) => {
+      chrome.devtools.inspectedWindow.eval(expression, (result, exceptionInfo) => {
+        if (exceptionInfo) {
+          const msg = exceptionInfo.value || exceptionInfo.description || 'eval error';
+          reject(new Error(msg));
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  }
+
+  return Promise.reject(new Error('No eval API available (need chrome.scripting or chrome.devtools)'));
 }
 
 /**

@@ -36,11 +36,23 @@ import {
   getStack,
   getLocals,
   ackPause,
+  setTabId,
+  getTabId,
 } from './protocol/scheme-bridge.js';
 import * as unifiedDebugger from './protocol/unified-debugger.js';
 import * as cdpBridge from './protocol/cdp-bridge.js';
 import * as bpState from './breakpoint-state.js';
 import { initSplitter } from './splitter.js';
+
+// =========================================================================
+// Tab ID from URL parameter (standalone window) or DevTools API
+// =========================================================================
+
+const _urlParams = new URLSearchParams(window.location.search);
+const _urlTabId = parseInt(_urlParams.get('tabId'), 10);
+if (!isNaN(_urlTabId)) {
+  setTabId(_urlTabId);
+}
 
 // =========================================================================
 // DOM elements
@@ -68,6 +80,13 @@ if (typeof window !== 'undefined') {
 /** Currently displayed source URL. @type {string|null} */
 let currentSourceUrl = null;
 
+/**
+ * Safety timeout handle for step operations. If a step command doesn't
+ * result in a pause or resume within 3 seconds, auto-resume the panel UI.
+ * @type {number|null}
+ */
+let stepTimeoutHandle = null;
+
 /** Whether CDP is attached (used for "JS debugging enabled" notification). */
 let cdpAttached = false;
 
@@ -82,11 +101,33 @@ let currentExpressions = [];
 // Initialize toolbar
 // =========================================================================
 
+/**
+ * Starts the step timeout safety net. If no pause/resume arrives
+ * within 3 seconds after a step command, auto-resume the panel UI.
+ */
+function startStepTimeout() {
+  clearStepTimeout();
+  stepTimeoutHandle = setTimeout(() => {
+    stepTimeoutHandle = null;
+    onResumed();
+  }, 3000);
+}
+
+/**
+ * Clears any pending step timeout.
+ */
+function clearStepTimeout() {
+  if (stepTimeoutHandle !== null) {
+    clearTimeout(stepTimeoutHandle);
+    stepTimeoutHandle = null;
+  }
+}
+
 const toolbar = createToolbar(toolbarDebug, {
   onResume:   () => unifiedDebugger.resume(),
-  onStepInto: () => unifiedDebugger.stepInto(),
-  onStepOver: () => unifiedDebugger.stepOver(),
-  onStepOut:  () => unifiedDebugger.stepOut(),
+  onStepInto: () => { unifiedDebugger.stepInto(); startStepTimeout(); },
+  onStepOver: () => { unifiedDebugger.stepOver(); startStepTimeout(); },
+  onStepOut:  () => { unifiedDebugger.stepOut(); startStepTimeout(); },
 });
 
 // =========================================================================
@@ -216,9 +257,9 @@ async function onSelectFrame(frameIndex, frame) {
   }
 
   // Scheme frames — existing behavior
-  // Load locals for this frame
+  // Load locals for this frame (context-aware: routes through CDP during sync pauses)
   try {
-    const locals = await getLocals(frameIndex);
+    const locals = await unifiedDebugger.getLocalsForContext(selectedSchemeFrameIndex);
     variables.setLocals(locals);
   } catch {
     variables.clear();
@@ -389,13 +430,15 @@ function refreshDiamondMarkers() {
  * @param {string} url - scheme:// URL of the source
  */
 async function loadSource(url) {
-  const content = await getSourceContent(url);
+  // Use context-aware getters: routes through CDP during sync-path pauses
+  const content = await unifiedDebugger.getSourceContentForContext(url);
   if (content === null) return;
   currentSourceUrl = url;
+  sourceList.selectUrl(url);
   editor.setContent(content);
 
   // Fetch expression spans for this source
-  currentExpressions = await getExpressions(url);
+  currentExpressions = await unifiedDebugger.getExpressionsForContext(url);
 
   // Show line-level breakpoints in the gutter
   const lines = bpState.getLinesForUrl(url);
@@ -432,6 +475,7 @@ async function loadJSSource(url, scriptId) {
   }
 
   currentSourceUrl = url;
+  sourceList.selectUrl(url);
   // No expression spans for JS files
   currentExpressions = [];
   editor.setContent(content, 'javascript');
@@ -487,7 +531,10 @@ async function onSelectSource(url, content) {
   // Show diamond markers on breakpoint lines
   refreshDiamondMarkers();
 
-  toolbar.setStatus(`Viewing: ${url.split('/').pop()}`);
+  // Only update status if not currently paused (avoid overwriting pause status)
+  if (currentPausedLine === null) {
+    toolbar.setStatus(`Viewing: ${url.split('/').pop()}`);
+  }
 }
 
 // =========================================================================
@@ -507,10 +554,15 @@ const sourceList = createSourceList(sourceListContainer, onSelectSource);
  * @param {{reason: string, source: Object|null, stack: Array, context: string}} detail
  */
 async function onPaused(detail) {
+  clearStepTimeout();
   const reason = detail.reason === 'step' ? 'Paused (step)' : 'Paused at breakpoint';
   const context = detail.context || 'scheme';
   const suffix = context === 'js' ? ' [JS]' : '';
-  toolbar.setStatus(reason + suffix);
+  // Show last expression result for step pauses (like Chrome's "← value")
+  const lastResult = detail.lastResult;
+  const resultSuffix = (lastResult != null && detail.reason === 'step')
+    ? `  \u2190 ${lastResult}` : '';
+  toolbar.setStatus(reason + suffix + resultSuffix);
   toolbar.setPaused();
 
   // Acknowledge the pause so the safety timeout is cancelled (Scheme pauses only)
@@ -590,7 +642,8 @@ async function onPaused(detail) {
       }
     } else {
       try {
-        const locals = await getLocals(stack.length - 1);
+        // Use context-aware getter: routes through CDP during sync-path pauses
+        const locals = await unifiedDebugger.getLocalsForContext(selectedSchemeFrameIndex);
         variables.setLocals(locals);
       } catch {
         variables.clear();
@@ -603,6 +656,7 @@ async function onPaused(detail) {
  * Called when the interpreter resumes execution.
  */
 function onResumed() {
+  clearStepTimeout();
   toolbar.setStatus('Running');
   toolbar.setRunning();
   callStack.clear();
@@ -614,8 +668,6 @@ function onResumed() {
   editor.highlightExpression(null);
   currentPausedLine = null;
   refreshDiamondMarkers();
-  // Re-query sources in case new scripts were processed while paused
-  refresh();
 }
 
 // =========================================================================
@@ -624,11 +676,22 @@ function onResumed() {
 
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message) => {
+    // Filter messages by tabId to prevent cross-talk between multiple debugger windows
+    const myTabId = getTabId();
+    if (message.tabId && myTabId && message.tabId !== myTabId) return;
+
     if (message.type === 'scheme-debug-paused') {
       // Route through unified debugger for consistent handling
       unifiedDebugger.handleSchemePause(message.detail || {});
     } else if (message.type === 'scheme-debug-resumed') {
       unifiedDebugger.handleSchemeResume();
+    } else if (message.type === 'scheme-sync-paused') {
+      // Sync-path probe pause: page is halted at debugger; in a DOM callback.
+      // Stack was pre-fetched by background.js. Route through unified debugger.
+      unifiedDebugger.handleSyncSchemePause(message);
+    } else if (message.type === 'console-api-called') {
+      // Page console output forwarded from background.js via Runtime.consoleAPICalled
+      evalConsole.addOutput(message.callType, message.args || []);
     }
   });
 }
@@ -669,6 +732,11 @@ async function activateAndRefresh() {
     if (result.needsReload) {
       toolbar.setStatus('Reload page to enable debugging');
     } else {
+      // Attach CDP so background.js can intercept sync-path probe pauses
+      // (debugger; statements in DOM callbacks). Without this, Chrome's
+      // built-in Sources tab catches the pause instead of the panel.
+      cdpBridge.attachCDP().catch(() => {});
+
       // Sync panel state with breakpoints already set in the interpreter
       await bpState.syncFromInterpreter();
       refreshBreakpointsPanel();
@@ -692,27 +760,34 @@ activateAndRefresh();
 
 // Re-activate and refresh after each page navigation so the panel stays in
 // sync with the new page's sources and breakpoints.
-if (typeof chrome !== 'undefined' && chrome.devtools?.network) {
+// Standalone window: listen for chrome.tabs.onUpdated
+// DevTools panel: listen for chrome.devtools.network.onNavigated
+if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
+  const myTabId = getTabId();
+  chrome.tabs.onUpdated.addListener((updatedTabId, changeInfo) => {
+    if (updatedTabId === myTabId && changeInfo.status === 'complete') {
+      cdpBridge.clearNavigationCache();
+      setTimeout(() => activateAndRefresh(), 500);
+    }
+  });
+} else if (typeof chrome !== 'undefined' && chrome.devtools?.network) {
   chrome.devtools.network.onNavigated.addListener(() => {
-    // Clear stale script caches from the previous page
     cdpBridge.clearNavigationCache();
-    // Brief delay to let the page scripts finish before we query the interpreter
     setTimeout(() => activateAndRefresh(), 500);
   });
 }
 
 // Re-refresh when the panel regains focus (user switches back to this tab).
 // Debounce to avoid re-rendering while the user is clicking within the panel.
+// Works in both standalone window and DevTools panel modes.
 let lastRefreshTime = 0;
-if (typeof chrome !== 'undefined' && chrome.devtools?.panels) {
-  window.addEventListener('focus', () => {
-    const now = Date.now();
-    if (now - lastRefreshTime > 2000) {
-      lastRefreshTime = now;
-      refresh();
-    }
-  });
-}
+window.addEventListener('focus', () => {
+  const now = Date.now();
+  if (now - lastRefreshTime > 2000) {
+    lastRefreshTime = now;
+    refresh();
+  }
+});
 
 // =========================================================================
 // Splitter drag behavior
@@ -738,7 +813,8 @@ initSplitter(consoleSplitter, {
 // DevTools Theme Matching
 // =========================================================================
 
-if (typeof chrome !== 'undefined' && chrome.devtools && chrome.devtools.panels) {
+// Theme detection: DevTools API when available, otherwise prefers-color-scheme.
+if (typeof chrome !== 'undefined' && chrome.devtools?.panels) {
   const updateTheme = (themeName) => {
     if (themeName === 'default' || themeName === 'light') {
       document.documentElement.classList.add('theme-light');
@@ -754,4 +830,13 @@ if (typeof chrome !== 'undefined' && chrome.devtools && chrome.devtools.panels) 
   if (chrome.devtools.panels.setThemeChangeHandler) {
     chrome.devtools.panels.setThemeChangeHandler(updateTheme);
   }
+} else {
+  // Standalone window: use prefers-color-scheme media query
+  const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const updateThemeFromMedia = (isDark) => {
+    document.documentElement.classList.toggle('theme-dark', isDark);
+    document.documentElement.classList.toggle('theme-light', !isDark);
+  };
+  updateThemeFromMedia(darkQuery.matches);
+  darkQuery.addEventListener('change', (e) => updateThemeFromMedia(e.matches));
 }

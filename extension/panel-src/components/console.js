@@ -178,6 +178,36 @@ export function createConsole(container, { onEvaluate }) {
     }
   });
 
+  /**
+   * Adds a page console output entry (console.log, console.warn, console.error).
+   *
+   * @param {string} callType - 'log', 'warn', 'error', 'info', 'debug'
+   * @param {Array} args - Serialized console arguments
+   */
+  function addOutput(callType, args) {
+    const entry = document.createElement('div');
+    entry.className = 'console-message console-page-output';
+    entry.dataset.testid = 'console-message';
+    entry.dataset.messageType = 'page-' + callType;
+    if (callType === 'error') entry.classList.add('console-page-error');
+    if (callType === 'warn') entry.classList.add('console-page-warn');
+
+    const icon = document.createElement('span');
+    icon.className = 'console-icon';
+    icon.textContent = callType === 'error' ? '✖'
+      : callType === 'warn' ? '⚠'
+      : '▸';
+    entry.appendChild(icon);
+
+    const text = document.createElement('span');
+    text.className = 'console-text';
+    text.textContent = args.join(' ');
+    entry.appendChild(text);
+
+    outputContainer.appendChild(entry);
+    outputContainer.scrollTop = outputContainer.scrollHeight;
+  }
+
   return {
     clear: () => {
       outputContainer.innerHTML = '';
@@ -187,6 +217,7 @@ export function createConsole(container, { onEvaluate }) {
     },
     focus: () => {
       inputField.focus();
-    }
+    },
+    addOutput,
   };
 }

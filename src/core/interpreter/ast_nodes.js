@@ -347,7 +347,8 @@ export class TailAppNode extends Executable {
         registers[FSTACK].push(FrameRegistry.createAppFrame(
             remainingExprs,
             [],
-            registers[ENV]
+            registers[ENV],
+            this.source
         ));
 
         registers[CTL] = firstExpr;

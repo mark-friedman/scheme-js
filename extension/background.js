@@ -21,6 +21,13 @@
 const tabState = new Map();
 
 /**
+ * Maps inspected tab IDs to the debugger popup window IDs.
+ * Used to focus existing windows and clean up on close.
+ * @type {Map<number, number>}
+ */
+const debuggerWindows = new Map();
+
+/**
  * Stores the most recent Debugger.paused params per tab.
  * Used by evaluateWhilePaused() to call Debugger.evaluateOnCallFrame,
  * which works reliably while paused (unlike inspectedWindow.eval /
@@ -56,6 +63,24 @@ const BLACKBOX_PATTERNS = [
 ];
 
 // =========================================================================
+// Debugger Window Focus
+// =========================================================================
+
+/**
+ * Focuses the debugger window for the given tab, if one exists.
+ * Called when a breakpoint is hit (Scheme cooperative, sync-path, or JS CDP)
+ * to bring the debugger to the foreground.
+ *
+ * @param {number} tabId - Chrome tab ID
+ */
+function focusDebuggerWindow(tabId) {
+  const windowId = debuggerWindows.get(tabId);
+  if (windowId) {
+    chrome.windows.update(windowId, { focused: true }).catch(() => {});
+  }
+}
+
+// =========================================================================
 // CDP Debugger Attachment
 // =========================================================================
 
@@ -69,6 +94,7 @@ async function attachToTab(tabId) {
     try {
         await chrome.debugger.attach({ tabId }, '1.3');
         await chrome.debugger.sendCommand({ tabId }, 'Debugger.enable');
+        await chrome.debugger.sendCommand({ tabId }, 'Runtime.enable');
 
         // Auto-blackbox interpreter internals
         await chrome.debugger.sendCommand({ tabId }, 'Debugger.setBlackboxPatterns', {
@@ -200,14 +226,47 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
         lastPauseParams.set(tabId, params);
 
         if (isSchemeProbe(params) || isSchemeException(params)) {
-            // Scheme probe/exception pause: auto-resume CDP immediately so
-            // Chrome's Sources tab never stays paused on the `debugger;`
-            // statement. The Scheme-JS panel receives its pause notification
-            // via the cooperative channel (content script postMessage relay),
-            // which is independent of CDP events.
-            chrome.debugger.sendCommand({ tabId }, 'Debugger.resume').catch(() => {
-                // Tab may have closed — ignore
-            });
+            // Scheme probe/exception pause. For most probes (on the async
+            // runDebug() path), auto-resume CDP immediately so Chrome's
+            // Sources tab never stays paused on the `debugger;` statement.
+            // For synchronous DOM callback probes (_inSyncPath=true), forward
+            // the pause to the panel so the user can inspect it, and wait for
+            // the panel to send Debugger.resume.
+            evaluateWhilePaused(tabId, 'globalThis.__schemeProbeRuntime?._inSyncPath ?? false')
+                .then(async inSyncPath => {
+                    if (inSyncPath) {
+                        // Sync-path pause: fetch Scheme stack while V8 is paused
+                        // (via CDP evaluateOnCallFrame, which works while suspended).
+                        // Keep V8 paused so the panel can inspect variables, evaluate
+                        // expressions, and step through code. The panel sends
+                        // 'resume-debugger' or 'scheme-step-*' when the user acts.
+                        const stackExpr = '(typeof __schemeDebug !== "undefined") ? JSON.stringify(__schemeDebug.getStack()) : "[]"';
+                        let schemeStack = [];
+                        try {
+                            const stackJson = await evaluateWhilePaused(tabId, stackExpr);
+                            schemeStack = JSON.parse(stackJson || '[]');
+                        } catch { /* leave empty on failure */ }
+
+                        // Send pause data to panel — V8 stays paused
+                        chrome.runtime.sendMessage({
+                            type: 'scheme-sync-paused',
+                            tabId,
+                            callFrames: params.callFrames,
+                            stack: schemeStack,
+                            reason: params.reason
+                        }).catch(() => {});
+
+                        // Auto-focus the debugger window
+                        focusDebuggerWindow(tabId);
+                    } else {
+                        // Async-path probe: auto-resume immediately
+                        chrome.debugger.sendCommand({ tabId }, 'Debugger.resume').catch(() => {});
+                    }
+                })
+                .catch(() => {
+                    // Could not evaluate — auto-resume to avoid leaving page stuck
+                    chrome.debugger.sendCommand({ tabId }, 'Debugger.resume').catch(() => {});
+                });
         } else {
             // Non-Scheme pause (JS breakpoint, exception, etc.)
             // Forward to panel as a CDP-specific pause event
@@ -219,6 +278,9 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
             }).catch(() => {
                 // Panel may not be open yet — ignore
             });
+
+            // Auto-focus the debugger window
+            focusDebuggerWindow(tabId);
         }
     } else if (method === 'Debugger.resumed') {
         lastPauseParams.delete(tabId);
@@ -235,6 +297,23 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
         }).catch(() => {
             // Panel may not be open yet — ignore
         });
+    } else if (method === 'Runtime.consoleAPICalled') {
+        // Forward console output to the panel
+        const args = (params.args || []).map(arg => {
+            // Extract primitive values; for objects, use description or preview
+            if (arg.type === 'string' || arg.type === 'number' || arg.type === 'boolean') {
+                return arg.value;
+            }
+            if (arg.type === 'undefined') return 'undefined';
+            if (arg.subtype === 'null') return 'null';
+            return arg.description || arg.value || String(arg.type);
+        });
+        chrome.runtime.sendMessage({
+            type: 'console-api-called',
+            tabId,
+            callType: params.type, // 'log', 'warn', 'error', 'info', 'debug'
+            args,
+        }).catch(() => {});
     } else if (method === 'Debugger.scriptParsed') {
         // Track script URLs for JS source display in the panel
         const scriptId = params.scriptId;
@@ -259,12 +338,19 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
 });
 
 /**
- * Clean up when a tab closes.
+ * Clean up when a tab closes. Also closes the associated debugger window.
  */
 chrome.tabs.onRemoved.addListener((tabId) => {
     tabState.delete(tabId);
     lastPauseParams.delete(tabId);
     scriptUrlMaps.delete(tabId);
+
+    // Close the debugger window for this tab, if any
+    const windowId = debuggerWindows.get(tabId);
+    if (windowId) {
+        debuggerWindows.delete(tabId);
+        chrome.windows.remove(windowId).catch(() => {});
+    }
 });
 
 /**
@@ -278,10 +364,70 @@ chrome.debugger.onDetach.addListener((source, reason) => {
 });
 
 // =========================================================================
+// Standalone Debugger Window Lifecycle
+// =========================================================================
+
+/**
+ * Opens (or focuses) a standalone debugger window for the given tab.
+ * The window loads panel.html with a tabId URL parameter so the panel
+ * knows which tab to inspect via chrome.scripting.executeScript.
+ *
+ * @param {number} tabId - Chrome tab ID to debug
+ */
+async function openDebuggerWindow(tabId) {
+  // If a window already exists for this tab, focus it
+  if (debuggerWindows.has(tabId)) {
+    try {
+      await chrome.windows.update(debuggerWindows.get(tabId), { focused: true });
+      return;
+    } catch {
+      // Window was closed externally — remove stale entry
+      debuggerWindows.delete(tabId);
+    }
+  }
+
+  const win = await chrome.windows.create({
+    url: `panel/panel.html?tabId=${tabId}`,
+    type: 'popup',
+    width: 900,
+    height: 700,
+  });
+  debuggerWindows.set(tabId, win.id);
+}
+
+/**
+ * Toolbar icon click opens the debugger window for the active tab.
+ */
+chrome.action.onClicked.addListener(async (tab) => {
+  if (tab.id) {
+    await openDebuggerWindow(tab.id);
+  }
+});
+
+/**
+ * Clean up debugger window mapping when a popup window is closed.
+ */
+chrome.windows.onRemoved.addListener((windowId) => {
+  for (const [tabId, winId] of debuggerWindows) {
+    if (winId === windowId) {
+      debuggerWindows.delete(tabId);
+      // Optionally detach CDP when the debugger window closes
+      detachFromTab(tabId).catch(() => {});
+      break;
+    }
+  }
+});
+
+// =========================================================================
 // Message Handling (from panel)
 // =========================================================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Auto-focus debugger window on cooperative Scheme pause
+    if (message.type === 'scheme-debug-paused' && sender.tab?.id) {
+        focusDebuggerWindow(sender.tab.id);
+    }
+
     if (message.type === 'attach-debugger') {
         attachToTab(message.tabId).then(() => {
             sendResponse({ success: true });

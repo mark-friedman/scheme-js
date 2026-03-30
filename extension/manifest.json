@@ -1,9 +1,8 @@
 {
     "manifest_version": 3,
     "name": "Scheme-JS Debugger",
-    "version": "0.2.0",
-    "description": "Top-level Scheme-JS DevTools panel for debugging scheme-js programs.",
-    "devtools_page": "devtools.html",
+    "version": "0.3.0",
+    "description": "Standalone debugger window for debugging scheme-js programs.",
     "background": {
         "service_worker": "background.js"
     },
@@ -21,11 +20,20 @@
         }
     ],
     "permissions": [
-        "debugger"
+        "debugger",
+        "scripting",
+        "tabs"
     ],
     "host_permissions": [
         "<all_urls>"
     ],
+    "action": {
+        "default_title": "Open Scheme-JS Debugger",
+        "default_icon": {
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
     "icons": {
         "48": "icons/icon48.png",
         "128": "icons/icon128.png"

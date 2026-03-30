@@ -24,7 +24,7 @@
  *   npm run test:extension
  */
 
-import { launchTestBrowser, getResults, recordCrash } from './test_harness.mjs';
+import { launchTestBrowser, relaunchBrowser, getResults, recordCrash } from './test_harness.mjs';
 
 // Page-side tests
 import { testActivationAndSources, testExecutionTiming } from './test_activation.mjs';
@@ -64,7 +64,11 @@ import {
   testPanelBreakpointsList,
   testPanelBreakpointsNavigation,
   testKeyboardShortcuts,
-  testCodeMirrorSearch
+  testCodeMirrorSearch,
+  testSourceListUpdatesOnPauseNavigation,
+  testVariableScopeHeaders,
+  testStepLastResultDisplay,
+  testConsolePageOutput,
 } from './test_panel_interactions.mjs';
 
 import {
@@ -117,6 +121,18 @@ import {
   testCooperativePauseWithCDPDebuggerAttached,
 } from './test_cdp_debugger_conflict.mjs';
 
+// Sync callback breakpoint tests (Issue 2: DOM callback debugging)
+import {
+  testInSyncPathDuringCallback,
+  testProbeHitReturnsTrue,
+  testCDPPauseDuringSyncCallback,
+  testButtonClickTriggersBreakpoint,
+  testNoBreakpointNoPause,
+  testSyncPathCorrectPauseLine,
+  testSyncPathGetLocalsWorks,
+  testSyncPathSinglePausePerLine,
+} from './test_sync_callback_e2e.mjs';
+
 // E2E breakpoint → panel UI tests
 import {
   testRealBreakpointUpdatesPanelUI,
@@ -133,6 +149,28 @@ import {
   testCDPSendMessageFailure,
   testUnknownSourceContent,
 } from './test_error_paths.mjs';
+
+// Standalone debugger window tests (Phase 0 — should FAIL before migration)
+import {
+  testStandaloneWindowSourcesLoad,
+  testStandaloneWindowNavigationDetection,
+  testStandaloneWindowCooperativePause,
+  testStandaloneWindowSyncPause,
+  testStandaloneWindowThemeDetection,
+  testStandaloneWindowSyncResumeClick,
+  testSyncPauseUsesSchemeSource,
+  testFrameSelectUsesSchemeIndex,
+  testSyncResumeNoRefreshing,
+} from './test_standalone_window.mjs';
+
+// Standalone window E2E tests (real Scheme execution + panel UI interaction)
+import {
+  testStandaloneE2ERealBreakpointPause,
+  testStandaloneE2EResumeButton,
+  testStandaloneE2EStepButtons,
+  testStandaloneE2EFrameClickNavigation,
+  testStandaloneE2EGutterBreakpointClick,
+} from './test_standalone_window_e2e.mjs';
 
 // Phase 4: JS interop integration tests (real page, no mocks)
 import {
@@ -171,12 +209,41 @@ function shouldRun(fn, moduleName) {
   );
 }
 
+/**
+ * Checks if a Puppeteer error indicates the browser connection was lost.
+ * @param {Error} err
+ * @returns {boolean}
+ */
+function isBrowserDisconnected(err) {
+  const msg = err.message || '';
+  return msg.includes('Connection closed') ||
+    msg.includes('detached Frame') ||
+    msg.includes('Target closed') ||
+    msg.includes('Session closed') ||
+    msg.includes('Protocol error');
+}
+
 async function runTests() {
   console.log('\nScheme-JS Comprehensive Puppeteer E2E Tests');
   if (onlyFilters) console.log(`Filter: ${onlyFilters.join(', ')}`);
   console.log('='.repeat(55));
 
-  const { server, browser, extensionId } = await launchTestBrowser();
+  let { server, browser, extensionId } = await launchTestBrowser();
+
+  /**
+   * Relaunches the browser if it has disconnected. Reuses the existing
+   * static file server — only the browser process is restarted.
+   */
+  async function ensureBrowser() {
+    if (browser.connected) return;
+    console.log('\n  [Browser disconnected — relaunching...]');
+    try { await browser.close(); } catch { /* already dead */ }
+    const result = await relaunchBrowser();
+    browser = result.browser;
+    extensionId = result.extensionId;
+    // Give Chrome a moment to settle after relaunch
+    await new Promise(r => setTimeout(r, 1000));
+  }
 
   try {
     // Page-side API tests (no extension ID needed)
@@ -218,15 +285,36 @@ async function runTests() {
       ['auto_resume', testBreakpointPausesCooperatively],
       ['auto_resume', testBreakpointResumeAndContinue],
       ['auto_resume', testSteppingWorksAfterAutoResume],
+      // Sync callback breakpoint tests (Issue 2: DOM callback debugging)
+      ['sync_callback', testInSyncPathDuringCallback],
+      ['sync_callback', testProbeHitReturnsTrue],
+      ['sync_callback', testCDPPauseDuringSyncCallback],
+      ['sync_callback', testButtonClickTriggersBreakpoint],
+      ['sync_callback', testNoBreakpointNoPause],
+      ['sync_callback', testSyncPathCorrectPauseLine],
+      ['sync_callback', testSyncPathGetLocalsWorks],
+      ['sync_callback', testSyncPathSinglePausePerLine],
     ];
 
     for (const [mod, testFn] of pageTests) {
       if (!shouldRun(testFn, mod)) continue;
+      await ensureBrowser();
+      const pagesBefore = await browser.pages();
       try {
         await testFn(browser);
       } catch (err) {
         recordCrash(testFn.name || 'unknown', err.message);
+        if (isBrowserDisconnected(err)) continue; // skip cleanup, ensureBrowser will handle it
       }
+      // Close any pages leaked by a crashed test (keep the initial blank tab)
+      try {
+        const pagesAfter = await browser.pages();
+        for (const p of pagesAfter) {
+          if (!pagesBefore.includes(p)) {
+            await p.close().catch(() => {});
+          }
+        }
+      } catch { /* browser may have disconnected */ }
     }
 
     // Panel UI tests (require extension ID)
@@ -268,6 +356,11 @@ async function runTests() {
       ['console', testConsoleClear],
       ['panel_interactions', testKeyboardShortcuts],
       ['panel_interactions', testCodeMirrorSearch],
+      // Bug fixes and new features tests
+      ['panel_interactions', testSourceListUpdatesOnPauseNavigation],
+      ['panel_interactions', testVariableScopeHeaders],
+      ['panel_interactions', testStepLastResultDisplay],
+      ['panel_interactions', testConsolePageOutput],
       ['js_debugging', testJSPauseShowsJSFrames],
       ['js_debugging', testUnifiedCallStackInterleaving],
       ['js_debugging', testUnifiedCallStackBadges],
@@ -306,16 +399,48 @@ async function runTests() {
       // E2E breakpoint → panel UI tests
       ['panel_e2e', testRealBreakpointUpdatesPanelUI],
       ['panel_e2e', testRealBreakpointSourceLocationInPanel],
+      // Standalone debugger window tests (Phase 0)
+      ['standalone_window', testStandaloneWindowSourcesLoad],
+      ['standalone_window', testStandaloneWindowNavigationDetection],
+      ['standalone_window', testStandaloneWindowCooperativePause],
+      ['standalone_window', testStandaloneWindowSyncPause],
+      ['standalone_window', testStandaloneWindowThemeDetection],
+      ['standalone_window', testStandaloneWindowSyncResumeClick],
+      ['standalone_window', testSyncPauseUsesSchemeSource],
+      ['standalone_window', testFrameSelectUsesSchemeIndex],
+      ['standalone_window', testSyncResumeNoRefreshing],
+      // Standalone window E2E tests (real Scheme execution + panel UI)
+      ['standalone_e2e', testStandaloneE2ERealBreakpointPause],
+      ['standalone_e2e', testStandaloneE2EResumeButton],
+      ['standalone_e2e', testStandaloneE2EStepButtons],
+      ['standalone_e2e', testStandaloneE2EFrameClickNavigation],
+      ['standalone_e2e', testStandaloneE2EGutterBreakpointClick],
     ];
 
     if (extensionId) {
       for (const [mod, testFn] of panelTests) {
         if (!shouldRun(testFn, mod)) continue;
+        await ensureBrowser();
+        if (!extensionId) {
+          console.log(`  SKIP: ${testFn.name} (no extension ID after relaunch)`);
+          continue;
+        }
+        const pagesBefore = await browser.pages();
         try {
           await testFn(browser, extensionId);
         } catch (err) {
           recordCrash(testFn.name || 'unknown', err.message);
+          if (isBrowserDisconnected(err)) continue;
         }
+        // Close any pages leaked by a crashed test
+        try {
+          const pagesAfter = await browser.pages();
+          for (const p of pagesAfter) {
+            if (!pagesBefore.includes(p)) {
+              await p.close().catch(() => {});
+            }
+          }
+        } catch { /* browser may have disconnected */ }
       }
     } else {
       console.log('\n--- Panel UI tests SKIPPED (no extension ID) ---');

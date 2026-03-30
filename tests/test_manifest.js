@@ -53,9 +53,15 @@ export const unitTests = [
     { path: 'debug/expression_breakpoint_tests.js', fn: 'runExpressionBreakpointTests', needsInterpreter: false },
     // Cooperative Pause Flow (Panel Phase 2)
     { path: 'debug/cooperative_pause_tests.js', fn: 'runCooperativePauseTests', needsInterpreter: false, async: true },
+    // Macro Source Propagation (Issue 3 fix)
+    { path: 'debug/macro_source_propagation_tests.js', fn: 'runMacroSourcePropagationTests', needsInterpreter: false, async: true },
+    // Sync Callback Breakpoints (Issue 2 fix)
+    { path: 'debug/sync_callback_breakpoint_tests.js', fn: 'runSyncCallbackBreakpointTests', needsInterpreter: false },
     // DevTools Integration Tests (Phase 7)
     { path: 'debug/devtools/repl_library_registration_tests.js', fn: 'runReplRegistrationTests', needsInterpreter: false },
     { path: 'debug/devtools/repl_library_registration_tests.js', fn: 'runLibraryRegistrationTests', needsInterpreter: false },
+    // Page Sources (Issue 1 fix)
+    { path: 'debug/devtools/page_sources_tests.js', fn: 'runPageSourcesTests', needsInterpreter: false },
     // Packaging
     { path: 'packaging/html_adapter_parse_tests.js', fn: 'runHtmlAdapterParseTests', needsInterpreter: false },
 ];

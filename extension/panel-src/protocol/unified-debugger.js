@@ -16,9 +16,18 @@ import * as cdpBridge from './cdp-bridge.js';
 
 /**
  * Current pause context — which bridge is handling the active pause.
- * @type {'scheme'|'js'|null}
+ * 'scheme' — cooperative async pause (runDebug path)
+ * 'js'     — CDP-level JS breakpoint or exception pause
+ * 'scheme-sync' — CDP-level probe pause from a synchronous DOM callback
+ * @type {'scheme'|'js'|'scheme-sync'|null}
  */
 let currentPauseContext = null;
+
+/**
+ * Tab ID stored during a sync-path probe pause, used to route CDP resume.
+ * @type {number|null}
+ */
+let syncPauseTabId = null;
 
 /**
  * Stored CDP call frames from the most recent CDP pause event.
@@ -185,6 +194,11 @@ export function mergeCallStacks(schemeFrames, jsFrames) {
 export async function resume() {
   if (currentPauseContext === 'js') {
     await cdpBridge.resumeCDP();
+  } else if (currentPauseContext === 'scheme-sync') {
+    // Sync-path: V8 is paused at a debugger; statement. Resume via CDP
+    // to unpause V8. No Scheme bridge call needed — the probe runtime
+    // is on the V8 call stack, so resuming V8 continues execution.
+    await cdpBridge.resumeCDP();
   } else {
     await schemeBridge.resume();
   }
@@ -197,6 +211,11 @@ export async function resume() {
 export async function stepInto() {
   if (currentPauseContext === 'js') {
     await cdpBridge.stepIntoCDP();
+  } else if (currentPauseContext === 'scheme-sync') {
+    // Sync-path: V8 is paused. Use CDP evaluateOnCallFrame to set step
+    // flag on the probe runtime, then resume V8. Background.js handles
+    // this via the 'scheme-step-into' message.
+    await cdpBridge.schemeStepInto();
   } else {
     await schemeBridge.stepInto();
   }
@@ -209,6 +228,8 @@ export async function stepInto() {
 export async function stepOver() {
   if (currentPauseContext === 'js') {
     await cdpBridge.stepOverCDP();
+  } else if (currentPauseContext === 'scheme-sync') {
+    await cdpBridge.schemeStepOver();
   } else {
     await schemeBridge.stepOver();
   }
@@ -221,6 +242,8 @@ export async function stepOver() {
 export async function stepOut() {
   if (currentPauseContext === 'js') {
     await cdpBridge.stepOutCDP();
+  } else if (currentPauseContext === 'scheme-sync') {
+    await cdpBridge.schemeStepOut();
   } else {
     await schemeBridge.stepOut();
   }
@@ -282,6 +305,73 @@ export async function removeBreakpoint(id, url) {
 }
 
 // =========================================================================
+// Context-Aware Getters (route through CDP during sync-path pauses)
+// =========================================================================
+
+/**
+ * Gets local variables for a stack frame, routing through CDP when paused
+ * on the sync path (where normal page eval is unavailable).
+ *
+ * @param {number} frameIndex - 0-indexed frame (0 = bottom)
+ * @returns {Promise<Array>} Local bindings array
+ */
+export async function getLocalsForContext(frameIndex) {
+  if (currentPauseContext === 'scheme-sync') {
+    try {
+      const json = await cdpBridge.evalWhilePaused(
+        `JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`
+      );
+      return JSON.parse(json || '[]');
+    } catch {
+      return [];
+    }
+  }
+  return schemeBridge.getLocals(frameIndex);
+}
+
+/**
+ * Gets source content for a URL, routing through CDP when paused
+ * on the sync path.
+ *
+ * @param {string} url - Source URL
+ * @returns {Promise<string|null>} Source content
+ */
+export async function getSourceContentForContext(url) {
+  if (currentPauseContext === 'scheme-sync') {
+    try {
+      const json = await cdpBridge.evalWhilePaused(
+        `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
+      );
+      return JSON.parse(json || 'null');
+    } catch {
+      return null;
+    }
+  }
+  return schemeBridge.getSourceContent(url);
+}
+
+/**
+ * Gets expression spans for a URL, routing through CDP when paused
+ * on the sync path.
+ *
+ * @param {string} url - Source URL
+ * @returns {Promise<Array>} Expression spans
+ */
+export async function getExpressionsForContext(url) {
+  if (currentPauseContext === 'scheme-sync') {
+    try {
+      const json = await cdpBridge.evalWhilePaused(
+        `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
+      );
+      return JSON.parse(json || '[]');
+    } catch {
+      return [];
+    }
+  }
+  return schemeBridge.getExpressions(url);
+}
+
+// =========================================================================
 // Unified Eval Command
 // =========================================================================
 
@@ -300,6 +390,17 @@ export async function evalInFrame(frame, schemeFrameIndex, expression) {
       return cdpBridge.evalInJSFrame(frame._cdpCallFrameId, expression);
     }
     return { success: false, result: null, error: 'No CDP call frame ID available' };
+  } else if (currentPauseContext === 'scheme-sync') {
+    // During sync-path pause, route eval through CDP evaluateOnCallFrame
+    const escapedExpr = JSON.stringify(expression);
+    const evalExpr = `JSON.stringify(__schemeDebug.eval(${escapedExpr}, ${schemeFrameIndex}))`;
+    try {
+      const json = await cdpBridge.evalWhilePaused(evalExpr);
+      const result = JSON.parse(json);
+      return { success: true, result, error: null };
+    } catch (e) {
+      return { success: false, result: null, error: e.message };
+    }
   } else {
     return schemeBridge.evalInFrame(expression, schemeFrameIndex);
   }
@@ -370,8 +471,9 @@ export function init() {
 
   // Listen for CDP resume events
   cdpBridge.onCDPResumed(() => {
-    if (currentPauseContext === 'js') {
+    if (currentPauseContext === 'js' || currentPauseContext === 'scheme-sync') {
       currentPauseContext = null;
+      syncPauseTabId = null;
       cdpCallFrames = [];
       schemeCallFrames = [];
 
@@ -413,6 +515,54 @@ export async function handleSchemePause(detail) {
       frames: unified,
       reason: detail.reason || 'breakpoint',
       source: detail.source || null,
+      lastResult: detail.lastResult ?? null,
+    });
+  }
+}
+
+/**
+ * Handles a synchronous-callback probe pause forwarded from background.js.
+ * Called by main.js when a 'scheme-sync-paused' message arrives.
+ *
+ * The page is paused at a `debugger;` statement inside a probe function
+ * (fired by a Scheme expression in a DOM callback). The Scheme stack has
+ * already been fetched by background.js using Debugger.evaluateOnCallFrame.
+ * The page stays paused until the user resumes via the panel.
+ *
+ * @param {Object} message - The scheme-sync-paused message from background.js
+ * @param {number} message.tabId - Chrome tab ID (needed to route CDP resume)
+ * @param {Array} message.stack - Scheme call stack fetched while paused
+ * @param {Array} message.callFrames - CDP call frames from Debugger.paused
+ * @param {string} [message.reason] - Pause reason
+ */
+export function handleSyncSchemePause(message) {
+  currentPauseContext = 'scheme-sync';
+  syncPauseTabId = message.tabId;
+  // Mark CDP as attached — background.js already has the debugger attached
+  // when it sends scheme-sync-paused (it intercepted a Debugger.paused event).
+  cdpBridge.markAttached();
+
+  // Filter out Scheme frames with missing source or filename to prevent
+  // phantom entries in the breakpoints/stack panes.
+  schemeCallFrames = (message.stack || []).filter(f =>
+    f.source && f.source.filename
+  );
+  cdpCallFrames = message.callFrames || [];
+
+  const unified = mergeCallStacks(schemeCallFrames, cdpCallFrames);
+
+  // Use the Scheme top frame's source (last element — stack is bottom-to-top),
+  // not unified[0] which may be an internal JS frame from the interpreter bundle.
+  const schemeTopSource = schemeCallFrames.length > 0
+    ? schemeCallFrames[schemeCallFrames.length - 1].source
+    : unified[0]?.source || null;
+
+  for (const fn of unifiedListeners.paused) {
+    fn({
+      context: 'scheme-sync',
+      frames: unified,
+      reason: message.reason || 'breakpoint',
+      source: schemeTopSource,
     });
   }
 }
@@ -438,6 +588,7 @@ export function handleSchemeResume() {
  */
 export function reset() {
   currentPauseContext = null;
+  syncPauseTabId = null;
   cdpCallFrames = [];
   schemeCallFrames = [];
 }

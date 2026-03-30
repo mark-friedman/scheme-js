@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blockly Hello World</title>
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+</head>
+<body>
+<div id="blocklyDiv" style="height: 480px; width: 600px;"></div>
+<button onclick="alert(javascript.javascriptGenerator.workspaceToCode(workspace));">Show Code</button>
+<script>
+  const toolbox = {
+    "kind": "flyoutToolbox",
+    "contents": [
+      {
+        "kind": "block",
+        "type": "text"
+      },
+      {
+        "kind" : "block",
+        "type" : "text_print"
+      }
+    ]
+  };
+  const workspace = Blockly.inject('blocklyDiv', {toolbox: toolbox});
+</script>
+</body>
+</html>

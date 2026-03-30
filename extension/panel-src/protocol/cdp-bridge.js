@@ -10,6 +10,8 @@
  * attachment.
  */
 
+import { getTabId } from './scheme-bridge.js';
+
 // =========================================================================
 // State
 // =========================================================================
@@ -36,23 +38,6 @@ const listeners = {
   resumed: [],
   scriptParsed: [],
 };
-
-/**
- * The inspected tab ID. Resolved lazily from chrome.devtools.
- * @type {number|null}
- */
-let tabId = null;
-
-/**
- * Gets the inspected tab ID, caching it for reuse.
- * @returns {number}
- */
-function getTabId() {
-  if (tabId === null && typeof chrome !== 'undefined' && chrome.devtools?.inspectedWindow) {
-    tabId = chrome.devtools.inspectedWindow.tabId;
-  }
-  return tabId;
-}
 
 // =========================================================================
 // Message sending helper
@@ -148,6 +133,16 @@ export function isAttached() {
 }
 
 /**
+ * Marks CDP as attached without actually sending an attach command.
+ * Used when background.js already has the debugger attached (e.g.,
+ * during sync-path pauses where the debugger was attached by background.js
+ * before the panel received the scheme-sync-paused message).
+ */
+export function markAttached() {
+  attached = true;
+}
+
+/**
  * Clears cached state on page navigation.
  * Should be called when the inspected page reloads so that stale
  * scriptIds from the previous page don't linger.
@@ -221,6 +216,80 @@ export async function stepOutCDP() {
     });
   } catch (e) {
     console.warn('[cdp-bridge] stepOutCDP failed:', e.message);
+  }
+}
+
+/**
+ * Evaluates a JS expression while the page is paused, using CDP
+ * Debugger.evaluateOnCallFrame. Works during sync-path pauses when
+ * normal page eval is unavailable because V8 is suspended.
+ *
+ * @param {string} expression - JS expression to evaluate
+ * @returns {Promise<*>} The evaluation result value
+ */
+export async function evalWhilePaused(expression) {
+  if (!attached) throw new Error('CDP not attached');
+  try {
+    const response = await sendToBackground({
+      type: 'eval-paused',
+      tabId: getTabId(),
+      expression,
+    });
+    if (response.success) {
+      return response.result;
+    }
+    throw new Error(response.error || 'eval-paused failed');
+  } catch (e) {
+    throw new Error(`evalWhilePaused: ${e.message}`);
+  }
+}
+
+/**
+ * Sends a Scheme step-into command via CDP evaluateOnCallFrame + resume.
+ * Used during sync-path pauses where the probe runtime is on the V8 call stack.
+ * @returns {Promise<void>}
+ */
+export async function schemeStepInto() {
+  if (!attached) return;
+  try {
+    await sendToBackground({
+      type: 'scheme-step-into',
+      tabId: getTabId(),
+    });
+  } catch (e) {
+    console.warn('[cdp-bridge] schemeStepInto failed:', e.message);
+  }
+}
+
+/**
+ * Sends a Scheme step-over command via CDP evaluateOnCallFrame + resume.
+ * @returns {Promise<void>}
+ */
+export async function schemeStepOver() {
+  if (!attached) return;
+  try {
+    await sendToBackground({
+      type: 'scheme-step-over',
+      tabId: getTabId(),
+    });
+  } catch (e) {
+    console.warn('[cdp-bridge] schemeStepOver failed:', e.message);
+  }
+}
+
+/**
+ * Sends a Scheme step-out command via CDP evaluateOnCallFrame + resume.
+ * @returns {Promise<void>}
+ */
+export async function schemeStepOut() {
+  if (!attached) return;
+  try {
+    await sendToBackground({
+      type: 'scheme-step-out',
+      tabId: getTabId(),
+    });
+  } catch (e) {
+    console.warn('[cdp-bridge] schemeStepOut failed:', e.message);
   }
 }
 

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debugger Issues Test</title>
+  <script>
+    globalThis.__SCHEME_JS_DEBUG = true;
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+    if (!globalThis.__SCHEME_JS_BREAKPOINTS) {
+      globalThis.__SCHEME_JS_BREAKPOINTS = [];
+    }
+
+    window._pauseEvents = [];
+    window._resumeEvents = [];
+    window._executionComplete = false;
+
+    window.addEventListener('scheme-debug-paused', function(e) {
+      window._pauseEvents.push(e.detail);
+    });
+    window.addEventListener('scheme-debug-resumed', function() {
+      window._resumeEvents.push(Date.now());
+    });
+  </script>
+  <script type="module" src="../../dist/scheme.js"></script>
+  <script type="module" src="../../dist/scheme-html.js"></script>
+</head>
+<body>
+  <button id="blocklyButton">Generate</button>
+
+  <script type="text/scheme" src="app_test.scm" debug></script>
+
+  <script type="module">
+    await new Promise(r => setTimeout(r, 500));
+    window._executionComplete = true;
+    document.title = 'ready';
+  </script>
+</body>
+</html>

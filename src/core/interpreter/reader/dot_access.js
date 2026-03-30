@@ -41,6 +41,11 @@ export function handleDotAccess(expr, tokens) {
                     continue;
                 }
                 currentExpr = list(intern('js-ref'), currentExpr, prop);
+                // Propagate source info from the dot-access token so the
+                // analyzer can attach it to the generated js-ref form.
+                if (nextToken.source) {
+                    currentExpr.source = nextToken.source;
+                }
             }
         } else {
             break;
@@ -55,13 +60,24 @@ export function handleDotAccess(expr, tokens) {
  * @param {string[]} parts - Array of property path segments
  * @returns {Cons|Symbol} The nested js-ref form
  */
-export function buildPropertyAccessForm(parts) {
+/**
+ * Builds a nested property access form from a chain like ["obj", "prop1", "prop2"].
+ * Returns: (js-ref (js-ref obj "prop1") "prop2")
+ * @param {string[]} parts - Array of property path segments
+ * @param {Object|null} [source] - Source location to attach to generated forms
+ * @returns {Cons|Symbol} The nested js-ref form
+ */
+export function buildPropertyAccessForm(parts, source = null) {
     // Start with the base object (first part as a symbol)
     let result = intern(parts[0]);
 
     // Chain property accesses for remaining parts
     for (let i = 1; i < parts.length; i++) {
         result = list(intern('js-ref'), result, parts[i]);
+        // Propagate source info so stepping can track these sub-expressions
+        if (source) {
+            result.source = source;
+        }
     }
 
     return result;

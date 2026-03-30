@@ -175,7 +175,7 @@ export function readFromTokens(tokens, state) {
         const name = processSymbolEscapes(inner);
         result = intern(name);
     } else {
-        result = readAtom(token, state.caseFold);
+        result = readAtom(token, state.caseFold, source);
     }
 
     // Attach source location to symbol results so the analyzer can propagate
@@ -441,7 +441,7 @@ export function readBytevector(tokens) {
  * @param {boolean} caseFold
  * @returns {*}
  */
-export function readAtom(token, caseFold = false) {
+export function readAtom(token, caseFold = false, source = null) {
     // Try to parse as a number (including rationals and complex)
     const numResult = parseNumber(token);
     if (numResult !== null) {
@@ -484,7 +484,7 @@ export function readAtom(token, caseFold = false) {
         const parts = symbolName.split('.');
         // Ensure all parts are non-empty (no consecutive dots)
         if (parts.every(part => part.length > 0)) {
-            return buildPropertyAccessForm(parts);
+            return buildPropertyAccessForm(parts, source);
         }
     }
 

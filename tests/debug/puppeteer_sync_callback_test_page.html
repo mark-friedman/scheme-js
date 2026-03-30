@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sync Callback Breakpoint Test Page</title>
+
+  <!--
+    Test page for Issue 2: breakpoints in DOM callback code.
+
+    When a Scheme closure is called from JavaScript (e.g., a button click
+    handler), it executes on the synchronous run() path. This page verifies
+    that breakpoints fire correctly in that context.
+
+    A JS function `storeCallback` is exposed globally. The Scheme script
+    calls it with a Scheme closure, which stores it on window._schemeCallback.
+    Puppeteer tests can then call window._schemeCallback() to trigger the
+    synchronous run() path.
+
+    Scheme line map (1-indexed from start of script block):
+      Line 1: (define click-count 0)
+      Line 2: (define (handle-click)
+      Line 3:   (set! click-count (+ click-count 1))
+      Line 4:   click-count)
+      Line 5: (storeCallback handle-click)
+  -->
+  <script>
+    // Enable debug mode and panel-connected flag
+    globalThis.__SCHEME_JS_DEBUG = true;
+    globalThis.__SCHEME_JS_PANELCONNECTED = true;
+    if (!globalThis.__SCHEME_JS_BREAKPOINTS) {
+      globalThis.__SCHEME_JS_BREAKPOINTS = [];
+    }
+
+    // Track state for Puppeteer queries
+    window._pauseEvents = [];
+    window._resumeEvents = [];
+    window._executionComplete = false;
+    window._callbackResult = null;
+
+    // JS helper: stores a Scheme closure so Puppeteer can call it later
+    window.storeCallback = function(fn) {
+      window._schemeCallback = fn;
+    };
+
+    window.addEventListener('scheme-debug-paused', function(e) {
+      window._pauseEvents.push(e.detail);
+    });
+    window.addEventListener('scheme-debug-resumed', function() {
+      window._resumeEvents.push(Date.now());
+    });
+  </script>
+
+  <script type="module" src="../../dist/scheme.js"></script>
+  <script type="module" src="../../dist/scheme-html.js"></script>
+</head>
+<body>
+  <h1>Sync Callback Breakpoint Test</h1>
+  <button id="test-btn">Click Me</button>
+  <div id="output">0</div>
+
+  <script type="text/scheme" debug>
+(define click-count 0)
+(define (handle-click)
+  (set! click-count (+ click-count 1))
+  click-count)
+(storeCallback handle-click)
+  </script>
+
+  <script type="module">
+    // Wait for Scheme scripts to finish loading
+    await new Promise(r => setTimeout(r, 500));
+    window._executionComplete = true;
+
+    // Wire up the button to the stored Scheme callback
+    if (window._schemeCallback) {
+      document.getElementById('test-btn').addEventListener('click', () => {
+        try {
+          const result = window._schemeCallback();
+          window._callbackResult = result;
+          document.getElementById('output').textContent = String(result);
+        } catch (e) {
+          console.error('Callback error:', e);
+          window._callbackError = e.message;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

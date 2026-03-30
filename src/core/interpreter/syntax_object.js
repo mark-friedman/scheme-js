@@ -485,7 +485,7 @@ export function unwrapSyntax(obj) {
     if (obj instanceof Cons) {
         const car = unwrapSyntax(obj.car);
         const cdr = unwrapSyntax(obj.cdr);
-        return new Cons(car, cdr);
+        return new Cons(car, cdr, obj.source);
     }
     // Handle arrays (vectors)
     if (Array.isArray(obj)) {
@@ -531,7 +531,7 @@ export function addScopeToExpression(exp, scope) {
     if (exp instanceof Cons) {
         const car = addScopeToExpression(exp.car, scope);
         const cdr = addScopeToExpression(exp.cdr, scope);
-        return new Cons(car, cdr);
+        return new Cons(car, cdr, exp.source);
     }
 
     // Handle arrays (vectors)
@@ -566,7 +566,7 @@ export function flipScopeInExpression(exp, scope) {
     if (exp instanceof Cons) {
         const car = flipScopeInExpression(exp.car, scope);
         const cdr = flipScopeInExpression(exp.cdr, scope);
-        return new Cons(car, cdr);
+        return new Cons(car, cdr, exp.source);
     }
 
     // Handle arrays (vectors)

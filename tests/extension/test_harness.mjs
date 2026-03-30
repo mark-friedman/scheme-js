@@ -254,3 +254,44 @@ export async function launchTestBrowser() {
 
   return { server, browser, extensionId };
 }
+
+/**
+ * Launches a new browser with the extension loaded (no server creation).
+ * Used for crash recovery — reuses the existing static file server.
+ * @returns {Promise<{ browser: import('puppeteer').Browser, extensionId: string|null }>}
+ */
+export async function relaunchBrowser() {
+  const chromePath = puppeteer.executablePath();
+  if (process.platform === 'darwin') {
+    await patchChromeInfoPlist(chromePath);
+  }
+
+  const chromeArgs = [
+    `--disable-extensions-except=${extensionPath}`,
+    `--load-extension=${extensionPath}`,
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
+  ];
+  const browser = await puppeteer.launch({
+    headless: false,
+    args: chromeArgs,
+  });
+
+  let extensionId = null;
+  try {
+    const swTarget = await browser.waitForTarget(
+      t => t.type() === 'service_worker' && t.url().includes('background'),
+      { timeout: 10000 }
+    );
+    const swUrl = swTarget.url();
+    extensionId = swUrl.match(/chrome-extension:\/\/([^/]+)/)?.[1];
+    console.log(`  [Browser relaunched, extension ID: ${extensionId}]`);
+  } catch {
+    console.warn('  [Warning: Extension service worker not found after relaunch]');
+  }
+
+  return { browser, extensionId };
+}

@@ -558,6 +558,24 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
+## Phase 19: Standalone Debugger Window Migration ✅
+**Target:** Move debugger from DevTools panel to standalone browser window for sync-path breakpoint support
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Standalone Window** | `chrome.windows.create()` popup via toolbar icon click | ✅ |
+| **Scripting API** | `chrome.scripting.executeScript({world:'MAIN'})` replaces `inspectedWindow.eval` | ✅ |
+| **Tab-Based Navigation** | `chrome.tabs.onUpdated` replaces `chrome.devtools.network.onNavigated` | ✅ |
+| **Media Query Theme** | `prefers-color-scheme` replaces `chrome.devtools.panels.themeName` | ✅ |
+| **Sync-Path CDP Debugging** | V8 stays paused during sync probe pauses; eval/step/resume via CDP `evaluateOnCallFrame` | ✅ |
+| **Context-Aware Routing** | `unified-debugger.js` routes getLocals/getSourceContent/getExpressions through CDP during sync pauses | ✅ |
+| **Window Lifecycle** | Background.js manages debugger windows map, toolbar icon, window/tab cleanup | ✅ |
+| **Manifest Update** | Removed `devtools_page`, added `scripting`/`tabs`/`action` permissions | ✅ |
+
+**Deliverable:** Debugger window independent of DevTools — no Sources tab switch during sync-path breakpoints. 358 extension tests, 2749 unit tests passing.
+
+---
+
 ## Verification Plan
 
 ### Automated Tests

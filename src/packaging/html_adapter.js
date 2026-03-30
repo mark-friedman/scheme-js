@@ -147,6 +147,11 @@ async function runScripts() {
       if (res.ok) {
         fullHtml = await res.text();
         documentUrl = location.href;
+        // Register the HTML document as a page source so it appears in the
+        // DevTools sources pane alongside the Scheme files.
+        if (sourceRegistry) {
+          sourceRegistry.registerPageSource(documentUrl, fullHtml, 'page');
+        }
       }
     } catch (e) { /* ignore */ }
   }

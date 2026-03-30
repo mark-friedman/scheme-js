@@ -23215,17 +23215,45 @@ function createEditor(container, onBreakpointToggle2, onDiamondClick2) {
 }
 
 // extension/panel-src/protocol/scheme-bridge.js
+var _tabId = null;
+function setTabId(id2) {
+  _tabId = id2;
+}
+function getTabId() {
+  if (_tabId !== null) return _tabId;
+  if (typeof chrome !== "undefined" && chrome.devtools?.inspectedWindow) {
+    _tabId = chrome.devtools.inspectedWindow.tabId;
+  }
+  return _tabId;
+}
 function evalInPage(expression) {
-  return new Promise((resolve, reject) => {
-    chrome.devtools.inspectedWindow.eval(expression, (result, exceptionInfo) => {
-      if (exceptionInfo) {
-        const msg = exceptionInfo.value || exceptionInfo.description || "eval error";
-        reject(new Error(msg));
-      } else {
-        resolve(result);
+  if (typeof chrome !== "undefined" && chrome.scripting?.executeScript && _tabId !== null) {
+    return chrome.scripting.executeScript({
+      target: { tabId: _tabId },
+      func: (expr) => eval(expr),
+      args: [expression],
+      world: "MAIN"
+    }).then((results) => {
+      if (!results || results.length === 0) throw new Error("No script result");
+      if (results[0].error) {
+        throw new Error(results[0].error.message || "eval error");
       }
+      return results[0].result;
     });
-  });
+  }
+  if (typeof chrome !== "undefined" && chrome.devtools?.inspectedWindow?.eval) {
+    return new Promise((resolve, reject) => {
+      chrome.devtools.inspectedWindow.eval(expression, (result, exceptionInfo) => {
+        if (exceptionInfo) {
+          const msg = exceptionInfo.value || exceptionInfo.description || "eval error";
+          reject(new Error(msg));
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  }
+  return Promise.reject(new Error("No eval API available (need chrome.scripting or chrome.devtools)"));
 }
 async function isSchemeDebugAvailable() {
   try {
@@ -23291,10 +23319,10 @@ async function getLocals(frameIndex) {
     return [];
   }
 }
-async function evalInFrame(expression, frameIndex) {
+async function evalInFrame(expression2, frameIndex) {
   try {
     const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.eval(${JSON.stringify(expression)}, ${frameIndex}))`
+      `JSON.stringify(__schemeDebug.eval(${JSON.stringify(expression2)}, ${frameIndex}))`
     );
     const result = JSON.parse(json);
     return { success: true, result, error: null };
@@ -23371,6 +23399,15 @@ async function removeBreakpoint(id2) {
     return false;
   }
 }
+async function getAllBreakpoints() {
+  try {
+    const json = await evalInPage("JSON.stringify(__schemeDebug.getAllBreakpoints())");
+    return JSON.parse(json);
+  } catch (e) {
+    console.warn("[scheme-bridge] getAllBreakpoints failed:", e.message);
+    return [];
+  }
+}
 
 // extension/panel-src/components/source-list.js
 function createSourceList(container, onSelectSource2) {
@@ -23379,7 +23416,9 @@ function createSourceList(container, onSelectSource2) {
   function displayName(url) {
     const basename = url.split("/").pop() || url;
     const origin = url.includes("/inline-scripts/") ? "inline" : url.includes("/repl/") ? "repl" : url.includes("//lib/") ? "lib" : null;
-    return origin ? `${basename} [${origin}]` : basename;
+    if (origin) return `${basename} [${origin}]`;
+    if (!url.startsWith("scheme://")) return basename;
+    return basename;
   }
   function render() {
     if (sources.length === 0) {
@@ -23424,7 +23463,13 @@ function createSourceList(container, onSelectSource2) {
     }
   });
   container.innerHTML = '<div class="source-empty">Loading sources...</div>';
-  return { refresh: refresh2 };
+  function selectUrl(url) {
+    if (url !== selectedUrl) {
+      selectedUrl = url;
+      render();
+    }
+  }
+  return { refresh: refresh2, selectUrl };
 }
 function escapeHtml(text) {
   return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -23594,6 +23639,26 @@ function createVariables(container) {
         return "var-type-other";
     }
   }
+  function createVarRow({ name: name2, value, type }) {
+    const row = document.createElement("div");
+    row.className = "variable-row";
+    row.dataset.testid = "variable-row";
+    row.dataset.varName = name2;
+    const nameEl = document.createElement("span");
+    nameEl.className = "var-name";
+    nameEl.textContent = name2;
+    row.appendChild(nameEl);
+    const sep = document.createElement("span");
+    sep.className = "var-sep";
+    sep.textContent = ": ";
+    row.appendChild(sep);
+    const valueEl = document.createElement("span");
+    valueEl.className = `var-value ${typeClass(type)}`;
+    valueEl.textContent = value;
+    valueEl.title = type;
+    row.appendChild(valueEl);
+    return row;
+  }
   function setLocals(locals) {
     container.innerHTML = "";
     if (!locals || locals.length === 0) {
@@ -23603,25 +23668,33 @@ function createVariables(container) {
       container.appendChild(empty2);
       return;
     }
-    for (const { name: name2, value, type } of locals) {
-      const row = document.createElement("div");
-      row.className = "variable-row";
-      row.dataset.testid = "variable-row";
-      row.dataset.varName = name2;
-      const nameEl = document.createElement("span");
-      nameEl.className = "var-name";
-      nameEl.textContent = name2;
-      row.appendChild(nameEl);
-      const sep = document.createElement("span");
-      sep.className = "var-sep";
-      sep.textContent = ": ";
-      row.appendChild(sep);
-      const valueEl = document.createElement("span");
-      valueEl.className = `var-value ${typeClass(type)}`;
-      valueEl.textContent = value;
-      valueEl.title = type;
-      row.appendChild(valueEl);
-      container.appendChild(row);
+    const hasScopes = locals.some((v) => v.scope);
+    if (!hasScopes) {
+      for (const v of locals) {
+        container.appendChild(createVarRow(v));
+      }
+      return;
+    }
+    const groups = { local: [], closure: [], global: [] };
+    for (const v of locals) {
+      const scope = v.scope || "local";
+      if (groups[scope]) {
+        groups[scope].push(v);
+      } else {
+        groups.local.push(v);
+      }
+    }
+    const scopeLabels = { local: "Local", closure: "Closure", global: "Global" };
+    for (const [scope, vars] of Object.entries(groups)) {
+      if (vars.length === 0) continue;
+      const header = document.createElement("div");
+      header.className = "variables-scope-header";
+      header.dataset.testid = "scope-header";
+      header.textContent = scopeLabels[scope] || scope;
+      container.appendChild(header);
+      for (const v of vars) {
+        container.appendChild(createVarRow(v));
+      }
     }
   }
   function clear() {
@@ -23835,6 +23908,24 @@ function createConsole(container, { onEvaluate }) {
       }
     }
   });
+  function addOutput(callType, args) {
+    const entry = document.createElement("div");
+    entry.className = "console-message console-page-output";
+    entry.dataset.testid = "console-message";
+    entry.dataset.messageType = "page-" + callType;
+    if (callType === "error") entry.classList.add("console-page-error");
+    if (callType === "warn") entry.classList.add("console-page-warn");
+    const icon = document.createElement("span");
+    icon.className = "console-icon";
+    icon.textContent = callType === "error" ? "\u2716" : callType === "warn" ? "\u26A0" : "\u25B8";
+    entry.appendChild(icon);
+    const text = document.createElement("span");
+    text.className = "console-text";
+    text.textContent = args.join(" ");
+    entry.appendChild(text);
+    outputContainer.appendChild(entry);
+    outputContainer.scrollTop = outputContainer.scrollHeight;
+  }
   return {
     clear: () => {
       outputContainer.innerHTML = "";
@@ -23844,7 +23935,8 @@ function createConsole(container, { onEvaluate }) {
     },
     focus: () => {
       inputField.focus();
-    }
+    },
+    addOutput
   };
 }
 
@@ -23852,10 +23944,14 @@ function createConsole(container, { onEvaluate }) {
 var unified_debugger_exports = {};
 __export(unified_debugger_exports, {
   evalInFrame: () => evalInFrame2,
+  getExpressionsForContext: () => getExpressionsForContext,
+  getLocalsForContext: () => getLocalsForContext,
   getPauseContext: () => getPauseContext,
+  getSourceContentForContext: () => getSourceContentForContext,
   getUnifiedFrames: () => getUnifiedFrames,
   handleSchemePause: () => handleSchemePause,
   handleSchemeResume: () => handleSchemeResume,
+  handleSyncSchemePause: () => handleSyncSchemePause,
   init: () => init,
   isCDPAttached: () => isCDPAttached,
   isJSFile: () => isJSFile,
@@ -23880,13 +23976,6 @@ var listeners = {
   resumed: [],
   scriptParsed: []
 };
-var tabId = null;
-function getTabId() {
-  if (tabId === null && typeof chrome !== "undefined" && chrome.devtools?.inspectedWindow) {
-    tabId = chrome.devtools.inspectedWindow.tabId;
-  }
-  return tabId;
-}
 function sendToBackground(message) {
   return new Promise((resolve, reject) => {
     if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
@@ -23931,6 +24020,9 @@ async function attachCDP() {
 }
 function isAttached() {
   return attached;
+}
+function markAttached() {
+  attached = true;
 }
 function clearNavigationCache() {
   scriptUrlMap.clear();
@@ -23979,14 +24071,63 @@ async function stepOutCDP() {
     console.warn("[cdp-bridge] stepOutCDP failed:", e.message);
   }
 }
-async function evalInJSFrame(callFrameId, expression) {
+async function evalWhilePaused(expression2) {
+  if (!attached) throw new Error("CDP not attached");
+  try {
+    const response = await sendToBackground({
+      type: "eval-paused",
+      tabId: getTabId(),
+      expression: expression2
+    });
+    if (response.success) {
+      return response.result;
+    }
+    throw new Error(response.error || "eval-paused failed");
+  } catch (e) {
+    throw new Error(`evalWhilePaused: ${e.message}`);
+  }
+}
+async function schemeStepInto() {
+  if (!attached) return;
+  try {
+    await sendToBackground({
+      type: "scheme-step-into",
+      tabId: getTabId()
+    });
+  } catch (e) {
+    console.warn("[cdp-bridge] schemeStepInto failed:", e.message);
+  }
+}
+async function schemeStepOver() {
+  if (!attached) return;
+  try {
+    await sendToBackground({
+      type: "scheme-step-over",
+      tabId: getTabId()
+    });
+  } catch (e) {
+    console.warn("[cdp-bridge] schemeStepOver failed:", e.message);
+  }
+}
+async function schemeStepOut() {
+  if (!attached) return;
+  try {
+    await sendToBackground({
+      type: "scheme-step-out",
+      tabId: getTabId()
+    });
+  } catch (e) {
+    console.warn("[cdp-bridge] schemeStepOut failed:", e.message);
+  }
+}
+async function evalInJSFrame(callFrameId, expression2) {
   if (!attached) return { success: false, result: null, error: "CDP not attached" };
   try {
     const response = await sendToBackground({
       type: "eval-in-js-frame",
       tabId: getTabId(),
       callFrameId,
-      expression
+      expression: expression2
     });
     return response;
   } catch (err) {
@@ -24106,6 +24247,7 @@ if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
 
 // extension/panel-src/protocol/unified-debugger.js
 var currentPauseContext = null;
+var syncPauseTabId = null;
 var cdpCallFrames = [];
 var schemeCallFrames = [];
 var unifiedListeners = {
@@ -24123,8 +24265,8 @@ function isJSFile(url) {
 }
 async function isSchemeLine(url, line) {
   const expressions = await getExpressions(url);
-  for (const expr of expressions) {
-    if (line >= expr.line && line <= expr.endLine) {
+  for (const expr2 of expressions) {
+    if (line >= expr2.line && line <= expr2.endLine) {
       return true;
     }
   }
@@ -24176,6 +24318,8 @@ function mergeCallStacks(schemeFrames, jsFrames) {
 async function resume2() {
   if (currentPauseContext === "js") {
     await resumeCDP();
+  } else if (currentPauseContext === "scheme-sync") {
+    await resumeCDP();
   } else {
     await resume();
   }
@@ -24183,6 +24327,8 @@ async function resume2() {
 async function stepInto2() {
   if (currentPauseContext === "js") {
     await stepIntoCDP();
+  } else if (currentPauseContext === "scheme-sync") {
+    await schemeStepInto();
   } else {
     await stepInto();
   }
@@ -24190,6 +24336,8 @@ async function stepInto2() {
 async function stepOver2() {
   if (currentPauseContext === "js") {
     await stepOverCDP();
+  } else if (currentPauseContext === "scheme-sync") {
+    await schemeStepOver();
   } else {
     await stepOver();
   }
@@ -24197,6 +24345,8 @@ async function stepOver2() {
 async function stepOut2() {
   if (currentPauseContext === "js") {
     await stepOutCDP();
+  } else if (currentPauseContext === "scheme-sync") {
+    await schemeStepOut();
   } else {
     await stepOut();
   }
@@ -24229,14 +24379,63 @@ async function removeBreakpoint2(id2, url) {
     return removeBreakpoint(id2);
   }
 }
-async function evalInFrame2(frame, schemeFrameIndex, expression) {
+async function getLocalsForContext(frameIndex) {
+  if (currentPauseContext === "scheme-sync") {
+    try {
+      const json = await evalWhilePaused(
+        `JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`
+      );
+      return JSON.parse(json || "[]");
+    } catch {
+      return [];
+    }
+  }
+  return getLocals(frameIndex);
+}
+async function getSourceContentForContext(url) {
+  if (currentPauseContext === "scheme-sync") {
+    try {
+      const json = await evalWhilePaused(
+        `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
+      );
+      return JSON.parse(json || "null");
+    } catch {
+      return null;
+    }
+  }
+  return getSourceContent(url);
+}
+async function getExpressionsForContext(url) {
+  if (currentPauseContext === "scheme-sync") {
+    try {
+      const json = await evalWhilePaused(
+        `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
+      );
+      return JSON.parse(json || "[]");
+    } catch {
+      return [];
+    }
+  }
+  return getExpressions(url);
+}
+async function evalInFrame2(frame, schemeFrameIndex, expression2) {
   if (frame.language === "js") {
     if (frame._cdpCallFrameId) {
-      return evalInJSFrame(frame._cdpCallFrameId, expression);
+      return evalInJSFrame(frame._cdpCallFrameId, expression2);
     }
     return { success: false, result: null, error: "No CDP call frame ID available" };
+  } else if (currentPauseContext === "scheme-sync") {
+    const escapedExpr = JSON.stringify(expression2);
+    const evalExpr = `JSON.stringify(__schemeDebug.eval(${escapedExpr}, ${schemeFrameIndex}))`;
+    try {
+      const json = await evalWhilePaused(evalExpr);
+      const result = JSON.parse(json);
+      return { success: true, result, error: null };
+    } catch (e) {
+      return { success: false, result: null, error: e.message };
+    }
   } else {
-    return evalInFrame(expression, schemeFrameIndex);
+    return evalInFrame(expression2, schemeFrameIndex);
   }
 }
 function onPaused(callback) {
@@ -24270,8 +24469,9 @@ function init() {
     }
   });
   onCDPResumed(() => {
-    if (currentPauseContext === "js") {
+    if (currentPauseContext === "js" || currentPauseContext === "scheme-sync") {
       currentPauseContext = null;
+      syncPauseTabId = null;
       cdpCallFrames = [];
       schemeCallFrames = [];
       for (const fn of unifiedListeners.resumed) {
@@ -24295,7 +24495,27 @@ async function handleSchemePause(detail) {
       context: "scheme",
       frames: unified,
       reason: detail.reason || "breakpoint",
-      source: detail.source || null
+      source: detail.source || null,
+      lastResult: detail.lastResult ?? null
+    });
+  }
+}
+function handleSyncSchemePause(message) {
+  currentPauseContext = "scheme-sync";
+  syncPauseTabId = message.tabId;
+  markAttached();
+  schemeCallFrames = (message.stack || []).filter(
+    (f) => f.source && f.source.filename
+  );
+  cdpCallFrames = message.callFrames || [];
+  const unified = mergeCallStacks(schemeCallFrames, cdpCallFrames);
+  const schemeTopSource = schemeCallFrames.length > 0 ? schemeCallFrames[schemeCallFrames.length - 1].source : unified[0]?.source || null;
+  for (const fn of unifiedListeners.paused) {
+    fn({
+      context: "scheme-sync",
+      frames: unified,
+      reason: message.reason || "breakpoint",
+      source: schemeTopSource
     });
   }
 }
@@ -24311,6 +24531,7 @@ function handleSchemeResume() {
 }
 function reset() {
   currentPauseContext = null;
+  syncPauseTabId = null;
   cdpCallFrames = [];
   schemeCallFrames = [];
 }
@@ -24346,7 +24567,7 @@ function getLinesForUrl(url) {
   }
   return lines;
 }
-function getAllBreakpoints() {
+function getAllBreakpoints2() {
   const bps = [];
   for (const [key, id2] of breakpointIds.entries()) {
     const bp = parseBpKey(key);
@@ -24419,6 +24640,11 @@ function initSplitter(splitterEl, { direction, target, min = 50, max = 600, inve
 }
 
 // extension/panel-src/main.js
+var _urlParams = new URLSearchParams(window.location.search);
+var _urlTabId = parseInt(_urlParams.get("tabId"), 10);
+if (!isNaN(_urlTabId)) {
+  setTabId(_urlTabId);
+}
 var toolbarDebug = document.getElementById("toolbar-debug");
 var sourceListContainer = document.getElementById("source-list");
 var editorContainer = document.getElementById("editor-container");
@@ -24432,13 +24658,36 @@ if (typeof window !== "undefined") {
   window.unifiedDebugger = unified_debugger_exports;
 }
 var currentSourceUrl = null;
+var stepTimeoutHandle = null;
 var cdpAttached = false;
 var currentExpressions = [];
+function startStepTimeout() {
+  clearStepTimeout();
+  stepTimeoutHandle = setTimeout(() => {
+    stepTimeoutHandle = null;
+    onResumed2();
+  }, 3e3);
+}
+function clearStepTimeout() {
+  if (stepTimeoutHandle !== null) {
+    clearTimeout(stepTimeoutHandle);
+    stepTimeoutHandle = null;
+  }
+}
 var toolbar = createToolbar(toolbarDebug, {
   onResume: () => resume2(),
-  onStepInto: () => stepInto2(),
-  onStepOver: () => stepOver2(),
-  onStepOut: () => stepOut2()
+  onStepInto: () => {
+    stepInto2();
+    startStepTimeout();
+  },
+  onStepOver: () => {
+    stepOver2();
+    startStepTimeout();
+  },
+  onStepOut: () => {
+    stepOut2();
+    startStepTimeout();
+  }
 });
 var variables = createVariables(variablesContainer);
 var breakpointsList = createBreakpointsList(breakpointsContainer, {
@@ -24473,16 +24722,16 @@ var breakpointsList = createBreakpointsList(breakpointsContainer, {
   }
 });
 function refreshBreakpointsPanel() {
-  breakpointsList.setBreakpoints(getAllBreakpoints());
+  breakpointsList.setBreakpoints(getAllBreakpoints2());
 }
 var selectedUnifiedFrame = null;
 var selectedSchemeFrameIndex = 0;
 var evalConsole = createConsole(consoleContainer, {
-  onEvaluate: async (expression) => {
+  onEvaluate: async (expression2) => {
     if (!selectedUnifiedFrame) {
       return { success: false, error: "Not paused", result: null };
     }
-    return evalInFrame2(selectedUnifiedFrame, selectedSchemeFrameIndex, expression);
+    return evalInFrame2(selectedUnifiedFrame, selectedSchemeFrameIndex, expression2);
   }
 });
 async function onSelectFrame(frameIndex, frame) {
@@ -24526,7 +24775,7 @@ async function onSelectFrame(frameIndex, frame) {
     return;
   }
   try {
-    const locals = await getLocals(frameIndex);
+    const locals = await getLocalsForContext(selectedSchemeFrameIndex);
     variables.setLocals(locals);
   } catch {
     variables.clear();
@@ -24609,29 +24858,30 @@ function refreshDiamondMarkers() {
     return;
   }
   const exprsByLine = /* @__PURE__ */ new Map();
-  for (const expr of currentExpressions) {
-    if (!diamondLines.has(expr.line)) continue;
-    if (!exprsByLine.has(expr.line)) exprsByLine.set(expr.line, []);
-    exprsByLine.get(expr.line).push(expr);
+  for (const expr2 of currentExpressions) {
+    if (!diamondLines.has(expr2.line)) continue;
+    if (!exprsByLine.has(expr2.line)) exprsByLine.set(expr2.line, []);
+    exprsByLine.get(expr2.line).push(expr2);
   }
   const markers = [];
   for (const [lineNum, exprs] of exprsByLine) {
     if (exprs.length <= 1) continue;
     exprs.sort((a, b) => a.column - b.column);
     for (let i = 1; i < exprs.length; i++) {
-      const expr = exprs[i];
-      const active = has(currentSourceUrl, expr.line, expr.column);
-      markers.push({ line: expr.line, column: expr.column, active });
+      const expr2 = exprs[i];
+      const active = has(currentSourceUrl, expr2.line, expr2.column);
+      markers.push({ line: expr2.line, column: expr2.column, active });
     }
   }
   editor.setDiamondMarkers(markers);
 }
 async function loadSource(url) {
-  const content2 = await getSourceContent(url);
+  const content2 = await getSourceContentForContext(url);
   if (content2 === null) return;
   currentSourceUrl = url;
+  sourceList.selectUrl(url);
   editor.setContent(content2);
-  currentExpressions = await getExpressions(url);
+  currentExpressions = await getExpressionsForContext(url);
   const lines = getLinesForUrl(url);
   if (lines.size > 0) {
     editor.setBreakpoints(lines);
@@ -24650,6 +24900,7 @@ async function loadJSSource(url, scriptId) {
     content2 = `// Source not available: ${url}`;
   }
   currentSourceUrl = url;
+  sourceList.selectUrl(url);
   currentExpressions = [];
   editor.setContent(content2, "javascript");
   const lines = getLinesForUrl(url);
@@ -24680,14 +24931,19 @@ async function onSelectSource(url, content2) {
     editor.setBreakpoints(lines);
   }
   refreshDiamondMarkers();
-  toolbar.setStatus(`Viewing: ${url.split("/").pop()}`);
+  if (currentPausedLine === null) {
+    toolbar.setStatus(`Viewing: ${url.split("/").pop()}`);
+  }
 }
 var sourceList = createSourceList(sourceListContainer, onSelectSource);
 async function onPaused2(detail) {
+  clearStepTimeout();
   const reason = detail.reason === "step" ? "Paused (step)" : "Paused at breakpoint";
   const context = detail.context || "scheme";
   const suffix = context === "js" ? " [JS]" : "";
-  toolbar.setStatus(reason + suffix);
+  const lastResult = detail.lastResult;
+  const resultSuffix = lastResult != null && detail.reason === "step" ? `  \u2190 ${lastResult}` : "";
+  toolbar.setStatus(reason + suffix + resultSuffix);
   toolbar.setPaused();
   if (context === "scheme") {
     ackPause();
@@ -24753,7 +25009,7 @@ async function onPaused2(detail) {
       }
     } else {
       try {
-        const locals = await getLocals(stack.length - 1);
+        const locals = await getLocalsForContext(selectedSchemeFrameIndex);
         variables.setLocals(locals);
       } catch {
         variables.clear();
@@ -24762,6 +25018,7 @@ async function onPaused2(detail) {
   }
 }
 function onResumed2() {
+  clearStepTimeout();
   toolbar.setStatus("Running");
   toolbar.setRunning();
   callStack.clear();
@@ -24773,14 +25030,19 @@ function onResumed2() {
   editor.highlightExpression(null);
   currentPausedLine = null;
   refreshDiamondMarkers();
-  refresh();
 }
 if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message) => {
+    const myTabId = getTabId();
+    if (message.tabId && myTabId && message.tabId !== myTabId) return;
     if (message.type === "scheme-debug-paused") {
       handleSchemePause(message.detail || {});
     } else if (message.type === "scheme-debug-resumed") {
       handleSchemeResume();
+    } else if (message.type === "scheme-sync-paused") {
+      handleSyncSchemePause(message);
+    } else if (message.type === "console-api-called") {
+      evalConsole.addOutput(message.callType, message.args || []);
     }
   });
 }
@@ -24804,6 +25066,8 @@ async function activateAndRefresh() {
     if (result.needsReload) {
       toolbar.setStatus("Reload page to enable debugging");
     } else {
+      attachCDP().catch(() => {
+      });
       await syncFromInterpreter();
       refreshBreakpointsPanel();
       await refresh();
@@ -24818,22 +25082,28 @@ async function activateAndRefresh() {
   }
 }
 activateAndRefresh();
-if (typeof chrome !== "undefined" && chrome.devtools?.network) {
+if (typeof chrome !== "undefined" && chrome.tabs?.onUpdated) {
+  const myTabId = getTabId();
+  chrome.tabs.onUpdated.addListener((updatedTabId, changeInfo) => {
+    if (updatedTabId === myTabId && changeInfo.status === "complete") {
+      clearNavigationCache();
+      setTimeout(() => activateAndRefresh(), 500);
+    }
+  });
+} else if (typeof chrome !== "undefined" && chrome.devtools?.network) {
   chrome.devtools.network.onNavigated.addListener(() => {
     clearNavigationCache();
     setTimeout(() => activateAndRefresh(), 500);
   });
 }
 var lastRefreshTime = 0;
-if (typeof chrome !== "undefined" && chrome.devtools?.panels) {
-  window.addEventListener("focus", () => {
-    const now = Date.now();
-    if (now - lastRefreshTime > 2e3) {
-      lastRefreshTime = now;
-      refresh();
-    }
-  });
-}
+window.addEventListener("focus", () => {
+  const now = Date.now();
+  if (now - lastRefreshTime > 2e3) {
+    lastRefreshTime = now;
+    refresh();
+  }
+});
 initSplitter(splitter, {
   direction: "horizontal",
   target: sidebar,
@@ -24848,7 +25118,7 @@ initSplitter(consoleSplitter, {
   max: 600,
   invert: true
 });
-if (typeof chrome !== "undefined" && chrome.devtools && chrome.devtools.panels) {
+if (typeof chrome !== "undefined" && chrome.devtools?.panels) {
   const updateTheme = (themeName) => {
     if (themeName === "default" || themeName === "light") {
       document.documentElement.classList.add("theme-light");
@@ -24862,4 +25132,12 @@ if (typeof chrome !== "undefined" && chrome.devtools && chrome.devtools.panels) 
   if (chrome.devtools.panels.setThemeChangeHandler) {
     chrome.devtools.panels.setThemeChangeHandler(updateTheme);
   }
+} else {
+  const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const updateThemeFromMedia = (isDark) => {
+    document.documentElement.classList.toggle("theme-dark", isDark);
+    document.documentElement.classList.toggle("theme-light", !isDark);
+  };
+  updateThemeFromMedia(darkQuery.matches);
+  darkQuery.addEventListener("change", (e) => updateThemeFromMedia(e.matches));
 }

@@ -90,7 +90,7 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
                 // Pure marks hygiene: no renaming needed.
                 // All identifiers will be marked with expansionScope during transcription,
                 // making introduced bindings distinguishable from user bindings.
-                return transcribe(template, bindings, expansionScope, ellipsisName, literalIds, capturedEnv);
+                return transcribe(template, bindings, expansionScope, ellipsisName, literalIds, capturedEnv, exp?.source || null);
             }
         }
         // Extract macro name for better error message
@@ -366,14 +366,14 @@ function transcribeLiteral(template, bindings, expansionScope) {
  * @param {Environment|null} capturedEnv - Captured lexical environment
  * @returns {*} Expanded expression.
  */
-function transcribe(template, bindings, expansionScope = null, ellipsisName = '...', literals = new Set(), capturedEnv = null) {
+function transcribe(template, bindings, expansionScope = null, ellipsisName = '...', literals = new Set(), capturedEnv = null, macroSource = null) {
     if (template === null) return null;
 
     // 1. Variables (Symbols or SyntaxObjects)
     if (template instanceof Symbol || template instanceof SyntaxObject) {
         // Unwrap SyntaxObject if it wraps a Cons list (recurse on content)
         if (template instanceof SyntaxObject && template.name instanceof Cons) {
-            return transcribe(template.name, bindings, expansionScope, ellipsisName, literals, capturedEnv);
+            return transcribe(template.name, bindings, expansionScope, ellipsisName, literals, capturedEnv, macroSource);
         }
 
         const name = template instanceof SyntaxObject ? template.name : template.name;
@@ -462,23 +462,24 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
             }
 
             // Expand N times
-            let expandedList = transcribe(restTemplate, bindings, expansionScope, ellipsisName, literals, capturedEnv);
+            let expandedList = transcribe(restTemplate, bindings, expansionScope, ellipsisName, literals, capturedEnv, macroSource);
 
             for (let i = len - 1; i >= 0; i--) {
                 const subBindings = new Map(bindings);
                 for (const v of listVars) {
                     subBindings.set(v, bindings.get(v)[i]);
                 }
-                const expandedItem = transcribe(item, subBindings, expansionScope, ellipsisName, literals, capturedEnv);
-                expandedList = new Cons(expandedItem, expandedList);
+                const expandedItem = transcribe(item, subBindings, expansionScope, ellipsisName, literals, capturedEnv, macroSource);
+                expandedList = new Cons(expandedItem, expandedList, macroSource);
             }
 
             return expandedList;
         } else {
             // Regular cons
             return new Cons(
-                transcribe(template.car, bindings, expansionScope, ellipsisName, literals, capturedEnv),
-                transcribe(template.cdr, bindings, expansionScope, ellipsisName, literals, capturedEnv)
+                transcribe(template.car, bindings, expansionScope, ellipsisName, literals, capturedEnv, macroSource),
+                transcribe(template.cdr, bindings, expansionScope, ellipsisName, literals, capturedEnv, macroSource),
+                macroSource
             );
         }
     }

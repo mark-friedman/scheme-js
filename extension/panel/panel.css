@@ -408,6 +408,27 @@ html, body {
   color: var(--frame-tco-fg);
 }
 
+.console-page-output .console-icon {
+  color: var(--status-fg);
+  opacity: 0.7;
+}
+
+.console-page-error {
+  background: rgba(255, 0, 0, 0.08);
+}
+
+.console-page-error .console-icon {
+  color: var(--frame-tco-fg);
+}
+
+.console-page-warn {
+  background: rgba(255, 200, 0, 0.08);
+}
+
+.console-page-warn .console-icon {
+  color: #e5c07b;
+}
+
 .console-text {
   flex: 1;
   white-space: pre-wrap;
@@ -670,6 +691,21 @@ html, body {
 .var-type-string  { color: var(--var-string-fg); }
 .var-type-null    { color: var(--var-null-fg); }
 .var-type-other   { color: var(--var-other-fg); }
+
+.variables-scope-header {
+  padding: 4px 8px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--status-fg);
+  border-bottom: 1px solid var(--toolbar-border);
+  margin-top: 2px;
+}
+
+.variables-scope-header:first-child {
+  margin-top: 0;
+}
 
 /* =========================================================================
    Breakpoints list

@@ -11,6 +11,7 @@
  * @property {string} value - String representation of the value
  * @property {string} type - Type name (number, boolean, string, pair, etc.)
  * @property {string|null} subtype
+ * @property {string} [scope] - Scope level: 'local', 'closure', or 'global'
  */
 
 /**
@@ -45,7 +46,40 @@ export function createVariables(container) {
   }
 
   /**
-   * Renders a list of local variable bindings.
+   * Renders a single variable row.
+   *
+   * @param {LocalVar} variable
+   * @returns {HTMLElement}
+   */
+  function createVarRow({ name, value, type }) {
+    const row = document.createElement('div');
+    row.className = 'variable-row';
+    row.dataset.testid = 'variable-row';
+    row.dataset.varName = name;
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'var-name';
+    nameEl.textContent = name;
+    row.appendChild(nameEl);
+
+    const sep = document.createElement('span');
+    sep.className = 'var-sep';
+    sep.textContent = ': ';
+    row.appendChild(sep);
+
+    const valueEl = document.createElement('span');
+    valueEl.className = `var-value ${typeClass(type)}`;
+    valueEl.textContent = value;
+    valueEl.title = type;
+    row.appendChild(valueEl);
+
+    return row;
+  }
+
+  /**
+   * Renders a list of local variable bindings, grouped by scope.
+   * Variables with a `scope` field are grouped under section headers.
+   * Variables without a `scope` field are treated as 'local'.
    *
    * @param {LocalVar[]} locals
    */
@@ -60,29 +94,42 @@ export function createVariables(container) {
       return;
     }
 
-    for (const { name, value, type } of locals) {
-      const row = document.createElement('div');
-      row.className = 'variable-row';
-      row.dataset.testid = 'variable-row';
-      row.dataset.varName = name;
+    // Check if any variable has scope information
+    const hasScopes = locals.some(v => v.scope);
 
-      const nameEl = document.createElement('span');
-      nameEl.className = 'var-name';
-      nameEl.textContent = name;
-      row.appendChild(nameEl);
+    if (!hasScopes) {
+      // No scope info — flat list (backwards compat)
+      for (const v of locals) {
+        container.appendChild(createVarRow(v));
+      }
+      return;
+    }
 
-      const sep = document.createElement('span');
-      sep.className = 'var-sep';
-      sep.textContent = ': ';
-      row.appendChild(sep);
+    // Group by scope, preserving order within each group
+    const groups = { local: [], closure: [], global: [] };
+    for (const v of locals) {
+      const scope = v.scope || 'local';
+      if (groups[scope]) {
+        groups[scope].push(v);
+      } else {
+        groups.local.push(v);
+      }
+    }
 
-      const valueEl = document.createElement('span');
-      valueEl.className = `var-value ${typeClass(type)}`;
-      valueEl.textContent = value;
-      valueEl.title = type;
-      row.appendChild(valueEl);
+    const scopeLabels = { local: 'Local', closure: 'Closure', global: 'Global' };
 
-      container.appendChild(row);
+    for (const [scope, vars] of Object.entries(groups)) {
+      if (vars.length === 0) continue;
+
+      const header = document.createElement('div');
+      header.className = 'variables-scope-header';
+      header.dataset.testid = 'scope-header';
+      header.textContent = scopeLabels[scope] || scope;
+      container.appendChild(header);
+
+      for (const v of vars) {
+        container.appendChild(createVarRow(v));
+      }
     }
   }
 

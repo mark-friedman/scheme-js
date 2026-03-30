@@ -307,12 +307,14 @@ export class AppFrame extends Executable {
      * @param {Array<Executable>} argExprs - Remaining argument expressions.
      * @param {Array<*>} argValues - Already-evaluated argument values.
      * @param {Environment} env - The captured environment.
+     * @param {Object|null} [callSiteSource] - Source location of the application expression.
      */
-    constructor(argExprs, argValues, env) {
+    constructor(argExprs, argValues, env, callSiteSource = null) {
         super();
         this.argExprs = argExprs;
         this.argValues = argValues;
         this.env = env;
+        this.callSiteSource = callSiteSource;
     }
 
     step(registers, interpreter) {
@@ -326,7 +328,8 @@ export class AppFrame extends Executable {
             registers[FSTACK].push(new AppFrame(
                 remainingArgExprs,
                 newArgValues,
-                this.env
+                this.env,
+                this.callSiteSource
             ));
 
             registers[CTL] = nextArgExpr;
@@ -378,7 +381,8 @@ export class AppFrame extends Executable {
                         name: func.name || 'anonymous',
                         originalName: func.originalName || func.name || 'anonymous',
                         env: newEnv,
-                        source: func.source
+                        source: func.source,
+                        callSiteSource: this.callSiteSource
                     });
                     registers[FSTACK].push(new DebugExitFrame());
                 }
@@ -397,7 +401,8 @@ export class AppFrame extends Executable {
                         name: func.name || 'anonymous',
                         originalName: func.originalName || func.name || 'anonymous',
                         env: newEnv,
-                        source: func.source
+                        source: func.source,
+                        callSiteSource: this.callSiteSource
                     });
                     registers[FSTACK].push(new DebugExitFrame());
                 }
@@ -417,10 +422,17 @@ export class AppFrame extends Executable {
             if (interpreter.debugRuntime && interpreter.debugRuntime.enabled && !isSchemePrimitive(func)) {
                 const pc = interpreter.debugRuntime.pauseController;
                 if (pc && pc.getStepMode() === 'into') {
-                    // Trigger a boundary pause
-                    pc.pause('boundary', { funcName: func.name || 'anonymous' });
-                    // Push a frame to do the actual JS call when resumed
-                    registers[FSTACK].push(new BoundaryCallFrame(func, args));
+                    // Save step state before boundary call so it can be restored after.
+                    // The JS function is opaque — we can't step into it from Scheme's
+                    // perspective, so just execute it and continue stepping afterward.
+                    const savedStepMode = pc.getStepMode();
+                    const savedState = pc.getState();
+                    const savedDepth = pc.getTargetDepth();
+                    registers[FSTACK].push(new BoundaryCallFrame(func, args, {
+                        stepMode: savedStepMode,
+                        state: savedState,
+                        targetDepth: savedDepth
+                    }));
                     registers[ANS] = undefined;
                     return false;
                 }
@@ -531,17 +543,30 @@ export class BoundaryCallFrame extends Executable {
     /**
      * @param {Function} func - The native JS function to call.
      * @param {Array<*>} args - Evaluated arguments.
+     * @param {Object|null} [savedStepState] - Step state to restore after call.
      */
-    constructor(func, args) {
+    constructor(func, args, savedStepState = null) {
         super();
         this.func = func;
         this.args = args;
+        this.savedStepState = savedStepState;
         // Make sure it looks like a frame with a name for the call stack
         this.name = `[JS Boundary: ${func.name || 'anonymous'}]`;
     }
 
     step(registers, interpreter) {
-        return applyJsFunction(this.func, this.args, registers, interpreter);
+        const result = applyJsFunction(this.func, this.args, registers, interpreter);
+        // Restore the stepping state that was active before the boundary call,
+        // so the debugger continues stepping through subsequent expressions.
+        if (this.savedStepState && interpreter.debugRuntime) {
+            const pc = interpreter.debugRuntime.pauseController;
+            if (pc) {
+                pc.state = this.savedStepState.state;
+                pc.stepMode = this.savedStepState.stepMode;
+                pc.targetDepth = this.savedStepState.targetDepth;
+            }
+        }
+        return result;
     }
 }
 

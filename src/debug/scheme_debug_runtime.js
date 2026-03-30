@@ -94,6 +94,16 @@ export class SchemeDebugRuntime {
          * @private
          */
         this._currentPauseSource = null;
+
+        /**
+         * Source location where a step command was initiated. Used to suppress
+         * re-hitting the same breakpoint when the next expression shares the
+         * same line (e.g. stepping into a `let` macro expansion at the same line).
+         * Cleared once we pause at a different location.
+         * @type {Object|null}
+         * @private
+         */
+        this._stepOriginSource = null;
     }
 
     /**
@@ -212,6 +222,7 @@ export class SchemeDebugRuntime {
     resume() {
         this._currentPauseEnv = null;
         this._currentPauseSource = null;
+        this._stepOriginSource = null;
         this.pauseController.resume();
         if (this.onResume) {
             this.onResume('resume');
@@ -222,6 +233,7 @@ export class SchemeDebugRuntime {
      * Step into: pause at next expression.
      */
     stepInto() {
+        this._stepOriginSource = this._currentPauseSource;
         this.pauseController.stepInto();
         if (this.onResume) {
             this.onResume('stepInto');
@@ -232,6 +244,7 @@ export class SchemeDebugRuntime {
      * Step over: pause at next expression at same or shallower depth.
      */
     stepOver() {
+        this._stepOriginSource = this._currentPauseSource;
         this.pauseController.stepOver(this.stackTracer.getDepth());
         if (this.onResume) {
             this.onResume('stepOver');
@@ -242,6 +255,7 @@ export class SchemeDebugRuntime {
      * Step out: pause after returning from current function.
      */
     stepOut() {
+        this._stepOriginSource = this._currentPauseSource;
         this.pauseController.stepOut(this.stackTracer.getDepth());
         if (this.onResume) {
             this.onResume('stepOut');
@@ -264,15 +278,29 @@ export class SchemeDebugRuntime {
         if (!this.enabled) return false;
         if (!source) return false;
 
-        // Check for breakpoint hit
+        const isStepping = this.pauseController.getStepMode() !== null;
+
+        // Check for breakpoint hit (but skip if stepping from the same location)
         if (this.breakpointManager.hasBreakpoint(source)) {
-            return true;
+            if (isStepping && this._stepOriginSource &&
+                this._stepOriginSource.filename === source.filename &&
+                this._stepOriginSource.line === source.line) {
+                // Skip — we're stepping away from a breakpoint and haven't left
+                // the same line yet. Let stepping logic decide instead.
+            } else {
+                this._stepOriginSource = null; // reached a new breakpoint location
+                return true;
+            }
         }
 
         // Check for stepping pause
-        const depth = this.stackTracer.getDepth();
-        if (this.pauseController.shouldStepPause(depth)) {
-            return true;
+        if (isStepping) {
+            const depth = this.stackTracer.getDepth();
+            const stepResult = this.pauseController.shouldStepPause(depth);
+            if (stepResult) {
+                this._stepOriginSource = null; // step completed
+                return true;
+            }
         }
 
         return false;
@@ -323,9 +351,10 @@ export class SchemeDebugRuntime {
      * @param {Object} source - Source location
      * @param {Object} env - Current environment
      * @param {string} [reason='breakpoint'] - Reason for pause
+     * @param {*} [lastResult] - The result of the previous expression (for step pauses)
      * @returns {Promise<string>} The action to take: 'resume', 'stepInto', 'stepOver', 'stepOut', 'abort'
      */
-    async handlePause(source, env, reason = 'breakpoint') {
+    async handlePause(source, env, reason = 'breakpoint', lastResult = undefined) {
         // Store pause context for getStack()/getLocals() top-level frame
         this._currentPauseEnv = env;
         this._currentPauseSource = source;
@@ -362,7 +391,8 @@ export class SchemeDebugRuntime {
             stack: this.stackTracer.getStack(),
             env,
             level,
-            data: this.pauseController.getPauseData()
+            data: this.pauseController.getPauseData(),
+            lastResult
         };
 
         let action;

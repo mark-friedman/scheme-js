@@ -31,7 +31,8 @@ export class StackTracer {
    * @param {Object} frameInfo - Frame information
    * @param {string} frameInfo.name - Internal (possibly alpha-renamed) function name
    * @param {string} [frameInfo.originalName] - Original user-facing name
-   * @param {Object|null} frameInfo.source - Source location
+   * @param {Object|null} frameInfo.source - Source location (function definition)
+   * @param {Object|null} [frameInfo.callSiteSource] - Source location of the call expression
    * @param {Object} frameInfo.env - Environment
    */
   enterFrame(frameInfo) {
@@ -39,6 +40,7 @@ export class StackTracer {
       name: frameInfo.originalName || frameInfo.name,
       internalName: frameInfo.name,
       source: frameInfo.source,
+      callSiteSource: frameInfo.callSiteSource || null,
       env: frameInfo.env,
       tcoCount: 0
     });
@@ -70,6 +72,7 @@ export class StackTracer {
         name: frameInfo.originalName || frameInfo.name,
         internalName: frameInfo.name,
         source: frameInfo.source,
+        callSiteSource: frameInfo.callSiteSource || null,
         env: frameInfo.env,
         tcoCount
       };

@@ -425,18 +425,45 @@ export class DevToolsDebugIntegration {
         const mapped = frames.map(f => ({
           name: f.name,
           source: f.source || null,
+          callSiteSource: f.callSiteSource || null,
           tcoCount: f.tcoCount || 0
         }));
 
-        // If paused at top-level (no function frames), add a synthetic frame
-        // so the stack is never empty during a pause.
-        if (mapped.length === 0 && runtime?.isPaused() && runtime._currentPauseEnv) {
-          mapped.push({
-            name: '<top-level>',
-            source: runtime._currentPauseSource || null,
-            tcoCount: 0,
-            _synthetic: true
-          });
+        // Apply pause-location override for both cooperative pauses (isPaused)
+        // and sync-path pauses (_inSyncPath — V8 paused at debugger; in a probe).
+        const isSyncPaused = globalThis.__schemeProbeRuntime?._inSyncPath;
+        if (runtime?.isPaused() || isSyncPaused) {
+          // Override top frame's source with the actual pause location.
+          // f.source is the function definition location (e.g., line of `define`
+          // or `lambda`), while _currentPauseSource is where execution is NOW
+          // (e.g., the `let` body or a call inside the function).
+          if (mapped.length > 0 && runtime._currentPauseSource) {
+            mapped[mapped.length - 1].source = runtime._currentPauseSource;
+          }
+
+          if (mapped.length === 0 && runtime._currentPauseEnv) {
+            // Paused at top-level (no function frames): add a synthetic frame
+            // so the stack is never empty during a pause.
+            mapped.push({
+              name: '<top-level>',
+              source: runtime._currentPauseSource || null,
+              tcoCount: 0,
+              _synthetic: true
+            });
+          } else if (mapped.length > 0) {
+            // Add a synthetic bottom frame representing the call site of the
+            // bottom function. This shows where the function was called from
+            // (e.g., top-level code), giving a more complete call stack.
+            const bottomFrame = mapped[0];
+            if (bottomFrame.callSiteSource) {
+              mapped.unshift({
+                name: '<top-level>',
+                source: bottomFrame.callSiteSource,
+                tcoCount: 0,
+                _synthetic: true
+              });
+            }
+          }
         }
 
         return mapped;
@@ -444,56 +471,103 @@ export class DevToolsDebugIntegration {
 
       /**
        * Gets the local variable bindings for a specific stack frame.
+       * Walks the scope chain to include local, closure, and global variables.
        * Supports the synthetic top-level frame created by getStack().
        * @param {number} frameIndex - Index into the stack (0 = bottom, length-1 = top)
-       * @returns {Array<{name: string, value: string, type: string, subtype: string|null}>}
+       * @returns {Array<{name: string, value: string, type: string, subtype: string|null, scope: string}>}
        */
       getLocals(frameIndex) {
         const runtime = interpreter.debugRuntime;
         const frames = runtime?.stackTracer.getStack() || [];
         const inspector = runtime?.stateInspector;
-        if (!inspector) return [];
+        if (!inspector) { return []; }
 
         let env;
 
         if (frames.length === 0 && runtime?.isPaused() && runtime._currentPauseEnv) {
-          // Synthetic top-level frame: use the pause environment
+          // Synthetic top-level frame (no function frames): use the pause environment
           if (frameIndex === 0) {
             env = runtime._currentPauseEnv;
           } else {
             return [];
           }
         } else {
-          if (frameIndex < 0 || frameIndex >= frames.length) return [];
-          env = frames[frameIndex].env;
-        }
+          // Determine if getStack() would have inserted a synthetic bottom frame.
+          // If so, the panel's frameIndex is offset by 1 from the StackTracer index.
+          const hasSyntheticBottom = runtime?.isPaused() &&
+            frames.length > 0 && frames[0].callSiteSource;
+          const realIndex = hasSyntheticBottom ? frameIndex - 1 : frameIndex;
 
-        if (!env) return [];
-
-        // When in the global env, filter out system-defined bindings (primitives +
-        // standard library procs loaded during bootstrap). html_adapter.js snapshots
-        // env._systemBindingNames before running user scripts; any binding whose
-        // internal key is in that set was defined by the system, not the user.
-        const systemNames = (env.parent === null) ? env._systemBindingNames : null;
-
-        const locals = inspector.getLocals(env);
-        const result = [];
-        for (const [name, value] of locals) {
-          // Skip system-defined names in the global scope
-          if (systemNames) {
-            const internalName = env.nameMap?.get(name);
-            if (systemNames.has(name) || (internalName && systemNames.has(internalName))) {
-              continue;
+          if (hasSyntheticBottom && frameIndex === 0) {
+            // Synthetic bottom frame: use the bottom function's closure env
+            // to show the top-level scope where the function was called.
+            const bottomFunc = frames[0];
+            env = bottomFunc.env?.parent || bottomFunc.env;
+          } else {
+            if (realIndex < 0 || realIndex >= frames.length) return [];
+            // For the top frame (currently executing), use _currentPauseEnv
+            // which reflects the actual env at pause time (includes let bindings
+            // and other scope extensions since function entry).
+            const isTopFrame = (realIndex === frames.length - 1);
+            if (isTopFrame && runtime?.isPaused() && runtime._currentPauseEnv) {
+              env = runtime._currentPauseEnv;
+            } else {
+              env = frames[realIndex].env;
             }
           }
-          const serialized = inspector.serializeValue(value);
-          result.push({
-            name,
-            value: _prettyPrint(value),
-            type: serialized.type,
-            subtype: serialized.subtype || null
-          });
         }
+
+        if (!env) { return []; }
+
+        // Walk the scope chain: local → closure → global
+        const result = [];
+        const seen = new Set(); // Track names to handle shadowing
+        let currentEnv = env;
+        let scopeIndex = 0;
+
+        while (currentEnv) {
+          const isGlobal = currentEnv.parent === null;
+          const bindingCount = currentEnv.bindings?.size || 0;
+          const sysNames = isGlobal ? (currentEnv._systemBindingNames?.size || 0) : 0;
+          // Label as 'global' when at the global env, regardless of position
+          // in the walk. This ensures top-level variables are correctly labeled
+          // even when they're the first scope visited (e.g., synthetic bottom
+          // frame or functions with no local bindings above global).
+          const scope = isGlobal ? 'global'
+            : scopeIndex === 0 ? 'local'
+            : 'closure';
+
+          // For the global env, filter out system-defined bindings
+          const systemNames = isGlobal ? currentEnv._systemBindingNames : null;
+
+          const locals = inspector.getLocals(currentEnv);
+          for (const [name, value] of locals) {
+            // Skip shadowed names (already seen in a more local scope)
+            if (seen.has(name)) continue;
+            seen.add(name);
+
+            // Skip system-defined names in the global scope
+            if (systemNames) {
+              const internalName = currentEnv.nameMap?.get(name);
+              if (systemNames.has(name) || (internalName && systemNames.has(internalName))) {
+                continue;
+              }
+            }
+
+            const serialized = inspector.serializeValue(value);
+            result.push({
+              name,
+              value: _prettyPrint(value),
+              type: serialized.type,
+              subtype: serialized.subtype || null,
+              scope
+            });
+          }
+
+          currentEnv = currentEnv.parent;
+          scopeIndex++;
+        }
+
         return result;
       },
 
@@ -503,9 +577,17 @@ export class DevToolsDebugIntegration {
        * @returns {{filename: string, line: number, column: number}|null}
        */
       getSource(frameIndex) {
-        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
-        if (frameIndex < 0 || frameIndex >= frames.length) return null;
-        return frames[frameIndex].source || null;
+        const runtime = interpreter.debugRuntime;
+        const frames = runtime?.stackTracer.getStack() || [];
+        // Account for synthetic bottom frame offset (same logic as getLocals)
+        const hasSyntheticBottom = runtime?.isPaused() &&
+          frames.length > 0 && frames[0].callSiteSource;
+        if (hasSyntheticBottom && frameIndex === 0) {
+          return frames[0].callSiteSource;
+        }
+        const realIndex = hasSyntheticBottom ? frameIndex - 1 : frameIndex;
+        if (realIndex < 0 || realIndex >= frames.length) return null;
+        return frames[realIndex].source || null;
       },
 
       /**
@@ -555,12 +637,27 @@ export class DevToolsDebugIntegration {
        * @returns {string} Result as a string
        */
       eval(code, frameIndex) {
-        const frames = interpreter.debugRuntime?.stackTracer.getStack() || [];
-        const idx = frameIndex ?? (frames.length - 1);
+        const runtime = interpreter.debugRuntime;
+        const frames = runtime?.stackTracer.getStack() || [];
+        // Account for synthetic bottom frame offset
+        const hasSyntheticBottom = runtime?.isPaused() &&
+          frames.length > 0 && frames[0].callSiteSource;
+        const adjustedIdx = frameIndex != null
+          ? (hasSyntheticBottom ? frameIndex - 1 : frameIndex)
+          : (frames.length - 1);
         // Use the specified frame's env, or fall back to global env for top-level pauses
         let env;
-        if (idx >= 0 && idx < frames.length) {
-          env = frames[idx].env;
+        if (hasSyntheticBottom && frameIndex === 0) {
+          // Synthetic bottom frame: use bottom function's parent env (top-level scope)
+          env = frames[0].env?.parent || interpreter.globalEnv;
+        } else if (adjustedIdx >= 0 && adjustedIdx < frames.length) {
+          // For top frame, use current pause env for most accurate scope
+          const isTopFrame = (adjustedIdx === frames.length - 1);
+          if (isTopFrame && runtime?.isPaused() && runtime._currentPauseEnv) {
+            env = runtime._currentPauseEnv;
+          } else {
+            env = frames[adjustedIdx].env;
+          }
         } else {
           env = interpreter.globalEnv;
         }
@@ -632,9 +729,25 @@ export class DevToolsDebugIntegration {
         if (globalThis.__schemeProbeRuntime) {
           const spans = sourceRegistry.getExpressions(url);
           const exprIds = new Set();
-          for (const span of spans) {
-            if (span.line !== line) continue;
-            if (column === null || span.column === column) {
+          if (column === null) {
+            // Line-level breakpoint: only register the outermost expression
+            // (smallest column) to prevent double-fire from nested
+            // sub-expressions on the same line.
+            let outermost = null;
+            for (const span of spans) {
+              if (span.line !== line) continue;
+              if (!outermost || span.column < outermost.column) {
+                outermost = span;
+              }
+            }
+            if (outermost) {
+              exprIds.add(outermost.exprId);
+              globalThis.__schemeProbeRuntime.setBreakpoint(outermost.exprId);
+            }
+          } else {
+            // Column-level (expression) breakpoint: exact match only
+            for (const span of spans) {
+              if (span.line !== line || span.column !== column) continue;
               exprIds.add(span.exprId);
               globalThis.__schemeProbeRuntime.setBreakpoint(span.exprId);
             }
@@ -796,16 +909,49 @@ export class DevToolsDebugIntegration {
        * @param {{reason: string, source: Object|null, stack: Array}} info
        */
       dr.onPause = (info) => {
+        const mappedStack = (info.stack || []).map(f => ({
+          name: f.name,
+          source: f.source || null,
+          callSiteSource: f.callSiteSource || null,
+          tcoCount: f.tcoCount || 0
+        }));
+
+        // Override top frame's source with the actual pause location.
+        // The stack frame's source is the function definition, but info.source
+        // is where execution is paused NOW (set by _currentPauseSource).
+        if (mappedStack.length > 0 && info.source) {
+          mappedStack[mappedStack.length - 1].source = info.source;
+        }
+
+        // Add synthetic bottom frame if the bottom function has a call site
+        if (mappedStack.length > 0 && mappedStack[0].callSiteSource) {
+          mappedStack.unshift({
+            name: '<top-level>',
+            source: mappedStack[0].callSiteSource,
+            tcoCount: 0,
+            _synthetic: true
+          });
+        } else if (mappedStack.length === 0 && info.source) {
+          // Top-level pause: add synthetic frame
+          mappedStack.push({
+            name: '<top-level>',
+            source: info.source,
+            tcoCount: 0,
+            _synthetic: true
+          });
+        }
+
         const detail = {
           reason: info.reason || 'breakpoint',
           source: info.source || null,
-          stack: (info.stack || []).map(f => ({
-            name: f.name,
-            source: f.source || null,
-            tcoCount: f.tcoCount || 0
-          }))
+          stack: mappedStack
         };
         
+        // Include the previous expression's result for step pauses
+        if (info.reason === 'step' && info.lastResult !== undefined) {
+          detail.lastResult = _prettyPrint(info.lastResult);
+        }
+
         // Export boundary target to globalThis for CDP to pick up
         if (info.reason === 'boundary' && info.data) {
            detail.funcName = info.data.funcName;
