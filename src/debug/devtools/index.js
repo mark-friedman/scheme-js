@@ -7,6 +7,7 @@ export { encodeVLQ, generateProbeSourceMap } from './sourcemap_generator.js';
 export { generateProbeScript, schemeUrlToProbeUrl } from './probe_generator.js';
 export { SchemeSourceRegistry } from './source_registry.js';
 export { DevToolsDebugIntegration } from './devtools_debug.js';
+export { installSchemeDebugAPI, mapStackFrames } from './scheme_debug_api.js';
 export { createEnvProxy, formatForDevTools, SchemeDisplayValue } from './env_proxy.js';
 export { installCustomFormatters, removeCustomFormatters } from './custom_formatters.js';
 import './probe_runtime.js';

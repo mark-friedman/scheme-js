@@ -9,6 +9,7 @@
 
 import * as schemeBridge from './scheme-bridge.js';
 import * as cdpBridge from './cdp-bridge.js';
+import { PAUSE_CONTEXT } from './constants.js';
 
 // =========================================================================
 // Pause Context Tracking
@@ -18,8 +19,8 @@ import * as cdpBridge from './cdp-bridge.js';
  * Current pause context — which bridge is handling the active pause.
  * 'scheme' — cooperative async pause (runDebug path)
  * 'js'     — CDP-level JS breakpoint or exception pause
- * 'scheme-sync' — CDP-level probe pause from a synchronous DOM callback
- * @type {'scheme'|'js'|'scheme-sync'|null}
+ * PAUSE_CONTEXT.SCHEME_SYNC — CDP-level probe pause from a synchronous DOM callback
+ * @type {string|null} One of PAUSE_CONTEXT values, or null when not paused
  */
 let currentPauseContext = null;
 
@@ -192,9 +193,9 @@ export function mergeCallStacks(schemeFrames, jsFrames) {
  * @returns {Promise<void>}
  */
 export async function resume() {
-  if (currentPauseContext === 'js') {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await cdpBridge.resumeCDP();
-  } else if (currentPauseContext === 'scheme-sync') {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     // Sync-path: V8 is paused at a debugger; statement. Resume via CDP
     // to unpause V8. No Scheme bridge call needed — the probe runtime
     // is on the V8 call stack, so resuming V8 continues execution.
@@ -209,9 +210,9 @@ export async function resume() {
  * @returns {Promise<void>}
  */
 export async function stepInto() {
-  if (currentPauseContext === 'js') {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await cdpBridge.stepIntoCDP();
-  } else if (currentPauseContext === 'scheme-sync') {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     // Sync-path: V8 is paused. Use CDP evaluateOnCallFrame to set step
     // flag on the probe runtime, then resume V8. Background.js handles
     // this via the 'scheme-step-into' message.
@@ -226,9 +227,9 @@ export async function stepInto() {
  * @returns {Promise<void>}
  */
 export async function stepOver() {
-  if (currentPauseContext === 'js') {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await cdpBridge.stepOverCDP();
-  } else if (currentPauseContext === 'scheme-sync') {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     await cdpBridge.schemeStepOver();
   } else {
     await schemeBridge.stepOver();
@@ -240,9 +241,9 @@ export async function stepOver() {
  * @returns {Promise<void>}
  */
 export async function stepOut() {
-  if (currentPauseContext === 'js') {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await cdpBridge.stepOutCDP();
-  } else if (currentPauseContext === 'scheme-sync') {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     await cdpBridge.schemeStepOut();
   } else {
     await schemeBridge.stepOut();
@@ -316,7 +317,7 @@ export async function removeBreakpoint(id, url) {
  * @returns {Promise<Array>} Local bindings array
  */
 export async function getLocalsForContext(frameIndex) {
-  if (currentPauseContext === 'scheme-sync') {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     try {
       const json = await cdpBridge.evalWhilePaused(
         `JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`
@@ -337,7 +338,7 @@ export async function getLocalsForContext(frameIndex) {
  * @returns {Promise<string|null>} Source content
  */
 export async function getSourceContentForContext(url) {
-  if (currentPauseContext === 'scheme-sync') {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     try {
       const json = await cdpBridge.evalWhilePaused(
         `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
@@ -358,7 +359,7 @@ export async function getSourceContentForContext(url) {
  * @returns {Promise<Array>} Expression spans
  */
 export async function getExpressionsForContext(url) {
-  if (currentPauseContext === 'scheme-sync') {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     try {
       const json = await cdpBridge.evalWhilePaused(
         `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
@@ -390,7 +391,7 @@ export async function evalInFrame(frame, schemeFrameIndex, expression) {
       return cdpBridge.evalInJSFrame(frame._cdpCallFrameId, expression);
     }
     return { success: false, result: null, error: 'No CDP call frame ID available' };
-  } else if (currentPauseContext === 'scheme-sync') {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     // During sync-path pause, route eval through CDP evaluateOnCallFrame
     const escapedExpr = JSON.stringify(expression);
     const evalExpr = `JSON.stringify(__schemeDebug.eval(${escapedExpr}, ${schemeFrameIndex}))`;
@@ -445,7 +446,7 @@ export function isCDPAttached() {
 export function init() {
   // Listen for CDP pause events
   cdpBridge.onCDPPaused(async (event) => {
-    currentPauseContext = 'js';
+    currentPauseContext = PAUSE_CONTEXT.JS;
     cdpCallFrames = event.callFrames || [];
 
     // Try to get Scheme stack as well (for mixed debugging)
@@ -461,7 +462,7 @@ export function init() {
 
     for (const fn of unifiedListeners.paused) {
       fn({
-        context: 'js',
+        context: PAUSE_CONTEXT.JS,
         frames: unified,
         reason: event.reason || 'breakpoint',
         source: topFrame?.source || null,
@@ -471,7 +472,7 @@ export function init() {
 
   // Listen for CDP resume events
   cdpBridge.onCDPResumed(() => {
-    if (currentPauseContext === 'js' || currentPauseContext === 'scheme-sync') {
+    if (currentPauseContext === PAUSE_CONTEXT.JS || currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
       currentPauseContext = null;
       syncPauseTabId = null;
       cdpCallFrames = [];
@@ -503,7 +504,7 @@ export async function handleSchemePause(detail) {
     return;
   }
 
-  currentPauseContext = 'scheme';
+  currentPauseContext = PAUSE_CONTEXT.SCHEME;
   schemeCallFrames = detail.stack || [];
   cdpCallFrames = [];  // CDP frames not relevant for Scheme pauses
 
@@ -511,7 +512,7 @@ export async function handleSchemePause(detail) {
 
   for (const fn of unifiedListeners.paused) {
     fn({
-      context: 'scheme',
+      context: PAUSE_CONTEXT.SCHEME,
       frames: unified,
       reason: detail.reason || 'breakpoint',
       source: detail.source || null,
@@ -536,7 +537,7 @@ export async function handleSchemePause(detail) {
  * @param {string} [message.reason] - Pause reason
  */
 export function handleSyncSchemePause(message) {
-  currentPauseContext = 'scheme-sync';
+  currentPauseContext = PAUSE_CONTEXT.SCHEME_SYNC;
   syncPauseTabId = message.tabId;
   // Mark CDP as attached — background.js already has the debugger attached
   // when it sends scheme-sync-paused (it intercepted a Debugger.paused event).
@@ -559,7 +560,7 @@ export function handleSyncSchemePause(message) {
 
   for (const fn of unifiedListeners.paused) {
     fn({
-      context: 'scheme-sync',
+      context: PAUSE_CONTEXT.SCHEME_SYNC,
       frames: unified,
       reason: message.reason || 'breakpoint',
       source: schemeTopSource,
@@ -572,7 +573,7 @@ export function handleSyncSchemePause(message) {
  * Called by main.js when a 'scheme-debug-resumed' message arrives.
  */
 export function handleSchemeResume() {
-  if (currentPauseContext === 'scheme') {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME) {
     currentPauseContext = null;
     schemeCallFrames = [];
     cdpCallFrames = [];

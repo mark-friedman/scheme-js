@@ -5468,3 +5468,70 @@ Additional standalone window tests including sync pause routing and frame naviga
 - Updated `docs/architecture.md` and `docs/debugger_requirements.md`
 - Deleted `docs/devtools_usage_guide.md` (superseded by the manual)
 - Updated `extension/MEMORY.md` with sync-path details and `_panelConnected` flag behavior
+
+---
+
+# Debugger Code Quality Refactoring (03-31-26)
+
+## Overview
+
+Comprehensive refactoring of the Chrome debugger extension code (`extension/` and `src/debug/devtools/`) for cleanliness, modularity, and reduced duplication. All 2749 unit tests and 394 extension E2E tests pass after each step.
+
+## Changes
+
+### 1. Centralized Message/Context Constants (`constants.js`)
+
+Created `extension/panel-src/protocol/constants.js` exporting frozen `MSG` and `PAUSE_CONTEXT` enums to replace scattered string literals across the panel codebase. Prevents typo-induced message routing bugs and makes all event/context names grep-able.
+
+- `cdp-bridge.js`, `unified-debugger.js`, `main.js` — replaced all string literals with `MSG.*` / `PAUSE_CONTEXT.*`
+
+### 2. scheme-bridge.js: `evalAndParse()` Helper
+
+Extracted a shared `evalAndParse(expression, defaultValue, caller)` helper that encapsulates the repeated try/catch/JSON.parse pattern. All 10 public functions that previously had identical 7-line try/catch blocks are now one-liners.
+
+### 3. main.js: Extracted Helpers
+
+Three helper functions extracted to remove copy-pasted logic:
+- `formatJSLocals(scopeChain)` — formats CDP scope chain for the variables panel
+- `computeSchemeFrameIndex(unifiedFrames, frameIndex)` — adjusts frame index to skip JS frames
+- `persistBreakpointChange()` — `bpState.saveToPage(); refreshBreakpointsPanel()` combined
+
+### 4. devtools_debug.js: Extracted `scheme_debug_api.js`
+
+`DevToolsDebugIntegration.installSchemeDebugAPI()` was a 577-line method. Extracted to `src/debug/devtools/scheme_debug_api.js` with these exports:
+
+- `installSchemeDebugAPI(interpreter, sourceRegistry, probeBreakpointMap, utils)` — builds and installs `globalThis.__schemeDebug`
+- `mapStackFrames(rawFrames, pauseSource, pauseEnv)` — shared stack mapping + synthetic frame logic, eliminates DRY violation between `getStack()` and `dr.onPause`
+- `walkScopeChain(env, inspector, prettyPrint)` — scope chain walking for `getLocals()`
+- `wireUpPauseEvents(interpreter, prettyPrint)` — wires `onPause`/`onResume` callbacks for content script relay
+
+`devtools_debug.js`: 1050 → 481 lines. The class now delegates to `installSchemeDebugAPI()` in one call.
+
+### 5. background.js: Decomposed Message Handler
+
+The monolithic 213-line `chrome.runtime.onMessage` if-else chain was broken into extracted handler functions:
+
+- `handleCDPCommand(tabId, method, params, sendResponse, transformResult)` — generic CDP command with error handling
+- `handleSchemeStepCommand(message, sendResponse)` — Scheme step-into/over/out via eval + resume
+- `handleEvalInJSFrame(message, sendResponse)` — `Debugger.evaluateOnCallFrame`
+- `handleSetBoundaryBreakpoint(message, sendResponse)` — boundary stepping setup
+- `CDP_STEP_COMMANDS` lookup table moved to module level
+
+Main listener: 213 → ~60 lines.
+
+### 6. cdp-bridge.js: Attachment Timeout
+
+Added a 10-second timeout to the `setInterval` polling loop in `attachCDP()` that waits for an in-progress attachment. Previously the loop would spin indefinitely if `attaching` never cleared.
+
+## Files Modified
+
+- `extension/panel-src/protocol/constants.js` (NEW)
+- `src/debug/devtools/scheme_debug_api.js` (NEW)
+- `extension/panel-src/protocol/cdp-bridge.js`
+- `extension/panel-src/protocol/unified-debugger.js`
+- `extension/panel-src/protocol/scheme-bridge.js`
+- `extension/panel-src/main.js`
+- `extension/background.js`
+- `src/debug/devtools/devtools_debug.js`
+- `src/debug/devtools/index.js`
+- `docs/architecture.md`

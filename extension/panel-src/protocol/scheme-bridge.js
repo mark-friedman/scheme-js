@@ -89,6 +89,25 @@ export function evalInPage(expression) {
 }
 
 /**
+ * Evaluates a JS expression in the page and JSON-parses the result.
+ * Returns the given default value on any error (eval failure, parse failure, etc.).
+ *
+ * @param {string} expression - JS expression that should return a JSON string
+ * @param {*} defaultValue - Value to return on failure
+ * @param {string} caller - Calling function name (for log messages)
+ * @returns {Promise<*>} Parsed result, or defaultValue on error
+ */
+async function evalAndParse(expression, defaultValue, caller) {
+  try {
+    const json = await evalInPage(expression);
+    return JSON.parse(json);
+  } catch (e) {
+    console.warn(`[scheme-bridge] ${caller} failed:`, e.message);
+    return defaultValue;
+  }
+}
+
+/**
  * Checks whether __schemeDebug is available in the page.
  * @returns {Promise<boolean>}
  */
@@ -108,13 +127,7 @@ export async function isSchemeDebugAvailable() {
  * @returns {Promise<Array<{url: string, content: string, lines: number, origin: string}>>}
  */
 export async function getSources() {
-  try {
-    const json = await evalInPage('JSON.stringify(__schemeDebug.getSources())');
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] getSources failed:', e.message);
-    return [];
-  }
+  return evalAndParse('JSON.stringify(__schemeDebug.getSources())', [], 'getSources');
 }
 
 /**
@@ -124,15 +137,10 @@ export async function getSources() {
  * @returns {Promise<string|null>} The source content, or null if unavailable
  */
 export async function getSourceContent(url) {
-  try {
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] getSourceContent failed:', e.message);
-    return null;
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`,
+    null, 'getSourceContent'
+  );
 }
 
 /**
@@ -140,13 +148,10 @@ export async function getSourceContent(url) {
  * @returns {Promise<{active: boolean, needsReload: boolean}>}
  */
 export async function activate() {
-  try {
-    const json = await evalInPage('JSON.stringify(__schemeDebug.activate())');
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] activate failed:', e.message);
-    return { active: false, needsReload: true };
-  }
+  return evalAndParse(
+    'JSON.stringify(__schemeDebug.activate())',
+    { active: false, needsReload: true }, 'activate'
+  );
 }
 
 /**
@@ -154,13 +159,10 @@ export async function activate() {
  * @returns {Promise<{state: string, reason: string|null, active: boolean}>}
  */
 export async function getStatus() {
-  try {
-    const json = await evalInPage('JSON.stringify(__schemeDebug.getStatus())');
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] getStatus failed:', e.message);
-    return { state: 'inactive', reason: null, active: false };
-  }
+  return evalAndParse(
+    'JSON.stringify(__schemeDebug.getStatus())',
+    { state: 'inactive', reason: null, active: false }, 'getStatus'
+  );
 }
 
 /**
@@ -168,13 +170,7 @@ export async function getStatus() {
  * @returns {Promise<Array<{name: string, source: Object|null, tcoCount: number}>>}
  */
 export async function getStack() {
-  try {
-    const json = await evalInPage('JSON.stringify(__schemeDebug.getStack())');
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] getStack failed:', e.message);
-    return [];
-  }
+  return evalAndParse('JSON.stringify(__schemeDebug.getStack())', [], 'getStack');
 }
 
 /**
@@ -183,13 +179,10 @@ export async function getStack() {
  * @returns {Promise<Array<{name: string, value: string, type: string, subtype: string|null}>>}
  */
 export async function getLocals(frameIndex) {
-  try {
-    const json = await evalInPage(`JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`);
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] getLocals failed:', e.message);
-    return [];
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`,
+    [], 'getLocals'
+  );
 }
 
 /**
@@ -281,15 +274,10 @@ export async function stepOut() {
  * @returns {Promise<Array<{exprId: number, line: number, column: number, endLine: number, endColumn: number}>>}
  */
 export async function getExpressions(url) {
-  try {
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] getExpressions failed:', e.message);
-    return [];
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`,
+    [], 'getExpressions'
+  );
 }
 
 /**
@@ -300,16 +288,11 @@ export async function getExpressions(url) {
  * @returns {Promise<string|null>} Breakpoint ID, or null on failure
  */
 export async function setBreakpoint(url, line, column = null) {
-  try {
-    const colArg = column !== null ? `, ${column}` : '';
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}${colArg}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] setBreakpoint failed:', e.message);
-    return null;
-  }
+  const colArg = column !== null ? `, ${column}` : '';
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}${colArg}))`,
+    null, 'setBreakpoint'
+  );
 }
 
 /**
@@ -318,15 +301,10 @@ export async function setBreakpoint(url, line, column = null) {
  * @returns {Promise<boolean>}
  */
 export async function removeBreakpoint(id) {
-  try {
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.removeBreakpoint(${JSON.stringify(id)}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] removeBreakpoint failed:', e.message);
-    return false;
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.removeBreakpoint(${JSON.stringify(id)}))`,
+    false, 'removeBreakpoint'
+  );
 }
 
 /**
@@ -334,11 +312,8 @@ export async function removeBreakpoint(id) {
  * @returns {Promise<Array<{id: string, filename: string, line: number, column: number|null}>>}
  */
 export async function getAllBreakpoints() {
-  try {
-    const json = await evalInPage('JSON.stringify(__schemeDebug.getAllBreakpoints())');
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn('[scheme-bridge] getAllBreakpoints failed:', e.message);
-    return [];
-  }
+  return evalAndParse(
+    'JSON.stringify(__schemeDebug.getAllBreakpoints())',
+    [], 'getAllBreakpoints'
+  );
 }

@@ -11,6 +11,7 @@
  */
 
 import { getTabId } from './scheme-bridge.js';
+import { MSG } from './constants.js';
 
 // =========================================================================
 // State
@@ -78,12 +79,18 @@ function sendToBackground(message) {
 export async function attachCDP() {
   if (attached) return true;
   if (attaching) {
-    // Wait for in-progress attachment
+    // Wait for in-progress attachment (with 10s timeout to avoid infinite polling)
     return new Promise((resolve) => {
+      let elapsed = 0;
       const check = setInterval(() => {
+        elapsed += 50;
         if (!attaching) {
           clearInterval(check);
           resolve(attached);
+        } else if (elapsed >= 10000) {
+          clearInterval(check);
+          console.warn('[cdp-bridge] attachCDP timed out waiting for in-progress attach');
+          resolve(false);
         }
       }, 50);
     });
@@ -92,7 +99,7 @@ export async function attachCDP() {
   attaching = true;
   try {
     const response = await sendToBackground({
-      type: 'attach-debugger',
+      type: MSG.ATTACH_DEBUGGER,
       tabId: getTabId(),
     });
     attached = response.success === true;
@@ -114,7 +121,7 @@ export async function detachCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'detach-debugger',
+      type: MSG.DETACH_DEBUGGER,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -143,6 +150,16 @@ export function markAttached() {
 }
 
 /**
+ * Notifies scriptParsed listeners that CDP just attached.
+ * Called after auto-attaching on the first JS breakpoint or boundary breakpoint.
+ */
+function notifyCDPAttached() {
+  for (const fn of listeners.scriptParsed) {
+    fn({ type: MSG.CDP_ATTACHED });
+  }
+}
+
+/**
  * Clears cached state on page navigation.
  * Should be called when the inspected page reloads so that stale
  * scriptIds from the previous page don't linger.
@@ -163,7 +180,7 @@ export async function resumeCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'resume-debugger',
+      type: MSG.RESUME_DEBUGGER,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -179,7 +196,7 @@ export async function stepIntoCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'cdp-step-into',
+      type: MSG.CDP_STEP_INTO,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -195,7 +212,7 @@ export async function stepOverCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'cdp-step-over',
+      type: MSG.CDP_STEP_OVER,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -211,7 +228,7 @@ export async function stepOutCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'cdp-step-out',
+      type: MSG.CDP_STEP_OUT,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -231,7 +248,7 @@ export async function evalWhilePaused(expression) {
   if (!attached) throw new Error('CDP not attached');
   try {
     const response = await sendToBackground({
-      type: 'eval-paused',
+      type: MSG.EVAL_PAUSED,
       tabId: getTabId(),
       expression,
     });
@@ -253,7 +270,7 @@ export async function schemeStepInto() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'scheme-step-into',
+      type: MSG.SCHEME_STEP_INTO,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -269,7 +286,7 @@ export async function schemeStepOver() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'scheme-step-over',
+      type: MSG.SCHEME_STEP_OVER,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -285,7 +302,7 @@ export async function schemeStepOut() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: 'scheme-step-out',
+      type: MSG.SCHEME_STEP_OUT,
       tabId: getTabId(),
     });
   } catch (e) {
@@ -303,7 +320,7 @@ export async function evalInJSFrame(callFrameId, expression) {
   if (!attached) return { success: false, result: null, error: 'CDP not attached' };
   try {
     const response = await sendToBackground({
-      type: 'eval-in-js-frame',
+      type: MSG.EVAL_IN_JS_FRAME,
       tabId: getTabId(),
       callFrameId,
       expression,
@@ -332,15 +349,12 @@ export async function setJSBreakpoint(url, lineNumber) {
   if (!attached) {
     const ok = await attachCDP();
     if (!ok) return null;
-    // Notify listeners that CDP just attached
-    for (const fn of listeners.scriptParsed) {
-      fn({ type: 'cdp-attached' });
-    }
+    notifyCDPAttached();
   }
 
   try {
     const response = await sendToBackground({
-      type: 'set-js-breakpoint',
+      type: MSG.SET_JS_BREAKPOINT,
       tabId: getTabId(),
       url,
       lineNumber,
@@ -365,7 +379,7 @@ export async function removeJSBreakpoint(breakpointId) {
   if (!attached) return false;
   try {
     const response = await sendToBackground({
-      type: 'remove-js-breakpoint',
+      type: MSG.REMOVE_JS_BREAKPOINT,
       tabId: getTabId(),
       breakpointId,
     });
@@ -390,14 +404,12 @@ export async function setBoundaryBreakpoint() {
   if (!attached) {
     const ok = await attachCDP();
     if (!ok) return null;
-    for (const fn of listeners.scriptParsed) {
-      fn({ type: 'cdp-attached' });
-    }
+    notifyCDPAttached();
   }
 
   try {
     const response = await sendToBackground({
-      type: 'set-boundary-breakpoint',
+      type: MSG.SET_BOUNDARY_BREAKPOINT,
       tabId: getTabId(),
     });
     if (response.success) {
@@ -424,7 +436,7 @@ export async function getJSSource(scriptId) {
   if (!attached) return null;
   try {
     const response = await sendToBackground({
-      type: 'get-js-source',
+      type: MSG.GET_JS_SOURCE,
       tabId: getTabId(),
       scriptId,
     });
@@ -482,7 +494,7 @@ export function onScriptParsed(callback) {
 
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === 'cdp-paused') {
+    if (message.type === MSG.CDP_PAUSED) {
       // If we're receiving CDP pause events, the debugger is attached
       attached = true;
       for (const fn of listeners.paused) {
@@ -491,11 +503,11 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
           reason: message.reason || 'other',
         });
       }
-    } else if (message.type === 'cdp-resumed') {
+    } else if (message.type === MSG.CDP_RESUMED) {
       for (const fn of listeners.resumed) {
         fn();
       }
-    } else if (message.type === 'cdp-script-parsed') {
+    } else if (message.type === MSG.CDP_SCRIPT_PARSED) {
       if (message.scriptId && message.url) {
         scriptUrlMap.set(message.scriptId, message.url);
       }

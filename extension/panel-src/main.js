@@ -43,6 +43,7 @@ import * as unifiedDebugger from './protocol/unified-debugger.js';
 import * as cdpBridge from './protocol/cdp-bridge.js';
 import * as bpState from './breakpoint-state.js';
 import { initSplitter } from './splitter.js';
+import { MSG, PAUSE_CONTEXT } from './protocol/constants.js';
 
 // =========================================================================
 // Tab ID from URL parameter (standalone window) or DevTools API
@@ -159,8 +160,7 @@ const breakpointsList = createBreakpointsList(breakpointsContainer, {
     if (bpState.has(url, line, column)) {
       await unifiedDebugger.removeBreakpoint(id, url);
       bpState.remove(url, line, column);
-      bpState.saveToPage();
-      refreshBreakpointsPanel();
+      persistBreakpointChange();
 
       // If the removed breakpoint was on the currently viewed source, update the editor
       if (url === currentSourceUrl) {
@@ -213,30 +213,13 @@ async function onSelectFrame(frameIndex, frame) {
 
   // Calculate scheme frame index (bottom up, skipping JS frames)
   const unifiedFrames = unifiedDebugger.getUnifiedFrames();
-  let jsFrameCountBelow = 0;
-  for (let i = frameIndex - 1; i >= 0; i--) {
-    if (unifiedFrames[i].language === 'js') {
-      jsFrameCountBelow++;
-    }
-  }
-  selectedSchemeFrameIndex = frameIndex - jsFrameCountBelow;
+  selectedSchemeFrameIndex = computeSchemeFrameIndex(unifiedFrames, frameIndex);
 
   // JS frames have their own variable inspection via CDP scope chain
   if (frame.language === 'js') {
-    // Display JS scope variables from the CDP scope chain
-    if (frame._cdpScopeChain && frame._cdpScopeChain.length > 0) {
-      const jsLocals = [];
-      for (const scope of frame._cdpScopeChain) {
-        if (scope.type === 'local' || scope.type === 'closure') {
-          jsLocals.push({
-            name: `[${scope.type}]`,
-            value: scope.name || 'scope',
-            type: 'other',
-            subtype: null,
-          });
-        }
-      }
-      variables.setLocals(jsLocals.length > 0 ? jsLocals : []);
+    const jsLocals = formatJSLocals(frame._cdpScopeChain);
+    if (jsLocals.length > 0) {
+      variables.setLocals(jsLocals);
     } else {
       variables.clear();
     }
@@ -307,16 +290,14 @@ async function onBreakpointToggle(line, isNowSet) {
     const id = await unifiedDebugger.setBreakpoint(currentSourceUrl, line);
     if (id) {
       bpState.set(currentSourceUrl, line, null, id);
-      bpState.saveToPage();
-      refreshBreakpointsPanel();
+      persistBreakpointChange();
     }
   } else {
     const id = bpState.getId(currentSourceUrl, line, null);
     if (id) {
       await unifiedDebugger.removeBreakpoint(id, currentSourceUrl);
       bpState.remove(currentSourceUrl, line, null);
-      bpState.saveToPage();
-      refreshBreakpointsPanel();
+      persistBreakpointChange();
     }
   }
   // Show/hide diamond markers on this line
@@ -352,8 +333,7 @@ async function onDiamondClick(line, column) {
     }
   }
 
-  bpState.saveToPage();
-  refreshBreakpointsPanel();
+  persistBreakpointChange();
   refreshDiamondMarkers();
 
 }
@@ -362,6 +342,56 @@ const editor = createEditor(editorContainer, onBreakpointToggle, onDiamondClick)
 
 /** The currently paused line (1-indexed), or null when running. @type {number|null} */
 let currentPausedLine = null;
+
+/**
+ * Formats CDP scope chain entries into the locals format used by the variables panel.
+ * Extracts local and closure scopes from the CDP scope chain.
+ *
+ * @param {Array<{type: string, name: string}>} scopeChain - CDP scope chain entries
+ * @returns {Array<{name: string, value: string, type: string, subtype: null}>}
+ */
+function formatJSLocals(scopeChain) {
+  if (!scopeChain || scopeChain.length === 0) return [];
+  const jsLocals = [];
+  for (const scope of scopeChain) {
+    if (scope.type === 'local' || scope.type === 'closure') {
+      jsLocals.push({
+        name: `[${scope.type}]`,
+        value: scope.name || 'scope',
+        type: 'other',
+        subtype: null,
+      });
+    }
+  }
+  return jsLocals;
+}
+
+/**
+ * Computes the Scheme-only frame index from a unified frame index by
+ * subtracting the number of JS frames below the given position.
+ *
+ * @param {Array<{language: string}>} unifiedFrames - Merged call stack
+ * @param {number} frameIndex - Index within the unified stack
+ * @returns {number} Index within the Scheme-only stack
+ */
+function computeSchemeFrameIndex(unifiedFrames, frameIndex) {
+  let jsFrameCountBelow = 0;
+  for (let i = frameIndex - 1; i >= 0; i--) {
+    if (unifiedFrames[i].language === 'js') {
+      jsFrameCountBelow++;
+    }
+  }
+  return frameIndex - jsFrameCountBelow;
+}
+
+/**
+ * Persists breakpoint state to the page and refreshes the breakpoints panel.
+ * Common operation after any breakpoint add/remove.
+ */
+function persistBreakpointChange() {
+  bpState.saveToPage();
+  refreshBreakpointsPanel();
+}
 
 /**
  * Recomputes and updates the inline diamond markers in the editor.
@@ -557,7 +587,7 @@ async function onPaused(detail) {
   clearStepTimeout();
   const reason = detail.reason === 'step' ? 'Paused (step)' : 'Paused at breakpoint';
   const context = detail.context || 'scheme';
-  const suffix = context === 'js' ? ' [JS]' : '';
+  const suffix = context === PAUSE_CONTEXT.JS ? ' [JS]' : '';
   // Show last expression result for step pauses (like Chrome's "← value")
   const lastResult = detail.lastResult;
   const resultSuffix = (lastResult != null && detail.reason === 'step')
@@ -566,7 +596,7 @@ async function onPaused(detail) {
   toolbar.setPaused();
 
   // Acknowledge the pause so the safety timeout is cancelled (Scheme pauses only)
-  if (context === 'scheme') {
+  if (context === PAUSE_CONTEXT.SCHEME) {
     ackPause();
   }
 
@@ -611,31 +641,15 @@ async function onPaused(detail) {
   if (stack.length > 0) {
     const topFrameIndex = stack.length - 1;
     selectedUnifiedFrame = stack[topFrameIndex];
-    // Compute scheme frame index: subtract JS frames below the top
-    let jsCount = 0;
-    for (let i = 0; i < topFrameIndex; i++) {
-      if (stack[i].language === 'js') jsCount++;
-    }
-    selectedSchemeFrameIndex = topFrameIndex - jsCount;
+    selectedSchemeFrameIndex = computeSchemeFrameIndex(stack, topFrameIndex);
   }
 
   // Load locals for the top frame
   if (stack.length > 0) {
     const topFrame = stack[stack.length - 1];
     if (topFrame.language === 'js') {
-      // JS locals are retrieved from CDP scope chain (basic display)
-      if (topFrame._cdpScopeChain) {
-        const jsLocals = [];
-        for (const scope of topFrame._cdpScopeChain) {
-          if (scope.type === 'local' || scope.type === 'closure') {
-            jsLocals.push({
-              name: `[${scope.type}]`,
-              value: scope.name || 'scope',
-              type: 'other',
-              subtype: null,
-            });
-          }
-        }
+      const jsLocals = formatJSLocals(topFrame._cdpScopeChain);
+      if (jsLocals.length > 0) {
         variables.setLocals(jsLocals);
       } else {
         variables.clear();
@@ -680,16 +694,16 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     const myTabId = getTabId();
     if (message.tabId && myTabId && message.tabId !== myTabId) return;
 
-    if (message.type === 'scheme-debug-paused') {
+    if (message.type === MSG.SCHEME_DEBUG_PAUSED) {
       // Route through unified debugger for consistent handling
       unifiedDebugger.handleSchemePause(message.detail || {});
-    } else if (message.type === 'scheme-debug-resumed') {
+    } else if (message.type === MSG.SCHEME_DEBUG_RESUMED) {
       unifiedDebugger.handleSchemeResume();
-    } else if (message.type === 'scheme-sync-paused') {
+    } else if (message.type === MSG.SCHEME_SYNC_PAUSED) {
       // Sync-path probe pause: page is halted at debugger; in a DOM callback.
       // Stack was pre-fetched by background.js. Route through unified debugger.
       unifiedDebugger.handleSyncSchemePause(message);
-    } else if (message.type === 'console-api-called') {
+    } else if (message.type === MSG.CONSOLE_API_CALLED) {
       // Page console output forwarded from background.js via Runtime.consoleAPICalled
       evalConsole.addOutput(message.callType, message.args || []);
     }
@@ -703,7 +717,7 @@ unifiedDebugger.onResumed(() => onResumed());
 
 // Track CDP attachment for the UI notification
 cdpBridge.onScriptParsed((event) => {
-  if (event.type === 'cdp-attached' && !cdpAttached) {
+  if (event.type === MSG.CDP_ATTACHED && !cdpAttached) {
     cdpAttached = true;
     showCDPNotification();
   }

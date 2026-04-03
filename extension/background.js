@@ -422,6 +422,126 @@ chrome.windows.onRemoved.addListener((windowId) => {
 // Message Handling (from panel)
 // =========================================================================
 
+/**
+ * Sends a CDP debugger command and sends the response back to the panel.
+ * Common pattern for simple CDP pass-through handlers.
+ *
+ * @param {number} tabId - Chrome tab ID
+ * @param {string} method - CDP method name (e.g., 'Debugger.resume')
+ * @param {Object} [params] - CDP method parameters
+ * @param {Function} sendResponse - Chrome extension sendResponse callback
+ * @param {Function} [transformResult] - Optional function to transform the CDP result
+ */
+function handleCDPCommand(tabId, method, params, sendResponse, transformResult) {
+    chrome.debugger.sendCommand({ tabId }, method, params).then(result => {
+        sendResponse(transformResult ? transformResult(result) : { success: true });
+    }).catch(e => {
+        sendResponse({ success: false, error: e.message });
+    });
+}
+
+/**
+ * Handles a Scheme step command (step-into/over/out) during a sync-path pause.
+ * Evaluates the step expression via CDP evaluateOnCallFrame, then resumes V8.
+ * Always resumes even if the eval fails, to prevent the debugger from getting stuck.
+ *
+ * @param {Object} message - The step command message
+ * @param {Function} sendResponse - Chrome extension sendResponse callback
+ */
+async function handleSchemeStepCommand(message, sendResponse) {
+    const stepMethod = message.type.replace('scheme-', '');
+    const camelCase = stepMethod.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    const expression = `globalThis.__schemeProbeRuntime.${camelCase}()`;
+
+    try {
+        await evaluateWhilePaused(message.tabId, expression);
+    } catch (e) {
+        console.warn(`[Scheme Stack] Step eval failed (will resume anyway):`, e.message);
+    }
+    try {
+        await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.resume');
+        sendResponse({ success: true });
+    } catch (e) {
+        sendResponse({ success: false, error: e.message });
+    }
+}
+
+/**
+ * Handles evaluating a JS expression in a specific CDP call frame.
+ *
+ * @param {Object} message - Contains tabId, callFrameId, expression
+ * @param {Function} sendResponse - Chrome extension sendResponse callback
+ */
+function handleEvalInJSFrame(message, sendResponse) {
+    handleCDPCommand(message.tabId, 'Debugger.evaluateOnCallFrame', {
+        callFrameId: message.callFrameId,
+        expression: message.expression,
+        silent: true,
+        returnByValue: true
+    }, sendResponse, (result) => {
+        if (result.exceptionDetails) {
+            return { success: false, error: result.exceptionDetails.text || 'evaluation error' };
+        }
+        return { success: true, result: result.result?.value };
+    });
+}
+
+/**
+ * Sets a one-shot breakpoint on the function stored in globalThis.__schemeBoundaryTarget.
+ * Used for boundary stepping (Scheme → JS transitions).
+ *
+ * @param {Object} message - Contains tabId
+ * @param {Function} sendResponse - Chrome extension sendResponse callback
+ */
+async function handleSetBoundaryBreakpoint(message, sendResponse) {
+    try {
+        // 1. Get the target function object
+        const evalResult = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Runtime.evaluate', {
+            expression: 'globalThis.__schemeBoundaryTarget'
+        });
+        const objectId = evalResult.result?.objectId;
+        if (!objectId) throw new Error("No boundary target found (not a function)");
+
+        // 2. Get its internal properties to find [[FunctionLocation]]
+        const props = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Runtime.getProperties', {
+            objectId: objectId,
+            ownProperties: false,
+            accessorPropertiesOnly: false,
+            generatePreview: false
+        });
+
+        let location = null;
+        for (const prop of props.internalProperties || []) {
+            if (prop.name === '[[FunctionLocation]]' && prop.value && prop.value.value) {
+                location = prop.value.value;
+                break;
+            }
+        }
+
+        if (!location) throw new Error("Could not find function location");
+
+        // 3. Set a breakpoint at that location
+        const bpResult = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.setBreakpoint', {
+            location: location
+        });
+
+        sendResponse({ success: true, breakpointId: bpResult.breakpointId });
+    } catch(e) {
+        // If it fails (e.g. built-in native function without [[FunctionLocation]]), fail gracefully.
+        sendResponse({ success: false, error: e.message });
+    }
+}
+
+/**
+ * Maps native V8 CDP step message types to their corresponding Debugger methods.
+ * @type {Object<string, string>}
+ */
+const CDP_STEP_COMMANDS = {
+    'cdp-step-into': 'Debugger.stepInto',
+    'cdp-step-over': 'Debugger.stepOver',
+    'cdp-step-out': 'Debugger.stepOut',
+};
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Auto-focus debugger window on cooperative Scheme pause
     if (message.type === 'scheme-debug-paused' && sender.tab?.id) {
@@ -434,7 +554,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }).catch(e => {
             sendResponse({ success: false, error: e.message });
         });
-        return true; // Indicates async response
+        return true;
     }
 
     if (message.type === 'detach-debugger') {
@@ -445,16 +565,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === 'resume-debugger') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.resume').then(() => {
-            sendResponse({ success: true });
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
+        handleCDPCommand(message.tabId, 'Debugger.resume', undefined, sendResponse);
         return true;
     }
 
-    // Evaluate an expression while paused using Debugger.evaluateOnCallFrame.
-    // This is reliable while paused, unlike inspectedWindow.eval.
     if (message.type === 'eval-paused') {
         evaluateWhilePaused(message.tabId, message.expression).then(result => {
             sendResponse({ success: true, result });
@@ -464,174 +578,52 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
-    // Evaluate an expression in a specific JS call frame context
     if (message.type === 'eval-in-js-frame') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.evaluateOnCallFrame', {
-            callFrameId: message.callFrameId,
-            expression: message.expression,
-            silent: true,
-            returnByValue: true
-        }).then(result => {
-            if (result.exceptionDetails) {
-                sendResponse({ success: false, error: result.exceptionDetails.text || 'evaluation error' });
-            } else {
-                sendResponse({ success: true, result: result.result?.value });
-            }
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
+        handleEvalInJSFrame(message, sendResponse);
         return true;
     }
 
-    // Step commands: evaluate step expression while paused, then resume.
-    // Uses globalThis to avoid with(envProxy) scope interference in probe frames.
-    // Always resumes even if the eval fails, to prevent the debugger from getting stuck.
+    // Scheme step commands (sync-path: eval step expression + resume V8)
     if (message.type === 'scheme-step-into' ||
         message.type === 'scheme-step-over' ||
         message.type === 'scheme-step-out') {
-        const stepMethod = message.type.replace('scheme-', '');
-        const camelCase = stepMethod.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-        const expression = `globalThis.__schemeProbeRuntime.${camelCase}()`;
-
-        (async () => {
-            try {
-                await evaluateWhilePaused(message.tabId, expression);
-            } catch (e) {
-                console.warn(`[Scheme Stack] Step eval failed (will resume anyway):`, e.message);
-            }
-            try {
-                await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.resume');
-                sendResponse({ success: true });
-            } catch (e) {
-                sendResponse({ success: false, error: e.message });
-            }
-        })();
+        handleSchemeStepCommand(message, sendResponse);
         return true;
     }
 
-    // =====================================================================
-    // Phase 4: Native V8 CDP step commands (for JS debugging)
-    // =====================================================================
-
-    // Native V8 Step Into — used when paused at a JS breakpoint
-    if (message.type === 'cdp-step-into') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.stepInto').then(() => {
-            sendResponse({ success: true });
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
+    // Native V8 CDP step commands (JS debugging)
+    if (CDP_STEP_COMMANDS[message.type]) {
+        handleCDPCommand(message.tabId, CDP_STEP_COMMANDS[message.type], undefined, sendResponse);
         return true;
     }
 
-    // Native V8 Step Over — used when paused at a JS breakpoint
-    if (message.type === 'cdp-step-over') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.stepOver').then(() => {
-            sendResponse({ success: true });
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
-        return true;
-    }
-
-    // Native V8 Step Out — used when paused at a JS breakpoint
-    if (message.type === 'cdp-step-out') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.stepOut').then(() => {
-            sendResponse({ success: true });
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
-        return true;
-    }
-
-    // =====================================================================
-    // Phase 4: JS Breakpoint management via CDP
-    // =====================================================================
-
-    // Set a JS breakpoint by URL and line number
+    // JS breakpoint management
     if (message.type === 'set-js-breakpoint') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.setBreakpointByUrl', {
+        handleCDPCommand(message.tabId, 'Debugger.setBreakpointByUrl', {
             url: message.url,
             lineNumber: message.lineNumber,
-        }).then(result => {
-            sendResponse({ success: true, breakpointId: result.breakpointId });
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
+        }, sendResponse, (result) => ({ success: true, breakpointId: result.breakpointId }));
         return true;
     }
 
-    // Remove a JS breakpoint by CDP breakpoint ID
     if (message.type === 'remove-js-breakpoint') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.removeBreakpoint', {
+        handleCDPCommand(message.tabId, 'Debugger.removeBreakpoint', {
             breakpointId: message.breakpointId,
-        }).then(() => {
-            sendResponse({ success: true });
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
+        }, sendResponse);
         return true;
     }
 
-    // =====================================================================
-    // Phase 4: JS Source fetching via CDP
-    // =====================================================================
-
-    // Get the source of a JS script by scriptId
+    // JS source fetching
     if (message.type === 'get-js-source') {
-        chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.getScriptSource', {
+        handleCDPCommand(message.tabId, 'Debugger.getScriptSource', {
             scriptId: message.scriptId,
-        }).then(result => {
-            sendResponse({ success: true, source: result.scriptSource });
-        }).catch(e => {
-            sendResponse({ success: false, error: e.message });
-        });
+        }, sendResponse, (result) => ({ success: true, source: result.scriptSource }));
         return true;
     }
 
-    // =====================================================================
-    // Phase 5: Boundary Breakpoint management via CDP
-    // =====================================================================
-
-    // Set a one-shot breakpoint on the function stored in globalThis.__schemeBoundaryTarget
+    // Boundary breakpoint (Scheme → JS stepping)
     if (message.type === 'set-boundary-breakpoint') {
-        (async () => {
-            try {
-                // 1. Get the target function object
-                const evalResult = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Runtime.evaluate', {
-                    expression: 'globalThis.__schemeBoundaryTarget'
-                });
-                const objectId = evalResult.result?.objectId;
-                if (!objectId) throw new Error("No boundary target found (not a function)");
-
-                // 2. Get its internal properties to find [[FunctionLocation]]
-                const props = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Runtime.getProperties', {
-                    objectId: objectId,
-                    ownProperties: false,
-                    accessorPropertiesOnly: false,
-                    generatePreview: false
-                });
-
-                let location = null;
-                for (const prop of props.internalProperties || []) {
-                    if (prop.name === '[[FunctionLocation]]' && prop.value && prop.value.value) {
-                        location = prop.value.value;
-                        break;
-                    }
-                }
-
-                if (!location) throw new Error("Could not find function location");
-
-                // 3. Set a breakpoint at that location
-                const bpResult = await chrome.debugger.sendCommand({ tabId: message.tabId }, 'Debugger.setBreakpoint', {
-                    location: location
-                });
-
-                sendResponse({ success: true, breakpointId: bpResult.breakpointId });
-            } catch(e) {
-                // If it fails (e.g. built-in native function without [[FunctionLocation]]), we just fail gracefully.
-                sendResponse({ success: false, error: e.message });
-            }
-        })();
+        handleSetBoundaryBreakpoint(message, sendResponse);
         return true;
     }
 });

@@ -576,6 +576,22 @@ Following the implementation of the full numeric tower, several optimizations ha
 
 ---
 
+## Phase 20: Debugger Code Quality Refactoring ✅
+**Target:** Clean up extension and devtools code for modularity, reduced duplication, and maintainability.
+
+| Work Item | Description | Status |
+|-----------|-------------|--------|
+| **constants.js** | Centralized `MSG` and `PAUSE_CONTEXT` enums replacing scattered string literals | ✅ |
+| **scheme-bridge dedup** | `evalAndParse()` helper eliminates 10 identical try/catch/parse blocks | ✅ |
+| **main.js helpers** | Extracted `formatJSLocals`, `computeSchemeFrameIndex`, `persistBreakpointChange` | ✅ |
+| **scheme_debug_api.js** | Extracted 577-line `installSchemeDebugAPI()` from devtools_debug.js; `mapStackFrames` eliminates DRY violation | ✅ |
+| **background.js handler** | Monolithic 213-line if-else split into focused handler functions | ✅ |
+| **CDP attach timeout** | 10s timeout added to `attachCDP()` polling loop | ✅ |
+
+**Deliverable:** devtools_debug.js reduced 1050→481 lines; background.js handler 213→60 lines; no regressions (2749 unit + 394 extension tests).
+
+---
+
 ## Verification Plan
 
 ### Automated Tests

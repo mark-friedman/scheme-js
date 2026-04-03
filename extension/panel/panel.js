@@ -23255,6 +23255,15 @@ function evalInPage(expression) {
   }
   return Promise.reject(new Error("No eval API available (need chrome.scripting or chrome.devtools)"));
 }
+async function evalAndParse(expression2, defaultValue, caller) {
+  try {
+    const json = await evalInPage(expression2);
+    return JSON.parse(json);
+  } catch (e) {
+    console.warn(`[scheme-bridge] ${caller} failed:`, e.message);
+    return defaultValue;
+  }
+}
 async function isSchemeDebugAvailable() {
   try {
     return await evalInPage('typeof __schemeDebug !== "undefined"');
@@ -23264,60 +23273,38 @@ async function isSchemeDebugAvailable() {
   }
 }
 async function getSources() {
-  try {
-    const json = await evalInPage("JSON.stringify(__schemeDebug.getSources())");
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] getSources failed:", e.message);
-    return [];
-  }
+  return evalAndParse("JSON.stringify(__schemeDebug.getSources())", [], "getSources");
 }
 async function getSourceContent(url) {
-  try {
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] getSourceContent failed:", e.message);
-    return null;
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`,
+    null,
+    "getSourceContent"
+  );
 }
 async function activate() {
-  try {
-    const json = await evalInPage("JSON.stringify(__schemeDebug.activate())");
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] activate failed:", e.message);
-    return { active: false, needsReload: true };
-  }
+  return evalAndParse(
+    "JSON.stringify(__schemeDebug.activate())",
+    { active: false, needsReload: true },
+    "activate"
+  );
 }
 async function getStatus() {
-  try {
-    const json = await evalInPage("JSON.stringify(__schemeDebug.getStatus())");
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] getStatus failed:", e.message);
-    return { state: "inactive", reason: null, active: false };
-  }
+  return evalAndParse(
+    "JSON.stringify(__schemeDebug.getStatus())",
+    { state: "inactive", reason: null, active: false },
+    "getStatus"
+  );
 }
 async function getStack() {
-  try {
-    const json = await evalInPage("JSON.stringify(__schemeDebug.getStack())");
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] getStack failed:", e.message);
-    return [];
-  }
+  return evalAndParse("JSON.stringify(__schemeDebug.getStack())", [], "getStack");
 }
 async function getLocals(frameIndex) {
-  try {
-    const json = await evalInPage(`JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`);
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] getLocals failed:", e.message);
-    return [];
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`,
+    [],
+    "getLocals"
+  );
 }
 async function evalInFrame(expression2, frameIndex) {
   try {
@@ -23366,47 +23353,33 @@ async function stepOut() {
   }
 }
 async function getExpressions(url) {
-  try {
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] getExpressions failed:", e.message);
-    return [];
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`,
+    [],
+    "getExpressions"
+  );
 }
 async function setBreakpoint(url, line, column = null) {
-  try {
-    const colArg = column !== null ? `, ${column}` : "";
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}${colArg}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] setBreakpoint failed:", e.message);
-    return null;
-  }
+  const colArg = column !== null ? `, ${column}` : "";
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.setBreakpoint(${JSON.stringify(url)}, ${line}${colArg}))`,
+    null,
+    "setBreakpoint"
+  );
 }
 async function removeBreakpoint(id2) {
-  try {
-    const json = await evalInPage(
-      `JSON.stringify(__schemeDebug.removeBreakpoint(${JSON.stringify(id2)}))`
-    );
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] removeBreakpoint failed:", e.message);
-    return false;
-  }
+  return evalAndParse(
+    `JSON.stringify(__schemeDebug.removeBreakpoint(${JSON.stringify(id2)}))`,
+    false,
+    "removeBreakpoint"
+  );
 }
 async function getAllBreakpoints() {
-  try {
-    const json = await evalInPage("JSON.stringify(__schemeDebug.getAllBreakpoints())");
-    return JSON.parse(json);
-  } catch (e) {
-    console.warn("[scheme-bridge] getAllBreakpoints failed:", e.message);
-    return [];
-  }
+  return evalAndParse(
+    "JSON.stringify(__schemeDebug.getAllBreakpoints())",
+    [],
+    "getAllBreakpoints"
+  );
 }
 
 // extension/panel-src/components/source-list.js
@@ -23967,6 +23940,51 @@ __export(unified_debugger_exports, {
   stepOver: () => stepOver2
 });
 
+// extension/panel-src/protocol/constants.js
+var MSG = Object.freeze({
+  // CDP lifecycle
+  ATTACH_DEBUGGER: "attach-debugger",
+  DETACH_DEBUGGER: "detach-debugger",
+  RESUME_DEBUGGER: "resume-debugger",
+  // CDP evaluation
+  EVAL_PAUSED: "eval-paused",
+  EVAL_IN_JS_FRAME: "eval-in-js-frame",
+  // Scheme step commands (via CDP evaluateOnCallFrame + resume)
+  SCHEME_STEP_INTO: "scheme-step-into",
+  SCHEME_STEP_OVER: "scheme-step-over",
+  SCHEME_STEP_OUT: "scheme-step-out",
+  // Native V8 CDP step commands
+  CDP_STEP_INTO: "cdp-step-into",
+  CDP_STEP_OVER: "cdp-step-over",
+  CDP_STEP_OUT: "cdp-step-out",
+  // Breakpoint management
+  SET_JS_BREAKPOINT: "set-js-breakpoint",
+  REMOVE_JS_BREAKPOINT: "remove-js-breakpoint",
+  SET_BOUNDARY_BREAKPOINT: "set-boundary-breakpoint",
+  // JS source fetching
+  GET_JS_SOURCE: "get-js-source",
+  // CDP events forwarded from background → panel
+  CDP_PAUSED: "cdp-paused",
+  CDP_RESUMED: "cdp-resumed",
+  CDP_SCRIPT_PARSED: "cdp-script-parsed",
+  CDP_ATTACHED: "cdp-attached",
+  DEBUGGER_RESUMED: "debugger-resumed",
+  // Scheme cooperative events (content script → panel)
+  SCHEME_DEBUG_PAUSED: "scheme-debug-paused",
+  SCHEME_DEBUG_RESUMED: "scheme-debug-resumed",
+  SCHEME_SYNC_PAUSED: "scheme-sync-paused",
+  // Console output
+  CONSOLE_API_CALLED: "console-api-called"
+});
+var PAUSE_CONTEXT = Object.freeze({
+  /** Cooperative async pause (runDebug path). Commands go through scheme-bridge. */
+  SCHEME: "scheme",
+  /** CDP-level JS breakpoint or exception pause. Commands go through cdp-bridge. */
+  JS: "js",
+  /** Sync DOM callback probe pause. V8 stays paused at `debugger;`. Commands go through CDP. */
+  SCHEME_SYNC: "scheme-sync"
+});
+
 // extension/panel-src/protocol/cdp-bridge.js
 var attached = false;
 var attaching = false;
@@ -23995,10 +24013,16 @@ async function attachCDP() {
   if (attached) return true;
   if (attaching) {
     return new Promise((resolve) => {
+      let elapsed = 0;
       const check = setInterval(() => {
+        elapsed += 50;
         if (!attaching) {
           clearInterval(check);
           resolve(attached);
+        } else if (elapsed >= 1e4) {
+          clearInterval(check);
+          console.warn("[cdp-bridge] attachCDP timed out waiting for in-progress attach");
+          resolve(false);
         }
       }, 50);
     });
@@ -24006,7 +24030,7 @@ async function attachCDP() {
   attaching = true;
   try {
     const response = await sendToBackground({
-      type: "attach-debugger",
+      type: MSG.ATTACH_DEBUGGER,
       tabId: getTabId()
     });
     attached = response.success === true;
@@ -24024,6 +24048,11 @@ function isAttached() {
 function markAttached() {
   attached = true;
 }
+function notifyCDPAttached() {
+  for (const fn of listeners.scriptParsed) {
+    fn({ type: MSG.CDP_ATTACHED });
+  }
+}
 function clearNavigationCache() {
   scriptUrlMap.clear();
 }
@@ -24031,7 +24060,7 @@ async function resumeCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: "resume-debugger",
+      type: MSG.RESUME_DEBUGGER,
       tabId: getTabId()
     });
   } catch (e) {
@@ -24042,7 +24071,7 @@ async function stepIntoCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: "cdp-step-into",
+      type: MSG.CDP_STEP_INTO,
       tabId: getTabId()
     });
   } catch (e) {
@@ -24053,7 +24082,7 @@ async function stepOverCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: "cdp-step-over",
+      type: MSG.CDP_STEP_OVER,
       tabId: getTabId()
     });
   } catch (e) {
@@ -24064,7 +24093,7 @@ async function stepOutCDP() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: "cdp-step-out",
+      type: MSG.CDP_STEP_OUT,
       tabId: getTabId()
     });
   } catch (e) {
@@ -24075,7 +24104,7 @@ async function evalWhilePaused(expression2) {
   if (!attached) throw new Error("CDP not attached");
   try {
     const response = await sendToBackground({
-      type: "eval-paused",
+      type: MSG.EVAL_PAUSED,
       tabId: getTabId(),
       expression: expression2
     });
@@ -24091,7 +24120,7 @@ async function schemeStepInto() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: "scheme-step-into",
+      type: MSG.SCHEME_STEP_INTO,
       tabId: getTabId()
     });
   } catch (e) {
@@ -24102,7 +24131,7 @@ async function schemeStepOver() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: "scheme-step-over",
+      type: MSG.SCHEME_STEP_OVER,
       tabId: getTabId()
     });
   } catch (e) {
@@ -24113,7 +24142,7 @@ async function schemeStepOut() {
   if (!attached) return;
   try {
     await sendToBackground({
-      type: "scheme-step-out",
+      type: MSG.SCHEME_STEP_OUT,
       tabId: getTabId()
     });
   } catch (e) {
@@ -24124,7 +24153,7 @@ async function evalInJSFrame(callFrameId, expression2) {
   if (!attached) return { success: false, result: null, error: "CDP not attached" };
   try {
     const response = await sendToBackground({
-      type: "eval-in-js-frame",
+      type: MSG.EVAL_IN_JS_FRAME,
       tabId: getTabId(),
       callFrameId,
       expression: expression2
@@ -24138,13 +24167,11 @@ async function setJSBreakpoint(url, lineNumber) {
   if (!attached) {
     const ok = await attachCDP();
     if (!ok) return null;
-    for (const fn of listeners.scriptParsed) {
-      fn({ type: "cdp-attached" });
-    }
+    notifyCDPAttached();
   }
   try {
     const response = await sendToBackground({
-      type: "set-js-breakpoint",
+      type: MSG.SET_JS_BREAKPOINT,
       tabId: getTabId(),
       url,
       lineNumber
@@ -24162,7 +24189,7 @@ async function removeJSBreakpoint(breakpointId) {
   if (!attached) return false;
   try {
     const response = await sendToBackground({
-      type: "remove-js-breakpoint",
+      type: MSG.REMOVE_JS_BREAKPOINT,
       tabId: getTabId(),
       breakpointId
     });
@@ -24176,13 +24203,11 @@ async function setBoundaryBreakpoint() {
   if (!attached) {
     const ok = await attachCDP();
     if (!ok) return null;
-    for (const fn of listeners.scriptParsed) {
-      fn({ type: "cdp-attached" });
-    }
+    notifyCDPAttached();
   }
   try {
     const response = await sendToBackground({
-      type: "set-boundary-breakpoint",
+      type: MSG.SET_BOUNDARY_BREAKPOINT,
       tabId: getTabId()
     });
     if (response.success) {
@@ -24198,7 +24223,7 @@ async function getJSSource(scriptId) {
   if (!attached) return null;
   try {
     const response = await sendToBackground({
-      type: "get-js-source",
+      type: MSG.GET_JS_SOURCE,
       tabId: getTabId(),
       scriptId
     });
@@ -24222,7 +24247,7 @@ function onScriptParsed(callback) {
 }
 if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === "cdp-paused") {
+    if (message.type === MSG.CDP_PAUSED) {
       attached = true;
       for (const fn of listeners.paused) {
         fn({
@@ -24230,11 +24255,11 @@ if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
           reason: message.reason || "other"
         });
       }
-    } else if (message.type === "cdp-resumed") {
+    } else if (message.type === MSG.CDP_RESUMED) {
       for (const fn of listeners.resumed) {
         fn();
       }
-    } else if (message.type === "cdp-script-parsed") {
+    } else if (message.type === MSG.CDP_SCRIPT_PARSED) {
       if (message.scriptId && message.url) {
         scriptUrlMap.set(message.scriptId, message.url);
       }
@@ -24316,36 +24341,36 @@ function mergeCallStacks(schemeFrames, jsFrames) {
   return unified;
 }
 async function resume2() {
-  if (currentPauseContext === "js") {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await resumeCDP();
-  } else if (currentPauseContext === "scheme-sync") {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     await resumeCDP();
   } else {
     await resume();
   }
 }
 async function stepInto2() {
-  if (currentPauseContext === "js") {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await stepIntoCDP();
-  } else if (currentPauseContext === "scheme-sync") {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     await schemeStepInto();
   } else {
     await stepInto();
   }
 }
 async function stepOver2() {
-  if (currentPauseContext === "js") {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await stepOverCDP();
-  } else if (currentPauseContext === "scheme-sync") {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     await schemeStepOver();
   } else {
     await stepOver();
   }
 }
 async function stepOut2() {
-  if (currentPauseContext === "js") {
+  if (currentPauseContext === PAUSE_CONTEXT.JS) {
     await stepOutCDP();
-  } else if (currentPauseContext === "scheme-sync") {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     await schemeStepOut();
   } else {
     await stepOut();
@@ -24380,7 +24405,7 @@ async function removeBreakpoint2(id2, url) {
   }
 }
 async function getLocalsForContext(frameIndex) {
-  if (currentPauseContext === "scheme-sync") {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     try {
       const json = await evalWhilePaused(
         `JSON.stringify(__schemeDebug.getLocals(${frameIndex}))`
@@ -24393,7 +24418,7 @@ async function getLocalsForContext(frameIndex) {
   return getLocals(frameIndex);
 }
 async function getSourceContentForContext(url) {
-  if (currentPauseContext === "scheme-sync") {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     try {
       const json = await evalWhilePaused(
         `JSON.stringify(__schemeDebug.getSourceContent(${JSON.stringify(url)}))`
@@ -24406,7 +24431,7 @@ async function getSourceContentForContext(url) {
   return getSourceContent(url);
 }
 async function getExpressionsForContext(url) {
-  if (currentPauseContext === "scheme-sync") {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     try {
       const json = await evalWhilePaused(
         `JSON.stringify(__schemeDebug.getExpressions(${JSON.stringify(url)}))`
@@ -24424,7 +24449,7 @@ async function evalInFrame2(frame, schemeFrameIndex, expression2) {
       return evalInJSFrame(frame._cdpCallFrameId, expression2);
     }
     return { success: false, result: null, error: "No CDP call frame ID available" };
-  } else if (currentPauseContext === "scheme-sync") {
+  } else if (currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
     const escapedExpr = JSON.stringify(expression2);
     const evalExpr = `JSON.stringify(__schemeDebug.eval(${escapedExpr}, ${schemeFrameIndex}))`;
     try {
@@ -24449,7 +24474,7 @@ function isCDPAttached() {
 }
 function init() {
   onCDPPaused(async (event) => {
-    currentPauseContext = "js";
+    currentPauseContext = PAUSE_CONTEXT.JS;
     cdpCallFrames = event.callFrames || [];
     try {
       const schemeStack = await getStack();
@@ -24461,7 +24486,7 @@ function init() {
     const topFrame = unified[0];
     for (const fn of unifiedListeners.paused) {
       fn({
-        context: "js",
+        context: PAUSE_CONTEXT.JS,
         frames: unified,
         reason: event.reason || "breakpoint",
         source: topFrame?.source || null
@@ -24469,7 +24494,7 @@ function init() {
     }
   });
   onCDPResumed(() => {
-    if (currentPauseContext === "js" || currentPauseContext === "scheme-sync") {
+    if (currentPauseContext === PAUSE_CONTEXT.JS || currentPauseContext === PAUSE_CONTEXT.SCHEME_SYNC) {
       currentPauseContext = null;
       syncPauseTabId = null;
       cdpCallFrames = [];
@@ -24486,13 +24511,13 @@ async function handleSchemePause(detail) {
     await resume();
     return;
   }
-  currentPauseContext = "scheme";
+  currentPauseContext = PAUSE_CONTEXT.SCHEME;
   schemeCallFrames = detail.stack || [];
   cdpCallFrames = [];
   const unified = mergeCallStacks(schemeCallFrames, cdpCallFrames);
   for (const fn of unifiedListeners.paused) {
     fn({
-      context: "scheme",
+      context: PAUSE_CONTEXT.SCHEME,
       frames: unified,
       reason: detail.reason || "breakpoint",
       source: detail.source || null,
@@ -24501,7 +24526,7 @@ async function handleSchemePause(detail) {
   }
 }
 function handleSyncSchemePause(message) {
-  currentPauseContext = "scheme-sync";
+  currentPauseContext = PAUSE_CONTEXT.SCHEME_SYNC;
   syncPauseTabId = message.tabId;
   markAttached();
   schemeCallFrames = (message.stack || []).filter(
@@ -24512,7 +24537,7 @@ function handleSyncSchemePause(message) {
   const schemeTopSource = schemeCallFrames.length > 0 ? schemeCallFrames[schemeCallFrames.length - 1].source : unified[0]?.source || null;
   for (const fn of unifiedListeners.paused) {
     fn({
-      context: "scheme-sync",
+      context: PAUSE_CONTEXT.SCHEME_SYNC,
       frames: unified,
       reason: message.reason || "breakpoint",
       source: schemeTopSource
@@ -24520,7 +24545,7 @@ function handleSyncSchemePause(message) {
   }
 }
 function handleSchemeResume() {
-  if (currentPauseContext === "scheme") {
+  if (currentPauseContext === PAUSE_CONTEXT.SCHEME) {
     currentPauseContext = null;
     schemeCallFrames = [];
     cdpCallFrames = [];
@@ -24709,8 +24734,7 @@ var breakpointsList = createBreakpointsList(breakpointsContainer, {
     if (has(url, line, column)) {
       await removeBreakpoint2(id2, url);
       remove2(url, line, column);
-      saveToPage();
-      refreshBreakpointsPanel();
+      persistBreakpointChange();
       if (url === currentSourceUrl) {
         if (!column) {
           const lines = getLinesForUrl(url);
@@ -24737,27 +24761,11 @@ var evalConsole = createConsole(consoleContainer, {
 async function onSelectFrame(frameIndex, frame) {
   selectedUnifiedFrame = frame;
   const unifiedFrames = getUnifiedFrames();
-  let jsFrameCountBelow = 0;
-  for (let i = frameIndex - 1; i >= 0; i--) {
-    if (unifiedFrames[i].language === "js") {
-      jsFrameCountBelow++;
-    }
-  }
-  selectedSchemeFrameIndex = frameIndex - jsFrameCountBelow;
+  selectedSchemeFrameIndex = computeSchemeFrameIndex(unifiedFrames, frameIndex);
   if (frame.language === "js") {
-    if (frame._cdpScopeChain && frame._cdpScopeChain.length > 0) {
-      const jsLocals = [];
-      for (const scope of frame._cdpScopeChain) {
-        if (scope.type === "local" || scope.type === "closure") {
-          jsLocals.push({
-            name: `[${scope.type}]`,
-            value: scope.name || "scope",
-            type: "other",
-            subtype: null
-          });
-        }
-      }
-      variables.setLocals(jsLocals.length > 0 ? jsLocals : []);
+    const jsLocals = formatJSLocals(frame._cdpScopeChain);
+    if (jsLocals.length > 0) {
+      variables.setLocals(jsLocals);
     } else {
       variables.clear();
     }
@@ -24808,16 +24816,14 @@ async function onBreakpointToggle(line, isNowSet) {
     const id2 = await setBreakpoint2(currentSourceUrl, line);
     if (id2) {
       set(currentSourceUrl, line, null, id2);
-      saveToPage();
-      refreshBreakpointsPanel();
+      persistBreakpointChange();
     }
   } else {
     const id2 = getId(currentSourceUrl, line, null);
     if (id2) {
       await removeBreakpoint2(id2, currentSourceUrl);
       remove2(currentSourceUrl, line, null);
-      saveToPage();
-      refreshBreakpointsPanel();
+      persistBreakpointChange();
     }
   }
   refreshDiamondMarkers();
@@ -24838,12 +24844,39 @@ async function onDiamondClick(line, column) {
       set(currentSourceUrl, line, column, id2);
     }
   }
-  saveToPage();
-  refreshBreakpointsPanel();
+  persistBreakpointChange();
   refreshDiamondMarkers();
 }
 var editor = createEditor(editorContainer, onBreakpointToggle, onDiamondClick);
 var currentPausedLine = null;
+function formatJSLocals(scopeChain) {
+  if (!scopeChain || scopeChain.length === 0) return [];
+  const jsLocals = [];
+  for (const scope of scopeChain) {
+    if (scope.type === "local" || scope.type === "closure") {
+      jsLocals.push({
+        name: `[${scope.type}]`,
+        value: scope.name || "scope",
+        type: "other",
+        subtype: null
+      });
+    }
+  }
+  return jsLocals;
+}
+function computeSchemeFrameIndex(unifiedFrames, frameIndex) {
+  let jsFrameCountBelow = 0;
+  for (let i = frameIndex - 1; i >= 0; i--) {
+    if (unifiedFrames[i].language === "js") {
+      jsFrameCountBelow++;
+    }
+  }
+  return frameIndex - jsFrameCountBelow;
+}
+function persistBreakpointChange() {
+  saveToPage();
+  refreshBreakpointsPanel();
+}
 function refreshDiamondMarkers() {
   if (!currentSourceUrl || currentExpressions.length === 0) {
     editor.setDiamondMarkers([]);
@@ -24940,12 +24973,12 @@ async function onPaused2(detail) {
   clearStepTimeout();
   const reason = detail.reason === "step" ? "Paused (step)" : "Paused at breakpoint";
   const context = detail.context || "scheme";
-  const suffix = context === "js" ? " [JS]" : "";
+  const suffix = context === PAUSE_CONTEXT.JS ? " [JS]" : "";
   const lastResult = detail.lastResult;
   const resultSuffix = lastResult != null && detail.reason === "step" ? `  \u2190 ${lastResult}` : "";
   toolbar.setStatus(reason + suffix + resultSuffix);
   toolbar.setPaused();
-  if (context === "scheme") {
+  if (context === PAUSE_CONTEXT.SCHEME) {
     ackPause();
   }
   const stack = detail.frames || detail.stack || [];
@@ -24982,27 +25015,13 @@ async function onPaused2(detail) {
   if (stack.length > 0) {
     const topFrameIndex = stack.length - 1;
     selectedUnifiedFrame = stack[topFrameIndex];
-    let jsCount = 0;
-    for (let i = 0; i < topFrameIndex; i++) {
-      if (stack[i].language === "js") jsCount++;
-    }
-    selectedSchemeFrameIndex = topFrameIndex - jsCount;
+    selectedSchemeFrameIndex = computeSchemeFrameIndex(stack, topFrameIndex);
   }
   if (stack.length > 0) {
     const topFrame = stack[stack.length - 1];
     if (topFrame.language === "js") {
-      if (topFrame._cdpScopeChain) {
-        const jsLocals = [];
-        for (const scope of topFrame._cdpScopeChain) {
-          if (scope.type === "local" || scope.type === "closure") {
-            jsLocals.push({
-              name: `[${scope.type}]`,
-              value: scope.name || "scope",
-              type: "other",
-              subtype: null
-            });
-          }
-        }
+      const jsLocals = formatJSLocals(topFrame._cdpScopeChain);
+      if (jsLocals.length > 0) {
         variables.setLocals(jsLocals);
       } else {
         variables.clear();
@@ -25035,13 +25054,13 @@ if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message) => {
     const myTabId = getTabId();
     if (message.tabId && myTabId && message.tabId !== myTabId) return;
-    if (message.type === "scheme-debug-paused") {
+    if (message.type === MSG.SCHEME_DEBUG_PAUSED) {
       handleSchemePause(message.detail || {});
-    } else if (message.type === "scheme-debug-resumed") {
+    } else if (message.type === MSG.SCHEME_DEBUG_RESUMED) {
       handleSchemeResume();
-    } else if (message.type === "scheme-sync-paused") {
+    } else if (message.type === MSG.SCHEME_SYNC_PAUSED) {
       handleSyncSchemePause(message);
-    } else if (message.type === "console-api-called") {
+    } else if (message.type === MSG.CONSOLE_API_CALLED) {
       evalConsole.addOutput(message.callType, message.args || []);
     }
   });
@@ -25050,7 +25069,7 @@ init();
 onPaused((event) => onPaused2(event));
 onResumed(() => onResumed2());
 onScriptParsed((event) => {
-  if (event.type === "cdp-attached" && !cdpAttached) {
+  if (event.type === MSG.CDP_ATTACHED && !cdpAttached) {
     cdpAttached = true;
     showCDPNotification();
   }

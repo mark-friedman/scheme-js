@@ -185,6 +185,8 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │          ├── probe_runtime.js # __schemeProbeRuntime global (hit, stepping, breakpoints)
 │          ├── source_registry.js # Source & probe management + expression spans + script injection + REPL LRU
 │          ├── devtools_debug.js # DevToolsDebugIntegration (trampoline→probe bridge, REPL/library registration)
+│          ├── scheme_debug_api.js # __schemeDebug global API installation: getStack/getLocals/eval/
+│          │                    #   setBreakpoint/stepInto etc. + mapStackFrames helper + event wiring
 │          ├── env_proxy.js     # Environment proxy for DevTools Scope pane
 │          ├── sidebar_helpers.js # Sidebar data formatting utilities
 │          └── custom_formatters.js # Chrome custom formatters for Scheme values
@@ -229,6 +231,7 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   ├── console.js          # REPL eval console + page console output
 │       │   └── source-list.js      # Source file browser (fetches from __schemeDebug)
 │       └── protocol/
+│           ├── constants.js        # Shared MSG and PAUSE_CONTEXT string enums (prevents typos)
 │           ├── scheme-bridge.js    # Dual-path eval: chrome.scripting.executeScript (standalone)
 │           │                       #   or inspectedWindow.eval (DevTools fallback)
 │           ├── cdp-bridge.js       # CDP bridge: attach, step, resume, eval-while-paused,
