@@ -90,7 +90,7 @@ async function bootstrapInterpreter() {
             throw new Error(`load: file not found: ${filename}`);
         }
         const code = fs.readFileSync(filename, 'utf8');
-        const exprs = parse(code);
+        const exprs = parse(code, { filename });
         let result;
         for (const exp of exprs) {
             const ast = analyze(exp);

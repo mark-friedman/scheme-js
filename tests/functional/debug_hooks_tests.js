@@ -7,6 +7,7 @@
 
 import { assert, createTestEnv, run } from '../harness/helpers.js';
 import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
+import { instrumentInterpreter } from '../../src/debug/instrumentation.js';
 
 /**
  * Runs all debug hooks tests.
@@ -223,6 +224,67 @@ export async function runDebugHooksTests(interpreter, logger) {
         assert(logger, 'reset clears breakpoints', debugRuntime.getAllBreakpoints().length, 0);
         assert(logger, 'reset clears stack', debugRuntime.getDepth(), 0);
         assert(logger, 'reset clears pause', debugRuntime.isPaused(), false);
+    }
+
+    // =========================================================================
+    // Tail calls under the debugger
+    // =========================================================================
+    // Attaching a debug runtime must not change the evaluator's space
+    // behaviour. Each procedure entry pushes a DebugExitFrame, so unless tail
+    // calls reuse the existing one, a tail-recursive loop accumulates one frame
+    // per iteration and tail-call optimization is lost whenever debugging is
+    // switched on.
+    logger.title('Debug Hooks - Tail Call Optimization');
+
+    {
+        interpreter.setDebugRuntime(null);
+        run(interpreter, '(define (tco-loop n) (if (< n 1) 0 (tco-loop (- n 1))))');
+        run(interpreter, '(define (tco-deep n) (if (< n 1) 0 (+ 1 (tco-deep (- n 1)))))');
+
+        /**
+         * Measures the deepest the frame stack gets while running `code`.
+         * @param {string} code - Scheme source to evaluate.
+         * @param {Object|null} runtime - A debug runtime to attach, or null.
+         * @returns {{depth: number, result: *}} Max frame depth and the result.
+         */
+        const measure = (code, runtime) => {
+            interpreter.setDebugRuntime(runtime);
+            const probe = instrumentInterpreter(interpreter);
+            let result;
+            let stats;
+            try {
+                result = run(interpreter, code);
+            } finally {
+                stats = probe.stop();
+                interpreter.setDebugRuntime(null);
+            }
+            return { depth: stats.maxStackDepth, result };
+        };
+
+        const makeRuntime = () => {
+            const runtime = new SchemeDebugRuntime({ onPause: () => { } });
+            runtime.enable();
+            return runtime;
+        };
+
+        const shallow = measure('(tco-loop 50)', makeRuntime());
+        const long = measure('(tco-loop 800)', makeRuntime());
+
+        assert(logger, 'tail loop still produces the right answer under the debugger',
+            long.result, 0);
+        assert(logger, 'tail loop frame depth does not grow with iteration count',
+            long.depth, shallow.depth);
+
+        // The complementary check: if tail calls were detected too eagerly the
+        // stack would stop growing for genuine recursion too, and the debugger
+        // would report a flat stack for a deeply nested call.
+        const deepSmall = measure('(tco-deep 20)', makeRuntime());
+        const deepLarge = measure('(tco-deep 40)', makeRuntime());
+
+        assert(logger, 'non-tail recursion still grows the frame stack',
+            deepLarge.depth > deepSmall.depth, true);
+        assert(logger, 'non-tail recursion still produces the right answer',
+            deepLarge.result, 40);
     }
 }
 

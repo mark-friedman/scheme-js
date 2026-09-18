@@ -11,6 +11,7 @@ import { StackTracer } from './stack_tracer.js';
 import { PauseController } from './pause_controller.js';
 import { DebugExceptionHandler } from './exception_handler.js';
 import { StateInspector } from './state_inspector.js';
+import { ENV } from '../core/interpreter/stepables_base.js';
 
 /**
  * Main debug runtime coordinator.
@@ -232,14 +233,16 @@ export class SchemeDebugRuntime {
      * Called by RaiseNode when shouldBreakOnException returns true.
      *
      * @param {Object} raiseNode - The RaiseNode that raised the exception
-     * @param {Object} registers - Current interpreter registers
+     * @param {Array} registers - Current interpreter registers. This is the
+     *   evaluator's register *array*, indexed by the constants in
+     *   `stepables_base.js`, not an object with named fields.
      * @returns {boolean} Whether execution was paused
      */
     pauseOnException(raiseNode, registers) {
         // Get source from the raiseNode if available
         const source = raiseNode.source || null;
         const exception = raiseNode.exception;
-        const env = registers.env;
+        const env = registers[ENV];
 
         this.pauseController.pause('exception', null);
 

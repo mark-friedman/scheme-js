@@ -23,6 +23,21 @@ import {
 } from './library_registry.js';
 import { parseDefineLibrary, parseImportSet } from './library_parser.js';
 
+/**
+ * Derives a display filename for a library's source.
+ *
+ * The debugger matches breakpoints on `source.filename`, so every form needs to
+ * carry one. Library sources are located by a pluggable resolver that need not
+ * be backed by a filesystem at all -- in the browser it reads from bundled
+ * strings -- so the library name is the only stable identifier available.
+ *
+ * @param {Array<string>} libraryName - The library name parts, e.g. ['scheme', 'base'].
+ * @returns {string} A filename such as 'scheme/base'.
+ */
+function libraryFileName(libraryName) {
+    return Array.isArray(libraryName) ? libraryName.join('/') : String(libraryName);
+}
+
 // =============================================================================
 // Re-exports for backwards compatibility
 // =============================================================================
@@ -75,7 +90,9 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
     }
 
     const source = await fileResolver(libraryName);
-    const forms = parse(source);
+    // Name the source after the library so breakpoints set in a library file
+    // can match; without a filename every form claims to be from '<unknown>'.
+    const forms = parse(source, { filename: libraryFileName(libraryName) });
 
     if (forms.length === 0) {
         throw new SchemeLibraryError('empty library file', key);
@@ -116,7 +133,7 @@ export function loadLibrarySync(libraryName, analyze, interpreter, baseEnv) {
         throw new SchemeLibraryError('async resolver not supported in sync load', key);
     }
 
-    const forms = parse(source);
+    const forms = parse(source, { filename: libraryFileName(libraryName) });
 
     if (forms.length === 0) {
         throw new SchemeLibraryError('empty library file', key);
@@ -165,7 +182,7 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
             const includeSource = strategy.resolveFile(
                 [...libraryName.slice(0, -1), includeFile]
             );
-            const includeForms = parse(includeSource);
+            const includeForms = parse(includeSource, { filename: includeFile });
             for (const form of includeForms) {
                 libDef.body.push(form);
             }
@@ -176,7 +193,7 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
             const includeSource = strategy.resolveFile(
                 [...libraryName.slice(0, -1), includeFile]
             );
-            const includeForms = parse(includeSource, { caseFold: true });
+            const includeForms = parse(includeSource, { caseFold: true, filename: includeFile });
             for (const form of includeForms) {
                 libDef.body.push(form);
             }
@@ -187,7 +204,7 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
             const declSource = strategy.resolveFile(
                 [...libraryName.slice(0, -1), declFile]
             );
-            const declForms = parse(declSource);
+            const declForms = parse(declSource, { filename: declFile });
 
             // Process each declaration in the included file
             for (const decl of declForms) {
@@ -322,7 +339,7 @@ export async function evaluateLibraryDefinition(libDef, analyze, interpreter, ba
         for (const declFile of libDef.includeLibraryDeclarations) {
             const declPath = [...libraryName.slice(0, -1), declFile];
             const declSource = await resolveFileAsync(declPath);
-            const declForms = parse(declSource);
+            const declForms = parse(declSource, { filename: declFile });
 
             // Pre-resolve imports within library declarations
             for (const decl of declForms) {

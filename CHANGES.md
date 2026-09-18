@@ -4067,3 +4067,316 @@ OK
 Math OK
 Unless OK
 ```
+
+---
+
+# Compiler Effort — Stage 0: Measurement, Instrumentation & Conformance Audit
+
+**Date:** 2026-09-18
+
+## Context
+
+The interpreter's runtime performance was suspected to be structurally limited. Stage 0 establishes
+whether that is true, by how much, and against what external reference — before any optimization
+work begins. Full analysis: [docs/compiler_strategy.md](docs/compiler_strategy.md). Measurements:
+[docs/performance_baseline.md](docs/performance_baseline.md).
+
+## Findings
+
+`fib(30)` takes **6,524 ms** here, against **10 ms** in plain JavaScript, **6.3 ms** in Racket CS,
+and **~240 ms** in Gambit's *interpreter*. CPU profiling attributes **~84% of runtime to evaluator
+overhead** and **under 3% to the program's actual arithmetic**.
+
+Being interpreted accounts for roughly a factor of 25 of the gap; the remainder is representation.
+Specifically: `AppFrame` allocates a fresh frame per *argument* (O(n²) in arity), variable
+references are string-keyed hash lookups walking a chain of `Map`s, each call allocates three
+`Map`s plus an `Environment`, and `<`, `>`, `=`, `<=`, `>=` are Scheme-level variadic procedures
+with rest parameters rather than primitives — so one integer comparison expands into four nested
+applications. `fib` costs about **40 evaluator steps per call**.
+
+The full numeric tower, by contrast, costs about 3x — so the numeric optimizations already queued
+in `ROADMAP.md` target a 3x problem while a ~200x problem sits next to them.
+
+One result was contrary to expectation and is worth carrying forward: **our continuations are
+relatively less bad than our baseline execution.** Against Racket the ratio falls from ~1400x on
+`fib` to 40–140x on the continuation benchmarks. The explicit frame-stack representation is not the
+bottleneck; ordinary evaluation is.
+
+## Added
+
+- **`benchmarks/programs/`** — eight portable R7RS benchmark programs. The same sources run
+  unmodified under scheme-js-4, Gambit and Racket: the driver supplies `bench-size` and calls
+  `(bench-run)`. Four (`fib`, `nqueens`, `oddeven`, plus `ctak`/`contfib`/`btsearch`) are drawn
+  from Thivierge & Feeley (SFP 2012) so results are comparable to published numbers. `btsearch`
+  and `threads` require multi-shot continuations, so a wrong answer there is a correctness failure
+  rather than a slow result.
+- **`benchmarks/programs/manifest.js`** — benchmark definitions with `quick` and `canonical` size
+  profiles. Canonical sizes match the literature; quick sizes are what the interpreter can run
+  today. The profile is recorded in every result, since a time is meaningless without its size.
+- **`benchmarks/lib/harness.js`** — shared bootstrap and timing. Each benchmark gets a fresh
+  interpreter so global state (`btsearch`'s `fail`, `threads`' ready queue) cannot leak between runs.
+- **`benchmarks/run_standard.js`** (`npm run benchmark:standard`) — the suite, with correctness
+  checks against expected values verified by three-way implementation agreement.
+- **`benchmarks/compare_implementations.js`** (`npm run benchmark:implementations`) — runs the same
+  programs under Gambit and Racket, skipping whichever are not installed. Cross-implementation
+  agreement is a stronger correctness check than any hardcoded expected value.
+- **`benchmarks/profile.js`** (`npm run benchmark:profile`) — CPU profiling via the inspector API,
+  with bootstrap and analysis excluded so the profile reflects evaluation only. Routes the timed
+  call through a named `trampoline` function because V8 inlines `Interpreter.run`'s loop into its
+  caller, which would otherwise hide the trampoline's self time inside `main`.
+- **`benchmarks/count_steps.js`** (`npm run benchmark:steps`) — deterministic dispatch counts.
+- **`src/debug/instrumentation.js`** — `instrumentInterpreter()` and `formatStats()`. Attaches by
+  wrapping the interpreter rather than by adding an `if (instrumenting)` branch to the dispatch
+  loop, so it costs nothing when nobody is measuring. Counts are deterministic and
+  machine-independent, which makes them the right way to verify that an optimization removed work
+  rather than got lucky with the JIT.
+- **`scripts/audit_r7rs.js`** (`npm run audit:r7rs`) and **`scripts/r7rs_identifiers.js`** — probes
+  every identifier R7RS-small requires, classifying each as bound, missing, or a stub that throws
+  unconditionally. The last category matters most: a stub looks like conformance until called.
+- **`benchmarks/baseline_standard.json`** — the committed Stage 0 baseline.
+- **`docs/performance_baseline.md`** and **`docs/compiler_strategy.md`**.
+
+## Fixed
+
+Three debugger behaviours were implemented but non-functional. They are fixed rather than
+preserved, so that "does the debugger still work?" is a meaningful question during later stages.
+
+- **Enabling the debugger broke tail-call optimization.** Every procedure entry pushed a
+  `DebugExitFrame` that stayed on the frame stack until the whole chain returned, so a tail loop
+  accumulated one frame per iteration — measured at depth **806 for 800 iterations**, against 4
+  with debugging off. A long-running tail-recursive program would exhaust memory under the debugger
+  but not otherwise. `recordDebugFrameEntry` in `frames.js` now detects tail position from the
+  frame stack: a `DebugExitFrame` on top at the moment of application means nothing is pending in
+  the calling procedure, which is exactly what tail position means. Tail calls reuse that frame via
+  the previously-unreachable `StackTracer.replaceFrame`. Tail loops now hold at constant depth
+  while non-tail recursion still grows.
+- **Every `source.filename` was the literal string `'<unknown>'`**, because `parse()` never passed
+  a filename to `tokenize()`. File-scoped breakpoints could therefore never match. `parse()` now
+  accepts a `filename` option, threaded from the library loader (named after the library, since the
+  file resolver need not be filesystem-backed) and from `load`.
+- **`pauseOnException` read `registers.env`** from what is an array indexed by `ENV = 2`, so the
+  environment was always `undefined` and locals were unavailable at an exception breakpoint.
+
+## Conformance audit results
+
+285 identifiers bound, 43 syntactic keywords present, **7 missing**, **2 stubs**, **2 libraries not
+importable**.
+
+- Stubs: `string-set!`, `string-fill!` — both throw *"strings are immutable in this implementation
+  for JavaScript interoperability"*.
+- Missing: `call-with-port`, `rationalize`, `read-bytevector!`, `string-copy!`,
+  `open-binary-input-file`, `open-binary-output-file`, `load`.
+- Not importable: `(scheme inexact)`, `(scheme load)` have no `.sld` file. All twelve
+  `(scheme inexact)` procedures are bound globally, so that one is a packaging gap rather than a
+  functionality gap.
+
+The substantive cluster is string mutability: `string-set!`, `string-fill!` and `string-copy!` are
+exactly the three mutation procedures, absent for the same deliberate reason. Resolving it means a
+value-representation change, scheduled into Stage 2b.
+
+The audit is a reporting tool rather than a registered test, because wiring it into `npm test`
+today would fail the build. It should be promoted to a test once the deviations are closed.
+
+## Testing
+
+`npm test`: **2043 passed, 0 failed, 7 skipped** (from 2021 before this work — 22 new assertions,
+no regressions). New and extended tests:
+
+- `tests/functional/instrumentation_tests.js` — determinism, proportionality, stack-depth
+  behaviour, clean detach, and that observation does not alter results.
+- `tests/functional/debug_hooks_tests.js` — tail loops hold constant frame depth under the
+  debugger, *and* non-tail recursion still grows (the complementary check: detecting tail calls too
+  eagerly would flatten genuine recursion and misreport the stack).
+- `tests/core/interpreter/reader/source_location_tests.js` — filename propagation through
+  `tokenize` and `parse`, including the `'<unknown>'` default.
+- `tests/functional/exception_debugging_tests.js` — the exception pause carries a real environment
+  with inspectable bindings.
+
+---
+
+# Compiler Effort — Stage 1: Interpreter Representation
+
+**Date:** 2026-09-18
+
+**2.57x geometric mean** across the benchmark suite, and a **3.4–5.7x reduction in evaluator
+dispatches**. The gap to Gambit's *interpreter* closed from ~26x to ~8x. Results after every stage
+are tracked in [docs/performance_progress.md](docs/performance_progress.md), generated from
+`benchmarks/history.json` by `npm run benchmark:record`.
+
+| Benchmark | Stage 0 | Stage 1 | speedup | steps |
+|---|---|---|---|---|
+| `fib` | 593 ms | 136 ms | 4.35x | 5.06x fewer |
+| `oddeven` | 216 ms | 53 ms | 4.08x | 5.67x fewer |
+| `tak` | 178 ms | 55 ms | 3.25x | 4.69x fewer |
+| `contfib` | 75 ms | 30 ms | 2.51x | 4.57x fewer |
+| `nqueens` | 143 ms | 58 ms | 2.48x | 3.41x fewer |
+| `ctak` | 233 ms | 110 ms | 2.12x | 4.35x fewer |
+| `btsearch` | 326 ms | 165 ms | 1.98x | 3.37x fewer |
+| `threads` | 160 ms | 128 ms | 1.25x | — |
+
+## The main idea
+
+**A literal or a variable reference cannot capture a continuation.** There is therefore no
+suspension point to preserve in one, and it can be evaluated in place rather than suspended into a
+frame and bounced through the trampoline. Applied to operators, operands and `if` tests, this is
+where most of the improvement came from: a call like `(< n 2)` previously cost three frames and six
+dispatches to compute one comparison, and now completes within a single dispatch.
+
+Inlining is skipped whenever a debug runtime is enabled, so every subexpression still passes through
+the dispatcher where breakpoints are checked. Debug fidelity is unchanged; only the non-debugging
+path got faster.
+
+## Changed — performance
+
+- **Comparison operators are now native primitives.** `=`, `<`, `>`, `<=`, `>=` were defined in
+  `src/core/scheme/numbers.scm` as variadic Scheme procedures with rest parameters. A deliberate,
+  documented exception to the project's "Scheme over JS" rule: these five sit on the hot path of
+  every numeric program.
+- **Non-capturing subexpressions are evaluated inline** — in `continueApplication` (operator and
+  operands) and `IfNode` (test).
+- **Application logic extracted** from `AppFrame.step` into a module-level `continueApplication`, so
+  both the frame and the inlined path share one implementation. `ast_nodes.js` reaches it through a
+  `frame_registry` **live binding** (`export let`) rather than a forwarding function; the wrapper
+  call was showing up at 4.3% of profile time on a path taken by every application.
+- **`pushJsContext` no longer copies the frame stack.** It recorded `[...fstack]` on every primitive
+  application — an O(depth) cost paid almost entirely for primitives that never re-enter Scheme. It
+  now stores the stack by reference plus its depth and copies only if `getParentContext` asks. Safe
+  because the frames below that depth cannot change while the entry is live: the interpreter is
+  suspended inside the JS call for exactly that window.
+- **`TailAppNode` precomputes its expression array**, `AppFrame` indexes into it rather than
+  re-slicing, the closure-application path reads operands in place via `Environment.extendManyFrom`,
+  `nameMap` is allocated lazily, and `lookup` probes each frame once instead of twice.
+
+## Fixed
+
+- **Rational comparison was wrong.** `<` and friends bottomed out in JavaScript's `<` applied to
+  `Rational` objects, which have no `valueOf`, so they were compared **as strings**; `=` used `===`
+  and compared them by identity. `(= 1/2 1/2)` returned `#f`, `(< 1/2 1)` returned `#f`, and
+  `(< 1/3 1/2)` returned `#f`. Comparison now goes through `numericCompare`, which compares exact
+  operands exactly by cross-multiplication — so large integers and rationals differing beyond double
+  precision compare correctly rather than being rounded together first — and uses floating point
+  only when an operand is already inexact.
+- **`<`, `>`, `<=`, `>=` now reject complex arguments**, as R7RS requires; `=` accepts them and
+  compares real and imaginary parts, which it previously could not do.
+
+## Not done, and why
+
+- **Lexical addressing and global value cells.** Profiling after the other changes showed the entire
+  cost of variable lookup — `Environment.lookup`, `extendManyFrom` and `VariableNode` dispatch
+  combined — was about 15% of runtime, so perfect elimination would be worth roughly 1.17x. That
+  does not justify reworking `SyntacticEnv` (which has one binding per frame, against one runtime
+  frame per lambda), the environment representation, `StateInspector`, and the REPL's `:eval`.
+- **A mutable single-frame-per-call design.** `call/cc` captures the frame stack by copying the
+  array, so frames are shared with every continuation captured during a call; mutating them would
+  let a captured continuation observe operands evaluated after its capture. Cloning at capture is
+  not a workaround either, because `dynamic-wind` finds the common ancestor of two stacks by frame
+  identity. This belongs with Stage 2b, where the continuation representation is being redesigned.
+  Tests pinning the current behaviour were written first, in `tests/core/scheme/number_tests.scm`.
+- **Unifying `run` and `runAsync`**, which remain hand-maintained near-duplicates.
+
+## The Stage 1 target was wrong
+
+The plan estimated 10–30x for Stage 1. That was an over-estimate, and the profile shows why: after
+these changes the remaining time is dominated by the frame machinery itself — `continueApplication`,
+the trampoline, and the two application dispatches — which together are ~55% of runtime and cannot
+be removed without changing the execution model.
+
+Primitive work rose from 2.8% of runtime at baseline to 8.5%, so the ratio of real work to overhead
+improved about 3x. But an AST-walking interpreter with a reified frame stack has a floor well above
+native code, and we are now within ~8x of Gambit's interpreter — which is roughly where an
+interpreter of this design should land.
+
+This strengthens the case for the compiler rather than weakening it. Remaining interpreter
+optimizations are worth small constant factors; the measured headroom to Racket CS is still 300–600x
+on call-heavy programs.
+
+## Testing
+
+`npm test`: **2077 passed, 0 failed, 7 skipped** (from 2043 — 34 new assertions, no regressions).
+Rollup build verified.
+
+- `tests/core/scheme/number_tests.scm` — comparison across exact integers, rationals, mixed
+  exactness, and values differing beyond double precision; plus continuation capture during argument
+  evaluation, including re-entrant and multi-shot cases, which are what constrain the frame
+  representation. One expected value was initially wrong and was corrected against Gambit.
+
+---
+
+# Compiler Effort — Stage 2a: Calling-Convention Bake-off
+
+**Date:** 2026-09-18
+
+**Decision: convention B — native JavaScript stack, trampoline for tail calls, cooperative unwind
+for `call/cc`.**
+
+Two throwaway compilers in `experiments/stage2a/`, built from a shared front end so that any
+difference in the numbers is a difference between the conventions and not between two independently
+written compilers. Both pass all eight benchmarks, including the two that require multi-shot
+continuations.
+
+## Results
+
+| Benchmark | capture | A explicit stack | B native stack | winner |
+|---|---|---|---|---|
+| `fib` | no | 16.4 ms | 5.1 ms | **B 3.2x** |
+| `tak` | no | 4.7 ms | 1.4 ms | **B 3.3x** |
+| `oddeven` | no | 2.7 ms | 2.7 ms | B 1.0x |
+| `nqueens` | no | 2.3 ms | 1.3 ms | **B 1.8x** |
+| `ctak` | yes | 9.0 ms | 11.0 ms | A 1.2x |
+| `contfib` | yes | 2.8 ms | 4.2 ms | A 1.5x |
+| `btsearch` | multi-shot | 5.9 ms | 8.8 ms | A 1.5x |
+| `threads` | multi-shot | 17.4 ms | 11.4 ms | **B 1.5x** |
+
+Geometric mean speedup over the current interpreter: **A 13.0x, B 17.5x.**
+
+**Stack visibility**, measured by probing a Scheme recursion 12 frames deep and reading the
+JavaScript stack — which is what a debugger's call-stack panel is rendered from:
+
+| Convention | Scheme frames visible |
+|---|---|
+| A | **1** |
+| B | **13** (12 levels plus the entry call) |
+
+**Generated code size:** A 23,244 bytes, B 95,008 bytes (**4.09x**).
+
+## Why B
+
+The plan expected to trade performance away for debuggability, and set the bar at "B wins if its
+overhead is under ~2x". B has no overhead to excuse: it is faster on the normal path by up to 3.3x
+and faster overall, while giving up 1.2–1.5x on three of the four capture-heavy programs. And under
+B the Scheme call stack *is* the JavaScript call stack, which is what decides whether the DevTools
+extension can be retired.
+
+The real cost is code size. B's fast path is straight-line JavaScript; to be re-enterable after a
+capture, each procedure needs a second state-machine copy (Marshall's separate `Continue` method).
+The prototype emits that twin for every procedure, which is conservative — an effect analysis
+proving a procedure can never capture would drop most of them. That is now a named Stage 2b task,
+and it matters because code size matters for browser delivery.
+
+## Findings the plan had not anticipated
+
+- **Both conventions need re-enterable procedures.** The plan framed fragmentation as a cost unique
+  to B. Convention A needs a procedure resumable at *every non-tail call*, because control leaves
+  through the trampoline each time; B needs it only where a capture is possible. A pays on the
+  normal path, B pays in code size. That is the whole trade, and it explains why A is slower despite
+  emitting a quarter as much code.
+- **Assignment conversion is required by both.** A re-entered procedure restores its locals from a
+  frame, creating a *fresh* JavaScript binding; a closure created earlier still refers to the old
+  one, so assignments through one are invisible to the other. The `threads` benchmark silently
+  returned 0 instead of 4000 until local mutable variables were boxed. Pettyjohn et al. list this as
+  step 1 of their transformation.
+- **Continuation cost was not the risk it was framed as.** Stage 0 had already shown our
+  continuations were relatively healthy; the bake-off confirms the conventions differ by only
+  1.2–1.5x there, against up to 3.3x on the normal path.
+
+## Stated limitation
+
+What was measured is the stack **shape** — that one live Scheme frame is one live JavaScript frame.
+Relabelling those frames with Scheme names and positions through a source map is a separate,
+mechanical step that was **not** verified end to end in DevTools. That verification belongs in
+Stage 2b, before `extension/` is actually deleted.
+
+## Testing
+
+`npm test`: **2077 passed, 0 failed, 7 skipped** — unchanged. The prototypes live entirely under
+`experiments/` and touch nothing in `src/`.

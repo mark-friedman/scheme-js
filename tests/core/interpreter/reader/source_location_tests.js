@@ -346,6 +346,40 @@ export function runSourceLocationTests(logger) {
             logger.skip('datum label position info (not yet implemented)');
         }
     }
+
+    // ============================================================
+    // FILENAME PROPAGATION
+    // ============================================================
+    // The debugger matches breakpoints on `source.filename`. If parse() cannot
+    // be told which file it is reading, every expression in the system claims
+    // to come from '<unknown>' and file-scoped breakpoints can never match.
+    logger.title('Source Filename Propagation');
+
+    {
+        const tokens = tokenize('(+ 1 2)', 'demo.scm');
+        assert(logger, 'tokenize records the supplied filename',
+            tokens[0].source.filename, 'demo.scm');
+    }
+
+    {
+        const exprs = parse('(+ 1 2)', { filename: 'arith.scm' });
+        assert(logger, 'parse threads filename through to expressions',
+            exprs[0].source.filename, 'arith.scm');
+    }
+
+    {
+        const exprs = parse('(define (f x)\n  (* x 2))', { filename: 'nested.scm' });
+        assert(logger, 'nested forms carry the filename',
+            exprs[0].source.filename, 'nested.scm');
+        assert(logger, 'line numbers still correct with a filename',
+            exprs[0].source.line, 1);
+    }
+
+    {
+        const exprs = parse('(+ 1 2)');
+        assert(logger, 'filename defaults to <unknown> when not supplied',
+            exprs[0].source.filename, '<unknown>');
+    }
 }
 
 export default runSourceLocationTests;

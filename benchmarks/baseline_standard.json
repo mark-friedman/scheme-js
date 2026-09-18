@@ -1,0 +1,197 @@
+{
+  "note": "Stage 0 baseline for the compiler effort. Narrative: docs/performance_baseline.md",
+  "timestamp": "2026-09-18T19:50:29.744684+00:00",
+  "nodeVersion": "v24.11.1",
+  "platform": "darwin/arm64",
+  "profile": "quick",
+  "timings": {
+    "fib": {
+      "size": 25,
+      "ms": 591.675,
+      "result": "121393",
+      "error": null
+    },
+    "tak": {
+      "size": 18,
+      "ms": 171.54,
+      "result": "7",
+      "error": null
+    },
+    "oddeven": {
+      "size": 100000,
+      "ms": 204.346,
+      "result": "#f",
+      "error": null
+    },
+    "nqueens": {
+      "size": 8,
+      "ms": 134.028,
+      "result": "92",
+      "error": null
+    },
+    "ctak": {
+      "size": 18,
+      "ms": 214.497,
+      "result": "9",
+      "error": null
+    },
+    "contfib": {
+      "size": 20,
+      "ms": 67.991,
+      "result": "10946",
+      "error": null
+    },
+    "btsearch": {
+      "size": 200,
+      "ms": 298.485,
+      "result": "(200 . 200)",
+      "error": null
+    },
+    "threads": {
+      "size": 400,
+      "ms": 158.28,
+      "result": "4000",
+      "error": null
+    }
+  },
+  "stepCounts": {
+    "fib": {
+      "size": 18,
+      "totalSteps": 338619,
+      "maxStackDepth": 21
+    },
+    "tak": {
+      "size": 14,
+      "totalSteps": 437092,
+      "maxStackDepth": 18
+    },
+    "oddeven": {
+      "size": 2000,
+      "totalSteps": 68039,
+      "maxStackDepth": 4
+    },
+    "nqueens": {
+      "size": 6,
+      "totalSteps": 103789,
+      "maxStackDepth": 26
+    },
+    "ctak": {
+      "size": 14,
+      "totalSteps": 349518,
+      "maxStackDepth": 18
+    },
+    "contfib": {
+      "size": 14,
+      "totalSteps": 58518,
+      "maxStackDepth": 17
+    },
+    "btsearch": {
+      "size": 40,
+      "totalSteps": 174762,
+      "maxStackDepth": 7
+    },
+    "threads": {
+      "size": 40,
+      "totalSteps": 56481,
+      "maxStackDepth": 174
+    }
+  },
+  "crossImplementation": {
+    "fib": {
+      "size": 25,
+      "scheme_js_4": 564.47225,
+      "results": {
+        "scheme-js-4": "121393",
+        "gambit-gsi": "121393",
+        "racket": "121393"
+      },
+      "gambit-gsi": 21.450042724609375,
+      "racket": 0.407958984375,
+      "agree": true
+    },
+    "tak": {
+      "size": 18,
+      "scheme_js_4": 167.46104100000002,
+      "results": {
+        "scheme-js-4": "7",
+        "gambit-gsi": "7",
+        "racket": "7"
+      },
+      "gambit-gsi": 6.276130676269531,
+      "racket": 0.11279296875,
+      "agree": true
+    },
+    "oddeven": {
+      "size": 100000,
+      "scheme_js_4": 195.72191699999985,
+      "results": {
+        "scheme-js-4": "#f",
+        "gambit-gsi": "#f",
+        "racket": "#f"
+      },
+      "gambit-gsi": 7.000923156738281,
+      "racket": 0.073974609375,
+      "agree": true
+    },
+    "nqueens": {
+      "size": 8,
+      "scheme_js_4": 134.6583330000003,
+      "results": {
+        "scheme-js-4": "92",
+        "gambit-gsi": "92",
+        "racket": "92"
+      },
+      "gambit-gsi": 6.066083908081055,
+      "racket": 0.118896484375,
+      "agree": true
+    },
+    "ctak": {
+      "size": 18,
+      "scheme_js_4": 215.62779199999932,
+      "results": {
+        "scheme-js-4": "9",
+        "gambit-gsi": "9",
+        "racket": "9"
+      },
+      "gambit-gsi": 11.022090911865234,
+      "racket": 2.577880859375,
+      "agree": true
+    },
+    "contfib": {
+      "size": 20,
+      "scheme_js_4": 68.67766599999959,
+      "results": {
+        "scheme-js-4": "10946",
+        "gambit-gsi": "10946",
+        "racket": "10946"
+      },
+      "gambit-gsi": 3.242015838623047,
+      "racket": 1.698974609375,
+      "agree": true
+    },
+    "btsearch": {
+      "size": 200,
+      "scheme_js_4": 305.67862499999956,
+      "results": {
+        "scheme-js-4": "(200 . 200)",
+        "gambit-gsi": "(200 . 200)",
+        "racket": "(200 . 200)"
+      },
+      "gambit-gsi": 10.776996612548828,
+      "racket": 2.22998046875,
+      "agree": true
+    },
+    "threads": {
+      "size": 400,
+      "scheme_js_4": 161.78737499999988,
+      "results": {
+        "scheme-js-4": "4000",
+        "gambit-gsi": "4000",
+        "racket": "4000"
+      },
+      "gambit-gsi": 15.329837799072266,
+      "racket": 7.805908203125,
+      "agree": true
+    }
+  }
+}

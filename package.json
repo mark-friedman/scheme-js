@@ -12,7 +12,13 @@
     "benchmark:compare": "node benchmarks/compare_baseline.js",
     "pretest": "npm run build",
     "prebuild": "node scripts/generate_bundled_libraries.js",
-    "build": "rollup -c && cp web/gh-pages.html dist/index.html"
+    "build": "rollup -c && cp web/gh-pages.html dist/index.html",
+    "benchmark:standard": "node benchmarks/run_standard.js",
+    "benchmark:steps": "node benchmarks/count_steps.js",
+    "benchmark:profile": "node benchmarks/profile.js",
+    "benchmark:implementations": "node benchmarks/compare_implementations.js",
+    "audit:r7rs": "node scripts/audit_r7rs.js",
+    "benchmark:record": "node benchmarks/record_progress.js"
   },
   "private": true,
   "devDependencies": {

@@ -13,6 +13,20 @@ let CallWithValuesFrame, ExceptionHandlerFrame, RaiseContinuableResumeFrame;
 let RaiseNonContinuableResumeFrame;
 
 /**
+ * Continues an application: evaluates any remaining operands, then applies.
+ * See `continueApplication` in `frames.js`.
+ *
+ * Registered by `frames.js` alongside the frame classes, for the same reason:
+ * `ast_nodes.js` cannot import `frames.js` directly without a cycle. This is an
+ * `export let` rather than a forwarding function so that callers reach the real
+ * implementation through the module's live binding, with no wrapper call on a
+ * path taken by every single procedure application.
+ *
+ * @type {function(Array, number, Array, Object, Array, Object): boolean}
+ */
+export let continueApplication;
+
+/**
  * Registers frame classes. Called by stepables.js during module initialization.
  * @param {Object} frames - Object containing all frame classes.
  */
@@ -31,6 +45,7 @@ export function registerFrames(frames) {
     ExceptionHandlerFrame = frames.ExceptionHandlerFrame;
     RaiseContinuableResumeFrame = frames.RaiseContinuableResumeFrame;
     RaiseNonContinuableResumeFrame = frames.RaiseNonContinuableResumeFrame;
+    continueApplication = frames.continueApplication;
 }
 
 // --- Factory Functions ---
@@ -72,9 +87,14 @@ export function createDefineFrame(name, env) {
 
 /**
  * Creates an AppFrame instance.
+ * @param {Array<Executable>} exprs - Operator followed by operand expressions.
+ * @param {number} index - Index within `exprs` awaiting a value.
+ * @param {Array<*>} values - Values evaluated so far.
+ * @param {Environment} env - The captured environment.
+ * @returns {AppFrame} The new frame.
  */
-export function createAppFrame(argExprs, argValues, env) {
-    return new AppFrame(argExprs, argValues, env);
+export function createAppFrame(exprs, index, values, env) {
+    return new AppFrame(exprs, index, values, env);
 }
 
 /**

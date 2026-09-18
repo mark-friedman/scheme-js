@@ -59,11 +59,36 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │   └── workflows/
 │       └── ci.yml                  # GitHub Actions CI (Tests + Benchmarks)
 ├── benchmarks/                     # Performance Benchmarks
-│   ├── run_benchmarks.js           # Core benchmark runner
+│   ├── run_benchmarks.js           # Numeric-tower benchmark runner
 │   ├── save_baseline.js            # Create/update baseline
 │   ├── compare_baseline.js         # Compare current vs baseline
 │   ├── baseline.json               # Recorded baseline metrics
-│   └── *.scm                       # Benchmark definitions (arithmetic, mixed...)
+│   ├── *.scm                       # Numeric-tower benchmark definitions
+│   ├── run_standard.js             # Standard suite runner (call/tail/alloc/call-cc)
+│   ├── count_steps.js              # Deterministic evaluator step counts
+│   ├── profile.js                  # CPU profiler (inspector API)
+│   ├── compare_implementations.js  # Same programs under Gambit and Racket
+│   ├── baseline_standard.json      # Stage 0 baseline for the compiler effort
+│   ├── lib/
+│   │   └── harness.js              # Shared bootstrap and timing
+│   └── programs/                   # Portable R7RS benchmark programs
+│       ├── manifest.js             # Sizes, expected results, categories
+│       └── *.scm                   # fib, tak, oddeven, nqueens, ctak,
+│                                   #   contfib, btsearch, threads
+├── experiments/                    # Throwaway prototypes, not production code
+│   └── stage2a/                    # Calling-convention bake-off (see compiler_strategy.md)
+│       ├── frontend.js             # Shared front end: Scheme subset -> normalized tree
+│       ├── runtime.js              # Shared values and primitives for both backends
+│       ├── backend_a.js            # Convention A: explicit frame stack + trampoline
+│       ├── backend_b.js            # Convention B: native JS stack + unwind capture
+│       ├── backend_b_resume.js     # Convention B's resumable twins
+│       ├── stack_machine.js        # Convention A's explicit stack
+│       ├── run.js / summary.js     # Correctness and timing
+│       └── stack_shape.js          # What a debugger's call stack would show
+├── scripts/                        # Build and audit tooling
+│   ├── generate_bundled_libraries.js # Inlines .sld/.scm sources for the browser
+│   ├── audit_r7rs.js               # R7RS-small conformance audit
+│   └── r7rs_identifiers.js         # Required-identifier reference list
 ├── src/
 │   ├── packaging/                  # Bundling and distribution logic
 │   │   ├── scheme_entry.js         # Core bundle entry point
@@ -177,7 +202,8 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │      ├── state_inspector.js  # Scope & value inspection
 │      ├── exception_handler.js # Error interception
 │      ├── repl_debug_backend.js # REPL-specific backend adapter
-│      └── repl_debug_commands.js # REPL command parser (:break, :step, etc.)
+│      ├── repl_debug_commands.js # REPL command parser (:break, :step, etc.)
+│      └── instrumentation.js  # Deterministic evaluator step counting
 │
 │   └── extras/                     # Extension libraries (non-R7RS)
 │       ├── primitives/             # JavaScript primitives for extensions

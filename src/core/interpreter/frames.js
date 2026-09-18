@@ -19,7 +19,7 @@ import { SchemeApplicationError } from './errors.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
-import { LiteralNode, TailAppNode, RestoreContinuation, RaiseNode } from './ast_nodes.js';
+import { LiteralNode, VariableNode, TailAppNode, RestoreContinuation, RaiseNode } from './ast_nodes.js';
 
 // =============================================================================
 // Helper Functions
@@ -204,6 +204,41 @@ export class DefineFrame extends Executable {
 }
 
 /**
+ * Records entry into a procedure for the debugger's shadow call stack.
+ *
+ * Tail calls must replace the current shadow frame rather than push a new one.
+ * Pushing would both misreport the stack (a tail-recursive loop would appear
+ * as unbounded recursion) and, worse, defeat tail-call optimization outright:
+ * each pushed `DebugExitFrame` stays on the real frame stack until the whole
+ * chain returns, so a tail loop's memory would grow with its iteration count
+ * whenever debugging was switched on.
+ *
+ * Tail position is detected from the frame stack rather than from the analyzer,
+ * which does not compute it. A `DebugExitFrame` sitting on top of the stack at
+ * the moment of application means nothing is pending in the calling procedure,
+ * so this call's result flows straight to that procedure's exit -- which is
+ * exactly what it means to be in tail position. In a non-tail call the pending
+ * work has already pushed its own frame above the exit frame.
+ *
+ * @param {Object} interpreter - The interpreter, carrying the debug runtime.
+ * @param {Array} fstack - The current frame stack.
+ * @param {Object} frameInfo - `{name, env, source}` for the procedure entered.
+ * @returns {void}
+ */
+function recordDebugFrameEntry(interpreter, fstack, frameInfo) {
+    const isTailCall = fstack.length > 0 && fstack[fstack.length - 1] instanceof DebugExitFrame;
+
+    if (isTailCall) {
+        // Reuse the exit frame already on the stack; replacing keeps the shadow
+        // stack the same depth and records the TCO count for display.
+        interpreter.debugRuntime.replaceFrame(frameInfo);
+    } else {
+        interpreter.debugRuntime.enterFrame(frameInfo);
+        fstack.push(new DebugExitFrame());
+    }
+}
+
+/**
  * Special frame pushed by the debugger to track function exit.
  */
 export class DebugExitFrame extends Executable {
@@ -256,234 +291,315 @@ export class BeginFrame extends Executable {
  */
 export class AppFrame extends Executable {
     /**
-     * @param {Array<Executable>} argExprs - Remaining argument expressions.
-     * @param {Array<*>} argValues - Already-evaluated argument values.
+     * @param {Array<Executable>} exprs - The operator followed by the operand
+     *   expressions. This array belongs to the AST node and is shared by every
+     *   frame for this call site; it is never modified.
+     * @param {number} index - Index within `exprs` of the expression whose
+     *   value is being awaited.
+     * @param {Array<*>} values - Values of `exprs[0..index-1]`, in order.
      * @param {Environment} env - The captured environment.
      */
-    constructor(argExprs, argValues, env) {
+    constructor(exprs, index, values, env) {
         super();
-        this.argExprs = argExprs;
-        this.argValues = argValues;
+        this.exprs = exprs;
+        this.index = index;
+        this.values = values;
         this.env = env;
     }
 
     step(registers, interpreter) {
-        const value = registers[ANS];
-        const newArgValues = [...this.argValues, value];
-
-        if (this.argExprs.length > 0) {
-            const nextArgExpr = this.argExprs[0];
-            const remainingArgExprs = this.argExprs.slice(1);
-
-            registers[FSTACK].push(new AppFrame(
-                remainingArgExprs,
-                newArgValues,
-                this.env
-            ));
-
-            registers[CTL] = nextArgExpr;
-            registers[ENV] = this.env;
-            return true;
-        }
-
-        // All arguments evaluated, ready to apply
-        const func = newArgValues[0];
-        const args = newArgValues.slice(1);
-
-        // 1. SCHEME CLOSURE APPLICATION
-        // Check for callable Scheme closures first (they are typeof 'function')
-        if (isSchemeClosure(func)) {
-            registers[CTL] = func.body;
-
-            // Handle rest parameter if present
-            if (func.restParam) {
-                // Required params get their args, rest param gets remaining as list
-                const requiredCount = func.params.length;
-                const requiredArgs = args.slice(0, requiredCount);
-                const restArgs = args.slice(requiredCount);
-
-                // Build a Scheme list from rest args
-                let restList = null;
-                for (let i = restArgs.length - 1; i >= 0; i--) {
-                    restList = new Cons(restArgs[i], restList);
-                }
-
-                // Extend environment with required params + rest param
-                const allParams = [...func.params, func.restParam];
-                const allOriginalParams = [...(func.originalParams || func.params), (func.originalRestParam || func.restParam)];
-                const allArgs = [...requiredArgs, restList];
-                let newEnv = func.env.extendMany(allParams, allArgs, allOriginalParams);
-                // Bind 'this' pseudo-variable if available (method call)
-                if (registers[THIS] !== undefined) {
-                    registers[ENV] = newEnv.extend('this', registers[THIS], 'this');
-                } else {
-                    registers[ENV] = newEnv;
-                }
-
-                // Instrumentation: enter frame and push exit tracker
-                if (interpreter.debugRuntime) {
-                    interpreter.debugRuntime.enterFrame({
-                        name: func.name || 'anonymous',
-                        env: newEnv,
-                        source: func.source
-                    });
-                    registers[FSTACK].push(new DebugExitFrame());
-                }
-            } else {
-                let newEnv = func.env.extendMany(func.params, args, func.originalParams);
-                // Bind 'this' pseudo-variable if available (method call)
-                if (registers[THIS] !== undefined) {
-                    registers[ENV] = newEnv.extend('this', registers[THIS], 'this');
-                } else {
-                    registers[ENV] = newEnv;
-                }
-
-                // Instrumentation: enter frame and push exit tracker
-                if (interpreter.debugRuntime) {
-                    interpreter.debugRuntime.enterFrame({
-                        name: func.name || 'anonymous',
-                        env: newEnv,
-                        source: func.source
-                    });
-                    registers[FSTACK].push(new DebugExitFrame());
-                }
-            }
-            return true;
-        }
-
-        // 2. SCHEME CONTINUATION INVOCATION
-        // Check for callable Scheme continuations (they are also typeof 'function')
-        if (isSchemeContinuation(func)) {
-            return this.invokeContinuation(func, args, registers, interpreter);
-        }
-
-        // 3. JS FUNCTION APPLICATION
-        // Regular JavaScript functions (including callable closures passed to JS)
-        if (typeof func === 'function') {
-            // CRITICAL: Push the current Scheme context before calling JS.
-            // This allows callable closures/continuations invoked by JS to
-            // properly track dynamic-wind frames for unwinding/rewinding.
-            interpreter.pushJsContext(registers[FSTACK]);
-
-            let result;
-            try {
-                // If it's a foreign JS function (not a Scheme closure/primitive),
-                // auto-convert arguments (e.g., BigInt -> Number)
-                let appliedArgs = args;
-                if (!isSchemePrimitive(func)) {
-                    // Respect the current js-auto-convert mode
-                    const mode = interpreter.jsAutoConvert ?? 'deep';
-                    if (mode === 'deep' || mode === true) {
-                        appliedArgs = args.map(a => schemeToJsDeep(a));
-                    } else if (mode === 'shallow' || mode === false) {
-                        // We use a light conversion for shallow mode
-                        appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
-                    }
-                }
-
-                result = func(...appliedArgs);
-            } finally {
-                // Pop the context after JS returns (or throws)
-                interpreter.popJsContext();
-            }
-
-            if (result instanceof TailCall) {
-                const target = result.func;
-                if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
-                    const tailArgs = result.args || [];
-                    const argLiterals = tailArgs.map(a => new LiteralNode(a));
-                    registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
-                    return true;
-                }
-                registers[CTL] = target;
-                return true;
-            }
-
-            registers[ANS] = result;
-            return false;
-        }
-
-        throw new SchemeApplicationError(func);
+        // A fresh `values` array is built on every step rather than the frame
+        // being advanced in place. That is deliberate: `call/cc` captures the
+        // frame stack by copying the array, so frames are shared with every
+        // continuation captured while this call was being evaluated. Mutating a
+        // frame would let a captured continuation observe operands evaluated
+        // after its capture. `dynamic-wind` compounds this: its unwind/rewind
+        // logic finds the common ancestor of two stacks by frame identity, so
+        // frames cannot be cloned at capture time either.
+        return continueApplication(
+            this.exprs,
+            this.index + 1,
+            [...this.values, registers[ANS]],
+            this.env,
+            registers,
+            interpreter
+        );
     }
 
-    /**
-     * Invokes a captured continuation with proper dynamic-wind handling.
-     * @private
-     */
-    invokeContinuation(func, args, registers, interpreter) {
-        const currentStack = registers[FSTACK];
-        const targetStack = func.fstack;
+}
 
-        // Handle multiple values: wrap 2+ args in Values, like `values` primitive
-        let value;
-        if (args.length === 0) {
-            value = null;
-        } else if (args.length === 1) {
-            value = args[0];
-        } else {
-            value = new Values(args);
-        }
 
-        // Get WindFrame class for instanceof check
-        const WindFrameClass = getWindFrameClass();
+// =============================================================================
+// Application
+// =============================================================================
 
-        // 1. Find common ancestor
-        let i = 0;
-        while (i < currentStack.length && i < targetStack.length && currentStack[i] === targetStack[i]) {
-            i++;
-        }
-        const ancestorIndex = i;
+/**
+ * Invokes a captured continuation, running the `dynamic-wind` thunks that lie
+ * between the current stack and the captured one.
+ *
+ * A module-level function rather than a method so that both `AppFrame` and the
+ * inlined application path can reach it.
+ *
+ * @param {Function} func - The continuation being invoked.
+ * @param {Array<*>} args - The values being passed to it.
+ * @param {Environment} env - Environment for any wind thunks that must run.
+ * @param {Array} registers - The interpreter register array.
+ * @param {Object} interpreter - The interpreter instance.
+ * @returns {boolean} Whether the trampoline should continue.
+ */
+function invokeContinuationFrom(func, args, env, registers, interpreter) {
+    const currentStack = registers[FSTACK];
+    const targetStack = func.fstack;
 
-        // 2. Identify WindFrames to unwind
-        const toUnwind = currentStack.slice(ancestorIndex).reverse().filter(f => f instanceof WindFrameClass);
+    // Handle multiple values: wrap 2+ args in Values, like `values` primitive
+    let value;
+    if (args.length === 0) {
+        value = null;
+    } else if (args.length === 1) {
+        value = args[0];
+    } else {
+        value = new Values(args);
+    }
 
-        // 3. Identify WindFrames to rewind
-        const toRewind = targetStack.slice(ancestorIndex).filter(f => f instanceof WindFrameClass);
+    // Get WindFrame class for instanceof check
+    const WindFrameClass = getWindFrameClass();
 
-        // 4. Construct sequence of operations
-        const actions = [];
+    // 1. Find common ancestor
+    let i = 0;
+    while (i < currentStack.length && i < targetStack.length && currentStack[i] === targetStack[i]) {
+        i++;
+    }
+    const ancestorIndex = i;
 
-        for (const frame of toUnwind) {
-            actions.push(new TailAppNode(new LiteralNode(frame.after), []));
-        }
-        for (const frame of toRewind) {
-            actions.push(new TailAppNode(new LiteralNode(frame.before), []));
-        }
+    // 2. Identify WindFrames to unwind
+    const toUnwind = currentStack.slice(ancestorIndex).reverse().filter(f => f instanceof WindFrameClass);
 
-        // CRITICAL: Unwind JS stack (Return Value Mode)
-        if (actions.length === 0) {
-            const filteredStack = filterSentinelFrames(targetStack);
-            registers[FSTACK] = [...filteredStack];
-            registers[ANS] = value;
+    // 3. Identify WindFrames to rewind
+    const toRewind = targetStack.slice(ancestorIndex).filter(f => f instanceof WindFrameClass);
 
-            if (interpreter.depth > 1) {
-                throw new ContinuationUnwind(registers, true);
-            }
-            return false;
-        }
+    // 4. Construct sequence of operations
+    const actions = [];
 
-        // Append the final restoration (with SentinelFrames filtered out)
+    for (const frame of toUnwind) {
+        actions.push(new TailAppNode(new LiteralNode(frame.after), []));
+    }
+    for (const frame of toRewind) {
+        actions.push(new TailAppNode(new LiteralNode(frame.before), []));
+    }
+
+    // CRITICAL: Unwind JS stack (Return Value Mode)
+    if (actions.length === 0) {
         const filteredStack = filterSentinelFrames(targetStack);
-        actions.push(new RestoreContinuation(filteredStack, value));
+        registers[FSTACK] = [...filteredStack];
+        registers[ANS] = value;
 
-        // Execute via BeginFrame mechanism
-        const firstAction = actions[0];
-        const remainingActions = actions.slice(1);
-
-        if (remainingActions.length > 0) {
-            registers[FSTACK].push(new BeginFrame(remainingActions, this.env));
-        }
-
-        registers[CTL] = firstAction;
-
-        // CRITICAL: Unwind JS stack (Tail Call Mode)
         if (interpreter.depth > 1) {
-            throw new ContinuationUnwind(registers, false);
+            throw new ContinuationUnwind(registers, true);
         }
+        return false;
+    }
 
+    // Append the final restoration (with SentinelFrames filtered out)
+    const filteredStack = filterSentinelFrames(targetStack);
+    actions.push(new RestoreContinuation(filteredStack, value));
+
+    // Execute via BeginFrame mechanism
+    const firstAction = actions[0];
+    const remainingActions = actions.slice(1);
+
+    if (remainingActions.length > 0) {
+        registers[FSTACK].push(new BeginFrame(remainingActions, env));
+    }
+
+    registers[CTL] = firstAction;
+
+    // CRITICAL: Unwind JS stack (Tail Call Mode)
+    if (interpreter.depth > 1) {
+        throw new ContinuationUnwind(registers, false);
+    }
+
+    return true;
+}
+
+/**
+ * Continues an application: evaluates any operands that remain, then applies.
+ *
+ * `values` holds the already-evaluated operator and operands, in order;
+ * `exprs[index]` is the next expression needing evaluation. `values` must be an
+ * array owned by the caller -- it is mutated here before being handed to a new
+ * frame, which is safe only because no frame already on the stack, and no
+ * captured continuation, holds a reference to it.
+ *
+ * @param {Array<Executable>} exprs - Operator followed by operand expressions.
+ * @param {number} index - Index of the next expression to evaluate.
+ * @param {Array<*>} values - Values evaluated so far.
+ * @param {Environment} env - The environment of the call site.
+ * @param {Array} registers - The interpreter register array.
+ * @param {Object} interpreter - The interpreter instance.
+ * @returns {boolean} Whether the trampoline should continue.
+ */
+export function continueApplication(exprs, index, values, env, registers, interpreter) {
+    // Operands that cannot capture a continuation are evaluated here rather
+    // than suspended into a frame and bounced through the trampoline. A
+    // literal and a variable reference each produce a value with no
+    // sub-computation, so there is nothing for a continuation to be
+    // captured in the middle of, and evaluating them in place is
+    // indistinguishable from evaluating them through the trampoline.
+    //
+    // This matters because the frame machinery, not the work it schedules,
+    // dominates the profile: a call like `(< n 2)` previously cost three
+    // frames and six dispatches to compute one comparison.
+    //
+    // Not done while debugging: the debugger's breakpoint check happens per
+    // dispatch, so inlining an operand would make it unstoppable. Suspending
+    // on every operand reproduces the previous behaviour exactly, and the
+    // fidelity matters more than the speed on that path.
+    if (!(interpreter.debugRuntime && interpreter.debugRuntime.enabled)) {
+        while (index < exprs.length) {
+            const expr = exprs[index];
+            if (expr.constructor === LiteralNode) {
+                values.push(expr.value);
+            } else if (expr.constructor === VariableNode) {
+                values.push(env.lookup(expr.name));
+            } else {
+                break;
+            }
+            index++;
+        }
+    }
+
+    if (index < exprs.length) {
+        registers[FSTACK].push(new AppFrame(exprs, index, values, env));
+        registers[CTL] = exprs[index];
+        registers[ENV] = env;
         return true;
     }
+
+    // All arguments evaluated, ready to apply
+    const func = values[0];
+
+    // 1. SCHEME CLOSURE APPLICATION
+    // Check for callable Scheme closures first (they are typeof 'function')
+    if (isSchemeClosure(func)) {
+        registers[CTL] = func.body;
+
+        // Handle rest parameter if present
+        if (func.restParam) {
+            // The operands are only materialized as their own array on the
+            // paths that need one. The fixed-parameter path -- the common
+            // case by a wide margin -- reads them in place instead.
+            const args = values.slice(1);
+            // Required params get their args, rest param gets remaining as list
+            const requiredCount = func.params.length;
+            const requiredArgs = args.slice(0, requiredCount);
+            const restArgs = args.slice(requiredCount);
+
+            // Build a Scheme list from rest args
+            let restList = null;
+            for (let i = restArgs.length - 1; i >= 0; i--) {
+                restList = new Cons(restArgs[i], restList);
+            }
+
+            // Extend environment with required params + rest param
+            const allParams = [...func.params, func.restParam];
+            const allOriginalParams = [...(func.originalParams || func.params), (func.originalRestParam || func.restParam)];
+            const allArgs = [...requiredArgs, restList];
+            let newEnv = func.env.extendMany(allParams, allArgs, allOriginalParams);
+            // Bind 'this' pseudo-variable if available (method call)
+            if (registers[THIS] !== undefined) {
+                registers[ENV] = newEnv.extend('this', registers[THIS], 'this');
+            } else {
+                registers[ENV] = newEnv;
+            }
+
+            // Instrumentation: record frame entry (tail-call aware)
+            if (interpreter.debugRuntime) {
+                recordDebugFrameEntry(interpreter, registers[FSTACK], {
+                    name: func.name || 'anonymous',
+                    env: newEnv,
+                    source: func.source
+                });
+            }
+        } else {
+            // Read operands straight out of `values` at offset 1, rather
+            // than from the `args` copy, saving an array per call.
+            let newEnv = func.env.extendManyFrom(func.params, values, 1, func.originalParams);
+            // Bind 'this' pseudo-variable if available (method call)
+            if (registers[THIS] !== undefined) {
+                registers[ENV] = newEnv.extend('this', registers[THIS], 'this');
+            } else {
+                registers[ENV] = newEnv;
+            }
+
+            // Instrumentation: record frame entry (tail-call aware)
+            if (interpreter.debugRuntime) {
+                recordDebugFrameEntry(interpreter, registers[FSTACK], {
+                    name: func.name || 'anonymous',
+                    env: newEnv,
+                    source: func.source
+                });
+            }
+        }
+        return true;
+    }
+
+    const args = values.slice(1);
+
+    // 2. SCHEME CONTINUATION INVOCATION
+    // Check for callable Scheme continuations (they are also typeof 'function')
+    if (isSchemeContinuation(func)) {
+        return invokeContinuationFrom(func, args, env, registers, interpreter);
+    }
+
+    // 3. JS FUNCTION APPLICATION
+    // Regular JavaScript functions (including callable closures passed to JS)
+    if (typeof func === 'function') {
+        // CRITICAL: Push the current Scheme context before calling JS.
+        // This allows callable closures/continuations invoked by JS to
+        // properly track dynamic-wind frames for unwinding/rewinding.
+        interpreter.pushJsContext(registers[FSTACK]);
+
+        let result;
+        try {
+            // If it's a foreign JS function (not a Scheme closure/primitive),
+            // auto-convert arguments (e.g., BigInt -> Number)
+            let appliedArgs = args;
+            if (!isSchemePrimitive(func)) {
+                // Respect the current js-auto-convert mode
+                const mode = interpreter.jsAutoConvert ?? 'deep';
+                if (mode === 'deep' || mode === true) {
+                    appliedArgs = args.map(a => schemeToJsDeep(a));
+                } else if (mode === 'shallow' || mode === false) {
+                    // We use a light conversion for shallow mode
+                    appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
+                }
+            }
+
+            result = func(...appliedArgs);
+        } finally {
+            // Pop the context after JS returns (or throws)
+            interpreter.popJsContext();
+        }
+
+        if (result instanceof TailCall) {
+            const target = result.func;
+            if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
+                const tailArgs = result.args || [];
+                const argLiterals = tailArgs.map(a => new LiteralNode(a));
+                registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
+                return true;
+            }
+            registers[CTL] = target;
+            return true;
+        }
+
+        registers[ANS] = result;
+        return false;
+    }
+
+    throw new SchemeApplicationError(func);
 }
+
 
 // =============================================================================
 // Frames - Dynamic Wind
@@ -707,5 +823,6 @@ registerFrames({
     CallWithValuesFrame,
     ExceptionHandlerFrame,
     RaiseContinuableResumeFrame,
-    RaiseNonContinuableResumeFrame
+    RaiseNonContinuableResumeFrame,
+    continueApplication
 });

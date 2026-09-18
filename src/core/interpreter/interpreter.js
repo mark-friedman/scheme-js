@@ -194,7 +194,19 @@ export class Interpreter {
    * @param {Array} fstack - The current frame stack.
    */
   pushJsContext(fstack) {
-    this.jsContextStack.push([...fstack]);
+    // The stack is recorded by reference plus its current depth, and only
+    // copied if something actually asks for it. Every primitive application
+    // goes through here, and the overwhelming majority of primitives never
+    // re-enter Scheme, so eagerly copying the whole frame stack each time was
+    // an O(depth) cost paid almost entirely for nothing.
+    //
+    // Recording the depth rather than copying is safe because the frames below
+    // it cannot change while this entry is live: the interpreter is suspended
+    // inside the JS call for exactly that window, so nothing is pushing or
+    // popping beneath it. A continuation invocation replaces `registers[FSTACK]`
+    // with a different array entirely, which leaves this entry pointing at the
+    // same stack the eager copy would have captured.
+    this.jsContextStack.push({ stack: fstack, depth: fstack.length });
   }
 
   /**
@@ -210,7 +222,8 @@ export class Interpreter {
    */
   getParentContext() {
     if (this.jsContextStack.length > 0) {
-      return this.jsContextStack[this.jsContextStack.length - 1];
+      const entry = this.jsContextStack[this.jsContextStack.length - 1];
+      return entry.stack.slice(0, entry.depth);
     }
     return [];
   }

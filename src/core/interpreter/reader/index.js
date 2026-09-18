@@ -21,6 +21,9 @@ export { Placeholder, fixup } from './datum_labels.js';
  * @param {string} input - Source code to parse
  * @param {Object} [options] - Parsing options
  * @param {boolean} [options.caseFold=false] - If true, fold symbol names to lowercase (for include-ci)
+ * @param {string} [options.filename='<unknown>'] - Source file name, recorded on every
+ *   expression's source info. The debugger matches breakpoints on this, so callers that
+ *   know which file they are reading should supply it.
  * @returns {Array} Array of S-expressions (Cons, Symbol, number, etc.)
  */
 export function parse(input, options = {}) {
@@ -33,7 +36,7 @@ export function parse(input, options = {}) {
 
     // Strip block comments before tokenizing
     const preprocessed = stripBlockComments(input);
-    const tokens = tokenize(preprocessed);
+    const tokens = tokenize(preprocessed, options.filename);
     const expressions = [];
 
     try {

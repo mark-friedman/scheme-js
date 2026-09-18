@@ -163,6 +163,45 @@ export async function runExceptionDebuggingTests(interpreter, logger) {
     }
 
     // =========================================================================
+    // Pause payload
+    // =========================================================================
+    // `pauseOnException` receives the evaluator's register *array*, indexed by
+    // the constants in stepables_base.js. Reading `registers.env` from it
+    // silently yields undefined, so the environment never reached the pause
+    // handler and locals could not be inspected at an exception breakpoint.
+    {
+        let paused = null;
+        const runtime = new SchemeDebugRuntime({
+            onPause: (event) => {
+                paused = event;
+                // Resume, or runAsync waits on the pause controller forever.
+                setTimeout(() => runtime.resume(), 10);
+            }
+        });
+        runtime.breakOnUncaughtException = true;
+        interpreter.setDebugRuntime(runtime);
+        runtime.enable();
+
+        const raiseNode = new RaiseNode(new Symbol('boom'), false);
+
+        try {
+            await interpreter.runAsync(raiseNode, interpreter.globalEnv, { stepsPerYield: 1 });
+        } catch (e) {
+            // The exception still propagates after the pause; that is expected.
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+        interpreter.setDebugRuntime(null);
+
+        assert(logger, 'exception pause fires', paused !== null, true);
+        assert(logger, 'exception pause carries an environment, not undefined',
+            paused !== null && paused.env !== undefined && paused.env !== null, true);
+        assert(logger, 'exception pause environment has bindings to inspect',
+            paused !== null && paused.env !== undefined && paused.env !== null
+                && paused.env.bindings instanceof Map, true);
+    }
+
+    // =========================================================================
     // Remaining tests - keeping as skips until full integration
     // =========================================================================
 

@@ -263,10 +263,37 @@ export class IfNode extends Executable {
     }
 
     step(registers, interpreter) {
+        const env = registers[ENV];
+
+        // A test that is a literal or a variable reference is evaluated here
+        // and branched on immediately, instead of pushing a frame and bouncing
+        // through the trampoline to read a name. Same reasoning as the operand
+        // inlining in `continueApplication`: neither can capture a continuation,
+        // so there is no suspension point to preserve.
+        //
+        // Skipped while debugging so the test expression still reaches the
+        // dispatcher, where breakpoints are checked.
+        if (!(interpreter.debugRuntime && interpreter.debugRuntime.enabled)) {
+            const test = this.test;
+            let testResult;
+            if (test.constructor === LiteralNode) {
+                testResult = test.value;
+            } else if (test.constructor === VariableNode) {
+                testResult = env.lookup(test.name);
+            } else {
+                registers[FSTACK].push(FrameRegistry.createIfFrame(
+                    this.consequent, this.alternative, env));
+                registers[CTL] = test;
+                return true;
+            }
+            registers[CTL] = testResult !== false ? this.consequent : this.alternative;
+            return true;
+        }
+
         registers[FSTACK].push(FrameRegistry.createIfFrame(
             this.consequent,
             this.alternative,
-            registers[ENV]
+            env
         ));
         registers[CTL] = this.test;
         return true;
@@ -337,20 +364,44 @@ export class TailAppNode extends Executable {
         super();
         this.funcExpr = funcExpr;
         this.argExprs = argExprs;
+        /**
+         * Operator and operands as one array, built once at analysis time.
+         * This was previously rebuilt -- spread and then sliced -- on every
+         * single evaluation of the call site, re-deriving at run time something
+         * already known statically.
+         * @type {Array<Executable>}
+         */
+        this.exprs = [funcExpr, ...argExprs];
     }
 
     step(registers, interpreter) {
-        const allExprs = [this.funcExpr, ...this.argExprs];
-        const firstExpr = allExprs[0];
-        const remainingExprs = allExprs.slice(1);
+        const exprs = this.exprs;
+        const env = registers[ENV];
+        const operator = exprs[0];
 
-        registers[FSTACK].push(FrameRegistry.createAppFrame(
-            remainingExprs,
-            [],
-            registers[ENV]
-        ));
+        // When the operator is itself a literal or a variable reference -- which
+        // it is for essentially every call in ordinary code -- it can be
+        // evaluated here and the application continued directly, instead of
+        // suspending into a frame and bouncing through the trampoline just to
+        // read a name. `continueApplication` then inlines the operands that are
+        // likewise incapable of capturing a continuation, so a call such as
+        // `(< n 2)` completes within this single dispatch.
+        //
+        // Skipped while debugging, so that every subexpression still passes
+        // through the dispatcher where breakpoints are checked.
+        if (!(interpreter.debugRuntime && interpreter.debugRuntime.enabled)) {
+            if (operator.constructor === LiteralNode) {
+                return FrameRegistry.continueApplication(
+                    exprs, 1, [operator.value], env, registers, interpreter);
+            }
+            if (operator.constructor === VariableNode) {
+                return FrameRegistry.continueApplication(
+                    exprs, 1, [env.lookup(operator.name)], env, registers, interpreter);
+            }
+        }
 
-        registers[CTL] = firstExpr;
+        registers[FSTACK].push(FrameRegistry.createAppFrame(exprs, 0, [], env));
+        registers[CTL] = operator;
         return true;
     }
 }

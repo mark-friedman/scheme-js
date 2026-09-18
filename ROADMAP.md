@@ -597,3 +597,122 @@ Consider implementing Common Lisp-style "restartable conditions" for advanced er
 4. Full stack navigation during exception debugging
 
 **Decision:** Deferred. Current simple approach covers typical "inspect and continue" debugging. Revisit if user demand for advanced restart capabilities.
+
+---
+
+## Compiler Effort
+
+**Target:** Address the structural performance limits of the interpreter by adding a
+Scheme-to-JavaScript compiler tier.
+
+Full analysis and staged plan: [docs/compiler_strategy.md](docs/compiler_strategy.md).
+Measurements: [docs/performance_baseline.md](docs/performance_baseline.md).
+
+The headline finding is that `fib(30)` takes 6,524 ms here against 10 ms in plain JavaScript and
+~240 ms in Gambit's *interpreter*, and that CPU profiling attributes ~84% of runtime to evaluator
+overhead against under 3% to the program's actual arithmetic. Being interpreted accounts for
+roughly a factor of 25; the rest is representation, not execution model.
+
+> [!IMPORTANT]
+> The "Numeric Performance Optimization" section above targets a measured ~3x cost. Interpretive
+> overhead is a measured ~200x cost. The numeric items remain worth doing but should not be
+> mistaken for the performance work.
+
+### Stage 0: Measurement & Instrumentation ✅
+
+| Deliverable | Description | Status |
+|---|---|---|
+| **Standard benchmark suite** | 8 portable R7RS programs in `benchmarks/programs/`, four drawn from Thivierge & Feeley (SFP 2012) for comparability with published numbers. Four exercise `call/cc`; two require multi-shot semantics. | ✅ |
+| **Cross-implementation harness** | `npm run benchmark:implementations` runs the same sources under Gambit `gsi` and Racket. All three agree on all eight results. | ✅ |
+| **CPU profiler** | `npm run benchmark:profile <name>` reports self time by function and the evaluator/primitive split. | ✅ |
+| **Step counting** | `npm run benchmark:steps` reports deterministic dispatch counts via `src/debug/instrumentation.js`, which wraps the interpreter rather than adding a hot-path branch. | ✅ |
+| **R7RS conformance audit** | `npm run audit:r7rs` probes every identifier the standard requires. | ✅ |
+| **Committed baseline** | `benchmarks/baseline_standard.json`. | ✅ |
+
+### Stage 0: Pre-existing bugs fixed ✅
+
+Three debugger behaviours were implemented but non-functional. They are fixed rather than
+preserved, so that "does the debugger still work?" is a meaningful question during later stages.
+
+| Bug | Fix |
+|---|---|
+| Every `source.filename` was the literal `'<unknown>'`, so file-scoped breakpoints could never match. | `parse()` accepts a `filename` option, threaded from the library loader and `load`. |
+| `pauseOnException` read `registers.env` from the register *array*, always yielding `undefined`, so locals were unavailable at an exception breakpoint. | Indexes `registers[ENV]`. |
+| **Enabling the debugger broke tail-call optimization.** Each procedure entry pushed a `DebugExitFrame`, so a tail loop accumulated one frame per iteration — measured at depth 806 for 800 iterations, against 4 with debugging off. | `recordDebugFrameEntry` detects tail position from the frame stack and reuses the existing exit frame. Tail loops now hold at constant depth; non-tail recursion still grows. |
+
+### Stage 0: Conformance findings
+
+7 required identifiers missing, 2 stubs that throw unconditionally, 2 libraries not importable.
+Details in [docs/performance_baseline.md](docs/performance_baseline.md). The substantive cluster is
+string mutability — `string-set!` and `string-fill!` throw, and `string-copy!` is absent — which is
+a deliberate trade against JS interop and is scheduled for resolution in Stage 2b.
+
+### Stage 1: Interpreter representation (partial) — **2.57x**
+
+Measured **2.57x geometric mean** across the suite, and a **3.4–5.7x reduction in evaluator
+dispatches**. The gap to Gambit's *interpreter* closed from ~26x to ~8x.
+Results after every stage: [docs/performance_progress.md](docs/performance_progress.md).
+
+| Item | Status | Effect |
+|---|---|---|
+| Native variadic comparison primitives | ✅ | `=`, `<`, `>`, `<=`, `>=` were Scheme procedures with rest parameters, so one integer comparison became four nested applications. Also **fixed rational comparison**, which had been falling through to JavaScript's `<` and `===` on `Rational` objects and therefore comparing them as strings and by identity. |
+| Inlined evaluation of non-capturing subexpressions | ✅ | **The largest win.** A literal or a variable reference cannot capture a continuation, so there is no suspension point to preserve and it can be evaluated in place rather than suspended into a frame and bounced through the trampoline. Applied to the operator, the operands, and `if` tests. A call like `(< n 2)` now completes in a single dispatch where it previously cost three frames and six. |
+| Application logic extracted to a module function | ✅ | `continueApplication`, reached from `ast_nodes.js` through a `frame_registry` **live binding** rather than a forwarding wrapper, which showed up at 4.3% of profile time on a path taken by every application. |
+| Lazy JS-context capture | ✅ | `pushJsContext` copied the entire frame stack on every primitive application. It now records the stack by reference plus depth and copies only if something asks. |
+| Precomputed operand arrays, deferred argument array, lazy `nameMap`, single-probe lookup | ✅ | Removes several allocations per call. |
+| **Lexical addressing** | ❌ Deliberately not done | Profiling showed the entire cost of variable lookup — `Environment.lookup`, `extendManyFrom` and `VariableNode` dispatch combined — was only ~15% of runtime, so perfect elimination would be worth ~1.17x. That does not justify reworking `SyntacticEnv` (which has one binding per frame, against one runtime frame per lambda), the environment representation, `StateInspector` and the REPL's `:eval`. |
+| **Global value cells** | ❌ Not done | Same reasoning; depends on the same rework. |
+| Unify `run` and `runAsync` | ❌ Not done | They remain hand-maintained near-duplicates. |
+
+> [!IMPORTANT]
+> **The 10–30x Stage 1 estimate was wrong, and the profile explains why.** After these changes the
+> remaining time is dominated by the frame machinery itself — `continueApplication`, the
+> trampoline, and the two application node/frame dispatches — which together are ~55% of runtime
+> and cannot be removed without changing the execution model. Primitive work rose from 2.8% of
+> runtime at baseline to 8.5%, so the ratio of real work to overhead improved about 3x, but an
+> AST-walking interpreter with a reified frame stack has a floor well above native code.
+>
+> This strengthens rather than weakens the case for the compiler: the remaining interpreter
+> optimizations are worth small constant factors, while the measured headroom to Racket CS is still
+> 300–600x on call-heavy programs. Stage 2 is where the rest is.
+
+### Stage 2a: Calling-convention bake-off ✅ — **convention B**
+
+Two throwaway compilers in [`experiments/stage2a/`](experiments/stage2a/), built from a shared front
+end so the numbers compare conventions rather than compilers. Both pass all eight benchmarks,
+including the two requiring multi-shot continuations. Run `node experiments/stage2a/summary.js`.
+
+**Decision: convention B — native JavaScript stack, trampoline for tail calls, cooperative unwind
+for `call/cc`** (Pettyjohn et al. with Marshall's distinguished-return-value variant).
+
+| | A — explicit frame stack | B — native JS stack |
+|---|---|---|
+| Normal path | baseline | **up to 3.3x faster** |
+| Capture-heavy | **1.2–1.5x faster** on 3 of 4 | 1.5x faster on `threads` |
+| vs interpreter (geometric mean) | 13.0x | **17.5x** |
+| Scheme frames visible to a debugger | **1** | **13 of 12 live** |
+| Generated code size | **23 KB** | 95 KB (4.09x) |
+
+The plan expected to trade performance for debuggability. There was no trade: B won both. The one
+real cost is code size, because a procedure needs a second re-enterable copy to be resumed after a
+capture — an effect analysis proving a procedure never captures would drop most of them, now a
+Stage 2b task.
+
+> [!NOTE]
+> What was measured is the stack *shape* — one live Scheme frame is one live JavaScript frame.
+> Relabelling those frames via a source map in DevTools is mechanical but was **not** verified end
+> to end. That check belongs in Stage 2b, before `extension/` is deleted.
+
+Two findings the plan had not anticipated, both recorded in the strategy document's revision log:
+*both* conventions need re-enterable procedures (A at every non-tail call, B only where a capture
+is possible), and both need assignment conversion, because a re-entered procedure restores locals
+into a fresh binding that closures made earlier do not share.
+
+### Remaining stages
+
+| Stage | Description | Status |
+|---|---|---|
+| **Stage 1** | Interpreter representation, no compiler. Target was 10–30x; that estimate was wrong (see above). | **2.57x — closed** |
+| **Stage 2a** | Calling-convention bake-off. | **Complete — convention B chosen** |
+| **Stage 2b** | The compiler tier: IR, codegen, source maps, value representation, macro phase separation. | Not started |
+| **Stage 3** | Optimization: direct calls, primitive inlining, arity specialization, unboxing, escape analysis. | Not started |

@@ -4,82 +4,19 @@
 ;; =============================================================================
 ;; Variadic Comparison Operators
 ;; =============================================================================
-;; These build on the binary primitives (%num=, %num<, etc.) from JavaScript.
-
-;; /**
-;;  * Numeric equality. Returns #t if all arguments are equal.
+;; `=`, `<`, `>`, `<=` and `>=` are now native primitives (see
+;; `src/core/primitives/math.js`). They were previously defined here as variadic
+;; Scheme procedures with rest parameters delegating to the `%num*` binary
+;; primitives, which turned a single integer comparison into four nested
+;; applications plus rest-list construction. Profiling attributed roughly half
+;; the runtime of the `fib` benchmark to that expansion, and moving `<` alone to
+;; a primitive was measured at 1.93x.
 ;;
-;;  * @param {number} x - First number.
-;;  * @param {number} y - Second number.
-;;  * @param {...number} rest - Additional numbers.
-;;  * @returns {boolean} #t if all are equal.
-;;  */
-(define (= x y . rest)
-  (if (not (%num= x y))
-      #f
-      (if (null? rest)
-          #t
-          (apply = y rest))))
-
-;; /**
-;;  * Less than. Returns #t if arguments are strictly increasing.
-;;
-;;  * @param {number} x - First number.
-;;  * @param {number} y - Second number.
-;;  * @param {...number} rest - Additional numbers.
-;;  * @returns {boolean} #t if strictly increasing.
-;;  */
-(define (< x y . rest)
-  (if (not (%num< x y))
-      #f
-      (if (null? rest)
-          #t
-          (apply < y rest))))
-
-;; /**
-;;  * Greater than. Returns #t if arguments are strictly decreasing.
-;;
-;;  * @param {number} x - First number.
-;;  * @param {number} y - Second number.
-;;  * @param {...number} rest - Additional numbers.
-;;  * @returns {boolean} #t if strictly decreasing.
-;;  */
-(define (> x y . rest)
-  (if (not (%num> x y))
-      #f
-      (if (null? rest)
-          #t
-          (apply > y rest))))
-
-;; /**
-;;  * Less than or equal. Returns #t if arguments are non-decreasing.
-;;
-;;  * @param {number} x - First number.
-;;  * @param {number} y - Second number.
-;;  * @param {...number} rest - Additional numbers.
-;;  * @returns {boolean} #t if non-decreasing.
-;;  */
-(define (<= x y . rest)
-  (if (not (%num<= x y))
-      #f
-      (if (null? rest)
-          #t
-          (apply <= y rest))))
-
-;; /**
-;;  * Greater than or equal. Returns #t if arguments are non-increasing.
-;;
-;;  * @param {number} x - First number.
-;;  * @param {number} y - Second number.
-;;  * @param {...number} rest - Additional numbers.
-;;  * @returns {boolean} #t if non-increasing.
-;;  */
-(define (>= x y . rest)
-  (if (not (%num>= x y))
-      #f
-      (if (null? rest)
-          #t
-          (apply >= y rest))))
+;; This is one of the few places where the project's "Scheme over JS" rule is
+;; deliberately overridden: these five procedures sit on the hot path of every
+;; numeric program, and the Scheme definitions were also incorrect for
+;; rationals, since they bottomed out in JavaScript's `<` and `===` applied
+;; directly to `Rational` objects.
 
 ;; =============================================================================
 ;; Numeric Predicates

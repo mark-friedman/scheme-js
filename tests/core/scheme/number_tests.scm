@@ -457,3 +457,197 @@
   )
 
 ) ;; end test-group
+
+;; ===== Numeric Comparison Across the Tower =====
+;;
+;; Comparison must work across exact integers, rationals and inexact reals.
+;; These were previously compared with JavaScript's `<` and `===` applied
+;; directly to the representation objects, which fell back to string or
+;; identity comparison for rationals and produced wrong answers.
+
+(test-group "comparison across the numeric tower"
+
+  (test-group "exact integers"
+
+    (test "less than"
+      #t
+      (< 1 2))
+
+    (test "not less than"
+      #f
+      (< 2 1))
+
+    (test "chained increasing"
+      #t
+      (< 1 2 3))
+
+    (test "chained not increasing"
+      #f
+      (< 1 3 2))
+
+    (test "greater than chained"
+      #t
+      (> 3 2 1))
+
+    (test "less or equal on equal values"
+      #t
+      (<= 1 1))
+
+    (test "greater or equal on equal values"
+      #t
+      (>= 2 2)))
+
+  (test-group "rationals"
+
+    (test "rational equal to itself"
+      #t
+      (= 1/2 1/2))
+
+    (test "unreduced rational equals reduced"
+      #t
+      (= 1/2 2/4))
+
+    (test "distinct rationals not equal"
+      #f
+      (= 1/2 1/3))
+
+    (test "rational ordering"
+      #t
+      (< 1/3 1/2))
+
+    (test "rational ordering reversed"
+      #f
+      (< 1/2 1/3))
+
+    ;; Lexicographic comparison of the printed form would get this wrong,
+    ;; since "1/2" sorts before "10/3" only by accident of digit order.
+    (test "rational ordering with multi-digit numerator"
+      #t
+      (< 1/2 10/3))
+
+    (test "rational ordering with multi-digit numerator reversed"
+      #f
+      (< 10/3 1/2))
+
+    (test "rational less than integer"
+      #t
+      (< 1/2 1))
+
+    (test "integer less than rational"
+      #t
+      (< 1 3/2))
+
+    (test "rational greater than integer"
+      #t
+      (> 3/2 1))
+
+    (test "rational equal to integer"
+      #t
+      (= 4/2 2)))
+
+  (test-group "mixed exactness"
+
+    (test "exact integer equals inexact"
+      #t
+      (= 1 1.0))
+
+    (test "exact integer less than inexact"
+      #t
+      (< 1 1.5))
+
+    (test "inexact less than exact"
+      #t
+      (< 0.5 1))
+
+    (test "rational equals inexact"
+      #t
+      (= 1/2 0.5))
+
+    (test "rational less than inexact"
+      #t
+      (< 1/2 0.75))
+
+    (test "inexact less than rational"
+      #t
+      (< 0.25 1/2))
+
+    (test "chained mixed exactness"
+      #t
+      (< 1/4 0.5 1)))
+
+  (test-group "large exact values"
+
+    ;; Comparing via double precision would lose these distinctions, so exact
+    ;; operands must be compared exactly rather than converted to floats.
+    (test "large integers differing beyond double precision"
+      #t
+      (< 10000000000000000000000000001 10000000000000000000000000002))
+
+    (test "large integers not less than"
+      #f
+      (< 10000000000000000000000000002 10000000000000000000000000001))
+
+    (test "large integers equal"
+      #t
+      (= 10000000000000000000000000001 10000000000000000000000000001))
+
+    (test "large rationals compare exactly"
+      #t
+      (< 1/10000000000000000000000000002 1/10000000000000000000000000001))))
+
+;; ===== Continuation Capture During Argument Evaluation =====
+;;
+;; Argument evaluation builds up a partially-filled application frame. If those
+;; frames were mutated in place rather than rebuilt, a continuation captured
+;; mid-evaluation would observe later mutations, and re-invoking it would see
+;; the wrong arguments. These tests pin that behaviour so any future change to
+;; the frame representation has to preserve it.
+
+(test-group "continuations captured during argument evaluation"
+
+  ;; A continuation captured while evaluating the second argument of a
+  ;; three-argument call. Re-invoking it must re-run the call with the already
+  ;; evaluated arguments intact.
+  (test "escape from the middle of an argument list"
+    111
+    (call/cc
+      (lambda (k)
+        (+ 1 (k 111) 1000))))
+
+  ;; Re-entrant capture: the continuation is invoked after it has already
+  ;; returned normally, which requires the captured frame to be independent of
+  ;; the one the original computation went on to use.
+  ;; Runs three times: the initial call returns 1, then the continuation is
+  ;; re-invoked with 2 and then 3. Verified against Gambit, which also gives 13.
+  (test "re-entrant capture accumulates correctly"
+    13
+    (let ((saved #f)
+          (count 0))
+      (let ((result (+ 10 (call/cc (lambda (k) (set! saved k) 1)))))
+        (set! count (+ count 1))
+        (if (< count 3)
+            (saved (+ count 1))
+            result))))
+
+  ;; Capture in the operator position rather than an argument position.
+  (test "capture in operator position"
+    7
+    (+ 1 (call/cc (lambda (k) (k 6)))))
+
+  ;; Nested captures within a single argument list.
+  (test "two captures in one argument list"
+    30
+    (+ (call/cc (lambda (k) (k 10)))
+       (call/cc (lambda (k) (k 20)))))
+
+  ;; Multi-shot: invoking the same continuation twice must produce consistent
+  ;; results, not results contaminated by the first invocation.
+  (test "same continuation invoked twice"
+    '(5 5)
+    (let ((k #f)
+          (results '()))
+      (let ((v (call/cc (lambda (c) (set! k c) 5))))
+        (set! results (cons v results))
+        (if (= (length results) 1)
+            (k 5)
+            results)))))
