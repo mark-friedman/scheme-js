@@ -4106,9 +4106,11 @@ bottleneck; ordinary evaluation is.
 
 - **`benchmarks/programs/`** — eight portable R7RS benchmark programs. The same sources run
   unmodified under scheme-js-4, Gambit and Racket: the driver supplies `bench-size` and calls
-  `(bench-run)`. Four (`fib`, `nqueens`, `oddeven`, plus `ctak`/`contfib`/`btsearch`) are drawn
-  from Thivierge & Feeley (SFP 2012) so results are comparable to published numbers. `btsearch`
-  and `threads` require multi-shot continuations, so a wrong answer there is a correctness failure
+  `(bench-run)`. Seven are the complete benchmark set from Thivierge & Feeley (SFP 2012) --
+  `tak` is the addition, from the Gabriel set -- so results are comparable to published
+  numbers. (Corrected later: this originally said "four" and then listed six. And `threads`
+  is *not* their `threads10`; see R20-R22 in `docs/compiler_strategy.md`.) `btsearch` and
+  `threads` require multi-shot continuations, so a wrong answer there is a correctness failure
   rather than a slow result.
 - **`benchmarks/programs/manifest.js`** — benchmark definitions with `quick` and `canonical` size
   profiles. Canonical sizes match the literature; quick sizes are what the interpreter can run
@@ -4380,3 +4382,466 @@ Stage 2b, before `extension/` is actually deleted.
 
 `npm test`: **2077 passed, 0 failed, 7 skipped** — unchanged. The prototypes live entirely under
 `experiments/` and touch nothing in `src/`.
+
+---
+
+# Compiler Effort — Stage 2b increment 1: A Working Compiler Tier
+
+**Date:** 2026-09-18
+
+`src/compiler/` compiles top-level procedure definitions to JavaScript under convention B (chosen in
+Stage 2a) and installs the generated procedures in place of the interpreted closures. The
+interpreter remains the second tier: a definition the compiler declines is run exactly as before.
+
+**5.35x geometric mean** over the Stage 1 interpreter where the tier applies. Cumulatively `fib`
+has gone from **593 ms at the Stage 0 baseline to 25 ms — about 23x.**
+
+| Benchmark | interpreted | compiled | speedup | procedures compiled |
+|---|---|---|---|---|
+| `tak` | 48.1 ms | 5.7 ms | **8.4x** | 2 |
+| `nqueens` | 62.2 ms | 7.5 ms | **8.3x** | 5 |
+| `fib` | 144.7 ms | 25.1 ms | **5.8x** | 2 |
+| `oddeven` | 49.7 ms | 24.4 ms | **2.0x** | 3 |
+| `ctak`, `contfib`, `btsearch`, `threads` | — | — | 1.0x | 0 (use continuations) |
+
+`npm run benchmark:compiled`.
+
+## Added
+
+- **`src/compiler/ir.js`** — lowers the *analyzed* AST to a normalized IR. Consuming the analyzer's
+  output rather than source means macro expansion, hygiene, alpha-renaming and
+  internal-definition hoisting are inherited rather than reimplemented, so the two tiers agree on
+  what a program means by construction instead of by two front ends being kept in step. Lowering
+  computes the two things codegen needs and the analyzer does not record: **tail position** (every
+  application is a `TailAppNode` regardless) and **local versus global** reference. Lowering is
+  partial by design — anything outside the subset yields `UNSUPPORTED` and the definition stays
+  interpreted.
+- **`src/compiler/codegen.js`** — emits convention B. Non-tail calls are ordinary JavaScript calls;
+  tail calls return a `TailCall` through a per-call-site trampoline. Statements with explicit
+  temporaries rather than nested expressions, since an immediately-invoked function per `let` would
+  cost on every evaluation what it saves once at compile time.
+- **`src/compiler/runtime.js`** — deliberately thin. Compiled code uses the interpreter's own value
+  representation and its own primitives, so there is no parallel runtime to keep in step and no
+  conversion at the boundary: a `Cons` is a `Cons`, an exact integer is a `BigInt`, and `+` is the
+  same function the interpreter calls.
+- **`src/compiler/index.js`** — `tryCompileDefinition`, `compileProgram`.
+- **`benchmarks/run_compiled.js`** (`npm run benchmark:compiled`) — reports the speedup *and* how
+  many procedures were accepted, because a large speedup on a program where nothing compiled would
+  mean the harness was measuring the wrong thing.
+- **`tests/functional/compiler_tests.js`** — 60 differential assertions.
+
+## The bug worth reading about
+
+The first version declined any procedure that referenced a control-transferring global and compiled
+the rest. That looked safe and was not.
+
+In `btsearch`, `in-range` was correctly declined — but `btsearch` and `enumerate` were compiled, and
+both sit in the **dynamic extent** of the capture and must be re-entered when the search backtracks.
+A compiled frame cannot be re-entered. The benchmark **returned a wrong answer rather than failing**,
+and reported a nonsensical 4534x speedup because it was returning immediately.
+
+The property that matters is not "does this procedure mention `call/cc`" but "can a capture occur
+within this frame's dynamic extent", which per-procedure inspection cannot answer.
+
+The differential suite had passed, because its cross-tier cases used `apply` rather than `call/cc`.
+The benchmark found what the tests missed.
+
+**The guard is now unit-level:** if any definition in a compilation unit references a control
+global, the whole unit is left interpreted. That is sound for a self-contained unit and is what the
+four accepted benchmarks need. It is *still not sound in general* — a compiled procedure can call
+into another unit that captures within its extent — so **the tier is opt-in and off by default**
+until compiled frames are re-enterable. That is the top of increment 2.
+
+## Interoperation
+
+Compiled tail calls return the interpreter's own `TailCall` rather than a private sentinel. The
+interpreter already knows how to continue one, and a compiled trampoline already knows how to
+continue one returned by an interpreted procedure, so mixed-tier mutual tail recursion works in both
+directions with no boundary code. Compiled procedures are marked `SCHEME_PRIMITIVE` so the
+interpreter calls them without argument conversion, keeping exact integers exact across the boundary.
+
+## Testing
+
+`npm test`: **2137 passed, 0 failed, 7 skipped** (from 2077 — 60 new assertions, no regressions).
+Rollup build verified.
+
+Every differential case is evaluated twice, interpreted and compiled, and the results must agree —
+the interpreter is the reference semantics, so a disagreement is a compiler bug by definition.
+Coverage includes arithmetic and recursion, conditionals, all the binding forms, internal
+definitions, closures, mutation through closures, rest parameters, lists and vectors, and calls in
+both directions across the tier boundary. Plus:
+
+- the `btsearch` backtracking case that exposed the unsoundness;
+- a test that **bypasses the guard** and asserts the answer then goes wrong, so the guard cannot be
+  quietly weakened by someone who sees no consequence;
+- a check that the suite compiled a meaningful number of procedures, so the differential tests
+  cannot pass trivially by the compiler declining everything.
+
+---
+
+# Compiler Effort — Stage 2b increment 1b: Primitive Inlining
+
+**Date:** 2026-09-18
+
+The compiler tier went from **5.35x to ~12x** geometric mean over the Stage 1 interpreter.
+Cumulatively `fib` has gone from **593 ms at the Stage 0 baseline to about 8 ms — roughly 70x.**
+
+| Benchmark | interpreted | compiled | speedup |
+|---|---|---|---|
+| `nqueens` | 57.1 ms | 3.0 ms | **19.1x** |
+| `tak` | 48.2 ms | 2.6 ms | **18.3x** |
+| `fib` | 142.6 ms | 8.2 ms | **17.5x** |
+| `oddeven` | 48.4 ms | 17.1 ms | **2.8x** |
+
+## What the profile said
+
+`npm run benchmark:profile-compiled` on the first working tier put **25% of runtime in primitive
+calls and only 17% in the generated code itself**, plus 11% in resolving globals. A call such as
+`(+ a b)` was going through a variadic primitive that allocates a rest array, type-checks each
+argument and dispatches across the numeric tower — to add two integers.
+
+## Changed
+
+- **`src/compiler/runtime.js`** — `globalAccessor` now resolves the *frame* holding a binding once
+  and reads it with a single hash lookup, instead of calling `findEnv` and walking the environment
+  chain on every reference. Caching the frame rather than the value is what keeps it correct: a
+  later `define` or `set!` mutates that frame's map in place, so the new value is observed, and
+  Scheme has no way to remove a binding. (`fib` 25.1 → 20.4 ms.)
+- **`src/compiler/inline.js`** (new) — inline expansions for `+ - * < > <= >= =`, `car`, `cdr`,
+  `cons`, `pair?`, `null?`, `not`, `eq?`. Each gives a fast path for the common operand shape and
+  falls back to the real primitive otherwise, so the numeric tower is preserved rather than
+  approximated: a rational, a flonum, a complex or a wrong type all take the fallback and behave
+  exactly as they do interpreted. Every expansion is **guarded on the binding**, because Scheme
+  allows the primitive to be redefined after this code was compiled.
+- **`src/compiler/codegen.js`** — emits those expansions, including **in tail position**, which was
+  the largest single part of the gain: `(+ ...)` closing out a procedure body was allocating a
+  `TailCall` for a primitive that cannot tail-call. (`fib` 20.4 → 8.0 ms.)
+- **`benchmarks/profile_compiled.js`** (new) — CPU profile of the compiled tier, bucketed into
+  generated code, primitives, interpreter and compiler runtime.
+
+Primitives now measure **0.0%** of the compiled profile.
+
+## An optimization that was measured and removed
+
+With primitives inlined, the profile attributed 9.3% to the global accessor, and `fib`'s recursive
+self-call looked like the obvious next target: call the compiled function directly, guarded on the
+binding. Implemented and A/B measured at a larger size, it was **slower** — `fib(30)` 82.7 ms
+against 76.7 ms, `tak(22)` 21.3 against 20.5. The accessor is already a single hash lookup that V8
+inlines, and the guard's conditional callee costs more than it saves.
+
+It was removed, with the measurement recorded at the site so it is not tried again.
+
+The reason it looked promising is worth recording too: that profile was taken at a **9 ms wall time,
+where the sampling profiler's own overhead was 66% of samples** and inflated every remaining share.
+This is the third estimate in this effort to fail by reasoning from what looked expensive rather
+than from an A/B measurement. **Profile to find candidates, A/B to decide** — and distrust any
+profile whose own overhead is a large fraction of the run.
+
+## Testing
+
+`npm test`: **2152 passed, 0 failed, 7 skipped** (from 2137 — 15 new assertions, no regressions).
+
+Inlining has correctness obligations, so they are tested directly rather than assumed:
+
+- **11 numeric-tower differential cases** that all take the inline *fallback*: rational addition,
+  comparison and equality; flonum arithmetic; mixed exactness; exact integers differing beyond
+  double precision; large exact multiplication; negative operands.
+- **Redefining an inlined primitive after compilation** must be observed by already-compiled code —
+  the test redefines `+` to return 999 and asserts the compiled procedure sees it. Without the
+  binding guard this would silently keep adding.
+- **`car` on a non-pair** must fail in compiled code exactly as it does interpreted.
+
+---
+
+# Benchmark Validity Review — the reported speedups do not transfer
+
+**Date:** 2026-09-18
+
+Prompted by a direct question — how do we know these are the right benchmarks? — the answer turned
+out to be that they are not, and the figures reported so far overstate what a program would see.
+
+## Measured
+
+| | microbenchmarks | the repo's own `.scm` test files |
+|---|---|---|
+| distinct callables exercised | **16** | **136** |
+| share of calls on a primitive the compiler inlines | **98.0%** | **34.2%** |
+| compiler tier speedup | **~12x** | **1.39x** per-file geometric |
+
+Every optimization since Stage 0 was chosen by measuring against eight microbenchmarks written in
+Stage 0, so the suite and the optimizations were fitted to each other. The fifteen primitives
+inlined in increment 1b account for 98% of primitive calls in those benchmarks and 34% in real code.
+`fib` is literally `<`, `+`, `-` on small integers.
+
+**The ~12x should be read as an upper bound on hot numeric loops, not as what a program will see.**
+The inline fast paths only fire when both operands are `bigint`, so a flonum- or rational-heavy
+program gets close to none of it, and nothing in the suite would have revealed that.
+
+Stage 1's gains are better founded: the *evaluator node-type* distributions do match real code
+closely (`TailAppNode` 44% against 45%, `IfNode` 11% against 18%), and Stage 1 targeted dispatch
+mechanics rather than particular primitives.
+
+## Added
+
+- **`benchmarks/run_macro.js`** (`npm run benchmark:macro`) — the transfer test. Its workload is the
+  project's own 35 Scheme test files, 4,088 lines: real code, written to check correctness rather
+  than to be fast, and not chosen by anyone for its performance characteristics. Bootstraps through
+  the same libraries the real test runner uses, times parse/analyze/execute separately, compiles
+  definitions as they appear the way a tiered runtime would, and reports a coverage summary so a
+  future change that only helps the narrow case is visible as such.
+- **`tryCompileClosure`** in `src/compiler/index.js` — compiles an already-created interpreted
+  closure. A closure retains its parameters, body and defining environment, so the standard library
+  can be compiled after bootstrapping without threading the compiler through the library loader.
+
+## Two wrong versions of this benchmark, both instructive
+
+- **Version one** swept the environment and compiled the standard library before running the
+  workload. It reported **0.92x — the tier looking 8% slower than the interpreter.** The cause was
+  structural: the workload defines its own hot procedures at run time, after the sweep, so they
+  stayed interpreted. Compiling definitions as they appear changed the same measurement to 3.79x.
+- **Version two** reported that 3.79x as the headline. But **one file, `tco_tests.scm`, is 95% of
+  the total** — a space-usage test running a million-iteration tail loop. The macro-benchmark was
+  reporting a microbenchmark. Per-file speedups with a geometric mean give every file equal weight
+  and yield **1.39x**, with dominant files named so the total can still be read.
+
+A total over a suite of unequal files reports the biggest file. The benchmark now reports both, the
+per-file table, and a flag on any file over 20% of the total.
+
+## Two documentation errors, corrected
+
+- The suite was described as having **"four"** programs from Thivierge & Feeley. Their set is
+  **seven** — `fib35`, `nqueens12`, `oddeven`, `ctak`, `contfib30`, `btsearch2000`, `threads10` —
+  and we have all seven, plus `tak` from the Gabriel set. `CHANGES.md` said "four" and then listed
+  six.
+- **Our `threads` is not their `threads10`.** Theirs uses a vector-based doubly-linked queue with a
+  `graft`/`boot` continuation pattern and about a million context switches; mine is a list-based
+  scheduler doing four thousand. Not comparable to their table, and it misses the vector coverage
+  theirs would have given. Comparability to their tables also needs `canonical` sizes, which nothing
+  reported so far has used.
+
+Canonical sources should therefore come from `ecraven/r7rs-benchmarks` — the Larceny/Gabriel lineage
+the paper drew from — rather than from transcribing figures out of a PDF, since the program count was
+already mis-read off those tables once.
+
+## Testing
+
+`npm test`: unchanged at **2152 passed, 0 failed, 7 skipped**. This work adds a benchmark and one
+compiler entry point; no evaluator or compiler behaviour changed.
+
+---
+
+# Benchmark Validity, part 2: real code across implementations
+
+**Date:** 2026-09-18
+
+`npm run benchmark:macro-implementations` runs the real-code workload — the project's own Scheme
+test files — under scheme-js-4, Gambit and Racket, timed *inside* the program with R7RS
+`current-jiffy` so process startup is excluded.
+
+## The key result
+
+| measure | microbenchmarks | real code |
+|---|---|---|
+| slower than Gambit `gsi` | 7–14x | **13.8x** (geometric mean, 21 files, range 4.9–42.4x) |
+| compiler tier speedup | ~12x | 1.39x |
+
+**The suite's standing against an external implementation transfers almost exactly; its sensitivity
+to our optimizations does not.** Those are different questions, and the eight microbenchmarks are
+fit for one of them. They are a reasonable sample of Scheme's cost structure in aggregate, and a
+poor sample of the specific operations increment 1b optimized.
+
+This also makes cross-implementation measurement a **validity check on the benchmark**, not just a
+comparison: if a program is relatively expensive for us *and* for Gambit and Racket, the benchmark
+measures something intrinsic to the program; if only for us, it measures our implementation. A
+single-implementation number cannot distinguish those.
+
+## Three measurement bugs, each of which produced a confident wrong number
+
+- **Process timing could not resolve the workload.** Subtracting a measured 21 ms startup from files
+  doing 1–3 ms of work clamped every result to zero. Fixed by timing inside the program and
+  repeating the body 100 times.
+- **We were charged for work the others do once.** Our side re-ran `analyze` on every repetition
+  while Gambit and Racket ran compiled code, inflating our figure several-fold. Fixed by analyzing
+  before the timed region.
+- **Racket's clock cannot measure this workload.** `jiffies-per-second` is 1,000 against Gambit's
+  1,000,000 — 10 µs effective resolution per iteration against 0.01 µs — so most files were measured
+  in one to three ticks. The script now probes each implementation's clock and labels the figure
+  LOW CONFIDENCE rather than presenting arithmetic as measurement.
+
+All three were caught by asking whether a number was plausible, not by anything failing.
+
+## Notes
+
+- Racket needs `raco pkg install r7rs` to participate; installed on this machine.
+- Files that are not portable R7RS (JavaScript interop, promises) and `tco_tests.scm` (needs a host
+  GC hook, and its million-iteration loop would dominate any total) are excluded **by name with a
+  stated reason**, not silently skipped.
+
+`npm test`: unchanged at **2152 passed, 0 failed, 7 skipped**.
+
+---
+
+# Benchmark validity, step 2: the canonical R7RS suite
+
+`benchmarks/r7rs/` — 51 programs from the Gabriel and Gambit benchmark lineage, by way of Larceny
+and [`ecraven/r7rs-benchmarks`](https://github.com/ecraven/r7rs-benchmarks), vendored at a pinned
+upstream commit. Run with `npm run benchmark:r7rs` and `npm run benchmark:r7rs-implementations`.
+
+Results: [docs/r7rs_benchmark_results.md](docs/r7rs_benchmark_results.md).
+Methodology and provenance: [benchmarks/r7rs/README.md](benchmarks/r7rs/README.md).
+
+## Why
+
+The eight programs in `benchmarks/programs/` were written in Stage 0 against this implementation,
+and every optimization since was chosen by measuring against them, so suite and optimizations were
+fitted to each other. These programs predate the project by decades, nobody here chose them, and
+published results exist for more than twenty implementations — which makes a disagreeing Gambit or
+Racket number evidence about *our harness* before it is evidence about anything else.
+
+They are classified by **workload class** — call, fixnum, bignum, flonum, list, vector, string,
+continuation — and reported per class, **never blended**. There is no average Scheme program to
+weight the classes against, so one number would bake a guess about an unknown workload into every
+future decision. The decision rule this supports needs no weighting: ship an optimization when it
+improves at least one class and regresses none.
+
+## What it found on the first run
+
+**Seven defects, none of which the 2,152 existing tests or the eight microbenchmarks detect.**
+
+Four R7RS conformance gaps, three previously unknown:
+
+| Gap | Blocks |
+|---|---|
+| Identifiers containing `.` are rejected by **extended dot notation**, a deliberate and tested interop feature; `(define x.y 1)` fails, though R7RS §7.1.1 permits it | `gcbench`, `matrix`, `slatex` |
+| `read-char` / `peek-char` return JavaScript strings, not Scheme characters, so `(char? (read-char p))` is `#f` | `parsing`, `read0` |
+| `equal?` does not terminate on circular structure, which R7RS §6.1 requires; Gambit runs the program in 0.08 s | `equal` |
+| `string-set!` throws unconditionally (known, deliberate) | `compiler` |
+
+And one compiler-tier soundness bug behind ten failing programs: **a value returned from an
+interpreted closure into compiled code has JavaScript auto-conversion applied**, so exact integers
+become inexact and large `BigInt`s throw. Six of the ten produce a *wrong answer with no error*.
+This is now the first item of Stage 2b increment 2, ahead of re-enterable frames. Minimal
+reproduction in R26 of `docs/compiler_strategy.md`.
+
+## The headline measurements
+
+Against Gambit's interpreter, by class — worst first, because the worst class is the one that would
+have caught the earlier overfitting:
+
+| Class | vs Gambit `gsi` |
+|---|---|
+| Bignums | **52.8x** |
+| `call/cc`, `dynamic-wind` | 22.0x |
+| Symbolic / list | 17.3x |
+| Inexact / complex | 13.5x |
+| Procedure call | 12.3x |
+| Small exact integers | 11.3x |
+| Vectors, bytevectors | 11.2x |
+| Strings and characters | **1.7x** |
+
+Two of these change the plan:
+
+- **Bignums are the worst class by a wide margin.** The strategy document puts the whole numeric
+  tower at "roughly 3x, not the story" — measured on `fib`, whose values fit in a machine word.
+  That does not hold for arbitrary-precision work, and no earlier benchmark would have shown it.
+- **We are faster than both Gambit and Racket on string building** (0.3x and 0.5x on `string`),
+  because Scheme strings are JavaScript strings and V8's ropes make `string-append` nearly free.
+  That is the *same* decision that makes `string-set!` throw. The mutable `SchemeString` proposed
+  for Stage 2b increment 4 therefore has a real cost attached rather than being a straightforward
+  fix — measure before committing.
+
+The compiler tier, by class: **4.17x on call-heavy code and 0.97x–1.35x on everything else.** Same
+shape the transfer test found, now confirmed on programs nobody here chose. `graphs` regressed to
+0.84x.
+
+**Caveat found immediately after these runs:** the tier figures — these, the earlier ~12x, and the
+1.39x transfer number — were all measured through `tryCompileDefinition`, which carries no
+continuation guard. That is the per-procedure declining R15 proved unsound. Under the sound
+unit-level guard, *zero* of the 41 canonical programs compile anything, because one
+`call-with-values` in shared code disables the whole unit. The tier is therefore either unsound or
+vacuous, with nothing in between, and every speedup it has ever reported must be re-taken. Recorded
+as **R28**; it makes increment 2 a prerequisite to measuring the tier rather than the next step
+after it.
+
+## Measurement discipline
+
+- Timed **inside** the Scheme program with R7RS `current-jiffy`, for every implementation, on the
+  same source. The reference implementations run under upstream's own preludes, unmodified.
+- Repetition counts **calibrated per implementation**, results reported per iteration. Racket's
+  clock ticks 1,000 times a second against Gambit's 1,000,000; a count giving this interpreter a
+  second of work gives Racket one tick. Calibration iterates until a run is at least half the
+  target, and a run still reading zero is reported as unmeasurable rather than as infinitely fast.
+- Every reduced size had its **expected value derived from Gambit**, never from our own output.
+- Each measurement runs in a child process under a wall-clock budget, so a hang is reported as a
+  hang rather than stalling the suite.
+
+Two harness bugs were caught before reaching a result, and one wrong conclusion was retracted
+within ten minutes — a `read` shim that ignored its port argument, the compiler being pointed at the
+harness's own scaffolding, and `takl` sized from a documented "old input" that is far larger than it
+looks. All three are recorded in R27.
+
+`npm test`: unchanged at **2152 passed, 0 failed, 7 skipped**.
+
+---
+
+# Stage 2b increment 2a: the compiled-to-interpreted boundary
+
+Fixes the defect recorded as R26: a value returned from an **interpreted** closure into **compiled**
+code had JavaScript auto-conversion applied, so exact integers became inexact and `BigInt`s beyond
+2^53 threw outright.
+
+## The fix
+
+A Scheme closure is a callable JavaScript function so that it can be handed to `addEventListener`
+and friends, and that wrapper exists for *JavaScript* callers — it converts arguments through
+`jsToScheme` and the result through `unpackForJs`. Compiled code is not a JavaScript caller. It now
+reaches an interpreted closure through a new entry point that converts nothing:
+
+- `SCHEME_RAW_CALL` in `src/core/interpreter/values.js` — the raw entry, attached at closure creation.
+- `R.invoke` in `src/compiler/runtime.js` — one property load to choose between it and a direct call,
+  used by `step` and `settle`.
+- The non-tail call site in `src/compiler/codegen.js` makes the same choice inline.
+
+Tail calls were already correct: a compiled tail call returns the interpreter's own `TailCall`, and
+the interpreter applies the callee through its own environment-extending path, which converts
+nothing. Only the non-tail path was broken.
+
+## Result
+
+Nine of the ten failing canonical programs recovered — `pi`, `chudnovsky`, `lattice`, `puzzle`,
+`destruc`, `earley`, `array1`, `bv2string`, `string`. `maze` still fails for a second, unrelated
+reason, narrowed in R33.
+
+**The fix also made the tier substantially faster**, which was not the intent:
+
+| | before | after |
+|---|---|---|
+| `fib` | 5.60x | **23.67x** |
+| `tak` | 9.35x | **29.78x** |
+| call class | 4.17x | **6.69x** |
+
+Every canonical program passes its input through the interpreted `hide`, so every program's working
+value was arriving converted from `BigInt` to a JavaScript number. The inline fast paths are guarded
+on `typeof x === 'bigint'`, so a converted input failed that guard *on every operation for the whole
+run* — the entire program fell back to the generic tower primitives. **A correctness defect at a
+type boundary was masquerading as a performance ceiling.** Recorded as R32.
+
+The per-class conclusion from R29 survives and sharpens: the tier is worth **6.69x on call-heavy
+code and 1.01–1.34x on every other workload class**, so value representation still has to precede
+further code-generation work.
+
+## Why the existing tests could not see this
+
+Two independent blind spots, both now closed:
+
+- The three cross-tier cases in `tests/functional/compiler_tests.js` force their callee to stay
+  interpreted by writing it with `apply` — which trips the unit-level continuation guard and
+  declines the *whole unit*, so they compiled nothing and compared the interpreter against itself.
+- `render` displays a `BigInt` and a JavaScript number identically, so a result silently converted
+  from exact to inexact still matched.
+
+Eleven new boundary cases compile selectively — naming the procedures to compile rather than relying
+on a decline rule — and ask Scheme about the result with `exact?`, `eqv?`, `pair?` and `eq?` instead
+of comparing rendered text. Six of the eleven failed before the fix, including the `BigInt` throw.
+
+`npm test`: **2174 passed, 0 failed, 7 skipped** (was 2152; +22 from the new cases).

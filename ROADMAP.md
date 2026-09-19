@@ -708,11 +708,187 @@ Two findings the plan had not anticipated, both recorded in the strategy documen
 is possible), and both need assignment conversion, because a re-entered procedure restores locals
 into a fresh binding that closures made earlier do not share.
 
+### Stage 2b increment 1: A working compiler tier ✅ — **~12x**
+
+`src/compiler/` compiles top-level procedure definitions to JavaScript under convention B and
+installs them in place of the interpreted closures. The interpreter remains the other tier: a
+definition the compiler declines is simply run as before.
+
+Measured with `npm run benchmark:compiled`, against the Stage 1 interpreter:
+
+| Benchmark | interpreted | compiled | speedup |
+|---|---|---|---|
+| `nqueens` | 57 ms | 3.0 ms | **19.1x** |
+| `tak` | 48 ms | 2.6 ms | **18.3x** |
+| `fib` | 143 ms | 8.2 ms | **17.5x** |
+| `oddeven` | 48 ms | 17.1 ms | **2.8x** |
+
+**~12x geometric mean** where the tier applies. Cumulatively `fib` has gone from **593 ms at the
+Stage 0 baseline to about 8 ms — roughly 70x.**
+
+Most of that came from two follow-ups after profiling the first working tier, which put 25% of its
+runtime in primitive calls and only 17% in the generated code:
+
+- **Global resolution** caches the frame holding a binding and reads it with one hash lookup rather
+  than walking the environment chain. Caching the frame, not the value, keeps a later `define` or
+  `set!` observable.
+- **Primitives are expanded inline**, with an exact-integer fast path and a fallback to the real
+  primitive so the numeric tower is preserved rather than approximated, and a guard on the binding
+  because Scheme allows `+` to be redefined. Inlining primitives *in tail position* was the largest
+  single part: `(+ ...)` closing a procedure body was allocating a `TailCall` for something that
+  cannot tail-call. Primitives now measure 0.0% of the compiled profile.
+
+> [!NOTE]
+> A third optimization — a direct, binding-guarded self-recursive call — was implemented, measured
+> at **7% slower**, and removed. See R19 in the strategy document: the profile that suggested it was
+> taken at a 9 ms wall time where the profiler's own overhead was 66% of samples. Profile to find
+> candidates, A/B to decide.
+
+**Design:** the compiler consumes the *analyzed* AST, so macro expansion, hygiene, alpha-renaming
+and internal-definition hoisting are inherited from the analyzer rather than reimplemented, and the
+two tiers agree on what a program means by construction. Compiled tail calls return the
+interpreter's own `TailCall`, which makes mixed-tier mutual tail recursion work in both directions
+with no boundary code.
+
+> [!WARNING]
+> **The tier is opt-in and off by default.** Declining individual procedures that mention `call/cc`
+> is *unsound*: the `btsearch` benchmark returned a wrong answer because two of its procedures sat
+> in the dynamic extent of a capture and had to be re-entered, which a compiled frame cannot do.
+> The guard is now unit-level — any definition using a control global leaves the whole unit
+> interpreted — which is sound for a self-contained unit but not in general. Making compiled frames
+> re-enterable via the Stage 2a unwind protocol is the top of increment 2.
+
+Supported: `lambda`, `if`, `let`, `let*`, named `let`, `letrec`, `set!`, `begin`, `quote`, internal
+definitions, rest parameters, closures, and all non-control primitives. Declined: anything
+referencing `call/cc`, `dynamic-wind`, `apply`, `values`, `eval`, the exception operators or
+parameters.
+
+**Testing:** 60 differential assertions in `tests/functional/compiler_tests.js`. Every case is
+evaluated twice — interpreted and compiled — and the results must agree, with the interpreter as
+the reference semantics. Includes the `btsearch` backtracking case that exposed the unsoundness,
+and a test that bypasses the guard and asserts the answer then goes wrong, so the guard cannot be
+quietly weakened.
+
+### Benchmark validity review ⚠️ — **the reported speedups do not transfer**
+
+| | microbenchmarks | the repo's own `.scm` test files |
+|---|---|---|
+| distinct callables exercised | **16** | **136** |
+| share of calls on a primitive the compiler inlines | **98.0%** | **34.2%** |
+| compiler tier speedup | **~12x** | **1.39x** per-file geometric |
+
+Every optimization since Stage 0 was chosen by measuring against eight microbenchmarks written in
+Stage 0, so the suite and the optimizations were fitted to each other. **Read the ~12x as an upper
+bound on hot numeric loops, not as what a program will see.** Details in R20–R22 of
+[docs/compiler_strategy.md](docs/compiler_strategy.md).
+
+`npm run benchmark:macro` is the transfer test: the project's own 35 Scheme test files, 4,088 lines
+of real code not chosen for its performance characteristics. It reports per-file speedups with a
+geometric mean, because a total over unequal files just reports the biggest file — one of them,
+`tco_tests.scm`, is 95% of the total.
+
+Stage 1's gains hold up better: the evaluator node-type distributions do match real code
+(`TailAppNode` 44% against 45%), and Stage 1 targeted dispatch mechanics rather than particular
+primitives.
+
+**But the suite is not wrong about everything.** Running the same real-code workload under Gambit
+and Racket shows our *standing* transfers almost exactly — 13.8x slower than Gambit `gsi` on real
+code, against 7–14x on the microbenchmarks. So the eight programs are a reasonable sample of
+Scheme's cost structure in aggregate and a poor sample of the operations increment 1b optimized.
+The suite is fit for "how far behind are we" and unfit for "does this optimization help". See R23.
+
+**Remaining benchmark work:**
+
+| Step | Description | Status |
+|---|---|---|
+| 1 | Macro-benchmark on the repo's own Scheme — the transfer test | ✅ |
+| 1b | Run that workload across Gambit and Racket (`npm run benchmark:macro-implementations`) | ✅ |
+| 2 | Pull canonical sources from `ecraven/r7rs-benchmarks` (Larceny/Gabriel lineage) | ✅ |
+| 3 | Replace `threads` with the real `threads10`, which also buys vector coverage | Not started |
+| 4 | Add the missing axes: interop, debugger-on, startup | Partly done by step 2 |
+| 5 | Per-stage coverage metric in the progress doc, so overfitting is visible | Not started |
+| 6 | Raise sizes toward `canonical`; add a second engine | Not started |
+
+Step 2 landed as [`benchmarks/r7rs/`](benchmarks/r7rs/README.md) — 51 vendored programs, classified
+by **workload class** and reported per class rather than blended, because there is no average Scheme
+program to weight the classes against. `npm run benchmark:r7rs` runs them here;
+`npm run benchmark:r7rs-implementations` runs the same sources under Gambit and Racket using
+upstream's own preludes. It closed most of step 4 on the way: flonums, bignums, complex numbers,
+bytevectors, strings, records and `dynamic-wind` all now have coverage, leaving interop,
+debugger-on and startup.
+
+**It also found seven defects on its first run**, none of which the existing 2,152 tests or eight
+microbenchmarks detect. Details in R25–R26 of [docs/compiler_strategy.md](docs/compiler_strategy.md).
+
+### Compiler-tier defects found by the canonical suite
+
+| Defect | Status |
+|---|---|
+| Values crossing from interpreted code into compiled code had JavaScript auto-conversion applied — exact integers went inexact, large `BigInt`s threw. Ten programs affected, six with a silent wrong answer. | ✅ fixed (increment 2a); eleven regression cases added to `tests/functional/compiler_tests.js` |
+| The tier's continuation guard is either unsound (`tryCompileDefinition`) or compiles nothing (`compileProgram`). | open — increment 2b, R28 |
+| `maze` returns a wrong answer for a second, unrelated reason. | open — R33 |
+
+### Conformance gaps the canonical suite found
+
+| Gap | Blocks | Priority |
+|---|---|---|
+| Identifiers containing `.` are rejected by **extended dot notation** — a deliberate, documented, tested interop feature (`tests/extras/scheme/dot_access_tests.scm`). `(define x.y 1)` fails, though R7RS §7.1.1 permits the dot. Second instance of the `string-set!` pattern: a conformance-for-interop trade made on purpose whose cost was never recorded. | `gcbench`, `matrix`, `slatex` | needs a decision, not just a fix |
+| `read-char` and `peek-char` return JavaScript strings, not Scheme characters, so `(char? (read-char p))` is `#f`. | `parsing`, `read0` | fix |
+| `equal?` does not terminate on circular structure, which R7RS §6.1 requires. | `equal` | fix |
+| `string-set!` throws unconditionally (known, deliberate). | `compiler` | Stage 2b increment 4 |
+
+### Compiler-tier soundness bug — blocks enabling the tier
+
+A value returned from an **interpreted** closure into **compiled** code has JavaScript
+auto-conversion applied: exact integers become inexact, and a `BigInt` outside the safe integer
+range throws. Ten of forty-one canonical programs fail under the tier while passing under the
+interpreter. Minimal reproduction and analysis in R26. This is now the **first** item of increment
+2, ahead of re-enterable frames — there is no point making the tier enableable while it is unsound
+at the boundary.
+
+### Remaining increments of Stage 2b — **resequenced after the canonical suite**
+
+The original order was 2 → 3 → 4 → 5 → 6. The measurements in
+[docs/r7rs_benchmark_results.md](docs/r7rs_benchmark_results.md) moved value representation forward
+and made increment 2 a prerequisite rather than a next step. Reasoning in R28–R31 of
+[docs/compiler_strategy.md](docs/compiler_strategy.md).
+
+| Order | Increment | Description | Why here |
+|---|---|---|---|
+| ✅ | **2a** | Fix the compiled→interpreted boundary: a value returned from an interpreted closure into compiled code must not have JavaScript auto-conversion applied. | **Done.** Nine of ten canonical failures recovered, and the call class went 4.17x → 6.69x, because a converted input also defeated every `bigint`-guarded inline fast path (R32). |
+| 1st | **2a′** | `maze` still returns a wrong answer — a second, unrelated defect in how the interpreter drives a tail-call chain returned by a compiled procedure. Narrowed in R33. | Correctness, and the last known wrong answer on the suite. |
+| 2nd | **2b** | Re-enterable compiled frames via the unwind protocol, so the continuation guard can be both sound *and* useful. | **Prerequisite to measuring the tier at all.** Today the guard is either unsound or compiles nothing — see R28. Every tier figure this project has quoted was taken in the unsound configuration. |
+| 3rd | **4a** | Fixnums as JS numbers with checked promotion to BigInt. | The tier returns **0.98x** on small-integer code because BigInt arithmetic, not dispatch, dominates it. Codegen cannot reach this (R29). |
+| 4th | **4b** | Flonum fast paths in `src/compiler/inline.js`; the existing expansions guard `bigint` only. | Cheap, and the flonum class is 13.5x behind Gambit with the tier worth 1.35x (R29). |
+| 5th | **5a** | AOT-compile the standard library. | Mixed-tier is the steady state; every `map`/`assoc`/`append` is a boundary crossing. May matter more for the list class than any codegen change (R30). |
+| 6th | **4c** | Mutable strings — **immutable-until-mutated**, exploding to a char array only on first `string-set!`. | We are *faster than Racket* on string building because strings are JS strings. A naive char-array wrapper trades that away (R31). |
+| 7th | **3** | Source maps, and the end-to-end DevTools verification that Stage 2a deferred. | Unchanged in scope; no longer blocking anything measured. |
+| 8th | **5b** | Macro phase separation and explicit renaming. | Unchanged. |
+| 9th | **6** | Debug-point emission at `full` / `statement` / `off`, and retiring `extension/`. | Unchanged. |
+| — | **4d** | Dropping `source` from runtime `Cons`. | Unchanged, unmeasured, low priority. |
+
+### Measurements this reordering implies
+
+| Task | Why |
+|---|---|
+| Re-profile per workload class | The founding "~95% interpretive overhead, ~2% real work" figure was taken on `fib` alone, from the suite later shown to be overfitted. A `sumfp` or `pi` profile probably looks nothing like it. |
+| Investigate bignums | **Worst class at 52.8x Gambit**, `pi` at 94x. Both implementations do arbitrary precision, so a 50x gap is anomalous and probably sits in tower dispatch rather than in the arithmetic. |
+| Report compilation coverage with decline reasons | `puzzle` compiles 1 of 21 definitions, `graphs` 3 of 18. We have printed the ratio since increment 1 and never acted on it. Share of *runtime* in compiled code beats share of definitions. |
+| Measure the tier-boundary cost | R26 established it is incorrect; nobody has measured what it costs when correct. |
+| Re-take every tier speedup | Per R28, all of them were measured through the unsound guard. |
+
+### Open design question raised by the suite
+
+Convention B's 4.09x code-size cost buys a re-enterable twin for every compiled procedure, to
+support capture — and the continuation class currently returns 1.04x. That is not a reason to
+revisit B, whose rationale was DevTools stack fidelity, but it is a reason to consider generating
+the twin **lazily** rather than eagerly.
+
 ### Remaining stages
 
 | Stage | Description | Status |
 |---|---|---|
 | **Stage 1** | Interpreter representation, no compiler. Target was 10–30x; that estimate was wrong (see above). | **2.57x — closed** |
 | **Stage 2a** | Calling-convention bake-off. | **Complete — convention B chosen** |
-| **Stage 2b** | The compiler tier: IR, codegen, source maps, value representation, macro phase separation. | Not started |
+| **Stage 2b** | The compiler tier. | **Increment 1 complete — ~12x** |
 | **Stage 3** | Optimization: direct calls, primitive inlining, arity specialization, unboxing, escape analysis. | Not started |

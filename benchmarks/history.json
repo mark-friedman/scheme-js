@@ -199,8 +199,8 @@
       }
     },
     {
-      "stage": "Stage 1 (partial)",
-      "note": "Native comparison primitives (also fixing rational comparison); inlined evaluation of operator, operands and if-tests that cannot capture a continuation; application logic extracted to a module function reached via a live binding; lazy JS-context capture; precomputed operand arrays; lazy nameMap. Lexical addressing NOT done -- profiling showed it was worth only ~15%.",
+      "stage": "Stage 1",
+      "note": "Interpreter representation. Native comparison primitives (also fixing rational comparison, which had been comparing Rational objects as strings); inlined evaluation of operators, operands and if-tests that cannot capture a continuation; application logic reached through a live binding; lazy JS-context capture. Lexical addressing deliberately skipped -- measured at only ~15% of runtime.",
       "timestamp": "2026-09-18T20:43:39.823Z",
       "commit": "044aa69",
       "nodeVersion": "v24.11.1",

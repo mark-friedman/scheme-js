@@ -15,6 +15,8 @@
  *
  *   --skip-implementations   omit the Gambit/Racket comparison (much faster)
  *   --runs N                 repetitions per benchmark (default 5)
+ *   --regenerate             rewrite the report from the recorded history
+ *                            without measuring anything
  */
 
 import fs from 'fs';
@@ -87,6 +89,17 @@ function measureImplementations(runs) {
 }
 
 function main() {
+  // Regenerating is separate from recording: the report is derived from the
+  // history, so a label or wording fix should not require re-measuring and
+  // should not perturb numbers that were taken on a quieter machine.
+  if (process.argv.includes('--regenerate')) {
+    const history = JSON.parse(fs.readFileSync(HISTORY_PATH, 'utf8'));
+    fs.writeFileSync(REPORT_PATH, renderProgressReport(history));
+    console.log(`regenerated ${path.relative(PROJECT_ROOT, REPORT_PATH)} ` +
+      `from ${history.snapshots.length} snapshot(s)`);
+    return;
+  }
+
   const { stage, note, runs, skipImplementations } = parseArgs();
 
   console.log(`Recording snapshot for "${stage}" (runs: ${runs})`);

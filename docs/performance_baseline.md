@@ -22,9 +22,20 @@ npm run audit:r7rs                  # R7RS-small conformance audit
 
 Eight portable R7RS programs live in [`benchmarks/programs/`](../benchmarks/programs/). They are
 written so the same source runs unmodified under scheme-js-4, Gambit and Racket: the driver
-supplies `bench-size` and then calls `(bench-run)`. Four are drawn from the evaluation in
+supplies `bench-size` and then calls `(bench-run)`. Seven of the eight are the complete benchmark set from
 Thivierge & Feeley, *Efficient Compilation of Tail Calls and Continuations to JavaScript*
-(SFP 2012), so our numbers can be placed next to theirs.
+(SFP 2012) -- `tak` is the addition, from the Gabriel set -- so our numbers can be placed next to
+theirs.
+
+> [!WARNING]
+> Two caveats, recorded in R20-R22 of [compiler_strategy.md](compiler_strategy.md). **`threads` is
+> not their `threads10`**: theirs uses a vector-based doubly-linked queue and runs about a million
+> context switches, mine is a list-based scheduler doing four thousand, so its numbers are not
+> comparable to their table. And comparability requires `canonical` sizes, which nothing reported
+> here uses. More importantly, a coverage check showed this suite exercises **16 distinct callables
+> against 136 in real code**, with 98% of its calls landing on the fifteen primitives the compiler
+> inlines against 34% in real code -- so it is **overfitted** to the optimizations chosen against
+> it. Use [`npm run benchmark:macro`](../benchmarks/run_macro.js) for a transfer check.
 
 | Program | Measures |
 |---|---|

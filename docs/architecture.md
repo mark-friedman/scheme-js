@@ -69,12 +69,31 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │   ├── profile.js                  # CPU profiler (inspector API)
 │   ├── compare_implementations.js  # Same programs under Gambit and Racket
 │   ├── baseline_standard.json      # Stage 0 baseline for the compiler effort
+│   ├── run_compiled.js             # Compiler tier vs interpreter, standard suite
+│   ├── profile_compiled.js         # CPU profiler for the compiler tier
+│   ├── run_macro.js                # Transfer test: the project's own .scm test files
+│   ├── compare_macro.js            # That workload under Gambit and Racket
+│   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
+│   ├── compare_r7rs.js             # Canonical suite under Gambit and Racket
+│   ├── record_progress.js          # Regenerates docs/performance_progress.md
 │   ├── lib/
-│   │   └── harness.js              # Shared bootstrap and timing
-│   └── programs/                   # Portable R7RS benchmark programs
-│       ├── manifest.js             # Sizes, expected results, categories
-│       └── *.scm                   # fib, tak, oddeven, nqueens, ctak,
-│                                   #   contfib, btsearch, threads
+│   │   ├── harness.js              # Shared bootstrap and timing
+│   │   ├── r7rs_harness.js         # Canonical-suite protocol, sizing, calibration
+│   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
+│   │   ├── step_counts.js          # Deterministic dispatch counting
+│   │   └── progress_report.js      # Progress-document rendering
+│   ├── programs/                   # Portable R7RS benchmark programs (Stage 0)
+│   │   ├── manifest.js             # Sizes, expected results, categories
+│   │   └── *.scm                   # fib, tak, oddeven, nqueens, ctak,
+│   │                               #   contfib, btsearch, threads
+│   │                               # NOTE: overfitted -- see benchmarks/r7rs/README.md
+│   └── r7rs/                       # Canonical Gabriel/Gambit/Larceny suite (vendored)
+│       ├── README.md               # Provenance, protocol, sizing, blocked programs
+│       ├── UPSTREAM_COMMIT         # Pinned ecraven/r7rs-benchmarks revision
+│       ├── manifest.js             # Workload class, sizes, status per program
+│       ├── src/*.scm               # 51 programs, verbatim, plus common.scm and
+│       │                           #   the Gambit and Racket preludes
+│       └── inputs/*                # Canonical inputs and data files, verbatim
 ├── experiments/                    # Throwaway prototypes, not production code
 │   └── stage2a/                    # Calling-convention bake-off (see compiler_strategy.md)
 │       ├── frontend.js             # Shared front end: Scheme subset -> normalized tree
@@ -191,6 +210,13 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │           ├── parameter.scm       # make-parameter, parameterize
 │           ├── parameter.scm       # make-parameter, parameterize
 │           └── repl.scm            # REPL utilities
+│
+│   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)
+│      ├── index.js           # EXPORT: tryCompileDefinition(), compileProgram()
+│      ├── ir.js              # Analyzed AST -> IR; tail position, local vs global
+│      ├── codegen.js         # IR -> JavaScript (convention B)
+│      ├── inline.js          # Inline expansions for primitives, tower-faithful
+│      └── runtime.js         # Tail-call step, global accessors, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
 │      ├── index.js            # Barrel export

@@ -6,7 +6,7 @@ This directory contains design documents, research notes, implementation details
 
 ### Architecture & Design
 - **[performance_progress.md](performance_progress.md)**: *Generated.* Benchmark results after each stage of the compiler effort — wall-clock timings, deterministic evaluator step counts, and distance to Gambit and Racket — so progress over time is visible at a glance. Regenerate with `npm run benchmark:record`.
-- **[performance_baseline.md](performance_baseline.md)**: The Stage 0 measurement gate for the compiler effort. Records the benchmark suite, cross-implementation timings against Gambit and Racket, the CPU profile, evaluator step counts, and the R7RS-small conformance audit, with instructions for reproducing all of them.
+- **[performance_baseline.md](performance_baseline.md)**: The Stage 0 measurement gate for the compiler effort. Records the benchmark suite, cross-implementation timings against Gambit and Racket, the CPU profile, evaluator step counts, and the R7RS-small conformance audit, with instructions for reproducing all of them. **Read the benchmark-validity warning it carries before quoting any speedup from it.**
 - **[compiler_strategy.md](compiler_strategy.md)**: *Living document.* Performance analysis of the interpreter and the staged plan for adding a Scheme-to-JavaScript compiler, with a **revision log** recording every claim that later measurement contradicted, every missed gate, and every technique the plan did not anticipate. Superseded text is annotated rather than deleted, so the reasoning that led to a wrong call stays legible. Contains the measured baseline (~650x slower than plain JS on `fib(30)`, ~95% of runtime in interpretive overhead), cross-implementation comparisons, the calling-convention trade-off that governs whether the Chrome DevTools extension can be retired, and answers on CSP, hygienic macros, and R7RS string mutability.
 - **[architecture.md](architecture.md)**: High-level architectural overview of Scheme V4, detailing the core components (Interpreter, AM, Compiler), the compilation pipeline, and the runtime environment.
 - **[chrome_scheme_debugger_design.md](archive/chrome_scheme_debugger_design.md)**: Comprehensive design document for a Chrome-integrated Scheme debugger. It covers the architecture (Debug Runtime, Source Maps, DevTools), implementation phases, and UI considerations.
@@ -14,6 +14,12 @@ This directory contains design documents, research notes, implementation details
 - **[node_devtools_integration.md](node_devtools_integration.md)**: Details the integration with Node.js DevTools, exploring how to bridge the Scheme runtime with Node's inspector protocol.
 - **[debugger_requirements.md](debugger_requirements.md)**: Lists the functional and non-functional requirements for the Scheme debugger, including breakpoints, stepping, and state inspection.
 - **[debugger_research.md](debugger_research.md)**: Research notes on existing debugging techniques and tools, serving as a background for the debugger design.
+
+#### Benchmark suites
+Three suites, deliberately kept separate rather than merged into one number:
+- `benchmarks/programs/` — eight microbenchmarks written in Stage 0. Known to be **overfitted** to the optimizations chosen against them; good for tracking our standing against other implementations, unreliable for deciding whether an optimization helps.
+- `benchmarks/r7rs/` — the canonical Gabriel/Gambit/Larceny suite, vendored from `ecraven/r7rs-benchmarks`, classified by **workload class** and reported per class. Methodology in [benchmarks/r7rs/README.md](../benchmarks/r7rs/README.md); results in **[r7rs_benchmark_results.md](r7rs_benchmark_results.md)**. Run with `npm run benchmark:r7rs`.
+- The project's own Scheme test files, as a transfer test. Run with `npm run benchmark:macro`.
 
 ### User Guides
 - **[debugger_manual.md](debugger_manual.md)**: A user manual for the Scheme debugger, explaining how to activate it, set breakpoints, step through code, and inspect variables in both Node.js and Browser REPLs.

@@ -18,7 +18,13 @@
     "benchmark:profile": "node benchmarks/profile.js",
     "benchmark:implementations": "node benchmarks/compare_implementations.js",
     "audit:r7rs": "node scripts/audit_r7rs.js",
-    "benchmark:record": "node benchmarks/record_progress.js"
+    "benchmark:record": "node benchmarks/record_progress.js",
+    "benchmark:compiled": "node benchmarks/run_compiled.js",
+    "benchmark:profile-compiled": "node benchmarks/profile_compiled.js",
+    "benchmark:macro": "node benchmarks/run_macro.js",
+    "benchmark:macro-implementations": "node benchmarks/compare_macro.js",
+    "benchmark:r7rs": "node benchmarks/run_r7rs.js",
+    "benchmark:r7rs-implementations": "node benchmarks/compare_r7rs.js"
   },
   "private": true,
   "devDependencies": {

@@ -13,7 +13,7 @@ analysis are in [performance_baseline.md](performance_baseline.md).
 | Stage | Recorded | Commit | Platform | What changed |
 |---|---|---|---|---|
 | **Stage 0 (baseline)** | 2026-09-18 | `cfa2d17` | darwin/arm64, Node v24.11.1 | Measurement infrastructure only; no optimization work. Three pre-existing debugger bugs fixed. |
-| **Stage 1 (partial)** | 2026-09-18 | `044aa69` | darwin/arm64, Node v24.11.1 | Native comparison primitives (also fixing rational comparison); inlined evaluation of operator, operands and if-tests that cannot capture a continuation; application logic extracted to a module function reached via a live binding; lazy JS-context capture; precomputed operand arrays; lazy nameMap. Lexical addressing NOT done -- profiling showed it was worth only ~15%. |
+| **Stage 1** | 2026-09-18 | `044aa69` | darwin/arm64, Node v24.11.1 | Interpreter representation. Native comparison primitives (also fixing rational comparison, which had been comparing Rational objects as strings); inlined evaluation of operators, operands and if-tests that cannot capture a continuation; application logic reached through a live binding; lazy JS-context capture. Lexical addressing deliberately skipped -- measured at only ~15% of runtime. |
 
 ## Wall-clock timings
 
@@ -21,7 +21,7 @@ Lower is better. Sizes are held fixed across stages so the numbers stay comparab
 a cell reading `size changed` means that benchmark was re-sized and cannot be
 compared to the baseline.
 
-| Benchmark | size | Stage 0 (baseline) | Stage 1 (partial) | vs baseline |
+| Benchmark | size | Stage 0 (baseline) | Stage 1 | vs baseline |
 |---|---|---|---|---|
 | `fib` | 25 | 593 ms | 136 ms | **4.35x** |
 | `tak` | 18 | 178 ms | 55 ms | **3.25x** |
@@ -44,7 +44,7 @@ the honest measure of whether an optimization removed work: they are identical o
 every machine and immune to JIT warm-up, so a change here is real in a way that a
 change in wall-clock time is not.
 
-| Benchmark | size | Stage 0 (baseline) | Stage 1 (partial) | reduction |
+| Benchmark | size | Stage 0 (baseline) | Stage 1 | reduction |
 |---|---|---|---|---|
 | `fib` | 18 | 338,619 | 66,886 | **5.06x** |
 | `tak` | 14 | 437,092 | 93,110 | **4.69x** |
@@ -64,7 +64,7 @@ stages, not for interpreter work.
 
 ### vs Gambit `gsi` (interpreter)
 
-| Benchmark | Stage 0 (baseline) | Stage 1 (partial) |
+| Benchmark | Stage 0 (baseline) | Stage 1 |
 |---|---|---|
 | `fib` | 28.1x | 6.78x |
 | `tak` | 26.8x | 8.20x |
@@ -77,7 +77,7 @@ stages, not for interpreter work.
 
 ### vs Racket CS (compiled)
 
-| Benchmark | Stage 0 (baseline) | Stage 1 (partial) |
+| Benchmark | Stage 0 (baseline) | Stage 1 |
 |---|---|---|
 | `fib` | 1372x | 345x |
 | `tak` | 1498x | 475x |

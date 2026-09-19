@@ -36,6 +36,24 @@ export const SCHEME_CONTINUATION = Symbol.for('scheme.continuation');
  */
 export const SCHEME_PRIMITIVE = Symbol.for('scheme.primitive');
 
+/**
+ * Symbol naming a closure's entry point for callers that already speak Scheme.
+ *
+ * A Scheme closure is represented as a callable JavaScript function so that it
+ * can be handed to `addEventListener` and friends. Calling it therefore means
+ * crossing *into* Scheme from JavaScript, and the wrapper converts accordingly:
+ * arguments through `jsToScheme`, the result through `unpackForJs`.
+ *
+ * The compiler tier is not a JavaScript caller. It holds Scheme values and
+ * expects Scheme values back, so it needs an entry that converts nothing --
+ * otherwise an exact integer comes back as a double and a bignum outside the
+ * safe integer range throws. That is what this symbol names. See R26 in
+ * `docs/compiler_strategy.md`.
+ *
+ * @type {symbol}
+ */
+export const SCHEME_RAW_CALL = Symbol.for('scheme.rawCall');
+
 // =============================================================================
 // Type Checking Functions
 // =============================================================================
@@ -104,6 +122,18 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
         // Run through the interpreter with a sentinel frame to capture result.
         // Unpacking will respect the default interop policy (deep conversion by default).
         return interpreter.runWithSentinel(ast, this);
+    };
+
+    // Entry point for callers that already hold Scheme values -- today, the
+    // compiler tier. The wrapper above exists for JavaScript callers and so
+    // converts in both directions; routing compiled code through it silently
+    // turned exact integers into doubles and threw on bignums beyond 2^53,
+    // which is what broke ten of the canonical R7RS benchmarks (R26).
+    closure[SCHEME_RAW_CALL] = function (...schemeArgs) {
+        const ast = new TailAppNode(
+            new LiteralNode(closure),
+            schemeArgs.map((value) => new LiteralNode(value)));
+        return interpreter.runWithSentinel(ast, undefined, { jsAutoConvert: 'raw' });
     };
 
     // Attach marker and closure data
