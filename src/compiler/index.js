@@ -13,7 +13,8 @@
  */
 
 import { LambdaNode, DefineNode } from '../core/interpreter/ast_nodes.js';
-import { lowerLambda } from './ir.js';
+import { lowerLambda, controlGlobalIn } from './ir.js';
+import { unsafeDefinitions } from './safety.js';
 import { generate } from './codegen.js';
 import * as R from './runtime.js';
 
@@ -45,6 +46,16 @@ export function tryCompileDefinition(ast, env) {
   const lowered = lowerLambda(value);
   if (lowered.reason) {
     return { compiled: false, reason: lowered.reason };
+  }
+
+  // The base case of the safety rule, kept here so this entry point is no less
+  // safe on its own than it used to be. It is only the base case: a procedure
+  // that names no control global can still sit in the extent of a capture, so
+  // callers that can see the whole unit should use `compileProgram`, which
+  // closes this over the call graph.
+  const control = controlGlobalIn(lowered.globals);
+  if (control !== null) {
+    return { compiled: false, reason: `references control global '${control}'` };
   }
 
   const { source, constants } = generate(lowered.ir, lowered.globals, ast.name, env);
@@ -85,6 +96,10 @@ export function tryCompileClosure(closure, name) {
 
   const lowered = lowerLambda(lambda);
   if (lowered.reason) return { compiled: false, reason: lowered.reason };
+  const control = controlGlobalIn(lowered.globals);
+  if (control !== null) {
+    return { compiled: false, reason: `references control global '${control}'` };
+  }
 
   // Compiled in the closure's *own* environment, so its free variables resolve
   // the way they did when it was interpreted -- a library procedure's globals
@@ -137,23 +152,24 @@ export function compileProgram(asts, env, interpreter, options = {}) {
   const compiled = [];
   const declined = [];
 
-  // A dry run over the whole unit first, so one procedure's use of a
-  // continuation can veto compiling its neighbours.
-  let unitDeclined = null;
-  if (!options.allowContinuationUnsafe) {
-    for (const ast of asts) {
-      if (!(ast instanceof DefineNode)) continue;
-      const probe = tryCompileDefinition(ast, env);
-      if (!probe.compiled && /control global/.test(probe.reason ?? '')) {
-        unitDeclined = `${ast.name}: ${probe.reason}`;
-        break;
-      }
-    }
-  }
+  // Which definitions a continuation could be captured inside. Computed over
+  // the whole unit before anything is compiled, because the answer for one
+  // procedure depends on what its callees do -- `make-maze` names no control
+  // global and is still unsafe, because `dig-maze` escapes through it.
+  const unsafe = options.allowContinuationUnsafe
+    ? new Map()
+    : unsafeDefinitions(asts, env, { strict: options.strict !== false });
+
+  // Kept for callers that ask "was the unit refused wholesale?". It is no
+  // longer how the decision is made; a unit that uses continuations in one
+  // corner can now have the rest of it compiled.
+  const firstUnsafe = unsafe.size > 0 ? [...unsafe.entries()][0] : null;
+  const unitDeclined = firstUnsafe === null ? null : `${firstUnsafe[0]}: ${firstUnsafe[1]}`;
 
   for (const ast of asts) {
-    const result = unitDeclined
-      ? { compiled: false, reason: `unit uses continuations (${unitDeclined})` }
+    const unsafeReason = ast instanceof DefineNode ? unsafe.get(ast.name) : undefined;
+    const result = unsafeReason !== undefined
+      ? { compiled: false, reason: unsafeReason }
       : tryCompileDefinition(ast, env);
 
     if (result.compiled) {
@@ -167,7 +183,7 @@ export function compileProgram(asts, env, interpreter, options = {}) {
     }
   }
 
-  return { compiled, declined, unitDeclined };
+  return { compiled, declined, unitDeclined, unsafe };
 }
 
 export { R as compilerRuntime };

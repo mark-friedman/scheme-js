@@ -825,8 +825,8 @@ microbenchmarks detect. Details in R25–R26 of [docs/compiler_strategy.md](docs
 | Defect | Status |
 |---|---|
 | Values crossing from interpreted code into compiled code had JavaScript auto-conversion applied — exact integers went inexact, large `BigInt`s threw. Ten programs affected, six with a silent wrong answer. | ✅ fixed (increment 2a); eleven regression cases added to `tests/functional/compiler_tests.js` |
-| The tier's continuation guard is either unsound (`tryCompileDefinition`) or compiles nothing (`compileProgram`). | open — increment 2b, R28 |
-| `maze` returns a wrong answer for a second, unrelated reason. | open — R33 |
+| The tier's continuation guard was either unsound (`tryCompileDefinition`) or compiled nothing (`compileProgram`). | ✅ largely addressed by 2b′ (R35): 375/754 definitions compile and both known unsound shapes are caught. **Still not sound** — a global rebound after compilation is invisible — so the tier stays off by default until 2b. |
+| `maze` returned a wrong answer — the same unsoundness, not a separate defect. | ✅ fixed by the 2b′ reachability guard; diagnosis in R34 |
 
 ### Conformance gaps the canonical suite found
 
@@ -846,26 +846,51 @@ interpreter. Minimal reproduction and analysis in R26. This is now the **first**
 2, ahead of re-enterable frames — there is no point making the tier enableable while it is unsound
 at the boundary.
 
-### Remaining increments of Stage 2b — **resequenced after the canonical suite**
+### Remaining increments of Stage 2b — **re-derived after increment 2c′**
 
-The original order was 2 → 3 → 4 → 5 → 6. The measurements in
-[docs/r7rs_benchmark_results.md](docs/r7rs_benchmark_results.md) moved value representation forward
-and made increment 2 a prerequisite rather than a next step. Reasoning in R28–R31 of
-[docs/compiler_strategy.md](docs/compiler_strategy.md).
+The previous ordering was derived from R29, which is now **overturned** (R39): it was measured while
+every hot loop in the suite was uncompilable, so it read the interpreter and concluded the compiler
+was worthless outside call-heavy code. The real table:
 
-| Order | Increment | Description | Why here |
-|---|---|---|---|
-| ✅ | **2a** | Fix the compiled→interpreted boundary: a value returned from an interpreted closure into compiled code must not have JavaScript auto-conversion applied. | **Done.** Nine of ten canonical failures recovered, and the call class went 4.17x → 6.69x, because a converted input also defeated every `bigint`-guarded inline fast path (R32). |
-| 1st | **2a′** | `maze` still returns a wrong answer — a second, unrelated defect in how the interpreter drives a tail-call chain returned by a compiled procedure. Narrowed in R33. | Correctness, and the last known wrong answer on the suite. |
-| 2nd | **2b** | Re-enterable compiled frames via the unwind protocol, so the continuation guard can be both sound *and* useful. | **Prerequisite to measuring the tier at all.** Today the guard is either unsound or compiles nothing — see R28. Every tier figure this project has quoted was taken in the unsound configuration. |
-| 3rd | **4a** | Fixnums as JS numbers with checked promotion to BigInt. | The tier returns **0.98x** on small-integer code because BigInt arithmetic, not dispatch, dominates it. Codegen cannot reach this (R29). |
-| 4th | **4b** | Flonum fast paths in `src/compiler/inline.js`; the existing expansions guard `bigint` only. | Cheap, and the flonum class is 13.5x behind Gambit with the tier worth 1.35x (R29). |
-| 5th | **5a** | AOT-compile the standard library. | Mixed-tier is the steady state; every `map`/`assoc`/`append` is a boundary crossing. May matter more for the list class than any codegen change (R30). |
-| 6th | **4c** | Mutable strings — **immutable-until-mutated**, exploding to a char array only on first `string-set!`. | We are *faster than Racket* on string building because strings are JS strings. A naive char-array wrapper trades that away (R31). |
-| 7th | **3** | Source maps, and the end-to-end DevTools verification that Stage 2a deferred. | Unchanged in scope; no longer blocking anything measured. |
-| 8th | **5b** | Macro phase separation and explicit renaming. | Unchanged. |
-| 9th | **6** | Debug-point emission at `full` / `statement` / `off`, and retiring `extension/`. | Unchanged. |
-| — | **4d** | Dropping `source` from runtime `Cons`. | Unchanged, unmeasured, low priority. |
+| Workload class | tier speedup | vs Gambit `gsi` |
+|---|---|---|
+| fixnum | **11.95x** | 11.2x |
+| flonum | **8.94x** | 13.1x |
+| call | 5.55x | 12.1x |
+| vector | 4.32x | 11.1x |
+| list | 1.60x | 14.5x |
+| string | 1.24x | **1.5x** (we lead) |
+| bignum | 1.11x | **53.2x** |
+| continuation | **1.06x** | 19.8x |
+
+Two facts now drive everything. **The tier works** — 4–12x on four of eight classes. And **none of
+it is shippable**, because the tier is off by default and 215 of the 573 lowerable definitions are
+declined by a guard that is still unsound.
+
+| Order | Item | Why here |
+|---|---|---|
+| ✅ | **2b.1 — capture detection** | A continuation captured while compiled frames are live is now **refused with an explanation** rather than silently answered wrongly. The guard's known unsoundness is converted from silent to loud. Does not permit enabling the tier. See R40. |
+| **1st** | **2b.2 — re-enterable compiled frames** | Hits three things at once. It is the only thing standing between a working tier and one that can be *enabled*; it unlocks the definitions the safety guard declines; and it directly targets `continuation`, the worst tier class. Nothing else competes. **Two parts:** (a) a capture protocol that propagates outward through the compiled/interpreted boundary, so the compiled caller reifies its frame and returns an unwind sentinel up to the outermost compiled entry, which splices the collected frames into the interpreter's stack; (b) a resumable twin of every emitted function — a state machine over its non-tail call sites — which the Stage 2a bake-off measured at 4.09x code size. Our nested-function codegen makes (b) more tractable than the prototype's monolithic emitter, because each `$fnN` is already a separate function with few call sites. |
+| **2nd** | **Profile bignums** | **Worst standing class by a factor of 2.7** over the next worst, and the tier gives 1.11x so code generation will not reach it. Both implementations do arbitrary precision, so a 53x gap is anomalous and probably sits in tower dispatch rather than the arithmetic. Investigate before committing to work — this is the one part of R29 that survived. |
+| **3rd** | **Diagnose the `list` class** | 1.60x, but the spread is 0.96x to 23.5x: `browse` 23.5x, `earley` 0.99x with **0 of 8** definitions compiled, `lattice` 2 of 17. That spread is a *coverage* problem, not a code generation one. A per-program decline-reason histogram would say why in one run. Largest class in the suite (13 programs), and the shape of a compiler. |
+| **4th** | **Put the compliance suites in `npm test`** | 219 + 982 conformance tests currently sit outside the default run — `tests/core/scheme/compliance/` has its own runners and nothing references them. Cheap to wire in, and the recurring failure of this project has been changes that the suite could not see. |
+| 5th | **4b — flonum fast paths in `inline.js`** | The expansions still guard `bigint` only, and flonum is 13.1x behind Gambit. Now an incremental optimization rather than an unblock. |
+| 6th | **5a — AOT-compile the standard library** | Mixed-tier crossing is still the norm; less acute than R30 judged it, but real. |
+| 7th | **4a — fixnums as JS numbers** | **Demoted.** R29 put this first on the premise that BigInt dominates and codegen cannot help. fixnum is now the *best* tier class at 11.95x, so that premise is false for small-integer code. Still 11.2x behind Gambit, so it may pay — but it needs a profile to justify it, not R29's reasoning. |
+| 8th | **4c — mutable strings, immutable-until-mutated** | A real R7RS conformance gap, but `string` is the one class where we **beat both references**, so this can only cost performance. Do it with the R31 design and measure. |
+| — | **3 — source maps; 6 — debug points** | Not performance work at all. These serve constraint 4 (debuggers) and should not be crowded out indefinitely by optimization. |
+| — | **4d — drop `source` from runtime `Cons`** | Unchanged, unmeasured, low priority. |
+
+### Revisiting the Scheme-port decision, as promised
+
+The recommendation was: do 2c, measure what the tier is worth on symbolic code, then decide whether
+to write the compiler in Scheme. 2c and 2c′ are done, and the number is **`list` 1.60x** — with the
+closest analogues in the suite being `scheme`, a Scheme interpreter written in Scheme, at **1.09x**
+(32 of 112 definitions compiled) and `peval` at **1.17x** (14 of 43).
+
+So self-hosting still buys only 1.1–1.6x, and both figures are held down by coverage rather than by
+code generation. That is exactly what 2b unlocks. **Re-measure after 2b and decide then** — the
+question is unchanged, the evidence is not yet in.
 
 ### Measurements this reordering implies
 
@@ -876,6 +901,26 @@ and made increment 2 a prerequisite rather than a next step. Reasoning in R28–
 | Report compilation coverage with decline reasons | `puzzle` compiles 1 of 21 definitions, `graphs` 3 of 18. We have printed the ratio since increment 1 and never acted on it. Share of *runtime* in compiled code beats share of definitions. |
 | Measure the tier-boundary cost | R26 established it is incorrect; nobody has measured what it costs when correct. |
 | Re-take every tier speedup | Per R28, all of them were measured through the unsound guard. |
+
+### Decision needed: `letrec` and named `let` (increment 2c′)
+
+`src/core/scheme/macros.scm` implements `letrec` by Petrofsky's list-based method, with a comment
+saying it is *"critical for correct call/cc behavior within letrec"* — all inits evaluated before
+any assignment, which is what R7RS `letrec` requires and `letrec*` does not. A named `let` expands
+through it, so its loop variable is bound to `'undefined` and receives its lambda via `(car temp)`.
+
+That is invisible to any local analysis, so every named-`let` loop is declined by the safety guard.
+It is the single largest remaining coverage item. Three ways out, and they trade different things:
+
+| option | gains | costs |
+|---|---|---|
+| **a.** Make `letrec` (and named `let`) **core forms** in the analyzer, as Chez, Racket and Guile do | the whole coverage win; matches every real implementation; `LetRecNode` and its IR case already exist | the existing `LetRecNode` is single-binding; multi-binding `letrec` with R7RS evaluation order is real work, and the call/cc ordering property must be re-established by test |
+| **b.** Re-express the macro as `(set! var init) ...`, and teach the analysis that a local assigned a lambda is a nameable callee | small change | that is **`letrec*` semantics, not `letrec`** — an R7RS conformance regression, and exactly the property the current expansion was written to preserve |
+| **c.** Leave it | no risk | `sum`, `nqueens`, `puzzle` and every named-`let` loop stay interpreted; the `fixnum` class keeps measuring the interpreter against itself |
+
+Recommendation: **(a)**, with the R7RS ordering property pinned by tests *before* the change, since
+that is what the current expansion exists to protect. It is the only option that is both correct and
+buys the coverage.
 
 ### Open design question raised by the suite
 

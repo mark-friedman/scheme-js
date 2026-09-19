@@ -56,41 +56,31 @@
 ;;  * @param {...*} body - Body expressions to evaluate.
 ;;  * @returns {*} Result of the last expression in the body.
 ;;  */
-(define-syntax let
-  (syntax-rules ()
-    ((let ((name val) ...) body1 body2 ...)
-     ((lambda (name ...) body1 body2 ...) val ...))
-    ((let tag ((name val) ...) body1 body2 ...)
-     ((letrec ((tag (lambda (name ...) body1 body2 ...)))
-        tag)
-      val ...))))
-
-;; /**
-;;  * Recursive binding construct.
-;;  * Allows defining mutually recursive functions.
-;;  *
-;;  * @param {list} bindings - List of ((var init) ...) bindings.
-;;  * @param {...*} body - Body expressions to evaluate.
-;;  * @returns {*} Result of the last expression in the body.
-;;  */
-;; R7RS-compliant letrec: all inits are evaluated before any assignments.
-;; This is critical for correct call/cc behavior within letrec.
-;; 
-;; Credit: Al Petrofsky's elegant list-based approach
-;; https://groups.google.com/g/comp.lang.scheme/c/FB1HgUx5d2s
+;; `let` and `letrec` are CORE FORMS, analyzed natively in
+;; `src/core/interpreter/analyzers/core_forms.js`, not macros.
 ;;
-;; The strategy:
-;; 1. Create all variables bound to undefined
-;; 2. Evaluate all inits into a list (single temp variable)
-;; 3. Iteratively pop from the list and assign each var
-;; 4. Run body
-(define-syntax letrec
-  (syntax-rules ()
-    ((_ ((var init) ...) . body)
-     (let ((var 'undefined) ...)
-       (let ((temp (list init ...)))
-         (begin (set! var (car temp)) (set! temp (cdr temp))) ...
-         (let () . body))))))
+;; They used to be defined here, `letrec` by Al Petrofsky's list-based method:
+;;
+;;   (let ((var 'undefined) ...)
+;;     (let ((temp (list init ...)))
+;;       (begin (set! var (car temp)) (set! temp (cdr temp))) ...
+;;       (let () . body)))
+;;
+;; That is a fine *portability* technique -- it gets R7RS `letrec` semantics
+;; using only `let`, `set!` and list operations -- but it is the wrong thing
+;; inside an implementation. Routing each lambda through `(list ...)` and
+;; `(car temp)` means nothing can tell that a loop variable holds the lambda
+;; beside it, so the compiler declined every named `let`, every `do` loop and
+;; every group of mutually recursive internal definitions (R38, R39).
+;;
+;; Every serious Scheme keeps `letrec` in its core language for exactly this
+;; reason -- Chez, Racket and Guile all do -- and analyzes it to recover the
+;; unassigned-lambda bindings a compiler can call directly (Waddell, Sarkar and
+;; Dybvig, "Fixing Letrec", 2005; Guile's `<fix>` node).
+;;
+;; The rule this leaves behind: a macro may expand into core forms, but it must
+;; not encode binding structure in runtime data. `cond` to `if` is fine, `let`
+;; to a lambda application is fine, `case` to `memv` is fine. This was not.
 
 ;; /**
 ;;  * Sequential recursive binding construct.

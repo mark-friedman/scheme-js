@@ -57,7 +57,10 @@ function registerBindingWithCurrentScopes(name, value) {
  * @returns {Array} Stack with SentinelFrames removed
  */
 function filterSentinelFrames(stack) {
-    return stack.filter(f => f.constructor.name !== 'SentinelFrame');
+    // Matched by a property rather than by `constructor.name`, so that a
+    // sentinel carrying extra information -- a compiled-code boundary, say --
+    // is still recognised as one.
+    return stack.filter(f => f.isSentinel !== true);
 }
 
 // =============================================================================

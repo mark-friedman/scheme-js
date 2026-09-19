@@ -111,6 +111,62 @@
                     (odd? (lambda (n) (if (= n 0) #f (even? (- n 1))))))
             (even? 10))))
 
+  ;; letrec (R7RS 4.2.2) -- deliberately distinct from letrec* above.
+  ;;
+  ;; In letrec, ALL inits are evaluated before ANY variable is assigned, so a
+  ;; later init cannot see an earlier variable's value; in letrec* it can. That
+  ;; difference is the only externally observable one, and it is the reason the
+  ;; two forms are not implemented as each other. Pinned here so that a change
+  ;; to how letrec is expanded or analyzed cannot quietly collapse it into
+  ;; letrec*. R7RS says reading an unassigned letrec variable is an error, so
+  ;; these tests assert that the value is *not* the letrec* answer rather than
+  ;; asserting any particular marker.
+  (test-group "letrec"
+    (test "letrec basic" 3
+          (letrec ((a 1) (b 2)) (+ a b)))
+    (test "letrec mutual recursion" #t
+          (letrec ((ev? (lambda (n) (if (= n 0) #t (od? (- n 1)))))
+                   (od? (lambda (n) (if (= n 0) #f (ev? (- n 1))))))
+            (ev? 10)))
+    (test "letrec self recursion" 120
+          (letrec ((fact (lambda (n) (if (< n 2) 1 (* n (fact (- n 1)))))))
+            (fact 5)))
+    (test "letrec later init does not see an earlier variable" #t
+          (not (equal? 1 (letrec ((a 1) (b a)) b))))
+    (test "letrec* later init DOES see an earlier variable" 1
+          (letrec* ((a 1) (b a)) b))
+    (test "letrec evaluates inits left to right" '(2 1)
+          (let ((log '()))
+            (letrec ((a (begin (set! log (cons 1 log)) 1))
+                     (b (begin (set! log (cons 2 log)) 2)))
+              log)))
+    (test "call/cc captured in a letrec init" 3
+          (letrec ((a (call/cc (lambda (c) 1)))
+                   (b 2))
+            (+ a b))))
+
+  ;; Named let and do both expand through letrec, so they are pinned here too.
+  (test-group "named let and do"
+    (test "named let accumulates" 10
+          (let loop ((i 0) (a 0)) (if (> i 4) a (loop (+ i 1) (+ a i)))))
+    (test "named let returns early" 'found
+          (let scan ((xs '(1 2 3)))
+            (cond ((null? xs) 'missing)
+                  ((= (car xs) 2) 'found)
+                  (else (scan (cdr xs))))))
+    (test "named let shadows an outer binding of the same name" 7
+          (let ((loop 99)) (let loop ((i 7)) i)))
+    (test "internal defines are mutually recursive" #t
+          (letrec ((probe (lambda (n)
+                            (define (a k) (if (= k 0) #t (b (- k 1))))
+                            (define (b k) (if (= k 0) #f (a (- k 1))))
+                            (a n))))
+            (probe 10)))
+    (test "do accumulates" 10
+          (do ((i 0 (+ i 1)) (a 0 (+ a i))) ((> i 4) a)))
+    (test "do with empty body and a result" 5
+          (do ((i 0 (+ i 1))) ((= i 5) i))))
+
   ;; let-values
   (test-group "let-values"
     (test "let-values basic" 5

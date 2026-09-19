@@ -219,28 +219,54 @@ export class LetNode extends Executable {
  */
 export class LetRecNode extends Executable {
     /**
-     * @param {string} varName - The variable name to bind.
-     * @param {Lambda} lambdaExpr - Must be a Lambda expression.
+     * A `letrec` whose initializers are all lambda expressions.
+     *
+     * This is the shape every real `letrec` has -- a named `let`, a set of
+     * internal definitions, a pair of mutually recursive procedures -- and it
+     * is worth a node of its own for two reasons.
+     *
+     * **Semantics.** R7RS requires all initializers to be evaluated before any
+     * variable is assigned. Evaluating a lambda expression has no side effects
+     * and cannot observe another binding's value, so for this shape the
+     * requirement is satisfied trivially and `letrec` and `letrec*` agree. The
+     * general case, where an initializer is an arbitrary expression, still goes
+     * through the desugaring in `analyzeLetRec`.
+     *
+     * **Compilability.** The previous expansion routed every lambda through
+     * `(list init ...)` and `(car temp)`, so the compiler could not see that a
+     * loop variable held the lambda two forms up, and declined every named
+     * `let` (R38). Here the binding is explicit, and both tiers can read it.
+     *
+     * @param {Array<string>} names - Renamed variables, bound simultaneously.
+     * @param {Array<LambdaNode>} lambdaExprs - One lambda per name, in order.
      * @param {Executable} body - The body expression.
+     * @param {Array<string>} [originalNames] - Names before alpha-renaming.
      */
-    constructor(varName, lambdaExpr, body) {
+    constructor(names, lambdaExprs, body, originalNames = null) {
         super();
-        this.varName = varName;
-        this.lambdaExpr = lambdaExpr;
+        this.names = names;
+        this.lambdaExprs = lambdaExprs;
         this.body = body;
+        this.originalNames = originalNames || names;
     }
 
     step(registers, interpreter) {
-        const newEnv = registers[ENV].extend(this.varName, null);
+        // Every binding is created before any closure is built, and every
+        // closure captures that same environment -- which is what makes the
+        // group mutually recursive. No frame is pushed because building a
+        // closure cannot trampoline.
+        const newEnv = registers[ENV].extendMany(
+            this.names, new Array(this.names.length).fill(undefined), this.originalNames);
 
-        registers[FSTACK].push(FrameRegistry.createLetRecFrame(
-            this.varName,
-            this.body,
-            newEnv
-        ));
+        for (let i = 0; i < this.names.length; i++) {
+            const le = this.lambdaExprs[i];
+            newEnv.bindings.set(this.names[i], createClosure(
+                le.params, le.body, newEnv, le.restParam, interpreter,
+                le.name, le.source, le.originalParams, le.originalRestParam));
+        }
 
-        registers[CTL] = this.lambdaExpr;
         registers[ENV] = newEnv;
+        registers[CTL] = this.body;
         return true;
     }
 }
@@ -420,6 +446,25 @@ export class CallCCNode extends Executable {
     }
 
     step(registers, interpreter) {
+        // A continuation is the interpreter's frame stack. Compiled procedures
+        // do not appear in it -- they run in JavaScript stack frames -- so if
+        // any are live between here and the capture point, the continuation
+        // built here would silently omit everything they had left to do.
+        //
+        // That is not hypothetical: it is how the `maze` benchmark returned a
+        // wrong answer (R34), and how `btsearch` did before it (R15). Both
+        // produced a plausible value rather than failing, which is the worst
+        // way for a compiler to be wrong. Until compiled frames can be reified
+        // and resumed -- increment 2b -- this refuses instead.
+        for (let i = registers[FSTACK].length - 1; i >= 0; i--) {
+            if (registers[FSTACK][i].compiledBoundary === true) {
+                throw new SchemeError(
+                    'call/cc: a continuation was captured while compiled procedures were on '
+                    + 'the stack, and compiled frames cannot yet be reified. The compiler tier '
+                    + 'must not be enabled for this program; see increment 2b in ROADMAP.md.');
+            }
+        }
+
         const continuation = createContinuation(registers[FSTACK], interpreter);
 
         registers[CTL] = new TailAppNode(

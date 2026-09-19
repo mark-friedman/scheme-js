@@ -136,7 +136,12 @@ export const R7RS_BENCHMARKS = [
   { name: 'destruc', workload: 'list', status: 'ok', params: null },
   { name: 'peval', workload: 'list', status: 'ok', params: null },
   { name: 'scheme', workload: 'list', status: 'ok', params: null },
-  { name: 'maze', workload: 'list', status: 'ok', params: null },
+  {
+    name: 'maze', workload: 'list', status: 'ok', params: null,
+    note: 'correct interpreted; returns a wrong answer under the compiler tier because '
+      + 'dig-maze escapes with (quit #f) and the escape unwinds past compiled make-maze, '
+      + 'which never mentions call/cc. This is R28\'s unsoundness, not a compiler defect (R34)'
+  },
   { name: 'mazefun', workload: 'list', status: 'ok', params: null },
   { name: 'quicksort', workload: 'list', status: 'ok', params: null },
   {

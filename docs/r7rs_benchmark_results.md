@@ -23,105 +23,97 @@ target workload into every future decision — which is exactly how the eight mi
 
 ## How far behind we are, by workload class
 
-Geometric mean of per-iteration time relative to each reference, 41 programs. Gambit `gsi` is an
-*interpreter*, so it is the fair comparison for our interpreter tier; Racket CS is a compiler and is
-the target for the compiler stages.
+Geometric mean of per-iteration time relative to each reference, interpreter tier, 41 programs.
+Gambit `gsi` is an *interpreter*, so it is the fair comparison for ours; Racket CS is a compiler.
 
-| Workload class | vs Gambit `gsi` | range | vs Racket CS | programs |
-|---|---|---|---|---|
-| Strings and characters | **1.7x** | 0.3x – 9.2x | **0.5x** | 2 |
-| `vector`, bytevectors | 11.2x | 11.2x – 11.2x | 274x | 2 |
-| Small exact integers | 11.3x | 9.4x – 16.2x | 630x | 4 |
-| Procedure call | 12.3x | 8.2x – 25.7x | 564x | 8 |
-| Inexact / complex | 13.5x | 7.9x – 17.7x | 280x | 7 |
-| Symbolic / list | 17.3x | 3.6x – 60.2x | 645x | 13 |
-| `call/cc`, `dynamic-wind` | 22.0x | 11.4x – 59.8x | 141x | 3 |
-| Bignums | **52.8x** | 29.6x – 94.3x | 103x | 2 |
+| Workload class | vs Gambit `gsi` | range | programs |
+|---|---|---|---|
+| Strings and characters | **1.5x** | 0.3x – 8.9x | 2 |
+| Vectors, bytevectors | 11.1x | 10.9x – 11.3x | 2 |
+| Small exact integers | 11.2x | 9.4x – 15.3x | 4 |
+| Procedure call | 12.1x | 8.3x – 20.6x | 8 |
+| Inexact / complex | 13.1x | 8.0x – 17.7x | 7 |
+| Symbolic / list | 14.5x | 3.5x – 34.4x | 13 |
+| `call/cc`, `dynamic-wind` | 19.8x | 10.9x – 44.2x | 3 |
+| Bignums | **53.2x** | 30.1x – 94.0x | 2 |
 
-**Quote the worst class, not the best.** Against Gambit's interpreter that is bignums at 52.8x; the
-eight microbenchmarks, which have no bignum program, would have you believe the figure is 7–14x.
+**Quote the worst class, not the best.** Against Gambit's interpreter that is bignums at 53.2x.
+
+Making `letrec` a core form (increment 2c′) sped the *interpreter* up on symbolic code as a side
+effect — `lattice` 18.7 → 10.7 ms, `graphs` 1.00 s → 662 ms, `earley` 2.10 → 1.59 s — which is the
+removed cost of a per-reference scope-registry lookup plus a list allocated and walked to deliver
+each lambda.
 
 ### Two results worth reading closely
 
-**We are faster than both references on strings** — 0.3x of Gambit and 0.5x of Racket on `string`,
-which builds a half-megabyte string by repeated `string-append` and `substring`. This is not an
-error; it is the direct payoff of representing Scheme strings as JavaScript strings, where V8's
-rope representation makes append close to free. It is also the *same* decision that makes
-`string-set!` throw. Stage 2b increment 4 proposes a mutable `SchemeString` to close that
-conformance gap, and this result says that change has a real cost attached rather than being a
-straightforward fix. Measure it before committing.
+**We are faster than both references on strings** — 0.3x of Gambit on `string`, which builds a
+half-megabyte string by repeated `string-append` and `substring`. That is the payoff of representing
+Scheme strings as JavaScript strings, where V8's ropes make append close to free. It is also the
+*same* decision that makes `string-set!` throw, so the mutable `SchemeString` proposed for increment
+4 has a real cost attached — see R31 for the immutable-until-mutated design that keeps it.
 
-**Bignums are our worst class by a wide margin**, at 52.8x Gambit and 94x on `pi`. The plan puts the
-whole numeric tower at "roughly 3x, not the story" — measured on `fib`, whose values fit in a
-machine word. That conclusion does not hold for arbitrary-precision work, and nothing in the
-previous suite would have shown it.
+**Bignums are the worst class by a wide margin.** The strategy document puts the whole numeric tower
+at "roughly 3x, not the story", measured on `fib`, whose values fit in a machine word. That does not
+hold for arbitrary-precision work, and the compiler tier does not help either (1.11x).
 
 ---
 
 ## What the compiler tier is worth, by workload class
 
 > [!WARNING]
-> **These numbers were measured in a configuration that cannot ship.** The harness compiles through
-> `tryCompileDefinition`, which carries no continuation guard — that is the per-procedure declining
-> R15 proved unsound. Under the sound unit-level guard, **zero of these 41 programs compile
-> anything**, because `common.scm` defines `hide` with `call-with-values`. None of the programs
-> below capture a continuation, so nothing here was mis-executed, but every figure must be re-taken
-> once the guard is both sound and useful. See **R28**.
-
-Measured after the increment-2a boundary fix. The figures before that fix were lower across the
-board and are superseded — see the note below.
+> Measured through `tryCompileDefinition`, which carries no continuation guard of its own. The
+> harness applies the call-graph guard from `src/compiler/safety.js` over the whole program before
+> compiling, so these runs are guarded — but the tier is still **not sound** and stays off by
+> default until increment 2b. See R28 and R35.
 
 | Workload class | speedup | range | programs |
 |---|---|---|---|
-| Procedure call | **6.69x** | 1.02x – 29.78x | 8 |
-| Inexact / complex | 1.34x | 0.98x – 6.59x | 7 |
-| Symbolic / list | 1.27x | 0.96x – 3.68x | 12 |
-| Bignums | 1.11x | 0.99x – 1.24x | 2 |
-| `call/cc`, `dynamic-wind` | 1.07x | 0.98x – 1.16x | 3 |
-| Strings and characters | 1.05x | 0.99x – 1.13x | 2 |
-| Small exact integers | 1.01x | 0.98x – 1.05x | 4 |
-| Vectors, bytevectors | **1.01x** | 0.98x – 1.04x | 2 |
+| Small exact integers | **11.95x** | 5.71x – 27.03x | 4 |
+| Inexact / complex | 8.94x | 3.34x – 14.44x | 7 |
+| Procedure call | 5.55x | 0.98x – 26.29x | 8 |
+| Vectors, bytevectors | 4.32x | 0.99x – 18.82x | 2 |
+| Symbolic / list | 1.60x | 0.96x – 23.51x | 13 |
+| Strings and characters | 1.24x | — | 1 |
+| Bignums | 1.11x | 0.99x – 1.23x | 2 |
+| `call/cc`, `dynamic-wind` | **1.06x** | 1.00x – 1.19x | 3 |
 
-**The tier is worth 6.69x on call-heavy code and essentially nothing on everything else.** `tak`
-reaches 29.8x and `takl` 23.6x because both are tight recursions over operations the compiler
-inlines; `sum`, `nqueens`, `array1` and `sumfp` sit at 1.00x because what dominates them is the
-value representation, which code generation does not touch.
+All 41 programs return the right answer.
 
-The decision rule this supports needs no weighting at all: **ship an optimization when it improves
-at least one class and regresses none.** The boundary fix passes it — the call class improved 60%
-and no class regressed.
+### This table replaced a very different one, and the reason matters
 
-### The boundary fix also raised the numbers, which is worth understanding
+Before increment 2c′ the same measurement read: fixnum 1.01x, flonum 1.30x, vector 1.01x, list
+1.09x. That supported a confident conclusion (R29) that the tier was "a control-flow optimizer" and
+that five of seven classes were not control-flow-bound — a conclusion used to reorder the roadmap.
 
-Before increment 2a the same table read: call 4.17x, flonum 1.35x, list 1.34x, continuation 1.04x,
-fixnum 0.98x, string 0.97x, and every bignum program failed. `fib` went 5.60x → 23.67x and `tak`
-9.35x → 29.78x on a change that was made purely for correctness.
+It was wrong, and wrong for a mundane reason: **named `let`, `do` and internal definitions could not
+be compiled at all**, so the hot loop of every fixnum, flonum and vector program was running
+interpreted. The tier was not being measured. `sum` went 0.99x → 5.71x and `nqueens` 0.97x → 27.0x
+on a change that touched no code generation whatsoever.
 
-Every canonical program passes its input through the interpreted `hide`, so every program's working
-value was arriving converted from `BigInt` to a JavaScript number. The inline fast paths are guarded
-on `typeof x === 'bigint'`, so a converted input failed that guard *on every operation for the whole
-run* and the program fell back to the generic tower primitives throughout. **A correctness defect at
-a type boundary was masquerading as a performance ceiling.** Recorded as R32.
+What survives is the bignum finding: 1.11x, because BigInt arithmetic genuinely dominates there and
+code generation cannot reach it. The generalisation to small-integer code does not survive. See
+**R39**.
 
-## Correctness: one program still fails under the tier
+The decision rule is unchanged and needs no weighting: **ship an optimization when it improves at
+least one class and regresses none.**
 
-`maze` returns a wrong answer. It is a second, unrelated defect, narrowed but open: the generated
-code for `make-maze` is correct on inspection and produces the right answer when its tail-call chain
-is driven by hand, but not when the chain is driven by the interpreter. Details and a disproved
-hypothesis in **R33**.
+### Coverage
 
-The other nine — `pi`, `chudnovsky`, `lattice`, `puzzle`, `destruc`, `earley`, `array1`,
-`bv2string`, `string` — were all one root cause, fixed in increment 2a: a value returned from an
-interpreted closure into compiled code had JavaScript auto-conversion applied, so exact integers
-became inexact and large `BigInt`s threw. Six of the nine had produced a *wrong answer with no
-error*.
+Of 754 definitions in the suite: **573 can be lowered** (the `unsupported node` category is gone
+entirely, R38) and **358 survive the safety guard**. What stops the rest is now the guard and
+`define` of non-procedures, not the compiler's front end.
 
-None of it was detectable by the existing tests or benchmarks. All 2,152 tests passed throughout,
-because the cross-tier test cases in `tests/functional/compiler_tests.js` force their callee to stay
-interpreted by writing it with `apply` — which trips the unit-level guard and compiles *nothing*, so
-they compared the interpreter against itself — and because `render` displays a `BigInt` and a
-JavaScript number identically. Both are now fixed: eleven boundary cases compile selectively and ask
-Scheme (`exact?`, `eqv?`, `pair?`) about the result.
+## Correctness: the suite is clean
+
+No wrong answers and no errors under either tier. Getting here took two fixes:
+
+- **Increment 2a** — values crossing from interpreted code into compiled code no longer have
+  JavaScript auto-conversion applied. Nine programs recovered, six of which had been returning a
+  *wrong answer with no error*.
+- **Increment 2b′** — the continuation guard is now a call-graph closure rather than a per-procedure
+  name check, which fixed `maze` (R34) and catches the `btsearch` shape as well.
+
+Neither was detectable by the tests as they stood; both now have regression coverage.
 
 ## Conformance: six programs cannot run at all
 

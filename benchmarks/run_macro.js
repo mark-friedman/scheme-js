@@ -41,6 +41,7 @@ import { writeString } from '../src/core/primitives/io/printer.js';
 import { isSchemeClosure } from '../src/core/interpreter/values.js';
 import { instrumentInterpreter } from '../src/debug/instrumentation.js';
 import { tryCompileClosure, tryCompileDefinition } from '../src/compiler/index.js';
+import { unsafeDefinitions } from '../src/compiler/safety.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
 import { INLINABLE } from '../src/compiler/inline.js';
 
@@ -245,11 +246,19 @@ async function runOnce(workload, useCompiler, instrument) {
       const forms = parse(file.source);
       parseMs += performance.now() - t;
 
-      for (const form of forms) {
-        t = performance.now();
-        const ast = analyze(form);
-        analyzeMs += performance.now() - t;
+      t = performance.now();
+      const asts = forms.map((form) => analyze(form));
+      analyzeMs += performance.now() - t;
 
+      // Which of this file's definitions a continuation could be captured
+      // inside. Decided over the whole file before anything runs, because the
+      // answer depends on the call graph rather than on one definition's text:
+      // a procedure that names no control global is still unsafe if something
+      // it calls escapes through it (R34). Not timed -- it is compilation
+      // work, and the interpreted run does not do it.
+      const unsafe = useCompiler ? unsafeDefinitions(asts, env) : new Map();
+
+      for (const ast of asts) {
         t = performance.now();
         // A procedure the workload defines is compiled as it appears, the way a
         // tiered runtime would. Sweeping the environment beforehand only
@@ -257,7 +266,7 @@ async function runOnce(workload, useCompiler, instrument) {
         // only that and so left the workload's own hot procedures interpreted,
         // which made compiling look useless.
         let handled = false;
-        if (useCompiler && ast instanceof DefineNode) {
+        if (useCompiler && ast instanceof DefineNode && !unsafe.has(ast.name)) {
           const result = tryCompileDefinition(ast, env);
           if (result.compiled) {
             env.define(result.name, result.procedure);

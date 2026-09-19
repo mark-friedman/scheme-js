@@ -134,9 +134,26 @@ export function runUnitTests(interpreter, logger) {
         ast = analyze(parse(`(let ((x 1)) x)`)[0]);
         assert(logger, "Unit: analyze let", ast instanceof TailAppNode, true);
 
+        // A letrec whose initializers are all lambdas keeps its binding
+        // structure, as a `LetRecNode`. That is what lets both tiers see that a
+        // loop variable holds the lambda beside it; the previous expansion
+        // routed each lambda through `(list ...)` and `(car temp)`, and the
+        // compiler declined every named `let` as a result.
         ast = analyze(parse(`(letrec ((f (lambda () 0))) (f))`)[0]);
-        // letrec is now desugared to let + set! via TailAppNode(LambdaNode)
-        assert(logger, "Unit: analyze letrec", ast instanceof TailAppNode, true);
+        assert(logger, "Unit: analyze letrec (all lambdas)", ast instanceof LetRecNode, true);
+        assert(logger, "Unit: letrec binds every name", ast.names.length, 1);
+
+        // An arbitrary initializer still desugars, because R7RS requires all of
+        // them to be evaluated before any variable is assigned.
+        ast = analyze(parse(`(letrec ((a 1) (b 2)) (+ a b))`)[0]);
+        assert(logger, "Unit: analyze letrec (general case)", ast instanceof TailAppNode, true);
+
+        // A named let is an application of a letrec, not an application inside
+        // one -- its initializers must not see the loop name (pitfall 8.1).
+        ast = analyze(parse(`(let loop ((i 0)) i)`)[0]);
+        assert(logger, "Unit: named let applies a letrec", ast instanceof TailAppNode, true);
+        assert(logger, "Unit: named let's operator is the letrec",
+            ast.funcExpr instanceof LetRecNode, true);
         ast = analyze(parse(`(lambda (x) x)`)[0]);
         assert(logger, "Unit: analyze lambda (single body)", ast instanceof LambdaNode, true);
         ast = analyze(parse(`(+ 1 2)`)[0]);

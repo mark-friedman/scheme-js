@@ -83,10 +83,15 @@ export function runCoreTests(interpreter, logger) {
     result = run(interpreter, `(let ((x 1)) (set! x 2))`);
     assert(logger, "Edge: set! return value", result, undefined);
 
-    // letrec self-reference: macro initializes to 'undefined symbol
+    // Reading a letrec variable from its own initializer is an error in R7RS
+    // 4.2.2, so any answer is permitted; this pins ours so it cannot drift
+    // silently. It is now the unspecified value, as `set!` returns. It used to
+    // be the *symbol* `undefined`, an artifact of the `letrec` macro binding
+    // each variable to `'undefined` -- a value a program could mistake for
+    // data. `letrec` is a core form now and the placeholder is a real
+    // unspecified value.
     result = run(interpreter, `(letrec ((x x)) x)`);
-    // After core.scm macro expansion, the placeholder is the symbol 'undefined
-    assert(logger, "Edge: letrec self-reference", result && result.name, 'undefined');
+    assert(logger, "Edge: letrec self-reference is unspecified", result, undefined);
 }
 
 // Allow running directly via node

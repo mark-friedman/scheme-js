@@ -58,6 +58,41 @@ class Scope {
   constructor(parent = null) {
     this.parent = parent;
     this.names = new Set();
+    /**
+     * Locals bound directly to a lambda by `let` or `letrec`.
+     *
+     * A call to one of these is not an unknown callee: the lambda was lowered
+     * in this same pass, so whatever it references is already accounted for.
+     * This is what keeps named `let` loops compilable -- `(let loop ((i 0)) ...
+     * (loop ...))` binds `loop` locally, and treating that as unknown declined
+     * `sum`, `nqueens`, `puzzle` and `diviter` outright.
+     * @type {Set<string>}
+     */
+    this.callable = new Set();
+  }
+
+  /**
+   * Records a name as bound to a lambda in this scope.
+   * @param {string} name - The renamed variable.
+   * @returns {void}
+   */
+  declareCallable(name) {
+    this.names.add(name);
+    this.callable.add(name);
+  }
+
+  /**
+   * @param {string} name - The renamed variable.
+   * @returns {boolean} True if the name is bound to a lambda we lowered.
+   */
+  isCallable(name) {
+    let scope = this;
+    while (scope) {
+      if (scope.callable.has(name)) return true;
+      if (scope.names.has(name)) return false;   // shadowed by a plain binding
+      scope = scope.parent;
+    }
+    return false;
   }
 
   /**
@@ -91,6 +126,26 @@ class Lowering {
   constructor() {
     /** @type {Set<string>} Globals referenced anywhere in the form. */
     this.globals = new Set();
+    /**
+     * Whether any call in the form has a callee the compiler cannot name.
+     *
+     * A call to a global is a call to something the caller can look up and
+     * analyse. A call to a *local* -- a parameter, most often -- is a call to
+     * whatever the caller was handed, which may capture a continuation without
+     * anything in this procedure's text hinting at it. That is precisely how
+     * `btsearch` broke: `enumerate` invokes `cont`, a parameter.
+     * @type {boolean}
+     */
+    this.callsUnknown = false;
+    /**
+     * Locals that were called, having been bound to a lambda, and locals that
+     * were assigned. A name in both is not safe after all: the binding we
+     * lowered is not necessarily what the call reaches.
+     * @type {Set<string>}
+     */
+    this.calledLocals = new Set();
+    /** @type {Set<string>} Locals that are the target of a `set!`. */
+    this.assignedLocals = new Set();
     /** @type {string|null} Why lowering failed, for diagnostics. */
     this.reason = null;
   }
@@ -121,9 +176,13 @@ function lowerNode(node, scope, tail, state) {
   }
 
   if (node instanceof VariableNode) {
-    if (scope.has(node.name)) return { k: 'local', name: node.name, tail };
+    if (scope.has(node.name)) {
+      return { k: 'local', name: node.name, tail, callable: scope.isCallable(node.name) };
+    }
     state.globals.add(node.name);
-    return { k: 'global', name: node.name, tail };
+    // A global callee is "known" in the sense this flag means: the safety
+    // analysis can look it up and follow it. It does not mean it is safe.
+    return { k: 'global', name: node.name, tail, callable: true };
   }
 
   if (node instanceof IfNode) {
@@ -133,12 +192,19 @@ function lowerNode(node, scope, tail, state) {
     if (then === UNSUPPORTED) return UNSUPPORTED;
     const other = lowerNode(node.alternative, scope, tail, state);
     if (other === UNSUPPORTED) return UNSUPPORTED;
-    return { k: 'if', test, then, else: other, tail };
+    return {
+      k: 'if', test, then, else: other, tail,
+      callable: then.callable === true && other.callable === true
+    };
   }
 
   if (node instanceof BeginNode) {
     const body = lowerSequence(node.expressions, scope, tail, state);
-    return body === UNSUPPORTED ? UNSUPPORTED : { k: 'seq', exprs: body, tail };
+    if (body === UNSUPPORTED) return UNSUPPORTED;
+    return {
+      k: 'seq', exprs: body, tail,
+      callable: body.length > 0 && body[body.length - 1].callable === true
+    };
   }
 
   if (node instanceof LambdaNode) {
@@ -149,7 +215,7 @@ function lowerNode(node, scope, tail, state) {
     if (body === UNSUPPORTED) return UNSUPPORTED;
     return {
       k: 'lambda', params: node.params, rest: node.restParam,
-      name: node.name, body, tail
+      name: node.name, body, tail, callable: true
     };
   }
 
@@ -157,21 +223,36 @@ function lowerNode(node, scope, tail, state) {
     const init = lowerNode(node.binding, scope, false, state);
     if (init === UNSUPPORTED) return UNSUPPORTED;
     const inner = new Scope(scope);
-    inner.declare(node.varName);
+    if (init.k === 'lambda') inner.declareCallable(node.varName);
+    else inner.declare(node.varName);
     const body = lowerNode(node.body, inner, tail, state);
     if (body === UNSUPPORTED) return UNSUPPORTED;
-    return { k: 'let', name: node.varName, init, body, tail };
+    return { k: 'let', name: node.varName, init, body, tail, callable: body.callable === true };
   }
 
   if (node instanceof LetRecNode) {
-    // The bound name is visible in its own initializer, which is the point.
+    // Every name is in scope in every initializer, which is what makes the
+    // group mutually recursive, and every initializer is a lambda -- the
+    // analyzer only builds this node for that shape. Declaring them all
+    // callable before lowering any of them is what lets a recursive or mutually
+    // recursive call be recognised as a callee the compiler can name, rather
+    // than as an unknown that the safety analysis has to refuse.
     const inner = new Scope(scope);
-    inner.declare(node.varName);
-    const init = lowerNode(node.lambdaExpr, inner, false, state);
-    if (init === UNSUPPORTED) return UNSUPPORTED;
+    for (const name of node.names) inner.declareCallable(name);
+
+    const inits = [];
+    for (const lambdaExpr of node.lambdaExprs) {
+      const lowered = lowerNode(lambdaExpr, inner, false, state);
+      if (lowered === UNSUPPORTED) return UNSUPPORTED;
+      inits.push(lowered);
+    }
+
     const body = lowerNode(node.body, inner, tail, state);
     if (body === UNSUPPORTED) return UNSUPPORTED;
-    return { k: 'letrec', name: node.varName, init, body, tail };
+    return {
+      k: 'letrec', names: node.names, inits, body, tail,
+      callable: body.callable === true
+    };
   }
 
   if (node instanceof SetNode) {
@@ -179,6 +260,7 @@ function lowerNode(node, scope, tail, state) {
     if (value === UNSUPPORTED) return UNSUPPORTED;
     const local = scope.has(node.name);
     if (!local) state.globals.add(node.name);
+    else state.assignedLocals.add(node.name);
     return { k: 'set', name: node.name, local, value, tail };
   }
 
@@ -187,7 +269,8 @@ function lowerNode(node, scope, tail, state) {
     // by the caller. The analyzer has already hoisted the name into scope.
     const value = lowerNode(node.valueExpr ?? node.value, scope, false, state);
     if (value === UNSUPPORTED) return UNSUPPORTED;
-    scope.declare(node.name);
+    if (value.k === 'lambda') scope.declareCallable(node.name);
+    else scope.declare(node.name);
     return { k: 'define', name: node.name, value, tail };
   }
 
@@ -200,6 +283,14 @@ function lowerNode(node, scope, tail, state) {
       if (lowered === UNSUPPORTED) return UNSUPPORTED;
       args.push(lowered);
     }
+    // Whether the callee is something this pass can name. A global can be
+    // looked up and followed; a lambda and a local bound to one were lowered
+    // here, so their references are already recorded. A bare parameter is not:
+    // it is whatever the caller handed over, and it may capture a continuation
+    // without anything in this procedure's text saying so. That is the
+    // `btsearch` shape, where `enumerate` invokes `cont`.
+    if (fn.callable !== true) state.callsUnknown = true;
+    else if (fn.k === 'local') state.calledLocals.add(fn.name);
     return { k: 'call', fn, args, tail };
   }
 
@@ -238,20 +329,38 @@ function lowerBody(node, scope, state) {
   // global. The analyzer has already hoisted them syntactically.
   if (node instanceof BeginNode) {
     for (const expr of node.expressions) {
-      if (expr instanceof DefineNode) scope.declare(expr.name);
+      if (!(expr instanceof DefineNode)) continue;
+      // An internal definition of a procedure is a callee this pass can name,
+      // so calling it is not calling an unknown. Declared before the body is
+      // lowered, or a forward reference between two internal procedures would
+      // be mistaken for a global.
+      const value = expr.valueExpr ?? expr.value;
+      if (value instanceof LambdaNode) scope.declareCallable(expr.name);
+      else scope.declare(expr.name);
     }
   } else if (node instanceof DefineNode) {
-    scope.declare(node.name);
+    const value = node.valueExpr ?? node.value;
+    if (value instanceof LambdaNode) scope.declareCallable(node.name);
+    else scope.declare(node.name);
   }
   return lowerNode(node, scope, true, state);
 }
 
 /**
- * Lowers a lambda to IR, reporting which globals it references.
+ * Lowers a lambda to IR, reporting what it references.
+ *
+ * Lowering failure and *safety* are kept apart, because they are different
+ * questions with different answers. A form the compiler cannot express is a
+ * failure and is reported as `reason`. A form it can express but should not
+ * compile -- because a continuation may be captured during its extent -- is a
+ * judgement the caller makes, and needs more than this one lambda to make: see
+ * `controlGlobalIn` for the local part of it and `compileProgram` for the
+ * call-graph closure over it.
  *
  * @param {Object} lambdaNode - An analyzed `LambdaNode`.
- * @returns {{ir: Object, globals: Set<string>}|{reason: string}} The IR and the
- *   globals it needs, or a reason it could not be lowered.
+ * @returns {{ir: Object, globals: Set<string>, callsUnknown: boolean}
+ *   |{reason: string}} The IR with what it references, or why it could not be
+ *   lowered.
  */
 export function lowerLambda(lambdaNode) {
   const state = new Lowering();
@@ -259,10 +368,30 @@ export function lowerLambda(lambdaNode) {
   if (ir === UNSUPPORTED) {
     return { reason: state.reason ?? 'unsupported form' };
   }
-  for (const name of state.globals) {
-    if (CONTROL_GLOBALS.has(name)) {
-      return { reason: `references control global '${name}'` };
+  // A local that was both called and assigned is not the lambda we lowered.
+  let callsUnknown = state.callsUnknown;
+  if (!callsUnknown) {
+    for (const name of state.calledLocals) {
+      if (state.assignedLocals.has(name)) { callsUnknown = true; break; }
     }
   }
-  return { ir, globals: state.globals };
+  return { ir, globals: state.globals, callsUnknown };
+}
+
+/**
+ * Returns the first control-transferring global in a set, or null.
+ *
+ * This is the base case of the safety analysis: a procedure that names
+ * `call/cc` or `dynamic-wind` itself is obviously unsafe to compile. It is only
+ * the base case -- `make-maze` names neither and is still unsafe, because
+ * `dig-maze` escapes through it (R34).
+ *
+ * @param {Set<string>} globals - Globals a form references.
+ * @returns {string|null} The offending name, or null.
+ */
+export function controlGlobalIn(globals) {
+  for (const name of globals) {
+    if (CONTROL_GLOBALS.has(name)) return name;
+  }
+  return null;
 }

@@ -17,6 +17,7 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { tryCompileDefinition, compileProgram } from '../../src/compiler/index.js';
+import { unsafeDefinitions } from '../../src/compiler/safety.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { settle } from '../../src/compiler/runtime.js';
 
@@ -113,24 +114,32 @@ const CASES = [
 ];
 
 /**
- * Programs that use continuations. The whole unit must be declined -- not just
- * the procedure that mentions `call/cc` -- and the answer must still be right.
+ * Programs that use continuations, with the procedures that must be declined.
+ *
+ * Every procedure in whose extent a capture can occur must be left to the
+ * interpreter, and the answer must be right. Naming them individually is the
+ * contract: the earlier rule -- veto the entire unit -- satisfied it only by
+ * compiling nothing at all, which on real programs meant the tier never ran
+ * (R28). `fail` in the backtracking case is deliberately *not* listed: it
+ * captures nothing and reaches nothing that does, so it is safe and compiling
+ * it is correct.
  *
  * The `backtracking` case is why this list exists. Declining only `in-range`
  * left `btsearch` and `enumerate` compiled even though both sit in the dynamic
- * extent of the capture and have to be re-entered when the search backtracks.
- * A compiled frame cannot be re-entered, and the benchmark returned a wrong
- * answer rather than failing, which no per-procedure rule would have caught.
+ * extent of the capture and have to be re-entered when the search backtracks
+ * (R15). `escape past a would-be compiled frame` is the second shape, found in
+ * `maze`: an escape unwinding past a compiled frame whose procedure names no
+ * control global at all (R34).
  */
 const CONTINUATION_CASES = [
-  ['escape', '(define (f) (call/cc (lambda (k) (+ 1 (k 42))))) (f)', '42'],
+  ['escape', '(define (f) (call/cc (lambda (k) (+ 1 (k 42))))) (f)', '42', ['f']],
   ['re-entrant capture',
     '(define saved #f)' +
     '(define counter 0)' +
     '(define (f) (let ((v (call/cc (lambda (k) (set! saved k) 1))))' +
     '  (set! counter (+ counter 1))' +
     '  (if (< counter 3) (saved (+ counter 1)) v)))' +
-    '(f)', '3'],
+    '(f)', '3', ['f']],
   ['backtracking through a would-be compiled frame',
     '(define fail (lambda () #f))' +
     '(define (enumerate a b cont)' +
@@ -141,8 +150,18 @@ const CONTINUATION_CASES = [
     '(define (in-range a b) (call/cc (lambda (cont) (enumerate a b cont))))' +
     '(define (search n) (let* ((x (in-range 0 n)) (y (in-range 0 n)))' +
     '  (if (< (+ x y) (* n 2)) (fail) (cons x y))))' +
-    '(search 5)', '(5 . 5)'],
-  ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3))) (f)', '2']
+    '(search 5)', '(5 . 5)', ['enumerate', 'in-range', 'search']],
+  ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3))) (f)', '2', ['f']],
+  // The escape variant, and the one that bites in practice. `caller` never
+  // mentions `call/cc`, so a per-procedure rule compiles it happily -- but the
+  // escape unwinds past its frame and the escape value becomes *its* result.
+  // This is how the `maze` benchmark fails: `dig-maze` quits with `(quit #f)`
+  // and compiled `make-maze` returns `#f` instead of the maze. See R33.
+  ['escape past a would-be compiled frame',
+    '(define (escaper n)'
+    + '  (call/cc (lambda (quit) (if (> n 0) (quit (quote escaped))) (quote normal))))'
+    + '(define (caller n) (cons (escaper n) (quote (tail))))'
+    + '(caller 1)', '(escaped tail)', ['escaper', 'caller']]
 ];
 
 /**
@@ -380,9 +399,9 @@ export async function runCompilerTests(interpreter, logger) {
     assert(logger, `declines ${name}`, mentions, true);
   }
 
-  logger.title('Compiler - Continuation Units Are Declined Wholesale');
+  logger.title('Compiler - Procedures Reaching a Capture Are Declined');
 
-  for (const [name, source, expected] of CONTINUATION_CASES) {
+  for (const [name, source, expected, mustDecline] of CONTINUATION_CASES) {
     let outcome;
     try {
       outcome = evaluate(source, template, true);
@@ -390,9 +409,10 @@ export async function runCompilerTests(interpreter, logger) {
       logger.fail(`${name}: threw ${e.message}`);
       continue;
     }
-    assert(logger, `${name} declines the whole unit`,
-      outcome.unitDeclined !== null && outcome.unitDeclined !== undefined, true);
-    assert(logger, `${name} nothing was compiled`, outcome.compiled.length, 0);
+    for (const required of mustDecline) {
+      assert(logger, `${name} declines ${required}`,
+        outcome.compiled.includes(required), false);
+    }
     assert(logger, `${name} still produces the right answer`, render(outcome.value), expected);
   }
 
@@ -422,6 +442,52 @@ export async function runCompilerTests(interpreter, logger) {
       outcome.compiled.length > 0, true);
     assert(logger, 'and the result is then wrong or throws, which is what the guard prevents',
       threw || render(value) !== expected, true);
+  }
+
+  // `tryCompileDefinition` is the incremental entry point, and it carries *no*
+  // continuation guard -- it declines a lambda that mentions a control global,
+  // which is exactly the per-procedure rule R15 proved unsound. Both benchmark
+  // harnesses use it. This asserts the unsoundness rather than leaving it to
+  // prose, so that anyone who makes the guard sound sees this test change.
+  {
+    const source =
+      '(define (escaper n)'
+      + '  (call/cc (lambda (quit) (if (> n 0) (quit (quote escaped))) (quote normal))))'
+      + '(define (caller n) (cons (escaper n) (quote (tail))))';
+    const { interpreter: fresh, env } = freshEnvironment(template);
+    let compiled = 0;
+    for (const form of parse(source)) {
+      const ast = analyze(form);
+      if (ast instanceof DefineNode) {
+        const result = tryCompileDefinition(ast, env);
+        if (result.compiled) {
+          env.define(result.name, result.procedure);
+          compiled++;
+          continue;
+        }
+      }
+      fresh.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
+    }
+    let value;
+    let message = null;
+    try {
+      value = settle(fresh.run(
+        analyze(parse('(caller 1)')[0]), env, [], undefined, { jsAutoConvert: 'raw' }));
+    } catch (e) {
+      message = e.message;
+    }
+
+    assert(logger, 'the per-definition path declines only the procedure naming call/cc',
+      compiled, 1);
+    // Capturing a continuation while a compiled frame is live used to return
+    // `escaped` -- the escape value, with everything `caller` had left to do
+    // silently dropped. It is now refused outright. A wrong answer that looks
+    // plausible is the worst way for a compiler to be wrong, and this is the
+    // third time this project has met one (R15, R26, R34).
+    assert(logger, 'capturing over a compiled frame is refused, not answered wrongly',
+      message !== null, true);
+    assert(logger, 'and the refusal says what is wrong',
+      message !== null && /compiled frames cannot yet be reified/.test(message), true);
   }
 
   logger.title('Compiler - Compilation Actually Happens');
@@ -489,6 +555,73 @@ export async function runCompilerTests(interpreter, logger) {
 
     assert(logger, 'car on a non-pair fails in compiled code as it does interpreted',
       compiledThrew, interpretedThrew);
+  }
+
+  logger.title('Compiler - Reachability Decides What Is Safe');
+
+  // The point of the call-graph closure is that it is neither of the two rules
+  // that came before it: not "decline what names call/cc", which misses
+  // `make-maze` and `enumerate`, and not "decline the whole unit", which on
+  // real programs compiled nothing at all.
+  {
+    const analyse = (source, options) => {
+      const { env } = freshEnvironment(template);
+      const asts = parse(source).map((form) => analyze(form));
+      return unsafeDefinitions(asts, env, options);
+    };
+
+    const chain = analyse(
+      '(define (c) (call/cc (lambda (k) (k 1))))'
+      + '(define (b) (c))'
+      + '(define (a) (b))');
+    assert(logger, 'a direct reference is unsafe', chain.has('c'), true);
+    assert(logger, 'one call away is unsafe', chain.has('b'), true);
+    assert(logger, 'two calls away is unsafe', chain.has('a'), true);
+    assert(logger, 'the reason names the path',
+      /reaches b/.test(chain.get('a') ?? ''), true);
+
+    // The improvement over the unit-level veto, stated as a test: an unrelated
+    // procedure in the same unit is still compiled.
+    const mixed = analyse(
+      '(define (escapes) (call/cc (lambda (k) (k 1))))'
+      + '(define (unrelated n) (* n 2))');
+    assert(logger, 'an unrelated procedure in the same unit stays safe',
+      mixed.has('unrelated'), false);
+    assert(logger, 'while its neighbour is declined', mixed.has('escapes'), true);
+
+    // Reaching *outside* the unit, into a procedure already in the environment.
+    {
+      const { interpreter: fresh, env } = freshEnvironment(template);
+      for (const form of parse('(define (library-escape) (call/cc (lambda (k) (k 7))))')) {
+        fresh.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
+      }
+      const asts = parse('(define (uses-library) (library-escape))')
+        .map((form) => analyze(form));
+      const outside = unsafeDefinitions(asts, env);
+      assert(logger, 'reaching a capturing procedure outside the unit is unsafe',
+        outside.has('uses-library'), true);
+    }
+
+    // `strict` is what catches the btsearch shape, where the capture arrives as
+    // an argument. Asserted both ways so the option's meaning is not folklore.
+    const viaParameter =
+      '(define (taker f x) (f x))'
+      + '(define (plain n) (+ n 1))';
+    assert(logger, 'strict declines a procedure that calls what it was given',
+      analyse(viaParameter, { strict: true }).has('taker'), true);
+    assert(logger, 'loose does not, which is why strict is the default',
+      analyse(viaParameter, { strict: false }).has('taker'), false);
+    assert(logger, 'strict does not decline a procedure with no unknown callee',
+      analyse(viaParameter, { strict: true }).has('plain'), false);
+
+    // The limitation, asserted so that nobody mistakes this for soundness.
+    // A global rebound after compilation is invisible to an analysis that ran
+    // before it. Only re-enterable frames close this -- increment 2b.
+    const rebound = analyse(
+      '(define (helper n) (* n 2))'
+      + '(define (user n) (helper n))');
+    assert(logger, 'KNOWN LIMIT: a global not yet capturing is judged safe',
+      rebound.has('user'), false);
   }
 
   logger.title('Compiler - The Compiled-to-Interpreted Boundary');

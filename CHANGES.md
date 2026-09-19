@@ -4845,3 +4845,314 @@ on a decline rule — and ask Scheme about the result with `exact?`, `eqv?`, `pa
 of comparing rendered text. Six of the eleven failed before the fix, including the `BigInt` throw.
 
 `npm test`: **2174 passed, 0 failed, 7 skipped** (was 2152; +22 from the new cases).
+
+---
+
+# The `maze` benchmark: diagnosed, and it was not a compiler bug
+
+`maze` was the one canonical program still returning a wrong answer after the increment-2a boundary
+fix, and it had been recorded (R33) as a second, unrelated compiler defect in how the interpreter
+drives a tail-call chain. **That diagnosis was wrong.** Corrected in R34.
+
+## What it actually is
+
+`dig-maze` wraps its loop in `call/cc` and aborts early with `(quit #f)`. Compiled `make-maze`
+returns `#f` — the escape value itself. The escape unwinds past `make-maze`'s compiled JavaScript
+frame, which has no representation on the interpreter's frame stack and therefore cannot be resumed.
+
+`make-maze` never mentions `call/cc`, so `lowerLambda` compiles it without hesitation. That is the
+per-procedure declining rule R15 proved unsound, and this is its second instance after `btsearch`.
+
+Minimal reproduction, now a test:
+
+```scheme
+(define (escaper n)
+  (call/cc (lambda (quit) (if (> n 0) (quit 'escaped)) 'normal)))
+(define (caller n) (cons (escaper n) '(tail)))
+(caller 1)          ; interpreted: (escaped tail)    caller compiled: escaped
+```
+
+When the escape is not taken both tiers agree, which isolates it exactly.
+
+## Why this instance is worse than `btsearch`
+
+- It is an **escape**, not a re-entry. R15 was explained in terms of backtracking, which reads like
+  an exotic case; escaping early from a loop is what `call/cc` is mostly used for.
+- It is happening **now**, in the configuration both benchmark harnesses use, and it was the only
+  remaining wrong answer on the canonical suite.
+- The compiled procedure is **two call levels** from the capture. No local inspection of
+  `make-maze` would suggest it is unsafe.
+
+So R28's "the tier is either unsound or vacuous" is now a measured statement about a real program,
+not an argument about which names are in `CONTROL_GLOBALS`.
+
+## How the misdiagnosis happened
+
+The narrowing was sound: same procedure, same environment, correct when its tail-call chain is
+driven by hand or by `R.settle`, wrong when driven by the interpreter. The conclusion drawn from it
+was not — "correct by hand, wrong through the interpreter" has at least two explanations and only
+one had been checked. Tracing the interpreter's tail-call branch showed the chain simply stopping
+three hops in, with `call-with-current-continuation` running next.
+
+## Tests added
+
+- The escape case in `CONTINUATION_CASES`: the sound unit-level guard must decline the whole unit
+  and still produce `(escaped tail)`.
+- An assertion that the **per-definition** path (`tryCompileDefinition`, which both benchmark
+  harnesses use) compiles `caller`, does *not* decline it, and consequently returns `escaped`. The
+  unsoundness is now asserted rather than described, so making the guard sound will visibly change
+  this test.
+
+`npm test`: **2179 passed, 0 failed, 7 skipped**.
+
+## Option recorded for before increment 2b
+
+Replace the whole-unit veto with **call-graph reachability** — decline any procedure that
+transitively reaches a control global. `lowerLambda` already returns each procedure's global
+references, so it is a fixpoint over data already computed. `make-maze` would be declined; `fib`
+would still compile. Not sound for callees arriving as arguments, so it would not permit enabling
+the tier by default, but it is strictly better than either current mode. Added to `ROADMAP.md` as
+optional increment 2b′.
+
+---
+
+# Stage 2b increment 2b′: a call-graph safety guard
+
+Replaces the continuation guard, which was either unsound or compiled nothing (R28), with a
+reachability analysis in `src/compiler/safety.js`.
+
+A definition is declined if a continuation could be captured while it runs: because it names a
+control global, because it reaches one through another definition in the unit, because it reaches
+one through an interpreted closure already in the environment (which reaches into the standard
+library), or because it calls a callee the compiler cannot name — a parameter, typically, which may
+be anything. Reasons are paths a reader can check:
+
+```
+run -> pmaze -> make-maze -> dig-maze -> references 'call-with-current-continuation'
+```
+
+## Result
+
+**All 41 canonical programs now return the right answer**, for the first time. `maze` is fixed.
+
+Definitions compiled out of 754 across the suite:
+
+| rule | compiles | catches `maze` | catches `btsearch` |
+|---|---|---|---|
+| per-definition (what the benchmarks used) | 425 | no | no |
+| **reachability (new)** | **375** | **yes** | **yes** |
+| whole-unit veto (the old "sound" mode) | **0** | yes | yes |
+
+The cost of catching both unsound shapes is **12% of compiled definitions**. Per class the tier now
+reads: call **5.42x**, flonum 1.36x, bignum 1.14x, list 1.13x, continuation 1.07x, string 1.05x,
+fixnum 0.99x, vector 0.97x. Lower than the unguarded 6.69x — that difference is the price of the
+number being defensible, and `cpstak`'s old 5.00x is a good example of what it buys: a CPS program
+whose every call goes through a continuation parameter, now correctly declined.
+
+## This is not soundness
+
+A global rebound *after* compilation to something that captures is invisible to an analysis that ran
+before it, and compiled code resolves globals through a live accessor. Only re-enterable frames
+close that — increment 2b — and the tier stays off by default until then. There is a test asserting
+this limitation so it is not mistaken for a proof.
+
+## Found while tuning it
+
+**A named `let`, a `do` loop, a `letrec` and a `case` cannot be compiled at all.** `lowerLambda`
+reports `unsupported node: ScopedVariable` for each. Across the suite, 150 definitions are refused
+for that reason against 50 lost to the safety guard, so this — not the guard — is the main cause of
+low coverage. `sum`'s loop and `lattice`'s dispatch have never been compiled, which means the
+`fixnum` class's ~1.00x has been measuring the interpreter against itself. Recorded as **R36** and
+queued as increment 2c, ahead of further code-generation work.
+
+Two guard refinements were made and **neither changed the suite total** (375 before and after),
+which is the useful part: the 12% is genuine reachability, not imprecision. Knownness of a callee is
+computed during lowering and carried on the IR node, so a named `let`, an internal procedure
+definition and a `letrec` are recognised as nameable callees through `if`, `seq` and `let`; a local
+that is both called and `set!` reverts to unknown.
+
+## Tests
+
+`CONTINUATION_CASES` previously asserted that the whole unit was declined and **nothing** was
+compiled — a contract satisfiable only by a rule that never compiles anything, which is how R28 hid.
+Each case now names the procedures that must be declined, and deliberately does *not* list `fail` in
+the backtracking case, because `fail` captures nothing and compiling it is correct. Eleven further
+assertions cover reachability through a chain, into the environment, the `strict` option both ways,
+and the known limitation.
+
+`npm test`: **2188 passed, 0 failed, 7 skipped**.
+
+---
+
+# Stage 2b increment 2c: hygiene resolution moved to expansion time
+
+`ScopedVariable` was not a missing syntactic form, as R36 framed it. The analyzer creates one at a
+single site for a **free reference still carrying its hygiene scope marks**, and re-ran the
+sets-of-scopes resolution *on every evaluation*.
+
+Every system in `docs/hygiene.md`'s own reference list — Kohlbecker et al. (1986), Clinger and Rees
+(1991), Dybvig et al. (1992), Flatt (2016) — completes resolution during expansion, and the compiler
+never sees a syntax object. That document already lists "Resolution" as step 3 of *The Expansion
+Process*; only the code disagreed.
+
+Measured before changing anything: **3,966 `ScopedVariable` evaluations across the full test suite,
+and not one found a scoped binding.** The identifiers are `car`, `cdr`, `list` and `memv` — ordinary
+stdlib globals arriving from macro templates. The misses aren't luck: locals are alpha-renamed, so a
+plain name can only denote a global, and the runtime fallback was exactly `VariableNode(name)`.
+Referential transparency was checked to still hold under local shadowing.
+
+`analyzeVariable` now resolves at analysis time. The path that *does* resolve still resolves at run
+time, deliberately — it has never been observed to fire, so there is no test to say moving it is
+safe.
+
+## Results
+
+- **`unsupported node` is gone.** Lowerable definitions: **425 → 573** of 754. Named `let`, `do`,
+  `letrec` and `case` all lower.
+- **Definitions actually compiled fell 375 → 282**, which is a *correction*, not a regression:
+  `unsafeDefinitions` had been **skipping every definition it could not lower**, so 150 procedures
+  were invisible to reachability — unable to be flagged, and unable to propagate unsafety to their
+  callers. The earlier 375 rested on an incomplete call graph.
+- Canonical suite **still fully correct**. Per class, flat to slightly down: call 5.42x → 5.16x,
+  list 1.13x → 1.09x, flonum 1.36x → 1.30x, fixnum 0.99x → 1.01x.
+
+## What now blocks the coverage win — and it needs a decision
+
+A named `let` expands to `((letrec ((tag (lambda ...))) tag) val ...)`, and `letrec` expands by
+Petrofsky's list-based method, binding the loop variable to `'undefined` and delivering its lambda
+through `(car temp)`. No local analysis can see that. `sum`, `nqueens` and `puzzle` still compile
+nothing.
+
+The macro's own comment says the list-based form is *"critical for correct call/cc behavior"* — it
+implements R7RS `letrec` (all inits before any assignment) rather than `letrec*`. So this is an
+R7RS semantics decision, not a refactor. Options and a recommendation are in `ROADMAP.md` as
+increment 2c′.
+
+## Process
+
+Two diagnoses were wrong on the way and both were caught by measuring rather than reasoning: that
+this was a missing syntactic form, and that the assignment-poisoning rule was what declined named
+`let` (removing it changed the suite total by exactly zero). That is the third such case in two days
+(R33, R36, R38).
+
+`npm test`: **2188 passed, 0 failed, 7 skipped**.
+
+---
+
+# Stage 2b increment 2c′: `letrec` is a core form — and it overturns R29
+
+`letrec` and `let` are no longer library macros. The native analyzer handlers produce them, and
+`LetRecNode` is rebuilt as a **multi-binding** node that survives into the compiler's IR.
+
+## The headline is a reversal
+
+R29 concluded, on measurements, that "the compiler tier is a control-flow optimizer, and five of
+seven workload classes are not control-flow-bound", and used that to move value representation ahead
+of code generation in the roadmap. **That conclusion was an artifact of the measurement.** Named
+`let`, `do` and internal definitions could not be compiled at all, so the hot loop of every fixnum,
+flonum and vector program in the suite was running interpreted.
+
+| Workload class | before | after |
+|---|---|---|
+| fixnum | 1.01x | **11.95x** |
+| flonum | 1.30x | **8.94x** |
+| vector | 1.01x | **4.32x** |
+| list | 1.09x | **1.60x** |
+| call | 5.16x | 5.55x |
+
+`sum` 0.99x → **5.71x**, `nqueens` 0.97x → **27.0x**, `browse` 0.99x → **23.5x**, `array1` →
+**18.8x** — on a change that touched no code generation at all. All 41 programs still correct.
+
+The bignum finding survives (1.11x): BigInt arithmetic genuinely dominates there. The
+generalisation to small-integer code does not. The resequencing R29 justified is withdrawn.
+
+**The interpreter got faster too**, which was not the goal: `lattice` 18.7 → 10.7 ms, `graphs`
+1.00 s → 662 ms, `earley` 2.10 → 1.59 s. That is the removed cost of a scope-registry lookup per
+reference plus a list allocated and walked to deliver each lambda.
+
+## Why this was a library/core boundary problem
+
+`letrec` is a core form in Chez, Racket and Guile — whose expanders are written in Scheme. R7RS §4.2
+*specifies* the derived forms by macro definitions, but implementations may implement them natively,
+and the ones that compile well do. Petrofsky's list-based `letrec` is a **portability** technique:
+R7RS `letrec` semantics from only `let`, `set!` and list operations. That is what you want when your
+Scheme lacks `letrec`, and what you must not have inside the implementation of one.
+
+Compilers go further and deliberately recover the structure — Waddell, Sarkar and Dybvig, *"Fixing
+Letrec"* (2005); Guile's `<fix>` node. The multi-binding `LetRecNode` is that treatment.
+
+**The rule this leaves behind:** a macro may expand into core forms, but must not encode binding
+structure in runtime data. Audited across every derived form: `and`, `or`, `let*`, `letrec*`, `cond`
+(including `=>`), `case`, `when`, `unless`, `do`, named `let`, `let-values` and `delay`/`force` are
+clean. `parameterize` and `guard` are not, correctly — they involve continuations. `case-lambda` is
+genuinely higher-order. Only `define-record-type` is worth revisiting.
+
+## Two latent bugs, invisible while the macros shadowed the handlers
+
+- `analyzeLetRec` read its body with `cdddr` rather than `cddr`, dropping the first body expression.
+- `analyzeLet` desugared a named `let` to `(letrec ((tag ...)) (tag val ...))`, putting the
+  initializers **inside** the loop name's scope. R7RS puts them outside. The difference is
+  observable: `(let - ((n (- 1))) n)` called the loop instead of negating — Al Petrofsky's pitfall
+  8.1, caught by `tests/core/scheme/r7rs-pitfalls.scm`.
+
+## Tests
+
+Thirteen behavioural tests written **before** the change and passing against the old macro
+implementation first, so they are a contract rather than a description: R7RS `letrec` versus
+`letrec*` (`(letrec ((a 1) (b a)) b)` must not yield 1), init ordering, mutual recursion, named
+`let` including shadowing, `do`, and `call/cc` inside an initializer. Two unit tests on internals
+were updated to the new shape and strengthened.
+
+`npm test`: **2205 passed, 0 failed, 7 skipped**.
+
+---
+
+# Stage 2b, first half: a capture over a compiled frame is refused, not answered wrongly
+
+Investigating increment 2b turned up a problem the Stage 2a prototype did not have, because that
+prototype was compiled-only. In the real system the tiers must share **one** continuation
+representation, and they do not:
+
+- A continuation *is* the interpreter's frame stack — `createContinuation(registers[FSTACK])`.
+- Compiled procedures are not in it; they run in JavaScript stack frames.
+- When compiled code calls interpreted code, `runWithSentinel` starts a nested run over
+  `[...parent, SentinelFrame]`, and that marker is filtered out of any continuation copied from it.
+
+So a capture below the boundary yields a continuation with **everything the compiled caller had left
+to do simply absent**. That is exactly how `maze` returned `#f` and `btsearch` returned the wrong
+pair — both plausible values rather than failures.
+
+## What landed
+
+The sentinel now records whether it marks a *compiled* boundary, and `CallCCNode.step` checks for
+one before capturing. If it finds one, it throws and names the cause.
+
+| | before | after |
+|---|---|---|
+| guard on | `(escaped tail)` | `(escaped tail)` |
+| guard bypassed | **`escaped`** — silently wrong | refused, with an explanation |
+
+**Why this matters beyond tidiness:** the call-graph guard is explicitly *not* sound — a global
+rebound after compilation is invisible to it, as is a callee arriving as an argument where the
+strict rule cannot see it. Those holes used to produce wrong answers. They now produce errors. The
+tier's remaining unsoundness is converted from **silent to loud**, which is the difference between a
+bug you find and a bug you ship.
+
+It does **not** permit enabling the tier by default. Refusing a valid R7RS program is not an
+acceptable end state, so the safety guard still declines. That is what the second half buys.
+
+Also fixed: `filterSentinelFrames` matched on `constructor.name === 'SentinelFrame'`, so any
+sentinel carrying extra information would have stopped being filtered and would have been executed
+while restoring a continuation. It matches on a property now.
+
+## The second half, designed
+
+1. **A capture protocol across the boundary.** The compiled caller reifies its own frame and returns
+   an unwind sentinel, repeatedly, out to the outermost compiled entry, which hands the collected
+   frames to the interpreter to splice into the continuation.
+2. **A resumable twin of every emitted function** — a state machine over its non-tail call sites,
+   entered as `($pc, $f, ...)`. Stage 2a measured this at 4.09x code size. Our nested-function
+   codegen makes it more tractable than the prototype's monolithic emitter: each `$fnN` is already a
+   separate function with few call sites, so each twin is small.
+
+`npm test`: **2206 passed, 0 failed, 7 skipped**. Compliance suites: 219 + 982 passed, 0 failed.

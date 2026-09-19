@@ -63,6 +63,27 @@ class ProcedureEmitter {
   }
 
   /** @returns {string} A fresh temporary name. */
+  /**
+   * Emits a `letrec` group's bindings.
+   *
+   * All names are declared before any initializer is emitted, so a reference
+   * from one lambda to another resolves regardless of the order they appear
+   * in -- which is what mutual recursion needs. Every initializer is a lambda,
+   * so evaluating them cannot have a side effect and the order is unobservable;
+   * R7RS's rule that all initializers run before any assignment is satisfied
+   * whichever way they are emitted.
+   *
+   * @param {Object} node - A `letrec` IR node.
+   * @returns {void}
+   */
+  emitLetRecBindings(node) {
+    for (const name of node.names) this.declared.add(jsName(name));
+    for (let i = 0; i < node.names.length; i++) {
+      const init = this.value(node.inits[i]);
+      this.out.push(`${jsName(node.names[i])} = ${init};`);
+    }
+  }
+
   temp() {
     const name = `$t${this.ctx.temps++}`;
     this.declared.add(name);
@@ -126,9 +147,7 @@ class ProcedureEmitter {
         return;
       }
       case 'letrec': {
-        this.declared.add(jsName(node.name));
-        const init = this.value(node.init);
-        this.out.push(`${jsName(node.name)} = ${init};`);
+        this.emitLetRecBindings(node);
         this.statement(node.body);
         return;
       }
@@ -287,10 +306,15 @@ class ProcedureEmitter {
         return result;
       }
 
-      case 'let': case 'letrec': {
+      case 'let': {
         this.declared.add(jsName(node.name));
         const init = this.value(node.init);
         this.out.push(`${jsName(node.name)} = ${init};`);
+        return this.value(node.body);
+      }
+
+      case 'letrec': {
+        this.emitLetRecBindings(node);
         return this.value(node.body);
       }
 

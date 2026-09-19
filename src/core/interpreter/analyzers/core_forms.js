@@ -13,7 +13,8 @@ import {
     SetNode,
     TailAppNode,
     BeginNode,
-    DefineNode
+    DefineNode,
+    LetRecNode
 } from '../ast.js';
 import { Cons, cons, list, car, cdr, toArray, cadr, cddr, caddr, cdddr } from '../cons.js';
 import { Symbol, intern } from '../symbol.js';
@@ -276,14 +277,24 @@ function analyzeLet(exp, syntacticEnv, ctx) {
         const varsList = vars.reduceRight((acc, el) => cons(el, acc), null);
         const valsList = vals.reduceRight((acc, el) => cons(el, acc), null);
 
-        // Desugar to letrec:
-        // (letrec ((loop (lambda (vars...) body...))) (loop vals...))
+        // R7RS 4.2.4 desugars a named let to
+        //
+        //   ((letrec ((tag (lambda (name ...) body ...))) tag) val ...)
+        //
+        // The initializers sit *outside* the letrec, and that placement is
+        // load-bearing rather than stylistic: they must be evaluated in the
+        // enclosing scope, where `tag` is not yet bound. Putting them inside --
+        // as `(letrec ((tag ...)) (tag val ...))` -- lets the loop name capture
+        // its own initializers, so `(let - ((n (- 1))) n)` calls the loop
+        // instead of negating. That is Al Petrofsky's pitfall 8.1, and it is in
+        // `tests/core/scheme/r7rs-pitfalls.scm`.
         const lambdaExp = cons(intern('lambda'), cons(varsList, namedBody));
         const letrecBindings = list(list(loopName, lambdaExp));
-        const initialCall = cons(loopName, valsList);
 
-        const letrecExp = list(intern('letrec'), letrecBindings, initialCall);
-        return analyzeLetRec(letrecExp, syntacticEnv, ctx);
+        const letrecExp = list(intern('letrec'), letrecBindings, loopName);
+        const loopProc = analyzeLetRec(letrecExp, syntacticEnv, ctx);
+        const argNodes = vals.map((v) => analyze(v, syntacticEnv, ctx));
+        return new TailAppNode(loopProc, argNodes);
     }
 
     // Standard Let: desugar to immediate lambda application
@@ -328,7 +339,11 @@ function analyzeLet(exp, syntacticEnv, ctx) {
  */
 function analyzeLetRec(exp, syntacticEnv, ctx) {
     const bindings = cadr(exp);
-    const body = cdddr(exp);
+    // `(letrec <bindings> <body> ...)` -- the body starts at the third element.
+    // This read `cdddr` and so dropped the first body expression, which went
+    // unnoticed for as long as the `letrec` macro in `macros.scm` shadowed this
+    // handler and nothing ever reached it.
+    const body = cddr(exp);
 
     let newEnv = syntacticEnv;
     const vars = [];
@@ -358,19 +373,43 @@ function analyzeLetRec(exp, syntacticEnv, ctx) {
         args.push(analyze(r.valObj, newEnv, ctx));
     }
 
-    // Desugar to immediate lambda application where cells are initialized to undefined then set.
-    const undefinedLit = new LiteralNode(undefined);
-    const setExprs = [];
-    for (let i = 0; i < renos.length; i++) {
-        setExprs.push(new SetNode(renos[i].name, args[i]));
+    const bodyExpr = analyzeScopedBody(body, newEnv, ctx);
+
+    // The common shape -- every initializer a lambda -- gets a node of its own.
+    // A named `let`, a group of internal definitions and a set of mutually
+    // recursive procedures all land here. Because evaluating a lambda has no
+    // side effects and cannot observe another binding, R7RS's requirement that
+    // all initializers run before any assignment is met trivially, so `letrec`
+    // and `letrec*` agree and no assignment is needed at all.
+    //
+    // This is the `fix` treatment from Waddell, Sarkar and Dybvig, "Fixing
+    // Letrec" (2005) -- unassigned lambda bindings are exactly the ones a
+    // compiler can call directly, and Guile's `<fix>` node is the same idea.
+    // Keeping the binding explicit rather than desugaring it is what lets both
+    // tiers see that a loop variable holds the lambda beside it.
+    if (args.every((a) => a instanceof LambdaNode)) {
+        return new LetRecNode(vars, args, bodyExpr, originalParams);
     }
 
-    const bodyExpr = analyzeScopedBody(body, newEnv, ctx);
-    const seq = new BeginNode([...setExprs, bodyExpr]);
+    // General case: an initializer is an arbitrary expression. R7RS requires
+    // *all* of them to be evaluated before *any* variable is assigned, which is
+    // the only observable difference from `letrec*`. Evaluating them in
+    // argument position of an inner lambda gets that for free, and left to
+    // right, without routing any value through a list.
+    //
+    //   ((lambda (v ...)
+    //      ((lambda (t ...) (set! v t) ... body) init ...))
+    //    <undefined> ...)
+    const undefinedLit = new LiteralNode(undefined);
+    const temps = originalParams.map((name) => generateUniqueName(`${name}-init`, ctx));
+    const setExprs = vars.map((v, i) => new SetNode(v, new VariableNode(temps[i])));
+    const assignAndRun = new LambdaNode(
+        temps, new BeginNode([...setExprs, bodyExpr]), null, 'letrec-init');
 
     return new TailAppNode(
-        new LambdaNode(vars, seq, null, 'letrec', originalParams),
-        vars.map(_ => undefinedLit)
+        new LambdaNode(
+            vars, new TailAppNode(assignAndRun, args), null, 'letrec', originalParams),
+        vars.map(() => undefinedLit)
     );
 }
 

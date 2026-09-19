@@ -110,6 +110,20 @@ function unpackForJs(result, interpreter, options = {}) {
  */
 class SentinelFrame {
   /**
+   * @param {boolean} [compiledBoundary=false] - True when this marks a call
+   *   from *compiled* code into the interpreter. Compiled procedures run in
+   *   JavaScript stack frames that `FSTACK` does not represent, so a
+   *   continuation captured below this marker would silently omit everything
+   *   the compiled caller had left to do. Recording it is what lets
+   *   `CallCCNode` notice, rather than producing a wrong answer.
+   */
+  constructor(compiledBoundary = false) {
+    /** Identifies every sentinel, including subclasses, for stack filtering. */
+    this.isSentinel = true;
+    this.compiledBoundary = compiledBoundary;
+  }
+
+  /**
    * Executes when the interpreter reaches this frame.
    * This means the nested Scheme computation has completed.
    * We throw SentinelResult to break out of the inner run() loop.
@@ -386,7 +400,9 @@ export class Interpreter {
   runWithSentinel(ast, thisContext = undefined, options = {}) {
     // Get the parent context (the Scheme stack at the point where we entered JS)
     const parentContext = this.getParentContext();
-    const stackWithSentinel = [...parentContext, new SentinelFrame()];
+    const stackWithSentinel = [
+      ...parentContext, new SentinelFrame(options.compiledBoundary === true)
+    ];
     return this.run(ast, this.globalEnv, stackWithSentinel, thisContext, options);
   }
 

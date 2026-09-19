@@ -133,7 +133,8 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
         const ast = new TailAppNode(
             new LiteralNode(closure),
             schemeArgs.map((value) => new LiteralNode(value)));
-        return interpreter.runWithSentinel(ast, undefined, { jsAutoConvert: 'raw' });
+        return interpreter.runWithSentinel(
+            ast, undefined, { jsAutoConvert: 'raw', compiledBoundary: true });
     };
 
     // Attach marker and closure data

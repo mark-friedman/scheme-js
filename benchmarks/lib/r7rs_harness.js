@@ -60,6 +60,7 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
+import { unsafeDefinitions } from '../../src/compiler/safety.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -219,6 +220,10 @@ export function parseCsvLine(output) {
  * only see the definitions that already exist, and a program's own hot
  * procedures are defined while it loads.
  *
+ * Which definitions are *safe* to compile is a separate question and is decided
+ * over the whole program up front, because it depends on the call graph rather
+ * than on any one definition's text.
+ *
  * @param {string} name - Program name.
  * @param {string|null} params - Replacement parameters, or null for canonical.
  * @param {number} count - Repetitions.
@@ -246,11 +251,21 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
     for (const form of parse(prelude)) {
       interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
     }
-    for (const form of parse(body)) {
-      const ast = analyze(form);
+
+    const asts = parse(body).map((form) => analyze(form));
+
+    // Which definitions a continuation could be captured inside. Computed over
+    // the whole program before anything runs, because the answer for one
+    // procedure depends on what its callees do -- `maze`'s `make-maze` names no
+    // control global and is still unsafe, because `dig-maze` escapes through it
+    // (R34). Definitions are still compiled *as they appear* rather than in a
+    // sweep, which is what R21 fixed.
+    const unsafe = useCompiler ? unsafeDefinitions(asts, env) : new Map();
+
+    for (const ast of asts) {
       if (ast instanceof DefineNode) {
         definitions++;
-        if (useCompiler) {
+        if (useCompiler && !unsafe.has(ast.name)) {
           const result = tryCompileDefinition(ast, env);
           if (result.compiled) {
             env.define(result.name, result.procedure);
