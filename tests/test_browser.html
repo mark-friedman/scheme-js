@@ -28,6 +28,23 @@
 
         env.bindings.set('native-report-test-skip', (name, reason) => {
             console.log(`%c[SKIP] ${name}: ${reason}`, 'color: orange');
+
+            const div = document.createElement('div');
+            div.textContent = `[SKIP] ${name}: ${reason}`;
+            div.style.color = 'orange';
+            document.getElementById('output').appendChild(div);
+        });
+
+        // `test-group` calls this for its group heading (tests/core/scheme/test.scm).
+        // Without it the very first `test-group` dies with SchemeUnboundError and no
+        // results are reported at all. Mirrors the Node stub in
+        // tests/run_scheme_tests_lib.js.
+        env.bindings.set('native-log-title', (title) => {
+            console.log(`\n=== ${title} ===`);
+
+            const h2 = document.createElement('h2');
+            h2.textContent = title;
+            document.getElementById('output').appendChild(h2);
         });
     </script>
 
