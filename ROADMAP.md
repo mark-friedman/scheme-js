@@ -863,34 +863,103 @@ was worthless outside call-heavy code. The real table:
 | bignum | 1.11x | **53.2x** |
 | continuation | **1.06x** | 19.8x |
 
-Two facts now drive everything. **The tier works** — 4–12x on four of eight classes. And **none of
-it is shippable**, because the tier is off by default and 215 of the 573 lowerable definitions are
-declined by a guard that is still unsound.
+**The tier works, and the standard library now runs through it by default.** Per workload class,
+tier against interpreter: `call` 21.8x, `fixnum` 16.2x, `vector` 15.2x, `flonum` 10.2x, `list`
+10.1x, `continuation` 3.2x, `string` 1.22x, `bignum` 1.22x. Every canonical benchmark returns the
+right answer.
+
+**839 of 1089 definitions in the canonical corpus compile.** The whole remaining decline list is
+229 top-level definitions that are not procedures, and 21 that reach `call/cc`.
+
+The guard that declines definitions is no longer a soundness device — a compiled procedure can now
+be part of a captured continuation — so what it holds back, it holds back for speed.
 
 | Order | Item | Why here |
 |---|---|---|
 | ✅ | **2b.1 — capture detection** | A continuation captured while compiled frames are live is now **refused with an explanation** rather than silently answered wrongly. The guard's known unsoundness is converted from silent to loud. Does not permit enabling the tier. See R40. |
-| **1st** | **2b.2 — re-enterable compiled frames** | Hits three things at once. It is the only thing standing between a working tier and one that can be *enabled*; it unlocks the definitions the safety guard declines; and it directly targets `continuation`, the worst tier class. Nothing else competes. **Two parts:** (a) a capture protocol that propagates outward through the compiled/interpreted boundary, so the compiled caller reifies its frame and returns an unwind sentinel up to the outermost compiled entry, which splices the collected frames into the interpreter's stack; (b) a resumable twin of every emitted function — a state machine over its non-tail call sites — which the Stage 2a bake-off measured at 4.09x code size. Our nested-function codegen makes (b) more tractable than the prototype's monolithic emitter, because each `$fnN` is already a separate function with few call sites. |
-| **2nd** | **Profile bignums** | **Worst standing class by a factor of 2.7** over the next worst, and the tier gives 1.11x so code generation will not reach it. Both implementations do arbitrary precision, so a 53x gap is anomalous and probably sits in tower dispatch rather than the arithmetic. Investigate before committing to work — this is the one part of R29 that survived. |
-| **3rd** | **Diagnose the `list` class** | 1.60x, but the spread is 0.96x to 23.5x: `browse` 23.5x, `earley` 0.99x with **0 of 8** definitions compiled, `lattice` 2 of 17. That spread is a *coverage* problem, not a code generation one. A per-program decline-reason histogram would say why in one run. Largest class in the suite (13 programs), and the shape of a compiler. |
-| **4th** | **Put the compliance suites in `npm test`** | 219 + 982 conformance tests currently sit outside the default run — `tests/core/scheme/compliance/` has its own runners and nothing references them. Cheap to wire in, and the recurring failure of this project has been changes that the suite could not see. |
-| 5th | **4b — flonum fast paths in `inline.js`** | The expansions still guard `bigint` only, and flonum is 13.1x behind Gambit. Now an incremental optimization rather than an unblock. |
-| 6th | **5a — AOT-compile the standard library** | Mixed-tier crossing is still the norm; less acute than R30 judged it, but real. |
-| 7th | **4a — fixnums as JS numbers** | **Demoted.** R29 put this first on the premise that BigInt dominates and codegen cannot help. fixnum is now the *best* tier class at 11.95x, so that premise is false for small-integer code. Still 11.2x behind Gambit, so it may pay — but it needs a profile to justify it, not R29's reasoning. |
-| 8th | **4c — mutable strings, immutable-until-mutated** | A real R7RS conformance gap, but `string` is the one class where we **beat both references**, so this can only cost performance. Do it with the R31 design and measure. |
+| ✅ | **2b.2a — resumable procedure forms** | Every compiled procedure is now emitted twice, the second as a state machine over its call sites (`src/compiler/resume.js`). Verified against the fast form by ten differential cases. **2.21x code size** against a predicted 4.09x; runtime speed unchanged. |
+| ✅ | **2b.2b — the capture protocol** | `src/core/interpreter/unwind.js` owns it: `call/cc` unwinds, `run` propagates the sentinel, compiled frames reify themselves on the way out, and the interpreter splices them in where the boundary sat. The interpreter does not depend on the compiler (R42). |
+| ✅ | **2b.2c — align naming, then enable** | Done, and the second half went differently than planned. Naming needed two fixes, not one: per-emission temporary counters *and* path-based procedure names, because counting from zero per procedure made nested `$fn0` shadow its parent's resumable form and reify into the wrong twin. Nine capture shapes now match the interpreter. **Relaxing the guard turned out to be a speed decision, not a correctness one** — with it fully off every continuation benchmark is correct, but `btsearch` runs at 0.50x. `strict` is removed from the default (`btsearch` 1.00x → **1.82x**, `oddeven` 1.61x → **2.56x**); the reachability closure stays, now justified as "do not compile what a capture unwinds through" (R43). |
+| **1st** | **Enable the tier by default** | The remaining blocker is no longer soundness. What is needed is a decision about the two shapes that are *refused* rather than answered — a capture crossing more than one compiled/interpreted boundary, and one beneath a redefined inlined primitive — since enabling the tier turns those from unreachable into reachable. Both throw with an explanation today; supporting the multi-boundary case means splicing each group of frames at its own boundary. |
+| ✅ | **AOT-compile the standard library** | Done and on by default (`compileEnvironment`, ~22 ms of a 76 ms bootstrap, degrades to interpreted where a CSP forbids code generation). `list` 1.92x → **4.61x**, `call` 5.70x → **12.47x**, `continuation` 1.00x → **2.86x**; numeric classes unchanged, which is the right shape. The bigger half of the win was removing `apply` from the control-global list — a one-line fix once a decline histogram showed it blocking `map`/`for-each` and, through them, most of the corpus: coverage 623/1089 → **807/1089** (R46). |
+| ✅ | **Reduce immediately-applied lambdas to bindings** | The code-size blow-up was not a closure problem: the analyzer expands every `let` into an applied lambda, so a binding chain was a procedure chain — 29 deep at the worst point, `let*` costing a level per clause. Reducing it during lowering took the deepest procedure to **7**, removed all 20 over-large declines, and raised coverage to **827/1089**. It also removes a closure allocation and a call per binding: `list` 4.61x → **9.85x**, `flonum` 2.75x → **8.26x**, every class up and none down, and `earley` 0.87x → **21.41x**, which undoes the R46 regression (R47). |
+| ✅ | **Support `values` and `call-with-values`** | `values` was never a control operation — it builds an object. `call-with-values` is rewritten during lowering to `(apply consumer (%values->list (producer)))`, which reuses call sites the compiler already emits so the producer gets a resume point for free. Coverage 827 → **839/1089**. `call` **14.28x → 22.01x**, `fixnum` → 15.22x, `flonum` → 10.93x: the suite's shared `hide` idiom is written with `call-with-values` and all 51 programs use it. Also fixed a boundary bug where `raw` mode collapsed a `Values` to its first value, so an interpreted producer silently handed compiled code one value (R48). |
+| ✅ | **`call/cc` as a compiled call site** | Built and tested, and **off by default on measurement**: compiling a capture makes `btsearch` go from 2.00x faster to 2x slower and `ctak` from 0.99x to 0.69x, against `contfib` 1.03x → 1.92x the other way. Fails the Pareto ship rule, so it is available via `allowCaptures` and declined otherwise. Coverage therefore unchanged at 839/1089 — the increment delivered correctness, not coverage (R49). |
+| ✅ | **Assigned locals are boxed** | The real find. A spilled frame *copied* locals, but Scheme shares the binding — so an assignment after a capture was invisible to the next invocation and to closures. `(3 2 1)` interpreted against `(1 1 1)` compiled; the `threads` benchmark returned a wrong total. Reachable in the default configuration, not just with `call/cc` compiled. Declining cost `vector` 16.05x → 4.40x, so assigned locals are held in a one-element array instead: **15.19x**, sound, 2–7% against the unsound baseline (R49). |
+| ✅ | **`read1` under the tier** | Not a harness problem. `call-with-input-file` ran `proc(port)` and closed the port in a `finally` without settling a pending tail call, so a compiled thunk's tail call ran after the close. Four io primitives had the shape. Every canonical benchmark is now correct under the tier (R49). |
+| ✅ | **Build-time AOT for the standard library** | `scripts/generate_compiled_stdlib.js` writes the generated code into the bundle; `installPrebuilt` installs it in 0.1 ms against 12 ms of compiling. The time saving is only ~5 ms, because the 736 KB module costs 6.9 ms to import — **the point is that nothing calls `new Function` at run time**, so a strict-CSP page gets the compiled library, and compile speed is decoupled from deployment, which is the precondition for a Scheme-hosted compiler. Cost: `dist/scheme.js` 773 KB → **1513 KB** (+35 KB gzipped) (R50). |
+| ✅ | **Letrec-aware lambda lifting** | Nested procedures are emitted once as top-level factories over their free variables. Generated code is **linear in nesting instead of 4.2x per level** — sixteen levels went from 138,801,809 characters to 11,478. Corpus 24.36 → **12.80 MB**; library module 736 → **437 KB** (98 KB of which was one repeated error string, now in the runtime); `dist/scheme.js` 1513 → **1235 KB**. Performance flat, as expected for a size change. Boxing (R49) made mutation a non-issue; `letrec` self-reference stays a direct call and only sibling-referenced names are boxed, which is what makes `map` liftable (R51). |
+| **1st** | **Liveness for frame spills** | **The new largest source of generated code, and not what lifting addressed.** `nucleic.scm:make-relative-nuc` is 3.25 MB and **94% of it is `reify` frame literals** — 550 call sites spilling ~476 names each, because a suspended frame conservatively saves every declared variable. Quadratic in procedure size. Spilling only what is live across each suspension point fixes it, and would also shrink every twin in the library. |
+| **2nd** | **Code generation, for the first time** | Coverage is exhausted as a source of wins: 839 of 1089, and the only real declines left are 7 reaching `with-exception-handler` and ~12 capture-related ones held back deliberately. Every gain from R45 to R48 was coverage; R49 got none. Further speed has to come from the generated code — direct calls to statically known procedures, arity specialization, unboxed fixnum paths, escape analysis for environments. This is a change of regime and should be planned as one rather than picked up piecemeal. |
+| **3rd** | **Profile bignums** | Worst class at **1.21x**, and now known not to be a coverage problem: `pi` compiles **9 of 9** definitions and still measures 1.00x, which was the obvious alternative explanation and is ruled out. Both implementations do arbitrary precision, so a 50x gap against Gambit is anomalous and probably sits in tower dispatch rather than the arithmetic. This is the one part of R29 that survived, and it has now survived a second attempt to explain it away (R48). |
+| — | **Diagnose the `list` class** | **Done, by the histogram this item asked for.** It was 1.60x with `earley` at 0.99x and 0 of 8 compiled; it is now **9.85x** with `earley` at 21.41x and 6 of 8. The causes were an interpreted standard library (R45/R46), `apply` blocking `map` and `for-each` (R46), and binding chains that could not be emitted (R47) — all coverage, none of it code generation, exactly as this item suspected. |
+| **5th** | **Put the compliance suites in `npm test`** | 219 + 982 conformance tests currently sit outside the default run — `tests/core/scheme/compliance/` has its own runners and nothing references them. Cheap to wire in, and the recurring failure of this project has been changes that the suite could not see. The same failure for the *benchmark* programs is now fixed: `tests/programs/` runs all 41 under both tiers in 8.2 s and is in `npm test`. |
+| — | **Split the compiled compiler out of the browser bundle** | `compiled_compiler.js` is 535 KB of `dist/scheme.js`, and a page that only runs AOT-compiled Scheme never calls the lowering. Rollup bundles it statically because `index.js` imports it statically. Not urgent — it is ~10 KB gzipped — but it is pure weight for the common case. |
+| 8th | **4b — flonum fast paths in `inline.js`** | The expansions still guard `bigint` only, and flonum is 13.1x behind Gambit. Now an incremental optimization rather than an unblock. |
+| 8th | **4a — fixnums as JS numbers** | **Demoted.** R29 put this first on the premise that BigInt dominates and codegen cannot help. fixnum is now the *best* tier class at 11.95x, so that premise is false for small-integer code. Still 11.2x behind Gambit, so it may pay — but it needs a profile to justify it, not R29's reasoning. |
+| 9th | **4c — mutable strings, immutable-until-mutated** | A real R7RS conformance gap, but `string` is the one class where we **beat both references**, so this can only cost performance. Do it with the R31 design and measure. |
 | — | **3 — source maps; 6 — debug points** | Not performance work at all. These serve constraint 4 (debuggers) and should not be crowded out indefinitely by optimization. |
 | — | **4d — drop `source` from runtime `Cons`** | Unchanged, unmeasured, low priority. |
 
-### Revisiting the Scheme-port decision, as promised
+### The Scheme port: decided, and done for the lowering pass
 
-The recommendation was: do 2c, measure what the tier is worth on symbolic code, then decide whether
-to write the compiler in Scheme. 2c and 2c′ are done, and the number is **`list` 1.60x** — with the
-closest analogues in the suite being `scheme`, a Scheme interpreter written in Scheme, at **1.09x**
-(32 of 112 definitions compiled) and `peval` at **1.17x** (14 of 43).
+**`src/compiler/ir.js` no longer exists.** `src/compiler/ir.scm` is the compiler's
+lowering pass, and the production compiler calls it through `src/compiler/lowering.js`.
+On the commit that removed the JavaScript version, the two agreed on all 952 lambdas in
+the corpus — including `captures`, which the differential had never compared until it was
+added and which the Scheme side had never reported.
 
-So self-hosting still buys only 1.1–1.6x, and both figures are held down by coverage rather than by
-code generation. That is exactly what 2b unlocks. **Re-measure after 2b and decide then** — the
-question is unchanged, the evidence is not yet in.
+The bootstrap terminates in the interpreter, so no compiler in another language is needed:
+
+| step | produces |
+|---|---|
+| the interpreter runs `ir.scm` from source | a working, slow compiler |
+| it compiles the standard library | `src/packaging/compiled_stdlib.js` |
+| that compiles `ir.scm` | `src/packaging/compiled_compiler.js` |
+
+`npm run prebuild` does all of it in **0.62 s from nothing**, reproducibly (both tables
+come out byte-identical). 41 of `ir.scm`'s 42 definitions compile; the one that does not
+is `control-globals`, which is data.
+
+**What it cost.** The lowering is about **18x** slower than the JavaScript it replaced —
+70 ms a pass over the corpus against 3.8 ms, plus 7 ms of marshalling. That cost is off
+the path anyone waits on: the library is lowered at build time, a program's definitions
+are lowered once each, and both test suites run in the same wall time as before
+(`npm test` 28 s, the program pass 8.2 s → 8.8 s). What it did cost is **535 KB** on
+`dist/scheme.js`, for a compiled compiler that only a page compiling at run time needs —
+a code-splitting problem, not a compiler one.
+
+**What it bought.** The tier now has a customer whose performance is the project's, and
+`npm run benchmark:self-host` reports it: 13.68x today. Making the compiler faster now
+makes the compiler faster.
+
+### The earlier reasoning, kept for the record
+
+**Settled by porting a module, not by inference.** `src/compiler/ir.js` was ported to Scheme in
+`experiments/ir_in_scheme/` — 952 lambdas from the whole corpus lowered by both, identical IR on
+all 952. The measurement:
+
+| | per pass | vs JavaScript |
+|---|---|---|
+| JavaScript | 3.8 ms | 1.0x |
+| Scheme, interpreted | 1162 ms | 305x |
+| Scheme, compiled by the tier | 808 ms | 212x |
+| **Scheme, + standard library compiled** | **75 ms** | **19.6x** |
+
+The reasoning previously recorded here — that `list` 1.60x, `scheme` 1.09x and `peval` 1.17x showed
+the tier to be weak on symbolic code, and that coverage was what held them down — **was wrong on
+both counts**. What held them down was the standard library staying interpreted underneath compiled
+code. Compiling it moved the tier's value on this workload from 1.44x to 15.5x (R45).
+
+So the question is open again on honest numbers: a Scheme-hosted lowering costs **19.6x** with
+everything compiled, and 305x with the tier off.
+
+The standard library has since been compiled AOT and the suite re-measured (R46), and the port
+then happened — see above. What remains in Scheme's direction is everything else: `safety.js`,
+`lift.js`, `codegen.js`, `emitter.js`, `resume.js` and `inline.js`, about 2,000 lines. `runtime.js`
+stays JavaScript, not because generated JavaScript calls it, but because it needs native JavaScript
+features — a `Map` behind hash tables, for one — that neither generated code nor Scheme libraries
+can express.
 
 ### Measurements this reordering implies
 

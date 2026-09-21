@@ -1,3 +1,4 @@
+import { settleTailCalls } from '../../interpreter/values.js';
 import {
     Port, EOF_OBJECT,
     isPort, isInputPort, isOutputPort,
@@ -127,7 +128,7 @@ export const ioPrimitives = {
         if (typeof proc !== 'function') throw new Error('call-with-input-file: expected procedure');
         const port = new FileInputPort(filename);
         try {
-            return proc(port);
+            return settleTailCalls(proc(port));
         } finally {
             if (port.isOpen) port.close();
         }
@@ -138,7 +139,7 @@ export const ioPrimitives = {
         if (typeof proc !== 'function') throw new Error('call-with-output-file: expected procedure');
         const port = new FileOutputPort(filename);
         try {
-            return proc(port);
+            return settleTailCalls(proc(port));
         } finally {
             if (port.isOpen) port.close();
         }
@@ -151,7 +152,7 @@ export const ioPrimitives = {
         const old = currentInputPort;
         currentInputPort = port;
         try {
-            return thunk();
+            return settleTailCalls(thunk());
         } finally {
             currentInputPort = old;
             if (port.isOpen) port.close();
@@ -165,7 +166,7 @@ export const ioPrimitives = {
         const old = currentOutputPort;
         currentOutputPort = port;
         try {
-            return thunk();
+            return settleTailCalls(thunk());
         } finally {
             currentOutputPort = old;
             if (port.isOpen) port.close();

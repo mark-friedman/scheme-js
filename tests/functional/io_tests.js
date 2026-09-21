@@ -11,7 +11,7 @@ import { assert, skip, run, createTestLogger, createTestEnv } from '../harness/h
  * @param {Interpreter} interpreter
  * @param {object} logger
  */
-export function runIOTests(interpreter, logger) {
+export async function runIOTests(interpreter, logger) {
   // ===========================================================================
   logger.title("I/O Tests - Port Predicates");
 
@@ -511,6 +511,32 @@ export function runIOTests(interpreter, logger) {
               (read-line p)))
         `);
     assert(logger, "call-with-input-file", result, "test content");
+
+    // A *compiled* procedure signals a tail call by returning a `TailCall`
+    // rather than a value, so a primitive that runs cleanup on the way out has
+    // to settle the result first. `call-with-input-file` did not, and closed
+    // the port before the tail call ran -- the `read1` benchmark failed with
+    // "port is closed" under the compiler tier while passing interpreted.
+    // The body here ends in a tail call on purpose.
+    {
+      const { tryCompileDefinition } = await import('../../src/compiler/index.js');
+      const { parse } = await import('../../src/core/interpreter/reader.js');
+      const { analyze } = await import('../../src/core/interpreter/analyzer.js');
+      const { DefineNode } = await import('../../src/core/interpreter/ast_nodes.js');
+
+      const source = `(define (read-it path)
+                        (call-with-input-file path (lambda (p) (read-line p))))`;
+      const ast = analyze(parse(source)[0]);
+      const outcome = ast instanceof DefineNode
+        ? tryCompileDefinition(ast, interpreter.globalEnv) : { compiled: false };
+      assert(logger, "a procedure using call-with-input-file compiles",
+        outcome.compiled, true);
+      if (outcome.compiled) {
+        interpreter.globalEnv.define(outcome.name, outcome.procedure);
+        assert(logger, "and its pending tail call runs before the port closes",
+          run(interpreter, `(read-it "${testFile2}")`), "test content");
+      }
+    }
 
     // Clean up
     run(interpreter, `(delete-file "${testFile2}")`);

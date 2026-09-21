@@ -6,17 +6,76 @@
  * keep in step: a `Cons` is a `Cons`, an exact integer is a `BigInt`, and `+`
  * is the same function the interpreter calls.
  *
- * There *is* one conversion at the boundary, and getting it wrong cost ten of
- * the canonical R7RS benchmarks (R26). An interpreted closure is a callable
+ * There *is* one conversion at the boundary, and getting it wrong silently
+ * corrupted ten benchmarks. An interpreted closure is a callable
  * JavaScript function whose wrapper exists for JavaScript callers, so calling
  * it the ordinary way converts values as if they were leaving Scheme. `invoke`
  * below is how compiled code avoids that.
  */
 
 import { TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../core/interpreter/values.js';
+// The capture protocol belongs to the interpreter, which owns what a
+// continuation is; this module only makes it reachable from generated code.
+import { UNWIND, reify, beginCompiledCapture } from '../core/interpreter/unwind.js';
+import { SchemeError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
 
-export { TailCall, Cons, SCHEME_RAW_CALL };
+export { TailCall, Cons, SCHEME_RAW_CALL, UNWIND, reify, SchemeError };
+
+/**
+ * Reports a capture beneath a redefined inlined primitive.
+ *
+ * An inline expansion is not a call site the resumable form splits at, so there
+ * is no point for the frame to resume from. Only reachable when the guarded
+ * binding has been replaced by something that captures.
+ *
+ * A function rather than a thrown literal at each site because the message is
+ * long and there are hundreds of sites: inlining it accounted for a fifth of
+ * the generated standard library.
+ *
+ * @returns {void}
+ * @throws {SchemeError} Always.
+ */
+export function captureUnderPrimitive() {
+  throw new SchemeError(
+    'call/cc: a continuation was captured beneath a redefined primitive, which '
+    + 'cannot be resumed. Run this program with the compiler tier disabled.');
+}
+
+/**
+ * Reports a capture in a procedure with no resumable form.
+ * @returns {void}
+ * @throws {SchemeError} Always.
+ */
+export function captureWithoutResume() {
+  throw new SchemeError(
+    'call/cc: a continuation was captured in or beneath a compiled procedure '
+    + 'that has no resumable form. Run this program with the compiler tier '
+    + 'disabled.');
+}
+
+/**
+ * Captures the current continuation from compiled code.
+ *
+ * Compiled code cannot build a continuation itself: a continuation is the
+ * interpreter's frame stack, and the compiled frames between here and the
+ * interpreter are JavaScript frames that nothing can read. So this does not
+ * return one. It records what the capture will need and returns the unwind
+ * sentinel, which makes every compiled frame on the way out record itself --
+ * the same protocol as a capture made by an interpreted callee, entered from
+ * the other end.
+ *
+ * The value therefore arrives later, at the resume point, rather than from
+ * this call. Generated code is written accordingly: it spills and returns
+ * immediately afterwards.
+ *
+ * @param {*} receiver - The procedure to apply to the continuation.
+ * @returns {symbol} `UNWIND`, always.
+ */
+export function capture(receiver) {
+  beginCompiledCapture(receiver);
+  return UNWIND;
+}
 
 /**
  * Invokes a callee with Scheme values, without crossing the JavaScript boundary.

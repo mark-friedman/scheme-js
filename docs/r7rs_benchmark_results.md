@@ -44,6 +44,14 @@ effect — `lattice` 18.7 → 10.7 ms, `graphs` 1.00 s → 662 ms, `earley` 2.10
 removed cost of a per-reference scope-registry lookup plus a list allocated and walked to deliver
 each lambda.
 
+### Bignums are not a coverage problem
+
+`pi` compiled **0 of 9** definitions for most of this work, all of them blocked by `values`, which
+made coverage the obvious explanation for the class sitting at 1.2x — and coverage had already been
+the answer three times running. It compiles **9 of 9** now and measures **1.00x**. So the class
+really is bound by BigInt arithmetic, code generation cannot reach it, and the remaining gap against
+Gambit is worth profiling in the numeric tower rather than the compiler.
+
 ### Two results worth reading closely
 
 **We are faster than both references on strings** — 0.3x of Gambit on `string`, which builds a
@@ -60,24 +68,58 @@ hold for arbitrary-precision work, and the compiler tier does not help either (1
 
 ## What the compiler tier is worth, by workload class
 
-> [!WARNING]
-> Measured through `tryCompileDefinition`, which carries no continuation guard of its own. The
-> harness applies the call-graph guard from `src/compiler/safety.js` over the whole program before
-> compiling, so these runs are guarded — but the tier is still **not sound** and stays off by
-> default until increment 2b. See R28 and R35.
+Re-measured 2026-09-21, with the standard library compiled ahead of time and `apply` supported.
+A compiled procedure can now take part in a captured continuation, so the guard that holds some
+definitions back is a speed heuristic rather than a soundness requirement.
 
-| Workload class | speedup | range | programs |
+| Workload class | speedup | before this run of work | programs |
 |---|---|---|---|
-| Small exact integers | **11.95x** | 5.71x – 27.03x | 4 |
-| Inexact / complex | 8.94x | 3.34x – 14.44x | 7 |
-| Procedure call | 5.55x | 0.98x – 26.29x | 8 |
-| Vectors, bytevectors | 4.32x | 0.99x – 18.82x | 2 |
-| Symbolic / list | 1.60x | 0.96x – 23.51x | 13 |
-| Strings and characters | 1.24x | — | 1 |
-| Bignums | 1.11x | 0.99x – 1.23x | 2 |
-| `call/cc`, `dynamic-wind` | **1.06x** | 1.00x – 1.19x | 3 |
+| Procedure call | **21.79x** | 5.70x | 8 |
+| Small exact integers | **16.18x** | 10.52x | 4 |
+| Vectors, bytevectors | **15.19x** | 17.12x | 2 |
+| Inexact / complex | **10.18x** | 2.95x | 7 |
+| Symbolic / list | **10.14x** | 1.92x | 13 |
+| `call/cc`, `dynamic-wind` | **3.18x** | 1.00x | 3 |
+| Strings and characters | 1.22x | 1.19x | 2 |
+| Bignums | 1.22x | 1.07x | 2 |
 
-All 41 programs return the right answer.
+**Every program returns the right answer**, `read1` included — it used to fail under the tier
+because `call-with-input-file` closed the port before a compiled thunk's pending tail call ran.
+
+**Not one of these gains came from changing how code is generated.** All of it was coverage: the
+standard library was interpreted underneath compiled code (**R46**), `apply` was wrongly treated as
+a control operation and blocked `map` and `for-each` (**R46**), `let` expanded into nested
+procedures that could not be emitted (**R47**), and `call-with-values` blocked the shared `hide`
+idiom that all 51 programs use (**R48**).
+
+**839 of 1089 definitions compile.** What remains is 229 top-level definitions that are not
+procedures and 21 reaching `call/cc`.
+
+
+
+### The library underneath was most of what the earlier figures measured
+
+`list`, `call` and `continuation` are the three classes that spend their time inside the standard
+library, and they are the three that moved: 2.4x, 2.2x and 2.9x. The numeric classes, which do not,
+did not move at all. The library is itself Scheme, so until it was compiled, compiled code crossed
+into the interpreter on its hottest path — and that boundary, not code generation, was what the
+symbolic figures were reporting. `peval` went 1.21x → 6.96x and `scheme` 1.30x → 6.54x without any
+change to how code is generated. See **R45** and **R46**.
+
+### The regressions the library introduced, and how they went away
+
+Compiling the library on its own made four programs *slower* — `earley` 1.00x → 0.87x, `sum` 5.62x
+→ 4.05x, `sumfp` 3.35x → 2.17x, `takl` 25.66x → 20.93x — because the tier boundary costs the same
+in both directions, and a partly-compiled program's interpreted procedures then called compiled
+library code and paid the crossing the other way.
+
+Raising coverage was the right response rather than reverting, and it worked: `earley` is now
+**21.41x** with 6 of 8 definitions compiled, up from 4 of 8. `paraffins` 1.38x → 23.33x, `fft`
+1.00x → 12.21x, `mbrotZ` 1.05x → 13.10x, `simplex` 1.14x → 13.59x.
+
+Four programs are 4–11% lower than their best recorded figure (`fibfp`, `tak`, `array1`, `ack`).
+Re-measured at a five-times-longer target they are unchanged, so that is run-to-run variance on
+short benchmarks rather than a regression.
 
 ### This table replaced a very different one, and the reason matters
 
@@ -99,9 +141,17 @@ least one class and regresses none.**
 
 ### Coverage
 
-Of 754 definitions in the suite: **573 can be lowered** (the `unsupported node` category is gone
-entirely, R38) and **358 survive the safety guard**. What stops the rest is now the guard and
-`define` of non-procedures, not the compiler's front end.
+**827 of 1089 definitions across the corpus are compiled**, up from 623 before `apply` was
+supported and 807 before binding chains could be emitted. A histogram of why the rest are
+declined — the measurement that found both problems — now reads:
+
+| count | reason |
+|---|---|
+| 229 | the definition is not a procedure at all |
+| 21 | reaches `call/cc` |
+
+Those 21 are the entire remaining real decline list — ctak(3), fibc(2), maze(5), puzzle(3),
+read0(7). The library itself is **61 of 61**.
 
 ## Correctness: the suite is clean
 

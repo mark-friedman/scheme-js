@@ -16,6 +16,30 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 └─────────────────────────────────────────────────────┘
 ```
 
+## The compiler's bootstrap
+
+The compiler tier's lowering pass is itself Scheme (`src/compiler/ir.scm`), so the
+system compiles part of itself. The chain has three links and terminates in the
+interpreter, which needs no compiler at all:
+
+```
+interpreter runs ir.scm from source          (slow, but needs nothing)
+   -> compiles the standard library          -> src/packaging/compiled_stdlib.js
+   -> compiles ir.scm itself                 -> src/packaging/compiled_compiler.js
+```
+
+Both steps run at build time (`npm run prebuild`, about 0.6 s from nothing), so
+nothing calls `new Function` at run time and a page under a strict
+Content-Security-Policy gets a compiled compiler. `installPrebuilt` checks a
+fingerprint of the sources each table was generated from, and installs nothing
+if they have moved on — a stale build costs speed, never correctness.
+
+The middle link is not an optimization of the last one. Lowering calls `memq`
+and `assq` on every scope lookup, and those are themselves Scheme: compiling
+`ir.scm` against an interpreted library is worth 1.5x, against a compiled one
+13.7x. `npm run benchmark:self-host` measures all three configurations and
+checks that they agree about every answer.
+
 ## JavaScript Runtime Components
 
 | Component | Purpose |
@@ -121,7 +145,8 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │       │   ├── stepables.js        # Barrel file (re-exports all stepables)
 │       │   ├── stepables_base.js   # Base class + register constants
 │       │   ├── ast_nodes.js        # AST node classes (Literal, If, Lambda...)
-│       │   ├── frames.js           # Continuation frame classes
+│       │   ├── frames.js           # Continuation frame classes, incl. CompiledFrame
+│       │   ├── unwind.js           # Capturing a continuation across compiled code
 │       │   ├── ast.js              # Legacy barrel file
 │       │   ├── frame_registry.js   # Frame factory functions
 │       │   ├── winders.js          # Dynamic-wind utilities
@@ -213,9 +238,16 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 │
 │   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)
 │      ├── index.js           # EXPORT: tryCompileDefinition(), compileProgram()
-│      ├── ir.js              # Analyzed AST -> IR; tail position, local vs global
-│      ├── codegen.js         # IR -> JavaScript (convention B)
+│      ├── ir.scm             # Analyzed AST -> IR, in Scheme; the self-hosted part
+│      ├── lowering.js        # Runs ir.scm: its interpreter, and the two entry points
+│      ├── marshal.js         # AST and IR across the JavaScript/Scheme boundary
+│      ├── lift.js            # Which nested procedures are emitted once, at top level
+│      ├── codegen.js         # Emits both forms of a procedure (convention B)
+│      ├── emitter.js         # The fast form: straight-line JavaScript
+│      ├── resume.js          # The resumable form: a state machine over call sites
+│      ├── safety.js          # Which procedures a capture would unwind through
 │      ├── inline.js          # Inline expansions for primitives, tower-faithful
+│      ├── prebuilt.js        # Installing code compiled at build time, fingerprinted
 │      └── runtime.js         # Tail-call step, global accessors, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
@@ -343,6 +375,9 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 6. **Split Library Loader**: Registry in `library_registry.js`, parser in `library_parser.js`, loader logic in `library_loader.js`.
 7. **Modular Analyzer**: `analyzer.js` acts as a dispatcher to themed handlers in `analyzers/`, ensuring the analysis phase is extensible and isolated.
 8. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.
+9. **Self-hosting where it pays**: the compiler's lowering pass is Scheme, and the
+   interpreter is what bootstraps it — so the tier's own performance is the
+   project's performance, and no second language is needed to build the first.
 
 ## Related Documentation
 

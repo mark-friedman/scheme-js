@@ -38,14 +38,17 @@ export function getControlPrimitives(interpreter) {
             throw new SchemeTypeError('apply', args.length + 2, 'list', lastArg);
         }
 
-        // Wrap args in Literals for the AST
-        const argLiterals = finalArgs.map(val => new LiteralNode(val));
-
-        // Return a TailCall to transfer control
-        return new TailCall(
-            new TailAppNode(new LiteralNode(proc), argLiterals),
-            null // Use current environment
-        );
+        // A `TailCall` naming the procedure and its arguments, rather than one
+        // carrying an expression for the interpreter to evaluate. Both shapes
+        // are accepted by `continueApplication`, but only this one can be
+        // continued by *compiled* code, whose trampoline calls the procedure
+        // directly and has no evaluator to hand an AST node to.
+        //
+        // That is the whole reason `apply` used to be off limits to the
+        // compiler, and it was the single largest cause of declined procedures
+        // in the benchmark corpus -- reached mostly through `map` and
+        // `for-each`, which use it for their variadic case.
+        return new TailCall(proc, finalArgs);
     };
 
     /**
@@ -77,6 +80,28 @@ export function getControlPrimitives(interpreter) {
         },
 
         'call-with-values': callWithValuesPrimitive,
+
+        /**
+         * %values->list: The values a producer returned, as a list.
+         *
+         * Exists for compiled code, which cannot use `call-with-values`: that
+         * primitive hands the interpreter an expression to evaluate, and
+         * compiled code has no evaluator. Given this, the compiler expresses
+         * `(call-with-values p c)` as `(apply c (%values->list (p)))`, which is
+         * built entirely from calls it already makes -- so the call to the
+         * producer is an ordinary call site, with the resume point a captured
+         * continuation needs.
+         *
+         * A result that is not a `Values` counts as exactly one value,
+         * including the unspecified value, which is what `CallWithValuesFrame`
+         * does and therefore what the two tiers have to agree on.
+         */
+        '%values->list': (result) => {
+            const items = result instanceof Values ? result.toArray() : [result];
+            let list = null;
+            for (let i = items.length - 1; i >= 0; i--) list = new Cons(items[i], list);
+            return list;
+        },
 
         /**
          * eval: Evaluate an expression in an environment.

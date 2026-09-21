@@ -1305,6 +1305,740 @@ end state, so the guard still has to decline. That is what the second half buys.
 so any sentinel carrying extra information would have stopped being filtered and would have been
 executed while restoring a continuation. It now matches on a property.
 
+**R41. The resumable form of every compiled procedure now exists and is verified against the fast
+form. Code size is 2.21x, not the 4.09x the bake-off predicted, and runtime speed is unchanged.**
+
+The second half of increment 2b has two parts: a resumable copy of every procedure, and the capture
+protocol that suspends into it. This entry is the first part.
+
+**Why a second copy at all.** A compiled procedure is straight-line JavaScript, which is what makes
+it fast and also what makes it impossible to re-enter half-way through — a JavaScript function
+cannot be resumed at a statement in the middle of its body. So each procedure is emitted twice: once
+in the fast form, and once as a state machine over its own call sites, entered as `($pc, $f)`. The
+state machine runs only while a continuation is being reinstated, so it can be slow; the cost is
+code size, paid once at compile time, rather than speed, paid on every call.
+
+**Structure.** `src/compiler/resume.js` subclasses the fast-path emitter and overrides *only*
+control flow. Everything about expressions — inlined primitives, global accessors, temporaries, rest
+arguments — is inherited, so the two forms cannot drift apart in what they compute. Making that work
+needed one extraction: `ProcedureEmitter` moved to `src/compiler/emitter.js` so that `codegen.js` and
+`resume.js` could both import it without a cycle.
+
+Two things had to differ beyond `if` and calls, and both were found by running the twin rather than
+by reading it:
+
+- A **rest parameter** must not be rebuilt from a JavaScript argument array. The twin takes no
+  argument list; everything arrives in `$f`, already converted.
+- A **nested procedure** must be emitted as an assignment, not a declaration. A function declaration
+  inside a `switch` case only takes effect when that case runs, and resuming jumps straight to a
+  later block — so the name would have been undefined. As an assignment to a declared variable it is
+  spilled and restored like anything else.
+
+That second one matters more than it sounds. A `let` body, a named `let`'s loop and every anonymous
+procedure become nested procedures, so **most call sites in a program are inside one**. Without
+their own resumable forms, a continuation captured in the commonest place in a program could not be
+resumed.
+
+**Measured:**
+
+| | |
+|---|---|
+| code size, fast form + twin against fast form alone | **2.21x** (the bake-off predicted 4.09x) |
+| `fib` / `nqueens` / `sum` compiler-tier speedup | 26.98x / 28.27x / 5.72x — unchanged |
+| tests | 2,216 passing |
+
+The size came in better than predicted because the emitted code is already factored into nested
+procedures, so a twin duplicates a body rather than a whole monolithic state machine.
+
+**Verification.** Ten differential cases run each procedure's fast form and its twin from block 0
+and require the same answer — recursion with two call sites, tail recursion, named `let`, nested
+conditionals, allocation, a call in a `let` initializer, `let*`, mutual recursion, and a rest
+parameter with and without extra arguments. Entered at block 0 with its arguments in a frame, a twin
+is just another way to call the same procedure, which makes this a cheap and direct check that the
+two copies agree.
+
+**Still to come**, and it is what actually turns the tier on: the capture protocol. `call/cc`
+currently refuses when it finds a compiled frame. It must instead begin an unwind — returning the
+sentinel out through the compiled/interpreted boundary, each compiled frame reifying itself on the
+way out, up to the outermost compiled entry, which splices the collected frames into the
+interpreter's stack as frames that resume through `$resume`. The runtime side of that (`UNWIND`,
+`reify`, the frame record) is in place and the generated code already calls it; nothing produces an
+`UNWIND` yet.
+
+**R42. The capture protocol is built on the interpreter side and stops one step short on the
+compiler side, for a reason worth recording.**
+
+The design, now implemented in `src/core/interpreter/unwind.js`:
+
+1. `call/cc` finds a compiled boundary beneath it, records what it needs to finish later
+   (`{lambdaExpr, fstack, env, boundary}`), and throws `CaptureUnwind` to abandon the nested run.
+2. `run` catches it and returns the `UNWIND` sentinel to whoever called in — compiled code.
+3. Compiled code checks for `UNWIND` after every non-tail call, spills its locals and resume point
+   with `reify`, and returns `UNWIND` so its own caller does the same.
+4. `continueApplication` sees `UNWIND` from a compiled callee, splices the reified frames in where
+   the boundary sat — outermost first, since the interpreter pops from the end — and applies the
+   receiver to a continuation built from the completed stack.
+5. Reinstating runs those frames through `CompiledFrame`, which calls the procedure's resumable form
+   with the slots **copied**, so a second invocation cannot see what the first assigned.
+
+Steps 1, 2, 4 and 5 are implemented and the protocol is layered correctly: the interpreter owns it,
+and `src/compiler/runtime.js` only re-exports `UNWIND` and `reify` so generated code can reach them.
+
+**Step 3 is not finished, and the obstacle is naming.** The resumable form restores its locals with
+`({ a, b, $t7, ... } = $f)`, so the fast form must spill under *those* names. It does not: temporaries
+are allocated from a counter shared across both emissions, so the fast form holds a value in `$t3`
+where the twin expects `$t13`. The two forms traverse the same IR in the same order and would agree
+on names if each allocated temporaries from its own counter — but `branch()` and the value-position
+`if` create sub-emitters that must share their parent's counter, and a nested procedure must not
+share it, so this is a small, careful change rather than a one-liner.
+
+Until it lands, a compiled procedure that sees `UNWIND` **throws**, naming the limitation. That
+keeps the previous guarantee: the tier's remaining unsoundness is loud, never silent. An
+intermediate state where the sentinel leaked into a result was briefly present during this work and
+was caught by running the escape case -- `(Symbol(scheme.unwind) tail)` where `(escaped tail)` was
+expected -- which is exactly the failure mode all of this exists to prevent.
+
+*What is verifiably true now:* 2,216 tests, 219 chapter-conformance tests and 982 chibi-conformance
+tests pass; the compiler tier's measured speedups are unchanged (`fib` 19.4x, `sum` 5.78x, `maze`
+2.36x); and every piece of the protocol except the fast form's spill is in place and layered so that
+the interpreter does not depend on the compiler.
+
+**R43. The capture protocol is finished, and relaxing the guard it was built to replace turned out
+to be a performance decision rather than a correctness one.**
+
+Step 3 of R42 — the fast form spilling its locals under the names the resumable form restores — is
+done, and the naming problem was worse than R42 described. Two things had to line up, not one:
+
+*Temporary numbering.* Each **emission** now counts from zero (`procedureScope` in
+`src/compiler/emitter.js`), so the fast form and the resumable form reach the same name for the
+same value. Sub-emitters for a branch or a value-position `if` share their parent's counter; a
+nested procedure gets a fresh one. The first attempt shared one counter object between a
+procedure's two emissions, so the second continued the first's numbering — visible immediately as
+`$t4` in one form against `$t0` in the other.
+
+*Procedure naming.* Counting from zero per procedure made nested procedure names **collide across
+nesting levels**: every first nested lambda was `$fn0`, including one directly inside another. A
+procedure names its own resumable form when it suspends, so a nested `$fn0$r` shadowed exactly that
+reference and a frame reified into the wrong twin — resuming a different procedure at a block
+number that meant nothing there. Names are now paths (`$fn2_0` is the first procedure inside the
+third), which is unique by construction without a shared counter.
+
+*The frame layout is the resumable form's to decide.* It is generated first, and records both the
+resume block per call site and the final set of slot names; the fast form reads both. Having the
+fast form derive the names itself would have been a second implementation of the same rule, which
+is the kind of agreement that holds until it quietly does not.
+
+**A third bug was found by testing, not by reasoning.** `CompiledFrame.step` drives the resumed
+procedure to completion, and a capture can happen *during* that — a loop that captures on every
+turn does it every time. It set `ANS` to the sentinel and returned, on the stated assumption that
+whoever called it would finish the capture. Nothing did, and the sentinel flowed into an ordinary
+frame as a value. `CompiledFrame` now completes the capture itself, which is correct because the
+frame has already been popped and its remaining work went into the reified frames on the way out.
+It moved to `frames.js` to do so, and `completeCapture` takes the interpreter's vocabulary —
+building a frame, a continuation, an application — as a hooks object, so `unwind.js` still knows
+nothing about the compiler.
+
+**Then the measurement overturned the plan.** The roadmap said "align temporary naming, then
+enable", meaning relax the safety guard. With the guard fully off, all eight continuation
+benchmarks are **correct** — including `btsearch`, the shape that motivated the guard in the first
+place. But `btsearch` ran at **0.50x**, half the interpreter's speed. A procedure that a capture
+repeatedly unwinds through pays to suspend and resume on every capture, and that costs more than
+interpreting it.
+
+So the guard survives, with its justification replaced. What was removed is `strict` — the rule
+declining any procedure that calls a callee it cannot name, which existed *solely* to catch the
+`btsearch` shape and is now redundant. It is off by default:
+
+| policy | `btsearch` | `oddeven` | `threads` | correct |
+|---|---|---|---|---|
+| reachability + `strict` (the old default) | 1.00x | 1.61x | 1.05x | yes |
+| **reachability only (the new default)** | **1.82x** | **2.56x** | **1.11x** | yes |
+| nothing declined | 0.50x | 2.81x | 1.17x | yes |
+
+The reachability closure, written as a soundness device, turns out to be a decent *performance*
+heuristic: do not compile what a capture will unwind through. That is not why it was built, and it
+is worth being explicit that its original purpose is gone — a reader who assumes the guard is load
+bearing for correctness will draw the wrong conclusion about what is safe to change.
+
+**What is still refused rather than answered:** a capture crossing more than one boundary between
+compiled and interpreted code, and a capture beneath a *redefined* inlined primitive — an inline
+expansion is not a call site the resumable form splits at, so there is no point to resume from.
+Both throw with an explanation. The inline fallback also went through `invoke`/`settle` in this
+change, closing a path where a redefined primitive that was an interpreted closure had its
+arguments converted at the JavaScript boundary and its tail calls left undriven.
+
+*Verified:* 2,234 tests, 219 chapter-conformance and 982 chibi-conformance tests pass; nine capture
+shapes match the interpreter, including a continuation invoked twice, a capture inside a
+`dynamic-wind`, and a capture on every turn of a compiled loop; `fib` 15.2x, `nqueens` 13.3x,
+`btsearch` 1.82x, all eight compiled benchmarks correct.
+
+**R44. Emitting every procedure twice costs 2.06x *per level of nesting*, not 2.21x overall. R42's
+code-size measurement was taken on programs too shallow to show it.**
+
+R42 reported the twin at 2.21x code size against a predicted 4.09x, and put the happy result down
+to the emitted code already being factored into nested procedures. That reading was wrong, and it
+was wrong because every case measured was two or three levels deep.
+
+A procedure's fast form emits both forms of each procedure nested inside it, and so does its
+resumable form. A lambda at nesting depth *d* is therefore emitted **2^d times**. Measured on a
+chain of `let`s, each of which lowers to a nested procedure:
+
+| depth | generated characters | ratio |
+|---|---|---|
+| 0 | 409 | |
+| 4 | 24,658 | 2.16 |
+| 8 | 462,386 | 2.06 |
+| 12 | 8,349,234 | 2.07 |
+
+2.21x was the ratio at the depth those cases happened to reach. The real figure is an exponent.
+
+Seven of the 52 canonical benchmarks — `earley`, `equal`, `graphs`, `nucleic`, `parsing`, `peval`,
+`simplex` — exceed JavaScript's maximum string length while the source is still being assembled.
+That surfaced only when compiling every definition in each program; under the default decline policy
+those procedures are held back for other reasons and the limit is never reached. It was found by
+sweeping the whole benchmark corpus through the compiler, not by running it.
+
+Worse than the size was the failure mode: the exception escaped `compileProgram`, so one
+over-large procedure **aborted compilation of the entire program** rather than being declined.
+A compiler that throws part-way through cannot be run across a unit at all. It now declines per
+definition, which is the difference between 567 and 818 definitions compiled across the corpus.
+
+The cap is a containment measure, not a fix. Emitting each nested procedure once, with its free
+variables passed in rather than closed over, would make this linear -- that is lambda lifting, and
+it is a change to how closures are generated rather than a limit to be tuned. Until then, a
+procedure nested deeply enough is interpreted.
+
+**R45. The tier's weakness on symbolic code was mostly an interpreted standard library, and every
+figure used to argue against self-hosting was measuring that instead.**
+
+`src/compiler/ir.js` was ported to Scheme (`experiments/ir_in_scheme/`) to settle the
+self-hosting question with a measurement rather than an inference from two benchmarks. The port is
+close rather than idiomatic — same traversal, same scope discipline, same mutable state — so the
+comparison is between two implementations of one algorithm.
+
+Correctness first: every `define` of a procedure across all 52 canonical benchmarks and the
+standard library, 952 lambdas, lowered by both implementations and compared field by field
+including the globals set and the `callsUnknown` flag. All three Scheme configurations produce
+**identical IR on all 952**.
+
+| | per pass | vs JavaScript |
+|---|---|---|
+| JavaScript | 3.8 ms | 1.0x |
+| Scheme, interpreted | 1162 ms | 305x |
+| Scheme, compiled by the tier | 808 ms | 212x |
+| **Scheme, + standard library compiled** | **75 ms** | **19.6x** |
+
+**The third row and the fourth differ by 10.8x, and only the standard library changed.** `ir.scm`
+calls `memq` and `assq` on every scope lookup and every global it records, and those are themselves
+Scheme, in `src/core/scheme/list.scm`. With them interpreted, a compiled module crosses into the
+interpreter on its hottest path and the tier is worth 1.44x. With them compiled, the tier is worth
+**15.5x on the same code**.
+
+That invalidates the reasoning recorded in ROADMAP's *Revisiting the Scheme-port decision*, and the
+argument built on it in this session: that `peval` at 1.21x and `scheme` at 1.30x showed the tier
+to be weak on the symbolic work a compiler does, and that self-hosting was therefore off the table
+until code generation improved. Those programs are not slow because code generation is weak on
+symbolic code. They are slow because they spend their time inside an interpreted standard library.
+The `list` class at 1.92x against `vector` at 17x is the same artefact, not a property of the
+workload.
+
+The error has a shape worth naming, because it is the third time in this log: a number was
+attributed to the thing being studied without checking what else differed between the two sides
+being compared. R29 did it with hot loops that could not be compiled, R28 with the unsound guard,
+and this with the library underneath. In each case the measurement was real and the attribution was
+wrong.
+
+**Consequences.** AOT-compiling the standard library was roadmap item 5a, ranked eighth, on the
+grounds that mixed-tier crossing was "less acute than R30 judged it". On symbolic code it is worth
+about 10x, and it should be re-measured across the whole canonical suite before anything else is
+prioritised — every class figure in this document is suspect for the same reason.
+
+On self-hosting itself the experiment gives a number rather than a verdict: a Scheme-hosted
+lowering is **19.6x** slower than the JavaScript one with everything compiled, and 305x with the
+tier off. Whether that is affordable depends on what the compiler is asked to do — 75 ms to lower
+952 procedures is not a REPL problem, while the interpreted fallback at 1.16 s is. Two costs the
+port surfaced that a rewrite in the abstract would not have: the tier declines any procedure using
+`apply` or `values`, so self-hosting means writing in the accepted subset; and R7RS-small has no
+hash tables, so sets are association lists. Neither was decisive on this corpus.
+
+**R46. Compiling the standard library, and the one-line change that unblocked most of the corpus.**
+
+R45 predicted about 10x on symbolic code from compiling the library. Measured across the whole
+canonical suite, by workload class, tier against interpreter:
+
+| class | before | after | |
+|---|---|---|---|
+| `list` | 1.92x | **4.61x** | 2.40x better |
+| `call` | 5.70x | **12.47x** | 2.19x better |
+| `continuation` | 1.00x | **2.86x** | 2.86x better |
+| `fixnum` | 10.52x | 10.01x | unchanged |
+| `flonum` | 2.95x | 2.75x | unchanged |
+| `vector` | 17.12x | 16.46x | unchanged |
+| `bignum` | 1.07x | 1.07x | unchanged |
+| `string` | 1.19x | 1.05x | unchanged |
+
+Exactly the three classes that spend their time in the library moved; the numeric classes, which
+do not, did not. Individual programs: `divrec` 1.40x → 17.74x, `destruc` 1.73x → 16.91x, `dynamic`
+1.00x → 8.10x, `lattice` 1.54x → 11.18x, `mazefun` 3.40x → 19.30x, `peval` 1.21x → 6.96x,
+`scheme` 1.30x → 6.54x.
+
+**`peval` and `scheme` are the two figures R45 said were measuring the wrong thing, and they moved
+by 5.8x and 5.0x.** They were used, in this session, to argue that the tier was weak on the
+symbolic work a compiler does and that self-hosting was therefore not viable. Neither claim
+survives.
+
+**The larger part of the win was not the library itself.** Compiling it reached only 49 of 61
+procedures, and the twelve it missed were `map`, `for-each`, `vector-map`, `string-map`, `max`,
+`min`, `gcd` and `lcm` -- the ones that matter most. All twelve were declined for the same reason:
+they reference `apply`.
+
+`apply` was on the control-global list because it returns a `TailCall` rather than a value. That
+was the wrong reason. It transfers control to an ordinary procedure with ordinary arguments, which
+a compiled trampoline can continue perfectly well. What actually blocked it was the *shape* of the
+`TailCall` it returned: `TailCall(expression, environment)`, for the interpreter to evaluate, where
+compiled code has no evaluator and expects `TailCall(procedure, arguments)`. Both shapes were
+already accepted by `continueApplication`, so returning the second was a one-line change to
+`applyPrimitive`.
+
+A decline-reason histogram over the corpus is what found it, and it should have been run long ago
+-- it has been a roadmap item since increment 1 and the ratio has been printed since then without
+anyone acting on it. Of 466 declines, 229 were top-level definitions that are not procedures at
+all, and of the ~237 real ones the overwhelming majority traced to `apply`, mostly indirectly
+through `map` and `for-each`. Removing it took corpus coverage from **623 of 1089 to 807 of 1089**,
+and library coverage from 49 of 61 to **61 of 61**.
+
+The remaining declines are now: 20 too-large generated source (R44), 20 reaching `call/cc`, 13
+reaching `values`/`call-with-values`.
+
+**Four programs got slower**, and this is worth recording rather than averaging away: `earley`
+1.00x → 0.87x, `takl` 25.66x → 20.93x, `sum` 5.62x → 4.05x, `sumfp` 3.35x → 2.17x. `earley`
+compiles only 4 of 8 definitions, so its interpreted procedures now call *compiled* library code
+and pay the boundary in the other direction. The tier-crossing cost is symmetric, and compiling
+more of the library makes partially-compiled programs worse. That is an argument for raising
+coverage further, not for reverting.
+
+**Where it runs.** `compileEnvironment` compiles procedures where they already sit, which is the
+only way to reach a library that exists as values by the time anything considers compiling it. It
+is on by default in `src/packaging/scheme_entry.js`, costing about 22 ms of a 76 ms bootstrap. It
+probes `new Function` once and, where a Content-Security-Policy forbids code generation, reports
+that and leaves everything interpreted -- correct and merely slower, which is what the interpreter
+being a permanent tier is for.
+
+*Verified:* 2,272 tests pass; the full suite passes again with `SCHEME_AOT_STDLIB=1`, as do both
+conformance suites -- 219 and 982 -- against a compiled library, which is the strongest correctness
+evidence available for the tier, since the library is the most heavily exercised code in the system.
+
+**R47. The code-size blow-up was not a closure-conversion problem. It was `let`.**
+
+R44 measured generated code doubling with every level of lambda nesting and concluded that the fix
+was lambda lifting -- emitting each nested procedure once with its free variables passed in. The
+roadmap carried that as the second priority. It was the wrong fix, because it was aimed at the
+wrong cause.
+
+**The analyzer expands every `let` into an immediately-applied lambda.** A chain of bindings is
+therefore a chain of nested procedures, and `let*` produces one level per clause. The deepest
+procedure in the canonical corpus was **29 levels**, of which almost none were closures in any
+meaningful sense -- they were bindings wearing a lambda.
+
+Reducing `((lambda (a b) body) x y)` back to bindings during lowering (`lower-direct-application`
+in `src/compiler/ir.scm`, then `lowerDirectApplication` in `src/compiler/ir.js`) is sound because the operator is a literal lambda applied exactly there: it
+cannot be called from elsewhere and nothing can capture it. The only part needing care is that the
+body inherits the *call's* tail position rather than being a procedure body, so that a call in the
+body produces a value when the caller wants one.
+
+| | before | after |
+|---|---|---|
+| deepest nesting in the corpus | 29 | **7** |
+| nested-`let` growth per level | 2.06x | **quadratic overall**: depth 40 is 127 KB |
+| depth-12 binding chain | 8.3 MB | 25 KB |
+| declined for over-large source | 20 | **0** |
+| corpus coverage | 807/1089 | **827/1089** |
+
+It is also a straightforward speed win, since each reduced binding removes a closure allocation and
+a call. Every workload class improved and none regressed:
+
+| class | AOT only | with the reduction | |
+|---|---|---|---|
+| `list` | 4.61x | **9.85x** | 2.14x |
+| `flonum` | 2.75x | **8.26x** | 3.01x |
+| `call` | 12.47x | **14.28x** | 1.15x |
+| `fixnum` | 10.01x | **11.41x** | 1.14x |
+| `vector` | 16.46x | 16.66x | 1.01x |
+| `continuation` | 2.86x | 2.95x | 1.03x |
+| `bignum` | 1.07x | 1.22x | 1.14x |
+| `string` | 1.05x | 1.11x | 1.06x |
+
+`earley` went **0.87x → 21.41x**, which is the R46 regression removed and then some -- its coverage
+rose from 4 of 8 definitions to 6 of 8. `paraffins` 1.38x → 23.33x, `fft` 1.00x → 12.21x, `mbrotZ`
+1.05x → 13.10x, `simplex` 1.14x → 13.59x, `graphs` 5.50x → 22.80x, `peval` 6.96x → 16.11x. Four
+programs moved down by 4-11% (`fibfp`, `tak`, `array1`, `ack`); re-run at a five-times-longer
+measurement target they are unchanged, so that is run-to-run variance on short benchmarks.
+
+**Lambda lifting was then measured rather than built, and the measurement says not yet.** Of 799
+genuinely nested lambdas in the corpus, 533 could be lifted to a top-level factory taking their free
+variables, 238 are `letrec` initializers that refer to themselves or their siblings, and 28 close
+over a variable that is assigned -- the last two being unliftable without boxing or a group factory.
+
+But the liftable ones only reach **depth 5**, and everything at that depth compiles comfortably. The
+worst remaining case is `earley.scm:make-parser` at **3.6 MB of generated source** -- 11% short of
+the 4 MB bound -- and its depth-7 nesting is `letrec`-bound, so the simple lift would not touch it.
+Lifting the 533 easy cases would reduce total generated source (24.4 MB across the corpus) without
+addressing the one procedure that is actually near the limit.
+
+So the residual is real but narrow, and the fix that would address it is specifically
+**letrec-aware** lifting: a single-binding `letrec` -- which is what a named `let` is -- can be
+lifted by declaring its name inside the factory and assigning the procedure to it before returning,
+so self-reference resolves lexically. Mutual recursion needs a group factory. That is worth doing
+when a program is actually declined for size, and it is worth knowing that the cheap version of it
+would not have helped.
+
+**R48. `values` was never a control operation; `call-with-values` needed rewriting rather than
+implementing; and the boundary between the tiers was dropping values on the way out.**
+
+Three things, one of which was a bug.
+
+**`values` did not belong on the control-global list at all.** The primitive builds a `Values`
+object and returns it. It transfers control nowhere and needs no interpreter. It was declined
+because it sits beside `call-with-values` in the same file.
+
+**`call-with-values` genuinely could not be called from compiled code**, and neither of the obvious
+fixes works. The primitive returns a `TailCall` carrying an expression for the interpreter to
+evaluate, which compiled code has no evaluator for -- the same shape problem `apply` had in R46.
+But unlike `apply`, it cannot simply return a procedure-shaped `TailCall`, because it has to call
+the producer *first* and then do something with the result. Making it a plain Scheme procedure has
+the mirror-image problem: the pending consumer application would sit in a JavaScript frame that a
+captured continuation could not restore.
+
+So it is rewritten during lowering into `(apply consumer (%values->list (producer)))`. Every part is
+something the compiler already emits, and the producer call becomes an ordinary call site -- which
+is what gives a capture inside the producer somewhere to resume, for free, rather than by new
+machinery. `%values->list` is a new primitive whose only subtlety is that a non-`Values` result
+counts as exactly one value, including the unspecified value, because that is what
+`CallWithValuesFrame` does and the two tiers have to agree.
+
+The rewrite fires only on a direct two-argument call, and deliberately does not record the name as
+referenced -- so `call-with-values` stays on the control-global list and a reference to it by any
+other route still declines. That is asserted as a test, because the primitive would break a
+compiled trampoline if it were ever reached.
+
+**The bug.** `unpackForJs` collapsed a `Values` to its first value *before* checking the conversion
+mode, so it did so even in `raw` mode -- which is the mode the compiled/interpreted boundary uses.
+An interpreted producer returning two values handed compiled code the first one, silently:
+`(call-with-values p +)` returned 4 where the interpreter returned 9. Collapsing several values to
+one is a JavaScript-interop behaviour, because a JavaScript caller can only receive one, and `raw`
+means the caller is not one. This is the third defect found at that boundary, after R26's numeric
+conversion and R46's `apply` shape, and all three had the same character: a conversion applied
+where no conversion was wanted.
+
+It was found by a test asserting the two tiers agree, not by a benchmark -- the benchmarks were
+passing.
+
+**Coverage and effect.** 827 → **839 of 1089**. The entire remaining decline list is 229 top-level
+definitions that are not procedures and 21 reaching `call/cc`.
+
+| class | before | after | |
+|---|---|---|---|
+| `call` | 14.28x | **22.01x** | 1.54x |
+| `fixnum` | 11.41x | **15.22x** | 1.33x |
+| `flonum` | 8.26x | **10.93x** | 1.32x |
+| `list` | 9.85x | **10.49x** | 1.06x |
+| `string` | 1.11x | 1.28x | 1.15x |
+| `continuation` | 2.95x | 3.11x | 1.05x |
+| `vector` | 16.66x | 16.05x | 0.96x |
+| `bignum` | 1.22x | 1.21x | 1.00x |
+
+The `call` class moving by 1.54x from *multiple-values* support wants explaining. The canonical
+suite's shared prelude defines `hide`, the idiom that stops a compiler folding a benchmark's input
+away, and it is written with `call-with-values`. All 51 programs reference it. One declined
+procedure in `common.scm` was holding down every program that called it. `earley` now compiles
+**8 of 8** definitions at 23.65x.
+
+**A negative result worth as much as the rest.** R29's surviving claim was that bignum performance
+is BigInt-bound and code generation cannot reach it, and the roadmap has carried "profile bignums"
+on that basis. It was tempting to think otherwise once `pi` turned out to compile 0 of 9
+definitions, all of them blocked by `values` -- a coverage explanation for what had been read as an
+arithmetic one, which is exactly the mistake R45 and R46 were. But `pi` now compiles **9 of 9** and
+measures **1.00x**. The coverage explanation is wrong and R29's claim stands: for this class the
+arithmetic really is the work.
+
+**R49. `call/cc` compiles, and building it exposed a soundness bug that had been in the tier since
+the capture protocol landed: a spilled frame copied assigned locals instead of sharing them.**
+
+Three findings, in the order they arrived.
+
+**First, `read1` was a real defect and not a harness problem.** It was the only canonical benchmark
+whose compiled run produced no answer, failing with "read: port is closed", and it had been deferred
+for several increments. `call-with-input-file` read `try { return proc(port); } finally {
+port.close(); }`. A *compiled* procedure signals a tail call by returning a `TailCall` rather than a
+value, so when `proc` ended in a tail call the port closed before the call ran. Four io primitives
+had the shape; `settleTailCalls` in `values.js` fixes them. `read1` now compiles 4 of 4 and answers,
+so every canonical benchmark is correct under the tier.
+
+**Second, compiled `call/cc` works.** A capture is emitted as a call site that suspends: the
+procedure records what the capture needs, spills its locals, and reports the unwind outward. That is
+the protocol a capture made by an interpreted callee already used, entered from this end instead of
+beneath, so it needed no new runtime machinery -- `beginCompiledCapture` records no frame stack and
+no boundary, and `completeCapture` reads the interpreter frames from the registers and puts the
+compiled frames directly inside them. The captured value arrives at the resume point rather than
+from the call, so everything after the capture is emitted once and serves every invocation.
+
+Building it turned up a **latent bug in the resumable form**: `statement` intercepted every `if`
+node and emitted it as a *tail* `if`, including ones whose value is discarded. The fast form
+allocates a temporary for such an `if`'s result and the resumable form did not, so the two
+disagreed about which temporary held what -- a frame spilled by one was restored wrongly by the
+other. It was invisible while every capturing procedure was declined.
+
+**Third, and the important one: a spilled frame copied assigned locals.** `CompiledFrame` copies
+its slots, and the note added with it said that copying is "what makes a continuation multi-shot
+rather than one-shot". That reasoning was wrong. In Scheme a continuation *shares* the environment,
+so an assignment made after a capture is visible when the continuation is invoked again, and to any
+closure over the same variable. Copying is right for temporaries, which are always written before
+they are read, and wrong for a variable the program can name. Reduced:
+
+```scheme
+(define (f) (let ((n 0)) (capturer) (set! n (+ n 1)) n))
+```
+
+driven three times through the captured continuation, the interpreter answers `(3 2 1)` and compiled
+code answered `(1 1 1)`. The `threads` benchmark has the same shape in a counter shared between a
+scheduler and the threads it runs, and returned a wrong total -- which is how this was found, by a
+benchmark's own correctness check rather than by any test.
+
+This was **reachable in the default configuration** and not only with `call/cc` compiled: it needs a
+capture in the dynamic extent of a compiled procedure that assigns a local, and `strict` being off
+means a capture arriving through an unknown callee is not declined.
+
+Declining such procedures was measured first and is far too expensive -- only 13 of 891 lowerable
+definitions assign a local, but they are in hot loops:
+
+| class | copying (unsound) | declining | **boxing** |
+|---|---|---|---|
+| `vector` | 16.05x | 4.40x | **15.19x** |
+| `flonum` | 10.93x | 6.96x | **10.18x** |
+| `list` | 10.49x | 8.54x | **10.14x** |
+| `fixnum` | 15.22x | 14.89x | **16.18x** |
+| `call` | 22.01x | 22.09x | 21.79x |
+| `string` | 1.28x | 1.11x | 1.22x |
+
+So an assigned local is held in a one-element array and the frame copies the array's *reference*,
+which is what an environment does in the interpreter. That costs 2-7% against the unsound baseline
+rather than the 20-73% declining cost, and it is correct. Only assigned locals are boxed; an
+unassigned one cannot tell a copy from the original.
+
+**`call/cc` is nonetheless declined by default, on measurement.** Compiling a capture means every
+capture unwinds and reifies the frames between it and the interpreter, and a program that captures
+in a loop pays it each time: `btsearch` goes from 2.00x faster to **2x slower**, `ctak` from 0.99x
+to 0.69x. Two programs improve -- `contfib` 1.03x to 1.92x, `threads` 1.12x to 1.66x -- so it is a
+default rather than a rule, lifted by `allowCaptures`. By the project's own Pareto ship rule
+(improve one class, regress none) it does not qualify, so the capability ships tested and off.
+
+That means this increment **raised coverage by nothing**: 839 of 1089, unchanged. What it delivered
+was a correctness fix, a soundness fix, and a capability waiting on a reason to enable it. Worth
+stating plainly, because the increment was chosen on the expectation of the 21 declines going away.
+
+**R50. The standard library is compiled at build time. The time saving is small; the point is that
+nothing generates code at run time.**
+
+`scripts/generate_compiled_stdlib.js` writes `src/packaging/compiled_stdlib.js`: one factory per
+library procedure, holding the JavaScript the compiler used to produce at startup. Which procedures
+are compiled is decided by `generateEnvironment`, the same function the runtime path uses, so the
+bundle cannot disagree with the runtime about what was compiled.
+
+**What it is worth, measured rather than predicted.** I expected about 20 ms of a 71 ms bootstrap.
+The real figures: compiling at run time is 12 ms (median of six), installing prebuilt code is
+**0.1 ms**, the fingerprint check is 0.5 ms, and importing the 736 KB generated module costs 6.9 ms.
+So the saving is roughly **5 ms**, not 20. Production bootstrap went from ~72 ms to ~67 ms.
+
+The two things that do matter are not about time:
+
+- **Nothing calls `new Function` at run time.** With `Function` made to throw, 61 procedures still
+  install and runtime compilation correctly reports itself unavailable. A page with a strict
+  Content-Security-Policy now gets the *compiled* library, where before it got an interpreted one.
+- **Compile speed is decoupled from deployment**, which is the precondition for writing the compiler
+  in something slower than JavaScript. A Scheme-hosted compiler at 17x would have added ~200 ms to
+  every startup; now it adds nothing, because nothing compiles at startup.
+
+**The cost is bundle size, and it is substantial.** `dist/scheme.js` goes from 773 KB to **1513 KB**,
+or 207 KB gzipped against about 172 KB -- so +740 KB raw and +35 KB over the wire. Generated code
+compresses about 20:1, which is why the gzipped figure is tolerable and the raw one is not pretty.
+Four procedures account for 35% of it: `map` 67 KB, `vector-map` 59 KB, `for-each` 56 KB,
+`string-map` 55 KB. They are large for the reason R47 identified and deferred -- nested closures are
+emitted in both forms of each parent, so a `letrec` nested three deep multiplies its bodies by about
+sixty. Letrec-aware lambda lifting would cut this directly, and bundle size is now a second reason
+to do it besides the 4 MB generation cap.
+
+**A staleness guard, and a mistake in the first version of it.** Prebuilt code that no longer matches
+its source would be the worst kind of wrong, so the table records a fingerprint of the library
+sources and installs nothing if it does not match what was loaded.
+
+The first version also compared each procedure's *renamed parameter names* against the live closure's,
+on the theory that a mismatch meant the code and the source disagreed. That was wrong twice over.
+Useless, because generated code names locals only inside itself -- its only external references are
+`globalAccessor(E, "name")`, `currentBinding` and `E.set`, and all three use the source name, never a
+renamed one; I checked, and there are zero renamed global references in the generated module. And
+harmful, because renaming comes from a counter that advances as the analyzer works, so a *second*
+interpreter in the same process sees different names for identical source. It rejected all 61
+procedures the moment a measurement script bootstrapped twice. The check is now on arity, which is
+renaming-independent, and a test asserts that a later bootstrap still installs.
+
+**What is not prebuilt.** The library's source still loads and is still interpreted first -- that is
+what creates the macros the analyzer needs and the closures this replaces -- which is the remaining
+27 ms. Skipping it too would mean separating each file's macro definitions from its procedure
+definitions. Worth doing, but larger than this, and it is interpreter time rather than compiler
+time, so it does not affect the self-hosting question.
+
+*Verified:* 2,345 tests pass in both modes; both conformance suites pass both ways; the compiled
+benchmarks are unchanged and all correct.
+
+**R51. Lambda lifting makes generated code linear in nesting instead of exponential. It is a size
+change, not a speed change -- and the remaining outlier turned out to be something else entirely.**
+
+Each nested procedure is now emitted once, at the top level, as a factory over its free variables
+(`src/compiler/lift.js`). Nothing about variable *references* changes, which is what makes it cheap:
+the inner function closes over the factory's parameters, and those already have the names its body
+used.
+
+Two things that were prerequisites, both arrived by accident:
+
+- **Boxing solves mutation.** An assigned free variable is already a one-element array (R49), so
+  passing it by value passes the array and sharing is preserved. Without R49 this would have needed
+  its own answer.
+- **`letrec` needed the "aware" part.** A `letrec`-bound lambda refers to names the group is still
+  defining. Self-reference needs nothing -- the factory declares the name and assigns the procedure
+  before returning, so a named `let` loop stays a direct call. Only a name a *sibling* refers to is
+  boxed. That distinction is what makes `map` liftable: its `loop` reads `any-null?`, `all-cars` and
+  `all-cdrs`, so those three are boxed while `loop` is not.
+
+| | before | after |
+|---|---|---|
+| nested closures, per level | 4.2x | **linear** |
+| sixteen levels deep | 138,801,809 chars | **11,478** |
+| generated source, whole corpus | 24.36 MB | **12.80 MB** |
+| compiled standard library module | 736 KB | **437 KB** |
+| `dist/scheme.js` | 1513 KB | **1235 KB** |
+
+**Performance is flat**, and that is the expected result rather than a disappointment: `vector`
++10%, `fixnum` -8%, everything else within 3%. Lifting removes nothing from the hot path and adds
+one call per closure creation. It was done for size and it delivered size.
+
+**The wire size barely moved** -- about 206 KB gzipped either way. Generated code compresses roughly
+20:1 and gzip was already deduplicating what lifting removed. Bundle size was one of the two
+motivations for doing this, and on that measure it was worth 280 KB of parse-and-memory rather than
+anything a user downloads. The other motivation, no longer being able to exceed what can be
+generated, is met completely.
+
+**A separate 21% came free.** A fifth of the generated library was one repeated string: the "captured
+beneath a redefined primitive" message, inlined at 676 sites. Moving it into a runtime function took
+the module from 535 KB to 437 KB. Worth noting how it was found -- by attributing the remaining bytes
+rather than assuming they were all structural.
+
+**And the remaining outlier is not nesting at all.** `nucleic.scm:make-relative-nuc` is still 3.25 MB,
+and **94% of that is `reify` frame literals**: 550 call sites each spilling about 476 names, because
+a suspended frame conservatively saves every declared variable. That is quadratic in procedure size
+and completely independent of lifting. A liveness analysis -- spill only what is live across each
+suspension point -- is the fix, and it is now the largest single source of generated code in the
+corpus.
+
+**Three bugs of my own, all found by measurement rather than by the test suite.**
+
+The first was the free-variable scan binding internal `define` names *as* the sequence was scanned
+rather than before it. Internal definitions are in scope throughout a body -- that is what lets two
+of them refer to each other -- so a self-recursive one was reported as *free* of the procedure
+containing it, which put its name in the enclosing factory's parameter list and left the caller
+passing a variable it had never declared. Four benchmarks failed with `s_check is not defined` and
+friends.
+
+The second was creating boxes for internal definitions by walking only the node kinds I had thought
+of -- `seq`, `let`, `letrec` -- which missed `if`. A definition inside a conditional branch is
+ordinary Scheme, and `peval` has one. It is now a general walk that stops at nested procedures,
+because enumerating kinds is exactly the mistake that produced the bug.
+
+The third was process, not code: I edited compiler sources while a benchmark was running in child
+processes, so half its workers picked up a partly-applied refactor. Five programs "failed" for that
+reason and five for real ones, and I could not tell which until I re-ran cleanly. Benchmarks that
+spawn processes read the source at spawn time; edits during a run make the results meaningless.
+
+*Verified:* 2,344 tests in both modes, both conformance suites both ways, 952 of 952 on the port
+differential, every canonical benchmark producing an answer.
+
+**R52. The lowering pass is Scheme, the JavaScript one is deleted, and the compiler now compiles
+itself. The bootstrap terminates in the interpreter.**
+
+R45 measured the cost of a Scheme lowering and left the decision open; the duplicate then sat in
+`experiments/` being kept in step with a module under active development, which cost two
+divergences and bought nothing after it had answered its question. It is promoted:
+`src/compiler/ir.scm` is the pass, `src/compiler/lowering.js` is the door into it, and
+`src/compiler/ir.js` no longer exists.
+
+Before deleting it, the differential was run once more and the two agreed on all 952 lambdas — but
+only after the harness was taught to compare `captures`, which it never had. The Scheme side had
+never reported that field, and `control-globals` still listed `values` and `apply` months after
+R48 removed them from the JavaScript. Both are the same lesson: *a differential test compares the
+fields it renders, and a field it leaves out is a field two implementations may disagree about
+silently.*
+
+**The chain.** A compiler written in the language it compiles has to start somewhere, and here it
+starts in the interpreter, which runs `ir.scm` from source with no compiler at all:
+
+| step | produces | why it is in this order |
+|---|---|---|
+| the interpreter runs `ir.scm` | a working, slow compiler | needs nothing |
+| it compiles the standard library | `compiled_stdlib.js` | — |
+| that compiles `ir.scm` | `compiled_compiler.js` | lowering spends its time in `memq` and `assq`, which are themselves Scheme |
+
+The last column is the whole reason the order matters and not a detail. Compiling `ir.scm` against
+an interpreted library is worth **1.45x**; against a compiled one, **13.68x**. `npm run prebuild`
+does all three in **0.62 s from nothing**, and both generated tables come out byte-identical to the
+ones they replace, so the bootstrap is reproducible rather than merely repeatable.
+
+**What had to be built that the library did not need.** `generate_compiled_stdlib.js` had been
+leaving out any procedure with a pooled constant, on the stated grounds that no library procedure
+had one. `ir.scm` has 144, in 11 procedures including `lower-node` and `lower-lambda` — the hot
+ones — so the exception swallowed the point of the exercise. All 144 turned out to be **symbols**,
+which are the one interned value that survives being written down: `intern("lambda")` read back
+gives the same object, so the identity the pool exists to preserve is preserved by reconstructing
+it. A pair would not be, and `serializeConstants` still refuses one, leaving that procedure
+interpreted — the same answer it gave before, for a reason that is now stated rather than assumed.
+
+**What it cost.** About **18x** against the JavaScript it replaced: 70 ms a pass over the corpus
+against 3.8 ms, plus 7 ms of marshalling. Almost none of that is on a path anyone waits on — the
+library is lowered at build time and a program's definitions are lowered once each — and it is not
+visible in either suite's wall time (`npm test` 28 s unchanged; the program pass 8.2 s → 8.8 s).
+What it did cost is **535 KB** on `dist/scheme.js`, for a compiled compiler that only a page
+compiling at run time needs. That is a code-splitting problem and is on the roadmap as one.
+
+**What it bought.** The tier's own performance is now the project's performance, and there is a
+number for it: `npm run benchmark:self-host` lowers 993 lambdas under all three configurations,
+checks that they agree about every one of them, and reports the ratio. That agreement check is the
+differential the port used to provide, pointed at something that still exists: the interpreted run
+is the reference semantics, so a disagreement means the tier changed the meaning of the compiler.
+
+*Verified:* 2,426 tests in both modes, 82 of 82 on the new whole-program pass, 952 of 952 on the
+final JavaScript-to-Scheme differential, 993 of 993 across tiers afterwards, and a build from an
+empty `src/packaging/` reproducing both tables byte for byte.
+
+**R53. The benchmark programs were a correctness corpus sitting outside `npm test`, and three
+compiler bugs had already escaped through the gap.**
+
+Every canonical benchmark carries an expected result and prints `INCORRECT` when it does not match,
+so the suite has been checking 41 real programs all along — and none of those checks ran in
+`npm test`. R51's three defects were all found there and missed by 2,344 unit tests, because each
+needed a procedure shaped in a way no unit test happened to build.
+
+The obstacle was never principle, only time: the timed suite calibrates each program to a second of
+work and repeats it. Correctness needs one iteration, and being correctness-only buys two things
+timing forbids. Runs go **in parallel** — an answer is the same answer whether or not seven other
+processes are busy — and sizes can **shrink**: `nboyer` and `sboyer` at their benchmark size are 82
+of the suite's 141 seconds and exercise the same code at size 0, whose expected value came from
+Gambit for the same reason every other expected value did.
+
+Result: 41 programs, both tiers, 82 assertions, **8.2 s**, in `npm test`. `tests/programs/` also
+runs alone with `npm run test:programs`, and `--slow` adds the four programs that take no size
+parameter for 26 s total. Two findings fell out of writing it: `ray` had been failing on a missing
+`outputs/` directory rather than anything in the implementation, and the manifest's note claiming
+`maze` returns a wrong answer under the compiler tier was stale — the whole-program continuation
+analysis declines the escape route, 60 of 69 definitions compile, and both tiers answer correctly.
+
 ### Keeping this log
 
 Add an entry whenever a stage produces a measurement that contradicts something written here, or a

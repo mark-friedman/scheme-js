@@ -1,52 +1,60 @@
 /**
- * @fileoverview Which procedures are safe for the compiler tier to take.
+ * @fileoverview Which procedures the compiler tier declines, and why.
  *
- * ## The problem
+ * ## What this used to be for, and no longer is
  *
- * A compiled procedure runs in a JavaScript stack frame that the interpreter's
- * frame stack does not represent. If a continuation is captured while that
- * frame is live, the frame cannot be restored, and the program gets a **wrong
- * answer rather than an error**. Two benchmarks have demonstrated it:
+ * A compiled procedure runs in a JavaScript stack frame, which nothing can read
+ * back, so it could not appear in a captured continuation the way an
+ * interpreted frame does. A capture made while such a frame was live therefore
+ * dropped everything that frame still had to do, and the program got a **wrong
+ * answer rather than an error**. Two benchmarks demonstrated it:
  *
- *  - `btsearch` (R15): `enumerate` had to be re-entered when the search
- *    backtracked.
- *  - `maze` (R34): `dig-maze` escapes with `(quit #f)` and the escape unwound
- *    past compiled `make-maze`, which returned `#f` -- the escape value.
+ *  - `btsearch`: `enumerate` had to be re-entered when the search backtracked.
+ *  - `maze` (`benchmarks/r7rs/src/maze.scm`): `dig-maze` escapes with
+ *    `(quit #f)`, and the escape unwound past compiled `make-maze`, which then
+ *    returned `#f` -- the escape value itself.
  *
- * Neither `enumerate` nor `make-maze` mentions `call/cc`. Declining procedures
- * by what they *name* therefore cannot work, and that is what
- * `tryCompileDefinition` still does on its own.
+ * Neither `enumerate` nor `make-maze` mentions `call/cc`, so declining
+ * procedures by what they *name* could never have worked. This module exists
+ * because of that, and closed the rule over the call graph instead.
  *
- * ## The two rules that were tried, and why neither is usable
+ * Compiled procedures can now put themselves into a continuation, so none of
+ * that is a correctness argument any more. See
+ * `src/core/interpreter/unwind.js`. What is left here is a **performance**
+ * rule, and a useful one: a procedure that a capture repeatedly unwinds through
+ * pays to suspend and resume every time, which costs more than interpreting it
+ * outright. Measured on `btsearch`, declining those procedures is the
+ * difference between 1.82x faster and 2x slower.
  *
- * | rule | sound? | useful? |
- * |---|---|---|
- * | decline a procedure that names a control global | no -- both cases above | yes |
- * | decline the whole unit if any procedure names one | for a closed unit | **no**: one `apply` anywhere disables everything, and 0 of 41 canonical benchmarks compiled |
+ * ## The rule
  *
- * ## What this module does instead
+ * A procedure is declined if it can reach a control-transferring global:
+ * directly, through another procedure in the same unit, or through an
+ * interpreted closure already in the environment -- which is how a standard
+ * library procedure that captures gets caught.
  *
- * Closes the rule over the **call graph**. A procedure is unsafe if it can
- * reach a control global: directly, through another procedure in the same unit,
- * or through an interpreted closure already in the environment -- which is how
- * a standard-library procedure that captures gets caught.
+ * A procedure that captures a continuation is declined on the same footing.
+ * That is a change of reason rather than of behaviour: it used to be declined
+ * because `call/cc` could not be compiled at all, and is now declined because
+ * doing so is slower.
  *
- * `strict` additionally treats a call to a callee the compiler cannot name -- a
- * parameter, typically -- as unsafe, because the caller has no way to know what
- * it was handed. That is the `btsearch` case: `enumerate` invokes `cont`.
- * Without it the analysis catches `maze` and misses `btsearch`.
+ * `strict` additionally declines a procedure that calls a callee the compiler
+ * cannot name -- a parameter, typically -- since the caller has no way to know
+ * what it was handed. That was once necessary, because it is the only way to
+ * catch the `btsearch` shape, where the capture arrives as an argument. It is
+ * now off by default: it declines most higher-order code for a correctness
+ * benefit that no longer exists, and on `btsearch` and `oddeven` it costs about
+ * 1.8x each.
  *
- * ## What it still does not catch
+ * ## What this rule never caught, and does not need to
  *
  * A global rebound *after* compilation to something that captures. Compiled
- * code resolves globals through a live accessor, so it would call the new
- * binding, and nothing re-runs this analysis. Closing that needs re-enterable
- * frames -- increment 2b -- which is the real fix and makes all of this
- * unnecessary. This module is the interim that makes the tier simultaneously
- * usable and hard to trip, which neither earlier rule managed.
+ * code resolves globals through a live accessor, so it calls the new binding,
+ * and nothing re-runs this analysis. That is no longer a soundness hole: such a
+ * capture is handled like any other.
  */
 
-import { lowerLambda, controlGlobalIn } from './ir.js';
+import { lowerLambda, controlGlobalIn } from './lowering.js';
 import { LambdaNode, DefineNode } from '../core/interpreter/ast_nodes.js';
 import { isSchemeClosure } from '../core/interpreter/values.js';
 
@@ -56,6 +64,7 @@ import { isSchemeClosure } from '../core/interpreter/values.js';
  * @property {Set<string>} globals - Globals it references.
  * @property {boolean} callsUnknown - Whether it calls a callee it cannot name.
  * @property {string|null} control - A control global it names directly, if any.
+ * @property {boolean} captures - Whether it captures a continuation itself.
  */
 
 /**
@@ -69,7 +78,8 @@ function factsForLambda(lambdaNode) {
   return {
     globals: lowered.globals,
     callsUnknown: lowered.callsUnknown,
-    control: controlGlobalIn(lowered.globals)
+    control: controlGlobalIn(lowered.globals),
+    captures: lowered.captures === true
   };
 }
 
@@ -98,14 +108,13 @@ function lambdaOfClosure(closure, name) {
  * @param {Array<Object>} asts - The unit's analyzed top-level nodes, in order.
  * @param {Object} env - The environment the unit is being defined into.
  * @param {Object} [options] - Options.
- * @param {boolean} [options.strict=true] - Treat a call to an unnameable callee
- *   as unsafe. Required to catch the `btsearch` shape.
- * @returns {Map<string, string>} Unsafe definition names, each mapped to the
+ * @param {boolean} [options.strict=false] - Also decline a procedure that calls
+ *   a callee it cannot name. Conservative, and costly: it declines most
+ *   higher-order code.
+ * @returns {Map<string, string>} Declined definition names, each mapped to the
  *   reason -- a path the reader can follow back to a control global.
  */
 export function unsafeDefinitions(asts, env, options = {}) {
-  const { strict = true } = options;
-
   /** @type {Map<string, Facts>} Facts for definitions in this unit. */
   const local = new Map();
   for (const ast of asts) {
@@ -115,6 +124,45 @@ export function unsafeDefinitions(asts, env, options = {}) {
     const facts = factsForLambda(value);
     if (facts !== null) local.set(ast.name, facts);
   }
+  return unsafeFromFacts(local, env, options);
+}
+
+/**
+ * Decides which of a set of already-created closures are safe to compile.
+ *
+ * The same question as `unsafeDefinitions` asks, for procedures that exist as
+ * values rather than as source. That is the standard library's situation: it
+ * has been loaded and interpreted before anything considers compiling it, and
+ * a closure retains its parameters, body and defining environment, so it can
+ * still be analysed as a unit with its neighbours.
+ *
+ * @param {Array<{name: string, closure: Function}>} entries - The procedures.
+ * @param {Object} env - The environment they live in.
+ * @param {Object} [options] - Options, as for `unsafeDefinitions`.
+ * @returns {Map<string, string>} Declined names, each mapped to the reason.
+ */
+export function unsafeClosures(entries, env, options = {}) {
+  /** @type {Map<string, Facts>} */
+  const local = new Map();
+  for (const { name, closure } of entries) {
+    const lambda = lambdaOfClosure(closure, name);
+    if (lambda === null) continue;
+    const facts = factsForLambda(lambda);
+    if (facts !== null) local.set(name, facts);
+  }
+  return unsafeFromFacts(local, env, options);
+}
+
+/**
+ * The reachability closure itself, over facts already gathered.
+ *
+ * @param {Map<string, Facts>} local - Facts for the procedures being decided.
+ * @param {Object} env - The environment to resolve other names in.
+ * @param {Object} options - Options, as for `unsafeDefinitions`.
+ * @returns {Map<string, string>} Declined names, each mapped to the reason.
+ */
+function unsafeFromFacts(local, env, options) {
+  const { strict = false } = options;
 
   // Memoized verdict for globals *outside* the unit, so the standard library is
   // walked once per unit rather than once per reference.
@@ -148,6 +196,8 @@ export function unsafeDefinitions(asts, env, options = {}) {
         verdict = null;
       } else if (facts.control !== null) {
         verdict = `${name} references '${facts.control}'`;
+      } else if (facts.captures) {
+        verdict = `${name} captures a continuation`;
       } else if (strict && facts.callsUnknown) {
         verdict = `${name} calls a procedure it is given`;
       } else {
@@ -171,6 +221,16 @@ export function unsafeDefinitions(asts, env, options = {}) {
   for (const [name, facts] of local) {
     if (facts.control !== null) {
       unsafe.set(name, `references control global '${facts.control}'`);
+    } else if (facts.captures) {
+      // The compiler *can* compile this -- a capture is an ordinary call site
+      // that suspends. It is held back because it is slower: every capture
+      // unwinds and reifies the frames between it and the interpreter, and a
+      // program that captures in a loop pays that each time. Measured on
+      // `btsearch`, compiling it is the difference between 2.00x faster and
+      // 2x slower; `ctak` goes from 0.99x to 0.69x. Two programs do improve --
+      // `contfib` 1.03x to 1.92x, `threads` 1.12x to 1.66x -- so this is a
+      // default rather than a rule, and `allowContinuationUnsafe` lifts it.
+      unsafe.set(name, 'captures a continuation, which costs more compiled than interpreted');
     } else if (strict && facts.callsUnknown) {
       unsafe.set(name, 'calls a procedure it is given, which may capture a continuation');
     }

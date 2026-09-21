@@ -71,7 +71,7 @@
 ;; inside an implementation. Routing each lambda through `(list ...)` and
 ;; `(car temp)` means nothing can tell that a loop variable holds the lambda
 ;; beside it, so the compiler declined every named `let`, every `do` loop and
-;; every group of mutually recursive internal definitions (R38, R39).
+;; every group of mutually recursive internal definitions.
 ;;
 ;; Every serious Scheme keeps `letrec` in its core language for exactly this
 ;; reason -- Chez, Racket and Guile all do -- and analyzes it to recover the

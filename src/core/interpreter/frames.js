@@ -9,13 +9,14 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
-import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values } from './values.js';
+import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { schemeToJsDeep } from './js_interop.js';
 import { Cons } from './cons.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
-import { SchemeApplicationError } from './errors.js';
+import { SchemeApplicationError, SchemeError } from './errors.js';
+import { UNWIND, completeCapture } from './unwind.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
@@ -584,6 +585,14 @@ export function continueApplication(exprs, index, values, env, registers, interp
             interpreter.popJsContext();
         }
 
+        // The callee was compiled, and something below it began capturing a
+        // continuation. Every compiled frame between that capture and here has
+        // recorded itself on the way out; splicing them in where the boundary
+        // sat completes the stack, and the capture can finish.
+        if (result === UNWIND) {
+            return completeCapture(registers, interpreter, CAPTURE_HOOKS);
+        }
+
         if (result instanceof TailCall) {
             const target = result.func;
             if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
@@ -807,6 +816,81 @@ export class RaiseNonContinuableResumeFrame extends Executable {
         return true;
     }
 }
+
+// =============================================================================
+// Compiled Frames
+// =============================================================================
+
+/**
+ * A suspended compiled procedure, as an interpreter frame.
+ *
+ * Once one of these is on the frame stack, a compiled procedure is part of a
+ * continuation like anything else: the interpreter pops it and calls `step`,
+ * and `step` resumes the procedure just after the call it was making.
+ */
+export class CompiledFrame extends Executable {
+    /**
+     * @param {Function} twin - The procedure's resumable form.
+     * @param {number} pc - The block to continue at.
+     * @param {Object} slots - Spilled local variables.
+     */
+    constructor(twin, pc, slots) {
+        super();
+        this.twin = twin;
+        this.pc = pc;
+        this.slots = slots;
+    }
+
+    /**
+     * Resumes the procedure just after the call it was suspended at.
+     * @param {Array} registers - The interpreter registers.
+     * @param {Object} interpreter - The interpreter.
+     * @returns {boolean} Whether to continue the trampoline.
+     */
+    step(registers, interpreter) {
+        // Copied, never shared. A continuation may be invoked more than once,
+        // and the second invocation must not see what the first assigned. This
+        // is what makes a continuation multi-shot rather than one-shot.
+        const frame = { ...this.slots, $r: registers[ANS] };
+
+        let result = this.twin(this.pc, frame);
+        while (result instanceof TailCall) {
+            const raw = result.func[SCHEME_RAW_CALL];
+            result = raw === undefined
+                ? result.func(...result.args) : raw(...result.args);
+        }
+
+        // Reinstating this frame ran code that captured a continuation of its
+        // own. The frame's remaining work went into that capture on the way
+        // out, like any other suspension, and this frame has already been
+        // popped -- so what is left on the stack below is exactly the rest of
+        // the new continuation, and the capture can be finished here.
+        if (result === UNWIND) {
+            return completeCapture(registers, interpreter, CAPTURE_HOOKS);
+        }
+
+        registers[ANS] = result;
+        return false;
+    }
+}
+
+/**
+ * What `unwind.js` needs from the interpreter in order to finish a capture.
+ *
+ * It owns the protocol but deliberately not the interpreter's vocabulary, so
+ * the dependency points one way: the interpreter knows about compiled code only
+ * through that module, and that module knows nothing about the compiler.
+ */
+const CAPTURE_HOOKS = {
+    frameFor: (twin, pc, slots) => new CompiledFrame(twin, pc, slots),
+    makeContinuation: (stack, interp) => createContinuation(stack, interp),
+    // The receiver is an expression when `call/cc` was reached in interpreted
+    // code, and a procedure value when compiled code called it directly, where
+    // there is no expression left to evaluate.
+    applyReceiver: (receiver, continuation) => new TailAppNode(
+        receiver instanceof Executable ? receiver : new LiteralNode(receiver),
+        [new LiteralNode(continuation)])
+};
 
 // =============================================================================
 // Frame Registration

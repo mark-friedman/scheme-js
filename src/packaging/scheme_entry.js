@@ -5,6 +5,9 @@ import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { setFileResolver } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
+import { compileEnvironment } from '../compiler/index.js';
+import { installPrebuilt, fingerprintSources } from '../compiler/prebuilt.js';
+import prebuiltStdlib, { LIBRARY_FILES } from './compiled_stdlib.js';
 import {
     SchemeDebugRuntime,
     ReplDebugBackend,
@@ -50,6 +53,38 @@ const imports = `
 for (const exp of parse(imports)) {
     interpreter.run(analyze(exp), env);
 }
+
+// =============================================================================
+// Compile the standard library
+// =============================================================================
+//
+// The library is itself Scheme, so `map`, `assq` and `member` are interpreted
+// closures until something compiles them. Any compiled code that calls one
+// crosses into the interpreter on what is usually its hottest path, and on
+// symbolic workloads that boundary costs about 10x -- far more than the quality
+// of the generated code.
+//
+// Most of it was compiled at build time, so what happens here is installing
+// that code rather than generating it. Two things follow. Nothing calls
+// `new Function`, so a page with a strict Content-Security-Policy gets the
+// compiled library rather than an interpreted one. And compile *speed* stops
+// mattering for deployment, which is what makes it reasonable to write the
+// compiler itself in something slower than JavaScript later on.
+//
+// Anything the prebuilt table did not cover -- because the build is stale, or
+// because a library outside the fingerprinted set defines procedures -- is
+// compiled the old way immediately afterwards. That call sees only the
+// closures still interpreted, so the two do not overlap, and where generating
+// code is forbidden it reports so and leaves them interpreted. The interpreter
+// is a permanent tier, not a fallback that is allowed to rot.
+const prebuilt = installPrebuilt(
+  env, prebuiltStdlib,
+  fingerprintSources(LIBRARY_FILES.map((file) => BUNDLED_SOURCES[file])));
+
+export const stdlibCompilation = {
+  prebuilt,
+  compiled: compileEnvironment(env)
+};
 
 // =============================================================================
 // Public API

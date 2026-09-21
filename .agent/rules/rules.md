@@ -40,6 +40,7 @@ trigger: always_on
 - **JSDoc**: Document all JavaScript functions with JSDoc.
 - **Scheme Doc**: Document all Scheme functions with JSDoc-style comments, using the same format as JSDoc, but with Scheme procedure-level comment syntax (i.e. `;;`).
 - **Internal Documentation**: Document logic inside JavaScript and Scheme functions and procedures using comment syntax appropriate for the language.
+- **Comments must stand alone**: A comment must be understandable by someone reading only the source file. Do not cite planning artifacts as the explanation — no revision-log entry numbers, no "see increment N", no "the plan says". If a decision needs justifying, state the reason in the comment. Referring to a concrete artifact in the repository is fine and often useful: a benchmark by name (`benchmarks/r7rs/src/maze.scm`), a sibling module, a published paper. The long-term goal is a design and implementation doc that comments *can* reference by concept; until that exists, comments carry their own reasoning.
 - **Code Sections**: Document the start of associated collections of functions and procedures using comment syntax appropriate for the language.
 - **Directory Structure**: Generally, follow the directory structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.
 - **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major talks are completed.

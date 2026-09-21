@@ -32,7 +32,12 @@ const RUNS = runsIndex >= 0 ? parseInt(process.argv[runsIndex + 1], 10) : 5;
  * @returns {{run: function(): *, compiled: number, declined: Array<Object>}} Entry point.
  */
 function prepare(bench, size, useCompiler) {
-  const { interpreter, env, run, compile } = createBenchmarkInterpreter();
+  // The standard library is compiled for the compiler tier and not for the
+  // interpreted baseline, matching `benchmarks/lib/r7rs_harness.js`. The
+  // library is itself Scheme, so leaving it interpreted under the tier
+  // measures the boundary between them rather than the generated code.
+  const { interpreter, env, run, compile } =
+    createBenchmarkInterpreter({ compileStdlib: useCompiler });
   run(`(define bench-size ${size})`);
   const source = fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8');
   const asts = parse(source).map((form) => analyze(form));

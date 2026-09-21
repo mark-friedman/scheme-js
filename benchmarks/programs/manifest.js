@@ -54,7 +54,7 @@ export const BENCHMARKS = [
   },
 
   // --- Continuations -------------------------------------------------------
-  // These four decide the Stage 2a calling-convention bake-off. btsearch and
+  // btsearch and
   // threads additionally require multi-shot semantics, so a wrong answer there
   // is a correctness failure rather than a slow result.
   {

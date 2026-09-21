@@ -91,6 +91,17 @@ export async function createComplianceRunner(fileLoader, logger) {
     applyImports(interpreter.globalEnv, processContextExports, { libraryName: ['scheme', 'process-context'] });
     applyImports(interpreter.globalEnv, fileExports, { libraryName: ['scheme', 'file'] });
 
+    // With SCHEME_AOT_STDLIB=1 the library is compiled after loading. Running
+    // the conformance suite this way is the strongest correctness evidence
+    // available for the compiler tier: the library's own procedures are the
+    // most heavily exercised code in the system.
+    if (process.env.SCHEME_AOT_STDLIB === '1') {
+        const { compileEnvironment } = await import('../../../../src/compiler/index.js');
+        const outcome = compileEnvironment(interpreter.globalEnv);
+        console.log(`AOT: compiled ${outcome.compiled.length} library procedures, `
+            + `declined ${outcome.declined.length}`);
+    }
+
     // Inject native reporter
     interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
         // Double check with deepEqual in JS to catch false negatives (e.g. BigInt vs Number)

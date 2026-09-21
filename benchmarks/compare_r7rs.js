@@ -12,9 +12,9 @@
  * Gambit and Racket, it is measuring something intrinsic to the program. If it
  * is expensive only for us, it is measuring our implementation -- also useful,
  * but a different claim, and one a single implementation's numbers cannot tell
- * apart. That distinction is exactly what the eight microbenchmarks got wrong:
- * they were accurate about our standing and inaccurate about which
- * optimizations help (R23).
+ * apart. That distinction is exactly what the eight microbenchmarks in
+ * `benchmarks/programs/` got wrong: they were accurate about our standing and
+ * inaccurate about which optimizations help.
  *
  * These programs make the check sharper than the project's own Scheme could,
  * because `ecraven/r7rs-benchmarks` publishes results for more than twenty
@@ -33,8 +33,10 @@
  * thousand times a second, so a count giving this interpreter a second of work
  * gives Racket one or two ticks, and a two-tick measurement is not a
  * measurement. Three earlier comparisons in this project were wrong for
- * precisely this family of reasons (R24), so the clock is probed and
- * inadequate resolution is labelled rather than assumed away.
+ * precisely this family of reasons -- a clock too coarse for what was being
+ * timed, a startup cost larger than the work, and one side charged for
+ * compilation the others did once -- so the clock is probed and inadequate
+ * resolution is labelled rather than assumed away.
  *
  * Racket needs its R7RS language: `raco pkg install r7rs`.
  *

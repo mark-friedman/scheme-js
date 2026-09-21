@@ -23,3 +23,7 @@ dist/
 # Logs
 *.log
 npm-debug.log*
+
+# Benchmark programs that write output files (ray writes outputs/ray.output)
+benchmarks/r7rs/outputs/*
+!benchmarks/r7rs/outputs/.gitkeep

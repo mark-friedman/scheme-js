@@ -7,7 +7,7 @@
  * rather than a bare list of filenames. The eight microbenchmarks in
  * `benchmarks/programs/` turned out to be overfitted to the optimizations
  * chosen against them -- 98% of their calls landed on a primitive the compiler
- * inlines, against 34% in real code (R20 in `docs/compiler_strategy.md`). The
+ * inlines, against 34% in real code. The
  * defence against repeating that is not a larger suite but a *classified* one:
  * report each workload class separately and never blend them into one number,
  * so that an optimization which helps hot fixnum loops and does nothing for
@@ -25,6 +25,15 @@
  * value came from the implementation under test cannot detect that the
  * implementation is wrong.
  *
+ * `check` exists because these programs are a correctness corpus as well as a
+ * timing one -- `tests/programs/program_correctness_tests.js` runs every one of
+ * them once and asserts the answer, which is how three compiler defects were
+ * found that 2,344 unit tests missed. A test target has to be fast enough to
+ * run on every commit, and `nboyer` and `sboyer` alone are 82 of the suite's
+ * 141 seconds. Where `check` is present the correctness pass uses it and the
+ * timed suite ignores it, so shrinking a check size cannot quietly shrink a
+ * benchmark.
+ *
  * `status` is `'ok'` for programs that run and agree, `'slow'` for programs
  * that run but have no parameter that can be reduced without changing what they
  * measure, and `'blocked'` for programs this implementation cannot run yet. The
@@ -40,6 +49,9 @@
  * @property {string|null} params - Replacement text for everything after the
  *   repetition count, or null to use the canonical input verbatim.
  * @property {string} status - `'ok'`, `'slow'` or `'blocked'`.
+ * @property {string} [check] - Replacement text for the *correctness* pass,
+ *   when the benchmark size is too slow to run on every commit. Same form as
+ *   `params`, and its expected result comes from Gambit for the same reason.
  * @property {string} [note] - Why the size was changed, or what blocks it.
  */
 
@@ -138,9 +150,10 @@ export const R7RS_BENCHMARKS = [
   { name: 'scheme', workload: 'list', status: 'ok', params: null },
   {
     name: 'maze', workload: 'list', status: 'ok', params: null,
-    note: 'correct interpreted; returns a wrong answer under the compiler tier because '
-      + 'dig-maze escapes with (quit #f) and the escape unwinds past compiled make-maze, '
-      + 'which never mentions call/cc. This is R28\'s unsoundness, not a compiler defect (R34)'
+    note: 'dig-maze escapes with (quit #f) and the escape unwinds past make-maze, which '
+      + 'never mentions call/cc itself. The whole-program continuation analysis declines '
+      + 'the procedures on that path -- 60 of 69 definitions compile -- so the answer is '
+      + 'correct under both tiers and the escape route stays interpreted'
   },
   { name: 'mazefun', workload: 'list', status: 'ok', params: null },
   { name: 'quicksort', workload: 'list', status: 'ok', params: null },
@@ -162,10 +175,14 @@ export const R7RS_BENCHMARKS = [
   },
   {
     name: 'nboyer', workload: 'list', status: 'ok', params: '2\n1813975',
-    note: 'canonical is 5; expected value derived from Gambit'
+    check: '0\n95024',
+    note: 'canonical is 5; expected value derived from Gambit. The check size is 0 '
+      + 'rather than 2 because size 2 takes 39 s across both tiers and size 0 takes '
+      + '2.7 s for the same coverage of the program'
   },
   {
     name: 'sboyer', workload: 'list', status: 'ok', params: '2\n1813975',
+    check: '0\n95024',
     note: 'canonical is 5; the shared-structure variant of nboyer'
   },
   {
@@ -207,7 +224,7 @@ export const R7RS_BENCHMARKS = [
 
   // --- Blocked: this implementation cannot run these yet ---------------------
   // Each is kept because it is the evidence for a conformance gap, and each
-  // becomes available the moment its gap closes. See docs/compiler_strategy.md.
+  // becomes available the moment its gap closes.
   {
     name: 'gcbench', workload: 'vector', status: 'blocked', params: null,
     note: 'uses record accessors named node.left, node.right; identifiers containing a '

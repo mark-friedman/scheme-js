@@ -12,6 +12,7 @@ import * as FrameRegistry from './frame_registry.js';
 import { GlobalRef } from './syntax_object.js';
 import { globalContext } from './context.js';
 import { SchemeError } from './errors.js';
+import { CaptureUnwind, beginCapture } from './unwind.js';
 
 // =============================================================================
 // Helper Function
@@ -235,7 +236,7 @@ export class LetRecNode extends Executable {
      * **Compilability.** The previous expansion routed every lambda through
      * `(list init ...)` and `(car temp)`, so the compiler could not see that a
      * loop variable held the lambda two forms up, and declined every named
-     * `let` (R38). Here the binding is explicit, and both tiers can read it.
+     * `let`. Here the binding is explicit, and both tiers can read it.
      *
      * @param {Array<string>} names - Renamed variables, bound simultaneously.
      * @param {Array<LambdaNode>} lambdaExprs - One lambda per name, in order.
@@ -448,21 +449,39 @@ export class CallCCNode extends Executable {
     step(registers, interpreter) {
         // A continuation is the interpreter's frame stack. Compiled procedures
         // do not appear in it -- they run in JavaScript stack frames -- so if
-        // any are live between here and the capture point, the continuation
-        // built here would silently omit everything they had left to do.
-        //
-        // That is not hypothetical: it is how the `maze` benchmark returned a
-        // wrong answer (R34), and how `btsearch` did before it (R15). Both
-        // produced a plausible value rather than failing, which is the worst
-        // way for a compiler to be wrong. Until compiled frames can be reified
-        // and resumed -- increment 2b -- this refuses instead.
+        // any are live between here and the capture point, a continuation built
+        // from this stack alone would silently omit everything they had left to
+        // do. They are brought in by unwinding: this abandons the nested run,
+        // each compiled frame records itself on the way out, and the
+        // interpreter splices them in and finishes the capture.
+        let boundary = -1;
+        let boundaries = 0;
         for (let i = registers[FSTACK].length - 1; i >= 0; i--) {
             if (registers[FSTACK][i].compiledBoundary === true) {
-                throw new SchemeError(
-                    'call/cc: a continuation was captured while compiled procedures were on '
-                    + 'the stack, and compiled frames cannot yet be reified. The compiler tier '
-                    + 'must not be enabled for this program; see increment 2b in ROADMAP.md.');
+                if (boundary < 0) boundary = i;
+                boundaries++;
             }
+        }
+
+        if (boundaries > 1) {
+            // Compiled and interpreted code alternating more than once. Each
+            // boundary would need its own group of frames spliced at its own
+            // position, and getting that wrong would produce a wrong answer
+            // rather than a failure, so it is refused until it is implemented.
+            throw new SchemeError(
+                'call/cc: a continuation was captured across more than one boundary between '
+                + 'compiled and interpreted code, which is not yet supported. Run this '
+                + 'program with the compiler tier disabled.');
+        }
+
+        if (boundary >= 0) {
+            beginCapture({
+                lambdaExpr: this.lambdaExpr,
+                fstack: [...registers[FSTACK]],
+                env: registers[ENV],
+                boundary
+            });
+            throw new CaptureUnwind();
         }
 
         const continuation = createContinuation(registers[FSTACK], interpreter);

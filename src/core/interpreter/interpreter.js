@@ -1,6 +1,7 @@
 import { Values, isSchemeClosure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
+import { CaptureUnwind, UNWIND, completeCapture, unwinding } from './unwind.js';
 import { globalContext } from './context.js';
 
 /**
@@ -45,10 +46,6 @@ import { schemeToJs, schemeToJsDeep } from './js_interop.js';
  * @returns {*} Converted value
  */
 function unpackForJs(result, interpreter, options = {}) {
-  if (result instanceof Values) {
-    result = result.first();
-  }
-
   // Determine conversion mode. Priority:
   // 1. Explicit option passed to run()
   // 2. Global interpreter setting
@@ -56,7 +53,18 @@ function unpackForJs(result, interpreter, options = {}) {
   const mode = options.jsAutoConvert ?? (interpreter?.jsAutoConvert ?? 'deep');
 
   if (mode === 'raw') {
+    // Deliberately *not* unpacked here. Collapsing several values to the first
+    // one is a JavaScript-interop behaviour -- a JavaScript caller can only
+    // receive one value -- and `raw` means the caller is not one. Compiled code
+    // reaches an interpreted procedure through this path, so unpacking here
+    // silently dropped every value but the first on the way out, which is how
+    // `(call-with-values p +)` with an interpreted `p` returning two values
+    // came back as the first of them.
     return result;
+  }
+
+  if (result instanceof Values) {
+    result = result.first();
   }
   if (mode === 'deep' || mode === true) {
     return schemeToJsDeep(result, options);
@@ -313,6 +321,12 @@ export class Interpreter {
           continue;
 
         } catch (e) {
+          // A capture that has to cross compiled frames abandons this run so
+          // that the compiled frames below it can record themselves. The
+          // sentinel goes back to whoever called in -- compiled code -- rather
+          // than through the usual conversion for a JavaScript caller.
+          if (e instanceof CaptureUnwind) return UNWIND;
+
           // Check for Continuation Unwind
           // We check the constructor name to avoid circular dependency imports if possible.
           if (e.constructor.name === 'ContinuationUnwind') {

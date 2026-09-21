@@ -47,8 +47,7 @@ export const SCHEME_PRIMITIVE = Symbol.for('scheme.primitive');
  * The compiler tier is not a JavaScript caller. It holds Scheme values and
  * expects Scheme values back, so it needs an entry that converts nothing --
  * otherwise an exact integer comes back as a double and a bignum outside the
- * safe integer range throws. That is what this symbol names. See R26 in
- * `docs/compiler_strategy.md`.
+ * safe integer range throws. That is what this symbol names.
  *
  * @type {symbol}
  */
@@ -127,8 +126,7 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
     // Entry point for callers that already hold Scheme values -- today, the
     // compiler tier. The wrapper above exists for JavaScript callers and so
     // converts in both directions; routing compiled code through it silently
-    // turned exact integers into doubles and threw on bignums beyond 2^53,
-    // which is what broke ten of the canonical R7RS benchmarks (R26).
+    // turned exact integers into doubles and threw on bignums beyond 2^53.
     closure[SCHEME_RAW_CALL] = function (...schemeArgs) {
         const ast = new TailAppNode(
             new LiteralNode(closure),
@@ -266,6 +264,37 @@ export class TailCall {
         this.func = func;
         this.args = args;
     }
+}
+
+/**
+ * Drives a value returned by a Scheme procedure to completion.
+ *
+ * A primitive that calls a Scheme procedure and then uses the result has to do
+ * this first. A *compiled* procedure signals a tail call by returning a
+ * `TailCall` instead of a value, so a primitive that treats what it gets back
+ * as the answer is holding a promise to make a call, not the call's result.
+ *
+ * That is not a theoretical hazard. `call-with-input-file` read
+ * `try { return proc(port); } finally { port.close(); }`, so when `proc` was
+ * compiled and ended in a tail call, the port closed before the call ran and
+ * the program failed with "port is closed" -- which is what the `read1`
+ * benchmark did under the compiler tier while passing under the interpreter.
+ *
+ * Only a `TailCall` naming a procedure can be continued here. One carrying an
+ * expression for the interpreter to evaluate cannot be, since a primitive has
+ * no evaluator; it is returned as it arrived, which is what happened before
+ * this existed.
+ *
+ * @param {*} result - What the procedure returned.
+ * @returns {*} The settled value.
+ */
+export function settleTailCalls(result) {
+    while (result instanceof TailCall && typeof result.func === 'function') {
+        const raw = result.func[SCHEME_RAW_CALL];
+        const args = result.args || [];
+        result = raw === undefined ? result.func(...args) : raw(...args);
+    }
+    return result;
 }
 
 /**

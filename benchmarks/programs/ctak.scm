@@ -5,7 +5,7 @@
 ;; workload where an explicit-frame-stack design pays a copy proportional to stack
 ;; depth on every capture, and it is where Thivierge & Feeley measured Scheme2JS
 ;; at 95x slower than Gambit-JS. It is therefore the primary discriminator for the
-;; Stage 2a calling-convention bake-off.
+;; calling-convention comparison.
 ;;
 ;; Canonical size (22 12 6), matching Thivierge & Feeley `ctak`.
 

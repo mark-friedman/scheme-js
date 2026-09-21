@@ -53,7 +53,7 @@ export const functionalTests = [
     { path: 'functional/char_tests.js', fn: 'runCharTests', async: false },
     { path: 'functional/string_tests.js', fn: 'runStringTests', async: false },
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
-    { path: 'functional/io_tests.js', fn: 'runIOTests', async: false },
+    { path: 'functional/io_tests.js', fn: 'runIOTests', async: true },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
@@ -72,6 +72,17 @@ export const integrationTests = [
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
     { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
     { path: 'integration/cond_expand_library_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: true },
+];
+
+// Whole-program tests: real Scheme programs run end to end under both tiers,
+// checked against expected results that came from another implementation.
+//
+// Separate from the functional tests because these are not assertions about a
+// feature -- they are forty-one programs nobody here wrote, each asserting its
+// own answer. They run in child processes and read their inputs from disk, so
+// they are Node-only.
+export const programTests = [
+    { path: 'programs/program_correctness_tests.js', fn: 'runProgramCorrectnessTests', async: true, needsInterpreter: false, nodeOnly: true },
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
@@ -206,6 +217,15 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
         }
     } catch (e) {
         logger.fail(`Integration test suite crashed: ${e.message}`);
+    }
+
+    // Whole-program tests
+    try {
+        for (const test of programTests) {
+            await runTestModule(pathPrefix, test, interpreter, logger, loader);
+        }
+    } catch (e) {
+        logger.fail(`Program test suite crashed: ${e.message}`);
     }
 
     // Scheme tests

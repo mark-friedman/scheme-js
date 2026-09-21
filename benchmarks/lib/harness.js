@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { createInterpreter } from '../../src/core/interpreter/index.js';
+import { compileEnvironment } from '../../src/compiler/index.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 
@@ -35,10 +36,17 @@ const BOOTSTRAP_FILES = [
 
 /**
  * Creates an interpreter with the standard library loaded.
+ *
+ * @param {Object} [options] - Options.
+ * @param {boolean} [options.compileStdlib=false] - Compile the standard
+ *   library's procedures after loading them. The library is itself Scheme, so
+ *   without this a compiled benchmark calls interpreted `map`, `assq` and
+ *   `member` on its hottest paths, and the figures measure that boundary
+ *   rather than the generated code.
  * @returns {{interpreter: Object, env: Object, run: function(string): *}} The
  *   interpreter, its global environment, and a helper that evaluates source text.
  */
-export function createBenchmarkInterpreter() {
+export function createBenchmarkInterpreter(options = {}) {
   const { interpreter, env } = createInterpreter();
 
   const run = (code) => {
@@ -52,6 +60,8 @@ export function createBenchmarkInterpreter() {
   for (const file of BOOTSTRAP_FILES) {
     run(fs.readFileSync(path.join(PROJECT_ROOT, file), 'utf8'));
   }
+
+  if (options.compileStdlib) compileEnvironment(env);
 
   /**
    * Analyzes source text into an executable AST without running it. Callers

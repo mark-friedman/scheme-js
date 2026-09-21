@@ -55,6 +55,19 @@ async function runAll() {
             const code = await nodeFileLoader(file);
             run(interpreter, code);
         }
+
+        // With SCHEME_AOT_STDLIB=1 the library is compiled after loading, and
+        // the whole suite then runs against compiled implementations of `map`,
+        // `assq`, `member` and the rest. It is off by default because the unit
+        // tests are meant to exercise the interpreter; running the suite both
+        // ways is what checks the two tiers agree on the library itself.
+        if (process.env.SCHEME_AOT_STDLIB === '1') {
+            const { compileEnvironment } = await import('../src/compiler/index.js');
+            const outcome = compileEnvironment(interpreter.globalEnv);
+            console.log(`\nAOT: compiled ${outcome.compiled.length} standard library `
+                + `procedures, declined ${outcome.declined.length}`);
+            for (const d of outcome.declined) console.log(`  ${d.name}: ${d.reason}`);
+        }
         // Note: Promise primitives (js-promise-chain, js-promise-map, etc.)
         // are always available as they're registered as primitives in primitives/index.js
     };

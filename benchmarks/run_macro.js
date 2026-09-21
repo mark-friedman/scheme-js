@@ -7,7 +7,7 @@
  * coverage check showed how narrow they are: they exercise **16 distinct
  * primitives**, and **98% of their primitive calls** land on the fifteen
  * primitives the compiler inlines. Real Scheme in this repository exercises
- * **139**. Every optimization since Stage 0 was chosen by measuring against
+ * **139**. Every optimization in the compiler effort was chosen by measuring against
  * those eight programs, so their numbers cannot be trusted to say what a real
  * program would see -- the suite and the optimizations were fitted to each
  * other.
@@ -254,7 +254,7 @@ async function runOnce(workload, useCompiler, instrument) {
       // inside. Decided over the whole file before anything runs, because the
       // answer depends on the call graph rather than on one definition's text:
       // a procedure that names no control global is still unsafe if something
-      // it calls escapes through it (R34). Not timed -- it is compilation
+      // it calls escapes through it. Not timed -- it is compilation
       // work, and the interpreted run does not do it.
       const unsafe = useCompiler ? unsafeDefinitions(asts, env) : new Map();
 

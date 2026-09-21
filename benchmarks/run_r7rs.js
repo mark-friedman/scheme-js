@@ -3,15 +3,15 @@
  *
  * ## What this is for
  *
- * `benchmarks/run_standard.js` runs eight programs written in Stage 0 against
- * this interpreter, and every optimization since was chosen by measuring
- * against them. That made the suite and the optimizations fit each other: 98%
- * of the microbenchmarks' calls land on a primitive the compiler inlines,
- * against 34% in real code, and the ~12x the tier reports there becomes 1.39x
- * on the project's own Scheme (R20 in `docs/compiler_strategy.md`). These
- * programs come from the Gabriel and Gambit lineage by way of Larceny, nobody
- * here chose them, and they cover workloads the eight do not touch at all --
- * flonums, bignums, bytevectors, strings, records, dynamic-wind.
+ * `benchmarks/run_standard.js` runs eight programs written for this project,
+ * against this interpreter, and the optimizations were then chosen by measuring
+ * against them. Suite and optimizations ended up fitted to each other: 98% of
+ * the microbenchmarks' calls land on a primitive the compiler inlines, against
+ * 34% in real code, and a speedup that reads as ~12x there was 1.39x on the
+ * project's own Scheme. These programs come from the Gabriel and Gambit lineage
+ * by way of Larceny, nobody here chose them, and they cover workloads the eight
+ * do not touch at all -- flonums, bignums, bytevectors, strings, records,
+ * dynamic-wind.
  *
  * ## Reading the output
  *

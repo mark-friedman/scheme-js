@@ -3,10 +3,10 @@
  *
  * ## Why these programs
  *
- * The eight microbenchmarks in `benchmarks/programs/` were written in Stage 0
- * against this implementation, and every optimization since was chosen by
- * measuring against them -- so the suite and the optimizations were fitted to
- * each other (see R20 in `docs/compiler_strategy.md`). These programs were not.
+ * The eight microbenchmarks in `benchmarks/programs/` were written for this
+ * project, against this implementation, and the optimizations were then chosen
+ * by measuring against them -- so suite and optimizations ended up fitted to
+ * each other. These programs were not.
  * They come from the Gabriel and Gambit benchmark lineage by way of Larceny and
  * `ecraven/r7rs-benchmarks`, they predate this project by decades, and published
  * results exist for more than twenty other Scheme implementations. That makes
@@ -37,7 +37,7 @@
  *    meaning in a browser. A call *with* a port must still read from that port:
  *    `dynamic`, `read0`, `read1` and `sum1` open their own data files, and a
  *    shim that ignored the argument made all four return wrong answers rather
- *    than fail -- the same silent-wrong-answer shape as R15 and R24.
+ *    than fail.
  *
  * ## Timing
  *
@@ -45,7 +45,7 @@
  * R7RS `current-jiffy`, for every implementation including this one. Timing our
  * own runs from JavaScript would be more precise, but it would measure a
  * different region than the Gambit and Racket runs measure, and asymmetric
- * measurement has already produced three wrong answers in this project (R24).
+ * measurement has already produced three wrong answers in this project.
  * The cost is that this implementation's `jiffies-per-second` is 1000, so a run
  * must last well beyond a millisecond for the figure to mean anything --
  * `checkResolution` exists to say when it does not.
@@ -215,8 +215,8 @@ export function parseCsvLine(output) {
  * cannot reach another, matching `runBenchmark` in `harness.js`.
  *
  * Under the compiler tier, definitions are compiled **as they appear** rather
- * than in a sweep beforehand. Sweeping first is what made the first macro
- * benchmark report the tier as slower than the interpreter (R21): a sweep can
+ * than in a sweep beforehand. Sweeping first made an earlier version of the
+ * macro benchmark report the tier as *slower* than the interpreter: a sweep can
  * only see the definitions that already exist, and a program's own hot
  * procedures are defined while it loads.
  *
@@ -247,7 +247,11 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
   let compiled = 0;
   let definitions = 0;
   try {
-    const { interpreter, env } = createBenchmarkInterpreter();
+    // The standard library is compiled only for the compiler tier, so the
+    // interpreted baseline stays the interpreter throughout and the ratio
+    // reports what the whole tier is worth -- generated code and a compiled
+    // library together, since that is how it would be shipped.
+    const { interpreter, env } = createBenchmarkInterpreter({ compileStdlib: useCompiler });
     for (const form of parse(prelude)) {
       interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
     }
@@ -257,9 +261,9 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
     // Which definitions a continuation could be captured inside. Computed over
     // the whole program before anything runs, because the answer for one
     // procedure depends on what its callees do -- `maze`'s `make-maze` names no
-    // control global and is still unsafe, because `dig-maze` escapes through it
-    // (R34). Definitions are still compiled *as they appear* rather than in a
-    // sweep, which is what R21 fixed.
+    // control global and is still unsafe, because `dig-maze` escapes through
+    // it. Definitions are still compiled *as they appear* rather than in a
+    // sweep, for the reason given above.
     const unsafe = useCompiler ? unsafeDefinitions(asts, env) : new Map();
 
     for (const ast of asts) {
