@@ -67,7 +67,7 @@ export function renderProgressReport(history) {
   out.push('> which appends to `benchmarks/history.json` and rewrites this document.');
   out.push('');
   out.push('Tracks the effect of each stage of the compiler effort described in');
-  out.push('[compiler_strategy.md](compiler_strategy.md). Methodology and the full Stage 0');
+  out.push('[compiler_findings.md](compiler_findings.md). Methodology and the full Stage 0');
   out.push('analysis are in [performance_baseline.md](performance_baseline.md).');
   out.push('');
 

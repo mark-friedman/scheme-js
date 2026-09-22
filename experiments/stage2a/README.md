@@ -1,7 +1,7 @@
 # Stage 2a — calling-convention bake-off
 
 Throwaway prototypes, not production code. Their only job is to settle the calling-convention
-decision in [../../docs/compiler_strategy.md](../../docs/compiler_strategy.md) with measurements
+decision in [../../docs/compiler_design.md](../../docs/compiler_design.md) with measurements
 instead of priors, and then be deleted or rewritten properly in Stage 2b.
 
 Two conventions are compiled from the same front end, so differences in the numbers are differences

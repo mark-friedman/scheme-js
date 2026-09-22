@@ -119,7 +119,7 @@ checks that they agree about every answer.
 │       │                           #   the Gambit and Racket preludes
 │       └── inputs/*                # Canonical inputs and data files, verbatim
 ├── experiments/                    # Throwaway prototypes, not production code
-│   └── stage2a/                    # Calling-convention bake-off (see compiler_strategy.md)
+│   └── stage2a/                    # Calling-convention bake-off (see compiler_design.md)
 │       ├── frontend.js             # Shared front end: Scheme subset -> normalized tree
 │       ├── runtime.js              # Shared values and primitives for both backends
 │       ├── backend_a.js            # Convention A: explicit frame stack + trampoline

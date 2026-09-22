@@ -1,25 +1,52 @@
-# Compiler strategy for scheme-js-4
+# Compiler findings
 
-> **Status:** Stage 0 complete. Stage 1 complete (2.57x). Stage 2a complete — convention B
-> chosen. Stage 2b **increment 1** complete — a working compiler tier with primitive inlining.
->
-> **Read the speedup figures with [R20](#revision-log) in hand.** The ~12x measured on the
-> microbenchmarks does **not** transfer: on the repository's own Scheme the tier is **1.39x** per
-> file. The microbenchmark suite was overfitted to the optimizations chosen against it. The tier is
-> also **opt-in and off by default** until compiled frames are re-enterable; see
-> [R15](#revision-log).
->
-> **This is a living document.** The original analysis is kept intact, including the parts that
-> later turned out to be wrong, because how an estimate failed is worth more than the estimate.
-> Where measurement has since revised a claim, the passage carries a *Revised after Stage N*
-> callout and the [Revision log](#revision-log) records what changed and why. Nothing is deleted.
->
-> Measurements were taken on Apple Silicon / Node v24.11.1 and are reproducible via the commands in
-> [performance_baseline.md](performance_baseline.md). Results after each stage:
-> [performance_progress.md](performance_progress.md). Re-measure before relying on any of this on
-> other hardware.
+**Formerly `docs/compiler_strategy.md`.** References to "R25", "R20–R22" and the like elsewhere in
+the repository point here. It was split because one file was doing three jobs with three different
+lifetimes: the current design now lives in [compiler_design.md](compiler_design.md), which can be
+rewritten, and the ranked task list in [compiler_plan.md](compiler_plan.md), which changes constantly. What is
+left is the part that must never be rewritten.
 
-## Context
+## What this is
+
+An append-only record of **what we believed that turned out to be false**, and the measurement that
+proved it. Not a history of what was built — that is [../CHANGES.md](../CHANGES.md) — and not a
+record of what works, which is the design doc.
+
+The distinction matters because the two read very differently. `CHANGES.md` says "lambda lifting
+made generated code linear in nesting." R51 says "it is a size change, not a speed change, and the
+remaining outlier turned out to be something else entirely." The second is the one that changes
+what you do next.
+
+## Adding an entry
+
+Add one whenever a measurement contradicts something written in the design doc, a gate is missed,
+or a technique is used that the plan did not anticipate. **If an entry does not correct a belief or
+record an unanticipated technique, it belongs in `CHANGES.md` instead** — a rule worth enforcing,
+because entries R50 through R53 each carry a real falsification wrapped in increment narrative that
+duplicates the walkthrough.
+
+Entries are numbered, append-only, and never edited away — including the ones that correct earlier
+entries in this same log. Annotate a superseded passage with a callout pointing at the entry rather
+than rewriting it, so the reasoning that led to a wrong call stays legible.
+
+What makes this worth the effort is visible in R4 and R8: both estimates failed the same way, by
+reasoning about which structures *looked* expensive instead of measuring, and by comparing numbers
+taken at one benchmark size against a target set at another. Neither pattern would have been
+apparent from the corrected document alone.
+
+Nothing here should link out to the design doc or `compiler_plan.md`. Those move; this does not. Links run
+the other way.
+
+---
+
+## R0 — the founding analysis, and the beliefs everything since was measured against
+
+This is the opening analysis of the compiler effort, kept verbatim as the baseline the numbered
+entries below correct. Several of its claims have since been overturned; where that happened, the
+entry that did it says so. It is `R0` rather than prose at the top of a design document because
+that is what it is — the first set of beliefs, not a description of what exists.
+
+### Context
 
 The Scheme implementation in this repo is an interpreter, and the concern is that its runtime
 performance is structurally limited. The question asked: how likely is it that a compiler-based
@@ -40,7 +67,7 @@ today and the deviation is deliberate.
 This document records the evidence and a staged plan. It is analysis and planning only —
 no implementation is proposed for this pass.
 
-### Measured baseline (this machine, Node v24.11.1, Apple Silicon)
+#### Measured baseline (this machine, Node v24.11.1, Apple Silicon)
 
 `fib(30)`, the same naive definition in each system:
 
@@ -59,7 +86,12 @@ numeric tower and heap-allocated values cost only about 3x, so the numeric-tower
 currently queued in `ROADMAP.md:400-417` are aimed at a ~3x problem while a ~200x problem sits
 next to them.
 
-### Where the time actually goes
+> *Annotation, not a rewrite:* that line reference no longer resolves — the numeric-performance
+> section has moved to the `Planned` section of `ROADMAP.md`, carrying this finding with it as the
+> reason it is deferred. Line-number citations into other files are the one kind of reference an
+> append-only log cannot keep true, which is an argument for citing sections by name.
+
+#### Where the time actually goes
 
 CPU profile of `fib(25)` (`node --cpu-prof`), self time:
 
@@ -78,7 +110,7 @@ CPU profile of `fib(25)` (`node --cpu-prof`), self time:
 **Roughly 95% of runtime is interpretive overhead and ~2% is the program's real work.** That
 ratio is the whole answer to the question: a compiler removes precisely the 95%.
 
-### Why it is this slow — specific, fixable causes
+#### Why it is this slow — specific, fixable causes
 
 A two-argument call `(f a b)` currently costs:
 
@@ -112,7 +144,7 @@ fib(25) with binary primitive %num< : 303 ms   -> 1.93x
 
 **One operator is worth 1.93x.** This is why the plan starts before the compiler.
 
-### What is *not* a problem
+#### What is *not* a problem
 
 - **Startup.** 52 ms module import + ~30 ms to parse/analyze/evaluate all 2,295 lines of
   bootstrap Scheme. No AST caching needed yet.
@@ -129,7 +161,7 @@ fib(25) with binary primitive %num< : 303 ms   -> 1.93x
   the architecture the attached papers advocate and exactly what the fastest published
   Scheme→JS compiler uses. The *encoding* is the problem, not the *model*.
 
-### R7RS compliance: a pre-existing gap that collides with a stated constraint
+#### R7RS compliance: a pre-existing gap that collides with a stated constraint
 
 `string-set!` and `string-fill!` **throw unconditionally**
 ([string.js:191](../src/core/primitives/string.js:191), [string.js:323](../src/core/primitives/string.js:323)),
@@ -161,124 +193,33 @@ A compliance audit in Stage 0 should establish whether this is the only such dev
 
 ---
 
-## Recommendation: transpile to JavaScript
+#### Known-broken things found along the way *(all three since fixed — see R0a)*
 
-Given **full multi-shot R7RS `call/cc`**, the target-language decision is easy and the
-*calling-convention* decision is the hard one. They should be taken separately.
+These are pre-existing and should be **fixed, not preserved** — the goal is a debugger that works
+as intended, not conformance to a buggy implementation. Worth fixing early, in Stage 0 or 1, so
+that "does the debugger still work?" is a meaningful question later:
 
-### Target language: JavaScript source
+- `parse()` never threads a filename — `tokenize` is called with no second argument
+  ([reader/index.js:36](../src/core/interpreter/reader/index.js:36)), so every `source.filename` is
+  the literal string `'<unknown>'` and file-scoped breakpoints can never match.
+- `StackTracer.replaceFrame` has no caller anywhere in `src/`, so the advertised TCO-aware stack
+  tracking is not actually wired up; tail calls never push a `DebugExitFrame` either.
+- `pauseOnException` reads `registers.env` ([scheme_debug_runtime.js:242](../src/debug/scheme_debug_runtime.js:242))
+  but `registers` is an array indexed by `ENV = 2`, so that value is always `undefined`.
 
-Rejected alternatives:
+---
 
-- **Bytecode VM + JIT.** Self-defeating on this platform. You would write an interpreter loop in
-  JS that V8 cannot optimize, in order to avoid emitting JS that V8 *can* optimize. Published
-  results on tail-calling vs switch-based interpreters under Wasm point the same way.
-- **WebAssembly.** The stack-switching proposal is still Phase 3 and not shipped, so Wasm gives
-  you no continuation primitive — you would implement the same machinery anyway, *plus* pay a
-  boundary crossing on every JS interop call (violating constraint 1) and give up source-mapped
-  debugging in DevTools. Worth revisiting once stack switching ships; not now.
+## R0a — the three "known-broken things" R0 listed are all fixed
 
-### Calling convention: the pivotal decision
+R0 closed with three defects to be "fixed, not preserved". All three were, and the document went on
+listing them as broken for months, which is the clearest single piece of evidence for splitting a
+living design out of an append-only log:
 
-This determines performance, `call/cc` cost, **and whether the Chrome DevTools call stack shows
-Scheme frames** — which is what decides whether the extension can be retired (see below). Two
-serious candidates:
-
-**(A) Explicit frame stack — the Gambit-JS model.** Thivierge & Feeley, *Efficient Compilation of
-Tail Calls and Continuations to JavaScript* (Scheme Workshop 2012). Continuation frames live in a
-JS array; everything runs under a trampoline; `call/cc` heapifies the array.
-
-- Best-measured performance: `fib35` in 0.80 s on 2012 V8, ≈1.2–1.8x plain JS normalized to today.
-  1.1–96x faster than Scheme2JS, 2.9–6.8x faster than the CPS-based Spock.
-- Zero overhead when nothing captures; capture cost proportional to depth, paid only at capture.
-- Closest to the current architecture, so lowest risk.
-- **But the JS call stack is one frame deep.** All Scheme frames are in an array DevTools cannot
-  see, so the DevTools call-stack panel is useless and the extension cannot be fully retired.
-
-**(B) Native JS stack for non-tail calls, trampoline for tail calls, unwind/rewind for capture.**
-This is precisely the design in the two attached papers — Pettyjohn et al.'s generalized stack
-inspection, with Marshall's modification replacing the exception with a distinguished return value
-and a per-call-site trampoline.
-
-- One JS stack frame per live Scheme frame, and tail calls correctly *don't* add one. **The
-  DevTools call stack becomes the Scheme call stack.** This is the property that makes source-map
-  debugging genuinely work.
-- Marshall's measurements support it: stack-allocated continuations beat heap-allocated ones by up
-  to 3x, his C# interpreter matched the C one, and returning a distinguished value beats throwing
-  by ~3,800x — so the technique's historical weakness (exception cost) is designed out.
-- Multi-shot works: rewind rebuilds a fresh frame chain per invocation.
-- **Costs:** procedure fragmentation (each procedure splits at call sites so it can be re-entered,
-  typically a `switch` on a resume index), a check after every call site, and somewhat noisier
-  generated code — which slightly degrades source-map fidelity, the very thing it buys.
-- **Uncertainty:** there is no published measurement of Marshall's variant on V8. Thivierge &
-  Feeley measured the *exception-based* version (Scheme2JS) at 18.5–96x slower on capture-heavy
-  code, and Marshall's change targets exactly that weakness — but that inference is not data.
-
-> [!NOTE]
-> **Revised after Stage 0 — see [R1](#revision-log).** The performance case for (B) above is weaker
-> than written. Cross-implementation measurement showed our continuation benchmarks run 40–140x
-> slower than Racket against ~1400x for `fib`, i.e. our explicit frame stack is *relatively* one of
-> the healthier parts of the implementation. The DevTools-call-stack argument for (B) is unaffected,
-> so the bake-off still stands — but go into it neutral rather than tilted toward (B).
->
-> **Added after Stage 1 — see [R5](#revision-log).** Stage 1 found that subexpressions which cannot
-> capture a continuation need no frame at all. The compiler should make that classification
-> statically; it determines which call sites need continuation frames under *either* convention, and
-> so should be part of the 2a prototypes rather than a later optimization.
-
-> [!IMPORTANT]
-> **Resolved in Stage 2a: convention B.** It won on the normal path *and* overall, and it is the
-> only one of the two under which a debugger can see the Scheme call stack. The costs and the
-> remaining caveat are recorded at the Stage 2a gate below and in
-> [R10](#revision-log)–[R14](#revision-log). The analysis below is kept as written.
-
-**Recommendation: prototype both in Stage 2a and measure before committing.** The decision rests
-on an unmeasured quantity (B's normal-path overhead on V8) and on how much the DevTools stack
-panel is worth. A reasonable prior is that (B) wins overall if its overhead is under ~2x, because
-retiring the extension is worth a great deal of ongoing maintenance. Both designs share the same
-IR, runtime, value representation, and roughly 80% of the compiler, so the prototype is
-comparatively cheap and is not wasted either way.
-
-### How this satisfies the four constraints
-
-| Constraint | How |
+| R0 claimed | actually |
 |---|---|
-| **JS interop** | Unchanged. Scheme closures stay callable JS functions ([values.js:96](../src/core/interpreter/values.js:96)); compiled procedures keep the same wrapper, so `addEventListener('click', scheme-proc)` still works. Value representation is untouched, so `js_interop.js` conversion is untouched. Synchronous JS→Scheme re-entry keeps working via the existing `SentinelFrame` mechanism. |
-| **Browser + CLI** | Generated code is ordinary JS. AOT-compile the stdlib into the bundle for the browser; compile on demand elsewhere. |
-| **REPL** | Compilation is a *backend after `analyze`*, not a replacement for it. `analyze` stays runtime-callable, so `eval`, `load`, `define-macro`'s expansion interpreter, and `:eval` all keep working. Per-form compilation via `new Function`; the interpreter remains as the fallback tier. |
-| **Debugger** | Hook points get redesigned for compiled code (confirmed acceptable). Compiled code emits explicit debug points under a compile flag: `full` (expression-level, the default) / `statement` / `off`. Today's per-step `ctl.source` check is paid even when debugging is off — the compiler can make `off` genuinely free, which is a debugger *win*. In-page debugging additionally gains source maps; see below. |
-
-### Browser-page debugging: can source maps replace the extension?
-
-**Largely yes, and this is a strong argument for the compiler — but it is contingent on the
-calling convention, and it is not free.**
-
-What a standard source map buys immediately, in any design:
-
-- DevTools displays the original `.scm` file and sets breakpoints in it. Source Map v3 carries
-  column information, so if the compiler emits distinct columns per Scheme subexpression you get
-  expression-level breakpoints — the feature the extension implements by hand today.
-- Stepping highlights Scheme source rather than generated JS.
-- `x_google_ignoreList` hides runtime/trampoline files from stack traces and stepping, which is
-  well supported in Chrome.
-
-What does **not** come for free, and how to close each gap:
-
-| Gap | Resolution |
-|---|---|
-| **Call stack shows JS, not Scheme** | Only solved by calling convention **(B)**. Under **(A)** the stack lives in an array DevTools cannot see, and you must keep a custom stack view. *This is the single biggest factor in whether the extension can go away.* |
-| **Scheme values render as JS objects** — a pair shows as `{car, cdr}` | Chrome **Custom Object Formatters** (`window.devtoolsFormatters`). Renders pairs as `(1 2 3)`, symbols, chars, records properly. Requires the user to tick one DevTools setting. Well-trodden (ClojureScript and Dart both ship these). |
-| **Scope panel shows JS locals under compiled names** | Partly closed by the source map `names` field; Chrome's variable-name mapping is real but incomplete. The robust fallback is to keep the compile-time rib name tables and expose them, rendered via a custom formatter. |
-| **DevTools console evaluates JavaScript, not Scheme** | Expose a global helper — `$scm("(+ 1 2)")` — that compiles and evaluates in the paused frame's environment. Loses the seamless feel, keeps the capability, costs almost nothing. |
-
-So the realistic outcome is: under **(B)**, the Chrome DevTools extension can plausibly be
-**retired entirely**, replaced by a source map, a formatter script, and a console helper. Under
-**(A)**, it shrinks a lot but a custom stack view must survive. Either way this is a large
-reduction in the surface area now carried by `extension/` and `src/debug/devtools/`, and it should
-be treated as a first-class goal of the project rather than a side effect — it materially changes
-the cost/benefit of the whole effort.
-
-The REPL debugger (`src/debug/repl_debug_*`) is unaffected and stays as-is.
+| `parse()` threads no filename, so every `source.filename` is `'<unknown>'` | fixed — `reader/index.js:39` passes `options.filename` to `tokenize` |
+| `StackTracer.replaceFrame` has no caller in `src/` | fixed — called from `frames.js:238` |
+| `pauseOnException` reads `registers.env` on an array indexed by `ENV` | fixed — `scheme_debug_runtime.js:245` uses `registers[ENV]` |
 
 ---
 
@@ -2039,22 +1980,47 @@ parameter for 26 s total. Two findings fell out of writing it: `ray` had been fa
 `maze` returns a wrong answer under the compiler tier was stale — the whole-program continuation
 analysis declines the escape route, 60 of 69 definitions compile, and both tiers answer correctly.
 
-### Keeping this log
 
-Add an entry whenever a stage produces a measurement that contradicts something written here, or a
-gate is missed, or a technique is used that the plan did not anticipate. Entries are numbered,
-append-only, and never edited away — including the one above that corrects an earlier entry in this
-same log. Annotate the superseded passage with a callout pointing at the entry rather than rewriting
-it, so the reasoning that led to the wrong call stays legible.
 
-What makes this worth the effort is visible in R4 and R8: both estimates failed the same way, by
-reasoning about which structures *looked* expensive instead of measuring, and by comparing numbers
-taken at one benchmark size against a target set at another. Neither pattern would have been
-apparent from the corrected document alone.
+**R54. The compiler and the debugger have no relationship at all, and a breakpoint inside a compiled
+procedure silently never fires.**
+
+The plan said debugger hook points would be "redesigned for compiled code", and treated that as
+scheduled work. It was never done, and the shape of what is missing is larger than a redesign:
+
+- generated code carries **no source locations, no line information, no debug points** — nothing;
+- `src/debug/` contains **zero** references to `$compiled`, `markProcedure`, or compiled procedures
+  in any form;
+- the single debug hook is `interpreter.js:455`, inside the interpreter's step loop and gated on
+  `ctl.source`. A compiled procedure never enters that loop.
+
+So `setBreakpoint` succeeds, and the breakpoint never fires. Not an error, not a warning — a no-op.
+Stepping steps over the whole procedure and the stack tracer shows nothing.
+
+Nobody had noticed because the tier compiles only the standard library, and people do not set
+breakpoints inside `assq`. That also means this is presently harmless, and stops being harmless the
+moment user code is compiled.
+
+**What makes it a finding rather than a task** is what it says about how the work was ranked.
+"Full-featured debuggers in both environments" is one of the project's four stated constraints;
+performance is not among them and was added later. Fourteen increments of compiler work went by with
+every ranked list measuring speed, and the constraint quietly moved further from satisfied at each
+one — while the obvious next step, enabling the tier for user code, is precisely the step that would
+break it. Ranking by the thing that is easiest to measure is not the same as ranking by what matters,
+and nothing in the process caught the difference.
+
+This is also the entry that argued for splitting these documents. It was found by grep in the middle
+of answering an unrelated question, not by reading a plan, because no plan recorded it.
 
 ---
 
-## Plan of attack
+## Appendix — the original staged plan
+
+Kept because it is the plan the entries above were measured against, not because it is the plan.
+The current one is [compiler_plan.md](compiler_plan.md). Stages 0, 1, 2a and 2b are done; Stage 3 was folded
+into "code generation, for the first time".
+
+### Plan of attack (historical)
 
 Four stages, each independently valuable, each gated on measurement. Stage 1 is worth doing
 whether or not Stage 2 ever happens, and it de-risks Stage 2 because the compiler emits code
@@ -2280,108 +2246,3 @@ inlining, arity specialization, unboxed fixnum paths guarded by tower fallback, 
 analysis to stack-allocate environments for procedures whose closures never escape.
 
 ---
-
-## Verification
-
-- **Correctness is non-negotiable and already well covered**: 2,021 tests pass today
-  (`node --expose-gc run_tests_node.js`, ~63 s). Every stage must keep them green in **both**
-  Node and browser, per `AGENTS.md`.
-- **Expect to rewrite some tests, and say so explicitly.** A meaningful share of `tests/unit/` is
-  written against interpreter *internals* — `Environment.bindings` as a `Map`, `AppFrame` shape,
-  `registers` layout, `debugRuntime` hook presence. Stage 1 changes those representations by
-  design, so those tests must be updated rather than preserved. The rule to apply: **behavioural
-  tests (`.scm` files, functional, integration) are the contract and must not change; unit tests
-  on internals are implementation detail and follow the implementation.** Where a unit test
-  encodes a real invariant, re-express it against the new representation rather than deleting it.
-- **New compiler unit tests are their own workstream**, written alongside the compiler per
-  `AGENTS.md`'s test-first rule: IR lowering, tail-position analysis, closure conversion, codegen
-  per special form, source-map offset correctness, and debug-point emission at each of the three
-  fidelity levels.
-- **Differential testing** between interpreter and compiler on every `.scm` test file — this is
-  the main safety net for Stage 2 and should be built before the compiler, not after.
-- **Continuation semantics specifically**: `ctak`, `contfib30`, `btsearch2000`, `threads10`
-  exercise deep capture, repeated capture, backtracking, and coroutining. Multi-shot re-invocation
-  must be asserted explicitly, since that is the property that rules out the faster designs.
-- **Interop and debugger**: the existing `tests/extension/` Puppeteer suite (394 tests) and
-  `tests/debug/` must pass unchanged in Stage 1. In Stage 2 they are rewritten against the new hook
-  contract — and if the extension is retired, much of `tests/extension/` is replaced by source-map
-  fidelity tests (breakpoint in `.scm` line N stops at the right place) rather than deleted.
-- **R7RS conformance** must not regress, and the string-mutability gap should close rather than
-  persist, given full compliance is now a stated goal.
-- **Performance regression gating** via `npm run benchmark:compare` against a committed baseline.
-
----
-
-## Known-broken things found along the way
-
-These are pre-existing and should be **fixed, not preserved** — the goal is a debugger that works
-as intended, not conformance to a buggy implementation. Worth fixing early, in Stage 0 or 1, so
-that "does the debugger still work?" is a meaningful question later:
-
-- `parse()` never threads a filename — `tokenize` is called with no second argument
-  ([reader/index.js:36](../src/core/interpreter/reader/index.js:36)), so every `source.filename` is
-  the literal string `'<unknown>'` and file-scoped breakpoints can never match.
-- `StackTracer.replaceFrame` has no caller anywhere in `src/`, so the advertised TCO-aware stack
-  tracking is not actually wired up; tail calls never push a `DebugExitFrame` either.
-- `pauseOnException` reads `registers.env` ([scheme_debug_runtime.js:242](../src/debug/scheme_debug_runtime.js:242))
-  but `registers` is an array indexed by `ENV = 2`, so that value is always `undefined`.
-
-## Two design questions, answered
-
-### CSP: alternatives to `new Function`
-
-Yes, there are feasible alternatives, and they compose — you don't have to pick one.
-
-1. **AOT + interpreter fallback (the main answer).** Compile everything reachable at build time:
-   the stdlib, and `<script type="text/scheme">` sources. Nothing dynamic is needed to *run* a
-   compiled page. For the genuinely dynamic paths — `eval`, `load`, the REPL — fall back to the
-   **interpreter tier**, which needs no code generation at all. This is the cleanest resolution and
-   is a strong reason to keep the interpreter permanently rather than transitionally: it is the
-   CSP-safe execution mode, the differential-testing oracle, and the debug-fidelity reference, all
-   for the price of something you already have.
-2. **Blob-URL dynamic `import()`.** `import(URL.createObjectURL(new Blob([js], {type:'text/javascript'})))`
-   is governed by `script-src blob:` rather than `unsafe-eval`, and many strict policies allow
-   `blob:`. Gives full compiled speed for dynamically compiled code under a policy that forbids
-   `eval`. Asynchronous, so it suits `load` and the REPL better than a synchronous `eval` primitive.
-3. **Wasm codegen.** `WebAssembly.compile` is permitted under `wasm-unsafe-eval`, a *weaker*
-   directive than `unsafe-eval`. Technically a route to dynamic compilation under strict CSP, but
-   only worth it if a Wasm backend is built for other reasons. Not now.
-
-Note `js-eval` ([interop.js:22](../src/extras/primitives/interop.js:22)) is a deliberate interop
-escape hatch, not core machinery; under strict CSP it simply throws, which is acceptable. It does
-not force the rest of the system to depend on `eval`.
-
-**Recommendation:** treat CSP-strict as a supported configuration = AOT + interpreter, with
-blob-import as an optional upgrade. Decide this before Stage 2, because it determines whether the
-interpreter is a permanent tier (it should be).
-
-### Hygienic macros without a second interpreter
-
-The second-`Interpreter` construction
-([core_forms.js:585](../src/core/interpreter/analyzers/core_forms.js:585)) is about `define-macro`,
-which is *procedural and non-hygienic* — so the question is really "can procedural macros be both
-hygienic and cheap?" Yes, and the pieces are largely in place already.
-
-The actual defect is **conflating compile time with run time**, not hygiene. `syntax-rules` here is
-already hygienic via `SyntaxObject` and scope sets
-([syntax_object.js](../src/core/interpreter/syntax_object.js), 579 lines) — that is Flatt's *Binding
-as Sets of Scopes*, the modern correct answer, and the hardest part to get right. It's done.
-
-The fix is **phase separation**: maintain a phase-1 (compile-time) environment distinct from the
-phase-0 (runtime) one, and evaluate transformers in phase 1 of the *same* runtime, rather than
-constructing a fresh `Interpreter` and global environment per macro definition. This is Racket's
-expander tower, and it is what makes AOT coherent — compile-time code needs a runtime present *at
-compile time*, which is unremarkable, rather than at deploy time, which was the worry.
-
-For the procedural-macro surface itself, two options, both fully hygienic:
-
-- **Explicit renaming (`er-macro-transformer`)** — the transformer receives `(expr rename compare)`.
-  Simple, fully hygienic, procedural, and used by Chicken and Chibi. Given `src/core/scheme/chibi/`
-  already exists in the tree, this is the natural lineage and by far the smaller job.
-- **`syntax-case`** (R6RS) — more expressive, needs `datum->syntax` / `syntax->datum` and a full
-  syntax-object protocol. The `SyntaxObject` layer already present covers most of the cost.
-
-**Recommendation:** add explicit renaming as the hygienic procedural macro system, keep
-`define-macro` as a clearly-marked non-hygienic legacy extension implemented on top of it, and
-introduce phase separation so no second interpreter is ever constructed. Fold this into Stage 2's
-IR work, since the expander and the compiler have to agree on phases anyway.

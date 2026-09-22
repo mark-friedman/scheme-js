@@ -14,7 +14,7 @@ effort, against this implementation, and every optimization since was chosen by 
 against them. Suite and optimizations ended up fitted to each other: 98% of the
 microbenchmarks' procedure calls land on a primitive the compiler inlines, against 34% in
 real code, and the ~12x the compiler tier reports there is 1.39x on the project's own
-Scheme. That is recorded as R20 in [`docs/compiler_strategy.md`](../../docs/compiler_strategy.md).
+Scheme. That is recorded as R20 in [`docs/compiler_findings.md`](../../docs/compiler_findings.md).
 
 These programs are the correction. Nobody on this project chose them, they predate it by
 decades, they are what the Scheme implementation community actually quotes, and published

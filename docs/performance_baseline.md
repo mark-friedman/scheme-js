@@ -1,7 +1,7 @@
 # Performance baseline (Stage 0)
 
 This is the measurement gate for the compiler effort described in
-[compiler_strategy.md](compiler_strategy.md). It records where the implementation stands before
+[compiler_findings.md](compiler_findings.md). It records where the implementation stands before
 any optimization work, so that later claims of improvement are checkable rather than asserted.
 
 **Measured 2026-09-18 on Apple Silicon (darwin/arm64), Node v24.11.1.** Raw data is in
@@ -28,7 +28,7 @@ Thivierge & Feeley, *Efficient Compilation of Tail Calls and Continuations to Ja
 theirs.
 
 > [!WARNING]
-> Two caveats, recorded in R20-R22 of [compiler_strategy.md](compiler_strategy.md). **`threads` is
+> Two caveats, recorded in R20-R22 of [compiler_findings.md](compiler_findings.md). **`threads` is
 > not their `threads10`**: theirs uses a vector-based doubly-linked queue and runs about a million
 > context switches, mine is a list-based scheduler doing four thousand, so its numbers are not
 > comparable to their table. And comparability requires `canonical` sizes, which nothing reported
@@ -167,7 +167,7 @@ globally — this is a packaging gap, not a functionality gap, and is cheap to c
 The string-mutability cluster is the substantive one: `string-set!`, `string-fill!` and
 `string-copy!` are exactly the three mutation procedures, and they are absent for the same
 deliberate reason. Closing it means changing the value representation, which
-[compiler_strategy.md](compiler_strategy.md) schedules into Stage 2b alongside the other
+[compiler_findings.md](compiler_findings.md) schedules into Stage 2b alongside the other
 representation work.
 
 The audit is a reporting tool rather than a registered test, because wiring it into `npm test`

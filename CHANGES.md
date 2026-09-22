@@ -5898,3 +5898,172 @@ JavaScript-to-Scheme differential, and 993 of 993 across tiers afterwards. A bui
 `src/packaging/` reproducing both tables byte for byte. The browser bundle built and loaded, with 57
 library procedures installed from the prebuilt table and 7 more compiled at run time — through the
 Scheme lowering, inside the bundle, with no filesystem.
+
+---
+
+# Walkthrough: Splitting the planning documents by lifetime
+
+No code changed. This is a documentation restructure, prompted by a failure worth recording: after a
+context compaction I was asked "what's next," and instead of continuing the plan I read `ROADMAP.md`
+once and improvised from it, then improvised differently a turn later. Recovering the actual plan
+from the session transcript showed it had been intact the whole time.
+
+## What the plan was
+
+From the transcript, 2026-09-21 19:43 — the last stated ordering before the compaction:
+
+1. Build-time AOT, in JavaScript ✅
+2. **Codegen work, in JavaScript** — fast iteration where the design is least settled
+3. Port in order of provability: `ir` → `inline` → `emitter`+`resume`+`codegen` → `safety` → `index`
+4. The analyzer — its own project, and the real self-hosting seam
+
+Promoting `ir.scm` pulled the first item of step 3 ahead of step 2. That was deliberate and
+authorized — `ir` was explicitly *not* a moving target, which is why it led the port list — but it
+had an unstated cost: parts of code generation touch the IR, so that slice now iterates at ~16x
+instead of in JavaScript. Nobody noticed at the time because no document tracked dependencies.
+
+## Why one file could not hold this
+
+`docs/compiler_strategy.md` was 2,388 lines doing three jobs with three different lifetimes.
+Measurements rather than impressions:
+
+- **60% of it sat under one heading.** `### After running real code across implementations` ran
+  1,437 lines and held R29 through R53 — twenty-five findings under a single Stage-0-era subheading.
+- **The plan was at line 2057**, 86% of the way down, after 1,700 lines of log.
+- **It had already rotted.** `## Known-broken things found along the way` listed three defects to be
+  "fixed, not preserved." All three had been fixed; the document still called them broken. An
+  append-only file is structurally incapable of holding a current design.
+
+`ROADMAP.md` was no better at ranking: it had **two items both labelled "1st," nine lines apart in
+one table**, and neither of us noticed for two days.
+
+## The split, by lifetime
+
+| | lifetime | answers |
+|---|---|---|
+| `docs/compiler_plan.md` *(new)* | living | what next, blocked on what |
+| `docs/compiler_design.md` *(new)* | rewritable | how it works, and why |
+| `docs/compiler_findings.md` *(was `compiler_strategy.md`)* | append-only | what we believed that was false |
+| `CHANGES.md` | append-only | what happened |
+
+Lifetime is the right axis because it is the one that was being violated: current design was living
+inside a file whose own rule forbids rewriting.
+
+**`docs/compiler_plan.md` is 90 lines**, deliberately. `ROADMAP.md` failed at this job partly by being 1,000 lines
+of mixed content, so nobody read it as a task list. Its ranked tables moved out; it keeps progress
+and history.
+
+**The findings log keeps its `R` numbers and its path meaning.** Most inbound references are
+citations — "R25–R26", "R20–R22", "R26" — including one emitted by `benchmarks/lib/progress_report.js`
+and one in a memory file outside the repo. The founding analysis became **R0**, which is what it
+always was: the first set of beliefs, not a description of what exists. The original staged plan is
+an appendix, kept because it is what R1–R53 were measured against.
+
+## Two rules that make it hold
+
+**Links run one way: living documents point at append-only ones, never the reverse.** A back-link
+out of the findings log would have to be edited every time priorities move, which is the same as
+letting it go stale. So each plan entry cites the finding that justifies its rank, and no
+finding names a task.
+
+**The design doc carries only the reasoning no single module can own.** Calling convention B spans
+the emitter, the twin, the interpreter's frames and the runtime — no header owns it. "Why `letrec`
+self-reference needs no box" is one decision inside `lift.js` and stays there. Module headers are
+the freshest rationale in the project, because "comments must stand alone" forces them to be edited
+with the code; duplicating one into a document would only rot the copy. That rule is checkable,
+which is what makes it survive.
+
+Both are now in `AGENTS.md`, along with the one that matters most: **read the plan before starting
+a task, update it when finishing one.**
+
+## R54, which is why this happened now
+
+Checking a claim for the plan turned up something worse than a stale document. The compiler and the
+debugger have no relationship at all: generated code carries no source locations and no debug points,
+`src/debug/` contains zero references to compiled procedures, and the only debug hook sits inside the
+interpreter step loop that compiled code never enters. **A breakpoint inside a compiled procedure
+silently never fires** — not an error, a no-op.
+
+It is harmless today only because the tier compiles nothing but the standard library. The obvious
+next step — enabling the tier for user code — is precisely the step that makes it everyone's problem.
+"Full-featured debuggers in both environments" is one of the project's four stated constraints;
+performance is not among them and was added later. Fourteen increments of ranked lists all measured
+speed, and the constraint moved further from satisfied at each one.
+
+That is now the single item at the top of the plan.
+
+## Verification
+
+2,426 tests, unchanged. Every relative markdown link in the eleven touched documents resolves. No
+ranked-with-status rows remain outside the plan. `compiler_strategy.md` is gone; its four references
+in `CHANGES.md` are left as history, since they were accurate when written.
+
+## Addendum: the roadmap, refocused
+
+The restructure above left `ROADMAP.md` still doing the wrong job, and the owner's original
+intention for it settled what to do: a high-level view of user-visible features, planned and
+finished — not a record of individual tasks.
+
+Measured, it was two documents. Lines 1–602 were the R7RS-small implementation checklist: Phases −1
+through 18, consistent house style, **every one of them complete**. Lines 603–997 were the compiler
+effort — 40% of the file, seventeen subsections of workload tables, defect lists and decision
+records. The compliance roadmap had not drifted; a second document had been appended to it.
+
+The phases are archived at `docs/archive/r7rs_compliance_phases.md`. They are complete, and their
+altitude — individual procedures, ordered sub-phases — belongs in a record rather than a plan. Kept
+rather than deleted, because they are the only place that says feature by feature what
+"R7RS-small compliant" was taken to mean here, and because the ordering was a real decision:
+primitives before data types before I/O before exceptions, so each phase could be tested against
+the ones beneath it.
+
+**And archiving them turned up the same rot a third time.** Phase 0 listed `include-ci`,
+`include-library-declarations` and `cond-expand` as ❌ Missing. All three are implemented and
+covered by tests. After the three "known-broken things" that had all been fixed, that is three
+separate stale claims found in two days of reading these documents, every one of them in a section
+nothing ever required anybody to revisit.
+
+`ROADMAP.md` is now 203 lines and forward-looking: **the constraints**, then planned work, then a
+short table of what has been delivered.
+
+The constraints are the part that earns its place. They are the durable half of the document —
+JavaScript interop, browser and CLI, a REPL in both, a debugger in both, full multi-shot `call/cc`,
+full R7RS-small compliance — and they are stated at the top because being stated once in a design
+document and never again is exactly how the compiler got fourteen increments deep before anyone
+noticed that compiled code cannot be debugged. A constraint that appears in no recurring document
+is not a constraint.
+
+The compiler's entry is a goal and a description, not a status report, with one deliberate
+distinction: the goal is **"Scheme programs fast enough to be worth writing real software in"**, and
+the compiler is named as the *approach*. They are worth separating because the approach may change
+and the goal will not.
+
+## Addendum: making the instruction files match, and one that was never readable
+
+Auditing whether `AGENTS.md` and its neighbours reflected the new document set turned up something
+that was not documentation drift.
+
+**`CLAUDE.md` was a macOS Finder alias committed as a binary blob.** `AGENTS.md` is a real symlink —
+git mode `120000` — but `CLAUDE.md` was mode `100644` holding alias data, so anything loading it as
+project instructions got binary garbage rather than the rules. It has been that way since the commit
+that created it, titled "Create CLAUDE.md a link to AGENTS.md". The intent was right; the mechanism
+silently was not. It is now a real symlink to the same target, and reads as text.
+
+That is the third thing this reorganisation found by checking a claim instead of trusting it, after
+the three "known-broken things" that were all fixed and the three Phase 0 features listed as missing
+that were all implemented. The pattern is consistent: **every one was in a place nothing ever
+required anybody to revisit.**
+
+The rest was ordinary alignment:
+
+- `.agent/rules/rules.md` gained a lifetime table naming every document and what it holds, and its
+  `ROADMAP.md` rule was rewritten — it described a file that records "progress and history", which is
+  no longer what that file does.
+- `.agent/skills/update_documentation/SKILL.md` covered `CHANGES.md`, `ROADMAP.md` and
+  `architecture.md` only. It now covers all eight, with the procedure for each and the two rules that
+  hold the set together: lifetime decides the destination, and links run one way.
+- `README.md`'s documentation index described the roadmap as "compliance progress and future plans"
+  and never mentioned the compiler documents.
+- A rule pointed at a bare `architecture.md`, which does not resolve from the repository root.
+- `docs/README.md` was missing three of its own files. The skill now says to add an index line
+  whenever a document is added under `docs/`, so the rule would otherwise have been violated the
+  moment it was written.

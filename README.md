@@ -475,7 +475,10 @@ Detailed documentation for project internals:
 - [**Macro Debugging**](./docs/macro_debugging.md): Troubleshooting common macro issues.
 - [**JavaScript Interoperability**](./docs/Interoperability.md): Deep JS integration and callable closures.
 - [**Changes**](./CHANGES.md): A log of major implementation steps and walkthroughs.
-- [**Roadmap**](./ROADMAP.md): Compliance progress and future plans.
+- [**Roadmap**](./ROADMAP.md): The project's constraints, what is planned, and what has been delivered.
+- [**Compiler design**](./docs/compiler_design.md): How the Scheme-to-JavaScript compiler tier works and why — calling convention, continuation capture, the self-hosting bootstrap.
+- [**Compiler plan**](./docs/compiler_plan.md): Ranked compiler work, with dependencies and status.
+- [**Compiler findings**](./docs/compiler_findings.md): An append-only record of what we believed that later measurement contradicted.
 
 ---
 

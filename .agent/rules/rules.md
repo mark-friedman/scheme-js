@@ -40,11 +40,26 @@ trigger: always_on
 - **JSDoc**: Document all JavaScript functions with JSDoc.
 - **Scheme Doc**: Document all Scheme functions with JSDoc-style comments, using the same format as JSDoc, but with Scheme procedure-level comment syntax (i.e. `;;`).
 - **Internal Documentation**: Document logic inside JavaScript and Scheme functions and procedures using comment syntax appropriate for the language.
-- **Comments must stand alone**: A comment must be understandable by someone reading only the source file. Do not cite planning artifacts as the explanation — no revision-log entry numbers, no "see increment N", no "the plan says". If a decision needs justifying, state the reason in the comment. Referring to a concrete artifact in the repository is fine and often useful: a benchmark by name (`benchmarks/r7rs/src/maze.scm`), a sibling module, a published paper. The long-term goal is a design and implementation doc that comments *can* reference by concept; until that exists, comments carry their own reasoning.
+- **Comments must stand alone**: A comment must be understandable by someone reading only the source file. Do not cite planning artifacts as the explanation — no revision-log entry numbers, no "see increment N", no "the plan says". If a decision needs justifying, state the reason in the comment. Referring to a concrete artifact in the repository is fine and often useful: a benchmark by name (`benchmarks/r7rs/src/maze.scm`), a sibling module, a published paper. Comments carry their own reasoning; `docs/compiler_design.md` carries the cross-cutting design a comment cannot, and duplicating a module header into it would only rot the copy.
 - **Code Sections**: Document the start of associated collections of functions and procedures using comment syntax appropriate for the language.
-- **Directory Structure**: Generally, follow the directory structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.
+- **Directory Structure**: Generally, follow the directory structure outlined in `docs/architecture.md`.  If you need to deviate from this structure or add to it, update `docs/architecture.md` to reflect the change.
 - **CHANGES.md**: Document the changes you make by appending your walkthrough.md files to `CHANGES.md` when any major talks are completed.
-- **Roadmap**:  Use the `ROADMAP.md` file to record the general progress and plan for the project.  Keep it updated with work that has been done and add to it to reflect work planned for the future.
+- **docs/compiler_plan.md**: The only place that ranks compiler work. **Read it before starting a task and update it when finishing one** — tick the entry, move it to `Completed` with a one-line outcome, and add whatever the work revealed. A plan nobody reads is how the last one rotted. When a decision would change the order or the dependencies, say so there rather than in conversation, so the reasoning survives a context compaction.
+- **Roadmap**: `ROADMAP.md` is forward-looking and high-level — the project's constraints, the features planned, and a short table of what has been delivered. Add to it when a **user-visible** goal is planned or met, and simplify the entry into the delivered table when it lands. It does not track individual tasks, does not rank work, and is not a history: `docs/compiler_plan.md` ranks compiler work, `CHANGES.md` is the history, and the completed R7RS-small phase checklist is archived under `docs/archive/`.
+- **Which document takes a given change**, by lifetime:
+
+  | document | lifetime | holds |
+  |---|---|---|
+  | `ROADMAP.md` | rewritable | the constraints, planned user-visible goals, what shipped |
+  | `docs/architecture.md` | rewritable | the file map and how the system fits together |
+  | `docs/compiler_design.md` | rewritable | how the compiler works and why |
+  | `docs/compiler_plan.md` | living | ranked compiler tasks, status, dependencies |
+  | `docs/compiler_findings.md` | **append-only** | only what we believed that turned out to be false |
+  | `CHANGES.md` | **append-only** | what happened, increment by increment |
+  | `docs/archive/` | frozen | finished work kept for the record, not maintained |
+
+  An entry that records no falsification belongs in `CHANGES.md`, not the findings log. Never rewrite an append-only document; annotate the superseded passage instead.
+- **Links run one way**: living documents point at append-only ones, never the reverse. A back-link out of `CHANGES.md` or the findings log would have to be edited every time priorities move, which is the same as letting it go stale.
 - **Cleanup**: Remove any comments that were created just for yourself and/or that don't explain any functionality or algorithmic details.
 ## Tools
 ### Scheme Conformance
