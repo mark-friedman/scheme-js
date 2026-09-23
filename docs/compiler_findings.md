@@ -2116,6 +2116,32 @@ cost. Fixed, it takes 0-9% fewer dispatches per benchmark and roughly 5-12% less
 vector and string classes, so those classes' compiled-tier ratios measured before the fix read
 correspondingly high. No ranking in `compiler_plan.md` depended on a margin that size.
 
+**R59. `ir.scm`'s lists were not slow because they grow. They are short, and every compiled loop
+pays about 70-100 ns per iteration to the trampoline.**
+
+The plan ranked "hash tables in `ir.scm`, where lists measurably cost" on the premise that the
+outliers -- `earley:make-parser` at 335 locals and 27 levels, `make-relative-nuc` at 65 globals --
+were slow because their lists grew. Counted over the 993 lambdas of `benchmark:self-host`, a scope
+lookup's `assq` scans **1.85** entries on average and a `memq` on the lowering state **6.8**; even
+`earley:make-parser` averages 2.5. Yet replacing the compiled standard-library `assq` and `memq`
+with native JavaScript versions of the same scan took the corpus from **66.5 to 40.4 ms** a pass,
+`earley:make-parser` from 7.0 to 3.2 ms, and `make-relative-nuc` from 1.5 to 0.74 ms. So 39% of
+lowering was spent in those two procedures, and almost none of it scanning.
+
+The cost is in the generated code. A self tail call compiles to `return new R.TailCall(G(), [args])`:
+an allocation, an argument array and a trip back through the trampoline on every iteration.
+`benchmarks/run_hash_tables.js` puts an empty compiled named-`let` loop at about **95 ns per
+iteration**, and compiled `assq` at about **49 ns per element scanned plus ~250 ns per call** -- the
+`list?` check, a fresh closure for its internal `loop`, and the trampoline. A compiled `eq?` hash-
+table lookup costs about **115 ns** at any size, so it beats `assq` from four keys up; but only
+because `assq` is slow. A well-compiled scan of two to seven entries would beat the table.
+
+*Consequence:* no list in `ir.scm` was replaced. The fix is compiling tail calls to the procedure
+itself, and to its known local loops, as JavaScript loops -- which every compiled program reaches,
+not just the compiler. R19 found a direct *non-tail* self-call slower than the global accessor; this
+is a different change, since it removes an allocation and a trampoline round trip rather than a
+lookup, and it has to be A/B measured the same way.
+
 ---
 
 ## Appendix — the original staged plan

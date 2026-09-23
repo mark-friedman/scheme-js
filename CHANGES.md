@@ -6677,3 +6677,74 @@ the runtime paused, and the expanded program runs to completion. Six mutations e
 sharing the runtime at definition and at expansion (the harm tests), `macroTransformerAt` finding
 nothing, `:break` or `:breakpoints` ignoring transformers, and the transformer losing its span.
 2,914 tests pass in Node and 2,811 in the browser, with 0 failures in either.
+
+---
+
+# Walkthrough: Measuring hash tables under the tier, and why `ir.scm` keeps its lists
+
+Tasks 16 and 17 of `docs/compiler_plan.md`: measure SRFI 125 tables and record access under the
+compiler tier before anything depends on them, then replace `ir.scm`'s lists where they measurably
+cost. The first produced a fix and a benchmark. The second was not done, because its premise was
+false, and what was found instead moves the next piece of work.
+
+## Libraries loaded after start-up are compiled
+
+The bundle compiles its standard library once, at start-up. A library imported later -- `(srfi 125)`
+-- was never compiled, and interpreted, a hash-table lookup costs its caller about 1,600 ns against
+115 ns compiled. `library_registry.js` now has `setLibraryLoadHook`, which the loader runs on each
+library it reads from a file; an inline `define-library` is the program's own code and does not
+trigger it. `scheme_entry.js` sets the hook to compile each library the bundle ships. Every procedure
+in both SRFI libraries compiles, 89 of 89. Where generating code is forbidden, `compileEnvironment`
+declines and the library stays interpreted, as the standard library would.
+
+## What the tier costs
+
+`npm run benchmark:hash-tables` (`benchmarks/run_hash_tables.js`) times compiled loops that cycle
+through a key set, subtracts the same loop doing nothing, and checks every loop's total. Two runs,
+agreeing within a few percent:
+
+| per operation | library interpreted | library compiled |
+|---|---|---|
+| `eq?` table lookup, 4 to 256 keys | ~1,600 ns | ~115 ns |
+| `equal?` table lookup, 2-element list keys | ~17,300 ns | ~1,100 ns |
+| `hash-table-update!/default` | ~4,700 ns | ~315 ns |
+| record accessor read | ~33 ns | ~33 ns |
+| `car`, for comparison | ~15 ns | ~15 ns |
+| compiled `assq`, 4 / 256 keys | ~285 / ~12,500 ns | same |
+| the empty loop itself, per iteration | ~95 ns | ~95 ns |
+
+A record read costs about two `car`s, which is fine. The table beats `assq` from four keys up. But the
+last row is the number that mattered.
+
+## Task 17's premise was false
+
+The plan expected `ir.scm`'s outliers to be slow because their lists grew. Counting over the 993
+lambdas of `benchmark:self-host` says otherwise: a scope lookup's `assq` scans 1.85 entries on
+average, a `memq` on the lowering state 6.8, and even `earley:make-parser` averages 2.5. Replacing
+the compiled `assq` and `memq` with native JavaScript versions of the same scan nonetheless took the
+corpus from 66.5 to 40.4 ms a pass. So 39% of lowering was in those two procedures, and almost none of
+it scanning.
+
+The cost is the generated code for loops. A self tail call compiles to
+`return new R.TailCall(G(), [args])`, an allocation and a trip back through the trampoline every
+iteration: ~95 ns for an empty loop. Compiled `assq` adds a `list?` pass and a fresh closure for its
+internal loop on every call. A table at 115 ns would beat that, but a well-compiled scan of two to
+seven entries would beat the table, so no list in `ir.scm` was replaced. Its header now says why, in
+place of "R7RS-small has no hash tables". Recorded as R59.
+
+## The plan
+
+Tasks 16 and 17 are complete. A new first task, **tail calls to known loops as JavaScript loops**,
+takes the measured cost head-on: a procedure's tail call to itself, and to a `letrec`-bound local
+lambda, compiled to reassigning parameters and `continue`, with the recognising analysis in Scheme.
+Native `assq` and `memq` bound what it is worth to the compiler at 1.65x, and every compiled loop in
+every program pays the same toll. R19 found a different call-path change slower than it looked, so it
+is to be A/B measured per class.
+
+## Verification
+
+Five tests for the load hook, including that it leaves inline libraries and cached ones alone, and a
+bundle test that a library imported after start-up comes back compiled. The counting and native A/B
+harness were throwaway scripts; `benchmark:hash-tables` is the reusable half. 2,920 tests pass in
+Node and 2,817 in the browser, with 0 failures in either, and `benchmark:self-host` still agrees with
+itself on all 993 lambdas.

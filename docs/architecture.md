@@ -99,6 +99,8 @@ checks that they agree about every answer.
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
 │   ├── compare_r7rs.js             # Canonical suite under Gambit and Racket
+│   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
+│   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── record_progress.js          # Regenerates docs/performance_progress.md
 │   ├── lib/
 │   │   ├── harness.js              # Shared bootstrap and timing

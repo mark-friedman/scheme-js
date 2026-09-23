@@ -153,6 +153,36 @@ export function getFileResolver() {
 }
 
 /**
+ * Called with each library loaded from a file, once it has been evaluated.
+ * @type {((libraryName: string[], env: Environment) => void)|null}
+ */
+let libraryLoadHook = null;
+
+/**
+ * Sets what runs on each library loaded from a file.
+ *
+ * Whatever sets up the process at start-up can compile the environment it
+ * has, but not a library loaded afterwards; this is how it reaches those. The
+ * hook runs for libraries found by name through the file resolver, not for a
+ * `define-library` written inline, which is the program's own code.
+ *
+ * @param {((libraryName: string[], env: Environment) => void)|null} hook - Called
+ *   with the library's name and its own environment, or null for none.
+ */
+export function setLibraryLoadHook(hook) {
+    libraryLoadHook = hook;
+}
+
+/**
+ * Runs the library-load hook, if one is set.
+ * @param {string[]} libraryName - The library's name.
+ * @param {Environment} env - The library's own environment.
+ */
+export function runLibraryLoadHook(libraryName, env) {
+    if (libraryLoadHook !== null) libraryLoadHook(libraryName, env);
+}
+
+/**
  * Converts a library name to a string key.
  * (scheme base) -> "scheme.base"
  * @param {Array|Cons} name - Library name as list or array

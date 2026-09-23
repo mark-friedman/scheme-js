@@ -24,12 +24,17 @@
 ;;;
 ;;; ## Two constraints the language imposes
 ;;;
-;;;   - R7RS-small has no hash tables, so the sets JavaScript would keep as
-;;;     `Set` are association lists here and membership is a linear scan.
-;;;     Scopes hold a handful of names and a procedure references tens of
-;;;     globals, so the constant matters more than the complexity -- but it is
-;;;     a real difference, and not one a Scheme programmer could avoid without
-;;;     reaching outside the standard.
+;;;   - Sets and maps here are lists, although SRFI 125 hash tables exist,
+;;;     because the lists are short. Measured over the 993 lambdas in
+;;;     `npm run benchmark:self-host`, a scope lookup's `assq` scans 1.85
+;;;     entries on average and a `memq` on the lowering state 6.8; even
+;;;     `earley:make-parser`, the deepest nesting in the corpus, averages 2.5.
+;;;     A compiled hash-table lookup costs about 100 ns, which a scan that
+;;;     short should never need. What the lists do cost is the compiled `assq`
+;;;     and `memq` themselves: about 300 ns a call, almost none of it spent
+;;;     scanning, because each call and each step of its loop goes through the
+;;;     tier's trampoline. That is 39% of lowering time, and a matter for the
+;;;     code the tier generates for loops, not for this file.
 ;;;   - Nothing here calls `apply`, `values`, or anything else that transfers
 ;;;     control, because a procedure that does is declined by the compiler
 ;;;     tier. Self-hosting means writing in the subset the tier accepts, and

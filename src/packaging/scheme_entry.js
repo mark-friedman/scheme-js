@@ -3,7 +3,7 @@ import { parse } from '../core/interpreter/reader.js';
 import { analyze } from '../core/interpreter/analyzer.js';
 import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
-import { setFileResolver } from '../core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
 import { compileEnvironment } from '../compiler/index.js';
 import { installPrebuilt, fingerprintSources } from '../compiler/prebuilt.js';
@@ -85,6 +85,20 @@ export const stdlibCompilation = {
   prebuilt,
   compiled: compileEnvironment(env)
 };
+
+// A library imported after start-up -- `(srfi 125)`, say -- was not there to
+// be compiled above, and interpreted it costs its callers about 17x on every
+// hash-table lookup. So each one this bundle ships is compiled as it is
+// loaded. Only those: a library the program defines inline is the program's
+// own code, which stays interpreted until compiled user code can be debugged.
+// Where generating code is forbidden, `compileEnvironment` says so and leaves
+// the library interpreted.
+setLibraryLoadHook((libraryName, libraryEnv) => {
+  const fileName = libraryName[libraryName.length - 1];
+  if (BUNDLED_SOURCES[`${fileName}.sld`] !== undefined && libraryEnv) {
+    compileEnvironment(libraryEnv);
+  }
+});
 
 // =============================================================================
 // Public API

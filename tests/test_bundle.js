@@ -67,6 +67,11 @@ export async function runBundleTests(logger) {
             (list (hash-table-ref/default ht (list 1 2) #f)
                   (hash-table-ref ht "count")))`);
         assert(logger, "SRFI 125 hash tables from the bundle", result, ['found', 42]);
+        // Imported after start-up, so compiled by the library-load hook rather
+        // than by the start-up compile; interpreted, every lookup costs ~17x.
+        assert(logger, "A library imported after start-up is compiled",
+            [runSync('hash-table-ref/default').$compiled, runSync('make-hash-table').$compiled],
+            [true, true]);
     } catch (e) {
         logger.fail(`SRFI 125 from the bundle failed: ${e.message}`);
     }

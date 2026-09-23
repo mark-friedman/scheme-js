@@ -19,8 +19,10 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import {
-  registerLibrary, getLibraryExports
+  registerLibrary, getLibraryExports, getFileResolver, setFileResolver,
+  setLibraryLoadHook
 } from '../../src/core/interpreter/library_registry.js';
+import { loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
 import { compileEnvironment } from '../../src/compiler/index.js';
 import { installPrebuilt, fingerprintSources } from '../../src/compiler/prebuilt.js';
 import PREBUILT, { LIBRARY_FILES } from '../../src/packaging/compiled_stdlib.js';
@@ -103,5 +105,49 @@ export async function runLibraryCompilationTests(logger) {
     compileEnvironment(env);
     assert(logger, 'a different value under the same name is left alone',
       getLibraryExports('test.unrelated').get('area') === own, true);
+  }
+
+  // --- Libraries loaded after start-up ---------------------------------------
+  //
+  // Compiling the environment once at start-up cannot reach a library loaded
+  // later, so a loader hook runs on each library read from a file. Whoever
+  // owns the process decides what the hook does; the bundle compiles the
+  // libraries it ships.
+  const sources = {
+    'test.hooked': `(define-library (test hooked) (export double)
+                      (begin (define (double x) (* 2 x))))`,
+    'test.inline': `(define-library (test inline) (export triple)
+                      (begin (define (triple x) (* 3 x))))`,
+    'test.compiled-on-load': `(define-library (test compiled-on-load) (export quadruple)
+                      (begin (define (quadruple x) (* 4 x))))`
+  };
+  const savedResolver = getFileResolver();
+  setFileResolver((name) => sources[name.join('.')]);
+  try {
+    const { interpreter, env } = createInterpreter();
+    const calls = [];
+    setLibraryLoadHook((name, libraryEnv) => calls.push({ name: name.join('.'), libraryEnv }));
+
+    loadLibrarySync(['test', 'hooked'], analyze, interpreter, env);
+    assert(logger, 'the hook runs when a library is loaded from its file',
+      calls.map((c) => c.name).join(','), 'test.hooked');
+    assert(logger, "the hook receives the library's own environment",
+      typeof (calls[0] && calls[0].libraryEnv.bindings.get('double')), 'function');
+
+    loadLibrarySync(['test', 'hooked'], analyze, interpreter, env);
+    assert(logger, 'the hook does not run again for a cached library', calls.length, 1);
+
+    // A library written inline is the program's own code, not one loaded by
+    // name, so the hook leaves it alone.
+    evaluate(interpreter, env, sources['test.inline']);
+    assert(logger, 'the hook does not run for an inline define-library', calls.length, 1);
+
+    setLibraryLoadHook((name, libraryEnv) => compileEnvironment(libraryEnv));
+    const exports = loadLibrarySync(['test', 'compiled-on-load'], analyze, interpreter, env);
+    assert(logger, 'a hook that compiles the library leaves its exports compiled',
+      exports.get('quadruple').$compiled, true);
+  } finally {
+    setLibraryLoadHook(null);
+    setFileResolver(savedResolver);
   }
 }

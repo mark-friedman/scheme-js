@@ -19,6 +19,8 @@ import {
     getFileResolver,
     registerLibrary,
     getLibraryExports as _getLibraryExports,
+    getLibraryEnv,
+    runLibraryLoadHook,
     SYNTAX_KEYWORDS
 } from './library_registry.js';
 import { parseDefineLibrary, parseImportSet } from './library_parser.js';
@@ -50,6 +52,7 @@ export {
     evaluateFeatureRequirement,
     // Library registry
     setFileResolver,
+    setLibraryLoadHook,
     libraryNameToKey,
     isLibraryLoaded,
     getLibraryExports,
@@ -101,7 +104,9 @@ export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
     // Parse the define-library form
     const libDef = parseDefineLibrary(forms[0]);
 
-    return await evaluateLibraryDefinition(libDef, analyze, interpreter, baseEnv);
+    const exports = await evaluateLibraryDefinition(libDef, analyze, interpreter, baseEnv);
+    runLibraryLoadHook(libDef.name, getLibraryEnv(libDef.name));
+    return exports;
 }
 
 /**
@@ -142,7 +147,9 @@ export function loadLibrarySync(libraryName, analyze, interpreter, baseEnv) {
     // Parse the define-library form
     const libDef = parseDefineLibrary(forms[0]);
 
-    return evaluateLibraryDefinitionSync(libDef, analyze, interpreter, baseEnv);
+    const exports = evaluateLibraryDefinitionSync(libDef, analyze, interpreter, baseEnv);
+    runLibraryLoadHook(libDef.name, getLibraryEnv(libDef.name));
+    return exports;
 }
 
 // =============================================================================

@@ -14,7 +14,7 @@
 import { intern } from '../core/interpreter/symbol.js';
 
 /** @type {string} Fingerprint of the sources this was generated from. */
-export const FINGERPRINT = "25a22fc4";
+export const FINGERPRINT = "ae0812b7";
 
 /** @type {string[]} The sources, in the order the fingerprint covers them. */
 export const COMPILER_FILES = [
