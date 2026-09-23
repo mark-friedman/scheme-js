@@ -58,6 +58,7 @@ export const functionalTests = [
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
+    { path: 'functional/tail_position_tests.js', fn: 'runTailPositionTests', async: true },
     { path: 'functional/instrumentation_tests.js', fn: 'runInstrumentationTests', async: true },
     { path: 'functional/compiler_tests.js', fn: 'runCompilerTests', async: true },
     { path: 'debug/compiled_breakpoint_tests.js', fn: 'runCompiledBreakpointTests', async: true, needsInterpreter: false },

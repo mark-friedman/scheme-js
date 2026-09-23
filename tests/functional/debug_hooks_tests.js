@@ -285,6 +285,41 @@ export async function runDebugHooksTests(interpreter, logger) {
             deepLarge.depth > deepSmall.depth, true);
         assert(logger, 'non-tail recursion still produces the right answer',
             deepLarge.result, 40);
+
+        // A tail call that ends a body of several expressions. Tail position
+        // is detected by finding the procedure's DebugExitFrame on top of the
+        // stack, so anything left above it -- a frame for an exhausted
+        // sequence, say -- makes every iteration look like a new call: the
+        // frame stack grows, and so does the shadow stack the debugger shows.
+        run(interpreter, "(define (tco-body-loop n) (car '(1)) (if (< n 1) 0 (tco-body-loop (- n 1))))");
+
+        /**
+         * Makes a debug runtime that also records the deepest its shadow call
+         * stack gets.
+         * @returns {{runtime: Object, maxShadowDepth: function(): number}}
+         */
+        const makeShadowRuntime = () => {
+            const runtime = makeRuntime();
+            let maxShadowDepth = 0;
+            const enterFrame = runtime.enterFrame.bind(runtime);
+            runtime.enterFrame = (frameInfo) => {
+                enterFrame(frameInfo);
+                maxShadowDepth = Math.max(maxShadowDepth, runtime.getDepth());
+            };
+            return { runtime, maxShadowDepth: () => maxShadowDepth };
+        };
+
+        const bodySmallRuntime = makeShadowRuntime();
+        const bodyLargeRuntime = makeShadowRuntime();
+        const bodySmall = measure('(tco-body-loop 50)', bodySmallRuntime.runtime);
+        const bodyLarge = measure('(tco-body-loop 800)', bodyLargeRuntime.runtime);
+
+        assert(logger, 'tail call ending a multi-expression body: right answer under the debugger',
+            bodyLarge.result, 0);
+        assert(logger, 'tail call ending a multi-expression body: frame depth does not grow under the debugger',
+            bodyLarge.depth, bodySmall.depth);
+        assert(logger, 'tail call ending a multi-expression body: shadow call stack does not grow',
+            bodyLargeRuntime.maxShadowDepth(), bodySmallRuntime.maxShadowDepth());
     }
 }
 

@@ -5,7 +5,10 @@
  */
 
 import { assertString } from '../../core/interpreter/type_check.js';
-import { jsToScheme, schemeToJs, schemeToJsDeep } from '../../core/interpreter/js_interop.js';
+import {
+    jsToScheme, schemeToJs, schemeToJsDeep, noteSchemeStore, storedToScheme
+} from '../../core/interpreter/js_interop.js';
+import { takesSchemeValues, callSchemeMethod } from '../../core/interpreter/values.js';
 import { SchemeTypeError, SchemeError } from '../../core/interpreter/errors.js';
 
 /**
@@ -27,14 +30,15 @@ export const interopPrimitives = {
      * Used by the reader's dot notation: obj.prop -> (js-ref obj "prop")
      * @param {Object} obj - The object to access.
      * @param {string} prop - The property name.
-     * @returns {*} The property value (converted to Scheme via jsToScheme).
+     * @returns {*} The property value, as a Scheme value: an integer
+     *   JavaScript wrote reads as exact, a flonum Scheme stored as a flonum.
      */
     'js-ref': (obj, prop) => {
         assertString('js-ref', 2, prop);
         if (obj === null || obj === undefined) {
             throw new SchemeError(`js-ref: cannot access property "${prop}" on ${obj}`, [obj, prop], 'js-ref');
         }
-        return jsToScheme(obj[prop]);
+        return storedToScheme(obj, prop, obj[prop]);
     },
 
     /**
@@ -51,12 +55,16 @@ export const interopPrimitives = {
             throw new SchemeError(`js-set!: cannot set property "${prop}" on ${obj}`, [obj, prop], 'js-set!');
         }
         obj[prop] = value;
+        // Noted so that an integer-valued flonum reads back as a flonum.
+        noteSchemeStore(obj, prop, value);
         return undefined;
     },
 
     /**
      * Invokes a method on a JavaScript object.
      * Used by expanded dot notation: obj.method(args...) -> (js-invoke obj "method" args...)
+     * A JavaScript method's arguments and result are converted across the
+     * boundary; a Scheme procedure's are passed through unchanged.
      * @param {Object} obj - The object.
      * @param {string} method - The method name.
      * @param {...*} args - Arguments to the method.
@@ -70,6 +78,14 @@ export const interopPrimitives = {
         const func = obj[method];
         if (typeof func !== 'function') {
             throw new SchemeTypeError('js-invoke', 2, 'function', func);
+        }
+        // A Scheme procedure stored as a method -- a define-class method, say
+        // -- is Scheme calling Scheme, so it gets the caller's values as they
+        // are. Converting them for JavaScript and back would make a flonum
+        // such as 2.0 exact, hand the method a copy of a vector instead of the
+        // vector itself, and throw on a bignum beyond 2^53.
+        if (takesSchemeValues(func)) {
+            return callSchemeMethod(func, obj, args);
         }
         // Convert Scheme values to JS (e.g., BigInt -> Number)
         // Use deep conversion to handle nested structures

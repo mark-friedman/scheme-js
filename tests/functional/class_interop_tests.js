@@ -102,6 +102,39 @@ export function runClassInteropTests(interpreter, logger) {
   assert(logger, "Subclass instance of Person", eve instanceof Person, true);
   assert(logger, "Subclass method call", eve.work(), "Eve is working as Engineer");
   assert(logger, "Subclass calling inherited method", eve.greet("Alice"), "Hello Alice, I am Eve");
+
+  // 8. Exactness across the boundary. A JavaScript number has no exactness,
+  // so an integer JavaScript passes or writes reads as exact in Scheme, while
+  // a flonum Scheme stores stays inexact even though it is the same kind of
+  // JavaScript value.
+  run(interpreter, `
+        (define-class <Tally>
+          Tally
+          tally?
+          (fields (total tally-total))
+          (constructor (start) (set! this.total start))
+          (methods
+            (add! (n) (set! this.total (+ this.total n)))))
+    `);
+  const Tally = run(interpreter, "Tally");
+  const tally = new Tally(2);
+  interpreter.globalEnv.define('js-tally', tally);
+  assert(logger, "JS constructor argument reads exact",
+    run(interpreter, "(exact? (tally-total js-tally))"), true);
+  tally["add!"](3);
+  assert(logger, "JS method argument reads exact",
+    run(interpreter, "(exact? (tally-total js-tally))"), true);
+  assert(logger, "JS method argument total", tally.total, 5n);
+
+  run(interpreter, "(set! js-tally.total 8.0)");
+  assert(logger, "Scheme flonum stored on a JS-constructed object reads inexact",
+    run(interpreter, "(exact? (tally-total js-tally))"), false);
+  tally.total = 9;
+  assert(logger, "JS write over a Scheme flonum reads exact",
+    run(interpreter, "(exact? (tally-total js-tally))"), true);
+  tally.total = 10;
+  assert(logger, "JS write of a different integer reads exact",
+    run(interpreter, "(exact? js-tally.total)"), true);
 }
 
 // Allow running directly via node

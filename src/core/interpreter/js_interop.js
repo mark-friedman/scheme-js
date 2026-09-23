@@ -166,3 +166,77 @@ export function jsToSchemeDeep(val) {
     // Fallback
     return val;
 }
+
+// ============================================================================
+// Numbers Stored in JavaScript Properties
+// ============================================================================
+
+// A JavaScript number carries no exactness. Scheme represents an exact integer
+// as a BigInt and an inexact real as a number, but an integer that JavaScript
+// code writes into a property is a number too, and the interop policy is that
+// it reads back in Scheme as exact. So an integer-valued number in a property
+// is ambiguous: it is a flonum if Scheme stored it and an exact integer if
+// JavaScript did. Neither the property nor the value can say which, so every
+// Scheme-side store -- record constructors and modifiers, `js-set!`, and
+// `define-class` construction -- notes each integer-valued flonum it stores,
+// by object and property, and every Scheme-side read consults the note.
+//
+// A note is consulted only while the property still holds the very number it
+// records, so a later JavaScript write of any other value is read as
+// JavaScript's. A note is not cleared when Scheme later stores a non-number,
+// which keeps stores free of a lookup; the only cost is that JavaScript
+// writing back that same integer afterwards reads as the flonum.
+//
+// A WeakMap keeps the notes off the objects themselves, so objects keep one
+// shape and JavaScript sees no extra property.
+const schemeFlonums = new WeakMap();
+
+/**
+ * Whether a value is an integer-valued JavaScript number: the one kind of
+ * stored value whose exactness depends on who stored it.
+ * @param {*} value - A stored value.
+ * @returns {boolean} True for a finite, integer-valued number, including -0.
+ */
+export function isIntegerNumber(value) {
+    return typeof value === 'number' && Number.isInteger(value);
+}
+
+/**
+ * Notes a value Scheme has just stored in an object's property, so that it
+ * reads back with its exactness. Only an integer-valued flonum needs a note;
+ * anything else is ignored.
+ * @param {Object|Function} object - The object written to.
+ * @param {string} key - The property written.
+ * @param {*} value - The Scheme value stored.
+ */
+export function noteSchemeStore(object, key, value) {
+    if (!isIntegerNumber(value)) {
+        return;
+    }
+    let keys = schemeFlonums.get(object);
+    if (keys === undefined) {
+        keys = new Map();
+        schemeFlonums.set(object, keys);
+    }
+    keys.set(key, value);
+}
+
+/**
+ * Converts a value read from an object's property to Scheme: an integer
+ * JavaScript wrote becomes exact, and a flonum Scheme stored stays a flonum.
+ * @param {*} object - The object read from.
+ * @param {string} key - The property read.
+ * @param {*} value - The value the property holds.
+ * @returns {*} The Scheme value.
+ */
+export function storedToScheme(object, key, value) {
+    if (!isIntegerNumber(value)) {
+        return value;
+    }
+    const keys = schemeFlonums.get(object);
+    // Object.is, so that a JavaScript 0 over a Scheme -0.0 counts as a new value.
+    if (keys !== undefined && Object.is(keys.get(key), value)) {
+        return value;
+    }
+    return BigInt(value);
+}

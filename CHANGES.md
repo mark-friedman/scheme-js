@@ -6408,7 +6408,8 @@ The one-argument primitive form `(record-constructor rtd)` on a record type now 
 order, with the same notes. A class built by `make-class` (`define-class`) has no field list for it
 to use, so its constructor still passes arguments straight through. `define-class` fields written
 with `(set! this.x 2.0)` bypass the record primitives and still read back exact; that is the general
-dot-assignment path, not `define-record-type`.
+dot-assignment path, not `define-record-type`. *(Superseded by the walkthrough "`define-class` and
+property access keep exactness" below: that path was two leaks, and both are fixed.)*
 
 **Cost.** A microbenchmark of 2×10⁷ reads over 1,000 records: fields holding a `BigInt`, an object
 or a non-integer flonum read in about 13 ns, the same as before within noise. Integer-valued numbers
@@ -6437,3 +6438,162 @@ fix. The three that check JavaScript writes pass on the old code by design; a mu
 the conversion makes all three fail. `npm run prebuild` regenerated `compiled_stdlib.js` (only its
 fingerprint changed) and `bundled_libraries.js`. 2,822 tests pass in Node, also with
 `SCHEME_AOT_STDLIB=1`, and 2,719 in the browser (`web/tests.html`), with 0 failures in any.
+
+# Walkthrough: `define-class` and property access keep exactness
+
+Every way of storing `2.0` in a `define-class` object read back as exact `2`, through two
+independent leaks.
+
+## Leak 1: Scheme calling Scheme through JavaScript
+
+A constructor body, a method called through dot notation, and a `super.method` call are Scheme
+closures, but they were reached through the closure's JavaScript-facing wrapper, which runs every
+argument through `jsToScheme` and the result through `unpackForJs`. So `2.0` became `2n` before the
+body ran. The same conversion also broke two things beyond exactness: a method received a copy of a
+vector argument rather than the vector itself, so `(eq? v (o.m v))` was `#f` and mutations were lost,
+and a bignum argument beyond 2^53 threw.
+
+Closures now carry a second raw entry, `SCHEME_RAW_METHOD_CALL` in `values.js`, which converts
+nothing and binds `this`; `callSchemeMethod` uses it, or settles the tail calls of a compiled
+procedure. `js-invoke` and `class-super-call` call a Scheme procedure that way; a JavaScript method
+is still converted as before.
+
+Constructors needed a way to tell the two kinds of caller apart, since both call the same class
+with no wrapper of their own. They are told apart by `new`: the interpreter applies a class as a
+plain function, while JavaScript, `js-new` and a subclass's `super` construct with `new`. A class
+called without `new` hands the knowledge to its own JavaScript constructor through a module variable
+naming the class that may take it; the constructor takes it before anything else, runs its Scheme
+constructor body and parent-argument computation raw, and hands it on to its parent's constructor.
+Naming the class matters: without it, a JavaScript parent whose constructor builds a different Scheme
+object with `new` gave that construction Scheme semantics, and a test covers exactly that. The
+default-constructor forms of `define-class` now bind the class itself, as the constructor-clause
+forms already did, rather than a `record-constructor` wrapper that constructed with `new`.
+
+JavaScript code that calls a class without `new` is taken for Scheme; the `define-class`
+documentation says so.
+
+## Leak 2: property stores forgot who stored them
+
+`js-set!` stored a plain JavaScript number and `js-ref` always converted an integer-valued one to
+exact. The notes record accessors already kept are now one table in `js_interop.js`
+(`noteSchemeStore`, `storedToScheme`), keyed by object and property, and `js-set!`, `js-ref`, record
+accessors and modifiers and `define-class` construction all share it. It works for any JavaScript
+object, not only records.
+
+## A behaviour change to know about
+
+Four existing class tests expected `(p.magnitude)` to be exact `5`. It computes `(sqrt 25)`, and
+`sqrt` here returns an inexact `5.0` even for an exact perfect square; the method-return conversion
+had been turning that into exact `5`. The tests now expect what `sqrt` returns. Whether `sqrt` should
+return an exact root is a separate conformance question.
+
+## Cost
+
+Per operation, against the committed tree, best of two runs:
+
+| operation | before | after |
+|---|---|---|
+| `js-ref` / `js-set!` / record access of a non-integer value | 6–15 ns | within 1.5 ns |
+| `js-ref` of an integer-valued number | 19.3 ns | 23.5 ns |
+| `js-set!` of an integer-valued number | 6.6 ns | 24.8 ns (the note) |
+| method call through `js-invoke`, flonum argument | 0.71 µs | 0.66 µs |
+| method call through `js-invoke`, 100-element vector argument | 1.62 µs | 0.54 µs |
+| constructing with a constructor clause | 0.68 µs | 0.72 µs |
+
+None of the benchmark suites can show this: counting calls to `js-ref`, `js-set!`, `js-invoke`,
+`make-class` and `make-class-with-init` across all 41 runnable R7RS benchmarks, on both tiers, found
+none, and neither `ir.scm` nor SRFI 125 uses them. Measuring also turned up a separate interpreter bug:
+the last expression of a `begin` or of a multi-expression body is not evaluated in tail position,
+because `BeginFrame.step` pushes a frame even when no expressions remain. A loop therefore holds one
+frame per iteration, and since re-entering Scheme from JavaScript copies the frame stack, a loop that
+calls a method is quadratic -- 10 µs a call at 2,000 iterations, 40 µs at 20,000. It is not fixed
+here.
+
+## Verification
+
+38 new assertions, written first: 32 in `tests/extras/scheme/class_tests.scm` (constructor bodies,
+default constructors, methods, `super` construction and method calls, nested construction, a
+JavaScript parent, argument identity, bignums, plain objects) and 6 in
+`tests/functional/class_interop_tests.js` (JavaScript construction and method calls read exact, and a
+JavaScript write over a Scheme flonum). 31 were written before the implementation and 19 of them
+failed; the other 7 were added while implementing, to cover a JavaScript parent, default-constructor
+subclasses and `super` arguments, and are checked by mutation instead. Nine mutations -- the hand-off
+ignoring which class it names, `js-set!` not noting, `js-ref` ignoring notes, `js-invoke` or
+`class-super-call` converting, either parent hand-off dropped, default-constructor fields not noted,
+the constructor body converting -- each made at least one test fail; the `super` call mutation
+needed two tests added before it did. 2,860 tests pass in Node, also with `SCHEME_AOT_STDLIB=1`, and
+2,757 in the browser, with 0 failures in any.
+
+# Walkthrough: The last expression of a sequence is in tail position
+
+R7RS 3.5 puts the last expression of a `begin`, of a procedure body, and of everything that expands
+to them (`when`, `unless`, `cond` clauses, `do`) in tail position. The interpreter did not.
+`BeginFrame.step` in `src/core/interpreter/frames.js` pushed a frame for the remaining expressions
+before evaluating the next one, even when nothing remained, so the last expression ran with an
+exhausted frame beneath it. `BeginNode.step` and the other two places that build a `BeginFrame` --
+the continuation-invocation and exception-handler action sequences -- already guarded against an
+empty remainder; the frame's own step did not. It now pushes a frame only while an expression after
+the current one is left. No other frame has the pattern: `AppFrame` walks arguments, which are never
+in tail position, and `LetFrame` and `LetRecFrame` hand their body over without pushing.
+
+## What depended on the empty frame
+
+Nothing, but the debugger was hurt by it. `recordDebugFrameEntry` decides a call is a tail call by
+finding the procedure's `DebugExitFrame` on top of the stack. The exhausted frame sat above it, so a
+tail call ending a multi-expression body was recorded as a new call: under the debugger such a loop
+gained two frames per iteration, and the shadow call stack `StackTracer` reports -- which the stepper
+compares depths against -- grew by one. `PauseController` and `StackTracer` needed no change.
+
+Re-entering Scheme from JavaScript copies the frame stack beneath the call (`getParentContext`), so a
+loop that called a `define-class` method, or any JavaScript function that calls back into Scheme, was
+quadratic. Measured on a loop calling `(o.m 1.5)`: 6.24 us a call at 2,000 iterations and 39.68 us at
+20,000 before; 2.48 us and 1.66 us after.
+
+## Measurement
+
+Deterministic counts first, since timings on this machine vary by up to 1.3x per class between two
+runs of identical code. One iteration of each of the 41 runnable R7RS benchmarks, interpreter tier,
+counting evaluator dispatches and the deepest frame stack; every benchmark gives the right answer
+both ways.
+
+| class | dispatches, geomean | largest drop | peak frame depth, e.g. |
+|---|---|---|---|
+| call | -1.4% | `diviter` -6.0% | `diviter` 1,002 -> 5 |
+| fixnum | -1.4% | `puzzle` -5.3% | `puzzle` 529 -> 59 |
+| bignum | -0.0% | -- | unchanged |
+| flonum | -0.8% | `simplex` -3.9% | `fft` 8,198 -> 7, `mbrot` 5,632 -> 7 |
+| list | -2.0% | `destruc` -5.2% | `quicksort` 10,008 -> 12, `destruc` 661 -> 9 |
+| vector | -7.8% | `array1` -9.1% | `array1` 100,007 -> 6 |
+| string | -3.2% | `string` -5.1% | `string` 34 -> 9 |
+| continuation | -2.7% | `fibc` -5.0% | `dynamic` 2,842 -> 2,782 |
+
+Wall clock, `node benchmarks/run_r7rs.js --tier interpreter`, best of two runs each side, after over
+before, geometric mean per class:
+
+| class | n | after / before | range |
+|---|---|---|---|
+| call | 8 | 0.988x | 0.927 -- 1.036 |
+| fixnum | 4 | 1.011x | 0.982 -- 1.054 |
+| bignum | 2 | 0.963x | 0.948 -- 0.979 |
+| flonum | 7 | 0.968x | 0.917 -- 1.004 |
+| list | 13 | 0.944x | 0.904 -- 0.967 |
+| vector | 2 | 0.881x | 0.829 -- 0.936 |
+| string | 2 | 0.915x | 0.860 -- 0.974 |
+| continuation | 3 | 0.983x | 0.975 -- 0.996 |
+
+The list class improved on all 13 of its benchmarks, and vector and string agree with their dispatch
+counts; the other classes are within the run-to-run noise. The compiled tier's ratios were measured
+against the slower baseline, recorded as R58 in `docs/compiler_findings.md`; no ranking in the plan
+depended on a margin that size, so `docs/compiler_plan.md` is unchanged.
+
+## Verification
+
+`tests/functional/tail_position_tests.js`, written first, measures the deepest frame stack a loop
+reaches at 50 and at 800 iterations -- equal in constant space -- for `begin` in a named `let`, a
+three-expression `begin`, two- and three-expression procedure bodies, `when`, `unless`, a `cond`
+clause, `do`, a multi-expression `let` body, and a JavaScript callback that re-enters Scheme; plus
+genuine recursion through a `begin`, which must still grow, and the value of a sequence. Three
+assertions in `tests/functional/debug_hooks_tests.js` do the same under the debugger, including the
+shadow call stack. All 12 depth assertions failed before the fix, each by one frame per iteration
+(two under the debugger). 2,887 tests pass in Node, also with `SCHEME_AOT_STDLIB=1`, 82 whole-program
+checks pass, and 2,784 tests pass in the browser, with 0 failures in any.

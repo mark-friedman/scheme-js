@@ -225,6 +225,12 @@
 ;;  * If constructor clause is present:
 ;;  *   - With parent: must call (super args...) before using this
 ;;  *   - Body can initialize fields and perform other setup
+;;  *
+;;  * constructor-name is bound to the class itself, which is also a
+;;  * JavaScript constructor. Called from Scheme it receives Scheme values
+;;  * unconverted; JavaScript must construct it with `new`, and then its
+;;  * integer arguments read as exact in Scheme. Called from JavaScript
+;;  * without `new`, it is taken for a Scheme caller.
 ;;  */
 (define-syntax define-class
   (syntax-rules (fields methods constructor super)
@@ -300,7 +306,7 @@
        (methods (method-name method-params . method-body) ...))
      (begin
        (define type (make-class 'type parent '(field-tag-spec ...) '(field-tag-spec ...)))
-       (define constructor-name (record-constructor type))
+       (define constructor-name type)
        (define predicate (record-predicate type))
        (define-class-field type field-tag-spec accessor . more) ...
        (define-class-method type parent (method-name method-params . method-body)) ...))
@@ -313,7 +319,7 @@
        (methods (method-name method-params . method-body) ...))
      (begin
        (define type (make-class 'type #f '(field-tag-spec ...) '(field-tag-spec ...)))
-       (define constructor-name (record-constructor type))
+       (define constructor-name type)
        (define predicate (record-predicate type))
        (define-class-field type field-tag-spec accessor . more) ...
        (define-class-method type (method-name method-params . method-body)) ...))))

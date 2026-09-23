@@ -53,6 +53,22 @@ export const SCHEME_PRIMITIVE = Symbol.for('scheme.primitive');
  */
 export const SCHEME_RAW_CALL = Symbol.for('scheme.rawCall');
 
+/**
+ * Symbol naming a closure's entry point for primitives that hold Scheme values
+ * and must also supply `this`: a method call through dot notation, a
+ * `define-class` constructor body, a `super.method` call.
+ *
+ * Like `SCHEME_RAW_CALL` it converts nothing, so an integer-valued flonum stays
+ * a flonum, a vector arrives as the caller's own vector rather than a copy,
+ * and a bignum beyond 2^53 does not throw. Unlike it, it binds `this`, and it
+ * marks the nested run's boundary exactly as the JavaScript-facing wrapper
+ * does, since those primitives are reached the same way a JavaScript caller
+ * is. Called as `closure[SCHEME_RAW_METHOD_CALL](thisArg, args)`.
+ *
+ * @type {symbol}
+ */
+export const SCHEME_RAW_METHOD_CALL = Symbol.for('scheme.rawMethodCall');
+
 // =============================================================================
 // Type Checking Functions
 // =============================================================================
@@ -133,6 +149,14 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
             schemeArgs.map((value) => new LiteralNode(value)));
         return interpreter.runWithSentinel(
             ast, undefined, { jsAutoConvert: 'raw', compiledBoundary: true });
+    };
+
+    // Entry point for primitives that hold Scheme values and bind `this`.
+    closure[SCHEME_RAW_METHOD_CALL] = function (thisArg, schemeArgs) {
+        const ast = new TailAppNode(
+            new LiteralNode(closure),
+            schemeArgs.map((value) => new LiteralNode(value)));
+        return interpreter.runWithSentinel(ast, thisArg, { jsAutoConvert: 'raw' });
     };
 
     // Attach marker and closure data
@@ -295,6 +319,38 @@ export function settleTailCalls(result) {
         result = raw === undefined ? result.func(...args) : raw(...args);
     }
     return result;
+}
+
+/**
+ * Whether a function takes and returns Scheme values, so that a primitive
+ * calling it should pass its arguments unconverted: an interpreted closure,
+ * or a function marked `SCHEME_PRIMITIVE` -- a primitive, a compiled
+ * procedure, a `define-class` class. A continuation is excluded: its callable
+ * form is a JavaScript entry point that converts what it is given.
+ * @param {*} f - The value to check.
+ * @returns {boolean}
+ */
+export function takesSchemeValues(f) {
+    return typeof f === 'function' &&
+        (f[SCHEME_CLOSURE] === true || f[SCHEME_PRIMITIVE] === true);
+}
+
+/**
+ * Calls a procedure for which `takesSchemeValues` holds, from a primitive that
+ * holds Scheme values, binding `this`. Nothing is converted in either
+ * direction.
+ * @param {Function} proc - The procedure.
+ * @param {*} thisArg - The value `this` is bound to.
+ * @param {Array} args - The arguments, as Scheme values.
+ * @returns {*} The procedure's result, as a Scheme value.
+ */
+export function callSchemeMethod(proc, thisArg, args) {
+    const method = proc[SCHEME_RAW_METHOD_CALL];
+    if (method !== undefined) {
+        return method(thisArg, args);
+    }
+    // A compiled procedure may return a pending tail call rather than a value.
+    return settleTailCalls(proc.apply(thisArg, args));
 }
 
 /**

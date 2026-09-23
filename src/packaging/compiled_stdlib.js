@@ -12,7 +12,7 @@
 // for source that has since changed.
 
 /** @type {string} Fingerprint of the sources this was generated from. */
-export const FINGERPRINT = "345fce5a";
+export const FINGERPRINT = "e7e20d30";
 
 /** @type {string[]} The sources, in the order the fingerprint covers them. */
 export const LIBRARY_FILES = [

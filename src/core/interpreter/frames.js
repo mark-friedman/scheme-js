@@ -255,8 +255,17 @@ export class DebugExitFrame extends Executable {
 }
 
 /**
- * Frame for a 'begin' expression.
- * Evaluates remaining expressions in sequence, returns the last.
+ * Frame for a 'begin' expression, or any other sequence: a procedure body of
+ * several expressions, and the forms that expand to `begin` such as `when`,
+ * `unless` and `cond` clauses. Evaluates the remaining expressions in turn;
+ * the sequence's value is the last one's.
+ *
+ * The frame exists only while some expression after the current one is left
+ * to evaluate. The last expression is in tail position (R7RS 3.5) -- the
+ * sequence has nothing left to do with its value -- so it is evaluated with no
+ * frame for the sequence beneath it. An exhausted frame left there would make
+ * any loop whose body ends in a sequence gain a frame per iteration, and would
+ * hide a procedure's `DebugExitFrame` from the debugger's tail-call detection.
  */
 export class BeginFrame extends Executable {
     /**
@@ -275,9 +284,9 @@ export class BeginFrame extends Executable {
         }
 
         const nextExpr = this.remainingExprs[0];
-        const rest = this.remainingExprs.slice(1);
-
-        registers[FSTACK].push(new BeginFrame(rest, this.env));
+        if (this.remainingExprs.length > 1) {
+            registers[FSTACK].push(new BeginFrame(this.remainingExprs.slice(1), this.env));
+        }
 
         registers[CTL] = nextExpr;
         registers[ENV] = this.env;

@@ -7,82 +7,27 @@
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeError, SchemeTypeError, SchemeArityError } from '../interpreter/errors.js';
-import { jsToScheme } from '../interpreter/js_interop.js';
+import { noteSchemeStore, storedToScheme } from '../interpreter/js_interop.js';
 import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 
 // ============================================================================
-// Field exactness
+// Record type helpers
 // ============================================================================
-
-// A JavaScript number carries no exactness. Scheme represents an exact integer
-// as a BigInt and an inexact real as a number, but an integer that JavaScript
-// code writes into a field is a number too, and the interop policy is that it
-// reads back in Scheme as exact. So an integer-valued number in a field is
-// ambiguous: it is a flonum if Scheme stored it and an exact integer if
-// JavaScript did. Neither the field nor the value can say which, so the record
-// constructor and modifiers note here each integer-valued flonum they store,
-// by record and field. The note is consulted only while the field still holds
-// the very number it records, so a later JavaScript write of any other value
-// is read as JavaScript's. A note is not cleared when Scheme later stores a
-// non-number, which keeps the modifier free of a lookup; the only cost is that
-// JavaScript writing back that same integer afterwards reads as the flonum.
-// A WeakMap keeps the notes off the records themselves, so records keep one
-// shape and JavaScript sees no extra property.
-const schemeFlonums = new WeakMap();
 
 // The field names of a record type made by make-record-type, in field order.
 const RECORD_FIELDS = Symbol('record-fields');
 
 /**
- * Whether a value is an integer-valued JavaScript number: the one kind of
- * field value whose exactness depends on who stored it.
- * @param {*} value - A field value.
- * @returns {boolean} True for a finite, integer-valued number, including -0.
- */
-function isIntegerNumber(value) {
-    return typeof value === 'number' && Number.isInteger(value);
-}
-
-/**
- * Records that Scheme stored an integer-valued flonum in a field.
- * @param {Object} record - The record written to.
- * @param {string} fieldName - The field written.
- * @param {number} value - The flonum stored.
- */
-function noteSchemeFlonum(record, fieldName, value) {
-    let fields = schemeFlonums.get(record);
-    if (fields === undefined) {
-        fields = new Map();
-        schemeFlonums.set(record, fields);
-    }
-    fields.set(fieldName, value);
-}
-
-/**
- * Whether an integer-valued number read from a field is a flonum Scheme
- * stored there, rather than an integer JavaScript wrote.
- * @param {Object} record - The record read from.
- * @param {string} fieldName - The field read.
- * @param {number} value - The number the field holds.
- * @returns {boolean} True if Scheme stored this very number in this field.
- */
-function isSchemeFlonum(record, fieldName, value) {
-    const fields = schemeFlonums.get(record);
-    // Object.is, so that a JavaScript 0 over a Scheme -0.0 counts as a new value.
-    return fields !== undefined && Object.is(fields.get(fieldName), value);
-}
-
-/**
- * Notes each integer-valued flonum among a constructor's arguments.
+ * Notes each constructor argument as a Scheme store into its field, so that
+ * integer-valued flonums keep their exactness (see `noteSchemeStore` in
+ * `js_interop.js`).
  * @param {Object} record - The record just constructed.
  * @param {string[]} fieldNames - The field each argument initialised.
  * @param {Array} args - The constructor's arguments.
  */
-function noteSchemeFlonums(record, fieldNames, args) {
+function noteConstructorStores(record, fieldNames, args) {
     for (let i = 0; i < args.length; i++) {
-        if (isIntegerNumber(args[i])) {
-            noteSchemeFlonum(record, fieldNames[i], args[i]);
-        }
+        noteSchemeStore(record, fieldNames[i], args[i]);
     }
 }
 
@@ -160,9 +105,11 @@ export const recordPrimitives = {
      * define-record-type passes them, and initialises the named fields; any
      * other field is left undefined, which R7RS leaves unspecified. Without
      * tags, a record type's constructor takes every field in field order.
-     * A class built by make-class, which is how define-class uses this, has
-     * no field list here: it maps its own constructor parameters to fields,
-     * so its constructor passes its arguments through unchanged.
+     * A class built by make-class has no field list here: it maps its own
+     * constructor parameters to fields, so its constructor passes its
+     * arguments through unchanged, constructing the class with `new` as a
+     * JavaScript caller would. define-class binds its constructor to the
+     * class itself instead.
      *
      * @param {Function} rtd - Record type descriptor.
      * @param {Cons|null} [tags] - The fields the arguments initialise, in order.
@@ -193,7 +140,7 @@ export const recordPrimitives = {
                         throw new SchemeArityError(procName, arity, arity, args.length);
                     }
                     const record = new rtd(...args);
-                    noteSchemeFlonums(record, tagNames, args);
+                    noteConstructorStores(record, tagNames, args);
                     return record;
                 };
             } else {
@@ -207,7 +154,7 @@ export const recordPrimitives = {
                     for (let i = 0; i < arity; i++) {
                         record[tagNames[i]] = args[i];
                     }
-                    noteSchemeFlonums(record, tagNames, args);
+                    noteConstructorStores(record, tagNames, args);
                     return record;
                 };
             }
@@ -243,13 +190,9 @@ export const recordPrimitives = {
             if (!(obj instanceof rtd)) {
                 throw new SchemeTypeError(`${fieldName} accessor`, 1, rtd.name, obj);
             }
-            const value = obj[fieldName];
             // An integer JavaScript wrote reads as exact; a flonum Scheme
-            // stored reads as itself. See the field exactness notes above.
-            if (isIntegerNumber(value) && !isSchemeFlonum(obj, fieldName, value)) {
-                return jsToScheme(value);
-            }
-            return value;
+            // stored reads as itself.
+            return storedToScheme(obj, fieldName, obj[fieldName]);
         };
         acc[SCHEME_PRIMITIVE] = true;
         return acc;
@@ -268,9 +211,7 @@ export const recordPrimitives = {
                 throw new SchemeTypeError(`${fieldName} modifier`, 1, rtd.name, obj);
             }
             obj[fieldName] = val;
-            if (isIntegerNumber(val)) {
-                noteSchemeFlonum(obj, fieldName, val);
-            }
+            noteSchemeStore(obj, fieldName, val);
         };
         mod[SCHEME_PRIMITIVE] = true;
         return mod;

@@ -247,6 +247,7 @@ showed that **enabling the debugger broke tail-call optimization outright**: eac
 pushed a `DebugExitFrame` that survived until the whole chain returned, so a tail loop reached frame
 depth 806 for 800 iterations against 4 with debugging off. A long-running tail-recursive program
 would have exhausted memory under the debugger and not otherwise. Fixed in Stage 0.
+*(Only for loops whose tail call is not the last expression of a sequence; see R58.)*
 *Consequence:* none for the plan's direction, but it is a reminder that "implemented" and "working"
 were not the same thing in the debugger, which is worth carrying into Stage 2b's hook redesign.
 
@@ -2091,6 +2092,29 @@ replaced to `substituteLibraryValues`, which updates export maps and library env
 How much library code the old behaviour slowed was never measured and now cannot be without undoing
 the fix. The broader lesson is the one R45 already taught, one level up: a speedup measured from one
 environment says nothing about code that reaches the same procedures by another path.
+
+**R58. The interpreter did not run tail recursion in constant space when the tail call ended a
+sequence.**
+
+`compiler_design.md` says tail calls go through a trampoline, "so tail recursion runs in constant
+space", and R2 recorded the debugger's version of this bug as fixed. Both held only when the tail
+call was not the last expression of a sequence. `BeginFrame.step` pushed a frame for the remaining
+expressions even when none remained, so the last expression of every `begin`, every procedure body of
+two or more expressions, and everything that expands to them -- `when`, `unless`, `cond` clauses,
+`do` -- ran with an exhausted frame beneath it. A loop through any of them gained a frame per
+iteration: `array1` peaked at 100,007 frames, `quicksort` at 10,008, `fft` at 8,198. Under the
+debugger it was worse, because the exhausted frame hid the procedure's `DebugExitFrame` from R2's
+tail-call detection, so the shadow call stack grew too. And since re-entering Scheme from JavaScript
+copies the frame stack, a loop calling a `define-class` method was quadratic: 6 us a call at 2,000
+iterations, 40 us at 20,000.
+
+Nothing caught it because the space test, `tests/core/scheme/tco_tests.scm`, loops through `if`
+branches with a single-expression body -- the one shape that was right -- and so did R2's test.
+
+*Consequence:* the interpreter baseline every compiled-tier ratio was measured against carried this
+cost. Fixed, it takes 0-9% fewer dispatches per benchmark and roughly 5-12% less time on the list,
+vector and string classes, so those classes' compiled-tier ratios measured before the fix read
+correspondingly high. No ranking in `compiler_plan.md` depended on a margin that size.
 
 ---
 
