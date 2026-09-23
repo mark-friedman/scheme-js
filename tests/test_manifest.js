@@ -64,6 +64,7 @@ export const functionalTests = [
     { path: 'debug/compiled_breakpoint_tests.js', fn: 'runCompiledBreakpointTests', async: true, needsInterpreter: false },
     { path: 'debug/macro_breakpoint_tests.js', fn: 'runMacroBreakpointTests', async: true, needsInterpreter: false },
     { path: 'functional/library_compilation_tests.js', fn: 'runLibraryCompilationTests', async: true, needsInterpreter: false },
+    { path: 'functional/loop_compilation_tests.js', fn: 'runLoopCompilationTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
     { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },

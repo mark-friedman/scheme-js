@@ -151,6 +151,27 @@ Free variables can be passed by value because an unassigned one cannot be observ
 copy, and an assigned one is already a box — so what is passed is the box. `letrec` is the whole
 difficulty and `lift.js`'s header explains it.
 
+## Loops
+
+The trampoline costs an allocation and a return per tail call, and a loop is a tail call per
+iteration, so two shapes are compiled as JavaScript loops instead. Both are decided by lowering, in
+Scheme, and handed to the emitter as flags on the IR:
+
+- **A tail call to the procedure itself** reassigns the parameters and jumps back to the top:
+  `continue` in the fast form, `$pc = 0` in the twin. For a procedure bound by `letrec` or an internal
+  definition this needs the name never to be assigned. For a top-level procedure calling its own
+  global, the jump is guarded on the binding, since the global can be redefined after compilation.
+- **A `letrec` loop entered once, in tail position** — a named `let`, a `do`, the loop inside `assq`
+  — is emitted inside the procedure that enters it, when its name is only ever called by that entry
+  and by its own looping calls. Its parameters become the enclosing procedure's locals and entering it
+  allocates nothing. Without this, each call of `assq` still made a closure and a `TailCall` to enter
+  a loop that usually runs twice.
+
+Reassigning parameters in place is sound only because every nested procedure is lifted and receives
+its free variables by value, or by box: a closure made in one iteration holds that iteration's values.
+Each iteration re-runs what a fresh call would — boxing the boxed parameters and making the boxes for
+internal definitions — so no two iterations share a binding.
+
 ## The IR, and lowering
 
 Lowering consumes the **analyzed** AST, not source — so macro expansion, hygiene, alpha-renaming and

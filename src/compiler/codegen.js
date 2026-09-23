@@ -152,6 +152,10 @@ export function generate(ir, globals, name, env) {
   // saves. The profile that suggested the optimization was taken at a 9 ms wall
   // time, where the sampling profiler's own overhead was 66% and inflated the
   // accessor's apparent share.
+  //
+  // A *tail* call to the procedure itself is a different matter, and does loop:
+  // it replaces an allocation and a return to the trampoline, not a lookup.
+  // See `loopBack` in `emitter.js` and "Loops" in `ir.scm`.
 
   // The resumable form is generated first, although it is emitted second.
   // Generating it is what decides where each call site resumes and which locals

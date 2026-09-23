@@ -51,176 +51,15 @@ export const PROCEDURES = {
     const G11 = R.globalAccessor(E, "bytevector-length");
     const G12 = R.globalAccessor(E, "bytevector-u8-ref");
     const G13 = R.globalAccessor(E, "string?");
-    function $mk$fn27(s_len_2da_$2, s_a_$0, s_b_$1) {
-      let s_loop_$4;
-      function $fn27(s_i_$5) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
-      $t0 = G7() === P7 && (typeof s_i_$5 === 'bigint' && typeof s_len_2da_$2 === 'bigint') ? (s_i_$5 === s_len_2da_$2) : R.settle(R.invoke(G7(), [s_i_$5, s_len_2da_$2]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return true;
-    } else {
-      $t1 = G8();
-      $t2 = $t1[R.SCHEME_RAW_CALL];
-      $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$5) : $t2(s_a_$0, s_i_$5);
-      while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$5 }); return R.UNWIND; }
-      $t4 = G8();
-      $t5 = $t4[R.SCHEME_RAW_CALL];
-      $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$5) : $t5(s_b_$1, s_i_$5);
-      while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$5 }); return R.UNWIND; }
-      $t7 = G2();
-      $t8 = $t7[R.SCHEME_RAW_CALL];
-      $t9 = $t8 === undefined ? $t7($t3, $t6) : $t8($t3, $t6);
-      while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-      if ($t9 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$5 }); return R.UNWIND; }
-      if ($t9 !== false) {
-      $t10 = G9() === P9 && (typeof s_i_$5 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$5 + 1n) : R.settle(R.invoke(G9(), [s_i_$5, 1n]));
-      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$4, [$t10]);
-    } else {
-      return false;
-    }
-    }
-    }
-      R.markProcedure($fn27, "anonymous");
-      function $fn27$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G7() === P7 && (typeof s_i_$5 === 'bigint' && typeof s_len_2da_$2 === 'bigint') ? (s_i_$5 === s_len_2da_$2) : R.settle(R.invoke(G7(), [s_i_$5, s_len_2da_$2]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return true;
-          case 2:
-            $t1 = G8();
-            $t2 = $t1[R.SCHEME_RAW_CALL];
-            $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$5) : $t2(s_a_$0, s_i_$5);
-            while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$5 }); return R.UNWIND; }
-            $r = $t3;
-            $pc = 3; continue;
-          case 3:
-            $t3 = $r;
-            $t4 = G8();
-            $t5 = $t4[R.SCHEME_RAW_CALL];
-            $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$5) : $t5(s_b_$1, s_i_$5);
-            while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$5 }); return R.UNWIND; }
-            $r = $t6;
-            $pc = 4; continue;
-          case 4:
-            $t6 = $r;
-            $t7 = G2();
-            $t8 = $t7[R.SCHEME_RAW_CALL];
-            $t9 = $t8 === undefined ? $t7($t3, $t6) : $t8($t3, $t6);
-            while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-            if ($t9 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$5 }); return R.UNWIND; }
-            $r = $t9;
-            $pc = 5; continue;
-          case 5:
-            $t9 = $r;
-            if ($t9 !== false) { $pc = 6; continue; } $pc = 7; continue;
-          case 6:
-            $t10 = G9() === P9 && (typeof s_i_$5 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$5 + 1n) : R.settle(R.invoke(G9(), [s_i_$5, 1n]));
-            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$4, [$t10]);
-          case 7:
-            return false;
-          default: throw new Error('$fn27$r: bad resume point ' + $pc);
-      }
-    }
-      $fn27.$resume = $fn27$r;
-      s_loop_$4 = $fn27;
-      return $fn27;
-    }
-    function $mk$fn43(s_len_2da_$6, s_a_$0, s_b_$1) {
-      let s_loop_$8;
-      function $fn43(s_i_$9) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
-      $t0 = G7() === P7 && (typeof s_i_$9 === 'bigint' && typeof s_len_2da_$6 === 'bigint') ? (s_i_$9 === s_len_2da_$6) : R.settle(R.invoke(G7(), [s_i_$9, s_len_2da_$6]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return true;
-    } else {
-      $t1 = G12();
-      $t2 = $t1[R.SCHEME_RAW_CALL];
-      $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$9) : $t2(s_a_$0, s_i_$9);
-      while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn43$r, 3, { s_i_$9 }); return R.UNWIND; }
-      $t4 = G12();
-      $t5 = $t4[R.SCHEME_RAW_CALL];
-      $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$9) : $t5(s_b_$1, s_i_$9);
-      while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn43$r, 4, { $t3, s_i_$9 }); return R.UNWIND; }
-      $t7 = G7() === P7 && (typeof $t3 === 'bigint' && typeof $t6 === 'bigint') ? ($t3 === $t6) : R.settle(R.invoke(G7(), [$t3, $t6]));
-      if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t7 !== false) {
-      $t8 = G9() === P9 && (typeof s_i_$9 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$9 + 1n) : R.settle(R.invoke(G9(), [s_i_$9, 1n]));
-      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$8, [$t8]);
-    } else {
-      return false;
-    }
-    }
-    }
-      R.markProcedure($fn43, "anonymous");
-      function $fn43$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$9, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$9, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G7() === P7 && (typeof s_i_$9 === 'bigint' && typeof s_len_2da_$6 === 'bigint') ? (s_i_$9 === s_len_2da_$6) : R.settle(R.invoke(G7(), [s_i_$9, s_len_2da_$6]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return true;
-          case 2:
-            $t1 = G12();
-            $t2 = $t1[R.SCHEME_RAW_CALL];
-            $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$9) : $t2(s_a_$0, s_i_$9);
-            while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn43$r, 3, { s_i_$9 }); return R.UNWIND; }
-            $r = $t3;
-            $pc = 3; continue;
-          case 3:
-            $t3 = $r;
-            $t4 = G12();
-            $t5 = $t4[R.SCHEME_RAW_CALL];
-            $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$9) : $t5(s_b_$1, s_i_$9);
-            while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn43$r, 4, { $t3, s_i_$9 }); return R.UNWIND; }
-            $r = $t6;
-            $pc = 4; continue;
-          case 4:
-            $t6 = $r;
-            $t7 = G7() === P7 && (typeof $t3 === 'bigint' && typeof $t6 === 'bigint') ? ($t3 === $t6) : R.settle(R.invoke(G7(), [$t3, $t6]));
-            if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t7 !== false) { $pc = 5; continue; } $pc = 6; continue;
-          case 5:
-            $t8 = G9() === P9 && (typeof s_i_$9 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$9 + 1n) : R.settle(R.invoke(G9(), [s_i_$9, 1n]));
-            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$8, [$t8]);
-          case 6:
-            return false;
-          default: throw new Error('$fn43$r: bad resume point ' + $pc);
-      }
-    }
-      $fn43.$resume = $fn43$r;
-      s_loop_$8 = $fn43;
-      return $fn43;
-    }
     function $proc(s_a_$0, s_b_$1) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51;
-      $t0 = G0();
-      $t1 = $t0[R.SCHEME_RAW_CALL];
-      $t2 = $t1 === undefined ? $t0(s_a_$0, s_b_$1) : $t1(s_a_$0, s_b_$1);
-      while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-      if ($t2 !== false) {
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_i_$5, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, s_len_2da_$6, $t48, $t49, $t50, s_len_2db_$7, $t51, s_i_$9, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67;
+      $loop: for (;;) {
+        $t0 = G0();
+        $t1 = $t0[R.SCHEME_RAW_CALL];
+        $t2 = $t1 === undefined ? $t0(s_a_$0, s_b_$1) : $t1(s_a_$0, s_b_$1);
+        while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
+        if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+        if ($t2 !== false) {
       return true;
     } else {
       $t3 = G1() === P1 ? (s_a_$0 instanceof R.Cons) : R.settle(R.invoke(G1(), [s_a_$0]));
@@ -241,12 +80,13 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8($t6, $t7) : $t9($t6, $t7);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
       if ($t10 !== false) {
       $t11 = G4() === P4 && (s_a_$0 instanceof R.Cons) ? (s_a_$0.cdr) : R.settle(R.invoke(G4(), [s_a_$0]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       $t12 = G4() === P4 && (s_b_$1 instanceof R.Cons) ? (s_b_$1.cdr) : R.settle(R.invoke(G4(), [s_b_$1]));
       if ($t12 === R.UNWIND) R.captureUnderPrimitive();
+      if (G2() === $proc) { s_a_$0 = $t11; s_b_$1 = $t12; continue $loop; }
       return new R.TailCall(G2(), [$t11, $t12]);
     } else {
       return false;
@@ -256,13 +96,13 @@ export const PROCEDURES = {
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13(s_a_$0) : $t14(s_a_$0);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
       if ($t15 !== false) {
       $t17 = G5();
       $t18 = $t17[R.SCHEME_RAW_CALL];
       $t19 = $t18 === undefined ? $t17(s_b_$1) : $t18(s_b_$1);
       while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
-      if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
       $t16 = $t19;
     } else {
       $t16 = false;
@@ -283,67 +123,122 @@ export const PROCEDURES = {
       $t26 = G7() === P7 && (typeof s_len_2da_$2 === 'bigint' && typeof s_len_2db_$3 === 'bigint') ? (s_len_2da_$2 === s_len_2db_$3) : R.settle(R.invoke(G7(), [s_len_2da_$2, s_len_2db_$3]));
       if ($t26 === R.UNWIND) R.captureUnderPrimitive();
       if ($t26 !== false) {
-      $t28 = $mk$fn27(s_len_2da_$2, s_a_$0, s_b_$1);
-      s_loop_$4 = $t28;
-      return new R.TailCall(s_loop_$4, [0n]);
+      s_i_$5 = 0n;
+      $loop1: for (;;) {
+      $t27 = G7() === P7 && (typeof s_i_$5 === 'bigint' && typeof s_len_2da_$2 === 'bigint') ? (s_i_$5 === s_len_2da_$2) : R.settle(R.invoke(G7(), [s_i_$5, s_len_2da_$2]));
+      if ($t27 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t27 !== false) {
+      return true;
+    } else {
+      $t28 = G8();
+      $t29 = $t28[R.SCHEME_RAW_CALL];
+      $t30 = $t29 === undefined ? $t28(s_a_$0, s_i_$5) : $t29(s_a_$0, s_i_$5);
+      while ($t30 instanceof R.TailCall) { $t30 = R.step($t30); }
+      if ($t30 === R.UNWIND) { R.reify($proc$r, 26, { s_len_2da_$2, s_i_$5, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      $t31 = G8();
+      $t32 = $t31[R.SCHEME_RAW_CALL];
+      $t33 = $t32 === undefined ? $t31(s_b_$1, s_i_$5) : $t32(s_b_$1, s_i_$5);
+      while ($t33 instanceof R.TailCall) { $t33 = R.step($t33); }
+      if ($t33 === R.UNWIND) { R.reify($proc$r, 27, { s_len_2da_$2, s_i_$5, $t30, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      $t34 = G2();
+      $t35 = $t34[R.SCHEME_RAW_CALL];
+      $t36 = $t35 === undefined ? $t34($t30, $t33) : $t35($t30, $t33);
+      while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
+      if ($t36 === R.UNWIND) { R.reify($proc$r, 28, { s_len_2da_$2, s_i_$5, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t36 !== false) {
+      $t37 = G9() === P9 && (typeof s_i_$5 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$5 + 1n) : R.settle(R.invoke(G9(), [s_i_$5, 1n]));
+      if ($t37 === R.UNWIND) R.captureUnderPrimitive();
+      s_i_$5 = $t37;
+      continue $loop1;
+    } else {
+      return false;
+    }
+    }
+      }
     } else {
       return false;
     }
     } else {
-      $t29 = G10();
-      $t30 = $t29[R.SCHEME_RAW_CALL];
-      $t31 = $t30 === undefined ? $t29(s_a_$0) : $t30(s_a_$0);
-      while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
-      if ($t31 === R.UNWIND) { R.reify($proc$r, 23, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-      if ($t31 !== false) {
-      $t33 = G10();
-      $t34 = $t33[R.SCHEME_RAW_CALL];
-      $t35 = $t34 === undefined ? $t33(s_b_$1) : $t34(s_b_$1);
-      while ($t35 instanceof R.TailCall) { $t35 = R.step($t35); }
-      if ($t35 === R.UNWIND) { R.reify($proc$r, 27, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-      $t32 = $t35;
+      $t38 = G10();
+      $t39 = $t38[R.SCHEME_RAW_CALL];
+      $t40 = $t39 === undefined ? $t38(s_a_$0) : $t39(s_a_$0);
+      while ($t40 instanceof R.TailCall) { $t40 = R.step($t40); }
+      if ($t40 === R.UNWIND) { R.reify($proc$r, 31, { $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t40 !== false) {
+      $t42 = G10();
+      $t43 = $t42[R.SCHEME_RAW_CALL];
+      $t44 = $t43 === undefined ? $t42(s_b_$1) : $t43(s_b_$1);
+      while ($t44 instanceof R.TailCall) { $t44 = R.step($t44); }
+      if ($t44 === R.UNWIND) { R.reify($proc$r, 35, { $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      $t41 = $t44;
     } else {
-      $t32 = false;
+      $t41 = false;
     }
-      if ($t32 !== false) {
-      $t36 = G11();
-      $t37 = $t36[R.SCHEME_RAW_CALL];
-      $t38 = $t37 === undefined ? $t36(s_a_$0) : $t37(s_a_$0);
-      while ($t38 instanceof R.TailCall) { $t38 = R.step($t38); }
-      if ($t38 === R.UNWIND) { R.reify($proc$r, 30, { s_a_$0, s_b_$1 }); return R.UNWIND; }
-      s_len_2da_$6 = $t38;
-      $t39 = G11();
-      $t40 = $t39[R.SCHEME_RAW_CALL];
-      $t41 = $t40 === undefined ? $t39(s_b_$1) : $t40(s_b_$1);
-      while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
-      if ($t41 === R.UNWIND) { R.reify($proc$r, 31, { s_len_2da_$6, s_a_$0, s_b_$1 }); return R.UNWIND; }
-      s_len_2db_$7 = $t41;
-      $t42 = G7() === P7 && (typeof s_len_2da_$6 === 'bigint' && typeof s_len_2db_$7 === 'bigint') ? (s_len_2da_$6 === s_len_2db_$7) : R.settle(R.invoke(G7(), [s_len_2da_$6, s_len_2db_$7]));
-      if ($t42 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t42 !== false) {
-      $t44 = $mk$fn43(s_len_2da_$6, s_a_$0, s_b_$1);
-      s_loop_$8 = $t44;
-      return new R.TailCall(s_loop_$8, [0n]);
-    } else {
-      return false;
-    }
-    } else {
-      $t45 = G13();
+      if ($t41 !== false) {
+      $t45 = G11();
       $t46 = $t45[R.SCHEME_RAW_CALL];
       $t47 = $t46 === undefined ? $t45(s_a_$0) : $t46(s_a_$0);
       while ($t47 instanceof R.TailCall) { $t47 = R.step($t47); }
-      if ($t47 === R.UNWIND) { R.reify($proc$r, 34, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-      if ($t47 !== false) {
-      $t49 = G13();
-      $t50 = $t49[R.SCHEME_RAW_CALL];
-      $t51 = $t50 === undefined ? $t49(s_b_$1) : $t50(s_b_$1);
-      while ($t51 instanceof R.TailCall) { $t51 = R.step($t51); }
-      if ($t51 === R.UNWIND) { R.reify($proc$r, 38, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-      $t48 = $t51;
+      if ($t47 === R.UNWIND) { R.reify($proc$r, 38, { s_a_$0, s_b_$1 }); return R.UNWIND; }
+      s_len_2da_$6 = $t47;
+      $t48 = G11();
+      $t49 = $t48[R.SCHEME_RAW_CALL];
+      $t50 = $t49 === undefined ? $t48(s_b_$1) : $t49(s_b_$1);
+      while ($t50 instanceof R.TailCall) { $t50 = R.step($t50); }
+      if ($t50 === R.UNWIND) { R.reify($proc$r, 39, { s_len_2da_$6, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      s_len_2db_$7 = $t50;
+      $t51 = G7() === P7 && (typeof s_len_2da_$6 === 'bigint' && typeof s_len_2db_$7 === 'bigint') ? (s_len_2da_$6 === s_len_2db_$7) : R.settle(R.invoke(G7(), [s_len_2da_$6, s_len_2db_$7]));
+      if ($t51 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t51 !== false) {
+      s_i_$9 = 0n;
+      $loop2: for (;;) {
+      $t52 = G7() === P7 && (typeof s_i_$9 === 'bigint' && typeof s_len_2da_$6 === 'bigint') ? (s_i_$9 === s_len_2da_$6) : R.settle(R.invoke(G7(), [s_i_$9, s_len_2da_$6]));
+      if ($t52 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t52 !== false) {
+      return true;
     } else {
-      $t48 = false;
+      $t53 = G12();
+      $t54 = $t53[R.SCHEME_RAW_CALL];
+      $t55 = $t54 === undefined ? $t53(s_a_$0, s_i_$9) : $t54(s_a_$0, s_i_$9);
+      while ($t55 instanceof R.TailCall) { $t55 = R.step($t55); }
+      if ($t55 === R.UNWIND) { R.reify($proc$r, 45, { s_len_2da_$6, s_i_$9, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      $t56 = G12();
+      $t57 = $t56[R.SCHEME_RAW_CALL];
+      $t58 = $t57 === undefined ? $t56(s_b_$1, s_i_$9) : $t57(s_b_$1, s_i_$9);
+      while ($t58 instanceof R.TailCall) { $t58 = R.step($t58); }
+      if ($t58 === R.UNWIND) { R.reify($proc$r, 46, { s_len_2da_$6, s_i_$9, $t55, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      $t59 = G7() === P7 && (typeof $t55 === 'bigint' && typeof $t58 === 'bigint') ? ($t55 === $t58) : R.settle(R.invoke(G7(), [$t55, $t58]));
+      if ($t59 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t59 !== false) {
+      $t60 = G9() === P9 && (typeof s_i_$9 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$9 + 1n) : R.settle(R.invoke(G9(), [s_i_$9, 1n]));
+      if ($t60 === R.UNWIND) R.captureUnderPrimitive();
+      s_i_$9 = $t60;
+      continue $loop2;
+    } else {
+      return false;
     }
-      if ($t48 !== false) {
+    }
+      }
+    } else {
+      return false;
+    }
+    } else {
+      $t61 = G13();
+      $t62 = $t61[R.SCHEME_RAW_CALL];
+      $t63 = $t62 === undefined ? $t61(s_a_$0) : $t62(s_a_$0);
+      while ($t63 instanceof R.TailCall) { $t63 = R.step($t63); }
+      if ($t63 === R.UNWIND) { R.reify($proc$r, 49, { $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t63 !== false) {
+      $t65 = G13();
+      $t66 = $t65[R.SCHEME_RAW_CALL];
+      $t67 = $t66 === undefined ? $t65(s_b_$1) : $t66(s_b_$1);
+      while ($t67 instanceof R.TailCall) { $t67 = R.step($t67); }
+      if ($t67 === R.UNWIND) { R.reify($proc$r, 53, { $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      $t64 = $t67;
+    } else {
+      $t64 = false;
+    }
+      if ($t64 !== false) {
       return new R.TailCall(G0(), [s_a_$0, s_b_$1]);
     } else {
       return false;
@@ -352,17 +247,18 @@ export const PROCEDURES = {
     }
     }
     }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_i_$5, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, s_len_2da_$6, $t48, $t49, $t50, s_len_2db_$7, $t51, s_i_$9, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, s_a_$0, s_b_$1, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_i_$5, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, s_len_2da_$6, $t48, $t49, $t50, s_len_2db_$7, $t51, s_i_$9, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, s_a_$0, s_b_$1, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G0();
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_a_$0, s_b_$1) : $t1(s_a_$0, s_b_$1);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -393,7 +289,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8($t6, $t7) : $t9($t6, $t7);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { s_a_$0, s_b_$1 }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t10;
             $pc = 9; continue;
           case 8:
@@ -401,7 +297,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13(s_a_$0) : $t14(s_a_$0);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t15;
             $pc = 12; continue;
           case 9:
@@ -412,6 +308,7 @@ export const PROCEDURES = {
             if ($t11 === R.UNWIND) R.captureUnderPrimitive();
             $t12 = G4() === P4 && (s_b_$1 instanceof R.Cons) ? (s_b_$1.cdr) : R.settle(R.invoke(G4(), [s_b_$1]));
             if ($t12 === R.UNWIND) R.captureUnderPrimitive();
+            if (G2() === $proc) { s_a_$0 = $t11; s_b_$1 = $t12; $pc = 0; continue; }
             return new R.TailCall(G2(), [$t11, $t12]);
           case 11:
             return false;
@@ -423,7 +320,7 @@ export const PROCEDURES = {
             $t18 = $t17[R.SCHEME_RAW_CALL];
             $t19 = $t18 === undefined ? $t17(s_b_$1) : $t18(s_b_$1);
             while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
-            if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t16, $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t19;
             $pc = 16; continue;
             $t16 = $t19;
@@ -444,13 +341,13 @@ export const PROCEDURES = {
             $r = $t22;
             $pc = 19; continue;
           case 18:
-            $t29 = G10();
-            $t30 = $t29[R.SCHEME_RAW_CALL];
-            $t31 = $t30 === undefined ? $t29(s_a_$0) : $t30(s_a_$0);
-            while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
-            if ($t31 === R.UNWIND) { R.reify($proc$r, 23, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-            $r = $t31;
-            $pc = 23; continue;
+            $t38 = G10();
+            $t39 = $t38[R.SCHEME_RAW_CALL];
+            $t40 = $t39 === undefined ? $t38(s_a_$0) : $t39(s_a_$0);
+            while ($t40 instanceof R.TailCall) { $t40 = R.step($t40); }
+            if ($t40 === R.UNWIND) { R.reify($proc$r, 31, { $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t40;
+            $pc = 31; continue;
           case 19:
             $t22 = $r;
             s_len_2da_$2 = $t22;
@@ -468,92 +365,167 @@ export const PROCEDURES = {
             if ($t26 === R.UNWIND) R.captureUnderPrimitive();
             if ($t26 !== false) { $pc = 21; continue; } $pc = 22; continue;
           case 21:
-            $t28 = $mk$fn27(s_len_2da_$2, s_a_$0, s_b_$1);
-            s_loop_$4 = $t28;
-            return new R.TailCall(s_loop_$4, [0n]);
+            s_i_$5 = 0n;
+            $pc = 23; continue;
           case 22:
             return false;
           case 23:
-            $t31 = $r;
-            if ($t31 !== false) { $pc = 24; continue; } $pc = 25; continue;
+            $t27 = G7() === P7 && (typeof s_i_$5 === 'bigint' && typeof s_len_2da_$2 === 'bigint') ? (s_i_$5 === s_len_2da_$2) : R.settle(R.invoke(G7(), [s_i_$5, s_len_2da_$2]));
+            if ($t27 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t27 !== false) { $pc = 24; continue; } $pc = 25; continue;
           case 24:
-            $t33 = G10();
-            $t34 = $t33[R.SCHEME_RAW_CALL];
-            $t35 = $t34 === undefined ? $t33(s_b_$1) : $t34(s_b_$1);
-            while ($t35 instanceof R.TailCall) { $t35 = R.step($t35); }
-            if ($t35 === R.UNWIND) { R.reify($proc$r, 27, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-            $r = $t35;
-            $pc = 27; continue;
-            $t32 = $t35;
+            return true;
           case 25:
-            $t32 = false;
+            $t28 = G8();
+            $t29 = $t28[R.SCHEME_RAW_CALL];
+            $t30 = $t29 === undefined ? $t28(s_a_$0, s_i_$5) : $t29(s_a_$0, s_i_$5);
+            while ($t30 instanceof R.TailCall) { $t30 = R.step($t30); }
+            if ($t30 === R.UNWIND) { R.reify($proc$r, 26, { s_len_2da_$2, s_i_$5, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t30;
             $pc = 26; continue;
           case 26:
-            if ($t32 !== false) { $pc = 28; continue; } $pc = 29; continue;
+            $t30 = $r;
+            $t31 = G8();
+            $t32 = $t31[R.SCHEME_RAW_CALL];
+            $t33 = $t32 === undefined ? $t31(s_b_$1, s_i_$5) : $t32(s_b_$1, s_i_$5);
+            while ($t33 instanceof R.TailCall) { $t33 = R.step($t33); }
+            if ($t33 === R.UNWIND) { R.reify($proc$r, 27, { s_len_2da_$2, s_i_$5, $t30, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t33;
+            $pc = 27; continue;
           case 27:
-            $t35 = $r;
-            $pc = 26; continue;
+            $t33 = $r;
+            $t34 = G2();
+            $t35 = $t34[R.SCHEME_RAW_CALL];
+            $t36 = $t35 === undefined ? $t34($t30, $t33) : $t35($t30, $t33);
+            while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
+            if ($t36 === R.UNWIND) { R.reify($proc$r, 28, { s_len_2da_$2, s_i_$5, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t36;
+            $pc = 28; continue;
           case 28:
-            $t36 = G11();
-            $t37 = $t36[R.SCHEME_RAW_CALL];
-            $t38 = $t37 === undefined ? $t36(s_a_$0) : $t37(s_a_$0);
-            while ($t38 instanceof R.TailCall) { $t38 = R.step($t38); }
-            if ($t38 === R.UNWIND) { R.reify($proc$r, 30, { s_a_$0, s_b_$1 }); return R.UNWIND; }
-            $r = $t38;
-            $pc = 30; continue;
+            $t36 = $r;
+            if ($t36 !== false) { $pc = 29; continue; } $pc = 30; continue;
           case 29:
-            $t45 = G13();
+            $t37 = G9() === P9 && (typeof s_i_$5 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$5 + 1n) : R.settle(R.invoke(G9(), [s_i_$5, 1n]));
+            if ($t37 === R.UNWIND) R.captureUnderPrimitive();
+            s_i_$5 = $t37;
+            $pc = 23; continue;
+          case 30:
+            return false;
+          case 31:
+            $t40 = $r;
+            if ($t40 !== false) { $pc = 32; continue; } $pc = 33; continue;
+          case 32:
+            $t42 = G10();
+            $t43 = $t42[R.SCHEME_RAW_CALL];
+            $t44 = $t43 === undefined ? $t42(s_b_$1) : $t43(s_b_$1);
+            while ($t44 instanceof R.TailCall) { $t44 = R.step($t44); }
+            if ($t44 === R.UNWIND) { R.reify($proc$r, 35, { $t41, $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t44;
+            $pc = 35; continue;
+            $t41 = $t44;
+          case 33:
+            $t41 = false;
+            $pc = 34; continue;
+          case 34:
+            if ($t41 !== false) { $pc = 36; continue; } $pc = 37; continue;
+          case 35:
+            $t44 = $r;
+            $pc = 34; continue;
+          case 36:
+            $t45 = G11();
             $t46 = $t45[R.SCHEME_RAW_CALL];
             $t47 = $t46 === undefined ? $t45(s_a_$0) : $t46(s_a_$0);
             while ($t47 instanceof R.TailCall) { $t47 = R.step($t47); }
-            if ($t47 === R.UNWIND) { R.reify($proc$r, 34, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            if ($t47 === R.UNWIND) { R.reify($proc$r, 38, { s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t47;
-            $pc = 34; continue;
-          case 30:
-            $t38 = $r;
-            s_len_2da_$6 = $t38;
-            $t39 = G11();
-            $t40 = $t39[R.SCHEME_RAW_CALL];
-            $t41 = $t40 === undefined ? $t39(s_b_$1) : $t40(s_b_$1);
-            while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
-            if ($t41 === R.UNWIND) { R.reify($proc$r, 31, { s_len_2da_$6, s_a_$0, s_b_$1 }); return R.UNWIND; }
-            $r = $t41;
-            $pc = 31; continue;
-          case 31:
-            $t41 = $r;
-            s_len_2db_$7 = $t41;
-            $t42 = G7() === P7 && (typeof s_len_2da_$6 === 'bigint' && typeof s_len_2db_$7 === 'bigint') ? (s_len_2da_$6 === s_len_2db_$7) : R.settle(R.invoke(G7(), [s_len_2da_$6, s_len_2db_$7]));
-            if ($t42 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t42 !== false) { $pc = 32; continue; } $pc = 33; continue;
-          case 32:
-            $t44 = $mk$fn43(s_len_2da_$6, s_a_$0, s_b_$1);
-            s_loop_$8 = $t44;
-            return new R.TailCall(s_loop_$8, [0n]);
-          case 33:
-            return false;
-          case 34:
-            $t47 = $r;
-            if ($t47 !== false) { $pc = 35; continue; } $pc = 36; continue;
-          case 35:
-            $t49 = G13();
-            $t50 = $t49[R.SCHEME_RAW_CALL];
-            $t51 = $t50 === undefined ? $t49(s_b_$1) : $t50(s_b_$1);
-            while ($t51 instanceof R.TailCall) { $t51 = R.step($t51); }
-            if ($t51 === R.UNWIND) { R.reify($proc$r, 38, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
-            $r = $t51;
             $pc = 38; continue;
-            $t48 = $t51;
-          case 36:
-            $t48 = false;
-            $pc = 37; continue;
           case 37:
-            if ($t48 !== false) { $pc = 39; continue; } $pc = 40; continue;
+            $t61 = G13();
+            $t62 = $t61[R.SCHEME_RAW_CALL];
+            $t63 = $t62 === undefined ? $t61(s_a_$0) : $t62(s_a_$0);
+            while ($t63 instanceof R.TailCall) { $t63 = R.step($t63); }
+            if ($t63 === R.UNWIND) { R.reify($proc$r, 49, { $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t63;
+            $pc = 49; continue;
           case 38:
-            $t51 = $r;
-            $pc = 37; continue;
+            $t47 = $r;
+            s_len_2da_$6 = $t47;
+            $t48 = G11();
+            $t49 = $t48[R.SCHEME_RAW_CALL];
+            $t50 = $t49 === undefined ? $t48(s_b_$1) : $t49(s_b_$1);
+            while ($t50 instanceof R.TailCall) { $t50 = R.step($t50); }
+            if ($t50 === R.UNWIND) { R.reify($proc$r, 39, { s_len_2da_$6, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t50;
+            $pc = 39; continue;
           case 39:
-            return new R.TailCall(G0(), [s_a_$0, s_b_$1]);
+            $t50 = $r;
+            s_len_2db_$7 = $t50;
+            $t51 = G7() === P7 && (typeof s_len_2da_$6 === 'bigint' && typeof s_len_2db_$7 === 'bigint') ? (s_len_2da_$6 === s_len_2db_$7) : R.settle(R.invoke(G7(), [s_len_2da_$6, s_len_2db_$7]));
+            if ($t51 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t51 !== false) { $pc = 40; continue; } $pc = 41; continue;
           case 40:
+            s_i_$9 = 0n;
+            $pc = 42; continue;
+          case 41:
+            return false;
+          case 42:
+            $t52 = G7() === P7 && (typeof s_i_$9 === 'bigint' && typeof s_len_2da_$6 === 'bigint') ? (s_i_$9 === s_len_2da_$6) : R.settle(R.invoke(G7(), [s_i_$9, s_len_2da_$6]));
+            if ($t52 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t52 !== false) { $pc = 43; continue; } $pc = 44; continue;
+          case 43:
+            return true;
+          case 44:
+            $t53 = G12();
+            $t54 = $t53[R.SCHEME_RAW_CALL];
+            $t55 = $t54 === undefined ? $t53(s_a_$0, s_i_$9) : $t54(s_a_$0, s_i_$9);
+            while ($t55 instanceof R.TailCall) { $t55 = R.step($t55); }
+            if ($t55 === R.UNWIND) { R.reify($proc$r, 45, { s_len_2da_$6, s_i_$9, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t55;
+            $pc = 45; continue;
+          case 45:
+            $t55 = $r;
+            $t56 = G12();
+            $t57 = $t56[R.SCHEME_RAW_CALL];
+            $t58 = $t57 === undefined ? $t56(s_b_$1, s_i_$9) : $t57(s_b_$1, s_i_$9);
+            while ($t58 instanceof R.TailCall) { $t58 = R.step($t58); }
+            if ($t58 === R.UNWIND) { R.reify($proc$r, 46, { s_len_2da_$6, s_i_$9, $t55, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t58;
+            $pc = 46; continue;
+          case 46:
+            $t58 = $r;
+            $t59 = G7() === P7 && (typeof $t55 === 'bigint' && typeof $t58 === 'bigint') ? ($t55 === $t58) : R.settle(R.invoke(G7(), [$t55, $t58]));
+            if ($t59 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t59 !== false) { $pc = 47; continue; } $pc = 48; continue;
+          case 47:
+            $t60 = G9() === P9 && (typeof s_i_$9 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$9 + 1n) : R.settle(R.invoke(G9(), [s_i_$9, 1n]));
+            if ($t60 === R.UNWIND) R.captureUnderPrimitive();
+            s_i_$9 = $t60;
+            $pc = 42; continue;
+          case 48:
+            return false;
+          case 49:
+            $t63 = $r;
+            if ($t63 !== false) { $pc = 50; continue; } $pc = 51; continue;
+          case 50:
+            $t65 = G13();
+            $t66 = $t65[R.SCHEME_RAW_CALL];
+            $t67 = $t66 === undefined ? $t65(s_b_$1) : $t66(s_b_$1);
+            while ($t67 instanceof R.TailCall) { $t67 = R.step($t67); }
+            if ($t67 === R.UNWIND) { R.reify($proc$r, 53, { $t64, s_a_$0, s_b_$1 }); return R.UNWIND; }
+            $r = $t67;
+            $pc = 53; continue;
+            $t64 = $t67;
+          case 51:
+            $t64 = false;
+            $pc = 52; continue;
+          case 52:
+            if ($t64 !== false) { $pc = 54; continue; } $pc = 55; continue;
+          case 53:
+            $t67 = $r;
+            $pc = 52; continue;
+          case 54:
+            return new R.TailCall(G0(), [s_a_$0, s_b_$1]);
+          case 55:
             return false;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
@@ -2550,42 +2522,45 @@ export const PROCEDURES = {
     const G2 = R.globalAccessor(E, "%gcd2");
     const G3 = R.globalAccessor(E, "modulo");
     function $proc(s_a_$57, s_b_$58) {
-      let $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9;
-      $t0 = G0();
-      $t1 = $t0[R.SCHEME_RAW_CALL];
-      $t2 = $t1 === undefined ? $t0(s_a_$57) : $t1(s_a_$57);
-      while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { s_b_$58 }); return R.UNWIND; }
-      s_aa_$59 = $t2;
-      $t3 = G0();
-      $t4 = $t3[R.SCHEME_RAW_CALL];
-      $t5 = $t4 === undefined ? $t3(s_b_$58) : $t4(s_b_$58);
-      while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-      if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { s_aa_$59 }); return R.UNWIND; }
-      s_bb_$60 = $t5;
-      $t6 = G1() === P1 && (typeof s_bb_$60 === 'bigint' && typeof 0n === 'bigint') ? (s_bb_$60 === 0n) : R.settle(R.invoke(G1(), [s_bb_$60, 0n]));
-      if ($t6 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t6 !== false) {
+      let $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, $t10;
+      $loop: for (;;) {
+        $t0 = G0();
+        $t1 = $t0[R.SCHEME_RAW_CALL];
+        $t2 = $t1 === undefined ? $t0(s_a_$57) : $t1(s_a_$57);
+        while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
+        if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t10, s_a_$57, s_b_$58 }); return R.UNWIND; }
+        s_aa_$59 = $t2;
+        $t3 = G0();
+        $t4 = $t3[R.SCHEME_RAW_CALL];
+        $t5 = $t4 === undefined ? $t3(s_b_$58) : $t4(s_b_$58);
+        while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
+        if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { s_aa_$59, $t10, s_a_$57, s_b_$58 }); return R.UNWIND; }
+        s_bb_$60 = $t5;
+        $t6 = G1() === P1 && (typeof s_bb_$60 === 'bigint' && typeof 0n === 'bigint') ? (s_bb_$60 === 0n) : R.settle(R.invoke(G1(), [s_bb_$60, 0n]));
+        if ($t6 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t6 !== false) {
       return s_aa_$59;
     } else {
       $t7 = G3();
       $t8 = $t7[R.SCHEME_RAW_CALL];
       $t9 = $t8 === undefined ? $t7(s_aa_$59, s_bb_$60) : $t8(s_aa_$59, s_bb_$60);
       while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-      if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { s_bb_$60 }); return R.UNWIND; }
+      if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { s_bb_$60, $t10, s_a_$57, s_b_$58 }); return R.UNWIND; }
+      if (G2() === $proc) { $t10 = s_bb_$60; s_a_$57 = $t10; s_b_$58 = $t9; continue $loop; }
       return new R.TailCall(G2(), [s_bb_$60, $t9]);
     }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58, $r;
-      ({ $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58, $r } = $f);
+      let $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, $t10, s_a_$57, s_b_$58, $r;
+      ({ $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, $t10, s_a_$57, s_b_$58, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G0();
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_a_$57) : $t1(s_a_$57);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { s_b_$58 }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t10, s_a_$57, s_b_$58 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -2595,7 +2570,7 @@ export const PROCEDURES = {
             $t4 = $t3[R.SCHEME_RAW_CALL];
             $t5 = $t4 === undefined ? $t3(s_b_$58) : $t4(s_b_$58);
             while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-            if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { s_aa_$59 }); return R.UNWIND; }
+            if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { s_aa_$59, $t10, s_a_$57, s_b_$58 }); return R.UNWIND; }
             $r = $t5;
             $pc = 2; continue;
           case 2:
@@ -2611,11 +2586,12 @@ export const PROCEDURES = {
             $t8 = $t7[R.SCHEME_RAW_CALL];
             $t9 = $t8 === undefined ? $t7(s_aa_$59, s_bb_$60) : $t8(s_aa_$59, s_bb_$60);
             while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-            if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { s_bb_$60 }); return R.UNWIND; }
+            if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { s_bb_$60, $t10, s_a_$57, s_b_$58 }); return R.UNWIND; }
             $r = $t9;
             $pc = 5; continue;
           case 5:
             $t9 = $r;
+            if (G2() === $proc) { $t10 = s_bb_$60; s_a_$57 = $t10; s_b_$58 = $t9; $pc = 0; continue; }
             return new R.TailCall(G2(), [s_bb_$60, $t9]);
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
@@ -2687,62 +2663,8 @@ export const PROCEDURES = {
       $fn0.$resume = $fn0$r;
       return $fn0;
     }
-    function $mk$fn6() {
-      let s_loop_$63;
-      function $fn6(s_result_$64, s_rest_$65) {
-      let $t0, $t1, $t2, $t3, $t4, $t5;
-      $t0 = G4() === P4 ? (s_rest_$65 === null) : R.settle(R.invoke(G4(), [s_rest_$65]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return s_result_$64;
-    } else {
-      $t1 = G6() === P6 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.car) : R.settle(R.invoke(G6(), [s_rest_$65]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = G5();
-      $t3 = $t2[R.SCHEME_RAW_CALL];
-      $t4 = $t3 === undefined ? $t2(s_result_$64, $t1) : $t3(s_result_$64, $t1);
-      while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_rest_$65 }); return R.UNWIND; }
-      $t5 = G7() === P7 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.cdr) : R.settle(R.invoke(G7(), [s_rest_$65]));
-      if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$63, [$t4, $t5]);
-    }
-    }
-      R.markProcedure($fn6, "anonymous");
-      function $fn6$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, s_result_$64, s_rest_$65, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, s_result_$64, s_rest_$65, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G4() === P4 ? (s_rest_$65 === null) : R.settle(R.invoke(G4(), [s_rest_$65]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return s_result_$64;
-          case 2:
-            $t1 = G6() === P6 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.car) : R.settle(R.invoke(G6(), [s_rest_$65]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = G5();
-            $t3 = $t2[R.SCHEME_RAW_CALL];
-            $t4 = $t3 === undefined ? $t2(s_result_$64, $t1) : $t3(s_result_$64, $t1);
-            while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_rest_$65 }); return R.UNWIND; }
-            $r = $t4;
-            $pc = 3; continue;
-          case 3:
-            $t4 = $r;
-            $t5 = G7() === P7 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.cdr) : R.settle(R.invoke(G7(), [s_rest_$65]));
-            if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$63, [$t4, $t5]);
-          default: throw new Error('$fn6$r: bad resume point ' + $pc);
-      }
-    }
-      $fn6.$resume = $fn6$r;
-      s_loop_$63 = $fn6;
-      return $fn6;
-    }
     function $proc(...s_args_$61$raw) {
-      let $t1, $t2, $t3, $t4, $t5, s_loop_$63, $t7, $t8, $t9, $t10, $t11, $t12;
+      let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_result_$64, s_rest_$65, $t11, $t12, $t13, $t14, $t15, $t16;
       let s_args_$61 = R.listFrom(s_args_$61$raw);
       $t1 = $mk$fn0();
       $t2 = G0();
@@ -2756,23 +2678,42 @@ export const PROCEDURES = {
       if ($t5 !== false) {
       return 0n;
     } else {
-      $t7 = $mk$fn6();
-      s_loop_$63 = $t7;
-      $t8 = G6() === P6 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.car) : R.settle(R.invoke(G6(), [s_args_$61]));
-      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      $t9 = G8();
-      $t10 = $t9[R.SCHEME_RAW_CALL];
-      $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
-      while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$63, s_args_$61 }); return R.UNWIND; }
-      $t12 = G7() === P7 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.cdr) : R.settle(R.invoke(G7(), [s_args_$61]));
+      $t6 = G6() === P6 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.car) : R.settle(R.invoke(G6(), [s_args_$61]));
+      if ($t6 === R.UNWIND) R.captureUnderPrimitive();
+      $t7 = G8();
+      $t8 = $t7[R.SCHEME_RAW_CALL];
+      $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
+      while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
+      if ($t9 === R.UNWIND) { R.reify($proc$r, 4, { s_args_$61 }); return R.UNWIND; }
+      $t10 = G7() === P7 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.cdr) : R.settle(R.invoke(G7(), [s_args_$61]));
+      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+      s_result_$64 = $t9;
+      s_rest_$65 = $t10;
+      $loop1: for (;;) {
+      $t11 = G4() === P4 ? (s_rest_$65 === null) : R.settle(R.invoke(G4(), [s_rest_$65]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t11 !== false) {
+      return s_result_$64;
+    } else {
+      $t12 = G6() === P6 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.car) : R.settle(R.invoke(G6(), [s_rest_$65]));
       if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$63, [$t11, $t12]);
+      $t13 = G5();
+      $t14 = $t13[R.SCHEME_RAW_CALL];
+      $t15 = $t14 === undefined ? $t13(s_result_$64, $t12) : $t14(s_result_$64, $t12);
+      while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 8, { s_rest_$65 }); return R.UNWIND; }
+      $t16 = G7() === P7 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.cdr) : R.settle(R.invoke(G7(), [s_rest_$65]));
+      if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+      s_result_$64 = $t15;
+      s_rest_$65 = $t16;
+      continue $loop1;
+    }
+      }
     }
     }
     function $proc$r($pc, $f) {
-      let $t1, $t2, $t3, $t4, $t5, s_loop_$63, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$61, $r;
-      ({ $t1, $t2, $t3, $t4, $t5, s_loop_$63, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$61, $r } = $f);
+      let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_result_$64, s_rest_$65, $t11, $t12, $t13, $t14, $t15, $t16, s_args_$61, $r;
+      ({ $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_result_$64, s_rest_$65, $t11, $t12, $t13, $t14, $t15, $t16, s_args_$61, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t1 = $mk$fn0();
@@ -2792,22 +2733,45 @@ export const PROCEDURES = {
           case 2:
             return 0n;
           case 3:
-            $t7 = $mk$fn6();
-            s_loop_$63 = $t7;
-            $t8 = G6() === P6 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.car) : R.settle(R.invoke(G6(), [s_args_$61]));
-            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            $t9 = G8();
-            $t10 = $t9[R.SCHEME_RAW_CALL];
-            $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
-            while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$63, s_args_$61 }); return R.UNWIND; }
-            $r = $t11;
+            $t6 = G6() === P6 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.car) : R.settle(R.invoke(G6(), [s_args_$61]));
+            if ($t6 === R.UNWIND) R.captureUnderPrimitive();
+            $t7 = G8();
+            $t8 = $t7[R.SCHEME_RAW_CALL];
+            $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
+            while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
+            if ($t9 === R.UNWIND) { R.reify($proc$r, 4, { s_args_$61 }); return R.UNWIND; }
+            $r = $t9;
             $pc = 4; continue;
           case 4:
-            $t11 = $r;
-            $t12 = G7() === P7 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.cdr) : R.settle(R.invoke(G7(), [s_args_$61]));
+            $t9 = $r;
+            $t10 = G7() === P7 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.cdr) : R.settle(R.invoke(G7(), [s_args_$61]));
+            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+            s_result_$64 = $t9;
+            s_rest_$65 = $t10;
+            $pc = 5; continue;
+          case 5:
+            $t11 = G4() === P4 ? (s_rest_$65 === null) : R.settle(R.invoke(G4(), [s_rest_$65]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t11 !== false) { $pc = 6; continue; } $pc = 7; continue;
+          case 6:
+            return s_result_$64;
+          case 7:
+            $t12 = G6() === P6 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.car) : R.settle(R.invoke(G6(), [s_rest_$65]));
             if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$63, [$t11, $t12]);
+            $t13 = G5();
+            $t14 = $t13[R.SCHEME_RAW_CALL];
+            $t15 = $t14 === undefined ? $t13(s_result_$64, $t12) : $t14(s_result_$64, $t12);
+            while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 8, { s_rest_$65 }); return R.UNWIND; }
+            $r = $t15;
+            $pc = 8; continue;
+          case 8:
+            $t15 = $r;
+            $t16 = G7() === P7 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.cdr) : R.settle(R.invoke(G7(), [s_rest_$65]));
+            if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+            s_result_$64 = $t15;
+            s_rest_$65 = $t16;
+            $pc = 5; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -2883,127 +2847,8 @@ export const PROCEDURES = {
       $fn0.$resume = $fn0$r;
       return $fn0;
     }
-    function $mk$fn6() {
-      let s_loop_$68;
-      function $fn6(s_result_$69, s_rest_$70) {
-      let $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
-      $t0 = G4() === P4 ? (s_rest_$70 === null) : R.settle(R.invoke(G4(), [s_rest_$70]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return s_result_$69;
-    } else {
-      $t1 = G6() === P6 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.car) : R.settle(R.invoke(G6(), [s_rest_$70]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = G5();
-      $t3 = $t2[R.SCHEME_RAW_CALL];
-      $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
-      while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_result_$69, s_rest_$70 }); return R.UNWIND; }
-      s_b_$71 = $t4;
-      $t5 = G7() === P7 && (typeof s_result_$69 === 'bigint' && typeof 0n === 'bigint') ? (s_result_$69 === 0n) : R.settle(R.invoke(G7(), [s_result_$69, 0n]));
-      if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-      s_x_$72 = $t5;
-      if (s_x_$72 !== false) {
-      $t6 = s_x_$72;
-    } else {
-      $t7 = G7() === P7 && (typeof s_b_$71 === 'bigint' && typeof 0n === 'bigint') ? (s_b_$71 === 0n) : R.settle(R.invoke(G7(), [s_b_$71, 0n]));
-      if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-      $t6 = $t7;
-    }
-      if ($t6 !== false) {
-      return 0n;
-    } else {
-      $t8 = G9() === P9 && (typeof s_result_$69 === 'bigint' && typeof s_b_$71 === 'bigint') ? (s_result_$69 * s_b_$71) : R.settle(R.invoke(G9(), [s_result_$69, s_b_$71]));
-      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      $t9 = G10();
-      $t10 = $t9[R.SCHEME_RAW_CALL];
-      $t11 = $t10 === undefined ? $t9(s_result_$69, s_b_$71) : $t10(s_result_$69, s_b_$71);
-      while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($fn6$r, 9, { $t8, s_rest_$70 }); return R.UNWIND; }
-      $t12 = G8();
-      $t13 = $t12[R.SCHEME_RAW_CALL];
-      $t14 = $t13 === undefined ? $t12($t8, $t11) : $t13($t8, $t11);
-      while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-      if ($t14 === R.UNWIND) { R.reify($fn6$r, 10, { s_rest_$70 }); return R.UNWIND; }
-      $t15 = G11() === P11 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.cdr) : R.settle(R.invoke(G11(), [s_rest_$70]));
-      if ($t15 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$68, [$t14, $t15]);
-    }
-    }
-    }
-      R.markProcedure($fn6, "anonymous");
-      function $fn6$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G4() === P4 ? (s_rest_$70 === null) : R.settle(R.invoke(G4(), [s_rest_$70]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return s_result_$69;
-          case 2:
-            $t1 = G6() === P6 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.car) : R.settle(R.invoke(G6(), [s_rest_$70]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = G5();
-            $t3 = $t2[R.SCHEME_RAW_CALL];
-            $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
-            while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_result_$69, s_rest_$70 }); return R.UNWIND; }
-            $r = $t4;
-            $pc = 3; continue;
-          case 3:
-            $t4 = $r;
-            s_b_$71 = $t4;
-            $t5 = G7() === P7 && (typeof s_result_$69 === 'bigint' && typeof 0n === 'bigint') ? (s_result_$69 === 0n) : R.settle(R.invoke(G7(), [s_result_$69, 0n]));
-            if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-            s_x_$72 = $t5;
-            if (s_x_$72 !== false) { $pc = 4; continue; } $pc = 5; continue;
-          case 4:
-            $t6 = s_x_$72;
-            $pc = 6; continue;
-          case 5:
-            $t7 = G7() === P7 && (typeof s_b_$71 === 'bigint' && typeof 0n === 'bigint') ? (s_b_$71 === 0n) : R.settle(R.invoke(G7(), [s_b_$71, 0n]));
-            if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-            $t6 = $t7;
-            $pc = 6; continue;
-          case 6:
-            if ($t6 !== false) { $pc = 7; continue; } $pc = 8; continue;
-          case 7:
-            return 0n;
-          case 8:
-            $t8 = G9() === P9 && (typeof s_result_$69 === 'bigint' && typeof s_b_$71 === 'bigint') ? (s_result_$69 * s_b_$71) : R.settle(R.invoke(G9(), [s_result_$69, s_b_$71]));
-            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            $t9 = G10();
-            $t10 = $t9[R.SCHEME_RAW_CALL];
-            $t11 = $t10 === undefined ? $t9(s_result_$69, s_b_$71) : $t10(s_result_$69, s_b_$71);
-            while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($fn6$r, 9, { $t8, s_rest_$70 }); return R.UNWIND; }
-            $r = $t11;
-            $pc = 9; continue;
-          case 9:
-            $t11 = $r;
-            $t12 = G8();
-            $t13 = $t12[R.SCHEME_RAW_CALL];
-            $t14 = $t13 === undefined ? $t12($t8, $t11) : $t13($t8, $t11);
-            while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-            if ($t14 === R.UNWIND) { R.reify($fn6$r, 10, { s_rest_$70 }); return R.UNWIND; }
-            $r = $t14;
-            $pc = 10; continue;
-          case 10:
-            $t14 = $r;
-            $t15 = G11() === P11 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.cdr) : R.settle(R.invoke(G11(), [s_rest_$70]));
-            if ($t15 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$68, [$t14, $t15]);
-          default: throw new Error('$fn6$r: bad resume point ' + $pc);
-      }
-    }
-      $fn6.$resume = $fn6$r;
-      s_loop_$68 = $fn6;
-      return $fn6;
-    }
     function $proc(...s_args_$66$raw) {
-      let $t1, $t2, $t3, $t4, $t5, s_loop_$68, $t7, $t8, $t9, $t10, $t11, $t12;
+      let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_result_$69, s_rest_$70, $t11, $t12, $t13, $t14, $t15, s_b_$71, s_x_$72, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26;
       let s_args_$66 = R.listFrom(s_args_$66$raw);
       $t1 = $mk$fn0();
       $t2 = G0();
@@ -3017,23 +2862,69 @@ export const PROCEDURES = {
       if ($t5 !== false) {
       return 1n;
     } else {
-      $t7 = $mk$fn6();
-      s_loop_$68 = $t7;
-      $t8 = G6() === P6 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.car) : R.settle(R.invoke(G6(), [s_args_$66]));
-      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      $t9 = G5();
-      $t10 = $t9[R.SCHEME_RAW_CALL];
-      $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
-      while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$68, s_args_$66 }); return R.UNWIND; }
-      $t12 = G11() === P11 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.cdr) : R.settle(R.invoke(G11(), [s_args_$66]));
+      $t6 = G6() === P6 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.car) : R.settle(R.invoke(G6(), [s_args_$66]));
+      if ($t6 === R.UNWIND) R.captureUnderPrimitive();
+      $t7 = G5();
+      $t8 = $t7[R.SCHEME_RAW_CALL];
+      $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
+      while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
+      if ($t9 === R.UNWIND) { R.reify($proc$r, 4, { s_args_$66 }); return R.UNWIND; }
+      $t10 = G11() === P11 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.cdr) : R.settle(R.invoke(G11(), [s_args_$66]));
+      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+      s_result_$69 = $t9;
+      s_rest_$70 = $t10;
+      $loop1: for (;;) {
+      $t11 = G4() === P4 ? (s_rest_$70 === null) : R.settle(R.invoke(G4(), [s_rest_$70]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t11 !== false) {
+      return s_result_$69;
+    } else {
+      $t12 = G6() === P6 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.car) : R.settle(R.invoke(G6(), [s_rest_$70]));
       if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$68, [$t11, $t12]);
+      $t13 = G5();
+      $t14 = $t13[R.SCHEME_RAW_CALL];
+      $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
+      while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 8, { s_result_$69, s_rest_$70 }); return R.UNWIND; }
+      s_b_$71 = $t15;
+      $t16 = G7() === P7 && (typeof s_result_$69 === 'bigint' && typeof 0n === 'bigint') ? (s_result_$69 === 0n) : R.settle(R.invoke(G7(), [s_result_$69, 0n]));
+      if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+      s_x_$72 = $t16;
+      if (s_x_$72 !== false) {
+      $t17 = s_x_$72;
+    } else {
+      $t18 = G7() === P7 && (typeof s_b_$71 === 'bigint' && typeof 0n === 'bigint') ? (s_b_$71 === 0n) : R.settle(R.invoke(G7(), [s_b_$71, 0n]));
+      if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+      $t17 = $t18;
+    }
+      if ($t17 !== false) {
+      return 0n;
+    } else {
+      $t19 = G9() === P9 && (typeof s_result_$69 === 'bigint' && typeof s_b_$71 === 'bigint') ? (s_result_$69 * s_b_$71) : R.settle(R.invoke(G9(), [s_result_$69, s_b_$71]));
+      if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+      $t20 = G10();
+      $t21 = $t20[R.SCHEME_RAW_CALL];
+      $t22 = $t21 === undefined ? $t20(s_result_$69, s_b_$71) : $t21(s_result_$69, s_b_$71);
+      while ($t22 instanceof R.TailCall) { $t22 = R.step($t22); }
+      if ($t22 === R.UNWIND) { R.reify($proc$r, 14, { s_rest_$70, $t19 }); return R.UNWIND; }
+      $t23 = G8();
+      $t24 = $t23[R.SCHEME_RAW_CALL];
+      $t25 = $t24 === undefined ? $t23($t19, $t22) : $t24($t19, $t22);
+      while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
+      if ($t25 === R.UNWIND) { R.reify($proc$r, 15, { s_rest_$70 }); return R.UNWIND; }
+      $t26 = G11() === P11 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.cdr) : R.settle(R.invoke(G11(), [s_rest_$70]));
+      if ($t26 === R.UNWIND) R.captureUnderPrimitive();
+      s_result_$69 = $t25;
+      s_rest_$70 = $t26;
+      continue $loop1;
+    }
+    }
+      }
     }
     }
     function $proc$r($pc, $f) {
-      let $t1, $t2, $t3, $t4, $t5, s_loop_$68, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$66, $r;
-      ({ $t1, $t2, $t3, $t4, $t5, s_loop_$68, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$66, $r } = $f);
+      let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_result_$69, s_rest_$70, $t11, $t12, $t13, $t14, $t15, s_b_$71, s_x_$72, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_args_$66, $r;
+      ({ $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_result_$69, s_rest_$70, $t11, $t12, $t13, $t14, $t15, s_b_$71, s_x_$72, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_args_$66, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t1 = $mk$fn0();
@@ -3053,22 +2944,83 @@ export const PROCEDURES = {
           case 2:
             return 1n;
           case 3:
-            $t7 = $mk$fn6();
-            s_loop_$68 = $t7;
-            $t8 = G6() === P6 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.car) : R.settle(R.invoke(G6(), [s_args_$66]));
-            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            $t9 = G5();
-            $t10 = $t9[R.SCHEME_RAW_CALL];
-            $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
-            while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$68, s_args_$66 }); return R.UNWIND; }
-            $r = $t11;
+            $t6 = G6() === P6 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.car) : R.settle(R.invoke(G6(), [s_args_$66]));
+            if ($t6 === R.UNWIND) R.captureUnderPrimitive();
+            $t7 = G5();
+            $t8 = $t7[R.SCHEME_RAW_CALL];
+            $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
+            while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
+            if ($t9 === R.UNWIND) { R.reify($proc$r, 4, { s_args_$66 }); return R.UNWIND; }
+            $r = $t9;
             $pc = 4; continue;
           case 4:
-            $t11 = $r;
-            $t12 = G11() === P11 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.cdr) : R.settle(R.invoke(G11(), [s_args_$66]));
+            $t9 = $r;
+            $t10 = G11() === P11 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.cdr) : R.settle(R.invoke(G11(), [s_args_$66]));
+            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+            s_result_$69 = $t9;
+            s_rest_$70 = $t10;
+            $pc = 5; continue;
+          case 5:
+            $t11 = G4() === P4 ? (s_rest_$70 === null) : R.settle(R.invoke(G4(), [s_rest_$70]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t11 !== false) { $pc = 6; continue; } $pc = 7; continue;
+          case 6:
+            return s_result_$69;
+          case 7:
+            $t12 = G6() === P6 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.car) : R.settle(R.invoke(G6(), [s_rest_$70]));
             if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$68, [$t11, $t12]);
+            $t13 = G5();
+            $t14 = $t13[R.SCHEME_RAW_CALL];
+            $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
+            while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 8, { s_result_$69, s_rest_$70 }); return R.UNWIND; }
+            $r = $t15;
+            $pc = 8; continue;
+          case 8:
+            $t15 = $r;
+            s_b_$71 = $t15;
+            $t16 = G7() === P7 && (typeof s_result_$69 === 'bigint' && typeof 0n === 'bigint') ? (s_result_$69 === 0n) : R.settle(R.invoke(G7(), [s_result_$69, 0n]));
+            if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+            s_x_$72 = $t16;
+            if (s_x_$72 !== false) { $pc = 9; continue; } $pc = 10; continue;
+          case 9:
+            $t17 = s_x_$72;
+            $pc = 11; continue;
+          case 10:
+            $t18 = G7() === P7 && (typeof s_b_$71 === 'bigint' && typeof 0n === 'bigint') ? (s_b_$71 === 0n) : R.settle(R.invoke(G7(), [s_b_$71, 0n]));
+            if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+            $t17 = $t18;
+            $pc = 11; continue;
+          case 11:
+            if ($t17 !== false) { $pc = 12; continue; } $pc = 13; continue;
+          case 12:
+            return 0n;
+          case 13:
+            $t19 = G9() === P9 && (typeof s_result_$69 === 'bigint' && typeof s_b_$71 === 'bigint') ? (s_result_$69 * s_b_$71) : R.settle(R.invoke(G9(), [s_result_$69, s_b_$71]));
+            if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+            $t20 = G10();
+            $t21 = $t20[R.SCHEME_RAW_CALL];
+            $t22 = $t21 === undefined ? $t20(s_result_$69, s_b_$71) : $t21(s_result_$69, s_b_$71);
+            while ($t22 instanceof R.TailCall) { $t22 = R.step($t22); }
+            if ($t22 === R.UNWIND) { R.reify($proc$r, 14, { s_rest_$70, $t19 }); return R.UNWIND; }
+            $r = $t22;
+            $pc = 14; continue;
+          case 14:
+            $t22 = $r;
+            $t23 = G8();
+            $t24 = $t23[R.SCHEME_RAW_CALL];
+            $t25 = $t24 === undefined ? $t23($t19, $t22) : $t24($t19, $t22);
+            while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
+            if ($t25 === R.UNWIND) { R.reify($proc$r, 15, { s_rest_$70 }); return R.UNWIND; }
+            $r = $t25;
+            $pc = 15; continue;
+          case 15:
+            $t25 = $r;
+            $t26 = G11() === P11 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.cdr) : R.settle(R.invoke(G11(), [s_rest_$70]));
+            if ($t26 === R.UNWIND) R.captureUnderPrimitive();
+            s_result_$69 = $t25;
+            s_rest_$70 = $t26;
+            $pc = 5; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -3253,9 +3205,10 @@ export const PROCEDURES = {
     function $mk$fn25(s_any_2dnull_3f_$80) {
       function $fn25(s_lists_$84) {
       let $t0, $t1, $t2, s_x_$85, $t3;
-      $t0 = G3() === P3 ? (s_lists_$84 === null) : R.settle(R.invoke(G3(), [s_lists_$84]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G3() === P3 ? (s_lists_$84 === null) : R.settle(R.invoke(G3(), [s_lists_$84]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       return false;
     } else {
       $t1 = G6() === P6 && (s_lists_$84 instanceof R.Cons) ? (s_lists_$84.car) : R.settle(R.invoke(G6(), [s_lists_$84]));
@@ -3268,9 +3221,11 @@ export const PROCEDURES = {
     } else {
       $t3 = G7() === P7 && (s_lists_$84 instanceof R.Cons) ? (s_lists_$84.cdr) : R.settle(R.invoke(G7(), [s_lists_$84]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_any_2dnull_3f_$80[0], [$t3]);
+      s_lists_$84 = $t3;
+      continue $loop;
     }
     }
+      }
     }
       R.markProcedure($fn25, "anonymous");
       function $fn25$r($pc, $f) {
@@ -3295,7 +3250,8 @@ export const PROCEDURES = {
           case 4:
             $t3 = G7() === P7 && (s_lists_$84 instanceof R.Cons) ? (s_lists_$84.cdr) : R.settle(R.invoke(G7(), [s_lists_$84]));
             if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_any_2dnull_3f_$80[0], [$t3]);
+            s_lists_$84 = $t3;
+            $pc = 0; continue;
           default: throw new Error('$fn25$r: bad resume point ' + $pc);
       }
     }
@@ -3769,72 +3725,13 @@ export const PROCEDURES = {
     const G8 = R.globalAccessor(E, "caar");
     const G9 = R.globalAccessor(E, "cdar");
     const G10 = R.globalAccessor(E, "apply");
-    function $mk$fn18(s_proc_$91) {
-      let s_loop_$94;
-      function $fn18(s_l_$95) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
-      $t0 = G3() === P3 ? (s_l_$95 === null) : R.settle(R.invoke(G3(), [s_l_$95]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      $t1 = G0() === P0 ? ($t0 === false) : R.settle(R.invoke(G0(), [$t0]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t1 !== false) {
-      $t2 = G5() === P5 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.car) : R.settle(R.invoke(G5(), [s_l_$95]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      $t3 = s_proc_$91;
-      $t4 = $t3[R.SCHEME_RAW_CALL];
-      $t5 = $t4 === undefined ? $t3($t2) : $t4($t2);
-      while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-      if ($t5 === R.UNWIND) { R.reify($fn18$r, 3, { s_l_$95 }); return R.UNWIND; }
-      $t5;
-      $t6 = G6() === P6 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.cdr) : R.settle(R.invoke(G6(), [s_l_$95]));
-      if ($t6 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$94, [$t6]);
-    } else {
-      return undefined;
-    }
-    }
-      R.markProcedure($fn18, "anonymous");
-      function $fn18$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$95, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$95, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$95 === null) : R.settle(R.invoke(G3(), [s_l_$95]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            $t1 = G0() === P0 ? ($t0 === false) : R.settle(R.invoke(G0(), [$t0]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t1 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            $t2 = G5() === P5 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.car) : R.settle(R.invoke(G5(), [s_l_$95]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            $t3 = s_proc_$91;
-            $t4 = $t3[R.SCHEME_RAW_CALL];
-            $t5 = $t4 === undefined ? $t3($t2) : $t4($t2);
-            while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-            if ($t5 === R.UNWIND) { R.reify($fn18$r, 3, { s_l_$95 }); return R.UNWIND; }
-            $r = $t5;
-            $pc = 3; continue;
-          case 2:
-            return undefined;
-          case 3:
-            $t5 = $r;
-            $t5;
-            $t6 = G6() === P6 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.cdr) : R.settle(R.invoke(G6(), [s_l_$95]));
-            if ($t6 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$94, [$t6]);
-          default: throw new Error('$fn18$r: bad resume point ' + $pc);
-      }
-    }
-      $fn18.$resume = $fn18$r;
-      s_loop_$94 = $fn18;
-      return $fn18;
-    }
-    function $mk$fn20(s_any_2dnull_3f_$96) {
-      function $fn20(s_lists_$100) {
+    function $mk$fn25(s_any_2dnull_3f_$96) {
+      function $fn25(s_lists_$100) {
       let $t0, $t1, $t2, s_x_$101, $t3;
-      $t0 = G3() === P3 ? (s_lists_$100 === null) : R.settle(R.invoke(G3(), [s_lists_$100]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G3() === P3 ? (s_lists_$100 === null) : R.settle(R.invoke(G3(), [s_lists_$100]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       return false;
     } else {
       $t1 = G5() === P5 && (s_lists_$100 instanceof R.Cons) ? (s_lists_$100.car) : R.settle(R.invoke(G5(), [s_lists_$100]));
@@ -3847,12 +3744,14 @@ export const PROCEDURES = {
     } else {
       $t3 = G6() === P6 && (s_lists_$100 instanceof R.Cons) ? (s_lists_$100.cdr) : R.settle(R.invoke(G6(), [s_lists_$100]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_any_2dnull_3f_$96[0], [$t3]);
+      s_lists_$100 = $t3;
+      continue $loop;
     }
     }
+      }
     }
-      R.markProcedure($fn20, "anonymous");
-      function $fn20$r($pc, $f) {
+      R.markProcedure($fn25, "anonymous");
+      function $fn25$r($pc, $f) {
       let $t0, $t1, $t2, s_x_$101, $t3, s_lists_$100, $r;
       ({ $t0, $t1, $t2, s_x_$101, $t3, s_lists_$100, $r } = $f);
       for (;;) switch ($pc) {
@@ -3874,15 +3773,16 @@ export const PROCEDURES = {
           case 4:
             $t3 = G6() === P6 && (s_lists_$100 instanceof R.Cons) ? (s_lists_$100.cdr) : R.settle(R.invoke(G6(), [s_lists_$100]));
             if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_any_2dnull_3f_$96[0], [$t3]);
-          default: throw new Error('$fn20$r: bad resume point ' + $pc);
+            s_lists_$100 = $t3;
+            $pc = 0; continue;
+          default: throw new Error('$fn25$r: bad resume point ' + $pc);
       }
     }
-      $fn20.$resume = $fn20$r;
-      return $fn20;
+      $fn25.$resume = $fn25$r;
+      return $fn25;
     }
-    function $mk$fn22(s_all_2dcars_$97) {
-      function $fn22(s_lists_$102) {
+    function $mk$fn27(s_all_2dcars_$97) {
+      function $fn27(s_lists_$102) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
       $t0 = G3() === P3 ? (s_lists_$102 === null) : R.settle(R.invoke(G3(), [s_lists_$102]));
       if ($t0 === R.UNWIND) R.captureUnderPrimitive();
@@ -3893,21 +3793,21 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_lists_$102) : $t2(s_lists_$102);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn22$r, 3, { s_lists_$102 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_lists_$102 }); return R.UNWIND; }
       $t4 = G6() === P6 && (s_lists_$102 instanceof R.Cons) ? (s_lists_$102.cdr) : R.settle(R.invoke(G6(), [s_lists_$102]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
       $t5 = s_all_2dcars_$97[0];
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn22$r, 4, { $t3 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn27$r, 4, { $t3 }); return R.UNWIND; }
       $t8 = G7() === P7 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G7(), [$t3, $t7]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
       return $t8;
     }
     }
-      R.markProcedure($fn22, "anonymous");
-      function $fn22$r($pc, $f) {
+      R.markProcedure($fn27, "anonymous");
+      function $fn27$r($pc, $f) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$102, $r;
       ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$102, $r } = $f);
       for (;;) switch ($pc) {
@@ -3922,7 +3822,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_lists_$102) : $t2(s_lists_$102);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn22$r, 3, { s_lists_$102 }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_lists_$102 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -3933,7 +3833,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn22$r, 4, { $t3 }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn27$r, 4, { $t3 }); return R.UNWIND; }
             $r = $t7;
             $pc = 4; continue;
           case 4:
@@ -3941,14 +3841,14 @@ export const PROCEDURES = {
             $t8 = G7() === P7 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G7(), [$t3, $t7]));
             if ($t8 === R.UNWIND) R.captureUnderPrimitive();
             return $t8;
-          default: throw new Error('$fn22$r: bad resume point ' + $pc);
+          default: throw new Error('$fn27$r: bad resume point ' + $pc);
       }
     }
-      $fn22.$resume = $fn22$r;
-      return $fn22;
+      $fn27.$resume = $fn27$r;
+      return $fn27;
     }
-    function $mk$fn24(s_all_2dcdrs_$98) {
-      function $fn24(s_lists_$103) {
+    function $mk$fn29(s_all_2dcdrs_$98) {
+      function $fn29(s_lists_$103) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
       $t0 = G3() === P3 ? (s_lists_$103 === null) : R.settle(R.invoke(G3(), [s_lists_$103]));
       if ($t0 === R.UNWIND) R.captureUnderPrimitive();
@@ -3959,21 +3859,21 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_lists_$103) : $t2(s_lists_$103);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn24$r, 3, { s_lists_$103 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn29$r, 3, { s_lists_$103 }); return R.UNWIND; }
       $t4 = G6() === P6 && (s_lists_$103 instanceof R.Cons) ? (s_lists_$103.cdr) : R.settle(R.invoke(G6(), [s_lists_$103]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
       $t5 = s_all_2dcdrs_$98[0];
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn24$r, 4, { $t3 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn29$r, 4, { $t3 }); return R.UNWIND; }
       $t8 = G7() === P7 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G7(), [$t3, $t7]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
       return $t8;
     }
     }
-      R.markProcedure($fn24, "anonymous");
-      function $fn24$r($pc, $f) {
+      R.markProcedure($fn29, "anonymous");
+      function $fn29$r($pc, $f) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$103, $r;
       ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$103, $r } = $f);
       for (;;) switch ($pc) {
@@ -3988,7 +3888,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_lists_$103) : $t2(s_lists_$103);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn24$r, 3, { s_lists_$103 }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn29$r, 3, { s_lists_$103 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -3999,7 +3899,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn24$r, 4, { $t3 }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn29$r, 4, { $t3 }); return R.UNWIND; }
             $r = $t7;
             $pc = 4; continue;
           case 4:
@@ -4007,46 +3907,47 @@ export const PROCEDURES = {
             $t8 = G7() === P7 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G7(), [$t3, $t7]));
             if ($t8 === R.UNWIND) R.captureUnderPrimitive();
             return $t8;
-          default: throw new Error('$fn24$r: bad resume point ' + $pc);
+          default: throw new Error('$fn29$r: bad resume point ' + $pc);
       }
     }
-      $fn24.$resume = $fn24$r;
-      return $fn24;
+      $fn29.$resume = $fn29$r;
+      return $fn29;
     }
-    function $mk$fn26(s_any_2dnull_3f_$96, s_proc_$91, s_all_2dcars_$97, s_all_2dcdrs_$98) {
+    function $mk$fn31(s_any_2dnull_3f_$96, s_proc_$91, s_all_2dcars_$97, s_all_2dcdrs_$98) {
       let s_loop_$99;
-      function $fn26(s_first_2dlist_$104, s_rest_2dlists_$105) {
+      function $fn31(s_first_2dlist_$104, s_rest_2dlists_$105) {
       let s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17;
-      $t0 = G3() === P3 ? (s_first_2dlist_$104 === null) : R.settle(R.invoke(G3(), [s_first_2dlist_$104]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      s_x_$106 = $t0;
-      if (s_x_$106 !== false) {
+      $loop: for (;;) {
+        $t0 = G3() === P3 ? (s_first_2dlist_$104 === null) : R.settle(R.invoke(G3(), [s_first_2dlist_$104]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        s_x_$106 = $t0;
+        if (s_x_$106 !== false) {
       $t1 = s_x_$106;
     } else {
       $t2 = s_any_2dnull_3f_$96[0];
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$105) : $t3(s_rest_2dlists_$105);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn26$r, 4, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn31$r, 4, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
       $t1 = $t4;
     }
-      $t5 = G0() === P0 ? ($t1 === false) : R.settle(R.invoke(G0(), [$t1]));
-      if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t5 !== false) {
+        $t5 = G0() === P0 ? ($t1 === false) : R.settle(R.invoke(G0(), [$t1]));
+        if ($t5 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t5 !== false) {
       $t6 = G5() === P5 && (s_first_2dlist_$104 instanceof R.Cons) ? (s_first_2dlist_$104.car) : R.settle(R.invoke(G5(), [s_first_2dlist_$104]));
       if ($t6 === R.UNWIND) R.captureUnderPrimitive();
       $t7 = s_all_2dcars_$97[0];
       $t8 = $t7[R.SCHEME_RAW_CALL];
       $t9 = $t8 === undefined ? $t7(s_rest_2dlists_$105) : $t8(s_rest_2dlists_$105);
       while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-      if ($t9 === R.UNWIND) { R.reify($fn26$r, 7, { $t6, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+      if ($t9 === R.UNWIND) { R.reify($fn31$r, 7, { $t1, $t6, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
       $t10 = G7() === P7 ? (new R.Cons($t6, $t9)) : R.settle(R.invoke(G7(), [$t6, $t9]));
       if ($t10 === R.UNWIND) R.captureUnderPrimitive();
       $t11 = G10();
       $t12 = $t11[R.SCHEME_RAW_CALL];
       $t13 = $t12 === undefined ? $t11(s_proc_$91, $t10) : $t12(s_proc_$91, $t10);
       while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-      if ($t13 === R.UNWIND) { R.reify($fn26$r, 8, { s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+      if ($t13 === R.UNWIND) { R.reify($fn31$r, 8, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
       $t13;
       $t14 = G6() === P6 && (s_first_2dlist_$104 instanceof R.Cons) ? (s_first_2dlist_$104.cdr) : R.settle(R.invoke(G6(), [s_first_2dlist_$104]));
       if ($t14 === R.UNWIND) R.captureUnderPrimitive();
@@ -4054,14 +3955,17 @@ export const PROCEDURES = {
       $t16 = $t15[R.SCHEME_RAW_CALL];
       $t17 = $t16 === undefined ? $t15(s_rest_2dlists_$105) : $t16(s_rest_2dlists_$105);
       while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-      if ($t17 === R.UNWIND) { R.reify($fn26$r, 9, { $t14 }); return R.UNWIND; }
-      return new R.TailCall(s_loop_$99, [$t14, $t17]);
+      if ($t17 === R.UNWIND) { R.reify($fn31$r, 9, { $t1, $t14 }); return R.UNWIND; }
+      s_first_2dlist_$104 = $t14;
+      s_rest_2dlists_$105 = $t17;
+      continue $loop;
     } else {
       return undefined;
     }
+      }
     }
-      R.markProcedure($fn26, "anonymous");
-      function $fn26$r($pc, $f) {
+      R.markProcedure($fn31, "anonymous");
+      function $fn31$r($pc, $f) {
       let s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105, $r;
       ({ s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105, $r } = $f);
       for (;;) switch ($pc) {
@@ -4078,7 +3982,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$105) : $t3(s_rest_2dlists_$105);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn26$r, 4, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn31$r, 4, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
             $r = $t4;
             $pc = 4; continue;
             $t1 = $t4;
@@ -4096,7 +4000,7 @@ export const PROCEDURES = {
             $t8 = $t7[R.SCHEME_RAW_CALL];
             $t9 = $t8 === undefined ? $t7(s_rest_2dlists_$105) : $t8(s_rest_2dlists_$105);
             while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-            if ($t9 === R.UNWIND) { R.reify($fn26$r, 7, { $t6, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+            if ($t9 === R.UNWIND) { R.reify($fn31$r, 7, { $t1, $t6, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
             $r = $t9;
             $pc = 7; continue;
           case 6:
@@ -4109,7 +4013,7 @@ export const PROCEDURES = {
             $t12 = $t11[R.SCHEME_RAW_CALL];
             $t13 = $t12 === undefined ? $t11(s_proc_$91, $t10) : $t12(s_proc_$91, $t10);
             while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-            if ($t13 === R.UNWIND) { R.reify($fn26$r, 8, { s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+            if ($t13 === R.UNWIND) { R.reify($fn31$r, 8, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
             $r = $t13;
             $pc = 8; continue;
           case 8:
@@ -4121,21 +4025,23 @@ export const PROCEDURES = {
             $t16 = $t15[R.SCHEME_RAW_CALL];
             $t17 = $t16 === undefined ? $t15(s_rest_2dlists_$105) : $t16(s_rest_2dlists_$105);
             while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-            if ($t17 === R.UNWIND) { R.reify($fn26$r, 9, { $t14 }); return R.UNWIND; }
+            if ($t17 === R.UNWIND) { R.reify($fn31$r, 9, { $t1, $t14 }); return R.UNWIND; }
             $r = $t17;
             $pc = 9; continue;
           case 9:
             $t17 = $r;
-            return new R.TailCall(s_loop_$99, [$t14, $t17]);
-          default: throw new Error('$fn26$r: bad resume point ' + $pc);
+            s_first_2dlist_$104 = $t14;
+            s_rest_2dlists_$105 = $t17;
+            $pc = 0; continue;
+          default: throw new Error('$fn31$r: bad resume point ' + $pc);
       }
     }
-      $fn26.$resume = $fn26$r;
-      s_loop_$99 = $fn26;
-      return $fn26;
+      $fn31.$resume = $fn31$r;
+      s_loop_$99 = $fn31;
+      return $fn31;
     }
     function $proc(s_proc_$91, s_lst_$92, ...s_lsts_$93$raw) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$95, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t26, $t28, $t30, $t32;
       let s_lsts_$93 = R.listFrom(s_lsts_$93$raw);
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
@@ -4182,27 +4088,47 @@ export const PROCEDURES = {
       $t17 = G3() === P3 ? (s_lsts_$93 === null) : R.settle(R.invoke(G3(), [s_lsts_$93]));
       if ($t17 === R.UNWIND) R.captureUnderPrimitive();
       if ($t17 !== false) {
-      $t19 = $mk$fn18(s_proc_$91);
-      s_loop_$94 = $t19;
-      return new R.TailCall(s_loop_$94, [s_lst_$92]);
+      s_l_$95 = s_lst_$92;
+      $loop1: for (;;) {
+      $t18 = G3() === P3 ? (s_l_$95 === null) : R.settle(R.invoke(G3(), [s_l_$95]));
+      if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+      $t19 = G0() === P0 ? ($t18 === false) : R.settle(R.invoke(G0(), [$t18]));
+      if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t19 !== false) {
+      $t20 = G5() === P5 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.car) : R.settle(R.invoke(G5(), [s_l_$95]));
+      if ($t20 === R.UNWIND) R.captureUnderPrimitive();
+      $t21 = s_proc_$91;
+      $t22 = $t21[R.SCHEME_RAW_CALL];
+      $t23 = $t22 === undefined ? $t21($t20) : $t22($t20);
+      while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
+      if ($t23 === R.UNWIND) { R.reify($proc$r, 18, { s_l_$95, s_proc_$91 }); return R.UNWIND; }
+      $t23;
+      $t24 = G6() === P6 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.cdr) : R.settle(R.invoke(G6(), [s_l_$95]));
+      if ($t24 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$95 = $t24;
+      continue $loop1;
+    } else {
+      return undefined;
+    }
+      }
     } else {
       s_any_2dnull_3f_$96 = [undefined];
       s_all_2dcars_$97 = [undefined];
       s_all_2dcdrs_$98 = [undefined];
-      $t21 = $mk$fn20(s_any_2dnull_3f_$96);
-      s_any_2dnull_3f_$96[0] = $t21;
-      $t23 = $mk$fn22(s_all_2dcars_$97);
-      s_all_2dcars_$97[0] = $t23;
-      $t25 = $mk$fn24(s_all_2dcdrs_$98);
-      s_all_2dcdrs_$98[0] = $t25;
-      $t27 = $mk$fn26(s_any_2dnull_3f_$96, s_proc_$91, s_all_2dcars_$97, s_all_2dcdrs_$98);
-      s_loop_$99 = $t27;
+      $t26 = $mk$fn25(s_any_2dnull_3f_$96);
+      s_any_2dnull_3f_$96[0] = $t26;
+      $t28 = $mk$fn27(s_all_2dcars_$97);
+      s_all_2dcars_$97[0] = $t28;
+      $t30 = $mk$fn29(s_all_2dcdrs_$98);
+      s_all_2dcdrs_$98[0] = $t30;
+      $t32 = $mk$fn31(s_any_2dnull_3f_$96, s_proc_$91, s_all_2dcars_$97, s_all_2dcdrs_$98);
+      s_loop_$99 = $t32;
       return new R.TailCall(s_loop_$99, [s_lst_$92, s_lsts_$93]);
     }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$95, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t26, $t28, $t30, $t32, s_proc_$91, s_lst_$92, s_lsts_$93, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$95, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t26, $t28, $t30, $t32, s_proc_$91, s_lst_$92, s_lsts_$93, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -4272,22 +4198,46 @@ export const PROCEDURES = {
             $t16 = $r;
             $pc = 11; continue;
           case 13:
-            $t19 = $mk$fn18(s_proc_$91);
-            s_loop_$94 = $t19;
-            return new R.TailCall(s_loop_$94, [s_lst_$92]);
+            s_l_$95 = s_lst_$92;
+            $pc = 15; continue;
           case 14:
             s_any_2dnull_3f_$96 = [undefined];
             s_all_2dcars_$97 = [undefined];
             s_all_2dcdrs_$98 = [undefined];
-            $t21 = $mk$fn20(s_any_2dnull_3f_$96);
-            s_any_2dnull_3f_$96[0] = $t21;
-            $t23 = $mk$fn22(s_all_2dcars_$97);
-            s_all_2dcars_$97[0] = $t23;
-            $t25 = $mk$fn24(s_all_2dcdrs_$98);
-            s_all_2dcdrs_$98[0] = $t25;
-            $t27 = $mk$fn26(s_any_2dnull_3f_$96, s_proc_$91, s_all_2dcars_$97, s_all_2dcdrs_$98);
-            s_loop_$99 = $t27;
+            $t26 = $mk$fn25(s_any_2dnull_3f_$96);
+            s_any_2dnull_3f_$96[0] = $t26;
+            $t28 = $mk$fn27(s_all_2dcars_$97);
+            s_all_2dcars_$97[0] = $t28;
+            $t30 = $mk$fn29(s_all_2dcdrs_$98);
+            s_all_2dcdrs_$98[0] = $t30;
+            $t32 = $mk$fn31(s_any_2dnull_3f_$96, s_proc_$91, s_all_2dcars_$97, s_all_2dcdrs_$98);
+            s_loop_$99 = $t32;
             return new R.TailCall(s_loop_$99, [s_lst_$92, s_lsts_$93]);
+          case 15:
+            $t18 = G3() === P3 ? (s_l_$95 === null) : R.settle(R.invoke(G3(), [s_l_$95]));
+            if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+            $t19 = G0() === P0 ? ($t18 === false) : R.settle(R.invoke(G0(), [$t18]));
+            if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t19 !== false) { $pc = 16; continue; } $pc = 17; continue;
+          case 16:
+            $t20 = G5() === P5 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.car) : R.settle(R.invoke(G5(), [s_l_$95]));
+            if ($t20 === R.UNWIND) R.captureUnderPrimitive();
+            $t21 = s_proc_$91;
+            $t22 = $t21[R.SCHEME_RAW_CALL];
+            $t23 = $t22 === undefined ? $t21($t20) : $t22($t20);
+            while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
+            if ($t23 === R.UNWIND) { R.reify($proc$r, 18, { s_l_$95, s_proc_$91 }); return R.UNWIND; }
+            $r = $t23;
+            $pc = 18; continue;
+          case 17:
+            return undefined;
+          case 18:
+            $t23 = $r;
+            $t23;
+            $t24 = G6() === P6 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.cdr) : R.settle(R.invoke(G6(), [s_l_$95]));
+            if ($t24 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$95 = $t24;
+            $pc = 15; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -4324,13 +4274,14 @@ export const PROCEDURES = {
     const G13 = R.globalAccessor(E, "string-ref");
     const G14 = R.globalAccessor(E, "map");
     const G15 = R.globalAccessor(E, "apply");
-    function $mk$fn22() {
+    function $mk$fn16() {
       let s_loop_$111;
-      function $fn22(s_min_2dlen_$112, s_ss_$113) {
+      function $fn16(s_min_2dlen_$112, s_ss_$113) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
-      $t0 = G4() === P4 ? (s_ss_$113 === null) : R.settle(R.invoke(G4(), [s_ss_$113]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G4() === P4 ? (s_ss_$113 === null) : R.settle(R.invoke(G4(), [s_ss_$113]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       return s_min_2dlen_$112;
     } else {
       $t1 = G5() === P5 && (s_ss_$113 instanceof R.Cons) ? (s_ss_$113.car) : R.settle(R.invoke(G5(), [s_ss_$113]));
@@ -4339,7 +4290,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
       $t5 = G0() === P0 ? ($t4 === false) : R.settle(R.invoke(G0(), [$t4]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
       if ($t5 !== false) {
@@ -4349,7 +4300,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8("string-map: expected string", $t7) : $t9("string-map: expected string", $t7);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($fn16$r, 7, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
       $t6 = $t10;
     } else {
       $t6 = undefined;
@@ -4361,19 +4312,22 @@ export const PROCEDURES = {
       $t13 = $t12[R.SCHEME_RAW_CALL];
       $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
       while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-      if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+      if ($t14 === R.UNWIND) { R.reify($fn16$r, 8, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
       $t15 = G6();
       $t16 = $t15[R.SCHEME_RAW_CALL];
       $t17 = $t16 === undefined ? $t15(s_min_2dlen_$112, $t14) : $t16(s_min_2dlen_$112, $t14);
       while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-      if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_ss_$113 }); return R.UNWIND; }
+      if ($t17 === R.UNWIND) { R.reify($fn16$r, 9, { $t6, s_ss_$113 }); return R.UNWIND; }
       $t18 = G8() === P8 && (s_ss_$113 instanceof R.Cons) ? (s_ss_$113.cdr) : R.settle(R.invoke(G8(), [s_ss_$113]));
       if ($t18 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$111, [$t17, $t18]);
+      s_min_2dlen_$112 = $t17;
+      s_ss_$113 = $t18;
+      continue $loop;
     }
+      }
     }
-      R.markProcedure($fn22, "anonymous");
-      function $fn22$r($pc, $f) {
+      R.markProcedure($fn16, "anonymous");
+      function $fn16$r($pc, $f) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113, $r;
       ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113, $r } = $f);
       for (;;) switch ($pc) {
@@ -4390,7 +4344,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -4405,7 +4359,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8("string-map: expected string", $t7) : $t9("string-map: expected string", $t7);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($fn16$r, 7, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
             $r = $t10;
             $pc = 7; continue;
             $t6 = $t10;
@@ -4420,7 +4374,7 @@ export const PROCEDURES = {
             $t13 = $t12[R.SCHEME_RAW_CALL];
             $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
             while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-            if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+            if ($t14 === R.UNWIND) { R.reify($fn16$r, 8, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
             $r = $t14;
             $pc = 8; continue;
           case 7:
@@ -4432,28 +4386,31 @@ export const PROCEDURES = {
             $t16 = $t15[R.SCHEME_RAW_CALL];
             $t17 = $t16 === undefined ? $t15(s_min_2dlen_$112, $t14) : $t16(s_min_2dlen_$112, $t14);
             while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-            if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_ss_$113 }); return R.UNWIND; }
+            if ($t17 === R.UNWIND) { R.reify($fn16$r, 9, { $t6, s_ss_$113 }); return R.UNWIND; }
             $r = $t17;
             $pc = 9; continue;
           case 9:
             $t17 = $r;
             $t18 = G8() === P8 && (s_ss_$113 instanceof R.Cons) ? (s_ss_$113.cdr) : R.settle(R.invoke(G8(), [s_ss_$113]));
             if ($t18 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$111, [$t17, $t18]);
-          default: throw new Error('$fn22$r: bad resume point ' + $pc);
+            s_min_2dlen_$112 = $t17;
+            s_ss_$113 = $t18;
+            $pc = 0; continue;
+          default: throw new Error('$fn16$r: bad resume point ' + $pc);
       }
     }
-      $fn22.$resume = $fn22$r;
-      s_loop_$111 = $fn22;
-      return $fn22;
+      $fn16.$resume = $fn16$r;
+      s_loop_$111 = $fn16;
+      return $fn16;
     }
     function $mk$fn25(s_proc_$107, s_str_$108) {
       let s_loop_$114;
       function $fn25(s_i_$115, s_acc_$116) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
-      $t0 = G10() === P10 && (typeof s_i_$115 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$115 < 0n) : R.settle(R.invoke(G10(), [s_i_$115, 0n]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G10() === P10 && (typeof s_i_$115 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$115 < 0n) : R.settle(R.invoke(G10(), [s_i_$115, 0n]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       return s_acc_$116;
     } else {
       $t1 = G11() === P11 && (typeof s_i_$115 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$115 - 1n) : R.settle(R.invoke(G11(), [s_i_$115, 1n]));
@@ -4470,8 +4427,11 @@ export const PROCEDURES = {
       if ($t7 === R.UNWIND) { R.reify($fn25$r, 4, { $t1, s_acc_$116 }); return R.UNWIND; }
       $t8 = G12() === P12 ? (new R.Cons($t7, s_acc_$116)) : R.settle(R.invoke(G12(), [$t7, s_acc_$116]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$114, [$t1, $t8]);
+      s_i_$115 = $t1;
+      s_acc_$116 = $t8;
+      continue $loop;
     }
+      }
     }
       R.markProcedure($fn25, "anonymous");
       function $fn25$r($pc, $f) {
@@ -4507,7 +4467,9 @@ export const PROCEDURES = {
             $t7 = $r;
             $t8 = G12() === P12 ? (new R.Cons($t7, s_acc_$116)) : R.settle(R.invoke(G12(), [$t7, s_acc_$116]));
             if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$114, [$t1, $t8]);
+            s_i_$115 = $t1;
+            s_acc_$116 = $t8;
+            $pc = 0; continue;
           default: throw new Error('$fn25$r: bad resume point ' + $pc);
       }
     }
@@ -4536,9 +4498,10 @@ export const PROCEDURES = {
       let s_loop_$117;
       function $fn31(s_i_$118, s_acc_$119) {
       let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$120, $t10, $t11, $t12, $t13, $t14;
-      $t0 = G10() === P10 && (typeof s_i_$118 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$118 < 0n) : R.settle(R.invoke(G10(), [s_i_$118, 0n]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G10() === P10 && (typeof s_i_$118 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$118 < 0n) : R.settle(R.invoke(G10(), [s_i_$118, 0n]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       return s_acc_$119;
     } else {
       $t1 = G13();
@@ -4564,8 +4527,11 @@ export const PROCEDURES = {
       if ($t13 === R.UNWIND) { R.reify($fn31$r, 5, { $t10, s_acc_$119 }); return R.UNWIND; }
       $t14 = G12() === P12 ? (new R.Cons($t13, s_acc_$119)) : R.settle(R.invoke(G12(), [$t13, s_acc_$119]));
       if ($t14 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$117, [$t10, $t14]);
+      s_i_$118 = $t10;
+      s_acc_$119 = $t14;
+      continue $loop;
     }
+      }
     }
       R.markProcedure($fn31, "anonymous");
       function $fn31$r($pc, $f) {
@@ -4614,7 +4580,9 @@ export const PROCEDURES = {
             $t13 = $r;
             $t14 = G12() === P12 ? (new R.Cons($t13, s_acc_$119)) : R.settle(R.invoke(G12(), [$t13, s_acc_$119]));
             if ($t14 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$117, [$t10, $t14]);
+            s_i_$118 = $t10;
+            s_acc_$119 = $t14;
+            $pc = 0; continue;
           default: throw new Error('$fn31$r: bad resume point ' + $pc);
       }
     }
@@ -4623,7 +4591,7 @@ export const PROCEDURES = {
       return $fn31;
     }
     function $proc(s_proc_$107, s_str_$108, ...s_strs_$109$raw) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$111, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36;
       let s_strs_$109 = R.listFrom(s_strs_$109$raw);
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
@@ -4661,19 +4629,19 @@ export const PROCEDURES = {
       $t12 = undefined;
     }
       $t12;
-      $t16 = G7();
-      $t17 = $t16[R.SCHEME_RAW_CALL];
-      $t18 = $t17 === undefined ? $t16(s_str_$108) : $t17(s_str_$108);
-      while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
-      $t23 = $mk$fn22();
-      s_loop_$111 = $t23;
-      $t19 = s_loop_$111;
-      $t20 = $t19[R.SCHEME_RAW_CALL];
-      $t21 = $t20 === undefined ? $t19($t18, s_strs_$109) : $t20($t18, s_strs_$109);
-      while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-      if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
-      s_len_$110 = $t21;
+      $t17 = $mk$fn16();
+      s_loop_$111 = $t17;
+      $t18 = G7();
+      $t19 = $t18[R.SCHEME_RAW_CALL];
+      $t20 = $t19 === undefined ? $t18(s_str_$108) : $t19(s_str_$108);
+      while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
+      if ($t20 === R.UNWIND) { R.reify($proc$r, 11, { s_loop_$111, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      $t21 = s_loop_$111;
+      $t22 = $t21[R.SCHEME_RAW_CALL];
+      $t23 = $t22 === undefined ? $t21($t20, s_strs_$109) : $t22($t20, s_strs_$109);
+      while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
+      if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      s_len_$110 = $t23;
       $t24 = G4() === P4 ? (s_strs_$109 === null) : R.settle(R.invoke(G4(), [s_strs_$109]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
       if ($t24 !== false) {
@@ -4701,8 +4669,8 @@ export const PROCEDURES = {
     }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$111, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$111, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -4760,30 +4728,30 @@ export const PROCEDURES = {
             $pc = 9; continue;
           case 9:
             $t12;
-            $t16 = G7();
-            $t17 = $t16[R.SCHEME_RAW_CALL];
-            $t18 = $t17 === undefined ? $t16(s_str_$108) : $t17(s_str_$108);
-            while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
-            $r = $t18;
+            $t17 = $mk$fn16();
+            s_loop_$111 = $t17;
+            $t18 = G7();
+            $t19 = $t18[R.SCHEME_RAW_CALL];
+            $t20 = $t19 === undefined ? $t18(s_str_$108) : $t19(s_str_$108);
+            while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
+            if ($t20 === R.UNWIND) { R.reify($proc$r, 11, { s_loop_$111, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+            $r = $t20;
             $pc = 11; continue;
           case 10:
             $t15 = $r;
             $pc = 9; continue;
           case 11:
-            $t18 = $r;
-            $t23 = $mk$fn22();
-            s_loop_$111 = $t23;
-            $t19 = s_loop_$111;
-            $t20 = $t19[R.SCHEME_RAW_CALL];
-            $t21 = $t20 === undefined ? $t19($t18, s_strs_$109) : $t20($t18, s_strs_$109);
-            while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-            if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
-            $r = $t21;
+            $t20 = $r;
+            $t21 = s_loop_$111;
+            $t22 = $t21[R.SCHEME_RAW_CALL];
+            $t23 = $t22 === undefined ? $t21($t20, s_strs_$109) : $t22($t20, s_strs_$109);
+            while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
+            if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+            $r = $t23;
             $pc = 12; continue;
           case 12:
-            $t21 = $r;
-            s_len_$110 = $t21;
+            $t23 = $r;
+            s_len_$110 = $t23;
             $t24 = G4() === P4 ? (s_strs_$109 === null) : R.settle(R.invoke(G4(), [s_strs_$109]));
             if ($t24 === R.UNWIND) R.captureUnderPrimitive();
             if ($t24 !== false) { $pc = 13; continue; } $pc = 14; continue;
@@ -4945,179 +4913,25 @@ export const PROCEDURES = {
       $fn19.$resume = $fn19$r;
       return $fn19;
     }
-    function $mk$fn25(s_len_$125, s_proc_$122, s_str_$123) {
-      let s_loop_$127;
-      function $fn25(s_i_$128) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
-      $t0 = G8() === P8 && (typeof s_i_$128 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$128 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$128, s_len_$125]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      $t1 = G9();
-      $t2 = $t1[R.SCHEME_RAW_CALL];
-      $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$128) : $t2(s_str_$123, s_i_$128);
-      while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$128 }); return R.UNWIND; }
-      $t4 = s_proc_$122;
-      $t5 = $t4[R.SCHEME_RAW_CALL];
-      $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
-      while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$128 }); return R.UNWIND; }
-      $t6;
-      $t7 = G10() === P10 && (typeof s_i_$128 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$128 + 1n) : R.settle(R.invoke(G10(), [s_i_$128, 1n]));
-      if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$127, [$t7]);
-    } else {
-      return undefined;
-    }
-    }
-      R.markProcedure($fn25, "anonymous");
-      function $fn25$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$128, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$128, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G8() === P8 && (typeof s_i_$128 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$128 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$128, s_len_$125]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            $t1 = G9();
-            $t2 = $t1[R.SCHEME_RAW_CALL];
-            $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$128) : $t2(s_str_$123, s_i_$128);
-            while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$128 }); return R.UNWIND; }
-            $r = $t3;
-            $pc = 3; continue;
-          case 2:
-            return undefined;
-          case 3:
-            $t3 = $r;
-            $t4 = s_proc_$122;
-            $t5 = $t4[R.SCHEME_RAW_CALL];
-            $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
-            while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$128 }); return R.UNWIND; }
-            $r = $t6;
-            $pc = 4; continue;
-          case 4:
-            $t6 = $r;
-            $t6;
-            $t7 = G10() === P10 && (typeof s_i_$128 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$128 + 1n) : R.settle(R.invoke(G10(), [s_i_$128, 1n]));
-            if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$127, [$t7]);
-          default: throw new Error('$fn25$r: bad resume point ' + $pc);
-      }
-    }
-      $fn25.$resume = $fn25$r;
-      s_loop_$127 = $fn25;
-      return $fn25;
-    }
-    function $mk$fn27_4(s_i_$130) {
-      function $fn27_4(s_s_$132) {
+    function $mk$fn37(s_i_$130) {
+      function $fn37(s_s_$132) {
       return new R.TailCall(G9(), [s_s_$132, s_i_$130]);
     }
-      R.markProcedure($fn27_4, "anonymous");
-      function $fn27_4$r($pc, $f) {
+      R.markProcedure($fn37, "anonymous");
+      function $fn37$r($pc, $f) {
       let s_s_$132, $r;
       ({ s_s_$132, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             return new R.TailCall(G9(), [s_s_$132, s_i_$130]);
-          default: throw new Error('$fn27_4$r: bad resume point ' + $pc);
+          default: throw new Error('$fn37$r: bad resume point ' + $pc);
       }
     }
-      $fn27_4.$resume = $fn27_4$r;
-      return $fn27_4;
-    }
-    function $mk$fn27(s_len_$125, s_str_$123, s_strs_$124, s_proc_$122) {
-      let s_loop_$129;
-      function $fn27(s_i_$130) {
-      let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13;
-      $t0 = G8() === P8 && (typeof s_i_$130 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$130 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$130, s_len_$125]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      $t1 = G9();
-      $t2 = $t1[R.SCHEME_RAW_CALL];
-      $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$130) : $t2(s_str_$123, s_i_$130);
-      while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$130 }); return R.UNWIND; }
-      $t5 = $mk$fn27_4(s_i_$130);
-      $t6 = G12();
-      $t7 = $t6[R.SCHEME_RAW_CALL];
-      $t8 = $t7 === undefined ? $t6($t5, s_strs_$124) : $t7($t5, s_strs_$124);
-      while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$130 }); return R.UNWIND; }
-      $t9 = G11() === P11 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G11(), [$t3, $t8]));
-      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
-      s_chars_$131 = $t9;
-      $t10 = G13();
-      $t11 = $t10[R.SCHEME_RAW_CALL];
-      $t12 = $t11 === undefined ? $t10(s_proc_$122, s_chars_$131) : $t11(s_proc_$122, s_chars_$131);
-      while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$130 }); return R.UNWIND; }
-      $t12;
-      $t13 = G10() === P10 && (typeof s_i_$130 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$130 + 1n) : R.settle(R.invoke(G10(), [s_i_$130, 1n]));
-      if ($t13 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$129, [$t13]);
-    } else {
-      return undefined;
-    }
-    }
-      R.markProcedure($fn27, "anonymous");
-      function $fn27$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130, $r;
-      ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G8() === P8 && (typeof s_i_$130 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$130 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$130, s_len_$125]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            $t1 = G9();
-            $t2 = $t1[R.SCHEME_RAW_CALL];
-            $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$130) : $t2(s_str_$123, s_i_$130);
-            while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$130 }); return R.UNWIND; }
-            $r = $t3;
-            $pc = 3; continue;
-          case 2:
-            return undefined;
-          case 3:
-            $t3 = $r;
-            $t5 = $mk$fn27_4(s_i_$130);
-            $t6 = G12();
-            $t7 = $t6[R.SCHEME_RAW_CALL];
-            $t8 = $t7 === undefined ? $t6($t5, s_strs_$124) : $t7($t5, s_strs_$124);
-            while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$130 }); return R.UNWIND; }
-            $r = $t8;
-            $pc = 4; continue;
-          case 4:
-            $t8 = $r;
-            $t9 = G11() === P11 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G11(), [$t3, $t8]));
-            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
-            s_chars_$131 = $t9;
-            $t10 = G13();
-            $t11 = $t10[R.SCHEME_RAW_CALL];
-            $t12 = $t11 === undefined ? $t10(s_proc_$122, s_chars_$131) : $t11(s_proc_$122, s_chars_$131);
-            while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$130 }); return R.UNWIND; }
-            $r = $t12;
-            $pc = 5; continue;
-          case 5:
-            $t12 = $r;
-            $t12;
-            $t13 = G10() === P10 && (typeof s_i_$130 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$130 + 1n) : R.settle(R.invoke(G10(), [s_i_$130, 1n]));
-            if ($t13 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$129, [$t13]);
-          default: throw new Error('$fn27$r: bad resume point ' + $pc);
-      }
-    }
-      $fn27.$resume = $fn27$r;
-      s_loop_$129 = $fn27;
-      return $fn27;
+      $fn37.$resume = $fn37$r;
+      return $fn37;
     }
     function $proc(s_proc_$122, s_str_$123, ...s_strs_$124$raw) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_i_$128, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$130, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_chars_$131, $t43, $t44, $t45, $t46;
       let s_strs_$124 = R.listFrom(s_strs_$124$raw);
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
@@ -5171,18 +4985,69 @@ export const PROCEDURES = {
       $t24 = G7() === P7 ? (s_strs_$124 === null) : R.settle(R.invoke(G7(), [s_strs_$124]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
       if ($t24 !== false) {
-      $t26 = $mk$fn25(s_len_$125, s_proc_$122, s_str_$123);
-      s_loop_$127 = $t26;
-      return new R.TailCall(s_loop_$127, [0n]);
+      s_i_$128 = 0n;
+      $loop1: for (;;) {
+      $t25 = G8() === P8 && (typeof s_i_$128 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$128 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$128, s_len_$125]));
+      if ($t25 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t25 !== false) {
+      $t26 = G9();
+      $t27 = $t26[R.SCHEME_RAW_CALL];
+      $t28 = $t27 === undefined ? $t26(s_str_$123, s_i_$128) : $t27(s_str_$123, s_i_$128);
+      while ($t28 instanceof R.TailCall) { $t28 = R.step($t28); }
+      if ($t28 === R.UNWIND) { R.reify($proc$r, 18, { s_len_$125, s_i_$128, s_proc_$122, s_str_$123 }); return R.UNWIND; }
+      $t29 = s_proc_$122;
+      $t30 = $t29[R.SCHEME_RAW_CALL];
+      $t31 = $t30 === undefined ? $t29($t28) : $t30($t28);
+      while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
+      if ($t31 === R.UNWIND) { R.reify($proc$r, 19, { s_len_$125, s_i_$128, s_proc_$122, s_str_$123 }); return R.UNWIND; }
+      $t31;
+      $t32 = G10() === P10 && (typeof s_i_$128 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$128 + 1n) : R.settle(R.invoke(G10(), [s_i_$128, 1n]));
+      if ($t32 === R.UNWIND) R.captureUnderPrimitive();
+      s_i_$128 = $t32;
+      continue $loop1;
     } else {
-      $t28 = $mk$fn27(s_len_$125, s_str_$123, s_strs_$124, s_proc_$122);
-      s_loop_$129 = $t28;
-      return new R.TailCall(s_loop_$129, [0n]);
+      return undefined;
+    }
+      }
+    } else {
+      s_i_$130 = 0n;
+      $loop2: for (;;) {
+      $t33 = G8() === P8 && (typeof s_i_$130 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$130 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$130, s_len_$125]));
+      if ($t33 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t33 !== false) {
+      $t34 = G9();
+      $t35 = $t34[R.SCHEME_RAW_CALL];
+      $t36 = $t35 === undefined ? $t34(s_str_$123, s_i_$130) : $t35(s_str_$123, s_i_$130);
+      while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
+      if ($t36 === R.UNWIND) { R.reify($proc$r, 23, { s_len_$125, s_i_$130, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      $t38 = $mk$fn37(s_i_$130);
+      $t39 = G12();
+      $t40 = $t39[R.SCHEME_RAW_CALL];
+      $t41 = $t40 === undefined ? $t39($t38, s_strs_$124) : $t40($t38, s_strs_$124);
+      while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
+      if ($t41 === R.UNWIND) { R.reify($proc$r, 24, { s_len_$125, s_i_$130, $t36, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      $t42 = G11() === P11 ? (new R.Cons($t36, $t41)) : R.settle(R.invoke(G11(), [$t36, $t41]));
+      if ($t42 === R.UNWIND) R.captureUnderPrimitive();
+      s_chars_$131 = $t42;
+      $t43 = G13();
+      $t44 = $t43[R.SCHEME_RAW_CALL];
+      $t45 = $t44 === undefined ? $t43(s_proc_$122, s_chars_$131) : $t44(s_proc_$122, s_chars_$131);
+      while ($t45 instanceof R.TailCall) { $t45 = R.step($t45); }
+      if ($t45 === R.UNWIND) { R.reify($proc$r, 25, { s_len_$125, s_i_$130, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      $t45;
+      $t46 = G10() === P10 && (typeof s_i_$130 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$130 + 1n) : R.settle(R.invoke(G10(), [s_i_$130, 1n]));
+      if ($t46 === R.UNWIND) R.captureUnderPrimitive();
+      s_i_$130 = $t46;
+      continue $loop2;
+    } else {
+      return undefined;
+    }
+      }
     }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_i_$128, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$130, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_chars_$131, $t43, $t44, $t45, $t46, s_proc_$122, s_str_$123, s_strs_$124, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_i_$128, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$130, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_chars_$131, $t43, $t44, $t45, $t46, s_proc_$122, s_str_$123, s_strs_$124, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -5268,13 +5133,84 @@ export const PROCEDURES = {
             if ($t24 === R.UNWIND) R.captureUnderPrimitive();
             if ($t24 !== false) { $pc = 13; continue; } $pc = 14; continue;
           case 13:
-            $t26 = $mk$fn25(s_len_$125, s_proc_$122, s_str_$123);
-            s_loop_$127 = $t26;
-            return new R.TailCall(s_loop_$127, [0n]);
+            s_i_$128 = 0n;
+            $pc = 15; continue;
           case 14:
-            $t28 = $mk$fn27(s_len_$125, s_str_$123, s_strs_$124, s_proc_$122);
-            s_loop_$129 = $t28;
-            return new R.TailCall(s_loop_$129, [0n]);
+            s_i_$130 = 0n;
+            $pc = 20; continue;
+          case 15:
+            $t25 = G8() === P8 && (typeof s_i_$128 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$128 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$128, s_len_$125]));
+            if ($t25 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t25 !== false) { $pc = 16; continue; } $pc = 17; continue;
+          case 16:
+            $t26 = G9();
+            $t27 = $t26[R.SCHEME_RAW_CALL];
+            $t28 = $t27 === undefined ? $t26(s_str_$123, s_i_$128) : $t27(s_str_$123, s_i_$128);
+            while ($t28 instanceof R.TailCall) { $t28 = R.step($t28); }
+            if ($t28 === R.UNWIND) { R.reify($proc$r, 18, { s_len_$125, s_i_$128, s_proc_$122, s_str_$123 }); return R.UNWIND; }
+            $r = $t28;
+            $pc = 18; continue;
+          case 17:
+            return undefined;
+          case 18:
+            $t28 = $r;
+            $t29 = s_proc_$122;
+            $t30 = $t29[R.SCHEME_RAW_CALL];
+            $t31 = $t30 === undefined ? $t29($t28) : $t30($t28);
+            while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
+            if ($t31 === R.UNWIND) { R.reify($proc$r, 19, { s_len_$125, s_i_$128, s_proc_$122, s_str_$123 }); return R.UNWIND; }
+            $r = $t31;
+            $pc = 19; continue;
+          case 19:
+            $t31 = $r;
+            $t31;
+            $t32 = G10() === P10 && (typeof s_i_$128 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$128 + 1n) : R.settle(R.invoke(G10(), [s_i_$128, 1n]));
+            if ($t32 === R.UNWIND) R.captureUnderPrimitive();
+            s_i_$128 = $t32;
+            $pc = 15; continue;
+          case 20:
+            $t33 = G8() === P8 && (typeof s_i_$130 === 'bigint' && typeof s_len_$125 === 'bigint') ? (s_i_$130 < s_len_$125) : R.settle(R.invoke(G8(), [s_i_$130, s_len_$125]));
+            if ($t33 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t33 !== false) { $pc = 21; continue; } $pc = 22; continue;
+          case 21:
+            $t34 = G9();
+            $t35 = $t34[R.SCHEME_RAW_CALL];
+            $t36 = $t35 === undefined ? $t34(s_str_$123, s_i_$130) : $t35(s_str_$123, s_i_$130);
+            while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
+            if ($t36 === R.UNWIND) { R.reify($proc$r, 23, { s_len_$125, s_i_$130, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+            $r = $t36;
+            $pc = 23; continue;
+          case 22:
+            return undefined;
+          case 23:
+            $t36 = $r;
+            $t38 = $mk$fn37(s_i_$130);
+            $t39 = G12();
+            $t40 = $t39[R.SCHEME_RAW_CALL];
+            $t41 = $t40 === undefined ? $t39($t38, s_strs_$124) : $t40($t38, s_strs_$124);
+            while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
+            if ($t41 === R.UNWIND) { R.reify($proc$r, 24, { s_len_$125, s_i_$130, $t36, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+            $r = $t41;
+            $pc = 24; continue;
+          case 24:
+            $t41 = $r;
+            $t42 = G11() === P11 ? (new R.Cons($t36, $t41)) : R.settle(R.invoke(G11(), [$t36, $t41]));
+            if ($t42 === R.UNWIND) R.captureUnderPrimitive();
+            s_chars_$131 = $t42;
+            $t43 = G13();
+            $t44 = $t43[R.SCHEME_RAW_CALL];
+            $t45 = $t44 === undefined ? $t43(s_proc_$122, s_chars_$131) : $t44(s_proc_$122, s_chars_$131);
+            while ($t45 instanceof R.TailCall) { $t45 = R.step($t45); }
+            if ($t45 === R.UNWIND) { R.reify($proc$r, 25, { s_len_$125, s_i_$130, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+            $r = $t45;
+            $pc = 25; continue;
+          case 25:
+            $t45 = $r;
+            $t45;
+            $t46 = G10() === P10 && (typeof s_i_$130 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$130 + 1n) : R.settle(R.invoke(G10(), [s_i_$130, 1n]));
+            if ($t46 === R.UNWIND) R.captureUnderPrimitive();
+            s_i_$130 = $t46;
+            $pc = 20; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -5312,13 +5248,14 @@ export const PROCEDURES = {
     const P14 = R.currentBinding(E, "cons");
     const G15 = R.globalAccessor(E, "map");
     const G16 = R.globalAccessor(E, "apply");
-    function $mk$fn22() {
+    function $mk$fn16() {
       let s_loop_$137;
-      function $fn22(s_min_2dlen_$138, s_vs_$139) {
+      function $fn16(s_min_2dlen_$138, s_vs_$139) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
-      $t0 = G4() === P4 ? (s_vs_$139 === null) : R.settle(R.invoke(G4(), [s_vs_$139]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G4() === P4 ? (s_vs_$139 === null) : R.settle(R.invoke(G4(), [s_vs_$139]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       return s_min_2dlen_$138;
     } else {
       $t1 = G5() === P5 && (s_vs_$139 instanceof R.Cons) ? (s_vs_$139.car) : R.settle(R.invoke(G5(), [s_vs_$139]));
@@ -5327,7 +5264,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
       $t5 = G0() === P0 ? ($t4 === false) : R.settle(R.invoke(G0(), [$t4]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
       if ($t5 !== false) {
@@ -5337,7 +5274,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8("vector-map: expected vector", $t7) : $t9("vector-map: expected vector", $t7);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($fn16$r, 7, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
       $t6 = $t10;
     } else {
       $t6 = undefined;
@@ -5349,19 +5286,22 @@ export const PROCEDURES = {
       $t13 = $t12[R.SCHEME_RAW_CALL];
       $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
       while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-      if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+      if ($t14 === R.UNWIND) { R.reify($fn16$r, 8, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
       $t15 = G6();
       $t16 = $t15[R.SCHEME_RAW_CALL];
       $t17 = $t16 === undefined ? $t15(s_min_2dlen_$138, $t14) : $t16(s_min_2dlen_$138, $t14);
       while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-      if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_vs_$139 }); return R.UNWIND; }
+      if ($t17 === R.UNWIND) { R.reify($fn16$r, 9, { $t6, s_vs_$139 }); return R.UNWIND; }
       $t18 = G8() === P8 && (s_vs_$139 instanceof R.Cons) ? (s_vs_$139.cdr) : R.settle(R.invoke(G8(), [s_vs_$139]));
       if ($t18 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$137, [$t17, $t18]);
+      s_min_2dlen_$138 = $t17;
+      s_vs_$139 = $t18;
+      continue $loop;
     }
+      }
     }
-      R.markProcedure($fn22, "anonymous");
-      function $fn22$r($pc, $f) {
+      R.markProcedure($fn16, "anonymous");
+      function $fn16$r($pc, $f) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139, $r;
       ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139, $r } = $f);
       for (;;) switch ($pc) {
@@ -5378,7 +5318,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -5393,7 +5333,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8("vector-map: expected vector", $t7) : $t9("vector-map: expected vector", $t7);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($fn16$r, 7, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
             $r = $t10;
             $pc = 7; continue;
             $t6 = $t10;
@@ -5408,7 +5348,7 @@ export const PROCEDURES = {
             $t13 = $t12[R.SCHEME_RAW_CALL];
             $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
             while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-            if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+            if ($t14 === R.UNWIND) { R.reify($fn16$r, 8, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
             $r = $t14;
             $pc = 8; continue;
           case 7:
@@ -5420,28 +5360,31 @@ export const PROCEDURES = {
             $t16 = $t15[R.SCHEME_RAW_CALL];
             $t17 = $t16 === undefined ? $t15(s_min_2dlen_$138, $t14) : $t16(s_min_2dlen_$138, $t14);
             while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-            if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_vs_$139 }); return R.UNWIND; }
+            if ($t17 === R.UNWIND) { R.reify($fn16$r, 9, { $t6, s_vs_$139 }); return R.UNWIND; }
             $r = $t17;
             $pc = 9; continue;
           case 9:
             $t17 = $r;
             $t18 = G8() === P8 && (s_vs_$139 instanceof R.Cons) ? (s_vs_$139.cdr) : R.settle(R.invoke(G8(), [s_vs_$139]));
             if ($t18 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$137, [$t17, $t18]);
-          default: throw new Error('$fn22$r: bad resume point ' + $pc);
+            s_min_2dlen_$138 = $t17;
+            s_vs_$139 = $t18;
+            $pc = 0; continue;
+          default: throw new Error('$fn16$r: bad resume point ' + $pc);
       }
     }
-      $fn22.$resume = $fn22$r;
-      s_loop_$137 = $fn22;
-      return $fn22;
+      $fn16.$resume = $fn16$r;
+      s_loop_$137 = $fn16;
+      return $fn16;
     }
     function $mk$fn28(s_len_$136, s_result_$140, s_proc_$133, s_vec_$134) {
       let s_loop_$141;
       function $fn28(s_i_$142) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
-      $t0 = G10() === P10 && (typeof s_i_$142 === 'bigint' && typeof s_len_$136 === 'bigint') ? (s_i_$142 < s_len_$136) : R.settle(R.invoke(G10(), [s_i_$142, s_len_$136]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G10() === P10 && (typeof s_i_$142 === 'bigint' && typeof s_len_$136 === 'bigint') ? (s_i_$142 < s_len_$136) : R.settle(R.invoke(G10(), [s_i_$142, s_len_$136]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       $t1 = G12();
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_vec_$134, s_i_$142) : $t2(s_vec_$134, s_i_$142);
@@ -5460,10 +5403,12 @@ export const PROCEDURES = {
       $t9;
       $t10 = G13() === P13 && (typeof s_i_$142 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$142 + 1n) : R.settle(R.invoke(G13(), [s_i_$142, 1n]));
       if ($t10 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$141, [$t10]);
+      s_i_$142 = $t10;
+      continue $loop;
     } else {
       return undefined;
     }
+      }
     }
       R.markProcedure($fn28, "anonymous");
       function $fn28$r($pc, $f) {
@@ -5507,7 +5452,8 @@ export const PROCEDURES = {
             $t9;
             $t10 = G13() === P13 && (typeof s_i_$142 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$142 + 1n) : R.settle(R.invoke(G13(), [s_i_$142, 1n]));
             if ($t10 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$141, [$t10]);
+            s_i_$142 = $t10;
+            $pc = 0; continue;
           default: throw new Error('$fn28$r: bad resume point ' + $pc);
       }
     }
@@ -5536,9 +5482,10 @@ export const PROCEDURES = {
       let s_loop_$144;
       function $fn36(s_i_$145) {
       let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
-      $t0 = G10() === P10 && (typeof s_i_$145 === 'bigint' && typeof s_len_$136 === 'bigint') ? (s_i_$145 < s_len_$136) : R.settle(R.invoke(G10(), [s_i_$145, s_len_$136]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
+      $loop: for (;;) {
+        $t0 = G10() === P10 && (typeof s_i_$145 === 'bigint' && typeof s_len_$136 === 'bigint') ? (s_i_$145 < s_len_$136) : R.settle(R.invoke(G10(), [s_i_$145, s_len_$136]));
+        if ($t0 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t0 !== false) {
       $t1 = G12();
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_vec_$134, s_i_$145) : $t2(s_vec_$134, s_i_$145);
@@ -5566,10 +5513,12 @@ export const PROCEDURES = {
       $t15;
       $t16 = G13() === P13 && (typeof s_i_$145 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$145 + 1n) : R.settle(R.invoke(G13(), [s_i_$145, 1n]));
       if ($t16 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$144, [$t16]);
+      s_i_$145 = $t16;
+      continue $loop;
     } else {
       return undefined;
     }
+      }
     }
       R.markProcedure($fn36, "anonymous");
       function $fn36$r($pc, $f) {
@@ -5626,7 +5575,8 @@ export const PROCEDURES = {
             $t15;
             $t16 = G13() === P13 && (typeof s_i_$145 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$145 + 1n) : R.settle(R.invoke(G13(), [s_i_$145, 1n]));
             if ($t16 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$144, [$t16]);
+            s_i_$145 = $t16;
+            $pc = 0; continue;
           default: throw new Error('$fn36$r: bad resume point ' + $pc);
       }
     }
@@ -5635,7 +5585,7 @@ export const PROCEDURES = {
       return $fn36;
     }
     function $proc(s_proc_$133, s_vec_$134, ...s_vecs_$135$raw) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$137, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40;
       let s_vecs_$135 = R.listFrom(s_vecs_$135$raw);
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
@@ -5673,19 +5623,19 @@ export const PROCEDURES = {
       $t12 = undefined;
     }
       $t12;
-      $t16 = G7();
-      $t17 = $t16[R.SCHEME_RAW_CALL];
-      $t18 = $t17 === undefined ? $t16(s_vec_$134) : $t17(s_vec_$134);
-      while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
-      $t23 = $mk$fn22();
-      s_loop_$137 = $t23;
-      $t19 = s_loop_$137;
-      $t20 = $t19[R.SCHEME_RAW_CALL];
-      $t21 = $t20 === undefined ? $t19($t18, s_vecs_$135) : $t20($t18, s_vecs_$135);
-      while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-      if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
-      s_len_$136 = $t21;
+      $t17 = $mk$fn16();
+      s_loop_$137 = $t17;
+      $t18 = G7();
+      $t19 = $t18[R.SCHEME_RAW_CALL];
+      $t20 = $t19 === undefined ? $t18(s_vec_$134) : $t19(s_vec_$134);
+      while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
+      if ($t20 === R.UNWIND) { R.reify($proc$r, 11, { s_loop_$137, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      $t21 = s_loop_$137;
+      $t22 = $t21[R.SCHEME_RAW_CALL];
+      $t23 = $t22 === undefined ? $t21($t20, s_vecs_$135) : $t22($t20, s_vecs_$135);
+      while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
+      if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      s_len_$136 = $t23;
       $t24 = G4() === P4 ? (s_vecs_$135 === null) : R.settle(R.invoke(G4(), [s_vecs_$135]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
       if ($t24 !== false) {
@@ -5723,8 +5673,8 @@ export const PROCEDURES = {
     }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$137, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$137, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -5782,30 +5732,30 @@ export const PROCEDURES = {
             $pc = 9; continue;
           case 9:
             $t12;
-            $t16 = G7();
-            $t17 = $t16[R.SCHEME_RAW_CALL];
-            $t18 = $t17 === undefined ? $t16(s_vec_$134) : $t17(s_vec_$134);
-            while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
-            $r = $t18;
+            $t17 = $mk$fn16();
+            s_loop_$137 = $t17;
+            $t18 = G7();
+            $t19 = $t18[R.SCHEME_RAW_CALL];
+            $t20 = $t19 === undefined ? $t18(s_vec_$134) : $t19(s_vec_$134);
+            while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
+            if ($t20 === R.UNWIND) { R.reify($proc$r, 11, { s_loop_$137, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+            $r = $t20;
             $pc = 11; continue;
           case 10:
             $t15 = $r;
             $pc = 9; continue;
           case 11:
-            $t18 = $r;
-            $t23 = $mk$fn22();
-            s_loop_$137 = $t23;
-            $t19 = s_loop_$137;
-            $t20 = $t19[R.SCHEME_RAW_CALL];
-            $t21 = $t20 === undefined ? $t19($t18, s_vecs_$135) : $t20($t18, s_vecs_$135);
-            while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-            if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
-            $r = $t21;
+            $t20 = $r;
+            $t21 = s_loop_$137;
+            $t22 = $t21[R.SCHEME_RAW_CALL];
+            $t23 = $t22 === undefined ? $t21($t20, s_vecs_$135) : $t22($t20, s_vecs_$135);
+            while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
+            if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+            $r = $t23;
             $pc = 12; continue;
           case 12:
-            $t21 = $r;
-            s_len_$136 = $t21;
+            $t23 = $r;
+            s_len_$136 = $t23;
             $t24 = G4() === P4 ? (s_vecs_$135 === null) : R.settle(R.invoke(G4(), [s_vecs_$135]));
             if ($t24 === R.UNWIND) R.captureUnderPrimitive();
             if ($t24 !== false) { $pc = 13; continue; } $pc = 14; continue;
@@ -5985,179 +5935,25 @@ export const PROCEDURES = {
       $fn19.$resume = $fn19$r;
       return $fn19;
     }
-    function $mk$fn25(s_len_$151, s_proc_$148, s_vec_$149) {
-      let s_loop_$153;
-      function $fn25(s_i_$154) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
-      $t0 = G8() === P8 && (typeof s_i_$154 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$154 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$154, s_len_$151]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      $t1 = G9();
-      $t2 = $t1[R.SCHEME_RAW_CALL];
-      $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$154) : $t2(s_vec_$149, s_i_$154);
-      while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$154 }); return R.UNWIND; }
-      $t4 = s_proc_$148;
-      $t5 = $t4[R.SCHEME_RAW_CALL];
-      $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
-      while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$154 }); return R.UNWIND; }
-      $t6;
-      $t7 = G10() === P10 && (typeof s_i_$154 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$154 + 1n) : R.settle(R.invoke(G10(), [s_i_$154, 1n]));
-      if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$153, [$t7]);
-    } else {
-      return undefined;
-    }
-    }
-      R.markProcedure($fn25, "anonymous");
-      function $fn25$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$154, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$154, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G8() === P8 && (typeof s_i_$154 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$154 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$154, s_len_$151]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            $t1 = G9();
-            $t2 = $t1[R.SCHEME_RAW_CALL];
-            $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$154) : $t2(s_vec_$149, s_i_$154);
-            while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$154 }); return R.UNWIND; }
-            $r = $t3;
-            $pc = 3; continue;
-          case 2:
-            return undefined;
-          case 3:
-            $t3 = $r;
-            $t4 = s_proc_$148;
-            $t5 = $t4[R.SCHEME_RAW_CALL];
-            $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
-            while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$154 }); return R.UNWIND; }
-            $r = $t6;
-            $pc = 4; continue;
-          case 4:
-            $t6 = $r;
-            $t6;
-            $t7 = G10() === P10 && (typeof s_i_$154 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$154 + 1n) : R.settle(R.invoke(G10(), [s_i_$154, 1n]));
-            if ($t7 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$153, [$t7]);
-          default: throw new Error('$fn25$r: bad resume point ' + $pc);
-      }
-    }
-      $fn25.$resume = $fn25$r;
-      s_loop_$153 = $fn25;
-      return $fn25;
-    }
-    function $mk$fn27_4(s_i_$156) {
-      function $fn27_4(s_v_$158) {
+    function $mk$fn37(s_i_$156) {
+      function $fn37(s_v_$158) {
       return new R.TailCall(G9(), [s_v_$158, s_i_$156]);
     }
-      R.markProcedure($fn27_4, "anonymous");
-      function $fn27_4$r($pc, $f) {
+      R.markProcedure($fn37, "anonymous");
+      function $fn37$r($pc, $f) {
       let s_v_$158, $r;
       ({ s_v_$158, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             return new R.TailCall(G9(), [s_v_$158, s_i_$156]);
-          default: throw new Error('$fn27_4$r: bad resume point ' + $pc);
+          default: throw new Error('$fn37$r: bad resume point ' + $pc);
       }
     }
-      $fn27_4.$resume = $fn27_4$r;
-      return $fn27_4;
-    }
-    function $mk$fn27(s_len_$151, s_vec_$149, s_vecs_$150, s_proc_$148) {
-      let s_loop_$155;
-      function $fn27(s_i_$156) {
-      let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13;
-      $t0 = G8() === P8 && (typeof s_i_$156 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$156 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$156, s_len_$151]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      $t1 = G9();
-      $t2 = $t1[R.SCHEME_RAW_CALL];
-      $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$156) : $t2(s_vec_$149, s_i_$156);
-      while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$156 }); return R.UNWIND; }
-      $t5 = $mk$fn27_4(s_i_$156);
-      $t6 = G12();
-      $t7 = $t6[R.SCHEME_RAW_CALL];
-      $t8 = $t7 === undefined ? $t6($t5, s_vecs_$150) : $t7($t5, s_vecs_$150);
-      while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$156 }); return R.UNWIND; }
-      $t9 = G11() === P11 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G11(), [$t3, $t8]));
-      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
-      s_elems_$157 = $t9;
-      $t10 = G13();
-      $t11 = $t10[R.SCHEME_RAW_CALL];
-      $t12 = $t11 === undefined ? $t10(s_proc_$148, s_elems_$157) : $t11(s_proc_$148, s_elems_$157);
-      while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$156 }); return R.UNWIND; }
-      $t12;
-      $t13 = G10() === P10 && (typeof s_i_$156 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$156 + 1n) : R.settle(R.invoke(G10(), [s_i_$156, 1n]));
-      if ($t13 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$155, [$t13]);
-    } else {
-      return undefined;
-    }
-    }
-      R.markProcedure($fn27, "anonymous");
-      function $fn27$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156, $r;
-      ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G8() === P8 && (typeof s_i_$156 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$156 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$156, s_len_$151]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            $t1 = G9();
-            $t2 = $t1[R.SCHEME_RAW_CALL];
-            $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$156) : $t2(s_vec_$149, s_i_$156);
-            while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$156 }); return R.UNWIND; }
-            $r = $t3;
-            $pc = 3; continue;
-          case 2:
-            return undefined;
-          case 3:
-            $t3 = $r;
-            $t5 = $mk$fn27_4(s_i_$156);
-            $t6 = G12();
-            $t7 = $t6[R.SCHEME_RAW_CALL];
-            $t8 = $t7 === undefined ? $t6($t5, s_vecs_$150) : $t7($t5, s_vecs_$150);
-            while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$156 }); return R.UNWIND; }
-            $r = $t8;
-            $pc = 4; continue;
-          case 4:
-            $t8 = $r;
-            $t9 = G11() === P11 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G11(), [$t3, $t8]));
-            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
-            s_elems_$157 = $t9;
-            $t10 = G13();
-            $t11 = $t10[R.SCHEME_RAW_CALL];
-            $t12 = $t11 === undefined ? $t10(s_proc_$148, s_elems_$157) : $t11(s_proc_$148, s_elems_$157);
-            while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$156 }); return R.UNWIND; }
-            $r = $t12;
-            $pc = 5; continue;
-          case 5:
-            $t12 = $r;
-            $t12;
-            $t13 = G10() === P10 && (typeof s_i_$156 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$156 + 1n) : R.settle(R.invoke(G10(), [s_i_$156, 1n]));
-            if ($t13 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$155, [$t13]);
-          default: throw new Error('$fn27$r: bad resume point ' + $pc);
-      }
-    }
-      $fn27.$resume = $fn27$r;
-      s_loop_$155 = $fn27;
-      return $fn27;
+      $fn37.$resume = $fn37$r;
+      return $fn37;
     }
     function $proc(s_proc_$148, s_vec_$149, ...s_vecs_$150$raw) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_i_$154, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$156, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_elems_$157, $t43, $t44, $t45, $t46;
       let s_vecs_$150 = R.listFrom(s_vecs_$150$raw);
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
@@ -6211,18 +6007,69 @@ export const PROCEDURES = {
       $t24 = G7() === P7 ? (s_vecs_$150 === null) : R.settle(R.invoke(G7(), [s_vecs_$150]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
       if ($t24 !== false) {
-      $t26 = $mk$fn25(s_len_$151, s_proc_$148, s_vec_$149);
-      s_loop_$153 = $t26;
-      return new R.TailCall(s_loop_$153, [0n]);
+      s_i_$154 = 0n;
+      $loop1: for (;;) {
+      $t25 = G8() === P8 && (typeof s_i_$154 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$154 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$154, s_len_$151]));
+      if ($t25 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t25 !== false) {
+      $t26 = G9();
+      $t27 = $t26[R.SCHEME_RAW_CALL];
+      $t28 = $t27 === undefined ? $t26(s_vec_$149, s_i_$154) : $t27(s_vec_$149, s_i_$154);
+      while ($t28 instanceof R.TailCall) { $t28 = R.step($t28); }
+      if ($t28 === R.UNWIND) { R.reify($proc$r, 18, { s_len_$151, s_i_$154, s_proc_$148, s_vec_$149 }); return R.UNWIND; }
+      $t29 = s_proc_$148;
+      $t30 = $t29[R.SCHEME_RAW_CALL];
+      $t31 = $t30 === undefined ? $t29($t28) : $t30($t28);
+      while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
+      if ($t31 === R.UNWIND) { R.reify($proc$r, 19, { s_len_$151, s_i_$154, s_proc_$148, s_vec_$149 }); return R.UNWIND; }
+      $t31;
+      $t32 = G10() === P10 && (typeof s_i_$154 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$154 + 1n) : R.settle(R.invoke(G10(), [s_i_$154, 1n]));
+      if ($t32 === R.UNWIND) R.captureUnderPrimitive();
+      s_i_$154 = $t32;
+      continue $loop1;
     } else {
-      $t28 = $mk$fn27(s_len_$151, s_vec_$149, s_vecs_$150, s_proc_$148);
-      s_loop_$155 = $t28;
-      return new R.TailCall(s_loop_$155, [0n]);
+      return undefined;
+    }
+      }
+    } else {
+      s_i_$156 = 0n;
+      $loop2: for (;;) {
+      $t33 = G8() === P8 && (typeof s_i_$156 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$156 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$156, s_len_$151]));
+      if ($t33 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t33 !== false) {
+      $t34 = G9();
+      $t35 = $t34[R.SCHEME_RAW_CALL];
+      $t36 = $t35 === undefined ? $t34(s_vec_$149, s_i_$156) : $t35(s_vec_$149, s_i_$156);
+      while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
+      if ($t36 === R.UNWIND) { R.reify($proc$r, 23, { s_len_$151, s_i_$156, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      $t38 = $mk$fn37(s_i_$156);
+      $t39 = G12();
+      $t40 = $t39[R.SCHEME_RAW_CALL];
+      $t41 = $t40 === undefined ? $t39($t38, s_vecs_$150) : $t40($t38, s_vecs_$150);
+      while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
+      if ($t41 === R.UNWIND) { R.reify($proc$r, 24, { s_len_$151, s_i_$156, $t36, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      $t42 = G11() === P11 ? (new R.Cons($t36, $t41)) : R.settle(R.invoke(G11(), [$t36, $t41]));
+      if ($t42 === R.UNWIND) R.captureUnderPrimitive();
+      s_elems_$157 = $t42;
+      $t43 = G13();
+      $t44 = $t43[R.SCHEME_RAW_CALL];
+      $t45 = $t44 === undefined ? $t43(s_proc_$148, s_elems_$157) : $t44(s_proc_$148, s_elems_$157);
+      while ($t45 instanceof R.TailCall) { $t45 = R.step($t45); }
+      if ($t45 === R.UNWIND) { R.reify($proc$r, 25, { s_len_$151, s_i_$156, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      $t45;
+      $t46 = G10() === P10 && (typeof s_i_$156 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$156 + 1n) : R.settle(R.invoke(G10(), [s_i_$156, 1n]));
+      if ($t46 === R.UNWIND) R.captureUnderPrimitive();
+      s_i_$156 = $t46;
+      continue $loop2;
+    } else {
+      return undefined;
+    }
+      }
     }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_i_$154, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$156, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_elems_$157, $t43, $t44, $t45, $t46, s_proc_$148, s_vec_$149, s_vecs_$150, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_i_$154, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$156, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_elems_$157, $t43, $t44, $t45, $t46, s_proc_$148, s_vec_$149, s_vecs_$150, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -6308,13 +6155,84 @@ export const PROCEDURES = {
             if ($t24 === R.UNWIND) R.captureUnderPrimitive();
             if ($t24 !== false) { $pc = 13; continue; } $pc = 14; continue;
           case 13:
-            $t26 = $mk$fn25(s_len_$151, s_proc_$148, s_vec_$149);
-            s_loop_$153 = $t26;
-            return new R.TailCall(s_loop_$153, [0n]);
+            s_i_$154 = 0n;
+            $pc = 15; continue;
           case 14:
-            $t28 = $mk$fn27(s_len_$151, s_vec_$149, s_vecs_$150, s_proc_$148);
-            s_loop_$155 = $t28;
-            return new R.TailCall(s_loop_$155, [0n]);
+            s_i_$156 = 0n;
+            $pc = 20; continue;
+          case 15:
+            $t25 = G8() === P8 && (typeof s_i_$154 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$154 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$154, s_len_$151]));
+            if ($t25 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t25 !== false) { $pc = 16; continue; } $pc = 17; continue;
+          case 16:
+            $t26 = G9();
+            $t27 = $t26[R.SCHEME_RAW_CALL];
+            $t28 = $t27 === undefined ? $t26(s_vec_$149, s_i_$154) : $t27(s_vec_$149, s_i_$154);
+            while ($t28 instanceof R.TailCall) { $t28 = R.step($t28); }
+            if ($t28 === R.UNWIND) { R.reify($proc$r, 18, { s_len_$151, s_i_$154, s_proc_$148, s_vec_$149 }); return R.UNWIND; }
+            $r = $t28;
+            $pc = 18; continue;
+          case 17:
+            return undefined;
+          case 18:
+            $t28 = $r;
+            $t29 = s_proc_$148;
+            $t30 = $t29[R.SCHEME_RAW_CALL];
+            $t31 = $t30 === undefined ? $t29($t28) : $t30($t28);
+            while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
+            if ($t31 === R.UNWIND) { R.reify($proc$r, 19, { s_len_$151, s_i_$154, s_proc_$148, s_vec_$149 }); return R.UNWIND; }
+            $r = $t31;
+            $pc = 19; continue;
+          case 19:
+            $t31 = $r;
+            $t31;
+            $t32 = G10() === P10 && (typeof s_i_$154 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$154 + 1n) : R.settle(R.invoke(G10(), [s_i_$154, 1n]));
+            if ($t32 === R.UNWIND) R.captureUnderPrimitive();
+            s_i_$154 = $t32;
+            $pc = 15; continue;
+          case 20:
+            $t33 = G8() === P8 && (typeof s_i_$156 === 'bigint' && typeof s_len_$151 === 'bigint') ? (s_i_$156 < s_len_$151) : R.settle(R.invoke(G8(), [s_i_$156, s_len_$151]));
+            if ($t33 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t33 !== false) { $pc = 21; continue; } $pc = 22; continue;
+          case 21:
+            $t34 = G9();
+            $t35 = $t34[R.SCHEME_RAW_CALL];
+            $t36 = $t35 === undefined ? $t34(s_vec_$149, s_i_$156) : $t35(s_vec_$149, s_i_$156);
+            while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
+            if ($t36 === R.UNWIND) { R.reify($proc$r, 23, { s_len_$151, s_i_$156, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+            $r = $t36;
+            $pc = 23; continue;
+          case 22:
+            return undefined;
+          case 23:
+            $t36 = $r;
+            $t38 = $mk$fn37(s_i_$156);
+            $t39 = G12();
+            $t40 = $t39[R.SCHEME_RAW_CALL];
+            $t41 = $t40 === undefined ? $t39($t38, s_vecs_$150) : $t40($t38, s_vecs_$150);
+            while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
+            if ($t41 === R.UNWIND) { R.reify($proc$r, 24, { s_len_$151, s_i_$156, $t36, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+            $r = $t41;
+            $pc = 24; continue;
+          case 24:
+            $t41 = $r;
+            $t42 = G11() === P11 ? (new R.Cons($t36, $t41)) : R.settle(R.invoke(G11(), [$t36, $t41]));
+            if ($t42 === R.UNWIND) R.captureUnderPrimitive();
+            s_elems_$157 = $t42;
+            $t43 = G13();
+            $t44 = $t43[R.SCHEME_RAW_CALL];
+            $t45 = $t44 === undefined ? $t43(s_proc_$148, s_elems_$157) : $t44(s_proc_$148, s_elems_$157);
+            while ($t45 instanceof R.TailCall) { $t45 = R.step($t45); }
+            if ($t45 === R.UNWIND) { R.reify($proc$r, 25, { s_len_$151, s_i_$156, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+            $r = $t45;
+            $pc = 25; continue;
+          case 25:
+            $t45 = $r;
+            $t45;
+            $t46 = G10() === P10 && (typeof s_i_$156 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$156 + 1n) : R.settle(R.invoke(G10(), [s_i_$156, 1n]));
+            if ($t46 === R.UNWIND) R.captureUnderPrimitive();
+            s_i_$156 = $t46;
+            $pc = 20; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -6340,60 +6258,8 @@ export const PROCEDURES = {
     const P5 = R.currentBinding(E, "car");
     const G6 = R.globalAccessor(E, "cdr");
     const P6 = R.currentBinding(E, "cdr");
-    function $mk$fn8(s_obj_$159) {
-      let s_loop_$161;
-      function $fn8(s_l_$162) {
-      let $t0, $t1, $t2, $t3;
-      $t0 = G3() === P3 ? (s_l_$162 === null) : R.settle(R.invoke(G3(), [s_l_$162]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return false;
-    } else {
-      $t1 = G5() === P5 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.car) : R.settle(R.invoke(G5(), [s_l_$162]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = G4() === P4 ? (s_obj_$159 === $t1) : R.settle(R.invoke(G4(), [s_obj_$159, $t1]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t2 !== false) {
-      return s_l_$162;
-    } else {
-      $t3 = G6() === P6 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.cdr) : R.settle(R.invoke(G6(), [s_l_$162]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$161, [$t3]);
-    }
-    }
-    }
-      R.markProcedure($fn8, "anonymous");
-      function $fn8$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, s_l_$162, $r;
-      ({ $t0, $t1, $t2, $t3, s_l_$162, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$162 === null) : R.settle(R.invoke(G3(), [s_l_$162]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return false;
-          case 2:
-            $t1 = G5() === P5 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.car) : R.settle(R.invoke(G5(), [s_l_$162]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = G4() === P4 ? (s_obj_$159 === $t1) : R.settle(R.invoke(G4(), [s_obj_$159, $t1]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t2 !== false) { $pc = 3; continue; } $pc = 4; continue;
-          case 3:
-            return s_l_$162;
-          case 4:
-            $t3 = G6() === P6 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.cdr) : R.settle(R.invoke(G6(), [s_l_$162]));
-            if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$161, [$t3]);
-          default: throw new Error('$fn8$r: bad resume point ' + $pc);
-      }
-    }
-      $fn8.$resume = $fn8$r;
-      s_loop_$161 = $fn8;
-      return $fn8;
-    }
     function $proc(s_obj_$159, s_lst_$160) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$161, $t9;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$162, $t8, $t9, $t10, $t11;
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$160) : $t1(s_lst_$160);
@@ -6412,13 +6278,31 @@ export const PROCEDURES = {
       $t4 = undefined;
     }
       $t4;
-      $t9 = $mk$fn8(s_obj_$159);
-      s_loop_$161 = $t9;
-      return new R.TailCall(s_loop_$161, [s_lst_$160]);
+      s_l_$162 = s_lst_$160;
+      $loop1: for (;;) {
+      $t8 = G3() === P3 ? (s_l_$162 === null) : R.settle(R.invoke(G3(), [s_l_$162]));
+      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t8 !== false) {
+      return false;
+    } else {
+      $t9 = G5() === P5 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.car) : R.settle(R.invoke(G5(), [s_l_$162]));
+      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+      $t10 = G4() === P4 ? (s_obj_$159 === $t9) : R.settle(R.invoke(G4(), [s_obj_$159, $t9]));
+      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t10 !== false) {
+      return s_l_$162;
+    } else {
+      $t11 = G6() === P6 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.cdr) : R.settle(R.invoke(G6(), [s_l_$162]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$162 = $t11;
+      continue $loop1;
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$161, $t9, s_obj_$159, s_lst_$160, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$161, $t9, s_obj_$159, s_lst_$160, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$162, $t8, $t9, $t10, $t11, s_obj_$159, s_lst_$160, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$162, $t8, $t9, $t10, $t11, s_obj_$159, s_lst_$160, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -6447,12 +6331,30 @@ export const PROCEDURES = {
             $pc = 4; continue;
           case 4:
             $t4;
-            $t9 = $mk$fn8(s_obj_$159);
-            s_loop_$161 = $t9;
-            return new R.TailCall(s_loop_$161, [s_lst_$160]);
+            s_l_$162 = s_lst_$160;
+            $pc = 6; continue;
           case 5:
             $t7 = $r;
             $pc = 4; continue;
+          case 6:
+            $t8 = G3() === P3 ? (s_l_$162 === null) : R.settle(R.invoke(G3(), [s_l_$162]));
+            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t8 !== false) { $pc = 7; continue; } $pc = 8; continue;
+          case 7:
+            return false;
+          case 8:
+            $t9 = G5() === P5 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.car) : R.settle(R.invoke(G5(), [s_l_$162]));
+            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+            $t10 = G4() === P4 ? (s_obj_$159 === $t9) : R.settle(R.invoke(G4(), [s_obj_$159, $t9]));
+            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t10 !== false) { $pc = 9; continue; } $pc = 10; continue;
+          case 9:
+            return s_l_$162;
+          case 10:
+            $t11 = G6() === P6 && (s_l_$162 instanceof R.Cons) ? (s_l_$162.cdr) : R.settle(R.invoke(G6(), [s_l_$162]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$162 = $t11;
+            $pc = 6; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -6477,70 +6379,8 @@ export const PROCEDURES = {
     const P5 = R.currentBinding(E, "car");
     const G6 = R.globalAccessor(E, "cdr");
     const P6 = R.currentBinding(E, "cdr");
-    function $mk$fn8(s_obj_$163) {
-      let s_loop_$165;
-      function $fn8(s_l_$166) {
-      let $t0, $t1, $t2, $t3, $t4, $t5;
-      $t0 = G3() === P3 ? (s_l_$166 === null) : R.settle(R.invoke(G3(), [s_l_$166]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return false;
-    } else {
-      $t1 = G5() === P5 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.car) : R.settle(R.invoke(G5(), [s_l_$166]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = G4();
-      $t3 = $t2[R.SCHEME_RAW_CALL];
-      $t4 = $t3 === undefined ? $t2(s_obj_$163, $t1) : $t3(s_obj_$163, $t1);
-      while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn8$r, 3, { s_l_$166 }); return R.UNWIND; }
-      if ($t4 !== false) {
-      return s_l_$166;
-    } else {
-      $t5 = G6() === P6 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.cdr) : R.settle(R.invoke(G6(), [s_l_$166]));
-      if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$165, [$t5]);
-    }
-    }
-    }
-      R.markProcedure($fn8, "anonymous");
-      function $fn8$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, s_l_$166, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, s_l_$166, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$166 === null) : R.settle(R.invoke(G3(), [s_l_$166]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return false;
-          case 2:
-            $t1 = G5() === P5 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.car) : R.settle(R.invoke(G5(), [s_l_$166]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = G4();
-            $t3 = $t2[R.SCHEME_RAW_CALL];
-            $t4 = $t3 === undefined ? $t2(s_obj_$163, $t1) : $t3(s_obj_$163, $t1);
-            while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn8$r, 3, { s_l_$166 }); return R.UNWIND; }
-            $r = $t4;
-            $pc = 3; continue;
-          case 3:
-            $t4 = $r;
-            if ($t4 !== false) { $pc = 4; continue; } $pc = 5; continue;
-          case 4:
-            return s_l_$166;
-          case 5:
-            $t5 = G6() === P6 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.cdr) : R.settle(R.invoke(G6(), [s_l_$166]));
-            if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$165, [$t5]);
-          default: throw new Error('$fn8$r: bad resume point ' + $pc);
-      }
-    }
-      $fn8.$resume = $fn8$r;
-      s_loop_$165 = $fn8;
-      return $fn8;
-    }
     function $proc(s_obj_$163, s_lst_$164) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$165, $t9;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$166, $t8, $t9, $t10, $t11, $t12, $t13;
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$164) : $t1(s_lst_$164);
@@ -6559,13 +6399,34 @@ export const PROCEDURES = {
       $t4 = undefined;
     }
       $t4;
-      $t9 = $mk$fn8(s_obj_$163);
-      s_loop_$165 = $t9;
-      return new R.TailCall(s_loop_$165, [s_lst_$164]);
+      s_l_$166 = s_lst_$164;
+      $loop1: for (;;) {
+      $t8 = G3() === P3 ? (s_l_$166 === null) : R.settle(R.invoke(G3(), [s_l_$166]));
+      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t8 !== false) {
+      return false;
+    } else {
+      $t9 = G5() === P5 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.car) : R.settle(R.invoke(G5(), [s_l_$166]));
+      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+      $t10 = G4();
+      $t11 = $t10[R.SCHEME_RAW_CALL];
+      $t12 = $t11 === undefined ? $t10(s_obj_$163, $t9) : $t11(s_obj_$163, $t9);
+      while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
+      if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { s_l_$166, s_obj_$163 }); return R.UNWIND; }
+      if ($t12 !== false) {
+      return s_l_$166;
+    } else {
+      $t13 = G6() === P6 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.cdr) : R.settle(R.invoke(G6(), [s_l_$166]));
+      if ($t13 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$166 = $t13;
+      continue $loop1;
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$165, $t9, s_obj_$163, s_lst_$164, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$165, $t9, s_obj_$163, s_lst_$164, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$166, $t8, $t9, $t10, $t11, $t12, $t13, s_obj_$163, s_lst_$164, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$166, $t8, $t9, $t10, $t11, $t12, $t13, s_obj_$163, s_lst_$164, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -6594,12 +6455,37 @@ export const PROCEDURES = {
             $pc = 4; continue;
           case 4:
             $t4;
-            $t9 = $mk$fn8(s_obj_$163);
-            s_loop_$165 = $t9;
-            return new R.TailCall(s_loop_$165, [s_lst_$164]);
+            s_l_$166 = s_lst_$164;
+            $pc = 6; continue;
           case 5:
             $t7 = $r;
             $pc = 4; continue;
+          case 6:
+            $t8 = G3() === P3 ? (s_l_$166 === null) : R.settle(R.invoke(G3(), [s_l_$166]));
+            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t8 !== false) { $pc = 7; continue; } $pc = 8; continue;
+          case 7:
+            return false;
+          case 8:
+            $t9 = G5() === P5 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.car) : R.settle(R.invoke(G5(), [s_l_$166]));
+            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+            $t10 = G4();
+            $t11 = $t10[R.SCHEME_RAW_CALL];
+            $t12 = $t11 === undefined ? $t10(s_obj_$163, $t9) : $t11(s_obj_$163, $t9);
+            while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
+            if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { s_l_$166, s_obj_$163 }); return R.UNWIND; }
+            $r = $t12;
+            $pc = 9; continue;
+          case 9:
+            $t12 = $r;
+            if ($t12 !== false) { $pc = 10; continue; } $pc = 11; continue;
+          case 10:
+            return s_l_$166;
+          case 11:
+            $t13 = G6() === P6 && (s_l_$166 instanceof R.Cons) ? (s_l_$166.cdr) : R.settle(R.invoke(G6(), [s_l_$166]));
+            if ($t13 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$166 = $t13;
+            $pc = 6; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -6624,70 +6510,8 @@ export const PROCEDURES = {
     const P5 = R.currentBinding(E, "car");
     const G6 = R.globalAccessor(E, "cdr");
     const P6 = R.currentBinding(E, "cdr");
-    function $mk$fn11(s_cmp_$170, s_obj_$167) {
-      let s_loop_$171;
-      function $fn11(s_l_$172) {
-      let $t0, $t1, $t2, $t3, $t4, $t5;
-      $t0 = G3() === P3 ? (s_l_$172 === null) : R.settle(R.invoke(G3(), [s_l_$172]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return false;
-    } else {
-      $t1 = G5() === P5 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.car) : R.settle(R.invoke(G5(), [s_l_$172]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = s_cmp_$170;
-      $t3 = $t2[R.SCHEME_RAW_CALL];
-      $t4 = $t3 === undefined ? $t2(s_obj_$167, $t1) : $t3(s_obj_$167, $t1);
-      while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn11$r, 3, { s_l_$172 }); return R.UNWIND; }
-      if ($t4 !== false) {
-      return s_l_$172;
-    } else {
-      $t5 = G6() === P6 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.cdr) : R.settle(R.invoke(G6(), [s_l_$172]));
-      if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$171, [$t5]);
-    }
-    }
-    }
-      R.markProcedure($fn11, "anonymous");
-      function $fn11$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, s_l_$172, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, s_l_$172, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$172 === null) : R.settle(R.invoke(G3(), [s_l_$172]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return false;
-          case 2:
-            $t1 = G5() === P5 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.car) : R.settle(R.invoke(G5(), [s_l_$172]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = s_cmp_$170;
-            $t3 = $t2[R.SCHEME_RAW_CALL];
-            $t4 = $t3 === undefined ? $t2(s_obj_$167, $t1) : $t3(s_obj_$167, $t1);
-            while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn11$r, 3, { s_l_$172 }); return R.UNWIND; }
-            $r = $t4;
-            $pc = 3; continue;
-          case 3:
-            $t4 = $r;
-            if ($t4 !== false) { $pc = 4; continue; } $pc = 5; continue;
-          case 4:
-            return s_l_$172;
-          case 5:
-            $t5 = G6() === P6 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.cdr) : R.settle(R.invoke(G6(), [s_l_$172]));
-            if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$171, [$t5]);
-          default: throw new Error('$fn11$r: bad resume point ' + $pc);
-      }
-    }
-      $fn11.$resume = $fn11$r;
-      s_loop_$171 = $fn11;
-      return $fn11;
-    }
     function $proc(s_obj_$167, s_lst_$168, ...s_compare_$169$raw) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_loop_$171, $t12;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_l_$172, $t11, $t12, $t13, $t14, $t15, $t16;
       let s_compare_$169 = R.listFrom(s_compare_$169$raw);
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
@@ -6717,13 +6541,34 @@ export const PROCEDURES = {
       $t9 = $t10;
     }
       s_cmp_$170 = $t9;
-      $t12 = $mk$fn11(s_cmp_$170, s_obj_$167);
-      s_loop_$171 = $t12;
-      return new R.TailCall(s_loop_$171, [s_lst_$168]);
+      s_l_$172 = s_lst_$168;
+      $loop1: for (;;) {
+      $t11 = G3() === P3 ? (s_l_$172 === null) : R.settle(R.invoke(G3(), [s_l_$172]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t11 !== false) {
+      return false;
+    } else {
+      $t12 = G5() === P5 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.car) : R.settle(R.invoke(G5(), [s_l_$172]));
+      if ($t12 === R.UNWIND) R.captureUnderPrimitive();
+      $t13 = s_cmp_$170;
+      $t14 = $t13[R.SCHEME_RAW_CALL];
+      $t15 = $t14 === undefined ? $t13(s_obj_$167, $t12) : $t14(s_obj_$167, $t12);
+      while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { s_cmp_$170, s_l_$172, s_obj_$167 }); return R.UNWIND; }
+      if ($t15 !== false) {
+      return s_l_$172;
+    } else {
+      $t16 = G6() === P6 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.cdr) : R.settle(R.invoke(G6(), [s_l_$172]));
+      if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$172 = $t16;
+      continue $loop1;
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_loop_$171, $t12, s_obj_$167, s_lst_$168, s_compare_$169, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_loop_$171, $t12, s_obj_$167, s_lst_$168, s_compare_$169, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_l_$172, $t11, $t12, $t13, $t14, $t15, $t16, s_obj_$167, s_lst_$168, s_compare_$169, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_l_$172, $t11, $t12, $t13, $t14, $t15, $t16, s_obj_$167, s_lst_$168, s_compare_$169, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -6768,9 +6613,34 @@ export const PROCEDURES = {
             $pc = 8; continue;
           case 8:
             s_cmp_$170 = $t9;
-            $t12 = $mk$fn11(s_cmp_$170, s_obj_$167);
-            s_loop_$171 = $t12;
-            return new R.TailCall(s_loop_$171, [s_lst_$168]);
+            s_l_$172 = s_lst_$168;
+            $pc = 9; continue;
+          case 9:
+            $t11 = G3() === P3 ? (s_l_$172 === null) : R.settle(R.invoke(G3(), [s_l_$172]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t11 !== false) { $pc = 10; continue; } $pc = 11; continue;
+          case 10:
+            return false;
+          case 11:
+            $t12 = G5() === P5 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.car) : R.settle(R.invoke(G5(), [s_l_$172]));
+            if ($t12 === R.UNWIND) R.captureUnderPrimitive();
+            $t13 = s_cmp_$170;
+            $t14 = $t13[R.SCHEME_RAW_CALL];
+            $t15 = $t14 === undefined ? $t13(s_obj_$167, $t12) : $t14(s_obj_$167, $t12);
+            while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { s_cmp_$170, s_l_$172, s_obj_$167 }); return R.UNWIND; }
+            $r = $t15;
+            $pc = 12; continue;
+          case 12:
+            $t15 = $r;
+            if ($t15 !== false) { $pc = 13; continue; } $pc = 14; continue;
+          case 13:
+            return s_l_$172;
+          case 14:
+            $t16 = G6() === P6 && (s_l_$172 instanceof R.Cons) ? (s_l_$172.cdr) : R.settle(R.invoke(G6(), [s_l_$172]));
+            if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$172 = $t16;
+            $pc = 9; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -6798,108 +6668,13 @@ export const PROCEDURES = {
     const P6 = R.currentBinding(E, "eq?");
     const G7 = R.globalAccessor(E, "cdr");
     const P7 = R.currentBinding(E, "cdr");
-    function $mk$fn8(s_obj_$173) {
-      let s_loop_$175;
-      function $fn8(s_l_$176) {
-      let $t0, $t1, s_pair_$177, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
-      $t0 = G3() === P3 ? (s_l_$176 === null) : R.settle(R.invoke(G3(), [s_l_$176]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return false;
-    } else {
-      $t1 = G4() === P4 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.car) : R.settle(R.invoke(G4(), [s_l_$176]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      s_pair_$177 = $t1;
-      $t2 = G5() === P5 ? (s_pair_$177 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$177]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t3 !== false) {
-      $t5 = G2();
-      $t6 = $t5[R.SCHEME_RAW_CALL];
-      $t7 = $t6 === undefined ? $t5("assq: expected pair in alist", s_pair_$177) : $t6("assq: expected pair in alist", s_pair_$177);
-      while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$177, $t4, s_l_$176 }); return R.UNWIND; }
-      $t4 = $t7;
-    } else {
-      $t4 = undefined;
-    }
-      $t4;
-      $t8 = G4() === P4 && (s_pair_$177 instanceof R.Cons) ? (s_pair_$177.car) : R.settle(R.invoke(G4(), [s_pair_$177]));
-      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      $t9 = G6() === P6 ? (s_obj_$173 === $t8) : R.settle(R.invoke(G6(), [s_obj_$173, $t8]));
-      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t9 !== false) {
-      return s_pair_$177;
-    } else {
-      $t10 = G7() === P7 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.cdr) : R.settle(R.invoke(G7(), [s_l_$176]));
-      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$175, [$t10]);
-    }
-    }
-    }
-      R.markProcedure($fn8, "anonymous");
-      function $fn8$r($pc, $f) {
-      let $t0, $t1, s_pair_$177, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_l_$176, $r;
-      ({ $t0, $t1, s_pair_$177, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_l_$176, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$176 === null) : R.settle(R.invoke(G3(), [s_l_$176]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return false;
-          case 2:
-            $t1 = G4() === P4 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.car) : R.settle(R.invoke(G4(), [s_l_$176]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            s_pair_$177 = $t1;
-            $t2 = G5() === P5 ? (s_pair_$177 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$177]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-            if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t3 !== false) { $pc = 3; continue; } $pc = 4; continue;
-          case 3:
-            $t5 = G2();
-            $t6 = $t5[R.SCHEME_RAW_CALL];
-            $t7 = $t6 === undefined ? $t5("assq: expected pair in alist", s_pair_$177) : $t6("assq: expected pair in alist", s_pair_$177);
-            while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$177, $t4, s_l_$176 }); return R.UNWIND; }
-            $r = $t7;
-            $pc = 6; continue;
-            $t4 = $t7;
-          case 4:
-            $t4 = undefined;
-            $pc = 5; continue;
-          case 5:
-            $t4;
-            $t8 = G4() === P4 && (s_pair_$177 instanceof R.Cons) ? (s_pair_$177.car) : R.settle(R.invoke(G4(), [s_pair_$177]));
-            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            $t9 = G6() === P6 ? (s_obj_$173 === $t8) : R.settle(R.invoke(G6(), [s_obj_$173, $t8]));
-            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t9 !== false) { $pc = 7; continue; } $pc = 8; continue;
-          case 6:
-            $t7 = $r;
-            $pc = 5; continue;
-          case 7:
-            return s_pair_$177;
-          case 8:
-            $t10 = G7() === P7 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.cdr) : R.settle(R.invoke(G7(), [s_l_$176]));
-            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$175, [$t10]);
-          default: throw new Error('$fn8$r: bad resume point ' + $pc);
-      }
-    }
-      $fn8.$resume = $fn8$r;
-      s_loop_$175 = $fn8;
-      return $fn8;
-    }
     function $proc(s_obj_$173, s_alist_$174) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$175, $t9;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$176, $t8, $t9, s_pair_$177, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_alist_$174) : $t1(s_alist_$174);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -6907,26 +6682,62 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assq: expected list", s_alist_$174) : $t6("assq: expected list", s_alist_$174);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
     }
       $t4;
-      $t9 = $mk$fn8(s_obj_$173);
-      s_loop_$175 = $t9;
-      return new R.TailCall(s_loop_$175, [s_alist_$174]);
+      s_l_$176 = s_alist_$174;
+      $loop1: for (;;) {
+      $t8 = G3() === P3 ? (s_l_$176 === null) : R.settle(R.invoke(G3(), [s_l_$176]));
+      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t8 !== false) {
+      return false;
+    } else {
+      $t9 = G4() === P4 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.car) : R.settle(R.invoke(G4(), [s_l_$176]));
+      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+      s_pair_$177 = $t9;
+      $t10 = G5() === P5 ? (s_pair_$177 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$177]));
+      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+      $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t11 !== false) {
+      $t13 = G2();
+      $t14 = $t13[R.SCHEME_RAW_CALL];
+      $t15 = $t14 === undefined ? $t13("assq: expected pair in alist", s_pair_$177) : $t14("assq: expected pair in alist", s_pair_$177);
+      while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { s_l_$176, s_pair_$177, $t12, s_obj_$173 }); return R.UNWIND; }
+      $t12 = $t15;
+    } else {
+      $t12 = undefined;
+    }
+      $t12;
+      $t16 = G4() === P4 && (s_pair_$177 instanceof R.Cons) ? (s_pair_$177.car) : R.settle(R.invoke(G4(), [s_pair_$177]));
+      if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+      $t17 = G6() === P6 ? (s_obj_$173 === $t16) : R.settle(R.invoke(G6(), [s_obj_$173, $t16]));
+      if ($t17 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t17 !== false) {
+      return s_pair_$177;
+    } else {
+      $t18 = G7() === P7 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.cdr) : R.settle(R.invoke(G7(), [s_l_$176]));
+      if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$176 = $t18;
+      continue $loop1;
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$175, $t9, s_obj_$173, s_alist_$174, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$175, $t9, s_obj_$173, s_alist_$174, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$176, $t8, $t9, s_pair_$177, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_obj_$173, s_alist_$174, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$176, $t8, $t9, s_pair_$177, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_obj_$173, s_alist_$174, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_alist_$174) : $t1(s_alist_$174);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -6939,7 +6750,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assq: expected list", s_alist_$174) : $t6("assq: expected list", s_alist_$174);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -6948,12 +6759,55 @@ export const PROCEDURES = {
             $pc = 4; continue;
           case 4:
             $t4;
-            $t9 = $mk$fn8(s_obj_$173);
-            s_loop_$175 = $t9;
-            return new R.TailCall(s_loop_$175, [s_alist_$174]);
+            s_l_$176 = s_alist_$174;
+            $pc = 6; continue;
           case 5:
             $t7 = $r;
             $pc = 4; continue;
+          case 6:
+            $t8 = G3() === P3 ? (s_l_$176 === null) : R.settle(R.invoke(G3(), [s_l_$176]));
+            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t8 !== false) { $pc = 7; continue; } $pc = 8; continue;
+          case 7:
+            return false;
+          case 8:
+            $t9 = G4() === P4 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.car) : R.settle(R.invoke(G4(), [s_l_$176]));
+            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+            s_pair_$177 = $t9;
+            $t10 = G5() === P5 ? (s_pair_$177 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$177]));
+            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+            $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t11 !== false) { $pc = 9; continue; } $pc = 10; continue;
+          case 9:
+            $t13 = G2();
+            $t14 = $t13[R.SCHEME_RAW_CALL];
+            $t15 = $t14 === undefined ? $t13("assq: expected pair in alist", s_pair_$177) : $t14("assq: expected pair in alist", s_pair_$177);
+            while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { s_l_$176, s_pair_$177, $t12, s_obj_$173 }); return R.UNWIND; }
+            $r = $t15;
+            $pc = 12; continue;
+            $t12 = $t15;
+          case 10:
+            $t12 = undefined;
+            $pc = 11; continue;
+          case 11:
+            $t12;
+            $t16 = G4() === P4 && (s_pair_$177 instanceof R.Cons) ? (s_pair_$177.car) : R.settle(R.invoke(G4(), [s_pair_$177]));
+            if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+            $t17 = G6() === P6 ? (s_obj_$173 === $t16) : R.settle(R.invoke(G6(), [s_obj_$173, $t16]));
+            if ($t17 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t17 !== false) { $pc = 13; continue; } $pc = 14; continue;
+          case 12:
+            $t15 = $r;
+            $pc = 11; continue;
+          case 13:
+            return s_pair_$177;
+          case 14:
+            $t18 = G7() === P7 && (s_l_$176 instanceof R.Cons) ? (s_l_$176.cdr) : R.settle(R.invoke(G7(), [s_l_$176]));
+            if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$176 = $t18;
+            $pc = 6; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -6980,118 +6834,13 @@ export const PROCEDURES = {
     const G6 = R.globalAccessor(E, "eqv?");
     const G7 = R.globalAccessor(E, "cdr");
     const P7 = R.currentBinding(E, "cdr");
-    function $mk$fn8(s_obj_$178) {
-      let s_loop_$180;
-      function $fn8(s_l_$181) {
-      let $t0, $t1, s_pair_$182, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
-      $t0 = G3() === P3 ? (s_l_$181 === null) : R.settle(R.invoke(G3(), [s_l_$181]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return false;
-    } else {
-      $t1 = G4() === P4 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.car) : R.settle(R.invoke(G4(), [s_l_$181]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      s_pair_$182 = $t1;
-      $t2 = G5() === P5 ? (s_pair_$182 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$182]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t3 !== false) {
-      $t5 = G2();
-      $t6 = $t5[R.SCHEME_RAW_CALL];
-      $t7 = $t6 === undefined ? $t5("assv: expected pair in alist", s_pair_$182) : $t6("assv: expected pair in alist", s_pair_$182);
-      while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$182, $t4, s_l_$181 }); return R.UNWIND; }
-      $t4 = $t7;
-    } else {
-      $t4 = undefined;
-    }
-      $t4;
-      $t8 = G4() === P4 && (s_pair_$182 instanceof R.Cons) ? (s_pair_$182.car) : R.settle(R.invoke(G4(), [s_pair_$182]));
-      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      $t9 = G6();
-      $t10 = $t9[R.SCHEME_RAW_CALL];
-      $t11 = $t10 === undefined ? $t9(s_obj_$178, $t8) : $t10(s_obj_$178, $t8);
-      while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($fn8$r, 7, { s_pair_$182, s_l_$181 }); return R.UNWIND; }
-      if ($t11 !== false) {
-      return s_pair_$182;
-    } else {
-      $t12 = G7() === P7 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.cdr) : R.settle(R.invoke(G7(), [s_l_$181]));
-      if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$180, [$t12]);
-    }
-    }
-    }
-      R.markProcedure($fn8, "anonymous");
-      function $fn8$r($pc, $f) {
-      let $t0, $t1, s_pair_$182, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$181, $r;
-      ({ $t0, $t1, s_pair_$182, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$181, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$181 === null) : R.settle(R.invoke(G3(), [s_l_$181]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return false;
-          case 2:
-            $t1 = G4() === P4 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.car) : R.settle(R.invoke(G4(), [s_l_$181]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            s_pair_$182 = $t1;
-            $t2 = G5() === P5 ? (s_pair_$182 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$182]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-            if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t3 !== false) { $pc = 3; continue; } $pc = 4; continue;
-          case 3:
-            $t5 = G2();
-            $t6 = $t5[R.SCHEME_RAW_CALL];
-            $t7 = $t6 === undefined ? $t5("assv: expected pair in alist", s_pair_$182) : $t6("assv: expected pair in alist", s_pair_$182);
-            while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$182, $t4, s_l_$181 }); return R.UNWIND; }
-            $r = $t7;
-            $pc = 6; continue;
-            $t4 = $t7;
-          case 4:
-            $t4 = undefined;
-            $pc = 5; continue;
-          case 5:
-            $t4;
-            $t8 = G4() === P4 && (s_pair_$182 instanceof R.Cons) ? (s_pair_$182.car) : R.settle(R.invoke(G4(), [s_pair_$182]));
-            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            $t9 = G6();
-            $t10 = $t9[R.SCHEME_RAW_CALL];
-            $t11 = $t10 === undefined ? $t9(s_obj_$178, $t8) : $t10(s_obj_$178, $t8);
-            while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($fn8$r, 7, { s_pair_$182, s_l_$181 }); return R.UNWIND; }
-            $r = $t11;
-            $pc = 7; continue;
-          case 6:
-            $t7 = $r;
-            $pc = 5; continue;
-          case 7:
-            $t11 = $r;
-            if ($t11 !== false) { $pc = 8; continue; } $pc = 9; continue;
-          case 8:
-            return s_pair_$182;
-          case 9:
-            $t12 = G7() === P7 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.cdr) : R.settle(R.invoke(G7(), [s_l_$181]));
-            if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$180, [$t12]);
-          default: throw new Error('$fn8$r: bad resume point ' + $pc);
-      }
-    }
-      $fn8.$resume = $fn8$r;
-      s_loop_$180 = $fn8;
-      return $fn8;
-    }
     function $proc(s_obj_$178, s_alist_$179) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$180, $t9;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$181, $t8, $t9, s_pair_$182, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20;
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_alist_$179) : $t1(s_alist_$179);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -7099,26 +6848,65 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assv: expected list", s_alist_$179) : $t6("assv: expected list", s_alist_$179);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
     }
       $t4;
-      $t9 = $mk$fn8(s_obj_$178);
-      s_loop_$180 = $t9;
-      return new R.TailCall(s_loop_$180, [s_alist_$179]);
+      s_l_$181 = s_alist_$179;
+      $loop1: for (;;) {
+      $t8 = G3() === P3 ? (s_l_$181 === null) : R.settle(R.invoke(G3(), [s_l_$181]));
+      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t8 !== false) {
+      return false;
+    } else {
+      $t9 = G4() === P4 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.car) : R.settle(R.invoke(G4(), [s_l_$181]));
+      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+      s_pair_$182 = $t9;
+      $t10 = G5() === P5 ? (s_pair_$182 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$182]));
+      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+      $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t11 !== false) {
+      $t13 = G2();
+      $t14 = $t13[R.SCHEME_RAW_CALL];
+      $t15 = $t14 === undefined ? $t13("assv: expected pair in alist", s_pair_$182) : $t14("assv: expected pair in alist", s_pair_$182);
+      while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { s_l_$181, s_pair_$182, $t12, s_obj_$178 }); return R.UNWIND; }
+      $t12 = $t15;
+    } else {
+      $t12 = undefined;
+    }
+      $t12;
+      $t16 = G4() === P4 && (s_pair_$182 instanceof R.Cons) ? (s_pair_$182.car) : R.settle(R.invoke(G4(), [s_pair_$182]));
+      if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+      $t17 = G6();
+      $t18 = $t17[R.SCHEME_RAW_CALL];
+      $t19 = $t18 === undefined ? $t17(s_obj_$178, $t16) : $t18(s_obj_$178, $t16);
+      while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
+      if ($t19 === R.UNWIND) { R.reify($proc$r, 13, { s_l_$181, s_pair_$182, $t12, s_obj_$178 }); return R.UNWIND; }
+      if ($t19 !== false) {
+      return s_pair_$182;
+    } else {
+      $t20 = G7() === P7 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.cdr) : R.settle(R.invoke(G7(), [s_l_$181]));
+      if ($t20 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$181 = $t20;
+      continue $loop1;
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$180, $t9, s_obj_$178, s_alist_$179, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$180, $t9, s_obj_$178, s_alist_$179, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$181, $t8, $t9, s_pair_$182, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_obj_$178, s_alist_$179, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$181, $t8, $t9, s_pair_$182, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_obj_$178, s_alist_$179, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_alist_$179) : $t1(s_alist_$179);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -7131,7 +6919,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assv: expected list", s_alist_$179) : $t6("assv: expected list", s_alist_$179);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -7140,12 +6928,62 @@ export const PROCEDURES = {
             $pc = 4; continue;
           case 4:
             $t4;
-            $t9 = $mk$fn8(s_obj_$178);
-            s_loop_$180 = $t9;
-            return new R.TailCall(s_loop_$180, [s_alist_$179]);
+            s_l_$181 = s_alist_$179;
+            $pc = 6; continue;
           case 5:
             $t7 = $r;
             $pc = 4; continue;
+          case 6:
+            $t8 = G3() === P3 ? (s_l_$181 === null) : R.settle(R.invoke(G3(), [s_l_$181]));
+            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t8 !== false) { $pc = 7; continue; } $pc = 8; continue;
+          case 7:
+            return false;
+          case 8:
+            $t9 = G4() === P4 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.car) : R.settle(R.invoke(G4(), [s_l_$181]));
+            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+            s_pair_$182 = $t9;
+            $t10 = G5() === P5 ? (s_pair_$182 instanceof R.Cons) : R.settle(R.invoke(G5(), [s_pair_$182]));
+            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+            $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t11 !== false) { $pc = 9; continue; } $pc = 10; continue;
+          case 9:
+            $t13 = G2();
+            $t14 = $t13[R.SCHEME_RAW_CALL];
+            $t15 = $t14 === undefined ? $t13("assv: expected pair in alist", s_pair_$182) : $t14("assv: expected pair in alist", s_pair_$182);
+            while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { s_l_$181, s_pair_$182, $t12, s_obj_$178 }); return R.UNWIND; }
+            $r = $t15;
+            $pc = 12; continue;
+            $t12 = $t15;
+          case 10:
+            $t12 = undefined;
+            $pc = 11; continue;
+          case 11:
+            $t12;
+            $t16 = G4() === P4 && (s_pair_$182 instanceof R.Cons) ? (s_pair_$182.car) : R.settle(R.invoke(G4(), [s_pair_$182]));
+            if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+            $t17 = G6();
+            $t18 = $t17[R.SCHEME_RAW_CALL];
+            $t19 = $t18 === undefined ? $t17(s_obj_$178, $t16) : $t18(s_obj_$178, $t16);
+            while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
+            if ($t19 === R.UNWIND) { R.reify($proc$r, 13, { s_l_$181, s_pair_$182, $t12, s_obj_$178 }); return R.UNWIND; }
+            $r = $t19;
+            $pc = 13; continue;
+          case 12:
+            $t15 = $r;
+            $pc = 11; continue;
+          case 13:
+            $t19 = $r;
+            if ($t19 !== false) { $pc = 14; continue; } $pc = 15; continue;
+          case 14:
+            return s_pair_$182;
+          case 15:
+            $t20 = G7() === P7 && (s_l_$181 instanceof R.Cons) ? (s_l_$181.cdr) : R.settle(R.invoke(G7(), [s_l_$181]));
+            if ($t20 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$181 = $t20;
+            $pc = 6; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -7172,119 +7010,14 @@ export const PROCEDURES = {
     const P6 = R.currentBinding(E, "pair?");
     const G7 = R.globalAccessor(E, "cdr");
     const P7 = R.currentBinding(E, "cdr");
-    function $mk$fn11(s_cmp_$186, s_obj_$183) {
-      let s_loop_$187;
-      function $fn11(s_l_$188) {
-      let $t0, $t1, s_pair_$189, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
-      $t0 = G3() === P3 ? (s_l_$188 === null) : R.settle(R.invoke(G3(), [s_l_$188]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return false;
-    } else {
-      $t1 = G5() === P5 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.car) : R.settle(R.invoke(G5(), [s_l_$188]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      s_pair_$189 = $t1;
-      $t2 = G6() === P6 ? (s_pair_$189 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_pair_$189]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t3 !== false) {
-      $t5 = G2();
-      $t6 = $t5[R.SCHEME_RAW_CALL];
-      $t7 = $t6 === undefined ? $t5("assoc: expected pair in alist", s_pair_$189) : $t6("assoc: expected pair in alist", s_pair_$189);
-      while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn11$r, 6, { s_pair_$189, $t4, s_l_$188 }); return R.UNWIND; }
-      $t4 = $t7;
-    } else {
-      $t4 = undefined;
-    }
-      $t4;
-      $t8 = G5() === P5 && (s_pair_$189 instanceof R.Cons) ? (s_pair_$189.car) : R.settle(R.invoke(G5(), [s_pair_$189]));
-      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-      $t9 = s_cmp_$186;
-      $t10 = $t9[R.SCHEME_RAW_CALL];
-      $t11 = $t10 === undefined ? $t9(s_obj_$183, $t8) : $t10(s_obj_$183, $t8);
-      while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($fn11$r, 7, { s_pair_$189, s_l_$188 }); return R.UNWIND; }
-      if ($t11 !== false) {
-      return s_pair_$189;
-    } else {
-      $t12 = G7() === P7 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.cdr) : R.settle(R.invoke(G7(), [s_l_$188]));
-      if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$187, [$t12]);
-    }
-    }
-    }
-      R.markProcedure($fn11, "anonymous");
-      function $fn11$r($pc, $f) {
-      let $t0, $t1, s_pair_$189, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$188, $r;
-      ({ $t0, $t1, s_pair_$189, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$188, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$188 === null) : R.settle(R.invoke(G3(), [s_l_$188]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return false;
-          case 2:
-            $t1 = G5() === P5 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.car) : R.settle(R.invoke(G5(), [s_l_$188]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            s_pair_$189 = $t1;
-            $t2 = G6() === P6 ? (s_pair_$189 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_pair_$189]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-            if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t3 !== false) { $pc = 3; continue; } $pc = 4; continue;
-          case 3:
-            $t5 = G2();
-            $t6 = $t5[R.SCHEME_RAW_CALL];
-            $t7 = $t6 === undefined ? $t5("assoc: expected pair in alist", s_pair_$189) : $t6("assoc: expected pair in alist", s_pair_$189);
-            while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn11$r, 6, { s_pair_$189, $t4, s_l_$188 }); return R.UNWIND; }
-            $r = $t7;
-            $pc = 6; continue;
-            $t4 = $t7;
-          case 4:
-            $t4 = undefined;
-            $pc = 5; continue;
-          case 5:
-            $t4;
-            $t8 = G5() === P5 && (s_pair_$189 instanceof R.Cons) ? (s_pair_$189.car) : R.settle(R.invoke(G5(), [s_pair_$189]));
-            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
-            $t9 = s_cmp_$186;
-            $t10 = $t9[R.SCHEME_RAW_CALL];
-            $t11 = $t10 === undefined ? $t9(s_obj_$183, $t8) : $t10(s_obj_$183, $t8);
-            while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($fn11$r, 7, { s_pair_$189, s_l_$188 }); return R.UNWIND; }
-            $r = $t11;
-            $pc = 7; continue;
-          case 6:
-            $t7 = $r;
-            $pc = 5; continue;
-          case 7:
-            $t11 = $r;
-            if ($t11 !== false) { $pc = 8; continue; } $pc = 9; continue;
-          case 8:
-            return s_pair_$189;
-          case 9:
-            $t12 = G7() === P7 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.cdr) : R.settle(R.invoke(G7(), [s_l_$188]));
-            if ($t12 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$187, [$t12]);
-          default: throw new Error('$fn11$r: bad resume point ' + $pc);
-      }
-    }
-      $fn11.$resume = $fn11$r;
-      s_loop_$187 = $fn11;
-      return $fn11;
-    }
     function $proc(s_obj_$183, s_alist_$184, ...s_compare_$185$raw) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_loop_$187, $t12;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_l_$188, $t11, $t12, s_pair_$189, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23;
       let s_compare_$185 = R.listFrom(s_compare_$185$raw);
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_alist_$184) : $t1(s_alist_$184);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t15, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -7292,7 +7025,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assoc: expected list", s_alist_$184) : $t6("assoc: expected list", s_alist_$184);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t15, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -7308,20 +7041,59 @@ export const PROCEDURES = {
       $t9 = $t10;
     }
       s_cmp_$186 = $t9;
-      $t12 = $mk$fn11(s_cmp_$186, s_obj_$183);
-      s_loop_$187 = $t12;
-      return new R.TailCall(s_loop_$187, [s_alist_$184]);
+      s_l_$188 = s_alist_$184;
+      $loop1: for (;;) {
+      $t11 = G3() === P3 ? (s_l_$188 === null) : R.settle(R.invoke(G3(), [s_l_$188]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t11 !== false) {
+      return false;
+    } else {
+      $t12 = G5() === P5 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.car) : R.settle(R.invoke(G5(), [s_l_$188]));
+      if ($t12 === R.UNWIND) R.captureUnderPrimitive();
+      s_pair_$189 = $t12;
+      $t13 = G6() === P6 ? (s_pair_$189 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_pair_$189]));
+      if ($t13 === R.UNWIND) R.captureUnderPrimitive();
+      $t14 = G0() === P0 ? ($t13 === false) : R.settle(R.invoke(G0(), [$t13]));
+      if ($t14 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t14 !== false) {
+      $t16 = G2();
+      $t17 = $t16[R.SCHEME_RAW_CALL];
+      $t18 = $t17 === undefined ? $t16("assoc: expected pair in alist", s_pair_$189) : $t17("assoc: expected pair in alist", s_pair_$189);
+      while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
+      if ($t18 === R.UNWIND) { R.reify($proc$r, 15, { s_cmp_$186, s_l_$188, s_pair_$189, $t15, s_obj_$183 }); return R.UNWIND; }
+      $t15 = $t18;
+    } else {
+      $t15 = undefined;
+    }
+      $t15;
+      $t19 = G5() === P5 && (s_pair_$189 instanceof R.Cons) ? (s_pair_$189.car) : R.settle(R.invoke(G5(), [s_pair_$189]));
+      if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+      $t20 = s_cmp_$186;
+      $t21 = $t20[R.SCHEME_RAW_CALL];
+      $t22 = $t21 === undefined ? $t20(s_obj_$183, $t19) : $t21(s_obj_$183, $t19);
+      while ($t22 instanceof R.TailCall) { $t22 = R.step($t22); }
+      if ($t22 === R.UNWIND) { R.reify($proc$r, 16, { s_cmp_$186, s_l_$188, s_pair_$189, $t15, s_obj_$183 }); return R.UNWIND; }
+      if ($t22 !== false) {
+      return s_pair_$189;
+    } else {
+      $t23 = G7() === P7 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.cdr) : R.settle(R.invoke(G7(), [s_l_$188]));
+      if ($t23 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$188 = $t23;
+      continue $loop1;
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_loop_$187, $t12, s_obj_$183, s_alist_$184, s_compare_$185, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_loop_$187, $t12, s_obj_$183, s_alist_$184, s_compare_$185, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_l_$188, $t11, $t12, s_pair_$189, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_obj_$183, s_alist_$184, s_compare_$185, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_l_$188, $t11, $t12, s_pair_$189, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_obj_$183, s_alist_$184, s_compare_$185, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_alist_$184) : $t1(s_alist_$184);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t15, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -7334,7 +7106,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assoc: expected list", s_alist_$184) : $t6("assoc: expected list", s_alist_$184);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t15, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -7359,9 +7131,59 @@ export const PROCEDURES = {
             $pc = 8; continue;
           case 8:
             s_cmp_$186 = $t9;
-            $t12 = $mk$fn11(s_cmp_$186, s_obj_$183);
-            s_loop_$187 = $t12;
-            return new R.TailCall(s_loop_$187, [s_alist_$184]);
+            s_l_$188 = s_alist_$184;
+            $pc = 9; continue;
+          case 9:
+            $t11 = G3() === P3 ? (s_l_$188 === null) : R.settle(R.invoke(G3(), [s_l_$188]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t11 !== false) { $pc = 10; continue; } $pc = 11; continue;
+          case 10:
+            return false;
+          case 11:
+            $t12 = G5() === P5 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.car) : R.settle(R.invoke(G5(), [s_l_$188]));
+            if ($t12 === R.UNWIND) R.captureUnderPrimitive();
+            s_pair_$189 = $t12;
+            $t13 = G6() === P6 ? (s_pair_$189 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_pair_$189]));
+            if ($t13 === R.UNWIND) R.captureUnderPrimitive();
+            $t14 = G0() === P0 ? ($t13 === false) : R.settle(R.invoke(G0(), [$t13]));
+            if ($t14 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t14 !== false) { $pc = 12; continue; } $pc = 13; continue;
+          case 12:
+            $t16 = G2();
+            $t17 = $t16[R.SCHEME_RAW_CALL];
+            $t18 = $t17 === undefined ? $t16("assoc: expected pair in alist", s_pair_$189) : $t17("assoc: expected pair in alist", s_pair_$189);
+            while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
+            if ($t18 === R.UNWIND) { R.reify($proc$r, 15, { s_cmp_$186, s_l_$188, s_pair_$189, $t15, s_obj_$183 }); return R.UNWIND; }
+            $r = $t18;
+            $pc = 15; continue;
+            $t15 = $t18;
+          case 13:
+            $t15 = undefined;
+            $pc = 14; continue;
+          case 14:
+            $t15;
+            $t19 = G5() === P5 && (s_pair_$189 instanceof R.Cons) ? (s_pair_$189.car) : R.settle(R.invoke(G5(), [s_pair_$189]));
+            if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+            $t20 = s_cmp_$186;
+            $t21 = $t20[R.SCHEME_RAW_CALL];
+            $t22 = $t21 === undefined ? $t20(s_obj_$183, $t19) : $t21(s_obj_$183, $t19);
+            while ($t22 instanceof R.TailCall) { $t22 = R.step($t22); }
+            if ($t22 === R.UNWIND) { R.reify($proc$r, 16, { s_cmp_$186, s_l_$188, s_pair_$189, $t15, s_obj_$183 }); return R.UNWIND; }
+            $r = $t22;
+            $pc = 16; continue;
+          case 15:
+            $t18 = $r;
+            $pc = 14; continue;
+          case 16:
+            $t22 = $r;
+            if ($t22 !== false) { $pc = 17; continue; } $pc = 18; continue;
+          case 17:
+            return s_pair_$189;
+          case 18:
+            $t23 = G7() === P7 && (s_l_$188 instanceof R.Cons) ? (s_l_$188.cdr) : R.settle(R.invoke(G7(), [s_l_$188]));
+            if ($t23 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$188 = $t23;
+            $pc = 9; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -7385,48 +7207,8 @@ export const PROCEDURES = {
     const P4 = R.currentBinding(E, "cdr");
     const G5 = R.globalAccessor(E, "+");
     const P5 = R.currentBinding(E, "+");
-    function $mk$fn8() {
-      let s_loop_$191;
-      function $fn8(s_l_$192, s_count_$193) {
-      let $t0, $t1, $t2;
-      $t0 = G3() === P3 ? (s_l_$192 === null) : R.settle(R.invoke(G3(), [s_l_$192]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return s_count_$193;
-    } else {
-      $t1 = G4() === P4 && (s_l_$192 instanceof R.Cons) ? (s_l_$192.cdr) : R.settle(R.invoke(G4(), [s_l_$192]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = G5() === P5 && (typeof s_count_$193 === 'bigint' && typeof 1n === 'bigint') ? (s_count_$193 + 1n) : R.settle(R.invoke(G5(), [s_count_$193, 1n]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$191, [$t1, $t2]);
-    }
-    }
-      R.markProcedure($fn8, "anonymous");
-      function $fn8$r($pc, $f) {
-      let $t0, $t1, $t2, s_l_$192, s_count_$193, $r;
-      ({ $t0, $t1, $t2, s_l_$192, s_count_$193, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$192 === null) : R.settle(R.invoke(G3(), [s_l_$192]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return s_count_$193;
-          case 2:
-            $t1 = G4() === P4 && (s_l_$192 instanceof R.Cons) ? (s_l_$192.cdr) : R.settle(R.invoke(G4(), [s_l_$192]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = G5() === P5 && (typeof s_count_$193 === 'bigint' && typeof 1n === 'bigint') ? (s_count_$193 + 1n) : R.settle(R.invoke(G5(), [s_count_$193, 1n]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$191, [$t1, $t2]);
-          default: throw new Error('$fn8$r: bad resume point ' + $pc);
-      }
-    }
-      $fn8.$resume = $fn8$r;
-      s_loop_$191 = $fn8;
-      return $fn8;
-    }
     function $proc(s_lst_$190) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$191, $t9;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$192, s_count_$193, $t8, $t9, $t10;
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$190) : $t1(s_lst_$190);
@@ -7445,13 +7227,27 @@ export const PROCEDURES = {
       $t4 = undefined;
     }
       $t4;
-      $t9 = $mk$fn8();
-      s_loop_$191 = $t9;
-      return new R.TailCall(s_loop_$191, [s_lst_$190, 0n]);
+      s_l_$192 = s_lst_$190;
+      s_count_$193 = 0n;
+      $loop1: for (;;) {
+      $t8 = G3() === P3 ? (s_l_$192 === null) : R.settle(R.invoke(G3(), [s_l_$192]));
+      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t8 !== false) {
+      return s_count_$193;
+    } else {
+      $t9 = G4() === P4 && (s_l_$192 instanceof R.Cons) ? (s_l_$192.cdr) : R.settle(R.invoke(G4(), [s_l_$192]));
+      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+      $t10 = G5() === P5 && (typeof s_count_$193 === 'bigint' && typeof 1n === 'bigint') ? (s_count_$193 + 1n) : R.settle(R.invoke(G5(), [s_count_$193, 1n]));
+      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$192 = $t9;
+      s_count_$193 = $t10;
+      continue $loop1;
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$191, $t9, s_lst_$190, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$191, $t9, s_lst_$190, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$192, s_count_$193, $t8, $t9, $t10, s_lst_$190, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$192, s_count_$193, $t8, $t9, $t10, s_lst_$190, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -7480,12 +7276,26 @@ export const PROCEDURES = {
             $pc = 4; continue;
           case 4:
             $t4;
-            $t9 = $mk$fn8();
-            s_loop_$191 = $t9;
-            return new R.TailCall(s_loop_$191, [s_lst_$190, 0n]);
+            s_l_$192 = s_lst_$190;
+            s_count_$193 = 0n;
+            $pc = 6; continue;
           case 5:
             $t7 = $r;
             $pc = 4; continue;
+          case 6:
+            $t8 = G3() === P3 ? (s_l_$192 === null) : R.settle(R.invoke(G3(), [s_l_$192]));
+            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t8 !== false) { $pc = 7; continue; } $pc = 8; continue;
+          case 7:
+            return s_count_$193;
+          case 8:
+            $t9 = G4() === P4 && (s_l_$192 instanceof R.Cons) ? (s_l_$192.cdr) : R.settle(R.invoke(G4(), [s_l_$192]));
+            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+            $t10 = G5() === P5 && (typeof s_count_$193 === 'bigint' && typeof 1n === 'bigint') ? (s_count_$193 + 1n) : R.settle(R.invoke(G5(), [s_count_$193, 1n]));
+            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$192 = $t9;
+            s_count_$193 = $t10;
+            $pc = 6; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -7517,80 +7327,8 @@ export const PROCEDURES = {
     const P8 = R.currentBinding(E, "cdr");
     const G9 = R.globalAccessor(E, "-");
     const P9 = R.currentBinding(E, "-");
-    function $mk$fn19(s_k_$195) {
-      let s_loop_$196;
-      function $fn19(s_l_$197, s_i_$198) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
-      $t0 = G5() === P5 ? (s_l_$197 === null) : R.settle(R.invoke(G5(), [s_l_$197]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return new R.TailCall(G2(), ["list-ref: index out of range", s_k_$195]);
-    } else {
-      $t1 = G1() === P1 ? (s_l_$197 instanceof R.Cons) : R.settle(R.invoke(G1(), [s_l_$197]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = G0() === P0 ? ($t1 === false) : R.settle(R.invoke(G0(), [$t1]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t2 !== false) {
-      return new R.TailCall(G2(), ["list-ref: improper list", s_l_$197]);
-    } else {
-      $t3 = G6() === P6 && (typeof s_i_$198 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$198 === 0n) : R.settle(R.invoke(G6(), [s_i_$198, 0n]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t3 !== false) {
-      $t4 = G7() === P7 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.car) : R.settle(R.invoke(G7(), [s_l_$197]));
-      if ($t4 === R.UNWIND) R.captureUnderPrimitive();
-      return $t4;
-    } else {
-      $t5 = G8() === P8 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.cdr) : R.settle(R.invoke(G8(), [s_l_$197]));
-      if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-      $t6 = G9() === P9 && (typeof s_i_$198 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$198 - 1n) : R.settle(R.invoke(G9(), [s_i_$198, 1n]));
-      if ($t6 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$196, [$t5, $t6]);
-    }
-    }
-    }
-    }
-      R.markProcedure($fn19, "anonymous");
-      function $fn19$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$197, s_i_$198, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$197, s_i_$198, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G5() === P5 ? (s_l_$197 === null) : R.settle(R.invoke(G5(), [s_l_$197]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return new R.TailCall(G2(), ["list-ref: index out of range", s_k_$195]);
-          case 2:
-            $t1 = G1() === P1 ? (s_l_$197 instanceof R.Cons) : R.settle(R.invoke(G1(), [s_l_$197]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = G0() === P0 ? ($t1 === false) : R.settle(R.invoke(G0(), [$t1]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t2 !== false) { $pc = 3; continue; } $pc = 4; continue;
-          case 3:
-            return new R.TailCall(G2(), ["list-ref: improper list", s_l_$197]);
-          case 4:
-            $t3 = G6() === P6 && (typeof s_i_$198 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$198 === 0n) : R.settle(R.invoke(G6(), [s_i_$198, 0n]));
-            if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t3 !== false) { $pc = 5; continue; } $pc = 6; continue;
-          case 5:
-            $t4 = G7() === P7 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.car) : R.settle(R.invoke(G7(), [s_l_$197]));
-            if ($t4 === R.UNWIND) R.captureUnderPrimitive();
-            return $t4;
-          case 6:
-            $t5 = G8() === P8 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.cdr) : R.settle(R.invoke(G8(), [s_l_$197]));
-            if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-            $t6 = G9() === P9 && (typeof s_i_$198 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$198 - 1n) : R.settle(R.invoke(G9(), [s_i_$198, 1n]));
-            if ($t6 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$196, [$t5, $t6]);
-          default: throw new Error('$fn19$r: bad resume point ' + $pc);
-      }
-    }
-      $fn19.$resume = $fn19$r;
-      s_loop_$196 = $fn19;
-      return $fn19;
-    }
     function $proc(s_lst_$194, s_k_$195) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_l_$197, s_i_$198, $t19, $t20, $t21, $t22, $t23, $t24, $t25;
       $t0 = G1() === P1 ? (s_lst_$194 instanceof R.Cons) : R.settle(R.invoke(G1(), [s_lst_$194]));
       if ($t0 === R.UNWIND) R.captureUnderPrimitive();
       $t1 = G0() === P0 ? ($t0 === false) : R.settle(R.invoke(G0(), [$t0]));
@@ -7637,13 +7375,43 @@ export const PROCEDURES = {
       $t15 = undefined;
     }
       $t15;
-      $t20 = $mk$fn19(s_k_$195);
-      s_loop_$196 = $t20;
-      return new R.TailCall(s_loop_$196, [s_lst_$194, s_k_$195]);
+      s_l_$197 = s_lst_$194;
+      s_i_$198 = s_k_$195;
+      $loop1: for (;;) {
+      $t19 = G5() === P5 ? (s_l_$197 === null) : R.settle(R.invoke(G5(), [s_l_$197]));
+      if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t19 !== false) {
+      return new R.TailCall(G2(), ["list-ref: index out of range", s_k_$195]);
+    } else {
+      $t20 = G1() === P1 ? (s_l_$197 instanceof R.Cons) : R.settle(R.invoke(G1(), [s_l_$197]));
+      if ($t20 === R.UNWIND) R.captureUnderPrimitive();
+      $t21 = G0() === P0 ? ($t20 === false) : R.settle(R.invoke(G0(), [$t20]));
+      if ($t21 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t21 !== false) {
+      return new R.TailCall(G2(), ["list-ref: improper list", s_l_$197]);
+    } else {
+      $t22 = G6() === P6 && (typeof s_i_$198 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$198 === 0n) : R.settle(R.invoke(G6(), [s_i_$198, 0n]));
+      if ($t22 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t22 !== false) {
+      $t23 = G7() === P7 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.car) : R.settle(R.invoke(G7(), [s_l_$197]));
+      if ($t23 === R.UNWIND) R.captureUnderPrimitive();
+      return $t23;
+    } else {
+      $t24 = G8() === P8 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.cdr) : R.settle(R.invoke(G8(), [s_l_$197]));
+      if ($t24 === R.UNWIND) R.captureUnderPrimitive();
+      $t25 = G9() === P9 && (typeof s_i_$198 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$198 - 1n) : R.settle(R.invoke(G9(), [s_i_$198, 1n]));
+      if ($t25 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$197 = $t24;
+      s_i_$198 = $t25;
+      continue $loop1;
+    }
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_l_$197, s_i_$198, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_lst_$194, s_k_$195, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_l_$197, s_i_$198, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_lst_$194, s_k_$195, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1() === P1 ? (s_lst_$194 instanceof R.Cons) : R.settle(R.invoke(G1(), [s_lst_$194]));
@@ -7714,12 +7482,42 @@ export const PROCEDURES = {
             $pc = 12; continue;
           case 12:
             $t15;
-            $t20 = $mk$fn19(s_k_$195);
-            s_loop_$196 = $t20;
-            return new R.TailCall(s_loop_$196, [s_lst_$194, s_k_$195]);
+            s_l_$197 = s_lst_$194;
+            s_i_$198 = s_k_$195;
+            $pc = 14; continue;
           case 13:
             $t18 = $r;
             $pc = 12; continue;
+          case 14:
+            $t19 = G5() === P5 ? (s_l_$197 === null) : R.settle(R.invoke(G5(), [s_l_$197]));
+            if ($t19 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t19 !== false) { $pc = 15; continue; } $pc = 16; continue;
+          case 15:
+            return new R.TailCall(G2(), ["list-ref: index out of range", s_k_$195]);
+          case 16:
+            $t20 = G1() === P1 ? (s_l_$197 instanceof R.Cons) : R.settle(R.invoke(G1(), [s_l_$197]));
+            if ($t20 === R.UNWIND) R.captureUnderPrimitive();
+            $t21 = G0() === P0 ? ($t20 === false) : R.settle(R.invoke(G0(), [$t20]));
+            if ($t21 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t21 !== false) { $pc = 17; continue; } $pc = 18; continue;
+          case 17:
+            return new R.TailCall(G2(), ["list-ref: improper list", s_l_$197]);
+          case 18:
+            $t22 = G6() === P6 && (typeof s_i_$198 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$198 === 0n) : R.settle(R.invoke(G6(), [s_i_$198, 0n]));
+            if ($t22 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t22 !== false) { $pc = 19; continue; } $pc = 20; continue;
+          case 19:
+            $t23 = G7() === P7 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.car) : R.settle(R.invoke(G7(), [s_l_$197]));
+            if ($t23 === R.UNWIND) R.captureUnderPrimitive();
+            return $t23;
+          case 20:
+            $t24 = G8() === P8 && (s_l_$197 instanceof R.Cons) ? (s_l_$197.cdr) : R.settle(R.invoke(G8(), [s_l_$197]));
+            if ($t24 === R.UNWIND) R.captureUnderPrimitive();
+            $t25 = G9() === P9 && (typeof s_i_$198 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$198 - 1n) : R.settle(R.invoke(G9(), [s_i_$198, 1n]));
+            if ($t25 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$197 = $t24;
+            s_i_$198 = $t25;
+            $pc = 14; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -7749,76 +7547,8 @@ export const PROCEDURES = {
     const P7 = R.currentBinding(E, "cdr");
     const G8 = R.globalAccessor(E, "-");
     const P8 = R.currentBinding(E, "-");
-    function $mk$fn13(s_k_$200) {
-      let s_loop_$201;
-      function $fn13(s_l_$202, s_i_$203) {
-      let $t0, $t1, $t2, $t3, $t4, $t5;
-      $t0 = G4() === P4 && (typeof s_i_$203 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$203 === 0n) : R.settle(R.invoke(G4(), [s_i_$203, 0n]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return s_l_$202;
-    } else {
-      $t1 = G5() === P5 ? (s_l_$202 === null) : R.settle(R.invoke(G5(), [s_l_$202]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t1 !== false) {
-      return new R.TailCall(G2(), ["list-tail: index out of range", s_k_$200]);
-    } else {
-      $t2 = G6() === P6 ? (s_l_$202 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_l_$202]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t3 !== false) {
-      return new R.TailCall(G2(), ["list-tail: improper list", s_l_$202]);
-    } else {
-      $t4 = G7() === P7 && (s_l_$202 instanceof R.Cons) ? (s_l_$202.cdr) : R.settle(R.invoke(G7(), [s_l_$202]));
-      if ($t4 === R.UNWIND) R.captureUnderPrimitive();
-      $t5 = G8() === P8 && (typeof s_i_$203 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$203 - 1n) : R.settle(R.invoke(G8(), [s_i_$203, 1n]));
-      if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$201, [$t4, $t5]);
-    }
-    }
-    }
-    }
-      R.markProcedure($fn13, "anonymous");
-      function $fn13$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, s_l_$202, s_i_$203, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, s_l_$202, s_i_$203, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G4() === P4 && (typeof s_i_$203 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$203 === 0n) : R.settle(R.invoke(G4(), [s_i_$203, 0n]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return s_l_$202;
-          case 2:
-            $t1 = G5() === P5 ? (s_l_$202 === null) : R.settle(R.invoke(G5(), [s_l_$202]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t1 !== false) { $pc = 3; continue; } $pc = 4; continue;
-          case 3:
-            return new R.TailCall(G2(), ["list-tail: index out of range", s_k_$200]);
-          case 4:
-            $t2 = G6() === P6 ? (s_l_$202 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_l_$202]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-            if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t3 !== false) { $pc = 5; continue; } $pc = 6; continue;
-          case 5:
-            return new R.TailCall(G2(), ["list-tail: improper list", s_l_$202]);
-          case 6:
-            $t4 = G7() === P7 && (s_l_$202 instanceof R.Cons) ? (s_l_$202.cdr) : R.settle(R.invoke(G7(), [s_l_$202]));
-            if ($t4 === R.UNWIND) R.captureUnderPrimitive();
-            $t5 = G8() === P8 && (typeof s_i_$203 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$203 - 1n) : R.settle(R.invoke(G8(), [s_i_$203, 1n]));
-            if ($t5 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$201, [$t4, $t5]);
-          default: throw new Error('$fn13$r: bad resume point ' + $pc);
-      }
-    }
-      $fn13.$resume = $fn13$r;
-      s_loop_$201 = $fn13;
-      return $fn13;
-    }
     function $proc(s_lst_$199, s_k_$200) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$202, s_i_$203, $t13, $t14, $t15, $t16, $t17, $t18;
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_k_$200) : $t1(s_k_$200);
@@ -7850,13 +7580,41 @@ export const PROCEDURES = {
       $t9 = undefined;
     }
       $t9;
-      $t14 = $mk$fn13(s_k_$200);
-      s_loop_$201 = $t14;
-      return new R.TailCall(s_loop_$201, [s_lst_$199, s_k_$200]);
+      s_l_$202 = s_lst_$199;
+      s_i_$203 = s_k_$200;
+      $loop1: for (;;) {
+      $t13 = G4() === P4 && (typeof s_i_$203 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$203 === 0n) : R.settle(R.invoke(G4(), [s_i_$203, 0n]));
+      if ($t13 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t13 !== false) {
+      return s_l_$202;
+    } else {
+      $t14 = G5() === P5 ? (s_l_$202 === null) : R.settle(R.invoke(G5(), [s_l_$202]));
+      if ($t14 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t14 !== false) {
+      return new R.TailCall(G2(), ["list-tail: index out of range", s_k_$200]);
+    } else {
+      $t15 = G6() === P6 ? (s_l_$202 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_l_$202]));
+      if ($t15 === R.UNWIND) R.captureUnderPrimitive();
+      $t16 = G0() === P0 ? ($t15 === false) : R.settle(R.invoke(G0(), [$t15]));
+      if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t16 !== false) {
+      return new R.TailCall(G2(), ["list-tail: improper list", s_l_$202]);
+    } else {
+      $t17 = G7() === P7 && (s_l_$202 instanceof R.Cons) ? (s_l_$202.cdr) : R.settle(R.invoke(G7(), [s_l_$202]));
+      if ($t17 === R.UNWIND) R.captureUnderPrimitive();
+      $t18 = G8() === P8 && (typeof s_i_$203 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$203 - 1n) : R.settle(R.invoke(G8(), [s_i_$203, 1n]));
+      if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$202 = $t17;
+      s_i_$203 = $t18;
+      continue $loop1;
+    }
+    }
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$202, s_i_$203, $t13, $t14, $t15, $t16, $t17, $t18, s_lst_$199, s_k_$200, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$202, s_i_$203, $t13, $t14, $t15, $t16, $t17, $t18, s_lst_$199, s_k_$200, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -7905,12 +7663,40 @@ export const PROCEDURES = {
             $pc = 8; continue;
           case 8:
             $t9;
-            $t14 = $mk$fn13(s_k_$200);
-            s_loop_$201 = $t14;
-            return new R.TailCall(s_loop_$201, [s_lst_$199, s_k_$200]);
+            s_l_$202 = s_lst_$199;
+            s_i_$203 = s_k_$200;
+            $pc = 10; continue;
           case 9:
             $t12 = $r;
             $pc = 8; continue;
+          case 10:
+            $t13 = G4() === P4 && (typeof s_i_$203 === 'bigint' && typeof 0n === 'bigint') ? (s_i_$203 === 0n) : R.settle(R.invoke(G4(), [s_i_$203, 0n]));
+            if ($t13 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t13 !== false) { $pc = 11; continue; } $pc = 12; continue;
+          case 11:
+            return s_l_$202;
+          case 12:
+            $t14 = G5() === P5 ? (s_l_$202 === null) : R.settle(R.invoke(G5(), [s_l_$202]));
+            if ($t14 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t14 !== false) { $pc = 13; continue; } $pc = 14; continue;
+          case 13:
+            return new R.TailCall(G2(), ["list-tail: index out of range", s_k_$200]);
+          case 14:
+            $t15 = G6() === P6 ? (s_l_$202 instanceof R.Cons) : R.settle(R.invoke(G6(), [s_l_$202]));
+            if ($t15 === R.UNWIND) R.captureUnderPrimitive();
+            $t16 = G0() === P0 ? ($t15 === false) : R.settle(R.invoke(G0(), [$t15]));
+            if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t16 !== false) { $pc = 15; continue; } $pc = 16; continue;
+          case 15:
+            return new R.TailCall(G2(), ["list-tail: improper list", s_l_$202]);
+          case 16:
+            $t17 = G7() === P7 && (s_l_$202 instanceof R.Cons) ? (s_l_$202.cdr) : R.settle(R.invoke(G7(), [s_l_$202]));
+            if ($t17 === R.UNWIND) R.captureUnderPrimitive();
+            $t18 = G8() === P8 && (typeof s_i_$203 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$203 - 1n) : R.settle(R.invoke(G8(), [s_i_$203, 1n]));
+            if ($t18 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$202 = $t17;
+            s_i_$203 = $t18;
+            $pc = 10; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -7936,52 +7722,8 @@ export const PROCEDURES = {
     const P5 = R.currentBinding(E, "cons");
     const G6 = R.globalAccessor(E, "car");
     const P6 = R.currentBinding(E, "car");
-    function $mk$fn8() {
-      let s_loop_$205;
-      function $fn8(s_l_$206, s_result_$207) {
-      let $t0, $t1, $t2, $t3;
-      $t0 = G3() === P3 ? (s_l_$206 === null) : R.settle(R.invoke(G3(), [s_l_$206]));
-      if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t0 !== false) {
-      return s_result_$207;
-    } else {
-      $t1 = G4() === P4 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.cdr) : R.settle(R.invoke(G4(), [s_l_$206]));
-      if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-      $t2 = G6() === P6 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.car) : R.settle(R.invoke(G6(), [s_l_$206]));
-      if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-      $t3 = G5() === P5 ? (new R.Cons($t2, s_result_$207)) : R.settle(R.invoke(G5(), [$t2, s_result_$207]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      return new R.TailCall(s_loop_$205, [$t1, $t3]);
-    }
-    }
-      R.markProcedure($fn8, "anonymous");
-      function $fn8$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, s_l_$206, s_result_$207, $r;
-      ({ $t0, $t1, $t2, $t3, s_l_$206, s_result_$207, $r } = $f);
-      for (;;) switch ($pc) {
-          case 0:
-            $t0 = G3() === P3 ? (s_l_$206 === null) : R.settle(R.invoke(G3(), [s_l_$206]));
-            if ($t0 === R.UNWIND) R.captureUnderPrimitive();
-            if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
-          case 1:
-            return s_result_$207;
-          case 2:
-            $t1 = G4() === P4 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.cdr) : R.settle(R.invoke(G4(), [s_l_$206]));
-            if ($t1 === R.UNWIND) R.captureUnderPrimitive();
-            $t2 = G6() === P6 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.car) : R.settle(R.invoke(G6(), [s_l_$206]));
-            if ($t2 === R.UNWIND) R.captureUnderPrimitive();
-            $t3 = G5() === P5 ? (new R.Cons($t2, s_result_$207)) : R.settle(R.invoke(G5(), [$t2, s_result_$207]));
-            if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-            return new R.TailCall(s_loop_$205, [$t1, $t3]);
-          default: throw new Error('$fn8$r: bad resume point ' + $pc);
-      }
-    }
-      $fn8.$resume = $fn8$r;
-      s_loop_$205 = $fn8;
-      return $fn8;
-    }
     function $proc(s_lst_$204) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$205, $t9;
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$206, s_result_$207, $t8, $t9, $t10, $t11;
       $t0 = G1();
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$204) : $t1(s_lst_$204);
@@ -8000,13 +7742,29 @@ export const PROCEDURES = {
       $t4 = undefined;
     }
       $t4;
-      $t9 = $mk$fn8();
-      s_loop_$205 = $t9;
-      return new R.TailCall(s_loop_$205, [s_lst_$204, null]);
+      s_l_$206 = s_lst_$204;
+      s_result_$207 = null;
+      $loop1: for (;;) {
+      $t8 = G3() === P3 ? (s_l_$206 === null) : R.settle(R.invoke(G3(), [s_l_$206]));
+      if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+      if ($t8 !== false) {
+      return s_result_$207;
+    } else {
+      $t9 = G4() === P4 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.cdr) : R.settle(R.invoke(G4(), [s_l_$206]));
+      if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+      $t10 = G6() === P6 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.car) : R.settle(R.invoke(G6(), [s_l_$206]));
+      if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+      $t11 = G5() === P5 ? (new R.Cons($t10, s_result_$207)) : R.settle(R.invoke(G5(), [$t10, s_result_$207]));
+      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+      s_l_$206 = $t9;
+      s_result_$207 = $t11;
+      continue $loop1;
+    }
+      }
     }
     function $proc$r($pc, $f) {
-      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$205, $t9, s_lst_$204, $r;
-      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$205, $t9, s_lst_$204, $r } = $f);
+      let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$206, s_result_$207, $t8, $t9, $t10, $t11, s_lst_$204, $r;
+      ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$206, s_result_$207, $t8, $t9, $t10, $t11, s_lst_$204, $r } = $f);
       for (;;) switch ($pc) {
           case 0:
             $t0 = G1();
@@ -8035,12 +7793,28 @@ export const PROCEDURES = {
             $pc = 4; continue;
           case 4:
             $t4;
-            $t9 = $mk$fn8();
-            s_loop_$205 = $t9;
-            return new R.TailCall(s_loop_$205, [s_lst_$204, null]);
+            s_l_$206 = s_lst_$204;
+            s_result_$207 = null;
+            $pc = 6; continue;
           case 5:
             $t7 = $r;
             $pc = 4; continue;
+          case 6:
+            $t8 = G3() === P3 ? (s_l_$206 === null) : R.settle(R.invoke(G3(), [s_l_$206]));
+            if ($t8 === R.UNWIND) R.captureUnderPrimitive();
+            if ($t8 !== false) { $pc = 7; continue; } $pc = 8; continue;
+          case 7:
+            return s_result_$207;
+          case 8:
+            $t9 = G4() === P4 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.cdr) : R.settle(R.invoke(G4(), [s_l_$206]));
+            if ($t9 === R.UNWIND) R.captureUnderPrimitive();
+            $t10 = G6() === P6 && (s_l_$206 instanceof R.Cons) ? (s_l_$206.car) : R.settle(R.invoke(G6(), [s_l_$206]));
+            if ($t10 === R.UNWIND) R.captureUnderPrimitive();
+            $t11 = G5() === P5 ? (new R.Cons($t10, s_result_$207)) : R.settle(R.invoke(G5(), [$t10, s_result_$207]));
+            if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+            s_l_$206 = $t9;
+            s_result_$207 = $t11;
+            $pc = 6; continue;
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }
     }
@@ -8351,14 +8125,15 @@ export const PROCEDURES = {
     const P11 = R.currentBinding(E, "-");
     function $proc(s_lst_$214, s_k_$215, s_obj_$216) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28;
-      $t0 = G1();
-      $t1 = $t0[R.SCHEME_RAW_CALL];
-      $t2 = $t1 === undefined ? $t0(s_lst_$214) : $t1(s_lst_$214);
-      while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
-      $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
-      if ($t3 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t3 !== false) {
+      $loop: for (;;) {
+        $t0 = G1();
+        $t1 = $t0[R.SCHEME_RAW_CALL];
+        $t2 = $t1 === undefined ? $t0(s_lst_$214) : $t1(s_lst_$214);
+        while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
+        if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+        $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
+        if ($t3 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t3 !== false) {
       $t5 = G2();
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("list-set!: expected list", s_lst_$214) : $t6("list-set!: expected list", s_lst_$214);
@@ -8368,62 +8143,64 @@ export const PROCEDURES = {
     } else {
       $t4 = undefined;
     }
-      $t4;
-      $t8 = G3();
-      $t9 = $t8[R.SCHEME_RAW_CALL];
-      $t10 = $t9 === undefined ? $t8(s_k_$215) : $t9(s_k_$215);
-      while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
-      $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
-      if ($t11 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t11 !== false) {
+        $t4;
+        $t8 = G3();
+        $t9 = $t8[R.SCHEME_RAW_CALL];
+        $t10 = $t9 === undefined ? $t8(s_k_$215) : $t9(s_k_$215);
+        while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
+        if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+        $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
+        if ($t11 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t11 !== false) {
       $t13 = G2();
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13("list-set!: expected integer index", s_k_$215) : $t14("list-set!: expected integer index", s_k_$215);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t12 = $t15;
     } else {
       $t12 = undefined;
     }
-      $t12;
-      $t16 = G4() === P4 && (typeof s_k_$215 === 'bigint' && typeof 0n === 'bigint') ? (s_k_$215 < 0n) : R.settle(R.invoke(G4(), [s_k_$215, 0n]));
-      if ($t16 === R.UNWIND) R.captureUnderPrimitive();
-      s_x_$217 = $t16;
-      if (s_x_$217 !== false) {
+        $t12;
+        $t16 = G4() === P4 && (typeof s_k_$215 === 'bigint' && typeof 0n === 'bigint') ? (s_k_$215 < 0n) : R.settle(R.invoke(G4(), [s_k_$215, 0n]));
+        if ($t16 === R.UNWIND) R.captureUnderPrimitive();
+        s_x_$217 = $t16;
+        if (s_x_$217 !== false) {
       $t17 = s_x_$217;
     } else {
       $t18 = G6();
       $t19 = $t18[R.SCHEME_RAW_CALL];
       $t20 = $t19 === undefined ? $t18(s_lst_$214) : $t19(s_lst_$214);
       while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
-      if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t17, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t4, $t12, $t17, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t21 = G5() === P5 && (typeof s_k_$215 === 'bigint' && typeof $t20 === 'bigint') ? (s_k_$215 >= $t20) : R.settle(R.invoke(G5(), [s_k_$215, $t20]));
       if ($t21 === R.UNWIND) R.captureUnderPrimitive();
       $t17 = $t21;
     }
-      if ($t17 !== false) {
+        if ($t17 !== false) {
       $t23 = G2();
       $t24 = $t23[R.SCHEME_RAW_CALL];
       $t25 = $t24 === undefined ? $t23("list-set!: index out of range", s_k_$215) : $t24("list-set!: index out of range", s_k_$215);
       while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
-      if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t22 = $t25;
     } else {
       $t22 = undefined;
     }
-      $t22;
-      $t26 = G7() === P7 && (typeof s_k_$215 === 'bigint' && typeof 0n === 'bigint') ? (s_k_$215 === 0n) : R.settle(R.invoke(G7(), [s_k_$215, 0n]));
-      if ($t26 === R.UNWIND) R.captureUnderPrimitive();
-      if ($t26 !== false) {
+        $t22;
+        $t26 = G7() === P7 && (typeof s_k_$215 === 'bigint' && typeof 0n === 'bigint') ? (s_k_$215 === 0n) : R.settle(R.invoke(G7(), [s_k_$215, 0n]));
+        if ($t26 === R.UNWIND) R.captureUnderPrimitive();
+        if ($t26 !== false) {
       return new R.TailCall(G8(), [s_lst_$214, s_obj_$216]);
     } else {
       $t27 = G10() === P10 && (s_lst_$214 instanceof R.Cons) ? (s_lst_$214.cdr) : R.settle(R.invoke(G10(), [s_lst_$214]));
       if ($t27 === R.UNWIND) R.captureUnderPrimitive();
       $t28 = G11() === P11 && (typeof s_k_$215 === 'bigint' && typeof 1n === 'bigint') ? (s_k_$215 - 1n) : R.settle(R.invoke(G11(), [s_k_$215, 1n]));
       if ($t28 === R.UNWIND) R.captureUnderPrimitive();
+      if (G9() === $proc) { s_lst_$214 = $t27; s_k_$215 = $t28; continue $loop; }
       return new R.TailCall(G9(), [$t27, $t28, s_obj_$216]);
     }
+      }
     }
     function $proc$r($pc, $f) {
       let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216, $r;
@@ -8460,7 +8237,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_k_$215) : $t9(s_k_$215);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -8476,7 +8253,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13("list-set!: expected integer index", s_k_$215) : $t14("list-set!: expected integer index", s_k_$215);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t15;
             $pc = 10; continue;
             $t12 = $t15;
@@ -8500,7 +8277,7 @@ export const PROCEDURES = {
             $t19 = $t18[R.SCHEME_RAW_CALL];
             $t20 = $t19 === undefined ? $t18(s_lst_$214) : $t19(s_lst_$214);
             while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
-            if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t17, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+            if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t4, $t12, $t17, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t20;
             $pc = 14; continue;
             $t17 = $t21;
@@ -8516,7 +8293,7 @@ export const PROCEDURES = {
             $t24 = $t23[R.SCHEME_RAW_CALL];
             $t25 = $t24 === undefined ? $t23("list-set!: index out of range", s_k_$215) : $t24("list-set!: index out of range", s_k_$215);
             while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
-            if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+            if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t25;
             $pc = 18; continue;
             $t22 = $t25;
@@ -8538,6 +8315,7 @@ export const PROCEDURES = {
             if ($t27 === R.UNWIND) R.captureUnderPrimitive();
             $t28 = G11() === P11 && (typeof s_k_$215 === 'bigint' && typeof 1n === 'bigint') ? (s_k_$215 - 1n) : R.settle(R.invoke(G11(), [s_k_$215, 1n]));
             if ($t28 === R.UNWIND) R.captureUnderPrimitive();
+            if (G9() === $proc) { s_lst_$214 = $t27; s_k_$215 = $t28; $pc = 0; continue; }
             return new R.TailCall(G9(), [$t27, $t28, s_obj_$216]);
           default: throw new Error('$proc$r: bad resume point ' + $pc);
       }

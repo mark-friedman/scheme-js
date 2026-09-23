@@ -169,7 +169,8 @@ export function irToJs(ir) {
         k: 'letrec',
         names: toArray(f[0]).map((s) => s.name),
         inits: toArray(f[1]).map(irToJs),
-        body: irToJs(f[2]), tail: f[3], callable: f[4]
+        body: irToJs(f[2]), tail: f[3], callable: f[4],
+        inline: f[5] === true
       };
     case 'set':
       return {
@@ -178,8 +179,10 @@ export function irToJs(ir) {
     case 'define':
       return { k: 'define', name: f[0].name, value: irToJs(f[1]), tail: f[2] };
     case 'call':
+      // `loop` is absent on the calls the lowering synthesizes, which never loop.
       return {
-        k: 'call', fn: irToJs(f[0]), args: toArray(f[1]).map(irToJs), tail: f[2]
+        k: 'call', fn: irToJs(f[0]), args: toArray(f[1]).map(irToJs), tail: f[2],
+        loop: f[3] ? f[3].name : false
       };
     case 'capture':
       return { k: 'capture', receiver: irToJs(f[0]), tail: f[1] };

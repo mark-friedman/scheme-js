@@ -187,6 +187,64 @@ export class TwinEmitter extends ProcedureEmitter {
     this.out.push(`${name}.$resume = ${twinName};`);
   }
 
+  /**
+   * Assigns a parameter for the next iteration of a loop. The resumable form
+   * never boxes its parameters on entry -- they arrive from a frame already
+   * boxed -- so a boxed one is given a fresh box here.
+   * @param {string} param - The renamed parameter.
+   * @param {string} value - A JavaScript expression for its new value.
+   * @returns {string} A statement.
+   */
+  loopAssign(param, value) {
+    return this.isBoxed(param)
+      ? `${jsName(param)} = [${value}];` : `${jsName(param)} = ${value};`;
+  }
+
+  /**
+   * Jumps to block zero, which is the procedure's entry: it makes the boxes for
+   * internal definitions and starts the body, as a fresh call would.
+   * @returns {string} A statement.
+   */
+  loopJump() {
+    return '$pc = 0; continue;';
+  }
+
+  /**
+   * Opens an inline loop: its head is a block of its own, and the back edge is
+   * a jump to it. Block zero is the procedure's entry, which a loop inside the
+   * procedure must not re-run.
+   * @param {Object} lambda - The loop's `lambda` IR node.
+   * @returns {Object} The loop target; see `loopTarget`.
+   */
+  enterInlineLoop(lambda) {
+    const head = this.newBlock();
+    this.goto(head);
+    this.switchTo(head);
+    return {
+      params: lambda.params,
+      fixedArity: true,
+      procedure: false,
+      assign: (param, value) => `${jsName(param)} = ${value};`,
+      jump: `$pc = ${head}; continue;`
+    };
+  }
+
+  /**
+   * Closes an inline loop. Its blocks end in returns and jumps already.
+   * @returns {void}
+   */
+  exitInlineLoop() {}
+
+  /**
+   * The fast form's identifier. The two forms are declared side by side, and a
+   * global self-call has to compare against the procedure the global holds,
+   * which is the fast form.
+   * @returns {string} An identifier.
+   */
+  procedureName() {
+    return this.name.replace(/\$r$/, '');
+  }
+
   /** @inheritdoc */
   statement(node) {
     // Only a *tail* `if` ends the procedure in its branches. One whose value is

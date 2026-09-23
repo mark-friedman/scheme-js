@@ -2142,6 +2142,37 @@ not just the compiler. R19 found a direct *non-tail* self-call slower than the g
 is a different change, since it removes an allocation and a trampoline round trip rather than a
 lookup, and it has to be A/B measured the same way.
 
+**R60. Looping the self tail calls bought almost nothing on the compiler, and removing the
+trampoline from `assq` entirely left two-thirds of its cost in place.**
+
+R59 attributed compiled `assq`'s ~300 ns a call to the trampoline, and the plan expected compiling
+self tail calls as loops to recover most of the 1.65x that native `assq` and `memq` showed on
+lowering. Two beliefs failed.
+
+**"The per-iteration trampoline is the cost."** Not on short lists. Looping `assq`'s internal `loop`
+left the lowering unchanged within noise (99-104 ms a pass against 103-114), because each `assq` call
+still made a closure for `loop` and entered it through a `TailCall`, and at 1.85 entries a list the
+entry is nearly the whole call. It took *contification* -- emitting a `letrec` loop inside the
+procedure that enters it, when its name is only ever called, entered once in tail position and
+otherwise only by its own looping calls -- to remove the entry. Only then did `assq` become one
+JavaScript function with a labelled loop.
+
+**"With the trampoline gone, `assq` approaches native."** Also not. With both changes, lowering
+improved about 15% (107-115 ms to 92-95), and the native A/B on the new code still finds 17.6 ms of a
+63.4 ms pass in `assq` and `memq`, down from 26.8. `benchmarks/run_hash_tables.js` puts compiled
+`assq` at 196 ns on four keys, from 277, and 30 ns an element, from 43. The rest is per-operation
+guarding -- every primitive in the loop calls its global accessor and compares the binding, because
+Scheme permits redefining `car` -- plus the generic call path for `list?` and for the call into
+`assq` itself. Those are code-generation costs of a different kind, and no loop transformation
+reaches them.
+
+Across the canonical suite the change was still broadly worth it: compiled tier, geometric mean per
+class, `fixnum` 1.41x, `vector` 1.25x, `call` 1.24x, `list` 1.21x, `continuation` 1.10x, `flonum`
+1.04x, `bignum` 1.02x. `string` read 0.93x on the first pair of runs and 1.00-1.09x on three reruns.
+`fibfp` read 0.93x consistently, and its generated code is **byte-identical** with and without the
+change -- only the harness's own loop around it differs -- so, like `array1` in R55, the shift is
+outside the code being measured.
+
 ---
 
 ## Appendix — the original staged plan

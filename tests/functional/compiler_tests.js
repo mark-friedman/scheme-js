@@ -106,6 +106,50 @@ const CASES = [
   ['improper pair via inlined cons', '(define (f a b) (cons a b)) (f 1 2)'],
   ['inlined predicates', '(define (f x) (list (pair? x) (null? x) (not x))) (f (quote ()))'],
 
+  // --- loops: tail calls to the procedure itself compile to JavaScript loops ---
+  // Reassigning parameters in place is only right if nothing made in one
+  // iteration can see the next one's values. Each case below breaks if it can.
+  ['a loop that swaps its arguments',
+    '(define (f a b n) (if (= n 0) (list a b) (f b a (- n 1)))) (f 1 2 3)'],
+  ['a loop whose arguments read each other',
+    '(define (fib-iter a b n) (if (= n 0) a (fib-iter b (+ a b) (- n 1)))) (fib-iter 0 1 60)'],
+  ['closures made in a loop keep their own iteration',
+    '(define (f) (let loop ((i 0) (fs (quote ())))'
+    + ' (if (= i 3) (map (lambda (g) (g)) fs) (loop (+ i 1) (cons (lambda () i) fs))))) (f)'],
+  ['an assigned loop parameter is a fresh binding each iteration',
+    '(define (f) (let loop ((i 0) (fs (quote ())))'
+    + ' (if (= i 3) (map (lambda (g) (g)) fs)'
+    + ' (loop (+ i 1) (cons (lambda () (set! i (+ i 10)) i) fs))))) (f)'],
+  ['internal definitions are fresh each iteration',
+    '(define (f) (let loop ((i 0) (fs (quote ())))'
+    + ' (define (get) i) (define (twice) (* 2 (get)))'
+    + ' (if (= i 3) (map (lambda (g) (g)) fs) (loop (+ i 1) (cons twice fs))))) (f)'],
+  ['a do loop', '(define (f n) (do ((i 0 (+ i 1)) (v (make-vector n 0))) ((= i n) v)'
+    + ' (vector-set! v i (* i i)))) (f 5)'],
+  ['an internally defined loop',
+    '(define (f n) (define (loop i acc) (if (= i 0) acc (loop (- i 1) (+ acc i)))) (loop n 0)) (f 100)'],
+  ['a loop that runs a long time', '(define (count n acc) (if (= n 0) acc (count (- n 1) (+ acc 1))))'
+    + ' (count 200000 0)'],
+  // The same, where the loop is the whole procedure rather than a named let
+  // inlined into one: the fast form boxes its parameters at the top of the
+  // loop, not only on entry.
+  ['an assigned parameter of a self-looping procedure is fresh each iteration',
+    '(define (f i fs) (if (= i 3) (map (lambda (g) (g)) fs)'
+    + ' (f (+ i 1) (cons (lambda () (set! i (+ i 10)) i) fs)))) (f 0 (quote ()))'],
+  ['a loop that escapes as a value',
+    '(define (f) (let loop ((i 0)) (if (< i 3) (loop (+ i 1)) loop))) ((f) 5)'],
+  ['a loop entered from inside another loop',
+    '(define (f n) (let a ((i 0)) (if (< i n) (a (+ i 1))'
+    + ' (let b ((j i) (acc (quote ()))) (if (> j 0) (b (- j 1) (cons j acc)) (list i acc)))))) (f 4)'],
+  ['a loop that re-enters the loop it is inside',
+    '(define (f n) (let outer ((i 0) (acc (quote ()))) (if (= i n) acc'
+    + ' (let inner ((j 0) (acc acc)) (if (= j i) (outer (+ i 1) acc) (inner (+ j 1) (cons (list i j) acc)))))))'
+    + ' (f 4)'],
+  ['a loop whose value its caller uses',
+    '(define (f n) (+ 1 (let loop ((i 0)) (if (< i n) (loop (+ i 1)) i)))) (f 10)'],
+  ['a loop name that is reassigned is not looped',
+    '(define (f) (let loop ((i 0)) (if (< i 3) (begin (if (= i 1) (set! loop (lambda (j) (quote swapped)))) (loop (+ i 1))) i))) (f)'],
+
   // --- interaction between tiers ---
   ['compiled calls interpreted',
     '(define (helper x) (apply + (list x x)))' +      // declined: uses apply
@@ -210,6 +254,40 @@ const CAPTURE_CASES = [
     + '(define (b n) (cons (c n) (quote (b))))'
     + '(define (a n) (cons (b n) (quote (a))))',
     '(a 1)', ['a', 'b', 'c']],
+
+  // A capture inside a compiled loop, re-entered twice. The frame suspends
+  // part-way through an iteration, and on each re-entry the resumable form has
+  // to finish that iteration and then loop on its own -- with the parameters
+  // the suspended iteration had, not the ones the fast form reached later.
+  ['a capture inside a local loop, re-entered',
+    '(define k #f) (define runs 0)'
+    + '(define (grab-at i) (if (= i 2) (call/cc (lambda (c) (set! k c) 0)) 0))'
+    + '(define (run n) (let loop ((i 0) (acc (quote ())))'
+    + '  (if (= i n) (reverse acc) (loop (+ i 1) (cons (+ i (grab-at i)) acc)))))',
+    '(let ((r (run 5))) (set! runs (+ runs 1)) (if (< runs 3) (k (* runs 100)) r))', ['run']],
+  ['a capture inside a global self-loop, re-entered',
+    '(define k #f) (define runs 0)'
+    + '(define (grab-at i) (if (= i 2) (call/cc (lambda (c) (set! k c) 0)) 0))'
+    + '(define (run i n acc)'
+    + '  (if (= i n) (reverse acc) (run (+ i 1) n (cons (+ i (grab-at i)) acc))))',
+    '(let ((r (run 0 5 (quote ())))) (set! runs (+ runs 1)) (if (< runs 3) (k (* runs 100)) r))',
+    ['run']],
+
+  // A resumed frame that then loops. After the capture at `i` = 1 is
+  // re-entered, the rest of that iteration and every later one run in the
+  // resumable form, which has to give an assigned parameter a fresh box on
+  // each iteration exactly as the fast form does -- or every closure made
+  // after the resume shares one. It also has to keep sharing the resumed
+  // iteration's own box: calling the closures set that `i` to 11, so the
+  // re-entered iteration continues from 11, which is why the loop stops at
+  // `>=` rather than `=`.
+  ['a resumed self-loop keeps fresh bindings per iteration',
+    '(define k #f) (define runs 0)'
+    + '(define (grab-at i) (if (= i 1) (call/cc (lambda (c) (set! k c) 0)) 0))'
+    + '(define (run i fs)'
+    + '  (if (>= i 4) (map (lambda (g) (g)) (reverse fs))'
+    + '      (begin (grab-at i) (run (+ i 1) (cons (lambda () (set! i (+ i 10)) i) fs)))))',
+    '(let ((r (run 0 (quote ())))) (set! runs (+ runs 1)) (if (< runs 2) (k 0) r))', ['run']],
 
   // The call site is inside a nested procedure rather than the one that was
   // named, which is where most call sites in a program actually are.

@@ -6748,3 +6748,74 @@ bundle test that a library imported after start-up comes back compiled. The coun
 harness were throwaway scripts; `benchmark:hash-tables` is the reusable half. 2,920 tests pass in
 Node and 2,817 in the browser, with 0 failures in either, and `benchmark:self-host` still agrees with
 itself on all 993 lambdas.
+
+---
+
+# Walkthrough: Loops compile to loops
+
+Task 18 of `docs/compiler_plan.md`. A tail call in compiled code returns a `TailCall` to the
+trampoline -- an allocation and a return per call -- and a loop is a tail call per iteration. R59
+measured an empty compiled loop at ~95 ns an iteration and blamed the trampoline for most of what
+compiled `assq` costs. Two shapes now compile to JavaScript loops. Under the policy that new
+compiler code starts in Scheme, the analysis that finds them is in `ir.scm`; the JavaScript emitter
+only reads two flags it leaves on the IR.
+
+## Part one: a tail call to the procedure itself
+
+Lowering tracks, in its state, which procedure it is inside and what that procedure is bound to. A
+lambda initialising a `letrec` name or an internal definition is bound to that name; the top-level
+lambda of a definition is bound to its global. A tail call to that binding, with as many arguments
+as the procedure has parameters and no rest parameter, is tagged on the IR `call` node: `local` or
+`global`. Entering any lambda resets the tracking, so a call to a loop from a lambda nested inside it
+is an ordinary call. A `local` tag is withdrawn at the end if the name turns out to be assigned or
+defined twice. The emitter turns a tagged call into parameter assignments and a jump -- `continue
+$loop` in the fast form, `$pc = 0; continue;` in the twin -- evaluating every argument before
+assigning any parameter. A `global` one is guarded on the binding, `if (G() === $proc)`, and falls
+back to the ordinary tail call, since the global may have been redefined.
+
+On the compiler's own lowering, this alone moved nothing measurable. Each call of `assq` still built
+a closure for its internal `loop` and entered it through a `TailCall`, and with lists 1.85 entries
+long the entry was the call.
+
+## Part two: loops emitted where they are entered
+
+A `letrec` of one lambda, in tail position, whose body is a call to that lambda, and whose name is
+mentioned nowhere else except in that lambda's own looping calls, is now marked `inline`. The
+emitter binds the lambda's parameters as locals of the enclosing procedure, and emits its body in a
+labelled loop (a head block, in the twin). So `sum`'s named `let` compiles to one JavaScript
+function with a `for (;;)` inside it -- no factory, no closure, no `TailCall` -- and so does `assq`.
+The analyzer expands a named `let` as `((letrec ((loop L)) loop) args)`, with the call outside the
+group, so lowering moves the call inside first; the two mean the same thing.
+
+The transformation is sound because every nested procedure is lifted and receives its free variables
+by value or by box, so a closure made in one iteration keeps that iteration's values; and each
+iteration redoes what a fresh call would, boxing the boxed parameters and making the boxes for
+internal definitions.
+
+## What it was worth
+
+Compiled tier over the canonical suite, best of two interleaved runs each way, geometric mean per
+class: `fixnum` 1.41x, `vector` 1.25x, `call` 1.24x, `list` 1.21x, `continuation` 1.10x, `flonum`
+1.04x, `bignum` 1.02x. `string` read 0.93x once and 1.00-1.09x on reruns. `fibfp` read 0.93x
+consistently with byte-identical generated code, so the difference is outside it. The largest single
+gains were `sum` 2.0x, `puzzle` 1.65x, `destruc` and `takl` 1.62x, `array1` 1.49x.
+
+On the compiler itself it was worth much less than expected: about 15% on lowering, against the 1.65x
+native `assq` and `memq` had promised. With the trampoline gone, `assq` still costs 196 ns on four
+keys: every primitive in its loop re-checks its global binding, and the call into it takes the
+generic path. That is recorded as R60 and moved to the top of code generation.
+
+## Verification
+
+31 tests in `tests/functional/loop_compilation_tests.js` check what the lowering tags and inlines --
+including each shape that looks like a loop and is not -- and what the emitter makes of it, among
+them that a redefined global receives the call. Seventeen differential cases in `compiler_tests.js`
+compare both tiers on loops that swap arguments, make closures per iteration, assign their
+parameters, define internally, nest, escape as values, and are captured into and re-entered;
+one, a capture resumed into a self-loop whose closures had changed the resumed iteration's variable,
+also pins that a box is still shared across re-entry. Eleven deliberate mutations of the analysis
+and the emitter were each run against the whole suite. Ten failed tests on the first pass; the
+eleventh -- the resumable form reusing a boxed parameter's box when it loops -- passed everything,
+and two more were caught only indirectly, one by a lowering test alone and one by a single whole
+program. Three targeted cases were added and all three mutations now fail them. 2,971 tests pass in Node and 2,868 in the browser, with 0 failures in
+either; `benchmark:self-host` agrees on all 1,006 lambdas, and the build reproduces byte for byte.

@@ -249,9 +249,11 @@ export class ProcedureEmitter {
    * some nested procedure actually refers to it, so an ordinary internal helper
    * stays a plain variable.
    *
+   * @param {Object} [body] - The body to search: this procedure's own by
+   *   default, or an inline loop's, whose head repeats this each iteration.
    * @returns {void}
    */
-  emitDefineBoxes() {
+  emitDefineBoxes(body = this.ir.body) {
     // Found anywhere in this procedure's own body, stopping only at a nested
     // procedure, which makes its own. Written as a general walk rather than a
     // list of node kinds because enumerating them missed `if` -- and a
@@ -259,9 +261,9 @@ export class ProcedureEmitter {
     //
     // Creating the box at entry rather than where the definition appears is
     // safe, and necessary: something defined earlier in the body may already
-    // hold it. A procedure body runs once per call, and tail calls go through
-    // the trampoline rather than looping here, so there is exactly one box per
-    // invocation either way.
+    // hold it. A procedure that loops to itself does this at the top of every
+    // iteration, since each iteration stands for a fresh call and a closure
+    // made in one must not share a box with the next.
     const names = [];
     const find = (node) => {
       if (node === null || typeof node !== 'object') return;
@@ -273,7 +275,7 @@ export class ProcedureEmitter {
         find(node[key]);
       }
     };
-    find(this.ir.body);
+    find(body);
 
     for (const name of names) {
       if (!this.isBoxed(name)) continue;
@@ -309,9 +311,18 @@ export class ProcedureEmitter {
       if (this.isBoxed(param)) prologue.push(`${jsName(param)} = [${jsName(param)}];`);
     }
     const declarations = [...this.declared];
-    if (declarations.length > 0) prologue.unshift(`let ${declarations.join(', ')};`);
+    const declaration = declarations.length > 0 ? [`let ${declarations.join(', ')};`] : [];
 
-    const body = [...prologue, ...this.out].map((l) => '  ' + l).join('\n');
+    // A procedure with a tail call to itself runs its body in a loop, and the
+    // loop takes in everything a fresh call would redo: boxing the parameters,
+    // and the boxes for internal definitions at the head of the body. Only the
+    // declarations stay outside. A procedure with a rest parameter never loops,
+    // so its prologue never needs to be repeated.
+    const lines = this.scope.loops
+      ? [...declaration, '$loop: for (;;) {', ...prologue.map((l) => '  ' + l),
+        ...this.out.map((l) => '  ' + l), '}']
+      : [...declaration, ...prologue, ...this.out];
+    const body = lines.map((l) => '  ' + l).join('\n');
     return `function ${this.name}(${signature}) {\n${body}\n}`;
   }
 
@@ -348,6 +359,10 @@ export class ProcedureEmitter {
         return;
       }
       case 'letrec': {
+        if (node.inline) {
+          this.emitInlineLoop(node);
+          return;
+        }
         this.emitLetRecBindings(node);
         this.statement(node.body);
         return;
@@ -364,6 +379,24 @@ export class ProcedureEmitter {
         }
         const fn = this.value(node.fn);
         const args = node.args.map((a) => this.value(a));
+        // A call the lowering found to be to this very procedure reassigns the
+        // parameters and jumps back to the top, instead of allocating a
+        // `TailCall` and returning to the trampoline once per iteration. The
+        // arity check repeats the lowering's, because reassigning the
+        // parameters has to be the whole of the call.
+        const target = this.loopTarget();
+        if (node.loop && target.fixedArity
+            && args.length === target.params.length) {
+          const jump = this.loopBack(args, target);
+          if (target.procedure) this.scope.loops = true;
+          if (node.loop === 'local') {
+            this.out.push(...jump);
+            return;
+          }
+          // A global self-call is only a self-call while the global still names
+          // this procedure; redefined, the call must go to the new definition.
+          this.out.push(`if (${fn} === ${this.procedureName()}) { ${jump.join(' ')} }`);
+        }
         // Otherwise the tail call returns rather than calls, so the caller's
         // trampoline -- or the interpreter's, if that is who invoked us --
         // continues it. This is what keeps tail recursion in constant space.
@@ -375,6 +408,167 @@ export class ProcedureEmitter {
         this.out.push(`return ${value};`);
       }
     }
+  }
+
+  /**
+   * The statements that make a tail call to this procedure a loop: the new
+   * argument values into the parameters, then a jump to the top.
+   *
+   * Every argument is evaluated before any parameter is assigned, since an
+   * argument may read a parameter an earlier assignment would clobber -- a
+   * loop that swaps two of its arguments is the plain case. Values that no
+   * assignment can disturb (temporaries, literals) are used as they are, and a
+   * parameter passed back unchanged is not reassigned at all.
+   *
+   * @param {Array<string>} args - JavaScript expressions for the arguments.
+   * @param {Object} target - The loop jumped to; see `loopTarget`.
+   * @returns {Array<string>} The statements, ending in the jump.
+   */
+  loopBack(args, target) {
+    const params = target.params;
+    const settled = [];
+    const statements = [];
+    args.forEach((value, i) => {
+      if (value === jsName(params[i]) && !this.isBoxed(params[i])) {
+        settled.push(null);
+      } else if (/^(-?\d+n?|null|true|false|undefined|\$t\d+|K\[\d+\])$/.test(value)) {
+        settled.push(value);
+      } else {
+        const temp = this.temp();
+        statements.push(`${temp} = ${value};`);
+        settled.push(temp);
+      }
+    });
+    settled.forEach((value, i) => {
+      if (value !== null) statements.push(target.assign(params[i], value));
+    });
+    statements.push(target.jump);
+    return statements;
+  }
+
+  /**
+   * The loop a looping tail call reached from here jumps to.
+   *
+   * Inside a loop emitted inline, it is that loop: the lowering tags a call as
+   * looping only from inside the lambda it loops to, and an inline loop's body
+   * is exactly that lambda's body. Anywhere else it is this procedure itself.
+   * The stack lives on the naming scope because every sub-emitter for a branch
+   * of this procedure shares that object.
+   *
+   * @returns {{params: Array<string>, fixedArity: boolean, procedure: boolean,
+   *   assign: Function, jump: string}} The loop's parameters, whether a call
+   *   with as many arguments can be one, whether it is the whole procedure, how
+   *   to assign a parameter, and the jump.
+   */
+  loopTarget() {
+    const inline = this.scope.loopTargets;
+    if (inline !== undefined && inline.length > 0) return inline[inline.length - 1];
+    return {
+      params: this.ir.params,
+      fixedArity: !this.ir.rest,
+      procedure: true,
+      assign: (param, value) => this.loopAssign(param, value),
+      jump: this.loopJump()
+    };
+  }
+
+  /**
+   * Emits a `letrec` loop inside this procedure rather than as a procedure of
+   * its own.
+   *
+   * The lowering marks a group this way when its one lambda is only ever
+   * running as a loop entered from here (see `inline-loop?` in `ir.scm`). So
+   * its parameters become locals of this procedure, the entering call becomes
+   * their first assignment, and its body runs in a loop whose back edge is the
+   * lambda's own looping calls. Nothing is allocated to enter it, which is the
+   * point: for a procedure like `assq` whose loop usually runs twice, entering
+   * was nearly the whole cost.
+   *
+   * The loop head repeats what a fresh call would do: box the parameters that
+   * are boxed, and make the boxes for internal definitions in the body. So each
+   * iteration binds afresh, as each call of the lambda did.
+   *
+   * @param {Object} node - A `letrec` IR node marked `inline`.
+   * @returns {void}
+   */
+  emitInlineLoop(node) {
+    const lambda = node.inits[0];
+    const args = node.body.args.map((arg) => this.value(arg));
+    lambda.params.forEach((param, i) => {
+      this.declared.add(jsName(param));
+      this.out.push(`${jsName(param)} = ${args[i]};`);
+    });
+
+    const target = this.enterInlineLoop(lambda);
+    for (const param of lambda.params) {
+      if (this.isBoxed(param)) this.out.push(`${jsName(param)} = [${jsName(param)}];`);
+    }
+    this.emitDefineBoxes(lambda.body);
+
+    if (this.scope.loopTargets === undefined) this.scope.loopTargets = [];
+    this.scope.loopTargets.push(target);
+    this.statement(lambda.body);
+    this.scope.loopTargets.pop();
+    this.exitInlineLoop();
+  }
+
+  /**
+   * Opens an inline loop: a labelled `for`, whose `continue` is the back edge.
+   * @param {Object} lambda - The loop's `lambda` IR node.
+   * @returns {Object} The loop target; see `loopTarget`.
+   */
+  enterInlineLoop(lambda) {
+    this.scope.labels = (this.scope.labels ?? 0) + 1;
+    const label = `$loop${this.scope.labels}`;
+    this.out.push(`${label}: for (;;) {`);
+    return {
+      params: lambda.params,
+      fixedArity: true,
+      procedure: false,
+      assign: (param, value) => `${jsName(param)} = ${value};`,
+      jump: `continue ${label};`
+    };
+  }
+
+  /**
+   * Closes an inline loop. Every path through its body has returned or jumped
+   * back by here, so nothing follows it.
+   * @returns {void}
+   */
+  exitInlineLoop() {
+    this.out.push('}');
+  }
+
+  /**
+   * Assigns a parameter its value for the next iteration of a loop.
+   *
+   * A boxed parameter is assigned the plain value, because the fast form boxes
+   * its parameters at the top of the loop, as on entry -- so each iteration gets
+   * a fresh box, which is what a fresh call would have had.
+   *
+   * @param {string} param - The renamed parameter.
+   * @param {string} value - A JavaScript expression for its new value.
+   * @returns {string} A statement.
+   */
+  loopAssign(param, value) {
+    return `${jsName(param)} = ${value};`;
+  }
+
+  /**
+   * The jump back to the top of the procedure, for a loop.
+   * @returns {string} A statement.
+   */
+  loopJump() {
+    return 'continue $loop;';
+  }
+
+  /**
+   * The identifier this procedure's fast form is bound to, which is what a
+   * global self-call is compared against.
+   * @returns {string} An identifier.
+   */
+  procedureName() {
+    return this.name;
   }
 
   /**

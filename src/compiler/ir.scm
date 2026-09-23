@@ -55,8 +55,17 @@
 ;;;     (const value tail) (local name tail callable) (global name tail callable)
 ;;;     (if test then else tail callable) (seq exprs tail callable)
 ;;;     (lambda params rest name body tail callable)
-;;;     (let name init body tail callable) (letrec names inits body tail callable)
-;;;     (set name local value tail) (define name value tail) (call fn args tail)
+;;;     (let name init body tail callable)
+;;;     (letrec names inits body tail callable inline)
+;;;     (set name local value tail) (define name value tail)
+;;;     (call fn args tail loop)
+;;;
+;;; A call's `loop` is `local` or `global` when the call is a tail call to the
+;;; procedure that contains it, which the emitter compiles as a jump back to
+;;; the procedure's top rather than a trip through the trampoline; see
+;;; "Loops" below. Otherwise it is `#f`. A `letrec`'s `inline` is `#t` when
+;;; the group is a loop the emitter can place inside the enclosing procedure;
+;;; see `inline-loop?`.
 ;;;
 ;;; Names are symbols, so membership tests are pointer comparisons. The
 ;;; JavaScript version compares strings, which V8 also makes a pointer
@@ -165,12 +174,16 @@
 ;;   5  synthesized       counter for names this pass invents rather than reads
 ;;   6  captures?         whether the form captures a continuation itself
 ;;   7  suspends?         whether it has a point it can be suspended at
+;;   8  self              the procedure being lowered, if a call can loop to it
+;;   9  pending-self      the binding the next lambda lowered is bound to
+;;  10  local-loops       calls tagged as local loops, checked once all is seen
+;;  11  defined           names bound by internal definitions, in order
 
 ;; /**
 ;;  * Creates an empty lowering state.
 ;;  * @returns {vector} The state.
 ;;  */
-(define (make-state) (vector '() #f '() '() #f 0 #f #f))
+(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '()))
 
 (define (state-globals st) (vector-ref st 0))
 (define (state-calls-unknown? st) (vector-ref st 1))
@@ -242,6 +255,213 @@
 (define (fail! st reason)
   (if (vector-ref st 4) #f (vector-set! st 4 reason))
   #f)
+
+;; ---------------------------------------------------------------------------
+;; Loops
+;; ---------------------------------------------------------------------------
+;;
+;; A tail call returns a pending call to the trampoline, which allocates and
+;; round-trips on every iteration: measured, about 95 ns an iteration of an
+;; empty compiled loop, and most of what a compiled `assq` costs on a
+;; two-entry list. When the callee is certainly the procedure making the call,
+;; the emitter can instead reassign the parameters and jump back to the top.
+;; This pass decides when that is, because it is the one that knows which
+;; lambda each name is bound to.
+;;
+;; Two bindings qualify. A procedure bound by `letrec` -- a named `let`, a
+;; `do` -- or by an internal definition is certainly itself when its body
+;; calls that name, provided the name is never assigned and defined only once;
+;; both are known only at the end, so such calls are tagged as they are seen
+;; and untagged afterwards if either fails. A top-level procedure calling its
+;; own global name is itself only while the global is not redefined, which can
+;; happen after this code was compiled, so that call is tagged `global` and the
+;; emitter guards it on the binding.
+;;
+;; "The procedure making the call" is the innermost lambda. A lambda nested
+;; inside a loop is a different procedure, and a call from it to the loop's
+;; name is an ordinary call; `self` is reset on entering every lambda for that
+;; reason. The argument count must match and there must be no rest parameter,
+;; so that reassigning the parameters is the whole of the call.
+
+;; /**
+;;  * Names the binding the next lambda lowered is bound to.
+;;  * @param {vector} st - The lowering state.
+;;  * @param {symbol} kind - 'local or 'global.
+;;  * @param {symbol} name - The binding's name.
+;;  * @returns {unspecified}
+;;  */
+(define (state-pending-self! st kind name)
+  (vector-set! st 9 (cons kind name)))
+
+;; /**
+;;  * The binding a lambda about to be lowered is bound to, as a `self` record,
+;;  * consuming it so that no lambda nested inside can claim it.
+;;  * @param {vector} st - The lowering state.
+;;  * @param {list} node - The lambda's AST node.
+;;  * @returns {list|boolean} (kind name arity), or #f if calls cannot loop.
+;;  */
+(define (take-self! st node)
+  (let ((pending (vector-ref st 9)))
+    (vector-set! st 9 #f)
+    (if (and pending (not (ast-2 node)))
+        (list (car pending) (cdr pending) (length (ast-1 node)))
+        #f)))
+
+;; /**
+;;  * The loop tag for a call, and a note of it if it has to be checked later.
+;;  * @param {list} fn - The lowered callee.
+;;  * @param {list} args - The lowered arguments.
+;;  * @param {boolean} tail - Whether the call is in tail position.
+;;  * @param {vector} st - The lowering state.
+;;  * @returns {symbol|boolean} 'local, 'global or #f.
+;;  */
+(define (loop-kind fn args tail st)
+  (let ((self (vector-ref st 8)))
+    (if (and tail
+             self
+             (eq? (car fn) (car self))
+             (eq? (ast-1 fn) (cadr self))
+             (= (length args) (caddr self)))
+        (car self)
+        #f)))
+
+;; /**
+;;  * Whether a `letrec` group can be emitted as a loop in the procedure that
+;;  * enters it, rather than as a procedure of its own.
+;;  *
+;;  * Iterating already jumps; entering still makes a closure and returns a
+;;  * pending call, once per call of the enclosing procedure -- for `assq` on a
+;;  * two-entry list, nearly the whole cost. A group qualifies when it is one
+;;  * lambda without a rest parameter; its body is a single tail call to that
+;;  * name with the right number of arguments; and every other mention of the
+;;  * name is one of the lambda's own looping calls. Then the name is never
+;;  * needed as a value, and the lambda is only ever running as a loop entered
+;;  * from here. It can be decided now rather than at the end, because every
+;;  * mention of the name lies inside the group, which is fully lowered.
+;;  *
+;;  * @param {list} names - The group's names.
+;;  * @param {list} inits - Their lowered initializers.
+;;  * @param {list} body - The lowered body.
+;;  * @param {boolean} tail - Whether the group is in tail position.
+;;  * @param {vector} st - Lowering state.
+;;  * @returns {boolean}
+;;  */
+(define (inline-loop? names inits body tail st)
+  (and tail
+       (null? (cdr names))
+       (let ((name (car names))
+             (lam (car inits)))
+         (and (not (caddr lam))
+              (eq? (car body) 'call)
+              (eq? (car (cadr body)) 'local)
+              (eq? (cadr (cadr body)) name)
+              (= (length (caddr body)) (length (cadr lam)))
+              (not (memq name (vector-ref st 3)))
+              (equal? (mentions-all name (caddr body) (cons 0 0)) (cons 0 0))
+              (let ((uses (mentions name lam (cons 0 0))))
+                ;; No mention except as a callee, and every call a looping one.
+                (and (= (car uses) 0)
+                     (= (cdr uses) (looping-calls name lam))))))))
+
+;; /**
+;;  * Counts a name's mentions in an IR subtree: as the callee of a call, and
+;;  * anywhere else. Nested lambdas are searched too, since a mention there is
+;;  * still a mention.
+;;  * @param {symbol} name - The name.
+;;  * @param {list} node - An IR node.
+;;  * @param {pair} counts - (other . calls) so far.
+;;  * @returns {pair} (other . calls).
+;;  */
+(define (mentions name node counts)
+  (let ((tag (car node)))
+    (cond ((eq? tag 'const) counts)
+          ((eq? tag 'global) counts)
+          ((eq? tag 'local)
+           (if (eq? (cadr node) name) (cons (+ (car counts) 1) (cdr counts)) counts))
+          ((eq? tag 'call)
+           (let ((fn (cadr node)))
+             (mentions-all name (caddr node)
+                           (if (and (eq? (car fn) 'local) (eq? (cadr fn) name))
+                               (cons (car counts) (+ (cdr counts) 1))
+                               (mentions name fn counts)))))
+          ((eq? tag 'if)
+           (mentions name (cadddr node)
+                     (mentions name (caddr node) (mentions name (cadr node) counts))))
+          ((eq? tag 'seq) (mentions-all name (cadr node) counts))
+          ((eq? tag 'lambda) (mentions name (car (cddddr node)) counts))
+          ((eq? tag 'let) (mentions name (cadddr node) (mentions name (caddr node) counts)))
+          ((eq? tag 'letrec)
+           (mentions name (cadddr node) (mentions-all name (caddr node) counts)))
+          ((eq? tag 'set)
+           (mentions name (cadddr node)
+                     (if (eq? (cadr node) name) (cons (+ (car counts) 1) (cdr counts)) counts)))
+          ((eq? tag 'define) (mentions name (caddr node) counts))
+          ((eq? tag 'capture) (mentions name (cadr node) counts))
+          (else (cons (+ (car counts) 1) (cdr counts))))))
+
+;; /**
+;;  * `mentions` over a list of IR nodes.
+;;  * @param {symbol} name - The name.
+;;  * @param {list} nodes - IR nodes.
+;;  * @param {pair} counts - (other . calls) so far.
+;;  * @returns {pair} (other . calls).
+;;  */
+(define (mentions-all name nodes counts)
+  (if (null? nodes)
+      counts
+      (mentions-all name (cdr nodes) (mentions name (car nodes) counts))))
+
+;; /**
+;;  * How many calls to a name inside a lambda are tagged as that lambda's own
+;;  * looping calls. Those are only ever in the lambda's own body, since a
+;;  * nested lambda is a different procedure, so only that body is searched.
+;;  * @param {symbol} name - The lambda's name.
+;;  * @param {list} lam - The lambda's IR node.
+;;  * @returns {integer}
+;;  */
+(define (looping-calls name lam)
+  (let count ((node (car (cddddr lam))))
+    (let ((tag (car node)))
+      (cond ((eq? tag 'call)
+             (let ((fn (cadr node)))
+               (if (and (eq? (car fn) 'local) (eq? (cadr fn) name)
+                        (car (cddddr node)))
+                   1
+                   0)))
+            ((eq? tag 'if) (+ (count (caddr node)) (count (cadddr node))))
+            ((eq? tag 'seq) (if (null? (cadr node)) 0 (count (last-of (cadr node)))))
+            ((eq? tag 'let) (count (cadddr node)))
+            ((eq? tag 'letrec) (count (cadddr node)))
+            (else 0)))))
+
+;; /**
+;;  * Records an internal definition's name, so that one defined twice is
+;;  * known not to be a single binding.
+;;  * @param {vector} st - The lowering state.
+;;  * @param {symbol} name - The defined name.
+;;  * @returns {unspecified}
+;;  */
+(define (state-defined! st name)
+  (vector-set! st 11 (cons name (vector-ref st 11))))
+
+;; /**
+;;  * Untags every local loop whose name turned out to be assigned or defined
+;;  * more than once, now that the whole procedure has been seen.
+;;  * @param {vector} st - The lowering state.
+;;  * @returns {unspecified}
+;;  */
+(define (confirm-local-loops! st)
+  (let ((assigned (vector-ref st 3))
+        (defined (vector-ref st 11)))
+    (for-each
+      (lambda (call)
+        (let ((name (ast-1 (cadr call))))
+          (if (or (memq name assigned)
+                  (let ((first (memq name defined)))
+                    (and first (memq name (cdr first)))))
+              (set-car! (cddddr call) #f)
+              #f)))
+      (vector-ref st 10))))
 
 ;; ---------------------------------------------------------------------------
 ;; Reading the analyzed AST
@@ -326,10 +546,15 @@
                    (if (null? body) #f (if (ir-callable? (last-of body)) #t #f))))))
 
       ((eq? tag 'lambda)
-       (let ((inner (make-scope scope)))
+       (let ((inner (make-scope scope))
+             (outer-self (vector-ref st 8)))
          (declare-all! inner (ast-1 node))
          (if (ast-2 node) (scope-declare! inner (ast-2 node) #f) #f)
+         ;; This lambda is now the procedure a tail call could loop to, and
+         ;; stops being it once its body is lowered.
+         (vector-set! st 8 (take-self! st node))
          (let ((body (lower-body (ast-4 node) inner st)))
+           (vector-set! st 8 outer-self)
            (if (not body)
                #f
                (list 'lambda (ast-1 node) (ast-2 node) (ast-3 node) body tail #t)))))
@@ -354,14 +579,15 @@
        ;; call be recognised as a callee this pass can name.
        (let ((inner (make-scope scope)))
          (declare-all-callable! inner (ast-1 node))
-         (let ((inits (lower-each (ast-2 node) inner st)))
+         (let ((inits (lower-letrec-inits (ast-1 node) (ast-2 node) inner st)))
            (if (not inits)
                #f
                (let ((body (lower-node (ast-3 node) inner tail st)))
                  (if (not body)
                      #f
                      (list 'letrec (ast-1 node) inits body tail
-                           (if (ir-callable? body) #t #f))))))))
+                           (if (ir-callable? body) #t #f)
+                           (inline-loop? (ast-1 node) inits body tail st))))))))
 
       ((eq? tag 'set)
        (let ((value (lower-node (ast-2 node) scope #f st)))
@@ -377,12 +603,17 @@
       ((eq? tag 'define)
        ;; Only reachable for an internal definition; the top-level case is
        ;; handled by the caller. The analyzer has already hoisted the name.
-       (let ((value (lower-node (ast-2 node) scope #f st)))
-         (if (not value)
-             #f
-             (begin
-               (scope-declare! scope (ast-1 node) (eq? (car value) 'lambda))
-               (list 'define (ast-1 node) value tail)))))
+       (begin
+         (state-defined! st (ast-1 node))
+         (if (eq? (ast-tag (ast-2 node)) 'lambda)
+             (state-pending-self! st 'local (ast-1 node))
+             #f)
+         (let ((value (lower-node (ast-2 node) scope #f st)))
+           (if (not value)
+               #f
+               (begin
+                 (scope-declare! scope (ast-1 node) (eq? (car value) 'lambda))
+                 (list 'define (ast-1 node) value tail))))))
 
       ((eq? tag 'app)
        (let ((direct (lower-direct-application node scope tail st)))
@@ -592,14 +823,58 @@
     (if (not fn)
         #f
         (let ((args (lower-each (ast-2 node) scope st)))
-          (if (not args)
-              #f
-              (begin
+          (cond
+            ((not args) #f)
+            ((named-let-operator? fn) (lower-named-let-call fn args tail st))
+            (else
                 (if (ir-callable? fn)
                     (if (eq? (car fn) 'local) (state-called-local! st (ast-1 fn)) #f)
                     (state-calls-unknown! st))
                 (if tail #f (state-suspends! st))
-                (list 'call fn args tail)))))))
+                (let* ((loop (loop-kind fn args tail st))
+                       (call (list 'call fn args tail loop)))
+                  (if (eq? loop 'local)
+                      (vector-set! st 10 (cons call (vector-ref st 10)))
+                      #f)
+                  call)))))))
+
+;; /**
+;;  * Whether a lowered callee is a named `let`'s operator: a one-lambda
+;;  * `letrec` whose body is just its own name.
+;;  * @param {list} fn - A lowered callee.
+;;  * @returns {boolean}
+;;  */
+(define (named-let-operator? fn)
+  (and (eq? (car fn) 'letrec)
+       (null? (cdr (cadr fn)))
+       (eq? (car (cadddr fn)) 'local)
+       (eq? (cadr (cadddr fn)) (car (cadr fn)))))
+
+;; /**
+;;  * Lowers a named `let`'s application with the call moved inside the group:
+;;  * `((letrec ((loop L)) loop) a b)` becomes `(letrec ((loop L)) (loop a b))`.
+;;  *
+;;  * The analyzer expands a named `let` to the first shape, where the call is
+;;  * outside the group and the group can only be a procedure. In the second the
+;;  * group's body is the call that enters the loop, which is the shape
+;;  * `inline-loop?` recognises. The two mean the same thing: the arguments were
+;;  * lowered outside the group and renaming keeps its name out of them, and the
+;;  * closure is still made before they are evaluated.
+;;  *
+;;  * @param {list} fn - The lowered `letrec` operator.
+;;  * @param {list} args - The lowered arguments.
+;;  * @param {boolean} tail - Whether the application is in tail position.
+;;  * @param {vector} st - Lowering state.
+;;  * @returns {list} A `letrec` IR node.
+;;  */
+(define (lower-named-let-call fn args tail st)
+  (let* ((names (cadr fn))
+         (inits (caddr fn))
+         (call (list 'call (cadddr fn) args tail #f)))
+    (state-called-local! st (car names))
+    (if tail #f (state-suspends! st))
+    (list 'letrec names inits call tail #f
+          (inline-loop? names inits call tail st))))
 
 ;; /**
 ;;  * Declares each of a lambda's parameters as a plain binding.
@@ -647,6 +922,26 @@
             #f
             (let ((rest (lower-each (cdr nodes) scope st)))
               (if (not rest) #f (cons head rest)))))))
+
+;; /**
+;;  * Lowers a `letrec` group's initializers, each knowing the name it is bound
+;;  * to so that a tail call to that name inside it can loop.
+;;  * @param {list} names - The group's names.
+;;  * @param {list} inits - Their initializers, all lambdas.
+;;  * @param {list} scope - The group's scope.
+;;  * @param {vector} st - Lowering state.
+;;  * @returns {list|boolean} IR nodes, or #f if any was unsupported.
+;;  */
+(define (lower-letrec-inits names inits scope st)
+  (if (null? inits)
+      '()
+      (begin
+        (state-pending-self! st 'local (car names))
+        (let ((head (lower-node (car inits) scope #f st)))
+          (if (not head)
+              #f
+              (let ((rest (lower-letrec-inits (cdr names) (cdr inits) scope st)))
+                (if (not rest) #f (cons head rest))))))))
 
 ;; /**
 ;;  * Lowers a sequence, marking only its last expression as tail.
@@ -731,8 +1026,23 @@
 ;;  *   (fail reason).
 ;;  */
 (define (lower-lambda node)
-  (let* ((st (make-state))
-         (ir (lower-node node (make-scope '()) #f st)))
+  (let ((st (make-state)))
+    ;; A top-level procedure is bound to the global its definition names, for
+    ;; as long as nobody redefines it -- which the emitter checks at run time.
+    (if (string? (ast-3 node))
+        (state-pending-self! st 'global (string->symbol (ast-3 node)))
+        #f)
+    (lower-top-lambda node st)))
+
+;; /**
+;;  * The body of `lower-lambda`, once the state is set up.
+;;  * @param {list} node - An analyzed lambda node.
+;;  * @param {vector} st - A fresh lowering state.
+;;  * @returns {list} As for `lower-lambda`.
+;;  */
+(define (lower-top-lambda node st)
+  (let ((ir (lower-node node (make-scope '()) #f st)))
+    (if ir (confirm-local-loops! st) #f)
     (if (not ir)
         (list 'fail (let ((r (state-reason st))) (if r r "unsupported form")))
         ;; A local that was both called and assigned is not the lambda we
