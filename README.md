@@ -478,6 +478,7 @@ Detailed documentation for project internals:
 - [**Roadmap**](./ROADMAP.md): The project's constraints, what is planned, and what has been delivered.
 - [**Compiler design**](./docs/compiler_design.md): How the Scheme-to-JavaScript compiler tier works and why — calling convention, continuation capture, the self-hosting bootstrap.
 - [**Compiler plan**](./docs/compiler_plan.md): Ranked compiler work, with dependencies and status.
+- [**Completed compiler tasks**](./docs/compiler_plan_completed.md): Every finished compiler task, one line each.
 - [**Compiler findings**](./docs/compiler_findings.md): An append-only record of what we believed that later measurement contradicted.
 
 ---

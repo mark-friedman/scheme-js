@@ -50,10 +50,13 @@ The only place that ranks compiler work: one numbered list with status, dependen
 finding that justifies each item's position.
 
 1.  **Read it before starting a task.**
-2.  When you finish one, tick it, move it to `Completed` with a one-line outcome, and renumber.
+2.  When you finish one, tick it, move it to `Completed` with a one-line outcome, append the same
+    row to `docs/compiler_plan_completed.md`, and renumber the live tasks.
 3.  Add whatever the work revealed — including anything that should change the order, with the
     reason, so it survives a context compaction.
-4.  When `Completed` passes ~15 rows, move the oldest into `ROADMAP.md`.
+4.  `Completed` keeps the fifteen most recent rows: when a sixteenth arrives, drop the oldest from
+    the plan. It is already in `docs/compiler_plan_completed.md`, which keeps every row under its
+    original number and is append-only.
 
 ### 4. `docs/compiler_findings.md`
 
@@ -94,8 +97,8 @@ Update if:
 ## Two rules that hold the set together
 
 **Lifetime decides the destination.** `ROADMAP.md`, `docs/architecture.md` and
-`docs/compiler_design.md` are rewritable; `docs/compiler_plan.md` is living; `CHANGES.md` and
-`docs/compiler_findings.md` are append-only; `docs/archive/` is frozen and not maintained. Current
+`docs/compiler_design.md` are rewritable; `docs/compiler_plan.md` is living; `CHANGES.md`,
+`docs/compiler_findings.md` and `docs/compiler_plan_completed.md` are append-only; `docs/archive/` is frozen and not maintained. Current
 state must never live in an append-only file — that is how a list of three "known-broken things"
 stayed in the documentation for months after all three were fixed.
 

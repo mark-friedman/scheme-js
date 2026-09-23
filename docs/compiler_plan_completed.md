@@ -1,0 +1,30 @@
+# Completed compiler tasks
+
+Every task from [compiler_plan.md](compiler_plan.md) that has been finished, one line each, under the
+number it had when it finished. The plan keeps only the fifteen most recent; this file keeps all of
+them, so that a reference like "task 13" still resolves after the row has left the plan.
+
+**Append-only.** A row is added when a task completes and never edited afterwards. What each task
+built is in [../CHANGES.md](../CHANGES.md); what each one *falsified* is in
+[compiler_findings.md](compiler_findings.md), under the R-numbers in the last column. This file links
+to nothing that changes: the plan points here, never the reverse.
+
+| # | | Task | Outcome | Evidence |
+|---|---|---|---|---|
+| 1 | ✅ | Stages 0, 1, 2a, 2b.1 | Measurement, interpreter representation, the calling-convention bake-off, the first working tier | R1–R38 |
+| 2 | ✅ | Stage 2c′ — `letrec` as a core form | Unblocked every named-`let` loop. Overturned R29. | R39 |
+| 3 | ✅ | Stage 2b.2a–2c — resumable forms, capture protocol | Compiled frames take part in captured continuations. The guard became a speed heuristic, not a soundness device. | R40–R43 |
+| 4 | ✅ | The symbolic-code weakness | It was an interpreted standard library, not weak code generation. Every figure arguing against self-hosting was measuring that. | R45 |
+| 5 | ✅ | AOT stdlib + the `apply` unblock | A one-line change unblocked most of the corpus; coverage 623 → 807 of 1089. | R46 |
+| 6 | ✅ | `let` binding chains | The code-size blow-up was `let`, not closures. | R47 |
+| 7 | ✅ | `values` / `call-with-values` | Neither was a control operation; found a third tier-boundary conversion bug. | R48 |
+| 8 | ✅ | Compiled `call/cc`; the boxing bug | Assigned locals were copied into spilled frames rather than shared. Boxing fixed it at 2–7%. | R49 |
+| 9 | ✅ | Build-time AOT for the standard library | CSP-safe: nothing calls `new Function` at run time. The time saving was small; that was never the point. | R50 |
+| 10 | ✅ | Letrec-aware lambda lifting | Generated code linear in nesting, not exponential. A size change, not a speed change. | R51 |
+| 11 | ✅ | **Promote `ir.scm`; delete `ir.js`** | The lowering pass is Scheme. The bootstrap terminates in the interpreter; `npm run prebuild` runs the chain in 0.62 s, reproducibly. ~18x slower than the JavaScript it replaced. | R52 |
+| 12 | ✅ | Whole-program correctness tests | 41 programs × both tiers = 82 assertions, 8.2 s, inside `npm test` (2,426 total). | R53 |
+| 13 | ✅ | Make the silent breakpoint failure loud | `:break` and `:breakpoints` say when a breakpoint is inside compiled code and will not fire. Needed a prerequisite fix first: `(define (f x) ...)` produced closures with **no source span at all**, so the debugger could not place most procedures — `:bt` said "unknown location" for every one. Also fixed `:breakpoints` listing every breakpoint as disabled. | R54 |
+| 14 | ✅ | Liveness for frame spills | Each suspension point saves only what is live where it resumes. Corpus 12.75 → 5.93 MB generated, frame literals 7.21 → 0.40 MB, `make-relative-nuc` 3.18 → 0.27 MB, `dist/scheme.js` 1.84 → 1.53 MB. Continuation class 1.09x; nothing else moved beyond noise. | R55 |
+| 15 | ✅ | SRFI-125 hash tables, with SRFI 128 comparators | Both SRFIs complete. Tables on `eq?`, `eqv?`, `string=?` and `string-ci=?` live in a JavaScript `Map` with keys normalised to match — one primitive call per lookup, no Scheme predicate; every other table buckets by hash in Scheme, so user predicates never run under JavaScript. Three blockers fixed on the way: libraries imported the *interpreted* standard library, because imports copy values and the prebuilt install replaced only global bindings (R57); `define-record-type` rejected field names that are not JavaScript identifiers; `case-lambda` broke on five or more fixed parameters. 2,798 tests in Node, 2,695 in the browser. | R56, R57 |
+| 16 | ✅ | Measure the tier on hash tables and records | Libraries the bundle ships are now compiled as they load, through a loader hook. Per operation in a compiled loop: an `eq?` lookup ~1,600 ns with the library interpreted, **~115 ns** compiled, flat from 4 to 256 keys; `equal?` 1,100 ns; `update!/default` 315 ns; a record read 33 ns against `car`'s 15. The finding that mattered was elsewhere: an empty compiled loop costs ~95 ns an iteration. `npm run benchmark:hash-tables`. | R59 |
+| 17 | ✅ | Hash tables in `ir.scm` -- **not done, on the evidence** | The premise was false: the lists average 1.85 entries (`assq`) and 6.8 (`memq`). 39% of lowering is the compiled `assq` and `memq` call overhead, not scanning -- native versions take the corpus from 66.5 to 40.4 ms a pass. No site switched; the `ir.scm` header gives the real reason, and the work moved to compiling loops. | R59 |
