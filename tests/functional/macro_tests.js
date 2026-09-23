@@ -3,6 +3,8 @@ import { run, assert } from '../harness/helpers.js';
 import { list } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
 import { SchemeUnboundError } from '../../src/core/interpreter/errors.js';
+import { parse } from '../../src/core/interpreter/reader.js';
+import { analyze } from '../../src/core/interpreter/analyzer.js';
 
 export async function runMacroTests(interpreter, logger) {
     logger.title('Macro Tests');
@@ -177,6 +179,52 @@ export async function runMacroTests(interpreter, logger) {
         `);
         const ellipsisResult = run(interpreter, `(list-custom-ellipsis 1 2 3)`);
         assert(logger, "Custom ellipsis (:::) supported", ellipsisResult, [1, 2, 3]);
+
+        // Test 11: A define-macro transformer knows the source it came from.
+        // The debugger places a procedure by its source span, so a transformer
+        // without one cannot be placed. Both forms are checked: the shorthand
+        // `(define-macro (name args...) body...)`, whose lambda the analyzer
+        // builds, and `(define-macro name (lambda ...))`, whose lambda is read.
+        {
+            /**
+             * Evaluates source attributed to a filename, so that spans have one.
+             * @param {string} source - Scheme source.
+             * @param {string} filename - The name the reader records in spans.
+             * @returns {*} The value of the last form.
+             */
+            const evaluate = (source, filename) => {
+                let result;
+                for (const form of parse(source, { filename })) {
+                    result = interpreter.run(analyze(form), interpreter.globalEnv);
+                }
+                return result;
+            };
+
+            evaluate(`(define-macro (src-swap! a b)
+  (list 'let (list (list 'tmp a))
+        (list 'set! a b) (list 'set! b 'tmp)))`, 'swap.scm');
+            const swapped = run(interpreter,
+                "(let ((p 1) (q 2)) (src-swap! p q) (list p q))");
+            assert(logger, "define-macro shorthand transformer still expands", swapped, [2, 1]);
+
+            const shorthand = globalMacroRegistry.lookup('src-swap!').transformerProcedure;
+            const span = shorthand && shorthand.source;
+            assert(logger, "define-macro shorthand transformer has a source span",
+                span !== null && span !== undefined, true);
+            assert(logger, "the span names the file", span && span.filename, 'swap.scm');
+            assert(logger, "the span starts at the definition", span && span.line, 1);
+            assert(logger, "the span ends where the definition does", span && span.endLine, 3);
+
+            evaluate(`(define-macro src-twice
+  (lambda (x)
+    (list 'begin x x)))`, 'twice.scm');
+            const explicit = globalMacroRegistry.lookup('src-twice').transformerProcedure;
+            const explicitSpan = explicit && explicit.source;
+            assert(logger, "define-macro with an explicit lambda: span names the file",
+                explicitSpan && explicitSpan.filename, 'twice.scm');
+            assert(logger, "define-macro with an explicit lambda: span is the lambda's",
+                explicitSpan && [explicitSpan.line, explicitSpan.endLine], [2, 3]);
+        }
 
     } catch (e) {
         logger.fail(`Macro tests crashed: ${e.message}`);

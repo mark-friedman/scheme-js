@@ -616,6 +616,13 @@ function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
         // Construct lambda: (lambda args body...)
         const lambdaExp = cons(intern('lambda'), cons(args, body));
         transformerLambdaAst = analyzeLambda(lambdaExp, syntacticEnv, ctx);
+        // That lambda was built here rather than read, so it has no source of
+        // its own. Its extent is the whole `(define-macro (name args...) ...)`
+        // form, and without it the transformer procedure reports no source,
+        // so the debugger cannot place it.
+        if (exp.source && !transformerLambdaAst.source) {
+            transformerLambdaAst.source = exp.source;
+        }
     }
     // Case 2: (define-macro name transformer-proc)
     else if (head instanceof Symbol || isSyntaxObject(head)) {
@@ -630,6 +637,16 @@ function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
     // We use a separate context for the expansion environment to avoid polluting
     // the global state, but we might want to share state in the future.
     // For now, "expansion time" is a fresh environment with standard library.
+    //
+    // It is deliberately given no debug runtime. Expansion runs here, inside
+    // the analyzer, which is synchronous and finishes before the interpreter
+    // runs a step of the code being expanded, while the debugger can only make
+    // execution wait between the steps of an asynchronous run. A breakpoint
+    // that fired inside a transformer could therefore stop nothing: it would
+    // report a pause and leave the debugger paused, so that the program then
+    // stopped at its first step, somewhere the report did not name. Instead
+    // the debugger reports such breakpoints as never firing, finding the
+    // transformer by the `transformerProcedure` attached below.
     const expansionInterpreter = new Interpreter(ctx);
     const expansionEnv = createGlobalEnvironment(expansionInterpreter);
     expansionInterpreter.setGlobalEnv(expansionEnv);
@@ -690,7 +707,10 @@ function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
         }
     };
 
-    // 4. Register the transformer
+    // 4. Register the transformer. The Scheme procedure is kept on the
+    // wrapper, which is all the registry holds, so that tools such as the
+    // debugger can find the transformer's source and name.
+    jsTransformer.transformerProcedure = transformerClosure;
     ctx.currentMacroRegistry.define(name, jsTransformer);
 
     return new LiteralNode(null);

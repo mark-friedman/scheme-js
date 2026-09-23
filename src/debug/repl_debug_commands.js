@@ -133,9 +133,18 @@ export class ReplDebugCommands {
         // code is otherwise silently ignored, and saying so is the difference
         // between a known limitation and a debugger that appears broken.
         const compiled = this.debugRuntime.compiledProcedureAt?.(filename, line, column);
-        if (!compiled) return set;
-        return `${set}\n;; Warning: this is inside compiled procedure '${compiled.name}', `
-            + `which does not stop at breakpoints -- it will not fire`;
+        if (compiled) {
+            return `${set}\n;; Warning: this is inside compiled procedure '${compiled.name}', `
+                + `which does not stop at breakpoints -- it will not fire`;
+        }
+        // Likewise a macro transformer, which runs during expansion, before
+        // any of the code being expanded -- where the debugger cannot wait.
+        const transformer = this.debugRuntime.macroTransformerAt?.(filename, line, column);
+        if (transformer) {
+            return `${set}\n;; Warning: this is inside macro transformer '${transformer.name}', `
+                + `which runs during expansion, where the debugger cannot stop -- it will not fire`;
+        }
+        return set;
     }
 
     handleUnbreak(args) {
@@ -155,11 +164,18 @@ export class ReplDebugCommands {
             // listed every one as disabled. Absent means enabled.
             const enabled = bp.enabled !== false ? 'enabled' : 'disabled';
             // Worked out now rather than when the breakpoint was set, so one
-            // placed before its procedure was compiled is still reported.
+            // placed before its procedure was compiled, or its macro defined,
+            // is still reported.
             const compiled = this.debugRuntime.compiledProcedureAt?.(bp.filename, bp.line, bp.column);
-            const status = compiled
-                ? `${enabled} -- will not fire: inside compiled procedure '${compiled.name}'`
-                : enabled;
+            const transformer = compiled
+                ? null
+                : this.debugRuntime.macroTransformerAt?.(bp.filename, bp.line, bp.column);
+            let status = enabled;
+            if (compiled) {
+                status = `${enabled} -- will not fire: inside compiled procedure '${compiled.name}'`;
+            } else if (transformer) {
+                status = `${enabled} -- will not fire: inside macro transformer '${transformer.name}'`;
+            }
             output += `;;   ${bp.id}: ${bp.filename}:${bp.line}${bp.column ? ':' + bp.column : ''} (${status})\n`;
         }
         return output.trim();

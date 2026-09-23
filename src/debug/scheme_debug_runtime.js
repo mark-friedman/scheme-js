@@ -12,6 +12,7 @@ import { PauseController } from './pause_controller.js';
 import { DebugExceptionHandler } from './exception_handler.js';
 import { StateInspector } from './state_inspector.js';
 import { ENV } from '../core/interpreter/stepables_base.js';
+import { globalMacroRegistry } from '../core/interpreter/macro_registry.js';
 
 /**
  * Whether a source span contains a location.
@@ -203,6 +204,51 @@ export class SchemeDebugRuntime {
                 // procedures covering the same lines.
                 if (found === null || spanLines(value.source) < spanLines(found.source)) {
                     found = { name: value.schemeName ?? 'anonymous', source: value.source };
+                }
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Finds the `define-macro` transformer whose source contains a location,
+     * if any.
+     *
+     * A breakpoint there is accepted and never fires. A transformer runs while
+     * code is expanded, and expansion happens inside the analyzer, which is
+     * synchronous and finishes before the interpreter runs a step of the code
+     * being expanded; the only place this runtime can make execution wait is
+     * between the steps of an asynchronous run. So transformers run on an
+     * interpreter with no debug runtime at all: were a breakpoint to fire
+     * during expansion it could not stop anything, and the runtime would be
+     * left paused, to stop the program at its first step instead -- somewhere
+     * the pause did not name. Callers use this to say so rather than fail
+     * silently.
+     *
+     * The registries searched are those the attached interpreter's analysis
+     * uses, with the global registry every context inherits from. Like
+     * `compiledProcedureAt`, the answer is worked out when asked, so a
+     * breakpoint placed before its macro was defined is still reported.
+     *
+     * @param {string} filename - Source file path.
+     * @param {number} line - Line number (1-indexed).
+     * @param {number|null} [column] - Column (1-indexed), or null for a line.
+     * @returns {{name: string, source: Object}|null} The innermost transformer
+     *   containing the location, or null if it is not transformer code.
+     */
+    macroTransformerAt(filename, line, column = null) {
+        const context = this.interpreter?.context;
+        const seen = new Set();
+        let found = null;
+        for (const start of [context?.currentMacroRegistry, context?.macroRegistry, globalMacroRegistry]) {
+            for (let registry = start; registry && !seen.has(registry); registry = registry.parent) {
+                seen.add(registry);
+                for (const [name, transformer] of registry.macros) {
+                    const source = transformer?.transformerProcedure?.source;
+                    if (!spanContains(source, filename, line, column)) continue;
+                    if (found === null || spanLines(source) < spanLines(found.source)) {
+                        found = { name, source };
+                    }
                 }
             }
         }

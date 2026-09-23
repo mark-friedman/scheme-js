@@ -6597,3 +6597,83 @@ assertions in `tests/functional/debug_hooks_tests.js` do the same under the debu
 shadow call stack. All 12 depth assertions failed before the fix, each by one frame per iteration
 (two under the debugger). 2,887 tests pass in Node, also with `SCHEME_AOT_STDLIB=1`, 82 whole-program
 checks pass, and 2,784 tests pass in the browser, with 0 failures in any.
+
+# Walkthrough: `define-macro` transformers carry a source span
+
+`(define-macro (name args...) body...)` desugars in `analyzeDefineMacro`
+(`src/core/interpreter/analyzers/core_forms.js`) by building a `(lambda args body...)` cons and
+passing it straight to `analyzeLambda`. A cons built by the analyzer has no `.source`, and calling
+`analyzeLambda` directly skips the generic `analyze` path that attaches one, so the transformer's
+`LambdaNode` -- and the procedure made from it -- had `source: null`. The debugger places a frame by
+the called procedure's source, so it could not place a macro transformer. The ordinary
+`(define (f x) ...)` shorthand had the same defect and was fixed the same way earlier: the built
+lambda now takes the whole `define-macro` form's span, when the form has one and the lambda has none.
+`(define-macro name (lambda ...))` was never affected, because its lambda is read.
+
+The registry holds only the JavaScript wrapper that applies the transformer, so the Scheme procedure
+was unreachable from outside `analyzeDefineMacro`. The wrapper now exposes it as
+`transformerProcedure`, which the test uses and a debugger can.
+
+**Still missing:** a correct span does not yet put a transformer in a backtrace. Each `define-macro`
+creates its own expansion interpreter, which starts with no debug runtime and is never given one, so
+breakpoints inside a transformer cannot fire and its frames never reach the shadow call stack.
+
+**Verification.** Seven assertions in `tests/functional/macro_tests.js`, written first, parse
+definitions with a filename: the shorthand's transformer has a span naming `swap.scm` from line 1 to
+line 3 and still expands correctly, and the explicit-lambda form's span is its lambda's (lines 2 to
+3). With only `transformerProcedure` exposed, the four shorthand span assertions failed and the
+explicit-lambda ones passed, which isolates the defect; all pass after the fix. 2,894 tests pass in
+Node and 2,791 in the browser, with 0 failures in either.
+
+# Walkthrough: Breakpoints inside macro transformers are reported, not wired
+
+`define-macro` transformers run on an expansion interpreter that `analyzeDefineMacro` creates with no
+debug runtime, so a breakpoint inside one never fires and a backtrace never shows one. The question
+was whether to give that interpreter the main interpreter's runtime. The answer is no, and the
+reason is where expansion runs.
+
+## Why a transformer cannot be paused in
+
+Both REPLs (`repl.js`, `web/repl.js`) analyze input synchronously -- `analyze(sexp)` -- and hand
+the result to `runAsync`. Expansion happens inside that `analyze`, deep in the analyzer's recursion,
+on the expansion interpreter's synchronous `run`. The only way the debugger makes execution wait is
+`runAsync` awaiting `waitForResume` between steps; the synchronous `run` calls `onPause` and carries
+on. So there is no point inside a transformer where execution can stop.
+
+Sharing the runtime anyway, tried on a copy of the tree with a breakpoint on a transformer's second
+line, driven the way the REPL drives it: `onPause` fired five times during one expansion, once per
+step on that line, none of which stopped anything; analysis finished with the runtime still marked
+paused; `runAsync` then stopped at the first step of the *user's* program, a location the pause had
+not named, with an empty shadow stack by the time anyone could type `:bt`; and the transformer
+appeared as `anonymous`. That is worse than a breakpoint that never fires.
+
+Making it genuinely possible needs expansion to be suspendable: an analyzer that can itself run
+asynchronously, or a synchronous pause the host can block on, such as the `debugger;` statement the
+Chrome extension's synchronous path pauses V8 with on the `debugger-take-3` branch. Porting the
+analyzer to Scheme would not do it alone, since a compiled analyzer would still call the interpreted
+transformer through a nested synchronous run.
+
+## What changed instead
+
+A breakpoint inside a transformer is accepted and reported as never firing, the way one inside
+compiled code already is. `SchemeDebugRuntime.macroTransformerAt(filename, line, column)` searches the
+macro registries the attached interpreter's analysis uses, and the global registry, for a transformer
+whose `transformerProcedure` span contains the location, innermost first. `:break` warns
+("inside macro transformer 'swap!', which runs during expansion, where the debugger cannot stop --
+it will not fire") and `:breakpoints` marks it; both work it out when asked, so a breakpoint set
+before the macro is defined is still reported. The comment where the expansion interpreter is created
+now says why it has no runtime.
+
+Expansion itself is untouched, so it costs nothing extra with or without a debugger; the only new
+work is a scan of the registries when `:break` or `:breakpoints` runs.
+
+## Verification
+
+`tests/debug/macro_breakpoint_tests.js`, written first: `macroTransformerAt` finds shorthand and
+explicit-lambda transformers by line and column and nothing else; `:break` and `:breakpoints` report
+them, including a breakpoint set before the macro was defined; and, with the debugger attached before
+the macro is defined, a breakpoint on a transformer line neither pauses during expansion nor leaves
+the runtime paused, and the expanded program runs to completion. Six mutations each made tests fail:
+sharing the runtime at definition and at expansion (the harm tests), `macroTransformerAt` finding
+nothing, `:break` or `:breakpoints` ignoring transformers, and the transformer losing its span.
+2,914 tests pass in Node and 2,811 in the browser, with 0 failures in either.
