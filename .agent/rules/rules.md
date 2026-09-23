@@ -30,6 +30,7 @@ trigger: always_on
 ## Scheme Code Rules
 - **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all neccessary type, range, and arity checking.
 - **Scheme over JS**: Implementations should always be done in Scheme, if possible.  If that's not possible, isolate the minimum that is required in JavaScript and then implement the rest in Scheme.
+- **The compiler is written in Scheme**: New compiler code is written in Scheme from the start — not written in JavaScript and ported later, an ordering that has never once produced a port. Where Scheme lacks a capability or data structure the compiler needs (hash tables, for example), build it as a Scheme library with the minimum JavaScript underneath it, rather than writing the compiler code in JavaScript to avoid the gap. Unported code stays reachable while the migration is in progress: Scheme calls JavaScript through interop, and JavaScript calls the compiler's Scheme through `src/compiler/lowering.js`. `src/compiler/runtime.js` stays JavaScript, because it provides native JavaScript features that generated code and Scheme libraries need and cannot express themselves.
 
 ## Code Organization
 - **Directory and File Structure**: Follow the directory and file structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.

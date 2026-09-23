@@ -112,7 +112,7 @@ export function installPrebuilt(env, table, fingerprint) {
     }
     // Built against the closure's own environment, so its free variables
     // resolve where they did when it was interpreted.
-    env.define(name, entry.make(R, closure.env, entry.constants));
+    env.define(name, R.recordSource(entry.make(R, closure.env, entry.constants), closure.source));
     installed.push(name);
   }
 

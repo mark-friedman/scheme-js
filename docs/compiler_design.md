@@ -97,6 +97,26 @@ continuation re-enters each compiled procedure through its twin at the saved `$p
 
 Multi-shot works because frames are copied rather than consumed.
 
+**A frame saves only what is live where it resumes** (`src/compiler/liveness.js`). Saving every
+local at every suspension point was quadratic — frame literals were 57% of all generated code in
+the benchmark corpus — and a frame only needs what can still be read after it resumes. Three
+properties make that safe, and they belong to three different modules, which is why they are
+recorded here:
+
+- **The analysis runs over the resumable form's emitted statements, not the IR**, because what
+  must survive a suspension includes JavaScript temporaries the IR has no name for: in
+  `(list (one) (capturer))`, the result of `(one)` is live across `(capturer)`.
+- **A spill reads what is live at its resume block.** A capture has no ordinary control-flow edge
+  to the code after it — it spills and returns, and the frame is the only path. Treat the spill as
+  anything less and a value read only after a capture is judged dead before it.
+- **No nested function closes over a frame's locals by reference.** Lambda lifting hands every
+  nested procedure its free variables as factory arguments, so creating one is a visible read. An
+  inline closure could instead read a local whenever it was *called*, invisibly; if one ever
+  appears, the resumable form falls back to saving everything.
+
+The restore side is unchanged and names every local. One that was not saved destructures to
+`undefined`, which is safe precisely because it is dead there.
+
 One shape is genuinely unsupported and is **refused rather than answered**: a capture crossing more
 than one boundary between compiled and interpreted code. A second is refused beneath a redefined
 inlined primitive. Both throw with an explanation. They are currently unreachable because user code
@@ -218,8 +238,23 @@ it throws under strict CSP, which is acceptable and forces nothing else to depen
 | **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
 | **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The only hook is `interpreter.js:455`, inside the step loop that compiled procedures never enter, so a breakpoint inside one silently never fires. Harmless only because the tier compiles nothing but the standard library today. |
 
-Constraint 4 is the open design question of the project, and it is tracked at the top of `compiler_plan.md`
-rather than here, because what to do about it is not decided.
+Constraint 4 is the open design question of the project. The intended answer is **two mechanisms,
+not one**, which is what every real toolchain ships:
+
+- **Debug info** — source maps and emitted debug points, so compiled code can be stepped and
+  inspected in place. This is what calling convention B was chosen for: one live Scheme frame is one
+  JavaScript frame, so DevTools can show a Scheme stack. Until it exists that choice has been paid
+  for and not collected.
+- **Declining to optimize what is being debugged** — a procedure with a breakpoint in it is left to
+  the interpreter, and recompiled when the breakpoint moves. The equivalent of compiling one
+  translation unit at `-O0`.
+
+The second is not a lesser substitute for the first. Lowering already beta-reduces immediately
+applied lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes
+assigned locals — and the optimization work still to come adds direct calls, arity specialization
+and unboxing. A source map maps *locations*; it cannot resurrect a binding that no longer exists.
+So debug info yields "optimized out" exactly where a user is most confused, and the interpreter
+yields the real value. Sequencing is in `compiler_plan.md`.
 
 ## How this is verified
 

@@ -2012,6 +2012,65 @@ and nothing in the process caught the difference.
 This is also the entry that argued for splitting these documents. It was found by grep in the middle
 of answering an unrelated question, not by reading a plan, because no plan recorded it.
 
+**R55. Saving every local at every suspension point was "never on a path that matters". It was 57%
+of all generated code.**
+
+The resumable form's own comment justified spilling every declared name: suspension happens only
+while a continuation is captured or reinstated, "so the waste is never on a path that matters".
+True of *time*, false of *size*. Every call site carried a literal naming every local, so a
+procedure with *n* locals and *n* call sites wrote *n²* names. Measured over the corpus, frame
+literals were **7.21 MB of 12.75 MB** generated, and 94% of the largest procedure,
+`nucleic:make-relative-nuc` at 3.18 MB.
+
+Backward liveness over the resumable form's blocks fixed it: each suspension point saves only what
+is live where it resumes. Corpus **12.75 MB → 5.93 MB**, frame literals **7.21 → 0.40 MB**,
+`make-relative-nuc` **3.18 → 0.27 MB**, `compiled_compiler.js` **548 → 271 KB**, `dist/scheme.js`
+**1.84 → 1.53 MB**.
+
+Two further beliefs fell on the way, both mine, both worth keeping.
+
+**"The spill placeholder is not a read."** Written into the first draft of the analysis's tests,
+and wrong. A capture has no ordinary edge to the code after it — it spills and returns — so the
+frame is the *only* path by which its variables reach that code, and the spill must be treated as
+reading exactly what is live there. Without that, resuming at an earlier call site and running
+forward into a capture spills `undefined` for anything read only after the capture. Breaking the
+rule deliberately makes the ctak shape return a wrong answer; nothing else in the suite noticed.
+
+**"The assigned-local test guards the box-write rule."** An assigned local is a one-element array,
+and `x[0] = v` reads `x`. The test written for that rule assigned `(set! acc (cons v acc))` — which
+reads `acc` on the right-hand side, keeping it live however the write was classified. Breaking the
+rule on purpose left all 258 compiler tests passing. The test that actually guards it needs a
+local whose next mention after the capture is a pure write. Each of the analysis's four rules was
+then broken in turn and a test confirmed to fail, which is the only way to know a soundness test
+tests anything.
+
+On speed, nothing moved that could be attributed to the change. The continuation class, the only
+one where spills execute, improved 1.09x (`dynamic` 1.19x). A single-run comparison showed four
+classes slightly below 1.0; interleaved reruns put every one within run-to-run spread, measured at
+up to 13% on identical code. `array1` kept a 2.5% shift across six paired runs, and its executed
+code was then verified **byte-identical** before and after — only literals inside never-taken
+`UNWIND` branches differ — so the residual is either noise or V8 treating differently sized
+functions differently.
+
+**R56. "Write it in JavaScript now, port it once the design settles" never ported anything.**
+
+After the decision to move the compiler to Scheme, three consecutive increments added JavaScript to
+it — roughly 900 lines — and each was justified the same way: the code was still changing, so porting
+it would mean porting a moving target. The argument was sound every time it was made and the port
+receded every time, because a compiler under active development always has code that is still
+changing. Liveness for frame spills (R55) was written in JavaScript *after* the direction had been
+settled, next to its JavaScript caller, without the choice being weighed at all.
+
+The one module that did move, `ir.scm`, moved because it had been written as Scheme first — as an
+experiment, then promoted (R52). Nothing written in JavaScript was ever ported.
+
+The belief that failed is not about any one module; it is that deferring the language choice is
+free. It costs a port that never happens. So the policy is inverted: **new compiler code starts in
+Scheme**, and where Scheme lacks something the compiler needs — hash tables, first — that capability
+is built as a Scheme library over the minimum JavaScript. Interop is what makes this workable
+mid-migration: Scheme code can call the unported emitter directly, and the emitter reaches Scheme
+through `src/compiler/lowering.js`, so a new module never has to wait for its neighbours.
+
 ---
 
 ## Appendix — the original staged plan

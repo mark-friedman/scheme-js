@@ -130,6 +130,7 @@ export function tryCompileDefinition(ast, env, options = {}) {
   } catch (e) {
     return { compiled: false, reason: `code generation failed: ${e.message}`, source };
   }
+  R.recordSource(procedure, value.source ?? ast.source);
 
   return { compiled: true, name: ast.name, procedure, source };
 }
@@ -177,6 +178,7 @@ export function tryCompileClosure(closure, name) {
   } catch (e) {
     return { compiled: false, reason: `code generation failed: ${e.message}`, source };
   }
+  R.recordSource(procedure, closure.source);
   return { compiled: true, name, procedure, source };
 }
 
@@ -393,8 +395,9 @@ export function compileEnvironment(env, options = {}) {
   const compiled = [];
   for (const entry of generated) {
     try {
-      env.define(entry.name,
-        new Function('R', 'E', 'K', entry.source)(R, entry.closure.env, entry.constants));
+      env.define(entry.name, R.recordSource(
+        new Function('R', 'E', 'K', entry.source)(R, entry.closure.env, entry.constants),
+        entry.closure.source));
       compiled.push(entry.name);
     } catch (e) {
       declined.push({ name: entry.name, reason: `code generation failed: ${e.message}` });

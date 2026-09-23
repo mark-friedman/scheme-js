@@ -467,6 +467,8 @@ export class Interpreter {
    */
   setDebugRuntime(debugRuntime) {
     this.debugRuntime = debugRuntime;
+    // Optional, so a runtime written against the older interface still works.
+    debugRuntime?.attachInterpreter?.(this);
   }
 
   /**

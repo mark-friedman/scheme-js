@@ -210,3 +210,23 @@ export function markProcedure(fn, name) {
   fn.toString = () => `#<compiled-procedure${name && name !== 'anonymous' ? ' ' + name : ''}>`;
   return fn;
 }
+
+/**
+ * Records where a compiled procedure's source is, under the same property an
+ * interpreted closure uses.
+ *
+ * Generated code cannot know this -- it is produced from IR, which carries no
+ * positions -- so it is attached afterwards by whatever installs the procedure,
+ * from the closure or definition it replaces. Using the interpreted closure's
+ * own property name means the debugger asks one question of either tier:
+ * `procedure.source` says where it was defined, and `$compiled` says whether it
+ * will stop at a breakpoint there.
+ *
+ * @param {Function} procedure - A compiled procedure.
+ * @param {Object|null|undefined} source - The span it was compiled from.
+ * @returns {Function} The same procedure.
+ */
+export function recordSource(procedure, source) {
+  if (source) procedure.source = source;
+  return procedure;
+}

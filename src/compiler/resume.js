@@ -43,21 +43,37 @@
  * in. They are *copied* rather than shared, because a continuation may be
  * invoked more than once and the second invocation must not see state left by
  * the first.
+ *
+ * Only the locals live at the resume point are spilled -- see `liveness.js`.
+ * The restore still names every local, and one that was not saved comes back
+ * `undefined`, which is safe exactly because nothing reads it before writing
+ * it on any path from there.
  */
 
 import { ProcedureEmitter, procedureScope, jsName } from './emitter.js';
+import { liveIn } from './liveness.js';
 
 /**
- * Stands in for the object literal that spills a frame's locals.
+ * Stands in for the object literal that spills a frame's locals at the
+ * suspension point that resumes at `block`.
  *
- * A call site needs that literal while it is being emitted, but which names
- * there are is not settled until the whole body has been. Emitting this token
- * and substituting once at the end avoids the alternative, where each call site
- * spills only the names declared before it -- which would leave a procedure's
- * two forms spilling different sets, and the fast form is obliged to spill
- * exactly what this one restores.
+ * A call site needs that literal while it is being emitted, but what goes in
+ * it is not known until the whole body has been: it is whatever is live at the
+ * block the frame resumes at, and liveness depends on everything after that
+ * point. So a token naming the block is emitted now and substituted at the end.
+ *
+ * @param {number} block - The resume block.
+ * @returns {string} The placeholder.
  */
-const FRAME = '$FRAME$';
+function framePlaceholder(block) {
+  return `$FRAME${block}$`;
+}
+
+/**
+ * Finds every frame placeholder, capturing its resume block. Global, because
+ * it is used both to substitute placeholders and to find them for liveness.
+ */
+const FRAME_PLACEHOLDER = /\$FRAME(\d+)\$/g;
 
 /**
  * Emits the resumable twin of a procedure.
@@ -83,6 +99,13 @@ export class TwinEmitter extends ProcedureEmitter {
     /** @type {Array<Array<string>>} Statements per basic block. */
     this.blocks = [[]];
     this.current = 0;
+    /**
+     * This procedure's suspension points, each with the block it resumes at.
+     * Kept here rather than read back from the shared context, which holds
+     * every procedure's resume points in the unit.
+     * @type {Array<{node: Object, block: number}>}
+     */
+    this.resumeSites = [];
     // The inherited code appends to `this.out`; pointing it at a block is what
     // makes all of that code work unchanged in a block-structured emitter.
     this.out = this.blocks[0];
@@ -240,7 +263,12 @@ export class TwinEmitter extends ProcedureEmitter {
     this.out.push(`R.capture(${receiver});`);
     const resume = this.newBlock();
     this.ctx.resumePoints.set(node, resume);
-    this.out.push(`R.reify(${this.name}, ${resume}, ${FRAME}); return R.UNWIND;`);
+    this.resumeSites.push({ node, block: resume });
+    // Two statements rather than one, so the block visibly ends in `return`.
+    // The liveness analysis only trusts a block to end where it can see that
+    // it does, and assumes it falls through otherwise.
+    this.out.push(`R.reify(${this.name}, ${resume}, ${framePlaceholder(resume)});`);
+    this.out.push('return R.UNWIND;');
 
     this.switchTo(resume);
     this.out.push(`${result} = $r;`);
@@ -276,16 +304,49 @@ export class TwinEmitter extends ProcedureEmitter {
     // nowhere and so has no blocks of its own, can name the point to come back
     // to when it has to suspend itself at this call.
     this.ctx.resumePoints.set(node, resume);
+    this.resumeSites.push({ node, block: resume });
     // A capture below this call: spill and report outward, so that every frame
     // between the capture and the interpreter reifies itself on the way out.
     this.out.push(
-      `if (${result} === R.UNWIND) { R.reify(${this.name}, ${resume}, ${FRAME});`
+      `if (${result} === R.UNWIND) { R.reify(${this.name}, ${resume}, ${framePlaceholder(resume)});`
       + ` return R.UNWIND; }`);
     this.out.push(`$r = ${result};`);
     this.goto(resume);
 
     this.switchTo(resume);
     this.out.push(`${result} = $r;`);
+    return result;
+  }
+
+  /**
+   * Decides which slots each resume block needs saved.
+   *
+   * Falls back to saving everything if the body contains a function literal.
+   * Every nested procedure is lifted into a factory that receives its free
+   * variables as arguments, so creating one is an ordinary, visible read of
+   * them. A function literal written inline would instead close over this
+   * procedure's variables and read them whenever it is *called* -- after a
+   * resume, perhaps, with nothing in the text to show it. That does not happen
+   * today, and if it ever does the right response is the old behaviour, not a
+   * wrong answer.
+   *
+   * @param {Array<string>} slots - Every name the procedure can hold, in
+   *   declaration order.
+   * @returns {Map<number, Array<string>>} For each resume block, the slots to
+   *   save, in declaration order so that generated code is reproducible.
+   */
+  liveSlots(slots) {
+    const result = new Map();
+    const inline = this.blocks.some((stmts) => stmts.some((l) => /\bfunction\b/.test(l)));
+    if (inline) {
+      for (const { block } of this.resumeSites) result.set(block, slots);
+      return result;
+    }
+
+    const live = liveIn(this.blocks, new Set(slots), { spill: FRAME_PLACEHOLDER });
+    for (const { block } of this.resumeSites) {
+      result.set(block, slots.filter((name) => live[block].has(name)));
+    }
     return result;
   }
 
@@ -302,28 +363,36 @@ export class TwinEmitter extends ProcedureEmitter {
     this.emitDefineBoxes();
     this.statement(this.ir.body);
 
-    // Every declared name is spilled, not just the ones a liveness analysis
-    // would keep. Suspension happens only while a continuation is being
-    // captured or reinstated, so the waste is never on a path that matters, and
-    // being conservative removes a whole class of bug where a variable is
-    // needed after a resume and was not saved.
+    // Every name this procedure can hold. `$r` is not among them: it holds the
+    // value a suspended call is still waiting for, which is supplied when the
+    // continuation is reinstated rather than saved when it is captured.
     const slots = [...new Set([
       ...this.declared, ...this.ir.params.map(jsName), ...(rest ? [jsName(rest)] : [])
     ])];
 
-    // The fast form of this procedure spills into the frame this one restores
-    // from, so it has to use exactly these names. `$r` is not among them: it
-    // holds the value a suspended call is still waiting for, which exists only
-    // once the continuation is being reinstated.
-    this.ctx.frameSlots.set(this.ir, slots);
+    // What each suspension point saves: the locals live at the block it resumes
+    // at, and no others. Saving every local at every point was quadratic in the
+    // size of the procedure -- the largest in the benchmark corpus generated
+    // 3.18 MB, 94% of it frame literals.
+    //
+    // Restoring is unchanged and still names every slot. A local that was not
+    // saved destructures to `undefined`, and that is safe precisely because it
+    // is dead there: every path from the resume block assigns it before
+    // reading it.
+    const live = this.liveSlots(slots);
+    for (const { node, block } of this.resumeSites) {
+      // The fast form spills into the frame this one restores from, so at each
+      // call site it has to save exactly what this form expects there.
+      this.ctx.frameSlots.set(node, live.get(block));
+    }
 
     const names = [...slots, '$r'];
-    const literal = `{ ${names.join(', ')} }`;
+    const spill = (_, block) => `{ ${live.get(Number(block)).join(', ')} }`;
 
     const cases = this.blocks
       .map((stmts, i) =>
         `      case ${i}:\n`
-        + stmts.map((l) => '        ' + l.split(FRAME).join(literal)).join('\n'))
+        + stmts.map((l) => '        ' + l.replace(FRAME_PLACEHOLDER, spill)).join('\n'))
       .join('\n');
 
     return `function ${this.name}($pc, $f) {\n`

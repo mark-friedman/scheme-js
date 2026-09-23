@@ -14,6 +14,38 @@ import { StateInspector } from './state_inspector.js';
 import { ENV } from '../core/interpreter/stepables_base.js';
 
 /**
+ * Whether a source span contains a location.
+ *
+ * `endColumn` is exclusive, matching the reader. A location with no column is
+ * a whole-line breakpoint, and is inside the span if its line is.
+ *
+ * @param {Object|null|undefined} source - A span: `{filename, line, column,
+ *   endLine, endColumn}`.
+ * @param {string} filename - Source file path.
+ * @param {number} line - Line number (1-indexed).
+ * @param {number|null} column - Column (1-indexed), or null for a line.
+ * @returns {boolean} True if the location is inside the span.
+ */
+function spanContains(source, filename, line, column) {
+    if (!source || source.filename !== filename) return false;
+    const endLine = source.endLine ?? source.line;
+    if (line < source.line || line > endLine) return false;
+    if (column === null || column === undefined) return true;
+    if (line === source.line && column < source.column) return false;
+    if (line === endLine && source.endColumn != null && column >= source.endColumn) return false;
+    return true;
+}
+
+/**
+ * How many lines a span covers, for choosing the innermost of two.
+ * @param {Object} source - A span.
+ * @returns {number} Line count.
+ */
+function spanLines(source) {
+    return (source.endLine ?? source.line) - source.line + 1;
+}
+
+/**
  * Main debug runtime coordinator.
  * Connects breakpoints, stack tracing, and pause control.
  */
@@ -121,6 +153,60 @@ export class SchemeDebugRuntime {
      */
     getAllBreakpoints() {
         return this.breakpointManager.getAllBreakpoints();
+    }
+
+    // =========================================================================
+    // Compiled Code
+    // =========================================================================
+
+    /**
+     * Connects this runtime to the interpreter it debugs.
+     *
+     * Needed so the runtime can find compiled procedures, which never reach
+     * the interpreter's step loop and so are invisible to every hook the
+     * runtime otherwise has. Called by `Interpreter.setDebugRuntime`.
+     *
+     * @param {Object} interpreter - The interpreter.
+     */
+    attachInterpreter(interpreter) {
+        this.interpreter = interpreter;
+    }
+
+    /**
+     * Finds the compiled procedure whose source contains a location, if any.
+     *
+     * A breakpoint there is accepted and never fires: the only place this
+     * runtime can pause is the interpreter's step loop, and compiled code does
+     * not run through it. Callers use this to say so rather than fail silently.
+     *
+     * Only top-level bindings are searched. That is sufficient because a
+     * definition is compiled as a unit -- every procedure nested inside a
+     * compiled one is compiled too, and lies inside its parent's span.
+     *
+     * The answer is worked out when asked rather than recorded when a
+     * breakpoint is set, so a breakpoint placed first and compiled over later
+     * is still reported.
+     *
+     * @param {string} filename - Source file path.
+     * @param {number} line - Line number (1-indexed).
+     * @param {number|null} [column] - Column (1-indexed), or null for a line.
+     * @returns {{name: string, source: Object}|null} The innermost compiled
+     *   procedure containing the location, or null if it is not compiled code.
+     */
+    compiledProcedureAt(filename, line, column = null) {
+        let found = null;
+        for (let env = this.interpreter?.globalEnv; env; env = env.parent) {
+            for (const value of env.bindings.values()) {
+                if (typeof value !== 'function' || value.$compiled !== true) continue;
+                if (!spanContains(value.source, filename, line, column)) continue;
+                // Prefer the tightest span, should a redefinition leave two
+                // procedures covering the same lines.
+                if (found === null || spanLines(value.source) < spanLines(found.source)) {
+                    found = { name: value.schemeName ?? 'anonymous', source: value.source };
+                }
+            }
+        }
+        return found;
     }
 
     // =========================================================================

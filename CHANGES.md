@@ -6067,3 +6067,247 @@ The rest was ordinary alignment:
 - `docs/README.md` was missing three of its own files. The skill now says to add an index line
   whenever a document is added under `docs/`, so the rule would otherwise have been violated the
   moment it was written.
+
+## Addendum: the debugger reordering, corrected
+
+The plan briefly had "decide the debugger/compiler contract" as its single top item. That ranking was
+recency, not judgement: R54 was found three turns earlier by grep while checking something unrelated,
+and it went to the top the same turn it was written.
+
+Two things were wrong with it. The argument was **"it blocks enabling the tier"**, which is partly
+circular — it only blocks it because enabling the tier had just been promoted to second, itself a
+change from the pre-compaction plan, which said codegen next and never mentioned enabling the tier
+at all. And "enable the tier by default" had been sitting as a **1st-ranked item in `ROADMAP.md`
+since before the compaction** and nobody worked on it through AOT, lifting and the `ir.scm`
+promotion. Promoting its blocker does not fix a list that was not driving the work; it moves the
+unworked item down a level.
+
+What was genuinely new in R54 was not that compiled code lacks debug support — Stage 2b's plan always
+said debug points would be emitted under a compile flag, and hook redesign was explicitly agreed. It
+was that the failure is **silent**: `setBreakpoint` succeeds and nothing happens.
+
+So the finding and the task were split, which is what should have happened first:
+
+- The **silence** is the defect, and it is small. Task 13 makes it loud. Independent of everything.
+- **Liveness** is back at the top of the real work, where the pre-compaction plan had it, for reasons
+  that never stopped holding.
+- The **contract** attaches to enabling the tier, where it actually bites, rather than gating the
+  whole list.
+
+## Why the answer is both mechanisms, not the better one
+
+The two candidates looked like alternatives — decline to compile a procedure being debugged, or
+build source maps and debug points — and the second looks strictly better if the only difference is
+effort. It is not the only difference.
+
+**Source maps map locations; they cannot resurrect a binding an optimizer removed.** Lowering already
+beta-reduces immediately applied lambdas into bindings, lifts nested procedures into factories,
+inlines primitives and boxes assigned locals. Task 15 adds direct calls, arity specialization and
+unboxing on top. Debug info therefore yields "optimized out" precisely where a user is most confused,
+and it gets worse as the compiler gets better. Leaving the procedure under test interpreted yields
+the real value, and no optimization can have removed anything, because none ran.
+
+Three more costs that are not effort. Debug points add per-call-site data to the same frames task 14
+is shrinking, and frame size is currently the largest source of generated code. Scope inspection —
+not line mapping — is the hard half, and Source Map v3's `names` support is partial enough that it
+needs compiler-emitted side tables plus an inspector running alongside `StateInspector`, which is a
+second implementation of something that already exists. And `:eval` in a paused frame has no
+environment object to evaluate in when the frame is compiled.
+
+This is why real toolchains ship both: debug info, *and* the ability to build one translation unit at
+`-O0`. Both are now in the plan — task 16 and task 21 — with 21 sequenced after liveness and code
+generation, because building a source mapping before the optimizations that invalidate it means
+building it twice.
+
+Two facts checked rather than assumed while writing this: the interpreted closure is **discarded**
+when a procedure compiles (`env.define` overwrites it, `markProcedure` keeps no handle on it), so
+task 16 must retain it; and `BreakpointManager` stores `{filename, line, column}` with no
+location-to-procedure mapping, which the compiler has and would need to publish. Those two are the
+actual work in 16, and neither was visible from the description of it.
+
+---
+
+# Walkthrough: Breakpoints in compiled code say so
+
+Task 13 of `docs/compiler_plan.md`. A breakpoint set inside a compiled procedure was accepted and
+then never fired — not an error, a no-op — because the debugger's only hook is in the interpreter's
+step loop and compiled code never enters it. Making compiled code stop is separate work. This makes
+the debugger tell the truth in the meantime.
+
+## It needed a prerequisite fix first
+
+To say "this location is inside compiled procedure `f`", the debugger needs `f`'s source span. It
+turned out most procedures had none.
+
+`(define (f x) ...)` is desugared in `analyzeDefine` by building a `(lambda ...)` cons and calling
+`analyzeLambda` on it directly. That cons is made by the analyzer, not read from source, so it has no
+span — and calling `analyzeLambda` directly skips the generic path that would have attached one. So
+**every closure made with the ordinary definition syntax reported `source: null`**, while
+`(define f (lambda ...))` was fine.
+
+That was not only a problem for this feature. The debugger records each frame's location from the
+procedure being called, so the REPL backtrace said `unknown location` for nearly every frame:
+
+```
+before:  outer @ NO SOURCE        after:  outer @ bt.scm:3
+         inner @ NO SOURCE                inner @ bt.scm:1
+```
+
+The lambda now takes the whole definition's span, since a location anywhere in `(define (f x) ...)`
+is inside `f`. The same defect exists in the `define-macro` shorthand and is left for a separate
+change, since it does not affect breakpoints in compiled code.
+
+## Compiled procedures keep the span
+
+Generated code is produced from IR, which carries no positions, so the span is attached afterwards
+by whatever installs the procedure, from the closure or definition it replaces. There were four such
+places — `tryCompileDefinition`, `tryCompileClosure`, `compileEnvironment` and `installPrebuilt` —
+so the rule lives in one helper, `recordSource` in `src/compiler/runtime.js`, rather than being
+restated four times for a fifth to miss.
+
+It uses the **same property an interpreted closure does**, `.source`. The debugger then asks one
+question of either tier: `procedure.source` says where it was defined, `$compiled` says whether it
+will stop there.
+
+## The debugger asks, and the REPL answers
+
+`SchemeDebugRuntime.compiledProcedureAt(filename, line, column)` scans the interpreter's top-level
+bindings for a compiled procedure whose span contains the location. Top-level is enough, because a
+definition compiles as a unit — every procedure nested inside a compiled one is compiled too, and
+lies inside its parent's span. The runtime learns its interpreter through `setDebugRuntime`, which
+now calls an optional `attachInterpreter`.
+
+The answer is **worked out when asked, not recorded when the breakpoint is set**, so a breakpoint
+placed first and compiled over afterwards is still reported.
+
+```
+> :break area.scm 2
+;; Breakpoint bp-1 set at area.scm:2
+;; Warning: this is inside compiled procedure 'area', which does not stop at breakpoints -- it will not fire
+> :breakpoints
+;; Breakpoints:
+;;   bp-1: area.scm:2 (enabled -- will not fire: inside compiled procedure 'area')
+```
+
+The breakpoint is still accepted, because the procedure may be redefined as interpreted before the
+line runs.
+
+## And one more that was always wrong
+
+`:breakpoints` printed `bp.enabled ? 'enabled' : 'disabled'`, but breakpoints carry no `enabled`
+field — so **every breakpoint listed as disabled**. Absent now means enabled, which also keeps
+working if an enable/disable flag is added later.
+
+## A note for merging
+
+The Chrome extension debugger — `src/debug/devtools/`, `__schemeDebug`, the standalone panel — lives
+on the `debugger-take-3` branch, not this one; here `extension/` and `src/debug/agent/` are empty.
+The check is in `SchemeDebugRuntime` rather than in the REPL so the extension's API picks it up when
+the two meet.
+
+## Verification
+
+36 new assertions in `tests/debug/compiled_breakpoint_tests.js`, covering the span on every install
+path, containment at the edges of a span, both REPL commands, the set-then-compile order, and the
+backtrace. With the analyzer fix reverted, 14 of them fail — including the whole compiled-breakpoint
+detection, which is what makes it a prerequisite rather than a side trip. 2,462 tests pass; the
+whole-program pass is 82 of 82.
+
+---
+
+# Walkthrough: Frames save only what is live
+
+Task 14 of `docs/compiler_plan.md`. A compiled procedure suspended beneath a continuation capture
+saved **every** local at **every** call site, so a procedure with *n* locals and *n* call sites
+wrote *n²* names. Its own comment said the waste was "never on a path that matters", which was true
+of time and false of size: frame literals were **57% of all generated code** in the corpus.
+
+## The change
+
+Each suspension point now saves only the locals live at the block it resumes at, by ordinary
+backward liveness over the resumable form's blocks (`src/compiler/liveness.js`). The fast form reads
+those sets per call site rather than per procedure, so both forms still spill exactly what the
+resumable form restores. The restore itself is unchanged and names every local; one that was not
+saved destructures to `undefined`, which is safe precisely because it is dead there.
+
+| | before | after |
+|---|---|---|
+| generated code, whole corpus | 12.75 MB | **5.93 MB** |
+| frame literals in it | 7.21 MB (57%) | **0.40 MB (7%)** |
+| `nucleic:make-relative-nuc` | 3.18 MB | **0.27 MB** |
+| `compiled_compiler.js` | 548 KB | **271 KB** |
+| `compiled_stdlib.js` | 447 KB | 400 KB |
+| `dist/scheme.js` | 1.84 MB | **1.53 MB** |
+
+## Why over emitted statements, not the IR
+
+What must survive a suspension includes JavaScript temporaries the IR has no name for. In
+`(list (one) (capturer))` the result of `(one)` sits in a temporary while `(capturer)` runs. The
+emitted form is regular enough to analyse safely — declared names, `$pc = N; continue;` jumps, one
+statement per string — and every approximation leans towards saving too much, never too little.
+
+## Two mistakes caught before they shipped
+
+**The spill is a read.** I first wrote a test asserting the opposite. A capture has no ordinary edge
+to the code after it; the frame is the only path, so the spill must read exactly what is live at its
+resume block. Break that deliberately and the ctak shape returns a wrong answer.
+
+**A test that did not test its rule.** The case written for "assigning through a box reads the box"
+also read the variable on the right-hand side, so breaking the rule left every test passing. Each of
+the four rules was then broken on purpose and a failing test confirmed; one new case was needed.
+
+## Speed
+
+The continuation class — the only one where spills execute — improved **1.09x** (`dynamic` 1.19x).
+A single-run comparison put four classes slightly below 1.0; interleaved reruns placed each within
+run-to-run spread, measured at up to 13% on identical code. `array1` kept a 2.5% shift across six
+paired runs, and its executed code was then diffed and found **byte-identical** before and after,
+with only literals inside never-taken branches differing.
+
+## Why it is JavaScript
+
+It analyses the resumable form's emitted strings, which is also its weakest part. A Scheme emitter
+would produce statements as data and liveness would read definitions and uses from them directly, so
+it is scheduled to move with the emitter port (task 23) rather than alone.
+
+## Verification
+
+19 unit tests for the analysis, including every unsafe direction; six new multi-shot capture cases,
+each built so that losing one variable changes the answer. 2,493 tests pass; all 90 programs pass
+under both tiers; the compiler agrees with itself on all 993 lambdas in `benchmark:self-host`.
+
+---
+
+# Walkthrough: New compiler code starts in Scheme
+
+A policy change and the plan reordering that follows from it. No code changed.
+
+Liveness was written in JavaScript, beside its JavaScript caller, after the decision to move the
+compiler to Scheme — and it was the third increment in a row to add JavaScript under the "don't port
+a moving target" argument. That argument was sound each time and the port receded each time; the
+only module that ever moved, `ir.scm`, had been written in Scheme first. Recorded as R56.
+
+So the order is inverted. New compiler code is written in Scheme; where Scheme lacks a capability,
+the capability is built as a Scheme library over minimal JavaScript. Interop makes that workable
+while the migration is incomplete — a Scheme module can call the unported emitter, and the emitter
+reaches Scheme through `src/compiler/lowering.js` — so no new module waits for its neighbours.
+
+The policy is in `AGENTS.md` beside the existing Scheme-over-JavaScript rule, and in
+`docs/compiler_plan.md`, whose live work now runs:
+
+| # | | |
+|---|---|---|
+| 15 | | SRFI-125 hash tables, over a JavaScript `Map` core — the prerequisite for analyses in Scheme |
+| 16 | ⊘ | Measure the tier on hash tables and records before anything depends on them |
+| 17 | ⊘ | Code generation, as Scheme passes over the IR that leave annotations for the JavaScript emitter |
+| 23–24 | ⊘ | Move `lift.js` and `safety.js` to Scheme when each is next changed |
+| 25 | ⊘ | Rewrite the emitter in Scheme — producing statements as data, with liveness rewritten over them |
+
+Three consequences beyond those five. `inline.js` moves *with* the emitter rather than alone, since
+only the emitter uses it. Source maps now wait on the emitter rewrite, because debug points are
+emitter output and building them in the JavaScript emitter would mean building them twice. And
+`safety.js`'s old blocker — introspection Scheme cannot express — stops being one: that is precisely
+the minimal JavaScript the policy says to expose.
+
+Regular expressions are deliberately not being built for the compiler. It only needed text scanning
+because the emitter produces strings, and a Scheme emitter that produces data removes the need.

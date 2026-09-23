@@ -471,7 +471,9 @@ export class ProcedureEmitter {
    */
   suspension(node, result) {
     const pc = this.ctx.resumePoints.get(node);
-    const slots = this.ctx.frameSlots.get(this.ir);
+    // Per call site, not per procedure: each point saves only what is live
+    // where it will resume.
+    const slots = this.ctx.frameSlots.get(node);
     // `R.UNWIND` as the tested expression means the caller knows the suspension
     // is unconditional, so the check collapses to the spill and the return.
     const unconditional = result === 'R.UNWIND';

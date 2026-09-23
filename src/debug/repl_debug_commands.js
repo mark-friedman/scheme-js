@@ -126,7 +126,16 @@ export class ReplDebugCommands {
         if (isNaN(line)) return ';; Invalid line number';
 
         const id = this.debugRuntime.setBreakpoint(filename, line, column);
-        return `;; Breakpoint ${id} set at ${filename}:${line}${column ? ':' + column : ''}`;
+        const set = `;; Breakpoint ${id} set at ${filename}:${line}${column ? ':' + column : ''}`;
+
+        // Accepted either way, since the procedure may be redefined as
+        // interpreted before the line runs. But a breakpoint inside compiled
+        // code is otherwise silently ignored, and saying so is the difference
+        // between a known limitation and a debugger that appears broken.
+        const compiled = this.debugRuntime.compiledProcedureAt?.(filename, line, column);
+        if (!compiled) return set;
+        return `${set}\n;; Warning: this is inside compiled procedure '${compiled.name}', `
+            + `which does not stop at breakpoints -- it will not fire`;
     }
 
     handleUnbreak(args) {
@@ -142,7 +151,16 @@ export class ReplDebugCommands {
 
         let output = ';; Breakpoints:\n';
         for (const bp of breakpoints) {
-            output += `;;   ${bp.id}: ${bp.filename}:${bp.line}${bp.column ? ':' + bp.column : ''} (${bp.enabled ? 'enabled' : 'disabled'})\n`;
+            // Breakpoints carry no `enabled` field, so reading it as a boolean
+            // listed every one as disabled. Absent means enabled.
+            const enabled = bp.enabled !== false ? 'enabled' : 'disabled';
+            // Worked out now rather than when the breakpoint was set, so one
+            // placed before its procedure was compiled is still reported.
+            const compiled = this.debugRuntime.compiledProcedureAt?.(bp.filename, bp.line, bp.column);
+            const status = compiled
+                ? `${enabled} -- will not fire: inside compiled procedure '${compiled.name}'`
+                : enabled;
+            output += `;;   ${bp.id}: ${bp.filename}:${bp.line}${bp.column ? ':' + bp.column : ''} (${status})\n`;
         }
         return output.trim();
     }

@@ -471,6 +471,14 @@ function analyzeDefine(exp, syntacticEnv, ctx) {
         // Propagate name to LambdaNode if it was just created
         if (valExpr instanceof LambdaNode) {
             valExpr.name = name;
+            // The lambda above was built here rather than read, so it has no
+            // source of its own. Its extent is the whole definition -- a
+            // location anywhere in `(define (f x) ...)` is inside `f` -- and
+            // without it every closure made this way reports no source, which
+            // is most of them.
+            if (exp.source && !valExpr.source) {
+                valExpr.source = exp.source;
+            }
         }
 
         return new DefineNode(name, valExpr);

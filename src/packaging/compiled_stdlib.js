@@ -64,17 +64,17 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$5) : $t2(s_a_$0, s_i_$5);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$5 }); return R.UNWIND; }
       $t4 = G8();
       $t5 = $t4[R.SCHEME_RAW_CALL];
       $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$5) : $t5(s_b_$1, s_i_$5);
       while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5 }); return R.UNWIND; }
+      if ($t6 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$5 }); return R.UNWIND; }
       $t7 = G2();
       $t8 = $t7[R.SCHEME_RAW_CALL];
       $t9 = $t8 === undefined ? $t7($t3, $t6) : $t8($t3, $t6);
       while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-      if ($t9 === R.UNWIND) { R.reify($fn27$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5 }); return R.UNWIND; }
+      if ($t9 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$5 }); return R.UNWIND; }
       if ($t9 !== false) {
       $t10 = G9() === P9 && (typeof s_i_$5 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$5 + 1n) : R.settle(R.invoke(G9(), [s_i_$5, 1n]));
       if ($t10 === R.UNWIND) R.captureUnderPrimitive();
@@ -100,7 +100,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$5) : $t2(s_a_$0, s_i_$5);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$5 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -109,7 +109,7 @@ export const PROCEDURES = {
             $t5 = $t4[R.SCHEME_RAW_CALL];
             $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$5) : $t5(s_b_$1, s_i_$5);
             while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5, $r }); return R.UNWIND; }
+            if ($t6 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$5 }); return R.UNWIND; }
             $r = $t6;
             $pc = 4; continue;
           case 4:
@@ -118,7 +118,7 @@ export const PROCEDURES = {
             $t8 = $t7[R.SCHEME_RAW_CALL];
             $t9 = $t8 === undefined ? $t7($t3, $t6) : $t8($t3, $t6);
             while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-            if ($t9 === R.UNWIND) { R.reify($fn27$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$5, $r }); return R.UNWIND; }
+            if ($t9 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$5 }); return R.UNWIND; }
             $r = $t9;
             $pc = 5; continue;
           case 5:
@@ -150,12 +150,12 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$9) : $t2(s_a_$0, s_i_$9);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn43$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$9 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn43$r, 3, { s_i_$9 }); return R.UNWIND; }
       $t4 = G12();
       $t5 = $t4[R.SCHEME_RAW_CALL];
       $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$9) : $t5(s_b_$1, s_i_$9);
       while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn43$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$9 }); return R.UNWIND; }
+      if ($t6 === R.UNWIND) { R.reify($fn43$r, 4, { $t3, s_i_$9 }); return R.UNWIND; }
       $t7 = G7() === P7 && (typeof $t3 === 'bigint' && typeof $t6 === 'bigint') ? ($t3 === $t6) : R.settle(R.invoke(G7(), [$t3, $t6]));
       if ($t7 === R.UNWIND) R.captureUnderPrimitive();
       if ($t7 !== false) {
@@ -183,7 +183,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_a_$0, s_i_$9) : $t2(s_a_$0, s_i_$9);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn43$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$9, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn43$r, 3, { s_i_$9 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -192,7 +192,7 @@ export const PROCEDURES = {
             $t5 = $t4[R.SCHEME_RAW_CALL];
             $t6 = $t5 === undefined ? $t4(s_b_$1, s_i_$9) : $t5(s_b_$1, s_i_$9);
             while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn43$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$9, $r }); return R.UNWIND; }
+            if ($t6 === R.UNWIND) { R.reify($fn43$r, 4, { $t3, s_i_$9 }); return R.UNWIND; }
             $r = $t6;
             $pc = 4; continue;
           case 4:
@@ -219,7 +219,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_a_$0, s_b_$1) : $t1(s_a_$0, s_b_$1);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
       if ($t2 !== false) {
       return true;
     } else {
@@ -241,7 +241,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8($t6, $t7) : $t9($t6, $t7);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { s_a_$0, s_b_$1 }); return R.UNWIND; }
       if ($t10 !== false) {
       $t11 = G4() === P4 && (s_a_$0 instanceof R.Cons) ? (s_a_$0.cdr) : R.settle(R.invoke(G4(), [s_a_$0]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
@@ -256,13 +256,13 @@ export const PROCEDURES = {
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13(s_a_$0) : $t14(s_a_$0);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
       if ($t15 !== false) {
       $t17 = G5();
       $t18 = $t17[R.SCHEME_RAW_CALL];
       $t19 = $t18 === undefined ? $t17(s_b_$1) : $t18(s_b_$1);
       while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
-      if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
       $t16 = $t19;
     } else {
       $t16 = false;
@@ -272,13 +272,13 @@ export const PROCEDURES = {
       $t21 = $t20[R.SCHEME_RAW_CALL];
       $t22 = $t21 === undefined ? $t20(s_a_$0) : $t21(s_a_$0);
       while ($t22 instanceof R.TailCall) { $t22 = R.step($t22); }
-      if ($t22 === R.UNWIND) { R.reify($proc$r, 19, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t22 === R.UNWIND) { R.reify($proc$r, 19, { s_a_$0, s_b_$1 }); return R.UNWIND; }
       s_len_2da_$2 = $t22;
       $t23 = G6();
       $t24 = $t23[R.SCHEME_RAW_CALL];
       $t25 = $t24 === undefined ? $t23(s_b_$1) : $t24(s_b_$1);
       while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
-      if ($t25 === R.UNWIND) { R.reify($proc$r, 20, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t25 === R.UNWIND) { R.reify($proc$r, 20, { s_len_2da_$2, s_a_$0, s_b_$1 }); return R.UNWIND; }
       s_len_2db_$3 = $t25;
       $t26 = G7() === P7 && (typeof s_len_2da_$2 === 'bigint' && typeof s_len_2db_$3 === 'bigint') ? (s_len_2da_$2 === s_len_2db_$3) : R.settle(R.invoke(G7(), [s_len_2da_$2, s_len_2db_$3]));
       if ($t26 === R.UNWIND) R.captureUnderPrimitive();
@@ -294,13 +294,13 @@ export const PROCEDURES = {
       $t30 = $t29[R.SCHEME_RAW_CALL];
       $t31 = $t30 === undefined ? $t29(s_a_$0) : $t30(s_a_$0);
       while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
-      if ($t31 === R.UNWIND) { R.reify($proc$r, 23, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t31 === R.UNWIND) { R.reify($proc$r, 23, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
       if ($t31 !== false) {
       $t33 = G10();
       $t34 = $t33[R.SCHEME_RAW_CALL];
       $t35 = $t34 === undefined ? $t33(s_b_$1) : $t34(s_b_$1);
       while ($t35 instanceof R.TailCall) { $t35 = R.step($t35); }
-      if ($t35 === R.UNWIND) { R.reify($proc$r, 27, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t35 === R.UNWIND) { R.reify($proc$r, 27, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
       $t32 = $t35;
     } else {
       $t32 = false;
@@ -310,13 +310,13 @@ export const PROCEDURES = {
       $t37 = $t36[R.SCHEME_RAW_CALL];
       $t38 = $t37 === undefined ? $t36(s_a_$0) : $t37(s_a_$0);
       while ($t38 instanceof R.TailCall) { $t38 = R.step($t38); }
-      if ($t38 === R.UNWIND) { R.reify($proc$r, 30, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t38 === R.UNWIND) { R.reify($proc$r, 30, { s_a_$0, s_b_$1 }); return R.UNWIND; }
       s_len_2da_$6 = $t38;
       $t39 = G11();
       $t40 = $t39[R.SCHEME_RAW_CALL];
       $t41 = $t40 === undefined ? $t39(s_b_$1) : $t40(s_b_$1);
       while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
-      if ($t41 === R.UNWIND) { R.reify($proc$r, 31, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t41 === R.UNWIND) { R.reify($proc$r, 31, { s_len_2da_$6, s_a_$0, s_b_$1 }); return R.UNWIND; }
       s_len_2db_$7 = $t41;
       $t42 = G7() === P7 && (typeof s_len_2da_$6 === 'bigint' && typeof s_len_2db_$7 === 'bigint') ? (s_len_2da_$6 === s_len_2db_$7) : R.settle(R.invoke(G7(), [s_len_2da_$6, s_len_2db_$7]));
       if ($t42 === R.UNWIND) R.captureUnderPrimitive();
@@ -332,13 +332,13 @@ export const PROCEDURES = {
       $t46 = $t45[R.SCHEME_RAW_CALL];
       $t47 = $t46 === undefined ? $t45(s_a_$0) : $t46(s_a_$0);
       while ($t47 instanceof R.TailCall) { $t47 = R.step($t47); }
-      if ($t47 === R.UNWIND) { R.reify($proc$r, 34, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t47 === R.UNWIND) { R.reify($proc$r, 34, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
       if ($t47 !== false) {
       $t49 = G13();
       $t50 = $t49[R.SCHEME_RAW_CALL];
       $t51 = $t50 === undefined ? $t49(s_b_$1) : $t50(s_b_$1);
       while ($t51 instanceof R.TailCall) { $t51 = R.step($t51); }
-      if ($t51 === R.UNWIND) { R.reify($proc$r, 38, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1 }); return R.UNWIND; }
+      if ($t51 === R.UNWIND) { R.reify($proc$r, 38, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
       $t48 = $t51;
     } else {
       $t48 = false;
@@ -362,7 +362,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_a_$0, s_b_$1) : $t1(s_a_$0, s_b_$1);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -393,7 +393,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8($t6, $t7) : $t9($t6, $t7);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 9, { s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t10;
             $pc = 9; continue;
           case 8:
@@ -401,7 +401,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13(s_a_$0) : $t14(s_a_$0);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 12, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t15;
             $pc = 12; continue;
           case 9:
@@ -423,7 +423,7 @@ export const PROCEDURES = {
             $t18 = $t17[R.SCHEME_RAW_CALL];
             $t19 = $t18 === undefined ? $t17(s_b_$1) : $t18(s_b_$1);
             while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
-            if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t19 === R.UNWIND) { R.reify($proc$r, 16, { $t16, $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t19;
             $pc = 16; continue;
             $t16 = $t19;
@@ -440,7 +440,7 @@ export const PROCEDURES = {
             $t21 = $t20[R.SCHEME_RAW_CALL];
             $t22 = $t21 === undefined ? $t20(s_a_$0) : $t21(s_a_$0);
             while ($t22 instanceof R.TailCall) { $t22 = R.step($t22); }
-            if ($t22 === R.UNWIND) { R.reify($proc$r, 19, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t22 === R.UNWIND) { R.reify($proc$r, 19, { s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t22;
             $pc = 19; continue;
           case 18:
@@ -448,7 +448,7 @@ export const PROCEDURES = {
             $t30 = $t29[R.SCHEME_RAW_CALL];
             $t31 = $t30 === undefined ? $t29(s_a_$0) : $t30(s_a_$0);
             while ($t31 instanceof R.TailCall) { $t31 = R.step($t31); }
-            if ($t31 === R.UNWIND) { R.reify($proc$r, 23, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t31 === R.UNWIND) { R.reify($proc$r, 23, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t31;
             $pc = 23; continue;
           case 19:
@@ -458,7 +458,7 @@ export const PROCEDURES = {
             $t24 = $t23[R.SCHEME_RAW_CALL];
             $t25 = $t24 === undefined ? $t23(s_b_$1) : $t24(s_b_$1);
             while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
-            if ($t25 === R.UNWIND) { R.reify($proc$r, 20, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t25 === R.UNWIND) { R.reify($proc$r, 20, { s_len_2da_$2, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t25;
             $pc = 20; continue;
           case 20:
@@ -481,7 +481,7 @@ export const PROCEDURES = {
             $t34 = $t33[R.SCHEME_RAW_CALL];
             $t35 = $t34 === undefined ? $t33(s_b_$1) : $t34(s_b_$1);
             while ($t35 instanceof R.TailCall) { $t35 = R.step($t35); }
-            if ($t35 === R.UNWIND) { R.reify($proc$r, 27, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t35 === R.UNWIND) { R.reify($proc$r, 27, { $t32, $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t35;
             $pc = 27; continue;
             $t32 = $t35;
@@ -498,7 +498,7 @@ export const PROCEDURES = {
             $t37 = $t36[R.SCHEME_RAW_CALL];
             $t38 = $t37 === undefined ? $t36(s_a_$0) : $t37(s_a_$0);
             while ($t38 instanceof R.TailCall) { $t38 = R.step($t38); }
-            if ($t38 === R.UNWIND) { R.reify($proc$r, 30, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t38 === R.UNWIND) { R.reify($proc$r, 30, { s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t38;
             $pc = 30; continue;
           case 29:
@@ -506,7 +506,7 @@ export const PROCEDURES = {
             $t46 = $t45[R.SCHEME_RAW_CALL];
             $t47 = $t46 === undefined ? $t45(s_a_$0) : $t46(s_a_$0);
             while ($t47 instanceof R.TailCall) { $t47 = R.step($t47); }
-            if ($t47 === R.UNWIND) { R.reify($proc$r, 34, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t47 === R.UNWIND) { R.reify($proc$r, 34, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t47;
             $pc = 34; continue;
           case 30:
@@ -516,7 +516,7 @@ export const PROCEDURES = {
             $t40 = $t39[R.SCHEME_RAW_CALL];
             $t41 = $t40 === undefined ? $t39(s_b_$1) : $t40(s_b_$1);
             while ($t41 instanceof R.TailCall) { $t41 = R.step($t41); }
-            if ($t41 === R.UNWIND) { R.reify($proc$r, 31, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t41 === R.UNWIND) { R.reify($proc$r, 31, { s_len_2da_$6, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t41;
             $pc = 31; continue;
           case 31:
@@ -539,7 +539,7 @@ export const PROCEDURES = {
             $t50 = $t49[R.SCHEME_RAW_CALL];
             $t51 = $t50 === undefined ? $t49(s_b_$1) : $t50(s_b_$1);
             while ($t51 instanceof R.TailCall) { $t51 = R.step($t51); }
-            if ($t51 === R.UNWIND) { R.reify($proc$r, 38, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_2da_$2, $t23, $t24, $t25, s_len_2db_$3, $t26, s_loop_$4, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_len_2da_$6, $t39, $t40, $t41, s_len_2db_$7, $t42, s_loop_$8, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_a_$0, s_b_$1, $r }); return R.UNWIND; }
+            if ($t51 === R.UNWIND) { R.reify($proc$r, 38, { $t48, s_a_$0, s_b_$1 }); return R.UNWIND; }
             $r = $t51;
             $pc = 38; continue;
             $t48 = $t51;
@@ -1708,7 +1708,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$38) : $t1(s_x_$38);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$38 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$38 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -1716,7 +1716,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("zero?: expected number", s_x_$38) : $t6("zero?: expected number", s_x_$38);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$38 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$38 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -1735,7 +1735,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$38) : $t1(s_x_$38);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$38, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$38 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -1748,7 +1748,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("zero?: expected number", s_x_$38) : $t6("zero?: expected number", s_x_$38);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$38, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$38 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -1788,7 +1788,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$39) : $t1(s_x_$39);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$39 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$39 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -1796,7 +1796,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("positive?: expected number", s_x_$39) : $t6("positive?: expected number", s_x_$39);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$39 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$39 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -1815,7 +1815,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$39) : $t1(s_x_$39);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$39, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$39 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -1828,7 +1828,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("positive?: expected number", s_x_$39) : $t6("positive?: expected number", s_x_$39);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$39, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$39 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -1868,7 +1868,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$40) : $t1(s_x_$40);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$40 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$40 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -1876,7 +1876,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("negative?: expected number", s_x_$40) : $t6("negative?: expected number", s_x_$40);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$40 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$40 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -1895,7 +1895,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$40) : $t1(s_x_$40);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$40, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$40 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -1908,7 +1908,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("negative?: expected number", s_x_$40) : $t6("negative?: expected number", s_x_$40);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$40, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$40 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -1949,7 +1949,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$41) : $t1(s_x_$41);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$41 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$41 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -1957,7 +1957,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("odd?: expected integer", s_x_$41) : $t6("odd?: expected integer", s_x_$41);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$41 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$41 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -1967,7 +1967,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_x_$41, 2n) : $t9(s_x_$41, 2n);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$41 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, {  }); return R.UNWIND; }
       $t11 = G3() === P3 && (typeof $t10 === 'bigint' && typeof 0n === 'bigint') ? ($t10 === 0n) : R.settle(R.invoke(G3(), [$t10, 0n]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       $t12 = G0() === P0 ? ($t11 === false) : R.settle(R.invoke(G0(), [$t11]));
@@ -1983,7 +1983,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$41) : $t1(s_x_$41);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$41, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$41 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -1996,7 +1996,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("odd?: expected integer", s_x_$41) : $t6("odd?: expected integer", s_x_$41);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$41, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$41 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -2009,7 +2009,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_x_$41, 2n) : $t9(s_x_$41, 2n);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$41, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, {  }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -2048,7 +2048,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$42) : $t1(s_x_$42);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$42 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$42 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -2056,7 +2056,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("even?: expected integer", s_x_$42) : $t6("even?: expected integer", s_x_$42);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$42 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$42 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -2066,7 +2066,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_x_$42, 2n) : $t9(s_x_$42, 2n);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$42 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, {  }); return R.UNWIND; }
       $t11 = G3() === P3 && (typeof $t10 === 'bigint' && typeof 0n === 'bigint') ? ($t10 === 0n) : R.settle(R.invoke(G3(), [$t10, 0n]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       return $t11;
@@ -2080,7 +2080,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$42) : $t1(s_x_$42);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$42, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$42 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -2093,7 +2093,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("even?: expected integer", s_x_$42) : $t6("even?: expected integer", s_x_$42);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$42, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$42 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -2106,7 +2106,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_x_$42, 2n) : $t9(s_x_$42, 2n);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$42, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, {  }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -2150,7 +2150,7 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(G2(), s_rest_$44) : $t2(G2(), s_rest_$44);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t0, $t1, $t2, $t3, s_res_$45, $t4, $t5, s_m_$46, s_x_$47, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$43, s_rest_$44 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t9, s_x_$43 }); return R.UNWIND; }
       s_res_$45 = $t3;
       $t4 = G3() === P3 && (typeof s_x_$43 === 'bigint' && typeof s_res_$45 === 'bigint') ? (s_x_$43 > s_res_$45) : R.settle(R.invoke(G3(), [s_x_$43, s_res_$45]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
@@ -2164,7 +2164,7 @@ export const PROCEDURES = {
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6(s_x_$43) : $t7(s_x_$43);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { $t0, $t1, $t2, $t3, s_res_$45, $t4, $t5, s_m_$46, s_x_$47, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$43, s_rest_$44 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { s_res_$45, s_m_$46, $t9 }); return R.UNWIND; }
       s_x_$47 = $t8;
       if (s_x_$47 !== false) {
       $t9 = s_x_$47;
@@ -2173,7 +2173,7 @@ export const PROCEDURES = {
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10(s_res_$45) : $t11(s_res_$45);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, s_res_$45, $t4, $t5, s_m_$46, s_x_$47, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$43, s_rest_$44 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { s_m_$46, $t9 }); return R.UNWIND; }
       $t9 = $t12;
     }
       if ($t9 !== false) {
@@ -2198,7 +2198,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(G2(), s_rest_$44) : $t2(G2(), s_rest_$44);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t0, $t1, $t2, $t3, s_res_$45, $t4, $t5, s_m_$46, s_x_$47, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$43, s_rest_$44, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t9, s_x_$43 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -2219,7 +2219,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6(s_x_$43) : $t7(s_x_$43);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { $t0, $t1, $t2, $t3, s_res_$45, $t4, $t5, s_m_$46, s_x_$47, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$43, s_rest_$44, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { s_res_$45, s_m_$46, $t9 }); return R.UNWIND; }
             $r = $t8;
             $pc = 7; continue;
           case 7:
@@ -2234,7 +2234,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10(s_res_$45) : $t11(s_res_$45);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, s_res_$45, $t4, $t5, s_m_$46, s_x_$47, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$43, s_rest_$44, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { s_m_$46, $t9 }); return R.UNWIND; }
             $r = $t12;
             $pc = 11; continue;
             $t9 = $t12;
@@ -2273,7 +2273,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$48) : $t1(s_x_$48);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$48, s_rest_$49 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$48, s_rest_$49 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -2281,7 +2281,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("max: expected number", s_x_$48) : $t6("max: expected number", s_x_$48);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$48, s_rest_$49 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$48, s_rest_$49 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -2298,7 +2298,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$48) : $t1(s_x_$48);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$48, s_rest_$49, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$48, s_rest_$49 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -2311,7 +2311,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("max: expected number", s_x_$48) : $t6("max: expected number", s_x_$48);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$48, s_rest_$49, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$48, s_rest_$49 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -2357,7 +2357,7 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(G2(), s_rest_$51) : $t2(G2(), s_rest_$51);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t0, $t1, $t2, $t3, s_res_$52, $t4, $t5, s_m_$53, s_x_$54, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$50, s_rest_$51 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t9, s_x_$50 }); return R.UNWIND; }
       s_res_$52 = $t3;
       $t4 = G3() === P3 && (typeof s_x_$50 === 'bigint' && typeof s_res_$52 === 'bigint') ? (s_x_$50 < s_res_$52) : R.settle(R.invoke(G3(), [s_x_$50, s_res_$52]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
@@ -2371,7 +2371,7 @@ export const PROCEDURES = {
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6(s_x_$50) : $t7(s_x_$50);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { $t0, $t1, $t2, $t3, s_res_$52, $t4, $t5, s_m_$53, s_x_$54, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$50, s_rest_$51 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { s_res_$52, s_m_$53, $t9 }); return R.UNWIND; }
       s_x_$54 = $t8;
       if (s_x_$54 !== false) {
       $t9 = s_x_$54;
@@ -2380,7 +2380,7 @@ export const PROCEDURES = {
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10(s_res_$52) : $t11(s_res_$52);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, s_res_$52, $t4, $t5, s_m_$53, s_x_$54, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$50, s_rest_$51 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { s_m_$53, $t9 }); return R.UNWIND; }
       $t9 = $t12;
     }
       if ($t9 !== false) {
@@ -2405,7 +2405,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(G2(), s_rest_$51) : $t2(G2(), s_rest_$51);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t0, $t1, $t2, $t3, s_res_$52, $t4, $t5, s_m_$53, s_x_$54, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$50, s_rest_$51, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($proc$r, 3, { $t9, s_x_$50 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -2426,7 +2426,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6(s_x_$50) : $t7(s_x_$50);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { $t0, $t1, $t2, $t3, s_res_$52, $t4, $t5, s_m_$53, s_x_$54, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$50, s_rest_$51, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($proc$r, 7, { s_res_$52, s_m_$53, $t9 }); return R.UNWIND; }
             $r = $t8;
             $pc = 7; continue;
           case 7:
@@ -2441,7 +2441,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10(s_res_$52) : $t11(s_res_$52);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, s_res_$52, $t4, $t5, s_m_$53, s_x_$54, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$50, s_rest_$51, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($proc$r, 11, { s_m_$53, $t9 }); return R.UNWIND; }
             $r = $t12;
             $pc = 11; continue;
             $t9 = $t12;
@@ -2480,7 +2480,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$55) : $t1(s_x_$55);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$55, s_rest_$56 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$55, s_rest_$56 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -2488,7 +2488,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("min: expected number", s_x_$55) : $t6("min: expected number", s_x_$55);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$55, s_rest_$56 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$55, s_rest_$56 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -2505,7 +2505,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$55) : $t1(s_x_$55);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$55, s_rest_$56, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_x_$55, s_rest_$56 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -2518,7 +2518,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("min: expected number", s_x_$55) : $t6("min: expected number", s_x_$55);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$55, s_rest_$56, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_x_$55, s_rest_$56 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -2555,13 +2555,13 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_a_$57) : $t1(s_a_$57);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { s_b_$58 }); return R.UNWIND; }
       s_aa_$59 = $t2;
       $t3 = G0();
       $t4 = $t3[R.SCHEME_RAW_CALL];
       $t5 = $t4 === undefined ? $t3(s_b_$58) : $t4(s_b_$58);
       while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-      if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58 }); return R.UNWIND; }
+      if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { s_aa_$59 }); return R.UNWIND; }
       s_bb_$60 = $t5;
       $t6 = G1() === P1 && (typeof s_bb_$60 === 'bigint' && typeof 0n === 'bigint') ? (s_bb_$60 === 0n) : R.settle(R.invoke(G1(), [s_bb_$60, 0n]));
       if ($t6 === R.UNWIND) R.captureUnderPrimitive();
@@ -2572,7 +2572,7 @@ export const PROCEDURES = {
       $t8 = $t7[R.SCHEME_RAW_CALL];
       $t9 = $t8 === undefined ? $t7(s_aa_$59, s_bb_$60) : $t8(s_aa_$59, s_bb_$60);
       while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-      if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58 }); return R.UNWIND; }
+      if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { s_bb_$60 }); return R.UNWIND; }
       return new R.TailCall(G2(), [s_bb_$60, $t9]);
     }
     }
@@ -2585,7 +2585,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_a_$57) : $t1(s_a_$57);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { s_b_$58 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -2595,7 +2595,7 @@ export const PROCEDURES = {
             $t4 = $t3[R.SCHEME_RAW_CALL];
             $t5 = $t4 === undefined ? $t3(s_b_$58) : $t4(s_b_$58);
             while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-            if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58, $r }); return R.UNWIND; }
+            if ($t5 === R.UNWIND) { R.reify($proc$r, 2, { s_aa_$59 }); return R.UNWIND; }
             $r = $t5;
             $pc = 2; continue;
           case 2:
@@ -2611,7 +2611,7 @@ export const PROCEDURES = {
             $t8 = $t7[R.SCHEME_RAW_CALL];
             $t9 = $t8 === undefined ? $t7(s_aa_$59, s_bb_$60) : $t8(s_aa_$59, s_bb_$60);
             while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-            if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, s_aa_$59, $t3, $t4, $t5, s_bb_$60, $t6, $t7, $t8, $t9, s_a_$57, s_b_$58, $r }); return R.UNWIND; }
+            if ($t9 === R.UNWIND) { R.reify($proc$r, 5, { s_bb_$60 }); return R.UNWIND; }
             $r = $t9;
             $pc = 5; continue;
           case 5:
@@ -2650,7 +2650,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$62) : $t1(s_x_$62);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { $t0, $t1, $t2, $t3, s_x_$62 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { s_x_$62 }); return R.UNWIND; }
       $t3 = G1() === P1 ? ($t2 === false) : R.settle(R.invoke(G1(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -2669,7 +2669,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$62) : $t1(s_x_$62);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { $t0, $t1, $t2, $t3, s_x_$62, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { s_x_$62 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -2702,7 +2702,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2(s_result_$64, $t1) : $t3(s_result_$64, $t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_result_$64, s_rest_$65 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_rest_$65 }); return R.UNWIND; }
       $t5 = G7() === P7 && (s_rest_$65 instanceof R.Cons) ? (s_rest_$65.cdr) : R.settle(R.invoke(G7(), [s_rest_$65]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$63, [$t4, $t5]);
@@ -2726,7 +2726,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2(s_result_$64, $t1) : $t3(s_result_$64, $t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_result_$64, s_rest_$65, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_rest_$65 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -2749,7 +2749,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1, s_args_$61) : $t3($t1, s_args_$61);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { $t1, $t2, $t3, $t4, $t5, s_loop_$63, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$61 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { s_args_$61 }); return R.UNWIND; }
       $t4;
       $t5 = G4() === P4 ? (s_args_$61 === null) : R.settle(R.invoke(G4(), [s_args_$61]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
@@ -2764,7 +2764,7 @@ export const PROCEDURES = {
       $t10 = $t9[R.SCHEME_RAW_CALL];
       $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
       while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { $t1, $t2, $t3, $t4, $t5, s_loop_$63, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$61 }); return R.UNWIND; }
+      if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$63, s_args_$61 }); return R.UNWIND; }
       $t12 = G7() === P7 && (s_args_$61 instanceof R.Cons) ? (s_args_$61.cdr) : R.settle(R.invoke(G7(), [s_args_$61]));
       if ($t12 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$63, [$t11, $t12]);
@@ -2780,7 +2780,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1, s_args_$61) : $t3($t1, s_args_$61);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { $t1, $t2, $t3, $t4, $t5, s_loop_$63, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$61, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { s_args_$61 }); return R.UNWIND; }
             $r = $t4;
             $pc = 1; continue;
           case 1:
@@ -2800,7 +2800,7 @@ export const PROCEDURES = {
             $t10 = $t9[R.SCHEME_RAW_CALL];
             $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
             while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { $t1, $t2, $t3, $t4, $t5, s_loop_$63, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$61, $r }); return R.UNWIND; }
+            if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$63, s_args_$61 }); return R.UNWIND; }
             $r = $t11;
             $pc = 4; continue;
           case 4:
@@ -2846,7 +2846,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_x_$67) : $t1(s_x_$67);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { $t0, $t1, $t2, $t3, s_x_$67 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { s_x_$67 }); return R.UNWIND; }
       $t3 = G1() === P1 ? ($t2 === false) : R.settle(R.invoke(G1(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -2865,7 +2865,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_x_$67) : $t1(s_x_$67);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { $t0, $t1, $t2, $t3, s_x_$67, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($fn0$r, 1, { s_x_$67 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -2898,7 +2898,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_result_$69, s_rest_$70 }); return R.UNWIND; }
       s_b_$71 = $t4;
       $t5 = G7() === P7 && (typeof s_result_$69 === 'bigint' && typeof 0n === 'bigint') ? (s_result_$69 === 0n) : R.settle(R.invoke(G7(), [s_result_$69, 0n]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
@@ -2919,12 +2919,12 @@ export const PROCEDURES = {
       $t10 = $t9[R.SCHEME_RAW_CALL];
       $t11 = $t10 === undefined ? $t9(s_result_$69, s_b_$71) : $t10(s_result_$69, s_b_$71);
       while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($fn6$r, 9, { $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70 }); return R.UNWIND; }
+      if ($t11 === R.UNWIND) { R.reify($fn6$r, 9, { $t8, s_rest_$70 }); return R.UNWIND; }
       $t12 = G8();
       $t13 = $t12[R.SCHEME_RAW_CALL];
       $t14 = $t13 === undefined ? $t12($t8, $t11) : $t13($t8, $t11);
       while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-      if ($t14 === R.UNWIND) { R.reify($fn6$r, 10, { $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70 }); return R.UNWIND; }
+      if ($t14 === R.UNWIND) { R.reify($fn6$r, 10, { s_rest_$70 }); return R.UNWIND; }
       $t15 = G11() === P11 && (s_rest_$70 instanceof R.Cons) ? (s_rest_$70.cdr) : R.settle(R.invoke(G11(), [s_rest_$70]));
       if ($t15 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$68, [$t14, $t15]);
@@ -2949,7 +2949,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn6$r, 3, { s_result_$69, s_rest_$70 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -2978,7 +2978,7 @@ export const PROCEDURES = {
             $t10 = $t9[R.SCHEME_RAW_CALL];
             $t11 = $t10 === undefined ? $t9(s_result_$69, s_b_$71) : $t10(s_result_$69, s_b_$71);
             while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($fn6$r, 9, { $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70, $r }); return R.UNWIND; }
+            if ($t11 === R.UNWIND) { R.reify($fn6$r, 9, { $t8, s_rest_$70 }); return R.UNWIND; }
             $r = $t11;
             $pc = 9; continue;
           case 9:
@@ -2987,7 +2987,7 @@ export const PROCEDURES = {
             $t13 = $t12[R.SCHEME_RAW_CALL];
             $t14 = $t13 === undefined ? $t12($t8, $t11) : $t13($t8, $t11);
             while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-            if ($t14 === R.UNWIND) { R.reify($fn6$r, 10, { $t0, $t1, $t2, $t3, $t4, s_b_$71, s_x_$72, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$69, s_rest_$70, $r }); return R.UNWIND; }
+            if ($t14 === R.UNWIND) { R.reify($fn6$r, 10, { s_rest_$70 }); return R.UNWIND; }
             $r = $t14;
             $pc = 10; continue;
           case 10:
@@ -3010,7 +3010,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1, s_args_$66) : $t3($t1, s_args_$66);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { $t1, $t2, $t3, $t4, $t5, s_loop_$68, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$66 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { s_args_$66 }); return R.UNWIND; }
       $t4;
       $t5 = G4() === P4 ? (s_args_$66 === null) : R.settle(R.invoke(G4(), [s_args_$66]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
@@ -3025,7 +3025,7 @@ export const PROCEDURES = {
       $t10 = $t9[R.SCHEME_RAW_CALL];
       $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
       while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { $t1, $t2, $t3, $t4, $t5, s_loop_$68, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$66 }); return R.UNWIND; }
+      if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$68, s_args_$66 }); return R.UNWIND; }
       $t12 = G11() === P11 && (s_args_$66 instanceof R.Cons) ? (s_args_$66.cdr) : R.settle(R.invoke(G11(), [s_args_$66]));
       if ($t12 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$68, [$t11, $t12]);
@@ -3041,7 +3041,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1, s_args_$66) : $t3($t1, s_args_$66);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { $t1, $t2, $t3, $t4, $t5, s_loop_$68, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$66, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($proc$r, 1, { s_args_$66 }); return R.UNWIND; }
             $r = $t4;
             $pc = 1; continue;
           case 1:
@@ -3061,7 +3061,7 @@ export const PROCEDURES = {
             $t10 = $t9[R.SCHEME_RAW_CALL];
             $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
             while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { $t1, $t2, $t3, $t4, $t5, s_loop_$68, $t7, $t8, $t9, $t10, $t11, $t12, s_args_$66, $r }); return R.UNWIND; }
+            if ($t11 === R.UNWIND) { R.reify($proc$r, 4, { s_loop_$68, s_args_$66 }); return R.UNWIND; }
             $r = $t11;
             $pc = 4; continue;
           case 4:
@@ -3138,14 +3138,14 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn18$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$78 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn18$r, 3, { s_l_$78 }); return R.UNWIND; }
       $t5 = G7() === P7 && (s_l_$78 instanceof R.Cons) ? (s_l_$78.cdr) : R.settle(R.invoke(G7(), [s_l_$78]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
       $t6 = s_loop_$77;
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn18$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$78 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($fn18$r, 4, { $t4 }); return R.UNWIND; }
       $t9 = G5() === P5 ? (new R.Cons($t4, $t8)) : R.settle(R.invoke(G5(), [$t4, $t8]));
       if ($t9 === R.UNWIND) R.captureUnderPrimitive();
       return $t9;
@@ -3169,7 +3169,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn18$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$78, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn18$r, 3, { s_l_$78 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -3180,7 +3180,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn18$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$78, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($fn18$r, 4, { $t4 }); return R.UNWIND; }
             $r = $t8;
             $pc = 4; continue;
           case 4:
@@ -3314,14 +3314,14 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_lists_$86) : $t2(s_lists_$86);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$86 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_lists_$86 }); return R.UNWIND; }
       $t4 = G7() === P7 && (s_lists_$86 instanceof R.Cons) ? (s_lists_$86.cdr) : R.settle(R.invoke(G7(), [s_lists_$86]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
       $t5 = s_all_2dcars_$81[0];
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$86 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn27$r, 4, { $t3 }); return R.UNWIND; }
       $t8 = G5() === P5 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G5(), [$t3, $t7]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
       return $t8;
@@ -3343,7 +3343,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_lists_$86) : $t2(s_lists_$86);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$86, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_lists_$86 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -3354,7 +3354,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$86, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn27$r, 4, { $t3 }); return R.UNWIND; }
             $r = $t7;
             $pc = 4; continue;
           case 4:
@@ -3380,14 +3380,14 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_lists_$87) : $t2(s_lists_$87);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn29$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$87 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn29$r, 3, { s_lists_$87 }); return R.UNWIND; }
       $t4 = G7() === P7 && (s_lists_$87 instanceof R.Cons) ? (s_lists_$87.cdr) : R.settle(R.invoke(G7(), [s_lists_$87]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
       $t5 = s_all_2dcdrs_$82[0];
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn29$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$87 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn29$r, 4, { $t3 }); return R.UNWIND; }
       $t8 = G5() === P5 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G5(), [$t3, $t7]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
       return $t8;
@@ -3409,7 +3409,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_lists_$87) : $t2(s_lists_$87);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn29$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$87, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn29$r, 3, { s_lists_$87 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -3420,7 +3420,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn29$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$87, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn29$r, 4, { $t3 }); return R.UNWIND; }
             $r = $t7;
             $pc = 4; continue;
           case 4:
@@ -3448,7 +3448,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$89) : $t3(s_rest_2dlists_$89);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn31$r, 4, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn31$r, 4, { $t1, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
       $t1 = $t4;
     }
       if ($t1 !== false) {
@@ -3460,26 +3460,26 @@ export const PROCEDURES = {
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6(s_rest_2dlists_$89) : $t7(s_rest_2dlists_$89);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn31$r, 7, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($fn31$r, 7, { $t5, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
       $t9 = G5() === P5 ? (new R.Cons($t5, $t8)) : R.settle(R.invoke(G5(), [$t5, $t8]));
       if ($t9 === R.UNWIND) R.captureUnderPrimitive();
       $t10 = G11();
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10(s_proc_$74, $t9) : $t11(s_proc_$74, $t9);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($fn31$r, 8, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($fn31$r, 8, { s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
       $t13 = G7() === P7 && (s_first_2dlist_$88 instanceof R.Cons) ? (s_first_2dlist_$88.cdr) : R.settle(R.invoke(G7(), [s_first_2dlist_$88]));
       if ($t13 === R.UNWIND) R.captureUnderPrimitive();
       $t14 = s_all_2dcdrs_$82[0];
       $t15 = $t14[R.SCHEME_RAW_CALL];
       $t16 = $t15 === undefined ? $t14(s_rest_2dlists_$89) : $t15(s_rest_2dlists_$89);
       while ($t16 instanceof R.TailCall) { $t16 = R.step($t16); }
-      if ($t16 === R.UNWIND) { R.reify($fn31$r, 9, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
+      if ($t16 === R.UNWIND) { R.reify($fn31$r, 9, { $t12, $t13 }); return R.UNWIND; }
       $t17 = s_loop_$83;
       $t18 = $t17[R.SCHEME_RAW_CALL];
       $t19 = $t18 === undefined ? $t17($t13, $t16) : $t18($t13, $t16);
       while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
-      if ($t19 === R.UNWIND) { R.reify($fn31$r, 10, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
+      if ($t19 === R.UNWIND) { R.reify($fn31$r, 10, { $t12 }); return R.UNWIND; }
       $t20 = G5() === P5 ? (new R.Cons($t12, $t19)) : R.settle(R.invoke(G5(), [$t12, $t19]));
       if ($t20 === R.UNWIND) R.captureUnderPrimitive();
       return $t20;
@@ -3503,7 +3503,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$89) : $t3(s_rest_2dlists_$89);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn31$r, 4, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn31$r, 4, { $t1, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
             $r = $t4;
             $pc = 4; continue;
             $t1 = $t4;
@@ -3521,7 +3521,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6(s_rest_2dlists_$89) : $t7(s_rest_2dlists_$89);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn31$r, 7, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($fn31$r, 7, { $t5, s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
             $r = $t8;
             $pc = 7; continue;
           case 7:
@@ -3532,7 +3532,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10(s_proc_$74, $t9) : $t11(s_proc_$74, $t9);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($fn31$r, 8, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($fn31$r, 8, { s_first_2dlist_$88, s_rest_2dlists_$89 }); return R.UNWIND; }
             $r = $t12;
             $pc = 8; continue;
           case 8:
@@ -3543,7 +3543,7 @@ export const PROCEDURES = {
             $t15 = $t14[R.SCHEME_RAW_CALL];
             $t16 = $t15 === undefined ? $t14(s_rest_2dlists_$89) : $t15(s_rest_2dlists_$89);
             while ($t16 instanceof R.TailCall) { $t16 = R.step($t16); }
-            if ($t16 === R.UNWIND) { R.reify($fn31$r, 9, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89, $r }); return R.UNWIND; }
+            if ($t16 === R.UNWIND) { R.reify($fn31$r, 9, { $t12, $t13 }); return R.UNWIND; }
             $r = $t16;
             $pc = 9; continue;
           case 9:
@@ -3552,7 +3552,7 @@ export const PROCEDURES = {
             $t18 = $t17[R.SCHEME_RAW_CALL];
             $t19 = $t18 === undefined ? $t17($t13, $t16) : $t18($t13, $t16);
             while ($t19 instanceof R.TailCall) { $t19 = R.step($t19); }
-            if ($t19 === R.UNWIND) { R.reify($fn31$r, 10, { s_x_$90, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_first_2dlist_$88, s_rest_2dlists_$89, $r }); return R.UNWIND; }
+            if ($t19 === R.UNWIND) { R.reify($fn31$r, 10, { $t12 }); return R.UNWIND; }
             $r = $t19;
             $pc = 10; continue;
           case 10:
@@ -3574,7 +3574,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_proc_$74) : $t1(s_proc_$74);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t13, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -3582,7 +3582,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("map: expected procedure", s_proc_$74) : $t6("map: expected procedure", s_proc_$74);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t13, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -3606,7 +3606,7 @@ export const PROCEDURES = {
       $t15 = $t14[R.SCHEME_RAW_CALL];
       $t16 = $t15 === undefined ? $t14("map: expected list", s_lst_$75) : $t15("map: expected list", s_lst_$75);
       while ($t16 instanceof R.TailCall) { $t16 = R.step($t16); }
-      if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
+      if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t13, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
       $t13 = $t16;
     } else {
       $t13 = undefined;
@@ -3624,7 +3624,7 @@ export const PROCEDURES = {
       $t23 = $t22[R.SCHEME_RAW_CALL];
       $t24 = $t23 === undefined ? $t22($t21, s_lsts_$76) : $t23($t21, s_lsts_$76);
       while ($t24 instanceof R.TailCall) { $t24 = R.step($t24); }
-      if ($t24 === R.UNWIND) { R.reify($proc$r, 15, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
+      if ($t24 === R.UNWIND) { R.reify($proc$r, 15, { s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
       $t24;
       s_any_2dnull_3f_$80 = [undefined];
       s_all_2dcars_$81 = [undefined];
@@ -3649,7 +3649,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_proc_$74) : $t1(s_proc_$74);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t13, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -3662,7 +3662,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("map: expected procedure", s_proc_$74) : $t6("map: expected procedure", s_proc_$74);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t13, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -3696,7 +3696,7 @@ export const PROCEDURES = {
             $t15 = $t14[R.SCHEME_RAW_CALL];
             $t16 = $t15 === undefined ? $t14("map: expected list", s_lst_$75) : $t15("map: expected list", s_lst_$75);
             while ($t16 instanceof R.TailCall) { $t16 = R.step($t16); }
-            if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76, $r }); return R.UNWIND; }
+            if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t13, s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
             $r = $t16;
             $pc = 12; continue;
             $t13 = $t16;
@@ -3721,7 +3721,7 @@ export const PROCEDURES = {
             $t23 = $t22[R.SCHEME_RAW_CALL];
             $t24 = $t23 === undefined ? $t22($t21, s_lsts_$76) : $t23($t21, s_lsts_$76);
             while ($t24 instanceof R.TailCall) { $t24 = R.step($t24); }
-            if ($t24 === R.UNWIND) { R.reify($proc$r, 15, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$77, $t19, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$80, s_all_2dcars_$81, s_all_2dcdrs_$82, s_loop_$83, $t26, $t28, $t30, $t32, s_proc_$74, s_lst_$75, s_lsts_$76, $r }); return R.UNWIND; }
+            if ($t24 === R.UNWIND) { R.reify($proc$r, 15, { s_proc_$74, s_lst_$75, s_lsts_$76 }); return R.UNWIND; }
             $r = $t24;
             $pc = 15; continue;
           case 15:
@@ -3784,7 +3784,7 @@ export const PROCEDURES = {
       $t4 = $t3[R.SCHEME_RAW_CALL];
       $t5 = $t4 === undefined ? $t3($t2) : $t4($t2);
       while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-      if ($t5 === R.UNWIND) { R.reify($fn18$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$95 }); return R.UNWIND; }
+      if ($t5 === R.UNWIND) { R.reify($fn18$r, 3, { s_l_$95 }); return R.UNWIND; }
       $t5;
       $t6 = G6() === P6 && (s_l_$95 instanceof R.Cons) ? (s_l_$95.cdr) : R.settle(R.invoke(G6(), [s_l_$95]));
       if ($t6 === R.UNWIND) R.captureUnderPrimitive();
@@ -3811,7 +3811,7 @@ export const PROCEDURES = {
             $t4 = $t3[R.SCHEME_RAW_CALL];
             $t5 = $t4 === undefined ? $t3($t2) : $t4($t2);
             while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-            if ($t5 === R.UNWIND) { R.reify($fn18$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$95, $r }); return R.UNWIND; }
+            if ($t5 === R.UNWIND) { R.reify($fn18$r, 3, { s_l_$95 }); return R.UNWIND; }
             $r = $t5;
             $pc = 3; continue;
           case 2:
@@ -3893,14 +3893,14 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_lists_$102) : $t2(s_lists_$102);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn22$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$102 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn22$r, 3, { s_lists_$102 }); return R.UNWIND; }
       $t4 = G6() === P6 && (s_lists_$102 instanceof R.Cons) ? (s_lists_$102.cdr) : R.settle(R.invoke(G6(), [s_lists_$102]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
       $t5 = s_all_2dcars_$97[0];
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn22$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$102 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn22$r, 4, { $t3 }); return R.UNWIND; }
       $t8 = G7() === P7 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G7(), [$t3, $t7]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
       return $t8;
@@ -3922,7 +3922,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_lists_$102) : $t2(s_lists_$102);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn22$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$102, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn22$r, 3, { s_lists_$102 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -3933,7 +3933,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn22$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$102, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn22$r, 4, { $t3 }); return R.UNWIND; }
             $r = $t7;
             $pc = 4; continue;
           case 4:
@@ -3959,14 +3959,14 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_lists_$103) : $t2(s_lists_$103);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn24$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$103 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn24$r, 3, { s_lists_$103 }); return R.UNWIND; }
       $t4 = G6() === P6 && (s_lists_$103 instanceof R.Cons) ? (s_lists_$103.cdr) : R.settle(R.invoke(G6(), [s_lists_$103]));
       if ($t4 === R.UNWIND) R.captureUnderPrimitive();
       $t5 = s_all_2dcdrs_$98[0];
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn24$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$103 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn24$r, 4, { $t3 }); return R.UNWIND; }
       $t8 = G7() === P7 ? (new R.Cons($t3, $t7)) : R.settle(R.invoke(G7(), [$t3, $t7]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
       return $t8;
@@ -3988,7 +3988,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_lists_$103) : $t2(s_lists_$103);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn24$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$103, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn24$r, 3, { s_lists_$103 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -3999,7 +3999,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn24$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$103, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn24$r, 4, { $t3 }); return R.UNWIND; }
             $r = $t7;
             $pc = 4; continue;
           case 4:
@@ -4027,7 +4027,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$105) : $t3(s_rest_2dlists_$105);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn26$r, 4, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn26$r, 4, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
       $t1 = $t4;
     }
       $t5 = G0() === P0 ? ($t1 === false) : R.settle(R.invoke(G0(), [$t1]));
@@ -4039,14 +4039,14 @@ export const PROCEDURES = {
       $t8 = $t7[R.SCHEME_RAW_CALL];
       $t9 = $t8 === undefined ? $t7(s_rest_2dlists_$105) : $t8(s_rest_2dlists_$105);
       while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-      if ($t9 === R.UNWIND) { R.reify($fn26$r, 7, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+      if ($t9 === R.UNWIND) { R.reify($fn26$r, 7, { $t6, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
       $t10 = G7() === P7 ? (new R.Cons($t6, $t9)) : R.settle(R.invoke(G7(), [$t6, $t9]));
       if ($t10 === R.UNWIND) R.captureUnderPrimitive();
       $t11 = G10();
       $t12 = $t11[R.SCHEME_RAW_CALL];
       $t13 = $t12 === undefined ? $t11(s_proc_$91, $t10) : $t12(s_proc_$91, $t10);
       while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-      if ($t13 === R.UNWIND) { R.reify($fn26$r, 8, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+      if ($t13 === R.UNWIND) { R.reify($fn26$r, 8, { s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
       $t13;
       $t14 = G6() === P6 && (s_first_2dlist_$104 instanceof R.Cons) ? (s_first_2dlist_$104.cdr) : R.settle(R.invoke(G6(), [s_first_2dlist_$104]));
       if ($t14 === R.UNWIND) R.captureUnderPrimitive();
@@ -4054,7 +4054,7 @@ export const PROCEDURES = {
       $t16 = $t15[R.SCHEME_RAW_CALL];
       $t17 = $t16 === undefined ? $t15(s_rest_2dlists_$105) : $t16(s_rest_2dlists_$105);
       while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-      if ($t17 === R.UNWIND) { R.reify($fn26$r, 9, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
+      if ($t17 === R.UNWIND) { R.reify($fn26$r, 9, { $t14 }); return R.UNWIND; }
       return new R.TailCall(s_loop_$99, [$t14, $t17]);
     } else {
       return undefined;
@@ -4078,7 +4078,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$105) : $t3(s_rest_2dlists_$105);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn26$r, 4, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn26$r, 4, { $t1, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
             $r = $t4;
             $pc = 4; continue;
             $t1 = $t4;
@@ -4096,7 +4096,7 @@ export const PROCEDURES = {
             $t8 = $t7[R.SCHEME_RAW_CALL];
             $t9 = $t8 === undefined ? $t7(s_rest_2dlists_$105) : $t8(s_rest_2dlists_$105);
             while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-            if ($t9 === R.UNWIND) { R.reify($fn26$r, 7, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105, $r }); return R.UNWIND; }
+            if ($t9 === R.UNWIND) { R.reify($fn26$r, 7, { $t6, s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
             $r = $t9;
             $pc = 7; continue;
           case 6:
@@ -4109,7 +4109,7 @@ export const PROCEDURES = {
             $t12 = $t11[R.SCHEME_RAW_CALL];
             $t13 = $t12 === undefined ? $t11(s_proc_$91, $t10) : $t12(s_proc_$91, $t10);
             while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-            if ($t13 === R.UNWIND) { R.reify($fn26$r, 8, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105, $r }); return R.UNWIND; }
+            if ($t13 === R.UNWIND) { R.reify($fn26$r, 8, { s_first_2dlist_$104, s_rest_2dlists_$105 }); return R.UNWIND; }
             $r = $t13;
             $pc = 8; continue;
           case 8:
@@ -4121,7 +4121,7 @@ export const PROCEDURES = {
             $t16 = $t15[R.SCHEME_RAW_CALL];
             $t17 = $t16 === undefined ? $t15(s_rest_2dlists_$105) : $t16(s_rest_2dlists_$105);
             while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-            if ($t17 === R.UNWIND) { R.reify($fn26$r, 9, { s_x_$106, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_first_2dlist_$104, s_rest_2dlists_$105, $r }); return R.UNWIND; }
+            if ($t17 === R.UNWIND) { R.reify($fn26$r, 9, { $t14 }); return R.UNWIND; }
             $r = $t17;
             $pc = 9; continue;
           case 9:
@@ -4141,7 +4141,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_proc_$91) : $t1(s_proc_$91);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t13, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -4149,7 +4149,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("for-each: expected procedure", s_proc_$91) : $t6("for-each: expected procedure", s_proc_$91);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t13, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -4173,7 +4173,7 @@ export const PROCEDURES = {
       $t15 = $t14[R.SCHEME_RAW_CALL];
       $t16 = $t15 === undefined ? $t14("for-each: expected list", s_lst_$92) : $t15("for-each: expected list", s_lst_$92);
       while ($t16 instanceof R.TailCall) { $t16 = R.step($t16); }
-      if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
+      if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t13, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
       $t13 = $t16;
     } else {
       $t13 = undefined;
@@ -4209,7 +4209,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_proc_$91) : $t1(s_proc_$91);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t13, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -4222,7 +4222,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("for-each: expected procedure", s_proc_$91) : $t6("for-each: expected procedure", s_proc_$91);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t13, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -4256,7 +4256,7 @@ export const PROCEDURES = {
             $t15 = $t14[R.SCHEME_RAW_CALL];
             $t16 = $t15 === undefined ? $t14("for-each: expected list", s_lst_$92) : $t15("for-each: expected list", s_lst_$92);
             while ($t16 instanceof R.TailCall) { $t16 = R.step($t16); }
-            if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$94, $t19, s_any_2dnull_3f_$96, s_all_2dcars_$97, s_all_2dcdrs_$98, s_loop_$99, $t21, $t23, $t25, $t27, s_proc_$91, s_lst_$92, s_lsts_$93, $r }); return R.UNWIND; }
+            if ($t16 === R.UNWIND) { R.reify($proc$r, 12, { $t13, s_proc_$91, s_lst_$92, s_lsts_$93 }); return R.UNWIND; }
             $r = $t16;
             $pc = 12; continue;
             $t13 = $t16;
@@ -4339,7 +4339,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
       $t5 = G0() === P0 ? ($t4 === false) : R.settle(R.invoke(G0(), [$t4]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
       if ($t5 !== false) {
@@ -4349,7 +4349,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8("string-map: expected string", $t7) : $t9("string-map: expected string", $t7);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
       $t6 = $t10;
     } else {
       $t6 = undefined;
@@ -4361,12 +4361,12 @@ export const PROCEDURES = {
       $t13 = $t12[R.SCHEME_RAW_CALL];
       $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
       while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-      if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+      if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
       $t15 = G6();
       $t16 = $t15[R.SCHEME_RAW_CALL];
       $t17 = $t16 === undefined ? $t15(s_min_2dlen_$112, $t14) : $t16(s_min_2dlen_$112, $t14);
       while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-      if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
+      if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_ss_$113 }); return R.UNWIND; }
       $t18 = G8() === P8 && (s_ss_$113 instanceof R.Cons) ? (s_ss_$113.cdr) : R.settle(R.invoke(G8(), [s_ss_$113]));
       if ($t18 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$111, [$t17, $t18]);
@@ -4390,7 +4390,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -4405,7 +4405,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8("string-map: expected string", $t7) : $t9("string-map: expected string", $t7);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
             $r = $t10;
             $pc = 7; continue;
             $t6 = $t10;
@@ -4420,7 +4420,7 @@ export const PROCEDURES = {
             $t13 = $t12[R.SCHEME_RAW_CALL];
             $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
             while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-            if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113, $r }); return R.UNWIND; }
+            if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$112, s_ss_$113 }); return R.UNWIND; }
             $r = $t14;
             $pc = 8; continue;
           case 7:
@@ -4432,7 +4432,7 @@ export const PROCEDURES = {
             $t16 = $t15[R.SCHEME_RAW_CALL];
             $t17 = $t16 === undefined ? $t15(s_min_2dlen_$112, $t14) : $t16(s_min_2dlen_$112, $t14);
             while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-            if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$112, s_ss_$113, $r }); return R.UNWIND; }
+            if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_ss_$113 }); return R.UNWIND; }
             $r = $t17;
             $pc = 9; continue;
           case 9:
@@ -4462,12 +4462,12 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2(s_str_$108, s_i_$115) : $t3(s_str_$108, s_i_$115);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn25$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$115, s_acc_$116 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn25$r, 3, { $t1, s_acc_$116 }); return R.UNWIND; }
       $t5 = s_proc_$107;
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn25$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$115, s_acc_$116 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn25$r, 4, { $t1, s_acc_$116 }); return R.UNWIND; }
       $t8 = G12() === P12 ? (new R.Cons($t7, s_acc_$116)) : R.settle(R.invoke(G12(), [$t7, s_acc_$116]));
       if ($t8 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$114, [$t1, $t8]);
@@ -4491,7 +4491,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2(s_str_$108, s_i_$115) : $t3(s_str_$108, s_i_$115);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn25$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$115, s_acc_$116, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn25$r, 3, { $t1, s_acc_$116 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -4500,7 +4500,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn25$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$115, s_acc_$116, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn25$r, 4, { $t1, s_acc_$116 }); return R.UNWIND; }
             $r = $t7;
             $pc = 4; continue;
           case 4:
@@ -4545,13 +4545,13 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_str_$108, s_i_$118) : $t2(s_str_$108, s_i_$118);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn31$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$120, $t10, $t11, $t12, $t13, $t14, s_i_$118, s_acc_$119 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn31$r, 3, { s_i_$118, s_acc_$119 }); return R.UNWIND; }
       $t5 = $mk$fn31_4(s_i_$118);
       $t6 = G14();
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6($t5, s_strs_$109) : $t7($t5, s_strs_$109);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn31$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$120, $t10, $t11, $t12, $t13, $t14, s_i_$118, s_acc_$119 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($fn31$r, 4, { $t3, s_i_$118, s_acc_$119 }); return R.UNWIND; }
       $t9 = G12() === P12 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G12(), [$t3, $t8]));
       if ($t9 === R.UNWIND) R.captureUnderPrimitive();
       s_chars_$120 = $t9;
@@ -4561,7 +4561,7 @@ export const PROCEDURES = {
       $t12 = $t11[R.SCHEME_RAW_CALL];
       $t13 = $t12 === undefined ? $t11(s_proc_$107, s_chars_$120) : $t12(s_proc_$107, s_chars_$120);
       while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-      if ($t13 === R.UNWIND) { R.reify($fn31$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$120, $t10, $t11, $t12, $t13, $t14, s_i_$118, s_acc_$119 }); return R.UNWIND; }
+      if ($t13 === R.UNWIND) { R.reify($fn31$r, 5, { $t10, s_acc_$119 }); return R.UNWIND; }
       $t14 = G12() === P12 ? (new R.Cons($t13, s_acc_$119)) : R.settle(R.invoke(G12(), [$t13, s_acc_$119]));
       if ($t14 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$117, [$t10, $t14]);
@@ -4583,7 +4583,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_str_$108, s_i_$118) : $t2(s_str_$108, s_i_$118);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn31$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$120, $t10, $t11, $t12, $t13, $t14, s_i_$118, s_acc_$119, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn31$r, 3, { s_i_$118, s_acc_$119 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 3:
@@ -4593,7 +4593,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6($t5, s_strs_$109) : $t7($t5, s_strs_$109);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn31$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$120, $t10, $t11, $t12, $t13, $t14, s_i_$118, s_acc_$119, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($fn31$r, 4, { $t3, s_i_$118, s_acc_$119 }); return R.UNWIND; }
             $r = $t8;
             $pc = 4; continue;
           case 4:
@@ -4607,7 +4607,7 @@ export const PROCEDURES = {
             $t12 = $t11[R.SCHEME_RAW_CALL];
             $t13 = $t12 === undefined ? $t11(s_proc_$107, s_chars_$120) : $t12(s_proc_$107, s_chars_$120);
             while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-            if ($t13 === R.UNWIND) { R.reify($fn31$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$120, $t10, $t11, $t12, $t13, $t14, s_i_$118, s_acc_$119, $r }); return R.UNWIND; }
+            if ($t13 === R.UNWIND) { R.reify($fn31$r, 5, { $t10, s_acc_$119 }); return R.UNWIND; }
             $r = $t13;
             $pc = 5; continue;
           case 5:
@@ -4629,7 +4629,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_proc_$107) : $t1(s_proc_$107);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -4637,7 +4637,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("string-map: expected procedure", s_proc_$107) : $t6("string-map: expected procedure", s_proc_$107);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -4647,7 +4647,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_str_$108) : $t9(s_str_$108);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
       $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       if ($t11 !== false) {
@@ -4655,7 +4655,7 @@ export const PROCEDURES = {
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13("string-map: expected string", s_str_$108) : $t14("string-map: expected string", s_str_$108);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
       $t12 = $t15;
     } else {
       $t12 = undefined;
@@ -4665,14 +4665,14 @@ export const PROCEDURES = {
       $t17 = $t16[R.SCHEME_RAW_CALL];
       $t18 = $t17 === undefined ? $t16(s_str_$108) : $t17(s_str_$108);
       while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
       $t23 = $mk$fn22();
       s_loop_$111 = $t23;
       $t19 = s_loop_$111;
       $t20 = $t19[R.SCHEME_RAW_CALL];
       $t21 = $t20 === undefined ? $t19($t18, s_strs_$109) : $t20($t18, s_strs_$109);
       while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-      if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
       s_len_$110 = $t21;
       $t24 = G4() === P4 ? (s_strs_$109 === null) : R.settle(R.invoke(G4(), [s_strs_$109]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
@@ -4685,7 +4685,7 @@ export const PROCEDURES = {
       $t29 = $t28[R.SCHEME_RAW_CALL];
       $t30 = $t29 === undefined ? $t28($t27, null) : $t29($t27, null);
       while ($t30 instanceof R.TailCall) { $t30 = R.step($t30); }
-      if ($t30 === R.UNWIND) { R.reify($proc$r, 15, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t30 === R.UNWIND) { R.reify($proc$r, 15, {  }); return R.UNWIND; }
       return new R.TailCall(G9(), [$t30]);
     } else {
       $t32 = $mk$fn31(s_str_$108, s_strs_$109, s_proc_$107);
@@ -4696,7 +4696,7 @@ export const PROCEDURES = {
       $t35 = $t34[R.SCHEME_RAW_CALL];
       $t36 = $t35 === undefined ? $t34($t33, null) : $t35($t33, null);
       while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
-      if ($t36 === R.UNWIND) { R.reify($proc$r, 16, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
+      if ($t36 === R.UNWIND) { R.reify($proc$r, 16, {  }); return R.UNWIND; }
       return new R.TailCall(G9(), [$t36]);
     }
     }
@@ -4709,7 +4709,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_proc_$107) : $t1(s_proc_$107);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -4722,7 +4722,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("string-map: expected procedure", s_proc_$107) : $t6("string-map: expected procedure", s_proc_$107);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -4735,7 +4735,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_str_$108) : $t9(s_str_$108);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -4751,7 +4751,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13("string-map: expected string", s_str_$108) : $t14("string-map: expected string", s_str_$108);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
             $r = $t15;
             $pc = 10; continue;
             $t12 = $t15;
@@ -4764,7 +4764,7 @@ export const PROCEDURES = {
             $t17 = $t16[R.SCHEME_RAW_CALL];
             $t18 = $t17 === undefined ? $t16(s_str_$108) : $t17(s_str_$108);
             while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
             $r = $t18;
             $pc = 11; continue;
           case 10:
@@ -4778,7 +4778,7 @@ export const PROCEDURES = {
             $t20 = $t19[R.SCHEME_RAW_CALL];
             $t21 = $t20 === undefined ? $t19($t18, s_strs_$109) : $t20($t18, s_strs_$109);
             while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-            if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$107, s_str_$108, s_strs_$109 }); return R.UNWIND; }
             $r = $t21;
             $pc = 12; continue;
           case 12:
@@ -4796,7 +4796,7 @@ export const PROCEDURES = {
             $t29 = $t28[R.SCHEME_RAW_CALL];
             $t30 = $t29 === undefined ? $t28($t27, null) : $t29($t27, null);
             while ($t30 instanceof R.TailCall) { $t30 = R.step($t30); }
-            if ($t30 === R.UNWIND) { R.reify($proc$r, 15, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t30 === R.UNWIND) { R.reify($proc$r, 15, {  }); return R.UNWIND; }
             $r = $t30;
             $pc = 15; continue;
           case 14:
@@ -4808,7 +4808,7 @@ export const PROCEDURES = {
             $t35 = $t34[R.SCHEME_RAW_CALL];
             $t36 = $t35 === undefined ? $t34($t33, null) : $t35($t33, null);
             while ($t36 instanceof R.TailCall) { $t36 = R.step($t36); }
-            if ($t36 === R.UNWIND) { R.reify($proc$r, 16, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$111, $t23, s_len_$110, $t24, s_loop_$114, $t26, $t27, $t28, $t29, $t30, s_loop_$117, $t32, $t33, $t34, $t35, $t36, s_proc_$107, s_str_$108, s_strs_$109, $r }); return R.UNWIND; }
+            if ($t36 === R.UNWIND) { R.reify($proc$r, 16, {  }); return R.UNWIND; }
             $r = $t36;
             $pc = 16; continue;
           case 15:
@@ -4857,7 +4857,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_s_$126) : $t1(s_s_$126);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$126 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t4, s_s_$126 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -4865,7 +4865,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("string-for-each: expected string", s_s_$126) : $t6("string-for-each: expected string", s_s_$126);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$126 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t4, s_s_$126 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -4875,7 +4875,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_s_$126) : $t9(s_s_$126);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$126 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, {  }); return R.UNWIND; }
       $t11 = G6() === P6 && (typeof $t10 === 'bigint' && typeof s_len_$125 === 'bigint') ? ($t10 === s_len_$125) : R.settle(R.invoke(G6(), [$t10, s_len_$125]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       $t12 = G0() === P0 ? ($t11 === false) : R.settle(R.invoke(G0(), [$t11]));
@@ -4896,7 +4896,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_s_$126) : $t1(s_s_$126);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$126, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t4, s_s_$126 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -4909,7 +4909,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("string-for-each: expected string", s_s_$126) : $t6("string-for-each: expected string", s_s_$126);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$126, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t4, s_s_$126 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -4922,7 +4922,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_s_$126) : $t9(s_s_$126);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$126, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, {  }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -4956,12 +4956,12 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$128) : $t2(s_str_$123, s_i_$128);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$128 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$128 }); return R.UNWIND; }
       $t4 = s_proc_$122;
       $t5 = $t4[R.SCHEME_RAW_CALL];
       $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
       while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$128 }); return R.UNWIND; }
+      if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$128 }); return R.UNWIND; }
       $t6;
       $t7 = G10() === P10 && (typeof s_i_$128 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$128 + 1n) : R.settle(R.invoke(G10(), [s_i_$128, 1n]));
       if ($t7 === R.UNWIND) R.captureUnderPrimitive();
@@ -4984,7 +4984,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$128) : $t2(s_str_$123, s_i_$128);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$128, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$128 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 2:
@@ -4995,7 +4995,7 @@ export const PROCEDURES = {
             $t5 = $t4[R.SCHEME_RAW_CALL];
             $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
             while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$128, $r }); return R.UNWIND; }
+            if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$128 }); return R.UNWIND; }
             $r = $t6;
             $pc = 4; continue;
           case 4:
@@ -5039,13 +5039,13 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$130) : $t2(s_str_$123, s_i_$130);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$130 }); return R.UNWIND; }
       $t5 = $mk$fn27_4(s_i_$130);
       $t6 = G12();
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6($t5, s_strs_$124) : $t7($t5, s_strs_$124);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$130 }); return R.UNWIND; }
       $t9 = G11() === P11 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G11(), [$t3, $t8]));
       if ($t9 === R.UNWIND) R.captureUnderPrimitive();
       s_chars_$131 = $t9;
@@ -5053,7 +5053,7 @@ export const PROCEDURES = {
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10(s_proc_$122, s_chars_$131) : $t11(s_proc_$122, s_chars_$131);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$130 }); return R.UNWIND; }
       $t12;
       $t13 = G10() === P10 && (typeof s_i_$130 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$130 + 1n) : R.settle(R.invoke(G10(), [s_i_$130, 1n]));
       if ($t13 === R.UNWIND) R.captureUnderPrimitive();
@@ -5076,7 +5076,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_str_$123, s_i_$130) : $t2(s_str_$123, s_i_$130);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$130 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 2:
@@ -5088,7 +5088,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6($t5, s_strs_$124) : $t7($t5, s_strs_$124);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$130 }); return R.UNWIND; }
             $r = $t8;
             $pc = 4; continue;
           case 4:
@@ -5100,7 +5100,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10(s_proc_$122, s_chars_$131) : $t11(s_proc_$122, s_chars_$131);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$131, $t10, $t11, $t12, $t13, s_i_$130, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$130 }); return R.UNWIND; }
             $r = $t12;
             $pc = 5; continue;
           case 5:
@@ -5123,7 +5123,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_proc_$122) : $t1(s_proc_$122);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -5131,7 +5131,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("string-for-each: expected procedure", s_proc_$122) : $t6("string-for-each: expected procedure", s_proc_$122);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -5141,7 +5141,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_str_$123) : $t9(s_str_$123);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
       $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       if ($t11 !== false) {
@@ -5149,7 +5149,7 @@ export const PROCEDURES = {
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13("string-for-each: expected string", s_str_$123) : $t14("string-for-each: expected string", s_str_$123);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
       $t12 = $t15;
     } else {
       $t12 = undefined;
@@ -5159,14 +5159,14 @@ export const PROCEDURES = {
       $t17 = $t16[R.SCHEME_RAW_CALL];
       $t18 = $t17 === undefined ? $t16(s_str_$123) : $t17(s_str_$123);
       while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
       s_len_$125 = $t18;
       $t20 = $mk$fn19(s_len_$125);
       $t21 = G5();
       $t22 = $t21[R.SCHEME_RAW_CALL];
       $t23 = $t22 === undefined ? $t21($t20, s_strs_$124) : $t22($t20, s_strs_$124);
       while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
-      if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
+      if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_len_$125, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
       $t23;
       $t24 = G7() === P7 ? (s_strs_$124 === null) : R.settle(R.invoke(G7(), [s_strs_$124]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
@@ -5189,7 +5189,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_proc_$122) : $t1(s_proc_$122);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -5202,7 +5202,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("string-for-each: expected procedure", s_proc_$122) : $t6("string-for-each: expected procedure", s_proc_$122);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -5215,7 +5215,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_str_$123) : $t9(s_str_$123);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -5231,7 +5231,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13("string-for-each: expected string", s_str_$123) : $t14("string-for-each: expected string", s_str_$123);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
             $r = $t15;
             $pc = 10; continue;
             $t12 = $t15;
@@ -5244,7 +5244,7 @@ export const PROCEDURES = {
             $t17 = $t16[R.SCHEME_RAW_CALL];
             $t18 = $t17 === undefined ? $t16(s_str_$123) : $t17(s_str_$123);
             while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r }); return R.UNWIND; }
+            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
             $r = $t18;
             $pc = 11; continue;
           case 10:
@@ -5258,7 +5258,7 @@ export const PROCEDURES = {
             $t22 = $t21[R.SCHEME_RAW_CALL];
             $t23 = $t22 === undefined ? $t21($t20, s_strs_$124) : $t22($t20, s_strs_$124);
             while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
-            if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$125, $t20, $t21, $t22, $t23, $t24, s_loop_$127, $t26, s_loop_$129, $t28, s_proc_$122, s_str_$123, s_strs_$124, $r }); return R.UNWIND; }
+            if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_len_$125, s_proc_$122, s_str_$123, s_strs_$124 }); return R.UNWIND; }
             $r = $t23;
             $pc = 12; continue;
           case 12:
@@ -5327,7 +5327,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
       $t5 = G0() === P0 ? ($t4 === false) : R.settle(R.invoke(G0(), [$t4]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
       if ($t5 !== false) {
@@ -5337,7 +5337,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8("vector-map: expected vector", $t7) : $t9("vector-map: expected vector", $t7);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
       $t6 = $t10;
     } else {
       $t6 = undefined;
@@ -5349,12 +5349,12 @@ export const PROCEDURES = {
       $t13 = $t12[R.SCHEME_RAW_CALL];
       $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
       while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-      if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+      if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
       $t15 = G6();
       $t16 = $t15[R.SCHEME_RAW_CALL];
       $t17 = $t16 === undefined ? $t15(s_min_2dlen_$138, $t14) : $t16(s_min_2dlen_$138, $t14);
       while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-      if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
+      if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_vs_$139 }); return R.UNWIND; }
       $t18 = G8() === P8 && (s_vs_$139 instanceof R.Cons) ? (s_vs_$139.cdr) : R.settle(R.invoke(G8(), [s_vs_$139]));
       if ($t18 === R.UNWIND) R.captureUnderPrimitive();
       return new R.TailCall(s_loop_$137, [$t17, $t18]);
@@ -5378,7 +5378,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn22$r, 3, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -5393,7 +5393,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8("vector-map: expected vector", $t7) : $t9("vector-map: expected vector", $t7);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($fn22$r, 7, { $t6, s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
             $r = $t10;
             $pc = 7; continue;
             $t6 = $t10;
@@ -5408,7 +5408,7 @@ export const PROCEDURES = {
             $t13 = $t12[R.SCHEME_RAW_CALL];
             $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
             while ($t14 instanceof R.TailCall) { $t14 = R.step($t14); }
-            if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139, $r }); return R.UNWIND; }
+            if ($t14 === R.UNWIND) { R.reify($fn22$r, 8, { s_min_2dlen_$138, s_vs_$139 }); return R.UNWIND; }
             $r = $t14;
             $pc = 8; continue;
           case 7:
@@ -5420,7 +5420,7 @@ export const PROCEDURES = {
             $t16 = $t15[R.SCHEME_RAW_CALL];
             $t17 = $t16 === undefined ? $t15(s_min_2dlen_$138, $t14) : $t16(s_min_2dlen_$138, $t14);
             while ($t17 instanceof R.TailCall) { $t17 = R.step($t17); }
-            if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_min_2dlen_$138, s_vs_$139, $r }); return R.UNWIND; }
+            if ($t17 === R.UNWIND) { R.reify($fn22$r, 9, { s_vs_$139 }); return R.UNWIND; }
             $r = $t17;
             $pc = 9; continue;
           case 9:
@@ -5446,17 +5446,17 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_vec_$134, s_i_$142) : $t2(s_vec_$134, s_i_$142);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn28$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$142 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn28$r, 3, { s_i_$142 }); return R.UNWIND; }
       $t4 = s_proc_$133;
       $t5 = $t4[R.SCHEME_RAW_CALL];
       $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
       while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn28$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$142 }); return R.UNWIND; }
+      if ($t6 === R.UNWIND) { R.reify($fn28$r, 4, { s_i_$142 }); return R.UNWIND; }
       $t7 = G11();
       $t8 = $t7[R.SCHEME_RAW_CALL];
       $t9 = $t8 === undefined ? $t7(s_result_$140, s_i_$142, $t6) : $t8(s_result_$140, s_i_$142, $t6);
       while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-      if ($t9 === R.UNWIND) { R.reify($fn28$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$142 }); return R.UNWIND; }
+      if ($t9 === R.UNWIND) { R.reify($fn28$r, 5, { s_i_$142 }); return R.UNWIND; }
       $t9;
       $t10 = G13() === P13 && (typeof s_i_$142 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$142 + 1n) : R.settle(R.invoke(G13(), [s_i_$142, 1n]));
       if ($t10 === R.UNWIND) R.captureUnderPrimitive();
@@ -5479,7 +5479,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_vec_$134, s_i_$142) : $t2(s_vec_$134, s_i_$142);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn28$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$142, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn28$r, 3, { s_i_$142 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 2:
@@ -5490,7 +5490,7 @@ export const PROCEDURES = {
             $t5 = $t4[R.SCHEME_RAW_CALL];
             $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
             while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn28$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$142, $r }); return R.UNWIND; }
+            if ($t6 === R.UNWIND) { R.reify($fn28$r, 4, { s_i_$142 }); return R.UNWIND; }
             $r = $t6;
             $pc = 4; continue;
           case 4:
@@ -5499,7 +5499,7 @@ export const PROCEDURES = {
             $t8 = $t7[R.SCHEME_RAW_CALL];
             $t9 = $t8 === undefined ? $t7(s_result_$140, s_i_$142, $t6) : $t8(s_result_$140, s_i_$142, $t6);
             while ($t9 instanceof R.TailCall) { $t9 = R.step($t9); }
-            if ($t9 === R.UNWIND) { R.reify($fn28$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$142, $r }); return R.UNWIND; }
+            if ($t9 === R.UNWIND) { R.reify($fn28$r, 5, { s_i_$142 }); return R.UNWIND; }
             $r = $t9;
             $pc = 5; continue;
           case 5:
@@ -5543,13 +5543,13 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_vec_$134, s_i_$145) : $t2(s_vec_$134, s_i_$145);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn36$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn36$r, 3, { s_i_$145 }); return R.UNWIND; }
       $t5 = $mk$fn36_4(s_i_$145);
       $t6 = G15();
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6($t5, s_vecs_$135) : $t7($t5, s_vecs_$135);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn36$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($fn36$r, 4, { $t3, s_i_$145 }); return R.UNWIND; }
       $t9 = G14() === P14 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G14(), [$t3, $t8]));
       if ($t9 === R.UNWIND) R.captureUnderPrimitive();
       s_elems_$146 = $t9;
@@ -5557,12 +5557,12 @@ export const PROCEDURES = {
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10(s_proc_$133, s_elems_$146) : $t11(s_proc_$133, s_elems_$146);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($fn36$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($fn36$r, 5, { s_i_$145 }); return R.UNWIND; }
       $t13 = G11();
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13(s_result_$143, s_i_$145, $t12) : $t14(s_result_$143, s_i_$145, $t12);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($fn36$r, 6, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($fn36$r, 6, { s_i_$145 }); return R.UNWIND; }
       $t15;
       $t16 = G13() === P13 && (typeof s_i_$145 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$145 + 1n) : R.settle(R.invoke(G13(), [s_i_$145, 1n]));
       if ($t16 === R.UNWIND) R.captureUnderPrimitive();
@@ -5585,7 +5585,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_vec_$134, s_i_$145) : $t2(s_vec_$134, s_i_$145);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn36$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn36$r, 3, { s_i_$145 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 2:
@@ -5597,7 +5597,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6($t5, s_vecs_$135) : $t7($t5, s_vecs_$135);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn36$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($fn36$r, 4, { $t3, s_i_$145 }); return R.UNWIND; }
             $r = $t8;
             $pc = 4; continue;
           case 4:
@@ -5609,7 +5609,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10(s_proc_$133, s_elems_$146) : $t11(s_proc_$133, s_elems_$146);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($fn36$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($fn36$r, 5, { s_i_$145 }); return R.UNWIND; }
             $r = $t12;
             $pc = 5; continue;
           case 5:
@@ -5618,7 +5618,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13(s_result_$143, s_i_$145, $t12) : $t14(s_result_$143, s_i_$145, $t12);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($fn36$r, 6, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$146, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_i_$145, $r }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($fn36$r, 6, { s_i_$145 }); return R.UNWIND; }
             $r = $t15;
             $pc = 6; continue;
           case 6:
@@ -5641,7 +5641,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_proc_$133) : $t1(s_proc_$133);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -5649,7 +5649,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("vector-map: expected procedure", s_proc_$133) : $t6("vector-map: expected procedure", s_proc_$133);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -5659,7 +5659,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_vec_$134) : $t9(s_vec_$134);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
       $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       if ($t11 !== false) {
@@ -5667,7 +5667,7 @@ export const PROCEDURES = {
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13("vector-map: expected vector", s_vec_$134) : $t14("vector-map: expected vector", s_vec_$134);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
       $t12 = $t15;
     } else {
       $t12 = undefined;
@@ -5677,14 +5677,14 @@ export const PROCEDURES = {
       $t17 = $t16[R.SCHEME_RAW_CALL];
       $t18 = $t17 === undefined ? $t16(s_vec_$134) : $t17(s_vec_$134);
       while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
       $t23 = $mk$fn22();
       s_loop_$137 = $t23;
       $t19 = s_loop_$137;
       $t20 = $t19[R.SCHEME_RAW_CALL];
       $t21 = $t20 === undefined ? $t19($t18, s_vecs_$135) : $t20($t18, s_vecs_$135);
       while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-      if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
       s_len_$136 = $t21;
       $t24 = G4() === P4 ? (s_vecs_$135 === null) : R.settle(R.invoke(G4(), [s_vecs_$135]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
@@ -5693,7 +5693,7 @@ export const PROCEDURES = {
       $t26 = $t25[R.SCHEME_RAW_CALL];
       $t27 = $t26 === undefined ? $t25(s_len_$136) : $t26(s_len_$136);
       while ($t27 instanceof R.TailCall) { $t27 = R.step($t27); }
-      if ($t27 === R.UNWIND) { R.reify($proc$r, 15, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t27 === R.UNWIND) { R.reify($proc$r, 15, { s_len_$136, s_proc_$133, s_vec_$134 }); return R.UNWIND; }
       s_result_$140 = $t27;
       $t29 = $mk$fn28(s_len_$136, s_result_$140, s_proc_$133, s_vec_$134);
       s_loop_$141 = $t29;
@@ -5701,7 +5701,7 @@ export const PROCEDURES = {
       $t31 = $t30[R.SCHEME_RAW_CALL];
       $t32 = $t31 === undefined ? $t30(0n) : $t31(0n);
       while ($t32 instanceof R.TailCall) { $t32 = R.step($t32); }
-      if ($t32 === R.UNWIND) { R.reify($proc$r, 16, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t32 === R.UNWIND) { R.reify($proc$r, 16, { s_result_$140 }); return R.UNWIND; }
       $t32;
       return s_result_$140;
     } else {
@@ -5709,7 +5709,7 @@ export const PROCEDURES = {
       $t34 = $t33[R.SCHEME_RAW_CALL];
       $t35 = $t34 === undefined ? $t33(s_len_$136) : $t34(s_len_$136);
       while ($t35 instanceof R.TailCall) { $t35 = R.step($t35); }
-      if ($t35 === R.UNWIND) { R.reify($proc$r, 17, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t35 === R.UNWIND) { R.reify($proc$r, 17, { s_len_$136, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
       s_result_$143 = $t35;
       $t37 = $mk$fn36(s_len_$136, s_vec_$134, s_vecs_$135, s_result_$143, s_proc_$133);
       s_loop_$144 = $t37;
@@ -5717,7 +5717,7 @@ export const PROCEDURES = {
       $t39 = $t38[R.SCHEME_RAW_CALL];
       $t40 = $t39 === undefined ? $t38(0n) : $t39(0n);
       while ($t40 instanceof R.TailCall) { $t40 = R.step($t40); }
-      if ($t40 === R.UNWIND) { R.reify($proc$r, 18, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
+      if ($t40 === R.UNWIND) { R.reify($proc$r, 18, { s_result_$143 }); return R.UNWIND; }
       $t40;
       return s_result_$143;
     }
@@ -5731,7 +5731,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_proc_$133) : $t1(s_proc_$133);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -5744,7 +5744,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("vector-map: expected procedure", s_proc_$133) : $t6("vector-map: expected procedure", s_proc_$133);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -5757,7 +5757,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_vec_$134) : $t9(s_vec_$134);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -5773,7 +5773,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13("vector-map: expected vector", s_vec_$134) : $t14("vector-map: expected vector", s_vec_$134);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
             $r = $t15;
             $pc = 10; continue;
             $t12 = $t15;
@@ -5786,7 +5786,7 @@ export const PROCEDURES = {
             $t17 = $t16[R.SCHEME_RAW_CALL];
             $t18 = $t17 === undefined ? $t16(s_vec_$134) : $t17(s_vec_$134);
             while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
             $r = $t18;
             $pc = 11; continue;
           case 10:
@@ -5800,7 +5800,7 @@ export const PROCEDURES = {
             $t20 = $t19[R.SCHEME_RAW_CALL];
             $t21 = $t20 === undefined ? $t19($t18, s_vecs_$135) : $t20($t18, s_vecs_$135);
             while ($t21 instanceof R.TailCall) { $t21 = R.step($t21); }
-            if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t21 === R.UNWIND) { R.reify($proc$r, 12, { s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
             $r = $t21;
             $pc = 12; continue;
           case 12:
@@ -5814,7 +5814,7 @@ export const PROCEDURES = {
             $t26 = $t25[R.SCHEME_RAW_CALL];
             $t27 = $t26 === undefined ? $t25(s_len_$136) : $t26(s_len_$136);
             while ($t27 instanceof R.TailCall) { $t27 = R.step($t27); }
-            if ($t27 === R.UNWIND) { R.reify($proc$r, 15, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t27 === R.UNWIND) { R.reify($proc$r, 15, { s_len_$136, s_proc_$133, s_vec_$134 }); return R.UNWIND; }
             $r = $t27;
             $pc = 15; continue;
           case 14:
@@ -5822,7 +5822,7 @@ export const PROCEDURES = {
             $t34 = $t33[R.SCHEME_RAW_CALL];
             $t35 = $t34 === undefined ? $t33(s_len_$136) : $t34(s_len_$136);
             while ($t35 instanceof R.TailCall) { $t35 = R.step($t35); }
-            if ($t35 === R.UNWIND) { R.reify($proc$r, 17, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t35 === R.UNWIND) { R.reify($proc$r, 17, { s_len_$136, s_proc_$133, s_vec_$134, s_vecs_$135 }); return R.UNWIND; }
             $r = $t35;
             $pc = 17; continue;
           case 15:
@@ -5834,7 +5834,7 @@ export const PROCEDURES = {
             $t31 = $t30[R.SCHEME_RAW_CALL];
             $t32 = $t31 === undefined ? $t30(0n) : $t31(0n);
             while ($t32 instanceof R.TailCall) { $t32 = R.step($t32); }
-            if ($t32 === R.UNWIND) { R.reify($proc$r, 16, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t32 === R.UNWIND) { R.reify($proc$r, 16, { s_result_$140 }); return R.UNWIND; }
             $r = $t32;
             $pc = 16; continue;
           case 16:
@@ -5850,7 +5850,7 @@ export const PROCEDURES = {
             $t39 = $t38[R.SCHEME_RAW_CALL];
             $t40 = $t39 === undefined ? $t38(0n) : $t39(0n);
             while ($t40 instanceof R.TailCall) { $t40 = R.step($t40); }
-            if ($t40 === R.UNWIND) { R.reify($proc$r, 18, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_loop_$137, $t23, s_len_$136, $t24, $t25, $t26, $t27, s_result_$140, s_loop_$141, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_result_$143, s_loop_$144, $t37, $t38, $t39, $t40, s_proc_$133, s_vec_$134, s_vecs_$135, $r }); return R.UNWIND; }
+            if ($t40 === R.UNWIND) { R.reify($proc$r, 18, { s_result_$143 }); return R.UNWIND; }
             $r = $t40;
             $pc = 18; continue;
           case 18:
@@ -5897,7 +5897,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_v_$152) : $t1(s_v_$152);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$152 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t4, s_v_$152 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -5905,7 +5905,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("vector-for-each: expected vector", s_v_$152) : $t6("vector-for-each: expected vector", s_v_$152);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$152 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t4, s_v_$152 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -5915,7 +5915,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_v_$152) : $t9(s_v_$152);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$152 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, {  }); return R.UNWIND; }
       $t11 = G6() === P6 && (typeof $t10 === 'bigint' && typeof s_len_$151 === 'bigint') ? ($t10 === s_len_$151) : R.settle(R.invoke(G6(), [$t10, s_len_$151]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       $t12 = G0() === P0 ? ($t11 === false) : R.settle(R.invoke(G0(), [$t11]));
@@ -5936,7 +5936,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_v_$152) : $t1(s_v_$152);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$152, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($fn19$r, 1, { $t4, s_v_$152 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -5949,7 +5949,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("vector-for-each: expected vector", s_v_$152) : $t6("vector-for-each: expected vector", s_v_$152);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$152, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn19$r, 5, { $t4, s_v_$152 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -5962,7 +5962,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_v_$152) : $t9(s_v_$152);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$152, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($fn19$r, 6, {  }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -5996,12 +5996,12 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$154) : $t2(s_vec_$149, s_i_$154);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$154 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$154 }); return R.UNWIND; }
       $t4 = s_proc_$148;
       $t5 = $t4[R.SCHEME_RAW_CALL];
       $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
       while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$154 }); return R.UNWIND; }
+      if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$154 }); return R.UNWIND; }
       $t6;
       $t7 = G10() === P10 && (typeof s_i_$154 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$154 + 1n) : R.settle(R.invoke(G10(), [s_i_$154, 1n]));
       if ($t7 === R.UNWIND) R.captureUnderPrimitive();
@@ -6024,7 +6024,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$154) : $t2(s_vec_$149, s_i_$154);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$154, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn25$r, 3, { s_i_$154 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 2:
@@ -6035,7 +6035,7 @@ export const PROCEDURES = {
             $t5 = $t4[R.SCHEME_RAW_CALL];
             $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
             while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_i_$154, $r }); return R.UNWIND; }
+            if ($t6 === R.UNWIND) { R.reify($fn25$r, 4, { s_i_$154 }); return R.UNWIND; }
             $r = $t6;
             $pc = 4; continue;
           case 4:
@@ -6079,13 +6079,13 @@ export const PROCEDURES = {
       $t2 = $t1[R.SCHEME_RAW_CALL];
       $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$156) : $t2(s_vec_$149, s_i_$156);
       while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156 }); return R.UNWIND; }
+      if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$156 }); return R.UNWIND; }
       $t5 = $mk$fn27_4(s_i_$156);
       $t6 = G12();
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6($t5, s_vecs_$150) : $t7($t5, s_vecs_$150);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$156 }); return R.UNWIND; }
       $t9 = G11() === P11 ? (new R.Cons($t3, $t8)) : R.settle(R.invoke(G11(), [$t3, $t8]));
       if ($t9 === R.UNWIND) R.captureUnderPrimitive();
       s_elems_$157 = $t9;
@@ -6093,7 +6093,7 @@ export const PROCEDURES = {
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10(s_proc_$148, s_elems_$157) : $t11(s_proc_$148, s_elems_$157);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$156 }); return R.UNWIND; }
       $t12;
       $t13 = G10() === P10 && (typeof s_i_$156 === 'bigint' && typeof 1n === 'bigint') ? (s_i_$156 + 1n) : R.settle(R.invoke(G10(), [s_i_$156, 1n]));
       if ($t13 === R.UNWIND) R.captureUnderPrimitive();
@@ -6116,7 +6116,7 @@ export const PROCEDURES = {
             $t2 = $t1[R.SCHEME_RAW_CALL];
             $t3 = $t2 === undefined ? $t1(s_vec_$149, s_i_$156) : $t2(s_vec_$149, s_i_$156);
             while ($t3 instanceof R.TailCall) { $t3 = R.step($t3); }
-            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156, $r }); return R.UNWIND; }
+            if ($t3 === R.UNWIND) { R.reify($fn27$r, 3, { s_i_$156 }); return R.UNWIND; }
             $r = $t3;
             $pc = 3; continue;
           case 2:
@@ -6128,7 +6128,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6($t5, s_vecs_$150) : $t7($t5, s_vecs_$150);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($fn27$r, 4, { $t3, s_i_$156 }); return R.UNWIND; }
             $r = $t8;
             $pc = 4; continue;
           case 4:
@@ -6140,7 +6140,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10(s_proc_$148, s_elems_$157) : $t11(s_proc_$148, s_elems_$157);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_elems_$157, $t10, $t11, $t12, $t13, s_i_$156, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($fn27$r, 5, { s_i_$156 }); return R.UNWIND; }
             $r = $t12;
             $pc = 5; continue;
           case 5:
@@ -6163,7 +6163,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_proc_$148) : $t1(s_proc_$148);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -6171,7 +6171,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("vector-for-each: expected procedure", s_proc_$148) : $t6("vector-for-each: expected procedure", s_proc_$148);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -6181,7 +6181,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_vec_$149) : $t9(s_vec_$149);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
       $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       if ($t11 !== false) {
@@ -6189,7 +6189,7 @@ export const PROCEDURES = {
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13("vector-for-each: expected vector", s_vec_$149) : $t14("vector-for-each: expected vector", s_vec_$149);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
       $t12 = $t15;
     } else {
       $t12 = undefined;
@@ -6199,14 +6199,14 @@ export const PROCEDURES = {
       $t17 = $t16[R.SCHEME_RAW_CALL];
       $t18 = $t17 === undefined ? $t16(s_vec_$149) : $t17(s_vec_$149);
       while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
       s_len_$151 = $t18;
       $t20 = $mk$fn19(s_len_$151);
       $t21 = G5();
       $t22 = $t21[R.SCHEME_RAW_CALL];
       $t23 = $t22 === undefined ? $t21($t20, s_vecs_$150) : $t22($t20, s_vecs_$150);
       while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
-      if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
+      if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_len_$151, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
       $t23;
       $t24 = G7() === P7 ? (s_vecs_$150 === null) : R.settle(R.invoke(G7(), [s_vecs_$150]));
       if ($t24 === R.UNWIND) R.captureUnderPrimitive();
@@ -6229,7 +6229,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_proc_$148) : $t1(s_proc_$148);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -6242,7 +6242,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("vector-for-each: expected procedure", s_proc_$148) : $t6("vector-for-each: expected procedure", s_proc_$148);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -6255,7 +6255,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_vec_$149) : $t9(s_vec_$149);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -6271,7 +6271,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13("vector-for-each: expected vector", s_vec_$149) : $t14("vector-for-each: expected vector", s_vec_$149);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
             $r = $t15;
             $pc = 10; continue;
             $t12 = $t15;
@@ -6284,7 +6284,7 @@ export const PROCEDURES = {
             $t17 = $t16[R.SCHEME_RAW_CALL];
             $t18 = $t17 === undefined ? $t16(s_vec_$149) : $t17(s_vec_$149);
             while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r }); return R.UNWIND; }
+            if ($t18 === R.UNWIND) { R.reify($proc$r, 11, { s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
             $r = $t18;
             $pc = 11; continue;
           case 10:
@@ -6298,7 +6298,7 @@ export const PROCEDURES = {
             $t22 = $t21[R.SCHEME_RAW_CALL];
             $t23 = $t22 === undefined ? $t21($t20, s_vecs_$150) : $t22($t20, s_vecs_$150);
             while ($t23 instanceof R.TailCall) { $t23 = R.step($t23); }
-            if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$151, $t20, $t21, $t22, $t23, $t24, s_loop_$153, $t26, s_loop_$155, $t28, s_proc_$148, s_vec_$149, s_vecs_$150, $r }); return R.UNWIND; }
+            if ($t23 === R.UNWIND) { R.reify($proc$r, 12, { s_len_$151, s_proc_$148, s_vec_$149, s_vecs_$150 }); return R.UNWIND; }
             $r = $t23;
             $pc = 12; continue;
           case 12:
@@ -6398,7 +6398,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$160) : $t1(s_lst_$160);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$161, $t9, s_obj_$159, s_lst_$160 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$159, s_lst_$160 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -6406,7 +6406,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("memq: expected list", s_lst_$160) : $t6("memq: expected list", s_lst_$160);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$161, $t9, s_obj_$159, s_lst_$160 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$159, s_lst_$160 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -6425,7 +6425,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_lst_$160) : $t1(s_lst_$160);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$161, $t9, s_obj_$159, s_lst_$160, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$159, s_lst_$160 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -6438,7 +6438,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("memq: expected list", s_lst_$160) : $t6("memq: expected list", s_lst_$160);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$161, $t9, s_obj_$159, s_lst_$160, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$159, s_lst_$160 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -6492,7 +6492,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2(s_obj_$163, $t1) : $t3(s_obj_$163, $t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn8$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_l_$166 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn8$r, 3, { s_l_$166 }); return R.UNWIND; }
       if ($t4 !== false) {
       return s_l_$166;
     } else {
@@ -6520,7 +6520,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2(s_obj_$163, $t1) : $t3(s_obj_$163, $t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn8$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_l_$166, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn8$r, 3, { s_l_$166 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -6545,7 +6545,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$164) : $t1(s_lst_$164);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$165, $t9, s_obj_$163, s_lst_$164 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$163, s_lst_$164 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -6553,7 +6553,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("memv: expected list", s_lst_$164) : $t6("memv: expected list", s_lst_$164);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$165, $t9, s_obj_$163, s_lst_$164 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$163, s_lst_$164 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -6572,7 +6572,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_lst_$164) : $t1(s_lst_$164);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$165, $t9, s_obj_$163, s_lst_$164, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$163, s_lst_$164 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -6585,7 +6585,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("memv: expected list", s_lst_$164) : $t6("memv: expected list", s_lst_$164);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$165, $t9, s_obj_$163, s_lst_$164, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$163, s_lst_$164 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -6639,7 +6639,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2(s_obj_$167, $t1) : $t3(s_obj_$167, $t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn11$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_l_$172 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn11$r, 3, { s_l_$172 }); return R.UNWIND; }
       if ($t4 !== false) {
       return s_l_$172;
     } else {
@@ -6667,7 +6667,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2(s_obj_$167, $t1) : $t3(s_obj_$167, $t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn11$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_l_$172, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn11$r, 3, { s_l_$172 }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -6693,7 +6693,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$168) : $t1(s_lst_$168);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_loop_$171, $t12, s_obj_$167, s_lst_$168, s_compare_$169 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$167, s_lst_$168, s_compare_$169 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -6701,7 +6701,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("member: expected list", s_lst_$168) : $t6("member: expected list", s_lst_$168);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_loop_$171, $t12, s_obj_$167, s_lst_$168, s_compare_$169 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$167, s_lst_$168, s_compare_$169 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -6730,7 +6730,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_lst_$168) : $t1(s_lst_$168);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_loop_$171, $t12, s_obj_$167, s_lst_$168, s_compare_$169, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$167, s_lst_$168, s_compare_$169 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -6743,7 +6743,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("member: expected list", s_lst_$168) : $t6("member: expected list", s_lst_$168);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$170, s_loop_$171, $t12, s_obj_$167, s_lst_$168, s_compare_$169, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$167, s_lst_$168, s_compare_$169 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -6819,7 +6819,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assq: expected pair in alist", s_pair_$177) : $t6("assq: expected pair in alist", s_pair_$177);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { $t0, $t1, s_pair_$177, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_l_$176 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$177, $t4, s_l_$176 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -6863,7 +6863,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assq: expected pair in alist", s_pair_$177) : $t6("assq: expected pair in alist", s_pair_$177);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { $t0, $t1, s_pair_$177, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_l_$176, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$177, $t4, s_l_$176 }); return R.UNWIND; }
             $r = $t7;
             $pc = 6; continue;
             $t4 = $t7;
@@ -6899,7 +6899,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_alist_$174) : $t1(s_alist_$174);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$175, $t9, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -6907,7 +6907,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assq: expected list", s_alist_$174) : $t6("assq: expected list", s_alist_$174);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$175, $t9, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -6926,7 +6926,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_alist_$174) : $t1(s_alist_$174);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$175, $t9, s_obj_$173, s_alist_$174, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -6939,7 +6939,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assq: expected list", s_alist_$174) : $t6("assq: expected list", s_alist_$174);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$175, $t9, s_obj_$173, s_alist_$174, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$173, s_alist_$174 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -7001,7 +7001,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assv: expected pair in alist", s_pair_$182) : $t6("assv: expected pair in alist", s_pair_$182);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { $t0, $t1, s_pair_$182, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$181 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$182, $t4, s_l_$181 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -7013,7 +7013,7 @@ export const PROCEDURES = {
       $t10 = $t9[R.SCHEME_RAW_CALL];
       $t11 = $t10 === undefined ? $t9(s_obj_$178, $t8) : $t10(s_obj_$178, $t8);
       while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($fn8$r, 7, { $t0, $t1, s_pair_$182, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$181 }); return R.UNWIND; }
+      if ($t11 === R.UNWIND) { R.reify($fn8$r, 7, { s_pair_$182, s_l_$181 }); return R.UNWIND; }
       if ($t11 !== false) {
       return s_pair_$182;
     } else {
@@ -7048,7 +7048,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assv: expected pair in alist", s_pair_$182) : $t6("assv: expected pair in alist", s_pair_$182);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { $t0, $t1, s_pair_$182, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$181, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn8$r, 6, { s_pair_$182, $t4, s_l_$181 }); return R.UNWIND; }
             $r = $t7;
             $pc = 6; continue;
             $t4 = $t7;
@@ -7063,7 +7063,7 @@ export const PROCEDURES = {
             $t10 = $t9[R.SCHEME_RAW_CALL];
             $t11 = $t10 === undefined ? $t9(s_obj_$178, $t8) : $t10(s_obj_$178, $t8);
             while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($fn8$r, 7, { $t0, $t1, s_pair_$182, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$181, $r }); return R.UNWIND; }
+            if ($t11 === R.UNWIND) { R.reify($fn8$r, 7, { s_pair_$182, s_l_$181 }); return R.UNWIND; }
             $r = $t11;
             $pc = 7; continue;
           case 6:
@@ -7091,7 +7091,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_alist_$179) : $t1(s_alist_$179);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$180, $t9, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -7099,7 +7099,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assv: expected list", s_alist_$179) : $t6("assv: expected list", s_alist_$179);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$180, $t9, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -7118,7 +7118,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_alist_$179) : $t1(s_alist_$179);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$180, $t9, s_obj_$178, s_alist_$179, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -7131,7 +7131,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assv: expected list", s_alist_$179) : $t6("assv: expected list", s_alist_$179);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$180, $t9, s_obj_$178, s_alist_$179, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$178, s_alist_$179 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -7193,7 +7193,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assoc: expected pair in alist", s_pair_$189) : $t6("assoc: expected pair in alist", s_pair_$189);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($fn11$r, 6, { $t0, $t1, s_pair_$189, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$188 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($fn11$r, 6, { s_pair_$189, $t4, s_l_$188 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -7205,7 +7205,7 @@ export const PROCEDURES = {
       $t10 = $t9[R.SCHEME_RAW_CALL];
       $t11 = $t10 === undefined ? $t9(s_obj_$183, $t8) : $t10(s_obj_$183, $t8);
       while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-      if ($t11 === R.UNWIND) { R.reify($fn11$r, 7, { $t0, $t1, s_pair_$189, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$188 }); return R.UNWIND; }
+      if ($t11 === R.UNWIND) { R.reify($fn11$r, 7, { s_pair_$189, s_l_$188 }); return R.UNWIND; }
       if ($t11 !== false) {
       return s_pair_$189;
     } else {
@@ -7240,7 +7240,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assoc: expected pair in alist", s_pair_$189) : $t6("assoc: expected pair in alist", s_pair_$189);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($fn11$r, 6, { $t0, $t1, s_pair_$189, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$188, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($fn11$r, 6, { s_pair_$189, $t4, s_l_$188 }); return R.UNWIND; }
             $r = $t7;
             $pc = 6; continue;
             $t4 = $t7;
@@ -7255,7 +7255,7 @@ export const PROCEDURES = {
             $t10 = $t9[R.SCHEME_RAW_CALL];
             $t11 = $t10 === undefined ? $t9(s_obj_$183, $t8) : $t10(s_obj_$183, $t8);
             while ($t11 instanceof R.TailCall) { $t11 = R.step($t11); }
-            if ($t11 === R.UNWIND) { R.reify($fn11$r, 7, { $t0, $t1, s_pair_$189, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$188, $r }); return R.UNWIND; }
+            if ($t11 === R.UNWIND) { R.reify($fn11$r, 7, { s_pair_$189, s_l_$188 }); return R.UNWIND; }
             $r = $t11;
             $pc = 7; continue;
           case 6:
@@ -7284,7 +7284,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_alist_$184) : $t1(s_alist_$184);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_loop_$187, $t12, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -7292,7 +7292,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("assoc: expected list", s_alist_$184) : $t6("assoc: expected list", s_alist_$184);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_loop_$187, $t12, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -7321,7 +7321,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_alist_$184) : $t1(s_alist_$184);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_loop_$187, $t12, s_obj_$183, s_alist_$184, s_compare_$185, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -7334,7 +7334,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("assoc: expected list", s_alist_$184) : $t6("assoc: expected list", s_alist_$184);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$186, s_loop_$187, $t12, s_obj_$183, s_alist_$184, s_compare_$185, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_obj_$183, s_alist_$184, s_compare_$185 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -7431,7 +7431,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$190) : $t1(s_lst_$190);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$191, $t9, s_lst_$190 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_lst_$190 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -7439,7 +7439,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("length: expected list", s_lst_$190) : $t6("length: expected list", s_lst_$190);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$191, $t9, s_lst_$190 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_lst_$190 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -7458,7 +7458,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_lst_$190) : $t1(s_lst_$190);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$191, $t9, s_lst_$190, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_lst_$190 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -7471,7 +7471,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("length: expected list", s_lst_$190) : $t6("length: expected list", s_lst_$190);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$191, $t9, s_lst_$190, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_lst_$190 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -7600,7 +7600,7 @@ export const PROCEDURES = {
       $t4 = $t3[R.SCHEME_RAW_CALL];
       $t5 = $t4 === undefined ? $t3("list-ref: expected pair", s_lst_$194) : $t4("list-ref: expected pair", s_lst_$194);
       while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-      if ($t5 === R.UNWIND) { R.reify($proc$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195 }); return R.UNWIND; }
+      if ($t5 === R.UNWIND) { R.reify($proc$r, 4, { $t2, $t10, $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
       $t2 = $t5;
     } else {
       $t2 = undefined;
@@ -7610,7 +7610,7 @@ export const PROCEDURES = {
       $t7 = $t6[R.SCHEME_RAW_CALL];
       $t8 = $t7 === undefined ? $t6(s_k_$195) : $t7(s_k_$195);
       while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-      if ($t8 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195 }); return R.UNWIND; }
+      if ($t8 === R.UNWIND) { R.reify($proc$r, 5, { $t10, $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
       $t9 = G0() === P0 ? ($t8 === false) : R.settle(R.invoke(G0(), [$t8]));
       if ($t9 === R.UNWIND) R.captureUnderPrimitive();
       if ($t9 !== false) {
@@ -7618,7 +7618,7 @@ export const PROCEDURES = {
       $t12 = $t11[R.SCHEME_RAW_CALL];
       $t13 = $t12 === undefined ? $t11("list-ref: expected exact integer", s_k_$195) : $t12("list-ref: expected exact integer", s_k_$195);
       while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-      if ($t13 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195 }); return R.UNWIND; }
+      if ($t13 === R.UNWIND) { R.reify($proc$r, 9, { $t10, $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
       $t10 = $t13;
     } else {
       $t10 = undefined;
@@ -7631,7 +7631,7 @@ export const PROCEDURES = {
       $t17 = $t16[R.SCHEME_RAW_CALL];
       $t18 = $t17 === undefined ? $t16("list-ref: index out of range", s_k_$195) : $t17("list-ref: index out of range", s_k_$195);
       while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-      if ($t18 === R.UNWIND) { R.reify($proc$r, 13, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195 }); return R.UNWIND; }
+      if ($t18 === R.UNWIND) { R.reify($proc$r, 13, { $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
       $t15 = $t18;
     } else {
       $t15 = undefined;
@@ -7656,7 +7656,7 @@ export const PROCEDURES = {
             $t4 = $t3[R.SCHEME_RAW_CALL];
             $t5 = $t4 === undefined ? $t3("list-ref: expected pair", s_lst_$194) : $t4("list-ref: expected pair", s_lst_$194);
             while ($t5 instanceof R.TailCall) { $t5 = R.step($t5); }
-            if ($t5 === R.UNWIND) { R.reify($proc$r, 4, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195, $r }); return R.UNWIND; }
+            if ($t5 === R.UNWIND) { R.reify($proc$r, 4, { $t2, $t10, $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
             $r = $t5;
             $pc = 4; continue;
             $t2 = $t5;
@@ -7669,7 +7669,7 @@ export const PROCEDURES = {
             $t7 = $t6[R.SCHEME_RAW_CALL];
             $t8 = $t7 === undefined ? $t6(s_k_$195) : $t7(s_k_$195);
             while ($t8 instanceof R.TailCall) { $t8 = R.step($t8); }
-            if ($t8 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195, $r }); return R.UNWIND; }
+            if ($t8 === R.UNWIND) { R.reify($proc$r, 5, { $t10, $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
             $r = $t8;
             $pc = 5; continue;
           case 4:
@@ -7685,7 +7685,7 @@ export const PROCEDURES = {
             $t12 = $t11[R.SCHEME_RAW_CALL];
             $t13 = $t12 === undefined ? $t11("list-ref: expected exact integer", s_k_$195) : $t12("list-ref: expected exact integer", s_k_$195);
             while ($t13 instanceof R.TailCall) { $t13 = R.step($t13); }
-            if ($t13 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195, $r }); return R.UNWIND; }
+            if ($t13 === R.UNWIND) { R.reify($proc$r, 9, { $t10, $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
             $r = $t13;
             $pc = 9; continue;
             $t10 = $t13;
@@ -7705,7 +7705,7 @@ export const PROCEDURES = {
             $t17 = $t16[R.SCHEME_RAW_CALL];
             $t18 = $t17 === undefined ? $t16("list-ref: index out of range", s_k_$195) : $t17("list-ref: index out of range", s_k_$195);
             while ($t18 instanceof R.TailCall) { $t18 = R.step($t18); }
-            if ($t18 === R.UNWIND) { R.reify($proc$r, 13, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_loop_$196, $t20, s_lst_$194, s_k_$195, $r }); return R.UNWIND; }
+            if ($t18 === R.UNWIND) { R.reify($proc$r, 13, { $t15, s_lst_$194, s_k_$195 }); return R.UNWIND; }
             $r = $t18;
             $pc = 13; continue;
             $t15 = $t18;
@@ -7823,7 +7823,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_k_$200) : $t1(s_k_$200);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t9, s_lst_$199, s_k_$200 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -7831,7 +7831,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("list-tail: expected exact integer", s_k_$200) : $t6("list-tail: expected exact integer", s_k_$200);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t9, s_lst_$199, s_k_$200 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -7844,7 +7844,7 @@ export const PROCEDURES = {
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10("list-tail: index out of range", s_k_$200) : $t11("list-tail: index out of range", s_k_$200);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t9, s_lst_$199, s_k_$200 }); return R.UNWIND; }
       $t9 = $t12;
     } else {
       $t9 = undefined;
@@ -7863,7 +7863,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_k_$200) : $t1(s_k_$200);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t9, s_lst_$199, s_k_$200 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -7876,7 +7876,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("list-tail: expected exact integer", s_k_$200) : $t6("list-tail: expected exact integer", s_k_$200);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t9, s_lst_$199, s_k_$200 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -7896,7 +7896,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10("list-tail: index out of range", s_k_$200) : $t11("list-tail: index out of range", s_k_$200);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loop_$201, $t14, s_lst_$199, s_k_$200, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t9, s_lst_$199, s_k_$200 }); return R.UNWIND; }
             $r = $t12;
             $pc = 9; continue;
             $t9 = $t12;
@@ -7986,7 +7986,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$204) : $t1(s_lst_$204);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$205, $t9, s_lst_$204 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_lst_$204 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -7994,7 +7994,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("reverse: expected list", s_lst_$204) : $t6("reverse: expected list", s_lst_$204);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$205, $t9, s_lst_$204 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_lst_$204 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -8013,7 +8013,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_lst_$204) : $t1(s_lst_$204);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$205, $t9, s_lst_$204, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, s_lst_$204 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -8026,7 +8026,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("reverse: expected list", s_lst_$204) : $t6("reverse: expected list", s_lst_$204);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_loop_$205, $t9, s_lst_$204, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, s_lst_$204 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -8082,7 +8082,7 @@ export const PROCEDURES = {
       $t5 = $t4[R.SCHEME_RAW_CALL];
       $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
       while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-      if ($t6 === R.UNWIND) { R.reify($proc$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_obj_$208 }); return R.UNWIND; }
+      if ($t6 === R.UNWIND) { R.reify($proc$r, 3, { $t2 }); return R.UNWIND; }
       $t7 = G2() === P2 ? (new R.Cons($t2, $t6)) : R.settle(R.invoke(G2(), [$t2, $t6]));
       if ($t7 === R.UNWIND) R.captureUnderPrimitive();
       return $t7;
@@ -8109,7 +8109,7 @@ export const PROCEDURES = {
             $t5 = $t4[R.SCHEME_RAW_CALL];
             $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
             while ($t6 instanceof R.TailCall) { $t6 = R.step($t6); }
-            if ($t6 === R.UNWIND) { R.reify($proc$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_obj_$208, $r }); return R.UNWIND; }
+            if ($t6 === R.UNWIND) { R.reify($proc$r, 3, { $t2 }); return R.UNWIND; }
             $r = $t6;
             $pc = 3; continue;
           case 3:
@@ -8161,7 +8161,7 @@ export const PROCEDURES = {
       $t3 = $t2[R.SCHEME_RAW_CALL];
       $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
       while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-      if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_n_$213 }); return R.UNWIND; }
+      if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, {  }); return R.UNWIND; }
       $t5 = G7() === P7 ? (new R.Cons(s_fill_$211, $t4)) : R.settle(R.invoke(G7(), [s_fill_$211, $t4]));
       if ($t5 === R.UNWIND) R.captureUnderPrimitive();
       return $t5;
@@ -8185,7 +8185,7 @@ export const PROCEDURES = {
             $t3 = $t2[R.SCHEME_RAW_CALL];
             $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
             while ($t4 instanceof R.TailCall) { $t4 = R.step($t4); }
-            if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, { $t0, $t1, $t2, $t3, $t4, $t5, s_n_$213, $r }); return R.UNWIND; }
+            if ($t4 === R.UNWIND) { R.reify($fn16$r, 3, {  }); return R.UNWIND; }
             $r = $t4;
             $pc = 3; continue;
           case 3:
@@ -8207,7 +8207,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_k_$209) : $t1(s_k_$209);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$211, s_loop_$212, $t17, s_k_$209, s_rest_$210 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t9, s_k_$209, s_rest_$210 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -8215,7 +8215,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("make-list: expected integer", s_k_$209) : $t6("make-list: expected integer", s_k_$209);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$211, s_loop_$212, $t17, s_k_$209, s_rest_$210 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t9, s_k_$209, s_rest_$210 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -8228,7 +8228,7 @@ export const PROCEDURES = {
       $t11 = $t10[R.SCHEME_RAW_CALL];
       $t12 = $t11 === undefined ? $t10("make-list: expected non-negative integer", s_k_$209) : $t11("make-list: expected non-negative integer", s_k_$209);
       while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-      if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$211, s_loop_$212, $t17, s_k_$209, s_rest_$210 }); return R.UNWIND; }
+      if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t9, s_k_$209, s_rest_$210 }); return R.UNWIND; }
       $t9 = $t12;
     } else {
       $t9 = undefined;
@@ -8257,7 +8257,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_k_$209) : $t1(s_k_$209);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$211, s_loop_$212, $t17, s_k_$209, s_rest_$210, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t9, s_k_$209, s_rest_$210 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -8270,7 +8270,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("make-list: expected integer", s_k_$209) : $t6("make-list: expected integer", s_k_$209);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$211, s_loop_$212, $t17, s_k_$209, s_rest_$210, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t9, s_k_$209, s_rest_$210 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -8290,7 +8290,7 @@ export const PROCEDURES = {
             $t11 = $t10[R.SCHEME_RAW_CALL];
             $t12 = $t11 === undefined ? $t10("make-list: expected non-negative integer", s_k_$209) : $t11("make-list: expected non-negative integer", s_k_$209);
             while ($t12 instanceof R.TailCall) { $t12 = R.step($t12); }
-            if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$211, s_loop_$212, $t17, s_k_$209, s_rest_$210, $r }); return R.UNWIND; }
+            if ($t12 === R.UNWIND) { R.reify($proc$r, 9, { $t9, s_k_$209, s_rest_$210 }); return R.UNWIND; }
             $r = $t12;
             $pc = 9; continue;
             $t9 = $t12;
@@ -8355,7 +8355,7 @@ export const PROCEDURES = {
       $t1 = $t0[R.SCHEME_RAW_CALL];
       $t2 = $t1 === undefined ? $t0(s_lst_$214) : $t1(s_lst_$214);
       while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t3 = G0() === P0 ? ($t2 === false) : R.settle(R.invoke(G0(), [$t2]));
       if ($t3 === R.UNWIND) R.captureUnderPrimitive();
       if ($t3 !== false) {
@@ -8363,7 +8363,7 @@ export const PROCEDURES = {
       $t6 = $t5[R.SCHEME_RAW_CALL];
       $t7 = $t6 === undefined ? $t5("list-set!: expected list", s_lst_$214) : $t6("list-set!: expected list", s_lst_$214);
       while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t4 = $t7;
     } else {
       $t4 = undefined;
@@ -8373,7 +8373,7 @@ export const PROCEDURES = {
       $t9 = $t8[R.SCHEME_RAW_CALL];
       $t10 = $t9 === undefined ? $t8(s_k_$215) : $t9(s_k_$215);
       while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t11 = G0() === P0 ? ($t10 === false) : R.settle(R.invoke(G0(), [$t10]));
       if ($t11 === R.UNWIND) R.captureUnderPrimitive();
       if ($t11 !== false) {
@@ -8381,7 +8381,7 @@ export const PROCEDURES = {
       $t14 = $t13[R.SCHEME_RAW_CALL];
       $t15 = $t14 === undefined ? $t13("list-set!: expected integer index", s_k_$215) : $t14("list-set!: expected integer index", s_k_$215);
       while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t12 = $t15;
     } else {
       $t12 = undefined;
@@ -8397,7 +8397,7 @@ export const PROCEDURES = {
       $t19 = $t18[R.SCHEME_RAW_CALL];
       $t20 = $t19 === undefined ? $t18(s_lst_$214) : $t19(s_lst_$214);
       while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
-      if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t17, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t21 = G5() === P5 && (typeof s_k_$215 === 'bigint' && typeof $t20 === 'bigint') ? (s_k_$215 >= $t20) : R.settle(R.invoke(G5(), [s_k_$215, $t20]));
       if ($t21 === R.UNWIND) R.captureUnderPrimitive();
       $t17 = $t21;
@@ -8407,7 +8407,7 @@ export const PROCEDURES = {
       $t24 = $t23[R.SCHEME_RAW_CALL];
       $t25 = $t24 === undefined ? $t23("list-set!: index out of range", s_k_$215) : $t24("list-set!: index out of range", s_k_$215);
       while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
-      if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
+      if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
       $t22 = $t25;
     } else {
       $t22 = undefined;
@@ -8434,7 +8434,7 @@ export const PROCEDURES = {
             $t1 = $t0[R.SCHEME_RAW_CALL];
             $t2 = $t1 === undefined ? $t0(s_lst_$214) : $t1(s_lst_$214);
             while ($t2 instanceof R.TailCall) { $t2 = R.step($t2); }
-            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216, $r }); return R.UNWIND; }
+            if ($t2 === R.UNWIND) { R.reify($proc$r, 1, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t2;
             $pc = 1; continue;
           case 1:
@@ -8447,7 +8447,7 @@ export const PROCEDURES = {
             $t6 = $t5[R.SCHEME_RAW_CALL];
             $t7 = $t6 === undefined ? $t5("list-set!: expected list", s_lst_$214) : $t6("list-set!: expected list", s_lst_$214);
             while ($t7 instanceof R.TailCall) { $t7 = R.step($t7); }
-            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216, $r }); return R.UNWIND; }
+            if ($t7 === R.UNWIND) { R.reify($proc$r, 5, { $t4, $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t7;
             $pc = 5; continue;
             $t4 = $t7;
@@ -8460,7 +8460,7 @@ export const PROCEDURES = {
             $t9 = $t8[R.SCHEME_RAW_CALL];
             $t10 = $t9 === undefined ? $t8(s_k_$215) : $t9(s_k_$215);
             while ($t10 instanceof R.TailCall) { $t10 = R.step($t10); }
-            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216, $r }); return R.UNWIND; }
+            if ($t10 === R.UNWIND) { R.reify($proc$r, 6, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t10;
             $pc = 6; continue;
           case 5:
@@ -8476,7 +8476,7 @@ export const PROCEDURES = {
             $t14 = $t13[R.SCHEME_RAW_CALL];
             $t15 = $t14 === undefined ? $t13("list-set!: expected integer index", s_k_$215) : $t14("list-set!: expected integer index", s_k_$215);
             while ($t15 instanceof R.TailCall) { $t15 = R.step($t15); }
-            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216, $r }); return R.UNWIND; }
+            if ($t15 === R.UNWIND) { R.reify($proc$r, 10, { $t12, $t17, $t21, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t15;
             $pc = 10; continue;
             $t12 = $t15;
@@ -8500,7 +8500,7 @@ export const PROCEDURES = {
             $t19 = $t18[R.SCHEME_RAW_CALL];
             $t20 = $t19 === undefined ? $t18(s_lst_$214) : $t19(s_lst_$214);
             while ($t20 instanceof R.TailCall) { $t20 = R.step($t20); }
-            if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216, $r }); return R.UNWIND; }
+            if ($t20 === R.UNWIND) { R.reify($proc$r, 14, { $t17, $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t20;
             $pc = 14; continue;
             $t17 = $t21;
@@ -8516,7 +8516,7 @@ export const PROCEDURES = {
             $t24 = $t23[R.SCHEME_RAW_CALL];
             $t25 = $t24 === undefined ? $t23("list-set!: index out of range", s_k_$215) : $t24("list-set!: index out of range", s_k_$215);
             while ($t25 instanceof R.TailCall) { $t25 = R.step($t25); }
-            if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$217, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_lst_$214, s_k_$215, s_obj_$216, $r }); return R.UNWIND; }
+            if ($t25 === R.UNWIND) { R.reify($proc$r, 18, { $t22, s_lst_$214, s_k_$215, s_obj_$216 }); return R.UNWIND; }
             $r = $t25;
             $pc = 18; continue;
             $t22 = $t25;

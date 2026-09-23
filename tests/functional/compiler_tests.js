@@ -272,7 +272,103 @@ const CAPTURE_CASES = [
     + '  (let ((before (side)))'
     + '    (let ((v (capturer)))'
     + '      (if (< v 3) (saved (+ v 1)) (list before v counter)))))',
-    '(caller)', ['caller']]
+    '(caller)', ['caller']],
+
+  // A suspended frame saves only what is live after the call it stopped at.
+  // Each case below is built so that dropping one needed variable makes the
+  // resumed continuation read `undefined` -- a wrong answer or a throw, never a
+  // pass -- and each is resumed more than once, so the frame is reused.
+
+  // A temporary, not a variable: `(one)` has already been evaluated and its
+  // result sits in a JavaScript temporary while `(capturer)` runs. Nothing in
+  // the source names it, so an analysis over Scheme variables alone would
+  // miss it.
+  ['liveness: a partly evaluated argument list survives the capture',
+    '(define saved #f)'
+    + '(define n 0)'
+    + '(define (capturer) (call/cc (lambda (k) (set! saved k) 1)))'
+    + '(define (one) 10)'
+    + '(define (caller)'
+    + '  (let ((r (list (one) (capturer) (+ n 100))))'
+    + '    (set! n (+ n 1))'
+    + '    (if (< n 3) (saved (* n 5)) r)))',
+    '(caller)', ['caller']],
+
+  // Live on only one path. Which of `x` and `y` is read after the capture
+  // depends on `flag`, so both have to be kept: liveness is the union over the
+  // branches that can follow, not the branch that happened to run.
+  ['liveness: a variable read on only one later branch is kept',
+    '(define saved #f)'
+    + '(define n 0)'
+    + '(define (capturer) (call/cc (lambda (k) (set! saved k) 1)))'
+    + '(define (caller flag x y)'
+    + '  (let ((v (capturer)))'
+    + '    (set! n (+ n 1))'
+    + '    (if (< n 3) (saved (+ v 1))'
+    + '        (if flag (list (quote x) x v) (list (quote y) y v)))))',
+    '(caller #f (quote xx) (quote yy))', ['caller']],
+
+  // An assigned local is held in a box, and assigning it *reads* the box
+  // reference -- it is not a fresh definition. Treating `(set! acc ...)` as one
+  // would drop the box from the frame, and the resumed code would index into
+  // `undefined`. The accumulation also shows the box is shared across every
+  // resumption, as Scheme requires.
+  ['liveness: an assigned local is kept across the capture',
+    '(define saved #f)'
+    + '(define n 0)'
+    + '(define (capturer) (call/cc (lambda (k) (set! saved k) 1)))'
+    + '(define (caller)'
+    + '  (let ((acc (quote ())))'
+    + '    (let ((v (capturer)))'
+    + '      (set! acc (cons v acc))'
+    + '      (set! n (+ n 1))'
+    + '      (if (< n 3) (saved (+ v 10)) acc))))',
+    '(caller)', ['caller']],
+
+  // The same trap in its sharpest form. Above, `acc` is also *read* on the
+  // right of its own `set!`, which keeps it live however the write is judged.
+  // Here the first mention after the capture is a pure write, so the only thing
+  // keeping the box in the frame is knowing that writing through it reads it.
+  ['liveness: an assigned local whose next mention is a pure write',
+    '(define saved #f)'
+    + '(define n 0)'
+    + '(define (capturer) (call/cc (lambda (k) (set! saved k) 1)))'
+    + '(define (caller)'
+    + '  (let ((last 0))'
+    + '    (let ((v (capturer)))'
+    + '      (set! last v)'
+    + '      (set! n (+ n 1))'
+    + '      (if (< n 3) (saved (+ v 10)) last))))',
+    '(caller)', ['caller']],
+
+  // A procedure made after the capture closes over `x`. Its free variables are
+  // handed to it when it is created, so creating it is a read of `x`, and `x`
+  // must be in the frame even though no ordinary expression mentions it later.
+  ['liveness: a variable captured by a later closure is kept',
+    '(define saved #f)'
+    + '(define n 0)'
+    + '(define (capturer) (call/cc (lambda (k) (set! saved k) 1)))'
+    + '(define (caller x)'
+    + '  (let ((v (capturer)))'
+    + '    (set! n (+ n 1))'
+    + '    (let ((g (lambda () (list x v))))'
+    + '      (if (< n 3) (saved (+ v 1)) (g)))))',
+    '(caller (quote kept))', ['caller']],
+
+  // Two capture points with different live sets in one procedure: what is
+  // live after the first is not what is live after the second, and resuming at
+  // either must find exactly what it needs.
+  ['liveness: two capture points with different live sets',
+    '(define saved #f)'
+    + '(define n 0)'
+    + '(define (capturer) (call/cc (lambda (k) (set! saved k) 1)))'
+    + '(define (caller a b)'
+    + '  (let ((p (capturer)))'
+    + '    (let ((q (+ p a)))'
+    + '      (let ((r (capturer)))'
+    + '        (set! n (+ n 1))'
+    + '        (if (< n 4) (saved (+ r n)) (list q r b))))))',
+    '(caller 100 (quote bee))', ['caller']]
 ];
 
 /**
