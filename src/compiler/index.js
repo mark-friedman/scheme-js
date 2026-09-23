@@ -18,6 +18,7 @@ import { lowerLambda, controlGlobalIn } from './lowering.js';
 import { unsafeDefinitions, unsafeClosures } from './safety.js';
 import { generate } from './codegen.js';
 import * as R from './runtime.js';
+import { substituteLibraryValues } from '../core/interpreter/library_registry.js';
 
 /**
  * Largest generated source, in characters, that a procedure may produce.
@@ -393,17 +394,23 @@ export function compileEnvironment(env, options = {}) {
   const { generated, declined } = generateEnvironment(env, options);
 
   const compiled = [];
+  const replaced = new Map();
   for (const entry of generated) {
     try {
-      env.define(entry.name, R.recordSource(
+      const procedure = R.recordSource(
         new Function('R', 'E', 'K', entry.source)(R, entry.closure.env, entry.constants),
-        entry.closure.source));
+        entry.closure.source);
+      env.define(entry.name, procedure);
+      replaced.set(entry.closure, procedure);
       compiled.push(entry.name);
     } catch (e) {
       declined.push({ name: entry.name, reason: `code generation failed: ${e.message}` });
     }
   }
 
+  // Libraries imported the interpreted closures by value; see
+  // `substituteLibraryValues`.
+  substituteLibraryValues(replaced);
   return { compiled, declined };
 }
 

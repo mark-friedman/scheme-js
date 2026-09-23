@@ -57,6 +57,11 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     const jsConversionExports = await loadLibrary(['scheme-js', 'js-conversion'], analyze, interpreter, interpreter.globalEnv);
     const interopExports = await loadLibrary(['scheme-js', 'interop'], analyze, interpreter, interpreter.globalEnv);
     const defineMacroExports = await loadLibrary(['scheme-js', 'define-macro'], analyze, interpreter, interpreter.globalEnv);
+    // Loaded but not imported: test files import these themselves. An import in
+    // a test file runs synchronously, and this resolver is asynchronous, so a
+    // library a test imports has to be loaded before the file runs.
+    await loadLibrary(['srfi', '128'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['srfi', '125'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
     applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });

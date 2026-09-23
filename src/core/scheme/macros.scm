@@ -162,7 +162,9 @@
 ;;  * Creates a constructor, a type predicate, and accessors/modifiers for fields.
 ;;  *
 ;;  * @param {symbol} type - The name of the new record type.
-;;  * @param {list} constructor - (constructor tag ...) specification.
+;;  * @param {list} constructor - (constructor tag ...) specification. The
+;;  *   constructor takes one argument per tag, in that order, and initialises
+;;  *   the named fields; fields it does not name are left unspecified.
 ;;  * @param {symbol} predicate - Name for the type predicate (e.g. my-type?).
 ;;  * @param {...list} fields - Field specifications (tag accessor [modifier]).
 ;;  */
@@ -174,7 +176,8 @@
        (field-tag accessor . more) ...)
      (begin
        (define type (make-record-type 'type '(field-tag ...)))
-       (define constructor (record-constructor type))
+       (define constructor
+         (record-constructor type '(constructor-tag ...) 'constructor))
        (define predicate (record-predicate type))
        (define-record-field type field-tag accessor . more) ...))))
 

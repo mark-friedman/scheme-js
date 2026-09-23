@@ -58,3 +58,67 @@
     (test "Nested equal? diff" #f (equal? r1 r2))
   )
 )
+
+;; /**
+;;  * One-field record for testing that a field keeps the exactness of the
+;;  * value stored in it.
+;;  * @field x
+;;  */
+(define-record-type Exactness-probe
+  (make-probe x)
+  probe?
+  (x probe-x set-probe-x!))
+
+(test-group "Record fields keep exactness"
+  (test "integer-valued flonum stays inexact" #f (exact? (probe-x (make-probe 2.0))))
+  (test "integer-valued flonum keeps its value" #t (eqv? 2.0 (probe-x (make-probe 2.0))))
+  (test "negative zero survives" #t (eqv? -0.0 (probe-x (make-probe -0.0))))
+  (test "exact integer stays exact" #t (exact? (probe-x (make-probe 2))))
+  (test "non-integer flonum" #t (eqv? 2.5 (probe-x (make-probe 2.5))))
+  (test "large flonum stays inexact" #f (exact? (probe-x (make-probe 1e300))))
+
+  (define p (make-probe 1))
+  (set-probe-x! p 3.0)
+  (test "modifier stores a flonum" #f (exact? (probe-x p)))
+  (set-probe-x! p 3)
+  (test "modifier replaces a flonum with an exact integer" #t (exact? (probe-x p)))
+  (test "replaced value" 3 (probe-x p))
+  (set-probe-x! p 4.0)
+  (test "modifier stores a flonum again" #t (eqv? 4.0 (probe-x p))))
+
+;; /**
+;;  * Record whose constructor names its fields in a different order from the
+;;  * field specs, and leaves one field out.
+;;  * @field a
+;;  * @field b
+;;  * @field c
+;;  */
+(define-record-type Reordered
+  (make-reordered c a)
+  reordered?
+  (a reordered-a)
+  (b reordered-b set-reordered-b!)
+  (c reordered-c))
+
+(test-group "Record constructor field tags"
+  (define r (make-reordered 'first 'second))
+  (test "first argument initialises the first tag" 'first (reordered-c r))
+  (test "second argument initialises the second tag" 'second (reordered-a r))
+  (test "unnamed field is not given an argument" #f
+        (or (eq? (reordered-b r) 'first) (eq? (reordered-b r) 'second)))
+  (set-reordered-b! r 'third)
+  (test "unnamed field can be set" 'third (reordered-b r))
+
+  (test-error "too few arguments" "wrong number of arguments" (make-reordered 'only))
+  (test-error "too many arguments" "wrong number of arguments"
+              (make-reordered 1 2 3))
+  (test-error "in-order constructor checks arity" "wrong number of arguments"
+              (make-point 1))
+  (test-error "constructor tag must be a field" "not a field"
+              (let ()
+                (define-record-type Bad (make-bad z) bad? (x bad-x))
+                make-bad))
+  (test-error "constructor tag may not repeat" "more than once"
+              (let ()
+                (define-record-type Twice (make-twice x x) twice? (x twice-x))
+                make-twice)))

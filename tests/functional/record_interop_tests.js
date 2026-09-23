@@ -68,6 +68,29 @@ export async function runRecordInteropTests(interpreter, logger, fileLoader) {
         assert(logger, "JS property access x", p3.x, 5);
         assert(logger, "JS property access y", p3.y, 5);
 
+        // 7. Exactness across the boundary. A JavaScript number has no
+        // exactness, so an integer JavaScript writes into a field reads back
+        // in Scheme as an exact integer, while a flonum Scheme stores keeps
+        // its inexactness.
+        interpreter.globalEnv.define('js-point', new PointRTD(7, 8));
+        assert(logger, "JS-constructed integer field reads exact",
+            run(interpreter, `(exact? (point-x js-point))`), true);
+
+        run(interpreter, `(define scheme-point (make-point 2.0 3.0))`);
+        const schemePoint = interpreter.globalEnv.lookup('scheme-point');
+        assert(logger, "Scheme-stored flonum reads inexact",
+            run(interpreter, `(exact? (point-x scheme-point))`), false);
+        schemePoint.x = 4;
+        assert(logger, "JS write over a Scheme flonum reads exact",
+            run(interpreter, `(exact? (point-x scheme-point))`), true);
+        schemePoint.y = 5;
+        assert(logger, "JS write over a constructor flonum reads exact",
+            run(interpreter, `(exact? (point-y scheme-point))`), true);
+
+        run(interpreter, `(point-x-set! scheme-point 6.0)`);
+        assert(logger, "Scheme modifier flonum reads inexact",
+            run(interpreter, `(exact? (point-x scheme-point))`), false);
+
     } catch (e) {
         logger.fail(`Record Primitives failed: ${e.message}`);
     }

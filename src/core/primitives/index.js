@@ -21,6 +21,7 @@ import { processContextPrimitives } from './process_context.js';
 import { bytevectorPrimitives } from './bytevector.js';
 import { syntaxPrimitives } from './syntax.js';
 import { getPromisePrimitives } from '../../extras/primitives/promise.js';
+import { hashTablePrimitives } from '../../extras/primitives/hash_table.js';
 import { jsInteropPrimitives } from './js_interop_primitives.js';
 import { classPrimitives } from './class.js';
 
@@ -67,6 +68,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(bytevectorPrimitives);
     addPrimitives(syntaxPrimitives);
     addPrimitives(getPromisePrimitives(interpreter));
+    addPrimitives(hashTablePrimitives);
     addPrimitives(jsInteropPrimitives);
     addPrimitives(classPrimitives);
 

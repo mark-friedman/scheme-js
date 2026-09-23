@@ -6311,3 +6311,129 @@ the minimal JavaScript the policy says to expose.
 
 Regular expressions are deliberately not being built for the compiler. It only needed text scanning
 because the emitter produces strings, and a Scheme emitter that produces data removes the need.
+
+---
+
+# Walkthrough: SRFI 125 hash tables and SRFI 128 comparators
+
+The first capability built under the Scheme-first policy: hash tables, the prerequisite for writing
+compiler analyses in Scheme. Both SRFIs are complete, as `(srfi 125)` and `(srfi 128)`.
+
+## The split between Scheme and JavaScript
+
+Everything a hash table *does* is Scheme, in `src/extras/scheme/hash_table.scm` and
+`comparator.scm`. The JavaScript in `src/extras/primitives/hash_table.js` is the one thing Scheme
+cannot express — a store with constant-time lookup — plus the three hash functions that need
+primitive access to their argument: `string-hash`, `string-ci-hash`, `number-hash`.
+
+The store is a `Map` with the key normalised first, so that the `Map`'s notion of sameness matches a
+Scheme equivalence. SameValueZero is already `eq?` here and nearly `eqv?`; the exceptions (`-0.0`,
+characters, exact rationals, complex numbers) are stored under a canonical string in a second `Map`,
+so a canonical form can never collide with a string key. `string=?` uses the string itself and
+`string-ci=?` the string folded exactly as `string-ci=?` folds it. Those four equivalences, plus
+`symbol=?` and `char=?`, make a **native** table: one primitive call per lookup, no Scheme predicate
+ever run.
+
+Every other table — `equal?`, or a comparator the library does not recognise — is **general**: the
+store is keyed by hash value and holds a bucket of `(key . value)` pairs, searched in Scheme with the
+table's own predicate. That keeps user predicates and hash functions out of JavaScript entirely, so
+they behave as they would anywhere else, `call/cc` included.
+
+## Three bugs found on the way
+
+**Libraries imported the interpreted standard library.** Importing copies values, and the prebuilt
+install replaced only the global bindings, so every library — those loaded at start-up and any loaded
+later — held the interpreted `map`, `equal?` and the rest. It surfaced because SRFI 125 recognises
+`equal?` by identity, and a library's `equal?` was not the user's. Both install paths now pass what
+they replaced to `substituteLibraryValues` in `library_registry.js`, which updates export maps and
+library environments. Recorded as R57, since "the standard library is compiled" had been believed
+without that qualification since R46.
+
+**`define-record-type` rejected any field name that is not a JavaScript identifier** — `type-test`,
+`ordered?`, most names a Scheme programmer would choose — because `make-record-type` pasted field
+names into generated source. It now sets fields by name, and no longer calls `new Function`, which a
+strict Content-Security-Policy forbids.
+
+**`case-lambda` broke on five or more fixed parameters.** The dispatcher spelled out clauses of up to
+four parameters one by one, and a longer one matched `(a b c . rest)`, binding `rest` to the
+remaining names as if they were one. A general clause for any fixed arity, and one for four or more
+with a rest parameter, now precede the rest patterns.
+
+Two more record bugs were found and left for separate work, since nothing here depends on them:
+accessors turn an integer-valued flonum into an exact integer, and constructors ignore their field
+tags, taking arguments in field order rather than constructor order.
+
+## Not yet measured
+
+A library imported after start-up is never compiled, so today every table operation is an
+interpreted closure calling a primitive. A smoke test in the bundle, interpreted library and all,
+put 200-key `eq?` lookups at about the cost of the loop around them, where compiled `assq` doubled
+it. The real measurement is the next task in `docs/compiler_plan.md`, and it starts by getting the
+library compiled.
+
+## Verification
+
+174 SRFI 125 and 116 SRFI 128 assertions, written before the implementation. Because the
+implementation passed on its first run, 14 deliberate mutations were made — each canonicalisation
+rule, the bucket bookkeeping, copy independence, `alist->hash-table` precedence, `union!` semantics,
+key/value ordering, immutability, registered-type hashing — and every one made a test fail. Seven
+tests for the library substitution and two in the bundle, which fail without the fix. 2,798 tests
+pass in Node and 2,695 in the browser, with 0 failures in either.
+
+# Walkthrough: Two `define-record-type` compliance fixes
+
+Both bugs were found while implementing SRFI 125 and are fixed in `src/core/primitives/record.js`
+and the `define-record-type` macro in `src/core/scheme/macros.scm`.
+
+## Accessors kept exactness only for exact values
+
+`(exact? (px (mk-p 2.0)))` returned `#t`. Every accessor passed the field through `jsToScheme`,
+which turns any integer-valued JavaScript number into a `BigInt`. That conversion is deliberate: the
+interop policy is that a value entering Scheme from JavaScript becomes its natural Scheme type, so an
+integer JavaScript code writes into a field — `new PointRTD(7, 8)`, or `p.x = 4` — reads back as
+exact. No test covered it; removing the conversion outright left the whole suite passing.
+
+The difficulty is that an integer-valued number in a field is ambiguous: a flonum if Scheme stored
+it, an exact integer if JavaScript did. So the record constructor and modifiers now note each
+integer-valued flonum they store, in a `WeakMap` keyed by record, holding the field and the exact
+number. An accessor converts an integer-valued number unless the note says Scheme stored that very
+number in that field (compared with `Object.is`, so `-0.0` survives and a JavaScript `0` over it
+does not). A later JavaScript write of any other value therefore reads as JavaScript's. The
+`WeakMap` keeps records at one shape and adds no property JavaScript can see.
+
+One corner is accepted rather than paid for on every write: a note is not cleared when Scheme later
+stores a non-number, so if JavaScript then writes back exactly that integer, it reads as the flonum.
+
+The one-argument primitive form `(record-constructor rtd)` on a record type now means every field in
+order, with the same notes. A class built by `make-class` (`define-class`) has no field list for it
+to use, so its constructor still passes arguments straight through. `define-class` fields written
+with `(set! this.x 2.0)` bypass the record primitives and still read back exact; that is the general
+dot-assignment path, not `define-record-type`.
+
+**Cost.** A microbenchmark of 2×10⁷ reads over 1,000 records: fields holding a `BigInt`, an object
+or a non-integer flonum read in about 13 ns, the same as before within noise. Integer-valued numbers
+cost 32 ns against 25.6 ns — the `WeakMap` lookup — and the old figure was the wrong answer for a
+flonum.
+
+## Constructors ignored their field tags
+
+`(define-record-type q (mk-q y) q? (x qx) (y qy))` made `(qy (mk-q 5))` undefined and
+`(qx (mk-q 5))` 5: the macro dropped the constructor spec and the constructor took arguments in field
+order. The macro now passes `'(constructor-tag ...)` and the constructor's name to
+`record-constructor`, which checks at definition time that every tag is a field and none repeats,
+and returns a constructor that takes exactly one argument per tag, raising a
+`wrong number of arguments` error otherwise. When the tags are the fields in order — every record
+type in the tree today — it constructs directly; otherwise it constructs with no arguments, which
+defines every field in field order so all records of a type share a shape, then assigns the named
+ones. Fields the constructor does not name are left undefined, which R7RS 5.5 leaves unspecified.
+
+## Verification
+
+24 new assertions, written first: 19 in `tests/core/scheme/record_tests.scm` (exactness through the
+constructor and modifier, `-0.0`, `1e300`, argument order, the unnamed field, arity in both
+directions, unknown and repeated tags) and 5 in `tests/functional/record_interop_tests.js` (JS
+writes read exact, including over a Scheme flonum). 14 of the Scheme assertions failed before the
+fix. The three that check JavaScript writes pass on the old code by design; a mutation that drops
+the conversion makes all three fail. `npm run prebuild` regenerated `compiled_stdlib.js` (only its
+fingerprint changed) and `bundled_libraries.js`. 2,822 tests pass in Node, also with
+`SCHEME_AOT_STDLIB=1`, and 2,719 in the browser (`web/tests.html`), with 0 failures in any.

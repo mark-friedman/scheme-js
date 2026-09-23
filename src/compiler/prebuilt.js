@@ -48,6 +48,7 @@
  */
 
 import * as R from './runtime.js';
+import { substituteLibraryValues } from '../core/interpreter/library_registry.js';
 
 /**
  * Hashes the library sources into a short fingerprint.
@@ -97,6 +98,7 @@ export function installPrebuilt(env, table, fingerprint) {
 
   const installed = [];
   const skipped = [];
+  const replaced = new Map();
 
   for (const [name, entry] of Object.entries(table.procedures)) {
     const closure = env.bindings.get(name);
@@ -112,10 +114,15 @@ export function installPrebuilt(env, table, fingerprint) {
     }
     // Built against the closure's own environment, so its free variables
     // resolve where they did when it was interpreted.
-    env.define(name, R.recordSource(entry.make(R, closure.env, entry.constants), closure.source));
+    const procedure = R.recordSource(entry.make(R, closure.env, entry.constants), closure.source);
+    env.define(name, procedure);
+    replaced.set(closure, procedure);
     installed.push(name);
   }
 
+  // Libraries imported the interpreted closures by value; see
+  // `substituteLibraryValues`.
+  substituteLibraryValues(replaced);
   return { installed, skipped, stale: false };
 }
 

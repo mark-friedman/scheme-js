@@ -2071,6 +2071,27 @@ is built as a Scheme library over the minimum JavaScript. Interop is what makes 
 mid-migration: Scheme code can call the unported emitter directly, and the emitter reaches Scheme
 through `src/compiler/lowering.js`, so a new module never has to wait for its neighbours.
 
+**R57. "The standard library is compiled" was true for the global environment only. Every library
+kept the interpreted closures.**
+
+R46 and R50 measured the compiled standard library through code evaluated in the global
+environment, and the start-up comment in `scheme_entry.js` describes the library as compiled without
+qualification. But importing copies values. `(scheme base)`'s export map, and the environment of
+every library that imported it, captured `map`, `equal?`, `assoc` and the rest while they were still
+interpreted closures; installing the prebuilt table replaced the *global* bindings and nothing else.
+So a library loaded after start-up imported the interpreted versions — `(eq? map probe-map)` was
+`#f` between a library and the code that loaded it — and so did the procedures of every library
+loaded during start-up. Library code paid the interpreter boundary R45 measured at 10x on exactly the
+calls the prebuilt table exists to speed up.
+
+It surfaced as a correctness bug, not a speed one: SRFI 125 recognises `equal?` by identity to choose
+a hash function, and the library's `equal?` was not the user's. Both install paths now pass what they
+replaced to `substituteLibraryValues`, which updates export maps and library environments.
+
+How much library code the old behaviour slowed was never measured and now cannot be without undoing
+the fix. The broader lesson is the one R45 already taught, one level up: a speedup measured from one
+environment says nothing about code that reaches the same procedures by another path.
+
 ---
 
 ## Appendix — the original staged plan

@@ -84,9 +84,23 @@
            body ...)
          (case-lambda-clauses args rest ...)))
     
+    ;; Any other number of fixed params. This must precede the rest patterns
+    ;; below: a proper list of five or more names also matches `(a b c . rest)`,
+    ;; which would bind `rest` to the remaining names as if they were one.
+    ((case-lambda-clauses args ((a ...) body ...) more ...)
+     (if (= (length args) (length '(a ...)))
+         (apply (lambda (a ...) body ...) args)
+         (case-lambda-clauses args more ...)))
+
+    ;; Four or more fixed params and a rest param, for the same reason.
+    ((case-lambda-clauses args ((a b c d e ... . rest) body ...) more ...)
+     (if (>= (length args) (length '(a b c d e ...)))
+         (apply (lambda (a b c d e ... . rest) body ...) args)
+         (case-lambda-clauses args more ...)))
+
     ;; NOTE: Rest patterns must be ordered from most specific to least specific
     ;; to ensure proper pattern matching.
-    
+
     ;; Three or more (rest param) - must come before (a b . rest)
     ((case-lambda-clauses args ((a b c . rest) body ...) more ...)
      (if (and (pair? args) (pair? (cdr args)) (pair? (cddr args)))

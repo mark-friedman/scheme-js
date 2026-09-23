@@ -61,6 +61,7 @@ export const functionalTests = [
     { path: 'functional/instrumentation_tests.js', fn: 'runInstrumentationTests', async: true },
     { path: 'functional/compiler_tests.js', fn: 'runCompilerTests', async: true },
     { path: 'debug/compiled_breakpoint_tests.js', fn: 'runCompiledBreakpointTests', async: true, needsInterpreter: false },
+    { path: 'functional/library_compilation_tests.js', fn: 'runLibraryCompilationTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
     { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
@@ -132,6 +133,8 @@ export const schemeTestFiles = [
     'tests/extras/scheme/js_conversion_tests.scm',
     'tests/extras/scheme/class_tests.scm',
     'tests/extras/scheme/dot_access_tests.scm',
+    'tests/extras/scheme/srfi_128_tests.scm',
+    'tests/extras/scheme/srfi_125_tests.scm',
     'tests/functional/test_defmacro.scm',
 ];
 

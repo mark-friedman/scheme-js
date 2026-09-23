@@ -205,6 +205,38 @@ export function registerLibrary(key, exports, env) {
 }
 
 /**
+ * Substitutes values throughout every loaded library.
+ *
+ * Importing copies values, so a procedure exported by one library lives on in
+ * that library's export map and in the environment of every library that
+ * imported it. Replacing the global binding -- which is how the standard
+ * library is compiled after it has been loaded -- reaches none of those copies,
+ * and a library loaded afterwards would import the procedure that was replaced.
+ * Whatever replaces a binding in place calls this with what it replaced.
+ *
+ * Only values identical to a replaced one change; a library that bound the
+ * same name to something else keeps it.
+ *
+ * @param {Map<*, *>} replacements - Each replaced value, mapped to its
+ *   replacement.
+ */
+export function substituteLibraryValues(replacements) {
+    if (replacements.size === 0) return;
+    for (const { exports, env } of libraryRegistry.values()) {
+        for (const [name, value] of exports) {
+            const replacement = replacements.get(value);
+            if (replacement !== undefined) exports.set(name, replacement);
+        }
+        if (env && env.bindings instanceof Map) {
+            for (const [name, value] of env.bindings) {
+                const replacement = replacements.get(value);
+                if (replacement !== undefined) env.bindings.set(name, replacement);
+            }
+        }
+    }
+}
+
+/**
  * Gets all loaded library keys (for debugging).
  * @returns {string[]}
  */
