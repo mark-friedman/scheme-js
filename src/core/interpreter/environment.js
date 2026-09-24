@@ -1,4 +1,5 @@
 import { SchemeUnboundError } from './errors.js';
+import { noteBinding } from './primitive_bindings.js';
 
 /**
  * Manages lexical scope via a chain of maps.
@@ -139,6 +140,7 @@ export class Environment {
             }
             throw new SchemeUnboundError(name, true);
         }
+        noteBinding(name, value);
         env.bindings.set(name, value);
         return value;
     }
@@ -151,6 +153,7 @@ export class Environment {
      * @returns {*} The value.
      */
     define(name, value) {
+        noteBinding(name, value);
         this.bindings.set(name, value);
         return value;
     }

@@ -43,7 +43,7 @@ import { instrumentInterpreter } from '../src/debug/instrumentation.js';
 import { tryCompileClosure, tryCompileDefinition } from '../src/compiler/index.js';
 import { unsafeDefinitions } from '../src/compiler/safety.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
-import { INLINABLE } from '../src/compiler/inline.js';
+import { inlineExpansionNames } from '../src/compiler/lowering.js';
 
 const PROJECT_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCHEME_TEST_DIR = path.join(PROJECT_ROOT, 'tests', 'core', 'scheme');
@@ -299,7 +299,7 @@ async function runOnce(workload, useCompiler, instrument) {
 function coverage(counts) {
   const calls = [...counts.values()].reduce((a, b) => a + b, 0);
   const inlined = [...counts.entries()]
-    .filter(([name]) => INLINABLE[name] !== undefined)
+    .filter(([name]) => inlineExpansionNames().includes(name))
     .reduce((a, [, c]) => a + c, 0);
   return { calls, distinct: counts.size, inlinedShare: calls > 0 ? inlined / calls : 0 };
 }

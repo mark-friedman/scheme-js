@@ -21,8 +21,7 @@ import { installPrebuilt, fingerprintSources } from '../../src/compiler/prebuilt
 import PREBUILT, { LIBRARY_FILES } from '../../src/packaging/compiled_stdlib.js';
 import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 import { unsafeDefinitions } from '../../src/compiler/safety.js';
-import { lowerLambda } from '../../src/compiler/lowering.js';
-import { jsName } from '../../src/compiler/emitter.js';
+import { lowerLambda, jsNameOf } from '../../src/compiler/lowering.js';
 import { Cons } from '../../src/core/interpreter/cons.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { settle } from '../../src/compiler/runtime.js';
@@ -288,6 +287,28 @@ const CAPTURE_CASES = [
     + '  (if (>= i 4) (map (lambda (g) (g)) (reverse fs))'
     + '      (begin (grab-at i) (run (+ i 1) (cons (lambda () (set! i (+ i 10)) i) fs)))))',
     '(let ((r (run 0 (quote ())))) (set! runs (+ runs 1)) (if (< runs 2) (k 0) r))', ['run']],
+
+  // A capture inside a call that is itself a branch of an `if` whose value is
+  // wanted. The resumable form splits the branch at the call, so the value has
+  // to reach the join from the block the call resumes in -- once, it was left
+  // in the block before the split, after its jump, and never ran.
+  ['a capture in the then-branch of an if whose value is used',
+    '(define k #f) (define runs 0)'
+    + '(define (grab x) (call/cc (lambda (c) (set! k c) x)))'
+    + '(define (f x) (+ 1 (if x (grab x) 2)))',
+    '(let ((r (f 5))) (set! runs (+ runs 1)) (if (< runs 2) (k 10) r))', ['f']],
+  ['a capture in the else-branch of an if whose value is used',
+    '(define k #f) (define runs 0)'
+    + '(define (grab x) (call/cc (lambda (c) (set! k c) x)))'
+    + '(define (f x) (+ 1 (if x 2 (grab 5))))',
+    '(let ((r (f #f))) (set! runs (+ runs 1)) (if (< runs 2) (k 10) r))', ['f']],
+  // The same split, in the operator of a call rather than a branch. Not in
+  // tail position, where the operator is evaluated by a different path.
+  ['a capture in the operator of a call',
+    '(define k #f) (define runs 0)'
+    + '(define (grab x) (call/cc (lambda (c) (set! k c) x)))'
+    + '(define (f l) (cons ((grab car) l) (quote end)))',
+    '(let ((r (f (quote (1 2))))) (set! runs (+ runs 1)) (if (< runs 2) (k cdr) r))', ['f']],
 
   // The call site is inside a nested procedure rather than the one that was
   // named, which is where most call sites in a program actually are.
@@ -1473,8 +1494,8 @@ export async function runCompilerTests(interpreter, logger) {
           const lowered = lowerLambda(ast.valueExpr ?? ast.value);
           hasRest = Boolean(lowered.ir.rest);
           params = [
-            ...lowered.ir.params.map(jsName),
-            ...(hasRest ? [jsName(lowered.ir.rest)] : [])
+            ...lowered.ir.params.map(jsNameOf),
+            ...(hasRest ? [jsNameOf(lowered.ir.rest)] : [])
           ];
         } else {
           fresh.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });

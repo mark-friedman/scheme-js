@@ -2173,6 +2173,61 @@ class, `fixnum` 1.41x, `vector` 1.25x, `call` 1.24x, `list` 1.21x, `continuation
 change -- only the harness's own loop around it differs -- so, like `array1` in R55, the shift is
 outside the code being measured.
 
+**R61. The first code-generation target was not a job for an analysis over the IR, and the guard was
+about half of what compiled code did.**
+
+`compiler_plan.md` framed the next stage as "Scheme analyses that run on the IR" and named the first
+target: every inlined primitive re-reads its global and compares it with the primitive on each use.
+Measured before designing anything, by emitting the fast path with no guard at all -- unsound, a
+ceiling only -- the guard cost `call` 1.96x, `fixnum` 1.93x, `list` 1.56x, `vector` 1.28x.
+
+An analysis cannot recover that. A binding can change whenever code runs, which in compiled code
+means at any call, so a guard checked once can be trusted only until the procedure's next call --
+and in recursive code such as `fib` a primitive sits between every pair of calls. What does recover
+it is reversing the question: the interpreter records, in one cell per primitive's name, whether
+that name has ever been bound to anything else anywhere, and compiled code reads the cell --
+`W.intact || G() === P`. With the per-expansion capture check also moved to the slow path, the
+compiled tier measured `call` 2.28x, `fixnum` 2.24x, `list` 1.73x, `vector` 1.32x, `continuation`
+1.19x, `flonum` 1.05x, `bignum` 1.01x, `string` 1.01x on reruns; above the ceiling, because the
+ceiling kept the capture check. The interpreter tier, which pays the check on every `define` and
+`set!`, measured 1.00x. The compiler's own lowering went from 98.9 to 68.1 ms a pass.
+
+*Consequence:* the rest of code generation is still planned as analyses, but the first target was a
+runtime representation. The costs that remain -- the global accessor on every call, the generic
+call path -- should be ceiling-measured the same way before anything is designed for them.
+
+**R62. A primitive redefined before a procedure was compiled was ignored by it.**
+
+The guard compared the global with *whatever it was bound to at compile time*, and an expansion was
+emitted whenever that binding was a function. So after `(define (car x) 'mine)`, compiling
+`(define (g l) (car l))` inlined the primitive's `car` behind a guard that passed: `(g '(1 2))` gave
+`1`. `inline.js` said a redefinition could not be ignored, and it could, as long as it came first.
+Unreachable today only because user code is never compiled. The guard now compares with the
+primitive itself, taken from its cell.
+
+**R63. The resumable form lost values across a call inside a branch or an operator.**
+
+"The resumable twin matches the fast form" is tested directly, and a continuation captured inside a
+call in either branch of an `if` whose value is used -- `(+ 1 (if x (grab x) 2))` -- still resumed
+with the wrong value, and one inside a call in operator position failed outright. The twin emitted
+`this.out.push(\`${result} = ${this.value(node.then)}\`)`: JavaScript binds `this.out` before it
+evaluates the argument, and evaluating a call there moves the twin to a new block, so the assignment
+landed in the old block after its jump and never ran. The frame then carried the variable's value
+from before the call, `undefined`. Found by reading the code to rewrite it in Scheme, not by a test.
+
+**R64. The resumable form's "save everything" fallback was not dormant.**
+
+`resume.js` saved every local at every suspension point if the procedure contained an inline
+function literal, with the comment "that does not happen today": every nested lambda is lifted into a
+factory. The test was `/\bfunction\b/` over the emitted text, and a string constant is emitted
+inline, so any procedure with the word *function* in a string literal -- an error message, say --
+took the fallback. Three of the compiler's own procedures did, among them the emitter's own
+`fast-form` and `twin-form`, whose frames at every call site listed every local they had. The
+Scheme emitter marks locals in its statement data, has no text to scan, and has no fallback; with
+it the compiled compiler went from 1,518 to 1,371 KB. Nothing in the standard library or the test
+corpus was affected, which is how it went unseen: the differential between the two emitters found
+exactly these three, and nothing else.
+
 ---
 
 ## Appendix — the original staged plan

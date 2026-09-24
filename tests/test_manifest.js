@@ -33,7 +33,6 @@ export const unitTests = [
     { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
     { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
-    { path: 'unit/liveness_tests.js', fn: 'runLivenessTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)
@@ -65,6 +64,7 @@ export const functionalTests = [
     { path: 'debug/macro_breakpoint_tests.js', fn: 'runMacroBreakpointTests', async: true, needsInterpreter: false },
     { path: 'functional/library_compilation_tests.js', fn: 'runLibraryCompilationTests', async: true, needsInterpreter: false },
     { path: 'functional/loop_compilation_tests.js', fn: 'runLoopCompilationTests', async: true, needsInterpreter: false },
+    { path: 'functional/primitive_binding_tests.js', fn: 'runPrimitiveBindingTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
     { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
@@ -89,6 +89,13 @@ export const integrationTests = [
 // they are Node-only.
 export const programTests = [
     { path: 'programs/program_correctness_tests.js', fn: 'runProgramCorrectnessTests', async: true, needsInterpreter: false, nodeOnly: true },
+];
+
+// Scheme tests of the compiler's own Scheme, run in the environment the
+// compiler runs in (paths relative to project root, used by file loader)
+export const compilerSchemeTestFiles = [
+    'tests/compiler/liveness_tests.scm',
+    'tests/compiler/emit_tests.scm',
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
@@ -138,6 +145,8 @@ export const schemeTestFiles = [
     'tests/extras/scheme/dot_access_tests.scm',
     'tests/extras/scheme/srfi_128_tests.scm',
     'tests/extras/scheme/srfi_125_tests.scm',
+    'tests/extras/scheme/srfi_1_tests.scm',
+    'tests/extras/scheme/srfi_152_tests.scm',
     'tests/functional/test_defmacro.scm',
 ];
 
@@ -242,6 +251,16 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
             await runSchemeTests(interpreter, logger, schemeTestFiles, loader);
         } catch (e) {
             logger.fail(`Scheme test suite crashed: ${e.message}`);
+        }
+    }
+
+    // Scheme tests of the compiler
+    if (loader) {
+        try {
+            const { runCompilerSchemeTests } = await import('./run_compiler_scheme_tests_lib.js');
+            await runCompilerSchemeTests(logger, compilerSchemeTestFiles, loader);
+        } catch (e) {
+            logger.fail(`Compiler Scheme test suite crashed: ${e.message}`);
         }
     }
 

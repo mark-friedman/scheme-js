@@ -1,10 +1,10 @@
 /**
- * @fileoverview Running the compiler's lowering pass, which is Scheme.
+ * @fileoverview Running the compiler's Scheme: lowering and code generation.
  *
- * The lowering itself lives in `ir.scm`. This module is the door into it: it
- * keeps the Scheme interpreter the pass runs in, marshals an analyzed AST
- * across, and hands the IR back to code generation, which is still JavaScript.
- * Callers see the same two functions they always did.
+ * Lowering lives in `ir.scm` and code generation in `emit.scm` and the files
+ * beside it. This module is the door into both: it keeps the Scheme
+ * interpreter they run in, marshals an analyzed AST across, and hands back the
+ * IR, which stays Scheme data, and then the generated JavaScript.
  *
  * ## Why the pass is Scheme
  *
@@ -55,10 +55,27 @@ import { parse } from '../core/interpreter/reader.js';
 import { analyze } from '../core/interpreter/analyzer.js';
 import { BUNDLED_SOURCES, COMPILER_SOURCES } from '../packaging/bundled_libraries.js';
 import prebuiltStdlib, { LIBRARY_FILES } from '../packaging/compiled_stdlib.js';
-import prebuiltCompiler, { COMPILER_FILES } from '../packaging/compiled_compiler.js';
+import prebuiltCompiler from '../packaging/compiled_compiler.js';
 import { installPrebuilt, fingerprintSources } from './prebuilt.js';
 import { invoke, settle } from './runtime.js';
-import { astToScheme, irToJs, toArray } from './marshal.js';
+import { astToScheme, irToJs, toArray, toList } from './marshal.js';
+import { intern } from '../core/interpreter/symbol.js';
+
+/**
+ * The compiler's Scheme files, in load order: the implementations of SRFI 1
+ * and SRFI 152, which it is written with, and then its own.
+ *
+ * Kept here, in source, and read by the build step that compiles them. It was
+ * once read back from that step's output instead, which meant a build made
+ * before a file was added or removed told the compiler which files it was made
+ * of -- and a removed one could not be found at all.
+ *
+ * @type {string[]}
+ */
+export const COMPILER_FILES = [
+  'list_lib.scm', 'string_lib.scm',
+  'ir.scm', 'lift.scm', 'inline.scm', 'liveness.scm', 'emit.scm'
+];
 
 /**
  * The Scheme lowering, bootstrapped on first use, or null if it could not be.
@@ -95,8 +112,9 @@ function runSource(interpreter, env, source) {
 /**
  * Builds the interpreter the lowering runs in, and finds its entry points.
  *
- * @returns {{lowerLambda: Function, controlGlobalIn: Function}} The two Scheme
- *   procedures the compiler calls.
+ * @returns {{env: Object, lowerLambda: Function, controlGlobals: Set<string>}}
+ *   The environment the compiler's Scheme lives in, and what is read from it
+ *   up front.
  */
 function bootstrap() {
   const { interpreter, env } = createInterpreter();
@@ -109,7 +127,9 @@ function bootstrap() {
   for (const source of librarySources) runSource(interpreter, env, source);
   installPrebuilt(env, prebuiltStdlib, fingerprintSources(librarySources));
 
-  const compilerSources = COMPILER_FILES.map((file) => COMPILER_SOURCES[file]);
+  // The compiler is written with SRFI 1 and SRFI 152, whose implementations
+  // are bundled as library sources rather than compiler ones.
+  const compilerSources = COMPILER_FILES.map((file) => COMPILER_SOURCES[file] ?? BUNDLED_SOURCES[file]);
   for (const source of compilerSources) runSource(interpreter, env, source);
   installPrebuilt(env, prebuiltCompiler, fingerprintSources(compilerSources));
 
@@ -119,7 +139,14 @@ function bootstrap() {
   // more than the test. Reading it from `ir.scm` is what keeps it one list:
   // the lowering and the caller that declines on it cannot drift apart if
   // neither owns a second copy.
+  //
+  // The emitter's entry points are looked up when first used rather than
+  // here. A prebuilt table generated before a compiler file existed lists
+  // only the files it knew, and bootstrapping from it must still be able to
+  // lower -- that is how the table that knows the new file gets built.
   return {
+    interpreter,
+    env,
     lowerLambda: env.lookup('lower-lambda'),
     controlGlobals: new Set(toArray(env.lookup('control-globals')).map((s) => s.name))
   };
@@ -167,9 +194,10 @@ function call(proc, args) {
  * call-graph closure over it.
  *
  * @param {Object} lambdaNode - An analyzed `LambdaNode`.
- * @returns {{ir: Object, globals: Set<string>, callsUnknown: boolean,
- *   captures: boolean}|{reason: string}} The IR with what it references, or why
- *   it could not be lowered.
+ * @returns {{schemeIr: *, ir: Object, globals: Set<string>, callsUnknown: boolean,
+ *   captures: boolean}|{reason: string}} The IR -- as Scheme data for code
+ *   generation, and as JavaScript objects on request -- with what it
+ *   references, or why it could not be lowered.
  */
 export function lowerLambda(lambdaNode) {
   const scheme = lowering();
@@ -180,12 +208,74 @@ export function lowerLambda(lambdaNode) {
   const result = toArray(call(scheme.lowerLambda, [astToScheme(lambdaNode)]));
   if (result[0].name === 'fail') return { reason: result[1] };
 
+  const schemeIr = result[1];
   return {
-    ir: irToJs(result[1]),
+    schemeIr,
+    // The IR as JavaScript objects, for tests that inspect it. Code generation
+    // reads the Scheme IR directly, so the conversion is only made if asked.
+    get ir() { return irToJs(schemeIr); },
     globals: new Set(toArray(result[2]).map((symbol) => symbol.name)),
     callsUnknown: result[3],
     captures: result[4]
   };
+}
+
+/**
+ * Generates a lowered procedure's JavaScript with the Scheme emitter,
+ * `generate-unit` in `emit.scm`.
+ *
+ * @param {*} schemeIr - The procedure's IR, as `lower-lambda` returned it.
+ * @param {Array<string>} globals - The globals it references, in order.
+ * @param {string} name - Its display name.
+ * @param {Array<string>} guarded - The globals with an inline expansion that
+ *   are bound to their primitive in the environment being compiled for.
+ * @returns {{source: string, constants: Array<*>}} The generated code.
+ */
+export function emitUnit(schemeIr, globals, name, guarded) {
+  const scheme = lowering();
+  if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
+  const result = toArray(call(scheme.env.lookup('generate-unit'), [
+    schemeIr, toList(globals.map((g) => intern(g))), name, toList(guarded.map((g) => intern(g)))
+  ]));
+  return { source: result[0], constants: toArray(result[1]) };
+}
+
+/**
+ * The interpreter and environment the compiler's Scheme runs in, for tests
+ * that exercise its procedures directly.
+ * @returns {{interpreter: Object, env: Object}} The pair.
+ * @throws {Error} If the compiler could not start.
+ */
+export function compilerEnvironment() {
+  const scheme = lowering();
+  if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
+  return { interpreter: scheme.interpreter, env: scheme.env };
+}
+
+/**
+ * The JavaScript identifier generated code uses for a renamed Scheme local,
+ * from `emit.scm`.
+ * @param {string} name - A renamed Scheme identifier.
+ * @returns {string} The identifier.
+ */
+export function jsNameOf(name) {
+  const scheme = lowering();
+  if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
+  return call(scheme.env.lookup('js-name'), [intern(name)]);
+}
+
+/**
+ * The globals that have an inline expansion, from `inline.scm`.
+ * @returns {Array<string>} Their names.
+ */
+export function inlineExpansionNames() {
+  const scheme = lowering();
+  if (scheme === null) return [];
+  if (scheme.inlineNames === undefined) {
+    scheme.inlineNames = toArray(call(scheme.env.lookup('inline-expansion-names'), []))
+      .map((s) => s.name);
+  }
+  return scheme.inlineNames;
 }
 
 /**

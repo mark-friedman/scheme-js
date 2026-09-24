@@ -3,13 +3,13 @@
  *
  * `ir.scm` works on Scheme data, because that is what a compiler written in
  * Scheme would be handed. The analyzer in front of it is still JavaScript, so
- * its output is converted on the way in and the IR is converted back on the way
- * out for code generation, which is also still JavaScript.
+ * its output is converted on the way in. The IR is no longer converted on the
+ * way out: code generation is Scheme too, and reads it as it is. `irToJs`
+ * remains for tests that inspect the IR from JavaScript.
  *
  * This module is therefore a measure of how far the port has got: every field
- * it converts is a field two languages have to agree about. It shrinks as more
- * of the compiler moves across, and disappears when the analyzer produces
- * Scheme data and the emitter consumes it.
+ * it converts is a field two languages have to agree about. What is left of it
+ * disappears when the analyzer produces Scheme data.
  *
  * Its cost is small enough not to weigh on that decision: about 8 ms against
  * 66 ms of lowering, over the 952-lambda corpus the port was measured on.

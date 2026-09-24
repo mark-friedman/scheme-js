@@ -6819,3 +6819,146 @@ eleventh -- the resumable form reusing a boxed parameter's box when it loops -- 
 and two more were caught only indirectly, one by a lowering test alone and one by a single whole
 program. Three targeted cases were added and all three mutations now fail them. 2,971 tests pass in Node and 2,868 in the browser, with 0 failures in
 either; `benchmark:self-host` agrees on all 1,006 lambdas, and the build reproduces byte for byte.
+
+# Walkthrough: Primitive guards that survive calls
+
+Task 19 in `docs/compiler_plan.md`: the first target of code generation. Every inlined primitive --
+`car`, `+`, `eq?` -- checked on each use that its name still denoted the primitive, because Scheme
+lets a program redefine `car`. The plan expected this to be a Scheme analysis over the IR. It was
+not, and why is the main result.
+
+## The ceiling first
+
+Before designing anything, the fast path was emitted with no guard at all, unsoundly, and the
+canonical suite run against the unchanged code: `call` 1.96x, `fixnum` 1.93x, `list` 1.56x,
+`vector` 1.28x. So the guard was about half of what compiled code did.
+
+An analysis can reuse a guard only until the procedure's next call, since any call may run code
+that redefines `car`. In `fib` there is a primitive between every pair of calls, so the most an
+analysis could save there is nothing.
+
+## Turning the question round
+
+The interpreter now notices rebinding instead of compiled code asking about it.
+`src/core/interpreter/primitive_bindings.js` keeps one cell per primitive's name. Installing the
+primitives registers them; `Environment.define` and `Environment.set` -- through which programs,
+imports and the REPL bind and assign -- report every write; and a cell is cleared the first time its
+name is bound to anything but its primitive, anywhere, and never set again. Compiled code reads it:
+`W.intact || G() === P`, one property load until something rebinds the name, and the old per-use
+comparison after. The flag is per name rather than per environment, so a library that defines its
+own `car` makes `car` slower everywhere and wrong nowhere.
+
+The check that a redefined primitive had captured a continuation -- a statement after every
+expansion -- moved into the slow path, `R.callBinding`, which is the only way a redefinition can run.
+
+## Two bugs on the way
+
+**A redefinition made before compiling was ignored** (R62). The guard compared with whatever the
+name was bound to at compile time, so after `(define (car x) 'mine)`, a procedure compiled next had
+the primitive's `car` inlined behind a guard that passed. It now compares with the primitive itself.
+
+**The resumable form lost a value across a call in a branch or an operator** (R63). Found while
+reading `resume.js` to rewrite it: `this.out.push(\`${result} = ${this.value(node.then)}\`)` binds
+`this.out` before the call in the branch moves the twin to a new block, so the assignment landed
+after that block's jump. A continuation captured there resumed with `undefined` for the branch's
+value. Three capture cases now cover the then-branch, the else-branch and the operator.
+
+## What it was worth
+
+Compiled tier over the canonical suite, best of two interleaved runs each way, geometric mean per
+class: `call` 2.28x, `fixnum` 2.24x, `list` 1.73x, `vector` 1.32x, `continuation` 1.19x, `flonum`
+1.05x, `bignum` 1.01x. `string` read 0.95x and then 1.00-1.03x over three interleaved reruns. Above
+the ceiling, because the ceiling kept the capture check. The interpreter tier, which now pays one
+map lookup on every `define` and `set!`, measured 1.00x. The compiler's own lowering went from 98.9
+to 68.1 ms a pass, and `benchmark:self-host` agrees on all 1,006 lambdas.
+
+## Verification
+
+`tests/functional/primitive_binding_tests.js`: the cells on names of their own, every write path,
+that starting an interpreter rebinds nothing, and compiled code obeying a redefinition made before
+compiling, after, during a loop, from another environment, and one that captures. Eight mutations
+were run against the whole suite, and five failed tests. Of the other three, two change nothing
+observable: guarding at compile time on any function rather than on the primitive, since the guard
+compares with the primitive anyway; and a report from `substituteLibraryValues`, which was then
+removed as unreachable, since that path only replaces a closure whose binding was already reported.
+The third -- the slow path ignoring a capture -- was a real gap, and now has a test. 2,999 tests pass in Node and 2,896 in the browser;
+the build reproduces byte for byte.
+
+## And what comes next
+
+Reading the emitter to rewrite it found a bug no test had, and the guard work had just added to the
+JavaScript emitter under the "don't port a moving target" argument the policy exists to stop. So the
+emitter rewrite in Scheme is now task 20, ahead of the rest of code generation.
+
+# Walkthrough: The emitter is Scheme
+
+Task 20 in `docs/compiler_plan.md`, moved ahead of the rest of code generation: every optimization
+written in the JavaScript emitter first was more for a later rewrite to redo, and the guard work had
+just added to it. Code generation is now Scheme -- `emit.scm`, `lift.scm`, `liveness.scm` and
+`inline.scm` -- and `emitter.js`, `resume.js`, `liveness.js`, `lift.js` and `inline.js` are gone.
+`codegen.js` is a door into it, left holding the one fact only the environment knows: which globals
+are still bound to their primitives.
+
+## A rewrite, not a transliteration
+
+- **One emitter, with a mode.** The JavaScript twin subclassed the fast form and overrode control
+  flow. In Scheme there is one emitter and a record of emission state; `if`, calls, captures and
+  loop heads dispatch on the mode, and everything else is shared code, which is what keeps the two
+  forms naming every temporary alike. Branches of the fast form are collected into a buffer rather
+  than into sub-emitters.
+- **Statements are data.** A statement is a tagged list and an expression a list of text and local
+  variables, rendered at the end. Liveness reads definitions and uses off that data; the regular
+  expressions over emitted text are gone, and with them the rule that a local's name inside a
+  string literal counts as a read.
+- **The unreachable went.** Every nested lambda is lifted, so the path that emitted one inline --
+  and the fallback that saved every local if it ever did -- was dead. It had not been as dead as its
+  comment said (R64).
+
+## Proved by a differential
+
+While both emitters existed, a hook in `codegen.js` let a preloaded script generate every procedure
+twice and record any difference. Run under the test suite in every process and worker (3,386
+procedures), the benchmark programs (7,000), the standard library (61) and the compiler compiling
+itself (170): byte-identical, except three of the compiler's own procedures whose frames save a
+subset of what the JavaScript emitter saved -- R64. Only then was the switch made and the JavaScript
+deleted. The build reproduces byte for byte.
+
+Reading the code to rewrite it also found R63, a bug in the JavaScript twin that no test had caught.
+
+## Written with SRFI 1 and SRFI 152
+
+The emitter first used a file of list helpers. Nearly all of them are SRFI 1, and the rest SRFI
+152, so both are now implemented in full as `(srfi 1)` and `(srfi 152)` -- in Scheme,
+`src/extras/scheme/list_lib.scm` and `string_lib.scm`, with the procedures R7RS-small already
+provides re-exported -- and the compiler loads their implementations as it loads its own files.
+Only what its entry points reach is compiled into its prebuilt table. 254 Scheme tests cover the two
+libraries, mostly the SRFI documents' own examples.
+
+The list of files that make up the compiler moved from the generated table into `lowering.js`: a
+table built before a file was removed named a file that no longer existed, and the compiler could
+not start to build the table that would not.
+
+## Tests of the compiler in Scheme
+
+The liveness tests were JavaScript over strings. They are now Scheme over statement data, in
+`tests/compiler/`, with tests of the emitter's text helpers and the lifting plan; a small runner runs
+them inside the compiler's own environment, in Node and the browser.
+
+## What it cost
+
+- Code generation is 7.5x slower than the JavaScript was: about 1.2 ms a procedure over a 1,014-
+  procedure corpus, against 0.16 ms. The profile is spread thin -- `case` dispatch compiled as a
+  `memv` call per clause, the global accessor on every call -- which are code-generation targets,
+  so the compiler will speed up as the tier does. `npm run prebuild` takes 1.6 s, from 0.62.
+- The compiled compiler grew from 0.44 to 1.37 MB, and `dist/scheme.js` from 1.81 to 2.97 MB. That
+  moved splitting the compiler out of the browser bundle to the top of the plan.
+
+Six deliberate mutations of the Scheme passes -- a spill ignoring its resume block, the twin
+reusing a boxed parameter's box, a resume block dropping a call's value, `letrec` siblings left
+unboxed, a write through a box counted as a definition, the guard ignoring its cell -- each failed
+tests; the sibling one only in the new Scheme test of the lifting plan.
+
+Generated code is unchanged, so run-time performance is too. 3,287 tests pass in Node and 3,184 in
+the browser;
+`benchmark:self-host` agrees on all 1,006 lambdas, and every benchmark program runs correctly
+compiled.

@@ -38,6 +38,7 @@ import { analyze } from '../src/core/interpreter/analyzer.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
 import { generateEnvironment } from '../src/compiler/index.js';
 import { installPrebuilt, fingerprintSources } from '../src/compiler/prebuilt.js';
+import { COMPILER_FILES } from '../src/compiler/lowering.js';
 import prebuiltStdlib, { LIBRARY_FILES } from '../src/packaging/compiled_stdlib.js';
 import { renderTable, serializeConstants } from './lib/render_prebuilt.js';
 
@@ -45,10 +46,23 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/compiled_compiler.js');
 
 /**
- * The compiler's Scheme files, in load order.
+ * The procedures other code calls into the compiler's Scheme through; see
+ * `src/compiler/lowering.js`.
  * @type {string[]}
  */
-const COMPILER_FILES = ['ir.scm'];
+const ENTRY_POINTS = ['lower-lambda', 'generate-unit', 'inline-expansion-names'];
+
+/**
+ * Where a compiler file lives. Most are the compiler's own; the first two are
+ * the implementations of SRFI 1 and SRFI 152, which the compiler loads as it
+ * would any Scheme it depends on, and which users reach as libraries.
+ * @param {string} file - A name from `COMPILER_FILES`.
+ * @returns {string} Its path.
+ */
+function compilerFilePath(file) {
+  const own = path.join(ROOT, 'src/compiler', file);
+  return fs.existsSync(own) ? own : path.join(ROOT, 'src/extras/scheme', file);
+}
 
 /**
  * Loads the standard library and then the compiler's Scheme into one
@@ -90,7 +104,7 @@ function bootstrap() {
   const sources = [];
   const names = new Set();
   for (const file of COMPILER_FILES) {
-    const source = fs.readFileSync(path.join(ROOT, 'src/compiler', file), 'utf8');
+    const source = fs.readFileSync(compilerFilePath(file), 'utf8');
     sources.push(source);
     for (const form of parse(source)) {
       const ast = analyze(form);
@@ -110,7 +124,20 @@ function main() {
   // Restricted to what the compiler's own sources defined. Anything else still
   // interpreted in this environment is a library procedure the prebuilt table
   // did not cover, and it belongs in that table rather than this one.
-  const mine = generated.filter((entry) => names.has(entry.name));
+  // Restricted, too, to what the compiler can reach from its entry points.
+  // It is written with SRFI 1 and SRFI 152 and uses a handful of each; the
+  // rest are loaded, interpreted, and never called here, and compiling them
+  // would put the whole of both libraries into every bundle that can compile.
+  const byName = new Map(generated.map((entry) => [entry.name, entry]));
+  const reachable = new Set();
+  const pending = [...ENTRY_POINTS];
+  while (pending.length > 0) {
+    const name = pending.pop();
+    if (reachable.has(name) || !byName.has(name)) continue;
+    reachable.add(name);
+    pending.push(...byName.get(name).globals);
+  }
+  const mine = generated.filter((entry) => names.has(entry.name) && reachable.has(entry.name));
   const usable = mine.filter((entry) => serializeConstants(entry.constants) !== null);
   const unserializable = mine.filter((entry) => serializeConstants(entry.constants) === null);
 

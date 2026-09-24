@@ -20,7 +20,7 @@ Three companions, and the division is by lifetime:
 
 Only the reasoning **no single module can own**. The calling convention spans the emitter, the
 resumable form, the interpreter's frames and the runtime — no header owns it, so it is here. Why
-`letrec` self-reference needs no box is one decision inside `lift.js`, so it is in that file's
+`letrec` self-reference needs no box is one decision inside `lift.scm`, so it is in that file's
 header and not here.
 
 The rule is checkable, and it matters because module headers are the *freshest* rationale in the
@@ -79,11 +79,19 @@ procedure is emitted as:
 The twin runs *only* during continuation reinstatement, so it is allowed to be slow. The cost is
 code size at compile time rather than speed at run time: measured at 2.21x, against 4.09x predicted.
 
-`src/compiler/resume.js` subclasses the fast-path emitter and overrides **only control flow**. All
-expression emission — inlining, global accessors, temporaries — is inherited, so the two forms
-cannot drift apart in what they mean. The one thing that must be kept aligned by hand is temporary
-*naming*, because the fast form spills into a frame the twin restores; getting that wrong produced
-a bug where a nested `$fn0` shadowed its parent's twin and reified into the wrong one.
+One emitter produces both, in `src/compiler/emit.scm`, with a mode. Only control flow — `if`,
+calls, captures, loop heads — depends on the mode; all expression emission — inlining, global
+accessors, temporaries — is the same code, so the two forms cannot drift apart in what they mean.
+What must still agree exactly is temporary *naming*, because the fast form spills into a frame the
+twin restores by name. They agree because each counts from zero and both walk the same IR in the
+same order; getting it wrong once produced a nested `$fn0` that shadowed its parent's twin.
+
+**Statements are data.** The emitter builds each statement as a tagged list, and each expression as
+a list of text and local variables, and renders them last. So which locals a statement reads is
+in the data rather than recovered by scanning the text — which is what liveness, below, needs. The
+emitter is Scheme, written with SRFI 1 and SRFI 152 like any other Scheme program, and it replaced
+a JavaScript one after producing byte-identical output across the test suite, the benchmark
+programs, the standard library and the compiler itself — except for frames that save less.
 
 ## The capture protocol
 
@@ -97,22 +105,23 @@ continuation re-enters each compiled procedure through its twin at the saved `$p
 
 Multi-shot works because frames are copied rather than consumed.
 
-**A frame saves only what is live where it resumes** (`src/compiler/liveness.js`). Saving every
+**A frame saves only what is live where it resumes** (`src/compiler/liveness.scm`). Saving every
 local at every suspension point was quadratic — frame literals were 57% of all generated code in
 the benchmark corpus — and a frame only needs what can still be read after it resumes. Three
 properties make that safe, and they belong to three different modules, which is why they are
 recorded here:
 
-- **The analysis runs over the resumable form's emitted statements, not the IR**, because what
-  must survive a suspension includes JavaScript temporaries the IR has no name for: in
-  `(list (one) (capturer))`, the result of `(one)` is live across `(capturer)`.
+- **The analysis runs over the resumable form's statements, not the IR**, because what must
+  survive a suspension includes JavaScript temporaries the IR has no name for: in
+  `(list (one) (capturer))`, the result of `(one)` is live across `(capturer)`. The statements are
+  data with every local marked, so a local's name inside a string literal is not a read.
 - **A spill reads what is live at its resume block.** A capture has no ordinary control-flow edge
   to the code after it — it spills and returns, and the frame is the only path. Treat the spill as
   anything less and a value read only after a capture is judged dead before it.
 - **No nested function closes over a frame's locals by reference.** Lambda lifting hands every
   nested procedure its free variables as factory arguments, so creating one is a visible read. An
-  inline closure could instead read a local whenever it was *called*, invisibly; if one ever
-  appears, the resumable form falls back to saving everything.
+  inline closure could instead read a local whenever it was *called*, invisibly; the emitter has
+  no way to write one, since every nested lambda is lifted.
 
 The restore side is unchanged and names every local. One that was not saved destructures to
 `undefined`, which is safe precisely because it is dead there.
@@ -133,7 +142,7 @@ So an assigned local is held in a one-element array, and a spilled frame copies 
 Measured cost: 2–7%. The alternative — declining every procedure with an assigned local — cost
 16.05x on the declining-cost vector against 4.40x for boxing.
 
-Which locals must be boxed is decided in one place, `src/compiler/lift.js`, from a single walk over
+Which locals must be boxed is decided in one place, `src/compiler/lift.scm`, from walks over
 the IR. That includes cases lowering has no view of: `letrec` names a sibling refers to, and
 internal definitions a nested procedure refers to.
 
@@ -149,7 +158,7 @@ its body used. Code size becomes linear in the program rather than exponential i
 
 Free variables can be passed by value because an unassigned one cannot be observed to differ from a
 copy, and an assigned one is already a box — so what is passed is the box. `letrec` is the whole
-difficulty and `lift.js`'s header explains it.
+difficulty and `lift.scm`'s header explains it.
 
 ## Loops
 
@@ -172,6 +181,42 @@ its free variables by value, or by box: a closure made in one iteration holds th
 Each iteration re-runs what a fresh call would — boxing the boxed parameters and making the boxes for
 internal definitions — so no two iterations share a binding.
 
+## Inlined primitives, and knowing they are still primitives
+
+`(car x)` compiles to `x.car` behind a type test, and `(+ a b)` to a BigInt addition, with the real
+primitive as the fallback for every other operand shape (`src/compiler/inline.scm`). Scheme lets a
+program redefine `car`, so the expansion is correct only while the name still denotes the
+primitive — and that has to hold every time it runs, not just when it was compiled.
+
+The obvious guard asks the environment on every use: read the global, compare it with the
+primitive. That is a hash lookup per `car`, and it was most of what compiled code did. Removing
+every guard outright, unsoundly, made the `call` and `fixnum` classes about 1.95x faster.
+
+Caching the answer inside a procedure does not recover that. The binding can change whenever code
+runs, which in compiled code means at any call, so a cached answer lasts until the next call — and
+in recursive code like `fib` there is a primitive between every pair of calls. What does recover it
+is turning the question round: **the interpreter notices rebinding instead of compiled code asking
+about it.** Every binding write reports its name and value to
+`src/core/interpreter/primitive_bindings.js`, which keeps one cell per primitive's name, and marks
+the cell *not intact* the first time the name is bound to anything but its primitive, anywhere.
+The guard is then `W.intact || G() === P`: one property load while nothing has rebound `car`, and
+the old per-use check once something has.
+
+Two properties make that sound:
+
+- **Every write is seen.** Environments are written through `define` and `set`, which report; the
+  interpreter's `letrec` frames write directly but only ever bind renamed locals, which cannot be a
+  primitive's name. Library imports go through `define`.
+- **The flag is per name, not per environment.** A library that defines its own `car` turns the
+  shortcut off for `car` everywhere. That costs speed in an unusual program and is never wrong, and
+  it is what lets the check ignore which environment a piece of compiled code resolves its globals
+  in.
+
+An expansion is also only *emitted* when the name is bound to its primitive at compile time. It
+used to be emitted when the name was bound to any function, and the guard compared against
+whatever that was — so a program that redefined `car` and then compiled a procedure had its own
+`car` replaced by the primitive's.
+
 ## The IR, and lowering
 
 Lowering consumes the **analyzed** AST, not source — so macro expansion, hygiene, alpha-renaming and
@@ -191,20 +236,27 @@ The pass is Scheme: `src/compiler/ir.scm`, reached through `src/compiler/lowerin
 ## Self-hosting, and the bootstrap
 
 The compiler is meant to end up in Scheme, because a Scheme compiler good enough to compile a Scheme
-compiler is the goal and it cannot be argued from priors. The lowering pass is the first module
-across.
+compiler is the goal and it cannot be argued from priors. Lowering and code generation are Scheme;
+the analyzer in front of them, and the safety analysis beside them, are not yet.
 
 A compiler written in the language it compiles has to start somewhere. It starts in the
-**interpreter**, which runs `ir.scm` from source with no compiler at all:
+**interpreter**, which runs the compiler's Scheme from source with no compiler at all:
 
 | step | produces |
 |---|---|
-| the interpreter runs `ir.scm` | a working, slow compiler |
+| the interpreter runs the compiler's Scheme | a working, slow compiler |
 | it compiles the standard library | `src/packaging/compiled_stdlib.js` |
-| that compiles `ir.scm` | `src/packaging/compiled_compiler.js` |
+| that compiles the compiler's Scheme | `src/packaging/compiled_compiler.js` |
 
-`npm run prebuild` runs the chain in 0.62 s from nothing, reproducibly — both tables come out
-byte-identical.
+The compiler's Scheme is `ir.scm` and the emitter's files, and the implementations of SRFI 1 and
+SRFI 152 it is written with. The table keeps only what its entry points can reach, so the rest of
+those libraries is not compiled into it.
+
+`npm run prebuild` runs the chain in about 1.6 s from nothing, reproducibly — both tables come out
+byte-identical. Code generation costs more in Scheme than it did in JavaScript: about 1.2 ms a
+procedure against 0.16 ms, measured over 1,014 procedures, most of it `case` dispatch through
+`memv` and the global accessor on every call — both code-generation targets, so the compiler speeds
+up as the tier does.
 
 **The order is the design, not an optimization.** Lowering calls `memq` and `assq` on every scope
 lookup and every global it records, and those are themselves Scheme. Compiling `ir.scm` against an
@@ -300,12 +352,12 @@ Per-module rationale is in the module headers, which are edited with the code:
 | | |
 |---|---|
 | `src/compiler/ir.scm` | the IR's shape; what the Scheme subset costs to write in |
-| `src/compiler/lowering.js` | hosting the Scheme pass; the bootstrap in detail |
+| `src/compiler/emit.scm` | both forms of a procedure; statements as data |
+| `src/compiler/lift.scm` | lifting, and `letrec` |
+| `src/compiler/liveness.scm` | what a suspended frame saves |
+| `src/compiler/inline.scm` | primitive expansions, tower-faithful |
+| `src/compiler/lowering.js` | hosting the compiler's Scheme; the bootstrap in detail |
 | `src/compiler/marshal.js` | the JavaScript/Scheme boundary, and how it shrinks |
-| `src/compiler/lift.js` | lifting, and `letrec` |
-| `src/compiler/emitter.js` | the fast form |
-| `src/compiler/resume.js` | the twin |
 | `src/compiler/safety.js` | the call-graph closure, and its measured trade-off |
 | `src/compiler/prebuilt.js` | staleness, and why arity rather than names |
-| `src/compiler/inline.js` | primitive expansions, tower-faithful |
 | `src/compiler/runtime.js` | the trampoline, global accessors, procedure marking |

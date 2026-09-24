@@ -30,7 +30,7 @@
  * about names. It is tempting to compare the analyzer's renamed parameter
  * names, and that turns out to be both useless and harmful. Useless because
  * generated code names locals only inside itself -- its sole external
- * references are `globalAccessor(E, "name")`, `currentBinding` and `E.set`, and
+ * references are `globalAccessor(E, "name")`, `primitiveCell("name")` and `E.set`, and
  * every one of those uses the name as written in the source, never a renamed
  * one. Harmful because renaming comes from a counter that advances as the
  * analyzer works, so a program that bootstraps a second interpreter gets

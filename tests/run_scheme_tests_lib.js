@@ -62,6 +62,8 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     // library a test imports has to be loaded before the file runs.
     await loadLibrary(['srfi', '128'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['srfi', '125'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['srfi', '1'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['srfi', '152'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
     applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });

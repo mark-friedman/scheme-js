@@ -56,7 +56,7 @@ const MAX_SOURCE = 4 * 1024 * 1024;
 function generateBounded(lowered, name, env) {
   let result;
   try {
-    result = generate(lowered.ir, lowered.globals, name, env);
+    result = generate(lowered.schemeIr, lowered.globals, name, env);
   } catch (e) {
     return { reason: `code generation failed: ${e.message}` };
   }
@@ -209,7 +209,8 @@ function lambdaOf(closure, name) {
  * @param {Object} env - The environment to read.
  * @param {Object} [options] - As for `compileEnvironment`.
  * @returns {{generated: Array<Object>, declined: Array<{name: string, reason: string}>}}
- *   One entry per procedure, with its source, constants and parameter names.
+ *   One entry per procedure, with its source, constants, parameter names and
+ *   the globals it references.
  */
 export function generateEnvironment(env, options = {}) {
   const entries = [];
@@ -267,7 +268,7 @@ export function generateEnvironment(env, options = {}) {
 
     generated.push({
       name, closure, source: result.source, constants: result.constants,
-      params: lambda.params, rest: lambda.restParam
+      params: lambda.params, rest: lambda.restParam, globals: [...lowered.globals]
     });
   }
 

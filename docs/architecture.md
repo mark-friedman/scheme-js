@@ -153,6 +153,7 @@ checks that they agree about every answer.
 │       │   ├── frame_registry.js   # Frame factory functions
 │       │   ├── winders.js          # Dynamic-wind utilities
 │       │   ├── environment.js      # Environment class
+│       │   ├── primitive_bindings.js # Whether a primitive's name was ever rebound
 │       │   ├── errors.js           # SchemeError class
 │       │   ├── values.js           # Closure, Continuation, TailCall, Values
 │       │   ├── cons.js             # Cons cells + list utilities
@@ -240,15 +241,15 @@ checks that they agree about every answer.
 │
 │   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)
 │      ├── index.js           # EXPORT: tryCompileDefinition(), compileProgram()
-│      ├── ir.scm             # Analyzed AST -> IR, in Scheme; the self-hosted part
-│      ├── lowering.js        # Runs ir.scm: its interpreter, and the two entry points
-│      ├── marshal.js         # AST and IR across the JavaScript/Scheme boundary
-│      ├── lift.js            # Which nested procedures are emitted once, at top level
-│      ├── codegen.js         # Emits both forms of a procedure (convention B)
-│      ├── emitter.js         # The fast form: straight-line JavaScript
-│      ├── resume.js          # The resumable form: a state machine over call sites
+│      ├── ir.scm             # Analyzed AST -> IR, in Scheme
+│      ├── emit.scm           # IR -> JavaScript, in Scheme: both forms of a procedure
+│      ├── lift.scm           # Which nested procedures are emitted once, at top level
+│      ├── liveness.scm       # Which locals a suspended frame saves
+│      ├── inline.scm         # Inline expansions for primitives, tower-faithful
+│      ├── lowering.js        # Door into the compiler's Scheme: its interpreter and entry points
+│      ├── codegen.js         # Door into emit.scm, with what only the environment knows
+│      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── safety.js          # Which procedures a capture would unwind through
-│      ├── inline.js          # Inline expansions for primitives, tower-faithful
 │      ├── prebuilt.js        # Installing code compiled at build time, fingerprinted
 │      └── runtime.js         # Tail-call step, global accessors, procedure marking
 │
@@ -276,7 +277,11 @@ checks that they agree about every answer.
 │           ├── 125.sld             # (srfi 125) hash tables
 │           ├── hash_table.scm      # SRFI 125 implementation
 │           ├── 128.sld             # (srfi 128) comparators
-│           └── comparator.scm      # SRFI 128 implementation
+│           ├── comparator.scm      # SRFI 128 implementation
+│           ├── 1.sld               # (srfi 1) lists
+│           ├── list_lib.scm        # SRFI 1 implementation; also loaded by the compiler
+│           ├── 152.sld             # (srfi 152) strings
+│           └── string_lib.scm      # SRFI 152 implementation; also loaded by the compiler
 │
 │   ├── harness/                    # Test infrastructure
 │   │   ├── helpers.js              # Test utilities (run, assert, createTestLogger)
@@ -287,6 +292,8 @@ checks that they agree about every answer.
 │   ├── run_all.js                  # Node.js test runner entry (Unit + Functional)
 │   ├── run_scheme_tests.js         # Node.js Scheme test runner CLI
 │   ├── run_scheme_tests_lib.js     # Shared Scheme test runner logic
+│   ├── run_compiler_scheme_tests_lib.js # Runs compiler/ tests in the compiler's environment
+│   ├── compiler/                   # Scheme tests of the compiler's own Scheme
 │   ├── test_bundle.js              # Integration tests for bundled artifact
 │   ├── test_script.scm             # Scheme script test for HTML adapter
 │   │

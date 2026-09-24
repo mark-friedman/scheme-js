@@ -2,8 +2,8 @@
 ;;;
 ;;; This is the compiler's lowering pass, and it is Scheme because the compiler
 ;;; is meant to end up in Scheme. `src/compiler/lowering.js` is the door into
-;;; it: it marshals the analyzed AST in, calls `lower-lambda`, and marshals the
-;;; IR back out for code generation, which is still JavaScript.
+;;; it: it marshals the analyzed AST in and calls `lower-lambda`, and the IR it
+;;; returns goes, still as Scheme data, to code generation in `emit.scm`.
 ;;;
 ;;; ## Running this at a useful speed
 ;;;

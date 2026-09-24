@@ -19,8 +19,11 @@ import { TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../core/interpreter
 import { UNWIND, reify, beginCompiledCapture } from '../core/interpreter/unwind.js';
 import { SchemeError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
+// Kept by the interpreter, which sees every binding write; generated code only
+// reads a cell, once per inlined primitive.
+import { primitiveCell } from '../core/interpreter/primitive_bindings.js';
 
-export { TailCall, Cons, SCHEME_RAW_CALL, UNWIND, reify, SchemeError };
+export { TailCall, Cons, SCHEME_RAW_CALL, UNWIND, reify, SchemeError, primitiveCell };
 
 /**
  * Reports a capture beneath a redefined inlined primitive.
@@ -40,6 +43,32 @@ export function captureUnderPrimitive() {
   throw new SchemeError(
     'call/cc: a continuation was captured beneath a redefined primitive, which '
     + 'cannot be resumed. Run this program with the compiler tier disabled.');
+}
+
+/**
+ * Calls whatever a primitive's name is bound to now, from an inline expansion
+ * whose fast path does not apply.
+ *
+ * Reached when the binding is no longer the primitive that was inlined, so it
+ * may be anything at all -- including an interpreted closure, whose plain call
+ * signature converts Scheme values as if they were leaving Scheme, and which
+ * may return a pending tail call; hence `invoke` and `settle`. Also reached
+ * when the operands are outside the fast path, with the primitive itself.
+ *
+ * A redefinition that captures a continuation has nowhere to resume: an inline
+ * expansion is not a call site the resumable form splits at. The check for
+ * that lives here, on the slow path, rather than after every expansion, where
+ * it was a statement per inlined primitive that the fast path never needed.
+ *
+ * @param {Function} fn - The name's current binding.
+ * @param {Array<*>} args - Scheme values.
+ * @returns {*} The call's value.
+ * @throws {SchemeError} If a continuation was captured beneath it.
+ */
+export function callBinding(fn, args) {
+  const value = settle(invoke(fn, args));
+  if (value === UNWIND) captureUnderPrimitive();
+  return value;
 }
 
 /**
@@ -167,9 +196,8 @@ export function globalAccessor(env, name) {
 /**
  * Returns the value a name is bound to right now, or null if it is unbound.
  *
- * Used at compile time to identify which primitive a global currently denotes,
- * so generated code can guard an inline fast path against that exact function
- * and fall back if the binding is ever replaced.
+ * Used at compile time to decide whether a global still denotes the primitive
+ * an inline expansion reproduces; an expansion is only emitted if it does.
  *
  * @param {Object} env - The environment.
  * @param {string} name - The name.
