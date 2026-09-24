@@ -29,6 +29,12 @@
  * of its source said. Two checks prevent it, and both fail towards leaving the
  * procedure alone.
  *
+ * Before either, a table must have been generated against this runtime's
+ * interface -- the names generated code reaches through `R`. The sources can
+ * be unchanged while the runtime is not: code generated before a runtime
+ * function was renamed calls the old name, and fails when installed or, worse,
+ * when first called.
+ *
  * The first is a fingerprint of the library's sources -- its `.sld` and every
  * file it includes -- recorded when the code was generated and recomputed
  * here. If one of them changed without the build being re-run, nothing from
@@ -38,7 +44,7 @@
  * about names. It is tempting to compare the analyzer's renamed parameter
  * names, and that turns out to be both useless and harmful. Useless because
  * generated code names locals only inside itself -- its sole external
- * references are `globalAccessor(E, "name")`, `primitiveCell("name")` and `E.set`, and
+ * references are `globalCell(E, "name")`, `primitiveCell("name")` and `E.set`, and
  * every one of those uses the name as written in the source, never a renamed
  * one. Harmful because renaming comes from a counter that advances as the
  * analyzer works, so a program that bootstraps a second interpreter gets
@@ -84,6 +90,15 @@ export function fingerprintSources(sources) {
   }
   return hash.toString(16).padStart(8, '0');
 }
+
+/**
+ * A fingerprint of the runtime's interface: the names generated code can reach
+ * through `R`. It changes when one is added, renamed or removed, which is when
+ * code generated against the old set stops being safe to install. A change to
+ * what an existing function does, under the same name, is not caught.
+ * @type {string}
+ */
+export const RUNTIME_INTERFACE = fingerprintSources([Object.keys(R).sort().join(' ')]);
 
 /**
  * Installs prebuilt procedures into an environment, replacing the interpreted
@@ -156,6 +171,7 @@ export function installPrebuilt(env, table, fingerprint) {
 export function installLibraryTable(tables, libraryName, env, sourceOf) {
   const table = tables[libraryNameToKey(libraryName)];
   if (table === undefined) return null;
+  if (table.runtime !== RUNTIME_INTERFACE) return { installed: [], skipped: [], stale: true };
   const sources = table.files.map(sourceOf);
   // A file the table was built from and the loader cannot find now means the
   // library has changed shape since the build, which is staleness too.

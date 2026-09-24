@@ -7,6 +7,8 @@
  * a map from each library's name to the procedures compiled from it.
  */
 
+import { RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
+
 /**
  * Renders a procedure's constant pool as a JavaScript expression, or reports
  * that it cannot be.
@@ -107,6 +109,7 @@ function renderEntry(entry) {
 export function renderLibraries(module) {
   const tables = module.libraries.map((library) => `  ${JSON.stringify(library.key)}: {\n`
     + `    fingerprint: ${JSON.stringify(library.fingerprint)},\n`
+    + `    runtime: ${JSON.stringify(RUNTIME_INTERFACE)},\n`
     + `    files: ${JSON.stringify(library.files)},\n`
     + `    procedures: {\n${library.entries.map(renderEntry).join(',\n')}\n    }\n`
     + `  }`);
@@ -131,12 +134,13 @@ export function renderLibraries(module) {
 // taking the runtime, the environment its globals resolve in, and its constant
 // pool.
 //
-// Each table's \`fingerprint\` is of the sources it was generated from.
+// Each table's \`fingerprint\` is of the sources it was generated from, and
+// \`runtime\` of the runtime interface its code calls.
 // \`installLibraryTable\` in src/compiler/prebuilt.js recomputes it and installs
 // nothing if it differs, so a stale build leaves those procedures interpreted
 // rather than running code for source that has since changed.
 ${imports.length > 0 ? `\n${imports.join('\n')}\n` : ''}
-/** @type {Object<string, {fingerprint: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, make: Function}>}>} */
+/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, make: Function}>}>} */
 export const LIBRARIES = {
 ${tables.join(',\n')}
 };

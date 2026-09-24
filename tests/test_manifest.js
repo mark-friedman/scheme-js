@@ -64,6 +64,7 @@ export const functionalTests = [
     { path: 'debug/macro_breakpoint_tests.js', fn: 'runMacroBreakpointTests', async: true, needsInterpreter: false },
     { path: 'functional/library_compilation_tests.js', fn: 'runLibraryCompilationTests', async: true, needsInterpreter: false },
     { path: 'functional/prebuilt_library_tests.js', fn: 'runPrebuiltLibraryTests', async: true, needsInterpreter: false },
+    { path: 'functional/global_cell_tests.js', fn: 'runGlobalCellTests', async: true, needsInterpreter: false },
     { path: 'functional/loop_compilation_tests.js', fn: 'runLoopCompilationTests', async: true, needsInterpreter: false },
     { path: 'functional/primitive_binding_tests.js', fn: 'runPrimitiveBindingTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
@@ -97,6 +98,7 @@ export const programTests = [
 export const compilerSchemeTestFiles = [
     'tests/compiler/liveness_tests.scm',
     'tests/compiler/emit_tests.scm',
+    'tests/compiler/loop_tests.scm',
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)

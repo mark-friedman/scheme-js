@@ -51,6 +51,7 @@ import {
 import { libraryNameToKey } from '../src/core/interpreter/library_registry.js';
 import { generateEnvironment } from '../src/compiler/index.js';
 import { installPrebuilt, fingerprintSources } from '../src/compiler/prebuilt.js';
+import { compilerStartFailure } from '../src/compiler/lowering.js';
 import { renderLibraries, serializeConstants } from './lib/render_prebuilt.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -135,6 +136,13 @@ function compileLibrary(name, env) {
 }
 
 function main() {
+  // The compiler declines everything when it cannot start, which here would
+  // write empty tables and report success.
+  const failure = compilerStartFailure();
+  if (failure !== null) {
+    console.error(`The compiler could not start, so nothing can be compiled: ${failure}`);
+    process.exit(1);
+  }
   const { interpreter, env } = createInterpreter();
   setFileResolver(resolve);
   const libraries = [];

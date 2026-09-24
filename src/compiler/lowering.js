@@ -180,6 +180,21 @@ function lowering() {
 }
 
 /**
+ * Starts the compiler if it has not started, and says why it could not.
+ *
+ * Every entry point declines rather than throws when the compiler cannot
+ * start, which is right for a program -- it runs interpreted -- and wrong for
+ * a build step, which would otherwise write tables with nothing in them and
+ * report success.
+ *
+ * @returns {string|null} Why the compiler could not start, or null if it did.
+ */
+export function compilerStartFailure() {
+  lowering();
+  return bootstrapFailure;
+}
+
+/**
  * Calls a Scheme procedure with Scheme values and waits for an answer.
  *
  * `invoke` picks the raw entry point where there is one, so this works whether

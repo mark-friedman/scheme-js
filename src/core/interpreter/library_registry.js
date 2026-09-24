@@ -299,7 +299,12 @@ export function substituteLibraryValues(replacements) {
         if (env && env.bindings instanceof Map) {
             for (const [name, value] of env.bindings) {
                 const replacement = replacements.get(value);
-                if (replacement !== undefined) env.bindings.set(name, replacement);
+                // Through the frame, so a cell compiled code reads the
+                // binding through follows the replacement.
+                if (replacement !== undefined) {
+                    if (typeof env.rebind === 'function') env.rebind(name, replacement);
+                    else env.bindings.set(name, replacement);
+                }
             }
         }
     }

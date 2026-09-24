@@ -19,6 +19,13 @@ export class Environment {
         this.bindings = bindings;
         /** @type {Map<string, string> | null} */
         this.nameMap = nameMap;
+        /**
+         * Cells compiled code reads this frame's bindings through, by name.
+         * Created only when compiled code first asks for one, so a frame the
+         * interpreter makes for a call carries no more than a null.
+         * @type {Map<string, {v: *}> | null}
+         */
+        this.cells = null;
     }
 
     /**
@@ -142,6 +149,7 @@ export class Environment {
         }
         noteBinding(name, value);
         env.bindings.set(name, value);
+        syncCell(env, name, value);
         return value;
     }
 
@@ -155,6 +163,62 @@ export class Environment {
     define(name, value) {
         noteBinding(name, value);
         this.bindings.set(name, value);
+        syncCell(this, name, value);
         return value;
+    }
+
+    /**
+     * Replaces a binding in this frame with an equivalent value.
+     *
+     * For installing a compiled procedure over the interpreted closure it was
+     * compiled from, or over a library's copy of one. That is not a program
+     * binding the name to something new, so the primitive-binding record is
+     * not told, as a `define` would tell it.
+     *
+     * @param {string} name - A name bound in this frame.
+     * @param {*} value - Its new value.
+     * @returns {void}
+     */
+    rebind(name, value) {
+        this.bindings.set(name, value);
+        syncCell(this, name, value);
+    }
+
+    /**
+     * The cell compiled code reads one of this frame's bindings through.
+     *
+     * A global read by compiled code cannot be taken at compile time, since
+     * the binding may be defined later or changed, and looking it up in this
+     * frame's map on every read costs a hash lookup each time -- up to 1.5x of
+     * compiled run time on call-heavy code. So the frame hands out a cell per
+     * name, which every write to the binding here keeps current, and compiled
+     * code reads the cell. Scheme has no way to remove a binding, so a cell
+     * never has to be retired.
+     *
+     * @param {string} name - A name bound in this frame.
+     * @returns {{v: *}} Its cell, the same one every time.
+     */
+    cellFor(name) {
+        if (this.cells === null) this.cells = new Map();
+        let cell = this.cells.get(name);
+        if (cell === undefined) {
+            cell = { v: this.bindings.get(name) };
+            this.cells.set(name, cell);
+        }
+        return cell;
+    }
+}
+
+/**
+ * Brings a binding's cell, if compiled code has asked for one, up to date.
+ * @param {Environment} env - The frame written to.
+ * @param {string} name - The name written.
+ * @param {*} value - Its new value.
+ * @returns {void}
+ */
+function syncCell(env, name, value) {
+    if (env.cells !== null) {
+        const cell = env.cells.get(name);
+        if (cell !== undefined) cell.v = value;
     }
 }

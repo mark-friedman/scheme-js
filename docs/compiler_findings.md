@@ -2245,6 +2245,37 @@ prebuilt first. That brings SRFI 1, 125, 128 and 152's compiled code (1.1 MB) in
 page loads, so `dist/scheme.js` went from 2.97 to 2.67 MB (424 to 340 KB gzipped) rather than
 losing the compiler's whole 1.5 MB. The generated code's own size is now what the page pays for.
 
+**R66. Of the two call-path costs expected to matter, one was worth 1.5x and the other nothing.**
+
+R61 named two costs left on every call, to be ceiling-measured before designing anything: the
+global accessor, a hash lookup in the frame's map on each global read, and the generic call path --
+the `SCHEME_RAW_CALL` lookup that decides whether the callee is an interpreted closure. Measured the
+same way, by rewriting the generated code unsoundly: caching each global's value after its first
+read was worth `call` 1.50x, `flonum` 1.24x, `vector` 1.20x, `list` 1.17x, `fixnum` 1.12x.
+Skipping the raw-call lookup was worth nothing measurable wherever the answers stayed right, and in
+seven programs they did not, because interpreted callees still reach compiled code there. So only
+the first was built: each frame now hands out a cell per name, which every write to the binding
+keeps current, and generated code reads the cell. Together with reading the runtime's per-call
+values once per procedure instead of at every call site, the compiled tier measured `call`
+1.63-1.67x, `flonum` 1.25x, `list` 1.20x, `vector` 1.14-1.24x, `fixnum` 1.09-1.17x,
+`continuation` 1.10x; above the ceiling, which had not hoisted those values.
+
+*Consequence:* the call path is not a target. The next code-generation costs are measured the same
+way before anything is designed for them.
+
+**R67. A prebuilt table matching its sources could still be wrong for the runtime.**
+
+`prebuilt.js` said a stale build "costs speed and never correctness", guarded by a fingerprint of
+the sources a table was compiled from. Renaming the runtime function generated code calls to read a
+global made the build write empty tables for every library and report success. The library
+sources had not changed, so the old tables' fingerprints still matched, and the compiler's own
+bootstrap installed them into its libraries; their code called the removed function, the install
+threw, the compiler could not start, and every procedure was declined -- which each build step
+takes as "nothing to compile". A table now records a fingerprint of the runtime's interface, the
+names generated code reaches through `R`, and is refused if it differs; and the build steps stop
+with an error when the compiler cannot start. A changed meaning under an unchanged name is still
+not caught.
+
 ---
 
 ## Appendix — the original staged plan

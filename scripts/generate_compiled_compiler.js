@@ -46,7 +46,7 @@ import {
 import { libraryNameToKey, getLibraryEnv } from '../src/core/interpreter/library_registry.js';
 import { generateEnvironment } from '../src/compiler/index.js';
 import { installLibraryTable, fingerprintSources } from '../src/compiler/prebuilt.js';
-import { COMPILER_LIBRARY } from '../src/compiler/lowering.js';
+import { COMPILER_LIBRARY, compilerStartFailure } from '../src/compiler/lowering.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { renderLibraries, serializeConstants } from './lib/render_prebuilt.js';
 
@@ -118,6 +118,13 @@ function bootstrap() {
 }
 
 function main() {
+  // The compiler declines everything when it cannot start, which here would
+  // write empty tables and report success.
+  const failure = compilerStartFailure();
+  if (failure !== null) {
+    console.error(`The compiler could not start, so nothing can be compiled: ${failure}`);
+    process.exit(1);
+  }
   const { env, exports, files } = bootstrap();
   const fingerprint = fingerprintSources(files.map(readSource));
   const { generated, declined } = generateEnvironment(env, { ownOnly: true });

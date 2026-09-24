@@ -14,6 +14,8 @@ import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { writeString } from '../src/core/primitives/io/printer.js';
 import { compilerEnvironment } from '../src/compiler/lowering.js';
+import { astToScheme } from '../src/compiler/marshal.js';
+import { SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
 
 /**
  * Evaluates Scheme source in the compiler's environment.
@@ -46,6 +48,15 @@ export async function runCompilerSchemeTests(logger, testFiles, fileLoader) {
     if (passed) logger.pass(`${name} ${detail}`); else logger.fail(`${name} ${detail}`);
   });
   env.define('native-log-title', (title) => logger.title(title));
+  // The analyzer is JavaScript, so a test that wants to lower real source
+  // rather than a hand-written AST asks for it through this: a `define` or a
+  // `lambda` form, as data, to the analyzed lambda as the lowering receives it.
+  const analyzeLambda = (form) => {
+    const ast = analyze(form);
+    return astToScheme(ast.valueExpr ?? ast.value ?? ast);
+  };
+  analyzeLambda[SCHEME_PRIMITIVE] = true;
+  env.define('analyze-lambda', analyzeLambda);
   env.define('native-report-test-skip', (name, reason) => logger.skip(`${name} (Reason: ${reason})`));
   evaluate(interpreter, env, await fileLoader('tests/core/scheme/test.scm'));
 

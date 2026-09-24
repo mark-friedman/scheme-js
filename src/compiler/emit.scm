@@ -258,16 +258,16 @@
                                    (number->string (caddr st)) ", "
                                    (frame-literal (form-frame form (caddr st))) ");")))
          (if (cadr st)
-             (string-append "if (" (expr (cadr st)) " === R.UNWIND) { " reify " return R.UNWIND; }")
+             (string-append "if (" (expr (cadr st)) " === $UNWIND) { " reify " return $UNWIND; }")
              reify)))
       ((guarded) (string-append "if (" (expr (cadr st)) ") { "
                                 (string-join (map (lambda (s) (render-statement form s)) (caddr st)) " ")
                                 " }"))
       ((suspend)
        (let ((spill (string-append "R.reify(" (form-name form) "$r, " (number->string (caddr st))
-                                   ", " (frame-literal (cadddr st)) "); return R.UNWIND;")))
+                                   ", " (frame-literal (cadddr st)) "); return $UNWIND;")))
          (if (cadr st)
-             (string-append "if (" (expr (cadr st)) " === R.UNWIND) { " spill " }")
+             (string-append "if (" (expr (cadr st)) " === $UNWIND) { " spill " }")
              spill)))
       (else (error "emit: unknown statement" st)))))
 
@@ -310,13 +310,17 @@
   (resume-points unit-resume-points set-unit-resume-points!))
 
 ;; /**
-;;  * The JavaScript expression that reads a global: its accessor, called.
+;;  * The JavaScript expression that reads a global: its cell's value, or, before
+;;  * the first read resolves the cell -- or when the value is `null` or
+;;  * `undefined`, which the cell cannot tell from unresolved -- its resolver's
+;;  * answer. See `R.globalCell` for why a global is read through a cell.
 ;;  * @param {unit} u - The unit.
 ;;  * @param {symbol} name - The global.
-;;  * @returns {string} The accessor's identifier.
+;;  * @returns {string} The expression.
 ;;  */
-(define (global-accessor u name)
-  (string-append "G" (global-index u name)))
+(define (global-read u name)
+  (let ((i (global-index u name)))
+    (string-append "(C" i ".v ?? G" i "())")))
 
 ;; /**
 ;;  * A global's position in the unit's list, which numbers its accessor.
@@ -550,7 +554,7 @@
     ;; Resolved through the accessor on every reference, because a top-level
     ;; binding can be redefined after this code was compiled -- by the REPL
     ;; running it, for one.
-    ((global) (js (global-accessor (form-unit form) (cadr node)) "()"))
+    ((global) (js (global-read (form-unit form) (cadr node))))
     ((lambda) (emit-closure! form node))
     ((set) (emit-assignment! form node))
     ((define) (emit-definition! form node))
@@ -707,14 +711,14 @@
                                          (js t)))))
                                (caddr node)))
                 (index (global-index u (cadr fn)))
-                (accessor (string-append "G" index))
+                (read (global-read u (cadr fn)))
                 (shape ((caddr entry) operands))
                 (fast ((cadddr entry) operands))
-                (binding (js "(W" index ".intact || " accessor "() === P" index ")"))
+                (binding (js "(W" index ".intact || " read " === P" index ")"))
                 (result (temp! form)))
            (emit! form (list 'assign (js result)
                              (js (if shape (js binding " && (" shape ")") binding)
-                                 " ? (" fast ") : R.callBinding(" accessor "(), ["
+                                 " ? (" fast ") : R.callBinding(" read ", ["
                                  (join-exprs operands ", ") "])")))
            (js result)))))
 
@@ -741,11 +745,11 @@
          (fn (emit-value! form (cadr node)))
          (arglist (join-exprs args ", ")))
     (emit! form (list 'assign (js callee) fn))
-    (emit! form (list 'assign (js raw) (js callee "[R.SCHEME_RAW_CALL]")))
+    (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
     (emit! form (list 'assign (js result)
                       (js raw " === undefined ? " callee "(" arglist ") : " raw "(" arglist ")")))
-    (emit! form (list 'raw (js "while (" result " instanceof R.TailCall) { "
-                               result " = R.step(" result "); }")))
+    (emit! form (list 'raw (js "while (" result " instanceof $TailCall) { "
+                               result " = $step(" result "); }")))
     (if (twin? form)
         (resume-after! form node result)
         (emit! form (suspension form node (js result))))
@@ -766,7 +770,7 @@
         (let ((resume (new-block! form)))
           (note-resume-site! form node resume)
           (emit! form (list 'spill #f resume))
-          (emit! form (list 'return (js "R.UNWIND")))
+          (emit! form (list 'return (js "$UNWIND")))
           (switch-to! form resume)
           (emit! form (list 'assign (js result) (js "$r"))))
         (emit! form (suspension form node #f)))
@@ -792,7 +796,7 @@
         ;; continuation with a hole in it.
         (list 'text (if result
                         (string-append "if (" (expr->string result)
-                                       " === R.UNWIND) R.captureWithoutResume();")
+                                       " === $UNWIND) R.captureWithoutResume();")
                         "R.captureWithoutResume();")))))
 
 ;; ---------------------------------------------------------------------------
@@ -896,7 +900,7 @@
             (else (emit-trampoline-return! form fn args)))))))
 
 (define (emit-trampoline-return! form fn args)
-  (emit! form (list 'return (js "new R.TailCall(" fn ", [" (join-exprs args ", ") "])"))))
+  (emit! form (list 'return (js "new $TailCall(" fn ", [" (join-exprs args ", ") "])"))))
 
 ;; /**
 ;;  * The identifier of this procedure's fast form, which a global self-call is
@@ -1332,14 +1336,46 @@
                    "\n}")))
 
 ;; /**
+;;  * The runtime values call sites use, each with the local generated code
+;;  * names it by.
+;;  *
+;;  * Read from `R` once per procedure rather than at every call site: loading a
+;;  * property of the runtime module on every call was worth up to 1.08x on
+;;  * call-heavy code.
+;;  */
+(define runtime-constants
+  '(("$TailCall" . "R.TailCall") ("$step" . "R.step")
+    ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")))
+
+;; /**
+;;  * The declaration of the runtime values a procedure's code uses.
+;;  *
+;;  * Found by searching the code rather than recorded as it is emitted, since
+;;  * the names are fixed and cannot be mistaken for anything the emitter
+;;  * generates. A string constant spelling one out only declares a local the
+;;  * code does not use.
+;;  *
+;;  * @param {string} code - The procedure's code.
+;;  * @returns {string} A `const` declaration, or "" if it uses none.
+;;  */
+(define (runtime-prelude code)
+  (let ((used (filter (lambda (c) (string-contains code (car c))) runtime-constants)))
+    (if (null? used)
+        ""
+        (string-append "const "
+                       (string-join (map (lambda (c) (string-append (car c) " = " (cdr c))) used) ", ")
+                       ";"))))
+
+;; /**
 ;;  * Generates the JavaScript for one lowered top-level procedure.
 ;;  *
 ;;  * The result is the body of a function taking the runtime `R`, the
 ;;  * environment `E` globals resolve in, and the constant pool `K`, and
-;;  * returning the procedure. Each global is reached through a memoizing
-;;  * accessor, so a forward reference compiles and a later redefinition is
-;;  * seen. A global with an inline expansion also gets its primitive's cell and
-;;  * the primitive, for the expansion's guard.
+;;  * returning the procedure. Each global is read through a cell, which its
+;;  * resolver `G` finds on the first read, so a forward reference compiles and
+;;  * a later redefinition or assignment is seen. A global with an inline
+;;  * expansion also gets its primitive's cell and the primitive, for the
+;;  * expansion's guard.
 ;;  *
 ;;  * @param {list} ir - The procedure's lambda IR node.
 ;;  * @param {list} globals - The globals it references, as symbols.
@@ -1361,7 +1397,7 @@
                     (let ((i (number->string (list-index (lambda (x) (eq? x g)) globals)))
                           (literal (js-string (symbol->string g))))
                       (string-append
-                        "const G" i " = R.globalAccessor(E, " literal ");"
+                        "let C" i " = R.UNRESOLVED; const G" i " = () => (C" i " = R.globalCell(E, " literal ")).v;"
                         (if (memq g guarded)
                             (string-append "\nconst W" i " = R.primitiveCell(" literal "), P" i " = W" i ".primitive;")
                             ""))))
@@ -1369,7 +1405,8 @@
              "\n"))
          (factories (string-join (reverse (unit-factories u)) "\n")))
     (list (string-join (filter (lambda (s) (not (string=? s "")))
-                               (list accessors factories fast twin
+                               (list (runtime-prelude (string-append factories fast twin))
+                                     accessors factories fast twin
                                      (string-append "R.markProcedure($proc, " (js-string name) ");")
                                      "$proc.$resume = $proc$r;"
                                      "return $proc;"))

@@ -24,7 +24,7 @@ import {
 } from '../../src/core/interpreter/library_registry.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { generateEnvironment } from '../../src/compiler/index.js';
-import { installLibraryTable, fingerprintSources } from '../../src/compiler/prebuilt.js';
+import { installLibraryTable, fingerprintSources, RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
 import {
   compilerEnvironment, compilerSourceOf, COMPILER_LIBRARY, lowerLambda
 } from '../../src/compiler/lowering.js';
@@ -120,6 +120,30 @@ export async function runPrebuiltLibraryTests(logger) {
     const { outcomes } = loadBundled(['srfi', '1'], missing);
     assert(logger, 'a file the table lists and the loader cannot find counts as stale',
       outcomes.get('srfi.1').stale, true);
+  }
+  {
+    // The fingerprint covers the Scheme a table was compiled from, not the
+    // runtime its code calls. Code generated against a runtime whose
+    // interface has since changed -- a function renamed or removed -- would
+    // fail when installed, or worse, when called.
+    assert(logger, 'every table records the runtime interface it was generated against',
+      [...Object.values(LIBRARIES), ...Object.values(COMPILER)]
+        .filter((table) => table.runtime !== RUNTIME_INTERFACE).length, 0);
+    const older = Object.fromEntries(Object.entries(LIBRARIES)
+      .map(([key, table]) => [key, { ...table, runtime: 'an older runtime' }]));
+    const outcome = withPrivateLibraries({ resolver: bundledResolver }, () => {
+      const { interpreter, env } = createInterpreter();
+      let result = null;
+      setLibraryLoadHook((name, libraryEnv) => {
+        if (libraryNameToKey(name) === 'srfi.1') {
+          result = installLibraryTable(older, name, libraryEnv, (file) => BUNDLED_SOURCES[file]);
+        }
+      });
+      loadLibrarySync(['srfi', '1'], analyze, interpreter, env);
+      return result;
+    });
+    assert(logger, 'a table generated against another runtime interface installs nothing',
+      [outcome.stale, outcome.installed.length], [true, 0]);
   }
   assert(logger, 'a library with no table is left alone',
     installLibraryTable(LIBRARIES, ['test', 'no-table'], new Environment(null), () => ''), null);

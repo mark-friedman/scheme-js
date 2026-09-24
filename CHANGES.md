@@ -7060,3 +7060,84 @@ the private registry not swapped -- each fail the new tests. In the browser the 
 
 3,333 tests pass in Node and 3,228 in the browser; `benchmark:self-host` agrees on all 1,006 lambdas,
 with the lowering at 69 ms a pass as before.
+
+# Walkthrough: Globals through cells, and the call path measured
+
+Task 22 in `docs/compiler_plan.md`. The plan's instruction was to measure a ceiling for each of the
+two costs left on every call before designing anything, as R61 had for the primitive guard. Both
+were measured; one was built, and the other turned out to cost nothing.
+
+## The ceilings
+
+A temporary hook rewrote generated JavaScript before it was installed, and a scratch driver timed
+the compiled tier on the canonical suite, by class, against two baseline runs (run-to-run noise
+±3-7% at class level):
+
+| variant (unsound unless noted) | call | fixnum | flonum | list | vector |
+|---|---|---|---|---|---|
+| cache each global after its first read | 1.50x | 1.12x | 1.24x | 1.17x | 1.20x |
+| skip the `SCHEME_RAW_CALL` lookup | ≈1.00x where correct; seven programs gave wrong answers | | | | |
+| read `R.TailCall`, `R.step`, `R.UNWIND`, `R.SCHEME_RAW_CALL` once per procedure (sound) | 1.08x | 1.07x | 1.02x | 1.04x | 0.95x |
+
+So the global read was built, the raw-call lookup left alone (R66), and the hoisting kept because it
+is sound and nearly free. The hook is gone.
+
+## Global value cells
+
+`Environment.cellFor(name)` hands out one cell per name, created the first time compiled code asks,
+and `define`, `set` and a new `rebind` keep it current. `rebind` is for writes that replace a
+binding with an equivalent value and so must not tell the primitive-binding record anything: the
+interpreter's `letrec` frames, and `substituteLibraryValues` installing compiled code over a
+library's copies. Those were the only direct writes to `bindings` that could hold a name compiled
+code reads.
+
+Generated code declares a cell and a resolver per global -- `let C0 = R.UNRESOLVED; const G0 = () =>
+(C0 = R.globalCell(E, "fib")).v;` -- and reads `(C0.v ?? G0())`. The first read resolves the cell,
+later ones are one property load. `null` (the empty list) and `undefined` look unresolved and go to
+the resolver every time, which is slower and still right; a name bound only as a JavaScript global
+gets a cell that reads it afresh. `globalAccessor` is gone.
+
+| class | compiled tier, before → after (two runs) | interpreter tier |
+|---|---|---|
+| call | 1.63x / 1.67x | 1.00x |
+| flonum | 1.26x / 1.25x | 1.03x |
+| list | 1.20x / 1.20x | 1.01x |
+| vector | 1.14x / 1.24x | 0.98x |
+| fixnum | 1.17x / 1.09x | 1.00x |
+| continuation | 1.10x / 1.10x | 0.98x |
+| bignum, string | ≈1.00x | ≈1.00x |
+
+Against the interpreter, the compiled tier is now `call` 79x, `fixnum` 57x, `vector` 28-29x, `list`
+22-23x, `flonum` 12.6x. The compiler's own lowering went from 66.3 to 50.8 ms a pass
+(`benchmark:self-host`, which still agrees on all 1,006 lambdas); its code generation did not move,
+since that is `case` dispatch through `memv`. The cost is size: the read expression is longer, so
+generated code grew about 8%, and `dist/scheme.js` from 2.67 to 2.79 MB (340 to 347 KB gzipped).
+
+## A build that failed silently
+
+The first rebuild after the change wrote empty tables for every library and reported success. The
+library sources had not changed, so their old tables still matched their fingerprints and the
+compiler's bootstrap installed them into its private libraries -- and their code called
+`R.globalAccessor`, which no longer existed. The install threw, the compiler could not start, and
+every procedure was declined, which the build step reads as nothing to compile (R67). Tables now
+record `runtime`, a fingerprint of the names generated code can reach through `R`, and
+`installLibraryTable` refuses a table whose interface differs; `compilerStartFailure` in
+`lowering.js` lets both build steps stop with an error when the compiler cannot start.
+
+## Tests
+
+- `tests/functional/global_cell_tests.js`: a frame's cells follow `define`, `set!` from any inner
+  frame, `rebind` and library substitution, and are left alone by a shadowing binding's writes;
+  compiled code sees a global assigned and redefined, resolves a forward reference once it is
+  defined and follows a redefinition after that, reports a still-unbound global and then reads it
+  once it is defined, reads `'()`, `#f` and `0` as themselves, and reads a JavaScript global.
+  Dropping the cell update from `define`, from `set!` or from substitution each fails it.
+- `tests/functional/prebuilt_library_tests.js`: every table records the current runtime interface,
+  and one generated against another installs nothing.
+- The lowering half of `loop_compilation_tests.js` -- which calls the lowering tags as loops, and
+  which `letrec` groups it inlines -- is now Scheme, `tests/compiler/loop_tests.scm`, run through the
+  real analyzer by an `analyze-lambda` helper the compiler test runner provides. Breaking
+  `letrec-inline?` fails four of its twenty tests. The half that inspects generated code and runs it
+  stays JavaScript.
+
+3,360 tests pass in Node and 3,255 in the browser.

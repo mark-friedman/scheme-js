@@ -158,7 +158,7 @@ export async function runPrimitiveBindingTests(logger) {
     assert(logger, 'an inlined primitive reads its cell', /W\d+\.intact \|\|/.test(source), true);
     // The check that a redefinition captured a continuation belongs to the
     // slow path; the fast path has no statement for it.
-    assert(logger, 'and makes no check of its own for a capture', source.includes('R.UNWIND) R.capture'), false);
+    assert(logger, 'and makes no check of its own for a capture', source.includes('$UNWIND) R.capture'), false);
   }
   {
     // A program that redefined `car` before this was compiled must not have

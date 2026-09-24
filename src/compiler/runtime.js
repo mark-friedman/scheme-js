@@ -157,39 +157,55 @@ export function settle(value) {
 }
 
 /**
- * Builds a memoizing accessor for a global binding.
+ * The cell a global read resolves to before its first read.
  *
- * Compiled code cannot capture a global's value at compile time: a definition
- * may be forward-referenced, and Scheme allows a top-level binding to be
- * redefined afterwards -- by a later `define`, or by the REPL running the
- * compiled code. The accessor therefore resolves lazily, and re-resolves if the
- * binding is replaced, while costing a single property load in the common case.
+ * Generated code reads a global as `(C.v ?? G())`: the cell's value, or, when
+ * that is `undefined` or `null`, the resolver `G`, which finds the real cell
+ * with `globalCell`, keeps it in `C` and returns its value. Starting every
+ * site at this cell sends its first read to the resolver. A value that really
+ * is `null` -- the empty list -- or `undefined` takes the resolver on every
+ * read, which is slower and still right.
  *
- * @param {Object} env - The environment to resolve in.
- * @param {string} name - The renamed global's name.
- * @returns {function(): *} An accessor returning the current value.
+ * @type {{v: undefined}}
  */
-export function globalAccessor(env, name) {
-  let holder = null;
-  return () => {
-    // The frame holding the binding is found once and then remembered, so a
-    // reference costs a single hash lookup rather than a walk up the
-    // environment chain. Profiling the first version, which called `findEnv`
-    // on every reference, put 11% of compiled runtime in this function and the
-    // chain walk it performed.
-    //
-    // Caching the frame rather than the value is what keeps it correct: a later
-    // `define` or `set!` mutates that frame's map in place, so the new value is
-    // observed. Scheme has no way to *remove* a binding, so a frame that once
-    // held the name still holds it.
-    if (holder !== null) return holder.bindings.get(name);
-    holder = env.findEnv(name);
-    if (holder === null) {
-      // Not yet defined -- a forward reference, or a JavaScript global. Resolve
-      // the slow way and do not cache, so a later definition is picked up.
-      return env.lookup(name);
+export const UNRESOLVED = Object.freeze({ v: undefined });
+
+/**
+ * Resolves a global for compiled code: the cell of the frame holding it.
+ *
+ * Compiled code cannot take a global's value at compile time: a definition
+ * may be a forward reference, and Scheme allows a top-level binding to be
+ * redefined or assigned afterwards -- by a later `define`, a `set!`, or the
+ * REPL running the compiled code. The frame holding the name keeps a cell for
+ * it current through every write (`Environment.cellFor`), so compiled code
+ * reads the cell, one property load, rather than looking the name up in the
+ * frame's map on every reference as it used to -- a hash lookup that cost up
+ * to 1.5x of compiled run time on call-heavy code.
+ *
+ * The frame is found once. A later `define` of the same name in a frame
+ * nearer the reader would shadow it and go unseen; that was equally true of
+ * the lookup this replaces, and does not arise for the top-level and library
+ * frames compiled procedures close over.
+ *
+ * @param {Object} env - The environment the compiled procedure closes over.
+ * @param {string} name - The global's name.
+ * @returns {{v: *}} The cell to read it through.
+ * @throws {SchemeUnboundError} If the name is bound nowhere, in Scheme or as a
+ *   JavaScript global; the site then stays unresolved, so a later definition
+ *   is picked up.
+ */
+export function globalCell(env, name) {
+  const holder = env.findEnv(name);
+  if (holder !== null) return holder.cellFor(name);
+  // A JavaScript global, or nothing (in which case this throws). A JavaScript
+  // global has no frame to keep a cell current, so it is read afresh each
+  // time, and a Scheme definition of the name made later is found then.
+  env.lookup(name);
+  return {
+    get v() {
+      const found = env.findEnv(name);
+      return found === null ? env.lookup(name) : found.bindings.get(name);
     }
-    return holder.bindings.get(name);
   };
 }
 

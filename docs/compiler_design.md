@@ -81,7 +81,7 @@ code size at compile time rather than speed at run time: measured at 2.21x, agai
 
 One emitter produces both, in `src/compiler/emit.scm`, with a mode. Only control flow — `if`,
 calls, captures, loop heads — depends on the mode; all expression emission — inlining, global
-accessors, temporaries — is the same code, so the two forms cannot drift apart in what they mean.
+reads, temporaries — is the same code, so the two forms cannot drift apart in what they mean.
 What must still agree exactly is temporary *naming*, because the fast form spills into a frame the
 twin restores by name. They agree because each counts from zero and both walk the same IR in the
 same order; getting it wrong once produced a nested `$fn0` that shadowed its parent's twin.
@@ -199,14 +199,15 @@ is turning the question round: **the interpreter notices rebinding instead of co
 about it.** Every binding write reports its name and value to
 `src/core/interpreter/primitive_bindings.js`, which keeps one cell per primitive's name, and marks
 the cell *not intact* the first time the name is bound to anything but its primitive, anywhere.
-The guard is then `W.intact || G() === P`: one property load while nothing has rebound `car`, and
-the old per-use check once something has.
+The guard is then `W.intact || (C.v ?? G()) === P`: one property load while nothing has rebound
+`car`, and a read of the global once something has.
 
 Two properties make that sound:
 
 - **Every write is seen.** Environments are written through `define` and `set`, which report; the
-  interpreter's `letrec` frames write directly but only ever bind renamed locals, which cannot be a
-  primitive's name. Library imports go through `define`.
+  interpreter's `letrec` frames and installing compiled code write through `rebind`, which does not,
+  because they only ever bind renamed locals or replace a closure with its own compiled form.
+  Library imports go through `define`.
 - **The flag is per name, not per environment.** A library that defines its own `car` turns the
   shortcut off for `car` everywhere. That costs speed in an unusual program and is never wrong, and
   it is what lets the check ignore which environment a piece of compiled code resolves its globals
@@ -216,6 +217,32 @@ An expansion is also only *emitted* when the name is bound to its primitive at c
 used to be emitted when the name was bound to any function, and the guard compared against
 whatever that was — so a program that redefined `car` and then compiled a procedure had its own
 `car` replaced by the primitive's.
+
+## Reading a global
+
+A global cannot be taken at compile time: a definition may be a forward reference, and any binding
+may be redefined or assigned afterwards, by a later `define`, a `set!` or a REPL. Compiled code
+used to find the frame holding the name once and then look the name up in that frame's map on every
+read. Rewriting the generated code to cache each value after its first read -- unsound, a ceiling
+only -- was worth `call` 1.50x and 1.12–1.24x on four other classes.
+
+So the question is turned round, as it was for primitives: **the frame keeps a cell current rather
+than compiled code asking it.** `Environment.cellFor(name)` hands out one cell per name, created the
+first time compiled code asks; `define`, `set`, and `rebind` update it. Generated code declares, per
+global, a cell and its resolver, `let C0 = R.UNRESOLVED; const G0 = () => (C0 =
+R.globalCell(E, "fib")).v;`, and reads `(C0.v ?? G0())`. The first read resolves the cell; every
+later read is one property load. A value that is `null` -- the empty list -- or `undefined` looks
+unresolved and takes the resolver every time, which is slower and still right. A name that is only
+a JavaScript global has no frame to keep a cell, so its cell reads the name afresh each time.
+
+The frame is found once, as the lookup it replaces found it once, so a later definition of the same
+name in a frame nearer the reader would go unseen. That does not arise for the top-level and library
+frames compiled procedures close over.
+
+The other cost expected on every call, the `SCHEME_RAW_CALL` lookup that decides whether a callee is
+an interpreted closure, measured as nothing, and is left alone. Reading the runtime values every
+call site uses -- `TailCall`, `step`, `UNWIND`, `SCHEME_RAW_CALL` -- once per procedure rather than
+from `R` at every site was worth a few percent more.
 
 ## The IR, and lowering
 
@@ -269,8 +296,9 @@ procedure of `(scheme base)` would change the compiler, and the build step compi
 nothing, where the first link compiles every shipped library with the compiler still interpreted.
 Both tables come out byte-identical either way. Code generation costs more in Scheme than it did in
 JavaScript: about 1.2 ms a procedure against 0.16 ms, measured over 1,014 procedures, most of it
-`case` dispatch through `memv` and the global accessor on every call — both code-generation targets,
-so the compiler speeds up as the tier does.
+`case` dispatch through `memv`, a code-generation target, so the compiler speeds up as the tier
+does. Reading globals through cells (below) made its lowering 1.31x faster and left code generation
+where it was.
 
 **The order is the design, not an optimization.** Lowering calls `memq` and `assq` on every scope
 lookup and every global it records, and those are themselves Scheme. Compiling the lowering against
@@ -378,4 +406,4 @@ Per-module rationale is in the module headers, which are edited with the code:
 | `src/compiler/marshal.js` | the JavaScript/Scheme boundary, and how it shrinks |
 | `src/compiler/safety.js` | the call-graph closure, and its measured trade-off |
 | `src/compiler/prebuilt.js` | staleness, and why arity rather than names |
-| `src/compiler/runtime.js` | the trampoline, global accessors, procedure marking |
+| `src/compiler/runtime.js` | the trampoline, global cells, procedure marking |

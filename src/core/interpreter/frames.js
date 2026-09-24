@@ -114,7 +114,7 @@ export class LetRecFrame extends Executable {
 
     step(registers, interpreter) {
         const closure = registers[ANS];
-        this.env.bindings.set(this.varName, closure);
+        this.env.rebind(this.varName, closure);
 
         registers[CTL] = this.body;
         registers[ENV] = this.env;
