@@ -1,5 +1,12 @@
 /**
- * @fileoverview Installing standard-library procedures compiled at build time.
+ * @fileoverview Installing library procedures compiled at build time.
+ *
+ * Every library the bundle ships has a table of its procedures compiled at
+ * build time, and so does the compiler, which is a library too. A table is
+ * installed into its library's own environment as the library loads -- see
+ * `installLibraryTable` -- so a library imported long after start-up arrives
+ * compiled without the compiler being present at all. That is what lets a
+ * page that never compiles its own code leave the compiler out of the bundle.
  *
  * ## Why build time rather than bootstrap
  *
@@ -22,9 +29,10 @@
  * of its source said. Two checks prevent it, and both fail towards leaving the
  * procedure alone.
  *
- * The first is a fingerprint of the library sources, recorded when the code was
- * generated and recomputed here. If a `.scm` file changed without the build
- * being re-run, nothing is installed at all.
+ * The first is a fingerprint of the library's sources -- its `.sld` and every
+ * file it includes -- recorded when the code was generated and recomputed
+ * here. If one of them changed without the build being re-run, nothing from
+ * that library is installed at all.
  *
  * The second is per procedure, and is deliberately about *arity* rather than
  * about names. It is tempting to compare the analyzer's renamed parameter
@@ -48,7 +56,7 @@
  */
 
 import * as R from './runtime.js';
-import { substituteLibraryValues } from '../core/interpreter/library_registry.js';
+import { substituteLibraryValues, libraryNameToKey } from '../core/interpreter/library_registry.js';
 
 /**
  * Hashes the library sources into a short fingerprint.
@@ -124,6 +132,37 @@ export function installPrebuilt(env, table, fingerprint) {
   // `substituteLibraryValues`.
   substituteLibraryValues(replaced);
   return { installed, skipped, stale: false };
+}
+
+/**
+ * Installs a library's prebuilt table into the library's own environment, if
+ * there is one and it was generated from the sources being loaded.
+ *
+ * Meant to run from the library loader's hook, once the library's body has
+ * been evaluated: the closures it replaces must exist, and nothing has yet
+ * imported them except through the export map, which `installPrebuilt` keeps
+ * in step.
+ *
+ * @param {Object<string, Object>} tables - Generated tables, keyed by library
+ *   name as `libraryNameToKey` writes it.
+ * @param {string[]} libraryName - The library just loaded.
+ * @param {Object} env - Its own environment.
+ * @param {(file: string) => (string|undefined)} sourceOf - The source of one
+ *   of the library's files, by the name its table lists it under.
+ * @returns {{installed: Array<string>, skipped: Array<{name: string, reason: string}>,
+ *   stale: boolean}|null} What `installPrebuilt` did, or null if the library has
+ *   no table.
+ */
+export function installLibraryTable(tables, libraryName, env, sourceOf) {
+  const table = tables[libraryNameToKey(libraryName)];
+  if (table === undefined) return null;
+  const sources = table.files.map(sourceOf);
+  // A file the table was built from and the loader cannot find now means the
+  // library has changed shape since the build, which is staleness too.
+  if (sources.some((source) => typeof source !== 'string')) {
+    return { installed: [], skipped: [], stale: true };
+  }
+  return installPrebuilt(env, table, fingerprintSources(sources));
 }
 
 /**

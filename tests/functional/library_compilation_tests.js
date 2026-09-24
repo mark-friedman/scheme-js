@@ -24,9 +24,7 @@ import {
 } from '../../src/core/interpreter/library_registry.js';
 import { loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
 import { compileEnvironment } from '../../src/compiler/index.js';
-import { installPrebuilt, fingerprintSources } from '../../src/compiler/prebuilt.js';
-import PREBUILT, { LIBRARY_FILES } from '../../src/packaging/compiled_stdlib.js';
-import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
+import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
 
 /**
  * Evaluates source in an interpreter's environment.
@@ -78,14 +76,10 @@ export async function runLibraryCompilationTests(logger) {
   }
 
   {
-    const { interpreter, env } = createInterpreter();
-    for (const file of LIBRARY_FILES) {
-      evaluate(interpreter, env, BUNDLED_SOURCES[file]);
-    }
+    const { env } = interpretedLibrary();
     const libraryEnv = libraryCopying('test.install-prebuilt', 'map', env);
 
-    installPrebuilt(env, PREBUILT,
-      fingerprintSources(LIBRARY_FILES.map((file) => BUNDLED_SOURCES[file])));
+    installStandardLibrary(env);
     const compiled = env.lookup('map');
     assert(logger, 'setup: installPrebuilt installed map', compiled.$compiled, true);
     assert(logger, 'installPrebuilt updates the export map',

@@ -17,9 +17,10 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { tryCompileDefinition, compileProgram, compileEnvironment } from '../../src/compiler/index.js';
-import { installPrebuilt, fingerprintSources } from '../../src/compiler/prebuilt.js';
-import PREBUILT, { LIBRARY_FILES } from '../../src/packaging/compiled_stdlib.js';
-import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
+import { installPrebuilt } from '../../src/compiler/prebuilt.js';
+import {
+  interpretedLibrary, standardLibraryFingerprint, STANDARD_LIBRARY_TABLE as PREBUILT
+} from '../harness/standard_library.js';
 import { unsafeDefinitions } from '../../src/compiler/safety.js';
 import { lowerLambda, jsNameOf } from '../../src/compiler/lowering.js';
 import { Cons } from '../../src/core/interpreter/cons.js';
@@ -657,27 +658,6 @@ function freshEnvironment(template) {
 }
 
 /**
- * Bootstraps a fresh interpreter with the standard library *interpreted*.
- *
- * `freshEnvironment` copies the suite's own bindings, and when the suite runs
- * with the library already compiled those are compiled procedures -- so there
- * would be no interpreted closures for the prebuilt table to replace, and
- * these cases would silently assert nothing. Loading the sources here makes the
- * precondition the test's own rather than the runner's.
- *
- * @returns {{interpreter: Object, env: Object}} A fresh pair.
- */
-function interpretedLibrary() {
-  const { interpreter, env } = createInterpreter();
-  for (const file of LIBRARY_FILES) {
-    for (const form of parse(BUNDLED_SOURCES[file])) {
-      interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
-    }
-  }
-  return { interpreter, env };
-}
-
-/**
  * Evaluates a program, optionally compiling its definitions first.
  * @param {string} source - Scheme source.
  * @param {Object} template - Environment supplying the standard library.
@@ -843,8 +823,7 @@ export async function runCompilerTests(interpreter, logger) {
   // property assignment and a page with a strict policy gets the compiled
   // library rather than an interpreted one.
   {
-    const sources = LIBRARY_FILES.map((file) => BUNDLED_SOURCES[file]);
-    const fingerprint = fingerprintSources(sources);
+    const fingerprint = standardLibraryFingerprint();
 
     // The build runs as part of `npm test`, so the generated table must match
     // the sources in the same tree. If this fails, the two are out of step and

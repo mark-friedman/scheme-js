@@ -184,6 +184,25 @@ export function tryCompileClosure(closure, name) {
 }
 
 /**
+ * Whether a closure was created in an environment or somewhere inside it.
+ *
+ * A procedure a library defines closes over the library's environment, or over
+ * a scope nested in it when it was made by a `let` around a `lambda`. One it
+ * imported closes over the environment of the library that defined it, which
+ * is never inside this one.
+ *
+ * @param {Function} closure - An interpreted closure.
+ * @param {Object} env - The environment.
+ * @returns {boolean} True if the closure's environment is `env` or nested in it.
+ */
+function definedWithin(closure, env) {
+  for (let scope = closure.env; scope; scope = scope.parent) {
+    if (scope === env) return true;
+  }
+  return false;
+}
+
+/**
  * Rebuilds the lambda an interpreted closure came from.
  * @param {Function} closure - An interpreted Scheme closure.
  * @param {string} name - Its name.
@@ -207,7 +226,11 @@ function lambdaOf(closure, name) {
  * for procedures the runtime does not expect.
  *
  * @param {Object} env - The environment to read.
- * @param {Object} [options] - As for `compileEnvironment`.
+ * @param {Object} [options] - As for `compileEnvironment`, and:
+ * @param {boolean} [options.ownOnly=false] - Only the procedures defined in
+ *   `env` itself, leaving out those it imported. A library's environment holds
+ *   a copy of everything it imports, and a table built for that library must
+ *   not carry a second compiled copy of another library's procedures.
  * @returns {{generated: Array<Object>, declined: Array<{name: string, reason: string}>}}
  *   One entry per procedure, with its source, constants, parameter names and
  *   the globals it references.
@@ -217,7 +240,8 @@ export function generateEnvironment(env, options = {}) {
   for (const [name, value] of env.bindings) {
     // An interpreted closure, as opposed to a primitive or an already
     // compiled procedure: only these carry a body to compile.
-    if (typeof value === 'function' && value.body !== undefined) {
+    if (typeof value === 'function' && value.body !== undefined
+      && (options.ownOnly !== true || definedWithin(value, env))) {
       entries.push({ name, closure: value });
     }
   }

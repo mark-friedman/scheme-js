@@ -128,7 +128,7 @@ export function evaluateFeatureRequirement(requirement) {
  * Key: stringified library name (e.g., "scheme.base")
  * Value: { exports: Map<string, value>, env: Environment }
  */
-const libraryRegistry = new Map();
+let libraryRegistry = new Map();
 
 /**
  * File resolver function (set by runtime).
@@ -180,6 +180,45 @@ export function setLibraryLoadHook(hook) {
  */
 export function runLibraryLoadHook(libraryName, env) {
     if (libraryLoadHook !== null) libraryLoadHook(libraryName, env);
+}
+
+/**
+ * Loads libraries apart from every library loaded so far, and from every one
+ * loaded afterwards.
+ *
+ * The registry, the file resolver and the load hook are shared by everything
+ * in the process, which is right for a program and its libraries and wrong for
+ * a tool that runs Scheme on the program's behalf. The compiler is one: it is
+ * written with `(scheme base)` and SRFI 1, and if it shared the program's
+ * instances of those, a program that redefined one of their procedures would
+ * change the compiler, and a build step compiling those very libraries would
+ * find them already loaded -- by the compiler -- and never see them load.
+ *
+ * Inside `fn`, the registry starts empty and the resolver and hook are the
+ * ones given; afterwards all three are as they were, whether `fn` returned or
+ * threw. Libraries loaded inside stay alive through whatever holds them, and
+ * are found by nothing outside. Loading is synchronous, so nothing else can
+ * observe the swap.
+ *
+ * @param {Object} loader - How to load inside.
+ * @param {Function} loader.resolver - The file resolver to use, which must be
+ *   synchronous for `loadLibrarySync`.
+ * @param {Function|null} [loader.hook=null] - The load hook to use.
+ * @param {() => *} fn - What to run.
+ * @returns {*} What `fn` returned.
+ */
+export function withPrivateLibraries({ resolver, hook = null }, fn) {
+    const saved = { registry: libraryRegistry, resolver: fileResolver, hook: libraryLoadHook };
+    libraryRegistry = new Map();
+    fileResolver = resolver;
+    libraryLoadHook = hook;
+    try {
+        return fn();
+    } finally {
+        libraryRegistry = saved.registry;
+        fileResolver = saved.resolver;
+        libraryLoadHook = saved.hook;
+    }
 }
 
 /**

@@ -240,31 +240,49 @@ compiler is the goal and it cannot be argued from priors. Lowering and code gene
 the analyzer in front of them, and the safety analysis beside them, are not yet.
 
 A compiler written in the language it compiles has to start somewhere. It starts in the
-**interpreter**, which runs the compiler's Scheme from source with no compiler at all:
+**interpreter**, which loads the compiler's Scheme from source with no compiler at all:
 
 | step | produces |
 |---|---|
-| the interpreter runs the compiler's Scheme | a working, slow compiler |
-| it compiles the standard library | `src/packaging/compiled_stdlib.js` |
-| that compiles the compiler's Scheme | `src/packaging/compiled_compiler.js` |
+| the interpreter loads the compiler's library | a working, slow compiler |
+| it compiles every library the bundle ships | `src/packaging/compiled_libraries.js` |
+| that compiles the compiler's library | `src/packaging/compiled_compiler.js` |
 
-The compiler's Scheme is `ir.scm` and the emitter's files, and the implementations of SRFI 1 and
-SRFI 152 it is written with. The table keeps only what its entry points can reach, so the rest of
-those libraries is not compiled into it.
+The compiler's Scheme is a library, `(scheme-js compiler)`: `src/compiler/compiler.sld` imports
+`(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1 and SRFI 152, includes `ir.scm` and the
+emitter's files in dependency order, and exports the entry points `lowering.js` calls. So the list of
+files that make up the compiler, and their order, is said once, in Scheme, and SRFI 1's private
+helpers stay private to SRFI 1. Its table keeps only what its exports can reach.
 
-`npm run prebuild` runs the chain in about 1.6 s from nothing, reproducibly — both tables come out
-byte-identical. Code generation costs more in Scheme than it did in JavaScript: about 1.2 ms a
-procedure against 0.16 ms, measured over 1,014 procedures, most of it `case` dispatch through
-`memv` and the global accessor on every call — both code-generation targets, so the compiler speeds
-up as the tier does.
+Every table has one shape, a map from library name to the procedures that library defines, and is
+installed into the library's own environment as the library loads (`installLibraryTable`). A
+library's environment also holds everything it imported; `generateEnvironment`'s `ownOnly` option
+leaves those out, so no procedure is compiled into two tables.
+
+The compiler loads its library, and the ones that imports, into **a registry of its own**
+(`withPrivateLibraries` in `src/core/interpreter/library_registry.js`). The library registry is
+otherwise one per process, and sharing it would be wrong both ways: a program that redefined a
+procedure of `(scheme base)` would change the compiler, and the build step compiling
+`(scheme base)` would find it already loaded -- by the compiler -- and never see it load.
+
+`npm run prebuild` runs the chain in about 1.8 s from a checked-in build, and about 15 s from
+nothing, where the first link compiles every shipped library with the compiler still interpreted.
+Both tables come out byte-identical either way. Code generation costs more in Scheme than it did in
+JavaScript: about 1.2 ms a procedure against 0.16 ms, measured over 1,014 procedures, most of it
+`case` dispatch through `memv` and the global accessor on every call — both code-generation targets,
+so the compiler speeds up as the tier does.
 
 **The order is the design, not an optimization.** Lowering calls `memq` and `assq` on every scope
-lookup and every global it records, and those are themselves Scheme. Compiling `ir.scm` against an
-interpreted library is worth 1.45x; against a compiled one, 13.68x. Almost all of a compiled module's
-cost can be the interpreted library underneath it.
+lookup and every global it records, and those are themselves Scheme. Compiling the lowering against
+an interpreted library is worth 1.33x; against a compiled one, 25x (`npm run benchmark:self-host`).
+Almost all of a compiled module's cost can be the interpreted library underneath it.
 
-Both prebuilt tables are guarded by a fingerprint of the sources they were generated from
-(`src/compiler/prebuilt.js`), so a stale build costs speed and never correctness.
+Every prebuilt table is guarded by a fingerprint of the library's sources -- its `.sld` and each file
+it includes -- (`src/compiler/prebuilt.js`), so a stale build costs speed and never correctness.
+
+Because every library the bundle ships arrives compiled from its table, **a page needs no compiler
+to get compiled libraries.** The compiler is therefore not in `dist/scheme.js`: it is
+`dist/scheme_compiler.js`, fetched by `loadCompiler` only for a page that compiles code of its own.
 
 `runtime.js` stays JavaScript permanently — not because generated JavaScript calls it, but because it
 needs native JavaScript features that neither generated code nor Scheme libraries can express, a
@@ -297,7 +315,7 @@ needed after the compiler is finished:
 - the compiler's own **bootstrap**.
 
 Under a strict Content-Security-Policy the configuration is AOT plus interpreter, and it needs no
-`new Function` anywhere: the standard library and the compiler's own Scheme are compiled at build
+`new Function` anywhere: every shipped library and the compiler's own Scheme are compiled at build
 time into ordinary module text. Dynamic paths — `eval`, `load`, the REPL — fall back to the
 interpreter. (`js-eval` in `src/extras/primitives/interop.js` is a deliberate interop escape hatch;
 it throws under strict CSP, which is acceptable and forces nothing else to depend on `eval`.)
@@ -307,7 +325,7 @@ it throws under strict CSP, which is acceptable and forces nothing else to depen
 | Constraint | Status |
 |---|---|
 | **1. JS interop** | Met. Scheme closures stay callable JavaScript functions; compiled procedures keep the same wrapper. Value representation is untouched. |
-| **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the library and the compiler are AOT-compiled into the bundle. |
+| **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler only if it compiles code of its own. |
 | **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
 | **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The only hook is `interpreter.js:455`, inside the step loop that compiled procedures never enter, so a breakpoint inside one silently never fires. Harmless only because the tier compiles nothing but the standard library today. |
 

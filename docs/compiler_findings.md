@@ -2228,6 +2228,23 @@ it the compiled compiler went from 1,518 to 1,371 KB. Nothing in the standard li
 corpus was affected, which is how it went unseen: the differential between the two emitters found
 exactly these three, and nothing else.
 
+**R65. Every page ran the compiler at start-up, not only one that imported a library.**
+
+The plan for splitting the compiler out of the bundle said the first compile in a page was when a
+library was imported after start-up, through the load hook in `scheme_entry.js`. It was earlier:
+start-up itself called `compileEnvironment` on the interaction environment, for whatever the
+prebuilt table had not covered, and the table's hand-kept file list left out `parameter.scm`,
+`lazy.scm`, `promise.scm` and the body of `eval.sld`. So seven procedures -- `make-parameter`,
+`force`, `make-promise`, `promise?`, `environment` and two promise helpers -- were compiled at run
+time on every page, and every page bootstrapped the compiler to do it: about 110 ms of a 193 ms
+start-up. With a prebuilt table for every library the bundle ships, installed as each loads,
+start-up is 61 ms and importing SRFI 125 takes 25 ms instead of 300, with no compiler loaded.
+
+*Consequence:* the split could not simply defer loading the compiler; everything shipped had to be
+prebuilt first. That brings SRFI 1, 125, 128 and 152's compiled code (1.1 MB) into the file every
+page loads, so `dist/scheme.js` went from 2.97 to 2.67 MB (424 to 340 KB gzipped) rather than
+losing the compiler's whole 1.5 MB. The generated code's own size is now what the page pays for.
+
 ---
 
 ## Appendix — the original staged plan

@@ -2,10 +2,12 @@
  * @fileoverview Runs Scheme tests of the compiler's own Scheme.
  *
  * The compiler's passes -- liveness, the emitter's text, the lifting plan -- are
- * Scheme procedures, so their tests are Scheme too. They are not in a library
- * a test file could import: they live in the separate interpreter the compiler
- * runs in (`src/compiler/lowering.js`). So these test files are run *there*,
- * with the same `test` harness the other Scheme tests use.
+ * Scheme procedures, so their tests are Scheme too. Most of them are internal
+ * to the `(scheme-js compiler)` library, which exports only its entry points,
+ * and the library is loaded into a registry of the compiler's own
+ * (`src/compiler/lowering.js`), so a test file could not import it anyway. So
+ * these test files are run in the library's own environment, with the same
+ * `test` harness the other Scheme tests use.
  */
 
 import { parse } from '../src/core/interpreter/reader.js';

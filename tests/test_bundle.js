@@ -1,4 +1,7 @@
-import { schemeEval, schemeEvalAsync } from '../dist/scheme.js';
+import {
+    schemeEval, schemeEvalAsync, loadCompiler, isCompilerLoaded, libraryInstallation,
+    env, interpreter, parse, analyze
+} from '../dist/scheme.js';
 import { assert } from './harness/helpers.js';
 
 /**
@@ -67,13 +70,57 @@ export async function runBundleTests(logger) {
             (list (hash-table-ref/default ht (list 1 2) #f)
                   (hash-table-ref ht "count")))`);
         assert(logger, "SRFI 125 hash tables from the bundle", result, ['found', 42]);
-        // Imported after start-up, so compiled by the library-load hook rather
-        // than by the start-up compile; interpreted, every lookup costs ~17x.
+        // Imported after start-up, so its prebuilt table is installed by the
+        // library-load hook as it loads; interpreted, every lookup costs ~17x.
         assert(logger, "A library imported after start-up is compiled",
             [runSync('hash-table-ref/default').$compiled, runSync('make-hash-table').$compiled],
             [true, true]);
     } catch (e) {
         logger.fail(`SRFI 125 from the bundle failed: ${e.message}`);
+    }
+
+    // The bundle does not carry the compiler. Every library it ships was
+    // compiled at build time and installed as it loaded, so nothing so far --
+    // start-up, SRFI 125 -- has needed it.
+    try {
+        assert(logger, "Nothing so far has loaded the compiler", isCompilerLoaded(), false);
+        const outcomes = [...libraryInstallation.values()];
+        assert(logger, "Every shipped library loaded so far installed its whole table",
+            outcomes.filter((o) => o.stale || o.skipped.length > 0).length, 0);
+        assert(logger, "The standard library was installed from its table",
+            libraryInstallation.get('scheme core').installed.length > 20, true);
+    } catch (e) {
+        logger.fail(`Prebuilt libraries in the bundle failed: ${e.message}`);
+    }
+
+    // A page that wants to compile code of its own loads the compiler, which
+    // arrives as a file of its own.
+    try {
+        const compiler = await loadCompiler();
+        assert(logger, "loadCompiler loads the compiler", isCompilerLoaded(), true);
+        const asts = parse('(define (bundle-square x) (* x x))').map((form) => analyze(form));
+        const outcome = compiler.compileProgram(asts, env, interpreter);
+        assert(logger, "The loaded compiler compiles a definition", outcome.compiled, ['bundle-square']);
+        assert(logger, "And the compiled procedure runs",
+            [runSync('(bundle-square 7)'), runSync('bundle-square').$compiled], [49, true]);
+        assert(logger, "Loading it again returns the same module", await loadCompiler(), compiler);
+    } catch (e) {
+        logger.fail(`Loading the compiler failed: ${e.message}`);
+    }
+
+    // What the split is for: the compiler's code is in its own file, not in the
+    // one every page loads. Read from disk, so Node only.
+    if (typeof process !== 'undefined') {
+        try {
+            const fs = await import('fs');
+            const read = (file) => fs.readFileSync(new URL(`../dist/${file}`, import.meta.url), 'utf8');
+            assert(logger, "The bundle every page loads does not contain the compiler",
+                read('scheme.js').includes('"generate-unit"'), false);
+            assert(logger, "The compiler's own file does",
+                read('scheme_compiler.js').includes('"generate-unit"'), true);
+        } catch (e) {
+            logger.fail(`Reading the bundle failed: ${e.message}`);
+        }
     }
 
     // Test 4: Shared Environment (Async)

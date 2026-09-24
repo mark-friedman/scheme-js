@@ -1,8 +1,16 @@
 export default [
   {
     input: 'src/packaging/scheme_entry.js',
+    // The compiler's chunk imports what it shares with the bundle from
+    // `scheme.js` itself, rather than both importing a third, shared chunk.
+    preserveEntrySignatures: 'allow-extension',
+    // A directory rather than a file, because the bundle is split: the
+    // compiler, reached only through `loadCompiler`'s dynamic import, becomes
+    // `dist/scheme_compiler.js`, fetched by the pages that ask for it.
     output: {
-      file: 'dist/scheme.js',
+      dir: 'dist',
+      entryFileNames: 'scheme.js',
+      chunkFileNames: '[name].js',
       format: 'es'
     },
     external: ['fs', 'node:fs', 'path', 'node:path']

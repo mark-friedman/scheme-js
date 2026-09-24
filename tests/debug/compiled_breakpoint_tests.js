@@ -26,9 +26,7 @@ import { ReplDebugCommands } from '../../src/debug/repl_debug_commands.js';
 import {
   tryCompileDefinition, tryCompileClosure, compileEnvironment
 } from '../../src/compiler/index.js';
-import { installPrebuilt, fingerprintSources } from '../../src/compiler/prebuilt.js';
-import PREBUILT, { LIBRARY_FILES } from '../../src/packaging/compiled_stdlib.js';
-import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
+import { interpretedLibrary as standardLibrary, installStandardLibrary } from '../harness/standard_library.js';
 
 /**
  * A definition spread over several lines, so that a span can be seen to cover
@@ -65,17 +63,11 @@ function analyzeFirst(source, filename) {
 
 /**
  * Loads the standard library interpreted, with each file's name recorded in
- * its source spans, as the prebuilt table expects to find it.
+ * its source spans, as loading the library records it.
  * @returns {{interpreter: Object, env: Object}} The interpreter and environment.
  */
 function interpretedLibrary() {
-  const { interpreter, env } = createInterpreter();
-  for (const file of LIBRARY_FILES) {
-    for (const form of parse(BUNDLED_SOURCES[file], { filename: file })) {
-      interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
-    }
-  }
-  return { interpreter, env };
+  return standardLibrary({ filenames: true });
 }
 
 /**
@@ -175,8 +167,7 @@ export async function runCompiledBreakpointTests(logger) {
   }
   {
     const { env } = interpretedLibrary();
-    const sources = LIBRARY_FILES.map((file) => BUNDLED_SOURCES[file]);
-    installPrebuilt(env, PREBUILT, fingerprintSources(sources));
+    installStandardLibrary(env);
     const map = env.lookup('map');
     assert(logger, 'map is installed from the prebuilt table', map.$compiled, true);
     assert(logger, 'installPrebuilt keeps the span of the closure it replaced',

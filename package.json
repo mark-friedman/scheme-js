@@ -11,7 +11,7 @@
     "benchmark:save": "node benchmarks/save_baseline.js",
     "benchmark:compare": "node benchmarks/compare_baseline.js",
     "pretest": "npm run build",
-    "prebuild": "node scripts/generate_bundled_libraries.js && node scripts/generate_compiled_stdlib.js && node scripts/generate_compiled_compiler.js",
+    "prebuild": "node scripts/generate_bundled_libraries.js && node scripts/generate_compiled_libraries.js && node scripts/generate_compiled_compiler.js",
     "build": "rollup -c && cp web/gh-pages.html dist/index.html",
     "benchmark:standard": "node benchmarks/run_standard.js",
     "benchmark:steps": "node benchmarks/count_steps.js",

@@ -19,67 +19,96 @@
  * is almost entirely off the path a user waits on: the standard library is
  * lowered at build time, and a program's definitions are lowered once each.
  *
+ * ## The compiler is a library
+ *
+ * Its Scheme is the library `(scheme-js compiler)`, in `compiler.sld`, which
+ * imports what it is written with -- `(scheme base)`, SRFI 1, SRFI 152 --
+ * includes its files in order, and exports the entry points this module calls.
+ * Which files make up the compiler, and in what order, is therefore said once,
+ * in Scheme, where the build step that compiles them reads it too.
+ *
  * ## The bootstrap, and why it terminates
  *
  * Lowering is what the compiler uses to produce code, so a compiler written in
  * the language it compiles has to start somewhere. It starts in the
- * interpreter, which can run `ir.scm` from source with no compiler at all. That
- * is slow -- around 300x the JavaScript figure -- so it is not where it stays:
+ * interpreter, which can load the library from source with no compiler at all.
+ * That is slow -- around 300x the JavaScript figure -- so it is not where it
+ * stays:
  *
- *   1. The interpreter runs `ir.scm`. The compiler now works, slowly.
- *   2. With it, the build compiles the standard library into
- *      `src/packaging/compiled_stdlib.js`.
- *   3. With that, the build compiles `ir.scm` into
+ *   1. The interpreter loads the library. The compiler now works, slowly.
+ *   2. With it, the build compiles every library the bundle ships into
+ *      `src/packaging/compiled_libraries.js`.
+ *   3. With those, the build compiles the compiler's library into
  *      `src/packaging/compiled_compiler.js`. The compiler has compiled itself.
  *
- * Only step 3's output is loaded here, and only after `ir.scm`'s source has
- * been interpreted, so a stale or missing build costs speed and never
- * correctness: `installPrebuilt` checks a fingerprint of the source it was
- * generated from and installs nothing if it has moved on.
+ * Both tables are installed as their libraries load, and only after each
+ * library's source has been interpreted, so a stale or missing build costs
+ * speed and never correctness: `installLibraryTable` checks a fingerprint of
+ * each library's sources and installs nothing from a table that has moved on.
  *
  * Step 2 is not an optimization of step 3. Lowering calls `memq` and `assq` on
  * every scope lookup and every global it records, and those are themselves
- * Scheme; with the library interpreted, compiling `ir.scm` is worth 1.5x, and
- * with it compiled, 20x. The order matters more than either step.
+ * Scheme; with the library interpreted, compiling the compiler is worth 1.5x,
+ * and with it compiled, 20x. The order matters more than either step.
  *
- * ## A separate interpreter
+ * ## Libraries of its own
  *
- * The pass runs in its own interpreter, built once and shared. It cannot run in
- * the environment being compiled: that environment belongs to the user's
- * program, which has its own bindings for names like `lower-node` and need not
- * have a standard library at all.
+ * The compiler loads its library, and the libraries that one imports, into a
+ * registry of its own and an interpreter of its own, built once and shared.
+ * It cannot share the program's: the program may have redefined a procedure of
+ * `(scheme base)`, need not have loaded a standard library at all, and may be
+ * a build step compiling those very libraries, which must see them load
+ * rather than find the compiler's instances already there.
  */
 
 import { createInterpreter } from '../core/interpreter/index.js';
-import { parse } from '../core/interpreter/reader.js';
 import { analyze } from '../core/interpreter/analyzer.js';
-import { BUNDLED_SOURCES, COMPILER_SOURCES } from '../packaging/bundled_libraries.js';
-import prebuiltStdlib, { LIBRARY_FILES } from '../packaging/compiled_stdlib.js';
+import { loadLibrarySync } from '../core/interpreter/library_loader.js';
+import { withPrivateLibraries, getLibraryEnv } from '../core/interpreter/library_registry.js';
+import { BUNDLED_SOURCES } from '../packaging/bundled_libraries.js';
+import { COMPILER_SOURCES } from '../packaging/compiler_sources.js';
+import prebuiltLibraries from '../packaging/compiled_libraries.js';
 import prebuiltCompiler from '../packaging/compiled_compiler.js';
-import { installPrebuilt, fingerprintSources } from './prebuilt.js';
+import { installLibraryTable } from './prebuilt.js';
 import { invoke, settle } from './runtime.js';
 import { astToScheme, irToJs, toArray, toList } from './marshal.js';
 import { intern } from '../core/interpreter/symbol.js';
 
 /**
- * The compiler's Scheme files, in load order: the implementations of SRFI 1
- * and SRFI 152, which it is written with, and then its own.
- *
- * Kept here, in source, and read by the build step that compiles them. It was
- * once read back from that step's output instead, which meant a build made
- * before a file was added or removed told the compiler which files it was made
- * of -- and a removed one could not be found at all.
- *
+ * The compiler's library.
  * @type {string[]}
  */
-export const COMPILER_FILES = [
-  'list_lib.scm', 'string_lib.scm',
-  'ir.scm', 'lift.scm', 'inline.scm', 'liveness.scm', 'emit.scm'
-];
+export const COMPILER_LIBRARY = ['scheme-js', 'compiler'];
 
 /**
- * The Scheme lowering, bootstrapped on first use, or null if it could not be.
- * @type {{lowerLambda: Function, controlGlobalIn: Function}|null}
+ * The source of a file the compiler's libraries are made of: one of its own,
+ * or one of a library the bundle ships.
+ * @param {string} file - A file name, such as `ir.scm` or `1.sld`.
+ * @returns {string|undefined} Its source, if there is such a file.
+ */
+export function compilerSourceOf(file) {
+  return COMPILER_SOURCES[file] ?? BUNDLED_SOURCES[file];
+}
+
+/**
+ * Finds a library's file, or a file a library includes, by the last part of
+ * its name, as every resolver here does.
+ * @param {string[]} name - A library name, or an include's path.
+ * @returns {string} Its source.
+ * @throws {Error} If there is no such file.
+ */
+function resolve(name) {
+  const last = name[name.length - 1];
+  const source = compilerSourceOf(`${last}.sld`) ?? compilerSourceOf(last);
+  if (source === undefined) throw new Error(`the compiler cannot find ${name.join('/')}`);
+  return source;
+}
+
+/**
+ * The compiler, bootstrapped on first use, or null if it could not be.
+ * @type {{interpreter: Object, env: Object, lowerLambda: Function,
+ *   generateUnit: Function, jsName: Function, inlineExpansionNames: Function,
+ *   controlGlobals: Set<string>, inlineNames?: Array<string>}|null}
  */
 let pass = null;
 
@@ -97,65 +126,48 @@ let pass = null;
 let bootstrapFailure = null;
 
 /**
- * Evaluates Scheme source in an environment.
- * @param {Object} interpreter - The interpreter.
- * @param {Object} env - The environment to evaluate in.
- * @param {string} source - Scheme source text.
- * @returns {void}
- */
-function runSource(interpreter, env, source) {
-  for (const form of parse(source)) {
-    interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
-  }
-}
-
-/**
- * Builds the interpreter the lowering runs in, and finds its entry points.
+ * Loads the compiler's library, and finds its entry points.
  *
- * @returns {{env: Object, lowerLambda: Function, controlGlobals: Set<string>}}
- *   The environment the compiler's Scheme lives in, and what is read from it
- *   up front.
+ * Each library installs its prebuilt table as it loads, after its source has
+ * run. The source is what defines the macros the analyzer needs and the
+ * closures the prebuilt code replaces, so installing over it is a substitution
+ * rather than a definition -- which is what lets the fingerprint check fail
+ * towards leaving a procedure alone.
+ *
+ * @returns {Object} The interpreter, the library's environment, and what is
+ *   read from its exports up front.
  */
 function bootstrap() {
-  const { interpreter, env } = createInterpreter();
+  const tables = { ...prebuiltLibraries, ...prebuiltCompiler };
+  return withPrivateLibraries({
+    resolver: resolve,
+    hook: (name, env) => installLibraryTable(tables, name, env, compilerSourceOf)
+  }, () => {
+    const { interpreter, env } = createInterpreter();
+    const exports = loadLibrarySync(COMPILER_LIBRARY, analyze, interpreter, env);
 
-  // The library's source runs first in both cases. It is what defines the
-  // macros the analyzer needs and the closures the prebuilt code replaces, so
-  // installing over it is a substitution rather than a definition -- which is
-  // what lets the fingerprint check fail towards leaving a procedure alone.
-  const librarySources = LIBRARY_FILES.map((file) => BUNDLED_SOURCES[file]);
-  for (const source of librarySources) runSource(interpreter, env, source);
-  installPrebuilt(env, prebuiltStdlib, fingerprintSources(librarySources));
-
-  // The compiler is written with SRFI 1 and SRFI 152, whose implementations
-  // are bundled as library sources rather than compiler ones.
-  const compilerSources = COMPILER_FILES.map((file) => COMPILER_SOURCES[file] ?? BUNDLED_SOURCES[file]);
-  for (const source of compilerSources) runSource(interpreter, env, source);
-  installPrebuilt(env, prebuiltCompiler, fingerprintSources(compilerSources));
-
-  // The control-global list is read across once, here, rather than asked for
-  // per procedure. It is a membership test on a fixed list of fourteen names,
-  // and marshalling a set of globals into Scheme to run it there would cost
-  // more than the test. Reading it from `ir.scm` is what keeps it one list:
-  // the lowering and the caller that declines on it cannot drift apart if
-  // neither owns a second copy.
-  //
-  // The emitter's entry points are looked up when first used rather than
-  // here. A prebuilt table generated before a compiler file existed lists
-  // only the files it knew, and bootstrapping from it must still be able to
-  // lower -- that is how the table that knows the new file gets built.
-  return {
-    interpreter,
-    env,
-    lowerLambda: env.lookup('lower-lambda'),
-    controlGlobals: new Set(toArray(env.lookup('control-globals')).map((s) => s.name))
-  };
+    // The control-global list is read across once, here, rather than asked
+    // for per procedure. It is a membership test on a fixed list of fourteen
+    // names, and marshalling a set of globals into Scheme to run it there
+    // would cost more than the test. Reading it from `ir.scm` is what keeps it
+    // one list: the lowering and the caller that declines on it cannot drift
+    // apart if neither owns a second copy.
+    return {
+      interpreter,
+      env: getLibraryEnv(COMPILER_LIBRARY),
+      lowerLambda: exports.get('lower-lambda'),
+      generateUnit: exports.get('generate-unit'),
+      jsName: exports.get('js-name'),
+      inlineExpansionNames: exports.get('inline-expansion-names'),
+      controlGlobals: new Set(toArray(exports.get('control-globals')).map((s) => s.name))
+    };
+  });
 }
 
 /**
- * The lowering pass, bootstrapping it if this is the first call.
- * @returns {{lowerLambda: Function, controlGlobalIn: Function}|null} The pass,
- *   or null if it could not be built.
+ * The compiler, bootstrapping it if this is the first call.
+ * @returns {Object|null} What `bootstrap` returns, or null if it could not be
+ *   built.
  */
 function lowering() {
   if (pass !== null || bootstrapFailure !== null) return pass;
@@ -234,15 +246,15 @@ export function lowerLambda(lambdaNode) {
 export function emitUnit(schemeIr, globals, name, guarded) {
   const scheme = lowering();
   if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
-  const result = toArray(call(scheme.env.lookup('generate-unit'), [
+  const result = toArray(call(scheme.generateUnit, [
     schemeIr, toList(globals.map((g) => intern(g))), name, toList(guarded.map((g) => intern(g)))
   ]));
   return { source: result[0], constants: toArray(result[1]) };
 }
 
 /**
- * The interpreter and environment the compiler's Scheme runs in, for tests
- * that exercise its procedures directly.
+ * The interpreter the compiler's Scheme runs in, and its library's own
+ * environment, for tests that exercise its internal procedures directly.
  * @returns {{interpreter: Object, env: Object}} The pair.
  * @throws {Error} If the compiler could not start.
  */
@@ -261,7 +273,7 @@ export function compilerEnvironment() {
 export function jsNameOf(name) {
   const scheme = lowering();
   if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
-  return call(scheme.env.lookup('js-name'), [intern(name)]);
+  return call(scheme.jsName, [intern(name)]);
 }
 
 /**
@@ -272,7 +284,7 @@ export function inlineExpansionNames() {
   const scheme = lowering();
   if (scheme === null) return [];
   if (scheme.inlineNames === undefined) {
-    scheme.inlineNames = toArray(call(scheme.env.lookup('inline-expansion-names'), []))
+    scheme.inlineNames = toArray(call(scheme.inlineExpansionNames, []))
       .map((s) => s.name);
   }
   return scheme.inlineNames;

@@ -18,27 +18,41 @@ R7RS-Small Scheme in JavaScript: minimal JS runtime, maximal Scheme libraries.
 
 ## The compiler's bootstrap
 
-The compiler tier's lowering pass is itself Scheme (`src/compiler/ir.scm`), so the
-system compiles part of itself. The chain has three links and terminates in the
-interpreter, which needs no compiler at all:
+The compiler tier is itself Scheme -- the library `(scheme-js compiler)`,
+`src/compiler/compiler.sld` and the files it includes -- so the system compiles part of
+itself. The chain has three links and terminates in the interpreter, which needs no
+compiler at all:
 
 ```
-interpreter runs ir.scm from source          (slow, but needs nothing)
-   -> compiles the standard library          -> src/packaging/compiled_stdlib.js
-   -> compiles ir.scm itself                 -> src/packaging/compiled_compiler.js
+interpreter loads (scheme-js compiler) from source   (slow, but needs nothing)
+   -> compiles every library the bundle ships        -> src/packaging/compiled_libraries.js
+   -> compiles the compiler's own library            -> src/packaging/compiled_compiler.js
 ```
 
-Both steps run at build time (`npm run prebuild`, about 0.6 s from nothing), so
-nothing calls `new Function` at run time and a page under a strict
-Content-Security-Policy gets a compiled compiler. `installPrebuilt` checks a
-fingerprint of the sources each table was generated from, and installs nothing
-if they have moved on — a stale build costs speed, never correctness.
+Both steps run at build time (`npm run prebuild`), so nothing calls `new Function` at run
+time and a page under a strict Content-Security-Policy gets compiled libraries and a
+compiled compiler. Each table is installed into its library's environment as the library
+loads (`installLibraryTable`), after checking a fingerprint of the library's `.sld` and
+the files it includes; a table whose sources have moved on installs nothing -- a stale
+build costs speed, never correctness.
 
-The middle link is not an optimization of the last one. Lowering calls `memq`
-and `assq` on every scope lookup, and those are themselves Scheme: compiling
-`ir.scm` against an interpreted library is worth 1.5x, against a compiled one
-13.7x. `npm run benchmark:self-host` measures all three configurations and
-checks that they agree about every answer.
+The middle link is not an optimization of the last one. Lowering calls `memq` and `assq`
+on every scope lookup, and those are themselves Scheme: compiling the compiler against an
+interpreted library is worth 1.5x, against a compiled one 25x. `npm run
+benchmark:self-host` measures all three configurations and checks that they agree about
+every answer.
+
+The compiler loads its library, and the libraries that imports, into a registry of its
+own (`withPrivateLibraries`), so it never shares `(scheme base)` or SRFI 1 with the
+program it compiles.
+
+### Two bundle files
+
+Because every shipped library arrives compiled from its table, a page runs no compiler to
+get compiled libraries. So the compiler is not in `dist/scheme.js`: it is
+`dist/scheme_compiler.js`, split out by rollup from the dynamic import in `loadCompiler`
+(`src/packaging/scheme_compiler.js`), and fetched only by a page that asks to compile code
+of its own.
 
 ## JavaScript Runtime Components
 
@@ -132,13 +146,21 @@ checks that they agree about every answer.
 │       └── stack_shape.js          # What a debugger's call stack would show
 ├── scripts/                        # Build and audit tooling
 │   ├── generate_bundled_libraries.js # Inlines .sld/.scm sources for the browser
+│   ├── generate_compiled_libraries.js # Compiles every shipped library at build time
+│   ├── generate_compiled_compiler.js # Compiles the compiler's own library at build time
+│   ├── lib/render_prebuilt.js      # Writes a module of prebuilt tables, one per library
 │   ├── audit_r7rs.js               # R7RS-small conformance audit
 │   └── r7rs_identifiers.js         # Required-identifier reference list
 ├── src/
 │   ├── packaging/                  # Bundling and distribution logic
-│   │   ├── scheme_entry.js         # Core bundle entry point
+│   │   ├── scheme_entry.js         # Core bundle entry point; installs library tables
+│   │   ├── scheme_compiler.js      # The compiler, as loadCompiler() fetches it on demand
 │   │   ├── scheme_repl_wc.js       # Web Component entry point
-│   │   └── html_adapter.js         # HTML script tag adapter
+│   │   ├── html_adapter.js         # HTML script tag adapter
+│   │   ├── bundled_libraries.js    # GENERATED: library sources, for the browser
+│   │   ├── compiler_sources.js     # GENERATED: the compiler library's sources
+│   │   ├── compiled_libraries.js   # GENERATED: each shipped library, compiled
+│   │   └── compiled_compiler.js    # GENERATED: the compiler's library, compiled
 │   │
 │   └── core/                       # The Core (JS Interpreter + Scheme subset)
 │       ├── interpreter/            # JavaScript Interpreter
@@ -241,16 +263,17 @@ checks that they agree about every answer.
 │
 │   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)
 │      ├── index.js           # EXPORT: tryCompileDefinition(), compileProgram()
+│      ├── compiler.sld       # (scheme-js compiler): its imports, files and entry points
 │      ├── ir.scm             # Analyzed AST -> IR, in Scheme
 │      ├── emit.scm           # IR -> JavaScript, in Scheme: both forms of a procedure
 │      ├── lift.scm           # Which nested procedures are emitted once, at top level
 │      ├── liveness.scm       # Which locals a suspended frame saves
 │      ├── inline.scm         # Inline expansions for primitives, tower-faithful
-│      ├── lowering.js        # Door into the compiler's Scheme: its interpreter and entry points
+│      ├── lowering.js        # Door into the compiler's Scheme: loads its library, calls its entry points
 │      ├── codegen.js         # Door into emit.scm, with what only the environment knows
 │      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── safety.js          # Which procedures a capture would unwind through
-│      ├── prebuilt.js        # Installing code compiled at build time, fingerprinted
+│      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
 │      └── runtime.js         # Tail-call step, global accessors, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
@@ -279,20 +302,21 @@ checks that they agree about every answer.
 │           ├── 128.sld             # (srfi 128) comparators
 │           ├── comparator.scm      # SRFI 128 implementation
 │           ├── 1.sld               # (srfi 1) lists
-│           ├── list_lib.scm        # SRFI 1 implementation; also loaded by the compiler
+│           ├── list_lib.scm        # SRFI 1 implementation; the compiler imports (srfi 1)
 │           ├── 152.sld             # (srfi 152) strings
-│           └── string_lib.scm      # SRFI 152 implementation; also loaded by the compiler
+│           └── string_lib.scm      # SRFI 152 implementation; the compiler imports (srfi 152)
 │
 │   ├── harness/                    # Test infrastructure
 │   │   ├── helpers.js              # Test utilities (run, assert, createTestLogger)
 │   │   ├── runner.js               # Test runner logic
+│   │   ├── standard_library.js     # The standard library interpreted at top level
 │   │   └── scheme_test.scm         # Scheme test harness
 │   │
 │   ├── test_manifest.js            # Central registry of all test files
 │   ├── run_all.js                  # Node.js test runner entry (Unit + Functional)
 │   ├── run_scheme_tests.js         # Node.js Scheme test runner CLI
 │   ├── run_scheme_tests_lib.js     # Shared Scheme test runner logic
-│   ├── run_compiler_scheme_tests_lib.js # Runs compiler/ tests in the compiler's environment
+│   ├── run_compiler_scheme_tests_lib.js # Runs compiler/ tests in the compiler library's environment
 │   ├── compiler/                   # Scheme tests of the compiler's own Scheme
 │   ├── test_bundle.js              # Integration tests for bundled artifact
 │   ├── test_script.scm             # Scheme script test for HTML adapter

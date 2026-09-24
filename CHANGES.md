@@ -6962,3 +6962,101 @@ Generated code is unchanged, so run-time performance is too. 3,287 tests pass in
 the browser;
 `benchmark:self-host` agrees on all 1,006 lambdas, and every benchmark program runs correctly
 compiled.
+
+# Walkthrough: The compiler is a library, and the bundle does not carry it
+
+Task 21 in `docs/compiler_plan.md`. Two changes to how the compiler is loaded, done together because
+each needed the other.
+
+## The compiler is `(scheme-js compiler)`
+
+`src/compiler/compiler.sld` imports what the compiler is written with -- `(scheme base)`,
+`(scheme char)`, `(scheme cxr)`, `(srfi 1)`, `(srfi 152)` -- includes `ir.scm`, `lift.scm`,
+`inline.scm`, `liveness.scm` and `emit.scm` in dependency order, and exports the five entry points
+`lowering.js` calls. `lowering.js` loads it by name through the synchronous loader, and the
+`COMPILER_FILES` list it used to keep is gone: which files make up the compiler is said once, in
+Scheme, and the build step that compiles them reads it from the same `.sld`. SRFI 1 and SRFI 152 are
+imported rather than evaluated into the compiler's environment, so their private helpers
+(`cars-of`, `check-procedure`) are no longer globals there.
+
+The library registry is one per process, and that turned out to matter. A compiler that loaded
+`(scheme base)` and `(srfi 1)` through it would share the program's instances -- a program that
+redefined one of their procedures would change the compiler -- and the build step compiling those
+libraries would find them already loaded, by the compiler, and never see them load. So
+`withPrivateLibraries` (`src/core/interpreter/library_registry.js`) runs a function with an empty
+registry and a resolver and hook of its own, and restores all three afterwards; the compiler
+bootstraps inside it. Before, it kept its independence by evaluating the standard library's files
+straight into an interpreter of its own; now it does it with libraries.
+
+## Every shipped library has a prebuilt table
+
+The plan assumed a page first needed the compiler when it imported a library after start-up. It
+was earlier (R65): start-up compiled seven procedures the stdlib table's hand-kept file list had
+missed, so every page bootstrapped the compiler before running anything.
+
+So the one stdlib table, over a list of files evaluated at top level, became one table per library,
+keyed by library name and fingerprinted over the library's `.sld` and every file it includes.
+`scripts/generate_compiled_libraries.js` loads each `.sld` in `src/core/scheme/` and
+`src/extras/scheme/` through the ordinary loader and compiles each library in the load hook, as it
+arrives, installing the result at once so that a library importing it sees compiled code, as it will
+at run time. `generateEnvironment` gained `ownOnly`, because a library's environment also holds
+everything it imported and those belong in the table of the library that defined them. Nine
+libraries have procedures: `(scheme core)` -- now including `parameter.scm` -- `(scheme lazy)`,
+`(scheme eval)`, `(scheme-js promise)`, `(scheme-js js-conversion)`, and SRFI 1, 125, 128 and 152.
+`(scheme control)` and `(scheme case-lambda)` define only syntax. Every procedure the old table had
+is in the new ones.
+
+`installLibraryTable` (`src/compiler/prebuilt.js`) installs a library's table into its environment
+from the load hook. `scheme_entry.js` sets that hook before importing the standard library, so start-
+up and later imports go the same way and nothing runs the compiler. The compiler's own table has the
+same shape and is installed the same way, by the hook the compiler's private loading uses.
+
+## Two bundle files
+
+With nothing at start-up needing the compiler, `scheme_entry.js` no longer imports it. `loadCompiler`
+reaches it through a dynamic `import()` of `src/packaging/scheme_compiler.js`, and rollup, now
+writing to a directory, splits that into `dist/scheme_compiler.js`: the compiler's JavaScript, its
+Scheme sources (moved to their own generated module, `compiler_sources.js`, so they could leave the
+main file) and its prebuilt table. `preserveEntrySignatures: 'allow-extension'` keeps
+`dist/scheme.js` the real file rather than a facade over a shared chunk. The deploy workflow
+publishes the whole `dist/` directory, so nothing else changed there.
+
+| | before | after |
+|---|---|---|
+| `dist/scheme.js` | 2.97 MB, 424 KB gzipped | 2.67 MB, 340 KB gzipped |
+| `dist/scheme_compiler.js` | -- | 1.72 MB, 198 KB gzipped, fetched on demand |
+| loading the bundle (Node) | ~193 ms | ~61 ms |
+| then `(import (srfi 125))` | ~300 ms | ~25 ms |
+| compiler bootstrap, when it runs | ~110 ms | ~124 ms |
+
+The main file shrank by less than the compiler weighed, because SRFI 1, 125, 128 and 152's compiled
+code -- 1.1 MB, about 6 KB a procedure, every procedure emitted twice -- is now in it rather than
+generated at import. That is new task 30. The compiler's bootstrap costs 14 ms more, loading its
+dependencies as libraries, and only a page that compiles pays it.
+
+`npm run prebuild` takes about 1.8 s from a checked-in build. From nothing it takes about 15 s, since
+the first link compiles every shipped library with the compiler still interpreted; the result is
+byte-identical either way, which was checked by building from empty tables.
+
+## Tests
+
+- `tests/functional/prebuilt_library_tests.js`: every table matches its sources in this tree, the
+  compiler's included; a library loaded by name arrives compiled, with those it imports; a changed
+  or missing source installs nothing and leaves the library interpreted; `ownOnly` leaves out an
+  imported procedure and keeps one made by a `let` around a `lambda`; `withPrivateLibraries` hides
+  and restores the registry, resolver and hook, including when its function throws; the compiler
+  runs in its library's environment, compiled, with SRFI 1's helpers out of reach and none of it in
+  the program's registry.
+- `tests/test_bundle.js`: nothing in start-up or a SRFI 125 import loads the compiler; every table
+  loaded installed whole; `loadCompiler` loads it and `compileProgram` from it compiles and runs a
+  definition; in Node, `dist/scheme.js` does not contain the compiler and `dist/scheme_compiler.js`
+  does.
+- The three test files that evaluated the old stdlib file list at top level share
+  `tests/harness/standard_library.js`, which reads that list from the libraries' `.sld` files.
+
+Mutations -- `ownOnly` ignored, the fingerprint not checked, a missing source not treated as stale,
+the private registry not swapped -- each fail the new tests. In the browser the demo page fetches
+`scheme.js` and `scheme-repl.js` and not the compiler.
+
+3,333 tests pass in Node and 3,228 in the browser; `benchmark:self-host` agrees on all 1,006 lambdas,
+with the lowering at 69 ms a pass as before.

@@ -5,9 +5,8 @@ import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { setFileResolver, setLibraryLoadHook } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
-import { compileEnvironment } from '../compiler/index.js';
-import { installPrebuilt, fingerprintSources } from '../compiler/prebuilt.js';
-import prebuiltStdlib, { LIBRARY_FILES } from './compiled_stdlib.js';
+import { installLibraryTable } from '../compiler/prebuilt.js';
+import prebuiltLibraries from './compiled_libraries.js';
 import {
     SchemeDebugRuntime,
     ReplDebugBackend,
@@ -33,6 +32,52 @@ setFileResolver((libraryName) => {
     throw new Error(`Library not found in bundled sources: ${libraryName.join('/')}`);
 });
 
+// =============================================================================
+// Compiled libraries
+// =============================================================================
+//
+// The libraries are themselves Scheme, so `map`, `assq` and `member` are
+// interpreted closures until something compiles them, and interpreted they
+// cost their callers about 10x -- 17x on every SRFI 125 lookup. Every library
+// this bundle ships was compiled at build time instead, and each one's code is
+// installed into it as it loads: the standard library below, and a library
+// imported long after start-up alike.
+//
+// So nothing here runs the compiler. Nothing calls `new Function`, so a page
+// with a strict Content-Security-Policy gets the compiled libraries rather
+// than interpreted ones; and the compiler, most of what a bundle that can
+// compile weighs, is not part of this one. It is a separate module, loaded by
+// `loadCompiler` for a page that wants to compile code of its own.
+//
+// A library written inline is the program's own code, not one this bundle
+// ships, so the hook leaves it alone. So is anything a stale build no longer
+// covers: it stays interpreted, which is a tier and not a failure.
+
+/**
+ * What installing each shipped library's prebuilt table did, keyed by the
+ * library's name as written, such as `srfi 125`.
+ * @type {Map<string, {installed: Array<string>, skipped: Array<Object>, stale: boolean}>}
+ */
+export const libraryInstallation = new Map();
+
+/**
+ * The compiler, once `loadCompiler` has loaded it.
+ * @type {Object|null}
+ */
+let compiler = null;
+
+setLibraryLoadHook((libraryName, libraryEnv) => {
+  const fileName = libraryName[libraryName.length - 1];
+  if (BUNDLED_SOURCES[`${fileName}.sld`] === undefined || !libraryEnv) return;
+  const outcome = installLibraryTable(
+    prebuiltLibraries, libraryName, libraryEnv, (file) => BUNDLED_SOURCES[file]);
+  if (outcome !== null) libraryInstallation.set(libraryName.join(' '), outcome);
+  // With the compiler loaded, whatever the table did not cover need not stay
+  // interpreted. `compileEnvironment` sees only closures still interpreted, so
+  // it does not redo what was installed.
+  if (compiler !== null) compiler.compileEnvironment(libraryEnv);
+});
+
 // Load standard libraries via import statement
 // Excludes (scheme file) and (scheme process-context) which require Node.js
 const imports = `
@@ -54,51 +99,30 @@ for (const exp of parse(imports)) {
     interpreter.run(analyze(exp), env);
 }
 
-// =============================================================================
-// Compile the standard library
-// =============================================================================
-//
-// The library is itself Scheme, so `map`, `assq` and `member` are interpreted
-// closures until something compiles them. Any compiled code that calls one
-// crosses into the interpreter on what is usually its hottest path, and on
-// symbolic workloads that boundary costs about 10x -- far more than the quality
-// of the generated code.
-//
-// Most of it was compiled at build time, so what happens here is installing
-// that code rather than generating it. Two things follow. Nothing calls
-// `new Function`, so a page with a strict Content-Security-Policy gets the
-// compiled library rather than an interpreted one. And compile *speed* stops
-// mattering for deployment, which is what makes it reasonable to write the
-// compiler itself in something slower than JavaScript later on.
-//
-// Anything the prebuilt table did not cover -- because the build is stale, or
-// because a library outside the fingerprinted set defines procedures -- is
-// compiled the old way immediately afterwards. That call sees only the
-// closures still interpreted, so the two do not overlap, and where generating
-// code is forbidden it reports so and leaves them interpreted. The interpreter
-// is a permanent tier, not a fallback that is allowed to rot.
-const prebuilt = installPrebuilt(
-  env, prebuiltStdlib,
-  fingerprintSources(LIBRARY_FILES.map((file) => BUNDLED_SOURCES[file])));
+/**
+ * Loads the compiler, for a page that wants to compile code of its own.
+ *
+ * Asynchronous because the compiler is a separate module, fetched the first
+ * time it is asked for; the bundle does not carry it. Once it is loaded, a
+ * shipped library imported afterwards also has anything its prebuilt table did
+ * not cover compiled as it loads.
+ *
+ * @returns {Promise<Object>} The compiler's entry points: `compileProgram`,
+ *   `compileEnvironment`, `tryCompileDefinition` and `tryCompileClosure`, as
+ *   `src/compiler/index.js` documents them.
+ */
+export async function loadCompiler() {
+  if (compiler === null) compiler = await import('./scheme_compiler.js');
+  return compiler;
+}
 
-export const stdlibCompilation = {
-  prebuilt,
-  compiled: compileEnvironment(env)
-};
-
-// A library imported after start-up -- `(srfi 125)`, say -- was not there to
-// be compiled above, and interpreted it costs its callers about 17x on every
-// hash-table lookup. So each one this bundle ships is compiled as it is
-// loaded. Only those: a library the program defines inline is the program's
-// own code, which stays interpreted until compiled user code can be debugged.
-// Where generating code is forbidden, `compileEnvironment` says so and leaves
-// the library interpreted.
-setLibraryLoadHook((libraryName, libraryEnv) => {
-  const fileName = libraryName[libraryName.length - 1];
-  if (BUNDLED_SOURCES[`${fileName}.sld`] !== undefined && libraryEnv) {
-    compileEnvironment(libraryEnv);
-  }
-});
+/**
+ * Whether `loadCompiler` has loaded the compiler.
+ * @returns {boolean} True once it has.
+ */
+export function isCompilerLoaded() {
+  return compiler !== null;
+}
 
 // =============================================================================
 // Public API

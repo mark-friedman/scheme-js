@@ -53,6 +53,7 @@ export {
     // Library registry
     setFileResolver,
     setLibraryLoadHook,
+    withPrivateLibraries,
     libraryNameToKey,
     isLibraryLoaded,
     getLibraryExports,
