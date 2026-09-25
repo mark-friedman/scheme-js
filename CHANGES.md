@@ -7141,3 +7141,133 @@ record `runtime`, a fingerprint of the names generated code can reach through `R
   stays JavaScript.
 
 3,360 tests pass in Node and 3,255 in the browser.
+
+# Walkthrough: `case` without `memv`, direct calls measured, and a profile
+
+Task 23 in `docs/compiler_plan.md`: the code-generation targets left after task 22, each to be
+measured before anything was designed for it.
+
+## `case` dispatch
+
+`case` expanded to one `(memv key '(data ...))` per clause. `memv` is a Scheme procedure, so each
+clause was a full generic call with a suspension check and a resume point in the resumable form, and
+it was where the compiler's own code generation spent much of its time.
+
+- `case` now expands to one `eqv?` test per datum, as nested `if`s (`control.scm`). An `or` chain was
+  tried first and cost the interpreter an environment per datum: multi-datum clauses went from 1.4 to
+  7.7 µs interpreted.
+- `eqv?` got an inline expansion that applies only when an operand is a symbol, boolean or `'()`
+  constant, for which `eqv?` is exactly `===`. Numbers and characters compare by value, so against
+  those it stays a call. The inline table gained an optional compile-time predicate over the operands'
+  IR for this, beside the run-time test (`inline.scm`); `inline-expansion` now takes the operands.
+
+**A targeted benchmark**, at the user's suggestion: `benchmarks/run_codegen.js`
+(`npm run benchmark:codegen`), one group per code-generation decision, timing the construct in the
+shapes that decide its cost, in both tiers, net of a baseline loop, with the tiers' totals compared.
+The first group is `case`. Against HEAD, ns per call:
+
+| workload | compiled before → after | interpreted before → after |
+|---|---|---|
+| symbol, 2 clauses, first matches | 15.6 → 1.3 | 1108 → 1305 |
+| symbol, 8 clauses, last matches | 182 → 6.7 | 2127 → 1840 |
+| symbol, 8 clauses, falls to else | 188 → 7.1 | 1979 → 1719 |
+| symbol, 3 data a clause, last matches | 207 → 10.1 | 1388 → 2405 |
+| exact integer, 8 clauses | 182 → 90 | 1972 → 1741 |
+| character, 8 clauses | 191 → 109 | 1975 → 1683 |
+
+On the canonical suite the compiled tier did not move beyond noise -- few of its hot loops dispatch
+with `case` -- and the interpreter gained (`list` 1.05x, `lattice` 1.63x; `continuation` 1.08x). The
+one loss is interpreted multi-datum clauses, twelve interpreted `eqv?` calls where there had been
+four calls to a compiled `memv`; a trade taken for the compiled tier. A first suite run showed
+`flonum` and `bignum` down 13%; re-measured alternately, those programs were 0.97-1.07x.
+
+## Direct calls, measured and dropped
+
+With global reads now cells, a direct call to a known procedure would save only the raw-call lookup.
+Re-measured as a ceiling, it was worth nothing wherever the answers stayed right (R68).
+
+## Where compiled code spends its time
+
+A CPU profile of the compiled tier over fourteen canonical programs, each run long enough that the
+program rather than the compiler dominates, found none of the plan's remaining items -- arity
+specialization, unboxed fixnum paths, escape analysis -- among its costs (R71). It found flonum
+arithmetic taking the tower's slow path (46% of `fibfp` in primitives), vector access as primitive
+calls (`assertIndex` 22% of `array1`), tail calls between procedures (`invoke` 22% and the collector
+12% of `earley`), and declined procedures running interpreted. The plan's code-generation work is
+re-ranked from that: flonum fast paths, inline vector access, tail calls between procedures; the
+three unevidenced items went to the bottom.
+
+## Also found
+
+- `case` resolves `memv` -- now `eqv?` -- by name where it is used, so redefining it changes `case` in
+  both tiers: `syntax-rules` hygiene lacks referential transparency (R69). Recorded on the hygiene
+  task, not fixed here; a differential case pins that both tiers agree.
+- The self-host benchmark reported the compiler 7-9% slower after the macro change. Bisected and
+  counted: its corpus, lambdas from programs that use `case`, grew by 4.9% in AST nodes. It measures
+  compilers, not macros (R70).
+
+## Tests
+
+- Eight differential cases for `case`: symbols; exact integers, a bignum among them; characters,
+  booleans and `'()`; inexact numbers, including `-0.0`; `=>` clauses; no match without `else`; an
+  empty clause; and `eqv?` redefined.
+- Eleven Scheme tests in `tests/compiler/emit_tests.scm` of when `eqv?` expands, and to what.
+- Treating numbers and characters as identity constants fails two differential cases and three of
+  the Scheme tests.
+
+3,379 tests pass in Node and 3,274 in the browser.
+
+# Walkthrough: Flonum fast paths
+
+Task 24 in `docs/compiler_plan.md`, first by the profile that closed task 23: the inline expansions
+for arithmetic fast-pathed exact integers only, so every flonum `+`, `-`, `*` and comparison in
+compiled code went through `R.callBinding` to the variadic tower primitive -- 46% of `fibfp`'s time
+in the primitives and 13% in `invoke` getting there.
+
+## The change
+
+`inline.scm`'s arithmetic entries (now `numeric-binary`) take their fast path when both operands are
+exact integers **or both are JavaScript numbers**, which are always inexact reals here. For two
+numbers the tower reduces to the JavaScript operator: `genericAdd` and its siblings end in `a + b`,
+the orderings compare two doubles and are false with a NaN, and `=` agrees with `===` on `-0.0` and
+NaN. The exact test comes first, so exact arithmetic costs what it did. Mixed exactness still takes
+the tower on purpose: JavaScript compares a `number` with a `bigint` exactly, while the tower
+converts the bigint to a double, and the two disagree on large integers.
+
+## Measured
+
+A new `arithmetic` group in `benchmarks/run_codegen.js`, compiled tier, ns per call:
+
+| workload | before | after |
+|---|---|---|
+| exact integers: `+` and `=` | 3.6 | 5.1 |
+| flonums: `*`, `-` and `<` | 162 | 4.9 |
+| flonums: `+`, then `=` against an exact `0` | 99 | 43 |
+| flonum polynomial, one three-argument `+` | 197 | 44 |
+| exact integer and flonum, rational and flonum | 105-114 | 99-112 |
+
+What remains in the last three is deliberate: a comparison with an exact literal is mixed exactness,
+and a three-argument `+` has no expansion.
+
+On the canonical suite, against a build of task 23 with only the flonum test removed, run back to
+back: `flonum` **7.51x** (`mbrot` 58x, `sumfp` 32x, `fibfp` 23x, `pnpoly` 3.7x, `fft` 3.0x, `mbrotZ`
+2.0x, `simplex` 1.4x); every other class within noise, with the three programs that looked slower
+re-measured alternately at 0.95-1.20x. Against the interpreter the class went from 12.6x to 98x.
+
+A profile afterwards: `fibfp` is 94% its own generated code. `fft`, `simplex` and `pnpoly` now spend
+13-22% in `assertIndex`, which is task 25, inline vector access; `mbrotZ` is complex arithmetic,
+which belongs to the tower. Nothing pointed at n-ary arithmetic.
+
+A note on the baseline: the first comparison was against `HEAD`, which was still task 22's commit,
+so it included the `case` change as well. The figures above are against a task-23 build.
+
+## Tests
+
+- Five differential cases: flonum arithmetic and every comparison; signed zero, infinity and NaN;
+  mixed exact and inexact operands, a rational and a bignum among them; a flonum loop; `+` redefined
+  after compiling.
+- Four Scheme tests in `tests/compiler/emit_tests.scm` of the test and fast path the expansions emit.
+- Letting mixed exactness into the fast path fails both differential groups and several of the
+  whole-program benchmarks, with JavaScript's "Cannot mix BigInt and other types".
+
+3,388 tests pass in Node and 3,283 in the browser.

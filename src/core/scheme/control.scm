@@ -169,8 +169,13 @@
 
 ;; /**
 ;;  * Case dispatch.
-;;  * Dispatches based on value equality (using memv).
+;;  * Dispatches on `eqv?` between the key and each datum, as R7RS defines it.
 ;;  * Supports => syntax to apply a procedure to the matched key.
+;;  *
+;;  * Each datum is its own `eqv?` test rather than one `memv` over the clause's
+;;  * list. The two mean the same, but `eqv?` is a primitive, and against a
+;;  * symbol, a boolean or the empty list -- nearly every `case` -- compiled code
+;;  * does it with `===`; `memv` is a Scheme procedure, a full call per clause.
 ;;  *
 ;;  * @param {expression} key - Value to match.
 ;;  * @param {...list} clauses - ((datum ...) result1 result2 ...) or ((datum ...) => proc).
@@ -188,30 +193,39 @@
     ;; Single clause with => - apply proc to key if match
     ((case "dispatch" key
        ((atoms ...) => proc))
-     (if (memv key '(atoms ...))
+     (if (case "any" key atoms ...)
          (proc key)))
     ;; => clause with more clauses following
     ((case "dispatch" key
        ((atoms ...) => proc)
        clause clauses ...)
-     (if (memv key '(atoms ...))
+     (if (case "any" key atoms ...)
          (proc key)
          (case "dispatch" key clause clauses ...)))
     ;; Single clause with results
     ((case "dispatch" key
        ((atoms ...) result1 result2 ...))
-     (if (memv key '(atoms ...))
+     (if (case "any" key atoms ...)
          (begin result1 result2 ...)))
     ;; Multiple clauses with results
     ((case "dispatch" key
        ((atoms ...) result1 result2 ...)
        clause clauses ...)
-     (if (memv key '(atoms ...))
+     (if (case "any" key atoms ...)
          (begin result1 result2 ...)
          (case "dispatch" key clause clauses ...)))
     ;; No match case
     ((case "dispatch" key)
      (if #f #t))
+    ;; Whether the key is eqv? to any of a clause's data. Nested `if`s rather
+    ;; than `or`, whose expansion binds a variable per datum, which the
+    ;; interpreter pays for as an environment each time.
+    ((case "any" key)
+     #f)
+    ((case "any" key atom)
+     (eqv? key 'atom))
+    ((case "any" key atom atoms ...)
+     (if (eqv? key 'atom) #t (case "any" key atoms ...)))
     ;; Entry point - bind key once
     ((case key
        clauses ...)

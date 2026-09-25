@@ -79,3 +79,45 @@
     (test "a name only its own lambda refers to is not boxed" #f (boxed? plan 'loop))
     (test "and that lambda binds it inside its own factory" '(loop)
           (plan-self-of plan (car (outermost-lambdas (lambda-body ir)))))))
+
+;; `eqv?` is `===` when either operand is a constant whose identity is its
+;; value -- a symbol, a boolean, the empty list -- and needs the primitive
+;; otherwise: numbers compare by value and exactness, characters by code point.
+;; That is the shape `case` produces, one test per datum.
+(test-group "inline - eqv? against a constant"
+  (define x '(local x #f #f))
+  (define y '(local y #f #f))
+  (define (expands? name . args) (if (inline-expansion name args) #t #f))
+  (test "against a symbol it expands" #t (expands? 'eqv? x '(const a #f)))
+  (test "with the constant first as well" #t (expands? 'eqv? '(const a #f) x))
+  (test "against a boolean" #t (expands? 'eqv? x '(const #f #f)))
+  (test "against the empty list" #t (expands? 'eqv? x '(const () #f)))
+  (test "not against an exact integer" #f (expands? 'eqv? x '(const 1 #f)))
+  (test "not against an inexact number" #f (expands? 'eqv? x '(const 1.5 #f)))
+  (test "not against a character" #f (expands? 'eqv? x (list 'const #\a #f)))
+  (test "not between two variables" #f (expands? 'eqv? x y))
+  (test "and to identity when it does" "s_x === K[0]"
+        (let ((entry (inline-expansion 'eqv? (list x '(const a #f)))))
+          (expr->string ((cadddr entry) (list (js 's_x) (js "K[0]"))))))
+  (test "other expansions still apply by arity alone" #t (expands? 'car x))
+  (test "and not at another arity" #f (expands? 'car x y)))
+
+;; An arithmetic expansion's fast path is taken when both operands are exact
+;; integers or both are inexact reals, which are JavaScript `bigint` and
+;; `number`: for either pair the JavaScript operator computes what the numeric
+;; tower would. Any other pair -- mixed exactness, a rational, a complex, a
+;; wrong type -- takes the primitive.
+(test-group "inline - arithmetic on two exact integers or two flonums"
+  (define (test-of name)
+    (let ((entry (inline-expansion name '((local a #f #f) (local b #f #f)))))
+      (expr->string ((caddr entry) (list (js 's_a) (js 's_b))))))
+  (define (value-of name)
+    (let ((entry (inline-expansion name '((local a #f #f) (local b #f #f)))))
+      (expr->string ((cadddr entry) (list (js 's_a) (js 's_b))))))
+  (test "the test admits two bigints or two numbers"
+        "(typeof s_a === 'bigint' && typeof s_b === 'bigint') || (typeof s_a === 'number' && typeof s_b === 'number')"
+        (test-of '+))
+  (test "every operator has the same test" #t
+        (every (lambda (name) (string=? (test-of name) (test-of '+))) '(- * < > <= >= =)))
+  (test "and the fast path is the operator, for both" "s_a - s_b" (value-of '-))
+  (test "numeric equality is ===, which agrees on -0.0 and NaN" "s_a === s_b" (value-of '=)))

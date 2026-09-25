@@ -2276,6 +2276,54 @@ names generated code reaches through `R`, and is refused if it differs; and the 
 with an error when the compiler cannot start. A changed meaning under an unchanged name is still
 not caught.
 
+**R68. A direct call to a known procedure had nothing left to save.**
+
+The plan listed direct calls to statically known procedures as a code-generation target. Once a
+global read was a cell, what a direct call would remove from a call site is the `SCHEME_RAW_CALL`
+lookup and the indirection through a temporary. Measured as a ceiling on the canonical suite, by
+calling every callee directly -- unsound, since an interpreted closure called that way converts its
+arguments -- it was 1.00x on every class where the answers stayed right, and it broke `call` and
+`fixnum` outright, where interpreted callees handed doubles back into compiled arithmetic. Not
+built. The tail call, which allocates and trampolines, is a different cost and is measured
+separately (R71).
+
+**R69. `case` is not referentially transparent.**
+
+The plan said `syntax-rules` "is already hygienic via sets-of-scopes, so the hard part is done". A
+free identifier in a template is resolved by name where the macro is *used*: after
+`(set! memv (lambda (k l) #f))`, `(case 'a ((a) 'a) (else 'other))` returns `other`, in both tiers,
+because `case` expanded to a call to `memv`. It now expands to `eqv?`, and redefining `eqv?` does
+the same. Renaming a macro's introduced identifiers away from the user's was done; resolving its
+free identifiers in the macro's own environment, the other half of hygiene, was not.
+
+**R70. The self-host benchmark is not comparable across a change to a macro.**
+
+After the `case` change, `npm run benchmark:self-host` reported the compiler's lowering 7-9%
+slower, in the interpreted configuration too, whose code had not changed. The compiler had not
+slowed down: the benchmark lowers lambdas from the benchmark programs, several of which use `case`,
+and the new expansion gave its corpus 4.9% more AST nodes -- more work, measured as a slower pass.
+Reverting the macro alone removed the difference; lowering a fixed corpus through the shipped
+compiler measured the same before and after. A per-pass figure from this benchmark compares two
+compilers only when the macros are the same.
+
+**R71. What compiled code spends its time on is not what the plan expected.**
+
+After task 22 the plan's code-generation list was: `case` dispatch, direct calls, arity
+specialization, unboxed fixnum paths and escape analysis. A CPU profile of the compiled tier on
+fourteen canonical programs, run long enough that the benchmark and not the compiler dominates,
+found none of the last four among its costs. What it found:
+
+| cost | where |
+|---|---|
+| flonum arithmetic taking the slow path, since expansions fast-path `bigint` only | `fibfp`: 46% in tower primitives, 13% in `invoke`; `mbrot`: 37%, 17% |
+| `vector-ref` and `vector-set!` as primitive calls with their own checks | `array1`: `assertIndex` 22%; `graphs` 14%; `earley` 7% |
+| tail calls between procedures: a `TailCall` and an argument array each, run through `invoke` | `earley`: `invoke` 22%, collector 12%; `deriv` 8%; `mazefun` 7% |
+| declined procedures, run interpreted | `puzzle` (7 of 21 compiled) 63%; `quicksort` (5 of 9) 66% |
+
+*Consequence:* the plan's code-generation work was re-ranked from the profile: flonum fast paths,
+then inline vector access, then tail calls between procedures; the three items with no evidence were
+moved to the bottom until a profile shows them.
+
 ---
 
 ## Appendix — the original staged plan

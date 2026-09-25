@@ -150,6 +150,46 @@ const CASES = [
   ['a loop name that is reassigned is not looped',
     '(define (f) (let loop ((i 0)) (if (< i 3) (begin (if (= i 1) (set! loop (lambda (j) (quote swapped)))) (loop (+ i 1))) i))) (f)'],
 
+  // --- flonum arithmetic: both operands inexact, the other shapes through the tower ---
+  ['flonum arithmetic and comparison',
+    '(define (f a b) (list (+ a b) (- a b) (* a b) (< a b) (> a b) (<= a b) (>= a b) (= a b)))'
+      + ' (list (f 1.5 2.25) (f 2.25 1.5) (f 3.0 3.0))'],
+  ['flonum signed zero, infinity and NaN',
+    '(define (f a b) (list (+ a b) (- a b) (* a b) (< a b) (= a b) (>= a b)))'
+      + ' (list (f 0.0 -0.0) (f -0.0 0.0) (f (/ 1.0 0.0) 1.0) (f (/ 0.0 0.0) 1.0) (f (/ 0.0 0.0) (/ 0.0 0.0)))'],
+  ['mixed exact and inexact operands take the tower',
+    '(define (f a b) (list (+ a b) (- a b) (* a b) (< a b) (= a b)))'
+      + ' (list (f 1 2.5) (f 2.5 1) (f 1/2 0.5) (f 0.5 1/2) (f 100000000000000000000 1.0) (f 2 2.0))'],
+  ['a flonum loop',
+    '(define (sum-to n) (let loop ((i 0.0) (acc 0.0)) (if (>= i n) acc (loop (+ i 1.0) (+ acc (* i 0.5))))))'
+      + ' (sum-to 1000.0)'],
+  ['flonum arithmetic after + is redefined',
+    '(define (f a b) (+ a b)) (define before (f 1.5 2.5)) (set! + (lambda (x y) (quote replaced)))'
+      + ' (list before (f 1.5 2.5))'],
+
+  // --- case: eqv? against each datum, whatever kind it is ---
+  ['case on symbols',
+    "(define (kind x) (case x ((a b) 'ab) ((c) 'c) (else 'other))) (map kind '(a b c d))"],
+  ['case on exact integers, including a bignum',
+    "(define (f x) (case x ((1 2) 'small) ((100000000000000000000) 'big) (else 'no)))"
+      + " (list (f 1) (f 2) (f 100000000000000000000) (f 3) (f 1.0))"],
+  ['case on characters, booleans and the empty list',
+    "(define (f x) (case x ((#\\a) 'char) ((#t) 'true) ((#f) 'false) ((()) 'nil) (else 'no)))"
+      + " (list (f #\\a) (f #t) (f #f) (f '()) (f (list)) (f #\\b))"],
+  ['case on inexact numbers',
+    "(define (f x) (case x ((1.5) 'one-and-a-half) ((0.0) 'zero) (else 'no)))"
+      + " (list (f 1.5) (f 0.0) (f -0.0) (f 3/2))"],
+  ['case with => clauses',
+    "(define (f x) (case x ((a) => (lambda (k) (list k k))) (else => symbol->string)))"
+      + " (list (f 'a) (f 'b))"],
+  ['case with no matching clause and no else',
+    "(define (f x) (case x ((a) 1))) (list (f 'a) (if (f 'z) 'something 'nothing))"],
+  ['case with an empty clause',
+    "(define (f x) (case x (() 'never) (else 'always))) (f '())"],
+  ['case after eqv? is redefined, which both tiers resolve by name',
+    "(define (f x) (case x ((a) 'a) (else 'other)))"
+      + " (define before (f 'a)) (set! eqv? (lambda (p q) #f)) (list before (f 'a))"],
+
   // --- interaction between tiers ---
   ['compiled calls interpreted',
     '(define (helper x) (apply + (list x x)))' +      // declined: uses apply

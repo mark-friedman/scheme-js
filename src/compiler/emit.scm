@@ -551,9 +551,9 @@
   (case (car node)
     ((const) (js (constant (form-unit form) (cadr node))))
     ((local) (read-local form (cadr node)))
-    ;; Resolved through the accessor on every reference, because a top-level
-    ;; binding can be redefined after this code was compiled -- by the REPL
-    ;; running it, for one.
+    ;; Read through its cell on every reference, because a top-level binding
+    ;; can be redefined after this code was compiled -- by the REPL running it,
+    ;; for one.
     ((global) (js (global-read (form-unit form) (cadr node))))
     ((lambda) (emit-closure! form node))
     ((set) (emit-assignment! form node))
@@ -700,7 +700,7 @@
          (u (form-unit form))
          (entry (and (eq? (car fn) 'global)
                      (memq (cadr fn) (unit-guarded u))
-                     (inline-expansion (cadr fn) (length (caddr node))))))
+                     (inline-expansion (cadr fn) (caddr node)))))
     (and entry
          (let* ((operands (map-in-order (lambda (arg)
                                  (let ((value (emit-value! form arg)))

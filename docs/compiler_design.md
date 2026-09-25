@@ -213,6 +213,24 @@ Two properties make that sound:
   it is what lets the check ignore which environment a piece of compiled code resolves its globals
   in.
 
+**Two numeric fast paths, not one.** An arithmetic or comparison expansion is taken when both
+operands are exact integers or both are flonums -- JavaScript `bigint`s or JavaScript `number`s --
+since for either pair the JavaScript operator computes what the tower does; `=` as `===` agrees with
+the tower on `-0.0` and on NaN, and every ordering with a NaN is false. Exact integers are tested
+first. Until the flonum path existed every flonum operation went through the variadic primitive,
+which was most of what flonum programs did: adding it made the class 7.5x faster compiled. Mixed
+exactness stays with the tower: JavaScript can compare a `number` with a `bigint`, but exactly,
+where the tower converts to a double, and the two differ on large integers.
+
+**Some expansions apply only to some operands.** `eqv?` is JavaScript `===` exactly when one
+operand is a constant whose identity is its value -- a symbol, a boolean, the empty list -- and is
+not for numbers, which compare by value and exactness, or characters, which compare by code point.
+So its table entry has a compile-time predicate over the operands' IR as well as the run-time test,
+and a call against anything else stays a call. That is the shape `case` produces: it expands to one
+`eqv?` test per datum, nested `if`s rather than `or`, whose expansion binds a variable per datum
+that the interpreter pays for as an environment. Compiled symbol dispatch went from a `memv` call
+per clause, 15-207 ns, to 1.3-10 ns a call.
+
 An expansion is also only *emitted* when the name is bound to its primitive at compile time. It
 used to be emitted when the name was bound to any function, and the guard compared against
 whatever that was — so a program that redefined `car` and then compiled a procedure had its own
@@ -377,7 +395,7 @@ yields the real value. Sequencing is in `compiler_plan.md`.
 
 ## How this is verified
 
-- **2,426 tests**, Node and browser, via `npm test`.
+- **3,388 tests**, Node and browser, via `npm test`.
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked
   against expected results that came from Gambit — `npm run test:programs`, 8.2 s, inside `npm test`.
   This is the check that catches what unit tests structurally cannot: three compiler defects in one
@@ -390,6 +408,12 @@ yields the real value. Sequencing is in `compiler_plan.md`.
   string, continuation — reported separately, because there is no average Scheme program to weight
   them against and a single number is what hid an overfitting problem before. Ship rule: an
   optimization is worth shipping when it improves at least one class and regresses none.
+- **Each code-generation decision also has a targeted benchmark**, `npm run benchmark:codegen`
+  (`benchmarks/run_codegen.js`), timing the construct it changes in the shapes that decide its cost,
+  in both tiers, with the tiers' answers compared. The suite is blind to a construct its programs do
+  not use hot: `case` dispatch got up to 30x faster compiled without moving a class.
+- **The self-host benchmark compares compilers, not macros.** It lowers lambdas from real programs,
+  so a macro change changes its workload; a per-pass figure across one is not a speed change.
 
 ## Where the rest of the reasoning lives
 

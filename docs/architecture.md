@@ -115,6 +115,7 @@ of its own.
 │   ├── compare_r7rs.js             # Canonical suite under Gambit and Racket
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
+│   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
 │   ├── record_progress.js          # Regenerates docs/performance_progress.md
 │   ├── lib/
 │   │   ├── harness.js              # Shared bootstrap and timing
