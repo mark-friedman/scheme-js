@@ -2340,6 +2340,43 @@ primitives share -- was not separated.
 *Consequence:* an expansion's fast path is measured against the primitive before it is kept. Doing
 a primitive's checks inline is not automatically cheaper than calling it.
 
+**R73. A tail call made directly is not always cheaper than trampolining it, and a limit counted in
+calls does not bound the stack.**
+
+The plan proposed measuring "a known compiled callee called directly while the stack is shallow".
+Every tail call made as a plain JavaScript call, with no bound, was worth 1.2-1.4x on six canonical
+programs, and three things the proposal assumed turned out false. A direct call is not always
+cheaper: calling a continuation directly throws to get where it is going, where a returned `TailCall`
+let the interpreter reinstate it without one, and `fibc` ran 2.6 times slower. "Shallow" cannot be
+counted in calls: a chain through a procedure with 60 locals filled V8's whole stack in about 730
+calls, and one with 200 overflowed in 400, so a limit that let `earley` gain -- about 1,000 calls --
+would let a chain of large frames overflow where the trampoline never did. And counting per chain,
+resetting at each non-tail call, does not bound the stack either: a program recursing through long
+tail chains keeps every chain on the stack at once, and with a limit of 100 calls a chain it survived
+132 levels where the trampoline survived 10,385.
+
+*Consequence:* only a compiled procedure or a primitive is called directly; each call site charges
+its own frame's size, known at compile time, to one budget shared by the whole stack, and gives it
+back in a `finally`. A program that recurses deeply through tail calls spends the budget and gets
+fewer of them: `earley` gains 1.2x of the 1.4x that no bound at all would give.
+
+**R74. Compiled code recurses less than a sixteenth as deep as the interpreter, and the compiled
+standard library inherits the limit.**
+
+Calling convention B puts non-tail calls on the JavaScript stack. It was chosen for speed and for a
+Scheme stack DevTools can show; how deep it could recurse was never measured. It is about 5,900
+levels for a trivial procedure under Node's default stack, and fewer for larger frames; the
+interpreter keeps its frames on the heap and recursed 100,000 deep without complaint. The standard
+library the browser bundle installs is compiled, so there `make-list`, `map`, `list-copy` and
+`equal?` all fail with "Maximum call stack size exceeded" on a list of 10,000 elements, which the
+interpreter handles at 100,000. The 3,398 tests passed because none of them uses a list that long.
+The CLI runs its libraries interpreted and is not affected; `append` overflows on 100,000 elements in
+both tiers.
+
+*Consequence:* recursion depth is a correctness property of the compiled tier, and it gets a plan
+item of its own, ahead of compiling user code, which would extend the limit from the library to every
+program.
+
 ---
 
 ## Appendix — the original staged plan

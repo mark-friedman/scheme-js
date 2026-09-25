@@ -54,7 +54,9 @@ call, which is constraint 1. Worth revisiting if stack switching ships.
 The pivotal decision, settled by a bake-off (`experiments/stage2a/`) rather than by argument.
 
 Non-tail calls use **the native JavaScript stack**. Tail calls return a `TailCall` to a
-**trampoline**, so tail recursion runs in constant space. Continuation capture runs a **cooperative
+**trampoline**, so tail recursion runs in bounded space -- except that a tail call to another
+compiled procedure is made directly while the stack such calls hold is inside a budget (see *Tail
+calls between procedures*). Continuation capture runs a **cooperative
 unwind** — Pettyjohn et al.'s generalized stack inspection, with Marshall's modification replacing
 the thrown exception with a distinguished return value, which is what removes the technique's
 historical weakness.
@@ -63,7 +65,7 @@ The alternative (A) kept every continuation frame in a JavaScript array under a 
 the faster-measured design in the published literature and it was rejected for a reason that is not
 about speed: **the JavaScript call stack would be one frame deep**, so DevTools could never show
 Scheme frames, and the debugger extension could never be retired. Under B, one live Scheme frame is
-one JavaScript frame and tail calls correctly add none.
+one JavaScript frame, and tail calls add none beyond the budget below.
 
 The cost of B is procedure fragmentation, which is the next section.
 
@@ -180,6 +182,54 @@ Reassigning parameters in place is sound only because every nested procedure is 
 its free variables by value, or by box: a closure made in one iteration holds that iteration's values.
 Each iteration re-runs what a fresh call would — boxing the boxed parameters and making the boxes for
 internal definitions — so no two iterations share a binding.
+
+## Tail calls between procedures
+
+Any other tail call used to return a `TailCall`, which allocated the pending call and an argument
+array, returned through the caller, and was run by the nearest trampoline through `invoke`'s spread:
+a fifth of `earley`'s time, with an eighth more in the collector. Made as plain JavaScript calls,
+unsoundly and without any bound, those calls were worth 1.2-1.4x on six canonical programs.
+
+The unsound version is unsound twice over. A chain of tail calls that never returns -- `cpstak`, the
+loops in `fft` -- grows the JavaScript stack until it overflows, where Scheme requires constant space.
+And a tail call to a continuation, made directly, throws to get where it is going, where a returned
+`TailCall` let the interpreter reinstate it without one: `fibc` ran 2.6 times slower.
+
+So a tail call is made directly only to a compiled procedure or a primitive -- a function marked
+`SCHEME_PRIMITIVE` -- and only while the stack held by direct tail calls is under a budget,
+`R.tailStack`. Anything else, and anything past the budget, returns a `TailCall` as before; a chain
+that reaches the budget unwinds to the nearest trampoline and carries on from there, so it runs in
+bounded space. Each call site adds the size of its own frame, which stays on the stack under the
+callee, and takes it off in a `finally`.
+
+Three things about the budget were decided by measurement rather than by argument:
+
+- **It counts stack, not calls.** Frames differ by two orders of magnitude: a chain through a
+  procedure with 60 locals filled V8's whole stack in about 730 calls, and one with 200 overflowed in
+  400. The emitter knows each frame's size at compile time -- its locals and parameters plus the fixed
+  part of an interpreter frame -- and the limit is an eighth of V8's default stack.
+- **It is one count for the whole stack, not one per chain.** Resetting the count at every non-tail
+  call would bound each chain rather than the total, and cost 3-6% on call-heavy programs for the
+  store around every call; worse, a program recursing through long tail chains then keeps every
+  chain on the stack at once: with a limit of 100 calls a chain, one survived 132 levels of recursion
+  where it had survived 10,385. The shared count
+  keeps the guarantee simple -- direct tail calls never add more than the limit to what the stack
+  held -- at the price that a program recursing deeply *through* tail calls spends the budget and
+  gets fewer of them. `earley` is that program.
+- **It is given back in a `finally`.** An error or a continuation thrown through a direct tail call
+  skips the code after the call, and a count left high sends every later tail call to the
+  trampoline for the rest of the program. `try`/`finally` measured as free.
+
+A capture beneath a direct tail call needs nothing from the caller's frame, whose continuation is its
+callee's: the unwind sentinel is returned as the callee's value, and the frame is absent from the
+recorded continuation, as it would have been had the call been trampolined.
+
+Only the fast form makes direct calls. The resumable form runs only when a continuation is resumed,
+and always returns the `TailCall`, which keeps down what the roughly 1,200 tail call sites in the
+shipped libraries and the compiler add to the generated code: 4.5-6%.
+
+Direct tail calls do show in a JavaScript stack trace, as they would in a language without proper
+tail calls; the budget bounds how many.
 
 ## Inlined primitives, and knowing they are still primitives
 
@@ -403,7 +453,7 @@ yields the real value. Sequencing is in `compiler_plan.md`.
 
 ## How this is verified
 
-- **3,398 tests**, Node and browser, via `npm test`.
+- **3,426 tests**, Node and browser, via `npm test`.
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked
   against expected results that came from Gambit — `npm run test:programs`, 8.2 s, inside `npm test`.
   This is the check that catches what unit tests structurally cannot: three compiler defects in one
@@ -438,4 +488,4 @@ Per-module rationale is in the module headers, which are edited with the code:
 | `src/compiler/marshal.js` | the JavaScript/Scheme boundary, and how it shrinks |
 | `src/compiler/safety.js` | the call-graph closure, and its measured trade-off |
 | `src/compiler/prebuilt.js` | staleness, and why arity rather than names |
-| `src/compiler/runtime.js` | the trampoline, global cells, procedure marking |
+| `src/compiler/runtime.js` | the trampoline and the tail-call budget, global cells, procedure marking |

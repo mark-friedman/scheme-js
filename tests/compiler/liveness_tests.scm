@@ -60,7 +60,11 @@
                    ((return (x))))
                  0))
   (test "an assignment inside a guarded jump is not a definition" "c,x"
-        (live-at '(((guarded (c) ((assign (x) ("1")) (goto 1))) (return (x))) ((return ("0")))) 0)))
+        (live-at '(((guarded (c) ((assign (x) ("1")) (goto 1))) (return (x))) ((return ("0")))) 0))
+  (test "a tail call reads its callee and its arguments" "a,b,f"
+        (live-at '(((tail (f) ((a) (b " + 1"))))) 0))
+  (test "and ends the block, since it returns either way" "f"
+        (live-at '(((tail (f) ())) ((return (z)))) 0)))
 
 ;; The frame saved at a suspension point is exactly what is live at the block
 ;; it resumes at. A capture has no ordinary edge to that block -- it spills and

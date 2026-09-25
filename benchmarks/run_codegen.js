@@ -135,6 +135,29 @@ const GROUPS = [
       ['swap two elements: 2 refs, 2 sets', '(swap scratch)'],
       ['sum of 8 elements: a loop of refs', '(sum-of small)']
     ]
+  },
+  {
+    name: 'tail-calls',
+    about: 'a tail call to another procedure: made directly within a stack budget, else trampolined',
+    definitions: `
+      (define (one x) 1)
+      (define (target x) 1)
+      (define (hop x) (target x))
+      (define (hop-2 x) (hop-3 x))
+      (define (hop-3 x) (hop-4 x))
+      (define (hop-4 x) (target x))
+      (define (count-down n) (if (= n 0) 1 (count-down-again (- n 1))))
+      (define (count-down-again n) (count-down n))
+      (define (to-primitive s) (string-length s))
+      (define key-a 'a)
+      (define ten 10)
+      (define word "abc")`,
+    workloads: [
+      ['one tail call to a compiled procedure', '(hop key-a)'],
+      ['a chain of three tail calls', '(hop-2 key-a)'],
+      ['mutual recursion: 10 tail calls', '(count-down ten)'],
+      ['a tail call to a primitive', '(to-primitive word)']
+    ]
   }
 ];
 

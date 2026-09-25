@@ -113,6 +113,7 @@
     ;; counts as read.
     ((guarded) (append (expr-locals (cadr st))
                        (append-map statement-mentions (caddr st))))
+    ((tail) (append (expr-locals (cadr st)) (append-map expr-locals (caddr st))))
     (else '())))
 
 ;; /**
@@ -136,8 +137,8 @@
 
 ;; /**
 ;;  * The blocks control can reach after a block: its jumps, and the next block
-;;  * if it may fall through -- which it may unless it ends in a return or an
-;;  * unconditional jump.
+;;  * if it may fall through -- which it may unless it ends in a return, a tail
+;;  * call, which returns whichever way it is made, or an unconditional jump.
 ;;  * @param {list} stmts - The block's statements.
 ;;  * @param {integer} index - The block's own number.
 ;;  * @returns {list} Successor block numbers.
@@ -145,7 +146,7 @@
 (define (block-successors stmts index)
   (let ((jumps (append-map statement-jumps stmts))
         (ends (and (pair? stmts)
-                   (memq (car (list-ref stmts (- (length stmts) 1))) '(return goto branch)))))
+                   (memq (car (list-ref stmts (- (length stmts) 1))) '(return goto branch tail)))))
     (delete-duplicates (if ends jumps (append jumps (list (+ index 1)))) eqv?)))
 
 ;; /**

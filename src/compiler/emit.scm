@@ -3,9 +3,10 @@
 ;;; ## Two forms of every procedure
 ;;;
 ;;; A compiled procedure runs as straight-line JavaScript -- the *fast form*:
-;;; ordinary `if`s, a non-tail call as a JavaScript call, a tail call returned
-;;; to the trampoline as a `TailCall`. One live Scheme frame is one JavaScript
-;;; frame, which is what lets a debugger show a Scheme stack.
+;;; ordinary `if`s, a non-tail call as a JavaScript call, a tail call made as a
+;;; JavaScript call too while the stack allows and otherwise returned to the
+;;; trampoline as a `TailCall`. One live Scheme frame is one JavaScript frame,
+;;; which is what lets a debugger show a Scheme stack.
 ;;;
 ;;; A JavaScript function cannot be resumed part-way through, and Scheme needs
 ;;; exactly that when a continuation captured beneath a compiled frame is
@@ -58,6 +59,8 @@
 ;;;                            unconditionally
 ;;;   (guarded test stmts)     if (test) { stmts }, for a guarded loop jump
 ;;;   (suspend result n slots) the fast form's spill, into its twin's block n
+;;;   (tail callee args)       a tail call, made directly or returned to the
+;;;                            trampoline; it returns either way
 ;;;
 ;;; ## Nested procedures
 ;;;
@@ -269,7 +272,40 @@
          (if (cadr st)
              (string-append "if (" (expr (cadr st)) " === $UNWIND) { " spill " }")
              spill)))
+      ((charge) (string-append "$tailStack.used " (cadr st) " " (number->string (frame-size form)) ";"))
+      ((tail)
+       (let* ((callee (expr (cadr st)))
+              (arglist (string-join (map expr (caddr st)) ", "))
+              (size (number->string (frame-size form)))
+              (fallback (string-append "return $tailCall(" callee ", [" arglist "]);")))
+         ;; The resumable form runs only when a continuation is resumed, so it
+         ;; always takes the fallback, which halves what direct calls add to
+         ;; the generated code.
+         (if (twin? form)
+             fallback
+             (string-append "if ($tailStack.used < $tailStack.limit && " callee "?.[$PRIM] === true) { "
+                            "$tailStack.used += " size "; "
+                            "try { return " callee "(" arglist "); } finally { $tailStack.used -= " size "; } } "
+                            fallback))))
       (else (error "emit: unknown statement" st)))))
+
+;; /**
+;;  * An estimate of the stack a procedure's frame takes, in slots: one for each
+;;  * local and parameter, and the fixed part of a V8 interpreter frame -- return
+;;  * address, frame pointer, context, function, argument count, bytecode and
+;;  * its offset, and the receiver. A frame the optimizing compiler has built is
+;;  * smaller, so this overestimates hot code, which errs the safe way. It is
+;;  * what a direct tail call charges to `R.tailStack`, since its caller's frame
+;;  * stays on the stack under the callee.
+;;  * @param {form} form - The emission, after every local has been declared.
+;;  * @returns {integer} Slots.
+;;  */
+(define (frame-size form)
+  (let ((ir (form-ir form)))
+    (+ (length (form-declared form))
+       (length (lambda-params ir))
+       (if (lambda-rest ir) 1 0)
+       8)))
 
 (define (goto-text n) (string-append "$pc = " (number->string n) "; continue;"))
 
@@ -746,8 +782,10 @@
          (arglist (join-exprs args ", ")))
     (emit! form (list 'assign (js callee) fn))
     (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
+    (if (not (twin? form)) (emit! form (list 'charge "+=")))
     (emit! form (list 'assign (js result)
                       (js raw " === undefined ? " callee "(" arglist ") : " raw "(" arglist ")")))
+    (if (not (twin? form)) (emit! form (list 'charge "-=")))
     (emit! form (list 'raw (js "while (" result " instanceof $TailCall) { "
                                result " = $step(" result "); }")))
     (if (twin? form)
@@ -868,13 +906,12 @@
 ;; /**
 ;;  * Emits a call in tail position.
 ;;  *
-;;  * A primitive needs no trampoline: it cannot tail-call, so its value is
-;;  * this procedure's value, returned directly. A call the lowering found to be
-;;  * to the loop it is in reassigns that loop's parameters and jumps back to
-;;  * its head; a call to this procedure's own global does so only while the
-;;  * global still names this procedure. Anything else returns a `TailCall`, so
-;;  * whoever is trampolining -- compiled or interpreted -- continues it, and
-;;  * tail recursion runs in constant space.
+;;  * An inlined primitive needs no trampoline: it cannot tail-call, so its
+;;  * value is this procedure's value, returned directly. A call the lowering
+;;  * found to be to the loop it is in reassigns that loop's parameters and
+;;  * jumps back to its head; a call to this procedure's own global does so only
+;;  * while the global still names this procedure. Anything else is a `tail`
+;;  * statement (see `emit-transfer!`).
 ;;  *
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} node - A `call` IR node in tail position.
@@ -896,11 +933,48 @@
                    (for-each (lambda (st) (emit! form st)) jump)
                    (begin
                      (emit! form (list 'guarded (js fn " === " (procedure-name form)) jump))
-                     (emit-trampoline-return! form fn args)))))
-            (else (emit-trampoline-return! form fn args)))))))
+                     (emit-transfer! form fn args)))))
+            (else (emit-transfer! form fn args)))))))
 
-(define (emit-trampoline-return! form fn args)
-  (emit! form (list 'return (js "new $TailCall(" fn ", [" (join-exprs args ", ") "])"))))
+;; /**
+;;  * Emits a tail call to a callee that is not known to be this procedure.
+;;  *
+;;  * A compiled procedure or a primitive is called directly, as long as the
+;;  * stack direct tail calls hold is under its budget (`tailStack` in
+;;  * `runtime.js`), which the call charges with the size of this frame. Past
+;;  * the budget, and for any other callee, the call is returned as a
+;;  * `TailCall`, so whoever is trampolining -- compiled or interpreted --
+;;  * continues it and a chain of tail calls runs in bounded space. An
+;;  * interpreted closure is among the others because it is entered through the
+;;  * interpreter, which a trampoline reaches as cheaply, and a continuation
+;;  * because calling one directly throws to get where it is going: `fibc` ran
+;;  * 2.6 times slower when its tail calls to continuations were made directly.
+;;  *
+;;  * The budget is tested before the callee, so a spent budget costs one
+;;  * comparison rather than a property load on whatever the callee is: tested
+;;  * the other way round, `earley`, which recurses deeply enough to spend it,
+;;  * ran slower than it did before any call was made directly.
+;;  *
+;;  * Only the fast form tries the direct call; the resumable form, which runs
+;;  * only when a continuation is resumed, always takes the fallback. The
+;;  * fallback is a runtime helper, `tailCall`, rather than the `TailCall`
+;;  * written out. Both keep down what every tail call site adds: the direct call
+;;  * in both forms, with the fallback written out and the check a non-procedure
+;;  * needs, made the generated code 9% larger. See `tailCall` for the check.
+;;  *
+;;  * A capture beneath a direct tail call needs nothing from this frame: its
+;;  * continuation is the callee's, so the unwind sentinel is returned as the
+;;  * callee's value, and the frame is correctly absent from what is recorded.
+;;  *
+;;  * @param {form} form - The emission.
+;;  * @param {list} fn - The callee expression.
+;;  * @param {list} args - The argument expressions.
+;;  * @returns {unspecified}
+;;  */
+(define (emit-transfer! form fn args)
+  (let ((callee (temp! form)))
+    (emit! form (list 'assign (js callee) fn))
+    (emit! form (list 'tail (js callee) args))))
 
 ;; /**
 ;;  * The identifier of this procedure's fast form, which a global self-call is
@@ -1346,7 +1420,8 @@
 (define runtime-constants
   '(("$TailCall" . "R.TailCall") ("$step" . "R.step")
     ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")
-    ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")))
+    ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")
+    ("$tailStack" . "R.tailStack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")))
 
 ;; /**
 ;;  * The declaration of the runtime values a procedure's code uses.

@@ -172,6 +172,26 @@ const CASES = [
     "(define (get v) (vector-ref v 0)) (define before (get (vector 'a)))"
       + " (set! vector-ref (lambda (v i) 'replaced)) (list before (get (vector 'a)))"],
 
+  // --- tail calls between procedures: made directly within a stack budget, else trampolined ---
+  ['mutual tail recursion a million calls deep',
+    '(define (ev? n) (if (= n 0) #t (od? (- n 1)))) (define (od? n) (if (= n 0) #f (ev? (- n 1)))) (ev? 1000000)'],
+  ['a tail call to a primitive', '(define (pair-up x) (list x x)) (pair-up 1)'],
+  ['a tail call to a continuation', '(define (return-through k) (k 42)) (+ 1 (call/cc (lambda (k) (return-through k))))'],
+  ['a tail call to an interpreted procedure',
+    '(define (call-it g x) (g x)) (call-it (lambda (y) (* y 2)) 21)'],
+  ['a tail call to something that is not a procedure',
+    '(define (call-it g) (g 1))'
+      + " (guard (e ((error-object? e) (list 'error (error-object-message e))) (#t 'raised)) (call-it 5))"],
+  ['a tail call in a deep non-tail recursion',
+    '(define (build n) (if (= n 0) (quote ()) (link n))) (define (link n) (cons n (build (- n 1))))'
+      + ' (length (build 2000))'],
+  ['a capture beneath a tail call, resumed twice',
+    '(define k #f) (define resumed 0)'
+      + ' (define (grab) (call/cc (lambda (c) (set! k c) 0)))'
+      + ' (define (via) (grab))'
+      + ' (define (outer) (+ 100 (via)))'
+      + ' (let ((v (outer))) (set! resumed (+ resumed 1)) (if (< resumed 3) (k resumed) (list v resumed)))'],
+
   // --- flonum arithmetic: both operands inexact, the other shapes through the tower ---
   ['flonum arithmetic and comparison',
     '(define (f a b) (list (+ a b) (- a b) (* a b) (< a b) (> a b) (<= a b) (>= a b) (= a b)))'

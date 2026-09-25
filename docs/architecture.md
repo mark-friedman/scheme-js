@@ -275,7 +275,7 @@ of its own.
 │      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── safety.js          # Which procedures a capture would unwind through
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
-│      └── runtime.js         # Tail-call step, global cells, vector helpers, procedure marking
+│      └── runtime.js         # Tail-call step and budget, global cells, vector helpers, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
 │      ├── index.js            # Barrel export

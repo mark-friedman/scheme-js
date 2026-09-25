@@ -149,7 +149,8 @@ function geometricMean(values) {
 function formatSeconds(seconds) {
   if (seconds === null) return '--';
   if (seconds >= 1) return `${seconds.toFixed(2)} s`;
-  return `${(seconds * 1000).toFixed(1)} ms`;
+  if (seconds >= 0.001) return `${(seconds * 1000).toFixed(1)} ms`;
+  return `${(seconds * 1e6).toFixed(1)} us`;
 }
 
 /**

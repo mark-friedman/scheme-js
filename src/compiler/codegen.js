@@ -10,9 +10,10 @@
  * those may be expanded inline.
  *
  * Non-tail calls are ordinary JavaScript calls, so one live Scheme frame is one
- * live JavaScript frame and a debugger can see the Scheme call stack; tail
- * calls return a `TailCall` through a trampoline, so tail recursion runs in
- * constant space. `emit.scm`'s header has the rest.
+ * live JavaScript frame and a debugger can see the Scheme call stack; a tail
+ * call is made directly while the stack direct tail calls hold is inside a
+ * budget, and otherwise returns a `TailCall` through a trampoline, so tail
+ * recursion runs in bounded space. `emit.scm`'s header has the rest.
  */
 
 import { currentBinding, primitiveCell } from './runtime.js';

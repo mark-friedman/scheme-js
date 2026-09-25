@@ -7322,3 +7322,108 @@ the interpreter the compiled tier is now `vector` 35x and `flonum` 131x.
 - An off-by-one in the helper's bounds check fails the error-path case.
 
 3,398 tests pass in Node and 3,293 in the browser.
+
+# Walkthrough: Tail calls between procedures
+
+Task 26 in `docs/compiler_plan.md`. A tail call to anything but the procedure itself returned a
+`TailCall`: the pending call and an argument array allocated, returned through the caller, and run by
+the nearest trampoline through `invoke`'s spread. The profile that closed task 23 put 22% of `earley`
+in `invoke` and 12% in the collector, and 7-8% of `deriv` and `mazefun`.
+
+## Ceiling, and what it showed
+
+Every such call made as a plain JavaScript call -- `callee(args)`, or its raw entry for an interpreted
+closure -- with no bound at all: `earley` 1.42x, `graphs` 1.33x, `mazefun` 1.3x, `bv2string` 1.27x,
+`peval` and `dynamic` 1.22x. Unsound in two ways it showed at once: `cpstak` and `fft` overflowed the
+JavaScript stack, since a chain of tail calls that never returns grows it; and `fibc` ran 2.6 times
+slower, since a continuation called directly throws to get where it is going, where a returned
+`TailCall` let the interpreter reinstate it without one.
+
+## Bounding it
+
+Three bounds were tried, each measured on speed and on how deep four probe programs could recurse
+before the stack overflowed (R73):
+
+- **A count of direct tail calls, shared by the whole stack, in calls.** Safe for small frames, but a
+  count is not a stack: a chain through a procedure with 60 locals fills V8's stack in about 730
+  calls, one with 200 in under 400. The limit `earley` needed to gain -- about 1,000 -- would let a
+  chain of large frames overflow where the trampoline never did.
+- **A count per chain, reset at every non-tail call.** Cost 3-6% on call-heavy programs for the save
+  and restore around every call, and does not bound the stack: a program recursing through long tail
+  chains keeps every chain on the stack at once, and with a limit of 100 a chain it survived 132
+  levels where the trampoline survived 10,385.
+- **A budget in stack, shared.** Shipped. `R.tailStack` holds how many slots direct tail calls hold
+  and the limit, an eighth of V8's default stack. Each call site charges the size of its own frame --
+  its locals and parameters plus the fixed part of an interpreter frame, which the emitter knows when
+  it renders the call -- and gives it back in a `finally`, so an error or a continuation thrown through
+  it cannot leave the count high. Without the `finally`, the probe's own stack overflows left the
+  budget spent, and every later tail call went to the trampoline; with it, it measured free.
+
+What is called directly: a compiled procedure or a primitive, a function marked `SCHEME_PRIMITIVE`.
+An interpreted closure and a continuation still get a `TailCall`. The budget is tested before the
+callee, so a spent budget costs one comparison: tested the other way round, `earley`, which recurses
+deeply enough to spend it, ran slower than before.
+
+The emitter has a new statement, `(tail callee args)`, which liveness reads like a return. The fast
+form renders it as the guarded direct call with the fallback after it; the resumable form, which runs
+only when a continuation is resumed, renders only the fallback. The fallback is `R.tailCall`, which
+also fixed a bug found on the way: a tail call to something that is not a procedure reached a
+trampoline that took it for an expression to evaluate, and failed with "ctl.step is not a function";
+it now raises "application: not a procedure", as the interpreter does. Written out at each site in
+both forms, the fallback and the check made the generated code 9% larger; as it is, 4.5-6%.
+
+A capture beneath a direct tail call needs nothing from the caller's frame: the unwind sentinel comes
+back as the callee's value and is returned, and the frame is absent from the recorded continuation,
+as it would have been had the call been trampolined.
+
+## Measured
+
+The canonical suite against `HEAD`, compiled, best of three alternated: `vector` 1.12x (`bv2string`
+1.25x), `continuation` 1.11x (`dynamic` 1.28x), `call` 1.09x (`cpstak` 1.35x), `list` 1.07x
+(`graphs` 1.22x, `earley` and `peval` 1.18x, `mazefun` 1.16x, `maze` 1.09x); nothing slower than
+0.98x, and `ctak` and `fibc`, which tail-call continuations, within ±4% across further alternated
+runs. The interpreter tier did not change. `earley` gets 1.2x of the 1.4x ceiling: it recurses deeply
+through tail calls and spends the budget. Against the interpreter, `call` 84-86x, `vector` 38-40x,
+`list` 24x; `flonum` measured 119-120x, against 131x in task 25's runs, with the compiled `flonum`
+class 1.02x faster than `HEAD` in the same session -- the ratio moved with the interpreter's timings.
+
+A `tail-calls` group in `benchmarks/run_codegen.js`, compiled, ns per call: one tail call to a
+compiled procedure 20.9 → 1.9, a chain of three 62 → 7.6, mutual recursion through ten 472 → 91, a
+tail call to a primitive 24 → 8.2.
+
+The benchmark table now prints a time under a millisecond in microseconds; five programs had read
+`0.0 ms`.
+
+## Found on the way
+
+Measuring how deep compiled code can recurse turned up two things outside this task, both older than
+it and both now plan items (R74):
+
+- **Compiled code recurses about 5,900 levels** under Node's default stack; the interpreter keeps its
+  frames on the heap. The browser bundle installs the compiled standard library, so there
+  `make-list`, `map`, `list-copy` and `equal?` overflow on a 10,000-element list, which the
+  interpreter handles at 100,000. The CLI runs its libraries interpreted and is unaffected.
+- **Errors raised inside compiled code lose their message.** `error` outside tail position returns
+  the interpreter's `TailCall` of a raise, which a compiled trampoline cannot run: `(length 5)` says
+  "args is not iterable". A non-tail call to a non-procedure says "$t0 is not a function".
+
+## Tests
+
+- `tests/functional/direct_tail_call_tests.js`: which callees are called directly and which go to
+  the trampoline; that a spent budget falls back and still answers; that the budget is given back
+  after a chain, after an error thrown through direct tail calls, and after 200 errors caught by
+  `guard`; and that a 20,000-call chain between procedures with 150 locals runs, which a limit
+  counted in calls would not survive.
+- Seven differential cases: mutual tail recursion a million calls deep; tail calls to a primitive, a
+  continuation, an interpreted procedure and a non-procedure, the last comparing messages; a tail call
+  in a deep non-tail recursion; a capture beneath a tail call, resumed twice.
+- Scheme tests in `tests/compiler/emit_tests.scm` of the rendered call -- direct, fallback, budget
+  before callee, charged and given back, larger for a larger frame -- and in `liveness_tests.scm` of
+  the new statement.
+- Mutations, each rebuilt and run against the whole suite: without the `finally`, the four budget
+  tests fail with 90 slots still held; charging one slot a frame, the million-deep recursion, the
+  150-local chain, `cpstak` and `fft` overflow. Without the budget test 7 tests fail, calling any
+  callee directly 9, a tail call that does not end its block 2 (in `liveness_tests.scm`), and
+  `R.tailCall` without its check 1.
+
+3,426 tests pass in Node and 3,321 in the browser.

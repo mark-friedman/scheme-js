@@ -142,3 +142,41 @@
         (let ((source (car (generate-unit (cadr (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))
                                           '(vector-ref) "f" '(vector-ref)))))
           (and (string-contains source "const $vectorRef = R.vectorRef") #t))))
+
+;; A tail call to anything but the procedure itself is made directly while the
+;; stack those calls hold is inside a budget, and returned to the trampoline as a
+;; `TailCall` otherwise. The budget is in stack rather than calls: each call site
+;; adds the size of its own frame, which stays on the stack under the callee.
+(test-group "emit - tail calls between procedures"
+  (define (unit-source ast globals)
+    (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
+  (define (number-after source marker)
+    (let ((start (+ (string-contains source marker) (string-length marker))))
+      (let scan ((end start))
+        (if (char-numeric? (string-ref source end))
+            (scan (+ end 1))
+            (string->number (substring source start end))))))
+  (define (position source text) (string-contains source text))
+  ;; (lambda (x) (g x))
+  (define small (unit-source '(lambda (x) #f #f (app (var g) ((var x)))) '(g)))
+  ;; (lambda (x) (h x) (h x) (h x) (h x) (h x) (h x) (g x)): six non-tail calls
+  ;; give its frame temporaries the small one does not have.
+  (define large
+    (unit-source `(lambda (x) #f #f
+                    (seq (,@(make-list 6 '(app (var h) ((var x))))
+                          (app (var g) ((var x))))))
+                 '(g h)))
+  (test "the call is made directly" #t (and (string-contains small "try { return $t") #t))
+  (test "or else returned to the trampoline" #t (and (string-contains small "return $tailCall($t") #t))
+  (test "the budget is tested before the callee, which a spent budget need not load" #t
+        (< (position small "$tailStack.used < $tailStack.limit")
+           (position small "?.[$PRIM] === true")))
+  (test "a call gives back what it took" (number-after small "$tailStack.used += ")
+        (number-after small "$tailStack.used -= "))
+  (test "a larger frame takes more of the budget" #t
+        (> (number-after large "$tailStack.used += ") (number-after small "$tailStack.used += ")))
+  (test "the procedure declares the budget, the marker it tests and the fallback" #t
+        (and (string-contains small "$tailStack = R.tailStack")
+             (string-contains small "$PRIM = R.SCHEME_PRIMITIVE")
+             (string-contains small "$tailCall = R.tailCall")
+             #t)))
