@@ -1336,8 +1336,8 @@
                    "\n}")))
 
 ;; /**
-;;  * The runtime values call sites use, each with the local generated code
-;;  * names it by.
+;;  * The runtime values call sites and inline expansions use, each with the
+;;  * local generated code names it by.
 ;;  *
 ;;  * Read from `R` once per procedure rather than at every call site: loading a
 ;;  * property of the runtime module on every call was worth up to 1.08x on
@@ -1345,7 +1345,8 @@
 ;;  */
 (define runtime-constants
   '(("$TailCall" . "R.TailCall") ("$step" . "R.step")
-    ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")))
+    ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")
+    ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")))
 
 ;; /**
 ;;  * The declaration of the runtime values a procedure's code uses.

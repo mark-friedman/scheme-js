@@ -150,6 +150,28 @@ const CASES = [
   ['a loop name that is reassigned is not looped',
     '(define (f) (let loop ((i 0)) (if (< i 3) (begin (if (= i 1) (set! loop (lambda (j) (quote swapped)))) (loop (+ i 1))) i))) (f)'],
 
+  // --- vectors: an array and an exact index in range read directly; anything else the primitive ---
+  ['vector-ref, vector-set! and vector-length',
+    '(define (f v) (vector-set! v 0 (+ (vector-ref v 1) (vector-ref v 2))) (list (vector-length v) (vector-ref v 0) v))'
+      + ' (f (vector 0 20 22))'],
+  ['a vector loop',
+    '(define (reverse! v) (let loop ((i 0) (j (- (vector-length v) 1)))'
+      + ' (if (< i j) (let ((t (vector-ref v i))) (vector-set! v i (vector-ref v j)) (vector-set! v j t) (loop (+ i 1) (- j 1))) v)))'
+      + ' (reverse! (vector 1 2 3 4 5))'],
+  ['the value of vector-set!',
+    "(define (f v) (vector-set! v 0 'x)) (let ((v (vector 1))) (list (f v) v))"],
+  ['vector index errors come from the primitive',
+    '(define (get v i) (vector-ref v i)) (define (put v i) (vector-set! v i 0))'
+      + ' (define (message thunk) (guard (e (#t (list (error-object-message e) (error-object-irritants e)))) (thunk)))'
+      + " (list (message (lambda () (get (vector 1 2) 2))) (message (lambda () (get (vector 1 2) -1)))"
+      + " (message (lambda () (put (vector 1 2) 5))) (message (lambda () (get (list 1 2) 0)))"
+      + " (message (lambda () (get (vector 1 2) 'a))))"],
+  ['a vector index that is an integral flonum goes to the primitive',
+    '(define (get v i) (vector-ref v i)) (get (vector 10 20 30) 1.0)'],
+  ['vector-ref after it is redefined',
+    "(define (get v) (vector-ref v 0)) (define before (get (vector 'a)))"
+      + " (set! vector-ref (lambda (v i) 'replaced)) (list before (get (vector 'a)))"],
+
   // --- flonum arithmetic: both operands inexact, the other shapes through the tower ---
   ['flonum arithmetic and comparison',
     '(define (f a b) (list (+ a b) (- a b) (* a b) (< a b) (> a b) (<= a b) (>= a b) (= a b)))'

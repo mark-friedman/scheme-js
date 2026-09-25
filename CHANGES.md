@@ -7271,3 +7271,54 @@ so it included the `case` change as well. The figures above are against a task-2
   whole-program benchmarks, with JavaScript's "Cannot mix BigInt and other types".
 
 3,388 tests pass in Node and 3,283 in the browser.
+
+# Walkthrough: Vector access
+
+Task 25 in `docs/compiler_plan.md`: `vector-ref` and `vector-set!` were primitive calls through the
+generic call path, and the profile that closed task 23 put `assertIndex` alone at up to 22% of a
+vector-heavy program -- and, once flonum arithmetic was fast, at 13-22% of the flonum programs that
+had gained least.
+
+## Ceiling, then a design that did not work, then one that did
+
+- **Ceiling.** Rewriting the expansions to read and write the array with no checks at all --
+  unsound -- was worth `simplex` 1.9-2.1x, `fft` 1.8-2.1x, `pnpoly` 1.5-1.6x, `earley` and `array1`
+  1.4-1.5x, `graphs` 1.3-1.6x on the canonical programs.
+- **The planned expansion,** the checks inline like `car`'s, was slower than the primitive in a
+  plain JavaScript comparison -- 26 ns an access against 17-21 -- and caught only 1.0-1.3x of the
+  ceiling. Comparing a `bigint` index costs more than converting it once, which is what the
+  primitive does (R72).
+- **A runtime helper.** `R.vectorRef` and `R.vectorSet` convert the index once, read or write the
+  array when the vector is an array and the index an exact integer in range, and pass anything else to
+  the primitive -- an integral flonum index, which the primitive accepts, a list, an index out of
+  range -- so every error is the primitive's own. The expansions call them directly (`$vectorRef`,
+  `$vectorSet`, read from `R` once per procedure like the trampoline's values), guarded on the
+  binding as every expansion is. `vector-length` is inline: `Array.isArray(v)`, then
+  `BigInt(v.length)`.
+
+Against the same ceiling, run alternately: `simplex` 1.96x (ceiling ~2.0x), `fft` 1.65x (1.9x),
+`pnpoly` 1.55x (1.5-1.6x), `earley` 1.41-1.52x (1.40-1.55x), `graphs` 1.37x (1.3-1.4x), `array1`
+1.3-1.4x.
+
+## Measured
+
+A `vectors` group in `benchmarks/run_codegen.js`, compiled, ns per call: `vector-ref` 14.9 → 8.8,
+`vector-set!` 12.0 → 7.9, `vector-length` 5.7 → 2.3, a swap of two elements 60 → 33, summing eight
+elements 229 → 145.
+
+The canonical suite against `HEAD`, compiled: `flonum` 1.26x (`simplex` 1.82x), `vector` 1.18x
+(`array1` 1.38x), `list` 1.07x (`earley` 1.34x); nothing else moved, the continuation programs that
+looked slower re-measuring alternately at 1.04-1.19x. The interpreter tier did not change. Against
+the interpreter the compiled tier is now `vector` 35x and `flonum` 131x.
+
+## Tests
+
+- Six differential cases: access and mutation; a loop reversing a vector in place; the value of
+  `vector-set!`; every error path -- index too large, negative, out of range for `vector-set!`, a list
+  instead of a vector, a symbol for an index -- whose messages and irritants must match between the
+  tiers; an integral flonum index; `vector-ref` redefined after compiling.
+- Scheme tests in `tests/compiler/emit_tests.scm` of the three expansions, and that a procedure
+  using the helper declares it.
+- An off-by-one in the helper's bounds check fails the error-path case.
+
+3,398 tests pass in Node and 3,293 in the browser.

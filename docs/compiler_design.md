@@ -222,6 +222,14 @@ which was most of what flonum programs did: adding it made the class 7.5x faster
 exactness stays with the tower: JavaScript can compare a `number` with a `bigint`, but exactly,
 where the tower converts to a double, and the two differ on large integers.
 
+**An expansion can be a call.** `vector-ref` and `vector-set!` expand to a runtime helper,
+`R.vectorRef`/`R.vectorSet`, rather than to inline checks. The checks written inline were slower
+than the primitive -- a `bigint` index compared with a length costs more than converting it once --
+while the helper converts once, reads or writes the array, and passes anything else, and so every
+error, to the primitive. It removes what calling the primitive through the generic call path cost,
+and caught nearly all of a 1.4-2.1x ceiling on vector-heavy programs. Like the other runtime values
+call sites use, the helpers are read from `R` once per procedure.
+
 **Some expansions apply only to some operands.** `eqv?` is JavaScript `===` exactly when one
 operand is a constant whose identity is its value -- a symbol, a boolean, the empty list -- and is
 not for numbers, which compare by value and exactness, or characters, which compare by code point.
@@ -395,7 +403,7 @@ yields the real value. Sequencing is in `compiler_plan.md`.
 
 ## How this is verified
 
-- **3,388 tests**, Node and browser, via `npm test`.
+- **3,398 tests**, Node and browser, via `npm test`.
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked
   against expected results that came from Gambit — `npm run test:programs`, 8.2 s, inside `npm test`.
   This is the check that catches what unit tests structurally cannot: three compiler defects in one

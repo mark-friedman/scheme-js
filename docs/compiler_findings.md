@@ -2324,6 +2324,22 @@ found none of the last four among its costs. What it found:
 then inline vector access, then tail calls between procedures; the three items with no evidence were
 moved to the bottom until a profile shows them.
 
+**R72. Inlining a vector access's checks made it slower, not faster.**
+
+The plan said to expand `vector-ref` "like `car`'s: the index an exact integer inside the array, the
+element read directly, the primitive otherwise". Written that way -- `Array.isArray(v) && typeof i
+=== 'bigint' && i >= 0n && i < v.length ? v[Number(i)] : ...` -- it cost 26 ns an access in isolation
+against the primitive's 17-21, and on the vector-heavy programs it caught 1.0-1.3x of a 1.4-2.1x
+ceiling. Comparing a `bigint` with a number costs more in V8 than converting it once and comparing
+numbers, which is what the primitive does. What caught nearly all of the ceiling was keeping the
+primitive's order of work and removing the rest: the expansion calls a small runtime helper that
+converts the index once, reads the array, and hands anything else to the primitive. Which part of
+the old path cost most -- the generic call protocol around a primitive, or `assertIndex`, which many
+primitives share -- was not separated.
+
+*Consequence:* an expansion's fast path is measured against the primitive before it is kept. Doing
+a primitive's checks inline is not automatically cheaper than calling it.
+
 ---
 
 ## Appendix — the original staged plan

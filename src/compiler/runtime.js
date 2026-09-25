@@ -72,6 +72,48 @@ export function callBinding(fn, args) {
 }
 
 /**
+ * `vector-ref` for an inline expansion, whose guard has established that the
+ * name is still bound to the primitive.
+ *
+ * The common case -- an array and an exact index inside it -- converts the
+ * index to a JavaScript number once and compares numbers. Doing the same
+ * checks inline was slower than the primitive, because comparing a `bigint`
+ * with a length costs more than converting it; and calling the primitive
+ * through the generic call path cost vector-heavy programs up to half their
+ * time, measured as a ceiling. Every other case, and so every error, is the
+ * primitive's own.
+ *
+ * @param {*} vector - The vector operand.
+ * @param {*} index - The index operand.
+ * @returns {*} The element.
+ */
+export function vectorRef(vector, index) {
+  if (Array.isArray(vector) && typeof index === 'bigint') {
+    const i = Number(index);
+    if (i >= 0 && i < vector.length) return vector[i];
+  }
+  return primitiveCell('vector-ref').primitive(vector, index);
+}
+
+/**
+ * `vector-set!` for an inline expansion, as `vectorRef` is for `vector-ref`.
+ * @param {*} vector - The vector operand.
+ * @param {*} index - The index operand.
+ * @param {*} value - The value to store.
+ * @returns {*} What the primitive returns.
+ */
+export function vectorSet(vector, index, value) {
+  if (Array.isArray(vector) && typeof index === 'bigint') {
+    const i = Number(index);
+    if (i >= 0 && i < vector.length) {
+      vector[i] = value;
+      return null;
+    }
+  }
+  return primitiveCell('vector-set!').primitive(vector, index, value);
+}
+
+/**
  * Reports a capture in a procedure with no resumable form.
  * @returns {void}
  * @throws {SchemeError} Always.

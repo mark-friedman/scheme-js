@@ -121,3 +121,24 @@
         (every (lambda (name) (string=? (test-of name) (test-of '+))) '(- * < > <= >= =)))
   (test "and the fast path is the operator, for both" "s_a - s_b" (value-of '-))
   (test "numeric equality is ===, which agrees on -0.0 and NaN" "s_a === s_b" (value-of '=)))
+
+;; Vectors are JavaScript arrays. An access calls a runtime helper, which reads or
+;; writes the array when the vector is an array and the index an exact integer in
+;; range, and passes any other operand to the primitive -- so every error is still
+;; the primitive's. The helper is the whole fast path, so there is no run-time
+;; test beside the binding guard.
+(test-group "inline - vector access"
+  (define (parts name args)
+    (let ((entry (inline-expansion name (map (lambda (a) (list 'local a #f #f)) args))))
+      (let ((test ((caddr entry) (map js args))))
+        (list (and test (expr->string test))
+              (expr->string ((cadddr entry) (map js args)))))))
+  (test "vector-ref is the helper" '(#f "$vectorRef(v, i)") (parts 'vector-ref '(v i)))
+  (test "and so is vector-set!" '(#f "$vectorSet(v, i, x)") (parts 'vector-set! '(v i x)))
+  (test "vector-length needs an array and is inline" '("Array.isArray(v)" "BigInt(v.length)")
+        (parts 'vector-length '(v)))
+  (test "a procedure using the helper declares it"
+        #t
+        (let ((source (car (generate-unit (cadr (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))
+                                          '(vector-ref) "f" '(vector-ref)))))
+          (and (string-contains source "const $vectorRef = R.vectorRef") #t))))

@@ -107,6 +107,19 @@
     (total 'null? 1 (lambda (ops) (js (car ops) " === null")))
     (total 'not 1 (lambda (ops) (js (car ops) " === false")))
     (total 'eq? 2 (lambda (ops) (js (car ops) " === " (cadr ops))))
+    ;; Vectors are JavaScript arrays. An access calls a runtime helper rather
+    ;; than the primitive through the generic call path, which cost
+    ;; vector-heavy programs up to half their time; the helper checks the
+    ;; common case with the index converted once -- the same checks written
+    ;; inline, comparing the `bigint` index, were slower than the primitive --
+    ;; and passes everything else to the primitive, so every error is its own.
+    (total 'vector-ref 2
+           (lambda (ops) (js "$vectorRef(" (car ops) ", " (cadr ops) ")")))
+    (total 'vector-set! 3
+           (lambda (ops) (js "$vectorSet(" (car ops) ", " (cadr ops) ", " (caddr ops) ")")))
+    (list 'vector-length 1
+          (lambda (ops) (js "Array.isArray(" (car ops) ")"))
+          (lambda (ops) (js "BigInt(" (car ops) ".length)")))
     ;; Only against a constant `===` is exact for. That is what `case` tests
     ;; its key with, one datum at a time; anything else calls the primitive.
     (list 'eqv? 2

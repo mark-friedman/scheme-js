@@ -112,6 +112,29 @@ const GROUPS = [
       ['exact integer and flonum: + and =', '(add exact-1 flonum-2)'],
       ['rational and flonum: + and =', '(add rational flonum-2)']
     ]
+  },
+  {
+    name: 'vectors',
+    about: 'vector-ref, vector-set! and vector-length on an array and an exact index in range',
+    definitions: `
+      (define (one x) 1)
+      (define (ref v) (if (eq? (vector-ref v 3) 'never) 0 1))
+      (define (set v) (vector-set! v 3 'x) 1)
+      (define (len v) (if (= (vector-length v) 0) 0 1))
+      (define (swap v) (let ((a (vector-ref v 1))) (vector-set! v 1 (vector-ref v 2)) (vector-set! v 2 a) 1))
+      (define (sum-of v)
+        (let loop ((i 0) (acc 0))
+          (if (= i (vector-length v)) (if (= acc -1) 0 1) (loop (+ i 1) (+ acc (vector-ref v i))))))
+      (define key-a 'a)
+      (define small (vector 1 2 3 4 5 6 7 8))
+      (define scratch (vector 'a 'b 'c 'd))`,
+    workloads: [
+      ['vector-ref', '(ref small)'],
+      ['vector-set!', '(set scratch)'],
+      ['vector-length', '(len small)'],
+      ['swap two elements: 2 refs, 2 sets', '(swap scratch)'],
+      ['sum of 8 elements: a loop of refs', '(sum-of small)']
+    ]
   }
 ];
 
