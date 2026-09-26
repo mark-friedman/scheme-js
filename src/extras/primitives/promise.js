@@ -6,6 +6,7 @@
  * procedures to be used as callbacks.
  */
 
+import { suspendFlush, restoreFlush } from '../../core/interpreter/unwind.js';
 import { toArray } from '../../core/interpreter/cons.js';
 import { Closure } from '../../core/interpreter/values.js';
 import { assertProcedure, isList } from '../../core/interpreter/type_check.js';
@@ -81,8 +82,15 @@ export function getPromisePrimitives(interpreter) {
 
             return new Promise((resolve, reject) => {
                 // Call the Scheme executor with resolve and reject
-                // These are already JS functions so they can be passed directly
-                wrappedExecutor(resolve, reject);
+                // These are already JS functions so they can be passed directly.
+                // Compiled code may not move its frames to the heap stack
+                // beneath the Promise constructor.
+                const flush = suspendFlush();
+                try {
+                    wrappedExecutor(resolve, reject);
+                } finally {
+                    restoreFlush(flush);
+                }
             });
         },
 

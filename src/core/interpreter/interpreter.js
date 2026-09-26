@@ -1,7 +1,7 @@
 import { Values, isSchemeClosure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, UNWIND, completeCapture, unwinding } from './unwind.js';
+import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, restoreFlush } from './unwind.js';
 import { globalContext } from './context.js';
 
 /**
@@ -284,6 +284,9 @@ export class Interpreter {
 
     // Track recursion depth
     this.depth++;
+    // Whether compiled code may move its frames to the heap belongs to whoever
+    // called this run, and is theirs again however it ends.
+    const flush = compiledStack.flushable;
 
     // The Top-Level Trampoline
     try {
@@ -391,6 +394,7 @@ export class Interpreter {
       }
     } finally {
       this.depth--;
+      restoreFlush(flush);
     }
   }
 
@@ -492,6 +496,8 @@ export class Interpreter {
 
     const registers = [null, ast, env, [], undefined];
     this.depth++;
+    // As in `run`.
+    const flush = compiledStack.flushable;
 
     try {
       let stepCount = 0;
@@ -575,6 +581,7 @@ export class Interpreter {
       }
     } finally {
       this.depth--;
+      restoreFlush(flush);
     }
   }
 

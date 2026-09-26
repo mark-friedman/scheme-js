@@ -53,10 +53,11 @@ call, which is constraint 1. Worth revisiting if stack switching ships.
 
 The pivotal decision, settled by a bake-off (`experiments/stage2a/`) rather than by argument.
 
-Non-tail calls use **the native JavaScript stack**. Tail calls return a `TailCall` to a
+Non-tail calls use **the native JavaScript stack**, and when it gets deep the compiled frames on it
+move to the interpreter's heap stack (see *Deep recursion*). Tail calls return a `TailCall` to a
 **trampoline**, so tail recursion runs in bounded space -- except that a tail call to another
-compiled procedure is made directly while the stack such calls hold is inside a budget (see *Tail
-calls between procedures*). Continuation capture runs a **cooperative
+compiled procedure is made directly while there is room on the stack (see *Tail calls between
+procedures*). Continuation capture runs a **cooperative
 unwind** — Pettyjohn et al.'s generalized stack inspection, with Marshall's modification replacing
 the thrown exception with a distinguished return value, which is what removes the technique's
 historical weakness.
@@ -65,7 +66,8 @@ The alternative (A) kept every continuation frame in a JavaScript array under a 
 the faster-measured design in the published literature and it was rejected for a reason that is not
 about speed: **the JavaScript call stack would be one frame deep**, so DevTools could never show
 Scheme frames, and the debugger extension could never be retired. Under B, one live Scheme frame is
-one JavaScript frame, and tail calls add none beyond the budget below.
+one JavaScript frame, until the stack is deep enough that some move to the heap, and tail calls add
+none beyond the room below.
 
 The cost of B is procedure fragmentation, which is the next section.
 
@@ -196,29 +198,26 @@ And a tail call to a continuation, made directly, throws to get where it is goin
 `TailCall` let the interpreter reinstate it without one: `fibc` ran 2.6 times slower.
 
 So a tail call is made directly only to a compiled procedure or a primitive -- a function marked
-`SCHEME_PRIMITIVE` -- and only while the stack held by direct tail calls is under a budget,
-`R.tailStack`. Anything else, and anything past the budget, returns a `TailCall` as before; a chain
-that reaches the budget unwinds to the nearest trampoline and carries on from there, so it runs in
-bounded space. Each call site adds the size of its own frame, which stays on the stack under the
-callee, and takes it off in a `finally`.
+`SCHEME_PRIMITIVE` -- and only while compiled frames have room left on the stack, `R.stack.room`
+(see *Deep recursion*, which the same count serves). Anything else, and anything without room,
+returns a `TailCall` as before; a chain that runs out of room unwinds to the nearest trampoline and
+carries on from there, so it runs in bounded space.
 
-Three things about the budget were decided by measurement rather than by argument:
+Two things about the bound were decided by measurement rather than by argument:
 
 - **It counts stack, not calls.** Frames differ by two orders of magnitude: a chain through a
   procedure with 60 locals filled V8's whole stack in about 730 calls, and one with 200 overflowed in
   400. The emitter knows each frame's size at compile time -- its locals and parameters plus the fixed
-  part of an interpreter frame -- and the limit is an eighth of V8's default stack.
-- **It is one count for the whole stack, not one per chain.** Resetting the count at every non-tail
-  call would bound each chain rather than the total, and cost 3-6% on call-heavy programs for the
-  store around every call; worse, a program recursing through long tail chains then keeps every
-  chain on the stack at once: with a limit of 100 calls a chain, one survived 132 levels of recursion
-  where it had survived 10,385. The shared count
-  keeps the guarantee simple -- direct tail calls never add more than the limit to what the stack
-  held -- at the price that a program recursing deeply *through* tail calls spends the budget and
-  gets fewer of them. `earley` is that program.
-- **It is given back in a `finally`.** An error or a continuation thrown through a direct tail call
-  skips the code after the call, and a count left high sends every later tail call to the
-  trampoline for the rest of the program. `try`/`finally` measured as free.
+  part of an interpreter frame.
+- **It is one count for the whole segment, not one per chain.** Resetting the count at every
+  non-tail call would bound each chain rather than the total: a program recursing through long tail
+  chains then keeps every chain on the stack at once, and with a limit of 100 calls a chain, one
+  survived 132 levels of recursion where it had survived 10,385.
+
+When this was first built the count held only direct tail calls, each adding its frame before the
+call and taking it off in a `finally`. Counting every frame for deep recursion replaced that: room is
+now stored before each call rather than taken and given back, which needs no `finally` and cannot be
+left wrong by an exception.
 
 A capture beneath a direct tail call needs nothing from the caller's frame, whose continuation is its
 callee's: the unwind sentinel is returned as the callee's value, and the frame is absent from the
@@ -229,7 +228,59 @@ and always returns the `TailCall`, which keeps down what the roughly 1,200 tail 
 shipped libraries and the compiler add to the generated code: 4.5-6%.
 
 Direct tail calls do show in a JavaScript stack trace, as they would in a language without proper
-tail calls; the budget bounds how many.
+tail calls; the room bounds how many.
+
+## Deep recursion
+
+The interpreter keeps its frames on the heap and recurses as deep as memory allows. Compiled
+frames are on the JavaScript stack, which holds about 5,900 of the smallest under Node's default
+stack, and the standard library the browser installs is compiled -- so there `map`, `make-list`,
+`list-copy` and `equal?` overflowed on a list of 10,000 elements, which the interpreter handles at
+100,000.
+
+The capture protocol already knew how to take compiled frames off the stack, so deep recursion uses
+it. Each procedure that calls anything takes its frame's size from `R.stack.room` on entry and stores
+what is left before each call. A fast form entered with no room does not run: it records itself and
+its arguments as a pending call (`R.flush`) and returns the unwind sentinel. Every compiled frame
+beneath it saves itself on the way out, exactly as for a capture, and the interpreter puts them on
+its heap stack and makes the pending call, with the JavaScript stack empty again. Each frame moved
+finishes, later, in its procedure's resumable form.
+
+The moved frames go on the heap stack as **one** frame, `MovedFrames`, and a later move that finds
+the last one still on top links to it. Pushed one at a time, they made the interpreter's frame stack
+as deep as the recursion, and every call from compiled code into an interpreted procedure starts a
+nested run with a copy of that stack: compiled `map` with an interpreted procedure took a second on
+20,000 elements and ran out of memory on 100,000. Held as one, it takes 110 ms on 100,000 and 0.8 s
+on a million, where the interpreter takes 4.5 s. `MovedFrames` is never changed, only replaced, since
+a continuation shares it and may be resumed more than once.
+
+- **Room is a segment's, and only some segments may move.** The interpreter resets the room whenever
+  it calls compiled code (`openCompiledSegment` in `unwind.js`), because the unwind ends there and
+  it can finish it. Anything else that calls a Scheme procedure from JavaScript -- a port primitive,
+  `js-invoke`, a class constructor, a promise's executor -- turns moving off for its duration
+  (`suspendFlush`), since it would take the sentinel for a value; compiled code beneath it can still
+  overflow as before. One way past that remains: compiled code calling a plain JavaScript function
+  directly, which calls compiled code back. The interpreter gives the setting back after a normal
+  return, and `run` gives back what it found however it ends; a `finally` at each call would sit in
+  every nested run on the JavaScript stack.
+- **It counts room left, stored, not depth added and taken away.** Adding a frame before each call
+  and taking it off after, testing at each call site, cost 5-12% on programs made of calls; storing
+  what is left before each
+  call and taking the frame once on entry, 1-4% -- and comparing room with zero, rather than depth
+  with a limit read from a second field, took `tak` from 7% to under 4%. A procedure that calls
+  nothing cannot deepen the stack and pays nothing.
+- **The limit is half the stack**, in the emitter's estimate of frame sizes, which overstates them.
+  Moving is not free, because a moved frame finishes in its resumable form: at a quarter of the stack
+  `earley`, which never overflowed, moved its outer loop and ran a fifth slower.
+- **A rest parameter's arguments count**: they arrive on the stack, and `apply` spreading a long list
+  put 20,000 of them in one frame.
+
+What this does not reach is recursion that alternates between compiled and interpreted code: an
+interpreted procedure called from compiled code runs in a nested interpreter on the JavaScript
+stack, and a move can only unwind to the innermost one. An interpreted tree walk through compiled
+`map` overflows at about 575 levels -- 648 before this, the compiled frames being a little larger
+now. Unwinding through nested interpreters is the same problem as a capture across more than one
+boundary, which `call/cc` refuses.
 
 ## Inlined primitives, and knowing they are still primitives
 
@@ -453,7 +504,7 @@ yields the real value. Sequencing is in `compiler_plan.md`.
 
 ## How this is verified
 
-- **3,426 tests**, Node and browser, via `npm test`.
+- **3,473 tests**, Node and browser, via `npm test`.
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked
   against expected results that came from Gambit — `npm run test:programs`, 8.2 s, inside `npm test`.
   This is the check that catches what unit tests structurally cannot: three compiler defects in one

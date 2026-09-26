@@ -2377,6 +2377,24 @@ both tiers.
 item of its own, ahead of compiling user code, which would extend the limit from the library to every
 program.
 
+**R75. Deep recursion's cost was not the counting the plan asked about, nor the move itself.**
+
+The plan asked first what counting depth would cost on every non-tail call. That depended almost
+entirely on how it was counted. Adding a frame before each call and taking it off after, with the
+test at each call site, cost 5-12% on programs made of calls; storing the room left before each call
+and taking the frame once on entry cost 1-4%, and 3 points of the difference on `tak` were comparing
+with zero rather than reading a second field. Storing also needs no `finally`, so the one R73's design
+used to give back tail-call stack went with it. Two costs nobody had asked about were larger. A move
+itself is cheap, but each frame moved finishes in its procedure's resumable form: with the limit at a
+quarter of the stack, `earley` moved 58 frames in four moves and ran a fifth slower. And frames moved
+one at a time made the interpreter's frame stack as deep as the recursion, which every call from
+compiled code into an interpreted procedure copies into a nested run: compiled `map` given an
+interpreted procedure took a second on 20,000 elements and ran out of memory on 100,000.
+
+*Consequence:* the limit is half the stack, and moved frames are held one interpreter frame per move,
+linked. A change that deepens the interpreter's frame stack is measured with compiled code calling
+interpreted code, since every nested run copies that stack.
+
 ---
 
 ## Appendix — the original staged plan

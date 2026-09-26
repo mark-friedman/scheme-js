@@ -4,6 +4,7 @@
  * Provides JavaScript evaluation and property access capabilities.
  */
 
+import { suspendFlush, restoreFlush } from '../../core/interpreter/unwind.js';
 import { assertString } from '../../core/interpreter/type_check.js';
 import {
     jsToScheme, schemeToJs, schemeToJsDeep, noteSchemeStore, storedToScheme
@@ -91,7 +92,14 @@ export const interopPrimitives = {
         // Use deep conversion to handle nested structures
         const jsArgs = args.map(schemeToJsDeep);
         // Convert return value back to Scheme (e.g., Number -> BigInt)
-        return jsToScheme(func.apply(obj, jsArgs));
+        // The method may call a compiled procedure back, which may not move its
+        // frames to the heap stack beneath it.
+        const flush = suspendFlush();
+        try {
+            return jsToScheme(func.apply(obj, jsArgs));
+        } finally {
+            restoreFlush(flush);
+        }
     },
 
     /**
@@ -194,7 +202,14 @@ export const interopPrimitives = {
         }
         // Convert Scheme values to JS (e.g., BigInt -> Number)
         const jsArgs = args.map(schemeToJsDeep);
-        // Note: Don't convert the returned object - it's a JS class instance
-        return new constructor(...jsArgs);
+        // Note: Don't convert the returned object - it's a JS class instance.
+        // The constructor may call a compiled procedure back, which may not
+        // move its frames to the heap stack beneath it.
+        const flush = suspendFlush();
+        try {
+            return new constructor(...jsArgs);
+        } finally {
+            restoreFlush(flush);
+        }
     }
 };

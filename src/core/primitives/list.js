@@ -128,6 +128,10 @@ export const listPrimitives = {
 
 /**
  * Appends two lists (helper for n-ary append).
+ *
+ * A loop rather than recursion: recursing once per element overflowed the
+ * JavaScript stack on a list of 10,000 elements, in either tier.
+ *
  * @param {Cons|null} list1 - First list (must be proper).
  * @param {*} list2 - Second list (can be improper tail).
  * @param {number} argPos - Argument position for error reporting.
@@ -136,10 +140,20 @@ export const listPrimitives = {
  */
 function appendTwo(list1, list2, argPos) {
     if (list1 === null) return list2;
-    if (!(list1 instanceof Cons)) {
-        throw new SchemeTypeError('append', argPos, 'list', list1);
+    const head = new Cons(null, null);
+    let last = head;
+    let rest = list1;
+    while (rest instanceof Cons) {
+        const next = new Cons(rest.car, null);
+        last.cdr = next;
+        last = next;
+        rest = rest.cdr;
     }
-    return new Cons(list1.car, appendTwo(list1.cdr, list2, argPos));
+    if (rest !== null) {
+        throw new SchemeTypeError('append', argPos, 'list', rest);
+    }
+    last.cdr = list2;
+    return head.cdr;
 }
 
 // Mark primitives that should receive raw Scheme objects (no JS bridge wrapping)

@@ -185,6 +185,34 @@ const CASES = [
   ['a tail call in a deep non-tail recursion',
     '(define (build n) (if (= n 0) (quote ()) (link n))) (define (link n) (cons n (build (- n 1))))'
       + ' (length (build 2000))'],
+  // --- deep recursion: past a depth, compiled frames move to the heap and the call goes on from there ---
+  ['non-tail recursion 100,000 calls deep',
+    '(define (count n) (if (= n 0) 0 (+ 1 (count (- n 1))))) (count 100000)'],
+  ['non-tail mutual recursion 100,000 calls deep',
+    '(define (up n) (if (= n 0) 0 (+ 1 (down (- n 1))))) (define (down n) (if (= n 0) 0 (+ 2 (up (- n 1)))))'
+      + ' (up 100000)'],
+  ['deep recursion building a list',
+    '(define (build n) (if (= n 0) (quote ()) (cons n (build (- n 1))))) (let ((l (build 100000))) (list (car l) (length l)))'],
+  ['deep recursion with a rest parameter',
+    '(define (sum . xs) (if (null? xs) 0 (+ (car xs) (apply sum (cdr xs))))) (sum 1 2 3)'
+      + ' (define (ones n) (if (= n 0) (quote ()) (cons 1 (ones (- n 1))))) (apply sum (ones 5000))'],
+  ['deep recursion with an assigned parameter',
+    '(define (f n) (set! n (- n 1)) (if (< n 0) 0 (+ 1 (f n)))) (f 50000)'],
+  ['deep recursion through a procedure with a loop',
+    '(define (f n) (if (= n 0) 0 (+ (let loop ((i 0)) (if (< i 3) (loop (+ i 1)) i)) (f (- n 1))))) (f 50000)'],
+  ['deep recursion making tail calls on the way down',
+    '(define (build n) (if (= n 0) (quote ()) (link n))) (define (link n) (cons n (build (- n 1))))'
+      + ' (length (build 100000))'],
+  ['an error raised 50,000 calls deep is caught',
+    "(define (dive n) (if (= n 0) (vector-ref (vector) n) (+ 1 (dive (- n 1)))))"
+      + " (define (count n) (if (= n 0) 0 (+ 1 (count (- n 1)))))"
+      + " (list (guard (e ((error-object? e) (error-object-message e))) (dive 50000)) (count 100000))"],
+  ['a capture 30,000 calls deep, resumed twice',
+    '(define k #f) (define resumed 0)'
+      + ' (define (grab) (call/cc (lambda (c) (set! k c) 0)))'
+      + ' (define (deep n) (if (= n 0) (grab) (+ 1 (deep (- n 1)))))'
+      + ' (let ((v (deep 30000))) (set! resumed (+ resumed 1)) (if (< resumed 3) (k resumed) (list v resumed)))'],
+
   ['a capture beneath a tail call, resumed twice',
     '(define k #f) (define resumed 0)'
       + ' (define (grab) (call/cc (lambda (c) (set! k c) 0)))'

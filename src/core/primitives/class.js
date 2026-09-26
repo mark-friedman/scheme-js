@@ -4,6 +4,7 @@
  * Provides operations to create and manipulate JS-compatible classes from Scheme.
  */
 
+import { suspendFlush, restoreFlush } from '../interpreter/unwind.js';
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
@@ -74,7 +75,15 @@ function takeSchemeConstruction(cls) {
  * @returns {*} The procedure's result.
  */
 function runConstructorProcedure(proc, thisArg, args, fromScheme) {
-    return fromScheme ? callSchemeMethod(proc, thisArg, args) : proc.apply(thisArg, args);
+    if (fromScheme) return callSchemeMethod(proc, thisArg, args);
+    // A JavaScript construction: compiled code may not move its frames to the
+    // heap stack beneath it.
+    const flush = suspendFlush();
+    try {
+        return proc.apply(thisArg, args);
+    } finally {
+        restoreFlush(flush);
+    }
 }
 
 // ============================================================================
@@ -200,7 +209,12 @@ export const classPrimitives = {
         if (takesSchemeValues(method)) {
             return callSchemeMethod(method, instance, args);
         }
-        return method.call(instance, ...args);
+        const flush = suspendFlush();
+        try {
+            return method.call(instance, ...args);
+        } finally {
+            restoreFlush(flush);
+        }
     },
 
     /**

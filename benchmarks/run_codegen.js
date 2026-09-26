@@ -25,7 +25,8 @@
  * from code that computes something else.
  *
  * Add a group when a code-generation decision is made, beside its entry in
- * `docs/compiler_plan.md`.
+ * `docs/compiler_plan.md`. A group whose calls are long can take fewer of them
+ * with `scale`.
  *
  * Usage:
  *   node benchmarks/run_codegen.js [--ops N] [--runs N] [--only group] [--json]
@@ -35,7 +36,7 @@ import { createBenchmarkInterpreter } from './lib/harness.js';
 import { tryCompileDefinition } from '../src/compiler/index.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
-import { invoke, settle } from '../src/compiler/runtime.js';
+import { settle } from '../src/compiler/runtime.js';
 import { LambdaNode } from '../src/core/interpreter/ast_nodes.js';
 
 const args = process.argv.slice(2);
@@ -158,6 +159,40 @@ const GROUPS = [
       ['mutual recursion: 10 tail calls', '(count-down ten)'],
       ['a tail call to a primitive', '(to-primitive word)']
     ]
+  },
+  {
+    name: 'recursion',
+    about: 'non-tail recursion: each procedure that calls takes its frame from the room left on the stack',
+    definitions: `
+      (define (one x) 1)
+      (define (count n) (if (= n 0) 1 (+ 0 (count (- n 1)))))
+      (define (fib n) (if (< n 2) 1 (if (= (+ (fib (- n 1)) (fib (- n 2))) 0) 0 1)))
+      (define key-a 'a)
+      (define ten 10)
+      (define hundred 100)`,
+    workloads: [
+      ['10 levels deep', '(count ten)'],
+      ['100 levels deep', '(count hundred)'],
+      ['fib 10: 177 calls, 2 a frame', '(fib ten)']
+    ]
+  },
+  {
+    // Deeper than the JavaScript stack holds compiled frames, so the frames
+    // move to the heap on the way down; the interpreter keeps them there
+    // anyway. Far fewer calls per timing, each being tens of thousands.
+    name: 'deep-recursion',
+    about: 'recursion deeper than the JavaScript stack: compiled frames move to the heap',
+    scale: 1 / 4000,
+    definitions: `
+      (define (one x) 1)
+      (define (count n) (if (= n 0) 1 (+ 0 (count (- n 1)))))
+      (define key-a 'a)
+      (define twenty-thousand 20000)
+      (define hundred-thousand 100000)`,
+    workloads: [
+      ['20,000 levels deep', '(count twenty-thousand)'],
+      ['100,000 levels deep', '(count hundred-thousand)']
+    ]
   }
 ];
 
@@ -177,7 +212,7 @@ function loopDefinition(name, call) {
  * Builds an environment holding a group, compiled or interpreted.
  * @param {Object} group - The group.
  * @param {boolean} compiled - Whether to compile its procedures.
- * @returns {Object} The environment.
+ * @returns {{interpreter: Object, env: Object}} The interpreter and environment.
  */
 function build(group, compiled) {
   const { interpreter, env } = createBenchmarkInterpreter({ compileStdlib: true });
@@ -197,20 +232,25 @@ function build(group, compiled) {
       interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
     }
   }
-  return env;
+  return { interpreter, env };
 }
 
 /**
  * Times a loop: the best of several runs, in nanoseconds per call.
- * @param {Function} loop - The loop procedure.
+ * @param {Object} interpreter - The interpreter to run it with.
+ * @param {Object} env - The environment it is defined in.
+ * @param {string} loop - The loop procedure's name.
  * @param {number} ops - Calls per run.
  * @returns {{ns: number, total: *}} Per-call time, and the loop's result.
  */
-function time(loop, ops) {
-  // `invoke` enters the procedure the way compiled code calls it, and
-  // `settle` runs its tail calls out.
-  const call = (n) => settle(invoke(loop, [BigInt(n)]));
-  call(Math.floor(ops / 10));
+function time(interpreter, env, loop, ops) {
+  // Called by the interpreter, as a program calls compiled code: compiled code
+  // may move its frames to the heap only beneath the interpreter, which the
+  // deep recursion group needs. One entry per run, not per call. `settle` runs
+  // out a tail call the loop may end in.
+  const call = (n) => settle(interpreter.run(
+    analyze(parse(`(${loop} ${n})`)[0]), env, [], undefined, { jsAutoConvert: 'raw' }));
+  call(Math.max(1, Math.floor(ops / 10)));
   let best = Infinity;
   let total;
   for (let r = 0; r < RUNS; r++) {
@@ -228,10 +268,10 @@ function time(loop, ops) {
  * @returns {Array<{label: string, ns: number, total: *}>} Net per-call figures.
  */
 function measure(group, compiled) {
-  const env = build(group, compiled);
-  const ops = compiled ? OPS : INTERPRETER_OPS;
+  const { interpreter, env } = build(group, compiled);
+  const ops = Math.max(5, Math.floor((compiled ? OPS : INTERPRETER_OPS) * (group.scale ?? 1)));
   const labels = ['baseline', ...group.workloads.map(([label]) => label)];
-  const raw = labels.map((label, i) => ({ label, ...time(env.lookup(`workload-${i}`), ops) }));
+  const raw = labels.map((label, i) => ({ label, ...time(interpreter, env, `workload-${i}`, ops) }));
   // Totals scale with the count, so compare them per call.
   return raw.map((r) => ({
     label: r.label,

@@ -5,15 +5,14 @@
  * allocated it and its argument array and then called the callee through a
  * spread -- on every tail call to anything but the procedure itself. Now a tail
  * call to a compiled procedure or a primitive is an ordinary JavaScript call,
- * while the stack those calls hold stays inside a budget; past it, and for any
- * other callee, the call is returned to the trampoline as before, so a chain of
- * tail calls still runs in bounded space.
+ * while the stack compiled frames hold stays under a limit; past it, and for
+ * any other callee, the call is returned to the trampoline as before, so a
+ * chain of tail calls still runs in bounded space.
  *
  * These pin the rule itself, which the differential cases in
  * `compiler_tests.js` cannot see: they only compare answers. Which callees are
- * called directly, that a spent budget falls back, and that the budget is
- * always given back -- including when an error passes through, which is the
- * case that would otherwise leave every later tail call on the slow path.
+ * called directly, that a spent budget falls back, and that errors passing
+ * through direct tail calls do not leave later ones on the slow path.
  */
 
 import { assert } from '../harness/helpers.js';
@@ -21,7 +20,7 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
-import { invoke, settle, tailStack, TailCall } from '../../src/compiler/runtime.js';
+import { invoke, settle, stack, TailCall } from '../../src/compiler/runtime.js';
 
 /**
  * Compiles one definition into an environment.
@@ -68,7 +67,6 @@ export async function runDirectTailCallTests(logger) {
   {
     const value = invoke(callWithOne, [env.lookup('compiled-identity')]);
     assert(logger, 'a tail call to a compiled procedure returns its value, not a TailCall', value, 1n);
-    assert(logger, 'and gives back the stack it held', tailStack.used, 0);
   }
   {
     const value = invoke(callWithOne, [env.lookup('list')]);
@@ -84,20 +82,22 @@ export async function runDirectTailCallTests(logger) {
     assert(logger, 'which runs it', settle(value), 1n);
   }
   {
-    const saved = tailStack.used;
-    tailStack.used = tailStack.limit;
+    // A procedure takes its frame from the room its caller left: here, none.
+    const saved = stack.room;
+    stack.room = 0;
     try {
       const value = invoke(callWithOne, [env.lookup('compiled-identity')]);
       assert(logger, 'with the budget spent, a tail call goes to the trampoline',
         value instanceof TailCall, true);
       assert(logger, 'and still gives the right answer', settle(value), 1n);
     } finally {
-      tailStack.used = saved;
+      stack.room = saved;
     }
   }
 
-  // Every direct tail call gives back what it took on the way out, and an
-  // error thrown through one is a way out.
+  // Depth is not given back on the way out -- each call site sets what its
+  // callee reads -- so an error thrown through direct tail calls, which skips
+  // whatever they would do after, cannot leave later ones on the slow path.
   {
     compile("(define (fail-after n) (if (= n 0) (error \"stop\" n) (fail-again (- n 1))))", env);
     compile('(define (fail-again n) (fail-after n))', env);
@@ -108,23 +108,22 @@ export async function runDirectTailCallTests(logger) {
       caught = e.message;
     }
     assert(logger, 'setup: the error reached the caller', /stop/.test(caught || ''), true);
-    assert(logger, 'an error thrown through direct tail calls leaves the budget as it was',
-      tailStack.used, 0);
+    assert(logger, 'after an error thrown through direct tail calls, tail calls are still direct',
+      invoke(callWithOne, [env.lookup('compiled-identity')]) instanceof TailCall, false);
   }
   {
-    // The same through Scheme's own handler, many times over: had each one
-    // kept what it held, the budget would be spent and every tail call after
-    // it would go back to the trampoline.
+    // The same through Scheme's own handler, many times over.
     const caught = run(interpreter, env, `
       (let loop ((i 0) (caught 0))
         (if (= i 200)
             caught
             (loop (+ i 1) (+ caught (guard (e (#t 1)) (fail-after 50))))))`);
     assert(logger, 'setup: every error was caught', caught, 200n);
-    assert(logger, 'errors caught by guard leave the budget as it was', tailStack.used, 0);
+    assert(logger, 'after errors caught by guard, tail calls are still direct',
+      invoke(callWithOne, [env.lookup('compiled-identity')]) instanceof TailCall, false);
   }
 
-  // The budget is in stack, not in calls: each call site adds its own frame's
+  // The limit is in stack, not in calls: each procedure adds its own frame's
   // size, so a procedure with many locals gets fewer direct calls before the
   // trampoline takes over. A limit counted in calls would let a chain of large
   // frames exhaust the JavaScript stack.
@@ -141,6 +140,5 @@ export async function runDirectTailCallTests(logger) {
     }
     assert(logger, 'a long chain of tail calls between large frames runs in bounded stack',
       outcome, 11175n);
-    assert(logger, 'and gives back everything it held', tailStack.used, 0);
   }
 }

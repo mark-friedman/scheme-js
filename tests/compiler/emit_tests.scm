@@ -143,11 +143,35 @@
                                           '(vector-ref) "f" '(vector-ref)))))
           (and (string-contains source "const $vectorRef = R.vectorRef") #t))))
 
-;; A tail call to anything but the procedure itself is made directly while the
-;; stack those calls hold is inside a budget, and returned to the trampoline as a
-;; `TailCall` otherwise. The budget is in stack rather than calls: each call site
-;; adds the size of its own frame, which stays on the stack under the callee.
+;; A tail call to anything but the procedure itself is made directly while
+;; compiled frames have room left on the stack, and returned to the trampoline as
+;; a `TailCall` otherwise. Room is in stack rather than calls: each procedure
+;; takes the size of its own frame from the room it is entered with.
 (test-group "emit - tail calls between procedures"
+  (define (unit-source ast globals)
+    (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
+  (define (position source text) (string-contains source text))
+  ;; (lambda (x) (g x))
+  (define small (unit-source '(lambda (x) #f #f (app (var g) ((var x)))) '(g)))
+  (test "the call is made directly, leaving the callee this procedure's room" #t
+        (and (string-contains small "$stack.room = $d; return $t") #t))
+  (test "or else returned to the trampoline" #t (and (string-contains small "return $tailCall($t") #t))
+  (test "the room is tested before the callee, which a call with none need not load" #t
+        (< (position small "$d > 0 &&") (position small "?.[$PRIM] === true")))
+  (test "a procedure that only tail-calls never moves its frames" #f
+        (and (string-contains small "$stack.flushable") #t))
+  (test "the procedure declares the room, the marker it tests and the fallback" #t
+        (and (string-contains small "$stack = R.stack")
+             (string-contains small "$PRIM = R.SCHEME_PRIMITIVE")
+             (string-contains small "$tailCall = R.tailCall")
+             #t)))
+
+;; Compiled frames are on the JavaScript stack, which holds a few thousand of
+;; them. So a procedure that calls takes its frame from the room it is entered
+;; with, stores what is left for each callee, and when entered with none moves
+;; the compiled frames beneath it to the interpreter's heap stack instead of
+;; running.
+(test-group "emit - room on the stack, and moving frames to the heap"
   (define (unit-source ast globals)
     (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
   (define (number-after source marker)
@@ -156,27 +180,34 @@
         (if (char-numeric? (string-ref source end))
             (scan (+ end 1))
             (string->number (substring source start end))))))
-  (define (position source text) (string-contains source text))
-  ;; (lambda (x) (g x))
-  (define small (unit-source '(lambda (x) #f #f (app (var g) ((var x)))) '(g)))
-  ;; (lambda (x) (h x) (h x) (h x) (h x) (h x) (h x) (g x)): six non-tail calls
-  ;; give its frame temporaries the small one does not have.
-  (define large
-    (unit-source `(lambda (x) #f #f
-                    (seq (,@(make-list 6 '(app (var h) ((var x))))
-                          (app (var g) ((var x))))))
-                 '(g h)))
-  (test "the call is made directly" #t (and (string-contains small "try { return $t") #t))
-  (test "or else returned to the trampoline" #t (and (string-contains small "return $tailCall($t") #t))
-  (test "the budget is tested before the callee, which a spent budget need not load" #t
-        (< (position small "$tailStack.used < $tailStack.limit")
-           (position small "?.[$PRIM] === true")))
-  (test "a call gives back what it took" (number-after small "$tailStack.used += ")
-        (number-after small "$tailStack.used -= "))
-  (test "a larger frame takes more of the budget" #t
-        (> (number-after large "$tailStack.used += ") (number-after small "$tailStack.used += ")))
-  (test "the procedure declares the budget, the marker it tests and the fallback" #t
-        (and (string-contains small "$tailStack = R.tailStack")
-             (string-contains small "$PRIM = R.SCHEME_PRIMITIVE")
-             (string-contains small "$tailCall = R.tailCall")
-             #t)))
+  (define (count-of source text)
+    (let loop ((from 0) (n 0))
+      (let ((at (string-contains source text from)))
+        (if at (loop (+ at 1) (+ n 1)) n))))
+  ;; (lambda (x) (g x) (g x) 1): two calls whose values are discarded.
+  (define calls
+    (unit-source '(lambda (x) #f #f (seq ((app (var g) ((var x))) (app (var g) ((var x))) (lit 1))))
+                 '(g)))
+  ;; The same with six more calls, whose frame is larger.
+  (define more
+    (unit-source `(lambda (x) #f #f (seq (,@(make-list 8 '(app (var g) ((var x)))) (lit 1)))) '(g)))
+  ;; (lambda (x) x): calls nothing.
+  (define leaf (unit-source '(lambda (x) #f #f (var x)) '()))
+  ;; (lambda (a . r) (g a) 1): a rest parameter.
+  (define rest (unit-source '(lambda (a) r #f (seq ((app (var g) ((var a))) (lit 1)))) '(g)))
+  (test "a procedure that calls takes its frame from the room it is entered with" #t
+        (and (string-contains calls "const $d = $stack.room - ") #t))
+  (test "a larger frame takes more" #t
+        (> (number-after more "const $d = $stack.room - ") (number-after calls "const $d = $stack.room - ")))
+  (test "every call stores the room it leaves for its callee, in both forms" 4
+        (count-of calls "$stack.room = $d;\n"))
+  (test "and so does each step of a pending tail call" #t
+        (and (string-contains calls "{ $stack.room = $d; $t") #t))
+  (test "entered with no room, the fast form moves the frames beneath it, passing its arguments" #t
+        (and (string-contains calls "if ($d < 0 && $stack.flushable) return $flush($proc, [s_x]);") #t))
+  (test "the resumable form never does" 1 (count-of calls "$stack.flushable"))
+  (test "a rest parameter is passed on as it arrived" #t
+        (and (string-contains rest "return $flush($proc, [s_a, ...s_r$raw]);") #t))
+  (test "and its arguments, which arrive on the stack, take room too" #t
+        (and (string-contains rest " - s_r$raw.length;") #t))
+  (test "a procedure that calls nothing takes no room" #f (and (string-contains leaf "$d") #t)))

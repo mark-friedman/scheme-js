@@ -171,7 +171,7 @@ of its own.
 │       │   ├── stepables_base.js   # Base class + register constants
 │       │   ├── ast_nodes.js        # AST node classes (Literal, If, Lambda...)
 │       │   ├── frames.js           # Continuation frame classes, incl. CompiledFrame
-│       │   ├── unwind.js           # Capturing a continuation across compiled code
+│       │   ├── unwind.js           # Capturing a continuation across compiled code; moving deep compiled frames to the heap
 │       │   ├── ast.js              # Legacy barrel file
 │       │   ├── frame_registry.js   # Frame factory functions
 │       │   ├── winders.js          # Dynamic-wind utilities
@@ -275,7 +275,7 @@ of its own.
 │      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── safety.js          # Which procedures a capture would unwind through
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
-│      └── runtime.js         # Tail-call step and budget, global cells, vector helpers, procedure marking
+│      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
 │      ├── index.js            # Barrel export

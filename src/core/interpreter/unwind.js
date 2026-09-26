@@ -110,6 +110,99 @@ export function beginCapture(pending) {
 }
 
 /**
+ * How much more stack the compiled frames above the nearest interpreter frame
+ * may take, and whether they may move to the heap when it runs out.
+ *
+ * Compiled frames live on the JavaScript stack, which holds a few thousand of
+ * them; the interpreter's live on the heap and can go as deep as memory
+ * allows. So a compiled procedure entered with no room left does not run: it
+ * asks, with `beginFlush`, to be called again from the interpreter, and
+ * unwinds. Every compiled frame beneath it saves itself on the way out, as for
+ * a capture, and `completeCapture` puts them on the interpreter's frame stack
+ * and makes the call, with the JavaScript stack empty again.
+ *
+ * `room` is in slots, a slot being one local of a frame. Compiled code stores
+ * what room it leaves before each call and takes its own frame from what it
+ * finds on entry (see `depth-entry` in `src/compiler/emit.scm`). Room rather
+ * than depth, so that on entry, and at a tail call, it is compared with zero
+ * rather than with a second field: reading one on entry to every procedure
+ * that calls cost `tak` 3%. A tail call made directly needs room as well,
+ * since the unwind cannot move its caller's frame: without it the call goes to
+ * a trampoline instead.
+ *
+ * `limit`, the room at the bottom of a segment, is half of V8's default stack,
+ * about 984 KB in Node and Chrome, in 8-byte slots; the size compiled code
+ * gives its frames overestimates them, so the stack those frames really hold
+ * is less. It is no lower because moving frames is not free: each frame moved
+ * finishes in its procedure's resumable form, which is slower, and at a
+ * quarter of the stack `earley`, which never came near overflowing, moved its
+ * outer loop there and ran a fifth slower.
+ *
+ * `flushable` is true only while the unwind can reach an interpreter frame that
+ * will finish it: in compiled code the interpreter called. Anywhere else,
+ * compiled code runs out of room without moving its frames, so it never does
+ * so beneath a JavaScript caller -- a primitive calling a procedure back, host
+ * code calling a callback, or code outside any run of the interpreter -- which
+ * would take the unwind sentinel for a value. The interpreter opens a segment
+ * with `openCompiledSegment` whenever it calls compiled code, and every
+ * JavaScript that calls a Scheme procedure closes one with `suspendFlush`; both
+ * give back what they replaced with `restoreFlush`.
+ *
+ * One way remains to reach compiled code beneath a JavaScript caller while it
+ * is flushable: compiled code calling a plain JavaScript function directly,
+ * which calls a compiled procedure back before it returns.
+ *
+ * @type {{room: number, limit: number, flushable: boolean}}
+ */
+export const compiledStack = { room: 65536, limit: 65536, flushable: false };
+
+/**
+ * Starts a segment of compiled frames directly above the interpreter, whose
+ * unwind the interpreter will finish.
+ * @returns {boolean} The `flushable` to restore afterwards.
+ */
+export function openCompiledSegment() {
+  const saved = compiledStack.flushable;
+  compiledStack.room = compiledStack.limit;
+  compiledStack.flushable = true;
+  return saved;
+}
+
+/**
+ * Stops compiled frames moving to the heap while JavaScript that is not the
+ * interpreter calls a Scheme procedure, since it would receive the unwind.
+ * @returns {boolean} The `flushable` to restore afterwards.
+ */
+export function suspendFlush() {
+  const saved = compiledStack.flushable;
+  compiledStack.flushable = false;
+  return saved;
+}
+
+/**
+ * Gives back what `openCompiledSegment` or `suspendFlush` replaced.
+ * @param {boolean} saved - What it returned.
+ * @returns {void}
+ */
+export function restoreFlush(saved) {
+  compiledStack.flushable = saved;
+}
+
+/**
+ * Begins moving the compiled frames on the JavaScript stack to the heap, from
+ * a compiled procedure entered too deep to run.
+ *
+ * @param {Function} procedure - The procedure, to be called again from the
+ *   interpreter once the frames beneath it are on its heap stack.
+ * @param {Array<*>} args - What it was called with.
+ * @returns {void}
+ */
+export function beginFlush(procedure, args) {
+  unwinding.frames = [];
+  unwinding.pending = { call: procedure, args };
+}
+
+/**
  * Begins a capture made *by* compiled code rather than beneath it.
  *
  * `call/cc` reached from a compiled procedure has no interpreter frame stack to
@@ -143,6 +236,10 @@ export function beginCompiledCapture(receiver) {
  *   continuation from a frame stack.
  * @property {function(Object, *): Object} applyReceiver - Builds the expression
  *   that applies the receiver to the continuation.
+ * @property {function(Function, Array): Object} applyCall - Builds the
+ *   expression that makes a pending call, for frames moved to the heap.
+ * @property {function(Array, Array): void} pushMoved - Puts frames moved to the
+ *   heap, outermost first, on a frame stack.
  */
 
 /**
@@ -163,7 +260,7 @@ export function completeCapture(registers, interpreter, hooks) {
     throw new Error(
       'compiled code reported a continuation capture, but none was in progress');
   }
-  const { lambdaExpr, fstack, env, boundary } = unwinding.pending;
+  const { lambdaExpr, fstack, env, boundary, call, args } = unwinding.pending;
 
   // `unwinding.frames` is innermost first, because the innermost procedure
   // reifies first as the unwind travels outward. A frame stack is innermost
@@ -171,6 +268,20 @@ export function completeCapture(registers, interpreter, hooks) {
   const compiled = unwinding.frames
     .map((f) => hooks.frameFor(f.twin, f.pc, f.slots))
     .reverse();
+
+  unwinding.frames = [];
+  unwinding.pending = null;
+
+  // Frames moved to the heap because the stack was deep go where a capture
+  // made by compiled code would put them, and then the call that was too deep
+  // to make is made. No continuation is taken, so they are pushed where they
+  // go, as the interpreter pushes any frame, rather than copied in with the
+  // whole stack.
+  if (call !== undefined) {
+    hooks.pushMoved(registers[FSTACK], compiled);
+    registers[CTL] = hooks.applyCall(call, args);
+    return true;
+  }
 
   // A capture made *by* compiled code records no stack and no boundary, because
   // there were none to record: the frames that make up the rest of the
@@ -180,9 +291,6 @@ export function completeCapture(registers, interpreter, hooks) {
   const spliced = boundary < 0
     ? [...registers[FSTACK], ...compiled]
     : [...fstack.slice(0, boundary), ...compiled, ...fstack.slice(boundary + 1)];
-
-  unwinding.frames = [];
-  unwinding.pending = null;
 
   registers[FSTACK] = spliced;
   if (env !== null) registers[ENV] = env;

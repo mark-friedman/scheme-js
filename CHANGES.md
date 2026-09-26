@@ -7427,3 +7427,129 @@ it and both now plan items (R74):
   `R.tailCall` without its check 1.
 
 3,426 tests pass in Node and 3,321 in the browser.
+
+# Walkthrough: Deep recursion in compiled code
+
+Task 27 in `docs/compiler_plan.md`. Compiled code's non-tail calls use the JavaScript stack, which
+holds about 5,900 of the smallest compiled frames under Node's default stack; the interpreter keeps
+its frames on the heap. The browser bundle installs the compiled standard library, so there `map`,
+`make-list`, `list-copy` and `equal?` overflowed on a list of 10,000 elements, which the interpreter
+handles at 100,000 (R74).
+
+## The mechanism
+
+The capture protocol already takes compiled frames off the stack, so deep recursion reuses it:
+
+- **Room.** `R.stack.room` is how much more stack, in slots, compiled frames above the nearest
+  interpreter frame may take. A procedure that calls anything takes its frame's size from it on entry
+  (`const $d = $stack.room - 23;`) and stores what is left before each call. A procedure that calls
+  nothing takes none.
+- **The move.** A fast form entered with no room returns `R.flush(itself, its arguments)`: the
+  unwind sentinel, with a pending call recorded. Every compiled frame beneath it saves itself at its
+  call site's resume point, as for a capture, and when the unwind reaches the interpreter,
+  `completeCapture` puts the saved frames on its heap stack and makes the pending call. The saved
+  frames finish later, in their procedures' resumable forms.
+- **Where it may happen.** Only where the unwind ends in the interpreter. `openCompiledSegment`
+  resets the room and allows the move whenever the interpreter calls compiled code or resumes a
+  compiled frame; every JavaScript that calls a Scheme procedure back -- the file primitives,
+  `callSchemeMethod` and `settleTailCalls`, `js-invoke` of a JavaScript method, `js-new`, a class
+  constructor or superclass method, a promise's executor, `R.callBinding`, and the interpreter's own
+  calls of anything but compiled code -- turns it off with `suspendFlush`. The interpreter gives the
+  setting back after a normal return, and `run` gives back what it found however it ends.
+- **Tail calls** made directly (task 26) now need room too, from the same count, instead of the
+  separate budget they added to and took from in a `finally`.
+- **Moved frames are one interpreter frame.** `MovedFrames` holds a move's frames in an array that is
+  never changed, and a later move that finds one on top links to it, so the interpreter's frame stack
+  grows by one frame at most however deep compiled code recurses.
+- **`append`** was a recursive JavaScript helper that overflowed at 10,000 elements in either tier;
+  it is a loop now, with the same errors.
+
+## What was measured on the way (R75)
+
+- **Counting.** Adding a frame before each call and taking it off after, testing at each call site,
+  cost 5-12% on programs made of calls. Storing the room left before each call and taking the frame
+  once on entry cost 1-4%. Of what remained, 3 points on `tak` were comparing depth with a limit read
+  from a second field; room compared with zero does not read one. The move's test at entry costs 1-2
+  points more on `fibfp`, `destruc` and `tak`, measured by leaving it out.
+- **Where to move.** At a quarter of the stack, `earley`, which never came near overflowing, moved
+  58 frames in four moves -- its outer loop among them, which then ran in its resumable form -- and
+  ran a fifth slower. At half, it does not move at all.
+- **Moved frames one at a time** made the interpreter's frame stack as deep as the recursion, and
+  every call from compiled code into an interpreted procedure starts a nested run with a copy of it:
+  compiled `map` given an interpreted procedure took a second on 20,000 elements and ran out of memory
+  on 100,000. As one linked frame: 110 ms on 100,000, 0.8 s on a million, where the interpreter
+  takes 4.5 s.
+- **A `finally` at the interpreter's call of compiled code** cost recursion alternating between
+  compiled and interpreted code 8% of the depth it reaches; `run` restoring the setting replaced it.
+- **Rest arguments** arrive on the stack: `apply` spreading a 20,000-element list put them all in one
+  frame, which now counts them.
+
+## Measured
+
+The canonical suite against the task 26 tree, compiled, best of three alternated: `vector` 1.02x,
+`bignum` and `continuation` 1.01x, `call` 1.00x, `fixnum` and `flonum` 0.99x (`fibfp` 0.94x), `list`
+0.98x (`earley` and `quicksort` 0.96x). `string` measured 0.94x and re-measured at 1.02x alternated
+eight times, which leaves `fibfp` (6%), `earley` and `quicksort` (5%) as the real costs. The
+interpreter tier did not change. Against the interpreter the compiled tier is `flonum` 120-122x,
+`call` 83-86x, `fixnum` 57-58x, `vector` 37-38x, `list` 23x, `continuation` 4.2-4.3x, `bignum` 1.2x,
+`string` 1.0x.
+
+`MovedFrames` first ran the frame it resumed from its own `step`; `earley`, whose outer loop is among
+the frames it moves, ran 13% slower than with frames moved one at a time, with the same frames moved
+and resumed. Handing the frame back to the interpreter to run instead recovered it.
+
+A `recursion` group and a `deep-recursion` group in `benchmarks/run_codegen.js`, which now calls each
+workload through the interpreter, as a program does, since compiled code moves its frames only
+beneath it:
+
+| | compiled | interpreted |
+|---|---|---|
+| 10 levels deep | 126 ns (132 before) | 7.5 µs |
+| 100 levels deep | 1.7 µs (1.7 before) | 72 µs |
+| `fib` 10 | 1.9 µs (1.9 before) | 139 µs |
+| 20,000 levels deep | 1.8 ms (overflowed) | 16.9 ms |
+| 100,000 levels deep | 10.2 ms (overflowed) | 96 ms |
+
+A frame moved finishes in its resumable form, so recursion past the limit costs about 100 ns a level
+against 17 ns within it -- still a ninth of the interpreter's.
+
+Generated code: 6.3% larger for the libraries, 9.5% for the compiler; gzipped, 4.2% and 6.6%.
+
+## What it does not reach
+
+- **Recursion alternating between compiled and interpreted code.** An interpreted procedure called
+  from compiled code runs in a nested interpreter on the JavaScript stack, and a move can only unwind
+  to the innermost one. An interpreted tree walk through compiled `map` overflows at about 575
+  levels, against 648 before. Plan item 31, with the one way left for the unwind to reach
+  JavaScript: compiled code calling a plain JavaScript function directly, which calls compiled code
+  back.
+- Found on the way: **`call-with-port` does not exist** (plan item 34).
+
+## Tests
+
+- `tests/functional/deep_recursion_tests.js`: the compiled standard library on 100,000-element lists
+  -- `make-list`, `map` with one list and two, `list-copy`, `equal?`, `append` of two and of three,
+  `list->vector`, `vector->list`, `for-each` -- against the interpreted library, which must itself
+  answer; `append`'s error; that the frame stack stays under 20 frames at the bottom of a recursion
+  100,000 deep; and where compiled code may move its frames: beneath the interpreter, and beneath an
+  interpreted procedure JavaScript called, but not beneath JavaScript the interpreter called, a
+  Scheme or JavaScript method `js-invoke` calls, JavaScript that caught an error thrown out of an
+  interpreter it started, or outside any run.
+- Nine differential cases: non-tail recursion, mutual recursion and list building 100,000 deep; a
+  rest parameter through `apply`; an assigned parameter; a procedure with a loop; tail calls on the
+  way down; an error raised 50,000 deep and caught, then recursion 100,000 deep again; a capture
+  30,000 deep, resumed twice.
+- Scheme tests in `tests/compiler/emit_tests.scm` of the room taken on entry and stored at calls,
+  the move at entry, its absence from the resumable form and from procedures that call nothing, and
+  a rest parameter's arguments; the task 26 tail-call tests rewritten for room.
+- Mutations, each rebuilt and run against the whole suite: moving frames one at a time fails the
+  frame-stack test; letting every JavaScript the interpreter calls allow the move fails two boundary
+  tests; not restoring the setting when a run ends crashes the functional suite; leaving out the move,
+  or the stores at call sites, overflows 15-19 tests; not counting rest arguments overflows the
+  `apply` case; `callSchemeMethod` or `js-invoke` keeping the setting each fails its boundary test;
+  taking the pending call for a capture fails 17; the resumable form without its room fails the
+  programs that resume a compiled frame.
+
+3,473 tests pass in Node and 3,368 in the browser. In the browser's own entry point, on a fresh
+page, `map` with an interpreted procedure over 100,000 elements, `list-copy`, `equal?` and `append` all
+answer, where each overflowed.

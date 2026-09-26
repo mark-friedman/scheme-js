@@ -16,7 +16,7 @@ import { Cons } from './cons.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
 import { SchemeApplicationError, SchemeError } from './errors.js';
-import { UNWIND, completeCapture } from './unwind.js';
+import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlush } from './unwind.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
@@ -572,6 +572,15 @@ export function continueApplication(exprs, index, values, env, registers, interp
         // properly track dynamic-wind frames for unwinding/rewinding.
         interpreter.pushJsContext(registers[FSTACK]);
 
+        // Compiled code called from here may move its frames to the heap
+        // stack when the JavaScript stack gets deep, since the unwind that
+        // does it ends here; beneath any other function it would not. Given
+        // back after a normal return only: after an exception, `run` gives back
+        // what it found on entry, and until then every call out of this run
+        // sets it again. A `finally` here would sit in every nested run on the
+        // JavaScript stack, and cost recursion alternating between compiled
+        // and interpreted code 8% of the depth it can reach.
+        const flush = func.$compiled === true ? openCompiledSegment() : suspendFlush();
         let result;
         try {
             // If it's a foreign JS function (not a Scheme closure/primitive),
@@ -589,6 +598,7 @@ export function continueApplication(exprs, index, values, env, registers, interp
             }
 
             result = func(...appliedArgs);
+            restoreFlush(flush);
         } finally {
             // Pop the context after JS returns (or throws)
             interpreter.popJsContext();
@@ -862,12 +872,17 @@ export class CompiledFrame extends Executable {
         // is what makes a continuation multi-shot rather than one-shot.
         const frame = { ...this.slots, $r: registers[ANS] };
 
+        // The procedure resumes directly above the interpreter's frames, so
+        // what it calls may move its frames to the heap stack as well. Given
+        // back as for a call the interpreter makes; see `continueApplication`.
+        const flush = openCompiledSegment();
         let result = this.twin(this.pc, frame);
         while (result instanceof TailCall) {
             const raw = result.func[SCHEME_RAW_CALL];
             result = raw === undefined
                 ? result.func(...result.args) : raw(...result.args);
         }
+        restoreFlush(flush);
 
         // Reinstating this frame ran code that captured a continuation of its
         // own. The frame's remaining work went into that capture on the way
@@ -880,6 +895,70 @@ export class CompiledFrame extends Executable {
 
         registers[ANS] = result;
         return false;
+    }
+}
+
+/**
+ * Compiled frames moved to the heap because the JavaScript stack got deep, as
+ * one interpreter frame.
+ *
+ * Moving them one frame each made the interpreter's frame stack as deep as the
+ * recursion, and every call from compiled code into an interpreted procedure
+ * starts a nested run with a copy of that stack -- so `map`, compiled, given an
+ * interpreted procedure and a list of 20,000 elements took a second, and ran
+ * out of memory at 100,000. Held here, a move adds at most one frame: one that
+ * finds the frames of an earlier move on top of the stack, still waiting,
+ * links to them instead.
+ *
+ * Nothing here is ever changed, only replaced, because a continuation shares
+ * the frames of the stack it was taken from and may be resumed more than once.
+ */
+export class MovedFrames extends Executable {
+    /**
+     * @param {Array<CompiledFrame>} frames - Outermost first.
+     * @param {number} top - The index of the innermost frame not yet resumed.
+     * @param {MovedFrames|null} below - The frames of an earlier move, beneath.
+     */
+    constructor(frames, top, below) {
+        super();
+        this.frames = frames;
+        this.top = top;
+        this.below = below;
+    }
+
+    /**
+     * Resumes the innermost frame, leaving the rest to be resumed after it.
+     *
+     * The frame is handed back to the interpreter to run, rather than run from
+     * here: a resumed frame can be a long-running outer loop, and run from here
+     * `earley`'s ran 13% slower.
+     *
+     * @param {Array} registers - The interpreter registers.
+     * @param {Object} interpreter - The interpreter.
+     * @returns {boolean} True: the frame is the next thing to run.
+     */
+    step(registers, interpreter) {
+        const rest = this.top > 0 ? new MovedFrames(this.frames, this.top - 1, this.below) : this.below;
+        if (rest !== null) registers[FSTACK].push(rest);
+        registers[CTL] = this.frames[this.top];
+        return true;
+    }
+}
+
+/**
+ * Puts compiled frames moved to the heap onto the frame stack, as a
+ * `MovedFrames` linked to an earlier one on top if there is one.
+ * @param {Array} fstack - The frame stack.
+ * @param {Array<CompiledFrame>} frames - The frames, outermost first.
+ * @returns {void}
+ */
+function pushMovedFrames(fstack, frames) {
+    if (frames.length === 0) return;
+    const top = fstack[fstack.length - 1];
+    if (top instanceof MovedFrames) {
+        fstack[fstack.length - 1] = new MovedFrames(frames, frames.length - 1, top);
+    } else {
+        fstack.push(new MovedFrames(frames, frames.length - 1, null));
     }
 }
 
@@ -898,7 +977,10 @@ const CAPTURE_HOOKS = {
     // there is no expression left to evaluate.
     applyReceiver: (receiver, continuation) => new TailAppNode(
         receiver instanceof Executable ? receiver : new LiteralNode(receiver),
-        [new LiteralNode(continuation)])
+        [new LiteralNode(continuation)]),
+    applyCall: (procedure, args) => new TailAppNode(
+        new LiteralNode(procedure), args.map((arg) => new LiteralNode(arg))),
+    pushMoved: pushMovedFrames
 };
 
 // =============================================================================

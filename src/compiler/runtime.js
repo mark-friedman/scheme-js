@@ -16,7 +16,9 @@
 import { TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../core/interpreter/values.js';
 // The capture protocol belongs to the interpreter, which owns what a
 // continuation is; this module only makes it reachable from generated code.
-import { UNWIND, reify, beginCompiledCapture } from '../core/interpreter/unwind.js';
+import {
+  UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendFlush, restoreFlush
+} from '../core/interpreter/unwind.js';
 import { SchemeError, SchemeApplicationError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
 // Kept by the interpreter, which sees every binding write; generated code only
@@ -66,7 +68,14 @@ export function captureUnderPrimitive() {
  * @throws {SchemeError} If a continuation was captured beneath it.
  */
 export function callBinding(fn, args) {
-  const value = settle(invoke(fn, args));
+  // No resume point, so compiled code beneath may not move its frames either.
+  const saved = suspendFlush();
+  let value;
+  try {
+    value = settle(invoke(fn, args));
+  } finally {
+    restoreFlush(saved);
+  }
   if (value === UNWIND) captureUnderPrimitive();
   return value;
 }
@@ -114,7 +123,7 @@ export function vectorSet(vector, index, value) {
 }
 
 /**
- * A tail call a call site does not make directly (see `tailStack`), returned
+ * A tail call a call site does not make directly (see `stack`), returned
  * to the trampoline.
  *
  * A callee that is not a function is not a procedure, and is reported here as
@@ -193,45 +202,40 @@ export function invoke(fn, args) {
 }
 
 /**
- * The JavaScript stack held by tail calls made directly, and how much they may
- * hold.
+ * How much more stack compiled frames above the nearest interpreter frame may
+ * take, in slots, and whether they may move to the heap when it runs out:
+ * `compiledStack` in `src/core/interpreter/unwind.js`, which owns it because
+ * the interpreter opens and closes the segments it measures. Generated code
+ * takes its frame from `room` on entry, stores what is left before each call,
+ * makes a tail call directly only while room is left, and with none, where
+ * `flushable` allows, moves its frames to the heap with `flush`.
  *
- * A tail call to a compiled procedure or a primitive is made as an ordinary
- * JavaScript call rather than returned to the trampoline as a `TailCall`,
- * which allocated the pending call and its arguments and then called through a
- * spread -- a fifth of `earley`'s time, and an eighth more in the collector.
- * But a direct tail call leaves its caller's frame on the stack, so an
- * unbroken chain of them would grow the stack without bound where Scheme
- * requires constant space. So each call site adds its own frame's size to
- * `used` before calling and takes it off after, and calls directly only while
- * `used` is under `limit`; past that it returns a `TailCall`, which unwinds
- * the chain to the nearest trampoline.
- *
- * Sizes are in slots, a slot being one local of a frame, as the emitter counts
- * them. The measure is stack rather than calls because frames differ by two
- * orders of magnitude: a chain of a procedure with 60 locals filled the whole
- * stack in about 730 calls. The limit is an eighth of V8's default stack --
- * about 984 KB, in Node and in Chrome -- in 8-byte slots.
- *
- * It is a count shared by every compiled procedure, not a property of any one
- * chain, so frames beneath a non-tail call count too, and a program recursing
- * deeply through tail calls gets fewer direct ones; what it guarantees is that
- * direct tail calls never add more than the limit to what the stack held
- * before them. The call site gives its share back in a `finally`, so an error
- * or a continuation thrown through it cannot leave the count high -- which
- * would otherwise send every later tail call to the trampoline.
- *
- * @type {{used: number, limit: number}}
+ * @type {{room: number, limit: number, flushable: boolean}}
  */
-export const tailStack = { used: 0, limit: 16384, flushAt: 1e9 };
+export const stack = compiledStack;
 
-export function flush(callee, args) { throw new Error('flush: not yet'); }
+/**
+ * Moves the compiled frames on the JavaScript stack to the interpreter's heap
+ * stack, from a procedure entered too deep to run. Every compiled frame
+ * beneath it saves itself on seeing the unwind sentinel, as it would for a
+ * continuation capture, and the interpreter then calls the procedure again
+ * with the JavaScript stack empty.
+ *
+ * @param {Function} procedure - The procedure that was entered.
+ * @param {Array<*>} args - Its arguments.
+ * @returns {symbol} `UNWIND`, always.
+ */
+export function flush(procedure, args) {
+  beginFlush(procedure, args);
+  return UNWIND;
+}
+
 
 /**
  * Performs one step of a pending tail call.
  *
  * Compiled procedures signal a tail call they do not make directly (see
- * `tailStack`) by returning the interpreter's own `TailCall`, which is why an
+ * `stack`) by returning the interpreter's own `TailCall`, which is why an
  * interpreted procedure and a compiled one are interchangeable at a call site
  * in either direction.
  *

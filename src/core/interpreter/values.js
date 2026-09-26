@@ -10,6 +10,7 @@
  * anywhere they appear (in variables, arrays, objects, Maps, etc.).
  */
 
+import { suspendFlush, restoreFlush } from './unwind.js';
 import { LiteralNode, TailAppNode } from './ast_nodes.js';
 import { Cons } from './cons.js';
 import { jsToScheme } from './js_interop.js';
@@ -313,10 +314,18 @@ export class TailCall {
  * @returns {*} The settled value.
  */
 export function settleTailCalls(result) {
-    while (result instanceof TailCall && typeof result.func === 'function') {
-        const raw = result.func[SCHEME_RAW_CALL];
-        const args = result.args || [];
-        result = raw === undefined ? result.func(...args) : raw(...args);
+    if (!(result instanceof TailCall)) return result;
+    // A primitive is the caller here, which could not receive the unwind that
+    // moves compiled frames to the heap stack.
+    const flush = suspendFlush();
+    try {
+        while (result instanceof TailCall && typeof result.func === 'function') {
+            const raw = result.func[SCHEME_RAW_CALL];
+            const args = result.args || [];
+            result = raw === undefined ? result.func(...args) : raw(...args);
+        }
+    } finally {
+        restoreFlush(flush);
     }
     return result;
 }
@@ -350,7 +359,13 @@ export function callSchemeMethod(proc, thisArg, args) {
         return method(thisArg, args);
     }
     // A compiled procedure may return a pending tail call rather than a value.
-    return settleTailCalls(proc.apply(thisArg, args));
+    // It may not move its frames to the heap stack beneath this JavaScript.
+    const flush = suspendFlush();
+    try {
+        return settleTailCalls(proc.apply(thisArg, args));
+    } finally {
+        restoreFlush(flush);
+    }
 }
 
 /**

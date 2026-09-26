@@ -1,3 +1,4 @@
+import { suspendFlush, restoreFlush } from '../../interpreter/unwind.js';
 import { settleTailCalls } from '../../interpreter/values.js';
 import {
     Port, EOF_OBJECT,
@@ -13,6 +14,23 @@ import { readExpressionFromPort } from './reader_bridge.js';
 import { list } from '../../interpreter/cons.js';
 import { intern } from '../../interpreter/symbol.js';
 import { Char } from '../char_class.js';
+
+/**
+ * Calls a Scheme procedure a primitive here was given, from which compiled
+ * code may not move its frames to the heap stack: the unwind would come back
+ * to the primitive, which would take it for the procedure's value and close
+ * its port.
+ * @param {function(): *} call - The call.
+ * @returns {*} What it returns.
+ */
+function withoutFlush(call) {
+    const flush = suspendFlush();
+    try {
+        return call();
+    } finally {
+        restoreFlush(flush);
+    }
+}
 
 // ============================================================================
 // Current Ports (Global State)
@@ -128,7 +146,7 @@ export const ioPrimitives = {
         if (typeof proc !== 'function') throw new Error('call-with-input-file: expected procedure');
         const port = new FileInputPort(filename);
         try {
-            return settleTailCalls(proc(port));
+            return settleTailCalls(withoutFlush(() => proc(port)));
         } finally {
             if (port.isOpen) port.close();
         }
@@ -139,7 +157,7 @@ export const ioPrimitives = {
         if (typeof proc !== 'function') throw new Error('call-with-output-file: expected procedure');
         const port = new FileOutputPort(filename);
         try {
-            return settleTailCalls(proc(port));
+            return settleTailCalls(withoutFlush(() => proc(port)));
         } finally {
             if (port.isOpen) port.close();
         }
@@ -152,7 +170,7 @@ export const ioPrimitives = {
         const old = currentInputPort;
         currentInputPort = port;
         try {
-            return settleTailCalls(thunk());
+            return settleTailCalls(withoutFlush(() => thunk()));
         } finally {
             currentInputPort = old;
             if (port.isOpen) port.close();
@@ -166,7 +184,7 @@ export const ioPrimitives = {
         const old = currentOutputPort;
         currentOutputPort = port;
         try {
-            return settleTailCalls(thunk());
+            return settleTailCalls(withoutFlush(() => thunk()));
         } finally {
             currentOutputPort = old;
             if (port.isOpen) port.close();

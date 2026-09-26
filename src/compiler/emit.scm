@@ -272,7 +272,6 @@
          (if (cadr st)
              (string-append "if (" (expr (cadr st)) " === $UNWIND) { " spill " }")
              spill)))
-      ((charge) (string-append "$tailStack.used " (cadr st) " " (number->string (frame-size form)) ";"))
       ((tail)
        (let* ((callee (expr (cadr st)))
               (arglist (string-join (map expr (caddr st)) ", "))
@@ -283,9 +282,8 @@
          ;; the generated code.
          (if (twin? form)
              fallback
-             (string-append "if ($tailStack.used < $tailStack.limit && " callee "?.[$PRIM] === true) { "
-                            "$tailStack.used += " size "; "
-                            "try { return " callee "(" arglist "); } finally { $tailStack.used -= " size "; } } "
+             (string-append "if ($d > 0 && " callee "?.[$PRIM] === true) { "
+                            "$stack.room = $d; return " callee "(" arglist "); } "
                             fallback))))
       (else (error "emit: unknown statement" st)))))
 
@@ -295,8 +293,7 @@
 ;;  * address, frame pointer, context, function, argument count, bytecode and
 ;;  * its offset, and the receiver. A frame the optimizing compiler has built is
 ;;  * smaller, so this overestimates hot code, which errs the safe way. It is
-;;  * what a direct tail call charges to `R.tailStack`, since its caller's frame
-;;  * stays on the stack under the callee.
+;;  * what a procedure takes from the room it is entered with (see `depth-entry`).
 ;;  * @param {form} form - The emission, after every local has been declared.
 ;;  * @returns {integer} Slots.
 ;;  */
@@ -306,6 +303,53 @@
        (length (lambda-params ir))
        (if (lambda-rest ir) 1 0)
        8)))
+
+;; /**
+;;  * The lines that begin a procedure which calls anything: the room it leaves,
+;;  * `$d`, and in the fast form the test that moves compiled frames to the heap.
+;;  *
+;;  * Compiled frames live on the JavaScript stack, which holds a few thousand of
+;;  * them, where the interpreter's live on the heap. So how much more stack the
+;;  * compiled frames above the nearest interpreter frame may take is kept, in
+;;  * slots (see `frame-size`), in `R.stack.room`: each call site stores the room
+;;  * its procedure leaves before calling, and a procedure entered takes its own
+;;  * frame from what it finds there. A fast form entered with no room left does
+;;  * not run: it returns the unwind sentinel with itself and its arguments
+;;  * recorded as a pending call (`R.flush`), each compiled frame beneath it saves
+;;  * itself on the way out as it would for a continuation capture, and the
+;;  * interpreter puts the saved frames on its heap stack and makes the call from
+;;  * there, with the JavaScript stack empty again -- if the interpreter is there
+;;  * to do it, which `R.stack.flushable` says; see `compiledStack` in
+;;  * `src/core/interpreter/unwind.js`. The test is at entry rather than at each
+;;  * call site because a procedure is entered once and may call from many
+;;  * places: the arguments recorded for the call are its parameters.
+;;  *
+;;  * Room is stored before a call rather than taken before and given back
+;;  * after, so returning restores nothing and an exception that skips the code
+;;  * after a call cannot leave it wrong: the next call site stores it again.
+;;  * Counting that way, on every call, measured at 1-4% on programs made of
+;;  * calls, against 5-12% for taking and giving back, testing at each call. A procedure that calls
+;;  * nothing cannot deepen the stack and gets none of it.
+;;  *
+;;  * The resumable form is entered only by the interpreter, directly above its
+;;  * frames, so it keeps room for its callees but never moves its frames.
+;;  *
+;;  * @param {form} form - The emission, after its body.
+;;  * @param {list} args - The fast form's arguments, as JavaScript text.
+;;  * @returns {list} Lines of JavaScript.
+;;  */
+(define (depth-entry form args)
+  (let* ((rest (lambda-rest (form-ir form)))
+         ;; Arguments arrive on the stack, and a rest parameter's can be any
+         ;; number: `apply` spreading a long list is the case.
+         (spread (if (and rest (not (twin? form))) (string-append " - " (js-name rest) "$raw.length") ""))
+         (depth (string-append "const $d = $stack.room - " (number->string (frame-size form)) spread ";")))
+    (cond ((not (form-depth form)) '())
+          ((and (eq? (form-depth form) 'call) (not (twin? form)))
+           (list depth
+                 (string-append "if ($d < 0 && $stack.flushable) return $flush(" (procedure-name form)
+                                ", [" (string-join args ", ") "]);")))
+          (else (list depth)))))
 
 (define (goto-text n) (string-append "$pc = " (number->string n) "; continue;"))
 
@@ -410,7 +454,7 @@
 ;;  */
 (define-record-type form
   (make-form name ir unit mode path counter labels loops loop-targets declared
-             out blocks block-count current sites frames)
+             out blocks block-count current sites frames depth)
   form?
   (name form-name)
   (ir form-ir)
@@ -427,7 +471,8 @@
   (block-count form-block-count set-form-block-count!)
   (current form-current set-form-current!)
   (sites form-sites set-form-sites!)
-  (frames form-frames set-form-frames!))
+  (frames form-frames set-form-frames!)
+  (depth form-depth set-form-depth!))
 
 ;; /**
 ;;  * A fresh emission of a procedure.
@@ -439,7 +484,7 @@
 ;;  * @returns {form} The emission.
 ;;  */
 (define (new-form name ir u mode path)
-  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '()))
+  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f))
 
 (define (twin? form) (eq? (form-mode form) 'twin))
 (define (plan-of form) (unit-plan (form-unit form)))
@@ -766,8 +811,13 @@
 ;;  * enters Scheme from JavaScript and converts -- exact integers to doubles --
 ;;  * so it is called through its raw entry. Which kind the callee is belongs to
 ;;  * the value, not the name, so it is tested at the call. The callee may
-;;  * return a pending tail call, which is run out here, or report a capture,
-;;  * which this frame then joins.
+;;  * return a pending tail call, which is run out here, or report a capture --
+;;  * or that there was no room on the stack for it to run (see `depth-entry`)
+;;  * -- which this frame then joins.
+;;  *
+;;  * Before the call it stores the room this procedure leaves for the callee,
+;;  * and again before each step of a pending tail call, since whatever returned
+;;  * it had stored room of its own.
 ;;  *
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} node - A `call` IR node.
@@ -782,11 +832,11 @@
          (arglist (join-exprs args ", ")))
     (emit! form (list 'assign (js callee) fn))
     (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
-    (if (not (twin? form)) (emit! form (list 'charge "+=")))
+    (set-form-depth! form 'call)
+    (emit! form (list 'text "$stack.room = $d;"))
     (emit! form (list 'assign (js result)
                       (js raw " === undefined ? " callee "(" arglist ") : " raw "(" arglist ")")))
-    (if (not (twin? form)) (emit! form (list 'charge "-=")))
-    (emit! form (list 'raw (js "while (" result " instanceof $TailCall) { "
+    (emit! form (list 'raw (js "while (" result " instanceof $TailCall) { $stack.room = $d; "
                                result " = $step(" result "); }")))
     (if (twin? form)
         (resume-after! form node result)
@@ -939,21 +989,21 @@
 ;; /**
 ;;  * Emits a tail call to a callee that is not known to be this procedure.
 ;;  *
-;;  * A compiled procedure or a primitive is called directly, as long as the
-;;  * stack direct tail calls hold is under its budget (`tailStack` in
-;;  * `runtime.js`), which the call charges with the size of this frame. Past
-;;  * the budget, and for any other callee, the call is returned as a
-;;  * `TailCall`, so whoever is trampolining -- compiled or interpreted --
+;;  * A compiled procedure or a primitive is called directly, as long as this
+;;  * procedure leaves room on the stack (see `depth-entry`); the callee then
+;;  * takes its frame from that room, since this frame stays on the stack
+;;  * beneath it. With no room, and for any other callee, the call is returned
+;;  * as a `TailCall`, so whoever is trampolining -- compiled or interpreted --
 ;;  * continues it and a chain of tail calls runs in bounded space. An
 ;;  * interpreted closure is among the others because it is entered through the
 ;;  * interpreter, which a trampoline reaches as cheaply, and a continuation
 ;;  * because calling one directly throws to get where it is going: `fibc` ran
 ;;  * 2.6 times slower when its tail calls to continuations were made directly.
 ;;  *
-;;  * The budget is tested before the callee, so a spent budget costs one
+;;  * The room is tested before the callee, so a call with none costs one
 ;;  * comparison rather than a property load on whatever the callee is: tested
-;;  * the other way round, `earley`, which recurses deeply enough to spend it,
-;;  * ran slower than it did before any call was made directly.
+;;  * the other way round, `earley`, which recurses deeply, ran slower than it
+;;  * did before any call was made directly.
 ;;  *
 ;;  * Only the fast form tries the direct call; the resumable form, which runs
 ;;  * only when a continuation is resumed, always takes the fallback. The
@@ -972,6 +1022,7 @@
 ;;  * @returns {unspecified}
 ;;  */
 (define (emit-transfer! form fn args)
+  (if (and (not (twin? form)) (not (form-depth form))) (set-form-depth! form 'tail))
   (let ((callee (temp! form)))
     (emit! form (list 'assign (js callee) fn))
     (emit! form (list 'tail (js callee) args))))
@@ -1267,10 +1318,11 @@
                             (list (string-append "let " (string-join (map symbol->string declared) ", ") ";"))))
            (body (map (lambda (st) (render-statement form st)) (reverse (form-out form))))
            (indent (lambda (lines) (map (lambda (l) (string-append "  " l)) lines)))
+           (entry (depth-entry form (append params (if rest (list (string-append "..." (js-name rest) "$raw")) '()))))
            (lines (if (form-loops form)
-                      (append declaration (list "$loop: for (;;) {")
+                      (append declaration entry (list "$loop: for (;;) {")
                               (indent prologue) (indent body) (list "}"))
-                      (append declaration prologue body))))
+                      (append declaration entry prologue body))))
       (string-append "function " name "(" signature ") {\n"
                      (string-join (indent lines) "\n") "\n}"))))
 
@@ -1330,6 +1382,7 @@
         (string-append "function " name "($pc, $f) {\n"
                        "  let " names ";\n"
                        "  ({ " names " } = $f);\n"
+                       (string-join (map (lambda (l) (string-append "  " l "\n")) (depth-entry form '())) "")
                        "  for (;;) switch ($pc) {\n"
                        (string-join cases "\n") "\n"
                        "      default: throw new Error('" name ": bad resume point ' + $pc);\n"
@@ -1421,7 +1474,7 @@
   '(("$TailCall" . "R.TailCall") ("$step" . "R.step")
     ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")
     ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")
-    ("$tailStack" . "R.tailStack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")))
+    ("$stack" . "R.stack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")))
 
 ;; /**
 ;;  * The declaration of the runtime values a procedure's code uses.
