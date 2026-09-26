@@ -7553,3 +7553,52 @@ Generated code: 6.3% larger for the libraries, 9.5% for the compiler; gzipped, 4
 3,473 tests pass in Node and 3,368 in the browser. In the browser's own entry point, on a fresh
 page, `map` with an interpreted procedure over 100,000 elements, `list-copy`, `equal?` and `append` all
 answer, where each overflowed.
+
+# Walkthrough: The compiler plan, reordered after an assessment
+
+No code changed. An outside assessment of the compiler effort
+(`docs/compiler_assessment_2026-09-26.md`) found the design sound and the plan ordered for the
+benchmark suite's per-class numbers rather than for the tier's first user -- this implementation's
+own REPLs and build -- whom twenty-seven tasks had not reached. Its claims were checked before any
+were taken.
+
+## Checked, and what they showed
+
+- **A refused capture is reachable today** (R76). The assessment, like the design document, held
+  the capture across two compiled/interpreted boundaries unreachable until user code compiles. With
+  the compiled standard library, a capture inside a callback of `map` inside a callback of
+  `for-each` is refused; with the interpreted library it answers.
+- **A pause inside a nested run is not honoured.** Only `runAsync` checks `isPaused`, and compiled
+  code reaches an interpreted procedure through a synchronous `run`. Confirmed by reading; not yet
+  exercised by a test.
+- **Exactness at the JavaScript boundary depends on the call path** (R77). A JavaScript function's
+  integral result is exact through `js-invoke` and inexact through a direct call. The assessment had
+  called the round trip's loss "by design"; the asymmetry is not.
+- **The CLI REPL always attaches a debugger**, so the assessment's first debugging policy --
+  interpret user code while a debugger is enabled -- would have kept the CLI REPL from ever
+  compiling. The trigger is a breakpoint or stepping instead.
+- **Its escape-based design for exception handling** was right for `guard`'s escape and `exit` and
+  wrong for `with-exception-handler`, `raise-continuable`, a re-raising `guard` and re-entered
+  `dynamic-wind`, none of which unwind before running Scheme code.
+
+## What changed in the documents
+
+- `docs/compiler_plan.md`: renumbered 28-53. Reaching the first user comes first: errors raised in
+  compiled code, the compliance suites in both library configurations, unwinding through nested
+  interpreters, a differential fuzzer, CI for this branch and the browser, the debugging design with
+  a first policy, then enabling the tier and compiling top-level expressions. Then the comparison
+  with Gambit, Racket and plain JavaScript, the decline policy on real code, lowering failure
+  rewritten as an escape once escapes compile, and source maps. New entries for the fuzzer, CI, the
+  debugging design, top-level expressions, the comparison, the decline policy, the lowering rewrite
+  and the boundary's exactness. Four decisions recorded: the first user comes first;
+  a refused capture gates enabling the tier; the Chrome extension is not a goal; strict CSP
+  degrades gracefully rather than constraining design.
+- `docs/compiler_design.md`: the refused capture's reachability, what declining costs real programs
+  and what each control form actually needs, what the two debugging mechanisms leave open with the
+  two-context target, CSP as a guarantee rather than a constraint, all six constraints scored, and
+  the verification gaps.
+- `docs/Interoperability.md`: numbers at the boundary, as they are.
+- `ROADMAP.md`: the deviations list, the interop and numeric-tower rows corrected, the pre-compiler
+  numeric-optimization list replaced by a pointer, and the extension marked as off this branch and
+  no longer a goal.
+- `docs/compiler_findings.md`: R76, R77.

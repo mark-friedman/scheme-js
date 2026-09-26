@@ -65,9 +65,10 @@ historical weakness.
 The alternative (A) kept every continuation frame in a JavaScript array under a trampoline. It is
 the faster-measured design in the published literature and it was rejected for a reason that is not
 about speed: **the JavaScript call stack would be one frame deep**, so DevTools could never show
-Scheme frames, and the debugger extension could never be retired. Under B, one live Scheme frame is
+Scheme frames, and the browser would have no debugger for compiled code but a custom one. Under B, one live Scheme frame is
 one JavaScript frame, until the stack is deep enough that some move to the heap, and tail calls add
-none beyond the room below.
+none beyond the room below. The bake-off's probe measured that shape; whether DevTools then shows
+Scheme names for those frames, with a source map attached, has not been checked yet.
 
 The cost of B is procedure fragmentation, which is the next section.
 
@@ -132,8 +133,10 @@ The restore side is unchanged and names every local. One that was not saved dest
 
 One shape is genuinely unsupported and is **refused rather than answered**: a capture crossing more
 than one boundary between compiled and interpreted code. A second is refused beneath a redefined
-inlined primitive. Both throw with an explanation. They are currently unreachable because user code
-is never compiled; see `compiler_plan.md`.
+inlined primitive. Both throw with an explanation. The first is reachable today without any user code
+compiled: an interpreted procedure passed to the compiled `for-each`, calling the compiled `map`
+with an interpreted procedure that captures, crosses two boundaries. Refusing valid R7RS is a bug,
+and unwinding through nested interpreters, which removes it, ranks as one in `compiler_plan.md`.
 
 ## Boxing, and why copying was wrong
 
@@ -459,6 +462,21 @@ device**. What it holds back, it holds back for speed: a procedure a capture rep
 through pays to suspend and resume every time, and on capture-heavy code that costs more than
 interpreting it.
 
+**The rule costs real programs more than benchmarks.** `ir.scm`'s control globals include not only
+`call/cc` but `guard`, `raise`, `with-exception-handler`, `parameterize`, `dynamic-wind` and `exit`,
+and the rule declines every procedure that can reach one -- so a `guard` in one utility holds back
+every caller of that utility. The benchmark programs rarely use these forms, and the compiler's own
+Scheme was written to avoid all of them, so neither corpus shows the cost. The forms need different
+things. Only `call/cc` needs the unwind protocol. `guard`'s escape into its clauses, and `exit`, are
+one-shot and upward, which a JavaScript `throw` caught where they were established can do, running
+`dynamic-wind` after-thunks on the way out. The others are not escapes at all: a
+`with-exception-handler` handler runs in `raise`'s dynamic context before anything unwinds,
+`raise-continuable` returns to its raiser, a `guard` with no matching clause re-raises in the
+original `raise`'s context, and `dynamic-wind` must rerun its before-thunks when a full continuation
+re-enters. Those need the handler stack and the wind list to be runtime state compiled code can call
+through. Several of these names are on the list for how they are implemented, not for what they do:
+`raise`'s primitive returns a node for the interpreter to run, and `guard` expands through `call/cc`.
+
 ## Tiering
 
 **The interpreter is permanent**, not transitional. It is four things at once, all of which are still
@@ -475,14 +493,21 @@ time into ordinary module text. Dynamic paths — `eval`, `load`, the REPL — f
 interpreter. (`js-eval` in `src/extras/primitives/interop.js` is a deliberate interop escape hatch;
 it throws under strict CSP, which is acceptable and forces nothing else to depend on `eval`.)
 
-## The four constraints, honestly
+Strict CSP is not a target in its own right, so this is a guarantee to keep, not a constraint on
+design: a page under one degrades to interpreted user code, and a test enforces that by making
+`Function` throw. An optimization that needs `new Function` is allowed provided the code it
+replaces remains as the CSP fallback.
+
+## The constraints, honestly
 
 | Constraint | Status |
 |---|---|
-| **1. JS interop** | Met. Scheme closures stay callable JavaScript functions; compiled procedures keep the same wrapper. Value representation is untouched. |
+| **1. JS interop** | Met. Scheme closures stay callable JavaScript functions; compiled procedures keep the same wrapper. Value representation is untouched, and compiled code converts at the boundary exactly as the interpreter does -- including where the interpreter is inconsistent: a JavaScript function's integral result reads as exact through `js-invoke` and inexact through a direct call (`Interoperability.md`, *Numbers at the boundary*). No benchmark measures interop yet. |
 | **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler only if it compiles code of its own. |
 | **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
-| **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The only hook is `interpreter.js:455`, inside the step loop that compiled procedures never enter, so a breakpoint inside one silently never fires. Harmless only because the tier compiles nothing but the standard library today. |
+| **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The debugger's hook is inside the interpreter's step loop, which compiled procedures never enter; a breakpoint inside one is reported as never firing. And interpreted code is affected too: only `runAsync` honours a pause, compiled code calls an interpreted procedure through a synchronous nested `run`, so a breakpoint inside a callback of the compiled `for-each` or `map` takes effect only when the loop returns -- inferred from the code, not yet exercised. |
+| **5. Multi-shot `call/cc`** | Met, with two shapes **refused** rather than answered: a capture across more than one boundary between compiled and interpreted code, which the compiled standard library already makes reachable, and one beneath a redefined inlined primitive. |
+| **6. R7RS-small** | The compiler adds one gap, the refused capture above. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, and referential transparency of macro-introduced free identifiers. The conformance suites run outside `npm test`, and not with the compiled standard library. |
 
 Constraint 4 is the open design question of the project. The intended answer is **two mechanisms,
 not one**, which is what every real toolchain ships:
@@ -502,7 +527,42 @@ and unboxing. A source map maps *locations*; it cannot resurrect a binding that 
 So debug info yields "optimized out" exactly where a user is most confused, and the interpreter
 yields the real value. Sequencing is in `compiler_plan.md`.
 
+### What the two mechanisms leave open
+
+Neither mechanism, as named, covers:
+
+- **Stack traces.** The interpreter's frame stack has no entries for live compiled frames, so `:bt`
+  at a breakpoint in a callback called from compiled `map` shows a hole where `map` and its callers
+  should be. Convention B puts one JavaScript frame per Scheme frame, but nothing reads the
+  JavaScript stack back: `Error().stack` could be parsed, since procedures are named, or enter and
+  exit points emitted when a debug runtime is attached. Either needs designing and measuring.
+- **Stepping into a compiled procedure** from interpreted code. It must behave as a step over, or
+  re-interpret the callee on demand, which needs the procedure's interpreted closure -- and today
+  compiling a procedure discards it.
+- **Inspecting locals.** Compiled locals are renamed, boxed when assigned, passed to lifted factories,
+  or live only in temporaries, while `StateInspector` walks `Environment` maps. Even the source-map
+  route needs a mapping from generated names back to source names.
+- **The CLI.** Source maps help only where a JavaScript debugger consumes them. The CLI REPL's
+  debugger works through the interpreter's step hook, so there declining to optimize is the only
+  mechanism, and it has to cover stepping as well as breakpoints.
+
+The intended end state, with the Chrome extension no longer a goal, is two contexts:
+
+| Context | Interpreted code | Compiled code |
+|---|---|---|
+| CLI REPL | the existing `:break` / `:step` / `:bt` debugger | declined to the interpreter, per procedure, on a breakpoint or a step into it |
+| Browser | the existing REPL debugger, cooperative under `runAsync` | DevTools through source maps, and declining to optimize for bindings a source map cannot bring back |
+
+The first step is the left column alone: while user code is being debugged it runs interpreted, and
+the library stays compiled. What triggers that is a breakpoint being set or stepping being on, not
+a debugger being attached -- the CLI REPL attaches one at start-up.
+
 ## How this is verified
+
+Gaps first, since they are what to distrust: no fuzzer generates programs across the two tiers, so
+the machinery is tested on the shapes its authors thought of, while its serious bugs were in shapes
+nobody did; CI runs only on `main` and never loads the browser tests; and the R7RS conformance
+suites are outside `npm test`. `compiler_plan.md` ranks closing each.
 
 - **3,473 tests**, Node and browser, via `npm test`.
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked

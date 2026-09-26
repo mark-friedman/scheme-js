@@ -43,7 +43,8 @@ of that in interpretive overhead rather than in anything the program asked for. 
 precisely that 95%. The design emits JavaScript source rather than bytecode or WebAssembly, uses
 the native JavaScript stack for calls with a trampoline for tail calls, and implements continuation
 capture by cooperative unwinding — the one strategy compatible with constraint 5 that also leaves
-Scheme frames visible on the JavaScript stack, which constraint 4 needs.
+Scheme frames visible on the JavaScript stack, which constraint 4 needs. In the browser, compiled
+code is to be debugged in the browser's own DevTools through source maps, not through an extension.
 
 The interpreter is a **permanent** tier, not a transitional one: it is the mode that works where
 generating code is forbidden, the reference semantics for differential testing, the highest-fidelity
@@ -53,15 +54,19 @@ Part of the compiler is written in Scheme, and the intent is that most of it wil
 compiler good enough to compile a Scheme compiler is the standing test of whether this succeeded.
 
 **Where it stands:** the tier works and the standard library runs through it; user code does not yet
-reach it, and compiled code cannot yet be debugged. Current state, ranked work and rationale:
+reach it, and compiled code cannot yet be debugged. Its first user is meant to be this implementation
+itself -- its REPLs, CLI and compiler -- and then a public comparison against Gambit, Racket and
+plain JavaScript, which has not been made yet: every figure below is against the interpreter. Current state, ranked work and rationale:
 [docs/compiler_plan.md](docs/compiler_plan.md) and
 [docs/compiler_design.md](docs/compiler_design.md).
 
-### Close the two known R7RS-small deviations
+### Close the known R7RS-small deviations
 
 `string-set!` and `string-fill!` throw, because Scheme strings are JavaScript strings and those are
 immutable — a deliberate trade of compliance for interop that constraint 6 says should not stand.
-And `equal?` does not terminate on circular structure, which R7RS §6.1 requires.
+`equal?` does not terminate on circular structure, which R7RS §6.1 requires. `call-with-port` does
+not exist. And with the compiled standard library, as every browser page has it, `call/cc` refuses a
+capture made inside a callback nested two higher-order calls deep -- `map` inside `for-each`.
 
 ### Numeric performance
 
@@ -70,20 +75,11 @@ And `equal?` does not terminate on circular structure, which R7RS §6.1 requires
 while the larger one is open is how this list came to rank a 3x problem above a 200x one in the
 first place.
 
-Following the implementation of the full numeric tower, several optimizations have been identified to mitigate the performance impact of `BigInt` operations and JavaScript boundary conversions.
-
-| Priority | Optimization | Effort | Impact | Notes |
-|----------|--------------|--------|--------|-------|
-| **High** | Precompute `MIN_SAFE_BIG`/`MAX_SAFE_BIG` | 5 min | Minor | Faster safe-range checks in `schemeToJs`. |
-| **High** | Skip internal conversions | 1 hour | Significant | Add `external` flag to `run()` to skip `unpackForJs` during library loading and macro expansion. |
-| **Medium** | LRU cache for BigInt→Number | 30 min | Moderate | Helps when the same exact integers cross the JS boundary repeatedly. |
-| **Medium** | Smart shallow convert | 1 hour | Moderate | Fast-path for primitive arrays/vectors to avoid recursive overhead in `schemeToJsDeep`. |
-| **Low** | `SchemeInt` wrapper class | 2-4 h | Variable | Persistent caching of Number representation on the integer object itself. |
-| **Low** | `define-js-native` mode | 4-8 h | High | Opt-in pragma to use JS Numbers directly for performance-critical hot loops where exactness is not required. |
-
-> [!TIP]
-> **Boundary Friction vs. Arithmetic:** Profiling indicates that for many workloads, the cost of converting `BigInt` to `Number` at the JS boundary is more significant than the `BigInt` arithmetic itself. The "High" priority items address the most frequent conversion points.
-
+The list of boundary-conversion optimizations that stood here predates the compiler, and what the
+compiler found since points elsewhere: the `bignum` class's cost appears to sit in tower dispatch,
+and exact integer loops are bounded by V8's own `BigInt` arithmetic, neither of them conversion. Numeric work is now ranked in
+[docs/compiler_plan.md](docs/compiler_plan.md) -- profiling bignums, and fixnums as JavaScript
+numbers -- and the old list is in the history of this file.
 
 ### High-Precision Inexact Numbers (Future)
 
@@ -192,14 +188,14 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 
 | | |
 |---|---|
-| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the two deviations above outstanding. |
+| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding -- run with the standard library interpreted, not compiled as the browser installs it. |
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
-| **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers, with exactness preserved across the JavaScript boundary. |
-| **JavaScript interoperability** | Scheme closures are callable JavaScript functions; conversion is exactness-safe in both directions; classes, promises and property access are reachable from Scheme. |
+| **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |
+| **JavaScript interoperability** | Scheme closures are callable JavaScript functions; numbers convert at the boundary, with one inconsistency still to fix; classes, promises and property access are reachable from Scheme. |
 | **Lists and strings** | SRFI 1 and SRFI 152, as `(srfi 1)` and `(srfi 152)`: the list library, and the index-based string library that fits R7RS-small's own. The compiler is written with them too. |
 | **Hash tables and comparators** | SRFI 125 and SRFI 128, as `(srfi 125)` and `(srfi 128)`. Tables on `eq?`, `eqv?`, `string=?` and `string-ci=?` sit directly on a JavaScript `Map`; any other equivalence works through its hash function. |
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |
-| **A debugger, twice** | Breakpoints, stepping, stack and scope inspection — in the Node and browser REPLs, and as a Chrome extension with a standalone window, expression-level breakpoints and mixed JavaScript/Scheme stepping. |
+| **A debugger, twice** | Breakpoints, stepping, stack and scope inspection — in the Node and browser REPLs. A Chrome extension with a standalone window, expression-level breakpoints and mixed JavaScript/Scheme stepping was built on the `debugger-take-3` branch; it is not on the compiler branch and is no longer a goal. |
 | **A compiler tier** | Emits JavaScript for most of the standard library and every library the bundle ships, all compiled at build time, so a page starts in about 60 ms without running the compiler; a page that wants to compile its own code fetches it with `loadCompiler`. Per workload class against the interpreter, as the range over two runs: `flonum` 120–122x, `call` 83–86x, `fixnum` 57–58x, `vector` 37–38x, `list` 23x, `continuation` 4.2–4.3x, `bignum` 1.2x, `string` 1.0x. Compiled recursion is no longer bounded by the JavaScript stack: past half of it, compiled frames move to the heap (recursion that alternates with interpreted code excepted). |
 | **A measurement discipline** | 51 vendored canonical benchmarks classified by workload and never blended into one number; cross-implementation comparison against Gambit and Racket; 3,473 tests, including 41 whole programs run under both tiers. |

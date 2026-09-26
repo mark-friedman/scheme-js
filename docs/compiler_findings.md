@@ -2395,6 +2395,47 @@ interpreted procedure took a second on 20,000 elements and ran out of memory on 
 linked. A change that deepens the interpreter's frame stack is measured with compiled code calling
 interpreted code, since every nested run copies that stack.
 
+**R76. The capture the tier refuses was believed unreachable until user code compiled. The compiled
+standard library already reaches it.**
+
+The design document said both refused capture shapes "are currently unreachable because user code
+is never compiled", and the tier's own reasoning treated them as a question for the day user code
+compiles. An outside assessment on 2026-09-26 repeated the belief; checking it disproved it. With
+user code interpreted and the standard library compiled -- the browser's configuration -- an
+interpreted procedure passed to `for-each`, which calls `map` with an interpreted procedure that
+captures, crosses two boundaries between compiled and interpreted code, and `call/cc` refuses:
+
+```scheme
+(for-each (lambda (x)
+            (map (lambda (y) (call/cc (lambda (c) (set! k c) y))) '(1 2)))
+          '(a))
+```
+
+Under the interpreted standard library the same program answers. The belief held because every
+test of the refusal compiled the procedures involved itself, and no test nested two higher-order
+library calls with a capture inside.
+
+*Consequence:* the refusal is a regression the browser already has, not a gate on a future feature,
+and unwinding through nested interpreters is ranked as one. A limit described as reachable only
+from compiled user code is checked against the compiled library with interpreted callers too.
+
+**R77. Exactness is not preserved across the JavaScript boundary: it depends on how the function
+was called.**
+
+`ROADMAP.md` said conversion is "exactness-safe in both directions", and `Interoperability.md` that
+Scheme numbers are raw JavaScript numbers, mapped one to one. Neither is true. Going out, an exact
+`1`, an inexact `1.0` and even `1/2` all become JavaScript numbers, and an exact integer beyond
+2^53 throws -- deliberately, since JavaScript cannot tell `1` from `1.0`. Coming back, the answer
+depends on the path: `js-ref`, dot notation, `js-eval` and `js-invoke` read an integral-valued
+number as exact, but calling a JavaScript function directly returns its result unconverted, so
+`(exact? (id 1))` is `#f` where `(exact? (js-invoke o "f" 1))` is `#t`. The interpreter's direct call
+converts the arguments and never the result. Compiled code agrees with the interpreter in every
+case, so the compiler is not the cause. Arguments are converted shallowly with respect to pairs: a
+list handed to JavaScript still holds `BigInt`s in its cars.
+
+*Consequence:* the boundary's number rules are written down as they are, and the direct call is
+made to agree with the other paths rather than documented as a second rule.
+
 ---
 
 ## Appendix — the original staged plan

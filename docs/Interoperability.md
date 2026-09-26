@@ -12,7 +12,9 @@ We use a "shared representation" model:
 
 | Scheme Type | Internal Representation | JS typeof / instanceof | Notes |
 | :---------- | :---------------------- | :--------------------- | :---- |
-| **Number** | Raw JS Number | `'number'` | 1:1 mapping (also supports Rationals and Complex). |
+| **Exact integer** | JS `BigInt` | `'bigint'` | Converted at the boundary; see *Numbers at the boundary*. |
+| **Inexact real** | Raw JS Number | `'number'` | Passed as is. |
+| **Rational, complex** | Scheme objects | `'object'` | A rational becomes a JS number when passed to JavaScript. |
 | **String** | Raw JS String | `'string'` | 1:1 mapping. |
 | **Boolean** | Raw JS Boolean | `'boolean'` | `#t` is `true`, `#f` is `false`. |
 | **Vector** | Raw JS Array | `Array.isArray()` | `(vector 1 2)` is `[1, 2]`. |
@@ -24,6 +26,25 @@ We use a "shared representation" model:
 | **JS Function** | Raw JS Function | `'function'` | Can be called directly by Scheme. |
 | **Pair/List** | `Cons` instance | `instanceof Cons` | Scheme specific. JS sees an object `{car, cdr}`. |
 | **Symbol** | `Symbol` instance | `instanceof Symbol` | Distinct from strings. |
+
+## Numbers at the boundary
+
+JavaScript has one kind of number, so `1` and `1.0` cannot stay distinct once they cross. What each
+direction does, the same in both tiers:
+
+| Case | Result |
+|---|---|
+| exact `1`, inexact `1.0` or `1/2` passed to a JavaScript function | a JS `number`: `1`, `1`, `0.5` |
+| exact integer beyond ±2^53 passed to a JavaScript function | throws: outside the safe integer range |
+| a list passed to a JavaScript function | the pairs are passed as they are, so their cars are still `BigInt`s |
+| integral JS number read by `js-ref`, dot notation, `js-eval` or returned through `js-invoke` | **exact** |
+| integral JS number returned by a JavaScript function called directly, `(f 1)` | **inexact**: `(exact? (f 1))` is `#f` |
+| JS `BigInt` returned by JavaScript | exact |
+| a flonum Scheme stored in a property with `js-set!`, read back with `js-ref` | still inexact |
+
+The two ways of calling a JavaScript function disagree: a direct call converts its arguments and
+returns the result unconverted, while `js-invoke` converts the result. That is an inconsistency, not
+a rule, and is listed for fixing in `compiler_plan.md`.
 
 ## Callable Closures and Continuations
 
