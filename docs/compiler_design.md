@@ -549,20 +549,35 @@ device**. What it holds back, it holds back for speed: a procedure a capture rep
 through pays to suspend and resume every time, and on capture-heavy code that costs more than
 interpreting it.
 
-**The rule costs real programs more than benchmarks.** `ir.scm`'s control globals include not only
-`call/cc` but `guard`, `raise`, `with-exception-handler`, `parameterize`, `dynamic-wind` and `exit`,
-and the rule declines every procedure that can reach one -- so a `guard` in one utility holds back
-every caller of that utility. The benchmark programs rarely use these forms, and the compiler's own
-Scheme was written to avoid all of them, so neither corpus shows the cost. The forms need different
-things. Only `call/cc` needs the unwind protocol. `guard`'s escape into its clauses, and `exit`, are
-one-shot and upward, which a JavaScript `throw` caught where they were established can do, running
-`dynamic-wind` after-thunks on the way out. The others are not escapes at all: a
-`with-exception-handler` handler runs in `raise`'s dynamic context before anything unwinds,
-`raise-continuable` returns to its raiser, a `guard` with no matching clause re-raises in the
-original `raise`'s context, and `dynamic-wind` must rerun its before-thunks when a full continuation
-re-enters. Those need the handler stack and the wind list to be runtime state compiled code can call
-through. Several of these names are on the list for how they are implemented, not for what they do:
-`raise`'s primitive returns a node for the interpreter to run, and `guard` expands through `call/cc`.
+**What the rule costs real programs is `call/cc` used as an escape.** `ir.scm`'s control globals
+include not only `call/cc` but `guard`, `raise`, `with-exception-handler`, `parameterize`,
+`dynamic-wind` and `exit`, and the rule declines every procedure that can reach one, or that
+captures. The benchmark programs and the compiler's own Scheme avoid these forms, so the measure is
+a corpus of SRFI reference implementations and Snow-Fort packages
+(`benchmarks/decline_reasons.js --corpus`, results in `corpus_decline_results.md`): 98% of the
+procedures declined for a control form end at `call/cc`, mostly by reaching one through another
+procedure, and the exception forms decline almost none. Nearly every capture there is an escape --
+the continuation called once, before the capture returns, to leave a search or a fold -- and for
+that shape the speed argument above runs the other way: compiling the captures is 1.5-3.9x faster
+than declining them (`benchmarks/run_escapes.js`), because an escape is taken once per call rather
+than re-entered, while the declined procedures pay the interpreter on every call. The argument holds
+for code that re-enters its continuations, which in that corpus is coroutine generators and
+backtracking.
+
+An escape also needs less than the protocol gives it. A continuation called while the capture that
+made it is still on the stack reifies nothing it will use: a JavaScript `throw` caught at the
+capture does, running `dynamic-wind` after-thunks on the way out. What makes that harder than it
+looks is that the same continuation may be called again after the capture has returned, and must
+then re-enter, so a fast path has to fall back to the full protocol rather than refuse.
+
+The other forms need different things. `guard`'s escape into its clauses, and `exit`, are one-shot
+and upward, the escape just described. The others are not escapes at all: a `with-exception-handler`
+handler runs in `raise`'s dynamic context before anything unwinds, `raise-continuable` returns to its
+raiser, a `guard` with no matching clause re-raises in the original `raise`'s context, and
+`dynamic-wind` must rerun its before-thunks when a full continuation re-enters. Those need the
+handler stack and the wind list to be runtime state compiled code can call through. Several of
+these names are on the list for how they are implemented, not for what they do: `raise`'s primitive
+returns a node for the interpreter to run, and `guard` expands through `call/cc`.
 
 ## Tiering
 

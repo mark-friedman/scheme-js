@@ -113,7 +113,12 @@ of its own.
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
 │   ├── compare_r7rs.js             # Canonical suite: both tiers against Gambit, Racket, plain JS
-│   ├── decline_reasons.js          # Why the tier declines procedures in non-benchmark Scheme
+│   ├── decline_reasons.js          # Why the tier declines procedures: this repository's Scheme, or --corpus
+│   ├── run_escapes.js              # The capture policy on escapes: interpreted, default, captures compiled
+│   ├── corpus/                     # Real R7RS code, for decline_reasons.js --corpus
+│   │   ├── manifest.json           # SRFI repositories at a commit, Snow-Fort packages at a version and SHA-256
+│   │   ├── fetch.js                # Downloads the manifest into downloads/, checking each archive
+│   │   └── downloads/              # Not committed: other people's code, under their licenses
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
@@ -250,6 +255,7 @@ of its own.
 │           ├── file.sld            # (scheme file) library declaration
 │           ├── repl.sld            # (scheme repl) library declaration
 │           ├── complex.sld         # (scheme complex) library declaration
+│           ├── inexact.sld         # (scheme inexact) library declaration
 │           ├── eval.sld            # (scheme eval) library declaration
 │           ├── lazy.sld            # (scheme lazy) library declaration
 │           ├── process-context.sld # (scheme process-context)
@@ -405,6 +411,7 @@ of its own.
 │   ├── hygeine.md                  # Macro hygiene notes
 │   ├── macro_debugging.md          # Macro troubleshooting guide
 │   ├── architecture.md             # High-level architecture
+│   ├── corpus_decline_results.md   # Why the compiler tier declines procedures in real R7RS code
 │   └── REFERENCES.md               # Academic references
 │
 └── web/

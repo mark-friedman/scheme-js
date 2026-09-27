@@ -2583,6 +2583,42 @@ reads as.
 *Consequence:* the three are fixed or recorded as known deviations, and the suites run without the
 rescue, so that a pass means what it says.
 
+**R86. Real code is declined for `call/cc` used as an escape, not for exception handling -- and for
+escapes the decline is the slower choice.**
+
+The plan held that applications use `guard`, `parameterize` and the other control forms everywhere,
+so that anyone trying the tier would meet those declines in the first program they wrote, and ranked
+compiling the exception forms accordingly. The repository could not test that, since its Scheme
+avoids them all. Measured instead on 1,855 procedures of SRFI reference implementations and
+Snow-Fort packages: 406 are declined for a control form, and 399 of those end at `call/cc` -- 305
+only by reaching a capture through another procedure. The exception forms, `parameterize` and
+`dynamic-wind` together decline five. And the captures are almost all escapes, the continuation
+called once before the capture returns, to leave a search or a fold early; only coroutine generators
+and Schelog re-enter one. The default that declines captures was justified on `btsearch`, which
+re-enters its continuations; on the escape shape (`benchmarks/run_escapes.js`) compiling the
+captures is 1.5-3.9x faster than the default at every depth measured.
+
+*Consequence:* the capture default and the reachability rule are measured again by shape before
+anything else in 37; an escape fast path comes next; the exception forms last, once the libraries
+that use them can be loaded at all.
+
+**R87. Passing both conformance suites did not mean the reader and the library system conform.**
+
+Loading the corpus for R86 found four bugs in code both suites run through on every test. A `rename`
+import set crashed on the syntax R7RS gives it, `(rename set (from to) ...)`, because the parser read
+the pairs as a flat list; nested import sets applied their filters in one fixed order, so `(only
+(prefix lib p:) p:car)` imported nothing; a line comment ending in CR LF or CR swallowed the rest of
+the file, so SRFI 41's reference implementation read as empty; and `#u8(#x41)` was rejected while
+`#u8(65.5)` read as `#u8(65)`. The suites could not see them: the revised Chibi suite has its imports
+stripped and the runner imports a fixed list of libraries whole; no test file has a CR in it; and the
+bytevectors written in hex are all in the original Chibi file, which no runner loads, and which
+could not have been read if one had. `(scheme inexact)`, which R3 called a packaging gap with a cleanup task to follow, had never
+been importable, and the task had never been written down.
+
+*Consequence:* the four are fixed and tested, `(scheme inexact)` exists, and what loading real
+libraries found that is not fixed is in the plan: import filters that do not reach macros, the rest
+of the audit's list, and dot notation against R7RS identifiers.
+
 ---
 
 ## Appendix — the original staged plan

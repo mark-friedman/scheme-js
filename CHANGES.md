@@ -8065,3 +8065,75 @@ only that way: `read-char`, `(inexact 1)` against the literal `1`, and a numeric
 7.1. They are plan item 48: fix each or record it, then run the suites without the rescue.
 
 6,132 tests pass in Node.
+
+# Walkthrough: the decline policy measured on real R7RS code
+
+Task 37 in `docs/compiler_plan.md`, its first step. The repository's own Scheme could not say what
+the tier's decline policy costs real programs, since it avoids the control forms (1 of 541
+definitions declined for one), so the measurement ran on other people's code.
+
+## The corpus
+
+- **Recorded, not committed.** `benchmarks/corpus/manifest.json` names 61 sources: 7 SRFI reference
+  implementations (41, 64, 113, 130, 135, 146, 158), each a GitHub repository at a commit; 17
+  Snow-Fort packages chosen for variety -- parsers, backtracking, regular expressions, formatting,
+  functional data structures, test frameworks; and the 37 libraries they import that this
+  implementation does not provide, SRFIs 143 and 151 from their repositories and the rest from
+  Snow-Fort. `benchmarks/corpus/fetch.js` downloads exactly those into `benchmarks/corpus/downloads/`,
+  which git ignores, and checks each archive against the SHA-256 the Snow-Fort index gives -- which
+  signs the tar, not the gzip served, found when every check failed. SRFIs 35 and 48 have only
+  their specifications in their repositories, and SRFI 13 only a Scheme 48 module, so the libraries
+  needing them are reported as unmeasurable.
+- **`decline_reasons.js --corpus`** loads each library and puts the procedures it defines to the
+  policy the build applies to a library (`generateEnvironment`), and measures a program as it
+  measures the repository's files. It reports the reasons, which control form each control decline
+  ends at, and how often the source uses each form -- needed because `guard` expands into
+  `with-exception-handler` and `parameterize` into a procedure using `dynamic-wind`. `--reasons`
+  prints every declined procedure's path.
+
+## What it found (R86)
+
+Of 1,855 procedures in 62 libraries and programs, 78% compile, and of the 406 declined for a control
+form, 399 end at `call/cc`; the exception forms, `parameterize` and `dynamic-wind` decline five.
+Read site by site, the captures are escapes -- the continuation called once before the capture
+returns, to leave a search or fold early, often from a callback -- except in coroutine generators
+and Schelog. The capture default was justified on `btsearch`, which re-enters; the new
+`benchmarks/run_escapes.js` times escapes three ways, and compiling the captures is 1.5-3.9x faster
+than the default at every depth measured. Task 37 is reordered: the capture default and the
+reachability rule by shape first, an escape fast path next, the exception forms last. The full
+tables are in `docs/corpus_decline_results.md`.
+
+## Fixed on the way (R87)
+
+Bringing the corpus up found four bugs that both conformance suites pass over, each now tested:
+
+- **`rename` import sets** crashed on R7RS's syntax, `(rename set (from to) ...)`: the parser read
+  the pairs as a flat list. And nested import sets applied `only`, `except`, `rename` and `prefix`
+  in one fixed order, each against the library's own names, so `(only (prefix lib p:) p:car)`
+  imported nothing. `parseImportSet` now returns the filters as steps, innermost first, and
+  `applyImports` applies them in order; a spec with no steps imports everything, as the callers that
+  build one by hand expect.
+- **A line comment ending in CR LF or CR** swallowed the rest of the file: the comment loop watched
+  for LF, and the tokenizer steps over CR LF as one. SRFI 41's reference implementation read as
+  empty.
+- **`#u8(#x41)`** was rejected, and `#u8(65.5)` read as `#u8(65)`: bytevector elements went through
+  `parseInt`. They are read as numbers now, and must be exact integers from 0 to 255.
+- **`(scheme inexact)`** had no library definition, although its twelve procedures exist; R3 called
+  it a cleanup task in Stage 0, and the task was never written down.
+
+Not fixed, and in the plan: import filters do not reach macros or syntax keywords, so `(rapid
+match)` cannot load (55); the rest of the audit's missing identifiers and libraries (56); and dot
+notation reads SRFI 135's identifiers as property access (57). Mutable strings (49) are the
+commonest reason a corpus library does not load: `(srfi 14)` and the ten Chibi libraries built on
+it.
+
+## Tests
+
+- Import sets: `rename`'s pairs, and every order of nesting `only`, `except`, `prefix` and
+  `rename` (`tests/integration/library_loader_tests.js`); the same through real libraries, and
+  `(scheme inexact)`'s twelve exports (`tests/core/scheme/import_set_tests.scm`).
+- The reader: comments ending in CR LF and CR, and the line counted after them; bytevector elements
+  in every radix and with exactness prefixes, and inexact, out-of-range and non-numeric ones
+  rejected.
+- 6,160 tests pass in Node and 6,051 in the browser. (For `call-with-port`, above: 6,023 in the
+  browser.)
