@@ -543,7 +543,7 @@ replaces remains as the CSP fallback.
 | **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
 | **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The debugger's hook is inside the interpreter's step loop, which compiled procedures never enter; a breakpoint inside one is reported as never firing. And interpreted code is affected too: only `runAsync` honours a pause, compiled code calls an interpreted procedure through a synchronous nested `run`, so a breakpoint inside a callback of the compiled `for-each` or `map` takes effect only when the loop returns -- inferred from the code, not yet exercised. |
 | **5. Multi-shot `call/cc`** | Met, with two shapes **refused** rather than answered: a capture across more than one boundary between compiled and interpreted code, which the compiled standard library already makes reachable, and one beneath a redefined inlined primitive. |
-| **6. R7RS-small** | The compiler adds two gaps: the refused capture above, and `raise-continuable` handed to a compiled procedure as a value, also refused. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, and referential transparency of macro-introduced free identifiers. The conformance suites run outside `npm test`, and not with the compiled standard library. |
+| **6. R7RS-small** | The compiler adds two gaps: the refused capture above, and `raise-continuable` handed to a compiled procedure as a value, also refused. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test`; neither tests `call-with-port`, so passing them is not evidence of completeness. |
 
 Constraint 4 is the open design question of the project. The intended answer is **two mechanisms,
 not one**, which is what every real toolchain ships:
@@ -597,10 +597,13 @@ a debugger being attached -- the CLI REPL attaches one at start-up.
 
 Gaps first, since they are what to distrust: no fuzzer generates programs across the two tiers, so
 the machinery is tested on the shapes its authors thought of, while its serious bugs were in shapes
-nobody did; CI runs only on `main` and never loads the browser tests; and the R7RS conformance
-suites are outside `npm test`. `compiler_plan.md` ranks closing each.
+nobody did; and CI runs only on `main` and never loads the browser tests. `compiler_plan.md` ranks
+closing each.
 
-- **3,534 tests**, Node and browser, via `npm test`.
+- **5,941 tests**, Node and browser, via `npm test`.
+- **R7RS conformance, in both library configurations**: the chapter tests and Chibi's, 1,201 in
+  all, run with the standard library interpreted and again with it installed from the prebuilt tables
+  as a browser installs it, which is also checked to have happened (`compliance_tests.js`).
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked
   against expected results that came from Gambit — `npm run test:programs`, 8.2 s, inside `npm test`.
   This is the check that catches what unit tests structurally cannot: three compiler defects in one

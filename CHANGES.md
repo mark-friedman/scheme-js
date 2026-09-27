@@ -7703,3 +7703,51 @@ JavaScript's message. Both are noted where they belong in the plan.
 
 3,534 tests pass in Node and 3,429 in the browser. In the browser bundle on a fresh page the compiled
 `length`, `assv`, `member` and `map` raise the interpreter's errors, to a `guard` too.
+
+# Walkthrough: The conformance suites inside `npm test`, in both library configurations
+
+Task 29 in `docs/compiler_plan.md`. The R7RS chapter tests (219) and Chibi's R7RS tests (982) had
+their own runners and ran only when someone remembered, always with the standard library
+interpreted. Every browser page installs it compiled, from the prebuilt tables, so conformance had
+never been checked in the configuration users run.
+
+## What changed
+
+- **One runner, `tests/core/scheme/compliance/compliance_suite.js`**, replacing the two runner
+  libraries. It runs a suite synchronously inside `withPrivateLibraries`, with libraries resolved from
+  the bundled sources the browser loads from. The suites load libraries while they run --
+  `(environment '(scheme base))` -- and the old runners loaded into the registry the whole process
+  shares, harmless in a process of their own and not inside `npm test`, where a compiled
+  configuration's tables would have leaked into the interpreted one and into other tests. The shared
+  macro registry is given back as it was found; the Chibi suite starts from an empty one, as it
+  always has.
+- **The compiled configuration installs each shipped library's table as it loads**, with the same
+  hook as `src/packaging/scheme_entry.js`, and asserts that the standard library's table installed
+  procedures and that no table was stale. A stale table installs nothing, and the run would then test
+  the interpreter a second time and pass.
+- **`compliance_tests.js`** runs both suites in both configurations inside `npm test`, in Node and the
+  browser, labelling every line with its configuration.
+- The command-line runners keep their names and take `--compiled` and file filters
+  (`compliance_cli.js`); the UI pages take `?compiled`. The old runners' `SCHEME_AOT_STDLIB=1` path,
+  which compiled the library at load with the compiler rather than installing the prebuilt tables,
+  is gone from them.
+
+## What it found
+
+- **Everything passes in both configurations**, in Node and the browser: the compiled standard
+  library is conformant as far as these suites go.
+- **In the browser two tests failed, in both configurations**: `(get-environment-variable "PATH")`
+  and `(file-exists? ".")`. A browser has no environment variables and no file system, and answers
+  `#f`, which R7RS allows. They are Node-only now, through `cond-expand`, and report a skip in the
+  browser.
+- **Neither suite tests `call-with-port`**, which the plan had guessed they would catch (R79).
+
+## Tests
+
+- Deliberate breakage, each run against the suites: a hook that installs nothing fails the
+  installation check; tables checked against other sources fail it and the staleness check; compiled
+  `vector-ref` reading the wrong element fails a `vector-for-each` test in the compiled configuration
+  only, which is the case this task exists for; not giving the macro registry back fails the check
+  that it is unchanged.
+- 5,941 tests pass in Node (2,407 of them the suites and their checks), 5,832 in the browser, where
+  70 are skipped. `npm test` takes 49 s, from 42.

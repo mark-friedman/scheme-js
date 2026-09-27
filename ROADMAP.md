@@ -188,7 +188,7 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 
 | | |
 |---|---|
-| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding -- run with the standard library interpreted, not compiled as the browser installs it. |
+| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding, both with the standard library interpreted and with it compiled as the browser installs it. |
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |
@@ -198,4 +198,4 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |
 | **A debugger, twice** | Breakpoints, stepping, stack and scope inspection — in the Node and browser REPLs. A Chrome extension with a standalone window, expression-level breakpoints and mixed JavaScript/Scheme stepping was built on the `debugger-take-3` branch; it is not on the compiler branch and is no longer a goal. |
 | **A compiler tier** | Emits JavaScript for most of the standard library and every library the bundle ships, all compiled at build time, so a page starts in about 60 ms without running the compiler; a page that wants to compile its own code fetches it with `loadCompiler`. Per workload class against the interpreter, as the range over two runs: `flonum` 120–122x, `call` 83–86x, `fixnum` 57–58x, `vector` 37–38x, `list` 23x, `continuation` 4.2–4.3x, `bignum` 1.2x, `string` 1.0x. Compiled recursion is no longer bounded by the JavaScript stack: past half of it, compiled frames move to the heap (recursion that alternates with interpreted code excepted). |
-| **A measurement discipline** | 51 vendored canonical benchmarks classified by workload and never blended into one number; cross-implementation comparison against Gambit and Racket; 3,534 tests, including 41 whole programs run under both tiers. |
+| **A measurement discipline** | 51 vendored canonical benchmarks classified by workload and never blended into one number; cross-implementation comparison against Gambit and Racket; 5,941 tests, including 41 whole programs run under both tiers. |

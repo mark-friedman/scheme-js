@@ -2465,6 +2465,19 @@ of a value already in hand was expected to cost nothing. Where it sat decided th
 *Consequence:* the statement shipped. A change to the call site is measured in the suite as well as
 in isolation, and with interpreted callees as well as compiled ones.
 
+**R79. The conformance suites were taken as the net that would catch a missing standard procedure.
+They do not test it.**
+
+`call-with-port` is in `(scheme base)` and was never defined, found in 27 by writing a test that
+needed it; the plan's entry for it guessed that the conformance suites, once inside `npm test`, would
+presumably have caught it. With both suites running there, in both library configurations, all 1,201
+tests pass -- and neither the chapter tests nor Chibi's R7RS tests, the original or the revised,
+mentions `call-with-port`. `ROADMAP.md`'s "982 of 982 applicable" is a statement about the tests
+the suite has, not about the procedures R7RS requires.
+
+*Consequence:* completeness is checked separately, by comparing each library's exports with R7RS's
+own listing of the identifiers each library provides.
+
 ---
 
 ## Appendix — the original staged plan

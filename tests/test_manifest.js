@@ -94,6 +94,9 @@ export const integrationTests = [
 // they are Node-only.
 export const programTests = [
     { path: 'programs/program_correctness_tests.js', fn: 'runProgramCorrectnessTests', async: true, needsInterpreter: false, nodeOnly: true },
+    // The R7RS conformance suites, with the standard library interpreted and
+    // with it compiled as the browser installs it.
+    { path: 'core/scheme/compliance/compliance_tests.js', fn: 'runComplianceTests', async: true, needsInterpreter: false, needsLoader: true },
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the

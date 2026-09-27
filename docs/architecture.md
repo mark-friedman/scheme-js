@@ -362,12 +362,13 @@ of its own.
 │   │       ├── repl_tests.scm
 │   │       ├── cond_expand_tests.scm # cond-expand expression tests
 │   │       └── compliance/         # R7RS conformance tests
-│   │           ├── chibi_ui.html           # Browser UI for Chibi suite
-│   │           ├── chibi_runner_lib.js     # Chibi test runner library
+│   │           ├── compliance_suite.js     # Runs a suite, library interpreted or compiled
+│   │           ├── compliance_tests.js     # Both suites, both configurations, in npm test
+│   │           ├── compliance_cli.js       # Command-line runs (--compiled, file filters)
 │   │           ├── run_chibi_tests.js      # Node.js runner for Chibi
-│   │           ├── chapter_ui.html         # Browser UI for chapter tests
-│   │           ├── chapter_runner_lib.js   # Chapter test runner library
 │   │           ├── run_chapter_tests.js    # Node.js runner for chapters
+│   │           ├── chibi_ui.html           # Browser UI for Chibi suite (?compiled)
+│   │           ├── chapter_ui.html         # Browser UI for chapter tests (?compiled)
 │   │           ├── chapter_3.scm           # Basic concepts tests
 │   │           ├── chapter_4.scm           # Expressions tests
 │   │           ├── chapter_5.scm           # Program structure tests
