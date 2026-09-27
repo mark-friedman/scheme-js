@@ -7947,3 +7947,44 @@ Code compiled from its definition with `tryCompileDefinition` has no closure to 
   compiled fails 1; a pause not counting fails 1 -- after a test was added for it, and after the
   exception pause, which calls the pause controller directly, was made to ask too.
 - 6,111 tests pass in Node and 6,002 in the browser.
+
+# Walkthrough: The compiled tier against Gambit, Racket and plain JavaScript
+
+Task 36 in `docs/compiler_plan.md`. Every figure the project had reported for the compiled tier was
+against its own interpreter.
+
+## What was measured
+
+`benchmarks/compare_r7rs.js` measured our interpreter against Gambit's interpreter and Racket CS. It
+now measures:
+
+- **both our tiers**: the interpreter, and the compiled tier as a user would run it -- the standard
+  library compiled and the program's definitions compiled (`--tiers`);
+- **Gambit compiled to JavaScript** (`gsc -target js -exe`, a standalone file Node runs): another
+  Scheme compiled to JavaScript on the same V8, using the explicit frame stack the stage 2a bake-off
+  rejected, and so the closest reference there is. Each program is built once and run at every
+  repetition count;
+- **Gambit compiled to C**, when a C toolchain is present -- not on this machine, whose Command Line
+  Tools are not installed; the check reads the developer directory rather than running `cc`, which
+  on macOS offers to install them;
+- **plain JavaScript**, for seven programs (`benchmarks/r7rs/plain_js_kernels.js`): what a
+  JavaScript programmer would write for `fib`, `tak`, `ack`, `fibfp`, `sum`, `sumfp` and `nqueens`,
+  with JavaScript numbers, reading the same input and printing the same result line.
+
+## What it found (R83)
+
+At the manifest's default sizes, the same for every implementation, our compiled time over theirs,
+per class: against Gambit compiled to JavaScript, call 0.89x, fixnum 1.10x, flonum 0.27x, string
+0.04x, vector 1.20x, list 2.04x, bignum 1.65x, continuation 2.59x; against Racket CS, from 2.2x
+(flonum) to 87x (bignum); against plain JavaScript, 2.5x on the call kernels, 2.6x on flonums, 6.3x on
+fixnums. The founding question was a 650x gap to plain JavaScript on `fib(30)`; on `fib` it is 2.9x.
+
+- `nboyer` and `sboyer` take 16 and 20 s compiled against the interpreter's 21 and 24, and are 40x and
+  53x behind Gambit -- most of the list class's gap, hidden inside the class mean until now. Added to
+  the profiling task with bignums.
+- `pi` and `chudnovsky` are no faster compiled, as known; `ctak` is slower compiled, its capturing
+  procedures being declined.
+- Gambit compiled to JavaScript failed on `quicksort` and `graphs`.
+
+The full table, and what each class shows, is in `docs/r7rs_benchmark_results.md`. Canonical sizes,
+which published results use, would take hours and are not yet run.

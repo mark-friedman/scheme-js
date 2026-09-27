@@ -21,6 +21,44 @@ target workload into every future decision — which is exactly how the eight mi
 
 ---
 
+## The compiled tier against other implementations
+
+2026-09-27, darwin/arm64, Node v24.11.1, after task 33. Both our tiers -- the interpreter, and the
+compiled tier as a user would run it, the standard library and the program's definitions compiled --
+against Gambit's interpreter, Racket CS, Gambit compiled to JavaScript (`gsc -target js`, run by
+the same Node), and, for seven programs, plain JavaScript (`benchmarks/r7rs/plain_js_kernels.js`).
+The manifest's default sizes throughout, the same for every implementation, so per-iteration times
+compare; canonical sizes would take hours and are what published results use. Gambit compiled to C
+needs a C toolchain this machine does not have. Reproduce with `node benchmarks/compare_r7rs.js`.
+
+Our time over theirs, per class, geometric mean; below 1 we are faster:
+
+| class | vs Gambit compiled to JavaScript | vs Racket CS | vs Gambit's interpreter | vs plain JavaScript |
+|---|---|---|---|---|
+| call | 0.89x (0.42-1.53) | 6.4x | 0.14x | 2.5x (fib, tak, ack) |
+| fixnum | 1.10x (0.41-2.23) | 10.3x | 0.19x | 6.3x (sum, nqueens) |
+| flonum | 0.27x (0.05-1.06) | 2.2x | 0.11x | 2.6x (fibfp, sumfp) |
+| list | 2.04x (0.09-53) | 20.8x | 0.57x | -- |
+| vector | 1.20x | 6.4x | 0.26x | -- |
+| string | 0.04x | 0.46x | 1.48x | -- |
+| bignum | 1.65x | 87x | 45x | -- |
+| continuation | 2.59x | 24.7x | 3.9x | -- |
+
+- **Against the other Scheme compiled to JavaScript** we are level on calls and fixnums, 4x faster on
+  flonums (unboxed JavaScript numbers where Gambit boxes), 25x faster on strings (ours are JavaScript
+  strings), and behind on lists, bignums and continuations. Gambit's calling convention is the one
+  the stage 2a bake-off rejected, an explicit frame stack: its captures are cheaper, as expected.
+- **The founding 650x gap to plain JavaScript** on `fib(30)` is 2.9x on `fib` now, and 2.0-2.9x on
+  the call kernels. On fixnum loops it is 3.4-12x: exact integers are `BigInt`, which the plain
+  versions do not pay for.
+- **`nboyer` and `sboyer` are the outliers**: 16 and 20 s compiled, barely faster than the
+  interpreter's 21 and 24 s, and 40x and 53x behind Gambit compiled to JavaScript; they are most of
+  the list class's gap. Something in them is not what the compiler speeds up. **`pi` and
+  `chudnovsky`** are no faster compiled than interpreted, as known: bignum arithmetic.
+- **`ctak`** is slower compiled than interpreted (167 against 134 ms): its procedures capture, so
+  they are declined, and the capture unwinds through the compiled ones between.
+- Gambit compiled to JavaScript failed on `quicksort` and `graphs`.
+
 ## How far behind we are, by workload class
 
 Geometric mean of per-iteration time relative to each reference, interpreter tier, 41 programs.

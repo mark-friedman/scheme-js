@@ -2536,6 +2536,24 @@ switched while it is being debugged.
 per-procedure declining is a refinement for speed under the debugger rather than the mechanism.
 Code compiled in future must be compiled over a closure it keeps, or it cannot be debugged.
 
+**R83. Against the other Scheme compiled to JavaScript, the calling convention the bake-off chose
+wins on calls and loses on continuations, as it predicted -- and two programs are 40x behind for a
+reason the compiler does not touch.**
+
+The compiled tier had only ever been measured against the interpreter. Against Gambit compiled to
+JavaScript, on the same V8, which uses the explicit frame stack the stage 2a bake-off rejected: calls
+0.89x, fixnums 1.10x, flonums 0.27x, strings 0.04x, vectors 1.20x, lists 2.04x, bignums 1.65x,
+continuations 2.59x -- our time over Gambit's. The bake-off's reasoning held: the native stack is at
+least as fast for ordinary calls, and an explicit frame stack captures more cheaply. Against plain
+JavaScript, calls are 2.0-2.9x, where the founding analysis measured `fib(30)` at 650x interpreted.
+
+What nobody had seen, because class means hid it: `nboyer` and `sboyer` take 16 and 20 s compiled
+against 21 and 24 s interpreted, 40x and 53x behind Gambit, most of the list class's gap. The ROADMAP's
+"list 23x" is a geometric mean over programs one of which the compiler barely helps.
+
+*Consequence:* the two are profiled with bignums, as what compiling barely speeds up; and a program
+far from its class's mean is reported by name, not left inside the mean.
+
 ---
 
 ## Appendix — the original staged plan
