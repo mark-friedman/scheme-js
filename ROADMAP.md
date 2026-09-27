@@ -66,8 +66,8 @@ plain JavaScript, which has not been made yet: every figure below is against the
 
 `string-set!` and `string-fill!` throw, because Scheme strings are JavaScript strings and those are
 immutable — a deliberate trade of compliance for interop that constraint 6 says should not stand.
-`equal?` does not terminate on circular structure, which R7RS §6.1 requires. `call-with-port` does
-not exist. And the file procedures (`call-with-input-file` and the rest) return an exact integer the
+`equal?` does not terminate on circular structure, which R7RS §6.1 requires. `read-char` and
+`peek-char` return one-character strings rather than characters. And the file procedures (`call-with-input-file` and the rest) return an exact integer the
 procedure returned as inexact.
 
 ### Numeric performance
@@ -190,7 +190,7 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 
 | | |
 |---|---|
-| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding, both with the standard library interpreted and with it compiled as the browser installs it. |
+| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding, both with the standard library interpreted and with it compiled as the browser installs it -- three of Chibi's only because its runner rescues a failure whose values agree in JavaScript. |
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |

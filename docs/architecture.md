@@ -261,11 +261,11 @@ of its own.
 │           ├── list.scm            # map, for-each, memq, assq, length, etc.
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
-│           ├── parameter.scm       # make-parameter, parameterize
+│           ├── ports.scm           # call-with-port
 │           └── repl.scm            # REPL utilities
 │
 │   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)
-│      ├── index.js           # EXPORT: tryCompileDefinition(), compileProgram()
+│      ├── index.js           # EXPORT: tryCompileDefinition(), tryCompileExpression(), compileProgram()
 │      ├── compiler.sld       # (scheme-js compiler): its imports, files and entry points
 │      ├── ir.scm             # Analyzed AST -> IR, in Scheme
 │      ├── emit.scm           # IR -> JavaScript, in Scheme: both forms of a procedure

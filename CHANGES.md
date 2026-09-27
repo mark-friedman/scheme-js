@@ -8040,3 +8040,28 @@ continuation's invocation started from a stale stack without the wind, and rewou
 - Which forms compile: the `let` `nboyer` uses, a definition making a closure and a loop do; a call
   that makes nothing and a `begin` that defines do not.
 - 6,124 tests pass in Node and 6,015 in the browser.
+
+# Walkthrough: `call-with-port`
+
+Task 46 in `docs/compiler_plan.md`. R7RS puts `call-with-port` in `(scheme base)`, and nothing
+defined it; neither conformance suite tests it (R79).
+
+- **Written in Scheme**, in a new `src/core/scheme/ports.scm` included by `(scheme core)` and
+  exported from `(scheme base)`: it checks its arguments, calls the procedure with the port, and on
+  an ordinary return closes the port and returns every value the procedure returned. A port the
+  procedure escapes from stays open, as R7RS asks -- it may be closed only when it provably will not
+  be used again, and an escape can be re-entered -- so it needs no `dynamic-wind`, and nothing in
+  JavaScript, which is what made the file procedures' own versions need care beneath compiled code.
+- **Tests**, `tests/core/scheme/port_tests.scm`: the value returned, the port closed, the port passed,
+  every value returned, the port left open on an escape, and both argument errors.
+
+## Found on the way (R85)
+
+The first version of the test read a character through `call-with-port` and failed: `read-char`
+returns a one-character string. The Chibi suite tests exactly that and passes, because its runner
+counts a test the Scheme comparison failed as passed when the values agree once converted to
+JavaScript, where a character and a one-character string are the same. Counting, three tests pass
+only that way: `read-char`, `(inexact 1)` against the literal `1`, and a numeric literal in section
+7.1. They are plan item 48: fix each or record it, then run the suites without the rescue.
+
+6,132 tests pass in Node.

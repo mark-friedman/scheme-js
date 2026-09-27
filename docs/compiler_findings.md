@@ -2569,6 +2569,20 @@ compiled as thunks called once where they make procedures or loop. `nboyer` went
 and `sboyer` from 19.7 to 0.22 s, ahead of Gambit compiled to JavaScript. A coverage figure counts
 the code that runs, not the definitions that exist.
 
+**R85. "982 of 982" counted three failures as passes.**
+
+The Chibi suite's runner checks each result twice: with the Scheme harness's own comparison, and,
+when that fails, by converting both values to JavaScript and comparing those -- meant for an exact
+integer against the same integer as a JavaScript number. A test the second check passes is counted
+as a pass. Three tests pass only that way, and each is a real difference: `read-char` and
+`peek-char` return one-character strings where R7RS returns characters (`#\a` and `"a"` are both
+`"a"` in JavaScript), found while writing a test of `call-with-port` that read a character;
+`(inexact 1)` against the literal `1`; and a numeric literal in section 7.1 against the value it
+reads as.
+
+*Consequence:* the three are fixed or recorded as known deviations, and the suites run without the
+rescue, so that a pass means what it says.
+
 ---
 
 ## Appendix — the original staged plan
