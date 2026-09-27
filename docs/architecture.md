@@ -376,6 +376,12 @@ of its own.
 │   │           └── chibi_revised/          # Chibi-based section tests
 │   │               └── sections/           # Individual section files
 │   │
+│   ├── fuzz/                       # Differential fuzzer: generated programs, both tiers
+│   │   ├── program_generator.scm       # Builds a program, and what to compile, from a seed
+│   │   ├── fuzz_harness.js             # Runs a program interpreted and compiled
+│   │   ├── differential_fuzz_tests.js  # 120 fixed seeds, in npm test
+│   │   └── run_fuzz.js                 # Longer runs from the command line
+│   │
 │   ├── functional/                 # Cross-cutting integration tests
 │   │   ├── core_tests.js
 │   │   ├── interop_tests.js

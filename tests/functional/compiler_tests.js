@@ -292,6 +292,16 @@ const CASES = [
     '(define (odd2? n) (if (= n 0) #f (apply even2? (list (- n 1)))))' +
     '(even2? 20)'],
 
+  // --- operands in the interpreter's order: the procedure, then left to right ---
+  ['a global read before an operand that assigns it',
+    '(define g 0) (define (f) (set! g 5) 10) (define (t) (list g (f))) (t)'],
+  ['an assigned local read before an operand that assigns it',
+    '(define (u x) (list x (begin (set! x 7) x))) (u 1)'],
+  ['the procedure read before an argument that assigns its name',
+    '(define (a z) 1) (define (b z) 2) (define (swap) (set! a b) 0) (define (t) (+ (a (swap)) 0)) (t)'],
+  ['a loop entered with operands in order',
+    '(define g 1) (define (f) (set! g 50) 2) (define (t) (let loop ((i g) (j (f))) (if (> j 0) (loop i (- j 1)) (list i j)))) (t)'],
+
   // --- errors raised inside compiled code reach Scheme's handlers as the interpreter's do ---
   // `check` ends in a tail call to `error`, whose pending raise `first`
   // receives in the middle of a call; `app` calls whatever it is given.

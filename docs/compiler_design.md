@@ -156,6 +156,19 @@ One shape is **refused rather than answered**: a capture beneath a redefined inl
 expansion is not a call site the resumable form splits at. `R.callBinding` marks the state
 (`refusesCapture`), and the sentinel of the run it starts carries it to `call/cc`.
 
+## Operands in the interpreter's order
+
+A call's value is a statement and a temporary in generated code, but a global read, a boxed local's
+read, or a sequence ending in either is an expression, written into the call that uses it -- and
+so evaluated after every operand to its right. R7RS leaves the order of a call's operands
+unspecified, so that was Scheme; but the interpreter evaluates the procedure first and then the
+operands left to right, and it is the reference semantics. A program that depended on the order --
+`(list g (f))` with `f` assigning `g` -- gave a different answer compiled. So `emit-operands!` puts
+such an operand into a temporary before any later operand that could have an effect -- anything but
+a literal, a variable or a lambda. A literal and an unassigned local are left as they are, since
+nothing can change them. The differential fuzzer found this in its first long run: six programs in
+5,000, one cause.
+
 ## Raising from compiled code
 
 `raise`, `raise-continuable` and `error` do not raise: they return a pending raise, a `TailCall`
@@ -617,12 +630,18 @@ a debugger being attached -- the CLI REPL attaches one at start-up.
 
 ## How this is verified
 
-Gaps first, since they are what to distrust: no fuzzer generates programs across the two tiers, so
-the machinery is tested on the shapes its authors thought of, while its serious bugs were in shapes
-nobody did; and CI runs only on `main` and never loads the browser tests. `compiler_plan.md` ranks
-closing each.
+The gap first, since it is what to distrust: CI runs only on `main` and never loads the browser
+tests. `compiler_plan.md` ranks closing it.
 
-- **5,941 tests**, Node and browser, via `npm test`.
+- **6,094 tests**, Node and browser, via `npm test`.
+- **A differential fuzzer** (`tests/fuzz/`): a generator, written in Scheme, builds programs from a
+  seed -- loops, closures, assignments, escapes, a continuation captured at a random site and
+  re-entered twice, errors raised and caught or not, `dynamic-wind`, multiple values, higher-order
+  calls through the library, recursion deep enough to move frames, alternating between the tiers --
+  and says which procedures to compile. Each is run with everything interpreted and with the
+  library and those procedures compiled, and the answers compared. 120 fixed seeds run in
+  `npm test`; `node tests/fuzz/run_fuzz.js` runs as many more as wanted. Five bugs reintroduced into
+  the capture, moving, boxing and liveness machinery were each found within the first 27 programs.
 - **R7RS conformance, in both library configurations**: the chapter tests and Chibi's, 1,201 in
   all, run with the standard library interpreted and again with it installed from the prebuilt tables
   as a browser installs it, which is also checked to have happened (`compliance_tests.js`).

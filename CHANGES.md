@@ -7829,3 +7829,66 @@ compiled and interpreted code overflowed at about 575 levels.
   `primitive_binding_tests.js`.
 - 5,963 tests pass in Node and 5,854 in the browser. In the browser bundle, a capture through the
   compiled `map` inside the compiled `map` resumes correctly and a tree walk 20,000 deep answers.
+
+# Walkthrough: A differential fuzzer across the two tiers
+
+Task 31 in `docs/compiler_plan.md`. The tier's serious bugs had been found by whole programs giving
+wrong answers, not by unit tests, because unit tests are written for the shapes their author had in
+mind. This generalises the whole-program check.
+
+## The fuzzer
+
+- **`tests/fuzz/program_generator.scm`**, in Scheme: from a seed, a program of two to six procedures
+  and a driver, with types tracked -- integers, lists, booleans, procedures from integers to
+  integers -- so that most programs run to an answer and errors are raised on purpose. It generates
+  loops (named `let`, `do`), closures, `set!` on locals and globals, escapes through `call/cc`, a
+  continuation captured at a random site the first time it is reached, `guard` over `raise`, `error`
+  and primitives' own errors, `with-exception-handler` escaping through a continuation,
+  `dynamic-wind` with a trail, `call-with-values`, `case`, internal definitions, vectors, and
+  `map`, `for-each`, `vector-map` and `apply` with procedures of its own. A quarter of the programs
+  add recursion 3,000 to 25,000 deep through `hop`, which calls what it is given, so it alternates
+  between the tiers, and captures at the bottom of it or walks a deep tree through `map`; a tenth
+  end in an error nothing catches. Every program terminates and means the same every time: loops
+  count down from literals, a procedure recurs only on a smaller argument and calls only those
+  before it, and the driver re-enters the saved continuation twice at most. It also picks which
+  procedures to compile, each with a chance of 60%.
+- **`fuzz_harness.js`** runs each program with everything interpreted, and with the standard library
+  compiled as the browser installs it and the chosen procedures compiled, captures allowed; the
+  answers -- the driver's records, the trail and the globals, or the error -- must agree.
+- **`differential_fuzz_tests.js`** runs seeds 1 to 120 in `npm test`, in 3.6 s, and checks that
+  enough of them re-enter a continuation, recurse deep, end in an error and compile at all, so that
+  a generator that quietly stopped doing one would fail. **`run_fuzz.js`** runs any range of seeds
+  and prints each disagreement with its seed and program.
+
+## Does it find bugs?
+
+Five were reintroduced, each run against the first 300 programs: a nested run passing no frames on
+(found by 13 programs, the first seed 27), the capturing run's frames dropped (10, seed 23), the
+frames an unwind collects stacked the wrong way round (49, seed 3), assigned locals never boxed --
+R49's bug -- (15, seed 3), and a spill saving only what its own block reads (13, seed 8). The last
+two were compiler mutations, which took effect by regenerating only `compiler_sources.js`: the
+prebuilt compiled compiler goes stale and the mutated source runs interpreted, so the mutation cannot
+miscompile the compiler that is testing it. Two more mutations survived, and turned out harmless:
+a resumed frame sharing its slots, since assigned locals are boxed and the resumable form only reads
+the frame; and moved frames pushed rather than linked, which costs depth, not answers.
+
+## What it found (R81)
+
+Its first long run, 5,000 programs, found six the tiers answered differently, all one cause:
+compiled code evaluated a call's operands in an order of its own. A call's value is a statement
+and a temporary, but a global read, an assigned local's read or a sequence ending in one was an
+expression written into the call that used it, and so evaluated after every operand to its right;
+and the procedure was read after its arguments. `(list g (f))`, with `f` assigning `g`, was `(5 10)`
+compiled and `(0 10)` interpreted. R7RS leaves the order unspecified, but the interpreter is the
+reference semantics. `emit-operands!` now puts such an operand in a temporary when a later operand
+could have an effect, and reads the procedure first. The suite did not move, alternated three times
+compiled (classes 0.99-1.05x); the generated code is 0.9% larger for the libraries and 3.8% for the
+compiler. After the fix, 10,000 programs on fresh seeds, 0 disagreements.
+
+## Tests
+
+- Scheme tests of the operand order in `tests/compiler/emit_tests.scm`, and four differential cases
+  -- a global read before an operand that assigns it, the same for an assigned local, the procedure
+  read before an argument that assigns its name, a loop entered with operands in order -- each of
+  which fails on the task-30 tree.
+- 6,094 tests pass in Node and 5,985 in the browser.

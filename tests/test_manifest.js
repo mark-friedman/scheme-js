@@ -97,6 +97,8 @@ export const programTests = [
     // The R7RS conformance suites, with the standard library interpreted and
     // with it compiled as the browser installs it.
     { path: 'core/scheme/compliance/compliance_tests.js', fn: 'runComplianceTests', async: true, needsInterpreter: false, needsLoader: true },
+    // Generated programs, run in both tiers and compared.
+    { path: 'fuzz/differential_fuzz_tests.js', fn: 'runDifferentialFuzzTests', async: true, needsInterpreter: false, needsLoader: true },
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the

@@ -654,6 +654,49 @@
     (else (error "emit: cannot emit IR node" (car node)))))
 
 ;; /**
+;;  * Emits operands, left to right, each settled before any after it can
+;;  * change what it reads.
+;;  *
+;;  * A call's value is a statement and a temporary, but a global read, a boxed
+;;  * local's read or a sequence's last expression is an expression, written into
+;;  * the call that uses it -- and so evaluated after every operand to its right.
+;;  * If one of those assigns what it reads, the operand sees the new value:
+;;  * `(list g (f))`, with `f` assigning `g`, was `(5 10)` compiled where the
+;;  * interpreter says `(0 10)`. R7RS leaves the order unspecified, so both are
+;;  * Scheme; but the interpreter is the reference semantics, and a program that
+;;  * depended on the order would change its answer when compiled. So such an
+;;  * operand goes into a temporary first, when an operand after it could have
+;;  * an effect at all -- anything but a literal, a variable or a lambda. A
+;;  * literal and an unassigned local are left alone, since nothing can change
+;;  * them.
+;;  *
+;;  * @param {form} form - The emission.
+;;  * @param {list} nodes - The operands' IR nodes, in order.
+;;  * @returns {list} Their expressions.
+;;  */
+(define (emit-operands! form nodes)
+  (let loop ((nodes nodes) (acc '()))
+    (if (null? nodes)
+        (reverse acc)
+        (let ((expr (emit-value! form (car nodes))))
+          (loop (cdr nodes)
+                (cons (if (and (not (repeatable? expr)) (any effectful? (cdr nodes)))
+                          (let ((t (temp! form)))
+                            (emit! form (list 'assign (js t) expr))
+                            (js t))
+                          expr)
+                      acc))))))
+
+;; /**
+;;  * Whether evaluating an IR node could change what another reads: anything
+;;  * but a literal, a variable read or the making of a procedure.
+;;  * @param {list} node - The node.
+;;  * @returns {boolean}
+;;  */
+(define (effectful? node)
+  (not (memq (car node) '(const local global lambda))))
+
+;; /**
 ;;  * Creates a nested procedure by calling its factory with its free variables.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} lam - A lambda IR node.
@@ -837,11 +880,13 @@
 ;;  * @returns {list} The expression holding the value.
 ;;  */
 (define (emit-call! form node)
-  (let* ((args (map-in-order (lambda (arg) (emit-value! form arg)) (caddr node)))
+  ;; The procedure first, as the interpreter evaluates it (`emit-operands!`).
+  (let* ((operands (emit-operands! form (cons (cadr node) (caddr node))))
+         (fn (car operands))
+         (args (cdr operands))
          (callee (temp! form))
          (raw (temp! form))
          (result (temp! form))
-         (fn (emit-value! form (cadr node)))
          (arglist (join-exprs args ", ")))
     (emit! form (list 'assign (js callee) fn))
     (emit! form (list 'raw (js "if (typeof " callee " !== 'function') $notProc(" callee ");")))
@@ -985,8 +1030,9 @@
   (let ((inlined (emit-inline! form node)))
     (if inlined
         (emit! form (list 'return inlined))
-        (let* ((fn (emit-value! form (cadr node)))
-               (args (map-in-order (lambda (arg) (emit-value! form arg)) (caddr node)))
+        (let* ((operands (emit-operands! form (cons (cadr node) (caddr node))))
+               (fn (car operands))
+               (args (cdr operands))
                (kind (call-loop node))
                (target (loop-target form)))
           (cond
@@ -1149,7 +1195,7 @@
 (define (emit-inline-loop! form node)
   (let* ((lam (car (caddr node)))
          (params (lambda-params lam))
-         (entry (map-in-order (lambda (arg) (emit-value! form arg)) (caddr (cadddr node)))))
+         (entry (emit-operands! form (caddr (cadddr node)))))
     (for-each (lambda (param value)
                 (declare! form (js-local param))
                 (emit! form (list 'assign (js (js-local param)) value)))

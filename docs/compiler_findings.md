@@ -2501,6 +2501,25 @@ so alternation was quadratic in its depth; moves reset it. A tree walk 400 deep 
 `flushable` already said; beneath a JavaScript caller the continuation leaves that caller out, as
 the interpreter's always have; the one refusal left is beneath a redefined inlined primitive.
 
+**R81. Compiled code evaluated a call's operands in an order of its own, and six thousand tests did
+not notice.**
+
+The differential fuzzer's first long run, 5,000 generated programs, found six the tiers answered
+differently, all one cause. A call's value is a statement in generated code, but a global read, an
+assigned local's read, or a sequence ending in one was an expression written into the call that
+used it, so it was evaluated after every operand to its right, and the procedure itself was read
+after its arguments. `(list g (f))`, with `f` assigning `g`, was `(5 10)` compiled and `(0 10)`
+interpreted. R7RS leaves the order unspecified, so each answer is Scheme, which is presumably why no
+test written by hand asked; but the interpreter is the reference semantics, and the whole-program
+checks never assign what an earlier operand reads.
+
+Fixing it cost nothing measurable in speed and 0.9% of the libraries' generated code, 3.8% of the
+compiler's, most of it the procedure read into a temporary before arguments that make calls.
+
+*Consequence:* operands go into temporaries in order when a later one could have an effect. The
+fuzzer is how the next shape nobody wrote a test for is meant to be found; five bugs reintroduced
+into the capture, moving, boxing and liveness machinery were each found within its first 27 programs.
+
 ---
 
 ## Appendix — the original staged plan
