@@ -2436,6 +2436,35 @@ list handed to JavaScript still holds `BigInt`s in its cars.
 *Consequence:* the boundary's number rules are written down as they are, and the direct call is
 made to agree with the other paths rather than documented as a second rule.
 
+**R78. A raise compiled code could not perform needed no machinery of its own; and a test made on
+every call costs according to where it sits, which neither an isolated measurement nor compiled
+callees alone showed.**
+
+The plan described `error` in compiled code as a pending raise the trampoline cannot run, and noted
+that declining procedures that call `error` would decline most of the library -- as if the choice
+were between the two. Neither was needed. Compiled frames never hold a handler or a `dynamic-wind`,
+since a procedure that names one is not compiled, so everything in force where compiled code raises
+is on the frame stack of the interpreter run beneath it. Throwing the raise to that run and letting
+it run the `RaiseNode` is therefore exactly the interpreter's raise, including the debugger's pause
+on an uncaught exception; the only part it cannot do is let a handler return, so
+`raise-continuable` is refused.
+
+Reporting a call to a non-procedure needs a test on every call whose value is wanted, and a `typeof`
+of a value already in hand was expected to cost nothing. Where it sat decided the cost:
+
+- written into the call expression, with the raw entry read by `?.` so that the empty list, `null`,
+  does not throw first: `divrec` 9% slower, most of it the `?.`;
+- as a statement ahead of the call: 1.6% on `divrec` measured in isolation, but 2-4.5% in the suite,
+  on `fibfp`, `diviter`, `ack`, `divrec` and `dynamic`;
+- a `try` around the call, testing only when it threw: nothing, on every procedure measured in
+  isolation -- all of whose callees were compiled or primitive. A call into an *interpreted*
+  procedure inside the `try` cost 15%, and `quicksort`, whose comparison procedure is interpreted,
+  ran 9% slower. That is the call the compiled library makes to a program's callbacks, the
+  browser's common case.
+
+*Consequence:* the statement shipped. A change to the call site is measured in the suite as well as
+in isolation, and with interpreted callees as well as compiled ones.
+
 ---
 
 ## Appendix — the original staged plan

@@ -2,6 +2,7 @@ import { Values, isSchemeClosure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, restoreFlush } from './unwind.js';
+import { takeCompiledRaise } from './ast_nodes.js';
 import { globalContext } from './context.js';
 
 /**
@@ -373,6 +374,15 @@ export class Interpreter {
             return unpackForJs(e.value, this, options);
           }
 
+          // Compiled code raised, and threw the raise here for this run to
+          // perform from where it called compiled code, with the handlers on
+          // this frame stack; see `raiseFromCompiledCode`.
+          const raise = takeCompiledRaise(e);
+          if (raise !== null) {
+            registers[CTL] = raise;
+            continue;
+          }
+
           // Check if there's an ExceptionHandlerFrame on the stack
           // If so, route the JS error through Scheme's exception system
           const handlerIndex = findExceptionHandler(registers[FSTACK]);
@@ -563,6 +573,13 @@ export class Interpreter {
 
           if (e instanceof SentinelResult) {
             return unpackForJs(e.value, this, options);
+          }
+
+          // As in `run`.
+          const raise = takeCompiledRaise(e);
+          if (raise !== null) {
+            registers[CTL] = raise;
+            continue;
           }
 
           // Check if debugger has paused on this exception

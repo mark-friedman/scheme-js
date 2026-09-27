@@ -211,3 +211,26 @@
   (test "and its arguments, which arrive on the stack, take room too" #t
         (and (string-contains rest " - s_r$raw.length;") #t))
   (test "a procedure that calls nothing takes no room" #f (and (string-contains leaf "$d") #t)))
+
+;; A call whose value is wanted calls the callee directly, and JavaScript's
+;; own complaint about calling what is not a function names a temporary --
+;; "$t0 is not a function" -- where the interpreter says "application: not a
+;; procedure". So the callee is tested first, which also keeps the raw entry
+;; from being read off the empty list, JavaScript `null`.
+(test-group "emit - a call to a value that is not a procedure"
+  (define (unit-source ast globals)
+    (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
+  (define (count-of source text)
+    (let loop ((from 0) (n 0))
+      (let ((at (string-contains source text from)))
+        (if at (loop (+ at 1) (+ n 1)) n))))
+  ;; (lambda (x) (x 1) 2): a call whose value is discarded.
+  (define call (unit-source '(lambda (x) #f #f (seq ((app (var x) ((lit 1))) (lit 2)))) '()))
+  (test "a callee that is not a function is reported as the interpreter reports it, in both forms" 2
+        (count-of call "if (typeof $t0 !== 'function') $notProc($t0);"))
+  (test "before its raw entry is read" #t
+        (< (string-contains call "$notProc($t0)") (string-contains call "[$RAW];")))
+  (test "which the procedure declares" #t
+        (and (string-contains call "$notProc = R.notAProcedure") #t))
+  (test "and the call itself is unchanged" 2
+        (count-of call " === undefined ? $t")))

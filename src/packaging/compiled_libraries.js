@@ -21,7 +21,7 @@ import { Char } from '../core/primitives/char_class.js';
 export const LIBRARIES = {
   "scheme-js.js-conversion": {
     fingerprint: "1a441ef2",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["js-conversion.sld"],
     procedures: {
       "make-js-object": {
@@ -56,7 +56,7 @@ export const LIBRARIES = {
   },
   "scheme-js.promise": {
     fingerprint: "5eff2920",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["promise.sld","promise.scm"],
     procedures: {
       "js-promise-map": {
@@ -92,7 +92,7 @@ export const LIBRARIES = {
         rest: "fs_$2946",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
@@ -113,6 +113,7 @@ export const LIBRARIES = {
         } else {
           $t1 = (W4.intact || (C4.v ?? G4()) === P4) && (s_fs_$2946 instanceof R.Cons) ? (s_fs_$2946.car) : R.callBinding((C4.v ?? G4()), [s_fs_$2946]);
           $t2 = (C3.v ?? G3());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_p_$2945, $t1) : $t3(s_p_$2945, $t1);
@@ -136,6 +137,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W4.intact || (C4.v ?? G4()) === P4) && (s_fs_$2946 instanceof R.Cons) ? (s_fs_$2946.car) : R.callBinding((C4.v ?? G4()), [s_fs_$2946]);
                 $t2 = (C3.v ?? G3());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_p_$2945, $t1) : $t3(s_p_$2945, $t1);
@@ -160,7 +162,7 @@ export const LIBRARIES = {
   },
   "scheme.core": {
     fingerprint: "80ed0295",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["core.sld","macros.scm","equality.scm","cxr.scm","numbers.scm","list.scm","parameter.scm"],
     procedures: {
       "equal?": {
@@ -168,7 +170,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eqv?")).v;
         const W0 = R.primitiveCell("eqv?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -197,6 +199,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_a_$1616, s_b_$1617]);
           $loop: for (;;) {
             $t0 = (C0.v ?? G0());
+            if (typeof $t0 !== 'function') $notProc($t0);
             $t1 = $t0[$RAW];
             $stack.room = $d;
             $t2 = $t1 === undefined ? $t0(s_a_$1616, s_b_$1617) : $t1(s_a_$1616, s_b_$1617);
@@ -216,6 +219,7 @@ export const LIBRARIES = {
           $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (s_a_$1616 instanceof R.Cons) ? (s_a_$1616.car) : R.callBinding((C3.v ?? G3()), [s_a_$1616]);
           $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (s_b_$1617 instanceof R.Cons) ? (s_b_$1617.car) : R.callBinding((C3.v ?? G3()), [s_b_$1617]);
           $t8 = (C2.v ?? G2());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8($t6, $t7) : $t9($t6, $t7);
@@ -232,6 +236,7 @@ export const LIBRARIES = {
         }
         } else {
           $t14 = (C5.v ?? G5());
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14(s_a_$1616) : $t15(s_a_$1616);
@@ -239,6 +244,7 @@ export const LIBRARIES = {
           if ($t16 === $UNWIND) { R.reify($proc$r, 12, { s_a_$1616, s_b_$1617 }); return $UNWIND; }
           if ($t16 !== false) {
           $t18 = (C5.v ?? G5());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_b_$1617) : $t19(s_b_$1617);
@@ -264,6 +270,7 @@ export const LIBRARIES = {
           $t25 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_a_$1616, s_i_$1621)) : R.callBinding((C8.v ?? G8()), [s_a_$1616, s_i_$1621]);
           $t26 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_b_$1617, s_i_$1621)) : R.callBinding((C8.v ?? G8()), [s_b_$1617, s_i_$1621]);
           $t27 = (C2.v ?? G2());
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27($t25, $t26) : $t28($t25, $t26);
@@ -283,6 +290,7 @@ export const LIBRARIES = {
         }
         } else {
           $t31 = (C10.v ?? G10());
+          if (typeof $t31 !== 'function') $notProc($t31);
           $t32 = $t31[$RAW];
           $stack.room = $d;
           $t33 = $t32 === undefined ? $t31(s_a_$1616) : $t32(s_a_$1616);
@@ -290,6 +298,7 @@ export const LIBRARIES = {
           if ($t33 === $UNWIND) { R.reify($proc$r, 27, { s_a_$1616, s_b_$1617 }); return $UNWIND; }
           if ($t33 !== false) {
           $t35 = (C10.v ?? G10());
+          if (typeof $t35 !== 'function') $notProc($t35);
           $t36 = $t35[$RAW];
           $stack.room = $d;
           $t37 = $t36 === undefined ? $t35(s_b_$1617) : $t36(s_b_$1617);
@@ -301,6 +310,7 @@ export const LIBRARIES = {
         }
           if ($t34 !== false) {
           $t38 = (C11.v ?? G11());
+          if (typeof $t38 !== 'function') $notProc($t38);
           $t39 = $t38[$RAW];
           $stack.room = $d;
           $t40 = $t39 === undefined ? $t38(s_a_$1616) : $t39(s_a_$1616);
@@ -308,6 +318,7 @@ export const LIBRARIES = {
           if ($t40 === $UNWIND) { R.reify($proc$r, 34, { s_a_$1616, s_b_$1617 }); return $UNWIND; }
           s_len_2da_$1622 = $t40;
           $t41 = (C11.v ?? G11());
+          if (typeof $t41 !== 'function') $notProc($t41);
           $t42 = $t41[$RAW];
           $stack.room = $d;
           $t43 = $t42 === undefined ? $t41(s_b_$1617) : $t42(s_b_$1617);
@@ -323,12 +334,14 @@ export const LIBRARIES = {
           return true;
         } else {
           $t46 = (C12.v ?? G12());
+          if (typeof $t46 !== 'function') $notProc($t46);
           $t47 = $t46[$RAW];
           $stack.room = $d;
           $t48 = $t47 === undefined ? $t46(s_a_$1616, s_i_$1625) : $t47(s_a_$1616, s_i_$1625);
           while ($t48 instanceof $TailCall) { $stack.room = $d; $t48 = $step($t48); }
           if ($t48 === $UNWIND) { R.reify($proc$r, 41, { s_len_2da_$1622, s_i_$1625, s_a_$1616, s_b_$1617 }); return $UNWIND; }
           $t49 = (C12.v ?? G12());
+          if (typeof $t49 !== 'function') $notProc($t49);
           $t50 = $t49[$RAW];
           $stack.room = $d;
           $t51 = $t50 === undefined ? $t49(s_b_$1617, s_i_$1625) : $t50(s_b_$1617, s_i_$1625);
@@ -349,6 +362,7 @@ export const LIBRARIES = {
         }
         } else {
           $t54 = (C13.v ?? G13());
+          if (typeof $t54 !== 'function') $notProc($t54);
           $t55 = $t54[$RAW];
           $stack.room = $d;
           $t56 = $t55 === undefined ? $t54(s_a_$1616) : $t55(s_a_$1616);
@@ -356,6 +370,7 @@ export const LIBRARIES = {
           if ($t56 === $UNWIND) { R.reify($proc$r, 45, { s_a_$1616, s_b_$1617 }); return $UNWIND; }
           if ($t56 !== false) {
           $t58 = (C13.v ?? G13());
+          if (typeof $t58 !== 'function') $notProc($t58);
           $t59 = $t58[$RAW];
           $stack.room = $d;
           $t60 = $t59 === undefined ? $t58(s_b_$1617) : $t59(s_b_$1617);
@@ -384,6 +399,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$1616, s_b_$1617) : $t1(s_a_$1616, s_b_$1617);
@@ -412,6 +428,7 @@ export const LIBRARIES = {
                 $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (s_a_$1616 instanceof R.Cons) ? (s_a_$1616.car) : R.callBinding((C3.v ?? G3()), [s_a_$1616]);
                 $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (s_b_$1617 instanceof R.Cons) ? (s_b_$1617.car) : R.callBinding((C3.v ?? G3()), [s_b_$1617]);
                 $t8 = (C2.v ?? G2());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8($t6, $t7) : $t9($t6, $t7);
@@ -421,6 +438,7 @@ export const LIBRARIES = {
                 $pc = 9; continue;
               case 8:
                 $t14 = (C5.v ?? G5());
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14(s_a_$1616) : $t15(s_a_$1616);
@@ -444,6 +462,7 @@ export const LIBRARIES = {
                 if ($t16 !== false) { $pc = 13; continue; } $pc = 14; continue;
               case 13:
                 $t18 = (C5.v ?? G5());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_b_$1617) : $t19(s_b_$1617);
@@ -469,6 +488,7 @@ export const LIBRARIES = {
                 if ($t23 !== false) { $pc = 19; continue; } $pc = 20; continue;
               case 18:
                 $t31 = (C10.v ?? G10());
+                if (typeof $t31 !== 'function') $notProc($t31);
                 $t32 = $t31[$RAW];
                 $stack.room = $d;
                 $t33 = $t32 === undefined ? $t31(s_a_$1616) : $t32(s_a_$1616);
@@ -490,6 +510,7 @@ export const LIBRARIES = {
                 $t25 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_a_$1616, s_i_$1621)) : R.callBinding((C8.v ?? G8()), [s_a_$1616, s_i_$1621]);
                 $t26 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_b_$1617, s_i_$1621)) : R.callBinding((C8.v ?? G8()), [s_b_$1617, s_i_$1621]);
                 $t27 = (C2.v ?? G2());
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27($t25, $t26) : $t28($t25, $t26);
@@ -511,6 +532,7 @@ export const LIBRARIES = {
                 if ($t33 !== false) { $pc = 28; continue; } $pc = 29; continue;
               case 28:
                 $t35 = (C10.v ?? G10());
+                if (typeof $t35 !== 'function') $notProc($t35);
                 $t36 = $t35[$RAW];
                 $stack.room = $d;
                 $t37 = $t36 === undefined ? $t35(s_b_$1617) : $t36(s_b_$1617);
@@ -529,6 +551,7 @@ export const LIBRARIES = {
                 $pc = 30; continue;
               case 32:
                 $t38 = (C11.v ?? G11());
+                if (typeof $t38 !== 'function') $notProc($t38);
                 $t39 = $t38[$RAW];
                 $stack.room = $d;
                 $t40 = $t39 === undefined ? $t38(s_a_$1616) : $t39(s_a_$1616);
@@ -538,6 +561,7 @@ export const LIBRARIES = {
                 $pc = 34; continue;
               case 33:
                 $t54 = (C13.v ?? G13());
+                if (typeof $t54 !== 'function') $notProc($t54);
                 $t55 = $t54[$RAW];
                 $stack.room = $d;
                 $t56 = $t55 === undefined ? $t54(s_a_$1616) : $t55(s_a_$1616);
@@ -549,6 +573,7 @@ export const LIBRARIES = {
                 $t40 = $r;
                 s_len_2da_$1622 = $t40;
                 $t41 = (C11.v ?? G11());
+                if (typeof $t41 !== 'function') $notProc($t41);
                 $t42 = $t41[$RAW];
                 $stack.room = $d;
                 $t43 = $t42 === undefined ? $t41(s_b_$1617) : $t42(s_b_$1617);
@@ -573,6 +598,7 @@ export const LIBRARIES = {
                 return true;
               case 40:
                 $t46 = (C12.v ?? G12());
+                if (typeof $t46 !== 'function') $notProc($t46);
                 $t47 = $t46[$RAW];
                 $stack.room = $d;
                 $t48 = $t47 === undefined ? $t46(s_a_$1616, s_i_$1625) : $t47(s_a_$1616, s_i_$1625);
@@ -583,6 +609,7 @@ export const LIBRARIES = {
               case 41:
                 $t48 = $r;
                 $t49 = (C12.v ?? G12());
+                if (typeof $t49 !== 'function') $notProc($t49);
                 $t50 = $t49[$RAW];
                 $stack.room = $d;
                 $t51 = $t50 === undefined ? $t49(s_b_$1617, s_i_$1625) : $t50(s_b_$1617, s_i_$1625);
@@ -605,6 +632,7 @@ export const LIBRARIES = {
                 if ($t56 !== false) { $pc = 46; continue; } $pc = 47; continue;
               case 46:
                 $t58 = (C13.v ?? G13());
+                if (typeof $t58 !== 'function') $notProc($t58);
                 $t59 = $t58[$RAW];
                 $stack.room = $d;
                 $t60 = $t59 === undefined ? $t58(s_b_$1617) : $t59(s_b_$1617);
@@ -1575,7 +1603,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -1587,6 +1615,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$1654]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1654) : $t1(s_x_$1654);
@@ -1595,6 +1624,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("zero?: expected number", s_x_$1654) : $t6("zero?: expected number", s_x_$1654);
@@ -1615,6 +1645,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1654) : $t1(s_x_$1654);
@@ -1628,6 +1659,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("zero?: expected number", s_x_$1654) : $t6("zero?: expected number", s_x_$1654);
@@ -1659,7 +1691,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -1671,6 +1703,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$1655]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1655) : $t1(s_x_$1655);
@@ -1679,6 +1712,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("positive?: expected number", s_x_$1655) : $t6("positive?: expected number", s_x_$1655);
@@ -1699,6 +1733,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1655) : $t1(s_x_$1655);
@@ -1712,6 +1747,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("positive?: expected number", s_x_$1655) : $t6("positive?: expected number", s_x_$1655);
@@ -1743,7 +1779,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -1755,6 +1791,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$1656]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1656) : $t1(s_x_$1656);
@@ -1763,6 +1800,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("negative?: expected number", s_x_$1656) : $t6("negative?: expected number", s_x_$1656);
@@ -1783,6 +1821,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1656) : $t1(s_x_$1656);
@@ -1796,6 +1835,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("negative?: expected number", s_x_$1656) : $t6("negative?: expected number", s_x_$1656);
@@ -1827,7 +1867,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -1840,6 +1880,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$1657]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1657) : $t1(s_x_$1657);
@@ -1848,6 +1889,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("odd?: expected integer", s_x_$1657) : $t6("odd?: expected integer", s_x_$1657);
@@ -1859,6 +1901,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C4.v ?? G4());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_x_$1657, 2n) : $t9(s_x_$1657, 2n);
@@ -1875,6 +1918,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1657) : $t1(s_x_$1657);
@@ -1888,6 +1932,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("odd?: expected integer", s_x_$1657) : $t6("odd?: expected integer", s_x_$1657);
@@ -1901,6 +1946,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C4.v ?? G4());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_x_$1657, 2n) : $t9(s_x_$1657, 2n);
@@ -1930,7 +1976,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -1943,6 +1989,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 21;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$1658]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1658) : $t1(s_x_$1658);
@@ -1951,6 +1998,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("even?: expected integer", s_x_$1658) : $t6("even?: expected integer", s_x_$1658);
@@ -1962,6 +2010,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C4.v ?? G4());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_x_$1658, 2n) : $t9(s_x_$1658, 2n);
@@ -1977,6 +2026,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1658) : $t1(s_x_$1658);
@@ -1990,6 +2040,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("even?: expected integer", s_x_$1658) : $t6("even?: expected integer", s_x_$1658);
@@ -2003,6 +2054,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C4.v ?? G4());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_x_$1658, 2n) : $t9(s_x_$1658, 2n);
@@ -2031,7 +2083,7 @@ export const LIBRARIES = {
         rest: "rest_$1660",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
@@ -2050,6 +2102,7 @@ export const LIBRARIES = {
           return s_x_$1659;
         } else {
           $t1 = (C1.v ?? G1());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1((C2.v ?? G2()), s_rest_$1660) : $t2((C2.v ?? G2()), s_rest_$1660);
@@ -2064,6 +2117,7 @@ export const LIBRARIES = {
         }
           s_m_$1662 = $t5;
           $t6 = (C4.v ?? G4());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_x_$1659) : $t7(s_x_$1659);
@@ -2074,6 +2128,7 @@ export const LIBRARIES = {
           $t9 = s_x_$1663;
         } else {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_res_$1661) : $t11(s_res_$1661);
@@ -2101,6 +2156,7 @@ export const LIBRARIES = {
                 return s_x_$1659;
               case 2:
                 $t1 = (C1.v ?? G1());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1((C2.v ?? G2()), s_rest_$1660) : $t2((C2.v ?? G2()), s_rest_$1660);
@@ -2122,6 +2178,7 @@ export const LIBRARIES = {
               case 6:
                 s_m_$1662 = $t5;
                 $t6 = (C4.v ?? G4());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_x_$1659) : $t7(s_x_$1659);
@@ -2138,6 +2195,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 9:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_res_$1661) : $t11(s_res_$1661);
@@ -2169,7 +2227,7 @@ export const LIBRARIES = {
         rest: "rest_$1665",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -2182,6 +2240,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$1664, ...s_rest_$1665$raw]);
           let s_rest_$1665 = R.listFrom(s_rest_$1665$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1664) : $t1(s_x_$1664);
@@ -2190,6 +2249,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("max: expected number", s_x_$1664) : $t6("max: expected number", s_x_$1664);
@@ -2210,6 +2270,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1664) : $t1(s_x_$1664);
@@ -2223,6 +2284,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("max: expected number", s_x_$1664) : $t6("max: expected number", s_x_$1664);
@@ -2254,7 +2316,7 @@ export const LIBRARIES = {
         rest: "rest_$1667",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
@@ -2273,6 +2335,7 @@ export const LIBRARIES = {
           return s_x_$1666;
         } else {
           $t1 = (C1.v ?? G1());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1((C2.v ?? G2()), s_rest_$1667) : $t2((C2.v ?? G2()), s_rest_$1667);
@@ -2287,6 +2350,7 @@ export const LIBRARIES = {
         }
           s_m_$1669 = $t5;
           $t6 = (C4.v ?? G4());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_x_$1666) : $t7(s_x_$1666);
@@ -2297,6 +2361,7 @@ export const LIBRARIES = {
           $t9 = s_x_$1670;
         } else {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_res_$1668) : $t11(s_res_$1668);
@@ -2324,6 +2389,7 @@ export const LIBRARIES = {
                 return s_x_$1666;
               case 2:
                 $t1 = (C1.v ?? G1());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1((C2.v ?? G2()), s_rest_$1667) : $t2((C2.v ?? G2()), s_rest_$1667);
@@ -2345,6 +2411,7 @@ export const LIBRARIES = {
               case 6:
                 s_m_$1669 = $t5;
                 $t6 = (C4.v ?? G4());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_x_$1666) : $t7(s_x_$1666);
@@ -2361,6 +2428,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 9:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_res_$1668) : $t11(s_res_$1668);
@@ -2392,7 +2460,7 @@ export const LIBRARIES = {
         rest: "rest_$1672",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -2405,6 +2473,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$1671, ...s_rest_$1672$raw]);
           let s_rest_$1672 = R.listFrom(s_rest_$1672$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1671) : $t1(s_x_$1671);
@@ -2413,6 +2482,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("min: expected number", s_x_$1671) : $t6("min: expected number", s_x_$1671);
@@ -2433,6 +2503,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1671) : $t1(s_x_$1671);
@@ -2446,6 +2517,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("min: expected number", s_x_$1671) : $t6("min: expected number", s_x_$1671);
@@ -2477,7 +2549,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "abs")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -2489,6 +2561,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_a_$1673, s_b_$1674]);
           $loop: for (;;) {
             $t0 = (C0.v ?? G0());
+            if (typeof $t0 !== 'function') $notProc($t0);
             $t1 = $t0[$RAW];
             $stack.room = $d;
             $t2 = $t1 === undefined ? $t0(s_a_$1673) : $t1(s_a_$1673);
@@ -2496,6 +2569,7 @@ export const LIBRARIES = {
             if ($t2 === $UNWIND) { R.reify($proc$r, 1, { $t10, s_a_$1673, s_b_$1674 }); return $UNWIND; }
             s_aa_$1675 = $t2;
             $t3 = (C0.v ?? G0());
+            if (typeof $t3 !== 'function') $notProc($t3);
             $t4 = $t3[$RAW];
             $stack.room = $d;
             $t5 = $t4 === undefined ? $t3(s_b_$1674) : $t4(s_b_$1674);
@@ -2507,6 +2581,7 @@ export const LIBRARIES = {
           return s_aa_$1675;
         } else {
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_aa_$1675, s_bb_$1676) : $t8(s_aa_$1675, s_bb_$1676);
@@ -2525,6 +2600,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$1673) : $t1(s_a_$1673);
@@ -2536,6 +2612,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_aa_$1675 = $t2;
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_b_$1674) : $t4(s_b_$1674);
@@ -2552,6 +2629,7 @@ export const LIBRARIES = {
                 return s_aa_$1675;
               case 4:
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_aa_$1675, s_bb_$1676) : $t8(s_aa_$1675, s_bb_$1676);
@@ -2577,7 +2655,7 @@ export const LIBRARIES = {
         rest: "args_$1677",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "for-each")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
@@ -2597,6 +2675,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn0, [s_x_$1678]);
           $t0 = (C2.v ?? G2());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1678) : $t1(s_x_$1678);
@@ -2618,6 +2697,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C2.v ?? G2());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1678) : $t1(s_x_$1678);
@@ -2647,6 +2727,7 @@ export const LIBRARIES = {
           let s_args_$1677 = R.listFrom(s_args_$1677$raw);
           $t1 = $mk$fn0();
           $t2 = (C0.v ?? G0());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1, s_args_$1677) : $t3($t1, s_args_$1677);
@@ -2659,6 +2740,7 @@ export const LIBRARIES = {
         } else {
           $t6 = (W6.intact || (C6.v ?? G6()) === P6) && (s_args_$1677 instanceof R.Cons) ? (s_args_$1677.car) : R.callBinding((C6.v ?? G6()), [s_args_$1677]);
           $t7 = (C8.v ?? G8());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -2674,6 +2756,7 @@ export const LIBRARIES = {
         } else {
           $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (s_rest_$1681 instanceof R.Cons) ? (s_rest_$1681.car) : R.callBinding((C6.v ?? G6()), [s_rest_$1681]);
           $t13 = (C5.v ?? G5());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_result_$1680, $t12) : $t14(s_result_$1680, $t12);
@@ -2695,6 +2778,7 @@ export const LIBRARIES = {
               case 0:
                 $t1 = $mk$fn0();
                 $t2 = (C0.v ?? G0());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1, s_args_$1677) : $t3($t1, s_args_$1677);
@@ -2712,6 +2796,7 @@ export const LIBRARIES = {
               case 3:
                 $t6 = (W6.intact || (C6.v ?? G6()) === P6) && (s_args_$1677 instanceof R.Cons) ? (s_args_$1677.car) : R.callBinding((C6.v ?? G6()), [s_args_$1677]);
                 $t7 = (C8.v ?? G8());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -2733,6 +2818,7 @@ export const LIBRARIES = {
               case 7:
                 $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (s_rest_$1681 instanceof R.Cons) ? (s_rest_$1681.car) : R.callBinding((C6.v ?? G6()), [s_rest_$1681]);
                 $t13 = (C5.v ?? G5());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_result_$1680, $t12) : $t14(s_result_$1680, $t12);
@@ -2759,7 +2845,7 @@ export const LIBRARIES = {
         rest: "args_$1682",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "for-each")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
@@ -2784,6 +2870,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn0, [s_x_$1683]);
           $t0 = (C2.v ?? G2());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$1683) : $t1(s_x_$1683);
@@ -2805,6 +2892,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C2.v ?? G2());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$1683) : $t1(s_x_$1683);
@@ -2834,6 +2922,7 @@ export const LIBRARIES = {
           let s_args_$1682 = R.listFrom(s_args_$1682$raw);
           $t1 = $mk$fn0();
           $t2 = (C0.v ?? G0());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1, s_args_$1682) : $t3($t1, s_args_$1682);
@@ -2846,6 +2935,7 @@ export const LIBRARIES = {
         } else {
           $t6 = (W6.intact || (C6.v ?? G6()) === P6) && (s_args_$1682 instanceof R.Cons) ? (s_args_$1682.car) : R.callBinding((C6.v ?? G6()), [s_args_$1682]);
           $t7 = (C5.v ?? G5());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -2861,6 +2951,7 @@ export const LIBRARIES = {
         } else {
           $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (s_rest_$1686 instanceof R.Cons) ? (s_rest_$1686.car) : R.callBinding((C6.v ?? G6()), [s_rest_$1686]);
           $t13 = (C5.v ?? G5());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
@@ -2880,12 +2971,14 @@ export const LIBRARIES = {
         } else {
           $t19 = (W9.intact || (C9.v ?? G9()) === P9) && ((typeof s_result_$1685 === 'bigint' && typeof s_b_$1687 === 'bigint') || (typeof s_result_$1685 === 'number' && typeof s_b_$1687 === 'number')) ? (s_result_$1685 * s_b_$1687) : R.callBinding((C9.v ?? G9()), [s_result_$1685, s_b_$1687]);
           $t20 = (C10.v ?? G10());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_result_$1685, s_b_$1687) : $t21(s_result_$1685, s_b_$1687);
           while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
           if ($t22 === $UNWIND) { R.reify($proc$r, 14, { s_rest_$1686, $t19 }); return $UNWIND; }
           $t23 = (C8.v ?? G8());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23($t19, $t22) : $t24($t19, $t22);
@@ -2908,6 +3001,7 @@ export const LIBRARIES = {
               case 0:
                 $t1 = $mk$fn0();
                 $t2 = (C0.v ?? G0());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1, s_args_$1682) : $t3($t1, s_args_$1682);
@@ -2925,6 +3019,7 @@ export const LIBRARIES = {
               case 3:
                 $t6 = (W6.intact || (C6.v ?? G6()) === P6) && (s_args_$1682 instanceof R.Cons) ? (s_args_$1682.car) : R.callBinding((C6.v ?? G6()), [s_args_$1682]);
                 $t7 = (C5.v ?? G5());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -2946,6 +3041,7 @@ export const LIBRARIES = {
               case 7:
                 $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (s_rest_$1686 instanceof R.Cons) ? (s_rest_$1686.car) : R.callBinding((C6.v ?? G6()), [s_rest_$1686]);
                 $t13 = (C5.v ?? G5());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
@@ -2973,6 +3069,7 @@ export const LIBRARIES = {
               case 13:
                 $t19 = (W9.intact || (C9.v ?? G9()) === P9) && ((typeof s_result_$1685 === 'bigint' && typeof s_b_$1687 === 'bigint') || (typeof s_result_$1685 === 'number' && typeof s_b_$1687 === 'number')) ? (s_result_$1685 * s_b_$1687) : R.callBinding((C9.v ?? G9()), [s_result_$1685, s_b_$1687]);
                 $t20 = (C10.v ?? G10());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_result_$1685, s_b_$1687) : $t21(s_result_$1685, s_b_$1687);
@@ -2983,6 +3080,7 @@ export const LIBRARIES = {
               case 14:
                 $t22 = $r;
                 $t23 = (C8.v ?? G8());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23($t19, $t22) : $t24($t19, $t22);
@@ -3032,7 +3130,7 @@ export const LIBRARIES = {
         rest: "lsts_$1692",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -3063,6 +3161,7 @@ export const LIBRARIES = {
         } else {
           $t1 = (W6.intact || (C6.v ?? G6()) === P6) && (s_l_$1694 instanceof R.Cons) ? (s_l_$1694.car) : R.callBinding((C6.v ?? G6()), [s_l_$1694]);
           $t2 = s_proc_$1690;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -3070,6 +3169,7 @@ export const LIBRARIES = {
           if ($t4 === $UNWIND) { R.reify($fn18$r, 3, { s_l_$1694 }); return $UNWIND; }
           $t5 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$1694 instanceof R.Cons) ? (s_l_$1694.cdr) : R.callBinding((C7.v ?? G7()), [s_l_$1694]);
           $t6 = s_loop_$1693;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -3093,6 +3193,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W6.intact || (C6.v ?? G6()) === P6) && (s_l_$1694 instanceof R.Cons) ? (s_l_$1694.car) : R.callBinding((C6.v ?? G6()), [s_l_$1694]);
                 $t2 = s_proc_$1690;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -3104,6 +3205,7 @@ export const LIBRARIES = {
                 $t4 = $r;
                 $t5 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$1694 instanceof R.Cons) ? (s_l_$1694.cdr) : R.callBinding((C7.v ?? G7()), [s_l_$1694]);
                 $t6 = s_loop_$1693;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -3230,6 +3332,7 @@ export const LIBRARIES = {
           return null;
         } else {
           $t1 = (C9.v ?? G9());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_lists_$1702) : $t2(s_lists_$1702);
@@ -3237,6 +3340,7 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn28$r, 3, { s_lists_$1702 }); return $UNWIND; }
           $t4 = (W7.intact || (C7.v ?? G7()) === P7) && (s_lists_$1702 instanceof R.Cons) ? (s_lists_$1702.cdr) : R.callBinding((C7.v ?? G7()), [s_lists_$1702]);
           $t5 = s_all_2dcars_$1697[0];
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3259,6 +3363,7 @@ export const LIBRARIES = {
                 return null;
               case 2:
                 $t1 = (C9.v ?? G9());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_lists_$1702) : $t2(s_lists_$1702);
@@ -3270,6 +3375,7 @@ export const LIBRARIES = {
                 $t3 = $r;
                 $t4 = (W7.intact || (C7.v ?? G7()) === P7) && (s_lists_$1702 instanceof R.Cons) ? (s_lists_$1702.cdr) : R.callBinding((C7.v ?? G7()), [s_lists_$1702]);
                 $t5 = s_all_2dcars_$1697[0];
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3297,6 +3403,7 @@ export const LIBRARIES = {
           return null;
         } else {
           $t1 = (C10.v ?? G10());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_lists_$1703) : $t2(s_lists_$1703);
@@ -3304,6 +3411,7 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn30$r, 3, { s_lists_$1703 }); return $UNWIND; }
           $t4 = (W7.intact || (C7.v ?? G7()) === P7) && (s_lists_$1703 instanceof R.Cons) ? (s_lists_$1703.cdr) : R.callBinding((C7.v ?? G7()), [s_lists_$1703]);
           $t5 = s_all_2dcdrs_$1698[0];
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3326,6 +3434,7 @@ export const LIBRARIES = {
                 return null;
               case 2:
                 $t1 = (C10.v ?? G10());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_lists_$1703) : $t2(s_lists_$1703);
@@ -3337,6 +3446,7 @@ export const LIBRARIES = {
                 $t3 = $r;
                 $t4 = (W7.intact || (C7.v ?? G7()) === P7) && (s_lists_$1703 instanceof R.Cons) ? (s_lists_$1703.cdr) : R.callBinding((C7.v ?? G7()), [s_lists_$1703]);
                 $t5 = s_all_2dcdrs_$1698[0];
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3366,6 +3476,7 @@ export const LIBRARIES = {
           $t1 = s_x_$1706;
         } else {
           $t2 = s_any_2dnull_3f_$1696[0];
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$1705) : $t3(s_rest_2dlists_$1705);
@@ -3378,6 +3489,7 @@ export const LIBRARIES = {
         } else {
           $t5 = (W6.intact || (C6.v ?? G6()) === P6) && (s_first_2dlist_$1704 instanceof R.Cons) ? (s_first_2dlist_$1704.car) : R.callBinding((C6.v ?? G6()), [s_first_2dlist_$1704]);
           $t6 = s_all_2dcars_$1697[0];
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_rest_2dlists_$1705) : $t7(s_rest_2dlists_$1705);
@@ -3385,6 +3497,7 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($fn32$r, 7, { $t5, s_first_2dlist_$1704, s_rest_2dlists_$1705 }); return $UNWIND; }
           $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? (new R.Cons($t5, $t8)) : R.callBinding((C5.v ?? G5()), [$t5, $t8]);
           $t10 = (C11.v ?? G11());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_proc_$1690, $t9) : $t11(s_proc_$1690, $t9);
@@ -3392,12 +3505,14 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($fn32$r, 8, { s_first_2dlist_$1704, s_rest_2dlists_$1705 }); return $UNWIND; }
           $t13 = (W7.intact || (C7.v ?? G7()) === P7) && (s_first_2dlist_$1704 instanceof R.Cons) ? (s_first_2dlist_$1704.cdr) : R.callBinding((C7.v ?? G7()), [s_first_2dlist_$1704]);
           $t14 = s_all_2dcdrs_$1698[0];
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14(s_rest_2dlists_$1705) : $t15(s_rest_2dlists_$1705);
           while ($t16 instanceof $TailCall) { $stack.room = $d; $t16 = $step($t16); }
           if ($t16 === $UNWIND) { R.reify($fn32$r, 9, { $t12, $t13 }); return $UNWIND; }
           $t17 = s_loop_$1699;
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17($t13, $t16) : $t18($t13, $t16);
@@ -3422,6 +3537,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 2:
                 $t2 = s_any_2dnull_3f_$1696[0];
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$1705) : $t3(s_rest_2dlists_$1705);
@@ -3440,6 +3556,7 @@ export const LIBRARIES = {
               case 6:
                 $t5 = (W6.intact || (C6.v ?? G6()) === P6) && (s_first_2dlist_$1704 instanceof R.Cons) ? (s_first_2dlist_$1704.car) : R.callBinding((C6.v ?? G6()), [s_first_2dlist_$1704]);
                 $t6 = s_all_2dcars_$1697[0];
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_rest_2dlists_$1705) : $t7(s_rest_2dlists_$1705);
@@ -3451,6 +3568,7 @@ export const LIBRARIES = {
                 $t8 = $r;
                 $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? (new R.Cons($t5, $t8)) : R.callBinding((C5.v ?? G5()), [$t5, $t8]);
                 $t10 = (C11.v ?? G11());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_proc_$1690, $t9) : $t11(s_proc_$1690, $t9);
@@ -3462,6 +3580,7 @@ export const LIBRARIES = {
                 $t12 = $r;
                 $t13 = (W7.intact || (C7.v ?? G7()) === P7) && (s_first_2dlist_$1704 instanceof R.Cons) ? (s_first_2dlist_$1704.cdr) : R.callBinding((C7.v ?? G7()), [s_first_2dlist_$1704]);
                 $t14 = s_all_2dcdrs_$1698[0];
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14(s_rest_2dlists_$1705) : $t15(s_rest_2dlists_$1705);
@@ -3472,6 +3591,7 @@ export const LIBRARIES = {
               case 9:
                 $t16 = $r;
                 $t17 = s_loop_$1699;
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17($t13, $t16) : $t18($t13, $t16);
@@ -3496,6 +3616,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$1690, s_lst_$1691, ...s_lsts_$1692$raw]);
           let s_lsts_$1692 = R.listFrom(s_lsts_$1692$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_proc_$1690) : $t1(s_proc_$1690);
@@ -3504,6 +3625,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("map: expected procedure", s_proc_$1690) : $t6("map: expected procedure", s_proc_$1690);
@@ -3525,6 +3647,7 @@ export const LIBRARIES = {
         }
           if ($t10 !== false) {
           $t14 = (C2.v ?? G2());
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14("map: expected list", s_lst_$1691) : $t15("map: expected list", s_lst_$1691);
@@ -3544,6 +3667,7 @@ export const LIBRARIES = {
         } else {
           $t22 = $mk$fn21();
           $t23 = (C8.v ?? G8());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23($t22, s_lsts_$1692) : $t24($t22, s_lsts_$1692);
@@ -3572,6 +3696,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$1690) : $t1(s_proc_$1690);
@@ -3585,6 +3710,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("map: expected procedure", s_proc_$1690) : $t6("map: expected procedure", s_proc_$1690);
@@ -3616,6 +3742,7 @@ export const LIBRARIES = {
                 if ($t10 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
                 $t14 = (C2.v ?? G2());
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14("map: expected list", s_lst_$1691) : $t15("map: expected list", s_lst_$1691);
@@ -3642,6 +3769,7 @@ export const LIBRARIES = {
               case 14:
                 $t22 = $mk$fn21();
                 $t23 = (C8.v ?? G8());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23($t22, s_lsts_$1692) : $t24($t22, s_lsts_$1692);
@@ -3678,7 +3806,7 @@ export const LIBRARIES = {
         rest: "lsts_$1709",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -3754,6 +3882,7 @@ export const LIBRARIES = {
           return null;
         } else {
           $t1 = (C8.v ?? G8());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_lists_$1718) : $t2(s_lists_$1718);
@@ -3761,6 +3890,7 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn27$r, 3, { s_lists_$1718 }); return $UNWIND; }
           $t4 = (W6.intact || (C6.v ?? G6()) === P6) && (s_lists_$1718 instanceof R.Cons) ? (s_lists_$1718.cdr) : R.callBinding((C6.v ?? G6()), [s_lists_$1718]);
           $t5 = s_all_2dcars_$1713[0];
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3783,6 +3913,7 @@ export const LIBRARIES = {
                 return null;
               case 2:
                 $t1 = (C8.v ?? G8());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_lists_$1718) : $t2(s_lists_$1718);
@@ -3794,6 +3925,7 @@ export const LIBRARIES = {
                 $t3 = $r;
                 $t4 = (W6.intact || (C6.v ?? G6()) === P6) && (s_lists_$1718 instanceof R.Cons) ? (s_lists_$1718.cdr) : R.callBinding((C6.v ?? G6()), [s_lists_$1718]);
                 $t5 = s_all_2dcars_$1713[0];
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3821,6 +3953,7 @@ export const LIBRARIES = {
           return null;
         } else {
           $t1 = (C9.v ?? G9());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_lists_$1719) : $t2(s_lists_$1719);
@@ -3828,6 +3961,7 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn29$r, 3, { s_lists_$1719 }); return $UNWIND; }
           $t4 = (W6.intact || (C6.v ?? G6()) === P6) && (s_lists_$1719 instanceof R.Cons) ? (s_lists_$1719.cdr) : R.callBinding((C6.v ?? G6()), [s_lists_$1719]);
           $t5 = s_all_2dcdrs_$1714[0];
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3850,6 +3984,7 @@ export const LIBRARIES = {
                 return null;
               case 2:
                 $t1 = (C9.v ?? G9());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_lists_$1719) : $t2(s_lists_$1719);
@@ -3861,6 +3996,7 @@ export const LIBRARIES = {
                 $t3 = $r;
                 $t4 = (W6.intact || (C6.v ?? G6()) === P6) && (s_lists_$1719 instanceof R.Cons) ? (s_lists_$1719.cdr) : R.callBinding((C6.v ?? G6()), [s_lists_$1719]);
                 $t5 = s_all_2dcdrs_$1714[0];
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -3891,6 +4027,7 @@ export const LIBRARIES = {
           $t1 = s_x_$1722;
         } else {
           $t2 = s_any_2dnull_3f_$1712[0];
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$1721) : $t3(s_rest_2dlists_$1721);
@@ -3902,6 +4039,7 @@ export const LIBRARIES = {
             if ($t5 !== false) {
           $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (s_first_2dlist_$1720 instanceof R.Cons) ? (s_first_2dlist_$1720.car) : R.callBinding((C5.v ?? G5()), [s_first_2dlist_$1720]);
           $t7 = s_all_2dcars_$1713[0];
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_rest_2dlists_$1721) : $t8(s_rest_2dlists_$1721);
@@ -3909,6 +4047,7 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($fn31$r, 7, { $t6, s_first_2dlist_$1720, s_rest_2dlists_$1721 }); return $UNWIND; }
           $t10 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t6, $t9)) : R.callBinding((C7.v ?? G7()), [$t6, $t9]);
           $t11 = (C10.v ?? G10());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_proc_$1707, $t10) : $t12(s_proc_$1707, $t10);
@@ -3917,6 +4056,7 @@ export const LIBRARIES = {
           $t13;
           $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (s_first_2dlist_$1720 instanceof R.Cons) ? (s_first_2dlist_$1720.cdr) : R.callBinding((C6.v ?? G6()), [s_first_2dlist_$1720]);
           $t15 = s_all_2dcdrs_$1714[0];
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_rest_2dlists_$1721) : $t16(s_rest_2dlists_$1721);
@@ -3945,6 +4085,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 2:
                 $t2 = s_any_2dnull_3f_$1712[0];
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_rest_2dlists_$1721) : $t3(s_rest_2dlists_$1721);
@@ -3962,6 +4103,7 @@ export const LIBRARIES = {
               case 5:
                 $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (s_first_2dlist_$1720 instanceof R.Cons) ? (s_first_2dlist_$1720.car) : R.callBinding((C5.v ?? G5()), [s_first_2dlist_$1720]);
                 $t7 = s_all_2dcars_$1713[0];
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_rest_2dlists_$1721) : $t8(s_rest_2dlists_$1721);
@@ -3975,6 +4117,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 $t10 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t6, $t9)) : R.callBinding((C7.v ?? G7()), [$t6, $t9]);
                 $t11 = (C10.v ?? G10());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_proc_$1707, $t10) : $t12(s_proc_$1707, $t10);
@@ -3987,6 +4130,7 @@ export const LIBRARIES = {
                 $t13;
                 $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (s_first_2dlist_$1720 instanceof R.Cons) ? (s_first_2dlist_$1720.cdr) : R.callBinding((C6.v ?? G6()), [s_first_2dlist_$1720]);
                 $t15 = s_all_2dcdrs_$1714[0];
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_rest_2dlists_$1721) : $t16(s_rest_2dlists_$1721);
@@ -4012,6 +4156,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$1707, s_lst_$1708, ...s_lsts_$1709$raw]);
           let s_lsts_$1709 = R.listFrom(s_lsts_$1709$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_proc_$1707) : $t1(s_proc_$1707);
@@ -4020,6 +4165,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("for-each: expected procedure", s_proc_$1707) : $t6("for-each: expected procedure", s_proc_$1707);
@@ -4041,6 +4187,7 @@ export const LIBRARIES = {
         }
           if ($t10 !== false) {
           $t14 = (C2.v ?? G2());
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14("for-each: expected list", s_lst_$1708) : $t15("for-each: expected list", s_lst_$1708);
@@ -4060,6 +4207,7 @@ export const LIBRARIES = {
           if ($t19 !== false) {
           $t20 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$1711 instanceof R.Cons) ? (s_l_$1711.car) : R.callBinding((C5.v ?? G5()), [s_l_$1711]);
           $t21 = s_proc_$1707;
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21($t20) : $t22($t20);
@@ -4096,6 +4244,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$1707) : $t1(s_proc_$1707);
@@ -4109,6 +4258,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("for-each: expected procedure", s_proc_$1707) : $t6("for-each: expected procedure", s_proc_$1707);
@@ -4140,6 +4290,7 @@ export const LIBRARIES = {
                 if ($t10 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
                 $t14 = (C2.v ?? G2());
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14("for-each: expected list", s_lst_$1708) : $t15("for-each: expected list", s_lst_$1708);
@@ -4182,6 +4333,7 @@ export const LIBRARIES = {
               case 16:
                 $t20 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$1711 instanceof R.Cons) ? (s_l_$1711.car) : R.callBinding((C5.v ?? G5()), [s_l_$1711]);
                 $t21 = s_proc_$1707;
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21($t20) : $t22($t20);
@@ -4210,7 +4362,7 @@ export const LIBRARIES = {
         rest: "strs_$1725",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -4247,6 +4399,7 @@ export const LIBRARIES = {
         } else {
           $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_ss_$1729 instanceof R.Cons) ? (s_ss_$1729.car) : R.callBinding((C5.v ?? G5()), [s_ss_$1729]);
           $t2 = (C3.v ?? G3());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -4256,6 +4409,7 @@ export const LIBRARIES = {
           if ($t5 !== false) {
           $t7 = (W5.intact || (C5.v ?? G5()) === P5) && (s_ss_$1729 instanceof R.Cons) ? (s_ss_$1729.car) : R.callBinding((C5.v ?? G5()), [s_ss_$1729]);
           $t8 = (C2.v ?? G2());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8("string-map: expected string", $t7) : $t9("string-map: expected string", $t7);
@@ -4268,12 +4422,14 @@ export const LIBRARIES = {
           $t6;
           $t11 = (W5.intact || (C5.v ?? G5()) === P5) && (s_ss_$1729 instanceof R.Cons) ? (s_ss_$1729.car) : R.callBinding((C5.v ?? G5()), [s_ss_$1729]);
           $t12 = (C7.v ?? G7());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
           while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
           if ($t14 === $UNWIND) { R.reify($fn16$r, 8, { s_min_2dlen_$1728, s_ss_$1729 }); return $UNWIND; }
           $t15 = (C6.v ?? G6());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_min_2dlen_$1728, $t14) : $t16(s_min_2dlen_$1728, $t14);
@@ -4300,6 +4456,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_ss_$1729 instanceof R.Cons) ? (s_ss_$1729.car) : R.callBinding((C5.v ?? G5()), [s_ss_$1729]);
                 $t2 = (C3.v ?? G3());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -4314,6 +4471,7 @@ export const LIBRARIES = {
               case 4:
                 $t7 = (W5.intact || (C5.v ?? G5()) === P5) && (s_ss_$1729 instanceof R.Cons) ? (s_ss_$1729.car) : R.callBinding((C5.v ?? G5()), [s_ss_$1729]);
                 $t8 = (C2.v ?? G2());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8("string-map: expected string", $t7) : $t9("string-map: expected string", $t7);
@@ -4328,6 +4486,7 @@ export const LIBRARIES = {
                 $t6;
                 $t11 = (W5.intact || (C5.v ?? G5()) === P5) && (s_ss_$1729 instanceof R.Cons) ? (s_ss_$1729.car) : R.callBinding((C5.v ?? G5()), [s_ss_$1729]);
                 $t12 = (C7.v ?? G7());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
@@ -4342,6 +4501,7 @@ export const LIBRARIES = {
               case 8:
                 $t14 = $r;
                 $t15 = (C6.v ?? G6());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_min_2dlen_$1728, $t14) : $t16(s_min_2dlen_$1728, $t14);
@@ -4375,12 +4535,14 @@ export const LIBRARIES = {
         } else {
           $t1 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_i_$1731 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$1731 === 'number' && typeof 1n === 'number')) ? (s_i_$1731 - 1n) : R.callBinding((C11.v ?? G11()), [s_i_$1731, 1n]);
           $t2 = (C13.v ?? G13());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_str_$1724, s_i_$1731) : $t3(s_str_$1724, s_i_$1731);
           while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
           if ($t4 === $UNWIND) { R.reify($fn25$r, 3, { $t1, s_acc_$1732 }); return $UNWIND; }
           $t5 = s_proc_$1723;
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -4407,6 +4569,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_i_$1731 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$1731 === 'number' && typeof 1n === 'number')) ? (s_i_$1731 - 1n) : R.callBinding((C11.v ?? G11()), [s_i_$1731, 1n]);
                 $t2 = (C13.v ?? G13());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_str_$1724, s_i_$1731) : $t3(s_str_$1724, s_i_$1731);
@@ -4417,6 +4580,7 @@ export const LIBRARIES = {
               case 3:
                 $t4 = $r;
                 $t5 = s_proc_$1723;
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -4470,6 +4634,7 @@ export const LIBRARIES = {
           return s_acc_$1735;
         } else {
           $t1 = (C13.v ?? G13());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_str_$1724, s_i_$1734) : $t2(s_str_$1724, s_i_$1734);
@@ -4477,6 +4642,7 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn32$r, 3, { s_i_$1734, s_acc_$1735 }); return $UNWIND; }
           $t5 = $mk$fn32_4(s_i_$1734);
           $t6 = (C14.v ?? G14());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6($t5, s_strs_$1725) : $t7($t5, s_strs_$1725);
@@ -4486,6 +4652,7 @@ export const LIBRARIES = {
           s_chars_$1736 = $t9;
           $t10 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_i_$1734 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$1734 === 'number' && typeof 1n === 'number')) ? (s_i_$1734 - 1n) : R.callBinding((C11.v ?? G11()), [s_i_$1734, 1n]);
           $t11 = (C15.v ?? G15());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_proc_$1723, s_chars_$1736) : $t12(s_proc_$1723, s_chars_$1736);
@@ -4511,6 +4678,7 @@ export const LIBRARIES = {
                 return s_acc_$1735;
               case 2:
                 $t1 = (C13.v ?? G13());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_str_$1724, s_i_$1734) : $t2(s_str_$1724, s_i_$1734);
@@ -4522,6 +4690,7 @@ export const LIBRARIES = {
                 $t3 = $r;
                 $t5 = $mk$fn32_4(s_i_$1734);
                 $t6 = (C14.v ?? G14());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6($t5, s_strs_$1725) : $t7($t5, s_strs_$1725);
@@ -4535,6 +4704,7 @@ export const LIBRARIES = {
                 s_chars_$1736 = $t9;
                 $t10 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_i_$1734 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$1734 === 'number' && typeof 1n === 'number')) ? (s_i_$1734 - 1n) : R.callBinding((C11.v ?? G11()), [s_i_$1734, 1n]);
                 $t11 = (C15.v ?? G15());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_proc_$1723, s_chars_$1736) : $t12(s_proc_$1723, s_chars_$1736);
@@ -4561,6 +4731,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$1723, s_str_$1724, ...s_strs_$1725$raw]);
           let s_strs_$1725 = R.listFrom(s_strs_$1725$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_proc_$1723) : $t1(s_proc_$1723);
@@ -4569,6 +4740,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("string-map: expected procedure", s_proc_$1723) : $t6("string-map: expected procedure", s_proc_$1723);
@@ -4580,6 +4752,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_str_$1724) : $t9(s_str_$1724);
@@ -4588,6 +4761,7 @@ export const LIBRARIES = {
           $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t10 === false) : R.callBinding((C0.v ?? G0()), [$t10]);
           if ($t11 !== false) {
           $t13 = (C2.v ?? G2());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("string-map: expected string", s_str_$1724) : $t14("string-map: expected string", s_str_$1724);
@@ -4601,12 +4775,14 @@ export const LIBRARIES = {
           $t17 = $mk$fn16();
           s_loop_$1727 = $t17;
           $t18 = (C7.v ?? G7());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_str_$1724) : $t19(s_str_$1724);
           while ($t20 instanceof $TailCall) { $stack.room = $d; $t20 = $step($t20); }
           if ($t20 === $UNWIND) { R.reify($proc$r, 11, { s_loop_$1727, s_proc_$1723, s_str_$1724, s_strs_$1725 }); return $UNWIND; }
           $t21 = s_loop_$1727;
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21($t20, s_strs_$1725) : $t22($t20, s_strs_$1725);
@@ -4619,6 +4795,7 @@ export const LIBRARIES = {
           s_loop_$1730 = $t26;
           $t27 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_len_$1726 === 'bigint' && typeof 1n === 'bigint') || (typeof s_len_$1726 === 'number' && typeof 1n === 'number')) ? (s_len_$1726 - 1n) : R.callBinding((C11.v ?? G11()), [s_len_$1726, 1n]);
           $t28 = s_loop_$1730;
+          if (typeof $t28 !== 'function') $notProc($t28);
           $t29 = $t28[$RAW];
           $stack.room = $d;
           $t30 = $t29 === undefined ? $t28($t27, null) : $t29($t27, null);
@@ -4631,6 +4808,7 @@ export const LIBRARIES = {
           s_loop_$1733 = $t33;
           $t34 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_len_$1726 === 'bigint' && typeof 1n === 'bigint') || (typeof s_len_$1726 === 'number' && typeof 1n === 'number')) ? (s_len_$1726 - 1n) : R.callBinding((C11.v ?? G11()), [s_len_$1726, 1n]);
           $t35 = s_loop_$1733;
+          if (typeof $t35 !== 'function') $notProc($t35);
           $t36 = $t35[$RAW];
           $stack.room = $d;
           $t37 = $t36 === undefined ? $t35($t34, null) : $t36($t34, null);
@@ -4647,6 +4825,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$1723) : $t1(s_proc_$1723);
@@ -4660,6 +4839,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("string-map: expected procedure", s_proc_$1723) : $t6("string-map: expected procedure", s_proc_$1723);
@@ -4673,6 +4853,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_str_$1724) : $t9(s_str_$1724);
@@ -4690,6 +4871,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t13 = (C2.v ?? G2());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("string-map: expected string", s_str_$1724) : $t14("string-map: expected string", s_str_$1724);
@@ -4705,6 +4887,7 @@ export const LIBRARIES = {
                 $t17 = $mk$fn16();
                 s_loop_$1727 = $t17;
                 $t18 = (C7.v ?? G7());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_str_$1724) : $t19(s_str_$1724);
@@ -4719,6 +4902,7 @@ export const LIBRARIES = {
               case 11:
                 $t20 = $r;
                 $t21 = s_loop_$1727;
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21($t20, s_strs_$1725) : $t22($t20, s_strs_$1725);
@@ -4736,6 +4920,7 @@ export const LIBRARIES = {
                 s_loop_$1730 = $t26;
                 $t27 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_len_$1726 === 'bigint' && typeof 1n === 'bigint') || (typeof s_len_$1726 === 'number' && typeof 1n === 'number')) ? (s_len_$1726 - 1n) : R.callBinding((C11.v ?? G11()), [s_len_$1726, 1n]);
                 $t28 = s_loop_$1730;
+                if (typeof $t28 !== 'function') $notProc($t28);
                 $t29 = $t28[$RAW];
                 $stack.room = $d;
                 $t30 = $t29 === undefined ? $t28($t27, null) : $t29($t27, null);
@@ -4748,6 +4933,7 @@ export const LIBRARIES = {
                 s_loop_$1733 = $t33;
                 $t34 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_len_$1726 === 'bigint' && typeof 1n === 'bigint') || (typeof s_len_$1726 === 'number' && typeof 1n === 'number')) ? (s_len_$1726 - 1n) : R.callBinding((C11.v ?? G11()), [s_len_$1726, 1n]);
                 $t35 = s_loop_$1733;
+                if (typeof $t35 !== 'function') $notProc($t35);
                 $t36 = $t35[$RAW];
                 $stack.room = $d;
                 $t37 = $t36 === undefined ? $t35($t34, null) : $t36($t34, null);
@@ -4776,7 +4962,7 @@ export const LIBRARIES = {
         rest: "strs_$1740",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -4803,6 +4989,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($fn19, [s_s_$1742]);
           $t0 = (C3.v ?? G3());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_s_$1742) : $t1(s_s_$1742);
@@ -4811,6 +4998,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("string-for-each: expected string", s_s_$1742) : $t6("string-for-each: expected string", s_s_$1742);
@@ -4822,6 +5010,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C4.v ?? G4());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_s_$1742) : $t9(s_s_$1742);
@@ -4844,6 +5033,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C3.v ?? G3());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_s_$1742) : $t1(s_s_$1742);
@@ -4857,6 +5047,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("string-for-each: expected string", s_s_$1742) : $t6("string-for-each: expected string", s_s_$1742);
@@ -4870,6 +5061,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C4.v ?? G4());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_s_$1742) : $t9(s_s_$1742);
@@ -4924,6 +5116,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$1738, s_str_$1739, ...s_strs_$1740$raw]);
           let s_strs_$1740 = R.listFrom(s_strs_$1740$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_proc_$1738) : $t1(s_proc_$1738);
@@ -4932,6 +5125,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("string-for-each: expected procedure", s_proc_$1738) : $t6("string-for-each: expected procedure", s_proc_$1738);
@@ -4943,6 +5137,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_str_$1739) : $t9(s_str_$1739);
@@ -4951,6 +5146,7 @@ export const LIBRARIES = {
           $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t10 === false) : R.callBinding((C0.v ?? G0()), [$t10]);
           if ($t11 !== false) {
           $t13 = (C2.v ?? G2());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("string-for-each: expected string", s_str_$1739) : $t14("string-for-each: expected string", s_str_$1739);
@@ -4962,6 +5158,7 @@ export const LIBRARIES = {
         }
           $t12;
           $t16 = (C4.v ?? G4());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_str_$1739) : $t17(s_str_$1739);
@@ -4970,6 +5167,7 @@ export const LIBRARIES = {
           s_len_$1741 = $t18;
           $t20 = $mk$fn19(s_len_$1741);
           $t21 = (C5.v ?? G5());
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21($t20, s_strs_$1740) : $t22($t20, s_strs_$1740);
@@ -4983,12 +5181,14 @@ export const LIBRARIES = {
           $t25 = (W8.intact || (C8.v ?? G8()) === P8) && ((typeof s_i_$1744 === 'bigint' && typeof s_len_$1741 === 'bigint') || (typeof s_i_$1744 === 'number' && typeof s_len_$1741 === 'number')) ? (s_i_$1744 < s_len_$1741) : R.callBinding((C8.v ?? G8()), [s_i_$1744, s_len_$1741]);
           if ($t25 !== false) {
           $t26 = (C9.v ?? G9());
+          if (typeof $t26 !== 'function') $notProc($t26);
           $t27 = $t26[$RAW];
           $stack.room = $d;
           $t28 = $t27 === undefined ? $t26(s_str_$1739, s_i_$1744) : $t27(s_str_$1739, s_i_$1744);
           while ($t28 instanceof $TailCall) { $stack.room = $d; $t28 = $step($t28); }
           if ($t28 === $UNWIND) { R.reify($proc$r, 18, { s_len_$1741, s_i_$1744, s_proc_$1738, s_str_$1739 }); return $UNWIND; }
           $t29 = s_proc_$1738;
+          if (typeof $t29 !== 'function') $notProc($t29);
           $t30 = $t29[$RAW];
           $stack.room = $d;
           $t31 = $t30 === undefined ? $t29($t28) : $t30($t28);
@@ -5008,6 +5208,7 @@ export const LIBRARIES = {
           $t33 = (W8.intact || (C8.v ?? G8()) === P8) && ((typeof s_i_$1746 === 'bigint' && typeof s_len_$1741 === 'bigint') || (typeof s_i_$1746 === 'number' && typeof s_len_$1741 === 'number')) ? (s_i_$1746 < s_len_$1741) : R.callBinding((C8.v ?? G8()), [s_i_$1746, s_len_$1741]);
           if ($t33 !== false) {
           $t34 = (C9.v ?? G9());
+          if (typeof $t34 !== 'function') $notProc($t34);
           $t35 = $t34[$RAW];
           $stack.room = $d;
           $t36 = $t35 === undefined ? $t34(s_str_$1739, s_i_$1746) : $t35(s_str_$1739, s_i_$1746);
@@ -5015,6 +5216,7 @@ export const LIBRARIES = {
           if ($t36 === $UNWIND) { R.reify($proc$r, 23, { s_len_$1741, s_i_$1746, s_proc_$1738, s_str_$1739, s_strs_$1740 }); return $UNWIND; }
           $t38 = $mk$fn37(s_i_$1746);
           $t39 = (C12.v ?? G12());
+          if (typeof $t39 !== 'function') $notProc($t39);
           $t40 = $t39[$RAW];
           $stack.room = $d;
           $t41 = $t40 === undefined ? $t39($t38, s_strs_$1740) : $t40($t38, s_strs_$1740);
@@ -5023,6 +5225,7 @@ export const LIBRARIES = {
           $t42 = (W11.intact || (C11.v ?? G11()) === P11) ? (new R.Cons($t36, $t41)) : R.callBinding((C11.v ?? G11()), [$t36, $t41]);
           s_chars_$1747 = $t42;
           $t43 = (C13.v ?? G13());
+          if (typeof $t43 !== 'function') $notProc($t43);
           $t44 = $t43[$RAW];
           $stack.room = $d;
           $t45 = $t44 === undefined ? $t43(s_proc_$1738, s_chars_$1747) : $t44(s_proc_$1738, s_chars_$1747);
@@ -5045,6 +5248,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$1738) : $t1(s_proc_$1738);
@@ -5058,6 +5262,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("string-for-each: expected procedure", s_proc_$1738) : $t6("string-for-each: expected procedure", s_proc_$1738);
@@ -5071,6 +5276,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_str_$1739) : $t9(s_str_$1739);
@@ -5088,6 +5294,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t13 = (C2.v ?? G2());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("string-for-each: expected string", s_str_$1739) : $t14("string-for-each: expected string", s_str_$1739);
@@ -5101,6 +5308,7 @@ export const LIBRARIES = {
               case 9:
                 $t12;
                 $t16 = (C4.v ?? G4());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_str_$1739) : $t17(s_str_$1739);
@@ -5117,6 +5325,7 @@ export const LIBRARIES = {
                 s_len_$1741 = $t18;
                 $t20 = $mk$fn19(s_len_$1741);
                 $t21 = (C5.v ?? G5());
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21($t20, s_strs_$1740) : $t22($t20, s_strs_$1740);
@@ -5140,6 +5349,7 @@ export const LIBRARIES = {
                 if ($t25 !== false) { $pc = 16; continue; } $pc = 17; continue;
               case 16:
                 $t26 = (C9.v ?? G9());
+                if (typeof $t26 !== 'function') $notProc($t26);
                 $t27 = $t26[$RAW];
                 $stack.room = $d;
                 $t28 = $t27 === undefined ? $t26(s_str_$1739, s_i_$1744) : $t27(s_str_$1739, s_i_$1744);
@@ -5152,6 +5362,7 @@ export const LIBRARIES = {
               case 18:
                 $t28 = $r;
                 $t29 = s_proc_$1738;
+                if (typeof $t29 !== 'function') $notProc($t29);
                 $t30 = $t29[$RAW];
                 $stack.room = $d;
                 $t31 = $t30 === undefined ? $t29($t28) : $t30($t28);
@@ -5170,6 +5381,7 @@ export const LIBRARIES = {
                 if ($t33 !== false) { $pc = 21; continue; } $pc = 22; continue;
               case 21:
                 $t34 = (C9.v ?? G9());
+                if (typeof $t34 !== 'function') $notProc($t34);
                 $t35 = $t34[$RAW];
                 $stack.room = $d;
                 $t36 = $t35 === undefined ? $t34(s_str_$1739, s_i_$1746) : $t35(s_str_$1739, s_i_$1746);
@@ -5183,6 +5395,7 @@ export const LIBRARIES = {
                 $t36 = $r;
                 $t38 = $mk$fn37(s_i_$1746);
                 $t39 = (C12.v ?? G12());
+                if (typeof $t39 !== 'function') $notProc($t39);
                 $t40 = $t39[$RAW];
                 $stack.room = $d;
                 $t41 = $t40 === undefined ? $t39($t38, s_strs_$1740) : $t40($t38, s_strs_$1740);
@@ -5195,6 +5408,7 @@ export const LIBRARIES = {
                 $t42 = (W11.intact || (C11.v ?? G11()) === P11) ? (new R.Cons($t36, $t41)) : R.callBinding((C11.v ?? G11()), [$t36, $t41]);
                 s_chars_$1747 = $t42;
                 $t43 = (C13.v ?? G13());
+                if (typeof $t43 !== 'function') $notProc($t43);
                 $t44 = $t43[$RAW];
                 $stack.room = $d;
                 $t45 = $t44 === undefined ? $t43(s_proc_$1738, s_chars_$1747) : $t44(s_proc_$1738, s_chars_$1747);
@@ -5221,7 +5435,7 @@ export const LIBRARIES = {
         rest: "vecs_$1751",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -5262,6 +5476,7 @@ export const LIBRARIES = {
         } else {
           $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_vs_$1755 instanceof R.Cons) ? (s_vs_$1755.car) : R.callBinding((C5.v ?? G5()), [s_vs_$1755]);
           $t2 = (C3.v ?? G3());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -5271,6 +5486,7 @@ export const LIBRARIES = {
           if ($t5 !== false) {
           $t7 = (W5.intact || (C5.v ?? G5()) === P5) && (s_vs_$1755 instanceof R.Cons) ? (s_vs_$1755.car) : R.callBinding((C5.v ?? G5()), [s_vs_$1755]);
           $t8 = (C2.v ?? G2());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8("vector-map: expected vector", $t7) : $t9("vector-map: expected vector", $t7);
@@ -5284,6 +5500,7 @@ export const LIBRARIES = {
           $t11 = (W5.intact || (C5.v ?? G5()) === P5) && (s_vs_$1755 instanceof R.Cons) ? (s_vs_$1755.car) : R.callBinding((C5.v ?? G5()), [s_vs_$1755]);
           $t12 = (W7.intact || (C7.v ?? G7()) === P7) && (Array.isArray($t11)) ? (BigInt($t11.length)) : R.callBinding((C7.v ?? G7()), [$t11]);
           $t13 = (C6.v ?? G6());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_min_2dlen_$1754, $t12) : $t14(s_min_2dlen_$1754, $t12);
@@ -5310,6 +5527,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_vs_$1755 instanceof R.Cons) ? (s_vs_$1755.car) : R.callBinding((C5.v ?? G5()), [s_vs_$1755]);
                 $t2 = (C3.v ?? G3());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -5324,6 +5542,7 @@ export const LIBRARIES = {
               case 4:
                 $t7 = (W5.intact || (C5.v ?? G5()) === P5) && (s_vs_$1755 instanceof R.Cons) ? (s_vs_$1755.car) : R.callBinding((C5.v ?? G5()), [s_vs_$1755]);
                 $t8 = (C2.v ?? G2());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8("vector-map: expected vector", $t7) : $t9("vector-map: expected vector", $t7);
@@ -5339,6 +5558,7 @@ export const LIBRARIES = {
                 $t11 = (W5.intact || (C5.v ?? G5()) === P5) && (s_vs_$1755 instanceof R.Cons) ? (s_vs_$1755.car) : R.callBinding((C5.v ?? G5()), [s_vs_$1755]);
                 $t12 = (W7.intact || (C7.v ?? G7()) === P7) && (Array.isArray($t11)) ? (BigInt($t11.length)) : R.callBinding((C7.v ?? G7()), [$t11]);
                 $t13 = (C6.v ?? G6());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_min_2dlen_$1754, $t12) : $t14(s_min_2dlen_$1754, $t12);
@@ -5374,6 +5594,7 @@ export const LIBRARIES = {
             if ($t0 !== false) {
           $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$1750, s_i_$1758)) : R.callBinding((C12.v ?? G12()), [s_vec_$1750, s_i_$1758]);
           $t2 = s_proc_$1749;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -5401,6 +5622,7 @@ export const LIBRARIES = {
               case 1:
                 $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$1750, s_i_$1758)) : R.callBinding((C12.v ?? G12()), [s_vec_$1750, s_i_$1758]);
                 $t2 = s_proc_$1749;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -5456,6 +5678,7 @@ export const LIBRARIES = {
           $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$1750, s_i_$1761)) : R.callBinding((C12.v ?? G12()), [s_vec_$1750, s_i_$1761]);
           $t3 = $mk$fn34_2(s_i_$1761);
           $t4 = (C15.v ?? G15());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4($t3, s_vecs_$1751) : $t5($t3, s_vecs_$1751);
@@ -5464,6 +5687,7 @@ export const LIBRARIES = {
           $t7 = (W14.intact || (C14.v ?? G14()) === P14) ? (new R.Cons($t1, $t6)) : R.callBinding((C14.v ?? G14()), [$t1, $t6]);
           s_elems_$1762 = $t7;
           $t8 = (C16.v ?? G16());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_proc_$1749, s_elems_$1762) : $t9(s_proc_$1749, s_elems_$1762);
@@ -5492,6 +5716,7 @@ export const LIBRARIES = {
                 $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$1750, s_i_$1761)) : R.callBinding((C12.v ?? G12()), [s_vec_$1750, s_i_$1761]);
                 $t3 = $mk$fn34_2(s_i_$1761);
                 $t4 = (C15.v ?? G15());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4($t3, s_vecs_$1751) : $t5($t3, s_vecs_$1751);
@@ -5506,6 +5731,7 @@ export const LIBRARIES = {
                 $t7 = (W14.intact || (C14.v ?? G14()) === P14) ? (new R.Cons($t1, $t6)) : R.callBinding((C14.v ?? G14()), [$t1, $t6]);
                 s_elems_$1762 = $t7;
                 $t8 = (C16.v ?? G16());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_proc_$1749, s_elems_$1762) : $t9(s_proc_$1749, s_elems_$1762);
@@ -5533,6 +5759,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$1749, s_vec_$1750, ...s_vecs_$1751$raw]);
           let s_vecs_$1751 = R.listFrom(s_vecs_$1751$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_proc_$1749) : $t1(s_proc_$1749);
@@ -5541,6 +5768,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("vector-map: expected procedure", s_proc_$1749) : $t6("vector-map: expected procedure", s_proc_$1749);
@@ -5552,6 +5780,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_vec_$1750) : $t9(s_vec_$1750);
@@ -5560,6 +5789,7 @@ export const LIBRARIES = {
           $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t10 === false) : R.callBinding((C0.v ?? G0()), [$t10]);
           if ($t11 !== false) {
           $t13 = (C2.v ?? G2());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("vector-map: expected vector", s_vec_$1750) : $t14("vector-map: expected vector", s_vec_$1750);
@@ -5574,6 +5804,7 @@ export const LIBRARIES = {
           s_loop_$1753 = $t17;
           $t18 = (W7.intact || (C7.v ?? G7()) === P7) && (Array.isArray(s_vec_$1750)) ? (BigInt(s_vec_$1750.length)) : R.callBinding((C7.v ?? G7()), [s_vec_$1750]);
           $t19 = s_loop_$1753;
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19($t18, s_vecs_$1751) : $t20($t18, s_vecs_$1751);
@@ -5583,6 +5814,7 @@ export const LIBRARIES = {
           $t22 = (W4.intact || (C4.v ?? G4()) === P4) ? (s_vecs_$1751 === null) : R.callBinding((C4.v ?? G4()), [s_vecs_$1751]);
           if ($t22 !== false) {
           $t23 = (C9.v ?? G9());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23(s_len_$1752) : $t24(s_len_$1752);
@@ -5592,6 +5824,7 @@ export const LIBRARIES = {
           $t27 = $mk$fn26(s_len_$1752, s_result_$1756, s_proc_$1749, s_vec_$1750);
           s_loop_$1757 = $t27;
           $t28 = s_loop_$1757;
+          if (typeof $t28 !== 'function') $notProc($t28);
           $t29 = $t28[$RAW];
           $stack.room = $d;
           $t30 = $t29 === undefined ? $t28(0n) : $t29(0n);
@@ -5601,6 +5834,7 @@ export const LIBRARIES = {
           return s_result_$1756;
         } else {
           $t31 = (C9.v ?? G9());
+          if (typeof $t31 !== 'function') $notProc($t31);
           $t32 = $t31[$RAW];
           $stack.room = $d;
           $t33 = $t32 === undefined ? $t31(s_len_$1752) : $t32(s_len_$1752);
@@ -5610,6 +5844,7 @@ export const LIBRARIES = {
           $t35 = $mk$fn34(s_len_$1752, s_vec_$1750, s_vecs_$1751, s_result_$1759, s_proc_$1749);
           s_loop_$1760 = $t35;
           $t36 = s_loop_$1760;
+          if (typeof $t36 !== 'function') $notProc($t36);
           $t37 = $t36[$RAW];
           $stack.room = $d;
           $t38 = $t37 === undefined ? $t36(0n) : $t37(0n);
@@ -5626,6 +5861,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$1749) : $t1(s_proc_$1749);
@@ -5639,6 +5875,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("vector-map: expected procedure", s_proc_$1749) : $t6("vector-map: expected procedure", s_proc_$1749);
@@ -5652,6 +5889,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_vec_$1750) : $t9(s_vec_$1750);
@@ -5669,6 +5907,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t13 = (C2.v ?? G2());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("vector-map: expected vector", s_vec_$1750) : $t14("vector-map: expected vector", s_vec_$1750);
@@ -5685,6 +5924,7 @@ export const LIBRARIES = {
                 s_loop_$1753 = $t17;
                 $t18 = (W7.intact || (C7.v ?? G7()) === P7) && (Array.isArray(s_vec_$1750)) ? (BigInt(s_vec_$1750.length)) : R.callBinding((C7.v ?? G7()), [s_vec_$1750]);
                 $t19 = s_loop_$1753;
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19($t18, s_vecs_$1751) : $t20($t18, s_vecs_$1751);
@@ -5703,6 +5943,7 @@ export const LIBRARIES = {
                 if ($t22 !== false) { $pc = 12; continue; } $pc = 13; continue;
               case 12:
                 $t23 = (C9.v ?? G9());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23(s_len_$1752) : $t24(s_len_$1752);
@@ -5712,6 +5953,7 @@ export const LIBRARIES = {
                 $pc = 14; continue;
               case 13:
                 $t31 = (C9.v ?? G9());
+                if (typeof $t31 !== 'function') $notProc($t31);
                 $t32 = $t31[$RAW];
                 $stack.room = $d;
                 $t33 = $t32 === undefined ? $t31(s_len_$1752) : $t32(s_len_$1752);
@@ -5725,6 +5967,7 @@ export const LIBRARIES = {
                 $t27 = $mk$fn26(s_len_$1752, s_result_$1756, s_proc_$1749, s_vec_$1750);
                 s_loop_$1757 = $t27;
                 $t28 = s_loop_$1757;
+                if (typeof $t28 !== 'function') $notProc($t28);
                 $t29 = $t28[$RAW];
                 $stack.room = $d;
                 $t30 = $t29 === undefined ? $t28(0n) : $t29(0n);
@@ -5742,6 +5985,7 @@ export const LIBRARIES = {
                 $t35 = $mk$fn34(s_len_$1752, s_vec_$1750, s_vecs_$1751, s_result_$1759, s_proc_$1749);
                 s_loop_$1760 = $t35;
                 $t36 = s_loop_$1760;
+                if (typeof $t36 !== 'function') $notProc($t36);
                 $t37 = $t36[$RAW];
                 $stack.room = $d;
                 $t38 = $t37 === undefined ? $t36(0n) : $t37(0n);
@@ -5766,7 +6010,7 @@ export const LIBRARIES = {
         rest: "vecs_$1766",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -5795,6 +6039,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 21;
           if ($d < 0 && $stack.flushable) return $flush($fn17, [s_v_$1768]);
           $t0 = (C3.v ?? G3());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_v_$1768) : $t1(s_v_$1768);
@@ -5803,6 +6048,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("vector-for-each: expected vector", s_v_$1768) : $t6("vector-for-each: expected vector", s_v_$1768);
@@ -5831,6 +6077,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C3.v ?? G3());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_v_$1768) : $t1(s_v_$1768);
@@ -5844,6 +6091,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("vector-for-each: expected vector", s_v_$1768) : $t6("vector-for-each: expected vector", s_v_$1768);
@@ -5901,6 +6149,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$1764, s_vec_$1765, ...s_vecs_$1766$raw]);
           let s_vecs_$1766 = R.listFrom(s_vecs_$1766$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_proc_$1764) : $t1(s_proc_$1764);
@@ -5909,6 +6158,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("vector-for-each: expected procedure", s_proc_$1764) : $t6("vector-for-each: expected procedure", s_proc_$1764);
@@ -5920,6 +6170,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_vec_$1765) : $t9(s_vec_$1765);
@@ -5928,6 +6179,7 @@ export const LIBRARIES = {
           $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t10 === false) : R.callBinding((C0.v ?? G0()), [$t10]);
           if ($t11 !== false) {
           $t13 = (C2.v ?? G2());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("vector-for-each: expected vector", s_vec_$1765) : $t14("vector-for-each: expected vector", s_vec_$1765);
@@ -5942,6 +6194,7 @@ export const LIBRARIES = {
           s_len_$1767 = $t16;
           $t18 = $mk$fn17(s_len_$1767);
           $t19 = (C5.v ?? G5());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19($t18, s_vecs_$1766) : $t20($t18, s_vecs_$1766);
@@ -5956,6 +6209,7 @@ export const LIBRARIES = {
           if ($t23 !== false) {
           $t24 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$1765, s_i_$1770)) : R.callBinding((C9.v ?? G9()), [s_vec_$1765, s_i_$1770]);
           $t25 = s_proc_$1764;
+          if (typeof $t25 !== 'function') $notProc($t25);
           $t26 = $t25[$RAW];
           $stack.room = $d;
           $t27 = $t26 === undefined ? $t25($t24) : $t26($t24);
@@ -5977,6 +6231,7 @@ export const LIBRARIES = {
           $t30 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$1765, s_i_$1772)) : R.callBinding((C9.v ?? G9()), [s_vec_$1765, s_i_$1772]);
           $t32 = $mk$fn31(s_i_$1772);
           $t33 = (C12.v ?? G12());
+          if (typeof $t33 !== 'function') $notProc($t33);
           $t34 = $t33[$RAW];
           $stack.room = $d;
           $t35 = $t34 === undefined ? $t33($t32, s_vecs_$1766) : $t34($t32, s_vecs_$1766);
@@ -5985,6 +6240,7 @@ export const LIBRARIES = {
           $t36 = (W11.intact || (C11.v ?? G11()) === P11) ? (new R.Cons($t30, $t35)) : R.callBinding((C11.v ?? G11()), [$t30, $t35]);
           s_elems_$1773 = $t36;
           $t37 = (C13.v ?? G13());
+          if (typeof $t37 !== 'function') $notProc($t37);
           $t38 = $t37[$RAW];
           $stack.room = $d;
           $t39 = $t38 === undefined ? $t37(s_proc_$1764, s_elems_$1773) : $t38(s_proc_$1764, s_elems_$1773);
@@ -6007,6 +6263,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$1764) : $t1(s_proc_$1764);
@@ -6020,6 +6277,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("vector-for-each: expected procedure", s_proc_$1764) : $t6("vector-for-each: expected procedure", s_proc_$1764);
@@ -6033,6 +6291,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_vec_$1765) : $t9(s_vec_$1765);
@@ -6050,6 +6309,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t13 = (C2.v ?? G2());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("vector-for-each: expected vector", s_vec_$1765) : $t14("vector-for-each: expected vector", s_vec_$1765);
@@ -6066,6 +6326,7 @@ export const LIBRARIES = {
                 s_len_$1767 = $t16;
                 $t18 = $mk$fn17(s_len_$1767);
                 $t19 = (C5.v ?? G5());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19($t18, s_vecs_$1766) : $t20($t18, s_vecs_$1766);
@@ -6094,6 +6355,7 @@ export const LIBRARIES = {
               case 15:
                 $t24 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$1765, s_i_$1770)) : R.callBinding((C9.v ?? G9()), [s_vec_$1765, s_i_$1770]);
                 $t25 = s_proc_$1764;
+                if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
                 $stack.room = $d;
                 $t27 = $t26 === undefined ? $t25($t24) : $t26($t24);
@@ -6116,6 +6378,7 @@ export const LIBRARIES = {
                 $t30 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$1765, s_i_$1772)) : R.callBinding((C9.v ?? G9()), [s_vec_$1765, s_i_$1772]);
                 $t32 = $mk$fn31(s_i_$1772);
                 $t33 = (C12.v ?? G12());
+                if (typeof $t33 !== 'function') $notProc($t33);
                 $t34 = $t33[$RAW];
                 $stack.room = $d;
                 $t35 = $t34 === undefined ? $t33($t32, s_vecs_$1766) : $t34($t32, s_vecs_$1766);
@@ -6130,6 +6393,7 @@ export const LIBRARIES = {
                 $t36 = (W11.intact || (C11.v ?? G11()) === P11) ? (new R.Cons($t30, $t35)) : R.callBinding((C11.v ?? G11()), [$t30, $t35]);
                 s_elems_$1773 = $t36;
                 $t37 = (C13.v ?? G13());
+                if (typeof $t37 !== 'function') $notProc($t37);
                 $t38 = $t37[$RAW];
                 $stack.room = $d;
                 $t39 = $t38 === undefined ? $t37(s_proc_$1764, s_elems_$1773) : $t38(s_proc_$1764, s_elems_$1773);
@@ -6156,7 +6420,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -6174,6 +6438,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_obj_$1775, s_lst_$1776]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_lst_$1776) : $t1(s_lst_$1776);
@@ -6182,6 +6447,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("memq: expected list", s_lst_$1776) : $t6("memq: expected list", s_lst_$1776);
@@ -6217,6 +6483,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_lst_$1776) : $t1(s_lst_$1776);
@@ -6230,6 +6497,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("memq: expected list", s_lst_$1776) : $t6("memq: expected list", s_lst_$1776);
@@ -6276,7 +6544,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -6294,6 +6562,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 25;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_obj_$1779, s_lst_$1780]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_lst_$1780) : $t1(s_lst_$1780);
@@ -6302,6 +6571,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("memv: expected list", s_lst_$1780) : $t6("memv: expected list", s_lst_$1780);
@@ -6320,6 +6590,7 @@ export const LIBRARIES = {
         } else {
           $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$1782 instanceof R.Cons) ? (s_l_$1782.car) : R.callBinding((C5.v ?? G5()), [s_l_$1782]);
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_obj_$1779, $t9) : $t11(s_obj_$1779, $t9);
@@ -6342,6 +6613,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_lst_$1780) : $t1(s_lst_$1780);
@@ -6355,6 +6627,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("memv: expected list", s_lst_$1780) : $t6("memv: expected list", s_lst_$1780);
@@ -6381,6 +6654,7 @@ export const LIBRARIES = {
               case 8:
                 $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$1782 instanceof R.Cons) ? (s_l_$1782.car) : R.callBinding((C5.v ?? G5()), [s_l_$1782]);
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_obj_$1779, $t9) : $t11(s_obj_$1779, $t9);
@@ -6410,7 +6684,7 @@ export const LIBRARIES = {
         rest: "compare_$1785",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -6428,6 +6702,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_obj_$1783, s_lst_$1784, ...s_compare_$1785$raw]);
           let s_compare_$1785 = R.listFrom(s_compare_$1785$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_lst_$1784) : $t1(s_lst_$1784);
@@ -6436,6 +6711,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("member: expected list", s_lst_$1784) : $t6("member: expected list", s_lst_$1784);
@@ -6462,6 +6738,7 @@ export const LIBRARIES = {
         } else {
           $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$1788 instanceof R.Cons) ? (s_l_$1788.car) : R.callBinding((C5.v ?? G5()), [s_l_$1788]);
           $t13 = s_cmp_$1786;
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_obj_$1783, $t12) : $t14(s_obj_$1783, $t12);
@@ -6484,6 +6761,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_lst_$1784) : $t1(s_lst_$1784);
@@ -6497,6 +6775,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("member: expected list", s_lst_$1784) : $t6("member: expected list", s_lst_$1784);
@@ -6534,6 +6813,7 @@ export const LIBRARIES = {
               case 11:
                 $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$1788 instanceof R.Cons) ? (s_l_$1788.car) : R.callBinding((C5.v ?? G5()), [s_l_$1788]);
                 $t13 = s_cmp_$1786;
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_obj_$1783, $t12) : $t14(s_obj_$1783, $t12);
@@ -6563,7 +6843,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -6583,6 +6863,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 31;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_obj_$1789, s_alist_$1790]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_alist_$1790) : $t1(s_alist_$1790);
@@ -6591,6 +6872,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("assq: expected list", s_alist_$1790) : $t6("assq: expected list", s_alist_$1790);
@@ -6613,6 +6895,7 @@ export const LIBRARIES = {
           $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t10 === false) : R.callBinding((C0.v ?? G0()), [$t10]);
           if ($t11 !== false) {
           $t13 = (C2.v ?? G2());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("assq: expected pair in alist", s_pair_$1793) : $t14("assq: expected pair in alist", s_pair_$1793);
@@ -6642,6 +6925,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_alist_$1790) : $t1(s_alist_$1790);
@@ -6655,6 +6939,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("assq: expected list", s_alist_$1790) : $t6("assq: expected list", s_alist_$1790);
@@ -6686,6 +6971,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
                 $t13 = (C2.v ?? G2());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("assq: expected pair in alist", s_pair_$1793) : $t14("assq: expected pair in alist", s_pair_$1793);
@@ -6724,7 +7010,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -6744,6 +7030,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 33;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_obj_$1794, s_alist_$1795]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_alist_$1795) : $t1(s_alist_$1795);
@@ -6752,6 +7039,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("assv: expected list", s_alist_$1795) : $t6("assv: expected list", s_alist_$1795);
@@ -6774,6 +7062,7 @@ export const LIBRARIES = {
           $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t10 === false) : R.callBinding((C0.v ?? G0()), [$t10]);
           if ($t11 !== false) {
           $t13 = (C2.v ?? G2());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("assv: expected pair in alist", s_pair_$1798) : $t14("assv: expected pair in alist", s_pair_$1798);
@@ -6786,6 +7075,7 @@ export const LIBRARIES = {
           $t12;
           $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (s_pair_$1798 instanceof R.Cons) ? (s_pair_$1798.car) : R.callBinding((C4.v ?? G4()), [s_pair_$1798]);
           $t17 = (C6.v ?? G6());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_obj_$1794, $t16) : $t18(s_obj_$1794, $t16);
@@ -6808,6 +7098,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_alist_$1795) : $t1(s_alist_$1795);
@@ -6821,6 +7112,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("assv: expected list", s_alist_$1795) : $t6("assv: expected list", s_alist_$1795);
@@ -6852,6 +7144,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
                 $t13 = (C2.v ?? G2());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("assv: expected pair in alist", s_pair_$1798) : $t14("assv: expected pair in alist", s_pair_$1798);
@@ -6866,6 +7159,7 @@ export const LIBRARIES = {
                 $t12;
                 $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (s_pair_$1798 instanceof R.Cons) ? (s_pair_$1798.car) : R.callBinding((C4.v ?? G4()), [s_pair_$1798]);
                 $t17 = (C6.v ?? G6());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_obj_$1794, $t16) : $t18(s_obj_$1794, $t16);
@@ -6899,7 +7193,7 @@ export const LIBRARIES = {
         rest: "compare_$1801",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -6919,6 +7213,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_obj_$1799, s_alist_$1800, ...s_compare_$1801$raw]);
           let s_compare_$1801 = R.listFrom(s_compare_$1801$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_alist_$1800) : $t1(s_alist_$1800);
@@ -6927,6 +7222,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("assoc: expected list", s_alist_$1800) : $t6("assoc: expected list", s_alist_$1800);
@@ -6957,6 +7253,7 @@ export const LIBRARIES = {
           $t14 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t13 === false) : R.callBinding((C0.v ?? G0()), [$t13]);
           if ($t14 !== false) {
           $t16 = (C2.v ?? G2());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16("assoc: expected pair in alist", s_pair_$1805) : $t17("assoc: expected pair in alist", s_pair_$1805);
@@ -6969,6 +7266,7 @@ export const LIBRARIES = {
           $t15;
           $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (s_pair_$1805 instanceof R.Cons) ? (s_pair_$1805.car) : R.callBinding((C5.v ?? G5()), [s_pair_$1805]);
           $t20 = s_cmp_$1802;
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_obj_$1799, $t19) : $t21(s_obj_$1799, $t19);
@@ -6991,6 +7289,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_alist_$1800) : $t1(s_alist_$1800);
@@ -7004,6 +7303,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("assoc: expected list", s_alist_$1800) : $t6("assoc: expected list", s_alist_$1800);
@@ -7046,6 +7346,7 @@ export const LIBRARIES = {
                 if ($t14 !== false) { $pc = 12; continue; } $pc = 13; continue;
               case 12:
                 $t16 = (C2.v ?? G2());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16("assoc: expected pair in alist", s_pair_$1805) : $t17("assoc: expected pair in alist", s_pair_$1805);
@@ -7060,6 +7361,7 @@ export const LIBRARIES = {
                 $t15;
                 $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (s_pair_$1805 instanceof R.Cons) ? (s_pair_$1805.car) : R.callBinding((C5.v ?? G5()), [s_pair_$1805]);
                 $t20 = s_cmp_$1802;
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_obj_$1799, $t19) : $t21(s_obj_$1799, $t19);
@@ -7093,7 +7395,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -7109,6 +7411,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_lst_$1806]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_lst_$1806) : $t1(s_lst_$1806);
@@ -7117,6 +7420,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("length: expected list", s_lst_$1806) : $t6("length: expected list", s_lst_$1806);
@@ -7149,6 +7453,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_lst_$1806) : $t1(s_lst_$1806);
@@ -7162,6 +7467,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("length: expected list", s_lst_$1806) : $t6("length: expected list", s_lst_$1806);
@@ -7205,7 +7511,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -7232,6 +7538,7 @@ export const LIBRARIES = {
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t0 === false) : R.callBinding((C0.v ?? G0()), [$t0]);
           if ($t1 !== false) {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("list-ref: expected pair", s_lst_$1810) : $t4("list-ref: expected pair", s_lst_$1810);
@@ -7243,6 +7550,7 @@ export const LIBRARIES = {
         }
           $t2;
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_k_$1811) : $t7(s_k_$1811);
@@ -7251,6 +7559,7 @@ export const LIBRARIES = {
           $t9 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t8 === false) : R.callBinding((C0.v ?? G0()), [$t8]);
           if ($t9 !== false) {
           $t11 = (C2.v ?? G2());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11("list-ref: expected exact integer", s_k_$1811) : $t12("list-ref: expected exact integer", s_k_$1811);
@@ -7264,6 +7573,7 @@ export const LIBRARIES = {
           $t14 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_k_$1811 === 'bigint' && typeof 0n === 'bigint') || (typeof s_k_$1811 === 'number' && typeof 0n === 'number')) ? (s_k_$1811 < 0n) : R.callBinding((C4.v ?? G4()), [s_k_$1811, 0n]);
           if ($t14 !== false) {
           $t16 = (C2.v ?? G2());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16("list-ref: index out of range", s_k_$1811) : $t17("list-ref: index out of range", s_k_$1811);
@@ -7314,6 +7624,7 @@ export const LIBRARIES = {
                 if ($t1 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("list-ref: expected pair", s_lst_$1810) : $t4("list-ref: expected pair", s_lst_$1810);
@@ -7327,6 +7638,7 @@ export const LIBRARIES = {
               case 3:
                 $t2;
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_k_$1811) : $t7(s_k_$1811);
@@ -7344,6 +7656,7 @@ export const LIBRARIES = {
                 if ($t9 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 $t11 = (C2.v ?? G2());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11("list-ref: expected exact integer", s_k_$1811) : $t12("list-ref: expected exact integer", s_k_$1811);
@@ -7364,6 +7677,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               case 10:
                 $t16 = (C2.v ?? G2());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16("list-ref: index out of range", s_k_$1811) : $t17("list-ref: index out of range", s_k_$1811);
@@ -7421,7 +7735,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -7443,6 +7757,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 33;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_lst_$1815, s_k_$1816]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_k_$1816) : $t1(s_k_$1816);
@@ -7451,6 +7766,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("list-tail: expected exact integer", s_k_$1816) : $t6("list-tail: expected exact integer", s_k_$1816);
@@ -7464,6 +7780,7 @@ export const LIBRARIES = {
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_k_$1816 === 'bigint' && typeof 0n === 'bigint') || (typeof s_k_$1816 === 'number' && typeof 0n === 'number')) ? (s_k_$1816 < 0n) : R.callBinding((C3.v ?? G3()), [s_k_$1816, 0n]);
           if ($t8 !== false) {
           $t10 = (C2.v ?? G2());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10("list-tail: index out of range", s_k_$1816) : $t11("list-tail: index out of range", s_k_$1816);
@@ -7509,6 +7826,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_k_$1816) : $t1(s_k_$1816);
@@ -7522,6 +7840,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("list-tail: expected exact integer", s_k_$1816) : $t6("list-tail: expected exact integer", s_k_$1816);
@@ -7542,6 +7861,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 6:
                 $t10 = (C2.v ?? G2());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10("list-tail: index out of range", s_k_$1816) : $t11("list-tail: index out of range", s_k_$1816);
@@ -7598,7 +7918,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -7616,6 +7936,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_lst_$1820]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_lst_$1820) : $t1(s_lst_$1820);
@@ -7624,6 +7945,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("reverse: expected list", s_lst_$1820) : $t6("reverse: expected list", s_lst_$1820);
@@ -7657,6 +7979,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_lst_$1820) : $t1(s_lst_$1820);
@@ -7670,6 +7993,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("reverse: expected list", s_lst_$1820) : $t6("reverse: expected list", s_lst_$1820);
@@ -7714,7 +8038,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -7738,6 +8062,7 @@ export const LIBRARIES = {
           $t2 = (W3.intact || (C3.v ?? G3()) === P3) && (s_obj_$1824 instanceof R.Cons) ? (s_obj_$1824.car) : R.callBinding((C3.v ?? G3()), [s_obj_$1824]);
           $t3 = (W5.intact || (C5.v ?? G5()) === P5) && (s_obj_$1824 instanceof R.Cons) ? (s_obj_$1824.cdr) : R.callBinding((C5.v ?? G5()), [s_obj_$1824]);
           $t4 = (C4.v ?? G4());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
@@ -7762,6 +8087,7 @@ export const LIBRARIES = {
                 $t2 = (W3.intact || (C3.v ?? G3()) === P3) && (s_obj_$1824 instanceof R.Cons) ? (s_obj_$1824.car) : R.callBinding((C3.v ?? G3()), [s_obj_$1824]);
                 $t3 = (W5.intact || (C5.v ?? G5()) === P5) && (s_obj_$1824 instanceof R.Cons) ? (s_obj_$1824.cdr) : R.callBinding((C5.v ?? G5()), [s_obj_$1824]);
                 $t4 = (C4.v ?? G4());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
@@ -7786,7 +8112,7 @@ export const LIBRARIES = {
         rest: "rest_$1826",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -7815,6 +8141,7 @@ export const LIBRARIES = {
         } else {
           $t1 = (W8.intact || (C8.v ?? G8()) === P8) && ((typeof s_n_$1829 === 'bigint' && typeof 1n === 'bigint') || (typeof s_n_$1829 === 'number' && typeof 1n === 'number')) ? (s_n_$1829 - 1n) : R.callBinding((C8.v ?? G8()), [s_n_$1829, 1n]);
           $t2 = s_loop_$1828;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -7838,6 +8165,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W8.intact || (C8.v ?? G8()) === P8) && ((typeof s_n_$1829 === 'bigint' && typeof 1n === 'bigint') || (typeof s_n_$1829 === 'number' && typeof 1n === 'number')) ? (s_n_$1829 - 1n) : R.callBinding((C8.v ?? G8()), [s_n_$1829, 1n]);
                 $t2 = s_loop_$1828;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -7862,6 +8190,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_k_$1825, ...s_rest_$1826$raw]);
           let s_rest_$1826 = R.listFrom(s_rest_$1826$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_k_$1825) : $t1(s_k_$1825);
@@ -7870,6 +8199,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("make-list: expected integer", s_k_$1825) : $t6("make-list: expected integer", s_k_$1825);
@@ -7883,6 +8213,7 @@ export const LIBRARIES = {
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_k_$1825 === 'bigint' && typeof 0n === 'bigint') || (typeof s_k_$1825 === 'number' && typeof 0n === 'number')) ? (s_k_$1825 < 0n) : R.callBinding((C3.v ?? G3()), [s_k_$1825, 0n]);
           if ($t8 !== false) {
           $t10 = (C2.v ?? G2());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10("make-list: expected non-negative integer", s_k_$1825) : $t11("make-list: expected non-negative integer", s_k_$1825);
@@ -7913,6 +8244,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_k_$1825) : $t1(s_k_$1825);
@@ -7926,6 +8258,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("make-list: expected integer", s_k_$1825) : $t6("make-list: expected integer", s_k_$1825);
@@ -7946,6 +8279,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 6:
                 $t10 = (C2.v ?? G2());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10("make-list: expected non-negative integer", s_k_$1825) : $t11("make-list: expected non-negative integer", s_k_$1825);
@@ -7990,7 +8324,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -8015,6 +8349,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_lst_$1830, s_k_$1831, s_obj_$1832]);
           $loop: for (;;) {
             $t0 = (C1.v ?? G1());
+            if (typeof $t0 !== 'function') $notProc($t0);
             $t1 = $t0[$RAW];
             $stack.room = $d;
             $t2 = $t1 === undefined ? $t0(s_lst_$1830) : $t1(s_lst_$1830);
@@ -8023,6 +8358,7 @@ export const LIBRARIES = {
             $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
             if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("list-set!: expected list", s_lst_$1830) : $t6("list-set!: expected list", s_lst_$1830);
@@ -8034,6 +8370,7 @@ export const LIBRARIES = {
         }
             $t4;
             $t8 = (C3.v ?? G3());
+            if (typeof $t8 !== 'function') $notProc($t8);
             $t9 = $t8[$RAW];
             $stack.room = $d;
             $t10 = $t9 === undefined ? $t8(s_k_$1831) : $t9(s_k_$1831);
@@ -8042,6 +8379,7 @@ export const LIBRARIES = {
             $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t10 === false) : R.callBinding((C0.v ?? G0()), [$t10]);
             if ($t11 !== false) {
           $t13 = (C2.v ?? G2());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("list-set!: expected integer index", s_k_$1831) : $t14("list-set!: expected integer index", s_k_$1831);
@@ -8058,6 +8396,7 @@ export const LIBRARIES = {
           $t17 = s_x_$1833;
         } else {
           $t18 = (C6.v ?? G6());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_lst_$1830) : $t19(s_lst_$1830);
@@ -8068,6 +8407,7 @@ export const LIBRARIES = {
         }
             if ($t17 !== false) {
           $t23 = (C2.v ?? G2());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23("list-set!: index out of range", s_k_$1831) : $t24("list-set!: index out of range", s_k_$1831);
@@ -8098,6 +8438,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_lst_$1830) : $t1(s_lst_$1830);
@@ -8111,6 +8452,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("list-set!: expected list", s_lst_$1830) : $t6("list-set!: expected list", s_lst_$1830);
@@ -8124,6 +8466,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_k_$1831) : $t9(s_k_$1831);
@@ -8141,6 +8484,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t13 = (C2.v ?? G2());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("list-set!: expected integer index", s_k_$1831) : $t14("list-set!: expected integer index", s_k_$1831);
@@ -8165,6 +8509,7 @@ export const LIBRARIES = {
                 $pc = 13; continue;
               case 12:
                 $t18 = (C6.v ?? G6());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_lst_$1830) : $t19(s_lst_$1830);
@@ -8181,6 +8526,7 @@ export const LIBRARIES = {
                 $pc = 13; continue;
               case 15:
                 $t23 = (C2.v ?? G2());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23("list-set!: index out of range", s_k_$1831) : $t24("list-set!: index out of range", s_k_$1831);
@@ -8221,7 +8567,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "*param-dynamic-env-box*")).v;
@@ -8247,6 +8593,7 @@ export const LIBRARIES = {
           return s_global_2dcell_$1835;
         } else {
           $t3 = (C4.v ?? G4());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_env_$1838) : $t4(s_env_$1838);
@@ -8282,6 +8629,7 @@ export const LIBRARIES = {
                 return s_global_2dcell_$1835;
               case 3:
                 $t3 = (C4.v ?? G4());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_env_$1838) : $t4(s_env_$1838);
@@ -8313,7 +8661,7 @@ export const LIBRARIES = {
         rest: "conv_$1840",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -8350,6 +8698,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn9, [...s_args_$1845$raw]);
           let s_args_$1845 = R.listFrom(s_args_$1845$raw);
           $t0 = (C3.v ?? G3());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_parameter_$1844, s_global_2dcell_$1843) : $t1(s_parameter_$1844, s_global_2dcell_$1843);
@@ -8366,6 +8715,7 @@ export const LIBRARIES = {
           if ($t6 !== false) {
           $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (s_args_$1845 instanceof R.Cons) ? (s_args_$1845.car) : R.callBinding((C1.v ?? G1()), [s_args_$1845]);
           $t8 = s_converter_$1841;
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8($t7) : $t9($t7);
@@ -8388,6 +8738,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C3.v ?? G3());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_parameter_$1844, s_global_2dcell_$1843) : $t1(s_parameter_$1844, s_global_2dcell_$1843);
@@ -8410,6 +8761,7 @@ export const LIBRARIES = {
               case 4:
                 $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (s_args_$1845 instanceof R.Cons) ? (s_args_$1845.car) : R.callBinding((C1.v ?? G1()), [s_args_$1845]);
                 $t8 = s_converter_$1841;
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8($t7) : $t9($t7);
@@ -8447,6 +8799,7 @@ export const LIBRARIES = {
         }
           s_converter_$1841 = $t1;
           $t5 = s_converter_$1841;
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_init_$1839) : $t6(s_init_$1839);
@@ -8457,6 +8810,7 @@ export const LIBRARIES = {
           $t10 = $mk$fn9(s_global_2dcell_$1843, s_converter_$1841);
           s_parameter_$1844 = $t10;
           $t11 = (C6.v ?? G6());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_global_2dcell_$1843, s_parameter_$1844) : $t12(s_global_2dcell_$1843, s_parameter_$1844);
@@ -8484,6 +8838,7 @@ export const LIBRARIES = {
               case 3:
                 s_converter_$1841 = $t1;
                 $t5 = s_converter_$1841;
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_init_$1839) : $t6(s_init_$1839);
@@ -8498,6 +8853,7 @@ export const LIBRARIES = {
                 $t10 = $mk$fn9(s_global_2dcell_$1843, s_converter_$1841);
                 s_parameter_$1844 = $t10;
                 $t11 = (C6.v ?? G6());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_global_2dcell_$1843, s_parameter_$1844) : $t12(s_global_2dcell_$1843, s_parameter_$1844);
@@ -8521,7 +8877,7 @@ export const LIBRARIES = {
   },
   "scheme.eval": {
     fingerprint: "05342122",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["eval.sld"],
     procedures: {
       "environment": {
@@ -8557,7 +8913,7 @@ export const LIBRARIES = {
   },
   "scheme.lazy": {
     fingerprint: "552f3931",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["lazy.sld","lazy.scm"],
     procedures: {
       "promise?": {
@@ -8565,7 +8921,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [intern("promise-tag"), intern("promise-tag")],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -8583,6 +8939,7 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t1 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t1]);
           if ($t2 !== false) {
           $t3 = (C3.v ?? G3());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_obj_$2938) : $t4(s_obj_$2938);
@@ -8613,6 +8970,7 @@ export const LIBRARIES = {
                 return false;
               case 3:
                 $t3 = (C3.v ?? G3());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_obj_$2938) : $t4(s_obj_$2938);
@@ -8668,7 +9026,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [intern("promise-tag"), intern("promise-tag")],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "promise?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cons")).v;
         const W1 = R.primitiveCell("cons"), P1 = W1.primitive;
@@ -8677,6 +9035,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_obj_$2940]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_obj_$2940) : $t1(s_obj_$2940);
@@ -8697,6 +9056,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_obj_$2940) : $t1(s_obj_$2940);
@@ -8726,7 +9086,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "promise?")).v;
@@ -8742,6 +9102,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 37;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_promise_$2941]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_promise_$2941) : $t1(s_promise_$2941);
@@ -8750,6 +9111,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5("force: expected promise", s_promise_$2941) : $t6("force: expected promise", s_promise_$2941);
@@ -8761,6 +9123,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_promise_$2941) : $t9(s_promise_$2941);
@@ -8772,6 +9135,7 @@ export const LIBRARIES = {
         } else {
           $t15 = (W4.intact || (C4.v ?? G4()) === P4) && (s_promise_$2941 instanceof R.Cons) ? (s_promise_$2941.cdr) : R.callBinding((C4.v ?? G4()), [s_promise_$2941]);
           $t12 = $t15;
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12() : $t13();
@@ -8779,6 +9143,7 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 9, { s_promise_$2941 }); return $UNWIND; }
           s_result_$2942 = $t14;
           $t16 = (C3.v ?? G3());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_promise_$2941) : $t17(s_promise_$2941);
@@ -8790,6 +9155,7 @@ export const LIBRARIES = {
         } else {
           $t20 = (W6.intact || (C6.v ?? G6()) === P6) && (s_promise_$2941 instanceof R.Cons) ? (s_promise_$2941.car) : R.callBinding((C6.v ?? G6()), [s_promise_$2941]);
           $t21 = (C5.v ?? G5());
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21($t20, true) : $t22($t20, true);
@@ -8797,6 +9163,7 @@ export const LIBRARIES = {
           if ($t23 === $UNWIND) { R.reify($proc$r, 13, { s_result_$2942, s_promise_$2941 }); return $UNWIND; }
           $t23;
           $t24 = (C5.v ?? G5());
+          if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
           $stack.room = $d;
           $t26 = $t25 === undefined ? $t24(s_promise_$2941, s_result_$2942) : $t25(s_promise_$2941, s_result_$2942);
@@ -8814,6 +9181,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_promise_$2941) : $t1(s_promise_$2941);
@@ -8827,6 +9195,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5("force: expected promise", s_promise_$2941) : $t6("force: expected promise", s_promise_$2941);
@@ -8840,6 +9209,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_promise_$2941) : $t9(s_promise_$2941);
@@ -8860,6 +9230,7 @@ export const LIBRARIES = {
               case 8:
                 $t15 = (W4.intact || (C4.v ?? G4()) === P4) && (s_promise_$2941 instanceof R.Cons) ? (s_promise_$2941.cdr) : R.callBinding((C4.v ?? G4()), [s_promise_$2941]);
                 $t12 = $t15;
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12() : $t13();
@@ -8871,6 +9242,7 @@ export const LIBRARIES = {
                 $t14 = $r;
                 s_result_$2942 = $t14;
                 $t16 = (C3.v ?? G3());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_promise_$2941) : $t17(s_promise_$2941);
@@ -8887,6 +9259,7 @@ export const LIBRARIES = {
               case 12:
                 $t20 = (W6.intact || (C6.v ?? G6()) === P6) && (s_promise_$2941 instanceof R.Cons) ? (s_promise_$2941.car) : R.callBinding((C6.v ?? G6()), [s_promise_$2941]);
                 $t21 = (C5.v ?? G5());
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21($t20, true) : $t22($t20, true);
@@ -8898,6 +9271,7 @@ export const LIBRARIES = {
                 $t23 = $r;
                 $t23;
                 $t24 = (C5.v ?? G5());
+                if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
                 $stack.room = $d;
                 $t26 = $t25 === undefined ? $t24(s_promise_$2941, s_result_$2942) : $t25(s_promise_$2941, s_result_$2942);
@@ -8921,7 +9295,7 @@ export const LIBRARIES = {
   },
   "srfi.1": {
     fingerprint: "bd2a2c03",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["1.sld","list_lib.scm"],
     procedures: {
       "check-procedure": {
@@ -8929,7 +9303,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -8940,6 +9314,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$1857, s_f_$1858]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_f_$1858) : $t1(s_f_$1858);
@@ -8948,6 +9323,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t4 = (C3.v ?? G3());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_who_$1857, ": expected a procedure") : $t5(s_who_$1857, ": expected a procedure");
@@ -8966,6 +9342,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_f_$1858) : $t1(s_f_$1858);
@@ -8979,6 +9356,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t4 = (C3.v ?? G3());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_who_$1857, ": expected a procedure") : $t5(s_who_$1857, ": expected a procedure");
@@ -9005,7 +9383,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "exact-integer?")).v;
@@ -9018,6 +9396,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 20;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$1859, s_k_$1860]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_k_$1860) : $t1(s_k_$1860);
@@ -9032,6 +9411,7 @@ export const LIBRARIES = {
           $t5 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t3 === false) : R.callBinding((C0.v ?? G0()), [$t3]);
           if ($t5 !== false) {
           $t6 = (C4.v ?? G4());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_who_$1859, ": expected a non-negative exact integer") : $t7(s_who_$1859, ": expected a non-negative exact integer");
@@ -9050,6 +9430,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_k_$1860) : $t1(s_k_$1860);
@@ -9072,6 +9453,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t6 = (C4.v ?? G4());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_who_$1859, ": expected a non-negative exact integer") : $t7(s_who_$1859, ": expected a non-negative exact integer");
@@ -9235,7 +9617,7 @@ export const LIBRARIES = {
         rest: "rest_$1869",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reverse")).v;
@@ -9257,6 +9639,7 @@ export const LIBRARIES = {
         } else {
           $t1 = (W2.intact || (C2.v ?? G2()) === P2) ? (new R.Cons(s_first_$1868, s_rest_$1869)) : R.callBinding((C2.v ?? G2()), [s_first_$1868, s_rest_$1869]);
           $t2 = (C1.v ?? G1());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -9282,6 +9665,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W2.intact || (C2.v ?? G2()) === P2) ? (new R.Cons(s_first_$1868, s_rest_$1869)) : R.callBinding((C2.v ?? G2()), [s_first_$1868, s_rest_$1869]);
                 $t2 = (C1.v ?? G1());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -9309,7 +9693,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-procedure")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "<")).v;
@@ -9323,6 +9707,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 25;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_n_$1871, s_init_$1872]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("list-tabulate", s_n_$1871) : $t1("list-tabulate", s_n_$1871);
@@ -9330,6 +9715,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_n_$1871, s_init_$1872 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("list-tabulate", s_init_$1872) : $t4("list-tabulate", s_init_$1872);
@@ -9346,6 +9732,7 @@ export const LIBRARIES = {
         } else {
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_i_$1874 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$1874 === 'number' && typeof 1n === 'number')) ? (s_i_$1874 - 1n) : R.callBinding((C3.v ?? G3()), [s_i_$1874, 1n]);
           $t9 = s_init_$1872;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_i_$1874) : $t10(s_i_$1874);
@@ -9365,6 +9752,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("list-tabulate", s_n_$1871) : $t1("list-tabulate", s_n_$1871);
@@ -9376,6 +9764,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("list-tabulate", s_init_$1872) : $t4("list-tabulate", s_init_$1872);
@@ -9398,6 +9787,7 @@ export const LIBRARIES = {
               case 5:
                 $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_i_$1874 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$1874 === 'number' && typeof 1n === 'number')) ? (s_i_$1874 - 1n) : R.callBinding((C3.v ?? G3()), [s_i_$1874, 1n]);
                 $t9 = s_init_$1872;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_i_$1874) : $t10(s_i_$1874);
@@ -9424,7 +9814,7 @@ export const LIBRARIES = {
         rest: "rest_$1877",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cons")).v;
         const W0 = R.primitiveCell("cons"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "set-cdr!")).v;
@@ -9437,12 +9827,14 @@ export const LIBRARIES = {
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons(s_first_$1876, s_rest_$1877)) : R.callBinding((C0.v ?? G0()), [s_first_$1876, s_rest_$1877]);
           s_l_$1878 = $t0;
           $t1 = (C2.v ?? G2());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_l_$1878) : $t2(s_l_$1878);
           while ($t3 instanceof $TailCall) { $stack.room = $d; $t3 = $step($t3); }
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { s_l_$1878 }); return $UNWIND; }
           $t4 = (C1.v ?? G1());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4($t3, s_l_$1878) : $t5($t3, s_l_$1878);
@@ -9460,6 +9852,7 @@ export const LIBRARIES = {
                 $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons(s_first_$1876, s_rest_$1877)) : R.callBinding((C0.v ?? G0()), [s_first_$1876, s_rest_$1877]);
                 s_l_$1878 = $t0;
                 $t1 = (C2.v ?? G2());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_l_$1878) : $t2(s_l_$1878);
@@ -9470,6 +9863,7 @@ export const LIBRARIES = {
               case 1:
                 $t3 = $r;
                 $t4 = (C1.v ?? G1());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4($t3, s_l_$1878) : $t5($t3, s_l_$1878);
@@ -9494,7 +9888,7 @@ export const LIBRARIES = {
         rest: "options_$1880",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -9519,6 +9913,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_count_$1879, ...s_options_$1880$raw]);
           let s_options_$1880 = R.listFrom(s_options_$1880$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("iota", s_count_$1879) : $t1("iota", s_count_$1879);
@@ -9543,6 +9938,7 @@ export const LIBRARIES = {
         }
           if ($t7 !== false) {
           $t11 = (C4.v ?? G4());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_options_$1880) : $t12(s_options_$1880);
@@ -9578,6 +9974,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("iota", s_count_$1879) : $t1("iota", s_count_$1879);
@@ -9613,6 +10010,7 @@ export const LIBRARIES = {
                 if ($t7 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t11 = (C4.v ?? G4());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_options_$1880) : $t12(s_options_$1880);
@@ -9776,7 +10174,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -9812,6 +10210,7 @@ export const LIBRARIES = {
           return $t9;
         } else {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_fast_$1898) : $t11(s_fast_$1898);
@@ -9864,6 +10263,7 @@ export const LIBRARIES = {
                 return $t9;
               case 5:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_fast_$1898) : $t11(s_fast_$1898);
@@ -9983,7 +10383,7 @@ export const LIBRARIES = {
         rest: "lists_$1904",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
         const W0 = R.primitiveCell("eq?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
@@ -10025,6 +10425,7 @@ export const LIBRARIES = {
           $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (s_a_$1909 instanceof R.Cons) ? (s_a_$1909.car) : R.callBinding((C3.v ?? G3()), [s_a_$1909]);
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (s_b_$1910 instanceof R.Cons) ? (s_b_$1910.car) : R.callBinding((C3.v ?? G3()), [s_b_$1910]);
           $t9 = s_elt_3d_$1903;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9($t7, $t8) : $t10($t7, $t8);
@@ -10078,6 +10479,7 @@ export const LIBRARIES = {
                 $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (s_a_$1909 instanceof R.Cons) ? (s_a_$1909.car) : R.callBinding((C3.v ?? G3()), [s_a_$1909]);
                 $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (s_b_$1910 instanceof R.Cons) ? (s_b_$1910.car) : R.callBinding((C3.v ?? G3()), [s_b_$1910]);
                 $t9 = s_elt_3d_$1903;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9($t7, $t8) : $t10($t7, $t8);
@@ -10112,6 +10514,7 @@ export const LIBRARIES = {
           s_equal_2dpair_3f[0] = $t1;
           undefined;
           $t2 = (C5.v ?? G5());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2("list=", s_elt_3d_$1903) : $t3("list=", s_elt_3d_$1903);
@@ -10135,6 +10538,7 @@ export const LIBRARIES = {
         } else {
           $t9 = (W3.intact || (C3.v ?? G3()) === P3) && (s_rest_$1914 instanceof R.Cons) ? (s_rest_$1914.car) : R.callBinding((C3.v ?? G3()), [s_rest_$1914]);
           $t10 = s_equal_2dpair_3f[0];
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_a_$1913, $t9) : $t11(s_a_$1913, $t9);
@@ -10164,6 +10568,7 @@ export const LIBRARIES = {
                 s_equal_2dpair_3f[0] = $t1;
                 undefined;
                 $t2 = (C5.v ?? G5());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2("list=", s_elt_3d_$1903) : $t3("list=", s_elt_3d_$1903);
@@ -10194,6 +10599,7 @@ export const LIBRARIES = {
               case 6:
                 $t9 = (W3.intact || (C3.v ?? G3()) === P3) && (s_rest_$1914 instanceof R.Cons) ? (s_rest_$1914.car) : R.callBinding((C3.v ?? G3()), [s_rest_$1914]);
                 $t10 = s_equal_2dpair_3f[0];
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_a_$1913, $t9) : $t11(s_a_$1913, $t9);
@@ -10540,7 +10946,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -10561,6 +10967,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 24;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1927, s_k_$1928]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("take", s_k_$1928) : $t1("take", s_k_$1928);
@@ -10600,6 +11007,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("take", s_k_$1928) : $t1("take", s_k_$1928);
@@ -10648,7 +11056,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -10664,6 +11072,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 20;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1933, s_k_$1934]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("drop", s_k_$1934) : $t1("drop", s_k_$1934);
@@ -10698,6 +11107,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("drop", s_k_$1934) : $t1("drop", s_k_$1934);
@@ -10741,7 +11151,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
@@ -10752,6 +11162,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1938, s_k_$1939]);
           $t0 = (C2.v ?? G2());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_l_$1938, s_k_$1939) : $t1(s_l_$1938, s_k_$1939);
@@ -10779,6 +11190,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C2.v ?? G2());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_l_$1938, s_k_$1939) : $t1(s_l_$1938, s_k_$1939);
@@ -10815,7 +11227,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
@@ -10831,6 +11243,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1943, s_k_$1944]);
           $t0 = (C5.v ?? G5());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_l_$1943, s_k_$1944) : $t1(s_l_$1943, s_k_$1944);
@@ -10863,6 +11276,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C5.v ?? G5());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_l_$1943, s_k_$1944) : $t1(s_l_$1943, s_k_$1944);
@@ -10960,7 +11374,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "take")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "drop")).v;
@@ -10969,12 +11383,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1953, s_k_$1954]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_l_$1953, s_k_$1954) : $t1(s_l_$1953, s_k_$1954);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_l_$1953, s_k_$1954 }); return $UNWIND; }
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_l_$1953, s_k_$1954) : $t4(s_l_$1953, s_k_$1954);
@@ -10990,6 +11406,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_l_$1953, s_k_$1954) : $t1(s_l_$1953, s_k_$1954);
@@ -11000,6 +11417,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_l_$1953, s_k_$1954) : $t4(s_l_$1953, s_k_$1954);
@@ -11052,7 +11470,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -11068,6 +11486,7 @@ export const LIBRARIES = {
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t0 === false) : R.callBinding((C0.v ?? G0()), [$t0]);
           if ($t1 !== false) {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("last-pair: expected a non-empty list", s_l_$1957) : $t4("last-pair: expected a non-empty list", s_l_$1957);
@@ -11102,6 +11521,7 @@ export const LIBRARIES = {
                 if ($t1 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("last-pair: expected a non-empty list", s_l_$1957) : $t4("last-pair: expected a non-empty list", s_l_$1957);
@@ -11143,7 +11563,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -11160,6 +11580,7 @@ export const LIBRARIES = {
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t0 === false) : R.callBinding((C0.v ?? G0()), [$t0]);
           if ($t1 !== false) {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("last: expected a non-empty list", s_l_$1960) : $t4("last: expected a non-empty list", s_l_$1960);
@@ -11171,6 +11592,7 @@ export const LIBRARIES = {
         }
           $t2;
           $t6 = (C4.v ?? G4());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_l_$1960) : $t7(s_l_$1960);
@@ -11190,6 +11612,7 @@ export const LIBRARIES = {
                 if ($t1 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("last: expected a non-empty list", s_l_$1960) : $t4("last: expected a non-empty list", s_l_$1960);
@@ -11203,6 +11626,7 @@ export const LIBRARIES = {
               case 3:
                 $t2;
                 $t6 = (C4.v ?? G4());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_l_$1960) : $t7(s_l_$1960);
@@ -11573,7 +11997,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "map")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -11584,12 +12008,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 16;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1982]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1982) : $t1((C2.v ?? G2()), s_l_$1982);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_l_$1982 }); return $UNWIND; }
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1982) : $t4((C3.v ?? G3()), s_l_$1982);
@@ -11605,6 +12031,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1982) : $t1((C2.v ?? G2()), s_l_$1982);
@@ -11615,6 +12042,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1982) : $t4((C3.v ?? G3()), s_l_$1982);
@@ -11639,7 +12067,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "map")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -11651,18 +12079,21 @@ export const LIBRARIES = {
           const $d = $stack.room - 19;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1983]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1983) : $t1((C2.v ?? G2()), s_l_$1983);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_l_$1983 }); return $UNWIND; }
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1983) : $t4((C3.v ?? G3()), s_l_$1983);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { $t2, s_l_$1983 }); return $UNWIND; }
           $t6 = (C1.v ?? G1());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_l_$1983) : $t7((C4.v ?? G4()), s_l_$1983);
@@ -11678,6 +12109,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1983) : $t1((C2.v ?? G2()), s_l_$1983);
@@ -11688,6 +12120,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1983) : $t4((C3.v ?? G3()), s_l_$1983);
@@ -11698,6 +12131,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = (C1.v ?? G1());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_l_$1983) : $t7((C4.v ?? G4()), s_l_$1983);
@@ -11722,7 +12156,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "map")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -11735,24 +12169,28 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1984]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1984) : $t1((C2.v ?? G2()), s_l_$1984);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_l_$1984 }); return $UNWIND; }
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1984) : $t4((C3.v ?? G3()), s_l_$1984);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { $t2, s_l_$1984 }); return $UNWIND; }
           $t6 = (C1.v ?? G1());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_l_$1984) : $t7((C4.v ?? G4()), s_l_$1984);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { $t2, $t5, s_l_$1984 }); return $UNWIND; }
           $t9 = (C1.v ?? G1());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9((C5.v ?? G5()), s_l_$1984) : $t10((C5.v ?? G5()), s_l_$1984);
@@ -11768,6 +12206,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1984) : $t1((C2.v ?? G2()), s_l_$1984);
@@ -11778,6 +12217,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1984) : $t4((C3.v ?? G3()), s_l_$1984);
@@ -11788,6 +12228,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = (C1.v ?? G1());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_l_$1984) : $t7((C4.v ?? G4()), s_l_$1984);
@@ -11798,6 +12239,7 @@ export const LIBRARIES = {
               case 3:
                 $t8 = $r;
                 $t9 = (C1.v ?? G1());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9((C5.v ?? G5()), s_l_$1984) : $t10((C5.v ?? G5()), s_l_$1984);
@@ -11822,7 +12264,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "map")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -11836,30 +12278,35 @@ export const LIBRARIES = {
           const $d = $stack.room - 25;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_l_$1985]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1985) : $t1((C2.v ?? G2()), s_l_$1985);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_l_$1985 }); return $UNWIND; }
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1985) : $t4((C3.v ?? G3()), s_l_$1985);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { $t2, s_l_$1985 }); return $UNWIND; }
           $t6 = (C1.v ?? G1());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_l_$1985) : $t7((C4.v ?? G4()), s_l_$1985);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { $t2, $t5, s_l_$1985 }); return $UNWIND; }
           $t9 = (C1.v ?? G1());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9((C5.v ?? G5()), s_l_$1985) : $t10((C5.v ?? G5()), s_l_$1985);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($proc$r, 4, { $t2, $t5, $t8, s_l_$1985 }); return $UNWIND; }
           $t12 = (C1.v ?? G1());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12((C6.v ?? G6()), s_l_$1985) : $t13((C6.v ?? G6()), s_l_$1985);
@@ -11875,6 +12322,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0((C2.v ?? G2()), s_l_$1985) : $t1((C2.v ?? G2()), s_l_$1985);
@@ -11885,6 +12333,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_l_$1985) : $t4((C3.v ?? G3()), s_l_$1985);
@@ -11895,6 +12344,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = (C1.v ?? G1());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_l_$1985) : $t7((C4.v ?? G4()), s_l_$1985);
@@ -11905,6 +12355,7 @@ export const LIBRARIES = {
               case 3:
                 $t8 = $r;
                 $t9 = (C1.v ?? G1());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9((C5.v ?? G5()), s_l_$1985) : $t10((C5.v ?? G5()), s_l_$1985);
@@ -11915,6 +12366,7 @@ export const LIBRARIES = {
               case 4:
                 $t11 = $r;
                 $t12 = (C1.v ?? G1());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12((C6.v ?? G6()), s_l_$1985) : $t13((C6.v ?? G6()), s_l_$1985);
@@ -11939,7 +12391,7 @@ export const LIBRARIES = {
         rest: "lists_$1988",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "fold")).v;
@@ -11954,6 +12406,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn3, [...s_args_$1989$raw]);
           let s_args_$1989 = R.listFrom(s_args_$1989$raw);
           $t0 = (C3.v ?? G3());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_args_$1989) : $t1(s_args_$1989);
@@ -11961,12 +12414,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, { s_args_$1989 }); return $UNWIND; }
           s_n_$1990 = $t2;
           $t3 = (C4.v ?? G4());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_args_$1989, 1n) : $t4(s_args_$1989, 1n);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($fn3$r, 2, { s_n_$1990 }); return $UNWIND; }
           $t6 = (C1.v ?? G1());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_pred_$1986, $t5) : $t7(s_pred_$1986, $t5);
@@ -11987,6 +12442,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C3.v ?? G3());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_args_$1989) : $t1(s_args_$1989);
@@ -11998,6 +12454,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_n_$1990 = $t2;
                 $t3 = (C4.v ?? G4());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_args_$1989, 1n) : $t4(s_args_$1989, 1n);
@@ -12008,6 +12465,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = (C1.v ?? G1());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_pred_$1986, $t5) : $t7(s_pred_$1986, $t5);
@@ -12035,6 +12493,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$1986, s_l_$1987, ...s_lists_$1988$raw]);
           let s_lists_$1988 = R.listFrom(s_lists_$1988$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("count", s_pred_$1986) : $t1("count", s_pred_$1986);
@@ -12052,6 +12511,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("count", s_pred_$1986) : $t1("count", s_pred_$1986);
@@ -12078,7 +12538,7 @@ export const LIBRARIES = {
         rest: "lists_$1994",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -12101,6 +12561,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_kons_$1991, s_knil_$1992, s_l_$1993, ...s_lists_$1994$raw]);
           let s_lists_$1994 = R.listFrom(s_lists_$1994$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("fold", s_kons_$1991) : $t1("fold", s_kons_$1991);
@@ -12117,6 +12578,7 @@ export const LIBRARIES = {
           $t5 = (W3.intact || (C3.v ?? G3()) === P3) && (s_l_$1996 instanceof R.Cons) ? (s_l_$1996.cdr) : R.callBinding((C3.v ?? G3()), [s_l_$1996]);
           $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$1996 instanceof R.Cons) ? (s_l_$1996.car) : R.callBinding((C4.v ?? G4()), [s_l_$1996]);
           $t7 = s_kons_$1991;
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6, s_acc_$1997) : $t8($t6, s_acc_$1997);
@@ -12135,6 +12597,7 @@ export const LIBRARIES = {
           s_acc_$2000 = s_knil_$1992;
           $loop2: for (;;) {
           $t11 = (C5.v ?? G5());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_ls_$1999) : $t12(s_ls_$1999);
@@ -12143,24 +12606,28 @@ export const LIBRARIES = {
           s_cars_$2001 = $t13;
           if (s_cars_$2001 !== false) {
           $t14 = (C6.v ?? G6());
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14(s_ls_$1999) : $t15(s_ls_$1999);
           while ($t16 instanceof $TailCall) { $stack.room = $d; $t16 = $step($t16); }
           if ($t16 === $UNWIND) { R.reify($proc$r, 12, { s_acc_$2000, s_cars_$2001, s_kons_$1991 }); return $UNWIND; }
           $t17 = (C9.v ?? G9());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_acc_$2000) : $t18(s_acc_$2000);
           while ($t19 instanceof $TailCall) { $stack.room = $d; $t19 = $step($t19); }
           if ($t19 === $UNWIND) { R.reify($proc$r, 13, { s_cars_$2001, $t16, s_kons_$1991 }); return $UNWIND; }
           $t20 = (C8.v ?? G8());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_cars_$2001, $t19) : $t21(s_cars_$2001, $t19);
           while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
           if ($t22 === $UNWIND) { R.reify($proc$r, 14, { $t16, s_kons_$1991 }); return $UNWIND; }
           $t23 = (C7.v ?? G7());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23(s_kons_$1991, $t22) : $t24(s_kons_$1991, $t22);
@@ -12182,6 +12649,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("fold", s_kons_$1991) : $t1("fold", s_kons_$1991);
@@ -12210,6 +12678,7 @@ export const LIBRARIES = {
                 $t5 = (W3.intact || (C3.v ?? G3()) === P3) && (s_l_$1996 instanceof R.Cons) ? (s_l_$1996.cdr) : R.callBinding((C3.v ?? G3()), [s_l_$1996]);
                 $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$1996 instanceof R.Cons) ? (s_l_$1996.car) : R.callBinding((C4.v ?? G4()), [s_l_$1996]);
                 $t7 = s_kons_$1991;
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6, s_acc_$1997) : $t8($t6, s_acc_$1997);
@@ -12226,6 +12695,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 8:
                 $t11 = (C5.v ?? G5());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_ls_$1999) : $t12(s_ls_$1999);
@@ -12239,6 +12709,7 @@ export const LIBRARIES = {
                 if (s_cars_$2001 !== false) { $pc = 10; continue; } $pc = 11; continue;
               case 10:
                 $t14 = (C6.v ?? G6());
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14(s_ls_$1999) : $t15(s_ls_$1999);
@@ -12251,6 +12722,7 @@ export const LIBRARIES = {
               case 12:
                 $t16 = $r;
                 $t17 = (C9.v ?? G9());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_acc_$2000) : $t18(s_acc_$2000);
@@ -12261,6 +12733,7 @@ export const LIBRARIES = {
               case 13:
                 $t19 = $r;
                 $t20 = (C8.v ?? G8());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_cars_$2001, $t19) : $t21(s_cars_$2001, $t19);
@@ -12271,6 +12744,7 @@ export const LIBRARIES = {
               case 14:
                 $t22 = $r;
                 $t23 = (C7.v ?? G7());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23(s_kons_$1991, $t22) : $t24(s_kons_$1991, $t22);
@@ -12296,7 +12770,7 @@ export const LIBRARIES = {
         rest: "lists_$2005",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -12312,12 +12786,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($fn8, [s_group_$2006, s_acc_$2007]);
           $t0 = (C6.v ?? G6());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_acc_$2007) : $t1(s_acc_$2007);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($fn8$r, 1, { s_group_$2006 }); return $UNWIND; }
           $t3 = (C5.v ?? G5());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_group_$2006, $t2) : $t4(s_group_$2006, $t2);
@@ -12334,6 +12810,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C6.v ?? G6());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_acc_$2007) : $t1(s_acc_$2007);
@@ -12344,6 +12821,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C5.v ?? G5());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_group_$2006, $t2) : $t4(s_group_$2006, $t2);
@@ -12367,6 +12845,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_kons_$2002, s_knil_$2003, s_l_$2004, ...s_lists_$2005$raw]);
           let s_lists_$2005 = R.listFrom(s_lists_$2005$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("fold-right", s_kons_$2002) : $t1("fold-right", s_kons_$2002);
@@ -12376,6 +12855,7 @@ export const LIBRARIES = {
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? (s_lists_$2005 === null) : R.callBinding((C1.v ?? G1()), [s_lists_$2005]);
           if ($t3 !== false) {
           $t4 = (C3.v ?? G3());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_l_$2004) : $t5(s_l_$2004);
@@ -12386,12 +12866,14 @@ export const LIBRARIES = {
         } else {
           $t9 = $mk$fn8(s_kons_$2002);
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10((C7.v ?? G7()), (C6.v ?? G6()), s_l_$2004, s_lists_$2005) : $t11((C7.v ?? G7()), (C6.v ?? G6()), s_l_$2004, s_lists_$2005);
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 5, { $t9, s_knil_$2003 }); return $UNWIND; }
           $t13 = (C3.v ?? G3());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
@@ -12408,6 +12890,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("fold-right", s_kons_$2002) : $t1("fold-right", s_kons_$2002);
@@ -12422,6 +12905,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t4 = (C3.v ?? G3());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_l_$2004) : $t5(s_l_$2004);
@@ -12432,6 +12916,7 @@ export const LIBRARIES = {
               case 3:
                 $t9 = $mk$fn8(s_kons_$2002);
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10((C7.v ?? G7()), (C6.v ?? G6()), s_l_$2004, s_lists_$2005) : $t11((C7.v ?? G7()), (C6.v ?? G6()), s_l_$2004, s_lists_$2005);
@@ -12446,6 +12931,7 @@ export const LIBRARIES = {
               case 5:
                 $t12 = $r;
                 $t13 = (C3.v ?? G3());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
@@ -12470,7 +12956,7 @@ export const LIBRARIES = {
         rest: "lists_$2011",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cars-of")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdrs-of")).v;
@@ -12485,6 +12971,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_kons_$2008, s_knil_$2009, s_l_$2010, ...s_lists_$2011$raw]);
           let s_lists_$2011 = R.listFrom(s_lists_$2011$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("pair-fold", s_kons_$2008) : $t1("pair-fold", s_kons_$2008);
@@ -12496,6 +12983,7 @@ export const LIBRARIES = {
           s_acc_$2014 = s_knil_$2009;
           $loop1: for (;;) {
           $t4 = (C1.v ?? G1());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_ls_$2013) : $t5(s_ls_$2013);
@@ -12503,6 +12991,7 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 3, { s_ls_$2013, s_acc_$2014, s_kons_$2008 }); return $UNWIND; }
           if ($t6 !== false) {
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_ls_$2013) : $t8(s_ls_$2013);
@@ -12510,18 +12999,21 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 6, { s_ls_$2013, s_acc_$2014, s_kons_$2008 }); return $UNWIND; }
           s_next_$2015 = $t9;
           $t10 = (C5.v ?? G5());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_acc_$2014) : $t11(s_acc_$2014);
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 7, { s_ls_$2013, s_next_$2015, s_kons_$2008 }); return $UNWIND; }
           $t13 = (C4.v ?? G4());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_ls_$2013, $t12) : $t14(s_ls_$2013, $t12);
           while ($t15 instanceof $TailCall) { $stack.room = $d; $t15 = $step($t15); }
           if ($t15 === $UNWIND) { R.reify($proc$r, 8, { s_next_$2015, s_kons_$2008 }); return $UNWIND; }
           $t16 = (C3.v ?? G3());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_kons_$2008, $t15) : $t17(s_kons_$2008, $t15);
@@ -12543,6 +13035,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("pair-fold", s_kons_$2008) : $t1("pair-fold", s_kons_$2008);
@@ -12559,6 +13052,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t4 = (C1.v ?? G1());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_ls_$2013) : $t5(s_ls_$2013);
@@ -12571,6 +13065,7 @@ export const LIBRARIES = {
                 if ($t6 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_ls_$2013) : $t8(s_ls_$2013);
@@ -12584,6 +13079,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_next_$2015 = $t9;
                 $t10 = (C5.v ?? G5());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_acc_$2014) : $t11(s_acc_$2014);
@@ -12594,6 +13090,7 @@ export const LIBRARIES = {
               case 7:
                 $t12 = $r;
                 $t13 = (C4.v ?? G4());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_ls_$2013, $t12) : $t14(s_ls_$2013, $t12);
@@ -12604,6 +13101,7 @@ export const LIBRARIES = {
               case 8:
                 $t15 = $r;
                 $t16 = (C3.v ?? G3());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_kons_$2008, $t15) : $t17(s_kons_$2008, $t15);
@@ -12630,7 +13128,7 @@ export const LIBRARIES = {
         rest: "lists_$2019",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cars-of")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdrs-of")).v;
@@ -12646,12 +13144,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($fn11, [s_group_$2023, s_acc_$2024]);
           $t0 = (C7.v ?? G7());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_acc_$2024) : $t1(s_acc_$2024);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($fn11$r, 1, { s_group_$2023 }); return $UNWIND; }
           $t3 = (C6.v ?? G6());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_group_$2023, $t2) : $t4(s_group_$2023, $t2);
@@ -12668,6 +13168,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C7.v ?? G7());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_acc_$2024) : $t1(s_acc_$2024);
@@ -12678,6 +13179,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C6.v ?? G6());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_group_$2023, $t2) : $t4(s_group_$2023, $t2);
@@ -12701,6 +13203,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_kons_$2016, s_knil_$2017, s_l_$2018, ...s_lists_$2019$raw]);
           let s_lists_$2019 = R.listFrom(s_lists_$2019$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("pair-fold-right", s_kons_$2016) : $t1("pair-fold-right", s_kons_$2016);
@@ -12712,6 +13215,7 @@ export const LIBRARIES = {
           s_tails_$2022 = null;
           $loop1: for (;;) {
           $t4 = (C1.v ?? G1());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_ls_$2021) : $t5(s_ls_$2021);
@@ -12719,6 +13223,7 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 3, { s_ls_$2021, s_tails_$2022, s_kons_$2016, s_knil_$2017 }); return $UNWIND; }
           if ($t6 !== false) {
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_ls_$2021) : $t8(s_ls_$2021);
@@ -12742,6 +13247,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("pair-fold-right", s_kons_$2016) : $t1("pair-fold-right", s_kons_$2016);
@@ -12758,6 +13264,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t4 = (C1.v ?? G1());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_ls_$2021) : $t5(s_ls_$2021);
@@ -12770,6 +13277,7 @@ export const LIBRARIES = {
                 if ($t6 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_ls_$2021) : $t8(s_ls_$2021);
@@ -12800,7 +13308,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -12814,6 +13322,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_f_$2025, s_ridentity_$2026, s_l_$2027]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("reduce", s_f_$2025) : $t1("reduce", s_f_$2025);
@@ -12837,6 +13346,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("reduce", s_f_$2025) : $t1("reduce", s_f_$2025);
@@ -12869,7 +13379,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -12884,6 +13394,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_f_$2028, s_ridentity_$2029, s_l_$2030]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("reduce-right", s_f_$2028) : $t1("reduce-right", s_f_$2028);
@@ -12893,6 +13404,7 @@ export const LIBRARIES = {
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? (s_l_$2030 instanceof R.Cons) : R.callBinding((C1.v ?? G1()), [s_l_$2030]);
           if ($t3 !== false) {
           $t4 = (C2.v ?? G2());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_l_$2030) : $t5(s_l_$2030);
@@ -12914,6 +13426,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("reduce-right", s_f_$2028) : $t1("reduce-right", s_f_$2028);
@@ -12928,6 +13441,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t4 = (C2.v ?? G2());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_l_$2030) : $t5(s_l_$2030);
@@ -12957,7 +13471,7 @@ export const LIBRARIES = {
         rest: "tail-gen_$2036",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-reverse")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -12974,6 +13488,7 @@ export const LIBRARIES = {
           s_acc_$2039 = null;
           $loop1: for (;;) {
           $t0 = s_p_$2032;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_seed_$2038) : $t1(s_seed_$2038);
@@ -12984,6 +13499,7 @@ export const LIBRARIES = {
           if ($t3 !== false) {
           $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (s_tail_2dgen_$2036 instanceof R.Cons) ? (s_tail_2dgen_$2036.car) : R.callBinding((C2.v ?? G2()), [s_tail_2dgen_$2036]);
           $t5 = $t8;
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_seed_$2038) : $t6(s_seed_$2038);
@@ -12997,12 +13513,14 @@ export const LIBRARIES = {
           if ($d > 0 && $t9?.[$PRIM] === true) { $stack.room = $d; return $t9(s_acc_$2039, $t4); } return $tailCall($t9, [s_acc_$2039, $t4]);
         } else {
           $t10 = s_g_$2034;
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_seed_$2038) : $t11(s_seed_$2038);
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 9, { s_seed_$2038, s_acc_$2039, s_p_$2032, s_f_$2033, s_g_$2034, s_tail_2dgen_$2036 }); return $UNWIND; }
           $t13 = s_f_$2033;
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_seed_$2038) : $t14(s_seed_$2038);
@@ -13026,6 +13544,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t0 = s_p_$2032;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_seed_$2038) : $t1(s_seed_$2038);
@@ -13041,6 +13560,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 4:
                 $t10 = s_g_$2034;
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_seed_$2038) : $t11(s_seed_$2038);
@@ -13051,6 +13571,7 @@ export const LIBRARIES = {
               case 5:
                 $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (s_tail_2dgen_$2036 instanceof R.Cons) ? (s_tail_2dgen_$2036.car) : R.callBinding((C2.v ?? G2()), [s_tail_2dgen_$2036]);
                 $t5 = $t8;
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_seed_$2038) : $t6(s_seed_$2038);
@@ -13071,6 +13592,7 @@ export const LIBRARIES = {
               case 9:
                 $t12 = $r;
                 $t13 = s_f_$2033;
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_seed_$2038) : $t14(s_seed_$2038);
@@ -13097,7 +13619,7 @@ export const LIBRARIES = {
         rest: "tail_$2044",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cons")).v;
         const W0 = R.primitiveCell("cons"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -13120,6 +13642,7 @@ export const LIBRARIES = {
           s_acc_$2047 = $t1;
           $loop1: for (;;) {
           $t3 = s_p_$2040;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_seed_$2046) : $t4(s_seed_$2046);
@@ -13129,12 +13652,14 @@ export const LIBRARIES = {
           return s_acc_$2047;
         } else {
           $t6 = s_g_$2042;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_seed_$2046) : $t7(s_seed_$2046);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 8, { s_seed_$2046, s_acc_$2047, s_p_$2040, s_f_$2041, s_g_$2042 }); return $UNWIND; }
           $t9 = s_f_$2041;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_seed_$2046) : $t10(s_seed_$2046);
@@ -13168,6 +13693,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t3 = s_p_$2040;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_seed_$2046) : $t4(s_seed_$2046);
@@ -13182,6 +13708,7 @@ export const LIBRARIES = {
                 return s_acc_$2047;
               case 7:
                 $t6 = s_g_$2042;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_seed_$2046) : $t7(s_seed_$2046);
@@ -13192,6 +13719,7 @@ export const LIBRARIES = {
               case 8:
                 $t8 = $r;
                 $t9 = s_f_$2041;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_seed_$2046) : $t10(s_seed_$2046);
@@ -13218,7 +13746,7 @@ export const LIBRARIES = {
         rest: "lists_$2050",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "concatenate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
@@ -13229,6 +13757,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_f_$2048, s_l_$2049, ...s_lists_$2050$raw]);
           let s_lists_$2050 = R.listFrom(s_lists_$2050$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("append-map", s_f_$2048) : $t1("append-map", s_f_$2048);
@@ -13236,6 +13765,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_f_$2048, s_l_$2049, s_lists_$2050 }); return $UNWIND; }
           $t2;
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_f_$2048, s_l_$2049, s_lists_$2050) : $t4((C3.v ?? G3()), s_f_$2048, s_l_$2049, s_lists_$2050);
@@ -13251,6 +13781,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("append-map", s_f_$2048) : $t1("append-map", s_f_$2048);
@@ -13262,6 +13793,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_f_$2048, s_l_$2049, s_lists_$2050) : $t4((C3.v ?? G3()), s_f_$2048, s_l_$2049, s_lists_$2050);
@@ -13316,7 +13848,7 @@ export const LIBRARIES = {
         rest: "lists_$2056",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cars-of")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdrs-of")).v;
@@ -13329,6 +13861,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_f_$2054, s_l_$2055, ...s_lists_$2056$raw]);
           let s_lists_$2056 = R.listFrom(s_lists_$2056$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("pair-for-each", s_f_$2054) : $t1("pair-for-each", s_f_$2054);
@@ -13339,6 +13872,7 @@ export const LIBRARIES = {
           s_ls_$2058 = $t3;
           $loop1: for (;;) {
           $t4 = (C1.v ?? G1());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_ls_$2058) : $t5(s_ls_$2058);
@@ -13346,6 +13880,7 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 3, { s_ls_$2058, s_f_$2054 }); return $UNWIND; }
           if ($t6 !== false) {
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_ls_$2058) : $t8(s_ls_$2058);
@@ -13353,6 +13888,7 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 6, { s_ls_$2058, s_f_$2054 }); return $UNWIND; }
           s_next_$2059 = $t9;
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_f_$2054, s_ls_$2058) : $t11(s_f_$2054, s_ls_$2058);
@@ -13374,6 +13910,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("pair-for-each", s_f_$2054) : $t1("pair-for-each", s_f_$2054);
@@ -13389,6 +13926,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t4 = (C1.v ?? G1());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_ls_$2058) : $t5(s_ls_$2058);
@@ -13401,6 +13939,7 @@ export const LIBRARIES = {
                 if ($t6 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_ls_$2058) : $t8(s_ls_$2058);
@@ -13414,6 +13953,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_next_$2059 = $t9;
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_f_$2054, s_ls_$2058) : $t11(s_f_$2054, s_ls_$2058);
@@ -13440,7 +13980,7 @@ export const LIBRARIES = {
         rest: "lists_$2062",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "filter")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
@@ -13468,6 +14008,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_f_$2060, s_l_$2061, ...s_lists_$2062$raw]);
           let s_lists_$2062 = R.listFrom(s_lists_$2062$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("filter-map", s_f_$2060) : $t1("filter-map", s_f_$2060);
@@ -13476,6 +14017,7 @@ export const LIBRARIES = {
           $t2;
           $t4 = $mk$fn3();
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5((C3.v ?? G3()), s_f_$2060, s_l_$2061, s_lists_$2062) : $t6((C3.v ?? G3()), s_f_$2060, s_l_$2061, s_lists_$2062);
@@ -13491,6 +14033,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("filter-map", s_f_$2060) : $t1("filter-map", s_f_$2060);
@@ -13503,6 +14046,7 @@ export const LIBRARIES = {
                 $t2;
                 $t4 = $mk$fn3();
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5((C3.v ?? G3()), s_f_$2060, s_l_$2061, s_lists_$2062) : $t6((C3.v ?? G3()), s_f_$2060, s_l_$2061, s_lists_$2062);
@@ -13527,7 +14071,7 @@ export const LIBRARIES = {
         rest: "lists_$2066",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -13549,6 +14093,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_f_$2064, s_l_$2065, ...s_lists_$2066$raw]);
           let s_lists_$2066 = R.listFrom(s_lists_$2066$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("map-in-order", s_f_$2064) : $t1("map-in-order", s_f_$2064);
@@ -13564,6 +14109,7 @@ export const LIBRARIES = {
           if ($t4 !== false) {
           $t5 = (W3.intact || (C3.v ?? G3()) === P3) && (s_l_$2068 instanceof R.Cons) ? (s_l_$2068.car) : R.callBinding((C3.v ?? G3()), [s_l_$2068]);
           $t6 = s_f_$2064;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -13586,6 +14132,7 @@ export const LIBRARIES = {
           s_acc_$2073 = null;
           $loop2: for (;;) {
           $t13 = (C7.v ?? G7());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_ls_$2072) : $t14(s_ls_$2072);
@@ -13594,6 +14141,7 @@ export const LIBRARIES = {
           s_cars_$2074 = $t15;
           if (s_cars_$2074 !== false) {
           $t16 = (C8.v ?? G8());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_f_$2064, s_cars_$2074) : $t17(s_f_$2064, s_cars_$2074);
@@ -13601,6 +14149,7 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 12, { s_ls_$2072, s_acc_$2073, s_f_$2064 }); return $UNWIND; }
           s_y_$2075 = $t18;
           $t19 = (C9.v ?? G9());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_ls_$2072) : $t20(s_ls_$2072);
@@ -13624,6 +14173,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("map-in-order", s_f_$2064) : $t1("map-in-order", s_f_$2064);
@@ -13651,6 +14201,7 @@ export const LIBRARIES = {
               case 5:
                 $t5 = (W3.intact || (C3.v ?? G3()) === P3) && (s_l_$2068 instanceof R.Cons) ? (s_l_$2068.car) : R.callBinding((C3.v ?? G3()), [s_l_$2068]);
                 $t6 = s_f_$2064;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -13671,6 +14222,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 8:
                 $t13 = (C7.v ?? G7());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_ls_$2072) : $t14(s_ls_$2072);
@@ -13684,6 +14236,7 @@ export const LIBRARIES = {
                 if (s_cars_$2074 !== false) { $pc = 10; continue; } $pc = 11; continue;
               case 10:
                 $t16 = (C8.v ?? G8());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_f_$2064, s_cars_$2074) : $t17(s_f_$2064, s_cars_$2074);
@@ -13698,6 +14251,7 @@ export const LIBRARIES = {
                 $t18 = $r;
                 s_y_$2075 = $t18;
                 $t19 = (C9.v ?? G9());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_ls_$2072) : $t20(s_ls_$2072);
@@ -13754,7 +14308,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
@@ -13772,6 +14326,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 26;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2079, s_l_$2080]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("filter", s_pred_$2079) : $t1("filter", s_pred_$2079);
@@ -13789,6 +14344,7 @@ export const LIBRARIES = {
         } else {
           $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$2082 instanceof R.Cons) ? (s_l_$2082.car) : R.callBinding((C4.v ?? G4()), [s_l_$2082]);
           $t7 = s_pred_$2079;
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -13816,6 +14372,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("filter", s_pred_$2079) : $t1("filter", s_pred_$2079);
@@ -13839,6 +14396,7 @@ export const LIBRARIES = {
               case 4:
                 $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$2082 instanceof R.Cons) ? (s_l_$2082.car) : R.callBinding((C4.v ?? G4()), [s_l_$2082]);
                 $t7 = s_pred_$2079;
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -13873,7 +14431,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "filter")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
@@ -13884,6 +14442,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_x_$2086]);
           $t0 = s_pred_$2084;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2086) : $t1(s_x_$2086);
@@ -13900,6 +14459,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2084;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2086) : $t1(s_x_$2086);
@@ -13922,6 +14482,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 15;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2084, s_l_$2085]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("remove", s_pred_$2084) : $t1("remove", s_pred_$2084);
@@ -13939,6 +14500,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("remove", s_pred_$2084) : $t1("remove", s_pred_$2084);
@@ -13965,7 +14527,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
@@ -13984,6 +14546,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 35;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2087, s_l_$2088]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("partition", s_pred_$2087) : $t1("partition", s_pred_$2087);
@@ -13998,12 +14561,14 @@ export const LIBRARIES = {
           $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ($t3 === false) : R.callBinding((C1.v ?? G1()), [$t3]);
           if ($t4 !== false) {
           $t5 = (C4.v ?? G4());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_in_$2091) : $t6(s_in_$2091);
           while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
           if ($t7 === $UNWIND) { R.reify($proc$r, 5, { s_out_$2092 }); return $UNWIND; }
           $t8 = (C4.v ?? G4());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_out_$2092) : $t9(s_out_$2092);
@@ -14014,6 +14579,7 @@ export const LIBRARIES = {
         } else {
           $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$2090 instanceof R.Cons) ? (s_l_$2090.car) : R.callBinding((C5.v ?? G5()), [s_l_$2090]);
           $t13 = s_pred_$2087;
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
@@ -14044,6 +14610,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("partition", s_pred_$2087) : $t1("partition", s_pred_$2087);
@@ -14064,6 +14631,7 @@ export const LIBRARIES = {
                 if ($t4 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t5 = (C4.v ?? G4());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_in_$2091) : $t6(s_in_$2091);
@@ -14074,6 +14642,7 @@ export const LIBRARIES = {
               case 4:
                 $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$2090 instanceof R.Cons) ? (s_l_$2090.car) : R.callBinding((C5.v ?? G5()), [s_l_$2090]);
                 $t13 = s_pred_$2087;
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13($t12) : $t14($t12);
@@ -14084,6 +14653,7 @@ export const LIBRARIES = {
               case 5:
                 $t7 = $r;
                 $t8 = (C4.v ?? G4());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_out_$2092) : $t9(s_out_$2092);
@@ -14209,7 +14779,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -14222,6 +14792,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 20;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2099, s_l_$2100]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("find-tail", s_pred_$2099) : $t1("find-tail", s_pred_$2099);
@@ -14234,6 +14805,7 @@ export const LIBRARIES = {
           if ($t3 !== false) {
           $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2102 instanceof R.Cons) ? (s_l_$2102.car) : R.callBinding((C2.v ?? G2()), [s_l_$2102]);
           $t5 = s_pred_$2099;
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -14258,6 +14830,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("find-tail", s_pred_$2099) : $t1("find-tail", s_pred_$2099);
@@ -14276,6 +14849,7 @@ export const LIBRARIES = {
               case 3:
                 $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2102 instanceof R.Cons) ? (s_l_$2102.car) : R.callBinding((C2.v ?? G2()), [s_l_$2102]);
                 $t5 = s_pred_$2099;
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -14307,7 +14881,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "find-tail")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -14316,6 +14890,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 15;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2103, s_l_$2104]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_pred_$2103, s_l_$2104) : $t1(s_pred_$2103, s_l_$2104);
@@ -14336,6 +14911,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_pred_$2103, s_l_$2104) : $t1(s_pred_$2103, s_l_$2104);
@@ -14365,7 +14941,7 @@ export const LIBRARIES = {
         rest: "lists_$2108",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -14386,6 +14962,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2106, s_l_$2107, ...s_lists_$2108$raw]);
           let s_lists_$2108 = R.listFrom(s_lists_$2108$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("any", s_pred_$2106) : $t1("any", s_pred_$2106);
@@ -14403,6 +14980,7 @@ export const LIBRARIES = {
           if ($t6 !== false) {
           $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$2110 instanceof R.Cons) ? (s_l_$2110.car) : R.callBinding((C4.v ?? G4()), [s_l_$2110]);
           $t8 = s_pred_$2106;
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8($t7) : $t9($t7);
@@ -14430,6 +15008,7 @@ export const LIBRARIES = {
           s_ls_$2113 = $t14;
           $loop2: for (;;) {
           $t15 = (C5.v ?? G5());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_ls_$2113) : $t16(s_ls_$2113);
@@ -14438,6 +15017,7 @@ export const LIBRARIES = {
           s_cars_$2114 = $t17;
           if (s_cars_$2114 !== false) {
           $t18 = (C6.v ?? G6());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_ls_$2113) : $t19(s_ls_$2113);
@@ -14445,6 +15025,7 @@ export const LIBRARIES = {
           if ($t20 === $UNWIND) { R.reify($proc$r, 16, { s_cars_$2114, s_pred_$2106 }); return $UNWIND; }
           s_next_$2115 = $t20;
           $t21 = (C5.v ?? G5());
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21(s_next_$2115) : $t22(s_next_$2115);
@@ -14452,6 +15033,7 @@ export const LIBRARIES = {
           if ($t23 === $UNWIND) { R.reify($proc$r, 17, { s_cars_$2114, s_next_$2115, s_pred_$2106 }); return $UNWIND; }
           if ($t23 !== false) {
           $t24 = (C7.v ?? G7());
+          if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
           $stack.room = $d;
           $t26 = $t25 === undefined ? $t24(s_pred_$2106, s_cars_$2114) : $t25(s_pred_$2106, s_cars_$2114);
@@ -14482,6 +15064,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("any", s_pred_$2106) : $t1("any", s_pred_$2106);
@@ -14513,6 +15096,7 @@ export const LIBRARIES = {
               case 7:
                 $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$2110 instanceof R.Cons) ? (s_l_$2110.car) : R.callBinding((C4.v ?? G4()), [s_l_$2110]);
                 $t8 = s_pred_$2106;
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8($t7) : $t9($t7);
@@ -14536,6 +15120,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 12:
                 $t15 = (C5.v ?? G5());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_ls_$2113) : $t16(s_ls_$2113);
@@ -14549,6 +15134,7 @@ export const LIBRARIES = {
                 if (s_cars_$2114 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 $t18 = (C6.v ?? G6());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_ls_$2113) : $t19(s_ls_$2113);
@@ -14562,6 +15148,7 @@ export const LIBRARIES = {
                 $t20 = $r;
                 s_next_$2115 = $t20;
                 $t21 = (C5.v ?? G5());
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21(s_next_$2115) : $t22(s_next_$2115);
@@ -14574,6 +15161,7 @@ export const LIBRARIES = {
                 if ($t23 !== false) { $pc = 18; continue; } $pc = 19; continue;
               case 18:
                 $t24 = (C7.v ?? G7());
+                if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
                 $stack.room = $d;
                 $t26 = $t25 === undefined ? $t24(s_pred_$2106, s_cars_$2114) : $t25(s_pred_$2106, s_cars_$2114);
@@ -14607,7 +15195,7 @@ export const LIBRARIES = {
         rest: "lists_$2119",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -14630,6 +15218,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2117, s_l_$2118, ...s_lists_$2119$raw]);
           let s_lists_$2119 = R.listFrom(s_lists_$2119$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("every", s_pred_$2117) : $t1("every", s_pred_$2117);
@@ -14651,6 +15240,7 @@ export const LIBRARIES = {
           if ($t7 !== false) {
           $t8 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$2122 instanceof R.Cons) ? (s_l_$2122.car) : R.callBinding((C5.v ?? G5()), [s_l_$2122]);
           $t9 = s_pred_$2117;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
@@ -14675,6 +15265,7 @@ export const LIBRARIES = {
           s_ls_$2124 = $t15;
           $loop2: for (;;) {
           $t16 = (C6.v ?? G6());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_ls_$2124) : $t17(s_ls_$2124);
@@ -14687,6 +15278,7 @@ export const LIBRARIES = {
           return s_x_$2126;
         } else {
           $t20 = (C7.v ?? G7());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_ls_$2124) : $t21(s_ls_$2124);
@@ -14694,6 +15286,7 @@ export const LIBRARIES = {
           if ($t22 === $UNWIND) { R.reify($proc$r, 16, { s_cars_$2125, s_pred_$2117 }); return $UNWIND; }
           s_next_$2127 = $t22;
           $t23 = (C6.v ?? G6());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23(s_next_$2127) : $t24(s_next_$2127);
@@ -14701,6 +15294,7 @@ export const LIBRARIES = {
           if ($t25 === $UNWIND) { R.reify($proc$r, 17, { s_cars_$2125, s_next_$2127, s_pred_$2117 }); return $UNWIND; }
           if ($t25 !== false) {
           $t26 = (C8.v ?? G8());
+          if (typeof $t26 !== 'function') $notProc($t26);
           $t27 = $t26[$RAW];
           $stack.room = $d;
           $t28 = $t27 === undefined ? $t26(s_pred_$2117, s_cars_$2125) : $t27(s_pred_$2117, s_cars_$2125);
@@ -14728,6 +15322,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("every", s_pred_$2117) : $t1("every", s_pred_$2117);
@@ -14761,6 +15356,7 @@ export const LIBRARIES = {
               case 7:
                 $t8 = (W5.intact || (C5.v ?? G5()) === P5) && (s_l_$2122 instanceof R.Cons) ? (s_l_$2122.car) : R.callBinding((C5.v ?? G5()), [s_l_$2122]);
                 $t9 = s_pred_$2117;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
@@ -14783,6 +15379,7 @@ export const LIBRARIES = {
                 return false;
               case 12:
                 $t16 = (C6.v ?? G6());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_ls_$2124) : $t17(s_ls_$2124);
@@ -14800,6 +15397,7 @@ export const LIBRARIES = {
                 return s_x_$2126;
               case 15:
                 $t20 = (C7.v ?? G7());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_ls_$2124) : $t21(s_ls_$2124);
@@ -14811,6 +15409,7 @@ export const LIBRARIES = {
                 $t22 = $r;
                 s_next_$2127 = $t22;
                 $t23 = (C6.v ?? G6());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23(s_next_$2127) : $t24(s_next_$2127);
@@ -14823,6 +15422,7 @@ export const LIBRARIES = {
                 if ($t25 !== false) { $pc = 18; continue; } $pc = 19; continue;
               case 18:
                 $t26 = (C8.v ?? G8());
+                if (typeof $t26 !== 'function') $notProc($t26);
                 $t27 = $t26[$RAW];
                 $stack.room = $d;
                 $t28 = $t27 === undefined ? $t26(s_pred_$2117, s_cars_$2125) : $t27(s_pred_$2117, s_cars_$2125);
@@ -14855,7 +15455,7 @@ export const LIBRARIES = {
         rest: "lists_$2130",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cars-of")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
@@ -14870,6 +15470,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2128, s_l_$2129, ...s_lists_$2130$raw]);
           let s_lists_$2130 = R.listFrom(s_lists_$2130$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("list-index", s_pred_$2128) : $t1("list-index", s_pred_$2128);
@@ -14881,6 +15482,7 @@ export const LIBRARIES = {
           s_i_$2133 = 0n;
           $loop1: for (;;) {
           $t4 = (C1.v ?? G1());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_ls_$2132) : $t5(s_ls_$2132);
@@ -14889,6 +15491,7 @@ export const LIBRARIES = {
           s_cars_$2134 = $t6;
           if (s_cars_$2134 !== false) {
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_pred_$2128, s_cars_$2134) : $t8(s_pred_$2128, s_cars_$2134);
@@ -14898,6 +15501,7 @@ export const LIBRARIES = {
           return s_i_$2133;
         } else {
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ls_$2132) : $t11(s_ls_$2132);
@@ -14920,6 +15524,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("list-index", s_pred_$2128) : $t1("list-index", s_pred_$2128);
@@ -14936,6 +15541,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t4 = (C1.v ?? G1());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_ls_$2132) : $t5(s_ls_$2132);
@@ -14949,6 +15555,7 @@ export const LIBRARIES = {
                 if (s_cars_$2134 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_pred_$2128, s_cars_$2134) : $t8(s_pred_$2128, s_cars_$2134);
@@ -14965,6 +15572,7 @@ export const LIBRARIES = {
                 return s_i_$2133;
               case 8:
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ls_$2132) : $t11(s_ls_$2132);
@@ -14991,7 +15599,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -15007,6 +15615,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 25;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2135, s_l_$2136]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("take-while", s_pred_$2135) : $t1("take-while", s_pred_$2135);
@@ -15020,6 +15629,7 @@ export const LIBRARIES = {
           if ($t3 !== false) {
           $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2138 instanceof R.Cons) ? (s_l_$2138.car) : R.callBinding((C2.v ?? G2()), [s_l_$2138]);
           $t6 = s_pred_$2135;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -15049,6 +15659,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("take-while", s_pred_$2135) : $t1("take-while", s_pred_$2135);
@@ -15068,6 +15679,7 @@ export const LIBRARIES = {
               case 3:
                 $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2138 instanceof R.Cons) ? (s_l_$2138.car) : R.callBinding((C2.v ?? G2()), [s_l_$2138]);
                 $t6 = s_pred_$2135;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -15107,7 +15719,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -15120,6 +15732,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 21;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2140, s_l_$2141]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("drop-while", s_pred_$2140) : $t1("drop-while", s_pred_$2140);
@@ -15132,6 +15745,7 @@ export const LIBRARIES = {
           if ($t3 !== false) {
           $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2143 instanceof R.Cons) ? (s_l_$2143.car) : R.callBinding((C2.v ?? G2()), [s_l_$2143]);
           $t6 = s_pred_$2140;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -15157,6 +15771,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("drop-while", s_pred_$2140) : $t1("drop-while", s_pred_$2140);
@@ -15175,6 +15790,7 @@ export const LIBRARIES = {
               case 3:
                 $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2143 instanceof R.Cons) ? (s_l_$2143.car) : R.callBinding((C2.v ?? G2()), [s_l_$2143]);
                 $t6 = s_pred_$2140;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -15238,7 +15854,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "take-while")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "drop-while")).v;
@@ -15247,12 +15863,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2146, s_l_$2147]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_pred_$2146, s_l_$2147) : $t1(s_pred_$2146, s_l_$2147);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_pred_$2146, s_l_$2147 }); return $UNWIND; }
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_pred_$2146, s_l_$2147) : $t4(s_pred_$2146, s_l_$2147);
@@ -15268,6 +15886,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_pred_$2146, s_l_$2147) : $t1(s_pred_$2146, s_l_$2147);
@@ -15278,6 +15897,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_pred_$2146, s_l_$2147) : $t4(s_pred_$2146, s_l_$2147);
@@ -15302,7 +15922,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "span")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
@@ -15313,6 +15933,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_x_$2150]);
           $t0 = s_pred_$2148;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2150) : $t1(s_x_$2150);
@@ -15329,6 +15950,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2148;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2150) : $t1(s_x_$2150);
@@ -15351,6 +15973,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 15;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2148, s_l_$2149]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("break", s_pred_$2148) : $t1("break", s_pred_$2148);
@@ -15368,6 +15991,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("break", s_pred_$2148) : $t1("break", s_pred_$2148);
@@ -15450,7 +16074,7 @@ export const LIBRARIES = {
         rest: "maybe=_$2157",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -15465,6 +16089,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_y_$2159]);
           $t0 = s_same_3f_$2158;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2155, s_y_$2159) : $t1(s_x_$2155, s_y_$2159);
@@ -15481,6 +16106,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_same_3f_$2158;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2155, s_y_$2159) : $t1(s_x_$2155, s_y_$2159);
@@ -15576,7 +16202,7 @@ export const LIBRARIES = {
         rest: "maybe=_$2164",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -15637,6 +16263,7 @@ export const LIBRARIES = {
         } else {
           $t7 = $mk$fn6(s_same_3f_$2165, s_l_$2167);
           $t8 = (C5.v ?? G5());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8($t7, s_kept_$2168) : $t9($t7, s_kept_$2168);
@@ -15687,6 +16314,7 @@ export const LIBRARIES = {
               case 6:
                 $t7 = $mk$fn6(s_same_3f_$2165, s_l_$2167);
                 $t8 = (C5.v ?? G5());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8($t7, s_kept_$2168) : $t9($t7, s_kept_$2168);
@@ -15948,7 +16576,7 @@ export const LIBRARIES = {
         rest: "lists_$2186",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -15989,6 +16617,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2185, ...s_lists_$2186$raw]);
           let s_lists_$2186 = R.listFrom(s_lists_$2186$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset<=", s__3d_$2185) : $t1("lset<=", s__3d_$2185);
@@ -16018,6 +16647,7 @@ export const LIBRARIES = {
         } else {
           $t11 = $mk$fn10(s_rest_$2190, s__3d_$2185);
           $t12 = (C4.v ?? G4());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12($t11, s_a_$2189) : $t13($t11, s_a_$2189);
@@ -16045,6 +16675,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset<=", s__3d_$2185) : $t1("lset<=", s__3d_$2185);
@@ -16083,6 +16714,7 @@ export const LIBRARIES = {
               case 8:
                 $t11 = $mk$fn10(s_rest_$2190, s__3d_$2185);
                 $t12 = (C4.v ?? G4());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12($t11, s_a_$2189) : $t13($t11, s_a_$2189);
@@ -16117,7 +16749,7 @@ export const LIBRARIES = {
         rest: "lists_$2195",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -16134,6 +16766,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2194, ...s_lists_$2195$raw]);
           let s_lists_$2195 = R.listFrom(s_lists_$2195$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset=", s__3d_$2194) : $t1("lset=", s__3d_$2194);
@@ -16163,6 +16796,7 @@ export const LIBRARIES = {
         } else {
           $t10 = (W3.intact || (C3.v ?? G3()) === P3) && (s_rest_$2199 instanceof R.Cons) ? (s_rest_$2199.car) : R.callBinding((C3.v ?? G3()), [s_rest_$2199]);
           $t11 = (C4.v ?? G4());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s__3d_$2194, s_a_$2198, $t10) : $t12(s__3d_$2194, s_a_$2198, $t10);
@@ -16171,6 +16805,7 @@ export const LIBRARIES = {
           if ($t13 !== false) {
           $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (s_rest_$2199 instanceof R.Cons) ? (s_rest_$2199.car) : R.callBinding((C3.v ?? G3()), [s_rest_$2199]);
           $t16 = (C4.v ?? G4());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s__3d_$2194, $t15, s_a_$2198) : $t17(s__3d_$2194, $t15, s_a_$2198);
@@ -16202,6 +16837,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset=", s__3d_$2194) : $t1("lset=", s__3d_$2194);
@@ -16240,6 +16876,7 @@ export const LIBRARIES = {
               case 8:
                 $t10 = (W3.intact || (C3.v ?? G3()) === P3) && (s_rest_$2199 instanceof R.Cons) ? (s_rest_$2199.car) : R.callBinding((C3.v ?? G3()), [s_rest_$2199]);
                 $t11 = (C4.v ?? G4());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s__3d_$2194, s_a_$2198, $t10) : $t12(s__3d_$2194, s_a_$2198, $t10);
@@ -16255,6 +16892,7 @@ export const LIBRARIES = {
               case 11:
                 $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (s_rest_$2199 instanceof R.Cons) ? (s_rest_$2199.car) : R.callBinding((C3.v ?? G3()), [s_rest_$2199]);
                 $t16 = (C4.v ?? G4());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s__3d_$2194, $t15, s_a_$2198) : $t17(s__3d_$2194, $t15, s_a_$2198);
@@ -16293,7 +16931,7 @@ export const LIBRARIES = {
         rest: "elts_$2204",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "fold")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "member")).v;
@@ -16305,6 +16943,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_elt_$2205, s_set_$2206]);
           $t0 = (C2.v ?? G2());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_elt_$2205, s_set_$2206, s__3d_$2202) : $t1(s_elt_$2205, s_set_$2206, s__3d_$2202);
@@ -16325,6 +16964,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C2.v ?? G2());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_elt_$2205, s_set_$2206, s__3d_$2202) : $t1(s_elt_$2205, s_set_$2206, s__3d_$2202);
@@ -16352,6 +16992,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2202, s_l_$2203, ...s_elts_$2204$raw]);
           let s_elts_$2204 = R.listFrom(s_elts_$2204$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset-adjoin", s__3d_$2202) : $t1("lset-adjoin", s__3d_$2202);
@@ -16369,6 +17010,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset-adjoin", s__3d_$2202) : $t1("lset-adjoin", s__3d_$2202);
@@ -16395,7 +17037,7 @@ export const LIBRARIES = {
         rest: "lists_$2208",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reduce")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "null?")).v;
@@ -16434,6 +17076,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn3_3, [s_elt_$2211, s_set_$2212]);
           $t1 = $mk$fn3_3_0(s__3d_$2207, s_elt_$2211);
           $t2 = (C5.v ?? G5());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1, s_set_$2212) : $t3($t1, s_set_$2212);
@@ -16455,6 +17098,7 @@ export const LIBRARIES = {
               case 0:
                 $t1 = $mk$fn3_3_0(s__3d_$2207, s_elt_$2211);
                 $t2 = (C5.v ?? G5());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1, s_set_$2212) : $t3($t1, s_set_$2212);
@@ -16535,6 +17179,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2207, ...s_lists_$2208$raw]);
           let s_lists_$2208 = R.listFrom(s_lists_$2208$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset-union", s__3d_$2207) : $t1("lset-union", s__3d_$2207);
@@ -16552,6 +17197,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset-union", s__3d_$2207) : $t1("lset-union", s__3d_$2207);
@@ -16578,7 +17224,7 @@ export const LIBRARIES = {
         rest: "lists_$2216",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "remove")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "eq?")).v;
@@ -16659,6 +17305,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2214, s_l_$2215, ...s_lists_$2216$raw]);
           let s_lists_$2216 = R.listFrom(s_lists_$2216$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset-intersection", s__3d_$2214) : $t1("lset-intersection", s__3d_$2214);
@@ -16667,6 +17314,7 @@ export const LIBRARIES = {
           $t2;
           $t4 = $mk$fn3(s_l_$2215);
           $t5 = (C1.v ?? G1());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4, s_lists_$2216) : $t6($t4, s_lists_$2216);
@@ -16674,6 +17322,7 @@ export const LIBRARIES = {
           if ($t7 === $UNWIND) { R.reify($proc$r, 2, { s__3d_$2214, s_l_$2215 }); return $UNWIND; }
           s_others_$2217 = $t7;
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8((C4.v ?? G4()), s_others_$2217) : $t9((C4.v ?? G4()), s_others_$2217);
@@ -16694,6 +17343,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset-intersection", s__3d_$2214) : $t1("lset-intersection", s__3d_$2214);
@@ -16706,6 +17356,7 @@ export const LIBRARIES = {
                 $t2;
                 $t4 = $mk$fn3(s_l_$2215);
                 $t5 = (C1.v ?? G1());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4, s_lists_$2216) : $t6($t4, s_lists_$2216);
@@ -16717,6 +17368,7 @@ export const LIBRARIES = {
                 $t7 = $r;
                 s_others_$2217 = $t7;
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8((C4.v ?? G4()), s_others_$2217) : $t9((C4.v ?? G4()), s_others_$2217);
@@ -16746,7 +17398,7 @@ export const LIBRARIES = {
         rest: "lists_$2223",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "filter")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "pair?")).v;
@@ -16784,6 +17436,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn11_0, [s_other_$2227]);
           $t0 = (C7.v ?? G7());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2226, s_other_$2227, s__3d_$2221) : $t1(s_x_$2226, s_other_$2227, s__3d_$2221);
@@ -16800,6 +17453,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C7.v ?? G7());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2226, s_other_$2227, s__3d_$2221) : $t1(s_x_$2226, s_other_$2227, s__3d_$2221);
@@ -16846,6 +17500,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2221, s_l_$2222, ...s_lists_$2223$raw]);
           let s_lists_$2223 = R.listFrom(s_lists_$2223$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset-difference", s__3d_$2221) : $t1("lset-difference", s__3d_$2221);
@@ -16853,6 +17508,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s__3d_$2221, s_l_$2222, s_lists_$2223 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C2.v ?? G2()), s_lists_$2223) : $t4((C2.v ?? G2()), s_lists_$2223);
@@ -16861,6 +17517,7 @@ export const LIBRARIES = {
           s_others_$2224 = $t5;
           $t7 = $mk$fn6(s_l_$2222);
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8($t7, s_others_$2224) : $t9($t7, s_others_$2224);
@@ -16881,6 +17538,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset-difference", s__3d_$2221) : $t1("lset-difference", s__3d_$2221);
@@ -16892,6 +17550,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C2.v ?? G2()), s_lists_$2223) : $t4((C2.v ?? G2()), s_lists_$2223);
@@ -16904,6 +17563,7 @@ export const LIBRARIES = {
                 s_others_$2224 = $t5;
                 $t7 = $mk$fn6(s_l_$2222);
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8($t7, s_others_$2224) : $t9($t7, s_others_$2224);
@@ -16933,7 +17593,7 @@ export const LIBRARIES = {
         rest: "lists_$2229",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reduce")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "lset-diff+intersection")).v;
@@ -16974,6 +17634,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn3_2_4, [s_x_$2234, s_set_$2235]);
           $t0 = (C7.v ?? G7());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2234, s_a_2ab_$2233, s__3d_$2228) : $t1(s_x_$2234, s_a_2ab_$2233, s__3d_$2228);
@@ -16994,6 +17655,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C7.v ?? G7());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2234, s_a_2ab_$2233, s__3d_$2228) : $t1(s_x_$2234, s_a_2ab_$2233, s__3d_$2228);
@@ -17071,12 +17733,14 @@ export const LIBRARIES = {
           s__25cwv0 = $t1;
           $t3 = $mk$fn3_2(s__3d_$2228, s_b_$2230, s_a_$2231);
           $t4 = s__25cwv0;
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4() : $t5();
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($fn3$r, 1, { $t3 }); return $UNWIND; }
           $t7 = (C10.v ?? G10());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -17096,6 +17760,7 @@ export const LIBRARIES = {
                 s__25cwv0 = $t1;
                 $t3 = $mk$fn3_2(s__3d_$2228, s_b_$2230, s_a_$2231);
                 $t4 = s__25cwv0;
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4() : $t5();
@@ -17106,6 +17771,7 @@ export const LIBRARIES = {
               case 1:
                 $t6 = $r;
                 $t7 = (C10.v ?? G10());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -17129,6 +17795,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2228, ...s_lists_$2229$raw]);
           let s_lists_$2229 = R.listFrom(s_lists_$2229$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset-xor", s__3d_$2228) : $t1("lset-xor", s__3d_$2228);
@@ -17146,6 +17813,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset-xor", s__3d_$2228) : $t1("lset-xor", s__3d_$2228);
@@ -17172,7 +17840,7 @@ export const LIBRARIES = {
         rest: "lists_$2238",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "partition")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "any")).v;
@@ -17274,6 +17942,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s__3d_$2236, s_l_$2237, ...s_lists_$2238$raw]);
           let s_lists_$2238 = R.listFrom(s_lists_$2238$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("lset-diff+intersection", s__3d_$2236) : $t1("lset-diff+intersection", s__3d_$2236);
@@ -17284,12 +17953,14 @@ export const LIBRARIES = {
           s__25cwv0 = $t4;
           $t6 = $mk$fn5();
           $t7 = s__25cwv0;
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7() : $t8();
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($proc$r, 2, { $t6 }); return $UNWIND; }
           $t10 = (C6.v ?? G6());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10($t9) : $t11($t9);
@@ -17305,6 +17976,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("lset-diff+intersection", s__3d_$2236) : $t1("lset-diff+intersection", s__3d_$2236);
@@ -17319,6 +17991,7 @@ export const LIBRARIES = {
                 s__25cwv0 = $t4;
                 $t6 = $mk$fn5();
                 $t7 = s__25cwv0;
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7() : $t8();
@@ -17329,6 +18002,7 @@ export const LIBRARIES = {
               case 2:
                 $t9 = $r;
                 $t10 = (C6.v ?? G6());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10($t9) : $t11($t9);
@@ -17502,7 +18176,7 @@ export const LIBRARIES = {
   },
   "srfi.125": {
     fingerprint: "d76cb074",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["125.sld","hash_table.scm"],
     procedures: {
       "native-kind": {
@@ -17662,7 +18336,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [intern("eqv"), intern("eqv")],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "procedure?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-append")).v;
@@ -17679,6 +18353,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 50;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$2449, s_equality_$2450, s_hash_$2451, s_comparator_$2452]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_equality_$2450) : $t1(s_equality_$2450);
@@ -17688,12 +18363,14 @@ export const LIBRARIES = {
           $t3 = false;
         } else {
           $t4 = (C2.v ?? G2());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_who_$2449, ": not an equality predicate or comparator") : $t5(s_who_$2449, ": not an equality predicate or comparator");
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($proc$r, 5, { s_who_$2449, s_equality_$2450, s_hash_$2451, s_comparator_$2452 }); return $UNWIND; }
           $t7 = (C1.v ?? G1());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6, s_equality_$2450) : $t8($t6, s_equality_$2450);
@@ -17703,6 +18380,7 @@ export const LIBRARIES = {
         }
           $t3;
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_equality_$2450) : $t11(s_equality_$2450);
@@ -17711,6 +18389,7 @@ export const LIBRARIES = {
           s_kind_$2453 = $t12;
           if (s_kind_$2453 !== false) {
           $t13 = (C5.v ?? G5());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_kind_$2453) : $t14(s_kind_$2453);
@@ -17721,6 +18400,7 @@ export const LIBRARIES = {
           $t16 = s_x_$2454;
         } else {
           $t17 = (C6.v ?? G6());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_kind_$2453) : $t18(s_kind_$2453);
@@ -17748,6 +18428,7 @@ export const LIBRARIES = {
           if (s_temp_$2455 !== false) {
           s_hash_$2457 = s_temp_$2455;
           $t25 = (C5.v ?? G5());
+          if (typeof $t25 !== 'function') $notProc($t25);
           $t26 = $t25[$RAW];
           $stack.room = $d;
           $t27 = $t26 === undefined ? $t25(K[1]) : $t26(K[1]);
@@ -17757,6 +18438,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t28?.[$PRIM] === true) { $stack.room = $d; return $t28($t27, false, s_equality_$2450, s_hash_$2457, s_comparator_$2452, true, 0n); } return $tailCall($t28, [$t27, false, s_equality_$2450, s_hash_$2457, s_comparator_$2452, true, 0n]);
         } else {
           $t29 = (C2.v ?? G2());
+          if (typeof $t29 !== 'function') $notProc($t29);
           $t30 = $t29[$RAW];
           $stack.room = $d;
           $t31 = $t30 === undefined ? $t29(s_who_$2449, ": no hash function was given for this equality predicate") : $t30(s_who_$2449, ": no hash function was given for this equality predicate");
@@ -17774,6 +18456,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_equality_$2450) : $t1(s_equality_$2450);
@@ -17789,6 +18472,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 3:
                 $t4 = (C2.v ?? G2());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_who_$2449, ": not an equality predicate or comparator") : $t5(s_who_$2449, ": not an equality predicate or comparator");
@@ -17799,6 +18483,7 @@ export const LIBRARIES = {
               case 4:
                 $t3;
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_equality_$2450) : $t11(s_equality_$2450);
@@ -17809,6 +18494,7 @@ export const LIBRARIES = {
               case 5:
                 $t6 = $r;
                 $t7 = (C1.v ?? G1());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6, s_equality_$2450) : $t8($t6, s_equality_$2450);
@@ -17826,6 +18512,7 @@ export const LIBRARIES = {
                 if (s_kind_$2453 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t13 = (C5.v ?? G5());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_kind_$2453) : $t14(s_kind_$2453);
@@ -17845,6 +18532,7 @@ export const LIBRARIES = {
                 $pc = 13; continue;
               case 12:
                 $t17 = (C6.v ?? G6());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_kind_$2453) : $t18(s_kind_$2453);
@@ -17881,6 +18569,7 @@ export const LIBRARIES = {
               case 21:
                 s_hash_$2457 = s_temp_$2455;
                 $t25 = (C5.v ?? G5());
+                if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
                 $stack.room = $d;
                 $t27 = $t26 === undefined ? $t25(K[0]) : $t26(K[0]);
@@ -17890,6 +18579,7 @@ export const LIBRARIES = {
                 $pc = 23; continue;
               case 22:
                 $t29 = (C2.v ?? G2());
+                if (typeof $t29 !== 'function') $notProc($t29);
                 $t30 = $t29[$RAW];
                 $stack.room = $d;
                 $t31 = $t30 === undefined ? $t29(s_who_$2449, ": no hash function was given for this equality predicate") : $t30(s_who_$2449, ": no hash function was given for this equality predicate");
@@ -17918,7 +18608,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "make-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "comparator-equality-predicate")).v;
@@ -17934,6 +18624,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 34;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$2458, s_spec_$2459, s_args_$2460]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_spec_$2459) : $t1(s_spec_$2459);
@@ -17941,12 +18632,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_who_$2458, s_spec_$2459, s_args_$2460 }); return $UNWIND; }
           if ($t2 !== false) {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_spec_$2459) : $t4(s_spec_$2459);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 4, { s_who_$2458, s_spec_$2459 }); return $UNWIND; }
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_spec_$2459) : $t7(s_spec_$2459);
@@ -17954,6 +18647,7 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 5, { $t5, s_who_$2458, s_spec_$2459 }); return $UNWIND; }
           if ($t8 !== false) {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_spec_$2459) : $t11(s_spec_$2459);
@@ -17970,6 +18664,7 @@ export const LIBRARIES = {
           if ($t14 !== false) {
           $t16 = (W7.intact || (C7.v ?? G7()) === P7) && (s_args_$2460 instanceof R.Cons) ? (s_args_$2460.car) : R.callBinding((C7.v ?? G7()), [s_args_$2460]);
           $t17 = (C6.v ?? G6());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17($t16) : $t18($t16);
@@ -17996,6 +18691,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_spec_$2459) : $t1(s_spec_$2459);
@@ -18008,6 +18704,7 @@ export const LIBRARIES = {
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_spec_$2459) : $t4(s_spec_$2459);
@@ -18021,6 +18718,7 @@ export const LIBRARIES = {
               case 4:
                 $t5 = $r;
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_spec_$2459) : $t7(s_spec_$2459);
@@ -18033,6 +18731,7 @@ export const LIBRARIES = {
                 if ($t8 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_spec_$2459) : $t11(s_spec_$2459);
@@ -18053,6 +18752,7 @@ export const LIBRARIES = {
               case 10:
                 $t16 = (W7.intact || (C7.v ?? G7()) === P7) && (s_args_$2460 instanceof R.Cons) ? (s_args_$2460.car) : R.callBinding((C7.v ?? G7()), [s_args_$2460]);
                 $t17 = (C6.v ?? G6());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17($t16) : $t18($t16);
@@ -18092,7 +18792,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "hash-table?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-append")).v;
@@ -18101,6 +18801,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$2461, s_ht_$2462]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2462) : $t1(s_ht_$2462);
@@ -18110,6 +18811,7 @@ export const LIBRARIES = {
           return false;
         } else {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_who_$2461, ": not a hash table") : $t4(s_who_$2461, ": not a hash table");
@@ -18126,6 +18828,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2462) : $t1(s_ht_$2462);
@@ -18140,6 +18843,7 @@ export const LIBRARIES = {
                 return false;
               case 3:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_who_$2461, ": not a hash table") : $t4(s_who_$2461, ": not a hash table");
@@ -18164,7 +18868,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-mutable?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
@@ -18174,6 +18878,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 20;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$2463, s_ht_$2464]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_who_$2463, s_ht_$2464) : $t1(s_who_$2463, s_ht_$2464);
@@ -18181,6 +18886,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_who_$2463, s_ht_$2464 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2464) : $t4(s_ht_$2464);
@@ -18190,6 +18896,7 @@ export const LIBRARIES = {
           return false;
         } else {
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_who_$2463, ": hash table is immutable") : $t7(s_who_$2463, ": hash table is immutable");
@@ -18206,6 +18913,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_who_$2463, s_ht_$2464) : $t1(s_who_$2463, s_ht_$2464);
@@ -18217,6 +18925,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2464) : $t4(s_ht_$2464);
@@ -18231,6 +18940,7 @@ export const LIBRARIES = {
                 return false;
               case 4:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_who_$2463, ": hash table is immutable") : $t7(s_who_$2463, ": hash table is immutable");
@@ -18255,7 +18965,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-equality")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -18272,6 +18982,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 36;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2465, s_key_$2466]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2465) : $t1(s_ht_$2465);
@@ -18279,24 +18990,28 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2465, s_key_$2466 }); return $UNWIND; }
           s_same_3f_$2467 = $t2;
           $t3 = (C6.v ?? G6());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2465) : $t4(s_ht_$2465);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_same_3f_$2467, s_ht_$2465, s_key_$2466 }); return $UNWIND; }
           $t9 = (C7.v ?? G7());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_ht_$2465) : $t10(s_ht_$2465);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($proc$r, 3, { s_same_3f_$2467, $t5, s_key_$2466 }); return $UNWIND; }
           $t6 = $t11;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_key_$2466) : $t7(s_key_$2466);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 4, { s_same_3f_$2467, $t5, s_key_$2466 }); return $UNWIND; }
           $t12 = (C5.v ?? G5());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12($t5, $t8, null) : $t13($t5, $t8, null);
@@ -18309,12 +19024,14 @@ export const LIBRARIES = {
           return false;
         } else {
           $t16 = (C2.v ?? G2());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_bucket_$2469) : $t17(s_bucket_$2469);
           while ($t18 instanceof $TailCall) { $stack.room = $d; $t18 = $step($t18); }
           if ($t18 === $UNWIND) { R.reify($proc$r, 9, { s_same_3f_$2467, s_bucket_$2469, s_key_$2466 }); return $UNWIND; }
           $t19 = s_same_3f_$2467;
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19($t18, s_key_$2466) : $t20($t18, s_key_$2466);
@@ -18338,6 +19055,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2465) : $t1(s_ht_$2465);
@@ -18349,6 +19067,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_same_3f_$2467 = $t2;
                 $t3 = (C6.v ?? G6());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2465) : $t4(s_ht_$2465);
@@ -18359,6 +19078,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t9 = (C7.v ?? G7());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_ht_$2465) : $t10(s_ht_$2465);
@@ -18369,6 +19089,7 @@ export const LIBRARIES = {
               case 3:
                 $t11 = $r;
                 $t6 = $t11;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_key_$2466) : $t7(s_key_$2466);
@@ -18379,6 +19100,7 @@ export const LIBRARIES = {
               case 4:
                 $t8 = $r;
                 $t12 = (C5.v ?? G5());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12($t5, $t8, null) : $t13($t5, $t8, null);
@@ -18397,6 +19119,7 @@ export const LIBRARIES = {
                 return false;
               case 8:
                 $t16 = (C2.v ?? G2());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_bucket_$2469) : $t17(s_bucket_$2469);
@@ -18407,6 +19130,7 @@ export const LIBRARIES = {
               case 9:
                 $t18 = $r;
                 $t19 = s_same_3f_$2467;
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19($t18, s_key_$2466) : $t20($t18, s_key_$2466);
@@ -18437,7 +19161,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-kind")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-ref")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-store")).v;
@@ -18450,6 +19174,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2470, s_key_$2471]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2470) : $t1(s_ht_$2470);
@@ -18457,6 +19182,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2470, s_key_$2471 }); return $UNWIND; }
           if ($t2 !== false) {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2470) : $t4(s_ht_$2470);
@@ -18466,6 +19192,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t6?.[$PRIM] === true) { $stack.room = $d; return $t6($t5, s_key_$2471, (C3.v ?? G3())); } return $tailCall($t6, [$t5, s_key_$2471, (C3.v ?? G3())]);
         } else {
           $t7 = (C4.v ?? G4());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_ht_$2470, s_key_$2471) : $t8(s_ht_$2470, s_key_$2471);
@@ -18487,6 +19214,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2470) : $t1(s_ht_$2470);
@@ -18499,6 +19227,7 @@ export const LIBRARIES = {
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2470) : $t4(s_ht_$2470);
@@ -18508,6 +19237,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 3:
                 $t7 = (C4.v ?? G4());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_ht_$2470, s_key_$2471) : $t8(s_ht_$2470, s_key_$2471);
@@ -18541,7 +19271,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-kind")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-set!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-store")).v;
@@ -18567,6 +19297,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 58;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2473, s_key_$2474, s_value_$2475]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2473) : $t1(s_ht_$2473);
@@ -18574,6 +19305,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2473, s_key_$2474, s_value_$2475 }); return $UNWIND; }
           if ($t2 !== false) {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2473) : $t4(s_ht_$2473);
@@ -18583,6 +19315,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t6?.[$PRIM] === true) { $stack.room = $d; return $t6($t5, s_key_$2474, s_value_$2475); } return $tailCall($t6, [$t5, s_key_$2474, s_value_$2475]);
         } else {
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_ht_$2473) : $t8(s_ht_$2473);
@@ -18590,12 +19323,14 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 5, { s_ht_$2473, s_key_$2474, s_value_$2475 }); return $UNWIND; }
           s_store_$2476 = $t9;
           $t13 = (C3.v ?? G3());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_ht_$2473) : $t14(s_ht_$2473);
           while ($t15 instanceof $TailCall) { $stack.room = $d; $t15 = $step($t15); }
           if ($t15 === $UNWIND) { R.reify($proc$r, 6, { s_store_$2476, s_ht_$2473, s_key_$2474, s_value_$2475 }); return $UNWIND; }
           $t10 = $t15;
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_key_$2474) : $t11(s_key_$2474);
@@ -18603,6 +19338,7 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 7, { s_store_$2476, s_ht_$2473, s_key_$2474, s_value_$2475 }); return $UNWIND; }
           s_h_$2477 = $t12;
           $t16 = (C4.v ?? G4());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_store_$2476, s_h_$2477, null) : $t17(s_store_$2476, s_h_$2477, null);
@@ -18610,6 +19346,7 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 8, { s_store_$2476, s_h_$2477, s_ht_$2473, s_key_$2474, s_value_$2475 }); return $UNWIND; }
           s_bucket_$2478 = $t18;
           $t19 = (C5.v ?? G5());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_ht_$2473) : $t20(s_ht_$2473);
@@ -18623,6 +19360,7 @@ export const LIBRARIES = {
           $t23 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons(s_key_$2474, s_value_$2475)) : R.callBinding((C7.v ?? G7()), [s_key_$2474, s_value_$2475]);
           $t24 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t23, s_bucket_$2478)) : R.callBinding((C7.v ?? G7()), [$t23, s_bucket_$2478]);
           $t25 = (C1.v ?? G1());
+          if (typeof $t25 !== 'function') $notProc($t25);
           $t26 = $t25[$RAW];
           $stack.room = $d;
           $t27 = $t26 === undefined ? $t25(s_store_$2476, s_h_$2477, $t24) : $t26(s_store_$2476, s_h_$2477, $t24);
@@ -18630,6 +19368,7 @@ export const LIBRARIES = {
           if ($t27 === $UNWIND) { R.reify($proc$r, 13, { s_ht_$2473 }); return $UNWIND; }
           $t27;
           $t28 = (C10.v ?? G10());
+          if (typeof $t28 !== 'function') $notProc($t28);
           $t29 = $t28[$RAW];
           $stack.room = $d;
           $t30 = $t29 === undefined ? $t28(s_ht_$2473) : $t29(s_ht_$2473);
@@ -18640,12 +19379,14 @@ export const LIBRARIES = {
           if ($d > 0 && $t32?.[$PRIM] === true) { $stack.room = $d; return $t32(s_ht_$2473, $t31); } return $tailCall($t32, [s_ht_$2473, $t31]);
         } else {
           $t33 = (C11.v ?? G11());
+          if (typeof $t33 !== 'function') $notProc($t33);
           $t34 = $t33[$RAW];
           $stack.room = $d;
           $t35 = $t34 === undefined ? $t33(s_b_$2481) : $t34(s_b_$2481);
           while ($t35 instanceof $TailCall) { $stack.room = $d; $t35 = $step($t35); }
           if ($t35 === $UNWIND) { R.reify($proc$r, 15, { s_store_$2476, s_h_$2477, s_bucket_$2478, s_same_3f_$2479, s_b_$2481, s_ht_$2473, s_key_$2474, s_value_$2475 }); return $UNWIND; }
           $t36 = s_same_3f_$2479;
+          if (typeof $t36 !== 'function') $notProc($t36);
           $t37 = $t36[$RAW];
           $stack.room = $d;
           $t38 = $t37 === undefined ? $t36($t35, s_key_$2474) : $t37($t35, s_key_$2474);
@@ -18671,6 +19412,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2473) : $t1(s_ht_$2473);
@@ -18683,6 +19425,7 @@ export const LIBRARIES = {
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2473) : $t4(s_ht_$2473);
@@ -18692,6 +19435,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 3:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_ht_$2473) : $t8(s_ht_$2473);
@@ -18707,6 +19451,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_store_$2476 = $t9;
                 $t13 = (C3.v ?? G3());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_ht_$2473) : $t14(s_ht_$2473);
@@ -18717,6 +19462,7 @@ export const LIBRARIES = {
               case 6:
                 $t15 = $r;
                 $t10 = $t15;
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_key_$2474) : $t11(s_key_$2474);
@@ -18728,6 +19474,7 @@ export const LIBRARIES = {
                 $t12 = $r;
                 s_h_$2477 = $t12;
                 $t16 = (C4.v ?? G4());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_store_$2476, s_h_$2477, null) : $t17(s_store_$2476, s_h_$2477, null);
@@ -18739,6 +19486,7 @@ export const LIBRARIES = {
                 $t18 = $r;
                 s_bucket_$2478 = $t18;
                 $t19 = (C5.v ?? G5());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_ht_$2473) : $t20(s_ht_$2473);
@@ -18758,6 +19506,7 @@ export const LIBRARIES = {
                 $t23 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons(s_key_$2474, s_value_$2475)) : R.callBinding((C7.v ?? G7()), [s_key_$2474, s_value_$2475]);
                 $t24 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t23, s_bucket_$2478)) : R.callBinding((C7.v ?? G7()), [$t23, s_bucket_$2478]);
                 $t25 = (C1.v ?? G1());
+                if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
                 $stack.room = $d;
                 $t27 = $t26 === undefined ? $t25(s_store_$2476, s_h_$2477, $t24) : $t26(s_store_$2476, s_h_$2477, $t24);
@@ -18767,6 +19516,7 @@ export const LIBRARIES = {
                 $pc = 13; continue;
               case 12:
                 $t33 = (C11.v ?? G11());
+                if (typeof $t33 !== 'function') $notProc($t33);
                 $t34 = $t33[$RAW];
                 $stack.room = $d;
                 $t35 = $t34 === undefined ? $t33(s_b_$2481) : $t34(s_b_$2481);
@@ -18778,6 +19528,7 @@ export const LIBRARIES = {
                 $t27 = $r;
                 $t27;
                 $t28 = (C10.v ?? G10());
+                if (typeof $t28 !== 'function') $notProc($t28);
                 $t29 = $t28[$RAW];
                 $stack.room = $d;
                 $t30 = $t29 === undefined ? $t28(s_ht_$2473) : $t29(s_ht_$2473);
@@ -18793,6 +19544,7 @@ export const LIBRARIES = {
               case 15:
                 $t35 = $r;
                 $t36 = s_same_3f_$2479;
+                if (typeof $t36 !== 'function') $notProc($t36);
                 $t37 = $t36[$RAW];
                 $stack.room = $d;
                 $t38 = $t37 === undefined ? $t36($t35, s_key_$2474) : $t37($t35, s_key_$2474);
@@ -18824,7 +19576,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-kind")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-delete!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-store")).v;
@@ -18851,6 +19603,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 67;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2482, s_key_$2483]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2482) : $t1(s_ht_$2482);
@@ -18858,6 +19611,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2482, s_key_$2483 }); return $UNWIND; }
           if ($t2 !== false) {
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2482) : $t4(s_ht_$2482);
@@ -18867,6 +19621,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t6?.[$PRIM] === true) { $stack.room = $d; return $t6($t5, s_key_$2483); } return $tailCall($t6, [$t5, s_key_$2483]);
         } else {
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_ht_$2482) : $t8(s_ht_$2482);
@@ -18874,12 +19629,14 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 5, { s_ht_$2482, s_key_$2483 }); return $UNWIND; }
           s_store_$2484 = $t9;
           $t13 = (C3.v ?? G3());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_ht_$2482) : $t14(s_ht_$2482);
           while ($t15 instanceof $TailCall) { $stack.room = $d; $t15 = $step($t15); }
           if ($t15 === $UNWIND) { R.reify($proc$r, 6, { s_store_$2484, s_ht_$2482, s_key_$2483 }); return $UNWIND; }
           $t10 = $t15;
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_key_$2483) : $t11(s_key_$2483);
@@ -18887,6 +19644,7 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 7, { s_store_$2484, s_ht_$2482, s_key_$2483 }); return $UNWIND; }
           s_h_$2485 = $t12;
           $t16 = (C4.v ?? G4());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_ht_$2482) : $t17(s_ht_$2482);
@@ -18894,6 +19652,7 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 8, { s_store_$2484, s_h_$2485, s_ht_$2482, s_key_$2483 }); return $UNWIND; }
           s_same_3f_$2486 = $t18;
           $t19 = (C15.v ?? G15());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_store_$2484, s_h_$2485, null) : $t20(s_store_$2484, s_h_$2485, null);
@@ -18907,12 +19666,14 @@ export const LIBRARIES = {
           return false;
         } else {
           $t23 = (C6.v ?? G6());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23(s_b_$2488) : $t24(s_b_$2488);
           while ($t25 instanceof $TailCall) { $stack.room = $d; $t25 = $step($t25); }
           if ($t25 === $UNWIND) { R.reify($proc$r, 13, { s_store_$2484, s_h_$2485, s_same_3f_$2486, s_b_$2488, s_kept_$2489, s_ht_$2482, s_key_$2483 }); return $UNWIND; }
           $t26 = s_same_3f_$2486;
+          if (typeof $t26 !== 'function') $notProc($t26);
           $t27 = $t26[$RAW];
           $stack.room = $d;
           $t28 = $t27 === undefined ? $t26($t25, s_key_$2483) : $t27($t25, s_key_$2483);
@@ -18921,6 +19682,7 @@ export const LIBRARIES = {
           if ($t28 !== false) {
           $t29 = (W8.intact || (C8.v ?? G8()) === P8) && (s_b_$2488 instanceof R.Cons) ? (s_b_$2488.cdr) : R.callBinding((C8.v ?? G8()), [s_b_$2488]);
           $t30 = (C7.v ?? G7());
+          if (typeof $t30 !== 'function') $notProc($t30);
           $t31 = $t30[$RAW];
           $stack.room = $d;
           $t32 = $t31 === undefined ? $t30(s_kept_$2489, $t29) : $t31(s_kept_$2489, $t29);
@@ -18930,6 +19692,7 @@ export const LIBRARIES = {
           $t33 = (W5.intact || (C5.v ?? G5()) === P5) ? (s_rest_$2490 === null) : R.callBinding((C5.v ?? G5()), [s_rest_$2490]);
           if ($t33 !== false) {
           $t35 = (C1.v ?? G1());
+          if (typeof $t35 !== 'function') $notProc($t35);
           $t36 = $t35[$RAW];
           $stack.room = $d;
           $t37 = $t36 === undefined ? $t35(s_store_$2484, s_h_$2485) : $t36(s_store_$2484, s_h_$2485);
@@ -18938,6 +19701,7 @@ export const LIBRARIES = {
           $t34 = $t37;
         } else {
           $t38 = (C9.v ?? G9());
+          if (typeof $t38 !== 'function') $notProc($t38);
           $t39 = $t38[$RAW];
           $stack.room = $d;
           $t40 = $t39 === undefined ? $t38(s_store_$2484, s_h_$2485, s_rest_$2490) : $t39(s_store_$2484, s_h_$2485, s_rest_$2490);
@@ -18947,6 +19711,7 @@ export const LIBRARIES = {
         }
           $t34;
           $t41 = (C12.v ?? G12());
+          if (typeof $t41 !== 'function') $notProc($t41);
           $t42 = $t41[$RAW];
           $stack.room = $d;
           $t43 = $t42 === undefined ? $t41(s_ht_$2482) : $t42(s_ht_$2482);
@@ -18954,6 +19719,7 @@ export const LIBRARIES = {
           if ($t43 === $UNWIND) { R.reify($proc$r, 23, { s_ht_$2482 }); return $UNWIND; }
           $t44 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof $t43 === 'bigint' && typeof 1n === 'bigint') || (typeof $t43 === 'number' && typeof 1n === 'number')) ? ($t43 - 1n) : R.callBinding((C11.v ?? G11()), [$t43, 1n]);
           $t45 = (C10.v ?? G10());
+          if (typeof $t45 !== 'function') $notProc($t45);
           $t46 = $t45[$RAW];
           $stack.room = $d;
           $t47 = $t46 === undefined ? $t45(s_ht_$2482, $t44) : $t46(s_ht_$2482, $t44);
@@ -18980,6 +19746,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2482) : $t1(s_ht_$2482);
@@ -18992,6 +19759,7 @@ export const LIBRARIES = {
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2482) : $t4(s_ht_$2482);
@@ -19001,6 +19769,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 3:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_ht_$2482) : $t8(s_ht_$2482);
@@ -19016,6 +19785,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_store_$2484 = $t9;
                 $t13 = (C3.v ?? G3());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_ht_$2482) : $t14(s_ht_$2482);
@@ -19026,6 +19796,7 @@ export const LIBRARIES = {
               case 6:
                 $t15 = $r;
                 $t10 = $t15;
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_key_$2483) : $t11(s_key_$2483);
@@ -19037,6 +19808,7 @@ export const LIBRARIES = {
                 $t12 = $r;
                 s_h_$2485 = $t12;
                 $t16 = (C4.v ?? G4());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_ht_$2482) : $t17(s_ht_$2482);
@@ -19048,6 +19820,7 @@ export const LIBRARIES = {
                 $t18 = $r;
                 s_same_3f_$2486 = $t18;
                 $t19 = (C15.v ?? G15());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_store_$2484, s_h_$2485, null) : $t20(s_store_$2484, s_h_$2485, null);
@@ -19067,6 +19840,7 @@ export const LIBRARIES = {
                 return false;
               case 12:
                 $t23 = (C6.v ?? G6());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23(s_b_$2488) : $t24(s_b_$2488);
@@ -19077,6 +19851,7 @@ export const LIBRARIES = {
               case 13:
                 $t25 = $r;
                 $t26 = s_same_3f_$2486;
+                if (typeof $t26 !== 'function') $notProc($t26);
                 $t27 = $t26[$RAW];
                 $stack.room = $d;
                 $t28 = $t27 === undefined ? $t26($t25, s_key_$2483) : $t27($t25, s_key_$2483);
@@ -19090,6 +19865,7 @@ export const LIBRARIES = {
               case 15:
                 $t29 = (W8.intact || (C8.v ?? G8()) === P8) && (s_b_$2488 instanceof R.Cons) ? (s_b_$2488.cdr) : R.callBinding((C8.v ?? G8()), [s_b_$2488]);
                 $t30 = (C7.v ?? G7());
+                if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
                 $t32 = $t31 === undefined ? $t30(s_kept_$2489, $t29) : $t31(s_kept_$2489, $t29);
@@ -19111,6 +19887,7 @@ export const LIBRARIES = {
                 if ($t33 !== false) { $pc = 18; continue; } $pc = 19; continue;
               case 18:
                 $t35 = (C1.v ?? G1());
+                if (typeof $t35 !== 'function') $notProc($t35);
                 $t36 = $t35[$RAW];
                 $stack.room = $d;
                 $t37 = $t36 === undefined ? $t35(s_store_$2484, s_h_$2485) : $t36(s_store_$2484, s_h_$2485);
@@ -19120,6 +19897,7 @@ export const LIBRARIES = {
                 $pc = 21; continue;
               case 19:
                 $t38 = (C9.v ?? G9());
+                if (typeof $t38 !== 'function') $notProc($t38);
                 $t39 = $t38[$RAW];
                 $stack.room = $d;
                 $t40 = $t39 === undefined ? $t38(s_store_$2484, s_h_$2485, s_rest_$2490) : $t39(s_store_$2484, s_h_$2485, s_rest_$2490);
@@ -19130,6 +19908,7 @@ export const LIBRARIES = {
               case 20:
                 $t34;
                 $t41 = (C12.v ?? G12());
+                if (typeof $t41 !== 'function') $notProc($t41);
                 $t42 = $t41[$RAW];
                 $stack.room = $d;
                 $t43 = $t42 === undefined ? $t41(s_ht_$2482) : $t42(s_ht_$2482);
@@ -19149,6 +19928,7 @@ export const LIBRARIES = {
                 $t43 = $r;
                 $t44 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof $t43 === 'bigint' && typeof 1n === 'bigint') || (typeof $t43 === 'number' && typeof 1n === 'number')) ? ($t43 - 1n) : R.callBinding((C11.v ?? G11()), [$t43, 1n]);
                 $t45 = (C10.v ?? G10());
+                if (typeof $t45 !== 'function') $notProc($t45);
                 $t46 = $t45[$RAW];
                 $stack.room = $d;
                 $t47 = $t46 === undefined ? $t45(s_ht_$2482, $t44) : $t46(s_ht_$2482, $t44);
@@ -19229,7 +20009,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-store")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-kind")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "map")).v;
@@ -19258,12 +20038,14 @@ export const LIBRARIES = {
         } else {
           $t1 = (W7.intact || (C7.v ?? G7()) === P7) && (s_b_$2499 instanceof R.Cons) ? (s_b_$2499.cdr) : R.callBinding((C7.v ?? G7()), [s_b_$2499]);
           $t2 = (C8.v ?? G8());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_b_$2499) : $t3(s_b_$2499);
           while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
           if ($t4 === $UNWIND) { R.reify($fn18$r, 3, { $t1, s_b_$2499, s_result_$2500 }); return $UNWIND; }
           $t5 = (C9.v ?? G9());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_b_$2499) : $t6(s_b_$2499);
@@ -19291,6 +20073,7 @@ export const LIBRARIES = {
               case 2:
                 $t1 = (W7.intact || (C7.v ?? G7()) === P7) && (s_b_$2499 instanceof R.Cons) ? (s_b_$2499.cdr) : R.callBinding((C7.v ?? G7()), [s_b_$2499]);
                 $t2 = (C8.v ?? G8());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_b_$2499) : $t3(s_b_$2499);
@@ -19301,6 +20084,7 @@ export const LIBRARIES = {
               case 3:
                 $t4 = $r;
                 $t5 = (C9.v ?? G9());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_b_$2499) : $t6(s_b_$2499);
@@ -19327,6 +20111,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 36;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2493]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2493) : $t1(s_ht_$2493);
@@ -19334,6 +20119,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2493 }); return $UNWIND; }
           s_store_$2494 = $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2493) : $t4(s_ht_$2493);
@@ -19341,12 +20127,14 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_store_$2494 }); return $UNWIND; }
           if ($t5 !== false) {
           $t6 = (C4.v ?? G4());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_store_$2494) : $t7(s_store_$2494);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 5, { s_store_$2494 }); return $UNWIND; }
           $t9 = (C5.v ?? G5());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_store_$2494) : $t10(s_store_$2494);
@@ -19356,6 +20144,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t12?.[$PRIM] === true) { $stack.room = $d; return $t12((C3.v ?? G3()), $t8, $t11); } return $tailCall($t12, [(C3.v ?? G3()), $t8, $t11]);
         } else {
           $t13 = (C5.v ?? G5());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_store_$2494) : $t14(s_store_$2494);
@@ -19373,6 +20162,7 @@ export const LIBRARIES = {
           s_collect_$2498 = $t19;
           $t20 = (W10.intact || (C10.v ?? G10()) === P10) && (s_buckets_$2496 instanceof R.Cons) ? (s_buckets_$2496.car) : R.callBinding((C10.v ?? G10()), [s_buckets_$2496]);
           $t21 = s_collect_$2498;
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21($t20, s_result_$2497) : $t22($t20, s_result_$2497);
@@ -19392,6 +20182,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2493) : $t1(s_ht_$2493);
@@ -19403,6 +20194,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_store_$2494 = $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2493) : $t4(s_ht_$2493);
@@ -19415,6 +20207,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t6 = (C4.v ?? G4());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_store_$2494) : $t7(s_store_$2494);
@@ -19424,6 +20217,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 4:
                 $t13 = (C5.v ?? G5());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_store_$2494) : $t14(s_store_$2494);
@@ -19434,6 +20228,7 @@ export const LIBRARIES = {
               case 5:
                 $t8 = $r;
                 $t9 = (C5.v ?? G5());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_store_$2494) : $t10(s_store_$2494);
@@ -19461,6 +20256,7 @@ export const LIBRARIES = {
                 s_collect_$2498 = $t19;
                 $t20 = (W10.intact || (C10.v ?? G10()) === P10) && (s_buckets_$2496 instanceof R.Cons) ? (s_buckets_$2496.car) : R.callBinding((C10.v ?? G10()), [s_buckets_$2496]);
                 $t21 = s_collect_$2498;
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21($t20, s_result_$2497) : $t22($t20, s_result_$2497);
@@ -19515,7 +20311,7 @@ export const LIBRARIES = {
         rest: "args_$2504",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-from")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -19548,12 +20344,14 @@ export const LIBRARIES = {
         } else {
           $t5 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2507 instanceof R.Cons) ? (s_args_$2507.car) : R.callBinding((C4.v ?? G4()), [s_args_$2507]);
           $t6 = (C6.v ?? G6());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_args_$2507) : $t7(s_args_$2507);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($fn3$r, 5, { $t5, s_args_$2507 }); return $UNWIND; }
           $t9 = (C5.v ?? G5());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_ht_$2505, $t5, $t8) : $t10(s_ht_$2505, $t5, $t8);
@@ -19561,6 +20359,7 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($fn3$r, 6, { s_args_$2507 }); return $UNWIND; }
           $t11;
           $t12 = (C7.v ?? G7());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_args_$2507) : $t13(s_args_$2507);
@@ -19594,6 +20393,7 @@ export const LIBRARIES = {
               case 4:
                 $t5 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2507 instanceof R.Cons) ? (s_args_$2507.car) : R.callBinding((C4.v ?? G4()), [s_args_$2507]);
                 $t6 = (C6.v ?? G6());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_args_$2507) : $t7(s_args_$2507);
@@ -19604,6 +20404,7 @@ export const LIBRARIES = {
               case 5:
                 $t8 = $r;
                 $t9 = (C5.v ?? G5());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_ht_$2505, $t5, $t8) : $t10(s_ht_$2505, $t5, $t8);
@@ -19615,6 +20416,7 @@ export const LIBRARIES = {
                 $t11 = $r;
                 $t11;
                 $t12 = (C7.v ?? G7());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_args_$2507) : $t13(s_args_$2507);
@@ -19639,6 +20441,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2503, ...s_args_$2504$raw]);
           let s_args_$2504 = R.listFrom(s_args_$2504$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table", s_comparator_$2503, null) : $t1("hash-table", s_comparator_$2503, null);
@@ -19648,6 +20451,7 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_ht_$2505);
           s_loop_$2506 = $t4;
           $t5 = s_loop_$2506;
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_args_$2504) : $t6(s_args_$2504);
@@ -19655,6 +20459,7 @@ export const LIBRARIES = {
           if ($t7 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2505 }); return $UNWIND; }
           $t7;
           $t8 = (C8.v ?? G8());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_ht_$2505, false) : $t9(s_ht_$2505, false);
@@ -19670,6 +20475,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table", s_comparator_$2503, null) : $t1("hash-table", s_comparator_$2503, null);
@@ -19683,6 +20489,7 @@ export const LIBRARIES = {
                 $t4 = $mk$fn3(s_ht_$2505);
                 s_loop_$2506 = $t4;
                 $t5 = s_loop_$2506;
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_args_$2504) : $t6(s_args_$2504);
@@ -19694,6 +20501,7 @@ export const LIBRARIES = {
                 $t7 = $r;
                 $t7;
                 $t8 = (C8.v ?? G8());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_ht_$2505, false) : $t9(s_ht_$2505, false);
@@ -19718,7 +20526,7 @@ export const LIBRARIES = {
         rest: "args_$2513",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-from")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "put!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
@@ -19750,6 +20558,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($fn3_5, [s_key_$2517, s_value_$2518]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2514, s_key_$2517, s_value_$2518) : $t1(s_ht_$2514, s_key_$2517, s_value_$2518);
@@ -19757,6 +20566,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3_5$r, 1, {  }); return $UNWIND; }
           $t2;
           $t3 = s_successor_$2510;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_seed_$2516) : $t4(s_seed_$2516);
@@ -19773,6 +20583,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2514, s_key_$2517, s_value_$2518) : $t1(s_ht_$2514, s_key_$2517, s_value_$2518);
@@ -19784,6 +20595,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = s_successor_$2510;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_seed_$2516) : $t4(s_seed_$2516);
@@ -19808,6 +20620,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_seed_$2516]);
           $t0 = s_stop_3f_$2508;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_seed_$2516) : $t1(s_seed_$2516);
@@ -19820,12 +20633,14 @@ export const LIBRARIES = {
           s__25cwv0 = $t4;
           $t6 = $mk$fn3_5(s_ht_$2514, s_loop_$2515, s_successor_$2510, s_seed_$2516);
           $t7 = s__25cwv0;
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7() : $t8();
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($fn3$r, 4, { $t6 }); return $UNWIND; }
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10($t9) : $t11($t9);
@@ -19843,6 +20658,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_stop_3f_$2508;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_seed_$2516) : $t1(s_seed_$2516);
@@ -19860,6 +20676,7 @@ export const LIBRARIES = {
                 s__25cwv0 = $t4;
                 $t6 = $mk$fn3_5(s_ht_$2514, s_loop_$2515, s_successor_$2510, s_seed_$2516);
                 $t7 = s__25cwv0;
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7() : $t8();
@@ -19870,6 +20687,7 @@ export const LIBRARIES = {
               case 4:
                 $t9 = $r;
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10($t9) : $t11($t9);
@@ -19894,6 +20712,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_stop_3f_$2508, s_mapper_$2509, s_successor_$2510, s_seed_$2511, s_comparator_$2512, ...s_args_$2513$raw]);
           let s_args_$2513 = R.listFrom(s_args_$2513$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-unfold", s_comparator_$2512, s_args_$2513) : $t1("hash-table-unfold", s_comparator_$2512, s_args_$2513);
@@ -19912,6 +20731,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-unfold", s_comparator_$2512, s_args_$2513) : $t1("hash-table-unfold", s_comparator_$2512, s_args_$2513);
@@ -19939,7 +20759,7 @@ export const LIBRARIES = {
         rest: "args_$2521",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-from")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "for-each")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "eq?")).v;
@@ -19958,6 +20778,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_pair_$2523]);
           $t0 = (W4.intact || (C4.v ?? G4()) === P4) && (s_pair_$2523 instanceof R.Cons) ? (s_pair_$2523.car) : R.callBinding((C4.v ?? G4()), [s_pair_$2523]);
           $t1 = (C3.v ?? G3());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_ht_$2522, $t0) : $t2(s_ht_$2522, $t0);
@@ -19983,6 +20804,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W4.intact || (C4.v ?? G4()) === P4) && (s_pair_$2523 instanceof R.Cons) ? (s_pair_$2523.car) : R.callBinding((C4.v ?? G4()), [s_pair_$2523]);
                 $t1 = (C3.v ?? G3());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_ht_$2522, $t0) : $t2(s_ht_$2522, $t0);
@@ -20014,6 +20836,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_alist_$2519, s_spec_$2520, ...s_args_$2521$raw]);
           let s_args_$2521 = R.listFrom(s_args_$2521$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("alist->hash-table", s_spec_$2520, s_args_$2521) : $t1("alist->hash-table", s_spec_$2520, s_args_$2521);
@@ -20022,6 +20845,7 @@ export const LIBRARIES = {
           s_ht_$2522 = $t2;
           $t4 = $mk$fn3(s_ht_$2522);
           $t5 = (C1.v ?? G1());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4, s_alist_$2519) : $t6($t4, s_alist_$2519);
@@ -20037,6 +20861,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("alist->hash-table", s_spec_$2520, s_args_$2521) : $t1("alist->hash-table", s_spec_$2520, s_args_$2521);
@@ -20049,6 +20874,7 @@ export const LIBRARIES = {
                 s_ht_$2522 = $t2;
                 $t4 = $mk$fn3(s_ht_$2522);
                 $t5 = (C1.v ?? G1());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4, s_alist_$2519) : $t6($t4, s_alist_$2519);
@@ -20073,7 +20899,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-kind")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-contains?")).v;
@@ -20084,6 +20910,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2524, s_key_$2525]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-contains?", s_ht_$2524) : $t1("hash-table-contains?", s_ht_$2524);
@@ -20091,6 +20918,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2524, s_key_$2525 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2524) : $t4(s_ht_$2524);
@@ -20098,6 +20926,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2524, s_key_$2525 }); return $UNWIND; }
           if ($t5 !== false) {
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_ht_$2524) : $t7(s_ht_$2524);
@@ -20107,6 +20936,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t9?.[$PRIM] === true) { $stack.room = $d; return $t9($t8, s_key_$2525); } return $tailCall($t9, [$t8, s_key_$2525]);
         } else {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ht_$2524, s_key_$2525) : $t11(s_ht_$2524, s_key_$2525);
@@ -20126,6 +20956,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-contains?", s_ht_$2524) : $t1("hash-table-contains?", s_ht_$2524);
@@ -20137,6 +20968,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2524) : $t4(s_ht_$2524);
@@ -20149,6 +20981,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_ht_$2524) : $t7(s_ht_$2524);
@@ -20158,6 +20991,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 4:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ht_$2524, s_key_$2525) : $t11(s_ht_$2524, s_key_$2525);
@@ -20189,7 +21023,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-kind")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-contains?")).v;
@@ -20200,6 +21034,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2524, s_key_$2525]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-contains?", s_ht_$2524) : $t1("hash-table-contains?", s_ht_$2524);
@@ -20207,6 +21042,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2524, s_key_$2525 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2524) : $t4(s_ht_$2524);
@@ -20214,6 +21050,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2524, s_key_$2525 }); return $UNWIND; }
           if ($t5 !== false) {
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_ht_$2524) : $t7(s_ht_$2524);
@@ -20223,6 +21060,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t9?.[$PRIM] === true) { $stack.room = $d; return $t9($t8, s_key_$2525); } return $tailCall($t9, [$t8, s_key_$2525]);
         } else {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ht_$2524, s_key_$2525) : $t11(s_ht_$2524, s_key_$2525);
@@ -20242,6 +21080,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-contains?", s_ht_$2524) : $t1("hash-table-contains?", s_ht_$2524);
@@ -20253,6 +21092,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2524) : $t4(s_ht_$2524);
@@ -20265,6 +21105,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_ht_$2524) : $t7(s_ht_$2524);
@@ -20274,6 +21115,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 4:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ht_$2524, s_key_$2525) : $t11(s_ht_$2524, s_key_$2525);
@@ -20305,7 +21147,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "hash-table-size")).v;
@@ -20314,6 +21156,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2526]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2526) : $t1(s_ht_$2526);
@@ -20329,6 +21172,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2526) : $t1(s_ht_$2526);
@@ -20353,7 +21197,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "=")).v;
@@ -20377,6 +21221,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 51;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_value_2dcomparator_$2527, s_ht1_$2528, s_ht2_$2529]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table=?", s_ht1_$2528) : $t1("hash-table=?", s_ht1_$2528);
@@ -20384,6 +21229,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_value_2dcomparator_$2527, s_ht1_$2528, s_ht2_$2529 }); return $UNWIND; }
           $t2;
           $t3 = (C0.v ?? G0());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("hash-table=?", s_ht2_$2529) : $t4("hash-table=?", s_ht2_$2529);
@@ -20391,6 +21237,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_value_2dcomparator_$2527, s_ht1_$2528, s_ht2_$2529 }); return $UNWIND; }
           $t5;
           $t6 = (C1.v ?? G1());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_value_2dcomparator_$2527) : $t7(s_value_2dcomparator_$2527);
@@ -20398,12 +21245,14 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_ht1_$2528, s_ht2_$2529 }); return $UNWIND; }
           s_same_3f_$2530 = $t8;
           $t9 = (C3.v ?? G3());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_ht1_$2528) : $t10(s_ht1_$2528);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($proc$r, 4, { s_same_3f_$2530, s_ht1_$2528, s_ht2_$2529 }); return $UNWIND; }
           $t12 = (C3.v ?? G3());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_ht2_$2529) : $t13(s_ht2_$2529);
@@ -20412,6 +21261,7 @@ export const LIBRARIES = {
           $t15 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof $t11 === 'bigint' && typeof $t14 === 'bigint') || (typeof $t11 === 'number' && typeof $t14 === 'number')) ? ($t11 === $t14) : R.callBinding((C2.v ?? G2()), [$t11, $t14]);
           if ($t15 !== false) {
           $t16 = (C12.v ?? G12());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_ht1_$2528) : $t17(s_ht1_$2528);
@@ -20425,12 +21275,14 @@ export const LIBRARIES = {
           return s_x_$2533;
         } else {
           $t20 = (C6.v ?? G6());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_es_$2532) : $t21(s_es_$2532);
           while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
           if ($t22 === $UNWIND) { R.reify($proc$r, 12, { s_same_3f_$2530, s_es_$2532, s_ht2_$2529 }); return $UNWIND; }
           $t23 = (C5.v ?? G5());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23(s_ht2_$2529, $t22) : $t24(s_ht2_$2529, $t22);
@@ -20442,12 +21294,14 @@ export const LIBRARIES = {
           $t28 = (W7.intact || (C7.v ?? G7()) === P7) ? ($t27 === false) : R.callBinding((C7.v ?? G7()), [$t27]);
           if ($t28 !== false) {
           $t29 = (C10.v ?? G10());
+          if (typeof $t29 !== 'function') $notProc($t29);
           $t30 = $t29[$RAW];
           $stack.room = $d;
           $t31 = $t30 === undefined ? $t29(s_es_$2532) : $t30(s_es_$2532);
           while ($t31 instanceof $TailCall) { $stack.room = $d; $t31 = $step($t31); }
           if ($t31 === $UNWIND) { R.reify($proc$r, 16, { s_same_3f_$2530, s_es_$2532, s_other_$2534, s_ht2_$2529 }); return $UNWIND; }
           $t32 = s_same_3f_$2530;
+          if (typeof $t32 !== 'function') $notProc($t32);
           $t33 = $t32[$RAW];
           $stack.room = $d;
           $t34 = $t33 === undefined ? $t32($t31, s_other_$2534) : $t33($t31, s_other_$2534);
@@ -20476,6 +21330,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table=?", s_ht1_$2528) : $t1("hash-table=?", s_ht1_$2528);
@@ -20487,6 +21342,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("hash-table=?", s_ht2_$2529) : $t4("hash-table=?", s_ht2_$2529);
@@ -20498,6 +21354,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 $t5;
                 $t6 = (C1.v ?? G1());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_value_2dcomparator_$2527) : $t7(s_value_2dcomparator_$2527);
@@ -20509,6 +21366,7 @@ export const LIBRARIES = {
                 $t8 = $r;
                 s_same_3f_$2530 = $t8;
                 $t9 = (C3.v ?? G3());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_ht1_$2528) : $t10(s_ht1_$2528);
@@ -20519,6 +21377,7 @@ export const LIBRARIES = {
               case 4:
                 $t11 = $r;
                 $t12 = (C3.v ?? G3());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_ht2_$2529) : $t13(s_ht2_$2529);
@@ -20532,6 +21391,7 @@ export const LIBRARIES = {
                 if ($t15 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 $t16 = (C12.v ?? G12());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_ht1_$2528) : $t17(s_ht1_$2528);
@@ -20553,6 +21413,7 @@ export const LIBRARIES = {
                 return s_x_$2533;
               case 11:
                 $t20 = (C6.v ?? G6());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_es_$2532) : $t21(s_es_$2532);
@@ -20563,6 +21424,7 @@ export const LIBRARIES = {
               case 12:
                 $t22 = $r;
                 $t23 = (C5.v ?? G5());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23(s_ht2_$2529, $t22) : $t24(s_ht2_$2529, $t22);
@@ -20579,6 +21441,7 @@ export const LIBRARIES = {
                 if ($t28 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 $t29 = (C10.v ?? G10());
+                if (typeof $t29 !== 'function') $notProc($t29);
                 $t30 = $t29[$RAW];
                 $stack.room = $d;
                 $t31 = $t30 === undefined ? $t29(s_es_$2532) : $t30(s_es_$2532);
@@ -20591,6 +21454,7 @@ export const LIBRARIES = {
               case 16:
                 $t31 = $r;
                 $t32 = s_same_3f_$2530;
+                if (typeof $t32 !== 'function') $notProc($t32);
                 $t33 = $t32[$RAW];
                 $stack.room = $d;
                 $t34 = $t33 === undefined ? $t32($t31, s_other_$2534) : $t33($t31, s_other_$2534);
@@ -20620,7 +21484,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-mutable?")).v;
         function $proc(s_ht_$2535) {
@@ -20628,6 +21492,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2535]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-mutable?", s_ht_$2535) : $t1("hash-table-mutable?", s_ht_$2535);
@@ -20644,6 +21509,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-mutable?", s_ht_$2535) : $t1("hash-table-mutable?", s_ht_$2535);
@@ -20669,7 +21535,7 @@ export const LIBRARIES = {
         rest: "args_$2536",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
@@ -20703,6 +21569,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C3.v ?? G3());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_args_$2536) : $t6(s_args_$2536);
@@ -20721,6 +21588,7 @@ export const LIBRARIES = {
           $t9 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2536 instanceof R.Cons) ? (s_args_$2536.car) : R.callBinding((C4.v ?? G4()), [s_args_$2536]);
           s_ht_$2537 = $t9;
           $t10 = (C5.v ?? G5());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_args_$2536) : $t11(s_args_$2536);
@@ -20728,6 +21596,7 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 10, { s_ht_$2537 }); return $UNWIND; }
           s_key_$2538 = $t12;
           $t13 = (C6.v ?? G6());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13("hash-table-ref", s_ht_$2537) : $t14("hash-table-ref", s_ht_$2537);
@@ -20735,6 +21604,7 @@ export const LIBRARIES = {
           if ($t15 === $UNWIND) { R.reify($proc$r, 11, { s_ht_$2537, s_key_$2538 }); return $UNWIND; }
           $t15;
           $t16 = (C7.v ?? G7());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_ht_$2537, s_key_$2538) : $t17(s_ht_$2537, s_key_$2538);
@@ -20756,6 +21626,7 @@ export const LIBRARIES = {
           $t25 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t24 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t24]);
           if ($t25 !== false) {
           $t27 = (C3.v ?? G3());
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27(s_args_$2536) : $t28(s_args_$2536);
@@ -20764,6 +21635,7 @@ export const LIBRARIES = {
           $t30 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t29 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t29]);
           if ($t30 !== false) {
           $t32 = (C11.v ?? G11());
+          if (typeof $t32 !== 'function') $notProc($t32);
           $t33 = $t32[$RAW];
           $stack.room = $d;
           $t34 = $t33 === undefined ? $t32(s_args_$2536) : $t33(s_args_$2536);
@@ -20786,6 +21658,7 @@ export const LIBRARIES = {
           $t36 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2536 instanceof R.Cons) ? (s_args_$2536.car) : R.callBinding((C4.v ?? G4()), [s_args_$2536]);
           s_ht_$2540 = $t36;
           $t37 = (C5.v ?? G5());
+          if (typeof $t37 !== 'function') $notProc($t37);
           $t38 = $t37[$RAW];
           $stack.room = $d;
           $t39 = $t38 === undefined ? $t37(s_args_$2536) : $t38(s_args_$2536);
@@ -20793,6 +21666,7 @@ export const LIBRARIES = {
           if ($t39 === $UNWIND) { R.reify($proc$r, 28, { s_ht_$2540, s_args_$2536 }); return $UNWIND; }
           s_key_$2541 = $t39;
           $t40 = (C12.v ?? G12());
+          if (typeof $t40 !== 'function') $notProc($t40);
           $t41 = $t40[$RAW];
           $stack.room = $d;
           $t42 = $t41 === undefined ? $t40(s_args_$2536) : $t41(s_args_$2536);
@@ -20800,6 +21674,7 @@ export const LIBRARIES = {
           if ($t42 === $UNWIND) { R.reify($proc$r, 29, { s_ht_$2540, s_key_$2541 }); return $UNWIND; }
           s_failure_$2542 = $t42;
           $t43 = (C6.v ?? G6());
+          if (typeof $t43 !== 'function') $notProc($t43);
           $t44 = $t43[$RAW];
           $stack.room = $d;
           $t45 = $t44 === undefined ? $t43("hash-table-ref", s_ht_$2540) : $t44("hash-table-ref", s_ht_$2540);
@@ -20807,6 +21682,7 @@ export const LIBRARIES = {
           if ($t45 === $UNWIND) { R.reify($proc$r, 30, { s_ht_$2540, s_key_$2541, s_failure_$2542 }); return $UNWIND; }
           $t45;
           $t46 = (C7.v ?? G7());
+          if (typeof $t46 !== 'function') $notProc($t46);
           $t47 = $t46[$RAW];
           $stack.room = $d;
           $t48 = $t47 === undefined ? $t46(s_ht_$2540, s_key_$2541) : $t47(s_ht_$2540, s_key_$2541);
@@ -20823,6 +21699,7 @@ export const LIBRARIES = {
         }
         } else {
           $t52 = (C14.v ?? G14());
+          if (typeof $t52 !== 'function') $notProc($t52);
           $t53 = $t52[$RAW];
           $stack.room = $d;
           $t54 = $t53 === undefined ? $t52(s_args_$2536) : $t53(s_args_$2536);
@@ -20833,6 +21710,7 @@ export const LIBRARIES = {
           $t56 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2536 instanceof R.Cons) ? (s_args_$2536.car) : R.callBinding((C4.v ?? G4()), [s_args_$2536]);
           s_ht_$2544 = $t56;
           $t57 = (C5.v ?? G5());
+          if (typeof $t57 !== 'function') $notProc($t57);
           $t58 = $t57[$RAW];
           $stack.room = $d;
           $t59 = $t58 === undefined ? $t57(s_args_$2536) : $t58(s_args_$2536);
@@ -20840,6 +21718,7 @@ export const LIBRARIES = {
           if ($t59 === $UNWIND) { R.reify($proc$r, 37, { s_ht_$2544, s_args_$2536 }); return $UNWIND; }
           s_key_$2545 = $t59;
           $t60 = (C12.v ?? G12());
+          if (typeof $t60 !== 'function') $notProc($t60);
           $t61 = $t60[$RAW];
           $stack.room = $d;
           $t62 = $t61 === undefined ? $t60(s_args_$2536) : $t61(s_args_$2536);
@@ -20847,6 +21726,7 @@ export const LIBRARIES = {
           if ($t62 === $UNWIND) { R.reify($proc$r, 38, { s_ht_$2544, s_key_$2545, s_args_$2536 }); return $UNWIND; }
           s_failure_$2546 = $t62;
           $t63 = (C15.v ?? G15());
+          if (typeof $t63 !== 'function') $notProc($t63);
           $t64 = $t63[$RAW];
           $stack.room = $d;
           $t65 = $t64 === undefined ? $t63(s_args_$2536) : $t64(s_args_$2536);
@@ -20854,6 +21734,7 @@ export const LIBRARIES = {
           if ($t65 === $UNWIND) { R.reify($proc$r, 39, { s_ht_$2544, s_key_$2545, s_failure_$2546 }); return $UNWIND; }
           s_success_$2547 = $t65;
           $t66 = (C6.v ?? G6());
+          if (typeof $t66 !== 'function') $notProc($t66);
           $t67 = $t66[$RAW];
           $stack.room = $d;
           $t68 = $t67 === undefined ? $t66("hash-table-ref", s_ht_$2544) : $t67("hash-table-ref", s_ht_$2544);
@@ -20861,6 +21742,7 @@ export const LIBRARIES = {
           if ($t68 === $UNWIND) { R.reify($proc$r, 40, { s_ht_$2544, s_key_$2545, s_failure_$2546, s_success_$2547 }); return $UNWIND; }
           $t68;
           $t69 = (C7.v ?? G7());
+          if (typeof $t69 !== 'function') $notProc($t69);
           $t70 = $t69[$RAW];
           $stack.room = $d;
           $t71 = $t70 === undefined ? $t69(s_ht_$2544, s_key_$2545) : $t70(s_ht_$2544, s_key_$2545);
@@ -20878,6 +21760,7 @@ export const LIBRARIES = {
         }
         } else {
           $t76 = (C14.v ?? G14());
+          if (typeof $t76 !== 'function') $notProc($t76);
           $t77 = $t76[$RAW];
           $stack.room = $d;
           $t78 = $t77 === undefined ? $t76(s_args_$2536) : $t77(s_args_$2536);
@@ -20908,6 +21791,7 @@ export const LIBRARIES = {
                 if ($t1 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 4:
                 $t5 = (C3.v ?? G3());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_args_$2536) : $t6(s_args_$2536);
@@ -20930,6 +21814,7 @@ export const LIBRARIES = {
                 $t9 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2536 instanceof R.Cons) ? (s_args_$2536.car) : R.callBinding((C4.v ?? G4()), [s_args_$2536]);
                 s_ht_$2537 = $t9;
                 $t10 = (C5.v ?? G5());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_args_$2536) : $t11(s_args_$2536);
@@ -20944,6 +21829,7 @@ export const LIBRARIES = {
                 $t12 = $r;
                 s_key_$2538 = $t12;
                 $t13 = (C6.v ?? G6());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13("hash-table-ref", s_ht_$2537) : $t14("hash-table-ref", s_ht_$2537);
@@ -20955,6 +21841,7 @@ export const LIBRARIES = {
                 $t15 = $r;
                 $t15;
                 $t16 = (C7.v ?? G7());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_ht_$2537, s_key_$2538) : $t17(s_ht_$2537, s_key_$2538);
@@ -20984,6 +21871,7 @@ export const LIBRARIES = {
                 if ($t23 !== false) { $pc = 26; continue; } $pc = 27; continue;
               case 18:
                 $t27 = (C3.v ?? G3());
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27(s_args_$2536) : $t28(s_args_$2536);
@@ -21003,6 +21891,7 @@ export const LIBRARIES = {
                 if ($t30 !== false) { $pc = 22; continue; } $pc = 23; continue;
               case 22:
                 $t32 = (C11.v ?? G11());
+                if (typeof $t32 !== 'function') $notProc($t32);
                 $t33 = $t32[$RAW];
                 $stack.room = $d;
                 $t34 = $t33 === undefined ? $t32(s_args_$2536) : $t33(s_args_$2536);
@@ -21025,6 +21914,7 @@ export const LIBRARIES = {
                 $t36 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2536 instanceof R.Cons) ? (s_args_$2536.car) : R.callBinding((C4.v ?? G4()), [s_args_$2536]);
                 s_ht_$2540 = $t36;
                 $t37 = (C5.v ?? G5());
+                if (typeof $t37 !== 'function') $notProc($t37);
                 $t38 = $t37[$RAW];
                 $stack.room = $d;
                 $t39 = $t38 === undefined ? $t37(s_args_$2536) : $t38(s_args_$2536);
@@ -21034,6 +21924,7 @@ export const LIBRARIES = {
                 $pc = 28; continue;
               case 27:
                 $t52 = (C14.v ?? G14());
+                if (typeof $t52 !== 'function') $notProc($t52);
                 $t53 = $t52[$RAW];
                 $stack.room = $d;
                 $t54 = $t53 === undefined ? $t52(s_args_$2536) : $t53(s_args_$2536);
@@ -21045,6 +21936,7 @@ export const LIBRARIES = {
                 $t39 = $r;
                 s_key_$2541 = $t39;
                 $t40 = (C12.v ?? G12());
+                if (typeof $t40 !== 'function') $notProc($t40);
                 $t41 = $t40[$RAW];
                 $stack.room = $d;
                 $t42 = $t41 === undefined ? $t40(s_args_$2536) : $t41(s_args_$2536);
@@ -21056,6 +21948,7 @@ export const LIBRARIES = {
                 $t42 = $r;
                 s_failure_$2542 = $t42;
                 $t43 = (C6.v ?? G6());
+                if (typeof $t43 !== 'function') $notProc($t43);
                 $t44 = $t43[$RAW];
                 $stack.room = $d;
                 $t45 = $t44 === undefined ? $t43("hash-table-ref", s_ht_$2540) : $t44("hash-table-ref", s_ht_$2540);
@@ -21067,6 +21960,7 @@ export const LIBRARIES = {
                 $t45 = $r;
                 $t45;
                 $t46 = (C7.v ?? G7());
+                if (typeof $t46 !== 'function') $notProc($t46);
                 $t47 = $t46[$RAW];
                 $stack.room = $d;
                 $t48 = $t47 === undefined ? $t46(s_ht_$2540, s_key_$2541) : $t47(s_ht_$2540, s_key_$2541);
@@ -21093,6 +21987,7 @@ export const LIBRARIES = {
                 $t56 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$2536 instanceof R.Cons) ? (s_args_$2536.car) : R.callBinding((C4.v ?? G4()), [s_args_$2536]);
                 s_ht_$2544 = $t56;
                 $t57 = (C5.v ?? G5());
+                if (typeof $t57 !== 'function') $notProc($t57);
                 $t58 = $t57[$RAW];
                 $stack.room = $d;
                 $t59 = $t58 === undefined ? $t57(s_args_$2536) : $t58(s_args_$2536);
@@ -21102,6 +21997,7 @@ export const LIBRARIES = {
                 $pc = 37; continue;
               case 36:
                 $t76 = (C14.v ?? G14());
+                if (typeof $t76 !== 'function') $notProc($t76);
                 $t77 = $t76[$RAW];
                 $stack.room = $d;
                 $t78 = $t77 === undefined ? $t76(s_args_$2536) : $t77(s_args_$2536);
@@ -21113,6 +22009,7 @@ export const LIBRARIES = {
                 $t59 = $r;
                 s_key_$2545 = $t59;
                 $t60 = (C12.v ?? G12());
+                if (typeof $t60 !== 'function') $notProc($t60);
                 $t61 = $t60[$RAW];
                 $stack.room = $d;
                 $t62 = $t61 === undefined ? $t60(s_args_$2536) : $t61(s_args_$2536);
@@ -21124,6 +22021,7 @@ export const LIBRARIES = {
                 $t62 = $r;
                 s_failure_$2546 = $t62;
                 $t63 = (C15.v ?? G15());
+                if (typeof $t63 !== 'function') $notProc($t63);
                 $t64 = $t63[$RAW];
                 $stack.room = $d;
                 $t65 = $t64 === undefined ? $t63(s_args_$2536) : $t64(s_args_$2536);
@@ -21135,6 +22033,7 @@ export const LIBRARIES = {
                 $t65 = $r;
                 s_success_$2547 = $t65;
                 $t66 = (C6.v ?? G6());
+                if (typeof $t66 !== 'function') $notProc($t66);
                 $t67 = $t66[$RAW];
                 $stack.room = $d;
                 $t68 = $t67 === undefined ? $t66("hash-table-ref", s_ht_$2544) : $t67("hash-table-ref", s_ht_$2544);
@@ -21146,6 +22045,7 @@ export const LIBRARIES = {
                 $t68 = $r;
                 $t68;
                 $t69 = (C7.v ?? G7());
+                if (typeof $t69 !== 'function') $notProc($t69);
                 $t70 = $t69[$RAW];
                 $stack.room = $d;
                 $t71 = $t70 === undefined ? $t69(s_ht_$2544, s_key_$2545) : $t70(s_ht_$2544, s_key_$2545);
@@ -21182,7 +22082,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-kind")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-ref")).v;
@@ -21195,6 +22095,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 26;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2549, s_key_$2550, s_default_$2551]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-ref/default", s_ht_$2549) : $t1("hash-table-ref/default", s_ht_$2549);
@@ -21202,6 +22103,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2549, s_key_$2550, s_default_$2551 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2549) : $t4(s_ht_$2549);
@@ -21209,6 +22111,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2549, s_key_$2550, s_default_$2551 }); return $UNWIND; }
           if ($t5 !== false) {
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_ht_$2549) : $t7(s_ht_$2549);
@@ -21218,6 +22121,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t9?.[$PRIM] === true) { $stack.room = $d; return $t9($t8, s_key_$2550, s_default_$2551); } return $tailCall($t9, [$t8, s_key_$2550, s_default_$2551]);
         } else {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ht_$2549, s_key_$2550) : $t11(s_ht_$2549, s_key_$2550);
@@ -21239,6 +22143,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-ref/default", s_ht_$2549) : $t1("hash-table-ref/default", s_ht_$2549);
@@ -21250,6 +22155,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2549) : $t4(s_ht_$2549);
@@ -21262,6 +22168,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_ht_$2549) : $t7(s_ht_$2549);
@@ -21271,6 +22178,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 4:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ht_$2549, s_key_$2550) : $t11(s_ht_$2549, s_key_$2550);
@@ -21304,7 +22212,7 @@ export const LIBRARIES = {
         rest: "args_$2553",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
@@ -21332,6 +22240,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_args_$2553) : $t6(s_args_$2553);
@@ -21340,6 +22249,7 @@ export const LIBRARIES = {
           $t8 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t7 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t7]);
           if ($t8 !== false) {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_args_$2553) : $t11(s_args_$2553);
@@ -21362,6 +22272,7 @@ export const LIBRARIES = {
           $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2553 instanceof R.Cons) ? (s_args_$2553.car) : R.callBinding((C5.v ?? G5()), [s_args_$2553]);
           s_ht_$2554 = $t14;
           $t15 = (C6.v ?? G6());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_args_$2553) : $t16(s_args_$2553);
@@ -21369,6 +22280,7 @@ export const LIBRARIES = {
           if ($t17 === $UNWIND) { R.reify($proc$r, 14, { s_ht_$2554, s_args_$2553 }); return $UNWIND; }
           s_key_$2555 = $t17;
           $t18 = (C7.v ?? G7());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_args_$2553) : $t19(s_args_$2553);
@@ -21376,6 +22288,7 @@ export const LIBRARIES = {
           if ($t20 === $UNWIND) { R.reify($proc$r, 15, { s_ht_$2554, s_key_$2555 }); return $UNWIND; }
           s_value_$2556 = $t20;
           $t21 = (C8.v ?? G8());
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21("hash-table-set!", s_ht_$2554) : $t22("hash-table-set!", s_ht_$2554);
@@ -21392,6 +22305,7 @@ export const LIBRARIES = {
           $t27 = (W1.intact || (C1.v ?? G1()) === P1) && (s_args_$2553 instanceof R.Cons) ? (s_args_$2553.cdr) : R.callBinding((C1.v ?? G1()), [s_args_$2553]);
           s_args_$2558 = $t27;
           $t28 = (C8.v ?? G8());
+          if (typeof $t28 !== 'function') $notProc($t28);
           $t29 = $t28[$RAW];
           $stack.room = $d;
           $t30 = $t29 === undefined ? $t28("hash-table-set!", s_ht_$2557) : $t29("hash-table-set!", s_ht_$2557);
@@ -21413,12 +22327,14 @@ export const LIBRARIES = {
         } else {
           $t36 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2560 instanceof R.Cons) ? (s_args_$2560.car) : R.callBinding((C5.v ?? G5()), [s_args_$2560]);
           $t37 = (C6.v ?? G6());
+          if (typeof $t37 !== 'function') $notProc($t37);
           $t38 = $t37[$RAW];
           $stack.room = $d;
           $t39 = $t38 === undefined ? $t37(s_args_$2560) : $t38(s_args_$2560);
           while ($t39 instanceof $TailCall) { $stack.room = $d; $t39 = $step($t39); }
           if ($t39 === $UNWIND) { R.reify($proc$r, 25, { s_ht_$2557, s_args_$2560, $t36 }); return $UNWIND; }
           $t40 = (C9.v ?? G9());
+          if (typeof $t40 !== 'function') $notProc($t40);
           $t41 = $t40[$RAW];
           $stack.room = $d;
           $t42 = $t41 === undefined ? $t40(s_ht_$2557, $t36, $t39) : $t41(s_ht_$2557, $t36, $t39);
@@ -21426,6 +22342,7 @@ export const LIBRARIES = {
           if ($t42 === $UNWIND) { R.reify($proc$r, 26, { s_ht_$2557, s_args_$2560 }); return $UNWIND; }
           $t42;
           $t43 = (C2.v ?? G2());
+          if (typeof $t43 !== 'function') $notProc($t43);
           $t44 = $t43[$RAW];
           $stack.room = $d;
           $t45 = $t44 === undefined ? $t43(s_args_$2560) : $t44(s_args_$2560);
@@ -21438,6 +22355,7 @@ export const LIBRARIES = {
           }
         } else {
           $t46 = (C11.v ?? G11());
+          if (typeof $t46 !== 'function') $notProc($t46);
           $t47 = $t46[$RAW];
           $stack.room = $d;
           $t48 = $t47 === undefined ? $t46(s_args_$2553) : $t47(s_args_$2553);
@@ -21467,6 +22385,7 @@ export const LIBRARIES = {
                 if ($t1 !== false) { $pc = 12; continue; } $pc = 13; continue;
               case 4:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_args_$2553) : $t6(s_args_$2553);
@@ -21486,6 +22405,7 @@ export const LIBRARIES = {
                 if ($t8 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_args_$2553) : $t11(s_args_$2553);
@@ -21508,6 +22428,7 @@ export const LIBRARIES = {
                 $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2553 instanceof R.Cons) ? (s_args_$2553.car) : R.callBinding((C5.v ?? G5()), [s_args_$2553]);
                 s_ht_$2554 = $t14;
                 $t15 = (C6.v ?? G6());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_args_$2553) : $t16(s_args_$2553);
@@ -21522,6 +22443,7 @@ export const LIBRARIES = {
                 $t17 = $r;
                 s_key_$2555 = $t17;
                 $t18 = (C7.v ?? G7());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_args_$2553) : $t19(s_args_$2553);
@@ -21533,6 +22455,7 @@ export const LIBRARIES = {
                 $t20 = $r;
                 s_value_$2556 = $t20;
                 $t21 = (C8.v ?? G8());
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21("hash-table-set!", s_ht_$2554) : $t22("hash-table-set!", s_ht_$2554);
@@ -21551,6 +22474,7 @@ export const LIBRARIES = {
                 $t27 = (W1.intact || (C1.v ?? G1()) === P1) && (s_args_$2553 instanceof R.Cons) ? (s_args_$2553.cdr) : R.callBinding((C1.v ?? G1()), [s_args_$2553]);
                 s_args_$2558 = $t27;
                 $t28 = (C8.v ?? G8());
+                if (typeof $t28 !== 'function') $notProc($t28);
                 $t29 = $t28[$RAW];
                 $stack.room = $d;
                 $t30 = $t29 === undefined ? $t28("hash-table-set!", s_ht_$2557) : $t29("hash-table-set!", s_ht_$2557);
@@ -21560,6 +22484,7 @@ export const LIBRARIES = {
                 $pc = 19; continue;
               case 18:
                 $t46 = (C11.v ?? G11());
+                if (typeof $t46 !== 'function') $notProc($t46);
                 $t47 = $t46[$RAW];
                 $stack.room = $d;
                 $t48 = $t47 === undefined ? $t46(s_args_$2553) : $t47(s_args_$2553);
@@ -21588,6 +22513,7 @@ export const LIBRARIES = {
               case 24:
                 $t36 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2560 instanceof R.Cons) ? (s_args_$2560.car) : R.callBinding((C5.v ?? G5()), [s_args_$2560]);
                 $t37 = (C6.v ?? G6());
+                if (typeof $t37 !== 'function') $notProc($t37);
                 $t38 = $t37[$RAW];
                 $stack.room = $d;
                 $t39 = $t38 === undefined ? $t37(s_args_$2560) : $t38(s_args_$2560);
@@ -21598,6 +22524,7 @@ export const LIBRARIES = {
               case 25:
                 $t39 = $r;
                 $t40 = (C9.v ?? G9());
+                if (typeof $t40 !== 'function') $notProc($t40);
                 $t41 = $t40[$RAW];
                 $stack.room = $d;
                 $t42 = $t41 === undefined ? $t40(s_ht_$2557, $t36, $t39) : $t41(s_ht_$2557, $t36, $t39);
@@ -21609,6 +22536,7 @@ export const LIBRARIES = {
                 $t42 = $r;
                 $t42;
                 $t43 = (C2.v ?? G2());
+                if (typeof $t43 !== 'function') $notProc($t43);
                 $t44 = $t43[$RAW];
                 $stack.room = $d;
                 $t45 = $t44 === undefined ? $t43(s_args_$2560) : $t44(s_args_$2560);
@@ -21637,7 +22565,7 @@ export const LIBRARIES = {
         rest: "keys_$2562",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -21654,6 +22582,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2561, ...s_keys_$2562$raw]);
           let s_keys_$2562 = R.listFrom(s_keys_$2562$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-delete!", s_ht_$2561) : $t1("hash-table-delete!", s_ht_$2561);
@@ -21670,6 +22599,7 @@ export const LIBRARIES = {
           $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (s_keys_$2564 instanceof R.Cons) ? (s_keys_$2564.cdr) : R.callBinding((C2.v ?? G2()), [s_keys_$2564]);
           $t5 = (W4.intact || (C4.v ?? G4()) === P4) && (s_keys_$2564 instanceof R.Cons) ? (s_keys_$2564.car) : R.callBinding((C4.v ?? G4()), [s_keys_$2564]);
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_ht_$2561, $t5) : $t7(s_ht_$2561, $t5);
@@ -21694,6 +22624,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-delete!", s_ht_$2561) : $t1("hash-table-delete!", s_ht_$2561);
@@ -21716,6 +22647,7 @@ export const LIBRARIES = {
                 $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (s_keys_$2564 instanceof R.Cons) ? (s_keys_$2564.cdr) : R.callBinding((C2.v ?? G2()), [s_keys_$2564]);
                 $t5 = (W4.intact || (C4.v ?? G4()) === P4) && (s_keys_$2564 instanceof R.Cons) ? (s_keys_$2564.car) : R.callBinding((C4.v ?? G4()), [s_keys_$2564]);
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_ht_$2561, $t5) : $t7(s_ht_$2561, $t5);
@@ -21750,7 +22682,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "lookup")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "eq?")).v;
@@ -21762,6 +22694,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 27;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2566, s_key_$2567, s_failure_$2568]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-intern!", s_ht_$2566) : $t1("hash-table-intern!", s_ht_$2566);
@@ -21769,6 +22702,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2566, s_key_$2567, s_failure_$2568 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2566, s_key_$2567) : $t4(s_ht_$2566, s_key_$2567);
@@ -21779,6 +22713,7 @@ export const LIBRARIES = {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? (s_value_$2569 === $t6) : R.callBinding((C2.v ?? G2()), [s_value_$2569, $t6]);
           if ($t7 !== false) {
           $t8 = s_failure_$2568;
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8() : $t9();
@@ -21786,6 +22721,7 @@ export const LIBRARIES = {
           if ($t10 === $UNWIND) { R.reify($proc$r, 5, { s_ht_$2566, s_key_$2567 }); return $UNWIND; }
           s_value_$2570 = $t10;
           $t11 = (C4.v ?? G4());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_ht_$2566, s_key_$2567, s_value_$2570) : $t12(s_ht_$2566, s_key_$2567, s_value_$2570);
@@ -21804,6 +22740,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-intern!", s_ht_$2566) : $t1("hash-table-intern!", s_ht_$2566);
@@ -21815,6 +22752,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2566, s_key_$2567) : $t4(s_ht_$2566, s_key_$2567);
@@ -21830,6 +22768,7 @@ export const LIBRARIES = {
                 if ($t7 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t8 = s_failure_$2568;
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8() : $t9();
@@ -21843,6 +22782,7 @@ export const LIBRARIES = {
                 $t10 = $r;
                 s_value_$2570 = $t10;
                 $t11 = (C4.v ?? G4());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_ht_$2566, s_key_$2567, s_value_$2570) : $t12(s_ht_$2566, s_key_$2567, s_value_$2570);
@@ -21867,7 +22807,7 @@ export const LIBRARIES = {
         rest: "args_$2571",
         constants: [new Cons(intern("ht"), new Cons(intern("key"), new Cons(intern("updater"), new Cons(intern("failure"), new Cons(intern("success"), null))))), new Cons(intern("ht"), new Cons(intern("key"), new Cons(intern("updater"), new Cons(intern("failure"), new Cons(intern("success"), null)))))],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
@@ -21895,6 +22835,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($fn62, [s_ht_$2579, s_key_$2580, s_updater_$2581, s_failure_$2582, s_success_$2583]);
           $t0 = (C8.v ?? G8());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-update!", s_ht_$2579) : $t1("hash-table-update!", s_ht_$2579);
@@ -21902,12 +22843,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn62$r, 1, { s_ht_$2579, s_key_$2580, s_updater_$2581, s_failure_$2582, s_success_$2583 }); return $UNWIND; }
           $t2;
           $t3 = (C10.v ?? G10());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2579, s_key_$2580, s_failure_$2582, s_success_$2583) : $t4(s_ht_$2579, s_key_$2580, s_failure_$2582, s_success_$2583);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($fn62$r, 2, { s_ht_$2579, s_key_$2580, s_updater_$2581 }); return $UNWIND; }
           $t6 = s_updater_$2581;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -21924,6 +22867,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C8.v ?? G8());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-update!", s_ht_$2579) : $t1("hash-table-update!", s_ht_$2579);
@@ -21935,6 +22879,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C10.v ?? G10());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2579, s_key_$2580, s_failure_$2582, s_success_$2583) : $t4(s_ht_$2579, s_key_$2580, s_failure_$2582, s_success_$2583);
@@ -21945,6 +22890,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = s_updater_$2581;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -21973,6 +22919,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_args_$2571) : $t6(s_args_$2571);
@@ -21981,6 +22928,7 @@ export const LIBRARIES = {
           $t8 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t7 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t7]);
           if ($t8 !== false) {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_args_$2571) : $t11(s_args_$2571);
@@ -22003,6 +22951,7 @@ export const LIBRARIES = {
           $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2571 instanceof R.Cons) ? (s_args_$2571.car) : R.callBinding((C5.v ?? G5()), [s_args_$2571]);
           s_ht_$2572 = $t14;
           $t15 = (C6.v ?? G6());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_args_$2571) : $t16(s_args_$2571);
@@ -22010,6 +22959,7 @@ export const LIBRARIES = {
           if ($t17 === $UNWIND) { R.reify($proc$r, 14, { s_ht_$2572, s_args_$2571 }); return $UNWIND; }
           s_key_$2573 = $t17;
           $t18 = (C7.v ?? G7());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_args_$2571) : $t19(s_args_$2571);
@@ -22017,6 +22967,7 @@ export const LIBRARIES = {
           if ($t20 === $UNWIND) { R.reify($proc$r, 15, { s_ht_$2572, s_key_$2573 }); return $UNWIND; }
           s_updater_$2574 = $t20;
           $t21 = (C8.v ?? G8());
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21("hash-table-update!", s_ht_$2572) : $t22("hash-table-update!", s_ht_$2572);
@@ -22024,12 +22975,14 @@ export const LIBRARIES = {
           if ($t23 === $UNWIND) { R.reify($proc$r, 16, { s_ht_$2572, s_key_$2573, s_updater_$2574 }); return $UNWIND; }
           $t23;
           $t24 = (C10.v ?? G10());
+          if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
           $stack.room = $d;
           $t26 = $t25 === undefined ? $t24(s_ht_$2572, s_key_$2573) : $t25(s_ht_$2572, s_key_$2573);
           while ($t26 instanceof $TailCall) { $stack.room = $d; $t26 = $step($t26); }
           if ($t26 === $UNWIND) { R.reify($proc$r, 17, { s_ht_$2572, s_key_$2573, s_updater_$2574 }); return $UNWIND; }
           $t27 = s_updater_$2574;
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27($t26) : $t28($t26);
@@ -22039,6 +22992,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t30?.[$PRIM] === true) { $stack.room = $d; return $t30(s_ht_$2572, s_key_$2573, $t29); } return $tailCall($t30, [s_ht_$2572, s_key_$2573, $t29]);
         } else {
           $t31 = (C12.v ?? G12());
+          if (typeof $t31 !== 'function') $notProc($t31);
           $t32 = $t31[$RAW];
           $stack.room = $d;
           $t33 = $t32 === undefined ? $t31(s_args_$2571) : $t32(s_args_$2571);
@@ -22049,6 +23003,7 @@ export const LIBRARIES = {
           $t35 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2571 instanceof R.Cons) ? (s_args_$2571.car) : R.callBinding((C5.v ?? G5()), [s_args_$2571]);
           s_ht_$2575 = $t35;
           $t36 = (C6.v ?? G6());
+          if (typeof $t36 !== 'function') $notProc($t36);
           $t37 = $t36[$RAW];
           $stack.room = $d;
           $t38 = $t37 === undefined ? $t36(s_args_$2571) : $t37(s_args_$2571);
@@ -22056,6 +23011,7 @@ export const LIBRARIES = {
           if ($t38 === $UNWIND) { R.reify($proc$r, 22, { s_ht_$2575, s_args_$2571 }); return $UNWIND; }
           s_key_$2576 = $t38;
           $t39 = (C7.v ?? G7());
+          if (typeof $t39 !== 'function') $notProc($t39);
           $t40 = $t39[$RAW];
           $stack.room = $d;
           $t41 = $t40 === undefined ? $t39(s_args_$2571) : $t40(s_args_$2571);
@@ -22063,6 +23019,7 @@ export const LIBRARIES = {
           if ($t41 === $UNWIND) { R.reify($proc$r, 23, { s_ht_$2575, s_key_$2576, s_args_$2571 }); return $UNWIND; }
           s_updater_$2577 = $t41;
           $t42 = (C13.v ?? G13());
+          if (typeof $t42 !== 'function') $notProc($t42);
           $t43 = $t42[$RAW];
           $stack.room = $d;
           $t44 = $t43 === undefined ? $t42(s_args_$2571) : $t43(s_args_$2571);
@@ -22070,6 +23027,7 @@ export const LIBRARIES = {
           if ($t44 === $UNWIND) { R.reify($proc$r, 24, { s_ht_$2575, s_key_$2576, s_updater_$2577 }); return $UNWIND; }
           s_failure_$2578 = $t44;
           $t45 = (C8.v ?? G8());
+          if (typeof $t45 !== 'function') $notProc($t45);
           $t46 = $t45[$RAW];
           $stack.room = $d;
           $t47 = $t46 === undefined ? $t45("hash-table-update!", s_ht_$2575) : $t46("hash-table-update!", s_ht_$2575);
@@ -22077,12 +23035,14 @@ export const LIBRARIES = {
           if ($t47 === $UNWIND) { R.reify($proc$r, 25, { s_ht_$2575, s_key_$2576, s_updater_$2577, s_failure_$2578 }); return $UNWIND; }
           $t47;
           $t48 = (C10.v ?? G10());
+          if (typeof $t48 !== 'function') $notProc($t48);
           $t49 = $t48[$RAW];
           $stack.room = $d;
           $t50 = $t49 === undefined ? $t48(s_ht_$2575, s_key_$2576, s_failure_$2578) : $t49(s_ht_$2575, s_key_$2576, s_failure_$2578);
           while ($t50 instanceof $TailCall) { $stack.room = $d; $t50 = $step($t50); }
           if ($t50 === $UNWIND) { R.reify($proc$r, 26, { s_ht_$2575, s_key_$2576, s_updater_$2577 }); return $UNWIND; }
           $t51 = s_updater_$2577;
+          if (typeof $t51 !== 'function') $notProc($t51);
           $t52 = $t51[$RAW];
           $stack.room = $d;
           $t53 = $t52 === undefined ? $t51($t50) : $t52($t50);
@@ -22092,12 +23052,14 @@ export const LIBRARIES = {
           if ($d > 0 && $t54?.[$PRIM] === true) { $stack.room = $d; return $t54(s_ht_$2575, s_key_$2576, $t53); } return $tailCall($t54, [s_ht_$2575, s_key_$2576, $t53]);
         } else {
           $t55 = (C12.v ?? G12());
+          if (typeof $t55 !== 'function') $notProc($t55);
           $t56 = $t55[$RAW];
           $stack.room = $d;
           $t57 = $t56 === undefined ? $t55(s_args_$2571) : $t56(s_args_$2571);
           while ($t57 instanceof $TailCall) { $stack.room = $d; $t57 = $step($t57); }
           if ($t57 === $UNWIND) { R.reify($proc$r, 28, { s_args_$2571 }); return $UNWIND; }
           $t58 = (C12.v ?? G12());
+          if (typeof $t58 !== 'function') $notProc($t58);
           $t59 = $t58[$RAW];
           $stack.room = $d;
           $t60 = $t59 === undefined ? $t58(K[1]) : $t59(K[1]);
@@ -22110,6 +23072,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t64?.[$PRIM] === true) { $stack.room = $d; return $t64($t63, s_args_$2571); } return $tailCall($t64, [$t63, s_args_$2571]);
         } else {
           $t65 = (C12.v ?? G12());
+          if (typeof $t65 !== 'function') $notProc($t65);
           $t66 = $t65[$RAW];
           $stack.room = $d;
           $t67 = $t66 === undefined ? $t65(s_args_$2571) : $t66(s_args_$2571);
@@ -22140,6 +23103,7 @@ export const LIBRARIES = {
                 if ($t1 !== false) { $pc = 12; continue; } $pc = 13; continue;
               case 4:
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_args_$2571) : $t6(s_args_$2571);
@@ -22159,6 +23123,7 @@ export const LIBRARIES = {
                 if ($t8 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_args_$2571) : $t11(s_args_$2571);
@@ -22181,6 +23146,7 @@ export const LIBRARIES = {
                 $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2571 instanceof R.Cons) ? (s_args_$2571.car) : R.callBinding((C5.v ?? G5()), [s_args_$2571]);
                 s_ht_$2572 = $t14;
                 $t15 = (C6.v ?? G6());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_args_$2571) : $t16(s_args_$2571);
@@ -22190,6 +23156,7 @@ export const LIBRARIES = {
                 $pc = 14; continue;
               case 13:
                 $t31 = (C12.v ?? G12());
+                if (typeof $t31 !== 'function') $notProc($t31);
                 $t32 = $t31[$RAW];
                 $stack.room = $d;
                 $t33 = $t32 === undefined ? $t31(s_args_$2571) : $t32(s_args_$2571);
@@ -22201,6 +23168,7 @@ export const LIBRARIES = {
                 $t17 = $r;
                 s_key_$2573 = $t17;
                 $t18 = (C7.v ?? G7());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_args_$2571) : $t19(s_args_$2571);
@@ -22212,6 +23180,7 @@ export const LIBRARIES = {
                 $t20 = $r;
                 s_updater_$2574 = $t20;
                 $t21 = (C8.v ?? G8());
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21("hash-table-update!", s_ht_$2572) : $t22("hash-table-update!", s_ht_$2572);
@@ -22223,6 +23192,7 @@ export const LIBRARIES = {
                 $t23 = $r;
                 $t23;
                 $t24 = (C10.v ?? G10());
+                if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
                 $stack.room = $d;
                 $t26 = $t25 === undefined ? $t24(s_ht_$2572, s_key_$2573) : $t25(s_ht_$2572, s_key_$2573);
@@ -22233,6 +23203,7 @@ export const LIBRARIES = {
               case 17:
                 $t26 = $r;
                 $t27 = s_updater_$2574;
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27($t26) : $t28($t26);
@@ -22252,6 +23223,7 @@ export const LIBRARIES = {
                 $t35 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$2571 instanceof R.Cons) ? (s_args_$2571.car) : R.callBinding((C5.v ?? G5()), [s_args_$2571]);
                 s_ht_$2575 = $t35;
                 $t36 = (C6.v ?? G6());
+                if (typeof $t36 !== 'function') $notProc($t36);
                 $t37 = $t36[$RAW];
                 $stack.room = $d;
                 $t38 = $t37 === undefined ? $t36(s_args_$2571) : $t37(s_args_$2571);
@@ -22261,6 +23233,7 @@ export const LIBRARIES = {
                 $pc = 22; continue;
               case 21:
                 $t55 = (C12.v ?? G12());
+                if (typeof $t55 !== 'function') $notProc($t55);
                 $t56 = $t55[$RAW];
                 $stack.room = $d;
                 $t57 = $t56 === undefined ? $t55(s_args_$2571) : $t56(s_args_$2571);
@@ -22272,6 +23245,7 @@ export const LIBRARIES = {
                 $t38 = $r;
                 s_key_$2576 = $t38;
                 $t39 = (C7.v ?? G7());
+                if (typeof $t39 !== 'function') $notProc($t39);
                 $t40 = $t39[$RAW];
                 $stack.room = $d;
                 $t41 = $t40 === undefined ? $t39(s_args_$2571) : $t40(s_args_$2571);
@@ -22283,6 +23257,7 @@ export const LIBRARIES = {
                 $t41 = $r;
                 s_updater_$2577 = $t41;
                 $t42 = (C13.v ?? G13());
+                if (typeof $t42 !== 'function') $notProc($t42);
                 $t43 = $t42[$RAW];
                 $stack.room = $d;
                 $t44 = $t43 === undefined ? $t42(s_args_$2571) : $t43(s_args_$2571);
@@ -22294,6 +23269,7 @@ export const LIBRARIES = {
                 $t44 = $r;
                 s_failure_$2578 = $t44;
                 $t45 = (C8.v ?? G8());
+                if (typeof $t45 !== 'function') $notProc($t45);
                 $t46 = $t45[$RAW];
                 $stack.room = $d;
                 $t47 = $t46 === undefined ? $t45("hash-table-update!", s_ht_$2575) : $t46("hash-table-update!", s_ht_$2575);
@@ -22305,6 +23281,7 @@ export const LIBRARIES = {
                 $t47 = $r;
                 $t47;
                 $t48 = (C10.v ?? G10());
+                if (typeof $t48 !== 'function') $notProc($t48);
                 $t49 = $t48[$RAW];
                 $stack.room = $d;
                 $t50 = $t49 === undefined ? $t48(s_ht_$2575, s_key_$2576, s_failure_$2578) : $t49(s_ht_$2575, s_key_$2576, s_failure_$2578);
@@ -22315,6 +23292,7 @@ export const LIBRARIES = {
               case 26:
                 $t50 = $r;
                 $t51 = s_updater_$2577;
+                if (typeof $t51 !== 'function') $notProc($t51);
                 $t52 = $t51[$RAW];
                 $stack.room = $d;
                 $t53 = $t52 === undefined ? $t51($t50) : $t52($t50);
@@ -22329,6 +23307,7 @@ export const LIBRARIES = {
               case 28:
                 $t57 = $r;
                 $t58 = (C12.v ?? G12());
+                if (typeof $t58 !== 'function') $notProc($t58);
                 $t59 = $t58[$RAW];
                 $stack.room = $d;
                 $t60 = $t59 === undefined ? $t58(K[0]) : $t59(K[0]);
@@ -22346,6 +23325,7 @@ export const LIBRARIES = {
                 return $tailCall($t64, [$t63, s_args_$2571]);
               case 31:
                 $t65 = (C12.v ?? G12());
+                if (typeof $t65 !== 'function') $notProc($t65);
                 $t66 = $t65[$RAW];
                 $stack.room = $d;
                 $t67 = $t66 === undefined ? $t65(s_args_$2571) : $t66(s_args_$2571);
@@ -22370,7 +23350,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "lookup")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "put!")).v;
@@ -22382,6 +23362,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 26;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2584, s_key_$2585, s_updater_$2586, s_default_$2587]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-update!/default", s_ht_$2584) : $t1("hash-table-update!/default", s_ht_$2584);
@@ -22389,6 +23370,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2584, s_key_$2585, s_updater_$2586, s_default_$2587 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2584, s_key_$2585) : $t4(s_ht_$2584, s_key_$2585);
@@ -22403,6 +23385,7 @@ export const LIBRARIES = {
           $t8 = s_value_$2588;
         }
           $t9 = s_updater_$2586;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
@@ -22418,6 +23401,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-update!/default", s_ht_$2584) : $t1("hash-table-update!/default", s_ht_$2584);
@@ -22429,6 +23413,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2584, s_key_$2585) : $t4(s_ht_$2584, s_key_$2585);
@@ -22450,6 +23435,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t9 = s_updater_$2586;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
@@ -22474,7 +23460,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-store")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-some-key")).v;
@@ -22496,6 +23482,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 46;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2589]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-pop!", s_ht_$2589) : $t1("hash-table-pop!", s_ht_$2589);
@@ -22503,6 +23490,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2589 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2589) : $t4(s_ht_$2589);
@@ -22510,6 +23498,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2589 }); return $UNWIND; }
           s_store_$2590 = $t5;
           $t6 = (C2.v ?? G2());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_store_$2590, (C3.v ?? G3())) : $t7(s_store_$2590, (C3.v ?? G3()));
@@ -22523,6 +23512,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t11?.[$PRIM] === true) { $stack.room = $d; return $t11("hash-table-pop!: hash table is empty", s_ht_$2589); } return $tailCall($t11, ["hash-table-pop!: hash table is empty", s_ht_$2589]);
         } else {
           $t12 = (C6.v ?? G6());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_ht_$2589) : $t13(s_ht_$2589);
@@ -22530,6 +23520,7 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 6, { s_store_$2590, s_some_$2591, s_ht_$2589 }); return $UNWIND; }
           if ($t14 !== false) {
           $t15 = (C7.v ?? G7());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_store_$2590, s_some_$2591, (C3.v ?? G3())) : $t16(s_store_$2590, s_some_$2591, (C3.v ?? G3()));
@@ -22537,6 +23528,7 @@ export const LIBRARIES = {
           if ($t17 === $UNWIND) { R.reify($proc$r, 9, { s_store_$2590, s_some_$2591 }); return $UNWIND; }
           s_value_$2592 = $t17;
           $t18 = (C8.v ?? G8());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_store_$2590, s_some_$2591) : $t19(s_store_$2590, s_some_$2591);
@@ -22547,6 +23539,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t21?.[$PRIM] === true) { $stack.room = $d; return $t21(s_some_$2591, s_value_$2592); } return $tailCall($t21, [s_some_$2591, s_value_$2592]);
         } else {
           $t22 = (C7.v ?? G7());
+          if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
           $stack.room = $d;
           $t24 = $t23 === undefined ? $t22(s_store_$2590, s_some_$2591, null) : $t23(s_store_$2590, s_some_$2591, null);
@@ -22556,6 +23549,7 @@ export const LIBRARIES = {
           s_entry_$2593 = $t25;
           $t26 = (W10.intact || (C10.v ?? G10()) === P10) && (s_entry_$2593 instanceof R.Cons) ? (s_entry_$2593.car) : R.callBinding((C10.v ?? G10()), [s_entry_$2593]);
           $t27 = (C11.v ?? G11());
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27(s_ht_$2589, $t26) : $t28(s_ht_$2589, $t26);
@@ -22576,6 +23570,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-pop!", s_ht_$2589) : $t1("hash-table-pop!", s_ht_$2589);
@@ -22587,6 +23582,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2589) : $t4(s_ht_$2589);
@@ -22598,6 +23594,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 s_store_$2590 = $t5;
                 $t6 = (C2.v ?? G2());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_store_$2590, (C3.v ?? G3())) : $t7(s_store_$2590, (C3.v ?? G3()));
@@ -22616,6 +23613,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, ["hash-table-pop!: hash table is empty", s_ht_$2589]);
               case 5:
                 $t12 = (C6.v ?? G6());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_ht_$2589) : $t13(s_ht_$2589);
@@ -22628,6 +23626,7 @@ export const LIBRARIES = {
                 if ($t14 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t15 = (C7.v ?? G7());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_store_$2590, s_some_$2591, (C3.v ?? G3())) : $t16(s_store_$2590, s_some_$2591, (C3.v ?? G3()));
@@ -22637,6 +23636,7 @@ export const LIBRARIES = {
                 $pc = 9; continue;
               case 8:
                 $t22 = (C7.v ?? G7());
+                if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
                 $stack.room = $d;
                 $t24 = $t23 === undefined ? $t22(s_store_$2590, s_some_$2591, null) : $t23(s_store_$2590, s_some_$2591, null);
@@ -22648,6 +23648,7 @@ export const LIBRARIES = {
                 $t17 = $r;
                 s_value_$2592 = $t17;
                 $t18 = (C8.v ?? G8());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_store_$2590, s_some_$2591) : $t19(s_store_$2590, s_some_$2591);
@@ -22666,6 +23667,7 @@ export const LIBRARIES = {
                 s_entry_$2593 = $t25;
                 $t26 = (W10.intact || (C10.v ?? G10()) === P10) && (s_entry_$2593 instanceof R.Cons) ? (s_entry_$2593.car) : R.callBinding((C10.v ?? G10()), [s_entry_$2593]);
                 $t27 = (C11.v ?? G11());
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27(s_ht_$2589, $t26) : $t28(s_ht_$2589, $t26);
@@ -22693,7 +23695,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-clear!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-store")).v;
@@ -22703,6 +23705,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 19;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2594]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-clear!", s_ht_$2594) : $t1("hash-table-clear!", s_ht_$2594);
@@ -22710,12 +23713,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2594 }); return $UNWIND; }
           $t2;
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2594) : $t4(s_ht_$2594);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2594 }); return $UNWIND; }
           $t6 = (C1.v ?? G1());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -22732,6 +23737,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-clear!", s_ht_$2594) : $t1("hash-table-clear!", s_ht_$2594);
@@ -22743,6 +23749,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2594) : $t4(s_ht_$2594);
@@ -22753,6 +23760,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = (C1.v ?? G1());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6($t5) : $t7($t5);
@@ -22778,7 +23786,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-kind")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-size")).v;
@@ -22789,6 +23797,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 20;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2595]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-size", s_ht_$2595) : $t1("hash-table-size", s_ht_$2595);
@@ -22796,6 +23805,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2595 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2595) : $t4(s_ht_$2595);
@@ -22803,6 +23813,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2595 }); return $UNWIND; }
           if ($t5 !== false) {
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_ht_$2595) : $t7(s_ht_$2595);
@@ -22822,6 +23833,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-size", s_ht_$2595) : $t1("hash-table-size", s_ht_$2595);
@@ -22833,6 +23845,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2595) : $t4(s_ht_$2595);
@@ -22845,6 +23858,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_ht_$2595) : $t7(s_ht_$2595);
@@ -22872,7 +23886,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-kind")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-keys")).v;
@@ -22886,6 +23900,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2596]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-keys", s_ht_$2596) : $t1("hash-table-keys", s_ht_$2596);
@@ -22893,6 +23908,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2596 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2596) : $t4(s_ht_$2596);
@@ -22900,6 +23916,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2596 }); return $UNWIND; }
           if ($t5 !== false) {
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_ht_$2596) : $t7(s_ht_$2596);
@@ -22909,6 +23926,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t9?.[$PRIM] === true) { $stack.room = $d; return $t9($t8); } return $tailCall($t9, [$t8]);
         } else {
           $t10 = (C6.v ?? G6());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ht_$2596) : $t11(s_ht_$2596);
@@ -22925,6 +23943,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-keys", s_ht_$2596) : $t1("hash-table-keys", s_ht_$2596);
@@ -22936,6 +23955,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2596) : $t4(s_ht_$2596);
@@ -22948,6 +23968,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_ht_$2596) : $t7(s_ht_$2596);
@@ -22957,6 +23978,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 4:
                 $t10 = (C6.v ?? G6());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ht_$2596) : $t11(s_ht_$2596);
@@ -22985,7 +24007,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-kind")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-values")).v;
@@ -22999,6 +24021,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2597]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-values", s_ht_$2597) : $t1("hash-table-values", s_ht_$2597);
@@ -23006,6 +24029,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2597 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2597) : $t4(s_ht_$2597);
@@ -23013,6 +24037,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$2597 }); return $UNWIND; }
           if ($t5 !== false) {
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_ht_$2597) : $t7(s_ht_$2597);
@@ -23022,6 +24047,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t9?.[$PRIM] === true) { $stack.room = $d; return $t9($t8); } return $tailCall($t9, [$t8]);
         } else {
           $t10 = (C6.v ?? G6());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ht_$2597) : $t11(s_ht_$2597);
@@ -23038,6 +24064,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-values", s_ht_$2597) : $t1("hash-table-values", s_ht_$2597);
@@ -23049,6 +24076,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2597) : $t4(s_ht_$2597);
@@ -23061,6 +24089,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_ht_$2597) : $t7(s_ht_$2597);
@@ -23070,6 +24099,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 4:
                 $t10 = (C6.v ?? G6());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ht_$2597) : $t11(s_ht_$2597);
@@ -23098,7 +24128,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "entries")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "values")).v;
@@ -23112,6 +24142,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2598]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-entries", s_ht_$2598) : $t1("hash-table-entries", s_ht_$2598);
@@ -23119,6 +24150,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2598 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2598) : $t4(s_ht_$2598);
@@ -23126,12 +24158,14 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, {  }); return $UNWIND; }
           s_es_$2599 = $t5;
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_es_$2599) : $t7((C4.v ?? G4()), s_es_$2599);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_es_$2599 }); return $UNWIND; }
           $t9 = (C3.v ?? G3());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9((C5.v ?? G5()), s_es_$2599) : $t10((C5.v ?? G5()), s_es_$2599);
@@ -23147,6 +24181,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-entries", s_ht_$2598) : $t1("hash-table-entries", s_ht_$2598);
@@ -23158,6 +24193,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2598) : $t4(s_ht_$2598);
@@ -23169,6 +24205,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 s_es_$2599 = $t5;
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6((C4.v ?? G4()), s_es_$2599) : $t7((C4.v ?? G4()), s_es_$2599);
@@ -23179,6 +24216,7 @@ export const LIBRARIES = {
               case 3:
                 $t8 = $r;
                 $t9 = (C3.v ?? G3());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9((C5.v ?? G5()), s_es_$2599) : $t10((C5.v ?? G5()), s_es_$2599);
@@ -23203,7 +24241,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -23217,6 +24255,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 31;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2600, s_ht_$2601, s_failure_$2602]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-find", s_ht_$2601) : $t1("hash-table-find", s_ht_$2601);
@@ -23224,6 +24263,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_proc_$2600, s_ht_$2601, s_failure_$2602 }); return $UNWIND; }
           $t2;
           $t3 = (C5.v ?? G5());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2601) : $t4(s_ht_$2601);
@@ -23237,18 +24277,21 @@ export const LIBRARIES = {
           if ($d > 0 && $t7?.[$PRIM] === true) { $stack.room = $d; return $t7(); } return $tailCall($t7, []);
         } else {
           $t8 = (C2.v ?? G2());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_es_$2604) : $t9(s_es_$2604);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 6, { s_es_$2604, s_proc_$2600, s_failure_$2602 }); return $UNWIND; }
           $t11 = (C3.v ?? G3());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_es_$2604) : $t12(s_es_$2604);
           while ($t13 instanceof $TailCall) { $stack.room = $d; $t13 = $step($t13); }
           if ($t13 === $UNWIND) { R.reify($proc$r, 7, { s_es_$2604, $t10, s_proc_$2600, s_failure_$2602 }); return $UNWIND; }
           $t14 = s_proc_$2600;
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14($t10, $t13) : $t15($t10, $t13);
@@ -23272,6 +24315,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-find", s_ht_$2601) : $t1("hash-table-find", s_ht_$2601);
@@ -23283,6 +24327,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C5.v ?? G5());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2601) : $t4(s_ht_$2601);
@@ -23302,6 +24347,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, []);
               case 5:
                 $t8 = (C2.v ?? G2());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_es_$2604) : $t9(s_es_$2604);
@@ -23312,6 +24358,7 @@ export const LIBRARIES = {
               case 6:
                 $t10 = $r;
                 $t11 = (C3.v ?? G3());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_es_$2604) : $t12(s_es_$2604);
@@ -23322,6 +24369,7 @@ export const LIBRARIES = {
               case 7:
                 $t13 = $r;
                 $t14 = s_proc_$2600;
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14($t10, $t13) : $t15($t10, $t13);
@@ -23352,7 +24400,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -23368,6 +24416,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 31;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2606, s_ht_$2607]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-count", s_ht_$2607) : $t1("hash-table-count", s_ht_$2607);
@@ -23375,6 +24424,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_pred_$2606, s_ht_$2607 }); return $UNWIND; }
           $t2;
           $t3 = (C6.v ?? G6());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2607) : $t4(s_ht_$2607);
@@ -23389,18 +24439,21 @@ export const LIBRARIES = {
         } else {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (s_es_$2609 instanceof R.Cons) ? (s_es_$2609.cdr) : R.callBinding((C2.v ?? G2()), [s_es_$2609]);
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_es_$2609) : $t9(s_es_$2609);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 6, { s_es_$2609, s_n_$2610, $t7, s_pred_$2606 }); return $UNWIND; }
           $t11 = (C4.v ?? G4());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_es_$2609) : $t12(s_es_$2609);
           while ($t13 instanceof $TailCall) { $stack.room = $d; $t13 = $step($t13); }
           if ($t13 === $UNWIND) { R.reify($proc$r, 7, { s_n_$2610, $t7, $t10, s_pred_$2606 }); return $UNWIND; }
           $t14 = s_pred_$2606;
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14($t10, $t13) : $t15($t10, $t13);
@@ -23425,6 +24478,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-count", s_ht_$2607) : $t1("hash-table-count", s_ht_$2607);
@@ -23436,6 +24490,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C6.v ?? G6());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2607) : $t4(s_ht_$2607);
@@ -23456,6 +24511,7 @@ export const LIBRARIES = {
               case 5:
                 $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (s_es_$2609 instanceof R.Cons) ? (s_es_$2609.cdr) : R.callBinding((C2.v ?? G2()), [s_es_$2609]);
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_es_$2609) : $t9(s_es_$2609);
@@ -23466,6 +24522,7 @@ export const LIBRARIES = {
               case 6:
                 $t10 = $r;
                 $t11 = (C4.v ?? G4());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_es_$2609) : $t12(s_es_$2609);
@@ -23476,6 +24533,7 @@ export const LIBRARIES = {
               case 7:
                 $t13 = $r;
                 $t14 = s_pred_$2606;
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14($t10, $t13) : $t15($t10, $t13);
@@ -23510,7 +24568,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-from")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "for-each")).v;
@@ -23528,6 +24586,7 @@ export const LIBRARIES = {
           $t0 = (W4.intact || (C4.v ?? G4()) === P4) && (s_e_$2615 instanceof R.Cons) ? (s_e_$2615.car) : R.callBinding((C4.v ?? G4()), [s_e_$2615]);
           $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2615 instanceof R.Cons) ? (s_e_$2615.cdr) : R.callBinding((C5.v ?? G5()), [s_e_$2615]);
           $t2 = s_proc_$2611;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -23546,6 +24605,7 @@ export const LIBRARIES = {
                 $t0 = (W4.intact || (C4.v ?? G4()) === P4) && (s_e_$2615 instanceof R.Cons) ? (s_e_$2615.car) : R.callBinding((C4.v ?? G4()), [s_e_$2615]);
                 $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2615 instanceof R.Cons) ? (s_e_$2615.cdr) : R.callBinding((C5.v ?? G5()), [s_e_$2615]);
                 $t2 = s_proc_$2611;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -23568,6 +24628,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 25;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2611, s_comparator_$2612, s_ht_$2613]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-map", s_ht_$2613) : $t1("hash-table-map", s_ht_$2613);
@@ -23575,6 +24636,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_proc_$2611, s_comparator_$2612, s_ht_$2613 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("hash-table-map", s_comparator_$2612, null) : $t4("hash-table-map", s_comparator_$2612, null);
@@ -23583,12 +24645,14 @@ export const LIBRARIES = {
           s_result_$2614 = $t5;
           $t7 = $mk$fn6(s_result_$2614, s_proc_$2611);
           $t8 = (C6.v ?? G6());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_ht_$2613) : $t9(s_ht_$2613);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { s_result_$2614, $t7 }); return $UNWIND; }
           $t11 = (C2.v ?? G2());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -23604,6 +24668,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-map", s_ht_$2613) : $t1("hash-table-map", s_ht_$2613);
@@ -23615,6 +24680,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("hash-table-map", s_comparator_$2612, null) : $t4("hash-table-map", s_comparator_$2612, null);
@@ -23627,6 +24693,7 @@ export const LIBRARIES = {
                 s_result_$2614 = $t5;
                 $t7 = $mk$fn6(s_result_$2614, s_proc_$2611);
                 $t8 = (C6.v ?? G6());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_ht_$2613) : $t9(s_ht_$2613);
@@ -23637,6 +24704,7 @@ export const LIBRARIES = {
               case 3:
                 $t10 = $r;
                 $t11 = (C2.v ?? G2());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -23661,7 +24729,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "hash-table?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "hash-table-for-each")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "check-table")).v;
@@ -23702,6 +24770,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2616, s_ht_$2617]);
           $loop: for (;;) {
             $t0 = (C0.v ?? G0());
+            if (typeof $t0 !== 'function') $notProc($t0);
             $t1 = $t0[$RAW];
             $stack.room = $d;
             $t2 = $t1 === undefined ? $t0(s_proc_$2616) : $t1(s_proc_$2616);
@@ -23713,6 +24782,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t5?.[$PRIM] === true) { $stack.room = $d; return $t5(s_ht_$2617, s_proc_$2616); } return $tailCall($t5, [s_ht_$2617, s_proc_$2616]);
         } else {
           $t6 = (C2.v ?? G2());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6("hash-table-for-each", s_ht_$2617) : $t7("hash-table-for-each", s_ht_$2617);
@@ -23721,6 +24791,7 @@ export const LIBRARIES = {
           $t8;
           $t10 = $mk$fn9(s_proc_$2616);
           $t11 = (C6.v ?? G6());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_ht_$2617) : $t12(s_ht_$2617);
@@ -23738,6 +24809,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$2616) : $t1(s_proc_$2616);
@@ -23754,6 +24826,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [s_ht_$2617, s_proc_$2616]);
               case 3:
                 $t6 = (C2.v ?? G2());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6("hash-table-for-each", s_ht_$2617) : $t7("hash-table-for-each", s_ht_$2617);
@@ -23766,6 +24839,7 @@ export const LIBRARIES = {
                 $t8;
                 $t10 = $mk$fn9(s_proc_$2616);
                 $t11 = (C6.v ?? G6());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_ht_$2617) : $t12(s_ht_$2617);
@@ -23818,7 +24892,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "for-each")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "put!")).v;
@@ -23836,6 +24910,7 @@ export const LIBRARIES = {
           $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_e_$2623 instanceof R.Cons) ? (s_e_$2623.car) : R.callBinding((C3.v ?? G3()), [s_e_$2623]);
           $t2 = (W4.intact || (C4.v ?? G4()) === P4) && (s_e_$2623 instanceof R.Cons) ? (s_e_$2623.cdr) : R.callBinding((C4.v ?? G4()), [s_e_$2623]);
           $t3 = s_proc_$2621;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3($t1, $t2) : $t4($t1, $t2);
@@ -23855,6 +24930,7 @@ export const LIBRARIES = {
                 $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_e_$2623 instanceof R.Cons) ? (s_e_$2623.car) : R.callBinding((C3.v ?? G3()), [s_e_$2623]);
                 $t2 = (W4.intact || (C4.v ?? G4()) === P4) && (s_e_$2623 instanceof R.Cons) ? (s_e_$2623.cdr) : R.callBinding((C4.v ?? G4()), [s_e_$2623]);
                 $t3 = s_proc_$2621;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3($t1, $t2) : $t4($t1, $t2);
@@ -23877,6 +24953,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2621, s_ht_$2622]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-map!", s_ht_$2622) : $t1("hash-table-map!", s_ht_$2622);
@@ -23885,6 +24962,7 @@ export const LIBRARIES = {
           $t2;
           $t4 = $mk$fn3(s_ht_$2622, s_proc_$2621);
           $t5 = (C5.v ?? G5());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_ht_$2622) : $t6(s_ht_$2622);
@@ -23900,6 +24978,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-map!", s_ht_$2622) : $t1("hash-table-map!", s_ht_$2622);
@@ -23912,6 +24991,7 @@ export const LIBRARIES = {
                 $t2;
                 $t4 = $mk$fn3(s_ht_$2622, s_proc_$2621);
                 $t5 = (C5.v ?? G5());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_ht_$2622) : $t6(s_ht_$2622);
@@ -23936,7 +25016,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "map")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -23974,6 +25054,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2624, s_ht_$2625]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-map->list", s_ht_$2625) : $t1("hash-table-map->list", s_ht_$2625);
@@ -23982,6 +25063,7 @@ export const LIBRARIES = {
           $t2;
           $t4 = $mk$fn3(s_proc_$2624);
           $t5 = (C4.v ?? G4());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_ht_$2625) : $t6(s_ht_$2625);
@@ -23997,6 +25079,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-map->list", s_ht_$2625) : $t1("hash-table-map->list", s_ht_$2625);
@@ -24009,6 +25092,7 @@ export const LIBRARIES = {
                 $t2;
                 $t4 = $mk$fn3(s_proc_$2624);
                 $t5 = (C4.v ?? G4());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_ht_$2625) : $t6(s_ht_$2625);
@@ -24033,7 +25117,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "hash-table?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "hash-table-fold")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "check-table")).v;
@@ -24050,6 +25134,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2627, s_seed_$2628, s_ht_$2629]);
           $loop: for (;;) {
             $t0 = (C0.v ?? G0());
+            if (typeof $t0 !== 'function') $notProc($t0);
             $t1 = $t0[$RAW];
             $stack.room = $d;
             $t2 = $t1 === undefined ? $t0(s_proc_$2627) : $t1(s_proc_$2627);
@@ -24061,6 +25146,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t6?.[$PRIM] === true) { $stack.room = $d; return $t6(s_seed_$2628, s_ht_$2629, s_proc_$2627); } return $tailCall($t6, [s_seed_$2628, s_ht_$2629, s_proc_$2627]);
         } else {
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7("hash-table-fold", s_ht_$2629) : $t8("hash-table-fold", s_ht_$2629);
@@ -24068,6 +25154,7 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 4, { s_proc_$2627, s_seed_$2628, s_ht_$2629 }); return $UNWIND; }
           $t9;
           $t10 = (C7.v ?? G7());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ht_$2629) : $t11(s_ht_$2629);
@@ -24082,18 +25169,21 @@ export const LIBRARIES = {
         } else {
           $t14 = (W4.intact || (C4.v ?? G4()) === P4) && (s_es_$2631 instanceof R.Cons) ? (s_es_$2631.cdr) : R.callBinding((C4.v ?? G4()), [s_es_$2631]);
           $t15 = (C5.v ?? G5());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_es_$2631) : $t16(s_es_$2631);
           while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
           if ($t17 === $UNWIND) { R.reify($proc$r, 9, { s_es_$2631, s_acc_$2632, $t14, s_proc_$2627 }); return $UNWIND; }
           $t18 = (C6.v ?? G6());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_es_$2631) : $t19(s_es_$2631);
           while ($t20 instanceof $TailCall) { $stack.room = $d; $t20 = $step($t20); }
           if ($t20 === $UNWIND) { R.reify($proc$r, 10, { s_acc_$2632, $t14, $t17, s_proc_$2627 }); return $UNWIND; }
           $t21 = s_proc_$2627;
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21($t17, $t20, s_acc_$2632) : $t22($t17, $t20, s_acc_$2632);
@@ -24114,6 +25204,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_proc_$2627) : $t1(s_proc_$2627);
@@ -24130,6 +25221,7 @@ export const LIBRARIES = {
                 return $tailCall($t6, [s_seed_$2628, s_ht_$2629, s_proc_$2627]);
               case 3:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7("hash-table-fold", s_ht_$2629) : $t8("hash-table-fold", s_ht_$2629);
@@ -24141,6 +25233,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 $t9;
                 $t10 = (C7.v ?? G7());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ht_$2629) : $t11(s_ht_$2629);
@@ -24161,6 +25254,7 @@ export const LIBRARIES = {
               case 8:
                 $t14 = (W4.intact || (C4.v ?? G4()) === P4) && (s_es_$2631 instanceof R.Cons) ? (s_es_$2631.cdr) : R.callBinding((C4.v ?? G4()), [s_es_$2631]);
                 $t15 = (C5.v ?? G5());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_es_$2631) : $t16(s_es_$2631);
@@ -24171,6 +25265,7 @@ export const LIBRARIES = {
               case 9:
                 $t17 = $r;
                 $t18 = (C6.v ?? G6());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_es_$2631) : $t19(s_es_$2631);
@@ -24181,6 +25276,7 @@ export const LIBRARIES = {
               case 10:
                 $t20 = $r;
                 $t21 = s_proc_$2627;
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21($t17, $t20, s_acc_$2632) : $t22($t17, $t20, s_acc_$2632);
@@ -24206,7 +25302,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "for-each")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -24223,6 +25319,7 @@ export const LIBRARIES = {
           $t0 = (W2.intact || (C2.v ?? G2()) === P2) && (s_e_$2635 instanceof R.Cons) ? (s_e_$2635.car) : R.callBinding((C2.v ?? G2()), [s_e_$2635]);
           $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_e_$2635 instanceof R.Cons) ? (s_e_$2635.cdr) : R.callBinding((C3.v ?? G3()), [s_e_$2635]);
           $t2 = s_proc_$2633;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t0, $t1) : $t3($t0, $t1);
@@ -24246,6 +25343,7 @@ export const LIBRARIES = {
                 $t0 = (W2.intact || (C2.v ?? G2()) === P2) && (s_e_$2635 instanceof R.Cons) ? (s_e_$2635.car) : R.callBinding((C2.v ?? G2()), [s_e_$2635]);
                 $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_e_$2635 instanceof R.Cons) ? (s_e_$2635.cdr) : R.callBinding((C3.v ?? G3()), [s_e_$2635]);
                 $t2 = s_proc_$2633;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t0, $t1) : $t3($t0, $t1);
@@ -24273,6 +25371,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2633, s_ht_$2634]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-prune!", s_ht_$2634) : $t1("hash-table-prune!", s_ht_$2634);
@@ -24281,6 +25380,7 @@ export const LIBRARIES = {
           $t2;
           $t4 = $mk$fn3(s_proc_$2633, s_ht_$2634);
           $t5 = (C5.v ?? G5());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_ht_$2634) : $t6(s_ht_$2634);
@@ -24296,6 +25396,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-prune!", s_ht_$2634) : $t1("hash-table-prune!", s_ht_$2634);
@@ -24308,6 +25409,7 @@ export const LIBRARIES = {
                 $t2;
                 $t4 = $mk$fn3(s_proc_$2633, s_ht_$2634);
                 $t5 = (C5.v ?? G5());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_ht_$2634) : $t6(s_ht_$2634);
@@ -24332,7 +25434,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [intern("eqv"), intern("eqv")],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-store")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "make-raw-hash-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-kind")).v;
@@ -24384,6 +25486,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn13, [s_h_$2640, s_bucket_$2641]);
           $t1 = $mk$fn13_0();
           $t2 = (C7.v ?? G7());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1, s_bucket_$2641) : $t3($t1, s_bucket_$2641);
@@ -24401,6 +25504,7 @@ export const LIBRARIES = {
               case 0:
                 $t1 = $mk$fn13_0();
                 $t2 = (C7.v ?? G7());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1, s_bucket_$2641) : $t3($t1, s_bucket_$2641);
@@ -24423,6 +25527,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 51;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2636, s_mutable_3f_$2637]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_ht_$2636) : $t1(s_ht_$2636);
@@ -24430,6 +25535,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           s_store_$2638 = $t2;
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2636) : $t4(s_ht_$2636);
@@ -24437,6 +25543,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_store_$2638, s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           if ($t5 !== false) {
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_store_$2638) : $t8(s_store_$2638);
@@ -24445,6 +25552,7 @@ export const LIBRARIES = {
           $t6 = $t9;
         } else {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(K[1]) : $t11(K[1]);
@@ -24453,18 +25561,21 @@ export const LIBRARIES = {
           s_copy_$2639 = $t12;
           $t14 = $mk$fn13(s_copy_$2639);
           $t15 = (C11.v ?? G11());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_store_$2638) : $t16(s_store_$2638);
           while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
           if ($t17 === $UNWIND) { R.reify($proc$r, 8, { s_store_$2638, s_copy_$2639, $t14, s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           $t18 = (C12.v ?? G12());
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_store_$2638) : $t19(s_store_$2638);
           while ($t20 instanceof $TailCall) { $stack.room = $d; $t20 = $step($t20); }
           if ($t20 === $UNWIND) { R.reify($proc$r, 9, { s_copy_$2639, $t14, $t17, s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           $t21 = (C5.v ?? G5());
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21($t14, $t17, $t20) : $t22($t14, $t17, $t20);
@@ -24473,30 +25584,35 @@ export const LIBRARIES = {
           $t6 = s_copy_$2639;
         }
           $t24 = (C2.v ?? G2());
+          if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
           $stack.room = $d;
           $t26 = $t25 === undefined ? $t24(s_ht_$2636) : $t25(s_ht_$2636);
           while ($t26 instanceof $TailCall) { $stack.room = $d; $t26 = $step($t26); }
           if ($t26 === $UNWIND) { R.reify($proc$r, 11, { $t6, s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           $t27 = (C13.v ?? G13());
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27(s_ht_$2636) : $t28(s_ht_$2636);
           while ($t29 instanceof $TailCall) { $stack.room = $d; $t29 = $step($t29); }
           if ($t29 === $UNWIND) { R.reify($proc$r, 12, { $t6, $t26, s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           $t30 = (C14.v ?? G14());
+          if (typeof $t30 !== 'function') $notProc($t30);
           $t31 = $t30[$RAW];
           $stack.room = $d;
           $t32 = $t31 === undefined ? $t30(s_ht_$2636) : $t31(s_ht_$2636);
           while ($t32 instanceof $TailCall) { $stack.room = $d; $t32 = $step($t32); }
           if ($t32 === $UNWIND) { R.reify($proc$r, 13, { $t6, $t26, $t29, s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           $t33 = (C15.v ?? G15());
+          if (typeof $t33 !== 'function') $notProc($t33);
           $t34 = $t33[$RAW];
           $stack.room = $d;
           $t35 = $t34 === undefined ? $t33(s_ht_$2636) : $t34(s_ht_$2636);
           while ($t35 instanceof $TailCall) { $stack.room = $d; $t35 = $step($t35); }
           if ($t35 === $UNWIND) { R.reify($proc$r, 14, { $t6, $t26, $t29, $t32, s_ht_$2636, s_mutable_3f_$2637 }); return $UNWIND; }
           $t36 = (C16.v ?? G16());
+          if (typeof $t36 !== 'function') $notProc($t36);
           $t37 = $t36[$RAW];
           $stack.room = $d;
           $t38 = $t37 === undefined ? $t36(s_ht_$2636) : $t37(s_ht_$2636);
@@ -24512,6 +25628,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_ht_$2636) : $t1(s_ht_$2636);
@@ -24523,6 +25640,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_store_$2638 = $t2;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2636) : $t4(s_ht_$2636);
@@ -24535,6 +25653,7 @@ export const LIBRARIES = {
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_store_$2638) : $t8(s_store_$2638);
@@ -24544,6 +25663,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 4:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(K[0]) : $t11(K[0]);
@@ -24553,6 +25673,7 @@ export const LIBRARIES = {
                 $pc = 7; continue;
               case 5:
                 $t24 = (C2.v ?? G2());
+                if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
                 $stack.room = $d;
                 $t26 = $t25 === undefined ? $t24(s_ht_$2636) : $t25(s_ht_$2636);
@@ -24569,6 +25690,7 @@ export const LIBRARIES = {
                 s_copy_$2639 = $t12;
                 $t14 = $mk$fn13(s_copy_$2639);
                 $t15 = (C11.v ?? G11());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_store_$2638) : $t16(s_store_$2638);
@@ -24579,6 +25701,7 @@ export const LIBRARIES = {
               case 8:
                 $t17 = $r;
                 $t18 = (C12.v ?? G12());
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_store_$2638) : $t19(s_store_$2638);
@@ -24589,6 +25712,7 @@ export const LIBRARIES = {
               case 9:
                 $t20 = $r;
                 $t21 = (C5.v ?? G5());
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21($t14, $t17, $t20) : $t22($t14, $t17, $t20);
@@ -24603,6 +25727,7 @@ export const LIBRARIES = {
               case 11:
                 $t26 = $r;
                 $t27 = (C13.v ?? G13());
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27(s_ht_$2636) : $t28(s_ht_$2636);
@@ -24613,6 +25738,7 @@ export const LIBRARIES = {
               case 12:
                 $t29 = $r;
                 $t30 = (C14.v ?? G14());
+                if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
                 $t32 = $t31 === undefined ? $t30(s_ht_$2636) : $t31(s_ht_$2636);
@@ -24623,6 +25749,7 @@ export const LIBRARIES = {
               case 13:
                 $t32 = $r;
                 $t33 = (C15.v ?? G15());
+                if (typeof $t33 !== 'function') $notProc($t33);
                 $t34 = $t33[$RAW];
                 $stack.room = $d;
                 $t35 = $t34 === undefined ? $t33(s_ht_$2636) : $t34(s_ht_$2636);
@@ -24633,6 +25760,7 @@ export const LIBRARIES = {
               case 14:
                 $t35 = $r;
                 $t36 = (C16.v ?? G16());
+                if (typeof $t36 !== 'function') $notProc($t36);
                 $t37 = $t36[$RAW];
                 $stack.room = $d;
                 $t38 = $t37 === undefined ? $t36(s_ht_$2636) : $t37(s_ht_$2636);
@@ -24657,7 +25785,7 @@ export const LIBRARIES = {
         rest: "args_$2643",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
@@ -24698,6 +25826,7 @@ export const LIBRARIES = {
           $t9 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t8 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t8]);
           if ($t9 !== false) {
           $t11 = (C5.v ?? G5());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_args_$2643) : $t12(s_args_$2643);
@@ -24716,6 +25845,7 @@ export const LIBRARIES = {
           $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (s_args_$2643 instanceof R.Cons) ? (s_args_$2643.car) : R.callBinding((C3.v ?? G3()), [s_args_$2643]);
           s_ht_$2645 = $t15;
           $t16 = (C6.v ?? G6());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_args_$2643) : $t17(s_args_$2643);
@@ -24723,6 +25853,7 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 15, { s_ht_$2645 }); return $UNWIND; }
           s_mutable_3f_$2646 = $t18;
           $t19 = (C7.v ?? G7());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19("hash-table-copy", s_ht_$2645) : $t20("hash-table-copy", s_ht_$2645);
@@ -24738,6 +25869,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t23?.[$PRIM] === true) { $stack.room = $d; return $t23(s_ht_$2645, $t22); } return $tailCall($t23, [s_ht_$2645, $t22]);
         } else {
           $t24 = (C10.v ?? G10());
+          if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
           $stack.room = $d;
           $t26 = $t25 === undefined ? $t24(s_args_$2643) : $t25(s_args_$2643);
@@ -24785,6 +25917,7 @@ export const LIBRARIES = {
                 if ($t7 !== false) { $pc = 13; continue; } $pc = 14; continue;
               case 9:
                 $t11 = (C5.v ?? G5());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_args_$2643) : $t12(s_args_$2643);
@@ -24807,6 +25940,7 @@ export const LIBRARIES = {
                 $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (s_args_$2643 instanceof R.Cons) ? (s_args_$2643.car) : R.callBinding((C3.v ?? G3()), [s_args_$2643]);
                 s_ht_$2645 = $t15;
                 $t16 = (C6.v ?? G6());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_args_$2643) : $t17(s_args_$2643);
@@ -24816,6 +25950,7 @@ export const LIBRARIES = {
                 $pc = 15; continue;
               case 14:
                 $t24 = (C10.v ?? G10());
+                if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
                 $stack.room = $d;
                 $t26 = $t25 === undefined ? $t24(s_args_$2643) : $t25(s_args_$2643);
@@ -24827,6 +25962,7 @@ export const LIBRARIES = {
                 $t18 = $r;
                 s_mutable_3f_$2646 = $t18;
                 $t19 = (C7.v ?? G7());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19("hash-table-copy", s_ht_$2645) : $t20("hash-table-copy", s_ht_$2645);
@@ -24864,7 +26000,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [intern("eqv"), intern("eqv")],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "make-raw-hash-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%make-hash-store")).v;
@@ -24877,6 +26013,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 33;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2647]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-empty-copy", s_ht_$2647) : $t1("hash-table-empty-copy", s_ht_$2647);
@@ -24884,6 +26021,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht_$2647 }); return $UNWIND; }
           $t2;
           $t3 = (C3.v ?? G3());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_ht_$2647) : $t4(s_ht_$2647);
@@ -24896,30 +26034,35 @@ export const LIBRARIES = {
           $t6 = K[1];
         }
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($proc$r, 6, { s_ht_$2647 }); return $UNWIND; }
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_ht_$2647) : $t11(s_ht_$2647);
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 7, { $t9, s_ht_$2647 }); return $UNWIND; }
           $t13 = (C4.v ?? G4());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_ht_$2647) : $t14(s_ht_$2647);
           while ($t15 instanceof $TailCall) { $stack.room = $d; $t15 = $step($t15); }
           if ($t15 === $UNWIND) { R.reify($proc$r, 8, { $t9, $t12, s_ht_$2647 }); return $UNWIND; }
           $t16 = (C5.v ?? G5());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_ht_$2647) : $t17(s_ht_$2647);
           while ($t18 instanceof $TailCall) { $stack.room = $d; $t18 = $step($t18); }
           if ($t18 === $UNWIND) { R.reify($proc$r, 9, { $t9, $t12, $t15, s_ht_$2647 }); return $UNWIND; }
           $t19 = (C6.v ?? G6());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_ht_$2647) : $t20(s_ht_$2647);
@@ -24935,6 +26078,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-empty-copy", s_ht_$2647) : $t1("hash-table-empty-copy", s_ht_$2647);
@@ -24946,6 +26090,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C3.v ?? G3());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_ht_$2647) : $t4(s_ht_$2647);
@@ -24965,6 +26110,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -24975,6 +26121,7 @@ export const LIBRARIES = {
               case 6:
                 $t9 = $r;
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_ht_$2647) : $t11(s_ht_$2647);
@@ -24985,6 +26132,7 @@ export const LIBRARIES = {
               case 7:
                 $t12 = $r;
                 $t13 = (C4.v ?? G4());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_ht_$2647) : $t14(s_ht_$2647);
@@ -24995,6 +26143,7 @@ export const LIBRARIES = {
               case 8:
                 $t15 = $r;
                 $t16 = (C5.v ?? G5());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_ht_$2647) : $t17(s_ht_$2647);
@@ -25005,6 +26154,7 @@ export const LIBRARIES = {
               case 9:
                 $t18 = $r;
                 $t19 = (C6.v ?? G6());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_ht_$2647) : $t20(s_ht_$2647);
@@ -25029,7 +26179,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "entries")).v;
         function $proc(s_ht_$2649) {
@@ -25037,6 +26187,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2649]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table->alist", s_ht_$2649) : $t1("hash-table->alist", s_ht_$2649);
@@ -25053,6 +26204,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table->alist", s_ht_$2649) : $t1("hash-table->alist", s_ht_$2649);
@@ -25078,7 +26230,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "for-each")).v;
@@ -25099,6 +26251,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn6, [s_e_$2652]);
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2652 instanceof R.Cons) ? (s_e_$2652.car) : R.callBinding((C5.v ?? G5()), [s_e_$2652]);
           $t1 = (C4.v ?? G4());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_ht1_$2650, $t0) : $t2(s_ht1_$2650, $t0);
@@ -25124,6 +26277,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2652 instanceof R.Cons) ? (s_e_$2652.car) : R.callBinding((C5.v ?? G5()), [s_e_$2652]);
                 $t1 = (C4.v ?? G4());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_ht1_$2650, $t0) : $t2(s_ht1_$2650, $t0);
@@ -25154,6 +26308,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht1_$2650, s_ht2_$2651]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-union!", s_ht1_$2650) : $t1("hash-table-union!", s_ht1_$2650);
@@ -25161,6 +26316,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht1_$2650, s_ht2_$2651 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("hash-table-union!", s_ht2_$2651) : $t4("hash-table-union!", s_ht2_$2651);
@@ -25169,12 +26325,14 @@ export const LIBRARIES = {
           $t5;
           $t7 = $mk$fn6(s_ht1_$2650);
           $t8 = (C9.v ?? G9());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_ht2_$2651) : $t9(s_ht2_$2651);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { $t7, s_ht1_$2650 }); return $UNWIND; }
           $t11 = (C2.v ?? G2());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25190,6 +26348,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-union!", s_ht1_$2650) : $t1("hash-table-union!", s_ht1_$2650);
@@ -25201,6 +26360,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("hash-table-union!", s_ht2_$2651) : $t4("hash-table-union!", s_ht2_$2651);
@@ -25213,6 +26373,7 @@ export const LIBRARIES = {
                 $t5;
                 $t7 = $mk$fn6(s_ht1_$2650);
                 $t8 = (C9.v ?? G9());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_ht2_$2651) : $t9(s_ht2_$2651);
@@ -25223,6 +26384,7 @@ export const LIBRARIES = {
               case 3:
                 $t10 = $r;
                 $t11 = (C2.v ?? G2());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25247,7 +26409,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "for-each")).v;
@@ -25268,6 +26430,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn6, [s_e_$2652]);
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2652 instanceof R.Cons) ? (s_e_$2652.car) : R.callBinding((C5.v ?? G5()), [s_e_$2652]);
           $t1 = (C4.v ?? G4());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_ht1_$2650, $t0) : $t2(s_ht1_$2650, $t0);
@@ -25293,6 +26456,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2652 instanceof R.Cons) ? (s_e_$2652.car) : R.callBinding((C5.v ?? G5()), [s_e_$2652]);
                 $t1 = (C4.v ?? G4());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_ht1_$2650, $t0) : $t2(s_ht1_$2650, $t0);
@@ -25323,6 +26487,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht1_$2650, s_ht2_$2651]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-union!", s_ht1_$2650) : $t1("hash-table-union!", s_ht1_$2650);
@@ -25330,6 +26495,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht1_$2650, s_ht2_$2651 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("hash-table-union!", s_ht2_$2651) : $t4("hash-table-union!", s_ht2_$2651);
@@ -25338,12 +26504,14 @@ export const LIBRARIES = {
           $t5;
           $t7 = $mk$fn6(s_ht1_$2650);
           $t8 = (C9.v ?? G9());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_ht2_$2651) : $t9(s_ht2_$2651);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { $t7, s_ht1_$2650 }); return $UNWIND; }
           $t11 = (C2.v ?? G2());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25359,6 +26527,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-union!", s_ht1_$2650) : $t1("hash-table-union!", s_ht1_$2650);
@@ -25370,6 +26539,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("hash-table-union!", s_ht2_$2651) : $t4("hash-table-union!", s_ht2_$2651);
@@ -25382,6 +26552,7 @@ export const LIBRARIES = {
                 $t5;
                 $t7 = $mk$fn6(s_ht1_$2650);
                 $t8 = (C9.v ?? G9());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_ht2_$2651) : $t9(s_ht2_$2651);
@@ -25392,6 +26563,7 @@ export const LIBRARIES = {
               case 3:
                 $t10 = $r;
                 $t11 = (C2.v ?? G2());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25416,7 +26588,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "for-each")).v;
@@ -25435,6 +26607,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn6, [s_e_$2655]);
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2655 instanceof R.Cons) ? (s_e_$2655.car) : R.callBinding((C5.v ?? G5()), [s_e_$2655]);
           $t1 = (C4.v ?? G4());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_ht2_$2654, $t0) : $t2(s_ht2_$2654, $t0);
@@ -25459,6 +26632,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2655 instanceof R.Cons) ? (s_e_$2655.car) : R.callBinding((C5.v ?? G5()), [s_e_$2655]);
                 $t1 = (C4.v ?? G4());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_ht2_$2654, $t0) : $t2(s_ht2_$2654, $t0);
@@ -25488,6 +26662,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht1_$2653, s_ht2_$2654]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-intersection!", s_ht1_$2653) : $t1("hash-table-intersection!", s_ht1_$2653);
@@ -25495,6 +26670,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht1_$2653, s_ht2_$2654 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("hash-table-intersection!", s_ht2_$2654) : $t4("hash-table-intersection!", s_ht2_$2654);
@@ -25503,12 +26679,14 @@ export const LIBRARIES = {
           $t5;
           $t7 = $mk$fn6(s_ht2_$2654, s_ht1_$2653);
           $t8 = (C8.v ?? G8());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_ht1_$2653) : $t9(s_ht1_$2653);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { $t7, s_ht1_$2653 }); return $UNWIND; }
           $t11 = (C2.v ?? G2());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25524,6 +26702,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-intersection!", s_ht1_$2653) : $t1("hash-table-intersection!", s_ht1_$2653);
@@ -25535,6 +26714,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("hash-table-intersection!", s_ht2_$2654) : $t4("hash-table-intersection!", s_ht2_$2654);
@@ -25547,6 +26727,7 @@ export const LIBRARIES = {
                 $t5;
                 $t7 = $mk$fn6(s_ht2_$2654, s_ht1_$2653);
                 $t8 = (C8.v ?? G8());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_ht1_$2653) : $t9(s_ht1_$2653);
@@ -25557,6 +26738,7 @@ export const LIBRARIES = {
               case 3:
                 $t10 = $r;
                 $t11 = (C2.v ?? G2());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25581,7 +26763,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "for-each")).v;
@@ -25600,6 +26782,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn6, [s_e_$2658]);
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2658 instanceof R.Cons) ? (s_e_$2658.car) : R.callBinding((C5.v ?? G5()), [s_e_$2658]);
           $t1 = (C4.v ?? G4());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_ht2_$2657, $t0) : $t2(s_ht2_$2657, $t0);
@@ -25624,6 +26807,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2658 instanceof R.Cons) ? (s_e_$2658.car) : R.callBinding((C5.v ?? G5()), [s_e_$2658]);
                 $t1 = (C4.v ?? G4());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_ht2_$2657, $t0) : $t2(s_ht2_$2657, $t0);
@@ -25653,6 +26837,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht1_$2656, s_ht2_$2657]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-difference!", s_ht1_$2656) : $t1("hash-table-difference!", s_ht1_$2656);
@@ -25660,6 +26845,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht1_$2656, s_ht2_$2657 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("hash-table-difference!", s_ht2_$2657) : $t4("hash-table-difference!", s_ht2_$2657);
@@ -25668,12 +26854,14 @@ export const LIBRARIES = {
           $t5;
           $t7 = $mk$fn6(s_ht2_$2657, s_ht1_$2656);
           $t8 = (C8.v ?? G8());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_ht1_$2656) : $t9(s_ht1_$2656);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { $t7, s_ht1_$2656 }); return $UNWIND; }
           $t11 = (C2.v ?? G2());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25689,6 +26877,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-difference!", s_ht1_$2656) : $t1("hash-table-difference!", s_ht1_$2656);
@@ -25700,6 +26889,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("hash-table-difference!", s_ht2_$2657) : $t4("hash-table-difference!", s_ht2_$2657);
@@ -25712,6 +26902,7 @@ export const LIBRARIES = {
                 $t5;
                 $t7 = $mk$fn6(s_ht2_$2657, s_ht1_$2656);
                 $t8 = (C8.v ?? G8());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_ht1_$2656) : $t9(s_ht1_$2656);
@@ -25722,6 +26913,7 @@ export const LIBRARIES = {
               case 3:
                 $t10 = $r;
                 $t11 = (C2.v ?? G2());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25746,7 +26938,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-table")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "for-each")).v;
@@ -25768,6 +26960,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn6, [s_e_$2661]);
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2661 instanceof R.Cons) ? (s_e_$2661.car) : R.callBinding((C5.v ?? G5()), [s_e_$2661]);
           $t1 = (C4.v ?? G4());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_ht1_$2659, $t0) : $t2(s_ht1_$2659, $t0);
@@ -25795,6 +26988,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$2661 instanceof R.Cons) ? (s_e_$2661.car) : R.callBinding((C5.v ?? G5()), [s_e_$2661]);
                 $t1 = (C4.v ?? G4());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_ht1_$2659, $t0) : $t2(s_ht1_$2659, $t0);
@@ -25827,6 +27021,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 23;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht1_$2659, s_ht2_$2660]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-xor!", s_ht1_$2659) : $t1("hash-table-xor!", s_ht1_$2659);
@@ -25834,6 +27029,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_ht1_$2659, s_ht2_$2660 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("hash-table-xor!", s_ht2_$2660) : $t4("hash-table-xor!", s_ht2_$2660);
@@ -25842,12 +27038,14 @@ export const LIBRARIES = {
           $t5;
           $t7 = $mk$fn6(s_ht1_$2659);
           $t8 = (C10.v ?? G10());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_ht2_$2660) : $t9(s_ht2_$2660);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { $t7, s_ht1_$2659 }); return $UNWIND; }
           $t11 = (C2.v ?? G2());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25863,6 +27061,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-xor!", s_ht1_$2659) : $t1("hash-table-xor!", s_ht1_$2659);
@@ -25874,6 +27073,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("hash-table-xor!", s_ht2_$2660) : $t4("hash-table-xor!", s_ht2_$2660);
@@ -25886,6 +27086,7 @@ export const LIBRARIES = {
                 $t5;
                 $t7 = $mk$fn6(s_ht1_$2659);
                 $t8 = (C10.v ?? G10());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_ht2_$2660) : $t9(s_ht2_$2660);
@@ -25896,6 +27097,7 @@ export const LIBRARIES = {
               case 3:
                 $t10 = $r;
                 $t11 = (C2.v ?? G2());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11($t7, $t10) : $t12($t7, $t10);
@@ -25920,7 +27122,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-equality")).v;
         function $proc(s_ht_$2662) {
@@ -25928,6 +27130,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2662]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-equivalence-function", s_ht_$2662) : $t1("hash-table-equivalence-function", s_ht_$2662);
@@ -25944,6 +27147,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-equivalence-function", s_ht_$2662) : $t1("hash-table-equivalence-function", s_ht_$2662);
@@ -25969,7 +27173,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-hash")).v;
         function $proc(s_ht_$2663) {
@@ -25977,6 +27181,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_ht_$2663]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("hash-table-hash-function", s_ht_$2663) : $t1("hash-table-hash-function", s_ht_$2663);
@@ -25993,6 +27198,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("hash-table-hash-function", s_ht_$2663) : $t1("hash-table-hash-function", s_ht_$2663);
@@ -26017,7 +27223,7 @@ export const LIBRARIES = {
   },
   "srfi.128": {
     fingerprint: "4fbea5c8",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["128.sld","comparator.scm"],
     procedures: {
       "any?": {
@@ -26047,7 +27253,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-raw-comparator")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eq?")).v;
         const W1 = R.primitiveCell("eq?"), P1 = W1.primitive;
@@ -26061,6 +27267,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 19;
           if ($d < 0 && $stack.flushable) return $flush($fn4, [s_a_$2261, s_b_$2262]);
           $t0 = s_ordering_$2259;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2261, s_b_$2262) : $t1(s_a_$2261, s_b_$2262);
@@ -26071,6 +27278,7 @@ export const LIBRARIES = {
           $t3 = s_x_$2263;
         } else {
           $t4 = s_ordering_$2259;
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_b_$2262, s_a_$2261) : $t5(s_b_$2262, s_a_$2261);
@@ -26089,6 +27297,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_ordering_$2259;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2261, s_b_$2262) : $t1(s_a_$2261, s_b_$2262);
@@ -26105,6 +27314,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 3:
                 $t4 = s_ordering_$2259;
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_b_$2262, s_a_$2261) : $t5(s_b_$2262, s_a_$2261);
@@ -26286,13 +27496,14 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
         function $proc(s_comparator_$2270, s_obj_$2271) {
           let $t0, $t1, $t2, $t3;
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2270, s_obj_$2271]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2270) : $t1(s_comparator_$2270);
@@ -26308,6 +27519,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2270) : $t1(s_comparator_$2270);
@@ -26332,7 +27544,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
         function $proc(s_comparator_$2272, s_obj_$2273) {
@@ -26340,12 +27552,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2272, s_obj_$2273]);
           $t3 = (C0.v ?? G0());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_comparator_$2272) : $t4(s_comparator_$2272);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 1, { s_obj_$2273 }); return $UNWIND; }
           $t0 = $t5;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_obj_$2273) : $t1(s_obj_$2273);
@@ -26365,6 +27579,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_comparator_$2272) : $t4(s_comparator_$2272);
@@ -26375,6 +27590,7 @@ export const LIBRARIES = {
               case 1:
                 $t5 = $r;
                 $t0 = $t5;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_obj_$2273) : $t1(s_obj_$2273);
@@ -26403,13 +27619,14 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-hash-function")).v;
         function $proc(s_comparator_$2274, s_obj_$2275) {
           let $t0, $t1, $t2, $t3;
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2274, s_obj_$2275]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2274) : $t1(s_comparator_$2274);
@@ -26425,6 +27642,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2274) : $t1(s_comparator_$2274);
@@ -26449,7 +27667,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "chain")).v;
@@ -26463,6 +27681,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_relation_$2276, s_a_$2277, s_b_$2278, s_rest_$2279]);
           $loop: for (;;) {
             $t0 = s_relation_$2276;
+            if (typeof $t0 !== 'function') $notProc($t0);
             $t1 = $t0[$RAW];
             $stack.room = $d;
             $t2 = $t1 === undefined ? $t0(s_a_$2277, s_b_$2278) : $t1(s_a_$2277, s_b_$2278);
@@ -26492,6 +27711,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_relation_$2276;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2277, s_b_$2278) : $t1(s_a_$2277, s_b_$2278);
@@ -26529,7 +27749,7 @@ export const LIBRARIES = {
         rest: "rest_$2284",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "chain")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
         function $proc(s_comparator_$2281, s_a_$2282, s_b_$2283, ...s_rest_$2284$raw) {
@@ -26538,6 +27758,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2281, s_a_$2282, s_b_$2283, ...s_rest_$2284$raw]);
           let s_rest_$2284 = R.listFrom(s_rest_$2284$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2281) : $t1(s_comparator_$2281);
@@ -26553,6 +27774,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2281) : $t1(s_comparator_$2281);
@@ -26577,7 +27799,7 @@ export const LIBRARIES = {
         rest: "rest_$2288",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "chain")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-ordering-predicate")).v;
         function $proc(s_comparator_$2285, s_a_$2286, s_b_$2287, ...s_rest_$2288$raw) {
@@ -26586,6 +27808,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2285, s_a_$2286, s_b_$2287, ...s_rest_$2288$raw]);
           let s_rest_$2288 = R.listFrom(s_rest_$2288$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2285) : $t1(s_comparator_$2285);
@@ -26601,6 +27824,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2285) : $t1(s_comparator_$2285);
@@ -26625,7 +27849,7 @@ export const LIBRARIES = {
         rest: "rest_$2292",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-ordering-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "chain")).v;
         function $mk$fn3(s_less_3f_$2293) {
@@ -26655,6 +27879,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2289, s_a_$2290, s_b_$2291, ...s_rest_$2292$raw]);
           let s_rest_$2292 = R.listFrom(s_rest_$2292$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2289) : $t1(s_comparator_$2289);
@@ -26672,6 +27897,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2289) : $t1(s_comparator_$2289);
@@ -26698,7 +27924,7 @@ export const LIBRARIES = {
         rest: "rest_$2299",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-ordering-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "chain")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
@@ -26709,6 +27935,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_x_$2301, s_y_$2302]);
           $t0 = s_less_3f_$2300;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_y_$2302, s_x_$2301) : $t1(s_y_$2302, s_x_$2301);
@@ -26725,6 +27952,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_less_3f_$2300;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_y_$2302, s_x_$2301) : $t1(s_y_$2302, s_x_$2301);
@@ -26748,6 +27976,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2296, s_a_$2297, s_b_$2298, ...s_rest_$2299$raw]);
           let s_rest_$2299 = R.listFrom(s_rest_$2299$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2296) : $t1(s_comparator_$2296);
@@ -26765,6 +27994,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2296) : $t1(s_comparator_$2296);
@@ -26791,7 +28021,7 @@ export const LIBRARIES = {
         rest: "rest_$2306",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-ordering-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "chain")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
@@ -26802,6 +28032,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_x_$2308, s_y_$2309]);
           $t0 = s_less_3f_$2307;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2308, s_y_$2309) : $t1(s_x_$2308, s_y_$2309);
@@ -26818,6 +28049,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_less_3f_$2307;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2308, s_y_$2309) : $t1(s_x_$2308, s_y_$2309);
@@ -26841,6 +28073,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2303, s_a_$2304, s_b_$2305, ...s_rest_$2306$raw]);
           let s_rest_$2306 = R.listFrom(s_rest_$2306$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2303) : $t1(s_comparator_$2303);
@@ -26858,6 +28091,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2303) : $t1(s_comparator_$2303);
@@ -26921,7 +28155,7 @@ export const LIBRARIES = {
         rest: "ignored_$2313",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "boolean?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
         function $proc(s_b_$2312, ...s_ignored_$2313$raw) {
@@ -26930,6 +28164,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_b_$2312, ...s_ignored_$2313$raw]);
           let s_ignored_$2313 = R.listFrom(s_ignored_$2313$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_b_$2312) : $t1(s_b_$2312);
@@ -26953,6 +28188,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_b_$2312) : $t1(s_b_$2312);
@@ -27014,7 +28250,7 @@ export const LIBRARIES = {
         rest: "ignored_$2317",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "char->integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "char-foldcase")).v;
         function $proc(s_c_$2316, ...s_ignored_$2317$raw) {
@@ -27023,6 +28259,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_c_$2316, ...s_ignored_$2317$raw]);
           let s_ignored_$2317 = R.listFrom(s_ignored_$2317$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2316) : $t1(s_c_$2316);
@@ -27038,6 +28275,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2316) : $t1(s_c_$2316);
@@ -27062,7 +28300,7 @@ export const LIBRARIES = {
         rest: "ignored_$2319",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-hash")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "symbol->string")).v;
         function $proc(s_s_$2318, ...s_ignored_$2319$raw) {
@@ -27071,6 +28309,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2318, ...s_ignored_$2319$raw]);
           let s_ignored_$2319 = R.listFrom(s_ignored_$2319$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_s_$2318) : $t1(s_s_$2318);
@@ -27086,6 +28325,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_s_$2318) : $t1(s_s_$2318);
@@ -27110,7 +28350,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
@@ -27129,18 +28369,21 @@ export const LIBRARIES = {
         } else {
           $t1 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_i_$2324 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2324 === 'number' && typeof 1n === 'number')) ? (s_i_$2324 + 1n) : R.callBinding((C1.v ?? G1()), [s_i_$2324, 1n]);
           $t2 = s_ref_$2322;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_i_$2324) : $t3(s_i_$2324);
           while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
           if ($t4 === $UNWIND) { R.reify($proc$r, 4, { s_h_$2325, $t1, s_element_2dhash_$2320, s_n_$2321, s_ref_$2322 }); return $UNWIND; }
           $t5 = s_element_2dhash_$2320;
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
           while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
           if ($t7 === $UNWIND) { R.reify($proc$r, 5, { s_h_$2325, $t1, s_element_2dhash_$2320, s_n_$2321, s_ref_$2322 }); return $UNWIND; }
           $t8 = (C2.v ?? G2());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_h_$2325, $t7) : $t9(s_h_$2325, $t7);
@@ -27169,6 +28412,7 @@ export const LIBRARIES = {
               case 3:
                 $t1 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_i_$2324 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2324 === 'number' && typeof 1n === 'number')) ? (s_i_$2324 + 1n) : R.callBinding((C1.v ?? G1()), [s_i_$2324, 1n]);
                 $t2 = s_ref_$2322;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_i_$2324) : $t3(s_i_$2324);
@@ -27179,6 +28423,7 @@ export const LIBRARIES = {
               case 4:
                 $t4 = $r;
                 $t5 = s_element_2dhash_$2320;
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -27189,6 +28434,7 @@ export const LIBRARIES = {
               case 5:
                 $t7 = $r;
                 $t8 = (C2.v ?? G2());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_h_$2325, $t7) : $t9(s_h_$2325, $t7);
@@ -27214,7 +28460,7 @@ export const LIBRARIES = {
         rest: "ignored_$2327",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
@@ -27320,12 +28566,14 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$2329 instanceof R.Cons) ? (s_x_$2329.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$2329]);
           $t3 = (W4.intact || (C4.v ?? G4()) === P4) && (s_x_$2329 instanceof R.Cons) ? (s_x_$2329.car) : R.callBinding((C4.v ?? G4()), [s_x_$2329]);
           $t4 = (C3.v ?? G3());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($proc$r, 6, { s_h_$2330, $t2 }); return $UNWIND; }
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_h_$2330, $t6) : $t8(s_h_$2330, $t6);
@@ -27336,6 +28584,7 @@ export const LIBRARIES = {
           continue $loop1;
         } else {
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_x_$2329) : $t11(s_x_$2329);
@@ -27351,6 +28600,7 @@ export const LIBRARIES = {
           return 3n;
         } else {
           $t15 = (C6.v ?? G6());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_obj_$2326) : $t16(s_obj_$2326);
@@ -27361,6 +28611,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t18?.[$PRIM] === true) { $stack.room = $d; return $t18(s_obj_$2326); } return $tailCall($t18, [s_obj_$2326]);
         } else {
           $t19 = (C8.v ?? G8());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_obj_$2326) : $t20(s_obj_$2326);
@@ -27371,6 +28622,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t22?.[$PRIM] === true) { $stack.room = $d; return $t22(s_obj_$2326); } return $tailCall($t22, [s_obj_$2326]);
         } else {
           $t23 = (C10.v ?? G10());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23(s_obj_$2326) : $t24(s_obj_$2326);
@@ -27381,6 +28633,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t26?.[$PRIM] === true) { $stack.room = $d; return $t26(s_obj_$2326); } return $tailCall($t26, [s_obj_$2326]);
         } else {
           $t27 = (C12.v ?? G12());
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27(s_obj_$2326) : $t28(s_obj_$2326);
@@ -27391,6 +28644,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t30?.[$PRIM] === true) { $stack.room = $d; return $t30(s_obj_$2326); } return $tailCall($t30, [s_obj_$2326]);
         } else {
           $t31 = (C14.v ?? G14());
+          if (typeof $t31 !== 'function') $notProc($t31);
           $t32 = $t31[$RAW];
           $stack.room = $d;
           $t33 = $t32 === undefined ? $t31(s_obj_$2326) : $t32(s_obj_$2326);
@@ -27401,6 +28655,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t34?.[$PRIM] === true) { $stack.room = $d; return $t34(s_obj_$2326); } return $tailCall($t34, [s_obj_$2326]);
         } else {
           $t35 = (C16.v ?? G16());
+          if (typeof $t35 !== 'function') $notProc($t35);
           $t36 = $t35[$RAW];
           $stack.room = $d;
           $t37 = $t36 === undefined ? $t35(s_obj_$2326) : $t36(s_obj_$2326);
@@ -27413,6 +28668,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t41?.[$PRIM] === true) { $stack.room = $d; return $t41((C3.v ?? G3()), $t38, $t40); } return $tailCall($t41, [(C3.v ?? G3()), $t38, $t40]);
         } else {
           $t42 = (C20.v ?? G20());
+          if (typeof $t42 !== 'function') $notProc($t42);
           $t43 = $t42[$RAW];
           $stack.room = $d;
           $t44 = $t43 === undefined ? $t42(s_obj_$2326) : $t43(s_obj_$2326);
@@ -27421,6 +28677,7 @@ export const LIBRARIES = {
           if ($t44 !== false) {
           $t46 = $mk$fn45();
           $t47 = (C21.v ?? G21());
+          if (typeof $t47 !== 'function') $notProc($t47);
           $t48 = $t47[$RAW];
           $stack.room = $d;
           $t49 = $t48 === undefined ? $t47(s_obj_$2326) : $t48(s_obj_$2326);
@@ -27431,6 +28688,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t52?.[$PRIM] === true) { $stack.room = $d; return $t52($t46, $t49, $t51); } return $tailCall($t52, [$t46, $t49, $t51]);
         } else {
           $t53 = (C23.v ?? G23());
+          if (typeof $t53 !== 'function') $notProc($t53);
           $t54 = $t53[$RAW];
           $stack.room = $d;
           $t55 = $t54 === undefined ? $t53(s_obj_$2326) : $t54(s_obj_$2326);
@@ -27477,6 +28735,7 @@ export const LIBRARIES = {
                 $t2 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$2329 instanceof R.Cons) ? (s_x_$2329.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$2329]);
                 $t3 = (W4.intact || (C4.v ?? G4()) === P4) && (s_x_$2329 instanceof R.Cons) ? (s_x_$2329.car) : R.callBinding((C4.v ?? G4()), [s_x_$2329]);
                 $t4 = (C3.v ?? G3());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
@@ -27486,6 +28745,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 5:
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_x_$2329) : $t11(s_x_$2329);
@@ -27496,6 +28756,7 @@ export const LIBRARIES = {
               case 6:
                 $t6 = $r;
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_h_$2330, $t6) : $t8(s_h_$2330, $t6);
@@ -27516,6 +28777,7 @@ export const LIBRARIES = {
                 return 3n;
               case 10:
                 $t15 = (C6.v ?? G6());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_obj_$2326) : $t16(s_obj_$2326);
@@ -27531,6 +28793,7 @@ export const LIBRARIES = {
                 return $tailCall($t18, [s_obj_$2326]);
               case 13:
                 $t19 = (C8.v ?? G8());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_obj_$2326) : $t20(s_obj_$2326);
@@ -27546,6 +28809,7 @@ export const LIBRARIES = {
                 return $tailCall($t22, [s_obj_$2326]);
               case 16:
                 $t23 = (C10.v ?? G10());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23(s_obj_$2326) : $t24(s_obj_$2326);
@@ -27561,6 +28825,7 @@ export const LIBRARIES = {
                 return $tailCall($t26, [s_obj_$2326]);
               case 19:
                 $t27 = (C12.v ?? G12());
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27(s_obj_$2326) : $t28(s_obj_$2326);
@@ -27576,6 +28841,7 @@ export const LIBRARIES = {
                 return $tailCall($t30, [s_obj_$2326]);
               case 22:
                 $t31 = (C14.v ?? G14());
+                if (typeof $t31 !== 'function') $notProc($t31);
                 $t32 = $t31[$RAW];
                 $stack.room = $d;
                 $t33 = $t32 === undefined ? $t31(s_obj_$2326) : $t32(s_obj_$2326);
@@ -27591,6 +28857,7 @@ export const LIBRARIES = {
                 return $tailCall($t34, [s_obj_$2326]);
               case 25:
                 $t35 = (C16.v ?? G16());
+                if (typeof $t35 !== 'function') $notProc($t35);
                 $t36 = $t35[$RAW];
                 $stack.room = $d;
                 $t37 = $t36 === undefined ? $t35(s_obj_$2326) : $t36(s_obj_$2326);
@@ -27608,6 +28875,7 @@ export const LIBRARIES = {
                 return $tailCall($t41, [(C3.v ?? G3()), $t38, $t40]);
               case 28:
                 $t42 = (C20.v ?? G20());
+                if (typeof $t42 !== 'function') $notProc($t42);
                 $t43 = $t42[$RAW];
                 $stack.room = $d;
                 $t44 = $t43 === undefined ? $t42(s_obj_$2326) : $t43(s_obj_$2326);
@@ -27621,6 +28889,7 @@ export const LIBRARIES = {
               case 30:
                 $t46 = $mk$fn45();
                 $t47 = (C21.v ?? G21());
+                if (typeof $t47 !== 'function') $notProc($t47);
                 $t48 = $t47[$RAW];
                 $stack.room = $d;
                 $t49 = $t48 === undefined ? $t47(s_obj_$2326) : $t48(s_obj_$2326);
@@ -27630,6 +28899,7 @@ export const LIBRARIES = {
                 $pc = 32; continue;
               case 31:
                 $t53 = (C23.v ?? G23());
+                if (typeof $t53 !== 'function') $notProc($t53);
                 $t54 = $t53[$RAW];
                 $stack.room = $d;
                 $t55 = $t54 === undefined ? $t53(s_obj_$2326) : $t54(s_obj_$2326);
@@ -27666,7 +28936,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "comparator-ordering-predicate")).v;
@@ -27690,6 +28960,7 @@ export const LIBRARIES = {
           if ($t0 !== false) {
           $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_x_$2344 instanceof R.Cons) ? (s_x_$2344.car) : R.callBinding((C5.v ?? G5()), [s_x_$2344]);
           $t2 = s_car_2dtest_$2338;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -27718,6 +28989,7 @@ export const LIBRARIES = {
               case 1:
                 $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_x_$2344 instanceof R.Cons) ? (s_x_$2344.car) : R.callBinding((C5.v ?? G5()), [s_x_$2344]);
                 $t2 = s_car_2dtest_$2338;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1) : $t3($t1);
@@ -27750,6 +29022,7 @@ export const LIBRARIES = {
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_a_$2345 instanceof R.Cons) ? (s_a_$2345.car) : R.callBinding((C5.v ?? G5()), [s_a_$2345]);
           $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_b_$2346 instanceof R.Cons) ? (s_b_$2346.car) : R.callBinding((C5.v ?? G5()), [s_b_$2346]);
           $t2 = s_car_3d_3f_$2340;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t0, $t1) : $t3($t0, $t1);
@@ -27774,6 +29047,7 @@ export const LIBRARIES = {
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_a_$2345 instanceof R.Cons) ? (s_a_$2345.car) : R.callBinding((C5.v ?? G5()), [s_a_$2345]);
                 $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_b_$2346 instanceof R.Cons) ? (s_b_$2346.car) : R.callBinding((C5.v ?? G5()), [s_b_$2346]);
                 $t2 = s_car_3d_3f_$2340;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t0, $t1) : $t3($t0, $t1);
@@ -27805,6 +29079,7 @@ export const LIBRARIES = {
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_a_$2347 instanceof R.Cons) ? (s_a_$2347.car) : R.callBinding((C5.v ?? G5()), [s_a_$2347]);
           $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_b_$2348 instanceof R.Cons) ? (s_b_$2348.car) : R.callBinding((C5.v ?? G5()), [s_b_$2348]);
           $t2 = s_car_3d_3f_$2340;
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t0, $t1) : $t3($t0, $t1);
@@ -27832,6 +29107,7 @@ export const LIBRARIES = {
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_a_$2347 instanceof R.Cons) ? (s_a_$2347.car) : R.callBinding((C5.v ?? G5()), [s_a_$2347]);
                 $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_b_$2348 instanceof R.Cons) ? (s_b_$2348.car) : R.callBinding((C5.v ?? G5()), [s_b_$2348]);
                 $t2 = s_car_3d_3f_$2340;
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t0, $t1) : $t3($t0, $t1);
@@ -27866,6 +29142,7 @@ export const LIBRARIES = {
           let s_ignored_$2350 = R.listFrom(s_ignored_$2350$raw);
           $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_x_$2349 instanceof R.Cons) ? (s_x_$2349.car) : R.callBinding((C5.v ?? G5()), [s_x_$2349]);
           $t1 = (C8.v ?? G8());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_car_2dcomparator_$2336, $t0) : $t2(s_car_2dcomparator_$2336, $t0);
@@ -27873,6 +29150,7 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn24$r, 1, { s_x_$2349 }); return $UNWIND; }
           $t4 = (W6.intact || (C6.v ?? G6()) === P6) && (s_x_$2349 instanceof R.Cons) ? (s_x_$2349.cdr) : R.callBinding((C6.v ?? G6()), [s_x_$2349]);
           $t5 = (C8.v ?? G8());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_cdr_2dcomparator_$2337, $t4) : $t6(s_cdr_2dcomparator_$2337, $t4);
@@ -27890,6 +29168,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W5.intact || (C5.v ?? G5()) === P5) && (s_x_$2349 instanceof R.Cons) ? (s_x_$2349.car) : R.callBinding((C5.v ?? G5()), [s_x_$2349]);
                 $t1 = (C8.v ?? G8());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_car_2dcomparator_$2336, $t0) : $t2(s_car_2dcomparator_$2336, $t0);
@@ -27901,6 +29180,7 @@ export const LIBRARIES = {
                 $t3 = $r;
                 $t4 = (W6.intact || (C6.v ?? G6()) === P6) && (s_x_$2349 instanceof R.Cons) ? (s_x_$2349.cdr) : R.callBinding((C6.v ?? G6()), [s_x_$2349]);
                 $t5 = (C8.v ?? G8());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_cdr_2dcomparator_$2337, $t4) : $t6(s_cdr_2dcomparator_$2337, $t4);
@@ -27923,6 +29203,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 53;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_car_2dcomparator_$2336) : $t1(s_car_2dcomparator_$2336);
@@ -27930,6 +29211,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337 }); return $UNWIND; }
           s_car_2dtest_$2338 = $t2;
           $t3 = (C0.v ?? G0());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_cdr_2dcomparator_$2337) : $t4(s_cdr_2dcomparator_$2337);
@@ -27937,6 +29219,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_car_2dtest_$2338, s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337 }); return $UNWIND; }
           s_cdr_2dtest_$2339 = $t5;
           $t6 = (C1.v ?? G1());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_car_2dcomparator_$2336) : $t7(s_car_2dcomparator_$2336);
@@ -27944,6 +29227,7 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_car_2dtest_$2338, s_cdr_2dtest_$2339, s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337 }); return $UNWIND; }
           s_car_3d_3f_$2340 = $t8;
           $t9 = (C1.v ?? G1());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_cdr_2dcomparator_$2337) : $t10(s_cdr_2dcomparator_$2337);
@@ -27951,6 +29235,7 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 4, { s_car_2dtest_$2338, s_cdr_2dtest_$2339, s_car_3d_3f_$2340, s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337 }); return $UNWIND; }
           s_cdr_3d_3f_$2341 = $t11;
           $t12 = (C2.v ?? G2());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_car_2dcomparator_$2336) : $t13(s_car_2dcomparator_$2336);
@@ -27958,6 +29243,7 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 5, { s_car_2dtest_$2338, s_cdr_2dtest_$2339, s_car_3d_3f_$2340, s_cdr_3d_3f_$2341, s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337 }); return $UNWIND; }
           s_car_3c_3f_$2342 = $t14;
           $t15 = (C2.v ?? G2());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_cdr_2dcomparator_$2337) : $t16(s_cdr_2dcomparator_$2337);
@@ -27969,6 +29255,7 @@ export const LIBRARIES = {
           $t23 = $mk$fn22(s_car_3d_3f_$2340, s_cdr_3c_3f_$2343, s_car_3c_3f_$2342);
           $t25 = $mk$fn24(s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337);
           $t26 = (C9.v ?? G9());
+          if (typeof $t26 !== 'function') $notProc($t26);
           $t27 = $t26[$RAW];
           $stack.room = $d;
           $t28 = $t27 === undefined ? $t26(s_car_2dcomparator_$2336) : $t27(s_car_2dcomparator_$2336);
@@ -27976,6 +29263,7 @@ export const LIBRARIES = {
           if ($t28 === $UNWIND) { R.reify($proc$r, 7, { $t19, $t21, $t23, $t25, s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337 }); return $UNWIND; }
           if ($t28 !== false) {
           $t30 = (C9.v ?? G9());
+          if (typeof $t30 !== 'function') $notProc($t30);
           $t31 = $t30[$RAW];
           $stack.room = $d;
           $t32 = $t31 === undefined ? $t30(s_cdr_2dcomparator_$2337) : $t31(s_cdr_2dcomparator_$2337);
@@ -27986,6 +29274,7 @@ export const LIBRARIES = {
           $t29 = false;
         }
           $t33 = (C10.v ?? G10());
+          if (typeof $t33 !== 'function') $notProc($t33);
           $t34 = $t33[$RAW];
           $stack.room = $d;
           $t35 = $t34 === undefined ? $t33(s_car_2dcomparator_$2336) : $t34(s_car_2dcomparator_$2336);
@@ -27993,6 +29282,7 @@ export const LIBRARIES = {
           if ($t35 === $UNWIND) { R.reify($proc$r, 12, { $t19, $t21, $t23, $t25, $t29, s_cdr_2dcomparator_$2337 }); return $UNWIND; }
           if ($t35 !== false) {
           $t37 = (C10.v ?? G10());
+          if (typeof $t37 !== 'function') $notProc($t37);
           $t38 = $t37[$RAW];
           $stack.room = $d;
           $t39 = $t38 === undefined ? $t37(s_cdr_2dcomparator_$2337) : $t38(s_cdr_2dcomparator_$2337);
@@ -28012,6 +29302,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_car_2dcomparator_$2336) : $t1(s_car_2dcomparator_$2336);
@@ -28023,6 +29314,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_car_2dtest_$2338 = $t2;
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_cdr_2dcomparator_$2337) : $t4(s_cdr_2dcomparator_$2337);
@@ -28034,6 +29326,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 s_cdr_2dtest_$2339 = $t5;
                 $t6 = (C1.v ?? G1());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_car_2dcomparator_$2336) : $t7(s_car_2dcomparator_$2336);
@@ -28045,6 +29338,7 @@ export const LIBRARIES = {
                 $t8 = $r;
                 s_car_3d_3f_$2340 = $t8;
                 $t9 = (C1.v ?? G1());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_cdr_2dcomparator_$2337) : $t10(s_cdr_2dcomparator_$2337);
@@ -28056,6 +29350,7 @@ export const LIBRARIES = {
                 $t11 = $r;
                 s_cdr_3d_3f_$2341 = $t11;
                 $t12 = (C2.v ?? G2());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_car_2dcomparator_$2336) : $t13(s_car_2dcomparator_$2336);
@@ -28067,6 +29362,7 @@ export const LIBRARIES = {
                 $t14 = $r;
                 s_car_3c_3f_$2342 = $t14;
                 $t15 = (C2.v ?? G2());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_cdr_2dcomparator_$2337) : $t16(s_cdr_2dcomparator_$2337);
@@ -28082,6 +29378,7 @@ export const LIBRARIES = {
                 $t23 = $mk$fn22(s_car_3d_3f_$2340, s_cdr_3c_3f_$2343, s_car_3c_3f_$2342);
                 $t25 = $mk$fn24(s_car_2dcomparator_$2336, s_cdr_2dcomparator_$2337);
                 $t26 = (C9.v ?? G9());
+                if (typeof $t26 !== 'function') $notProc($t26);
                 $t27 = $t26[$RAW];
                 $stack.room = $d;
                 $t28 = $t27 === undefined ? $t26(s_car_2dcomparator_$2336) : $t27(s_car_2dcomparator_$2336);
@@ -28094,6 +29391,7 @@ export const LIBRARIES = {
                 if ($t28 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t30 = (C9.v ?? G9());
+                if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
                 $t32 = $t31 === undefined ? $t30(s_cdr_2dcomparator_$2337) : $t31(s_cdr_2dcomparator_$2337);
@@ -28106,6 +29404,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 10:
                 $t33 = (C10.v ?? G10());
+                if (typeof $t33 !== 'function') $notProc($t33);
                 $t34 = $t33[$RAW];
                 $stack.room = $d;
                 $t35 = $t34 === undefined ? $t33(s_car_2dcomparator_$2336) : $t34(s_car_2dcomparator_$2336);
@@ -28122,6 +29421,7 @@ export const LIBRARIES = {
                 if ($t35 !== false) { $pc = 13; continue; } $pc = 14; continue;
               case 13:
                 $t37 = (C10.v ?? G10());
+                if (typeof $t37 !== 'function') $notProc($t37);
                 $t38 = $t37[$RAW];
                 $stack.room = $d;
                 $t39 = $t38 === undefined ? $t37(s_cdr_2dcomparator_$2337) : $t38(s_cdr_2dcomparator_$2337);
@@ -28152,7 +29452,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "comparator-ordering-predicate")).v;
@@ -28167,6 +29467,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 26;
           if ($d < 0 && $stack.flushable) return $flush($fn9, [s_x_$2359]);
           $t0 = s_type_2dtest_$2352;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2359) : $t1(s_x_$2359);
@@ -28176,6 +29477,7 @@ export const LIBRARIES = {
           s_x_$2361 = s_x_$2359;
           $loop1: for (;;) {
           $t3 = s_empty_3f_$2353;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_x_$2361) : $t4(s_x_$2361);
@@ -28186,12 +29488,14 @@ export const LIBRARIES = {
           return s_x_$2362;
         } else {
           $t6 = s_head_$2354;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_x_$2361) : $t7(s_x_$2361);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($fn9$r, 8, { s_x_$2361 }); return $UNWIND; }
           $t9 = s_element_2dtest_$2356;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
@@ -28199,6 +29503,7 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($fn9$r, 9, { s_x_$2361 }); return $UNWIND; }
           if ($t11 !== false) {
           $t12 = s_tail_$2355;
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_x_$2361) : $t13(s_x_$2361);
@@ -28223,6 +29528,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_type_2dtest_$2352;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2359) : $t1(s_x_$2359);
@@ -28240,6 +29546,7 @@ export const LIBRARIES = {
                 return false;
               case 4:
                 $t3 = s_empty_3f_$2353;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_x_$2361) : $t4(s_x_$2361);
@@ -28255,6 +29562,7 @@ export const LIBRARIES = {
                 return s_x_$2362;
               case 7:
                 $t6 = s_head_$2354;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_x_$2361) : $t7(s_x_$2361);
@@ -28265,6 +29573,7 @@ export const LIBRARIES = {
               case 8:
                 $t8 = $r;
                 $t9 = s_element_2dtest_$2356;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9($t8) : $t10($t8);
@@ -28277,6 +29586,7 @@ export const LIBRARIES = {
                 if ($t11 !== false) { $pc = 10; continue; } $pc = 11; continue;
               case 10:
                 $t12 = s_tail_$2355;
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_x_$2361) : $t13(s_x_$2361);
@@ -28305,6 +29615,7 @@ export const LIBRARIES = {
           s_b_$2367 = s_b_$2364;
           $loop1: for (;;) {
           $t0 = s_empty_3f_$2353;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2366) : $t1(s_a_$2366);
@@ -28315,6 +29626,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t3?.[$PRIM] === true) { $stack.room = $d; return $t3(s_b_$2367); } return $tailCall($t3, [s_b_$2367]);
         } else {
           $t4 = s_empty_3f_$2353;
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_b_$2367) : $t5(s_b_$2367);
@@ -28324,18 +29636,21 @@ export const LIBRARIES = {
           return false;
         } else {
           $t7 = s_head_$2354;
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_a_$2366) : $t8(s_a_$2366);
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($fn11$r, 8, { s_a_$2366, s_b_$2367 }); return $UNWIND; }
           $t10 = s_head_$2354;
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_b_$2367) : $t11(s_b_$2367);
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($fn11$r, 9, { s_a_$2366, s_b_$2367, $t9 }); return $UNWIND; }
           $t13 = s_element_3d_3f_$2357;
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13($t9, $t12) : $t14($t9, $t12);
@@ -28343,12 +29658,14 @@ export const LIBRARIES = {
           if ($t15 === $UNWIND) { R.reify($fn11$r, 10, { s_a_$2366, s_b_$2367 }); return $UNWIND; }
           if ($t15 !== false) {
           $t16 = s_tail_$2355;
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_a_$2366) : $t17(s_a_$2366);
           while ($t18 instanceof $TailCall) { $stack.room = $d; $t18 = $step($t18); }
           if ($t18 === $UNWIND) { R.reify($fn11$r, 13, { s_b_$2367 }); return $UNWIND; }
           $t19 = s_tail_$2355;
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_b_$2367) : $t20(s_b_$2367);
@@ -28376,6 +29693,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t0 = s_empty_3f_$2353;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2366) : $t1(s_a_$2366);
@@ -28391,6 +29709,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_b_$2367]);
               case 4:
                 $t4 = s_empty_3f_$2353;
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_b_$2367) : $t5(s_b_$2367);
@@ -28405,6 +29724,7 @@ export const LIBRARIES = {
                 return false;
               case 7:
                 $t7 = s_head_$2354;
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_a_$2366) : $t8(s_a_$2366);
@@ -28415,6 +29735,7 @@ export const LIBRARIES = {
               case 8:
                 $t9 = $r;
                 $t10 = s_head_$2354;
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_b_$2367) : $t11(s_b_$2367);
@@ -28425,6 +29746,7 @@ export const LIBRARIES = {
               case 9:
                 $t12 = $r;
                 $t13 = s_element_3d_3f_$2357;
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13($t9, $t12) : $t14($t9, $t12);
@@ -28437,6 +29759,7 @@ export const LIBRARIES = {
                 if ($t15 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
                 $t16 = s_tail_$2355;
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_a_$2366) : $t17(s_a_$2366);
@@ -28449,6 +29772,7 @@ export const LIBRARIES = {
               case 13:
                 $t18 = $r;
                 $t19 = s_tail_$2355;
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_b_$2367) : $t20(s_b_$2367);
@@ -28476,6 +29800,7 @@ export const LIBRARIES = {
           s_b_$2372 = s_b_$2369;
           $loop1: for (;;) {
           $t0 = s_empty_3f_$2353;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_b_$2372) : $t1(s_b_$2372);
@@ -28485,6 +29810,7 @@ export const LIBRARIES = {
           return false;
         } else {
           $t3 = s_empty_3f_$2353;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_a_$2371) : $t4(s_a_$2371);
@@ -28494,18 +29820,21 @@ export const LIBRARIES = {
           return true;
         } else {
           $t6 = s_head_$2354;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_a_$2371) : $t7(s_a_$2371);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($fn13$r, 8, { s_a_$2371, s_b_$2372 }); return $UNWIND; }
           $t9 = s_head_$2354;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_b_$2372) : $t10(s_b_$2372);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($fn13$r, 9, { s_a_$2371, s_b_$2372, $t8 }); return $UNWIND; }
           $t12 = s_element_3d_3f_$2357;
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12($t8, $t11) : $t13($t8, $t11);
@@ -28513,12 +29842,14 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($fn13$r, 10, { s_a_$2371, s_b_$2372 }); return $UNWIND; }
           if ($t14 !== false) {
           $t15 = s_tail_$2355;
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_a_$2371) : $t16(s_a_$2371);
           while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
           if ($t17 === $UNWIND) { R.reify($fn13$r, 13, { s_b_$2372 }); return $UNWIND; }
           $t18 = s_tail_$2355;
+          if (typeof $t18 !== 'function') $notProc($t18);
           $t19 = $t18[$RAW];
           $stack.room = $d;
           $t20 = $t19 === undefined ? $t18(s_b_$2372) : $t19(s_b_$2372);
@@ -28529,12 +29860,14 @@ export const LIBRARIES = {
           continue $loop1;
         } else {
           $t21 = s_head_$2354;
+          if (typeof $t21 !== 'function') $notProc($t21);
           $t22 = $t21[$RAW];
           $stack.room = $d;
           $t23 = $t22 === undefined ? $t21(s_a_$2371) : $t22(s_a_$2371);
           while ($t23 instanceof $TailCall) { $stack.room = $d; $t23 = $step($t23); }
           if ($t23 === $UNWIND) { R.reify($fn13$r, 15, { s_b_$2372 }); return $UNWIND; }
           $t24 = s_head_$2354;
+          if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
           $stack.room = $d;
           $t26 = $t25 === undefined ? $t24(s_b_$2372) : $t25(s_b_$2372);
@@ -28559,6 +29892,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t0 = s_empty_3f_$2353;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_b_$2372) : $t1(s_b_$2372);
@@ -28573,6 +29907,7 @@ export const LIBRARIES = {
                 return false;
               case 4:
                 $t3 = s_empty_3f_$2353;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_a_$2371) : $t4(s_a_$2371);
@@ -28587,6 +29922,7 @@ export const LIBRARIES = {
                 return true;
               case 7:
                 $t6 = s_head_$2354;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_a_$2371) : $t7(s_a_$2371);
@@ -28597,6 +29933,7 @@ export const LIBRARIES = {
               case 8:
                 $t8 = $r;
                 $t9 = s_head_$2354;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_b_$2372) : $t10(s_b_$2372);
@@ -28607,6 +29944,7 @@ export const LIBRARIES = {
               case 9:
                 $t11 = $r;
                 $t12 = s_element_3d_3f_$2357;
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12($t8, $t11) : $t13($t8, $t11);
@@ -28619,6 +29957,7 @@ export const LIBRARIES = {
                 if ($t14 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
                 $t15 = s_tail_$2355;
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_a_$2371) : $t16(s_a_$2371);
@@ -28628,6 +29967,7 @@ export const LIBRARIES = {
                 $pc = 13; continue;
               case 12:
                 $t21 = s_head_$2354;
+                if (typeof $t21 !== 'function') $notProc($t21);
                 $t22 = $t21[$RAW];
                 $stack.room = $d;
                 $t23 = $t22 === undefined ? $t21(s_a_$2371) : $t22(s_a_$2371);
@@ -28638,6 +29978,7 @@ export const LIBRARIES = {
               case 13:
                 $t17 = $r;
                 $t18 = s_tail_$2355;
+                if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
                 $stack.room = $d;
                 $t20 = $t19 === undefined ? $t18(s_b_$2372) : $t19(s_b_$2372);
@@ -28653,6 +29994,7 @@ export const LIBRARIES = {
               case 15:
                 $t23 = $r;
                 $t24 = s_head_$2354;
+                if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
                 $stack.room = $d;
                 $t26 = $t25 === undefined ? $t24(s_b_$2372) : $t25(s_b_$2372);
@@ -28680,6 +30022,7 @@ export const LIBRARIES = {
           s_h_$2377 = 5n;
           $loop1: for (;;) {
           $t0 = s_empty_3f_$2353;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2376) : $t1(s_x_$2376);
@@ -28689,24 +30032,28 @@ export const LIBRARIES = {
           return s_h_$2377;
         } else {
           $t3 = s_tail_$2355;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_x_$2376) : $t4(s_x_$2376);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($fn15$r, 5, { s_x_$2376, s_h_$2377 }); return $UNWIND; }
           $t6 = s_head_$2354;
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_x_$2376) : $t7(s_x_$2376);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($fn15$r, 6, { s_h_$2377, $t5 }); return $UNWIND; }
           $t9 = (C5.v ?? G5());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_element_2dcomparator_$2351, $t8) : $t10(s_element_2dcomparator_$2351, $t8);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($fn15$r, 7, { s_h_$2377, $t5 }); return $UNWIND; }
           $t12 = (C4.v ?? G4());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_h_$2377, $t11) : $t13(s_h_$2377, $t11);
@@ -28730,6 +30077,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t0 = s_empty_3f_$2353;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2376) : $t1(s_x_$2376);
@@ -28744,6 +30092,7 @@ export const LIBRARIES = {
                 return s_h_$2377;
               case 4:
                 $t3 = s_tail_$2355;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_x_$2376) : $t4(s_x_$2376);
@@ -28754,6 +30103,7 @@ export const LIBRARIES = {
               case 5:
                 $t5 = $r;
                 $t6 = s_head_$2354;
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_x_$2376) : $t7(s_x_$2376);
@@ -28764,6 +30114,7 @@ export const LIBRARIES = {
               case 6:
                 $t8 = $r;
                 $t9 = (C5.v ?? G5());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_element_2dcomparator_$2351, $t8) : $t10(s_element_2dcomparator_$2351, $t8);
@@ -28774,6 +30125,7 @@ export const LIBRARIES = {
               case 7:
                 $t11 = $r;
                 $t12 = (C4.v ?? G4());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_h_$2377, $t11) : $t13(s_h_$2377, $t11);
@@ -28797,6 +30149,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 36;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_element_2dcomparator_$2351, s_type_2dtest_$2352, s_empty_3f_$2353, s_head_$2354, s_tail_$2355]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_element_2dcomparator_$2351) : $t1(s_element_2dcomparator_$2351);
@@ -28804,6 +30157,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_element_2dcomparator_$2351, s_type_2dtest_$2352, s_empty_3f_$2353, s_head_$2354, s_tail_$2355 }); return $UNWIND; }
           s_element_2dtest_$2356 = $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_element_2dcomparator_$2351) : $t4(s_element_2dcomparator_$2351);
@@ -28811,6 +30165,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_element_2dtest_$2356, s_element_2dcomparator_$2351, s_type_2dtest_$2352, s_empty_3f_$2353, s_head_$2354, s_tail_$2355 }); return $UNWIND; }
           s_element_3d_3f_$2357 = $t5;
           $t6 = (C2.v ?? G2());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_element_2dcomparator_$2351) : $t7(s_element_2dcomparator_$2351);
@@ -28822,12 +30177,14 @@ export const LIBRARIES = {
           $t14 = $mk$fn13(s_empty_3f_$2353, s_element_3d_3f_$2357, s_head_$2354, s_tail_$2355, s_element_3c_3f_$2358);
           $t16 = $mk$fn15(s_empty_3f_$2353, s_tail_$2355, s_element_2dcomparator_$2351, s_head_$2354);
           $t17 = (C6.v ?? G6());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_element_2dcomparator_$2351) : $t18(s_element_2dcomparator_$2351);
           while ($t19 instanceof $TailCall) { $stack.room = $d; $t19 = $step($t19); }
           if ($t19 === $UNWIND) { R.reify($proc$r, 4, { $t10, $t12, $t14, $t16, s_element_2dcomparator_$2351 }); return $UNWIND; }
           $t20 = (C7.v ?? G7());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_element_2dcomparator_$2351) : $t21(s_element_2dcomparator_$2351);
@@ -28843,6 +30200,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_element_2dcomparator_$2351) : $t1(s_element_2dcomparator_$2351);
@@ -28854,6 +30212,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_element_2dtest_$2356 = $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_element_2dcomparator_$2351) : $t4(s_element_2dcomparator_$2351);
@@ -28865,6 +30224,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 s_element_3d_3f_$2357 = $t5;
                 $t6 = (C2.v ?? G2());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_element_2dcomparator_$2351) : $t7(s_element_2dcomparator_$2351);
@@ -28880,6 +30240,7 @@ export const LIBRARIES = {
                 $t14 = $mk$fn13(s_empty_3f_$2353, s_element_3d_3f_$2357, s_head_$2354, s_tail_$2355, s_element_3c_3f_$2358);
                 $t16 = $mk$fn15(s_empty_3f_$2353, s_tail_$2355, s_element_2dcomparator_$2351, s_head_$2354);
                 $t17 = (C6.v ?? G6());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_element_2dcomparator_$2351) : $t18(s_element_2dcomparator_$2351);
@@ -28890,6 +30251,7 @@ export const LIBRARIES = {
               case 4:
                 $t19 = $r;
                 $t20 = (C7.v ?? G7());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_element_2dcomparator_$2351) : $t21(s_element_2dcomparator_$2351);
@@ -28914,7 +30276,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "comparator-ordering-predicate")).v;
@@ -28937,6 +30299,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 26;
           if ($d < 0 && $stack.flushable) return $flush($fn9, [s_x_$2385]);
           $t0 = s_type_2dtest_$2379;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2385) : $t1(s_x_$2385);
@@ -28944,6 +30307,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn9$r, 1, { s_x_$2385 }); return $UNWIND; }
           if ($t2 !== false) {
           $t3 = s_length_$2380;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_x_$2385) : $t4(s_x_$2385);
@@ -28958,12 +30322,14 @@ export const LIBRARIES = {
           return s_x_$2389;
         } else {
           $t7 = s_ref_$2381;
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_x_$2385, s_i_$2388) : $t8(s_x_$2385, s_i_$2388);
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($fn9$r, 8, { s_n_$2386, s_i_$2388, s_x_$2385 }); return $UNWIND; }
           $t10 = s_element_2dtest_$2382;
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10($t9) : $t11($t9);
@@ -28990,6 +30356,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_type_2dtest_$2379;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2385) : $t1(s_x_$2385);
@@ -29002,6 +30369,7 @@ export const LIBRARIES = {
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t3 = s_length_$2380;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_x_$2385) : $t4(s_x_$2385);
@@ -29024,6 +30392,7 @@ export const LIBRARIES = {
                 return s_x_$2389;
               case 7:
                 $t7 = s_ref_$2381;
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_x_$2385, s_i_$2388) : $t8(s_x_$2385, s_i_$2388);
@@ -29034,6 +30403,7 @@ export const LIBRARIES = {
               case 8:
                 $t9 = $r;
                 $t10 = s_element_2dtest_$2382;
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10($t9) : $t11($t9);
@@ -29062,6 +30432,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 31;
           if ($d < 0 && $stack.flushable) return $flush($fn11, [s_a_$2390, s_b_$2391]);
           $t0 = s_length_$2380;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2390) : $t1(s_a_$2390);
@@ -29069,6 +30440,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn11$r, 1, { s_a_$2390, s_b_$2391 }); return $UNWIND; }
           s_n_$2392 = $t2;
           $t3 = s_length_$2380;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_b_$2391) : $t4(s_b_$2391);
@@ -29084,18 +30456,21 @@ export const LIBRARIES = {
           return s_x_$2395;
         } else {
           $t8 = s_ref_$2381;
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_a_$2390, s_i_$2394) : $t9(s_a_$2390, s_i_$2394);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($fn11$r, 8, { s_n_$2392, s_i_$2394, s_a_$2390, s_b_$2391 }); return $UNWIND; }
           $t11 = s_ref_$2381;
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_b_$2391, s_i_$2394) : $t12(s_b_$2391, s_i_$2394);
           while ($t13 instanceof $TailCall) { $stack.room = $d; $t13 = $step($t13); }
           if ($t13 === $UNWIND) { R.reify($fn11$r, 9, { s_n_$2392, s_i_$2394, $t10, s_a_$2390, s_b_$2391 }); return $UNWIND; }
           $t14 = s_element_3d_3f_$2383;
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14($t10, $t13) : $t15($t10, $t13);
@@ -29122,6 +30497,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_length_$2380;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2390) : $t1(s_a_$2390);
@@ -29133,6 +30509,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_n_$2392 = $t2;
                 $t3 = s_length_$2380;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_b_$2391) : $t4(s_b_$2391);
@@ -29157,6 +30534,7 @@ export const LIBRARIES = {
                 return s_x_$2395;
               case 7:
                 $t8 = s_ref_$2381;
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_a_$2390, s_i_$2394) : $t9(s_a_$2390, s_i_$2394);
@@ -29167,6 +30545,7 @@ export const LIBRARIES = {
               case 8:
                 $t10 = $r;
                 $t11 = s_ref_$2381;
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_b_$2391, s_i_$2394) : $t12(s_b_$2391, s_i_$2394);
@@ -29177,6 +30556,7 @@ export const LIBRARIES = {
               case 9:
                 $t13 = $r;
                 $t14 = s_element_3d_3f_$2383;
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14($t10, $t13) : $t15($t10, $t13);
@@ -29205,6 +30585,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 39;
           if ($d < 0 && $stack.flushable) return $flush($fn13, [s_a_$2396, s_b_$2397]);
           $t0 = s_length_$2380;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2396) : $t1(s_a_$2396);
@@ -29212,6 +30593,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn13$r, 1, { s_a_$2396, s_b_$2397 }); return $UNWIND; }
           s_na_$2398 = $t2;
           $t3 = s_length_$2380;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_b_$2397) : $t4(s_b_$2397);
@@ -29233,18 +30615,21 @@ export const LIBRARIES = {
           return false;
         } else {
           $t9 = s_ref_$2381;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_a_$2396, s_i_$2401) : $t10(s_a_$2396, s_i_$2401);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($fn13$r, 10, { s_na_$2398, s_i_$2401, s_a_$2396, s_b_$2397 }); return $UNWIND; }
           $t12 = s_ref_$2381;
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_b_$2397, s_i_$2401) : $t13(s_b_$2397, s_i_$2401);
           while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
           if ($t14 === $UNWIND) { R.reify($fn13$r, 11, { s_na_$2398, s_i_$2401, $t11, s_a_$2396, s_b_$2397 }); return $UNWIND; }
           $t15 = s_element_3d_3f_$2383;
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15($t11, $t14) : $t16($t11, $t14);
@@ -29256,12 +30641,14 @@ export const LIBRARIES = {
           continue $loop1;
         } else {
           $t19 = s_ref_$2381;
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_a_$2396, s_i_$2401) : $t20(s_a_$2396, s_i_$2401);
           while ($t21 instanceof $TailCall) { $stack.room = $d; $t21 = $step($t21); }
           if ($t21 === $UNWIND) { R.reify($fn13$r, 15, { s_i_$2401, s_b_$2397 }); return $UNWIND; }
           $t22 = s_ref_$2381;
+          if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
           $stack.room = $d;
           $t24 = $t23 === undefined ? $t22(s_b_$2397, s_i_$2401) : $t23(s_b_$2397, s_i_$2401);
@@ -29283,6 +30670,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_length_$2380;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2396) : $t1(s_a_$2396);
@@ -29294,6 +30682,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_na_$2398 = $t2;
                 $t3 = s_length_$2380;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_b_$2397) : $t4(s_b_$2397);
@@ -29323,6 +30712,7 @@ export const LIBRARIES = {
                 return false;
               case 9:
                 $t9 = s_ref_$2381;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_a_$2396, s_i_$2401) : $t10(s_a_$2396, s_i_$2401);
@@ -29333,6 +30723,7 @@ export const LIBRARIES = {
               case 10:
                 $t11 = $r;
                 $t12 = s_ref_$2381;
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_b_$2397, s_i_$2401) : $t13(s_b_$2397, s_i_$2401);
@@ -29343,6 +30734,7 @@ export const LIBRARIES = {
               case 11:
                 $t14 = $r;
                 $t15 = s_element_3d_3f_$2383;
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15($t11, $t14) : $t16($t11, $t14);
@@ -29359,6 +30751,7 @@ export const LIBRARIES = {
                 $pc = 7; continue;
               case 14:
                 $t19 = s_ref_$2381;
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_a_$2396, s_i_$2401) : $t20(s_a_$2396, s_i_$2401);
@@ -29369,6 +30762,7 @@ export const LIBRARIES = {
               case 15:
                 $t21 = $r;
                 $t22 = s_ref_$2381;
+                if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
                 $stack.room = $d;
                 $t24 = $t23 === undefined ? $t22(s_b_$2397, s_i_$2401) : $t23(s_b_$2397, s_i_$2401);
@@ -29414,12 +30808,14 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn15, [s_x_$2402, ...s_ignored_$2403$raw]);
           let s_ignored_$2403 = R.listFrom(s_ignored_$2403$raw);
           $t0 = (C9.v ?? G9());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_element_2dcomparator_$2378) : $t1(s_element_2dcomparator_$2378);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($fn15$r, 1, { s_x_$2402 }); return $UNWIND; }
           $t3 = s_length_$2380;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_x_$2402) : $t4(s_x_$2402);
@@ -29437,6 +30833,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C9.v ?? G9());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_element_2dcomparator_$2378) : $t1(s_element_2dcomparator_$2378);
@@ -29447,6 +30844,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = s_length_$2380;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_x_$2402) : $t4(s_x_$2402);
@@ -29470,6 +30868,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 35;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_element_2dcomparator_$2378, s_type_2dtest_$2379, s_length_$2380, s_ref_$2381]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_element_2dcomparator_$2378) : $t1(s_element_2dcomparator_$2378);
@@ -29477,6 +30876,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_element_2dcomparator_$2378, s_type_2dtest_$2379, s_length_$2380, s_ref_$2381 }); return $UNWIND; }
           s_element_2dtest_$2382 = $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_element_2dcomparator_$2378) : $t4(s_element_2dcomparator_$2378);
@@ -29484,6 +30884,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_element_2dtest_$2382, s_element_2dcomparator_$2378, s_type_2dtest_$2379, s_length_$2380, s_ref_$2381 }); return $UNWIND; }
           s_element_3d_3f_$2383 = $t5;
           $t6 = (C2.v ?? G2());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_element_2dcomparator_$2378) : $t7(s_element_2dcomparator_$2378);
@@ -29495,12 +30896,14 @@ export const LIBRARIES = {
           $t14 = $mk$fn13(s_length_$2380, s_element_3d_3f_$2383, s_ref_$2381, s_element_3c_3f_$2384);
           $t16 = $mk$fn15(s_element_2dcomparator_$2378, s_length_$2380, s_ref_$2381);
           $t17 = (C10.v ?? G10());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_element_2dcomparator_$2378) : $t18(s_element_2dcomparator_$2378);
           while ($t19 instanceof $TailCall) { $stack.room = $d; $t19 = $step($t19); }
           if ($t19 === $UNWIND) { R.reify($proc$r, 4, { $t10, $t12, $t14, $t16, s_element_2dcomparator_$2378 }); return $UNWIND; }
           $t20 = (C11.v ?? G11());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_element_2dcomparator_$2378) : $t21(s_element_2dcomparator_$2378);
@@ -29516,6 +30919,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_element_2dcomparator_$2378) : $t1(s_element_2dcomparator_$2378);
@@ -29527,6 +30931,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_element_2dtest_$2382 = $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_element_2dcomparator_$2378) : $t4(s_element_2dcomparator_$2378);
@@ -29538,6 +30943,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 s_element_3d_3f_$2383 = $t5;
                 $t6 = (C2.v ?? G2());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_element_2dcomparator_$2378) : $t7(s_element_2dcomparator_$2378);
@@ -29553,6 +30959,7 @@ export const LIBRARIES = {
                 $t14 = $mk$fn13(s_length_$2380, s_element_3d_3f_$2383, s_ref_$2381, s_element_3c_3f_$2384);
                 $t16 = $mk$fn15(s_element_2dcomparator_$2378, s_length_$2380, s_ref_$2381);
                 $t17 = (C10.v ?? G10());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_element_2dcomparator_$2378) : $t18(s_element_2dcomparator_$2378);
@@ -29563,6 +30970,7 @@ export const LIBRARIES = {
               case 4:
                 $t19 = $r;
                 $t20 = (C11.v ?? G11());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_element_2dcomparator_$2378) : $t21(s_element_2dcomparator_$2378);
@@ -29587,7 +30995,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-test-type")).v;
@@ -29608,6 +31016,7 @@ export const LIBRARIES = {
         } else {
           $t1 = (W2.intact || (C2.v ?? G2()) === P2) && (s_cs_$2407 instanceof R.Cons) ? (s_cs_$2407.car) : R.callBinding((C2.v ?? G2()), [s_cs_$2407]);
           $t2 = (C1.v ?? G1());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2($t1, s_obj_$2405) : $t3($t1, s_obj_$2405);
@@ -29640,6 +31049,7 @@ export const LIBRARIES = {
               case 3:
                 $t1 = (W2.intact || (C2.v ?? G2()) === P2) && (s_cs_$2407 instanceof R.Cons) ? (s_cs_$2407.car) : R.callBinding((C2.v ?? G2()), [s_cs_$2407]);
                 $t2 = (C1.v ?? G1());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2($t1, s_obj_$2405) : $t3($t1, s_obj_$2405);
@@ -29670,7 +31080,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "registered")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "list")).v;
@@ -29679,12 +31089,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 15;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_comparator_$2408]);
           $t0 = (C2.v ?? G2());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_comparator_$2408) : $t1(s_comparator_$2408);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t3 = (C0.v ?? G0());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C1.v ?? G1()), $t2) : $t4((C1.v ?? G1()), $t2);
@@ -29700,6 +31112,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C2.v ?? G2());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_comparator_$2408) : $t1(s_comparator_$2408);
@@ -29710,6 +31123,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C1.v ?? G1()), $t2) : $t4((C1.v ?? G1()), $t2);
@@ -29734,7 +31148,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -29767,6 +31181,7 @@ export const LIBRARIES = {
           return 1n;
         } else {
           $t2 = (C2.v ?? G2());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_x_$2409) : $t3(s_x_$2409);
@@ -29776,6 +31191,7 @@ export const LIBRARIES = {
           return 2n;
         } else {
           $t5 = (C3.v ?? G3());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_x_$2409) : $t6(s_x_$2409);
@@ -29785,6 +31201,7 @@ export const LIBRARIES = {
           return 3n;
         } else {
           $t8 = (C4.v ?? G4());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_x_$2409) : $t9(s_x_$2409);
@@ -29794,6 +31211,7 @@ export const LIBRARIES = {
           return 4n;
         } else {
           $t11 = (C5.v ?? G5());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_x_$2409) : $t12(s_x_$2409);
@@ -29803,6 +31221,7 @@ export const LIBRARIES = {
           return 5n;
         } else {
           $t14 = (C6.v ?? G6());
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14(s_x_$2409) : $t15(s_x_$2409);
@@ -29812,6 +31231,7 @@ export const LIBRARIES = {
           return 6n;
         } else {
           $t17 = (C7.v ?? G7());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_x_$2409) : $t18(s_x_$2409);
@@ -29821,6 +31241,7 @@ export const LIBRARIES = {
           return 7n;
         } else {
           $t20 = (C8.v ?? G8());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_x_$2409) : $t21(s_x_$2409);
@@ -29838,6 +31259,7 @@ export const LIBRARIES = {
         } else {
           $t24 = (W10.intact || (C10.v ?? G10()) === P10) && (s_cs_$2411 instanceof R.Cons) ? (s_cs_$2411.car) : R.callBinding((C10.v ?? G10()), [s_cs_$2411]);
           $t25 = (C9.v ?? G9());
+          if (typeof $t25 !== 'function') $notProc($t25);
           $t26 = $t25[$RAW];
           $stack.room = $d;
           $t27 = $t26 === undefined ? $t25($t24, s_x_$2409) : $t26($t24, s_x_$2409);
@@ -29881,6 +31303,7 @@ export const LIBRARIES = {
                 return 1n;
               case 4:
                 $t2 = (C2.v ?? G2());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_x_$2409) : $t3(s_x_$2409);
@@ -29895,6 +31318,7 @@ export const LIBRARIES = {
                 return 2n;
               case 7:
                 $t5 = (C3.v ?? G3());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_x_$2409) : $t6(s_x_$2409);
@@ -29909,6 +31333,7 @@ export const LIBRARIES = {
                 return 3n;
               case 10:
                 $t8 = (C4.v ?? G4());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_x_$2409) : $t9(s_x_$2409);
@@ -29923,6 +31348,7 @@ export const LIBRARIES = {
                 return 4n;
               case 13:
                 $t11 = (C5.v ?? G5());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_x_$2409) : $t12(s_x_$2409);
@@ -29937,6 +31363,7 @@ export const LIBRARIES = {
                 return 5n;
               case 16:
                 $t14 = (C6.v ?? G6());
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14(s_x_$2409) : $t15(s_x_$2409);
@@ -29951,6 +31378,7 @@ export const LIBRARIES = {
                 return 6n;
               case 19:
                 $t17 = (C7.v ?? G7());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_x_$2409) : $t18(s_x_$2409);
@@ -29965,6 +31393,7 @@ export const LIBRARIES = {
                 return 7n;
               case 22:
                 $t20 = (C8.v ?? G8());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_x_$2409) : $t21(s_x_$2409);
@@ -29989,6 +31418,7 @@ export const LIBRARIES = {
               case 28:
                 $t24 = (W10.intact || (C10.v ?? G10()) === P10) && (s_cs_$2411 instanceof R.Cons) ? (s_cs_$2411.car) : R.callBinding((C10.v ?? G10()), [s_cs_$2411]);
                 $t25 = (C9.v ?? G9());
+                if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
                 $stack.room = $d;
                 $t27 = $t26 === undefined ? $t25($t24, s_x_$2409) : $t26($t24, s_x_$2409);
@@ -30020,7 +31450,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "real?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<")).v;
         const W1 = R.primitiveCell("<"), P1 = W1.primitive;
@@ -30035,6 +31465,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 39;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_a_$2413, s_b_$2414]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2413) : $t1(s_a_$2413);
@@ -30042,6 +31473,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_a_$2413, s_b_$2414 }); return $UNWIND; }
           if ($t2 !== false) {
           $t4 = (C0.v ?? G0());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_b_$2414) : $t5(s_b_$2414);
@@ -30065,6 +31497,7 @@ export const LIBRARIES = {
         }
         } else {
           $t9 = (C3.v ?? G3());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_a_$2413) : $t10(s_a_$2413);
@@ -30072,6 +31505,7 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 12, { s_a_$2413, s_b_$2414 }); return $UNWIND; }
           s_ra_$2415 = $t11;
           $t12 = (C3.v ?? G3());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_b_$2414) : $t13(s_b_$2414);
@@ -30087,6 +31521,7 @@ export const LIBRARIES = {
           return 1n;
         } else {
           $t17 = (C5.v ?? G5());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_a_$2413) : $t18(s_a_$2413);
@@ -30094,6 +31529,7 @@ export const LIBRARIES = {
           if ($t19 === $UNWIND) { R.reify($proc$r, 18, { s_b_$2414 }); return $UNWIND; }
           s_ia_$2417 = $t19;
           $t20 = (C5.v ?? G5());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_b_$2414) : $t21(s_b_$2414);
@@ -30122,6 +31558,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2413) : $t1(s_a_$2413);
@@ -30134,6 +31571,7 @@ export const LIBRARIES = {
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t4 = (C0.v ?? G0());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_b_$2414) : $t5(s_b_$2414);
@@ -30155,6 +31593,7 @@ export const LIBRARIES = {
                 if ($t7 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 7:
                 $t9 = (C3.v ?? G3());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_a_$2413) : $t10(s_a_$2413);
@@ -30175,6 +31614,7 @@ export const LIBRARIES = {
                 $t11 = $r;
                 s_ra_$2415 = $t11;
                 $t12 = (C3.v ?? G3());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_b_$2414) : $t13(s_b_$2414);
@@ -30196,6 +31636,7 @@ export const LIBRARIES = {
                 return 1n;
               case 17:
                 $t17 = (C5.v ?? G5());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_a_$2413) : $t18(s_a_$2413);
@@ -30207,6 +31648,7 @@ export const LIBRARIES = {
                 $t19 = $r;
                 s_ia_$2417 = $t19;
                 $t20 = (C5.v ?? G5());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_b_$2414) : $t21(s_b_$2414);
@@ -30241,7 +31683,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, ">")).v;
@@ -30255,6 +31697,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 37;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_a_$2419, s_b_$2420, s_length_$2421, s_ref_$2422, s_compare_$2423]);
           $t0 = s_length_$2421;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2419) : $t1(s_a_$2419);
@@ -30262,6 +31705,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_a_$2419, s_b_$2420, s_length_$2421, s_ref_$2422, s_compare_$2423 }); return $UNWIND; }
           s_na_$2424 = $t2;
           $t3 = s_length_$2421;
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_b_$2420) : $t4(s_b_$2420);
@@ -30283,18 +31727,21 @@ export const LIBRARIES = {
           return 0n;
         } else {
           $t9 = s_ref_$2422;
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_a_$2419, s_i_$2427) : $t10(s_a_$2419, s_i_$2427);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($proc$r, 10, { s_na_$2424, s_i_$2427, s_a_$2419, s_b_$2420, s_ref_$2422, s_compare_$2423 }); return $UNWIND; }
           $t12 = s_ref_$2422;
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12(s_b_$2420, s_i_$2427) : $t13(s_b_$2420, s_i_$2427);
           while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
           if ($t14 === $UNWIND) { R.reify($proc$r, 11, { s_na_$2424, s_i_$2427, $t11, s_a_$2419, s_b_$2420, s_ref_$2422, s_compare_$2423 }); return $UNWIND; }
           $t15 = s_compare_$2423;
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15($t11, $t14) : $t16($t11, $t14);
@@ -30321,6 +31768,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_length_$2421;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2419) : $t1(s_a_$2419);
@@ -30332,6 +31780,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_na_$2424 = $t2;
                 $t3 = s_length_$2421;
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_b_$2420) : $t4(s_b_$2420);
@@ -30361,6 +31810,7 @@ export const LIBRARIES = {
                 return 0n;
               case 9:
                 $t9 = s_ref_$2422;
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_a_$2419, s_i_$2427) : $t10(s_a_$2419, s_i_$2427);
@@ -30371,6 +31821,7 @@ export const LIBRARIES = {
               case 10:
                 $t11 = $r;
                 $t12 = s_ref_$2422;
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12(s_b_$2420, s_i_$2427) : $t13(s_b_$2420, s_i_$2427);
@@ -30381,6 +31832,7 @@ export const LIBRARIES = {
               case 11:
                 $t14 = $r;
                 $t15 = s_compare_$2423;
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15($t11, $t14) : $t16($t11, $t14);
@@ -30412,7 +31864,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "type-rank")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<")).v;
         const W1 = R.primitiveCell("<"), P1 = W1.primitive;
@@ -30501,6 +31953,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_a_$2429, s_b_$2430]);
           $loop: for (;;) {
             $t0 = (C0.v ?? G0());
+            if (typeof $t0 !== 'function') $notProc($t0);
             $t1 = $t0[$RAW];
             $stack.room = $d;
             $t2 = $t1 === undefined ? $t0(s_a_$2429) : $t1(s_a_$2429);
@@ -30508,6 +31961,7 @@ export const LIBRARIES = {
             if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_a_$2429, s_b_$2430 }); return $UNWIND; }
             s_ra_$2431 = $t2;
             $t3 = (C0.v ?? G0());
+            if (typeof $t3 !== 'function') $notProc($t3);
             $t4 = $t3[$RAW];
             $stack.room = $d;
             $t5 = $t4 === undefined ? $t3(s_b_$2430) : $t4(s_b_$2430);
@@ -30527,6 +31981,7 @@ export const LIBRARIES = {
           $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (s_a_$2429 instanceof R.Cons) ? (s_a_$2429.car) : R.callBinding((C5.v ?? G5()), [s_a_$2429]);
           $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (s_b_$2430 instanceof R.Cons) ? (s_b_$2430.car) : R.callBinding((C5.v ?? G5()), [s_b_$2430]);
           $t11 = (C4.v ?? G4());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11($t9, $t10) : $t12($t9, $t10);
@@ -30549,6 +32004,7 @@ export const LIBRARIES = {
           return 0n;
         } else {
           $t19 = (C9.v ?? G9());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_a_$2429) : $t20(s_a_$2429);
@@ -30567,6 +32023,7 @@ export const LIBRARIES = {
         }
         } else {
           $t23 = (C11.v ?? G11());
+          if (typeof $t23 !== 'function') $notProc($t23);
           $t24 = $t23[$RAW];
           $stack.room = $d;
           $t25 = $t24 === undefined ? $t23(s_a_$2429) : $t24(s_a_$2429);
@@ -30574,6 +32031,7 @@ export const LIBRARIES = {
           if ($t25 === $UNWIND) { R.reify($proc$r, 21, { s_a_$2429, s_b_$2430 }); return $UNWIND; }
           if ($t25 !== false) {
           $t26 = (C12.v ?? G12());
+          if (typeof $t26 !== 'function') $notProc($t26);
           $t27 = $t26[$RAW];
           $stack.room = $d;
           $t28 = $t27 === undefined ? $t26(s_a_$2429, s_b_$2430) : $t27(s_a_$2429, s_b_$2430);
@@ -30583,6 +32041,7 @@ export const LIBRARIES = {
           return -1n;
         } else {
           $t29 = (C13.v ?? G13());
+          if (typeof $t29 !== 'function') $notProc($t29);
           $t30 = $t29[$RAW];
           $stack.room = $d;
           $t31 = $t30 === undefined ? $t29(s_a_$2429, s_b_$2430) : $t30(s_a_$2429, s_b_$2430);
@@ -30596,6 +32055,7 @@ export const LIBRARIES = {
         }
         } else {
           $t32 = (C14.v ?? G14());
+          if (typeof $t32 !== 'function') $notProc($t32);
           $t33 = $t32[$RAW];
           $stack.room = $d;
           $t34 = $t33 === undefined ? $t32(s_a_$2429) : $t33(s_a_$2429);
@@ -30603,6 +32063,7 @@ export const LIBRARIES = {
           if ($t34 === $UNWIND) { R.reify($proc$r, 30, { s_a_$2429, s_b_$2430 }); return $UNWIND; }
           if ($t34 !== false) {
           $t35 = (C15.v ?? G15());
+          if (typeof $t35 !== 'function') $notProc($t35);
           $t36 = $t35[$RAW];
           $stack.room = $d;
           $t37 = $t36 === undefined ? $t35(s_a_$2429, s_b_$2430) : $t36(s_a_$2429, s_b_$2430);
@@ -30612,6 +32073,7 @@ export const LIBRARIES = {
           return -1n;
         } else {
           $t38 = (C16.v ?? G16());
+          if (typeof $t38 !== 'function') $notProc($t38);
           $t39 = $t38[$RAW];
           $stack.room = $d;
           $t40 = $t39 === undefined ? $t38(s_a_$2429, s_b_$2430) : $t39(s_a_$2429, s_b_$2430);
@@ -30625,6 +32087,7 @@ export const LIBRARIES = {
         }
         } else {
           $t41 = (C17.v ?? G17());
+          if (typeof $t41 !== 'function') $notProc($t41);
           $t42 = $t41[$RAW];
           $stack.room = $d;
           $t43 = $t42 === undefined ? $t41(s_a_$2429) : $t42(s_a_$2429);
@@ -30632,6 +32095,7 @@ export const LIBRARIES = {
           if ($t43 === $UNWIND) { R.reify($proc$r, 39, { s_a_$2429, s_b_$2430 }); return $UNWIND; }
           if ($t43 !== false) {
           $t44 = (C18.v ?? G18());
+          if (typeof $t44 !== 'function') $notProc($t44);
           $t45 = $t44[$RAW];
           $stack.room = $d;
           $t46 = $t45 === undefined ? $t44(s_a_$2429) : $t45(s_a_$2429);
@@ -30639,6 +32103,7 @@ export const LIBRARIES = {
           if ($t46 === $UNWIND) { R.reify($proc$r, 42, { s_b_$2430 }); return $UNWIND; }
           s_sa_$2434 = $t46;
           $t47 = (C18.v ?? G18());
+          if (typeof $t47 !== 'function') $notProc($t47);
           $t48 = $t47[$RAW];
           $stack.room = $d;
           $t49 = $t48 === undefined ? $t47(s_b_$2430) : $t48(s_b_$2430);
@@ -30646,6 +32111,7 @@ export const LIBRARIES = {
           if ($t49 === $UNWIND) { R.reify($proc$r, 43, { s_sa_$2434 }); return $UNWIND; }
           s_sb_$2435 = $t49;
           $t50 = (C15.v ?? G15());
+          if (typeof $t50 !== 'function') $notProc($t50);
           $t51 = $t50[$RAW];
           $stack.room = $d;
           $t52 = $t51 === undefined ? $t50(s_sa_$2434, s_sb_$2435) : $t51(s_sa_$2434, s_sb_$2435);
@@ -30655,6 +32121,7 @@ export const LIBRARIES = {
           return -1n;
         } else {
           $t53 = (C16.v ?? G16());
+          if (typeof $t53 !== 'function') $notProc($t53);
           $t54 = $t53[$RAW];
           $stack.room = $d;
           $t55 = $t54 === undefined ? $t53(s_sa_$2434, s_sb_$2435) : $t54(s_sa_$2434, s_sb_$2435);
@@ -30668,6 +32135,7 @@ export const LIBRARIES = {
         }
         } else {
           $t56 = (C19.v ?? G19());
+          if (typeof $t56 !== 'function') $notProc($t56);
           $t57 = $t56[$RAW];
           $stack.room = $d;
           $t58 = $t57 === undefined ? $t56(s_a_$2429) : $t57(s_a_$2429);
@@ -30678,6 +32146,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t59?.[$PRIM] === true) { $stack.room = $d; return $t59(s_a_$2429, s_b_$2430); } return $tailCall($t59, [s_a_$2429, s_b_$2430]);
         } else {
           $t60 = (C21.v ?? G21());
+          if (typeof $t60 !== 'function') $notProc($t60);
           $t61 = $t60[$RAW];
           $stack.room = $d;
           $t62 = $t61 === undefined ? $t60(s_a_$2429) : $t61(s_a_$2429);
@@ -30688,6 +32157,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t63?.[$PRIM] === true) { $stack.room = $d; return $t63(s_a_$2429, s_b_$2430, (C23.v ?? G23()), (C24.v ?? G24()), (C4.v ?? G4())); } return $tailCall($t63, [s_a_$2429, s_b_$2430, (C23.v ?? G23()), (C24.v ?? G24()), (C4.v ?? G4())]);
         } else {
           $t64 = (C25.v ?? G25());
+          if (typeof $t64 !== 'function') $notProc($t64);
           $t65 = $t64[$RAW];
           $stack.room = $d;
           $t66 = $t65 === undefined ? $t64(s_a_$2429) : $t65(s_a_$2429);
@@ -30699,6 +32169,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t69?.[$PRIM] === true) { $stack.room = $d; return $t69(s_a_$2429, s_b_$2430, (C26.v ?? G26()), (C27.v ?? G27()), $t68); } return $tailCall($t69, [s_a_$2429, s_b_$2430, (C26.v ?? G26()), (C27.v ?? G27()), $t68]);
         } else {
           $t70 = (C28.v ?? G28());
+          if (typeof $t70 !== 'function') $notProc($t70);
           $t71 = $t70[$RAW];
           $stack.room = $d;
           $t72 = $t71 === undefined ? $t70(s_a_$2429) : $t71(s_a_$2429);
@@ -30708,12 +32179,14 @@ export const LIBRARIES = {
           if (s_temp_$2438 !== false) {
           s_comparator_$2439 = s_temp_$2438;
           $t76 = (C29.v ?? G29());
+          if (typeof $t76 !== 'function') $notProc($t76);
           $t77 = $t76[$RAW];
           $stack.room = $d;
           $t78 = $t77 === undefined ? $t76(s_comparator_$2439) : $t77(s_comparator_$2439);
           while ($t78 instanceof $TailCall) { $stack.room = $d; $t78 = $step($t78); }
           if ($t78 === $UNWIND) { R.reify($proc$r, 62, { s_comparator_$2439, s_a_$2429, s_b_$2430 }); return $UNWIND; }
           $t73 = $t78;
+          if (typeof $t73 !== 'function') $notProc($t73);
           $t74 = $t73[$RAW];
           $stack.room = $d;
           $t75 = $t74 === undefined ? $t73(s_a_$2429, s_b_$2430) : $t74(s_a_$2429, s_b_$2430);
@@ -30723,12 +32196,14 @@ export const LIBRARIES = {
           return 0n;
         } else {
           $t82 = (C30.v ?? G30());
+          if (typeof $t82 !== 'function') $notProc($t82);
           $t83 = $t82[$RAW];
           $stack.room = $d;
           $t84 = $t83 === undefined ? $t82(s_comparator_$2439) : $t83(s_comparator_$2439);
           while ($t84 instanceof $TailCall) { $stack.room = $d; $t84 = $step($t84); }
           if ($t84 === $UNWIND) { R.reify($proc$r, 66, { s_a_$2429, s_b_$2430 }); return $UNWIND; }
           $t79 = $t84;
+          if (typeof $t79 !== 'function') $notProc($t79);
           $t80 = $t79[$RAW];
           $stack.room = $d;
           $t81 = $t80 === undefined ? $t79(s_a_$2429, s_b_$2430) : $t80(s_a_$2429, s_b_$2430);
@@ -30742,6 +32217,7 @@ export const LIBRARIES = {
         }
         } else {
           $t85 = (C31.v ?? G31());
+          if (typeof $t85 !== 'function') $notProc($t85);
           $t86 = $t85[$RAW];
           $stack.room = $d;
           $t87 = $t86 === undefined ? $t85(s_a_$2429, s_b_$2430) : $t86(s_a_$2429, s_b_$2430);
@@ -30774,6 +32250,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2429) : $t1(s_a_$2429);
@@ -30785,6 +32262,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_ra_$2431 = $t2;
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_b_$2430) : $t4(s_b_$2430);
@@ -30811,6 +32289,7 @@ export const LIBRARIES = {
                 $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (s_a_$2429 instanceof R.Cons) ? (s_a_$2429.car) : R.callBinding((C5.v ?? G5()), [s_a_$2429]);
                 $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (s_b_$2430 instanceof R.Cons) ? (s_b_$2430.car) : R.callBinding((C5.v ?? G5()), [s_b_$2430]);
                 $t11 = (C4.v ?? G4());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11($t9, $t10) : $t12($t9, $t10);
@@ -30838,6 +32317,7 @@ export const LIBRARIES = {
                 return 0n;
               case 13:
                 $t19 = (C9.v ?? G9());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_a_$2429) : $t20(s_a_$2429);
@@ -30853,6 +32333,7 @@ export const LIBRARIES = {
                 if ($t22 !== false) { $pc = 17; continue; } $pc = 18; continue;
               case 16:
                 $t23 = (C11.v ?? G11());
+                if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
                 $stack.room = $d;
                 $t25 = $t24 === undefined ? $t23(s_a_$2429) : $t24(s_a_$2429);
@@ -30873,6 +32354,7 @@ export const LIBRARIES = {
                 if ($t25 !== false) { $pc = 22; continue; } $pc = 23; continue;
               case 22:
                 $t26 = (C12.v ?? G12());
+                if (typeof $t26 !== 'function') $notProc($t26);
                 $t27 = $t26[$RAW];
                 $stack.room = $d;
                 $t28 = $t27 === undefined ? $t26(s_a_$2429, s_b_$2430) : $t27(s_a_$2429, s_b_$2430);
@@ -30882,6 +32364,7 @@ export const LIBRARIES = {
                 $pc = 24; continue;
               case 23:
                 $t32 = (C14.v ?? G14());
+                if (typeof $t32 !== 'function') $notProc($t32);
                 $t33 = $t32[$RAW];
                 $stack.room = $d;
                 $t34 = $t33 === undefined ? $t32(s_a_$2429) : $t33(s_a_$2429);
@@ -30896,6 +32379,7 @@ export const LIBRARIES = {
                 return -1n;
               case 26:
                 $t29 = (C13.v ?? G13());
+                if (typeof $t29 !== 'function') $notProc($t29);
                 $t30 = $t29[$RAW];
                 $stack.room = $d;
                 $t31 = $t30 === undefined ? $t29(s_a_$2429, s_b_$2430) : $t30(s_a_$2429, s_b_$2430);
@@ -30915,6 +32399,7 @@ export const LIBRARIES = {
                 if ($t34 !== false) { $pc = 31; continue; } $pc = 32; continue;
               case 31:
                 $t35 = (C15.v ?? G15());
+                if (typeof $t35 !== 'function') $notProc($t35);
                 $t36 = $t35[$RAW];
                 $stack.room = $d;
                 $t37 = $t36 === undefined ? $t35(s_a_$2429, s_b_$2430) : $t36(s_a_$2429, s_b_$2430);
@@ -30924,6 +32409,7 @@ export const LIBRARIES = {
                 $pc = 33; continue;
               case 32:
                 $t41 = (C17.v ?? G17());
+                if (typeof $t41 !== 'function') $notProc($t41);
                 $t42 = $t41[$RAW];
                 $stack.room = $d;
                 $t43 = $t42 === undefined ? $t41(s_a_$2429) : $t42(s_a_$2429);
@@ -30938,6 +32424,7 @@ export const LIBRARIES = {
                 return -1n;
               case 35:
                 $t38 = (C16.v ?? G16());
+                if (typeof $t38 !== 'function') $notProc($t38);
                 $t39 = $t38[$RAW];
                 $stack.room = $d;
                 $t40 = $t39 === undefined ? $t38(s_a_$2429, s_b_$2430) : $t39(s_a_$2429, s_b_$2430);
@@ -30957,6 +32444,7 @@ export const LIBRARIES = {
                 if ($t43 !== false) { $pc = 40; continue; } $pc = 41; continue;
               case 40:
                 $t44 = (C18.v ?? G18());
+                if (typeof $t44 !== 'function') $notProc($t44);
                 $t45 = $t44[$RAW];
                 $stack.room = $d;
                 $t46 = $t45 === undefined ? $t44(s_a_$2429) : $t45(s_a_$2429);
@@ -30966,6 +32454,7 @@ export const LIBRARIES = {
                 $pc = 42; continue;
               case 41:
                 $t56 = (C19.v ?? G19());
+                if (typeof $t56 !== 'function') $notProc($t56);
                 $t57 = $t56[$RAW];
                 $stack.room = $d;
                 $t58 = $t57 === undefined ? $t56(s_a_$2429) : $t57(s_a_$2429);
@@ -30977,6 +32466,7 @@ export const LIBRARIES = {
                 $t46 = $r;
                 s_sa_$2434 = $t46;
                 $t47 = (C18.v ?? G18());
+                if (typeof $t47 !== 'function') $notProc($t47);
                 $t48 = $t47[$RAW];
                 $stack.room = $d;
                 $t49 = $t48 === undefined ? $t47(s_b_$2430) : $t48(s_b_$2430);
@@ -30988,6 +32478,7 @@ export const LIBRARIES = {
                 $t49 = $r;
                 s_sb_$2435 = $t49;
                 $t50 = (C15.v ?? G15());
+                if (typeof $t50 !== 'function') $notProc($t50);
                 $t51 = $t50[$RAW];
                 $stack.room = $d;
                 $t52 = $t51 === undefined ? $t50(s_sa_$2434, s_sb_$2435) : $t51(s_sa_$2434, s_sb_$2435);
@@ -31002,6 +32493,7 @@ export const LIBRARIES = {
                 return -1n;
               case 46:
                 $t53 = (C16.v ?? G16());
+                if (typeof $t53 !== 'function') $notProc($t53);
                 $t54 = $t53[$RAW];
                 $stack.room = $d;
                 $t55 = $t54 === undefined ? $t53(s_sa_$2434, s_sb_$2435) : $t54(s_sa_$2434, s_sb_$2435);
@@ -31024,6 +32516,7 @@ export const LIBRARIES = {
                 return $tailCall($t59, [s_a_$2429, s_b_$2430]);
               case 52:
                 $t60 = (C21.v ?? G21());
+                if (typeof $t60 !== 'function') $notProc($t60);
                 $t61 = $t60[$RAW];
                 $stack.room = $d;
                 $t62 = $t61 === undefined ? $t60(s_a_$2429) : $t61(s_a_$2429);
@@ -31039,6 +32532,7 @@ export const LIBRARIES = {
                 return $tailCall($t63, [s_a_$2429, s_b_$2430, (C23.v ?? G23()), (C24.v ?? G24()), (C4.v ?? G4())]);
               case 55:
                 $t64 = (C25.v ?? G25());
+                if (typeof $t64 !== 'function') $notProc($t64);
                 $t65 = $t64[$RAW];
                 $stack.room = $d;
                 $t66 = $t65 === undefined ? $t64(s_a_$2429) : $t65(s_a_$2429);
@@ -31055,6 +32549,7 @@ export const LIBRARIES = {
                 return $tailCall($t69, [s_a_$2429, s_b_$2430, (C26.v ?? G26()), (C27.v ?? G27()), $t68]);
               case 58:
                 $t70 = (C28.v ?? G28());
+                if (typeof $t70 !== 'function') $notProc($t70);
                 $t71 = $t70[$RAW];
                 $stack.room = $d;
                 $t72 = $t71 === undefined ? $t70(s_a_$2429) : $t71(s_a_$2429);
@@ -31069,6 +32564,7 @@ export const LIBRARIES = {
               case 60:
                 s_comparator_$2439 = s_temp_$2438;
                 $t76 = (C29.v ?? G29());
+                if (typeof $t76 !== 'function') $notProc($t76);
                 $t77 = $t76[$RAW];
                 $stack.room = $d;
                 $t78 = $t77 === undefined ? $t76(s_comparator_$2439) : $t77(s_comparator_$2439);
@@ -31078,6 +32574,7 @@ export const LIBRARIES = {
                 $pc = 62; continue;
               case 61:
                 $t85 = (C31.v ?? G31());
+                if (typeof $t85 !== 'function') $notProc($t85);
                 $t86 = $t85[$RAW];
                 $stack.room = $d;
                 $t87 = $t86 === undefined ? $t85(s_a_$2429, s_b_$2430) : $t86(s_a_$2429, s_b_$2430);
@@ -31088,6 +32585,7 @@ export const LIBRARIES = {
               case 62:
                 $t78 = $r;
                 $t73 = $t78;
+                if (typeof $t73 !== 'function') $notProc($t73);
                 $t74 = $t73[$RAW];
                 $stack.room = $d;
                 $t75 = $t74 === undefined ? $t73(s_a_$2429, s_b_$2430) : $t74(s_a_$2429, s_b_$2430);
@@ -31102,6 +32600,7 @@ export const LIBRARIES = {
                 return 0n;
               case 65:
                 $t82 = (C30.v ?? G30());
+                if (typeof $t82 !== 'function') $notProc($t82);
                 $t83 = $t82[$RAW];
                 $stack.room = $d;
                 $t84 = $t83 === undefined ? $t82(s_comparator_$2439) : $t83(s_comparator_$2439);
@@ -31112,6 +32611,7 @@ export const LIBRARIES = {
               case 66:
                 $t84 = $r;
                 $t79 = $t84;
+                if (typeof $t79 !== 'function') $notProc($t79);
                 $t80 = $t79[$RAW];
                 $stack.room = $d;
                 $t81 = $t80 === undefined ? $t79(s_a_$2429, s_b_$2430) : $t80(s_a_$2429, s_b_$2430);
@@ -31147,7 +32647,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "type-rank")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -31161,6 +32661,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 25;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_a_$2440, s_b_$2441]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2440) : $t1(s_a_$2440);
@@ -31168,6 +32669,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_a_$2440, s_b_$2441 }); return $UNWIND; }
           s_ra_$2442 = $t2;
           $t3 = (C0.v ?? G0());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_b_$2441) : $t4(s_b_$2441);
@@ -31179,6 +32681,7 @@ export const LIBRARIES = {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof s_ra_$2442 === 'bigint' && typeof 1000000n === 'bigint') || (typeof s_ra_$2442 === 'number' && typeof 1000000n === 'number')) ? (s_ra_$2442 < 1000000n) : R.callBinding((C2.v ?? G2()), [s_ra_$2442, 1000000n]);
           if ($t7 !== false) {
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_a_$2440, s_b_$2441) : $t9(s_a_$2440, s_b_$2441);
@@ -31201,6 +32704,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2440) : $t1(s_a_$2440);
@@ -31212,6 +32716,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_ra_$2442 = $t2;
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_b_$2441) : $t4(s_b_$2441);
@@ -31231,6 +32736,7 @@ export const LIBRARIES = {
                 return false;
               case 5:
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_a_$2440, s_b_$2441) : $t9(s_a_$2440, s_b_$2441);
@@ -31281,7 +32787,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "default-compare")).v;
@@ -31290,6 +32796,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_a_$2444, s_b_$2445]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_a_$2444, s_b_$2445) : $t1(s_a_$2444, s_b_$2445);
@@ -31305,6 +32812,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_a_$2444, s_b_$2445) : $t1(s_a_$2444, s_b_$2445);
@@ -31397,7 +32905,7 @@ export const LIBRARIES = {
   },
   "srfi.152": {
     fingerprint: "eecece92",
-    runtime: "c824b493",
+    runtime: "ba382a3c",
     files: ["152.sld","string_lib.scm"],
     procedures: {
       "string-check-procedure": {
@@ -31405,7 +32913,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -31416,6 +32924,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$2664, s_f_$2665]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_f_$2665) : $t1(s_f_$2665);
@@ -31424,6 +32933,7 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t4 = (C3.v ?? G3());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_who_$2664, ": expected a procedure") : $t5(s_who_$2664, ": expected a procedure");
@@ -31442,6 +32952,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_f_$2665) : $t1(s_f_$2665);
@@ -31455,6 +32966,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t4 = (C3.v ?? G3());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_who_$2664, ": expected a procedure") : $t5(s_who_$2664, ": expected a procedure");
@@ -31481,7 +32993,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string?")).v;
@@ -31505,6 +33017,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 59;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$2666, s_s_$2667, s_range_$2668]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_s_$2667) : $t1(s_s_$2667);
@@ -31513,12 +33026,14 @@ export const LIBRARIES = {
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t2 === false) : R.callBinding((C0.v ?? G0()), [$t2]);
           if ($t3 !== false) {
           $t5 = (C3.v ?? G3());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5(s_who_$2666, ": expected a string") : $t6(s_who_$2666, ": expected a string");
           while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
           if ($t7 === $UNWIND) { R.reify($proc$r, 5, { s_who_$2666, s_s_$2667, s_range_$2668 }); return $UNWIND; }
           $t8 = (C2.v ?? G2());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8($t7, s_s_$2667) : $t9($t7, s_s_$2667);
@@ -31530,6 +33045,7 @@ export const LIBRARIES = {
         }
           $t4;
           $t11 = (C4.v ?? G4());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_s_$2667) : $t12(s_s_$2667);
@@ -31554,6 +33070,7 @@ export const LIBRARIES = {
         }
           if ($t18 !== false) {
           $t22 = (C8.v ?? G8());
+          if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
           $stack.room = $d;
           $t24 = $t23 === undefined ? $t22(s_range_$2668) : $t23(s_range_$2668);
@@ -31565,6 +33082,7 @@ export const LIBRARIES = {
         }
           s_end_$2671 = $t21;
           $t25 = (C9.v ?? G9());
+          if (typeof $t25 !== 'function') $notProc($t25);
           $t26 = $t25[$RAW];
           $stack.room = $d;
           $t27 = $t26 === undefined ? $t25(s_start_$2670) : $t26(s_start_$2670);
@@ -31572,6 +33090,7 @@ export const LIBRARIES = {
           if ($t27 === $UNWIND) { R.reify($proc$r, 18, { s_n_$2669, s_start_$2670, s_end_$2671, s_who_$2666 }); return $UNWIND; }
           if ($t27 !== false) {
           $t29 = (C9.v ?? G9());
+          if (typeof $t29 !== 'function') $notProc($t29);
           $t30 = $t29[$RAW];
           $stack.room = $d;
           $t31 = $t30 === undefined ? $t29(s_end_$2671) : $t30(s_end_$2671);
@@ -31579,6 +33098,7 @@ export const LIBRARIES = {
           if ($t31 === $UNWIND) { R.reify($proc$r, 22, { s_n_$2669, s_start_$2670, s_end_$2671, s_who_$2666 }); return $UNWIND; }
           if ($t31 !== false) {
           $t33 = (C10.v ?? G10());
+          if (typeof $t33 !== 'function') $notProc($t33);
           $t34 = $t33[$RAW];
           $stack.room = $d;
           $t35 = $t34 === undefined ? $t33(0n, s_start_$2670, s_end_$2671, s_n_$2669) : $t34(0n, s_start_$2670, s_end_$2671, s_n_$2669);
@@ -31595,12 +33115,14 @@ export const LIBRARIES = {
           $t36 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t28 === false) : R.callBinding((C0.v ?? G0()), [$t28]);
           if ($t36 !== false) {
           $t38 = (C3.v ?? G3());
+          if (typeof $t38 !== 'function') $notProc($t38);
           $t39 = $t38[$RAW];
           $stack.room = $d;
           $t40 = $t39 === undefined ? $t38(s_who_$2666, ": index out of range") : $t39(s_who_$2666, ": index out of range");
           while ($t40 instanceof $TailCall) { $stack.room = $d; $t40 = $step($t40); }
           if ($t40 === $UNWIND) { R.reify($proc$r, 30, { s_start_$2670, s_end_$2671 }); return $UNWIND; }
           $t41 = (C2.v ?? G2());
+          if (typeof $t41 !== 'function') $notProc($t41);
           $t42 = $t41[$RAW];
           $stack.room = $d;
           $t43 = $t42 === undefined ? $t41($t40, s_start_$2670, s_end_$2671) : $t42($t40, s_start_$2670, s_end_$2671);
@@ -31621,6 +33143,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_s_$2667) : $t1(s_s_$2667);
@@ -31634,6 +33157,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C3.v ?? G3());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5(s_who_$2666, ": expected a string") : $t6(s_who_$2666, ": expected a string");
@@ -31647,6 +33171,7 @@ export const LIBRARIES = {
               case 4:
                 $t4;
                 $t11 = (C4.v ?? G4());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_s_$2667) : $t12(s_s_$2667);
@@ -31657,6 +33182,7 @@ export const LIBRARIES = {
               case 5:
                 $t7 = $r;
                 $t8 = (C2.v ?? G2());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8($t7, s_s_$2667) : $t9($t7, s_s_$2667);
@@ -31696,6 +33222,7 @@ export const LIBRARIES = {
                 if ($t18 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 $t22 = (C8.v ?? G8());
+                if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
                 $stack.room = $d;
                 $t24 = $t23 === undefined ? $t22(s_range_$2668) : $t23(s_range_$2668);
@@ -31709,6 +33236,7 @@ export const LIBRARIES = {
               case 16:
                 s_end_$2671 = $t21;
                 $t25 = (C9.v ?? G9());
+                if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
                 $stack.room = $d;
                 $t27 = $t26 === undefined ? $t25(s_start_$2670) : $t26(s_start_$2670);
@@ -31725,6 +33253,7 @@ export const LIBRARIES = {
                 if ($t27 !== false) { $pc = 19; continue; } $pc = 20; continue;
               case 19:
                 $t29 = (C9.v ?? G9());
+                if (typeof $t29 !== 'function') $notProc($t29);
                 $t30 = $t29[$RAW];
                 $stack.room = $d;
                 $t31 = $t30 === undefined ? $t29(s_end_$2671) : $t30(s_end_$2671);
@@ -31743,6 +33272,7 @@ export const LIBRARIES = {
                 if ($t31 !== false) { $pc = 23; continue; } $pc = 24; continue;
               case 23:
                 $t33 = (C10.v ?? G10());
+                if (typeof $t33 !== 'function') $notProc($t33);
                 $t34 = $t33[$RAW];
                 $stack.room = $d;
                 $t35 = $t34 === undefined ? $t33(0n, s_start_$2670, s_end_$2671, s_n_$2669) : $t34(0n, s_start_$2670, s_end_$2671, s_n_$2669);
@@ -31762,6 +33292,7 @@ export const LIBRARIES = {
                 $pc = 25; continue;
               case 27:
                 $t38 = (C3.v ?? G3());
+                if (typeof $t38 !== 'function') $notProc($t38);
                 $t39 = $t38[$RAW];
                 $stack.room = $d;
                 $t40 = $t39 === undefined ? $t38(s_who_$2666, ": index out of range") : $t39(s_who_$2666, ": index out of range");
@@ -31779,6 +33310,7 @@ export const LIBRARIES = {
               case 30:
                 $t40 = $r;
                 $t41 = (C2.v ?? G2());
+                if (typeof $t41 !== 'function') $notProc($t41);
                 $t42 = $t41[$RAW];
                 $stack.room = $d;
                 $t43 = $t42 === undefined ? $t41($t40, s_start_$2670, s_end_$2671) : $t42($t40, s_start_$2670, s_end_$2671);
@@ -31803,7 +33335,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, ">=")).v;
         const W0 = R.primitiveCell(">="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-ref")).v;
@@ -31820,12 +33352,14 @@ export const LIBRARIES = {
           return false;
         } else {
           $t1 = (C1.v ?? G1());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1(s_s_$2672, s_i_$2677) : $t2(s_s_$2672, s_i_$2677);
           while ($t3 instanceof $TailCall) { $stack.room = $d; $t3 = $step($t3); }
           if ($t3 === $UNWIND) { R.reify($proc$r, 4, { s_i_$2677, s_s_$2672, s_pred_$2673, s_end_$2675 }); return $UNWIND; }
           $t4 = s_pred_$2673;
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
@@ -31856,6 +33390,7 @@ export const LIBRARIES = {
                 return false;
               case 3:
                 $t1 = (C1.v ?? G1());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1(s_s_$2672, s_i_$2677) : $t2(s_s_$2672, s_i_$2677);
@@ -31866,6 +33401,7 @@ export const LIBRARIES = {
               case 4:
                 $t3 = $r;
                 $t4 = s_pred_$2673;
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
@@ -31895,7 +33431,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-ref")).v;
@@ -31913,12 +33449,14 @@ export const LIBRARIES = {
           return false;
         } else {
           $t2 = (C1.v ?? G1());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_s_$2678, s_i_$2683) : $t3(s_s_$2678, s_i_$2683);
           while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
           if ($t4 === $UNWIND) { R.reify($proc$r, 4, { s_i_$2683, s_s_$2678, s_pred_$2679, s_start_$2680 }); return $UNWIND; }
           $t5 = s_pred_$2679;
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -31950,6 +33488,7 @@ export const LIBRARIES = {
                 return false;
               case 3:
                 $t2 = (C1.v ?? G1());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_s_$2678, s_i_$2683) : $t3(s_s_$2678, s_i_$2683);
@@ -31960,6 +33499,7 @@ export const LIBRARIES = {
               case 4:
                 $t4 = $r;
                 $t5 = s_pred_$2679;
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5($t4) : $t6($t4);
@@ -31989,7 +33529,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-length")).v;
@@ -31998,6 +33538,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2684]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_s_$2684) : $t1(s_s_$2684);
@@ -32013,6 +33554,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_s_$2684) : $t1(s_s_$2684);
@@ -32037,7 +33579,7 @@ export const LIBRARIES = {
         rest: "range_$2687",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
@@ -32055,6 +33597,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2685, s_s_$2686, ...s_range_$2687$raw]);
           let s_range_$2687 = R.listFrom(s_range_$2687$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-every", s_pred_$2685) : $t1("string-every", s_pred_$2685);
@@ -32062,6 +33605,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_pred_$2685, s_s_$2686, s_range_$2687 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("string-every", s_s_$2686, s_range_$2687) : $t4("string-every", s_s_$2686, s_range_$2687);
@@ -32079,12 +33623,14 @@ export const LIBRARIES = {
           return s_last_$2692;
         } else {
           $t9 = (C4.v ?? G4());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_s_$2686, s_i_$2691) : $t10(s_s_$2686, s_i_$2691);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($proc$r, 6, { s_end_$2689, s_i_$2691, s_pred_$2685, s_s_$2686 }); return $UNWIND; }
           $t12 = s_pred_$2685;
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
@@ -32110,6 +33656,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-every", s_pred_$2685) : $t1("string-every", s_pred_$2685);
@@ -32121,6 +33668,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("string-every", s_s_$2686, s_range_$2687) : $t4("string-every", s_s_$2686, s_range_$2687);
@@ -32144,6 +33692,7 @@ export const LIBRARIES = {
                 return s_last_$2692;
               case 5:
                 $t9 = (C4.v ?? G4());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_s_$2686, s_i_$2691) : $t10(s_s_$2686, s_i_$2691);
@@ -32154,6 +33703,7 @@ export const LIBRARIES = {
               case 6:
                 $t11 = $r;
                 $t12 = s_pred_$2685;
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
@@ -32186,7 +33736,7 @@ export const LIBRARIES = {
         rest: "range_$2696",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
@@ -32204,6 +33754,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2694, s_s_$2695, ...s_range_$2696$raw]);
           let s_range_$2696 = R.listFrom(s_range_$2696$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-any", s_pred_$2694) : $t1("string-any", s_pred_$2694);
@@ -32211,6 +33762,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_pred_$2694, s_s_$2695, s_range_$2696 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("string-any", s_s_$2695, s_range_$2696) : $t4("string-any", s_s_$2695, s_range_$2696);
@@ -32225,12 +33777,14 @@ export const LIBRARIES = {
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_i_$2700 === 'bigint' && typeof s_end_$2698 === 'bigint') || (typeof s_i_$2700 === 'number' && typeof s_end_$2698 === 'number')) ? (s_i_$2700 < s_end_$2698) : R.callBinding((C3.v ?? G3()), [s_i_$2700, s_end_$2698]);
           if ($t8 !== false) {
           $t9 = (C4.v ?? G4());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_s_$2695, s_i_$2700) : $t10(s_s_$2695, s_i_$2700);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($proc$r, 6, { s_end_$2698, s_i_$2700, s_pred_$2694, s_s_$2695 }); return $UNWIND; }
           $t12 = s_pred_$2694;
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
@@ -32256,6 +33810,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-any", s_pred_$2694) : $t1("string-any", s_pred_$2694);
@@ -32267,6 +33822,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("string-any", s_s_$2695, s_range_$2696) : $t4("string-any", s_s_$2695, s_range_$2696);
@@ -32287,6 +33843,7 @@ export const LIBRARIES = {
                 if ($t8 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t9 = (C4.v ?? G4());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_s_$2695, s_i_$2700) : $t10(s_s_$2695, s_i_$2700);
@@ -32299,6 +33856,7 @@ export const LIBRARIES = {
               case 6:
                 $t11 = $r;
                 $t12 = s_pred_$2694;
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12($t11) : $t13($t11);
@@ -32329,7 +33887,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
@@ -32349,6 +33907,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 33;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_proc_$2702, s_len_$2703]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-tabulate", s_proc_$2702) : $t1("string-tabulate", s_proc_$2702);
@@ -32356,6 +33915,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_proc_$2702, s_len_$2703 }); return $UNWIND; }
           $t2;
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_len_$2703) : $t4(s_len_$2703);
@@ -32370,6 +33930,7 @@ export const LIBRARIES = {
           $t8 = (W1.intact || (C1.v ?? G1()) === P1) ? ($t6 === false) : R.callBinding((C1.v ?? G1()), [$t6]);
           if ($t8 !== false) {
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10("string-tabulate: expected a non-negative exact integer", s_len_$2703) : $t11("string-tabulate: expected a non-negative exact integer", s_len_$2703);
@@ -32391,6 +33952,7 @@ export const LIBRARIES = {
         } else {
           $t16 = (W7.intact || (C7.v ?? G7()) === P7) && ((typeof s_i_$2705 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2705 === 'number' && typeof 1n === 'number')) ? (s_i_$2705 - 1n) : R.callBinding((C7.v ?? G7()), [s_i_$2705, 1n]);
           $t17 = s_proc_$2702;
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_i_$2705) : $t18(s_i_$2705);
@@ -32410,6 +33972,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-tabulate", s_proc_$2702) : $t1("string-tabulate", s_proc_$2702);
@@ -32421,6 +33984,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_len_$2703) : $t4(s_len_$2703);
@@ -32443,6 +34007,7 @@ export const LIBRARIES = {
                 if ($t8 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10("string-tabulate: expected a non-negative exact integer", s_len_$2703) : $t11("string-tabulate: expected a non-negative exact integer", s_len_$2703);
@@ -32472,6 +34037,7 @@ export const LIBRARIES = {
               case 12:
                 $t16 = (W7.intact || (C7.v ?? G7()) === P7) && ((typeof s_i_$2705 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2705 === 'number' && typeof 1n === 'number')) ? (s_i_$2705 - 1n) : R.callBinding((C7.v ?? G7()), [s_i_$2705, 1n]);
                 $t17 = s_proc_$2702;
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_i_$2705) : $t18(s_i_$2705);
@@ -32498,7 +34064,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "char?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string")).v;
         function $proc(s_x_$2707) {
@@ -32506,6 +34072,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_x_$2707]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_x_$2707) : $t1(s_x_$2707);
@@ -32525,6 +34092,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_x_$2707) : $t1(s_x_$2707);
@@ -32553,7 +34121,7 @@ export const LIBRARIES = {
         rest: "options_$2712",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -32606,6 +34174,7 @@ export const LIBRARIES = {
         }
           if ($t4 !== false) {
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_options_$2712) : $t9(s_options_$2712);
@@ -32618,6 +34187,7 @@ export const LIBRARIES = {
         }
           s_make_2dfinal_$2714 = $t7;
           $t13 = (C7.v ?? G7());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_base_$2713) : $t14(s_base_$2713);
@@ -32627,6 +34197,7 @@ export const LIBRARIES = {
           s_pieces_$2718 = $t15;
           $loop1: for (;;) {
           $t16 = s_stop_3f_$2708;
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_seed_$2717) : $t17(s_seed_$2717);
@@ -32634,12 +34205,14 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 13, { s_make_2dfinal_$2714, s_seed_$2717, s_pieces_$2718, s_stop_3f_$2708, s_mapper_$2709, s_successor_$2710 }); return $UNWIND; }
           if ($t18 !== false) {
           $t19 = s_make_2dfinal_$2714;
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_seed_$2717) : $t20(s_seed_$2717);
           while ($t21 instanceof $TailCall) { $stack.room = $d; $t21 = $step($t21); }
           if ($t21 === $UNWIND) { R.reify($proc$r, 16, { s_pieces_$2718 }); return $UNWIND; }
           $t22 = (C6.v ?? G6());
+          if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
           $stack.room = $d;
           $t24 = $t23 === undefined ? $t22($t21) : $t23($t21);
@@ -32650,18 +34223,21 @@ export const LIBRARIES = {
           if ($d > 0 && $t26?.[$PRIM] === true) { $stack.room = $d; return $t26($t25); } return $tailCall($t26, [$t25]);
         } else {
           $t27 = s_successor_$2710;
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27(s_seed_$2717) : $t28(s_seed_$2717);
           while ($t29 instanceof $TailCall) { $stack.room = $d; $t29 = $step($t29); }
           if ($t29 === $UNWIND) { R.reify($proc$r, 18, { s_make_2dfinal_$2714, s_seed_$2717, s_pieces_$2718, s_stop_3f_$2708, s_mapper_$2709, s_successor_$2710 }); return $UNWIND; }
           $t30 = s_mapper_$2709;
+          if (typeof $t30 !== 'function') $notProc($t30);
           $t31 = $t30[$RAW];
           $stack.room = $d;
           $t32 = $t31 === undefined ? $t30(s_seed_$2717) : $t31(s_seed_$2717);
           while ($t32 instanceof $TailCall) { $stack.room = $d; $t32 = $step($t32); }
           if ($t32 === $UNWIND) { R.reify($proc$r, 19, { s_make_2dfinal_$2714, s_pieces_$2718, $t29, s_stop_3f_$2708, s_mapper_$2709, s_successor_$2710 }); return $UNWIND; }
           $t33 = (C6.v ?? G6());
+          if (typeof $t33 !== 'function') $notProc($t33);
           $t34 = $t33[$RAW];
           $stack.room = $d;
           $t35 = $t34 === undefined ? $t33($t32) : $t34($t32);
@@ -32705,6 +34281,7 @@ export const LIBRARIES = {
                 if ($t4 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_options_$2712) : $t9(s_options_$2712);
@@ -32719,6 +34296,7 @@ export const LIBRARIES = {
               case 9:
                 s_make_2dfinal_$2714 = $t7;
                 $t13 = (C7.v ?? G7());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_base_$2713) : $t14(s_base_$2713);
@@ -32737,6 +34315,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               case 12:
                 $t16 = s_stop_3f_$2708;
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_seed_$2717) : $t17(s_seed_$2717);
@@ -32749,6 +34328,7 @@ export const LIBRARIES = {
                 if ($t18 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 $t19 = s_make_2dfinal_$2714;
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_seed_$2717) : $t20(s_seed_$2717);
@@ -32758,6 +34338,7 @@ export const LIBRARIES = {
                 $pc = 16; continue;
               case 15:
                 $t27 = s_successor_$2710;
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27(s_seed_$2717) : $t28(s_seed_$2717);
@@ -32768,6 +34349,7 @@ export const LIBRARIES = {
               case 16:
                 $t21 = $r;
                 $t22 = (C6.v ?? G6());
+                if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
                 $stack.room = $d;
                 $t24 = $t23 === undefined ? $t22($t21) : $t23($t21);
@@ -32783,6 +34365,7 @@ export const LIBRARIES = {
               case 18:
                 $t29 = $r;
                 $t30 = s_mapper_$2709;
+                if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
                 $t32 = $t31 === undefined ? $t30(s_seed_$2717) : $t31(s_seed_$2717);
@@ -32793,6 +34376,7 @@ export const LIBRARIES = {
               case 19:
                 $t32 = $r;
                 $t33 = (C6.v ?? G6());
+                if (typeof $t33 !== 'function') $notProc($t33);
                 $t34 = $t33[$RAW];
                 $stack.room = $d;
                 $t35 = $t34 === undefined ? $t33($t32) : $t34($t32);
@@ -32819,7 +34403,7 @@ export const LIBRARIES = {
         rest: "options_$2723",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -32872,6 +34456,7 @@ export const LIBRARIES = {
         }
           if ($t4 !== false) {
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_options_$2723) : $t9(s_options_$2723);
@@ -32884,6 +34469,7 @@ export const LIBRARIES = {
         }
           s_make_2dfinal_$2725 = $t7;
           $t13 = (C7.v ?? G7());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_base_$2724) : $t14(s_base_$2724);
@@ -32893,6 +34479,7 @@ export const LIBRARIES = {
           s_pieces_$2729 = $t15;
           $loop1: for (;;) {
           $t16 = s_stop_3f_$2719;
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_seed_$2728) : $t17(s_seed_$2728);
@@ -32900,12 +34487,14 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 13, { s_make_2dfinal_$2725, s_seed_$2728, s_pieces_$2729, s_stop_3f_$2719, s_mapper_$2720, s_successor_$2721 }); return $UNWIND; }
           if ($t18 !== false) {
           $t19 = s_make_2dfinal_$2725;
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_seed_$2728) : $t20(s_seed_$2728);
           while ($t21 instanceof $TailCall) { $stack.room = $d; $t21 = $step($t21); }
           if ($t21 === $UNWIND) { R.reify($proc$r, 16, { s_pieces_$2729 }); return $UNWIND; }
           $t22 = (C6.v ?? G6());
+          if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
           $stack.room = $d;
           $t24 = $t23 === undefined ? $t22($t21) : $t23($t21);
@@ -32916,18 +34505,21 @@ export const LIBRARIES = {
           if ($d > 0 && $t26?.[$PRIM] === true) { $stack.room = $d; return $t26($t25); } return $tailCall($t26, [$t25]);
         } else {
           $t27 = s_successor_$2721;
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27(s_seed_$2728) : $t28(s_seed_$2728);
           while ($t29 instanceof $TailCall) { $stack.room = $d; $t29 = $step($t29); }
           if ($t29 === $UNWIND) { R.reify($proc$r, 18, { s_make_2dfinal_$2725, s_seed_$2728, s_pieces_$2729, s_stop_3f_$2719, s_mapper_$2720, s_successor_$2721 }); return $UNWIND; }
           $t30 = s_mapper_$2720;
+          if (typeof $t30 !== 'function') $notProc($t30);
           $t31 = $t30[$RAW];
           $stack.room = $d;
           $t32 = $t31 === undefined ? $t30(s_seed_$2728) : $t31(s_seed_$2728);
           while ($t32 instanceof $TailCall) { $stack.room = $d; $t32 = $step($t32); }
           if ($t32 === $UNWIND) { R.reify($proc$r, 19, { s_make_2dfinal_$2725, s_pieces_$2729, $t29, s_stop_3f_$2719, s_mapper_$2720, s_successor_$2721 }); return $UNWIND; }
           $t33 = (C6.v ?? G6());
+          if (typeof $t33 !== 'function') $notProc($t33);
           $t34 = $t33[$RAW];
           $stack.room = $d;
           $t35 = $t34 === undefined ? $t33($t32) : $t34($t32);
@@ -32971,6 +34563,7 @@ export const LIBRARIES = {
                 if ($t4 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_options_$2723) : $t9(s_options_$2723);
@@ -32985,6 +34578,7 @@ export const LIBRARIES = {
               case 9:
                 s_make_2dfinal_$2725 = $t7;
                 $t13 = (C7.v ?? G7());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_base_$2724) : $t14(s_base_$2724);
@@ -33003,6 +34597,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               case 12:
                 $t16 = s_stop_3f_$2719;
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_seed_$2728) : $t17(s_seed_$2728);
@@ -33015,6 +34610,7 @@ export const LIBRARIES = {
                 if ($t18 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 $t19 = s_make_2dfinal_$2725;
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_seed_$2728) : $t20(s_seed_$2728);
@@ -33024,6 +34620,7 @@ export const LIBRARIES = {
                 $pc = 16; continue;
               case 15:
                 $t27 = s_successor_$2721;
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27(s_seed_$2728) : $t28(s_seed_$2728);
@@ -33034,6 +34631,7 @@ export const LIBRARIES = {
               case 16:
                 $t21 = $r;
                 $t22 = (C6.v ?? G6());
+                if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
                 $stack.room = $d;
                 $t24 = $t23 === undefined ? $t22($t21) : $t23($t21);
@@ -33049,6 +34647,7 @@ export const LIBRARIES = {
               case 18:
                 $t29 = $r;
                 $t30 = s_mapper_$2720;
+                if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
                 $t32 = $t31 === undefined ? $t30(s_seed_$2728) : $t31(s_seed_$2728);
@@ -33059,6 +34658,7 @@ export const LIBRARIES = {
               case 19:
                 $t32 = $r;
                 $t33 = (C6.v ?? G6());
+                if (typeof $t33 !== 'function') $notProc($t33);
                 $t34 = $t33[$RAW];
                 $stack.room = $d;
                 $t35 = $t34 === undefined ? $t33($t32) : $t34($t32);
@@ -33085,7 +34685,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list->string")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reverse")).v;
         function $proc(s_chars_$2730) {
@@ -33093,6 +34693,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_chars_$2730]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_chars_$2730) : $t1(s_chars_$2730);
@@ -33108,6 +34709,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_chars_$2730) : $t1(s_chars_$2730);
@@ -33132,7 +34734,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "exact-integer?")).v;
@@ -33146,6 +34748,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 26;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_who_$2731, s_s_$2732, s_n_$2733]);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_n_$2733) : $t1(s_n_$2733);
@@ -33153,12 +34756,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_who_$2731, s_s_$2732, s_n_$2733 }); return $UNWIND; }
           if ($t2 !== false) {
           $t4 = (C3.v ?? G3());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_s_$2732) : $t5(s_s_$2732);
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($proc$r, 5, { s_who_$2731, s_n_$2733 }); return $UNWIND; }
           $t7 = (C2.v ?? G2());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(0n, s_n_$2733, $t6) : $t8(0n, s_n_$2733, $t6);
@@ -33171,6 +34776,7 @@ export const LIBRARIES = {
           $t10 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t3 === false) : R.callBinding((C0.v ?? G0()), [$t3]);
           if ($t10 !== false) {
           $t11 = (C5.v ?? G5());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_who_$2731, ": count out of range") : $t12(s_who_$2731, ": count out of range");
@@ -33189,6 +34795,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_n_$2733) : $t1(s_n_$2733);
@@ -33201,6 +34808,7 @@ export const LIBRARIES = {
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t4 = (C3.v ?? G3());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_s_$2732) : $t5(s_s_$2732);
@@ -33217,6 +34825,7 @@ export const LIBRARIES = {
               case 5:
                 $t6 = $r;
                 $t7 = (C2.v ?? G2());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(0n, s_n_$2733, $t6) : $t8(0n, s_n_$2733, $t6);
@@ -33230,6 +34839,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 7:
                 $t11 = (C5.v ?? G5());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_who_$2731, ": count out of range") : $t12(s_who_$2731, ": count out of range");
@@ -33256,7 +34866,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
         function $proc(s_s_$2734, s_n_$2735) {
@@ -33264,6 +34874,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2734, s_n_$2735]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-take", s_s_$2734, s_n_$2735) : $t1("string-take", s_s_$2734, s_n_$2735);
@@ -33280,6 +34891,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-take", s_s_$2734, s_n_$2735) : $t1("string-take", s_s_$2734, s_n_$2735);
@@ -33305,7 +34917,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-length")).v;
@@ -33314,6 +34926,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 17;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2736, s_n_$2737]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-drop", s_s_$2736, s_n_$2737) : $t1("string-drop", s_s_$2736, s_n_$2737);
@@ -33321,6 +34934,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s_$2736, s_n_$2737 }); return $UNWIND; }
           $t2;
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_s_$2736) : $t4(s_s_$2736);
@@ -33336,6 +34950,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-drop", s_s_$2736, s_n_$2737) : $t1("string-drop", s_s_$2736, s_n_$2737);
@@ -33347,6 +34962,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_s_$2736) : $t4(s_s_$2736);
@@ -33371,7 +34987,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -33382,6 +34998,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 21;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2738, s_n_$2739]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-take-right", s_s_$2738, s_n_$2739) : $t1("string-take-right", s_s_$2738, s_n_$2739);
@@ -33389,6 +35006,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s_$2738, s_n_$2739 }); return $UNWIND; }
           $t2;
           $t3 = (C3.v ?? G3());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_s_$2738) : $t4(s_s_$2738);
@@ -33396,6 +35014,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_s_$2738, s_n_$2739 }); return $UNWIND; }
           $t6 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof $t5 === 'bigint' && typeof s_n_$2739 === 'bigint') || (typeof $t5 === 'number' && typeof s_n_$2739 === 'number')) ? ($t5 - s_n_$2739) : R.callBinding((C2.v ?? G2()), [$t5, s_n_$2739]);
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_s_$2738) : $t8(s_s_$2738);
@@ -33411,6 +35030,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-take-right", s_s_$2738, s_n_$2739) : $t1("string-take-right", s_s_$2738, s_n_$2739);
@@ -33422,6 +35042,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C3.v ?? G3());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_s_$2738) : $t4(s_s_$2738);
@@ -33433,6 +35054,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 $t6 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof $t5 === 'bigint' && typeof s_n_$2739 === 'bigint') || (typeof $t5 === 'number' && typeof s_n_$2739 === 'number')) ? ($t5 - s_n_$2739) : R.callBinding((C2.v ?? G2()), [$t5, s_n_$2739]);
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_s_$2738) : $t8(s_s_$2738);
@@ -33457,7 +35079,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -33468,6 +35090,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2740, s_n_$2741]);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-drop-right", s_s_$2740, s_n_$2741) : $t1("string-drop-right", s_s_$2740, s_n_$2741);
@@ -33475,6 +35098,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s_$2740, s_n_$2741 }); return $UNWIND; }
           $t2;
           $t3 = (C3.v ?? G3());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_s_$2740) : $t4(s_s_$2740);
@@ -33491,6 +35115,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-drop-right", s_s_$2740, s_n_$2741) : $t1("string-drop-right", s_s_$2740, s_n_$2741);
@@ -33502,6 +35127,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C3.v ?? G3());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_s_$2740) : $t4(s_s_$2740);
@@ -33527,7 +35153,7 @@ export const LIBRARIES = {
         rest: "options_$2744",
         constants: [new Char(32), new Char(32)],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -33563,6 +35189,7 @@ export const LIBRARIES = {
           $t4 = null;
         }
           $t6 = (C2.v ?? G2());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6("string-pad", s_s_$2742, $t4) : $t7("string-pad", s_s_$2742, $t4);
@@ -33583,12 +35210,14 @@ export const LIBRARIES = {
         } else {
           $t15 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_len_$2743 === 'bigint' && typeof s_n_$2749 === 'bigint') || (typeof s_len_$2743 === 'number' && typeof s_n_$2749 === 'number')) ? (s_len_$2743 - s_n_$2749) : R.callBinding((C4.v ?? G4()), [s_len_$2743, s_n_$2749]);
           $t16 = (C8.v ?? G8());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16($t15, s_char_$2745) : $t17($t15, s_char_$2745);
           while ($t18 instanceof $TailCall) { $stack.room = $d; $t18 = $step($t18); }
           if ($t18 === $UNWIND) { R.reify($proc$r, 10, { s_start_$2747, s_end_$2748, s_s_$2742 }); return $UNWIND; }
           $t19 = (C6.v ?? G6());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_s_$2742, s_start_$2747, s_end_$2748) : $t20(s_s_$2742, s_start_$2747, s_end_$2748);
@@ -33626,6 +35255,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 6:
                 $t6 = (C2.v ?? G2());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6("string-pad", s_s_$2742, $t4) : $t7("string-pad", s_s_$2742, $t4);
@@ -33651,6 +35281,7 @@ export const LIBRARIES = {
               case 9:
                 $t15 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_len_$2743 === 'bigint' && typeof s_n_$2749 === 'bigint') || (typeof s_len_$2743 === 'number' && typeof s_n_$2749 === 'number')) ? (s_len_$2743 - s_n_$2749) : R.callBinding((C4.v ?? G4()), [s_len_$2743, s_n_$2749]);
                 $t16 = (C8.v ?? G8());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16($t15, s_char_$2745) : $t17($t15, s_char_$2745);
@@ -33661,6 +35292,7 @@ export const LIBRARIES = {
               case 10:
                 $t18 = $r;
                 $t19 = (C6.v ?? G6());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_s_$2742, s_start_$2747, s_end_$2748) : $t20(s_s_$2742, s_start_$2747, s_end_$2748);
@@ -33685,7 +35317,7 @@ export const LIBRARIES = {
         rest: "options_$2752",
         constants: [new Char(32), new Char(32)],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -33723,6 +35355,7 @@ export const LIBRARIES = {
           $t4 = null;
         }
           $t6 = (C2.v ?? G2());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6("string-pad-right", s_s_$2750, $t4) : $t7("string-pad-right", s_s_$2750, $t4);
@@ -33742,6 +35375,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t14?.[$PRIM] === true) { $stack.room = $d; return $t14(s_s_$2750, s_start_$2755, $t13); } return $tailCall($t14, [s_s_$2750, s_start_$2755, $t13]);
         } else {
           $t15 = (C6.v ?? G6());
+          if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
           $stack.room = $d;
           $t17 = $t16 === undefined ? $t15(s_s_$2750, s_start_$2755, s_end_$2756) : $t16(s_s_$2750, s_start_$2755, s_end_$2756);
@@ -33749,6 +35383,7 @@ export const LIBRARIES = {
           if ($t17 === $UNWIND) { R.reify($proc$r, 10, { s_char_$2753, s_n_$2757, s_len_$2751 }); return $UNWIND; }
           $t18 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_len_$2751 === 'bigint' && typeof s_n_$2757 === 'bigint') || (typeof s_len_$2751 === 'number' && typeof s_n_$2757 === 'number')) ? (s_len_$2751 - s_n_$2757) : R.callBinding((C4.v ?? G4()), [s_len_$2751, s_n_$2757]);
           $t19 = (C9.v ?? G9());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19($t18, s_char_$2753) : $t20($t18, s_char_$2753);
@@ -33786,6 +35421,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 6:
                 $t6 = (C2.v ?? G2());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6("string-pad-right", s_s_$2750, $t4) : $t7("string-pad-right", s_s_$2750, $t4);
@@ -33810,6 +35446,7 @@ export const LIBRARIES = {
                 return $tailCall($t14, [s_s_$2750, s_start_$2755, $t13]);
               case 9:
                 $t15 = (C6.v ?? G6());
+                if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
                 $stack.room = $d;
                 $t17 = $t16 === undefined ? $t15(s_s_$2750, s_start_$2755, s_end_$2756) : $t16(s_s_$2750, s_start_$2755, s_end_$2756);
@@ -33821,6 +35458,7 @@ export const LIBRARIES = {
                 $t17 = $r;
                 $t18 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_len_$2751 === 'bigint' && typeof s_n_$2757 === 'bigint') || (typeof s_len_$2751 === 'number' && typeof s_n_$2757 === 'number')) ? (s_len_$2751 - s_n_$2757) : R.callBinding((C4.v ?? G4()), [s_len_$2751, s_n_$2757]);
                 $t19 = (C9.v ?? G9());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19($t18, s_char_$2753) : $t20($t18, s_char_$2753);
@@ -33845,7 +35483,7 @@ export const LIBRARIES = {
         rest: "options_$2759",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -33864,6 +35502,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn9, [s_c_$2763]);
           $t0 = s_pred_$2760;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2763) : $t1(s_c_$2763);
@@ -33880,6 +35519,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2760;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2763) : $t1(s_c_$2763);
@@ -33918,6 +35558,7 @@ export const LIBRARIES = {
           $t4 = null;
         }
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6("string-trim", s_s_$2758, $t4) : $t7("string-trim", s_s_$2758, $t4);
@@ -33928,6 +35569,7 @@ export const LIBRARIES = {
           $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2761 instanceof R.Cons) ? (s_r_$2761.car) : R.callBinding((C1.v ?? G1()), [s_r_$2761]);
           $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r_$2761 instanceof R.Cons) ? (s_r_$2761.cdr) : R.callBinding((C4.v ?? G4()), [s_r_$2761]);
           $t13 = (C5.v ?? G5());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_s_$2758, $t10, $t11, $t12) : $t14(s_s_$2758, $t10, $t11, $t12);
@@ -33970,6 +35612,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 6:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6("string-trim", s_s_$2758, $t4) : $t7("string-trim", s_s_$2758, $t4);
@@ -33984,6 +35627,7 @@ export const LIBRARIES = {
                 $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2761 instanceof R.Cons) ? (s_r_$2761.car) : R.callBinding((C1.v ?? G1()), [s_r_$2761]);
                 $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r_$2761 instanceof R.Cons) ? (s_r_$2761.cdr) : R.callBinding((C4.v ?? G4()), [s_r_$2761]);
                 $t13 = (C5.v ?? G5());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_s_$2758, $t10, $t11, $t12) : $t14(s_s_$2758, $t10, $t11, $t12);
@@ -34014,7 +35658,7 @@ export const LIBRARIES = {
         rest: "options_$2765",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -34035,6 +35679,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn9, [s_c_$2769]);
           $t0 = s_pred_$2766;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2769) : $t1(s_c_$2769);
@@ -34051,6 +35696,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2766;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2769) : $t1(s_c_$2769);
@@ -34089,6 +35735,7 @@ export const LIBRARIES = {
           $t4 = null;
         }
           $t6 = (C3.v ?? G3());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6("string-trim-right", s_s_$2764, $t4) : $t7("string-trim-right", s_s_$2764, $t4);
@@ -34099,6 +35746,7 @@ export const LIBRARIES = {
           $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2767 instanceof R.Cons) ? (s_r_$2767.car) : R.callBinding((C1.v ?? G1()), [s_r_$2767]);
           $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r_$2767 instanceof R.Cons) ? (s_r_$2767.cdr) : R.callBinding((C4.v ?? G4()), [s_r_$2767]);
           $t13 = (C5.v ?? G5());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_s_$2764, $t10, $t11, $t12) : $t14(s_s_$2764, $t10, $t11, $t12);
@@ -34142,6 +35790,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 6:
                 $t6 = (C3.v ?? G3());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6("string-trim-right", s_s_$2764, $t4) : $t7("string-trim-right", s_s_$2764, $t4);
@@ -34156,6 +35805,7 @@ export const LIBRARIES = {
                 $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2767 instanceof R.Cons) ? (s_r_$2767.car) : R.callBinding((C1.v ?? G1()), [s_r_$2767]);
                 $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r_$2767 instanceof R.Cons) ? (s_r_$2767.cdr) : R.callBinding((C4.v ?? G4()), [s_r_$2767]);
                 $t13 = (C5.v ?? G5());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_s_$2764, $t10, $t11, $t12) : $t14(s_s_$2764, $t10, $t11, $t12);
@@ -34187,7 +35837,7 @@ export const LIBRARIES = {
         rest: "options_$2771",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -34219,6 +35869,7 @@ export const LIBRARIES = {
           $t4 = null;
         }
           $t6 = (C4.v ?? G4());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6((C5.v ?? G5()), s_s_$2770, s_pred_$2772, $t4) : $t7((C5.v ?? G5()), s_s_$2770, s_pred_$2772, $t4);
@@ -34255,6 +35906,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 6:
                 $t6 = (C4.v ?? G4());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6((C5.v ?? G5()), s_s_$2770, s_pred_$2772, $t4) : $t7((C5.v ?? G5()), s_s_$2770, s_pred_$2772, $t4);
@@ -34279,7 +35931,7 @@ export const LIBRARIES = {
         rest: "range2_$2777",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-range")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-append")).v;
@@ -34295,12 +35947,14 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s1_$2773, s_s2_$2774, s_start1_$2775, s_end1_$2776, ...s_range2_$2777$raw]);
           let s_range2_$2777 = R.listFrom(s_range2_$2777$raw);
           $t0 = (C1.v ?? G1());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_start1_$2775, s_end1_$2776) : $t1(s_start1_$2775, s_end1_$2776);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s1_$2773, s_s2_$2774, s_start1_$2775, s_end1_$2776, s_range2_$2777 }); return $UNWIND; }
           $t3 = (C0.v ?? G0());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("string-replace", s_s1_$2773, $t2) : $t4("string-replace", s_s1_$2773, $t2);
@@ -34308,6 +35962,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_s1_$2773, s_s2_$2774, s_start1_$2775, s_end1_$2776, s_range2_$2777 }); return $UNWIND; }
           s_r1_$2778 = $t5;
           $t6 = (C0.v ?? G0());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6("string-replace", s_s2_$2774, s_range2_$2777) : $t7("string-replace", s_s2_$2774, s_range2_$2777);
@@ -34315,6 +35970,7 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_s1_$2773, s_s2_$2774, s_start1_$2775, s_end1_$2776 }); return $UNWIND; }
           s_r2_$2779 = $t8;
           $t9 = (C3.v ?? G3());
+          if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
           $stack.room = $d;
           $t11 = $t10 === undefined ? $t9(s_s1_$2773, 0n, s_start1_$2775) : $t10(s_s1_$2773, 0n, s_start1_$2775);
@@ -34323,18 +35979,21 @@ export const LIBRARIES = {
           $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r2_$2779 instanceof R.Cons) ? (s_r2_$2779.car) : R.callBinding((C4.v ?? G4()), [s_r2_$2779]);
           $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (s_r2_$2779 instanceof R.Cons) ? (s_r2_$2779.cdr) : R.callBinding((C5.v ?? G5()), [s_r2_$2779]);
           $t14 = (C3.v ?? G3());
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14(s_s2_$2774, $t12, $t13) : $t15(s_s2_$2774, $t12, $t13);
           while ($t16 instanceof $TailCall) { $stack.room = $d; $t16 = $step($t16); }
           if ($t16 === $UNWIND) { R.reify($proc$r, 5, { $t11, s_s1_$2773, s_end1_$2776 }); return $UNWIND; }
           $t17 = (C6.v ?? G6());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_s1_$2773) : $t18(s_s1_$2773);
           while ($t19 instanceof $TailCall) { $stack.room = $d; $t19 = $step($t19); }
           if ($t19 === $UNWIND) { R.reify($proc$r, 6, { $t11, $t16, s_s1_$2773, s_end1_$2776 }); return $UNWIND; }
           $t20 = (C3.v ?? G3());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_s1_$2773, s_end1_$2776, $t19) : $t21(s_s1_$2773, s_end1_$2776, $t19);
@@ -34350,6 +36009,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C1.v ?? G1());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_start1_$2775, s_end1_$2776) : $t1(s_start1_$2775, s_end1_$2776);
@@ -34360,6 +36020,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("string-replace", s_s1_$2773, $t2) : $t4("string-replace", s_s1_$2773, $t2);
@@ -34371,6 +36032,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 s_r1_$2778 = $t5;
                 $t6 = (C0.v ?? G0());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6("string-replace", s_s2_$2774, s_range2_$2777) : $t7("string-replace", s_s2_$2774, s_range2_$2777);
@@ -34382,6 +36044,7 @@ export const LIBRARIES = {
                 $t8 = $r;
                 s_r2_$2779 = $t8;
                 $t9 = (C3.v ?? G3());
+                if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
                 $stack.room = $d;
                 $t11 = $t10 === undefined ? $t9(s_s1_$2773, 0n, s_start1_$2775) : $t10(s_s1_$2773, 0n, s_start1_$2775);
@@ -34394,6 +36057,7 @@ export const LIBRARIES = {
                 $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r2_$2779 instanceof R.Cons) ? (s_r2_$2779.car) : R.callBinding((C4.v ?? G4()), [s_r2_$2779]);
                 $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (s_r2_$2779 instanceof R.Cons) ? (s_r2_$2779.cdr) : R.callBinding((C5.v ?? G5()), [s_r2_$2779]);
                 $t14 = (C3.v ?? G3());
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14(s_s2_$2774, $t12, $t13) : $t15(s_s2_$2774, $t12, $t13);
@@ -34404,6 +36068,7 @@ export const LIBRARIES = {
               case 5:
                 $t16 = $r;
                 $t17 = (C6.v ?? G6());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_s1_$2773) : $t18(s_s1_$2773);
@@ -34414,6 +36079,7 @@ export const LIBRARIES = {
               case 6:
                 $t19 = $r;
                 $t20 = (C3.v ?? G3());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_s1_$2773, s_end1_$2776, $t19) : $t21(s_s1_$2773, s_end1_$2776, $t19);
@@ -34438,7 +36104,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-range")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -34459,6 +36125,7 @@ export const LIBRARIES = {
           $t1 = null;
         }
           $t2 = (C0.v ?? G0());
+          if (typeof $t2 !== 'function') $notProc($t2);
           $t3 = $t2[$RAW];
           $stack.room = $d;
           $t4 = $t3 === undefined ? $t2(s_who_$2780, s_s1_$2781, $t1) : $t3(s_who_$2780, s_s1_$2781, $t1);
@@ -34475,6 +36142,7 @@ export const LIBRARIES = {
         }
           if ($t6 !== false) {
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_range_$2783) : $t11(s_range_$2783);
@@ -34485,6 +36153,7 @@ export const LIBRARIES = {
           $t9 = null;
         }
           $t13 = (C0.v ?? G0());
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13(s_who_$2780, s_s2_$2782, $t9) : $t14(s_who_$2780, s_s2_$2782, $t9);
@@ -34514,6 +36183,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 3:
                 $t2 = (C0.v ?? G0());
+                if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? $t2(s_who_$2780, s_s1_$2781, $t1) : $t3(s_who_$2780, s_s1_$2781, $t1);
@@ -34538,6 +36208,7 @@ export const LIBRARIES = {
                 if ($t6 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_range_$2783) : $t11(s_range_$2783);
@@ -34550,6 +36221,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 10:
                 $t13 = (C0.v ?? G0());
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13(s_who_$2780, s_s2_$2782, $t9) : $t14(s_who_$2780, s_s2_$2782, $t9);
@@ -34583,7 +36255,7 @@ export const LIBRARIES = {
         rest: "range_$2788",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -34602,6 +36274,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s1_$2786, s_s2_$2787, ...s_range_$2788$raw]);
           let s_range_$2788 = R.listFrom(s_range_$2788$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-prefix-length", s_s1_$2786, s_s2_$2787, s_range_$2788) : $t1("string-prefix-length", s_s1_$2786, s_s2_$2787, s_range_$2788);
@@ -34611,6 +36284,7 @@ export const LIBRARIES = {
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2789 instanceof R.Cons) ? (s_r_$2789.car) : R.callBinding((C1.v ?? G1()), [s_r_$2789]);
           s_start1_$2790 = $t3;
           $t4 = (C2.v ?? G2());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_r_$2789) : $t5(s_r_$2789);
@@ -34618,6 +36292,7 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { s_r_$2789, s_start1_$2790, s_s1_$2786, s_s2_$2787 }); return $UNWIND; }
           s_end1_$2791 = $t6;
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_r_$2789) : $t8(s_r_$2789);
@@ -34625,6 +36300,7 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 3, { s_r_$2789, s_start1_$2790, s_end1_$2791, s_s1_$2786, s_s2_$2787 }); return $UNWIND; }
           s_start2_$2792 = $t9;
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_r_$2789) : $t11(s_r_$2789);
@@ -34641,6 +36317,7 @@ export const LIBRARIES = {
           if ($t17 !== false) {
           $t19 = (W6.intact || (C6.v ?? G6()) === P6) && ((typeof s_start1_$2790 === 'bigint' && typeof s_i_$2795 === 'bigint') || (typeof s_start1_$2790 === 'number' && typeof s_i_$2795 === 'number')) ? (s_start1_$2790 + s_i_$2795) : R.callBinding((C6.v ?? G6()), [s_start1_$2790, s_i_$2795]);
           $t20 = (C8.v ?? G8());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_s1_$2786, $t19) : $t21(s_s1_$2786, $t19);
@@ -34648,12 +36325,14 @@ export const LIBRARIES = {
           if ($t22 === $UNWIND) { R.reify($proc$r, 12, { s_start1_$2790, s_end1_$2791, s_start2_$2792, s_end2_$2793, s_i_$2795, s_s1_$2786, s_s2_$2787 }); return $UNWIND; }
           $t23 = (W6.intact || (C6.v ?? G6()) === P6) && ((typeof s_start2_$2792 === 'bigint' && typeof s_i_$2795 === 'bigint') || (typeof s_start2_$2792 === 'number' && typeof s_i_$2795 === 'number')) ? (s_start2_$2792 + s_i_$2795) : R.callBinding((C6.v ?? G6()), [s_start2_$2792, s_i_$2795]);
           $t24 = (C8.v ?? G8());
+          if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
           $stack.room = $d;
           $t26 = $t25 === undefined ? $t24(s_s2_$2787, $t23) : $t25(s_s2_$2787, $t23);
           while ($t26 instanceof $TailCall) { $stack.room = $d; $t26 = $step($t26); }
           if ($t26 === $UNWIND) { R.reify($proc$r, 13, { s_start1_$2790, s_end1_$2791, s_start2_$2792, s_end2_$2793, s_i_$2795, $t22, s_s1_$2786, s_s2_$2787 }); return $UNWIND; }
           $t27 = (C7.v ?? G7());
+          if (typeof $t27 !== 'function') $notProc($t27);
           $t28 = $t27[$RAW];
           $stack.room = $d;
           $t29 = $t28 === undefined ? $t27($t22, $t26) : $t28($t22, $t26);
@@ -34683,6 +36362,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-prefix-length", s_s1_$2786, s_s2_$2787, s_range_$2788) : $t1("string-prefix-length", s_s1_$2786, s_s2_$2787, s_range_$2788);
@@ -34696,6 +36376,7 @@ export const LIBRARIES = {
                 $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2789 instanceof R.Cons) ? (s_r_$2789.car) : R.callBinding((C1.v ?? G1()), [s_r_$2789]);
                 s_start1_$2790 = $t3;
                 $t4 = (C2.v ?? G2());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_r_$2789) : $t5(s_r_$2789);
@@ -34707,6 +36388,7 @@ export const LIBRARIES = {
                 $t6 = $r;
                 s_end1_$2791 = $t6;
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_r_$2789) : $t8(s_r_$2789);
@@ -34718,6 +36400,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_start2_$2792 = $t9;
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_r_$2789) : $t11(s_r_$2789);
@@ -34746,6 +36429,7 @@ export const LIBRARIES = {
               case 9:
                 $t19 = (W6.intact || (C6.v ?? G6()) === P6) && ((typeof s_start1_$2790 === 'bigint' && typeof s_i_$2795 === 'bigint') || (typeof s_start1_$2790 === 'number' && typeof s_i_$2795 === 'number')) ? (s_start1_$2790 + s_i_$2795) : R.callBinding((C6.v ?? G6()), [s_start1_$2790, s_i_$2795]);
                 $t20 = (C8.v ?? G8());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_s1_$2786, $t19) : $t21(s_s1_$2786, $t19);
@@ -34763,6 +36447,7 @@ export const LIBRARIES = {
                 $t22 = $r;
                 $t23 = (W6.intact || (C6.v ?? G6()) === P6) && ((typeof s_start2_$2792 === 'bigint' && typeof s_i_$2795 === 'bigint') || (typeof s_start2_$2792 === 'number' && typeof s_i_$2795 === 'number')) ? (s_start2_$2792 + s_i_$2795) : R.callBinding((C6.v ?? G6()), [s_start2_$2792, s_i_$2795]);
                 $t24 = (C8.v ?? G8());
+                if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
                 $stack.room = $d;
                 $t26 = $t25 === undefined ? $t24(s_s2_$2787, $t23) : $t25(s_s2_$2787, $t23);
@@ -34773,6 +36458,7 @@ export const LIBRARIES = {
               case 13:
                 $t26 = $r;
                 $t27 = (C7.v ?? G7());
+                if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
                 $stack.room = $d;
                 $t29 = $t28 === undefined ? $t27($t22, $t26) : $t28($t22, $t26);
@@ -34803,7 +36489,7 @@ export const LIBRARIES = {
         rest: "range_$2798",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -34824,6 +36510,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s1_$2796, s_s2_$2797, ...s_range_$2798$raw]);
           let s_range_$2798 = R.listFrom(s_range_$2798$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-suffix-length", s_s1_$2796, s_s2_$2797, s_range_$2798) : $t1("string-suffix-length", s_s1_$2796, s_s2_$2797, s_range_$2798);
@@ -34833,6 +36520,7 @@ export const LIBRARIES = {
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2799 instanceof R.Cons) ? (s_r_$2799.car) : R.callBinding((C1.v ?? G1()), [s_r_$2799]);
           s_start1_$2800 = $t3;
           $t4 = (C2.v ?? G2());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_r_$2799) : $t5(s_r_$2799);
@@ -34840,6 +36528,7 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { s_r_$2799, s_start1_$2800, s_s1_$2796, s_s2_$2797 }); return $UNWIND; }
           s_end1_$2801 = $t6;
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_r_$2799) : $t8(s_r_$2799);
@@ -34847,6 +36536,7 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 3, { s_r_$2799, s_start1_$2800, s_end1_$2801, s_s1_$2796, s_s2_$2797 }); return $UNWIND; }
           s_start2_$2802 = $t9;
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_r_$2799) : $t11(s_r_$2799);
@@ -34862,30 +36552,35 @@ export const LIBRARIES = {
           $t17 = (W5.intact || (C5.v ?? G5()) === P5) && ((typeof $t16 === 'bigint' && typeof s_start2_$2802 === 'bigint') || (typeof $t16 === 'number' && typeof s_start2_$2802 === 'number')) ? ($t16 > s_start2_$2802) : R.callBinding((C5.v ?? G5()), [$t16, s_start2_$2802]);
           if ($t17 !== false) {
           $t19 = (C6.v ?? G6());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19(s_end1_$2801, s_i_$2805, 1n) : $t20(s_end1_$2801, s_i_$2805, 1n);
           while ($t21 instanceof $TailCall) { $stack.room = $d; $t21 = $step($t21); }
           if ($t21 === $UNWIND) { R.reify($proc$r, 12, { s_start1_$2800, s_end1_$2801, s_start2_$2802, s_end2_$2803, s_i_$2805, s_s1_$2796, s_s2_$2797 }); return $UNWIND; }
           $t22 = (C8.v ?? G8());
+          if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
           $stack.room = $d;
           $t24 = $t23 === undefined ? $t22(s_s1_$2796, $t21) : $t23(s_s1_$2796, $t21);
           while ($t24 instanceof $TailCall) { $stack.room = $d; $t24 = $step($t24); }
           if ($t24 === $UNWIND) { R.reify($proc$r, 13, { s_start1_$2800, s_end1_$2801, s_start2_$2802, s_end2_$2803, s_i_$2805, s_s1_$2796, s_s2_$2797 }); return $UNWIND; }
           $t25 = (C6.v ?? G6());
+          if (typeof $t25 !== 'function') $notProc($t25);
           $t26 = $t25[$RAW];
           $stack.room = $d;
           $t27 = $t26 === undefined ? $t25(s_end2_$2803, s_i_$2805, 1n) : $t26(s_end2_$2803, s_i_$2805, 1n);
           while ($t27 instanceof $TailCall) { $stack.room = $d; $t27 = $step($t27); }
           if ($t27 === $UNWIND) { R.reify($proc$r, 14, { s_start1_$2800, s_end1_$2801, s_start2_$2802, s_end2_$2803, s_i_$2805, $t24, s_s1_$2796, s_s2_$2797 }); return $UNWIND; }
           $t28 = (C8.v ?? G8());
+          if (typeof $t28 !== 'function') $notProc($t28);
           $t29 = $t28[$RAW];
           $stack.room = $d;
           $t30 = $t29 === undefined ? $t28(s_s2_$2797, $t27) : $t29(s_s2_$2797, $t27);
           while ($t30 instanceof $TailCall) { $stack.room = $d; $t30 = $step($t30); }
           if ($t30 === $UNWIND) { R.reify($proc$r, 15, { s_start1_$2800, s_end1_$2801, s_start2_$2802, s_end2_$2803, s_i_$2805, $t24, s_s1_$2796, s_s2_$2797 }); return $UNWIND; }
           $t31 = (C7.v ?? G7());
+          if (typeof $t31 !== 'function') $notProc($t31);
           $t32 = $t31[$RAW];
           $stack.room = $d;
           $t33 = $t32 === undefined ? $t31($t24, $t30) : $t32($t24, $t30);
@@ -34915,6 +36610,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-suffix-length", s_s1_$2796, s_s2_$2797, s_range_$2798) : $t1("string-suffix-length", s_s1_$2796, s_s2_$2797, s_range_$2798);
@@ -34928,6 +36624,7 @@ export const LIBRARIES = {
                 $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2799 instanceof R.Cons) ? (s_r_$2799.car) : R.callBinding((C1.v ?? G1()), [s_r_$2799]);
                 s_start1_$2800 = $t3;
                 $t4 = (C2.v ?? G2());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_r_$2799) : $t5(s_r_$2799);
@@ -34939,6 +36636,7 @@ export const LIBRARIES = {
                 $t6 = $r;
                 s_end1_$2801 = $t6;
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_r_$2799) : $t8(s_r_$2799);
@@ -34950,6 +36648,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_start2_$2802 = $t9;
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_r_$2799) : $t11(s_r_$2799);
@@ -34977,6 +36676,7 @@ export const LIBRARIES = {
                 if ($t15 !== false) { $pc = 17; continue; } $pc = 18; continue;
               case 9:
                 $t19 = (C6.v ?? G6());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19(s_end1_$2801, s_i_$2805, 1n) : $t20(s_end1_$2801, s_i_$2805, 1n);
@@ -34993,6 +36693,7 @@ export const LIBRARIES = {
               case 12:
                 $t21 = $r;
                 $t22 = (C8.v ?? G8());
+                if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
                 $stack.room = $d;
                 $t24 = $t23 === undefined ? $t22(s_s1_$2796, $t21) : $t23(s_s1_$2796, $t21);
@@ -35003,6 +36704,7 @@ export const LIBRARIES = {
               case 13:
                 $t24 = $r;
                 $t25 = (C6.v ?? G6());
+                if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
                 $stack.room = $d;
                 $t27 = $t26 === undefined ? $t25(s_end2_$2803, s_i_$2805, 1n) : $t26(s_end2_$2803, s_i_$2805, 1n);
@@ -35013,6 +36715,7 @@ export const LIBRARIES = {
               case 14:
                 $t27 = $r;
                 $t28 = (C8.v ?? G8());
+                if (typeof $t28 !== 'function') $notProc($t28);
                 $t29 = $t28[$RAW];
                 $stack.room = $d;
                 $t30 = $t29 === undefined ? $t28(s_s2_$2797, $t27) : $t29(s_s2_$2797, $t27);
@@ -35023,6 +36726,7 @@ export const LIBRARIES = {
               case 15:
                 $t30 = $r;
                 $t31 = (C7.v ?? G7());
+                if (typeof $t31 !== 'function') $notProc($t31);
                 $t32 = $t31[$RAW];
                 $stack.room = $d;
                 $t33 = $t32 === undefined ? $t31($t24, $t30) : $t32($t24, $t30);
@@ -35053,7 +36757,7 @@ export const LIBRARIES = {
         rest: "range_$2808",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -35070,6 +36774,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s1_$2806, s_s2_$2807, ...s_range_$2808$raw]);
           let s_range_$2808 = R.listFrom(s_range_$2808$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-prefix?", s_s1_$2806, s_s2_$2807, s_range_$2808) : $t1("string-prefix?", s_s1_$2806, s_s2_$2807, s_range_$2808);
@@ -35077,12 +36782,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s1_$2806, s_s2_$2807 }); return $UNWIND; }
           s_r_$2809 = $t2;
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_s1_$2806, s_s2_$2807, s_r_$2809) : $t4((C3.v ?? G3()), s_s1_$2806, s_s2_$2807, s_r_$2809);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_r_$2809 }); return $UNWIND; }
           $t6 = (C5.v ?? G5());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_r_$2809) : $t7(s_r_$2809);
@@ -35100,6 +36807,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-prefix?", s_s1_$2806, s_s2_$2807, s_range_$2808) : $t1("string-prefix?", s_s1_$2806, s_s2_$2807, s_range_$2808);
@@ -35111,6 +36819,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_r_$2809 = $t2;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_s1_$2806, s_s2_$2807, s_r_$2809) : $t4((C3.v ?? G3()), s_s1_$2806, s_s2_$2807, s_r_$2809);
@@ -35121,6 +36830,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = (C5.v ?? G5());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_r_$2809) : $t7(s_r_$2809);
@@ -35147,7 +36857,7 @@ export const LIBRARIES = {
         rest: "range_$2812",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -35164,6 +36874,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s1_$2810, s_s2_$2811, ...s_range_$2812$raw]);
           let s_range_$2812 = R.listFrom(s_range_$2812$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-suffix?", s_s1_$2810, s_s2_$2811, s_range_$2812) : $t1("string-suffix?", s_s1_$2810, s_s2_$2811, s_range_$2812);
@@ -35171,12 +36882,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s1_$2810, s_s2_$2811 }); return $UNWIND; }
           s_r_$2813 = $t2;
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_s1_$2810, s_s2_$2811, s_r_$2813) : $t4((C3.v ?? G3()), s_s1_$2810, s_s2_$2811, s_r_$2813);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_r_$2813 }); return $UNWIND; }
           $t6 = (C5.v ?? G5());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_r_$2813) : $t7(s_r_$2813);
@@ -35194,6 +36907,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-suffix?", s_s1_$2810, s_s2_$2811, s_range_$2812) : $t1("string-suffix?", s_s1_$2810, s_s2_$2811, s_range_$2812);
@@ -35205,6 +36919,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_r_$2813 = $t2;
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3((C3.v ?? G3()), s_s1_$2810, s_s2_$2811, s_r_$2813) : $t4((C3.v ?? G3()), s_s1_$2810, s_s2_$2811, s_r_$2813);
@@ -35215,6 +36930,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t6 = (C5.v ?? G5());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_r_$2813) : $t7(s_r_$2813);
@@ -35241,7 +36957,7 @@ export const LIBRARIES = {
         rest: "range_$2816",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "index-where")).v;
@@ -35255,6 +36971,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2814, s_pred_$2815, ...s_range_$2816$raw]);
           let s_range_$2816 = R.listFrom(s_range_$2816$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-index", s_pred_$2815) : $t1("string-index", s_pred_$2815);
@@ -35262,6 +36979,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s_$2814, s_pred_$2815, s_range_$2816 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("string-index", s_s_$2814, s_range_$2816) : $t4("string-index", s_s_$2814, s_range_$2816);
@@ -35280,6 +36998,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-index", s_pred_$2815) : $t1("string-index", s_pred_$2815);
@@ -35291,6 +37010,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("string-index", s_s_$2814, s_range_$2816) : $t4("string-index", s_s_$2814, s_range_$2816);
@@ -35318,7 +37038,7 @@ export const LIBRARIES = {
         rest: "range_$2820",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "index-where-right")).v;
@@ -35332,6 +37052,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2818, s_pred_$2819, ...s_range_$2820$raw]);
           let s_range_$2820 = R.listFrom(s_range_$2820$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-index-right", s_pred_$2819) : $t1("string-index-right", s_pred_$2819);
@@ -35339,6 +37060,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_s_$2818, s_pred_$2819, s_range_$2820 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("string-index-right", s_s_$2818, s_range_$2820) : $t4("string-index-right", s_s_$2818, s_range_$2820);
@@ -35357,6 +37079,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-index-right", s_pred_$2819) : $t1("string-index-right", s_pred_$2819);
@@ -35368,6 +37091,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("string-index-right", s_s_$2818, s_range_$2820) : $t4("string-index-right", s_s_$2818, s_range_$2820);
@@ -35395,7 +37119,7 @@ export const LIBRARIES = {
         rest: "range_$2824",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-index")).v;
@@ -35407,6 +37131,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_c_$2825]);
           $t0 = s_pred_$2823;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2825) : $t1(s_c_$2825);
@@ -35423,6 +37148,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2823;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2825) : $t1(s_c_$2825);
@@ -35446,6 +37172,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2822, s_pred_$2823, ...s_range_$2824$raw]);
           let s_range_$2824 = R.listFrom(s_range_$2824$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-skip", s_pred_$2823) : $t1("string-skip", s_pred_$2823);
@@ -35463,6 +37190,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-skip", s_pred_$2823) : $t1("string-skip", s_pred_$2823);
@@ -35489,7 +37217,7 @@ export const LIBRARIES = {
         rest: "range_$2828",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-index-right")).v;
@@ -35501,6 +37229,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_c_$2829]);
           $t0 = s_pred_$2827;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2829) : $t1(s_c_$2829);
@@ -35517,6 +37246,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2827;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2829) : $t1(s_c_$2829);
@@ -35540,6 +37270,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2826, s_pred_$2827, ...s_range_$2828$raw]);
           let s_range_$2828 = R.listFrom(s_range_$2828$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-skip-right", s_pred_$2827) : $t1("string-skip-right", s_pred_$2827);
@@ -35557,6 +37288,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-skip-right", s_pred_$2827) : $t1("string-skip-right", s_pred_$2827);
@@ -35583,7 +37315,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
@@ -35604,6 +37336,7 @@ export const LIBRARIES = {
         } else {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_i_$2831 === 'bigint' && typeof s_k_$2836 === 'bigint') || (typeof s_i_$2831 === 'number' && typeof s_k_$2836 === 'number')) ? (s_i_$2831 + s_k_$2836) : R.callBinding((C1.v ?? G1()), [s_i_$2831, s_k_$2836]);
           $t3 = (C3.v ?? G3());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_s1_$2830, $t2) : $t4(s_s1_$2830, $t2);
@@ -35611,12 +37344,14 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 4, { s_k_$2836, s_s1_$2830, s_i_$2831, s_s2_$2832, s_start2_$2833, s_end2_$2834 }); return $UNWIND; }
           $t6 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_start2_$2833 === 'bigint' && typeof s_k_$2836 === 'bigint') || (typeof s_start2_$2833 === 'number' && typeof s_k_$2836 === 'number')) ? (s_start2_$2833 + s_k_$2836) : R.callBinding((C1.v ?? G1()), [s_start2_$2833, s_k_$2836]);
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_s2_$2832, $t6) : $t8(s_s2_$2832, $t6);
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($proc$r, 5, { s_k_$2836, $t5, s_s1_$2830, s_i_$2831, s_s2_$2832, s_start2_$2833, s_end2_$2834 }); return $UNWIND; }
           $t10 = (C2.v ?? G2());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10($t5, $t9) : $t11($t5, $t9);
@@ -35650,6 +37385,7 @@ export const LIBRARIES = {
               case 3:
                 $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_i_$2831 === 'bigint' && typeof s_k_$2836 === 'bigint') || (typeof s_i_$2831 === 'number' && typeof s_k_$2836 === 'number')) ? (s_i_$2831 + s_k_$2836) : R.callBinding((C1.v ?? G1()), [s_i_$2831, s_k_$2836]);
                 $t3 = (C3.v ?? G3());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_s1_$2830, $t2) : $t4(s_s1_$2830, $t2);
@@ -35661,6 +37397,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 $t6 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_start2_$2833 === 'bigint' && typeof s_k_$2836 === 'bigint') || (typeof s_start2_$2833 === 'number' && typeof s_k_$2836 === 'number')) ? (s_start2_$2833 + s_k_$2836) : R.callBinding((C1.v ?? G1()), [s_start2_$2833, s_k_$2836]);
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_s2_$2832, $t6) : $t8(s_s2_$2832, $t6);
@@ -35671,6 +37408,7 @@ export const LIBRARIES = {
               case 5:
                 $t9 = $r;
                 $t10 = (C2.v ?? G2());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10($t5, $t9) : $t11($t5, $t9);
@@ -35700,7 +37438,7 @@ export const LIBRARIES = {
         rest: "range_$2840",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -35720,6 +37458,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s1_$2838, s_s2_$2839, ...s_range_$2840$raw]);
           let s_range_$2840 = R.listFrom(s_range_$2840$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-contains", s_s1_$2838, s_s2_$2839, s_range_$2840) : $t1("string-contains", s_s1_$2838, s_s2_$2839, s_range_$2840);
@@ -35729,6 +37468,7 @@ export const LIBRARIES = {
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2841 instanceof R.Cons) ? (s_r_$2841.car) : R.callBinding((C1.v ?? G1()), [s_r_$2841]);
           s_start1_$2842 = $t3;
           $t4 = (C2.v ?? G2());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_r_$2841) : $t5(s_r_$2841);
@@ -35736,6 +37476,7 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { s_r_$2841, s_start1_$2842, s_s1_$2838, s_s2_$2839 }); return $UNWIND; }
           s_end1_$2843 = $t6;
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_r_$2841) : $t8(s_r_$2841);
@@ -35743,6 +37484,7 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 3, { s_r_$2841, s_start1_$2842, s_end1_$2843, s_s1_$2838, s_s2_$2839 }); return $UNWIND; }
           s_start2_$2844 = $t9;
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_r_$2841) : $t11(s_r_$2841);
@@ -35759,6 +37501,7 @@ export const LIBRARIES = {
           return false;
         } else {
           $t16 = (C7.v ?? G7());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_s1_$2838, s_i_$2848, s_s2_$2839, s_start2_$2844, s_end2_$2845) : $t17(s_s1_$2838, s_i_$2848, s_s2_$2839, s_start2_$2844, s_end2_$2845);
@@ -35781,6 +37524,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-contains", s_s1_$2838, s_s2_$2839, s_range_$2840) : $t1("string-contains", s_s1_$2838, s_s2_$2839, s_range_$2840);
@@ -35794,6 +37538,7 @@ export const LIBRARIES = {
                 $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2841 instanceof R.Cons) ? (s_r_$2841.car) : R.callBinding((C1.v ?? G1()), [s_r_$2841]);
                 s_start1_$2842 = $t3;
                 $t4 = (C2.v ?? G2());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_r_$2841) : $t5(s_r_$2841);
@@ -35805,6 +37550,7 @@ export const LIBRARIES = {
                 $t6 = $r;
                 s_end1_$2843 = $t6;
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_r_$2841) : $t8(s_r_$2841);
@@ -35816,6 +37562,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_start2_$2844 = $t9;
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_r_$2841) : $t11(s_r_$2841);
@@ -35838,6 +37585,7 @@ export const LIBRARIES = {
                 return false;
               case 7:
                 $t16 = (C7.v ?? G7());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_s1_$2838, s_i_$2848, s_s2_$2839, s_start2_$2844, s_end2_$2845) : $t17(s_s1_$2838, s_i_$2848, s_s2_$2839, s_start2_$2844, s_end2_$2845);
@@ -35867,7 +37615,7 @@ export const LIBRARIES = {
         rest: "range_$2851",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -35885,6 +37633,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s1_$2849, s_s2_$2850, ...s_range_$2851$raw]);
           let s_range_$2851 = R.listFrom(s_range_$2851$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-contains-right", s_s1_$2849, s_s2_$2850, s_range_$2851) : $t1("string-contains-right", s_s1_$2849, s_s2_$2850, s_range_$2851);
@@ -35894,6 +37643,7 @@ export const LIBRARIES = {
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2852 instanceof R.Cons) ? (s_r_$2852.car) : R.callBinding((C1.v ?? G1()), [s_r_$2852]);
           s_start1_$2853 = $t3;
           $t4 = (C2.v ?? G2());
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4(s_r_$2852) : $t5(s_r_$2852);
@@ -35901,6 +37651,7 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { s_r_$2852, s_start1_$2853, s_s1_$2849, s_s2_$2850 }); return $UNWIND; }
           s_end1_$2854 = $t6;
           $t7 = (C3.v ?? G3());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7(s_r_$2852) : $t8(s_r_$2852);
@@ -35908,6 +37659,7 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 3, { s_r_$2852, s_start1_$2853, s_end1_$2854, s_s1_$2849, s_s2_$2850 }); return $UNWIND; }
           s_start2_$2855 = $t9;
           $t10 = (C4.v ?? G4());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_r_$2852) : $t11(s_r_$2852);
@@ -35923,6 +37675,7 @@ export const LIBRARIES = {
           return false;
         } else {
           $t16 = (C6.v ?? G6());
+          if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
           $stack.room = $d;
           $t18 = $t17 === undefined ? $t16(s_s1_$2849, s_i_$2858, s_s2_$2850, s_start2_$2855, s_end2_$2856) : $t17(s_s1_$2849, s_i_$2858, s_s2_$2850, s_start2_$2855, s_end2_$2856);
@@ -35945,6 +37698,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-contains-right", s_s1_$2849, s_s2_$2850, s_range_$2851) : $t1("string-contains-right", s_s1_$2849, s_s2_$2850, s_range_$2851);
@@ -35958,6 +37712,7 @@ export const LIBRARIES = {
                 $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2852 instanceof R.Cons) ? (s_r_$2852.car) : R.callBinding((C1.v ?? G1()), [s_r_$2852]);
                 s_start1_$2853 = $t3;
                 $t4 = (C2.v ?? G2());
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4(s_r_$2852) : $t5(s_r_$2852);
@@ -35969,6 +37724,7 @@ export const LIBRARIES = {
                 $t6 = $r;
                 s_end1_$2854 = $t6;
                 $t7 = (C3.v ?? G3());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7(s_r_$2852) : $t8(s_r_$2852);
@@ -35980,6 +37736,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 s_start2_$2855 = $t9;
                 $t10 = (C4.v ?? G4());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_r_$2852) : $t11(s_r_$2852);
@@ -36001,6 +37758,7 @@ export const LIBRARIES = {
                 return false;
               case 7:
                 $t16 = (C6.v ?? G6());
+                if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
                 $stack.room = $d;
                 $t18 = $t17 === undefined ? $t16(s_s1_$2849, s_i_$2858, s_s2_$2850, s_start2_$2855, s_end2_$2856) : $t17(s_s1_$2849, s_i_$2858, s_s2_$2850, s_start2_$2855, s_end2_$2856);
@@ -36030,7 +37788,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
@@ -36052,6 +37810,7 @@ export const LIBRARIES = {
           $t1 = (W1.intact || (C1.v ?? G1()) === P1) && (s_strings_$2861 instanceof R.Cons) ? (s_strings_$2861.cdr) : R.callBinding((C1.v ?? G1()), [s_strings_$2861]);
           $t2 = (W3.intact || (C3.v ?? G3()) === P3) && (s_strings_$2861 instanceof R.Cons) ? (s_strings_$2861.car) : R.callBinding((C3.v ?? G3()), [s_strings_$2861]);
           $t3 = (C2.v ?? G2());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3(s_acc_$2862, $t2) : $t4(s_acc_$2862, $t2);
@@ -36081,6 +37840,7 @@ export const LIBRARIES = {
                 $t1 = (W1.intact || (C1.v ?? G1()) === P1) && (s_strings_$2861 instanceof R.Cons) ? (s_strings_$2861.cdr) : R.callBinding((C1.v ?? G1()), [s_strings_$2861]);
                 $t2 = (W3.intact || (C3.v ?? G3()) === P3) && (s_strings_$2861 instanceof R.Cons) ? (s_strings_$2861.car) : R.callBinding((C3.v ?? G3()), [s_strings_$2861]);
                 $t3 = (C2.v ?? G2());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3(s_acc_$2862, $t2) : $t4(s_acc_$2862, $t2);
@@ -36106,7 +37866,7 @@ export const LIBRARIES = {
         rest: "options_$2864",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -36142,6 +37902,7 @@ export const LIBRARIES = {
         }
           if ($t4 !== false) {
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_options_$2864) : $t9(s_options_$2864);
@@ -36150,6 +37911,7 @@ export const LIBRARIES = {
           $t7 = $t10;
         } else {
           $t11 = (C4.v ?? G4());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_final_$2865) : $t12(s_final_$2865);
@@ -36159,18 +37921,21 @@ export const LIBRARIES = {
         }
           s_end_$2866 = $t7;
           $t14 = (C7.v ?? G7());
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14(s_strings_$2863) : $t15(s_strings_$2863);
           while ($t16 instanceof $TailCall) { $stack.room = $d; $t16 = $step($t16); }
           if ($t16 === $UNWIND) { R.reify($proc$r, 12, { s_final_$2865, s_end_$2866 }); return $UNWIND; }
           $t17 = (C6.v ?? G6());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17($t16) : $t18($t16);
           while ($t19 instanceof $TailCall) { $stack.room = $d; $t19 = $step($t19); }
           if ($t19 === $UNWIND) { R.reify($proc$r, 13, { s_final_$2865, s_end_$2866 }); return $UNWIND; }
           $t20 = (C8.v ?? G8());
+          if (typeof $t20 !== 'function') $notProc($t20);
           $t21 = $t20[$RAW];
           $stack.room = $d;
           $t22 = $t21 === undefined ? $t20(s_final_$2865, 0n, s_end_$2866) : $t21(s_final_$2865, 0n, s_end_$2866);
@@ -36210,6 +37975,7 @@ export const LIBRARIES = {
                 if ($t4 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_options_$2864) : $t9(s_options_$2864);
@@ -36219,6 +37985,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 8:
                 $t11 = (C4.v ?? G4());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_final_$2865) : $t12(s_final_$2865);
@@ -36229,6 +37996,7 @@ export const LIBRARIES = {
               case 9:
                 s_end_$2866 = $t7;
                 $t14 = (C7.v ?? G7());
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14(s_strings_$2863) : $t15(s_strings_$2863);
@@ -36247,6 +38015,7 @@ export const LIBRARIES = {
               case 12:
                 $t16 = $r;
                 $t17 = (C6.v ?? G6());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17($t16) : $t18($t16);
@@ -36257,6 +38026,7 @@ export const LIBRARIES = {
               case 13:
                 $t19 = $r;
                 $t20 = (C8.v ?? G8());
+                if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? $t20(s_final_$2865, 0n, s_end_$2866) : $t21(s_final_$2865, 0n, s_end_$2866);
@@ -36281,7 +38051,7 @@ export const LIBRARIES = {
         rest: "options_$2868",
         constants: [intern("infix"), intern("strict-infix"), intern("prefix"), intern("suffix"), new Cons(intern("infix"), new Cons(intern("strict-infix"), null)), intern("infix"), intern("strict-infix"), intern("prefix"), intern("suffix"), new Cons(intern("infix"), new Cons(intern("strict-infix"), null))],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -36386,6 +38156,7 @@ export const LIBRARIES = {
         }
           if ($t4 !== false) {
           $t8 = (C3.v ?? G3());
+          if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
           $stack.room = $d;
           $t10 = $t9 === undefined ? $t8(s_options_$2868) : $t9(s_options_$2868);
@@ -36415,6 +38186,7 @@ export const LIBRARIES = {
           if ($t16 !== false) {
           $t18 = $mk$fn17(s_delimiter_$2869);
           $t19 = (C8.v ?? G8());
+          if (typeof $t19 !== 'function') $notProc($t19);
           $t20 = $t19[$RAW];
           $stack.room = $d;
           $t21 = $t20 === undefined ? $t19($t18, s_strings_$2867) : $t20($t18, s_strings_$2867);
@@ -36427,6 +38199,7 @@ export const LIBRARIES = {
           if ($t23 !== false) {
           $t25 = $mk$fn24(s_delimiter_$2869);
           $t26 = (C8.v ?? G8());
+          if (typeof $t26 !== 'function') $notProc($t26);
           $t27 = $t26[$RAW];
           $stack.room = $d;
           $t28 = $t27 === undefined ? $t26($t25, s_strings_$2867) : $t27($t25, s_strings_$2867);
@@ -36436,6 +38209,7 @@ export const LIBRARIES = {
           if ($d > 0 && $t29?.[$PRIM] === true) { $stack.room = $d; return $t29($t28); } return $tailCall($t29, [$t28]);
         } else {
           $t30 = (C10.v ?? G10());
+          if (typeof $t30 !== 'function') $notProc($t30);
           $t31 = $t30[$RAW];
           $stack.room = $d;
           $t32 = $t31 === undefined ? $t30(s_grammar_$2870, K[9]) : $t31(s_grammar_$2870, K[9]);
@@ -36446,6 +38220,7 @@ export const LIBRARIES = {
           $t35 = $mk$fn34(s_delimiter_$2869);
           $t36 = (W2.intact || (C2.v ?? G2()) === P2) && (s_strings_$2867 instanceof R.Cons) ? (s_strings_$2867.cdr) : R.callBinding((C2.v ?? G2()), [s_strings_$2867]);
           $t37 = (C8.v ?? G8());
+          if (typeof $t37 !== 'function') $notProc($t37);
           $t38 = $t37[$RAW];
           $stack.room = $d;
           $t39 = $t38 === undefined ? $t37($t35, $t36) : $t38($t35, $t36);
@@ -36494,6 +38269,7 @@ export const LIBRARIES = {
                 if ($t4 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t8 = (C3.v ?? G3());
+                if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? $t8(s_options_$2868) : $t9(s_options_$2868);
@@ -36535,6 +38311,7 @@ export const LIBRARIES = {
               case 18:
                 $t18 = $mk$fn17(s_delimiter_$2869);
                 $t19 = (C8.v ?? G8());
+                if (typeof $t19 !== 'function') $notProc($t19);
                 $t20 = $t19[$RAW];
                 $stack.room = $d;
                 $t21 = $t20 === undefined ? $t19($t18, s_strings_$2867) : $t20($t18, s_strings_$2867);
@@ -36552,6 +38329,7 @@ export const LIBRARIES = {
               case 21:
                 $t25 = $mk$fn24(s_delimiter_$2869);
                 $t26 = (C8.v ?? G8());
+                if (typeof $t26 !== 'function') $notProc($t26);
                 $t27 = $t26[$RAW];
                 $stack.room = $d;
                 $t28 = $t27 === undefined ? $t26($t25, s_strings_$2867) : $t27($t25, s_strings_$2867);
@@ -36561,6 +38339,7 @@ export const LIBRARIES = {
                 $pc = 23; continue;
               case 22:
                 $t30 = (C10.v ?? G10());
+                if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
                 $t32 = $t31 === undefined ? $t30(s_grammar_$2870, K[4]) : $t31(s_grammar_$2870, K[4]);
@@ -36580,6 +38359,7 @@ export const LIBRARIES = {
                 $t35 = $mk$fn34(s_delimiter_$2869);
                 $t36 = (W2.intact || (C2.v ?? G2()) === P2) && (s_strings_$2867 instanceof R.Cons) ? (s_strings_$2867.cdr) : R.callBinding((C2.v ?? G2()), [s_strings_$2867]);
                 $t37 = (C8.v ?? G8());
+                if (typeof $t37 !== 'function') $notProc($t37);
                 $t38 = $t37[$RAW];
                 $stack.room = $d;
                 $t39 = $t38 === undefined ? $t37($t35, $t36) : $t38($t35, $t36);
@@ -36608,7 +38388,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reverse")).v;
@@ -36632,18 +38412,21 @@ export const LIBRARIES = {
           $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2877 instanceof R.Cons) ? (s_l_$2877.cdr) : R.callBinding((C2.v ?? G2()), [s_l_$2877]);
           $t3 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$2877 instanceof R.Cons) ? (s_l_$2877.car) : R.callBinding((C4.v ?? G4()), [s_l_$2877]);
           $t4 = s_f_$2874;
+          if (typeof $t4 !== 'function') $notProc($t4);
           $t5 = $t4[$RAW];
           $stack.room = $d;
           $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($proc$r, 4, { s_acc_$2878, $t2, s_f_$2874 }); return $UNWIND; }
           $t7 = (C1.v ?? G1());
+          if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
           $stack.room = $d;
           $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($proc$r, 5, { s_acc_$2878, $t2, s_f_$2874 }); return $UNWIND; }
           $t10 = (C3.v ?? G3());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10($t9, s_acc_$2878) : $t11($t9, s_acc_$2878);
@@ -36674,6 +38457,7 @@ export const LIBRARIES = {
                 $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (s_l_$2877 instanceof R.Cons) ? (s_l_$2877.cdr) : R.callBinding((C2.v ?? G2()), [s_l_$2877]);
                 $t3 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$2877 instanceof R.Cons) ? (s_l_$2877.car) : R.callBinding((C4.v ?? G4()), [s_l_$2877]);
                 $t4 = s_f_$2874;
+                if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? $t4($t3) : $t5($t3);
@@ -36684,6 +38468,7 @@ export const LIBRARIES = {
               case 4:
                 $t6 = $r;
                 $t7 = (C1.v ?? G1());
+                if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
                 $stack.room = $d;
                 $t9 = $t8 === undefined ? $t7($t6) : $t8($t6);
@@ -36694,6 +38479,7 @@ export const LIBRARIES = {
               case 5:
                 $t9 = $r;
                 $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10($t9, s_acc_$2878) : $t11($t9, s_acc_$2878);
@@ -36719,7 +38505,7 @@ export const LIBRARIES = {
         rest: "range_$2882",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
@@ -36737,6 +38523,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_kons_$2879, s_knil_$2880, s_s_$2881, ...s_range_$2882$raw]);
           let s_range_$2882 = R.listFrom(s_range_$2882$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-fold", s_kons_$2879) : $t1("string-fold", s_kons_$2879);
@@ -36744,6 +38531,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_kons_$2879, s_knil_$2880, s_s_$2881, s_range_$2882 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("string-fold", s_s_$2881, s_range_$2882) : $t4("string-fold", s_s_$2881, s_range_$2882);
@@ -36762,12 +38550,14 @@ export const LIBRARIES = {
         } else {
           $t9 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_i_$2886 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2886 === 'number' && typeof 1n === 'number')) ? (s_i_$2886 + 1n) : R.callBinding((C4.v ?? G4()), [s_i_$2886, 1n]);
           $t10 = (C5.v ?? G5());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_s_$2881, s_i_$2886) : $t11(s_s_$2881, s_i_$2886);
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 6, { s_end_$2884, s_acc_$2887, $t9, s_kons_$2879, s_s_$2881 }); return $UNWIND; }
           $t13 = s_kons_$2879;
+          if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
           $stack.room = $d;
           $t15 = $t14 === undefined ? $t13($t12, s_acc_$2887) : $t14($t12, s_acc_$2887);
@@ -36786,6 +38576,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-fold", s_kons_$2879) : $t1("string-fold", s_kons_$2879);
@@ -36797,6 +38588,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("string-fold", s_s_$2881, s_range_$2882) : $t4("string-fold", s_s_$2881, s_range_$2882);
@@ -36821,6 +38613,7 @@ export const LIBRARIES = {
               case 5:
                 $t9 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_i_$2886 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2886 === 'number' && typeof 1n === 'number')) ? (s_i_$2886 + 1n) : R.callBinding((C4.v ?? G4()), [s_i_$2886, 1n]);
                 $t10 = (C5.v ?? G5());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_s_$2881, s_i_$2886) : $t11(s_s_$2881, s_i_$2886);
@@ -36831,6 +38624,7 @@ export const LIBRARIES = {
               case 6:
                 $t12 = $r;
                 $t13 = s_kons_$2879;
+                if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
                 $stack.room = $d;
                 $t15 = $t14 === undefined ? $t13($t12, s_acc_$2887) : $t14($t12, s_acc_$2887);
@@ -36856,7 +38650,7 @@ export const LIBRARIES = {
         rest: "range_$2891",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -36874,6 +38668,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_kons_$2888, s_knil_$2889, s_s_$2890, ...s_range_$2891$raw]);
           let s_range_$2891 = R.listFrom(s_range_$2891$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-fold-right", s_kons_$2888) : $t1("string-fold-right", s_kons_$2888);
@@ -36881,6 +38676,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_kons_$2888, s_knil_$2889, s_s_$2890, s_range_$2891 }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
+          if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
           $stack.room = $d;
           $t5 = $t4 === undefined ? $t3("string-fold-right", s_s_$2890, s_range_$2891) : $t4("string-fold-right", s_s_$2890, s_range_$2891);
@@ -36900,12 +38696,14 @@ export const LIBRARIES = {
         } else {
           $t10 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_i_$2895 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2895 === 'number' && typeof 1n === 'number')) ? (s_i_$2895 - 1n) : R.callBinding((C4.v ?? G4()), [s_i_$2895, 1n]);
           $t11 = (C5.v ?? G5());
+          if (typeof $t11 !== 'function') $notProc($t11);
           $t12 = $t11[$RAW];
           $stack.room = $d;
           $t13 = $t12 === undefined ? $t11(s_s_$2890, s_i_$2895) : $t12(s_s_$2890, s_i_$2895);
           while ($t13 instanceof $TailCall) { $stack.room = $d; $t13 = $step($t13); }
           if ($t13 === $UNWIND) { R.reify($proc$r, 6, { s_start_$2893, s_acc_$2896, $t10, s_kons_$2888, s_s_$2890 }); return $UNWIND; }
           $t14 = s_kons_$2888;
+          if (typeof $t14 !== 'function') $notProc($t14);
           $t15 = $t14[$RAW];
           $stack.room = $d;
           $t16 = $t15 === undefined ? $t14($t13, s_acc_$2896) : $t15($t13, s_acc_$2896);
@@ -36924,6 +38722,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-fold-right", s_kons_$2888) : $t1("string-fold-right", s_kons_$2888);
@@ -36935,6 +38734,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
+                if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
                 $stack.room = $d;
                 $t5 = $t4 === undefined ? $t3("string-fold-right", s_s_$2890, s_range_$2891) : $t4("string-fold-right", s_s_$2890, s_range_$2891);
@@ -36960,6 +38760,7 @@ export const LIBRARIES = {
               case 5:
                 $t10 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof s_i_$2895 === 'bigint' && typeof 1n === 'bigint') || (typeof s_i_$2895 === 'number' && typeof 1n === 'number')) ? (s_i_$2895 - 1n) : R.callBinding((C4.v ?? G4()), [s_i_$2895, 1n]);
                 $t11 = (C5.v ?? G5());
+                if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
                 $stack.room = $d;
                 $t13 = $t12 === undefined ? $t11(s_s_$2890, s_i_$2895) : $t12(s_s_$2890, s_i_$2895);
@@ -36970,6 +38771,7 @@ export const LIBRARIES = {
               case 6:
                 $t13 = $r;
                 $t14 = s_kons_$2888;
+                if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
                 $stack.room = $d;
                 $t16 = $t15 === undefined ? $t14($t13, s_acc_$2896) : $t15($t13, s_acc_$2896);
@@ -36995,7 +38797,7 @@ export const LIBRARIES = {
         rest: "range_$2899",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-fold")).v;
@@ -37007,6 +38809,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_c_$2900, s_n_$2901]);
           $t0 = s_pred_$2898;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2900) : $t1(s_c_$2900);
@@ -37027,6 +38830,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2898;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2900) : $t1(s_c_$2900);
@@ -37054,6 +38858,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2897, s_pred_$2898, ...s_range_$2899$raw]);
           let s_range_$2899 = R.listFrom(s_range_$2899$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-count", s_pred_$2898) : $t1("string-count", s_pred_$2898);
@@ -37071,6 +38876,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-count", s_pred_$2898) : $t1("string-count", s_pred_$2898);
@@ -37097,7 +38903,7 @@ export const LIBRARIES = {
         rest: "range_$2904",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reverse-list->string")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
@@ -37110,6 +38916,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 14;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_c_$2905, s_kept_$2906]);
           $t0 = s_pred_$2902;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2905) : $t1(s_c_$2905);
@@ -37130,6 +38937,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2902;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2905) : $t1(s_c_$2905);
@@ -37157,6 +38965,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2902, s_s_$2903, ...s_range_$2904$raw]);
           let s_range_$2904 = R.listFrom(s_range_$2904$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-filter", s_pred_$2902) : $t1("string-filter", s_pred_$2902);
@@ -37165,6 +38974,7 @@ export const LIBRARIES = {
           $t2;
           $t4 = $mk$fn3(s_pred_$2902);
           $t5 = (C2.v ?? G2());
+          if (typeof $t5 !== 'function') $notProc($t5);
           $t6 = $t5[$RAW];
           $stack.room = $d;
           $t7 = $t6 === undefined ? $t5((C3.v ?? G3()), $t4, null, s_s_$2903, s_range_$2904) : $t6((C3.v ?? G3()), $t4, null, s_s_$2903, s_range_$2904);
@@ -37180,6 +38990,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-filter", s_pred_$2902) : $t1("string-filter", s_pred_$2902);
@@ -37192,6 +39003,7 @@ export const LIBRARIES = {
                 $t2;
                 $t4 = $mk$fn3(s_pred_$2902);
                 $t5 = (C2.v ?? G2());
+                if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
                 $stack.room = $d;
                 $t7 = $t6 === undefined ? $t5((C3.v ?? G3()), $t4, null, s_s_$2903, s_range_$2904) : $t6((C3.v ?? G3()), $t4, null, s_s_$2903, s_range_$2904);
@@ -37216,7 +39028,7 @@ export const LIBRARIES = {
         rest: "range_$2909",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-filter")).v;
@@ -37228,6 +39040,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 13;
           if ($d < 0 && $stack.flushable) return $flush($fn3, [s_c_$2910]);
           $t0 = s_pred_$2907;
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0(s_c_$2910) : $t1(s_c_$2910);
@@ -37244,6 +39057,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = s_pred_$2907;
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0(s_c_$2910) : $t1(s_c_$2910);
@@ -37267,6 +39081,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_pred_$2907, s_s_$2908, ...s_range_$2909$raw]);
           let s_range_$2909 = R.listFrom(s_range_$2909$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-remove", s_pred_$2907) : $t1("string-remove", s_pred_$2907);
@@ -37284,6 +39099,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-remove", s_pred_$2907) : $t1("string-remove", s_pred_$2907);
@@ -37310,7 +39126,7 @@ export const LIBRARIES = {
         rest: "range_$2914",
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-range")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -37338,6 +39154,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($fn20, [s_i_$2918]);
           $t0 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_from_$2912 === 'bigint' && typeof s_i_$2918 === 'bigint') || (typeof s_from_$2912 === 'number' && typeof s_i_$2918 === 'number')) ? (s_from_$2912 + s_i_$2918) : R.callBinding((C11.v ?? G11()), [s_from_$2912, s_i_$2918]);
           $t1 = (C12.v ?? G12());
+          if (typeof $t1 !== 'function') $notProc($t1);
           $t2 = $t1[$RAW];
           $stack.room = $d;
           $t3 = $t2 === undefined ? $t1($t0, s_n_$2917) : $t2($t0, s_n_$2917);
@@ -37356,6 +39173,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_from_$2912 === 'bigint' && typeof s_i_$2918 === 'bigint') || (typeof s_from_$2912 === 'number' && typeof s_i_$2918 === 'number')) ? (s_from_$2912 + s_i_$2918) : R.callBinding((C11.v ?? G11()), [s_from_$2912, s_i_$2918]);
                 $t1 = (C12.v ?? G12());
+                if (typeof $t1 !== 'function') $notProc($t1);
                 $t2 = $t1[$RAW];
                 $stack.room = $d;
                 $t3 = $t2 === undefined ? $t1($t0, s_n_$2917) : $t2($t0, s_n_$2917);
@@ -37380,6 +39198,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc, [s_s_$2911, s_from_$2912, s_to_$2913, ...s_range_$2914$raw]);
           let s_range_$2914 = R.listFrom(s_range_$2914$raw);
           $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
           $t1 = $t0[$RAW];
           $stack.room = $d;
           $t2 = $t1 === undefined ? $t0("string-replicate", s_s_$2911, s_range_$2914) : $t1("string-replicate", s_s_$2911, s_range_$2914);
@@ -37392,6 +39211,7 @@ export const LIBRARIES = {
           $t5 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof $t4 === 'bigint' && typeof s_start_$2916 === 'bigint') || (typeof $t4 === 'number' && typeof s_start_$2916 === 'number')) ? ($t4 - s_start_$2916) : R.callBinding((C2.v ?? G2()), [$t4, s_start_$2916]);
           s_n_$2917 = $t5;
           $t6 = (C5.v ?? G5());
+          if (typeof $t6 !== 'function') $notProc($t6);
           $t7 = $t6[$RAW];
           $stack.room = $d;
           $t8 = $t7 === undefined ? $t6(s_from_$2912) : $t7(s_from_$2912);
@@ -37399,6 +39219,7 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 2, { s_start_$2916, s_n_$2917, s_s_$2911, s_from_$2912, s_to_$2913 }); return $UNWIND; }
           if ($t8 !== false) {
           $t10 = (C5.v ?? G5());
+          if (typeof $t10 !== 'function') $notProc($t10);
           $t11 = $t10[$RAW];
           $stack.room = $d;
           $t12 = $t11 === undefined ? $t10(s_to_$2913) : $t11(s_to_$2913);
@@ -37443,6 +39264,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
                 $t1 = $t0[$RAW];
                 $stack.room = $d;
                 $t2 = $t1 === undefined ? $t0("string-replicate", s_s_$2911, s_range_$2914) : $t1("string-replicate", s_s_$2911, s_range_$2914);
@@ -37459,6 +39281,7 @@ export const LIBRARIES = {
                 $t5 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof $t4 === 'bigint' && typeof s_start_$2916 === 'bigint') || (typeof $t4 === 'number' && typeof s_start_$2916 === 'number')) ? ($t4 - s_start_$2916) : R.callBinding((C2.v ?? G2()), [$t4, s_start_$2916]);
                 s_n_$2917 = $t5;
                 $t6 = (C5.v ?? G5());
+                if (typeof $t6 !== 'function') $notProc($t6);
                 $t7 = $t6[$RAW];
                 $stack.room = $d;
                 $t8 = $t7 === undefined ? $t6(s_from_$2912) : $t7(s_from_$2912);
@@ -37471,6 +39294,7 @@ export const LIBRARIES = {
                 if ($t8 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t10 = (C5.v ?? G5());
+                if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
                 $stack.room = $d;
                 $t12 = $t11 === undefined ? $t10(s_to_$2913) : $t11(s_to_$2913);
@@ -37529,7 +39353,7 @@ export const LIBRARIES = {
         rest: "options_$2921",
         constants: [intern("infix"), new Cons(intern("infix"), new Cons(intern("strict-infix"), new Cons(intern("prefix"), new Cons(intern("suffix"), null)))), intern("strict-infix"), intern("prefix"), intern("suffix"), intern("infix"), new Cons(intern("infix"), new Cons(intern("strict-infix"), new Cons(intern("prefix"), new Cons(intern("suffix"), null)))), intern("strict-infix"), intern("prefix"), intern("suffix")],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -37596,6 +39420,7 @@ export const LIBRARIES = {
           $t10 = null;
         }
           $t12 = (C3.v ?? G3());
+          if (typeof $t12 !== 'function') $notProc($t12);
           $t13 = $t12[$RAW];
           $stack.room = $d;
           $t14 = $t13 === undefined ? $t12("string-split", s_s_$2919, $t10) : $t13("string-split", s_s_$2919, $t10);
@@ -37607,6 +39432,7 @@ export const LIBRARIES = {
           $t16 = (W2.intact || (C2.v ?? G2()) === P2) && (s_r_$2925 instanceof R.Cons) ? (s_r_$2925.cdr) : R.callBinding((C2.v ?? G2()), [s_r_$2925]);
           s_end_$2927 = $t16;
           $t17 = (C4.v ?? G4());
+          if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
           $stack.room = $d;
           $t19 = $t18 === undefined ? $t17(s_delimiter_$2920) : $t18(s_delimiter_$2920);
@@ -37616,6 +39442,7 @@ export const LIBRARIES = {
           $t20 = (W5.intact || (C5.v ?? G5()) === P5) && ((typeof s_d_$2928 === 'bigint' && typeof 0n === 'bigint') || (typeof s_d_$2928 === 'number' && typeof 0n === 'number')) ? (s_d_$2928 === 0n) : R.callBinding((C5.v ?? G5()), [s_d_$2928, 0n]);
           if ($t20 !== false) {
           $t22 = (C6.v ?? G6());
+          if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
           $stack.room = $d;
           $t24 = $t23 === undefined ? $t22("string-split: the delimiter cannot be empty") : $t23("string-split: the delimiter cannot be empty");
@@ -37627,6 +39454,7 @@ export const LIBRARIES = {
         }
           $t21;
           $t25 = (C8.v ?? G8());
+          if (typeof $t25 !== 'function') $notProc($t25);
           $t26 = $t25[$RAW];
           $stack.room = $d;
           $t27 = $t26 === undefined ? $t25(s_grammar_$2922, K[6]) : $t26(s_grammar_$2922, K[6]);
@@ -37635,6 +39463,7 @@ export const LIBRARIES = {
           $t28 = (W7.intact || (C7.v ?? G7()) === P7) ? ($t27 === false) : R.callBinding((C7.v ?? G7()), [$t27]);
           if ($t28 !== false) {
           $t30 = (C6.v ?? G6());
+          if (typeof $t30 !== 'function') $notProc($t30);
           $t31 = $t30[$RAW];
           $stack.room = $d;
           $t32 = $t31 === undefined ? $t30("string-split: unknown grammar", s_grammar_$2922) : $t31("string-split: unknown grammar", s_grammar_$2922);
@@ -37658,6 +39487,7 @@ export const LIBRARIES = {
           $t36 = (W9.intact || (C9.v ?? G9()) === P9) ? (s_grammar_$2922 === K[8]) : R.callBinding((C9.v ?? G9()), [s_grammar_$2922, K[8]]);
           if ($t36 !== false) {
           $t38 = (C10.v ?? G10());
+          if (typeof $t38 !== 'function') $notProc($t38);
           $t39 = $t38[$RAW];
           $stack.room = $d;
           $t40 = $t39 === undefined ? $t38(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2926, s_end_$2927) : $t39(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2926, s_end_$2927);
@@ -37677,6 +39507,7 @@ export const LIBRARIES = {
           $t43 = (W9.intact || (C9.v ?? G9()) === P9) ? (s_grammar_$2922 === K[9]) : R.callBinding((C9.v ?? G9()), [s_grammar_$2922, K[9]]);
           if ($t43 !== false) {
           $t45 = (C12.v ?? G12());
+          if (typeof $t45 !== 'function') $notProc($t45);
           $t46 = $t45[$RAW];
           $stack.room = $d;
           $t47 = $t46 === undefined ? $t45(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2929, s_end_$2927) : $t46(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2929, s_end_$2927);
@@ -37707,6 +39538,7 @@ export const LIBRARIES = {
         }
           if ($t51 !== false) {
           $t54 = (C15.v ?? G15());
+          if (typeof $t54 !== 'function') $notProc($t54);
           $t55 = $t54[$RAW];
           $stack.room = $d;
           $t56 = $t55 === undefined ? $t54(s_s_$2919, s_delimiter_$2920, s_from_$2932, s_end_$2930) : $t55(s_s_$2919, s_delimiter_$2920, s_from_$2932, s_end_$2930);
@@ -37721,6 +39553,7 @@ export const LIBRARIES = {
           $t57 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_at_$2935 === 'bigint' && typeof s_d_$2928 === 'bigint') || (typeof s_at_$2935 === 'number' && typeof s_d_$2928 === 'number')) ? (s_at_$2935 + s_d_$2928) : R.callBinding((C11.v ?? G11()), [s_at_$2935, s_d_$2928]);
           $t58 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_splits_$2933 === 'bigint' && typeof 1n === 'bigint') || (typeof s_splits_$2933 === 'number' && typeof 1n === 'number')) ? (s_splits_$2933 + 1n) : R.callBinding((C11.v ?? G11()), [s_splits_$2933, 1n]);
           $t59 = (C17.v ?? G17());
+          if (typeof $t59 !== 'function') $notProc($t59);
           $t60 = $t59[$RAW];
           $stack.room = $d;
           $t61 = $t60 === undefined ? $t59(s_s_$2919, s_from_$2932, s_at_$2935) : $t60(s_s_$2919, s_from_$2932, s_at_$2935);
@@ -37733,6 +39566,7 @@ export const LIBRARIES = {
           continue $loop1;
         } else {
           $t63 = (C17.v ?? G17());
+          if (typeof $t63 !== 'function') $notProc($t63);
           $t64 = $t63[$RAW];
           $stack.room = $d;
           $t65 = $t64 === undefined ? $t63(s_s_$2919, s_from_$2932, s_end_$2930) : $t64(s_s_$2919, s_from_$2932, s_end_$2930);
@@ -37795,6 +39629,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               case 12:
                 $t12 = (C3.v ?? G3());
+                if (typeof $t12 !== 'function') $notProc($t12);
                 $t13 = $t12[$RAW];
                 $stack.room = $d;
                 $t14 = $t13 === undefined ? $t12("string-split", s_s_$2919, $t10) : $t13("string-split", s_s_$2919, $t10);
@@ -37810,6 +39645,7 @@ export const LIBRARIES = {
                 $t16 = (W2.intact || (C2.v ?? G2()) === P2) && (s_r_$2925 instanceof R.Cons) ? (s_r_$2925.cdr) : R.callBinding((C2.v ?? G2()), [s_r_$2925]);
                 s_end_$2927 = $t16;
                 $t17 = (C4.v ?? G4());
+                if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
                 $stack.room = $d;
                 $t19 = $t18 === undefined ? $t17(s_delimiter_$2920) : $t18(s_delimiter_$2920);
@@ -37824,6 +39660,7 @@ export const LIBRARIES = {
                 if ($t20 !== false) { $pc = 15; continue; } $pc = 16; continue;
               case 15:
                 $t22 = (C6.v ?? G6());
+                if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
                 $stack.room = $d;
                 $t24 = $t23 === undefined ? $t22("string-split: the delimiter cannot be empty") : $t23("string-split: the delimiter cannot be empty");
@@ -37837,6 +39674,7 @@ export const LIBRARIES = {
               case 17:
                 $t21;
                 $t25 = (C8.v ?? G8());
+                if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
                 $stack.room = $d;
                 $t27 = $t26 === undefined ? $t25(s_grammar_$2922, K[1]) : $t26(s_grammar_$2922, K[1]);
@@ -37854,6 +39692,7 @@ export const LIBRARIES = {
                 if ($t28 !== false) { $pc = 20; continue; } $pc = 21; continue;
               case 20:
                 $t30 = (C6.v ?? G6());
+                if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
                 $t32 = $t31 === undefined ? $t30("string-split: unknown grammar", s_grammar_$2922) : $t31("string-split: unknown grammar", s_grammar_$2922);
@@ -37885,6 +39724,7 @@ export const LIBRARIES = {
                 return null;
               case 28:
                 $t38 = (C10.v ?? G10());
+                if (typeof $t38 !== 'function') $notProc($t38);
                 $t39 = $t38[$RAW];
                 $stack.room = $d;
                 $t40 = $t39 === undefined ? $t38(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2926, s_end_$2927) : $t39(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2926, s_end_$2927);
@@ -37914,6 +39754,7 @@ export const LIBRARIES = {
                 if ($t43 !== false) { $pc = 35; continue; } $pc = 36; continue;
               case 35:
                 $t45 = (C12.v ?? G12());
+                if (typeof $t45 !== 'function') $notProc($t45);
                 $t46 = $t45[$RAW];
                 $stack.room = $d;
                 $t47 = $t46 === undefined ? $t45(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2929, s_end_$2927) : $t46(s_delimiter_$2920, s_s_$2919, 0n, s_d_$2928, s_start_$2929, s_end_$2927);
@@ -37958,6 +39799,7 @@ export const LIBRARIES = {
                 if ($t51 !== false) { $pc = 46; continue; } $pc = 47; continue;
               case 46:
                 $t54 = (C15.v ?? G15());
+                if (typeof $t54 !== 'function') $notProc($t54);
                 $t55 = $t54[$RAW];
                 $stack.room = $d;
                 $t56 = $t55 === undefined ? $t54(s_s_$2919, s_delimiter_$2920, s_from_$2932, s_end_$2930) : $t55(s_s_$2919, s_delimiter_$2920, s_from_$2932, s_end_$2930);
@@ -37979,6 +39821,7 @@ export const LIBRARIES = {
                 $t57 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_at_$2935 === 'bigint' && typeof s_d_$2928 === 'bigint') || (typeof s_at_$2935 === 'number' && typeof s_d_$2928 === 'number')) ? (s_at_$2935 + s_d_$2928) : R.callBinding((C11.v ?? G11()), [s_at_$2935, s_d_$2928]);
                 $t58 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_splits_$2933 === 'bigint' && typeof 1n === 'bigint') || (typeof s_splits_$2933 === 'number' && typeof 1n === 'number')) ? (s_splits_$2933 + 1n) : R.callBinding((C11.v ?? G11()), [s_splits_$2933, 1n]);
                 $t59 = (C17.v ?? G17());
+                if (typeof $t59 !== 'function') $notProc($t59);
                 $t60 = $t59[$RAW];
                 $stack.room = $d;
                 $t61 = $t60 === undefined ? $t59(s_s_$2919, s_from_$2932, s_at_$2935) : $t60(s_s_$2919, s_from_$2932, s_at_$2935);
@@ -37988,6 +39831,7 @@ export const LIBRARIES = {
                 $pc = 52; continue;
               case 51:
                 $t63 = (C17.v ?? G17());
+                if (typeof $t63 !== 'function') $notProc($t63);
                 $t64 = $t63[$RAW];
                 $stack.room = $d;
                 $t65 = $t64 === undefined ? $t63(s_s_$2919, s_from_$2932, s_end_$2930) : $t64(s_s_$2919, s_from_$2932, s_end_$2930);

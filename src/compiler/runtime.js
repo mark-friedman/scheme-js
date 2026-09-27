@@ -62,12 +62,17 @@ export function captureUnderPrimitive() {
  * that lives here, on the slow path, rather than after every expansion, where
  * it was a statement per inlined primitive that the fast path never needed.
  *
+ * The binding may have been redefined to something that is not a procedure at
+ * all, which is reported as the interpreter reports it.
+ *
  * @param {Function} fn - The name's current binding.
  * @param {Array<*>} args - Scheme values.
  * @returns {*} The call's value.
  * @throws {SchemeError} If a continuation was captured beneath it.
+ * @throws {SchemeApplicationError} If the binding is not a procedure.
  */
 export function callBinding(fn, args) {
+  if (typeof fn !== 'function') notAProcedure(fn);
   // No resume point, so compiled code beneath may not move its frames either.
   const saved = suspendFlush();
   let value;
@@ -138,8 +143,24 @@ export function vectorSet(vector, index, value) {
  * @throws {SchemeApplicationError} If the callee is not a procedure.
  */
 export function tailCall(callee, args) {
-  if (typeof callee !== 'function') throw new SchemeApplicationError(callee);
+  if (typeof callee !== 'function') notAProcedure(callee);
   return new TailCall(callee, args);
+}
+
+/**
+ * Reports a call to a value that is not a procedure, as the interpreter does.
+ *
+ * Where generated code wants a call's value it tests the callee first,
+ * because calling what is not a function makes JavaScript report the
+ * temporary that held it -- "$t0 is not a function" -- and calling the empty
+ * list, which is `null`, fails before that, reading its raw entry.
+ *
+ * @param {*} callee - What was called.
+ * @returns {never}
+ * @throws {SchemeApplicationError} Always.
+ */
+export function notAProcedure(callee) {
+  throw new SchemeApplicationError(callee);
 }
 
 /**

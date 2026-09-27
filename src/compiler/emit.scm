@@ -810,7 +810,20 @@
 ;;  * interpreted closure is a callable function too, but calling it that way
 ;;  * enters Scheme from JavaScript and converts -- exact integers to doubles --
 ;;  * so it is called through its raw entry. Which kind the callee is belongs to
-;;  * the value, not the name, so it is tested at the call. The callee may
+;;  * the value, not the name, so it is tested at the call.
+;;  *
+;;  * Before any of that the callee is tested for being a function at all:
+;;  * called, anything else makes JavaScript report the temporary holding it --
+;;  * "$t0 is not a function" -- where the interpreter says "application: not a
+;;  * procedure", and reading the raw entry of the empty list, which is `null`,
+;;  * fails before that. How it is tested was measured, since it runs on every
+;;  * call. Written into the call expression -- only a callee with no raw entry,
+;;  * the entry read with `?.` -- it made `benchmarks/r7rs/src/divrec.scm` 9%
+;;  * slower; as a statement of its own, 2-4.5% on the programs made of calls
+;;  * between compiled procedures. Catching the call's failure in a `try`
+;;  * instead cost those nothing but a call into an interpreted procedure 15%,
+;;  * which is what the compiled library calling a program's callbacks makes,
+;;  * so `benchmarks/r7rs/src/quicksort.scm` ran 9% slower. The callee may
 ;;  * return a pending tail call, which is run out here, or report a capture --
 ;;  * or that there was no room on the stack for it to run (see `depth-entry`)
 ;;  * -- which this frame then joins.
@@ -831,6 +844,7 @@
          (fn (emit-value! form (cadr node)))
          (arglist (join-exprs args ", ")))
     (emit! form (list 'assign (js callee) fn))
+    (emit! form (list 'raw (js "if (typeof " callee " !== 'function') $notProc(" callee ");")))
     (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
     (set-form-depth! form 'call)
     (emit! form (list 'text "$stack.room = $d;"))
@@ -1474,7 +1488,8 @@
   '(("$TailCall" . "R.TailCall") ("$step" . "R.step")
     ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")
     ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")
-    ("$stack" . "R.stack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")))
+    ("$stack" . "R.stack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")
+    ("$notProc" . "R.notAProcedure")))
 
 ;; /**
 ;;  * The declaration of the runtime values a procedure's code uses.

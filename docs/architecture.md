@@ -60,7 +60,7 @@ of its own.
 |-----------|---------|
 | `interpreter.js` | Trampoline execution loop |
 | `stepables_base.js` | Register constants + `Executable` base class |
-| `ast_nodes.js` | AST node classes (Literal, If, Lambda...) |
+| `ast_nodes.js` | AST node classes (Literal, If, Lambda...), and the pending raise compiled code throws for the interpreter to perform |
 | `frames.js` | Continuation frame classes |
 | `reader.js` | S-expression parser |
 | `analyzer.js` | Dispatcher for S-exp → AST conversion |
@@ -275,7 +275,7 @@ of its own.
 │      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── safety.js          # Which procedures a capture would unwind through
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
-│      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, procedure marking
+│      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
 │      ├── index.js            # Barrel export

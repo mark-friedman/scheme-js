@@ -28,6 +28,18 @@ import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { settle } from '../../src/compiler/runtime.js';
 
 /**
+ * Definitions shared by the cases on errors raised inside compiled code.
+ *
+ * `check` raises with `error` in tail position, and `first` calls it where it
+ * wants the value, so the raise arrives in the middle of a compiled call. `app`
+ * makes a non-tail call to whatever it is handed.
+ */
+const ERROR_DEFINITIONS =
+  '(define (check x) (if (pair? x) x (error "check: not a pair" x)))'
+  + ' (define (first x) (car (check x)))'
+  + ' (define (app g x) (+ 1 (g x)))';
+
+/**
  * Programs whose final expression's value is compared between tiers.
  *
  * Each is a complete program: definitions followed by one expression. The
@@ -270,7 +282,32 @@ const CASES = [
   ['deep recursion across tiers',
     '(define (even2? n) (if (= n 0) #t (odd2? (- n 1))))' +
     '(define (odd2? n) (if (= n 0) #f (apply even2? (list (- n 1)))))' +
-    '(even2? 20)']
+    '(even2? 20)'],
+
+  // --- errors raised inside compiled code reach Scheme's handlers as the interpreter's do ---
+  // `check` ends in a tail call to `error`, whose pending raise `first`
+  // receives in the middle of a call; `app` calls whatever it is given.
+  ['an error raised beneath a non-tail call is caught by guard',
+    ERROR_DEFINITIONS + ' (guard (e ((error-object? e) (list (error-object-message e) (error-object-irritants e))))'
+      + ' (first 5))'],
+  ['an error raised beneath a non-tail call reaches a handler that escapes',
+    ERROR_DEFINITIONS + ' (call/cc (lambda (k) (with-exception-handler'
+      + ' (lambda (e) (k (list (quote handled) (error-object-message e))))'
+      + ' (lambda () (first 5)))))'],
+  ['an error unwinds through dynamic-wind on its way to the handler',
+    ERROR_DEFINITIONS + ' (define trail (quote ()))'
+      + ' (guard (e (#t (reverse (cons (quote caught) trail))))'
+      + ' (dynamic-wind (lambda () (set! trail (cons (quote in) trail)))'
+      + ' (lambda () (first 5))'
+      + ' (lambda () (set! trail (cons (quote out) trail)))))'],
+  ['a program carries on after a caught error',
+    ERROR_DEFINITIONS + ' (list (guard (e (#t (quote caught))) (first 5)) (first (list 1 2)))'],
+  ['raise passed to a compiled procedure raises what it was given',
+    ERROR_DEFINITIONS + ' (guard (e ((symbol? e) (list (quote caught) e))) (app raise (quote boom)))'],
+  ['error passed to a compiled procedure',
+    ERROR_DEFINITIONS + ' (guard (e ((error-object? e) (error-object-message e))) (app error "from app"))'],
+  ['a call to a non-procedure beneath a non-tail call is caught by guard',
+    ERROR_DEFINITIONS + ' (guard (e ((error-object? e) (error-object-message e))) (app 5 1))']
 ];
 
 /**
@@ -582,6 +619,30 @@ const CAPTURE_CASES = [
 ];
 
 /**
+ * Programs that end in an uncaught error, whose message must be the same in
+ * both tiers: a user reads it, and until now compiled code could report
+ * JavaScript's -- "args is not iterable", "$t0 is not a function".
+ *
+ * Each names the definitions that must have compiled, so a case cannot pass
+ * because the tier declined the procedure that raises.
+ */
+const ERROR_CASES = [
+  ['an error raised beneath a non-tail call', ERROR_DEFINITIONS + ' (first 5)', ['check', 'first']],
+  ['an error raised two calls down',
+    ERROR_DEFINITIONS + ' (define (second x) (car (cdr (check (first x))))) (second 5)',
+    ['check', 'first', 'second']],
+  ['a call to an exact integer, not in tail position', ERROR_DEFINITIONS + ' (app 5 1)', ['app']],
+  ['a call to the empty list, not in tail position', ERROR_DEFINITIONS + " (app '() 1)", ['app']],
+  ['a call to a string, not in tail position', ERROR_DEFINITIONS + ' (app "s" 1)', ['app']],
+  ['raise of a symbol passed to a compiled procedure', ERROR_DEFINITIONS + " (app raise 'boom)", ['app']],
+  ['a call to a non-procedure in tail position',
+    '(define (tail g x) (g x)) (tail 5 1)', ['tail']],
+  // The inline expansion of `car` finds the name rebound and calls the binding.
+  ['an inlined primitive rebound to a non-procedure',
+    '(define (head x) (car x)) (set! car 5) (head (list 1))', ['head']]
+];
+
+/**
  * Cases the compiler must decline, with the reason it should give. Declining
  * is a feature, so it is tested like one.
  */
@@ -800,6 +861,38 @@ function evaluate(source, template, useCompiler) {
 }
 
 /**
+ * Evaluates a program that is expected to end in an uncaught error.
+ *
+ * Its definitions are compiled first, as `evaluate` does, so that which ones
+ * compiled is known even though running the program throws.
+ *
+ * @param {string} source - Scheme source.
+ * @param {Object} template - Environment supplying the standard library.
+ * @param {boolean} useCompiler - Whether to compile definitions.
+ * @returns {{message: (string|null), compiled: Array<string>}} The error's
+ *   message, or null if nothing was raised, and the definitions compiled.
+ */
+function evaluateToError(source, template, useCompiler) {
+  const { interpreter, env } = freshEnvironment(template);
+  const asts = parse(source).map((form) => analyze(form));
+  const definitions = asts.filter((a) => a instanceof DefineNode);
+  let compiled = [];
+  let rest = asts;
+  if (useCompiler) {
+    compiled = compileProgram(definitions, env, interpreter).compiled;
+    rest = asts.filter((a) => !(a instanceof DefineNode));
+  }
+  try {
+    for (const ast of rest) {
+      settle(interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' }));
+    }
+  } catch (e) {
+    return { message: e.message, compiled };
+  }
+  return { message: null, compiled };
+}
+
+/**
  * Evaluates a program with only the named definitions compiled.
  *
  * Models mixed-tier execution directly, rather than relying on a decline rule
@@ -898,6 +991,37 @@ export async function runCompilerTests(interpreter, logger) {
     compiledCount += compiledResult.compiled.length;
     assert(logger, `${name} agrees between tiers`,
       render(compiledResult.value), render(interpreted.value));
+  }
+
+  logger.title('Compiler - Uncaught Errors Say the Same in Both Tiers');
+
+  for (const [name, source, mustCompile] of ERROR_CASES) {
+    const interpreted = evaluateToError(source, template, false);
+    const compiled = evaluateToError(source, template, true);
+    assert(logger, `${name}: the interpreter raises`, interpreted.message !== null, true);
+    assert(logger, `${name}: the same message compiled`, compiled.message, interpreted.message);
+    assert(logger, `${name}: ${mustCompile.join(', ')} compiled`,
+      mustCompile.every((n) => compiled.compiled.includes(n)), true);
+  }
+
+  // `raise-continuable` cannot be performed from compiled code: a handler that
+  // returns would have to return into compiled frames the raise has already
+  // left. Handed to a compiled procedure, it is refused with an explanation,
+  // which reaches the handler in force like any other error, rather than
+  // failing as JavaScript would.
+  {
+    let value;
+    try {
+      ({ value } = evaluate(
+        `${ERROR_DEFINITIONS} (call/cc (lambda (k) (with-exception-handler`
+          + ' (lambda (e) (k (error-object-message e)))'
+          + ' (lambda () (app raise-continuable 1)))))',
+        template, true));
+    } catch (e) {
+      value = `threw: ${e.message}`;
+    }
+    assert(logger, 'raise-continuable from compiled code is refused with an explanation',
+      typeof value === 'string' && value.includes('raise-continuable') && value.includes('not yet supported'), true);
   }
 
   logger.title('Compiler - Declines Unsupported Forms Safely');

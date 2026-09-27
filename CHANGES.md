@@ -7602,3 +7602,104 @@ were taken.
   numeric-optimization list replaced by a pointer, and the extension marked as off this branch and
   no longer a goal.
 - `docs/compiler_findings.md`: R76, R77.
+
+# Walkthrough: Errors raised inside compiled code
+
+Task 28 in `docs/compiler_plan.md`. Two ways an error from compiled code arrived with JavaScript's
+message instead of Scheme's.
+
+## A raise compiled code could not perform
+
+`raise`, `raise-continuable` and `error` do not raise: they return a pending raise -- a `TailCall`
+whose function is a `RaiseNode` -- for their caller to perform, and the interpreter performs it by
+running the node. Compiled code continues a pending call by calling its function, so where it
+wanted the value it called the node with `null` arguments: `(length 5)` under the compiled standard
+library, which every browser page installs, said "args is not iterable", and a `guard` received that
+message with no irritants instead of the error `error` made.
+
+Compiled code now throws the raise to the nearest interpreter run, which performs it from where it
+called compiled code:
+
+- **`RaiseNode` has a raw entry**, as an interpreted closure does, so compiled code's existing
+  path for a pending call reaches it. A raw entry is called without a receiver, so a pending raise
+  now carries its exception and whether it is continuable as the call's arguments; the interpreter
+  ignores them.
+- **The raw entry throws** what a raise nobody handles throws -- the error itself, or an error
+  describing a raised value that is not one -- and records it, so `run` and `runAsync` recognise it
+  and run a `RaiseNode` of the original value in its place.
+- **Why that is the interpreter's raise and not an approximation:** compiled frames never hold a
+  handler or a wind, since a procedure naming `with-exception-handler`, `guard`, `parameterize` or
+  `dynamic-wind` is not compiled. Everything in force where compiled code raises is on the frame
+  stack of the run beneath it, so the `RaiseNode` run there finds the same handler, runs the same
+  after-thunks, and pauses the debugger on an uncaught exception as it would have.
+- A JavaScript caller with no run beneath it receives the same thing it would have from an
+  interpreted procedure.
+- **`raise-continuable` is refused**, with an explanation: a handler returning would deliver its
+  value to the compiled frame that raised, which the throw has left. Compiled code only reaches one
+  when handed `raise-continuable` as a value.
+
+## Calling a non-procedure
+
+A call whose value is wanted reads the callee's raw entry and calls one or the other; for anything
+not a function JavaScript said "$t0 is not a function", and for the empty list, which is `null`,
+failed reading the raw entry. The emitter now tests the callee first, as a statement of its own --
+`if (typeof $t0 !== 'function') R.notAProcedure($t0);` -- which reports it as the interpreter does,
+"application: not a procedure", and covers `null` too. `R.callBinding`, the slow path of an inlined
+primitive, checks its binding the same way. Task 26 had already fixed the tail call.
+
+The test runs on every call whose value is wanted, so its form was measured, four ways:
+
+- **Written into the call expression**, testing only a callee with no raw entry and reading the
+  entry with `?.`: `divrec` 9% slower in the suite, 8% in isolation, most of it the `?.`.
+- **Giving compiled procedures and primitives a raw entry pointing to themselves**, so that the test
+  would sit in a branch only JavaScript functions and non-procedures take: no help.
+- **A `try` around the raw read and the call**, reporting a non-procedure only when the call threw:
+  nothing on calls between compiled procedures, but 15% on a call into an interpreted procedure --
+  the call the compiled library makes to a program's callbacks, the browser's common case -- which
+  made `quicksort`, whose comparison procedure is interpreted, 9% slower. An error also paid about
+  140 ns for each compiled frame it passed through, caught and rethrown.
+- **A statement ahead of the call**, shipped: nothing measurable on calls into interpreted
+  procedures, 2-4.5% on the programs made of calls between compiled procedures.
+
+## Measured
+
+The canonical suite, compiled, against the task 27 tree, alternated five times on the programs made
+of calls: `fibfp` and `diviter` 0.96x, `ack` 0.96-0.97x, `fib` 0.97-0.98x, `divrec` and `dynamic`
+0.97-0.99x, `tak` 0.99x; `quicksort` and `maze` 1.00x; across the whole suite no class moved beyond
+noise but `call`. The interpreter tier did not change. `benchmarks/run_codegen.js`'s `recursion` group,
+per non-tail call chain: 10 levels deep 128 -> 134 ns, 100 levels 1.69 -> 1.72 us, `fib` 10 up 1.5%.
+
+The raise costs nothing until something raises. Generated code is 5.5% larger for the libraries and 8%
+for the compiler (4.7% and 8.7% gzipped), nearly all of it the test at each call site, in both forms;
+the report is called through a constant the procedure declares, `$notProc`, to keep the line short.
+
+Found on the way: breaking on an uncaught exception does not fire for an error a primitive throws, in
+either tier -- only `raise` and `error` run the `RaiseNode` the debugger checks in; and a control
+global handed to a compiled procedure as a value, `(map call/cc ...)` or `eval`, still fails with
+JavaScript's message. Both are noted where they belong in the plan.
+
+## Tests
+
+- `tests/functional/compiled_error_tests.js`, new: the compiled standard library's `length`,
+  `assv` and `member` raise what the interpreted library raises, uncaught and to a `guard`, including
+  from compiled `map` through an interpreted procedure; a compiled procedure called from JavaScript
+  throws the error `error` made, and a raise of a symbol says what the interpreter says; the debugger
+  pauses on an uncaught error raised in compiled code, with that error.
+- Differential cases: an error beneath a non-tail call caught by `guard`, by a handler escaping
+  through a continuation, and through `dynamic-wind`, whose after-thunk runs; a program continuing
+  after one; `raise` and `error` handed to a compiled procedure; a non-procedure call caught. A new
+  section compares uncaught messages between tiers, each case also asserting that the procedures that
+  raise compiled: an error one and two calls down, calls to an integer, the empty list and a string,
+  a raise of a symbol, a tail call to a non-procedure, an inlined primitive rebound to one.
+  `raise-continuable` handed to compiled code is asserted to be refused with an explanation.
+- Scheme tests in `tests/compiler/emit_tests.scm`: the call site's test, in both forms, ahead of the
+  raw read, and the constant it reports through.
+- Mutations, each run against the tests above: no raw entry on `RaiseNode`, or a pending raise
+  without its arguments, fails 23; `run` not performing a compiled raise fails the raise of a symbol
+  handed to compiled code; `runAsync` not performing it fails the debugger's pause; the raise thrown
+  unrecorded fails 3; `R.callBinding` not checking fails the rebound primitive; a continuable raise
+  thrown like any other fails its refusal -- which first crashed the differential run instead of
+  failing an assertion, and now fails it; the emitter without the test, rebuilt, fails 4.
+
+3,534 tests pass in Node and 3,429 in the browser. In the browser bundle on a fresh page the compiled
+`length`, `assv`, `member` and `map` raise the interpreter's errors, to a `guard` too.

@@ -138,6 +138,42 @@ compiled: an interpreted procedure passed to the compiled `for-each`, calling th
 with an interpreted procedure that captures, crosses two boundaries. Refusing valid R7RS is a bug,
 and unwinding through nested interpreters, which removes it, ranks as one in `compiler_plan.md`.
 
+## Raising from compiled code
+
+`raise`, `raise-continuable` and `error` do not raise: they return a pending raise, a `TailCall`
+whose function is a `RaiseNode`, for their caller to perform. The interpreter performs it by
+running the node, which finds the handler on its frame stack, runs the `dynamic-wind` after-thunks
+on the way, and pauses first if the debugger breaks on exceptions. Compiled code has no evaluator,
+and continues any pending call by calling its function; so a pending raise that reached compiled
+code where it wanted a value -- the argument checks in the compiled library's `length`, `assv` and
+`member` -- used to fail with JavaScript's "args is not iterable".
+
+It is now performed by **throwing it to the nearest interpreter run**, which performs it from
+where it called compiled code. `RaiseNode` has a raw entry, as an interpreted closure does, and a
+pending raise carries the exception as its arguments, because a raw entry is called without a
+receiver (`src/core/interpreter/ast_nodes.js`). This is exactly the raise the interpreter would have
+performed, for one reason: **compiled frames never hold a handler or a wind.** A procedure that names
+`with-exception-handler`, `guard`, `parameterize` or `dynamic-wind` is not compiled, so everything
+in force where compiled code raises is on the frame stack of the run beneath it. The compiled
+frames the throw leaves are abandoned, which a raise that cannot return does to them anyway.
+
+What is thrown is what a raise nobody handles throws, so JavaScript calling a compiled procedure
+directly, with no run beneath it, receives what it would have from an interpreted one.
+
+A **continuable** raise is refused, with an explanation: a handler that returns would deliver its
+value to the frame that raised, which is compiled and which the throw has left. Compiled code only
+meets one when handed `raise-continuable` as a value.
+
+**Calling a non-procedure** is reported as the interpreter reports it, not as JavaScript does --
+naming the temporary that held it, "$t0 is not a function", or, for the empty list, which is `null`,
+failing to read its raw entry. Where a call's value is wanted, the callee is tested for being a
+function first, as a statement of its own. It runs on every such call, so the form was measured:
+folded into the call expression it made `divrec` 9% slower; as a statement it costs 2-4.5% on the
+programs made of calls between compiled procedures, and a few nanoseconds a call. Catching the
+call's failure in a `try` instead cost those nothing and a call into an *interpreted* procedure 15% --
+the call the compiled library makes to a program's callbacks, which is the browser's common case --
+so it lost. A tail call already reported a non-procedure, in `R.tailCall`.
+
 ## Boxing, and why copying was wrong
 
 A spilled frame copies each local's value, but Scheme *shares* the binding: an assignment made after
@@ -507,7 +543,7 @@ replaces remains as the CSP fallback.
 | **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
 | **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The debugger's hook is inside the interpreter's step loop, which compiled procedures never enter; a breakpoint inside one is reported as never firing. And interpreted code is affected too: only `runAsync` honours a pause, compiled code calls an interpreted procedure through a synchronous nested `run`, so a breakpoint inside a callback of the compiled `for-each` or `map` takes effect only when the loop returns -- inferred from the code, not yet exercised. |
 | **5. Multi-shot `call/cc`** | Met, with two shapes **refused** rather than answered: a capture across more than one boundary between compiled and interpreted code, which the compiled standard library already makes reachable, and one beneath a redefined inlined primitive. |
-| **6. R7RS-small** | The compiler adds one gap, the refused capture above. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, and referential transparency of macro-introduced free identifiers. The conformance suites run outside `npm test`, and not with the compiled standard library. |
+| **6. R7RS-small** | The compiler adds two gaps: the refused capture above, and `raise-continuable` handed to a compiled procedure as a value, also refused. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, and referential transparency of macro-introduced free identifiers. The conformance suites run outside `npm test`, and not with the compiled standard library. |
 
 Constraint 4 is the open design question of the project. The intended answer is **two mechanisms,
 not one**, which is what every real toolchain ships:
@@ -564,7 +600,7 @@ the machinery is tested on the shapes its authors thought of, while its serious 
 nobody did; CI runs only on `main` and never loads the browser tests; and the R7RS conformance
 suites are outside `npm test`. `compiler_plan.md` ranks closing each.
 
-- **3,473 tests**, Node and browser, via `npm test`.
+- **3,534 tests**, Node and browser, via `npm test`.
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked
   against expected results that came from Gambit — `npm run test:programs`, 8.2 s, inside `npm test`.
   This is the check that catches what unit tests structurally cannot: three compiler defects in one
@@ -599,4 +635,4 @@ Per-module rationale is in the module headers, which are edited with the code:
 | `src/compiler/marshal.js` | the JavaScript/Scheme boundary, and how it shrinks |
 | `src/compiler/safety.js` | the call-graph closure, and its measured trade-off |
 | `src/compiler/prebuilt.js` | staleness, and why arity rather than names |
-| `src/compiler/runtime.js` | the trampoline and the tail-call budget, global cells, procedure marking |
+| `src/compiler/runtime.js` | the trampoline, stack room and moving frames, global cells, reporting a non-procedure, procedure marking |

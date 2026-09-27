@@ -7,7 +7,9 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
-import { createClosure, createContinuation, isSchemeClosure, isSchemeContinuation } from './values.js';
+import {
+    createClosure, createContinuation, isSchemeClosure, isSchemeContinuation, TailCall
+} from './values.js';
 import * as FrameRegistry from './frame_registry.js';
 import { GlobalRef } from './syntax_object.js';
 import { globalContext } from './context.js';
@@ -745,11 +747,7 @@ export class RaiseNode extends Executable {
 
         if (handlerIndex === -1) {
             // No handler found - propagate as JS error
-            const exc = this.exception;
-            if (exc instanceof Error) {
-                throw exc;
-            }
-            throw new SchemeError(`Unhandled exception: ${exc}`, [exc]);
+            throw unhandled(this.exception);
         }
 
         // Get the handler
@@ -796,6 +794,107 @@ export class RaiseNode extends Executable {
         }
         return true;
     }
+}
+
+/**
+ * What a raise nobody handles throws: the raised value itself when it is an
+ * error, and otherwise an error describing it.
+ * @param {*} exception - The raised value.
+ * @returns {Error} The value to throw.
+ */
+function unhandled(exception) {
+    if (exception instanceof Error) return exception;
+    return new SchemeError(`Unhandled exception: ${exception}`, [exception]);
+}
+
+// =============================================================================
+// Raising from compiled code
+// =============================================================================
+
+/**
+ * Raises compiled code has thrown for an interpreter run to perform, each
+ * mapped to the value raised. Weak, since a raise nobody performs -- one that
+ * reached a JavaScript caller with no run beneath it -- is never taken out.
+ * @type {WeakMap<Error, *>}
+ */
+const compiledRaises = new WeakMap();
+
+/**
+ * Builds a pending raise: what `raise`, `raise-continuable` and `error` return
+ * rather than raising themselves.
+ *
+ * The interpreter performs a pending raise by running its node, which looks for
+ * a handler on the interpreter's frame stack. Compiled code cannot run a node:
+ * it continues any pending call by calling the call's function with its
+ * arguments, through the function's raw entry if it has one. So `RaiseNode`
+ * has a raw entry, `raiseFromCompiledCode`, and because a raw entry is called
+ * without a receiver, the arguments carry what it needs. The interpreter
+ * ignores them.
+ *
+ * @param {*} exception - The value raised.
+ * @param {boolean} continuable - Whether a handler may return to the raise.
+ * @returns {TailCall} The pending raise.
+ */
+export function pendingRaise(exception, continuable) {
+    return new TailCall(new RaiseNode(exception, continuable), [exception, continuable]);
+}
+
+/**
+ * Performs a raise that reached compiled code, by throwing it to the nearest
+ * interpreter run for that run to perform.
+ *
+ * This is the raise the interpreter would have performed. A compiled procedure
+ * never establishes a handler or a `dynamic-wind` -- one that names them is not
+ * compiled -- so the handlers and winds in force where compiled code raises are
+ * exactly those on the frame stack of the run beneath it, and that run performs
+ * the raise with the same `RaiseNode`, the debugger's pause on an uncaught
+ * exception included. The compiled frames the throw leaves are abandoned, which
+ * is what a raise that cannot return does to them anyway.
+ *
+ * A continuable raise can return: a handler's value becomes the value of
+ * `raise-continuable`, in the frame that raised. That frame is compiled and the
+ * throw would have left it, so the raise is refused, loudly, rather than having
+ * the value arrive somewhere else. Compiled code only reaches one by being
+ * handed `raise-continuable` as a value, since a procedure that names it is not
+ * compiled.
+ *
+ * What is thrown is what an unhandled raise throws, so a JavaScript caller with
+ * no run beneath it -- host code calling a compiled procedure directly --
+ * receives what it would have from an interpreted one.
+ *
+ * @param {*} exception - The value raised.
+ * @param {boolean} continuable - Whether a handler may return to the raise.
+ * @returns {never}
+ * @throws {Error} Always.
+ */
+function raiseFromCompiledCode(exception, continuable) {
+    if (continuable) {
+        throw new SchemeError(
+            'raise-continuable: called from compiled code, which a handler cannot return to; '
+            + 'this is not yet supported. Run this program with the compiler tier disabled.',
+            [exception]);
+    }
+    const thrown = unhandled(exception);
+    compiledRaises.set(thrown, exception);
+    throw thrown;
+}
+
+// `SCHEME_RAW_CALL` from values.js, which is `Symbol.for('scheme.rawCall')`.
+// Named by its key here because values.js imports this module, so on the way
+// in its binding is not yet initialised when this line runs.
+RaiseNode.prototype[Symbol.for('scheme.rawCall')] = raiseFromCompiledCode;
+
+/**
+ * Takes a raise compiled code threw for an interpreter run to perform.
+ * @param {*} thrown - What the run caught.
+ * @returns {RaiseNode|null} The raise to run in its place, or null if `thrown`
+ *   is anything else.
+ */
+export function takeCompiledRaise(thrown) {
+    if (!compiledRaises.has(thrown)) return null;
+    const exception = compiledRaises.get(thrown);
+    compiledRaises.delete(thrown);
+    return new RaiseNode(exception, false);
 }
 
 /**
