@@ -113,6 +113,7 @@ of its own.
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
 │   ├── compare_r7rs.js             # Canonical suite: both tiers against Gambit, Racket, plain JS
+│   ├── decline_reasons.js          # Why the tier declines procedures in non-benchmark Scheme
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
@@ -129,7 +130,7 @@ of its own.
 │   │                               #   contfib, btsearch, threads
 │   │                               # NOTE: overfitted -- see benchmarks/r7rs/README.md
 │   └── r7rs/                       # Canonical Gabriel/Gambit/Larceny suite (vendored)
-│       └── plain_js_kernels.js     # Plain JavaScript versions of seven of its programs
+│       ├── plain_js_kernels.js     # Plain JavaScript versions of seven of its programs
 │       ├── README.md               # Provenance, protocol, sizing, blocked programs
 │       ├── UPSTREAM_COMMIT         # Pinned ecraven/r7rs-benchmarks revision
 │       ├── manifest.js             # Workload class, sizes, status per program
