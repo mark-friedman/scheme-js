@@ -860,7 +860,8 @@ function raiseFromCompiledCode(exception, continuable) {
     if (continuable) {
         throw new SchemeError(
             'raise-continuable: called from compiled code, which a handler cannot return to; '
-            + 'this is not yet supported. Run this program with the compiler tier disabled.',
+            + 'this is not yet supported. Run this program with its code interpreted '
+            + '(--no-compile at the command line, setUserCodeCompilation(false) in a page).',
             [exception]);
     }
     const thrown = unhandled(exception);

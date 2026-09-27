@@ -18,3 +18,4 @@ export {
   tryCompileDefinition,
   tryCompileClosure
 } from '../compiler/index.js';
+export { attachTier, detachTier } from '../compiler/tiering.js';

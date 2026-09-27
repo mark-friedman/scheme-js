@@ -1,8 +1,6 @@
 import { createInterpreter } from '../core/interpreter/index.js';
 import { parse } from '../core/interpreter/reader.js';
 import { analyze } from '../core/interpreter/analyzer.js';
-import { list } from '../core/interpreter/cons.js';
-import { intern } from '../core/interpreter/symbol.js';
 import { setFileResolver, setLibraryLoadHook } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
 import { installLibraryTable } from '../compiler/prebuilt.js';
@@ -43,11 +41,11 @@ setFileResolver((libraryName) => {
 // installed into it as it loads: the standard library below, and a library
 // imported long after start-up alike.
 //
-// So nothing here runs the compiler. Nothing calls `new Function`, so a page
+// So installing them runs no compiler. Nothing calls `new Function`, so a page
 // with a strict Content-Security-Policy gets the compiled libraries rather
 // than interpreted ones; and the compiler, most of what a bundle that can
-// compile weighs, is not part of this one. It is a separate module, loaded by
-// `loadCompiler` for a page that wants to compile code of its own.
+// compile weighs, is not part of this one. It is a separate module, which the
+// bundle loads once it has started, to compile the page's own code (below).
 //
 // A library written inline is the program's own code, not one this bundle
 // ships, so the hook leaves it alone. So is anything a stale build no longer
@@ -100,20 +98,32 @@ for (const exp of parse(imports)) {
 }
 
 /**
- * Loads the compiler, for a page that wants to compile code of its own.
+ * The compiler's module while it is being fetched, so that it is fetched once.
+ * @type {Promise<Object>|null}
+ */
+let compilerLoading = null;
+
+/**
+ * Loads the compiler. The bundle does so itself once it has started, so a page
+ * need not call this except to wait for it, or to use the compiler directly.
  *
  * Asynchronous because the compiler is a separate module, fetched the first
  * time it is asked for; the bundle does not carry it. Once it is loaded, a
  * shipped library imported afterwards also has anything its prebuilt table did
  * not cover compiled as it loads.
  *
- * @returns {Promise<Object>} The compiler's entry points: `compileProgram`,
- *   `compileEnvironment`, `tryCompileDefinition` and `tryCompileClosure`, as
- *   `src/compiler/index.js` documents them.
+ * @returns {Promise<Object>} The compiler's entry points, as
+ *   `src/packaging/scheme_compiler.js` exports them.
  */
 export async function loadCompiler() {
-  if (compiler === null) compiler = await import('./scheme_compiler.js');
-  return compiler;
+  if (compilerLoading === null) {
+    compilerLoading = import('./scheme_compiler.js').then((module) => {
+      compiler = module;
+      attachIfWanted();
+      return module;
+    });
+  }
+  return compilerLoading;
 }
 
 /**
@@ -122,6 +132,58 @@ export async function loadCompiler() {
  */
 export function isCompilerLoaded() {
   return compiler !== null;
+}
+
+// =============================================================================
+// Compiling the page's own code
+// =============================================================================
+//
+// The page's own procedures are compiled as it runs, by the compiler tier
+// (`src/compiler/tiering.js`), once the compiler has arrived: until then the
+// page's code runs interpreted, and what it defined meanwhile is taken on when
+// the tier attaches. A page turns this off with `setUserCodeCompilation(false)`
+// -- before the compiler arrives, and it never attaches -- and a page whose
+// Content-Security-Policy forbids `new Function` runs interpreted regardless.
+
+/**
+ * Whether the page's own code is to be compiled.
+ * @type {boolean}
+ */
+let userCodeCompilation = true;
+
+/**
+ * Whether a library has a prebuilt table installed over it as it loads, so
+ * that the tier leaves its procedures alone.
+ * @param {Array<string>} libraryName - The library's name.
+ * @returns {boolean}
+ */
+function isPrebuilt(libraryName) {
+  return BUNDLED_SOURCES[`${libraryName[libraryName.length - 1]}.sld`] !== undefined;
+}
+
+/**
+ * Attaches the tier, if the compiler is here, compilation is wanted, and no
+ * tier is attached yet.
+ */
+function attachIfWanted() {
+  if (compiler !== null && userCodeCompilation && !interpreter.tier) {
+    compiler.attachTier(interpreter, env, { isPrebuilt });
+  }
+}
+
+/**
+ * Turns compiling the page's own code on or off. Off, what is compiled stays
+ * compiled and nothing more is; on, the compiler is loaded if it has not been.
+ * @param {boolean} enabled - Whether to compile it.
+ */
+export function setUserCodeCompilation(enabled) {
+  userCodeCompilation = enabled;
+  if (!enabled) {
+    if (compiler !== null) compiler.detachTier(interpreter);
+    return;
+  }
+  if (compiler === null) loadCompiler();
+  else attachIfWanted();
 }
 
 // =============================================================================
@@ -134,17 +196,13 @@ export function isCompilerLoaded() {
  * @returns {*} The result of the evaluation.
  */
 function evalCode(code) {
-    const asts = parse(code);
-    if (asts.length === 0) return undefined;
-
-    let ast;
-    if (asts.length === 1) {
-        ast = analyze(asts[0]);
-    } else {
-        ast = analyze(list(intern('begin'), ...asts));
+    // Form by form, as a program's top level is run, so that the compiler
+    // tier sees each: a script run as one `begin` would be one form to it.
+    let result;
+    for (const form of parse(code)) {
+        result = interpreter.runTopLevel(analyze(form), env);
     }
-
-    return interpreter.run(ast);
+    return result;
 }
 
 /**
@@ -182,3 +240,7 @@ export { prettyPrint } from '../core/interpreter/printer.js';
 export { isCompleteExpression, findMatchingDelimiter } from '../core/interpreter/expression_utils.js';
 export { SchemeDebugRuntime, ReplDebugBackend, ReplDebugCommands };
 
+// The page's code is compiled from when the compiler arrives, unless the page
+// said otherwise before this ran. Started after everything above, so that the
+// bundle's own start-up does not wait for it.
+loadCompiler().catch((e) => console.warn('scheme-js: the compiler did not load, so code runs interpreted:', e));

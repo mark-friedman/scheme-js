@@ -228,6 +228,25 @@ export class Interpreter {
      * @type {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
      */
     this.debugRuntime = null;
+
+    /**
+     * The compiler tier, which compiles the program's own top-level
+     * procedures as it runs, or null when nothing does
+     * (`src/compiler/tiering.js`, `attachTier`). The interpreter only reports
+     * to it -- a closure bound at top level, a waiting closure's countdown
+     * run out -- so the interpreter never depends on the compiler, which a
+     * browser page loads after it.
+     * @type {Object|null}
+     */
+    this.tier = null;
+
+    /**
+     * Whether the program is being debugged: a breakpoint set, a step in
+     * progress, or paused, as the debug runtime last said
+     * (`interpretForDebugger`). The tier compiles nothing meanwhile.
+     * @type {boolean}
+     */
+    this.debugging = false;
   }
 
 
@@ -532,7 +551,26 @@ export class Interpreter {
    * @param {boolean} interpreted - Whether the program is being debugged.
    */
   interpretForDebugger(interpreted) {
+    this.debugging = interpreted;
     if (this.globalEnv) interpretCompiledOver(interpreted, this.globalEnv);
+  }
+
+  /**
+   * Runs one top-level form of a program: through the compiler tier, which may
+   * compile it, when one is attached, and as `run` does otherwise.
+   *
+   * For the places a program's own forms come in -- a REPL, a file, a page's
+   * scripts -- and not for code the implementation runs for itself, which
+   * `run` serves.
+   *
+   * @param {Executable} ast - The analyzed form.
+   * @param {Environment} [env] - The environment; the global one by default.
+   * @param {Object} [options] - As for `run`.
+   * @returns {*} Its value.
+   */
+  runTopLevel(ast, env = this.globalEnv, options = undefined) {
+    if (this.tier) return this.tier.runTopLevel(ast, env, options);
+    return this.run(ast, env, [], undefined, options);
   }
 
   /**

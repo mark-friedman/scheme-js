@@ -26,12 +26,13 @@ const count = valueOf('--count', 200);
 
 const generate = await createGenerator((p) => fs.promises.readFile(path.join(projectRoot, p), 'utf-8'));
 const tiers = createTiers();
-let disagreements = 0, compiled = 0, reentered = 0, errors = 0, slowest = { ms: 0 };
+let disagreements = 0, compiled = 0, tiered = 0, reentered = 0, errors = 0, slowest = { ms: 0 };
 const start = Date.now();
 for (let seed = from; seed < from + count; seed++) {
   const program = generate(seed);
   const result = runBoth(tiers, program);
   compiled += result.compiledCount;
+  tiered += result.tieredCount;
   if (result.reference.startsWith('error:')) errors++;
   // The driver's records: three when the saved continuation was re-entered.
   if (/^\(\(\(.*\) \(.*\) \(.*\)\)/.test(result.reference)) reentered++;
@@ -41,10 +42,11 @@ for (let seed = from; seed < from + count; seed++) {
     for (const form of program.forms) console.log(form);
     console.log(`interpreted: ${result.reference}`);
     console.log(`compiled:    ${result.compiled}`);
+    console.log(`tiered:      ${result.tiered}`);
   }
   if (!result.agree) disagreements++;
 }
 console.log(`\n${count} programs in ${Date.now() - start} ms: ${disagreements} disagreements; `
-  + `${compiled} procedures compiled; ${reentered} re-entered a saved continuation; `
+  + `${compiled} procedures compiled, ${tiered} by the tier; ${reentered} re-entered a saved continuation; `
   + `${errors} ended in an uncaught error; slowest ${slowest.ms} ms (seed ${slowest.seed})`);
 if (disagreements > 0) process.exitCode = 1;

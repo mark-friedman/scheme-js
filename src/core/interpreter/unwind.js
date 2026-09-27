@@ -186,7 +186,8 @@ export const compiledStack = { room: 65536, limit: 65536, flushable: false, refu
  */
 export const CAPTURE_UNDER_PRIMITIVE =
   'call/cc: a continuation was captured beneath a redefined primitive, which '
-  + 'cannot be resumed. Run this program with the compiler tier disabled.';
+  + 'cannot be resumed. Run this program with its code interpreted '
+  + '(--no-compile at the command line, setUserCodeCompilation(false) in a page).';
 
 /**
  * The state `restoreFlush` gives back: `flushable` and `refusesCapture`

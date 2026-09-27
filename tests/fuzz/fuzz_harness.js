@@ -8,6 +8,11 @@
  * -- captures allowed, so the tiers alternate at random, captures included. The
  * two answers must agree.
  *
+ * A third run attaches the compiler tier (`src/compiler/tiering.js`) and runs
+ * each form as a program's top level is run, so procedures are compiled as the
+ * program goes -- some when defined, some in the middle of a recursion or a
+ * loop through them -- and must agree too.
+ *
  * The tier's serious bugs were found by whole programs giving wrong answers,
  * not by unit tests, because unit tests are written for the shapes their author
  * had in mind. This generalises the whole-program check to shapes nobody had in
@@ -25,6 +30,7 @@ import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { tryCompileDefinition, tryCompileExpression, runCompiledThunk } from '../../src/compiler/index.js';
 import { settle } from '../../src/compiler/runtime.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
+import { attachTier } from '../../src/compiler/tiering.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
 
 /**
@@ -62,15 +68,41 @@ export async function createGenerator(loader) {
 }
 
 /**
- * The two tiers' environments.
- * @returns {{reference: Object, compiled: Object}} The interpreter and
- *   environment each runs in.
+ * The three runs' environments.
+ * @returns {{reference: Object, compiled: Object, tiered: Object}} The
+ *   interpreter and environment each runs in.
  */
 export function createTiers() {
   const reference = interpretedLibrary();
   const compiled = interpretedLibrary();
   installStandardLibrary(compiled.env);
-  return { reference, compiled };
+  const tiered = interpretedLibrary();
+  installStandardLibrary(tiered.env);
+  attachTier(tiered.interpreter, tiered.env);
+  return { reference, compiled, tiered };
+}
+
+/**
+ * Runs a program with the compiler tier deciding what to compile.
+ * @param {{interpreter: Object, env: Object}} pair - The tiered run.
+ * @param {Array<string>} forms - The program's forms, as text.
+ * @returns {{answer: string, compiled: number}} The driver's value written
+ *   out, or `error:` and the message; and how many names the tier compiled
+ *   while it ran.
+ */
+export function runTiered({ interpreter, env }, forms) {
+  const outcomes = interpreter.tier.outcomes;
+  outcomes.clear();
+  const compiled = () => [...outcomes.values()].filter((o) => o === 'compiled').length;
+  try {
+    let value;
+    for (const text of forms) {
+      value = settle(interpreter.runTopLevel(analyze(parse(text)[0]), env, { jsAutoConvert: 'raw' }));
+    }
+    return { answer: writeString(value), compiled: compiled() };
+  } catch (e) {
+    return { answer: `error: ${e.message}`, compiled: compiled() };
+  }
 }
 
 /**
@@ -114,20 +146,24 @@ export function runProgram({ interpreter, env }, forms, toCompile) {
 }
 
 /**
- * Runs one generated program in both tiers.
+ * Runs one generated program in all three ways.
  * @param {Object} tiers - From `createTiers`.
  * @param {Object} program - From the generator.
- * @returns {{agree: boolean, reference: string, compiled: string, compiledCount: number, ms: number}}
+ * @returns {{agree: boolean, reference: string, compiled: string, tiered: string,
+ *   compiledCount: number, tieredCount: number, ms: number}}
  */
 export function runBoth(tiers, program) {
   const start = Date.now();
   const reference = runProgram(tiers.reference, program.forms, null);
   const compiled = runProgram(tiers.compiled, program.forms, program.compiled);
+  const tiered = runTiered(tiers.tiered, program.forms);
   return {
-    agree: reference.answer === compiled.answer,
+    agree: reference.answer === compiled.answer && reference.answer === tiered.answer,
     reference: reference.answer,
     compiled: compiled.answer,
+    tiered: tiered.answer,
     compiledCount: compiled.compiled,
+    tieredCount: tiered.compiled,
     ms: Date.now() - start
   };
 }

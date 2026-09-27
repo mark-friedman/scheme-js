@@ -13,6 +13,7 @@ import { DebugExceptionHandler } from './exception_handler.js';
 import { StateInspector } from './state_inspector.js';
 import { ENV } from '../core/interpreter/stepables_base.js';
 import { globalMacroRegistry } from '../core/interpreter/macro_registry.js';
+import { isCompiledOver } from '../core/interpreter/library_registry.js';
 
 /**
  * Whether a source span contains a location.
@@ -202,6 +203,9 @@ export class SchemeDebugRuntime {
      * A breakpoint there is accepted and never fires: the only place this
      * runtime can pause is the interpreter's step loop, and compiled code does
      * not run through it. Callers use this to say so rather than fail silently.
+     * A procedure compiled over an interpreted closure -- the standard
+     * library's, or one the compiler tier compiled -- is not such code, since
+     * it runs as that closure while the program is being debugged.
      *
      * Only top-level bindings are searched. That is sufficient because a
      * definition is compiled as a unit -- every procedure nested inside a
@@ -222,6 +226,9 @@ export class SchemeDebugRuntime {
         for (let env = this.interpreter?.globalEnv; env; env = env.parent) {
             for (const value of env.bindings.values()) {
                 if (typeof value !== 'function' || value.$compiled !== true) continue;
+                // Compiled over an interpreted closure, it runs as the closure
+                // whenever a breakpoint could fire, so one inside it will.
+                if (isCompiledOver(value)) continue;
                 if (!spanContains(value.source, filename, line, column)) continue;
                 // Prefer the tightest span, should a redefinition leave two
                 // procedures covering the same lines.

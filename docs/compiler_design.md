@@ -515,7 +515,8 @@ it includes -- (`src/compiler/prebuilt.js`), so a stale build costs speed and ne
 
 Because every library the bundle ships arrives compiled from its table, **a page needs no compiler
 to get compiled libraries.** The compiler is therefore not in `dist/scheme.js`: it is
-`dist/scheme_compiler.js`, fetched by `loadCompiler` only for a page that compiles code of its own.
+`dist/scheme_compiler.js`, which the bundle fetches after it has started, to compile the page's own
+code (*Compiling the program's own code*, below); the page does not wait for it.
 
 `runtime.js` stays JavaScript permanently — not because generated JavaScript calls it, but because it
 needs native JavaScript features that neither generated code nor Scheme libraries can express, a
@@ -600,14 +601,58 @@ design: a page under one degrades to interpreted user code, and a test enforces 
 `Function` throw. An optimization that needs `new Function` is allowed provided the code it
 replaces remains as the CSP fallback.
 
+### Compiling the program's own code
+
+A program's own procedures are compiled while it runs, by a tier attached to its interpreter
+(`src/compiler/tiering.js`) -- on by default in the CLI (`--no-compile` turns it off), in the browser
+bundle (`setUserCodeCompilation(false)`), and in both REPLs. The interpreter never depends on the
+compiler, which a browser page loads after it has started; it reports to the tier, if one is
+attached, and asks it to run top-level forms (`Interpreter.runTopLevel`):
+
+- **A closure bound at top level**, by `define` or by `set!` -- `nboyer` assigns every procedure it
+  has from inside a `let` -- in the program's global environment or in the body of a library of the
+  program's own. A shipped library's procedures are its prebuilt table's.
+- **A waiting closure's calls running out.** Each closure carries a count, zero unless the tier set
+  it, checked where the interpreter applies closures; the check costs 1-2% of interpreted call time.
+
+**When.** Generating a procedure's code costs about a millisecond, so compiling every definition as it
+is made would cost a page with five hundred of them half a second, much of it for code run once. A
+procedure whose body loops or makes procedures is compiled when it is bound, since a loop inside a
+procedure called once is where time goes and no call count would ever see it; any other is compiled
+on its second call. A top-level expression is compiled, as a thunk called once, only if it loops.
+
+**No on-stack replacement.** Both tiers look a top-level name up at every call. Once the compiled
+procedure is bound in the closure's place, the next call through the name -- a recursive call below
+frames already made, or the next iteration of a loop written as a self tail call -- runs compiled, and
+the frames already on the stack finish interpreted. Every other name holding the closure is rebound
+too, as are the copies other libraries imported, since an import copies the value.
+
+**Over the closure, for the debugger.** Every procedure is compiled from the closure the program
+made, and the pair recorded, so it runs as that closure while the program is debugged (below), and
+its breakpoints fire. That is why a top-level expression that only makes procedures is not compiled:
+compiled as a thunk, the procedures it made and kept would have no closure to go back to. The
+procedures it binds are compiled when bound instead. A loop's thunk keeps that limitation for any
+procedure the loop makes and stores.
+
+**When not.** Nothing is compiled while the program is being debugged, since it would be switched
+straight back; a procedure due meanwhile is compiled on its first call after. Nor while a library is
+loading: the compiler is Scheme, and running it defines things, which inside a library's body would
+be registered with the scopes that library's macros resolve their free identifiers through. A
+library's procedures are compiled from their first call once it has loaded. The compiler itself
+starts at the first procedure compiled, so a script that compiles nothing does not wait for it.
+
+**Only top-level procedures.** A procedure nested in one is compiled with it. So a procedure the tier
+declines keeps its inner loops interpreted; compiling those separately is possible, since the
+interpreter looks a local loop's name up in its frame at every iteration too, but not done.
+
 ## The constraints, honestly
 
 | Constraint | Status |
 |---|---|
 | **1. JS interop** | Met. Scheme closures stay callable JavaScript functions; compiled procedures keep the same wrapper. Value representation is untouched, and compiled code converts at the boundary exactly as the interpreter does -- including where the interpreter is inconsistent: a JavaScript function's integral result reads as exact through `js-invoke` and inexact through a direct call (`Interoperability.md`, *Numbers at the boundary*). No benchmark measures interop yet. |
-| **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler only if it compiles code of its own. |
-| **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
-| **4. Debuggers in both** | **Met by running compiled code as its closures while debugging**, in the CLI and the browser: every breakpoint fires, the library's included, stepping and `:bt` see every frame, and a breakpoint in a callback of the compiled `map` stops the program where it is hit. Not reached: code compiled with no closure kept (`tryCompileDefinition`), and debugging compiled code in place, which needs source maps. See below. |
+| **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler after it has started, to compile the page's own code. |
+| **3. REPLs in both** | Met. Compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working, and both REPLs compile what is typed into them as it runs, by the policy above. |
+| **4. Debuggers in both** | **Met by running compiled code as its closures while debugging**, in the CLI and the browser: every breakpoint fires, the library's and the program's own included, stepping and `:bt` see every frame, and a breakpoint in a callback of the compiled `map` stops the program where it is hit. Not reached: code compiled with no closure kept -- `tryCompileDefinition`, and a procedure a compiled top-level loop made and kept -- and debugging compiled code in place, which needs source maps. See below. |
 | **5. Multi-shot `call/cc`** | Met, across any number of alternations of compiled and interpreted code. Refused rather than answered: a capture beneath a redefined inlined primitive. A continuation captured above a JavaScript caller that is not compiled code leaves that caller out, as the interpreter's always have. |
 | **6. R7RS-small** | The compiler adds two refusals: the capture above, and `raise-continuable` handed to a compiled procedure as a value. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `read-char` returning strings, the file procedures returning a procedure's exact integer as inexact, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test` -- three of Chibi's only because its runner rescues a failure whose values agree once converted to JavaScript (R85); and passing them is not evidence of completeness, since neither tested `call-with-port`, which was missing. |
 

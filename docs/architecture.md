@@ -51,8 +51,8 @@ program it compiles.
 Because every shipped library arrives compiled from its table, a page runs no compiler to
 get compiled libraries. So the compiler is not in `dist/scheme.js`: it is
 `dist/scheme_compiler.js`, split out by rollup from the dynamic import in `loadCompiler`
-(`src/packaging/scheme_compiler.js`), and fetched only by a page that asks to compile code
-of its own.
+(`src/packaging/scheme_compiler.js`), which the bundle fetches after it has started, to
+compile the page's own code as it runs (`src/compiler/tiering.js`).
 
 ## JavaScript Runtime Components
 
@@ -162,7 +162,7 @@ of its own.
 ├── src/
 │   ├── packaging/                  # Bundling and distribution logic
 │   │   ├── scheme_entry.js         # Core bundle entry point; installs library tables
-│   │   ├── scheme_compiler.js      # The compiler, as loadCompiler() fetches it on demand
+│   │   ├── scheme_compiler.js      # The compiler, as loadCompiler() fetches it after start-up
 │   │   ├── scheme_repl_wc.js       # Web Component entry point
 │   │   ├── html_adapter.js         # HTML script tag adapter
 │   │   ├── bundled_libraries.js    # GENERATED: library sources, for the browser
@@ -283,6 +283,7 @@ of its own.
 │      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── safety.js          # Which procedures a capture would unwind through
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
+│      ├── tiering.js         # Compiling the program's own procedures as it runs: when, and over which closures
 │      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
@@ -399,6 +400,7 @@ of its own.
 │   │   ├── string_tests.js
 │   │   ├── vector_tests.js
 │   │   ├── char_tests.js
+│   │   ├── tiering_tests.js        # When the tier compiles a program's procedures, and what it leaves
 │   │   └── ...
 │   │
 │   └── integration/                # Library system tests

@@ -1,6 +1,7 @@
 /**
  * @fileoverview The differential fuzzer inside `npm test`: a fixed run of
- * generated programs, each answered alike by both tiers.
+ * generated programs, each answered alike interpreted, with chosen procedures
+ * compiled, and with the compiler tier choosing.
  *
  * The seeds are fixed, so the run is the same every time and a failure names a
  * seed that reproduces it; `run_fuzz.js` runs as many more as wanted. The count
@@ -35,11 +36,12 @@ export async function runDifferentialFuzzTests(logger, loader) {
   logger.title('Compiler - Generated Programs Answered Alike by Both Tiers');
   const generate = await createGenerator(loader);
   const tiers = createTiers();
-  let compiled = 0, reentered = 0, deep = 0, uncaught = 0;
+  let compiled = 0, tiered = 0, reentered = 0, deep = 0, uncaught = 0;
   for (let seed = 1; seed <= PROGRAMS; seed++) {
     const program = generate(seed);
     const result = runBoth(tiers, program);
     compiled += result.compiledCount;
+    tiered += result.tieredCount;
     if (/^\(\(\(.*\) \(.*\) \(.*\)\)/.test(result.reference)) reentered++;
     if (program.forms.some((form) => form.startsWith('(define (hop '))) deep++;
     if (result.reference.startsWith('error:')) uncaught++;
@@ -47,10 +49,12 @@ export async function runDifferentialFuzzTests(logger, loader) {
       logger.pass(`program ${seed}`);
     } else {
       logger.fail(`program ${seed} (compiled: ${program.compiled.join(' ')}): interpreted ${result.reference}, `
-        + `compiled ${result.compiled}; run \`node tests/fuzz/run_fuzz.js --from ${seed} --count 1\` to see it`);
+        + `compiled ${result.compiled}, tiered ${result.tiered}; `
+        + `run \`node tests/fuzz/run_fuzz.js --from ${seed} --count 1\` to see it`);
     }
   }
   assert(logger, 'the programs compile procedures', compiled > PROGRAMS, true);
+  assert(logger, 'and the tier compiles procedures of its own choosing', tiered > PROGRAMS, true);
   assert(logger, 'some re-enter a saved continuation', reentered > 10, true);
   assert(logger, 'some recurse deep enough to move frames', deep > 10, true);
   assert(logger, 'some end in an uncaught error', uncaught > 3, true);

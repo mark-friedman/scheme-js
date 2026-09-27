@@ -177,7 +177,7 @@ function definesAtTopLevel(ast) {
  * @param {Object} ast - An analyzed form.
  * @returns {boolean}
  */
-function makesProceduresOrLoops(ast) {
+export function makesProceduresOrLoops(ast) {
   const seen = new Set();
   const visit = (node) => {
     if (node === null || typeof node !== 'object' || seen.has(node)) return false;

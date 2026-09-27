@@ -2619,6 +2619,23 @@ been importable, and the task had never been written down.
 libraries found that is not fixed is in the plan: import filters that do not reach macros, the rest
 of the audit's list, and dot notation against R7RS identifiers.
 
+**R88. Task 33's debugger held in the CLI, and in the tests' setup, but not in the browser.**
+
+Task 33 made compiled code run as its interpreted closures while a program is debugged, "so every
+breakpoint fires in the CLI and the browser alike", and left the REPL's "will not fire" warning to
+code compiled from its definition alone. Switching every user procedure to compiled code in 34
+showed both claims to be narrower. The switch is made by the debug runtime once it is attached to
+the interpreter (`setDebugRuntime`); the browser REPL and the development page assigned it to
+`interpreter.debugRuntime` instead, so the runtime never knew its interpreter and nothing was
+switched in the browser at all. The tests attach it properly, and the CLI does. And the warning
+asked only whether a procedure was compiled, so a breakpoint set before `:debug on` -- as the CLI
+starts -- was reported as never firing in every compiled procedure, the standard library's and every
+procedure compiled over a closure included, which do fire; only the test that turns debugging on
+first had been written.
+
+*Consequence:* both pages attach the runtime, the warning skips procedures compiled over a closure,
+and a test sets the breakpoint before debugging is on.
+
 ---
 
 ## Appendix — the original staged plan

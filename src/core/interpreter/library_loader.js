@@ -175,6 +175,9 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
 
     // Create library environment (child of base env)
     const libEnv = new Environment(baseEnv);
+    // Which library's top level this is, for the compiler tier, which treats a
+    // library body's definitions as it does a program's.
+    libEnv.libraryName = libraryName;
 
     // Process imports first
     for (const importSpec of libDef.imports) {

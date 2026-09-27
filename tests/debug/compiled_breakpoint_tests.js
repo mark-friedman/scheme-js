@@ -292,6 +292,20 @@ export async function runCompiledBreakpointTests(logger) {
     await commands.execute(':unbreak bp-1');
     assert(logger, 'and compiled again once there is none', env.lookup('area').$compiled, true);
   }
+  // Nor before debugging is turned on, as the command-line REPL starts: the
+  // procedure is still compiled when the breakpoint is set, and will run as its
+  // closure once debugging is on, which is the only time a breakpoint can fire.
+  {
+    const { interpreter, env } = evaluate(AREA, 'area.scm');
+    compileEnvironment(env);
+    const { commands } = debuggerFor(interpreter);
+    const set = await commands.execute(':break area.scm 2');
+    assert(logger, 'setup: before debugging is on, the procedure is still compiled', env.lookup('area').$compiled, true);
+    assert(logger, 'a procedure compiled over its closure gets no warning before debugging is on',
+      set.includes('will not fire'), false);
+    const list = await commands.execute(':breakpoints');
+    assert(logger, 'nor in the listing', list.includes('will not fire'), false);
+  }
   {
     const { interpreter, env } = evaluate(AREA, 'area.scm');
     const { runtime, commands } = debuggerFor(interpreter);

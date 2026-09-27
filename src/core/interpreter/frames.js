@@ -174,6 +174,11 @@ export class SetFrame extends Executable {
     step(registers, interpreter) {
         const value = registers[ANS];
         this.env.set(this.name, value);
+        // A procedure assigned to a top-level name, as `nboyer` assigns every
+        // one of its own, is the compiler tier's as much as a defined one.
+        if (interpreter.tier && isSchemeClosure(value)) {
+            interpreter.tier.bound(this.name, value, this.env.findEnv(this.name));
+        }
         registers[ANS] = undefined;
         return false;
     }
@@ -201,6 +206,11 @@ export class DefineFrame extends Executable {
 
         // Register binding with current defining scopes for macro referential transparency
         registerBindingWithCurrentScopes(this.name, value);
+
+        // The compiler tier decides when a top-level procedure is compiled.
+        if (interpreter.tier && isSchemeClosure(value)) {
+            interpreter.tier.bound(this.name, value, this.env);
+        }
 
         registers[ANS] = undefined;
         return false;
@@ -495,6 +505,13 @@ export function continueApplication(exprs, index, values, env, registers, interp
     // Check for callable Scheme closures first (they are typeof 'function')
     if (isSchemeClosure(func)) {
         registers[CTL] = func.body;
+
+        // A top-level procedure waiting to be compiled. This call runs
+        // interpreted; the compiled procedure replaces the closure's binding,
+        // so the next call through the name runs compiled.
+        if (func.tierCountdown !== 0 && --func.tierCountdown === 0 && interpreter.tier) {
+            interpreter.tier.due(func);
+        }
 
         // Handle rest parameter if present
         if (func.restParam) {

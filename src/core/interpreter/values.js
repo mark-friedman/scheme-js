@@ -173,6 +173,11 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
     closure.source = source;
     closure.originalParams = originalParams || params;
     closure.originalRestParam = originalRestParam || restParam;
+    // Calls left before the compiler tier compiles this closure, counted down
+    // as it is applied; 0 when it is not waiting to be compiled, which is
+    // every closure but a program's top-level procedures (`src/compiler/tiering.js`).
+    // Set here, so that every closure has the same shape.
+    closure.tierCountdown = 0;
 
     // Custom toString for pretty-printing
     closure.toString = () => `#<procedure${name !== 'anonymous' ? ' ' + name : ''}>`;

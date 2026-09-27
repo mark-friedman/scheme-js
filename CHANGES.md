@@ -8137,3 +8137,74 @@ it.
   rejected.
 - 6,160 tests pass in Node and 6,051 in the browser. (For `call-with-port`, above: 6,023 in the
   browser.)
+
+# Walkthrough: compiling the program's own code
+
+Task 34 in `docs/compiler_plan.md`. The standard library was compiled; nothing a user wrote ever
+was -- not in the CLI, the browser, or either REPL. Now it is, by default, and stays debuggable.
+
+## The tier
+
+- **`src/compiler/tiering.js`**: a tier attached to a program's interpreter (`attachTier`,
+  `detachTier`). The interpreter never imports the compiler -- a browser page loads it after starting
+  -- and only reports to it: `DefineFrame` and `SetFrame` tell it of a closure bound at top level,
+  and the closure application in `continueApplication` of a waiting closure's count running out.
+  Each closure carries the count (`tierCountdown`, 0 unless the tier set it); the check costs 1-2% of
+  interpreted call time on `fib` and `tak`.
+- **The hybrid policy**, as decided: a procedure whose body loops or makes procedures is compiled
+  when bound, any other on its second call. `set!` counts as binding, since `nboyer` assigns every
+  procedure it has. A top-level expression is compiled only if it loops (`Interpreter.runTopLevel`,
+  which the entry points now run each form through), because one that only makes procedures would
+  leave them compiled with no closure for the debugger to go back to; the procedures it binds are
+  compiled when bound instead.
+- **No on-stack replacement**: both tiers look a top-level name up at every call, so a recursion
+  continues compiled from its next call. Tested with a JavaScript probe that looks at the binding
+  from inside the recursion, tail and non-tail, and 100,000 deep.
+- **Over the closure**: every procedure is compiled from its closure and the pair recorded, so it
+  runs as the closure while the program is debugged; a breakpoint inside a tiered procedure pauses.
+  Other names holding the closure, and other libraries' imported copies, get the compiled procedure
+  too; a closure whose name has been given to another is not installed under it.
+- **When not**: while the program is being debugged (a procedure due then is compiled on its first
+  call after), and while a library is loading, since the compiler's own definitions would register
+  with that library's macro scopes. A shipped library's procedures are left to its prebuilt table.
+  The compiler starts at the first procedure compiled, and attaching adopts procedures the program
+  already bound -- once it stopped taking the library's interpreted closures for the program's, CLI
+  start-up went back from 260 ms to 130 ms.
+
+## Where it is on
+
+- **The CLI** (`repl.js`) compiles by default; `--no-compile` turns it off. It now also installs the
+  standard library's prebuilt tables as each library loads, fingerprinted against the files on disk,
+  so an edited file leaves its library interpreted rather than installing stale code. `fib(30)` from
+  the CLI: 1,821 ms with `--no-compile`, 64 ms without.
+- **The browser bundle** fetches the compiler after start-up and attaches the tier when it arrives;
+  what a page defined before then is adopted. `setUserCodeCompilation(false)` turns it off.
+  `schemeEval` runs a script form by form, so the tier sees each. `fib(25)` in the published REPL:
+  166 ms interpreted, 16 ms tiered.
+- **Both REPLs and the development page**; the development page also installs prebuilt tables now,
+  checked against the files it fetched.
+
+## Found on the way (R88)
+
+- The browser REPL and the development page assigned the debug runtime to the interpreter instead
+  of attaching it, so the runtime never knew its interpreter and task 33's switch to closures never
+  happened in the browser. Both attach it now.
+- The REPL warned that a breakpoint "will not fire" in any compiled procedure until debugging was
+  on -- as the CLI starts -- including those compiled over closures, which do fire. It no longer does
+  for them.
+- The capture beneath a redefined inlined primitive stays refused, as a decision: it needs a
+  redefined primitive and a capture inside the redefinition beneath compiled code that inlined the
+  original. Its message, and `raise-continuable`'s from compiled code, now name the switch.
+
+## Tests
+
+- `tests/functional/tiering_tests.js`: when each kind of procedure is compiled; recursions switching
+  mid-run; `set!` bindings, aliases, redefinitions and declines; top-level expressions; libraries of
+  the program's own, and one with a prebuilt table; debugging, including a breakpoint firing in a
+  tiered procedure; attaching to a running program; detaching. Each mechanism was removed in turn to
+  check a test fails without it.
+- The bundle test: the compiler loads by itself, a page's procedure compiles, and the switch works.
+- The breakpoint warning before debugging is on.
+- The differential fuzzer runs a third configuration, the tier choosing: 4,000 fresh programs agree,
+  5,325 procedures compiled by the tier among them.
+- 6,222 tests pass in Node and 6,113 in the browser.
