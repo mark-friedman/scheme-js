@@ -40,6 +40,14 @@ const ERROR_DEFINITIONS =
   + ' (define (app g x) (+ 1 (g x)))';
 
 /**
+ * Higher-order procedures for the cases whose captures cross several
+ * boundaries: compiled, they call interpreted procedures that call them back.
+ */
+const MULTI_BOUNDARY_DEFINITIONS =
+  '(define (each f xs) (if (null? xs) (quote done) (begin (f (car xs)) (each f (cdr xs)))))'
+  + ' (define (collect f xs) (if (null? xs) (quote ()) (cons (f (car xs)) (collect f (cdr xs)))))';
+
+/**
  * Programs whose final expression's value is compared between tiers.
  *
  * Each is a complete program: definitions followed by one expression. The
@@ -615,7 +623,76 @@ const CAPTURE_CASES = [
     + '      (let ((r (capturer)))'
     + '        (set! n (+ n 1))'
     + '        (if (< n 4) (saved (+ r n)) (list q r b))))))',
-    '(caller 100 (quote bee))', ['caller']]
+    '(caller 100 (quote bee))', ['caller']],
+  // --- captures crossing more than one boundary between compiled and interpreted code ---
+  // `each` and `collect` are compiled and call interpreted procedures, which call
+  // them back: interpreted, compiled, interpreted, compiled, interpreted. Each
+  // run of the interpreter entered from compiled code adds its own frames to the
+  // capture as it passes it on, and the outermost finishes it.
+  ['a capture across two boundaries, resumed twice',
+    MULTI_BOUNDARY_DEFINITIONS,
+    "(let ((k #f) (n 0) (seen (quote ())))"
+      + " (let ((v (collect (lambda (x) (collect (lambda (y) (+ 1 (call/cc (lambda (c) (if (not k) (set! k c)) (* x y)))))"
+      + " (list 1 2))) (list 10 20))))"
+      + " (set! seen (cons v seen)) (set! n (+ n 1)) (if (< n 3) (k (* 100 n)) (list n seen))))",
+    ['each', 'collect']],
+  ['a capture across three boundaries, resumed twice',
+    MULTI_BOUNDARY_DEFINITIONS,
+    "(let ((k #f) (n 0) (seen (quote ())))"
+      + " (let ((v (collect (lambda (a) (collect (lambda (x) (collect (lambda (y) (call/cc (lambda (c) (if (not k) (set! k c)) (+ a x y))))"
+      + " (list 1 2))) (list 10 20))) (list 100 200))))"
+      + " (set! seen (cons v seen)) (set! n (+ n 1)) (if (< n 3) (k (* 1000 n)) (list n seen))))",
+    ['each', 'collect']],
+  ['an escape made across two boundaries',
+    MULTI_BOUNDARY_DEFINITIONS,
+    "(cons (quote out) (call/cc (lambda (out) (each (lambda (x) (collect (lambda (y) (if (= y 2) (out (list x y)) y))"
+      + " (list 1 2 3))) (list 1 2)))))",
+    ['each', 'collect']],
+  // Compiled, interpreted, compiled, with the capture made in the innermost
+  // interpreted procedure: refused, until captures could cross more than one
+  // boundary.
+  ['a capture beneath two boundaries, escaping through all of them',
+    '(define (capture n)'
+      + '  (call/cc (lambda (q) (if (> n 0) (q (quote esc))) (quote norm))))'
+      + '(define (inner n) (cons (capture n) (quote (i))))'
+      + '(define (middle n) (cons (inner n) (quote (m))))'
+      + '(define (outer n) (cons (middle n) (quote (o))))',
+    '(list (outer 1) (outer 0))', ['outer', 'inner']],
+  // The capture made by compiled code itself, two boundaries down.
+  ['a capture made by compiled code two boundaries down, resumed twice',
+    MULTI_BOUNDARY_DEFINITIONS + ' (define saved #f) (define (grab x) (call/cc (lambda (c) (if (not saved) (set! saved c)) x)))',
+    "(let ((n 0) (seen (quote ())))"
+      + " (let ((v (collect (lambda (x) (collect (lambda (y) (+ 1 (grab (* x y)))) (list 1 2))) (list 10 20))))"
+      + " (set! seen (cons v seen)) (set! n (+ n 1)) (if (< n 3) (saved (* 100 n)) (list n seen))))",
+    ['each', 'collect', 'grab'], { allowCaptures: true }],
+  // A capture beneath a primitive that called a procedure back, with compiled
+  // code beneath the primitive. The unwind cannot pass the primitive, so the
+  // continuation is taken as the interpreter takes it beneath any JavaScript
+  // caller; the unwind used to be handed to the primitive as a return value,
+  // and `via` then added 1 to 10 instead of to 110.
+  ['a capture beneath a primitive calling back, with compiled code beneath',
+    '(define (via f) (+ 1 (f)))',
+    '(let ((h (js-eval "({})")))'
+      + ' (js-set! h "run" (lambda () (call/cc (lambda (k) 10))))'
+      + ' (via (lambda () (+ 100 (js-invoke h "run")))))',
+    ['via']],
+  // Compiled code a primitive called back, calling an interpreted procedure
+  // that captures. The run that procedure starts cannot pass the unwind on,
+  // since `m` would hand it to `js-invoke`, so it finishes the capture itself.
+  ['a capture beneath compiled code that a primitive called back',
+    '(define (via f) (+ 1 (f))) (define (m g) (+ 1000 (g)))',
+    '(let ((h (js-eval "({})")))'
+      + ' (js-set! h "run" m)'
+      + ' (via (lambda () (+ 100 (js-invoke h "run" (lambda () (call/cc (lambda (k) 10))))))))',
+    ['via', 'm']],
+  // The same with a JavaScript caller that has work left: it turns what the
+  // compiled procedure returns into a string, which the unwind sentinel cannot
+  // become.
+  ['a capture beneath compiled code that JavaScript called, with work left',
+    '(define (via f) (+ 1 (f))) (define (m g) (+ 1000 (g)))',
+    '(let ((h (js-eval "({wrap: (f, g) => String(f(g))})")))'
+      + ' (via (lambda () (+ 100 (string->number (js-invoke h "wrap" m (lambda () (call/cc (lambda (k) 10)))))))))',
+    ['via', 'm']]
 ];
 
 /**
@@ -1393,7 +1470,7 @@ export async function runCompilerTests(interpreter, logger) {
 
   logger.title('Compiler - Capturing a Continuation Across a Compiled Frame');
 
-  for (const [name, source, probe, names] of CAPTURE_CASES) {
+  for (const [name, source, probe, names, options] of CAPTURE_CASES) {
     // The interpreter answers the same program, and that answer is the
     // contract. Writing the expected value out by hand would only record what
     // this implementation happens to do.
@@ -1408,7 +1485,7 @@ export async function runCompilerTests(interpreter, logger) {
     let got;
     let compiled = 0;
     try {
-      const outcome = evaluateSelective(source, probe, template, names);
+      const outcome = evaluateSelective(source, probe, template, names, options);
       got = render(outcome.value);
       compiled = outcome.compiled;
     } catch (e) {
@@ -1421,36 +1498,6 @@ export async function runCompilerTests(interpreter, logger) {
     assert(logger, `${name}: the procedures under test are compiled`,
       compiled, names.length);
     assert(logger, `${name}: matches the interpreter`, got, expected);
-  }
-
-  // What the protocol does *not* cover, asserted so that nobody mistakes the
-  // cases above for completeness. Compiled and interpreted code alternating
-  // more than once would need each group of frames spliced at its own boundary,
-  // and getting that wrong yields a wrong answer rather than a failure -- so it
-  // is refused until it is built.
-  {
-    const source =
-      '(define (capture n)'
-      + '  (call/cc (lambda (q) (if (> n 0) (q (quote esc))) (quote norm))))'
-      + '(define (inner n) (cons (capture n) (quote (i))))'
-      + '(define (middle n) (cons (inner n) (quote (m))))'
-      + '(define (outer n) (cons (middle n) (quote (o))))';
-
-    let message = null;
-    try {
-      evaluateSelective(source, '(outer 1)', template, ['outer', 'inner']);
-    } catch (e) {
-      message = e.message;
-    }
-    assert(logger, 'a capture across two compiled/interpreted boundaries is refused',
-      message !== null && /more than one boundary/.test(message), true);
-
-    // Leaving `middle` compiled too makes it one boundary again, so the refusal
-    // is about the alternation rather than about the depth.
-    const { value } = evaluateSelective(
-      source, '(outer 1)', template, ['outer', 'middle', 'inner']);
-    assert(logger, 'and the same program across one boundary is answered',
-      render(value), '(((esc i) m) o)');
   }
 
   logger.title('Compiler - The Guard Is No Longer What Makes Backtracking Work');

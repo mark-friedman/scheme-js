@@ -2478,6 +2478,29 @@ the suite has, not about the procedures R7RS requires.
 *Consequence:* completeness is checked separately, by comparing each library's exports with R7RS's
 own listing of the identifiers each library provides.
 
+**R80. Refusing a capture across more than one boundary did not keep captures across boundaries from
+giving wrong answers, and unwinding through nested runs made alternation faster, not slower.**
+
+The capture protocol refused a capture crossing more than one boundary between compiled and
+interpreted code, on the stated ground that splicing the groups wrongly would give a wrong answer
+rather than a failure. Two wrong answers were already there. A capture beneath a JavaScript
+primitive that calls a procedure back, with compiled code beneath the primitive, counted as one
+boundary: the unwind was handed to the primitive as a return value, and the run beneath completed
+the capture without the frames between -- `(+ 1 (+ 100 (with-input-from-file ...)))` gave 11. And
+a capture made by compiled code two boundaries down, reachable only with `allowCaptures`, gave
+`(201 101 ...)` where the interpreter gave nested lists. Neither was refused; only the case that was
+built out was.
+
+Unwinding through nested runs was expected to cost: a move now copies every nested run's frames on
+the way out, and the moved frames finish in resumable forms. The opposite was measured. Each nested
+run starts on a copy of its parent's frame stack, which between moves grows by a sentinel a level,
+so alternation was quadratic in its depth; moves reset it. A tree walk 400 deep through compiled
+`map` went from 1.9 to 1.25 ms, and alternation 100 deep did not change.
+
+*Consequence:* a run passes an unwind on only when its compiled caller can pass it on in turn, which
+`flushable` already said; beneath a JavaScript caller the continuation leaves that caller out, as
+the interpreter's always have; the one refusal left is beneath a redefined inlined primitive.
+
 ---
 
 ## Appendix — the original staged plan

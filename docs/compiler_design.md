@@ -131,12 +131,30 @@ recorded here:
 The restore side is unchanged and names every local. One that was not saved destructures to
 `undefined`, which is safe precisely because it is dead there.
 
-One shape is genuinely unsupported and is **refused rather than answered**: a capture crossing more
-than one boundary between compiled and interpreted code. A second is refused beneath a redefined
-inlined primitive. Both throw with an explanation. The first is reachable today without any user code
-compiled: an interpreted procedure passed to the compiled `for-each`, calling the compiled `map`
-with an interpreted procedure that captures, crosses two boundaries. Refusing valid R7RS is a bug,
-and unwinding through nested interpreters, which removes it, ranks as one in `compiler_plan.md`.
+**Compiled and interpreted code may alternate any number of times beneath a capture.** An
+interpreted procedure that compiled code calls runs in a nested run of the interpreter on the
+JavaScript stack, starting on a copy of its parent's frame stack and a sentinel. A run compiled code
+called passes an unwind on (`Interpreter.unwindsOut`): it adds its own frames -- those above its
+sentinel -- and returns the unwind sentinel, and the compiled code that called it saves itself as any
+compiled frame does. The first run that cannot pass it on stacks everything in order: compiled
+frames, the frames of the run they called, the compiled frames that run called, and so on inwards.
+This used to be refused past one boundary, and that shape was reachable with no user code compiled:
+an interpreted procedure passed to the compiled `for-each`, calling the compiled `map` with an
+interpreted procedure that captures.
+
+**A run passes the unwind on only if its compiled caller can pass it on in turn** -- only if
+`flushable` was true when the caller called, so that no JavaScript caller sits beneath it. JavaScript
+that is not compiled code -- the file procedures calling a procedure back, `js-invoke`, a class
+constructor, a promise's executor -- cannot save itself, so a run such a caller started finishes the
+unwind, and the continuation leaves out the JavaScript caller and anything beneath it that the
+interpreter did not run, exactly as it does with no compiled code anywhere. It works as an escape,
+which is how `guard` uses it; resumed after those frames have returned, it resumes without them. Before
+this, the unwind was handed to such a caller as a return value, which produced a wrong answer rather
+than a refusal: 11 for `(+ 1 (+ 100 ...))` with the capture beneath `with-input-from-file`.
+
+One shape is **refused rather than answered**: a capture beneath a redefined inlined primitive, whose
+expansion is not a call site the resumable form splits at. `R.callBinding` marks the state
+(`refusesCapture`), and the sentinel of the run it starts carries it to `call/cc`.
 
 ## Raising from compiled code
 
@@ -314,12 +332,16 @@ a continuation shares it and may be resumed more than once.
 - **A rest parameter's arguments count**: they arrive on the stack, and `apply` spreading a long list
   put 20,000 of them in one frame.
 
-What this does not reach is recursion that alternates between compiled and interpreted code: an
-interpreted procedure called from compiled code runs in a nested interpreter on the JavaScript
-stack, and a move can only unwind to the innermost one. An interpreted tree walk through compiled
-`map` overflows at about 575 levels -- 648 before this, the compiled frames being a little larger
-now. Unwinding through nested interpreters is the same problem as a capture across more than one
-boundary, which `call/cc` refuses.
+**Recursion that alternates between compiled and interpreted code** goes as deep as either alone. An
+interpreted procedure called from compiled code runs in a nested run on the JavaScript stack, so a
+run that passes unwinds on continues the room of the compiled code that called it, less a fixed
+`NESTED_RUN_ROOM` for its own JavaScript frames, rather than starting fresh; a move started deep in
+the alternation passes through the nested runs, each adding its frames, to the run that finishes it,
+and the JavaScript stack is empty again. It used to overflow at about 575 levels -- an interpreted
+tree walk through compiled `map` -- and 100,000 levels now take 169 ms against the interpreter's
+135 ms. Moving frames out of nested runs also made shallower alternation faster: each nested run
+starts on a copy of its parent's frame stack, and between moves that stack grows by a sentinel a
+level, so a tree walk 400 deep through compiled `map` went from 1.9 to 1.25 ms.
 
 ## Inlined primitives, and knowing they are still primitives
 
@@ -542,8 +564,8 @@ replaces remains as the CSP fallback.
 | **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler only if it compiles code of its own. |
 | **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
 | **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The debugger's hook is inside the interpreter's step loop, which compiled procedures never enter; a breakpoint inside one is reported as never firing. And interpreted code is affected too: only `runAsync` honours a pause, compiled code calls an interpreted procedure through a synchronous nested `run`, so a breakpoint inside a callback of the compiled `for-each` or `map` takes effect only when the loop returns -- inferred from the code, not yet exercised. |
-| **5. Multi-shot `call/cc`** | Met, with two shapes **refused** rather than answered: a capture across more than one boundary between compiled and interpreted code, which the compiled standard library already makes reachable, and one beneath a redefined inlined primitive. |
-| **6. R7RS-small** | The compiler adds two gaps: the refused capture above, and `raise-continuable` handed to a compiled procedure as a value, also refused. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test`; neither tests `call-with-port`, so passing them is not evidence of completeness. |
+| **5. Multi-shot `call/cc`** | Met, across any number of alternations of compiled and interpreted code. Refused rather than answered: a capture beneath a redefined inlined primitive. A continuation captured above a JavaScript caller that is not compiled code leaves that caller out, as the interpreter's always have. |
+| **6. R7RS-small** | The compiler adds two refusals: the capture above, and `raise-continuable` handed to a compiled procedure as a value. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, the file procedures returning a procedure's exact integer as inexact, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test`; neither tests `call-with-port`, so passing them is not evidence of completeness. |
 
 Constraint 4 is the open design question of the project. The intended answer is **two mechanisms,
 not one**, which is what every real toolchain ships:

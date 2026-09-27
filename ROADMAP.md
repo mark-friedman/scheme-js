@@ -65,8 +65,8 @@ plain JavaScript, which has not been made yet: every figure below is against the
 `string-set!` and `string-fill!` throw, because Scheme strings are JavaScript strings and those are
 immutable — a deliberate trade of compliance for interop that constraint 6 says should not stand.
 `equal?` does not terminate on circular structure, which R7RS §6.1 requires. `call-with-port` does
-not exist. And with the compiled standard library, as every browser page has it, `call/cc` refuses a
-capture made inside a callback nested two higher-order calls deep -- `map` inside `for-each`.
+not exist. And the file procedures (`call-with-input-file` and the rest) return an exact integer the
+procedure returned as inexact.
 
 ### Numeric performance
 
@@ -197,5 +197,5 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 | **Hash tables and comparators** | SRFI 125 and SRFI 128, as `(srfi 125)` and `(srfi 128)`. Tables on `eq?`, `eqv?`, `string=?` and `string-ci=?` sit directly on a JavaScript `Map`; any other equivalence works through its hash function. |
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |
 | **A debugger, twice** | Breakpoints, stepping, stack and scope inspection — in the Node and browser REPLs. A Chrome extension with a standalone window, expression-level breakpoints and mixed JavaScript/Scheme stepping was built on the `debugger-take-3` branch; it is not on the compiler branch and is no longer a goal. |
-| **A compiler tier** | Emits JavaScript for most of the standard library and every library the bundle ships, all compiled at build time, so a page starts in about 60 ms without running the compiler; a page that wants to compile its own code fetches it with `loadCompiler`. Per workload class against the interpreter, as the range over two runs: `flonum` 120–122x, `call` 83–86x, `fixnum` 57–58x, `vector` 37–38x, `list` 23x, `continuation` 4.2–4.3x, `bignum` 1.2x, `string` 1.0x. Compiled recursion is no longer bounded by the JavaScript stack: past half of it, compiled frames move to the heap (recursion that alternates with interpreted code excepted). |
+| **A compiler tier** | Emits JavaScript for most of the standard library and every library the bundle ships, all compiled at build time, so a page starts in about 60 ms without running the compiler; a page that wants to compile its own code fetches it with `loadCompiler`. Per workload class against the interpreter, as the range over two runs: `flonum` 120–122x, `call` 83–86x, `fixnum` 57–58x, `vector` 37–38x, `list` 23x, `continuation` 4.2–4.3x, `bignum` 1.2x, `string` 1.0x. Compiled recursion is not bounded by the JavaScript stack, alternating with interpreted code or not: past half of it, compiled frames move to the heap. A continuation may be captured beneath any number of alternations of compiled and interpreted code. |
 | **A measurement discipline** | 51 vendored canonical benchmarks classified by workload and never blended into one number; cross-implementation comparison against Gambit and Racket; 5,941 tests, including 41 whole programs run under both tiers. |

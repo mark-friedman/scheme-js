@@ -171,7 +171,7 @@ of its own.
 │       │   ├── stepables_base.js   # Base class + register constants
 │       │   ├── ast_nodes.js        # AST node classes (Literal, If, Lambda...)
 │       │   ├── frames.js           # Continuation frame classes, incl. CompiledFrame
-│       │   ├── unwind.js           # Capturing a continuation across compiled code; moving deep compiled frames to the heap
+│       │   ├── unwind.js           # Capturing a continuation across compiled code, and moving deep compiled frames to the heap, through nested runs
 │       │   ├── ast.js              # Legacy barrel file
 │       │   ├── frame_registry.js   # Frame factory functions
 │       │   ├── winders.js          # Dynamic-wind utilities

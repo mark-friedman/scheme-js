@@ -14,7 +14,7 @@ import * as FrameRegistry from './frame_registry.js';
 import { GlobalRef } from './syntax_object.js';
 import { globalContext } from './context.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, beginCapture } from './unwind.js';
+import { CaptureUnwind, beginCapture, CAPTURE_UNDER_PRIMITIVE } from './unwind.js';
 
 // =============================================================================
 // Helper Function
@@ -451,37 +451,26 @@ export class CallCCNode extends Executable {
     step(registers, interpreter) {
         // A continuation is the interpreter's frame stack. Compiled procedures
         // do not appear in it -- they run in JavaScript stack frames -- so if
-        // any are live between here and the capture point, a continuation built
-        // from this stack alone would silently omit everything they had left to
-        // do. They are brought in by unwinding: this abandons the nested run,
-        // each compiled frame records itself on the way out, and the
-        // interpreter splices them in and finishes the capture.
-        let boundary = -1;
-        let boundaries = 0;
-        for (let i = registers[FSTACK].length - 1; i >= 0; i--) {
-            if (registers[FSTACK][i].compiledBoundary === true) {
-                if (boundary < 0) boundary = i;
-                boundaries++;
-            }
+        // compiled code called this run, a continuation built from this stack
+        // alone would silently omit everything it had left to do. Those frames
+        // are brought in by unwinding: this abandons the run, each compiled
+        // frame records itself on the way out, each run of the interpreter the
+        // unwind passes through adds its own frames, and the first run that
+        // cannot pass it on finishes the capture (`completeCapture`). A run is
+        // told apart by the sentinel it started on, which is the nearest one.
+        const fstack = registers[FSTACK];
+        let start = fstack.length;
+        while (start > 0 && fstack[start - 1].isSentinel !== true) start--;
+        // Called from an inline expansion of a redefined primitive, which has
+        // no point to resume from.
+        if (start > 0 && fstack[start - 1].refusesCapture === true) {
+            throw new SchemeError(CAPTURE_UNDER_PRIMITIVE);
         }
-
-        if (boundaries > 1) {
-            // Compiled and interpreted code alternating more than once. Each
-            // boundary would need its own group of frames spliced at its own
-            // position, and getting that wrong would produce a wrong answer
-            // rather than a failure, so it is refused until it is implemented.
-            throw new SchemeError(
-                'call/cc: a continuation was captured across more than one boundary between '
-                + 'compiled and interpreted code, which is not yet supported. Run this '
-                + 'program with the compiler tier disabled.');
-        }
-
-        if (boundary >= 0) {
+        if (start > 0 && fstack[start - 1].compiledBoundary === true) {
             beginCapture({
                 lambdaExpr: this.lambdaExpr,
-                fstack: [...registers[FSTACK]],
                 env: registers[ENV],
-                boundary
+                segment: fstack.slice(start)
             });
             throw new CaptureUnwind();
         }

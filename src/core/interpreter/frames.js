@@ -574,13 +574,15 @@ export function continueApplication(exprs, index, values, env, registers, interp
 
         // Compiled code called from here may move its frames to the heap
         // stack when the JavaScript stack gets deep, since the unwind that
-        // does it ends here; beneath any other function it would not. Given
+        // does it ends here, or passes through this run to one it ends in;
+        // beneath any other function it would not. Given
         // back after a normal return only: after an exception, `run` gives back
         // what it found on entry, and until then every call out of this run
         // sets it again. A `finally` here would sit in every nested run on the
         // JavaScript stack, and cost recursion alternating between compiled
         // and interpreted code 8% of the depth it can reach.
-        const flush = func.$compiled === true ? openCompiledSegment() : suspendFlush();
+        const flush = func.$compiled === true
+            ? openCompiledSegment(interpreter.unwindsOut) : suspendFlush();
         let result;
         try {
             // If it's a foreign JS function (not a Scheme closure/primitive),
@@ -875,7 +877,7 @@ export class CompiledFrame extends Executable {
         // The procedure resumes directly above the interpreter's frames, so
         // what it calls may move its frames to the heap stack as well. Given
         // back as for a call the interpreter makes; see `continueApplication`.
-        const flush = openCompiledSegment();
+        const flush = openCompiledSegment(interpreter.unwindsOut);
         let result = this.twin(this.pc, frame);
         while (result instanceof TailCall) {
             const raw = result.func[SCHEME_RAW_CALL];
@@ -980,7 +982,14 @@ const CAPTURE_HOOKS = {
         [new LiteralNode(continuation)]),
     applyCall: (procedure, args) => new TailAppNode(
         new LiteralNode(procedure), args.map((arg) => new LiteralNode(arg))),
-    pushMoved: pushMovedFrames
+    pushMoved: pushMovedFrames,
+    // A run's stack is its parent's, then the sentinel it started on, then its
+    // own frames; the parent's are there already, where the unwind ends.
+    segmentOf: (fstack) => {
+        let start = fstack.length;
+        while (start > 0 && fstack[start - 1].isSentinel !== true) start--;
+        return fstack.slice(start);
+    }
 };
 
 // =============================================================================

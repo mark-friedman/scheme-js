@@ -7751,3 +7751,81 @@ never been checked in the configuration users run.
   that it is unchanged.
 - 5,941 tests pass in Node (2,407 of them the suites and their checks), 5,832 in the browser, where
   70 are skipped. `npm test` takes 49 s, from 42.
+
+# Walkthrough: Unwinding through nested interpreters
+
+Task 30 in `docs/compiler_plan.md`. An interpreted procedure that compiled code calls runs in a nested
+run of the interpreter on the JavaScript stack. The capture protocol and the move of deep compiled
+frames to the heap both unwound only to the innermost run, so `call/cc` refused a capture crossing
+more than one boundary -- reachable with no user code compiled, an interpreted procedure given to the
+compiled `map` inside one given to the compiled `for-each` (R76) -- and recursion alternating between
+compiled and interpreted code overflowed at about 575 levels.
+
+## The mechanism
+
+- **A run compiled code called passes an unwind on** (`Interpreter.unwindsOut`, set by `run` from
+  the sentinel it starts on). Receiving the unwind sentinel from compiled code it called, it adds its
+  own frames -- those above its sentinel -- and returns the sentinel itself; its compiled caller saves
+  itself as any compiled frame does. The first run that cannot pass the unwind on stacks everything,
+  outermost first: compiled frames, the frames of the run they called, the compiled frames that run
+  called, and so on inwards. `call/cc` looks only at the sentinel of its own run.
+- **Only when the compiled caller can pass it on in turn**: the sentinel of a raw call is marked as
+  crossable only if `flushable` was true when compiled code made the call, meaning no JavaScript
+  caller sits beneath. Otherwise the run finishes the unwind, and a continuation leaves out the
+  JavaScript caller and whatever is beneath it, as the interpreter's continuations always have.
+- **Stack room carries on across nested runs.** A run that passes unwinds on continues the room of
+  the compiled code that called it, less `NESTED_RUN_ROOM` (256 slots) for its own JavaScript frames,
+  instead of starting a segment of its own. So a move starts before the stack runs out, passes
+  through the nested runs, and leaves the JavaScript stack empty.
+- **The redefined-primitive refusal is kept.** `R.callBinding` stops frames moving, which alone would
+  have made a capture beneath it complete with the expansion's frame left out; a second bit beside
+  `flushable`, `refusesCapture`, rides on the sentinel of the run it starts and makes `call/cc`
+  refuse. Saved and restored with `flushable` as one number.
+
+## What was wrong on the way (R80)
+
+- **A capture beneath a JavaScript primitive calling back, with compiled code beneath, gave a wrong
+  answer**, not a refusal: the unwind passed through the primitive as its return value, and the run
+  beneath completed the capture without the frames between. `(via (lambda () (+ 100
+  (with-input-from-file ... (lambda () (call/cc ...))))))`, with `via` compiled, gave 11 for 111.
+  Now 111.
+- **A capture made by compiled code two boundaries down gave a wrong answer** too, with
+  `allowCaptures` only.
+- **Unwinding through nested runs made alternation faster.** Each nested run starts on a copy of its
+  parent's frame stack, which grows by a sentinel a level between moves, so alternation had been
+  quadratic in depth; moves reset it.
+- Found on the way, for task 47: JavaScript calling a compiled procedure gets a `BigInt` where an
+  interpreted one gives a number; and the file procedures call their procedure through its
+  JavaScript entry, so `(call-with-input-file f (lambda (p) 10))` is `10.0`.
+
+## Measured
+
+- Alternation 100,000 levels deep: 169 ms, against 135 ms with everything interpreted; it overflowed
+  at about 575. Six shapes of alternation -- tail and non-tail calls, `apply`, a large compiled frame,
+  a `let` in the interpreted procedure, a JavaScript callback in the chain -- all reach 100,000.
+- Against the task-29 tree: alternation 10 and 100 deep unchanged; 400 deep 596 -> 482 us; a tree walk
+  400 deep through compiled `map` 1.9 -> 1.25 ms.
+- The canonical suite, alternated three times compiled and twice interpreted: no class moved in
+  either tier (compiled 0.96-1.01x, `string` 0.96x re-measured at 0.98-1.05x; interpreted
+  0.98-1.03x).
+
+## Tests
+
+- Differential cases: captures across two and three boundaries, each resumed twice, with work
+  waiting above the capture; an escape across two boundaries; the program the refusal used to be
+  asserted on, now answered; a capture made by compiled code two boundaries down; a capture beneath
+  a primitive calling back with compiled code beneath; compiled code a primitive called back, and
+  compiled code JavaScript called with work left, each raw-calling a procedure that captures.
+- `deep_recursion_tests.js`: alternating recursion 100,000 deep, an interpreted tree walk 20,000
+  deep through the compiled `map`, a capture 30,000 levels down in alternating recursion resumed
+  twice, and the frame stack at the bottom of alternation 100,000 deep bounded by the distance
+  between moves.
+- Mutations, each run against the tests: no run passing an unwind on fails 9; a nested run taking no
+  room, or starting a segment of its own, fails 5; a run adding no frames fails 3; the innermost
+  run's frames left out fails 1; a raw call crossable whatever its caller fails 2, but only after the
+  JavaScript caller in its test was given work the sentinel could not survive -- with `js-invoke`,
+  which has none, and then with a caller that wrapped the result in an array, which the interpreter
+  happened to finish correctly anyway; `call/cc` ignoring the redefined-primitive mark fails
+  `primitive_binding_tests.js`.
+- 5,963 tests pass in Node and 5,854 in the browser. In the browser bundle, a capture through the
+  compiled `map` inside the compiled `map` resumes correctly and a tree walk 20,000 deep answers.

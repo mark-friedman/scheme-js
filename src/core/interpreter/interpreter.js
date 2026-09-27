@@ -1,7 +1,7 @@
 import { Values, isSchemeClosure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, restoreFlush } from './unwind.js';
+import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush } from './unwind.js';
 import { takeCompiledRaise } from './ast_nodes.js';
 import { globalContext } from './context.js';
 
@@ -120,16 +120,21 @@ function unpackForJs(result, interpreter, options = {}) {
 class SentinelFrame {
   /**
    * @param {boolean} [compiledBoundary=false] - True when this marks a call
-   *   from *compiled* code into the interpreter. Compiled procedures run in
-   *   JavaScript stack frames that `FSTACK` does not represent, so a
-   *   continuation captured below this marker would silently omit everything
-   *   the compiled caller had left to do. Recording it is what lets
-   *   `CallCCNode` notice, rather than producing a wrong answer.
+   *   from *compiled* code into the interpreter that an unwind can cross.
+   *   Compiled procedures run in JavaScript stack frames that `FSTACK` does
+   *   not represent, so a continuation captured above this marker would
+   *   silently omit everything the compiled caller had left to do. Recording
+   *   it is what lets `CallCCNode` bring those frames in by unwinding, and the
+   *   run it starts pass the unwind on (`unwindsOut`).
+   * @param {boolean} [refusesCapture=false] - True when the compiled caller is
+   *   an inline expansion calling what its primitive was redefined to, which
+   *   has no point to resume from, so that a capture above is refused.
    */
-  constructor(compiledBoundary = false) {
+  constructor(compiledBoundary = false, refusesCapture = false) {
     /** Identifies every sentinel, including subclasses, for stack filtering. */
     this.isSentinel = true;
     this.compiledBoundary = compiledBoundary;
+    this.refusesCapture = refusesCapture;
   }
 
   /**
@@ -193,6 +198,19 @@ export class Interpreter {
      */
     this.globalEnv = null;
     this.depth = 0;
+
+    /**
+     * Whether the run in progress passes an unwind it receives on to its
+     * caller, rather than finishing it. True in a run compiled code called,
+     * while that compiled code could hand the unwind on in turn: the run adds
+     * its own frames to the unwind and returns the unwind sentinel, and the
+     * compiled caller saves itself as any compiled frame does. So a capture,
+     * or a move of frames to the heap, passes through as many nested runs as
+     * compiled and interpreted code alternate, and the first run that cannot
+     * pass it on finishes it. Set by `run` from the sentinel it starts on.
+     * @type {boolean}
+     */
+    this.unwindsOut = false;
 
     /**
      * Stack of frame stacks representing the Scheme context at JS boundary crossings.
@@ -287,7 +305,10 @@ export class Interpreter {
     this.depth++;
     // Whether compiled code may move its frames to the heap belongs to whoever
     // called this run, and is theirs again however it ends.
-    const flush = compiledStack.flushable;
+    const flush = flushState();
+    const unwindsOut = this.unwindsOut;
+    this.unwindsOut = initialStack.length > 0
+      && initialStack[initialStack.length - 1].compiledBoundary === true;
 
     // The Top-Level Trampoline
     try {
@@ -405,6 +426,7 @@ export class Interpreter {
     } finally {
       this.depth--;
       restoreFlush(flush);
+      this.unwindsOut = unwindsOut;
     }
   }
 
@@ -428,8 +450,15 @@ export class Interpreter {
   runWithSentinel(ast, thisContext = undefined, options = {}) {
     // Get the parent context (the Scheme stack at the point where we entered JS)
     const parentContext = this.getParentContext();
+    // Marked as a boundary an unwind can cross only if the compiled caller can
+    // hand the unwind on to an interpreter: `flushable` says no JavaScript
+    // caller -- a primitive calling a procedure back -- sits beneath it.
+    // Otherwise the run finishes what reaches it, as a run JavaScript called
+    // does.
     const stackWithSentinel = [
-      ...parentContext, new SentinelFrame(options.compiledBoundary === true)
+      ...parentContext,
+      new SentinelFrame(options.compiledBoundary === true && compiledStack.flushable,
+        options.compiledBoundary === true && compiledStack.refusesCapture)
     ];
     return this.run(ast, this.globalEnv, stackWithSentinel, thisContext, options);
   }
@@ -506,8 +535,10 @@ export class Interpreter {
 
     const registers = [null, ast, env, [], undefined];
     this.depth++;
-    // As in `run`.
-    const flush = compiledStack.flushable;
+    // As in `run`. An asynchronous run is never called by compiled code.
+    const flush = flushState();
+    const unwindsOut = this.unwindsOut;
+    this.unwindsOut = false;
 
     try {
       let stepCount = 0;
@@ -599,6 +630,7 @@ export class Interpreter {
     } finally {
       this.depth--;
       restoreFlush(flush);
+      this.unwindsOut = unwindsOut;
     }
   }
 

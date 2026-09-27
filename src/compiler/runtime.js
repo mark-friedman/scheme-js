@@ -17,7 +17,8 @@ import { TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../core/interpreter
 // The capture protocol belongs to the interpreter, which owns what a
 // continuation is; this module only makes it reachable from generated code.
 import {
-  UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendFlush, restoreFlush
+  UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendForPrimitive, restoreFlush,
+  CAPTURE_UNDER_PRIMITIVE
 } from '../core/interpreter/unwind.js';
 import { SchemeError, SchemeApplicationError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
@@ -42,9 +43,7 @@ export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, Schem
  * @throws {SchemeError} Always.
  */
 export function captureUnderPrimitive() {
-  throw new SchemeError(
-    'call/cc: a continuation was captured beneath a redefined primitive, which '
-    + 'cannot be resumed. Run this program with the compiler tier disabled.');
+  throw new SchemeError(CAPTURE_UNDER_PRIMITIVE);
 }
 
 /**
@@ -73,8 +72,9 @@ export function captureUnderPrimitive() {
  */
 export function callBinding(fn, args) {
   if (typeof fn !== 'function') notAProcedure(fn);
-  // No resume point, so compiled code beneath may not move its frames either.
-  const saved = suspendFlush();
+  // No resume point, so compiled code beneath may not move its frames either,
+  // and a continuation captured beneath is refused.
+  const saved = suspendForPrimitive();
   let value;
   try {
     value = settle(invoke(fn, args));
