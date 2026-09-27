@@ -3,6 +3,7 @@ import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame,
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush } from './unwind.js';
 import { takeCompiledRaise } from './ast_nodes.js';
+import { interpretCompiledOver } from './library_registry.js';
 import { globalContext } from './context.js';
 
 /**
@@ -509,9 +510,29 @@ export class Interpreter {
    * @param {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
    */
   setDebugRuntime(debugRuntime) {
+    // A runtime taken away can no longer pause anything, so compiled code may
+    // run again.
+    if (debugRuntime === null) this.interpretForDebugger(false);
     this.debugRuntime = debugRuntime;
     // Optional, so a runtime written against the older interface still works.
     debugRuntime?.attachInterpreter?.(this);
+  }
+
+  /**
+   * Runs every procedure compiled over an interpreted closure as that closure
+   * while the program is being debugged, or compiled again once it is not.
+   *
+   * The debugger pauses only between the interpreter's steps. Compiled code
+   * takes none, so a breakpoint inside it could not fire; and a procedure it
+   * calls runs in a synchronous nested run, which cannot wait, so a breakpoint
+   * there stopped the program only once the compiled code returned. Called by
+   * the debug runtime whenever what it needs changes (`SchemeDebugRuntime`,
+   * `updateInterpretation`). See `interpretCompiledOver`.
+   *
+   * @param {boolean} interpreted - Whether the program is being debugged.
+   */
+  interpretForDebugger(interpreted) {
+    if (this.globalEnv) interpretCompiledOver(interpreted, this.globalEnv);
   }
 
   /**
@@ -532,6 +553,10 @@ export class Interpreter {
     if (!this.globalEnv) {
       throw new SchemeError("Interpreter global environment is not set.");
     }
+
+    // A library loaded since the program was last run is compiled, and while
+    // the program is being debugged it should run as its closures too.
+    this.debugRuntime?.updateInterpretation?.();
 
     const registers = [null, ast, env, [], undefined];
     this.depth++;

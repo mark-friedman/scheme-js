@@ -136,7 +136,9 @@ export class SchemeDebugRuntime {
      * @returns {string} Breakpoint ID
      */
     setBreakpoint(filename, line, column = null) {
-        return this.breakpointManager.setBreakpoint(filename, line, column);
+        const id = this.breakpointManager.setBreakpoint(filename, line, column);
+        this.updateInterpretation();
+        return id;
     }
 
     /**
@@ -145,7 +147,9 @@ export class SchemeDebugRuntime {
      * @returns {boolean} True if removed
      */
     removeBreakpoint(id) {
-        return this.breakpointManager.removeBreakpoint(id);
+        const removed = this.breakpointManager.removeBreakpoint(id);
+        this.updateInterpretation();
+        return removed;
     }
 
     /**
@@ -171,6 +175,25 @@ export class SchemeDebugRuntime {
      */
     attachInterpreter(interpreter) {
         this.interpreter = interpreter;
+        this.updateInterpretation();
+    }
+
+    /**
+     * Tells the interpreter whether the program is being debugged -- a
+     * breakpoint set, a step in progress, or the program paused -- so that
+     * compiled code runs as the interpreted closures it replaced while it is,
+     * and every breakpoint can fire (`Interpreter.interpretForDebugger`).
+     *
+     * An enabled runtime with none of those costs nothing: the command-line
+     * REPL attaches and enables one at start-up, and would otherwise never run
+     * compiled code at all.
+     */
+    updateInterpretation() {
+        const debugging = this.enabled && (
+            this.breakpointManager.getAllBreakpoints().length > 0
+            || this.pauseController.getStepMode() !== null
+            || this.pauseController.isPaused());
+        this.interpreter?.interpretForDebugger?.(debugging);
     }
 
     /**
@@ -264,6 +287,7 @@ export class SchemeDebugRuntime {
      */
     resume() {
         this.pauseController.resume();
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('resume');
         }
@@ -274,6 +298,7 @@ export class SchemeDebugRuntime {
      */
     stepInto() {
         this.pauseController.stepInto();
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('stepInto');
         }
@@ -284,6 +309,7 @@ export class SchemeDebugRuntime {
      */
     stepOver() {
         this.pauseController.stepOver(this.stackTracer.getDepth());
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('stepOver');
         }
@@ -294,6 +320,7 @@ export class SchemeDebugRuntime {
      */
     stepOut() {
         this.pauseController.stepOut(this.stackTracer.getDepth());
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('stepOut');
         }
@@ -348,6 +375,7 @@ export class SchemeDebugRuntime {
         }
 
         this.pauseController.pause(reason, bpId);
+        this.updateInterpretation();
 
         if (this.onPause) {
             this.onPause({
@@ -377,6 +405,7 @@ export class SchemeDebugRuntime {
         const env = registers[ENV];
 
         this.pauseController.pause('exception', null);
+        this.updateInterpretation();
 
         if (this.onPause) {
             this.onPause({
@@ -473,6 +502,7 @@ export class SchemeDebugRuntime {
      */
     enable() {
         this.enabled = true;
+        this.updateInterpretation();
     }
 
     /**
@@ -480,6 +510,7 @@ export class SchemeDebugRuntime {
      */
     disable() {
         this.enabled = false;
+        this.updateInterpretation();
     }
 
     /**
@@ -497,6 +528,7 @@ export class SchemeDebugRuntime {
         this.stackTracer.clear();
         this.pauseController.reset();
         this.exceptionHandler.reset();
+        this.updateInterpretation();
     }
 }
 

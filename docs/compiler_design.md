@@ -576,64 +576,69 @@ replaces remains as the CSP fallback.
 | **1. JS interop** | Met. Scheme closures stay callable JavaScript functions; compiled procedures keep the same wrapper. Value representation is untouched, and compiled code converts at the boundary exactly as the interpreter does -- including where the interpreter is inconsistent: a JavaScript function's integral result reads as exact through `js-invoke` and inexact through a direct call (`Interoperability.md`, *Numbers at the boundary*). No benchmark measures interop yet. |
 | **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler only if it compiles code of its own. |
 | **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
-| **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The debugger's hook is inside the interpreter's step loop, which compiled procedures never enter; a breakpoint inside one is reported as never firing. And interpreted code is affected too: only `runAsync` honours a pause, compiled code calls an interpreted procedure through a synchronous nested `run`, so a breakpoint inside a callback of the compiled `for-each` or `map` takes effect only when the loop returns -- inferred from the code, not yet exercised. |
+| **4. Debuggers in both** | **Met by running compiled code as its closures while debugging**, in the CLI and the browser: every breakpoint fires, the library's included, stepping and `:bt` see every frame, and a breakpoint in a callback of the compiled `map` stops the program where it is hit. Not reached: code compiled with no closure kept (`tryCompileDefinition`), and debugging compiled code in place, which needs source maps. See below. |
 | **5. Multi-shot `call/cc`** | Met, across any number of alternations of compiled and interpreted code. Refused rather than answered: a capture beneath a redefined inlined primitive. A continuation captured above a JavaScript caller that is not compiled code leaves that caller out, as the interpreter's always have. |
 | **6. R7RS-small** | The compiler adds two refusals: the capture above, and `raise-continuable` handed to a compiled procedure as a value. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, the file procedures returning a procedure's exact integer as inexact, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test`; neither tests `call-with-port`, so passing them is not evidence of completeness. |
 
-Constraint 4 is the open design question of the project. The intended answer is **two mechanisms,
-not one**, which is what every real toolchain ships:
+Constraint 4 has **two mechanisms, not one**, which is what every real toolchain ships:
 
-- **Debug info** — source maps and emitted debug points, so compiled code can be stepped and
-  inspected in place. This is what calling convention B was chosen for: one live Scheme frame is one
-  JavaScript frame, so DevTools can show a Scheme stack. Until it exists that choice has been paid
-  for and not collected.
-- **Declining to optimize what is being debugged** — a procedure with a breakpoint in it is left to
-  the interpreter, and recompiled when the breakpoint moves. The equivalent of compiling one
-  translation unit at `-O0`.
+- **Declining to optimize what is being debugged** -- shipped for the whole program at once. While a
+  program is being debugged -- a breakpoint set, a step in progress, or the program paused -- every
+  procedure compiled over an interpreted closure runs as that closure again
+  (`Interpreter.interpretForDebugger`, `interpretCompiledOver` in `library_registry.js`). The
+  closures are kept when compiled code is installed over them: the libraries' prebuilt code and
+  `compileEnvironment` record each pair. The equivalent of compiling at `-O0` while debugging.
+- **Debug info** -- source maps and emitted debug points, so compiled code can be stepped and
+  inspected in place, without switching. This is what calling convention B was chosen for: one live
+  Scheme frame is one JavaScript frame, so DevTools can show a Scheme stack. Still to come.
 
-The second is not a lesser substitute for the first. Lowering already beta-reduces immediately
-applied lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes
-assigned locals — and the optimization work still to come adds direct calls, arity specialization
-and unboxing. A source map maps *locations*; it cannot resurrect a binding that no longer exists.
-So debug info yields "optimized out" exactly where a user is most confused, and the interpreter
-yields the real value. Sequencing is in `compiler_plan.md`.
+The first is not a lesser substitute for the second. Lowering beta-reduces immediately applied
+lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes assigned
+locals; a source map maps *locations*, and cannot resurrect a binding that no longer exists. So debug
+info yields "optimized out" exactly where a user is most confused, and the interpreter yields the
+real value.
 
-### What the two mechanisms leave open
+### Running compiled code as its closures while debugging
 
-Neither mechanism, as named, covers:
+The debugger pauses only between the interpreter's steps. Compiled code takes none, so a breakpoint
+inside it could not fire. Worse, a breakpoint in an *interpreted* procedure that compiled code
+called was reached in a synchronous nested run of the interpreter, which cannot wait: in the browser
+REPL, a breakpoint in a procedure given to the compiled `map` was reached on every element and the
+program stopped only when `map` returned. The first plan was to interpret only the program's own code
+while debugging and leave the library compiled; that cannot fix the callback case, since it is the
+compiled library that makes the nested runs. So the whole program switches.
 
-- **Stack traces.** The interpreter's frame stack has no entries for live compiled frames, so `:bt`
-  at a breakpoint in a callback called from compiled `map` shows a hole where `map` and its callers
-  should be. Convention B puts one JavaScript frame per Scheme frame, but nothing reads the
-  JavaScript stack back: `Error().stack` could be parsed, since procedures are named, or enter and
-  exit points emitted when a debug runtime is attached. Either needs designing and measuring.
-- **Stepping into a compiled procedure** from interpreted code. It must behave as a step over, or
-  re-interpret the callee on demand, which needs the procedure's interpreted closure -- and today
-  compiling a procedure discards it.
-- **Inspecting locals.** Compiled locals are renamed, boxed when assigned, passed to lifted factories,
-  or live only in temporaries, while `StateInspector` walks `Environment` maps. Even the source-map
-  route needs a mapping from generated names back to source names.
-- **The CLI.** Source maps help only where a JavaScript debugger consumes them. The CLI REPL's
-  debugger works through the interpreter's step hook, so there declining to optimize is the only
-  mechanism, and it has to cover stepping as well as breakpoints.
-
-The intended end state, with the Chrome extension no longer a goal, is two contexts:
+- **What switches.** The pairs are switched through the frames that hold them -- in the program's
+  global environment and in every library loaded in the current registry -- so the cells compiled
+  code reads globals through follow, and compiled code still running calls the closures from its
+  next call on. A registry's libraries are switched back once none of its programs is being
+  debugged.
+- **When.** `SchemeDebugRuntime.updateInterpretation`, on setting or removing a breakpoint, stepping,
+  pausing, resuming, enabling or disabling, and at the start of each asynchronous run, which catches
+  a library loaded during the session. An enabled runtime with nothing set costs nothing: the CLI
+  REPL enables one at start-up.
+- **What it gives.** Every breakpoint fires, the library's included; a step goes into any procedure;
+  `:bt` has every frame; every local is an interpreted binding, by its own name. In the CLI and the
+  browser alike.
+- **What it does not reach.** A procedure compiled with no closure to go back to --
+  `tryCompileDefinition` compiles from the analyzed definition, and the REPL's `:break` still warns
+  that a breakpoint there will not fire. A compiled procedure a program holds in a data structure,
+  or has captured in a closure. A pause the program asks for itself, inside a nested run, before the
+  switch: the first one is not honoured. And the program runs at the interpreter's speed while it is
+  being debugged; declining only the procedures being debugged (plan: debugging by not optimizing,
+  per procedure) is the refinement that keeps the rest fast.
 
 | Context | Interpreted code | Compiled code |
 |---|---|---|
-| CLI REPL | the existing `:break` / `:step` / `:bt` debugger | declined to the interpreter, per procedure, on a breakpoint or a step into it |
-| Browser | the existing REPL debugger, cooperative under `runAsync` | DevTools through source maps, and declining to optimize for bindings a source map cannot bring back |
-
-The first step is the left column alone: while user code is being debugged it runs interpreted, and
-the library stays compiled. What triggers that is a breakpoint being set or stepping being on, not
-a debugger being attached -- the CLI REPL attaches one at start-up.
+| CLI REPL | the `:break` / `:step` / `:bt` debugger | runs as its closures while debugging |
+| Browser | the REPL debugger, cooperative under `runAsync` | runs as its closures while debugging; in place through DevTools and source maps, still to come |
 
 ## How this is verified
 
 The gap first, since it is what to distrust: CI runs only on `main` and never loads the browser
 tests. `compiler_plan.md` ranks closing it.
 
-- **6,094 tests**, Node and browser, via `npm test`.
+- **6,111 tests**, Node and browser, via `npm test`.
 - **A differential fuzzer** (`tests/fuzz/`): a generator, written in Scheme, builds programs from a
   seed -- loops, closures, assignments, escapes, a continuation captured at a random site and
   re-entered twice, errors raised and caught or not, `dynamic-wind`, multiple values, higher-order

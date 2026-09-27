@@ -7892,3 +7892,58 @@ compiler. After the fix, 10,000 programs on fresh seeds, 0 disagreements.
   read before an argument that assigns its name, a loop entered with operands in order -- each of
   which fails on the task-30 tree.
 - 6,094 tests pass in Node and 5,985 in the browser.
+
+# Walkthrough: Debugging compiled code
+
+Task 33 in `docs/compiler_plan.md`: write the design for debugging compiled code, ship a first policy,
+and deal with the pause a nested run ignored.
+
+## The problem
+
+The debugger pauses only between the interpreter's steps, in `runAsync`. Compiled code takes none, so
+a breakpoint inside it could not fire -- the REPL said so. And a breakpoint in an interpreted
+procedure that compiled code called was worse: the procedure runs in a synchronous nested run of the
+interpreter, which cannot wait, so the breakpoint was reached, `onPause` fired, and the program ran
+on. In the browser, whose standard library is compiled, a breakpoint in a procedure given to `map`
+was reached on every element and stopped the program only once `map` returned. A test of that
+session showed `pause 0, pause 0, pause 1, pause 1, ...` with no resume between.
+
+## The policy
+
+The plan's first policy was to interpret the program's own code while it was being debugged and leave
+the library compiled. That keeps every nested run the compiled library makes, so it could not fix the
+case above (R82). Instead, while a program is being debugged -- a breakpoint set, a step in progress,
+or paused -- every procedure compiled over an interpreted closure runs as that closure:
+
+- **The closures are kept.** `installPrebuilt` and `compileEnvironment` already built a map from each
+  interpreted closure to the compiled procedure installed over it; `recordCompiledOver`, in
+  `library_registry.js`, keeps it.
+- **The switch.** `interpretCompiledOver` substitutes each pair through the frames that hold it, in
+  the program's global environment and in every library loaded in the current registry, so the cells
+  compiled code reads globals through follow. Back again once the program is not being debugged; a
+  registry's libraries only once none of its programs is.
+- **When.** `SchemeDebugRuntime.updateInterpretation` on setting or removing a breakpoint, stepping,
+  pausing -- at a breakpoint or on an exception -- resuming, enabling and disabling, and at the start
+  of each asynchronous run, which catches a library imported during the session. An enabled runtime
+  with nothing set changes nothing, so the CLI REPL, which enables one at start-up, still runs
+  compiled code.
+
+The callback session now pauses and resumes exactly as it does with the interpreted library;
+breakpoints inside the library fire; stepping, `:bt` and locals see interpreted code throughout.
+Code compiled from its definition with `tryCompileDefinition` has no closure to go back to, and
+`:break` still warns there. The design, with what it does not reach, is in `compiler_design.md`.
+
+## Tests
+
+- `compiled_breakpoint_tests.js`: the callback session with the compiled library against the same
+  session with the interpreted one; a breakpoint inside `map`'s own definition firing; `(scheme
+  core)`'s binding and the program's both switching and switching back, with libraries loaded through
+  the library system; a library imported during a session switched from the next run; a procedure
+  compiled over its closure getting no warning and running as the closure, compiled again when the
+  breakpoint goes, and switched at once when compiled during a session; paused on an error, running as
+  closures, and compiled again after. The warning tests now compile from the definition.
+- Mutations, each against those tests: the runtime never asking fails 7; libraries never switched
+  fails 1; never switched back fails 3; a run not asking fails 1; an install during a session staying
+  compiled fails 1; a pause not counting fails 1 -- after a test was added for it, and after the
+  exception pause, which calls the pause controller directly, was made to ask too.
+- 6,111 tests pass in Node and 6,002 in the browser.

@@ -18,7 +18,7 @@ import { lowerLambda, controlGlobalIn } from './lowering.js';
 import { unsafeDefinitions, unsafeClosures } from './safety.js';
 import { generate } from './codegen.js';
 import * as R from './runtime.js';
-import { substituteLibraryValues } from '../core/interpreter/library_registry.js';
+import { substituteLibraryValues, recordCompiledOver } from '../core/interpreter/library_registry.js';
 
 /**
  * Largest generated source, in characters, that a procedure may produce.
@@ -434,8 +434,10 @@ export function compileEnvironment(env, options = {}) {
   }
 
   // Libraries imported the interpreted closures by value; see
-  // `substituteLibraryValues`.
+  // `substituteLibraryValues`. The closures are kept, for a debugger to run
+  // instead (`recordCompiledOver`).
   substituteLibraryValues(replaced);
+  recordCompiledOver(replaced, env);
   return { compiled, declined };
 }
 

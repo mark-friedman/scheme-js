@@ -221,6 +221,7 @@ export function withPrivateLibraries({ resolver, hook = null }, fn) {
     }
 }
 
+
 /**
  * Converts a library name to a string key.
  * (scheme base) -> "scheme.base"
@@ -288,10 +289,12 @@ export function registerLibrary(key, exports, env) {
  *
  * @param {Map<*, *>} replacements - Each replaced value, mapped to its
  *   replacement.
+ * @param {Map<string, Object>} [registry] - The registry whose libraries to
+ *   change; the current one by default.
  */
-export function substituteLibraryValues(replacements) {
+export function substituteLibraryValues(replacements, registry = libraryRegistry) {
     if (replacements.size === 0) return;
-    for (const { exports, env } of libraryRegistry.values()) {
+    for (const { exports, env } of registry.values()) {
         for (const [name, value] of exports) {
             const replacement = replacements.get(value);
             if (replacement !== undefined) exports.set(name, replacement);
@@ -308,6 +311,131 @@ export function substituteLibraryValues(replacements) {
             }
         }
     }
+}
+
+// =============================================================================
+// Running compiled procedures as their interpreted closures, for a debugger
+// =============================================================================
+//
+// A debugger pauses only between the interpreter's steps, which compiled code
+// never takes: a breakpoint inside a compiled procedure cannot fire, and one
+// inside an interpreted procedure that compiled code called is reached in a
+// synchronous nested run of the interpreter, which cannot wait, so the program
+// stops only once the compiled code returns. So while a program is being
+// debugged, every procedure compiled over an interpreted closure -- the
+// libraries' prebuilt code, `compileEnvironment` -- runs as that closure again:
+// the declining-to-optimize every toolchain offers beside its debug info,
+// applied to the whole program. The closures are kept for that when the
+// compiled code is installed.
+
+/**
+ * Each compiled procedure installed over an interpreted closure, mapped to the
+ * closure.
+ * @type {Map<Function, Function>}
+ */
+const compiledOver = new Map();
+
+/**
+ * The global environments of the programs being debugged, whose compiled
+ * procedures run as their closures, each mapped to the library registry its
+ * libraries were switched in.
+ * @type {Map<Object, Map<string, Object>>}
+ */
+const interpretingIn = new Map();
+
+/**
+ * Replaces values in an environment and every environment it is inside.
+ * @param {Object} env - The innermost environment.
+ * @param {Map<*, *>} replacements - Each replaced value, mapped to its
+ *   replacement.
+ */
+function substituteInChain(env, replacements) {
+    for (let e = env; e; e = e.parent) {
+        if (!(e.bindings instanceof Map)) continue;
+        for (const [name, value] of e.bindings) {
+            const replacement = replacements.get(value);
+            if (replacement === undefined) continue;
+            if (typeof e.rebind === 'function') e.rebind(name, replacement);
+            else e.bindings.set(name, replacement);
+        }
+    }
+}
+
+/**
+ * Records compiled procedures just installed over interpreted closures, so a
+ * debugger can switch back to the closures.
+ *
+ * Installed straight into the global environment of a program being debugged
+ * -- `compileEnvironment` on it -- they are switched back at once. A library
+ * loaded while a program is being debugged is switched back when the program
+ * next runs (`interpretCompiledOver`, which each asynchronous run asks for):
+ * the library's values reach the program by import, after this.
+ *
+ * A tool's own procedures -- the compiler's, in its private libraries -- are
+ * recorded too, and never switched: switching reaches only the libraries
+ * loaded where the switch is made and the program's global environment.
+ *
+ * @param {Map<Function, Function>} replaced - Each interpreted closure, mapped
+ *   to the compiled procedure installed over it.
+ * @param {Object} env - The environment they were installed into.
+ */
+export function recordCompiledOver(replaced, env) {
+    if (replaced.size === 0) return;
+    const back = new Map();
+    for (const [closure, compiled] of replaced) {
+        compiledOver.set(compiled, closure);
+        back.set(compiled, closure);
+    }
+    if (interpretingIn.has(env)) {
+        substituteLibraryValues(back, interpretingIn.get(env));
+        substituteInChain(env, back);
+    }
+}
+
+/**
+ * Whether a compiled procedure was installed over an interpreted closure it
+ * can run as instead.
+ * @param {Function} procedure - The procedure.
+ * @returns {boolean}
+ */
+export function isCompiledOver(procedure) {
+    return compiledOver.has(procedure);
+}
+
+/**
+ * Switches every recorded compiled procedure to its interpreted closure, or
+ * back, for one program: in its global environment, and in every library
+ * loaded in the current registry -- which the registry's other programs share,
+ * so they are compiled again only once none of those is being debugged.
+ *
+ * Switching to the closures again is harmless, and catches what was compiled
+ * since. Bindings are replaced through their frames, so the cells compiled
+ * code reads globals through follow, and compiled code still running calls the
+ * closures from its next call on. A compiled procedure a program holds in a
+ * data structure, or has captured in a closure, is not found and stays
+ * compiled.
+ *
+ * @param {boolean} interpreted - Whether to run the closures.
+ * @param {Object} globalEnv - The program's global environment.
+ */
+export function interpretCompiledOver(interpreted, globalEnv) {
+    let registry;
+    if (interpreted) {
+        registry = libraryRegistry;
+        interpretingIn.set(globalEnv, registry);
+    } else {
+        registry = interpretingIn.get(globalEnv);
+        if (registry === undefined) return;
+        interpretingIn.delete(globalEnv);
+    }
+    const replacements = new Map();
+    for (const [compiled, closure] of compiledOver) {
+        if (interpreted) replacements.set(compiled, closure);
+        else replacements.set(closure, compiled);
+    }
+    const stillDebugged = [...interpretingIn.values()].includes(registry);
+    if (interpreted || !stillDebugged) substituteLibraryValues(replacements, registry);
+    substituteInChain(globalEnv, replacements);
 }
 
 /**

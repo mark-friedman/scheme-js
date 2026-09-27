@@ -2520,6 +2520,22 @@ compiler's, most of it the procedure read into a temporary before arguments that
 fuzzer is how the next shape nobody wrote a test for is meant to be found; five bugs reintroduced
 into the capture, moving, boxing and liveness machinery were each found within its first 27 programs.
 
+**R82. The debugger's first policy could not leave the library compiled.**
+
+The plan's first policy for debugging compiled code was to run the program's own code interpreted
+while it was being debugged and leave the standard library compiled, and separately to fix or record
+the pause a nested run ignores. They were one problem. The nested runs are made by compiled code
+calling an interpreted procedure -- the compiled library's `map` calling the program's callback --
+and a nested run is synchronous, so it cannot wait at a breakpoint: interpreting the program's code
+while leaving the library compiled keeps every nested run it had. What fixes both is running the
+library's compiled procedures as their interpreted closures too, which needed the closures, and
+those were discarded on installing the compiled code. They are kept now, and the whole program is
+switched while it is being debugged.
+
+*Consequence:* declining to optimize comes first for the whole program, not per procedure, and
+per-procedure declining is a refinement for speed under the debugger rather than the mechanism.
+Code compiled in future must be compiled over a closure it keeps, or it cannot be debugged.
+
 ---
 
 ## Appendix — the original staged plan

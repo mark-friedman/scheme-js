@@ -12,8 +12,13 @@
  *  3. the debugger can ask whether a location is inside compiled code, and the
  *     REPL says so when a breakpoint lands there.
  *
- * Making compiled code actually stop at breakpoints is separate work. This is
- * about the debugger telling the truth in the meantime.
+ * A procedure compiled over an interpreted closure -- the standard library's
+ * prebuilt code, or `compileEnvironment` -- does stop at breakpoints: while any
+ * breakpoint is set, or the program is paused or stepping, it runs as the
+ * closure it replaced (`Interpreter.interpretForDebugger`). So the warning is
+ * left for code compiled with nothing to go back to, and the last section tests
+ * that breakpoints fire -- including inside a callback that compiled code
+ * called, which used to be reached and not stop.
  */
 
 import { assert } from '../harness/helpers.js';
@@ -27,6 +32,12 @@ import {
   tryCompileDefinition, tryCompileClosure, compileEnvironment
 } from '../../src/compiler/index.js';
 import { interpretedLibrary as standardLibrary, installStandardLibrary } from '../harness/standard_library.js';
+import { writeString } from '../../src/core/primitives/io/printer.js';
+import { loadLibrarySync, applyImports } from '../../src/core/interpreter/library_loader.js';
+import { withPrivateLibraries, getLibraryEnv } from '../../src/core/interpreter/library_registry.js';
+import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
+import { installLibraryTable } from '../../src/compiler/prebuilt.js';
+import prebuiltLibraries from '../../src/packaging/compiled_libraries.js';
 
 /**
  * A definition spread over several lines, so that a span can be seen to cover
@@ -183,12 +194,10 @@ export async function runCompiledBreakpointTests(logger) {
     const { interpreter, env } = createInterpreter();
     const run = (form) =>
       interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
-    forms.forEach(run);
-    compileEnvironment(env);
-    // Put `perimeter` back as an interpreted closure, so one file holds one
-    // compiled procedure and one interpreted one. Re-running the same parsed
-    // form, rather than re-reading its text, keeps its span on lines 4-5; read
-    // on its own it would claim lines 1-2 and overlap `area`.
+    // `area` compiled from its definition, with no interpreted closure to go
+    // back to; `perimeter` interpreted.
+    const compiledArea = tryCompileDefinition(analyze(forms[0]), env);
+    env.define(compiledArea.name, compiledArea.procedure);
     run(forms[1]);
     assert(logger, 'setup: area is compiled', env.lookup('area').$compiled, true);
     assert(logger, 'setup: perimeter is interpreted',
@@ -221,8 +230,9 @@ export async function runCompiledBreakpointTests(logger) {
   // --- The REPL says so -----------------------------------------------------
 
   {
-    const { interpreter, env } = evaluate(AREA, 'area.scm');
-    compileEnvironment(env);
+    const { interpreter, env } = createInterpreter();
+    const compiledArea = tryCompileDefinition(analyzeFirst(AREA, 'area.scm'), env);
+    env.define(compiledArea.name, compiledArea.procedure);
     const { runtime, commands } = debuggerFor(interpreter);
     runtime.enable();
 
@@ -257,14 +267,185 @@ export async function runCompiledBreakpointTests(logger) {
   // The status is worked out when asked, not when the breakpoint is set, so a
   // breakpoint placed first and compiled over afterwards is still reported.
   {
+    const { interpreter, env } = createInterpreter();
+    const { runtime, commands } = debuggerFor(interpreter);
+    runtime.enable();
+    await commands.execute(':break area.scm 2');
+    const compiledArea = tryCompileDefinition(analyzeFirst(AREA, 'area.scm'), env);
+    env.define(compiledArea.name, compiledArea.procedure);
+
+    const list = await commands.execute(':breakpoints');
+    assert(logger, 'a breakpoint compiled over after it was set is reported',
+      list.includes('will not fire'), true);
+  }
+  // Compiled over an interpreted closure, it is not: it runs as that closure
+  // while there is a breakpoint.
+  {
+    const { interpreter, env } = evaluate(AREA, 'area.scm');
+    compileEnvironment(env);
+    const { runtime, commands } = debuggerFor(interpreter);
+    runtime.enable();
+    const set = await commands.execute(':break area.scm 2');
+    assert(logger, 'a procedure compiled over its closure gets no warning', set.includes('will not fire'), false);
+    assert(logger, 'since it runs as the closure while there is a breakpoint',
+      env.lookup('area').$compiled === undefined, true);
+    await commands.execute(':unbreak bp-1');
+    assert(logger, 'and compiled again once there is none', env.lookup('area').$compiled, true);
+  }
+  {
     const { interpreter, env } = evaluate(AREA, 'area.scm');
     const { runtime, commands } = debuggerFor(interpreter);
     runtime.enable();
     await commands.execute(':break area.scm 2');
     compileEnvironment(env);
+    assert(logger, 'compiled while there is a breakpoint, it runs as its closure at once',
+      env.lookup('area').$compiled === undefined, true);
+  }
 
-    const list = await commands.execute(':breakpoints');
-    assert(logger, 'a breakpoint compiled over after it was set is reported',
-      list.includes('will not fire'), true);
+  // --- Breakpoints fire in code compiled over interpreted closures ------------
+
+  logger.title('Compiled Breakpoints - Firing Through Compiled Code');
+  {
+    // The standard library the browser installs, compiled, and a program
+    // whose procedure, on line 2, is called back by the compiled `map`. The
+    // callback ran in a synchronous nested run of the interpreter, which
+    // cannot wait, so the breakpoint was reached on every element and the
+    // program stopped only when `map` returned. Now `map` runs as its closure
+    // while a breakpoint is set, and the session is the one the interpreted
+    // library gives: every pause answered by a resume before the next.
+    const session = async (compiledLibrary) => {
+      const pair = interpretedLibrary();
+      if (compiledLibrary) installStandardLibrary(pair.env);
+      const compiledBefore = pair.env.lookup('map').$compiled === true;
+      const source = '(define hits 0)\n(define (tick x) (set! hits (+ hits 1)) (* x 10))\n(map tick (list 1 2 3))\n';
+      const forms = parse(source, { filename: 'cb.scm' });
+      pair.interpreter.run(analyze(forms[0]), pair.env, [], undefined, { jsAutoConvert: 'raw' });
+      pair.interpreter.run(analyze(forms[1]), pair.env, [], undefined, { jsAutoConvert: 'raw' });
+      const events = [];
+      const runtime = new SchemeDebugRuntime({
+        onPause: () => {
+          events.push(`pause ${pair.env.lookup('hits')}`);
+          setTimeout(() => { events.push('resume'); runtime.resume(); }, 2);
+        }
+      });
+      pair.interpreter.setDebugRuntime(runtime);
+      runtime.enable();
+      const id = runtime.setBreakpoint('cb.scm', 2);
+      let result = null;
+      try {
+        result = await pair.interpreter.runAsync(analyze(forms[2]), pair.env, { stepsPerYield: 1000 });
+      } finally {
+        runtime.removeBreakpoint(id);
+      }
+      const compiledAfter = pair.env.lookup('map').$compiled === true;
+      pair.interpreter.setDebugRuntime(null);
+      return { events: events.join(', '), result: writeString(result), compiledBefore, compiledAfter };
+    };
+    const reference = await session(false);
+    const compiled = await session(true);
+    assert(logger, 'setup: the compiled library is compiled', compiled.compiledBefore, true);
+    assert(logger, 'setup: the interpreted session pauses and resumes in turn',
+      /^(pause \d, resume, )*pause \d, resume$/.test(reference.events) && reference.events.includes('pause 2'), true);
+    assert(logger, 'a breakpoint in a callback of the compiled map pauses as with the interpreted library',
+      compiled.events, reference.events);
+    assert(logger, 'and the program then finishes', compiled.result, '(10 20 30)');
+    assert(logger, 'and map is compiled again once no breakpoint is set', compiled.compiledAfter, true);
+  }
+  {
+    // Libraries loaded through the library system, as the browser loads them:
+    // `map` lives in `(scheme core)`'s own environment, where the library's
+    // other procedures find it, and the program imports it. Both switch.
+    const bundled = (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] ?? BUNDLED_SOURCES[name[name.length - 1]];
+    const install = (name, env) => {
+      if (BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] !== undefined && env) {
+        installLibraryTable(prebuiltLibraries, name, env, (file) => BUNDLED_SOURCES[file]);
+      }
+    };
+    const seen = withPrivateLibraries({ resolver: bundled, hook: install }, () => {
+      const { interpreter } = createInterpreter();
+      const env = interpreter.globalEnv;
+      applyImports(env, loadLibrarySync(['scheme', 'base'], analyze, interpreter, env), { libraryName: ['scheme', 'base'] });
+      const core = getLibraryEnv(['scheme', 'core']);
+      const compiled = () => [core.bindings.get('map').$compiled === true, env.bindings.get('map').$compiled === true];
+      const before = compiled();
+      const runtime = new SchemeDebugRuntime();
+      interpreter.setDebugRuntime(runtime);
+      runtime.enable();
+      const id = runtime.setBreakpoint('anywhere.scm', 1);
+      const during = compiled();
+      runtime.removeBreakpoint(id);
+      const after = compiled();
+      interpreter.setDebugRuntime(null);
+      return { before, during, after };
+    });
+    assert(logger, 'setup: map is compiled in the library and in the program', seen.before.join(' '), 'true true');
+    assert(logger, 'with a breakpoint set, both run the closure', seen.during.join(' '), 'false false');
+    assert(logger, 'and both are compiled again once there is none', seen.after.join(' '), 'true true');
+
+    // A library imported while a breakpoint is set arrives compiled, by value;
+    // the next run switches it too.
+    const late = withPrivateLibraries({ resolver: bundled, hook: install }, () => {
+      const { interpreter } = createInterpreter();
+      const env = interpreter.globalEnv;
+      applyImports(env, loadLibrarySync(['scheme', 'base'], analyze, interpreter, env), { libraryName: ['scheme', 'base'] });
+      const runtime = new SchemeDebugRuntime();
+      interpreter.setDebugRuntime(runtime);
+      runtime.enable();
+      runtime.setBreakpoint('anywhere.scm', 1);
+      applyImports(env, loadLibrarySync(['srfi', '1'], analyze, interpreter, env), { libraryName: ['srfi', '1'] });
+      const imported = env.bindings.get('fold').$compiled === true;
+      // Its first steps, which is where the switch happens, run now.
+      interpreter.runAsync(analyze(parse('1')[0]), env, {});
+      const run = env.bindings.get('fold').$compiled === true;
+      interpreter.setDebugRuntime(null);
+      return { imported, run };
+    });
+    assert(logger, 'setup: a library imported while a breakpoint is set arrives compiled', late.imported, true);
+    assert(logger, 'and runs as its closures from the next run', late.run, false);
+  }
+  {
+    // Paused with no breakpoint set -- on an uncaught error -- the program may
+    // be stepped from there, so compiled code runs as its closures while it
+    // is paused, and compiled again once it runs on.
+    const pair = interpretedLibrary();
+    installStandardLibrary(pair.env);
+    let whilePaused = null;
+    const runtime = new SchemeDebugRuntime({
+      onPause: () => {
+        whilePaused = pair.env.lookup('map').$compiled === true;
+        setTimeout(() => runtime.resume(), 2);
+      }
+    });
+    runtime.breakOnUncaughtException = true;
+    pair.interpreter.setDebugRuntime(runtime);
+    runtime.enable();
+    try {
+      await pair.interpreter.runAsync(analyze(parse('(error "boom")')[0]), pair.env, {});
+    } catch (e) {
+      // The error still propagates after the pause.
+    }
+    const afterwards = pair.env.lookup('map').$compiled === true;
+    pair.interpreter.setDebugRuntime(null);
+    assert(logger, 'paused on an error, compiled code runs as its closures', whilePaused, false);
+    assert(logger, 'and compiled again once the program runs on', afterwards, true);
+  }
+  {
+    // A breakpoint inside the library itself, in `map`'s definition.
+    const pair = interpretedLibrary();
+    installStandardLibrary(pair.env);
+    let paused = null;
+    const runtime = new SchemeDebugRuntime({
+      onPause: (info) => { paused = paused ?? info; setTimeout(() => runtime.resume(), 5); }
+    });
+    pair.interpreter.setDebugRuntime(runtime);
+    runtime.enable();
+    const id = runtime.setBreakpoint('list.scm', 26);
+    try {
+      await pair.interpreter.runAsync(analyze(parse('(map (lambda (x) x) (list 1))')[0]), pair.env, {});
+    } finally {
+      runtime.removeBreakpoint(id);
+      pair.interpreter.setDebugRuntime(null);
+    }
+    assert(logger, 'a breakpoint inside the compiled library fires', paused !== null, true);
   }
 }
