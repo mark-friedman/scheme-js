@@ -878,11 +878,22 @@ export class CompiledFrame extends Executable {
         // what it calls may move its frames to the heap stack as well. Given
         // back as for a call the interpreter makes; see `continueApplication`.
         const flush = openCompiledSegment(interpreter.unwindsOut);
-        let result = this.twin(this.pc, frame);
-        while (result instanceof TailCall) {
-            const raw = result.func[SCHEME_RAW_CALL];
-            result = raw === undefined
-                ? result.func(...result.args) : raw(...result.args);
+        // As when the interpreter calls compiled code: whatever the procedure
+        // calls back into Scheme -- an interpreted procedure, a continuation --
+        // starts from this stack. Without it, invoking a continuation from a
+        // resumed frame started from whatever stack was recorded last, one
+        // without the winds in force here, and ran their before-thunks again.
+        interpreter.pushJsContext(registers[FSTACK]);
+        let result;
+        try {
+            result = this.twin(this.pc, frame);
+            while (result instanceof TailCall) {
+                const raw = result.func[SCHEME_RAW_CALL];
+                result = raw === undefined
+                    ? result.func(...result.args) : raw(...result.args);
+            }
+        } finally {
+            interpreter.popJsContext();
         }
         restoreFlush(flush);
 

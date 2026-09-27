@@ -22,7 +22,7 @@
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
-import { tryCompileDefinition } from '../../src/compiler/index.js';
+import { tryCompileDefinition, tryCompileExpression, runCompiledThunk } from '../../src/compiler/index.js';
 import { settle } from '../../src/compiler/runtime.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
@@ -77,13 +77,14 @@ export function createTiers() {
  * Runs a program in one tier.
  * @param {{interpreter: Object, env: Object}} pair - The tier.
  * @param {Array<string>} forms - The program's forms, as text.
- * @param {Array<string>} toCompile - The procedures to compile; empty for the
- *   reference.
+ * @param {Array<string>} toCompile - The procedures to compile; null for the
+ *   reference, which compiles nothing. Otherwise top-level expressions are
+ *   compiled too, where the tier accepts them.
  * @returns {{answer: string, compiled: number}} The driver's value written
  *   out, or `error:` and the message; and how many procedures compiled.
  */
 export function runProgram({ interpreter, env }, forms, toCompile) {
-  const wanted = new Set(toCompile);
+  const wanted = new Set(toCompile ?? []);
   let compiled = 0;
   try {
     let value;
@@ -93,6 +94,13 @@ export function runProgram({ interpreter, env }, forms, toCompile) {
         const result = tryCompileDefinition(ast, env, { allowCaptures: true });
         if (result.compiled) {
           env.define(result.name, result.procedure);
+          compiled++;
+          continue;
+        }
+      } else if (toCompile !== null && !(ast instanceof DefineNode)) {
+        const result = tryCompileExpression(ast, env, { allowCaptures: true });
+        if (result.compiled) {
+          value = runCompiledThunk(interpreter, env, result.procedure);
           compiled++;
           continue;
         }
@@ -113,7 +121,7 @@ export function runProgram({ interpreter, env }, forms, toCompile) {
  */
 export function runBoth(tiers, program) {
   const start = Date.now();
-  const reference = runProgram(tiers.reference, program.forms, []);
+  const reference = runProgram(tiers.reference, program.forms, null);
   const compiled = runProgram(tiers.compiled, program.forms, program.compiled);
   return {
     agree: reference.answer === compiled.answer,

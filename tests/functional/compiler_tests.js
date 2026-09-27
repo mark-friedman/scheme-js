@@ -292,6 +292,20 @@ const CASES = [
     '(define (odd2? n) (if (= n 0) #f (apply even2? (list (- n 1)))))' +
     '(even2? 20)'],
 
+  // --- top-level expressions and definitions' values, compiled as thunks called once ---
+  ['procedures assigned from inside a top-level let, as nboyer defines them',
+    '(define (f x) #f) (let () (define (helper y) (* y 2)) (set! f (lambda (x) (+ 1 (helper x))))) (f 20)'],
+  ['a definition whose value is a closure over a local',
+    '(define counter (let ((n 0)) (lambda () (set! n (+ n 1)) n))) (counter) (counter)'],
+  ['a top-level do loop',
+    '(define v (make-vector 5 0)) (do ((i 0 (+ i 1))) ((= i 5)) (vector-set! v i (* i i))) v'],
+  ['a top-level begin that defines stays at top level',
+    '(begin (define (a) 1) (define b (let loop ((i 3) (acc 0)) (if (= i 0) acc (loop (- i 1) (+ acc i)))))) (list (a) b)'],
+  ['deep recursion in a top-level expression',
+    '(let loop ((i 100000)) (if (= i 0) 0 (+ 1 (loop (- i 1)))))'],
+  ['an error raised in a top-level expression and caught',
+    '(guard (e ((error-object? e) (error-object-message e))) (let loop ((i 3)) (if (= i 0) (vector-ref (vector) i) (loop (- i 1)))))'],
+
   // --- operands in the interpreter's order: the procedure, then left to right ---
   ['a global read before an operand that assigns it',
     '(define g 0) (define (f) (set! g 5) 10) (define (t) (list g (f))) (t)'],
@@ -686,6 +700,18 @@ const CAPTURE_CASES = [
       + ' (js-set! h "run" (lambda () (call/cc (lambda (k) 10))))'
       + ' (via (lambda () (+ 100 (js-invoke h "run")))))',
     ['via']],
+  // Found by the fuzzer: a capture inside the receiver of another, then the
+  // outer continuation invoked from that receiver, inside `dynamic-wind`. The
+  // receiver resumes as a compiled frame the interpreter steps, which ran it
+  // without recording the interpreter's stack for code calling back in; the
+  // continuation's invocation then started from a stack without the wind, and
+  // ran its before-thunk a second time.
+  ['an escape from a receiver resumed after a capture of its own, inside dynamic-wind',
+    '(define trail (quote ())) (define (w th) (dynamic-wind (lambda () (set! trail (cons (quote in) trail)))'
+      + ' th (lambda () (set! trail (cons (quote out) trail)))))'
+      + ' (define (p0 x y) (call/cc (lambda (k1) (call/cc (lambda (c2) x)) (k1 y))))',
+    '(list (w (lambda () (p0 0 3))) trail)',
+    ['p0'], { allowCaptures: true }],
   // Compiled code a primitive called back, calling an interpreted procedure
   // that captures. The run that procedure starts cannot pass the unwind on,
   // since `m` would hand it to `js-invoke`, so it finishes the capture itself.
@@ -934,17 +960,10 @@ function evaluate(source, template, useCompiler) {
     return { value, compiled: [], declined: [] };
   }
 
-  // Definitions are compiled; the trailing expressions are run by the
-  // interpreter, which is what a real program does too.
-  const definitions = asts.filter((a) => a instanceof DefineNode);
-  const rest = asts.filter((a) => !(a instanceof DefineNode));
-  const outcome = compileProgram(definitions, env, interpreter);
-
-  let value;
-  for (const ast of rest) {
-    value = settle(interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' }));
-  }
-  return { value, ...outcome };
+  // The whole program, in order, as a program is run: procedures compiled,
+  // expressions compiled where they make procedures or loop.
+  const outcome = compileProgram(asts, env, interpreter);
+  return { ...outcome, value: settle(outcome.value) };
 }
 
 /**
@@ -1109,6 +1128,21 @@ export async function runCompilerTests(interpreter, logger) {
     }
     assert(logger, 'raise-continuable from compiled code is refused with an explanation',
       typeof value === 'string' && value.includes('raise-continuable') && value.includes('not yet supported'), true);
+  }
+
+  logger.title('Compiler - Top-Level Expressions Compiled Where They Make Procedures or Loop');
+  {
+    const shapes = [
+      ['the let nboyer assigns its procedures from', '(define (f x) #f) (let () (define (h y) y) (set! f (lambda (x) (h x))))', 1],
+      ['a definition whose value makes a closure', '(define c (let ((n 0)) (lambda () n)))', 1],
+      ['a loop', '(let loop ((i 3)) (if (> i 0) (loop (- i 1))))', 1],
+      ['a call that makes nothing', '(define (g) 1) (g)', 0],
+      ['a begin that defines at top level', '(begin (define a 1) (define b (let loop ((i 1)) i)))', 0]
+    ];
+    for (const [what, source, expected] of shapes) {
+      const outcome = evaluate(source, template, true);
+      assert(logger, `${what}: ${expected ? 'compiled' : 'left to the interpreter'}`, outcome.expressions, expected);
+    }
   }
 
   logger.title('Compiler - Declines Unsupported Forms Safely');

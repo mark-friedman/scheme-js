@@ -108,7 +108,11 @@ frame on the way out **reifies itself** — saving its locals and which call sit
 the interpreter splices the resulting frames in where the tier boundary sat. Invoking the
 continuation re-enters each compiled procedure through its twin at the saved `$pc`.
 
-Multi-shot works because frames are copied rather than consumed.
+Multi-shot works because frames are copied rather than consumed. A resumed frame runs as compiled
+code the interpreter called: it records the interpreter's stack for whatever the procedure calls
+back into Scheme, as `continueApplication` does -- without it, a continuation invoked from a
+resumed frame started from whatever stack was recorded last, and rewound into winds it was already
+in, which the differential fuzzer found.
 
 **A frame saves only what is live where it resumes** (`src/compiler/liveness.scm`). Saving every
 local at every suspension point was quadratic — frame literals were 57% of all generated code in
@@ -517,6 +521,18 @@ to get compiled libraries.** The compiler is therefore not in `dist/scheme.js`: 
 needs native JavaScript features that neither generated code nor Scheme libraries can express, a
 `Map` behind hash tables being the clearest case. Chez keeps a C kernel for the same reason.
 
+## What is compiled: procedures, and top-level expressions
+
+A top-level procedure definition is compiled as a procedure. A top-level expression, or the value of
+a definition that is not a procedure, is compiled as a thunk and called once, from the interpreter
+so that a capture or a move of frames in it finishes where it should (`tryCompileExpression`,
+`runCompiledThunk`) -- where it makes a procedure or loops; straight-line code runs once, and
+compiling it costs more than running it. A form that defines at top level through `begin` stays
+interpreted, since wrapping it would make its definitions internal. This is not a nicety:
+`benchmarks/r7rs/src/nboyer.scm` defines stubs and assigns every real procedure from inside one
+top-level `(let () ...)`, so with definitions alone compiled it never ran compiled code at all
+(R84).
+
 ## What is declined, and why
 
 Two different questions, deliberately kept apart.
@@ -638,7 +654,7 @@ compiled library that makes the nested runs. So the whole program switches.
 The gap first, since it is what to distrust: CI runs only on `main` and never loads the browser
 tests. `compiler_plan.md` ranks closing it.
 
-- **6,111 tests**, Node and browser, via `npm test`.
+- **6,124 tests**, Node and browser, via `npm test`.
 - **A differential fuzzer** (`tests/fuzz/`): a generator, written in Scheme, builds programs from a
   seed -- loops, closures, assignments, escapes, a continuation captured at a random site and
   re-entered twice, errors raised and caught or not, `dynamic-wind`, multiple values, higher-order

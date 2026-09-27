@@ -2554,6 +2554,21 @@ against 21 and 24 s interpreted, 40x and 53x behind Gambit, most of the list cla
 *Consequence:* the two are profiled with bignums, as what compiling barely speeds up; and a program
 far from its class's mean is reported by name, not left inside the mean.
 
+**R84. `nboyer` and `sboyer` were barely faster compiled because they were not compiled.**
+
+R83 read their 16 and 20 s compiled, against 21 and 24 s interpreted, as something in them the
+compiler does not speed up, and put them with bignums to be profiled. The profile said otherwise at
+once: nearly all the time was the interpreter's own. Both programs define stub procedures and then
+assign every real one from inside a single top-level `(let () ...)`, and the tier compiled top-level
+procedure definitions only, so the whole benchmark ran interpreted in both tiers. `quicksort`
+assigns its random number generator the same way. The coverage figure had hidden it too: "compiled
+5 of 7 definitions" counted the stubs.
+
+*Consequence:* top-level expressions, and definitions whose value is made by an expression, are
+compiled as thunks called once where they make procedures or loop. `nboyer` went from 16.1 to 0.23 s
+and `sboyer` from 19.7 to 0.22 s, ahead of Gambit compiled to JavaScript. A coverage figure counts
+the code that runs, not the definitions that exist.
+
 ---
 
 ## Appendix — the original staged plan

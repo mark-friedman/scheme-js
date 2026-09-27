@@ -58,8 +58,8 @@ import { fileURLToPath } from 'url';
 import { createBenchmarkInterpreter } from './harness.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
-import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
-import { tryCompileDefinition } from '../../src/compiler/index.js';
+import { DefineNode, LambdaNode } from '../../src/core/interpreter/ast_nodes.js';
+import { tryCompileDefinition, tryCompileExpression, runCompiledThunk } from '../../src/compiler/index.js';
 import { unsafeDefinitions } from '../../src/compiler/safety.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -267,15 +267,24 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
     const unsafe = useCompiler ? unsafeDefinitions(asts, env) : new Map();
 
     for (const ast of asts) {
-      if (ast instanceof DefineNode) {
-        definitions++;
-        if (useCompiler && !unsafe.has(ast.name)) {
-          const result = tryCompileDefinition(ast, env);
-          if (result.compiled) {
-            env.define(result.name, result.procedure);
-            compiled++;
-            continue;
-          }
+      const procedure = ast instanceof DefineNode && ast.valueExpr instanceof LambdaNode;
+      if (ast instanceof DefineNode) definitions++;
+      if (useCompiler && procedure && !unsafe.has(ast.name)) {
+        const result = tryCompileDefinition(ast, env);
+        if (result.compiled) {
+          env.define(result.name, result.procedure);
+          compiled++;
+          continue;
+        }
+      } else if (useCompiler && !procedure) {
+        // A top-level expression, or a definition's value, that makes
+        // procedures or loops: `nboyer` assigns every procedure it has from
+        // inside one top-level `let`.
+        const result = tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env);
+        if (result.compiled) {
+          const value = runCompiledThunk(interpreter, env, result.procedure);
+          if (ast instanceof DefineNode) env.define(ast.name, value);
+          continue;
         }
       }
       interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });

@@ -422,9 +422,12 @@
                   (if uncaught?
                       '((define (fail x y) (+ y (vector-ref (vector x y) (+ x 5)))))
                       '())
-                  (list (list 'let (list (list 'r (cons 'list (append calls deep-calls))))
-                              '(set! *results* (cons r *results*))
-                              '(if (and *k* (< *count* 2))
-                                   (begin (set! *count* (+ *count* 1)) (*k* (* 100 *count*)))
-                                   (list (reverse *results*) *log* *g0* *g1*)))))
+                  ;; Half the drivers are a named `let` entered once, which the
+                  ;; tier compiles as a top-level expression that loops.
+                  (list (append (if (chance? 50) '(let driver) '(let))
+                                (list (list (list 'r (cons 'list (append calls deep-calls))))
+                                      '(set! *results* (cons r *results*))
+                                      '(if (and *k* (< *count* 2))
+                                           (begin (set! *count* (+ *count* 1)) (*k* (* 100 *count*)))
+                                           (list (reverse *results*) *log* *g0* *g1*))))))
           compiled)))

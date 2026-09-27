@@ -7988,3 +7988,55 @@ fixnums. The founding question was a 650x gap to plain JavaScript on `fib(30)`; 
 
 The full table, and what each class shows, is in `docs/r7rs_benchmark_results.md`. Canonical sizes,
 which published results use, would take hours and are not yet run.
+
+# Walkthrough: Compiling top-level expressions
+
+Task 35 in `docs/compiler_plan.md`, done when task 42's first profile found what it was for.
+
+## Why it mattered now
+
+Task 36 found `nboyer` and `sboyer` barely faster compiled than interpreted -- 16 and 20 s against 21
+and 24 -- and 40-53x behind Gambit compiled to JavaScript, and put them to be profiled. The profile
+was nearly all interpreter: both programs define stub procedures and assign every real one from
+inside a single top-level `(let () ...)`, and the tier compiled only top-level procedure definitions.
+They had never run compiled code (R84).
+
+## What changed
+
+- **`tryCompileExpression`** compiles a top-level expression, or the value of a definition that is
+  not a procedure, as a thunk -- where it makes a procedure or loops, since straight-line code runs
+  once and compiling it costs more. A form that defines at top level through `begin` stays
+  interpreted: wrapped, its definitions would become internal ones.
+- **`runCompiledThunk`** calls the thunk from the interpreter, so that a capture or a move of frames
+  in it finishes where it should.
+- `compileProgram` and the benchmark harness use both; `compileProgram` also returns the last form's
+  value and how many expressions it compiled, and the differential tests now hand it the whole
+  program in order rather than compiling definitions first and running the rest themselves.
+
+## What it did
+
+Compiled, best of three alternated against the task 36 tree: `nboyer` 82x faster (16.2 to 0.20 s),
+`sboyer` 94x (19.1 to 0.20 s), `scheme` 7.9x, `lattice` 7.1x; the list class 2.76x; every other class
+0.99-1.04x. Against Gambit compiled to JavaScript the list class went from 2.04x slower to 0.60x --
+faster -- and against Racket CS from 20.8x to 7.4x. `quicksort`, which assigns its random number
+generator the same way, did not move: the generator is not its hot path.
+
+## What the fuzzer found with it
+
+Half the fuzzer's drivers are named `let`s now, compiled as expressions. Its next run, 3,000
+programs, found a wrong answer older than this task: a capture inside the receiver of another,
+then the outer continuation invoked from that receiver, inside `dynamic-wind`, ran the wind's
+before-thunk twice. The receiver resumed as a `CompiledFrame`, whose `step` ran compiled code without
+recording the interpreter's stack for code calling back in, as `continueApplication` does; the
+continuation's invocation started from a stale stack without the wind, and rewound into it.
+`CompiledFrame.step` records the stack now. 6,000 more programs on fresh seeds agree.
+
+## Tests
+
+- Differential cases: procedures assigned from a top-level `let`, as `nboyer` does; a definition
+  whose value is a closure; a top-level `do` loop; a top-level `begin` that defines, which stays at
+  top level; recursion 100,000 deep in a top-level expression; an error raised in one and caught;
+  and the fuzzer's `dynamic-wind` case, which fails on the task 36 tree.
+- Which forms compile: the `let` `nboyer` uses, a definition making a closure and a loop do; a call
+  that makes nothing and a `begin` that defines do not.
+- 6,124 tests pass in Node and 6,015 in the browser.

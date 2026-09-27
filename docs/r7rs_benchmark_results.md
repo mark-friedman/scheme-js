@@ -38,7 +38,7 @@ Our time over theirs, per class, geometric mean; below 1 we are faster:
 | call | 0.89x (0.42-1.53) | 6.4x | 0.14x | 2.5x (fib, tak, ack) |
 | fixnum | 1.10x (0.41-2.23) | 10.3x | 0.19x | 6.3x (sum, nqueens) |
 | flonum | 0.27x (0.05-1.06) | 2.2x | 0.11x | 2.6x (fibfp, sumfp) |
-| list | 2.04x (0.09-53) | 20.8x | 0.57x | -- |
+| list | 0.60x (was 2.04x) | 7.4x (was 20.8x) | 0.20x | -- |
 | vector | 1.20x | 6.4x | 0.26x | -- |
 | string | 0.04x | 0.46x | 1.48x | -- |
 | bignum | 1.65x | 87x | 45x | -- |
@@ -51,10 +51,13 @@ Our time over theirs, per class, geometric mean; below 1 we are faster:
 - **The founding 650x gap to plain JavaScript** on `fib(30)` is 2.9x on `fib` now, and 2.0-2.9x on
   the call kernels. On fixnum loops it is 3.4-12x: exact integers are `BigInt`, which the plain
   versions do not pay for.
-- **`nboyer` and `sboyer` are the outliers**: 16 and 20 s compiled, barely faster than the
-  interpreter's 21 and 24 s, and 40x and 53x behind Gambit compiled to JavaScript; they are most of
-  the list class's gap. Something in them is not what the compiler speeds up. **`pi` and
-  `chudnovsky`** are no faster compiled than interpreted, as known: bignum arithmetic.
+- **`nboyer` and `sboyer` were the outliers**: 16 and 20 s compiled, barely faster than the
+  interpreter's 21 and 24 s, and 40x and 53x behind Gambit compiled to JavaScript -- most of the list
+  class's gap. They had never been compiled: every procedure in them is assigned from inside one
+  top-level `let`, and the tier compiled only top-level definitions (R84). With top-level
+  expressions compiled (task 35) they take 0.20 s each, ahead of Gambit's 0.41 and 0.37 s; `scheme`
+  and `lattice` went 7-8x faster for the same reason; the list row above is re-measured with them.
+  **`pi` and `chudnovsky`** are no faster compiled than interpreted, as known: bignum arithmetic.
 - **`ctak`** is slower compiled than interpreted (167 against 134 ms): its procedures capture, so
   they are declined, and the capture unwinds through the compiled ones between.
 - Gambit compiled to JavaScript failed on `quicksort` and `graphs`.

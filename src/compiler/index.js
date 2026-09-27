@@ -13,7 +13,10 @@
  * conversion at the call boundary.
  */
 
-import { LambdaNode, DefineNode } from '../core/interpreter/ast_nodes.js';
+import {
+  LambdaNode, DefineNode, BeginNode, LetRecNode, TailAppNode, LiteralNode
+} from '../core/interpreter/ast_nodes.js';
+import { Executable } from '../core/interpreter/stepables_base.js';
 import { lowerLambda, controlGlobalIn } from './lowering.js';
 import { unsafeDefinitions, unsafeClosures } from './safety.js';
 import { generate } from './codegen.js';
@@ -98,6 +101,21 @@ export function tryCompileDefinition(ast, env, options = {}) {
     return { compiled: false, reason: 'definition is not a procedure' };
   }
 
+  return compileLambda(value, ast.name, env, value.source ?? ast.source, options);
+}
+
+/**
+ * Compiles a lambda node: the work `tryCompileDefinition` and
+ * `tryCompileExpression` share once each has its lambda.
+ *
+ * @param {LambdaNode} value - The lambda.
+ * @param {string} name - The name to compile it under.
+ * @param {Object} env - The environment its globals resolve in.
+ * @param {Object|null} span - Its source span, for the debugger.
+ * @param {Object} options - As for `tryCompileDefinition`.
+ * @returns {CompileResult} The outcome.
+ */
+function compileLambda(value, name, env, span, options) {
   const lowered = lowerLambda(value);
   if (lowered.reason) {
     return { compiled: false, reason: lowered.reason };
@@ -119,7 +137,7 @@ export function tryCompileDefinition(ast, env, options = {}) {
     };
   }
 
-  const generated = generateBounded(lowered, ast.name, env);
+  const generated = generateBounded(lowered, name, env);
   if (generated.reason !== undefined) return { compiled: false, reason: generated.reason };
   const { source, constants } = generated;
 
@@ -131,9 +149,90 @@ export function tryCompileDefinition(ast, env, options = {}) {
   } catch (e) {
     return { compiled: false, reason: `code generation failed: ${e.message}`, source };
   }
-  R.recordSource(procedure, value.source ?? ast.source);
+  R.recordSource(procedure, span);
 
-  return { compiled: true, name: ast.name, procedure, source };
+  return { compiled: true, name, procedure, source };
+}
+
+// ---------------------------------------------------------------------------
+// Top-level expressions
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether an analyzed form defines at top level: a definition, or a `begin`
+ * whose definitions splice into the environment it runs in. Wrapped in a
+ * procedure they would become internal definitions instead.
+ * @param {Object} ast - An analyzed form.
+ * @returns {boolean}
+ */
+function definesAtTopLevel(ast) {
+  return ast instanceof DefineNode
+    || (ast instanceof BeginNode && ast.expressions.some(definesAtTopLevel));
+}
+
+/**
+ * Whether an analyzed form makes a procedure or loops: what makes compiling it
+ * worth what compiling costs. Straight-line code runs once, and compiling it
+ * costs more than running it.
+ * @param {Object} ast - An analyzed form.
+ * @returns {boolean}
+ */
+function makesProceduresOrLoops(ast) {
+  const seen = new Set();
+  const visit = (node) => {
+    if (node === null || typeof node !== 'object' || seen.has(node)) return false;
+    seen.add(node);
+    if (Array.isArray(node)) return node.some(visit);
+    if (!(node instanceof Executable)) return false;
+    if (node instanceof LambdaNode || node instanceof LetRecNode) return true;
+    return Object.values(node).some(visit);
+  };
+  return visit(ast);
+}
+
+/**
+ * Attempts to compile a top-level expression, or the value of a top-level
+ * definition that is not a procedure, as a procedure of no arguments to call
+ * once.
+ *
+ * A program's own procedures are often not top-level definitions at all:
+ * `benchmarks/r7rs/src/nboyer.scm` defines stubs, then assigns every real
+ * procedure from inside one top-level `(let () ...)`, so compiling definitions
+ * alone left the whole program interpreted. A definition whose value is made
+ * by an expression -- a closure over a table, say -- is the same case.
+ *
+ * Declined, and so interpreted: a form that defines at top level, and one that
+ * makes no procedure and has no loop.
+ *
+ * @param {Object} ast - The analyzed expression.
+ * @param {Object} env - The environment its globals resolve in.
+ * @param {Object} [options] - As for `tryCompileDefinition`.
+ * @returns {CompileResult} The outcome; `procedure` is the thunk.
+ */
+export function tryCompileExpression(ast, env, options = {}) {
+  if (definesAtTopLevel(ast)) return { compiled: false, reason: 'defines at top level' };
+  if (!makesProceduresOrLoops(ast)) {
+    return { compiled: false, reason: 'makes no procedure and has no loop, so runs once' };
+  }
+  const thunk = new LambdaNode([], ast, null, 'top-level');
+  return compileLambda(thunk, 'top-level', env, ast.source ?? null, options);
+}
+
+/**
+ * Calls a compiled thunk from the interpreter, and returns its value.
+ *
+ * From the interpreter rather than directly, so that it runs as compiled code
+ * the interpreter called: a continuation captured in it, or frames moved to the
+ * heap when it recurses deeply, are finished where they should be.
+ *
+ * @param {Object} interpreter - The interpreter.
+ * @param {Object} env - The environment.
+ * @param {Function} thunk - The compiled thunk.
+ * @returns {*} Its value.
+ */
+export function runCompiledThunk(interpreter, env, thunk) {
+  return R.settle(interpreter.run(new TailAppNode(new LiteralNode(thunk), []), env, [], undefined,
+    { jsAutoConvert: 'raw' }));
 }
 
 /**
@@ -328,8 +427,14 @@ export function generateEnvironment(env, options = {}) {
  *   definition, including those a capture unwinds through.
  * @param {boolean} [options.strict=false] - Also decline a procedure that calls
  *   a callee it cannot name.
+ * A top-level expression, or the value of a definition that is not a
+ * procedure, is compiled as a thunk and called once where
+ * `tryCompileExpression` accepts it, and run by the interpreter otherwise.
+ *
  * @returns {{compiled: Array<string>, declined: Array<{name: string, reason: string}>,
- *   unitDeclined: (string|null)}} What happened, and why if the unit was refused.
+ *   unitDeclined: (string|null), expressions: number, value: *}} What happened,
+ *   and why if the unit was refused; how many expressions or definitions'
+ *   values were compiled; and the last form's value.
  */
 export function compileProgram(asts, env, interpreter, options = {}) {
   const compiled = [];
@@ -349,25 +454,39 @@ export function compileProgram(asts, env, interpreter, options = {}) {
   const firstUnsafe = unsafe.size > 0 ? [...unsafe.entries()][0] : null;
   const unitDeclined = firstUnsafe === null ? null : `${firstUnsafe[0]}: ${firstUnsafe[1]}`;
 
+  const compileOptions = { allowCaptures: options.allowContinuationUnsafe === true };
+  let value;
+  let expressions = 0;
   for (const ast of asts) {
     const unsafeReason = ast instanceof DefineNode ? unsafe.get(ast.name) : undefined;
+    const procedure = ast instanceof DefineNode && ast.valueExpr instanceof LambdaNode;
     const result = unsafeReason !== undefined
       ? { compiled: false, reason: unsafeReason }
-      : tryCompileDefinition(ast, env,
-        { allowCaptures: options.allowContinuationUnsafe === true });
+      : procedure
+        ? tryCompileDefinition(ast, env, compileOptions)
+        : tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, compileOptions);
 
-    if (result.compiled) {
+    if (result.compiled && procedure) {
       env.define(result.name, result.procedure);
       compiled.push(result.name);
+      value = undefined;
+    } else if (result.compiled) {
+      // An expression, or a definition's value: called once, here.
+      value = runCompiledThunk(interpreter, env, result.procedure);
+      if (ast instanceof DefineNode) {
+        env.define(ast.name, value);
+        value = undefined;
+      }
+      expressions++;
     } else {
       // Run it the ordinary way. Order is preserved because this happens in
       // the same pass rather than in a second one.
-      interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
+      value = interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
       if (ast instanceof DefineNode) declined.push({ name: ast.name, reason: result.reason });
     }
   }
 
-  return { compiled, declined, unitDeclined, unsafe };
+  return { compiled, declined, unitDeclined, unsafe, expressions, value };
 }
 
 /**
