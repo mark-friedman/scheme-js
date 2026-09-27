@@ -53,4 +53,21 @@ export function runReaderTests(logger) {
     assert(logger, "Multiple spaces", parse("   1   ")[0], 1);
     assert(logger, "Newlines", parse("\n1\n")[0], 1);
 
+    // 8. Bytevector elements are any exact integer datum from 0 to 255,
+    // written in any radix or with an exactness prefix (R7RS 6.9).
+    const bytes = (text) => Array.from(parse(text)[0]).join(' ');
+    assert(logger, "Bytevector decimal", bytes("#u8(0 65 255)"), "0 65 255");
+    assert(logger, "Bytevector hex, binary, octal", bytes("#u8(#x41 #b1000010 #o103)"), "65 66 67");
+    assert(logger, "Bytevector exactness prefix", bytes("#u8(#e65 #e1e2)"), "65 100");
+    const rejects = (text) => { try { parse(text); return false; } catch (e) { return true; } };
+    assert(logger, "Bytevector rejects an inexact element", rejects("#u8(65.5)"), true);
+    assert(logger, "Bytevector rejects an inexact integer", rejects("#u8(1e2)"), true);
+    assert(logger, "Bytevector rejects 256", rejects("#u8(256)"), true);
+    assert(logger, "Bytevector rejects a negative", rejects("#u8(-1)"), true);
+    assert(logger, "Bytevector rejects a symbol", rejects("#u8(a)"), true);
+
+    // 9. A line comment ends at CR LF and at CR, not only LF (R7RS 2.2)
+    assert(logger, "Comment ending in CR LF", parse("; comment\r\n1 ; more\r\n2").length, 2);
+    assert(logger, "Comment ending in CR", parse("; comment\r1").length, 1);
+
 }

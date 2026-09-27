@@ -154,7 +154,10 @@ export function tokenize(input, filename = '<unknown>') {
      */
     function skipLineComment() {
         if (peek() === ';') {
-            while (pos < input.length && input[pos] !== '\n') {
+            // Up to the line ending, which R7RS allows to be CR LF or CR as
+            // well as LF, and not over it: `advance` steps over CR LF as one,
+            // so a loop watching only for LF would never see it.
+            while (pos < input.length && input[pos] !== '\n' && input[pos] !== '\r') {
                 advance();
             }
             return true;

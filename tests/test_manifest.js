@@ -137,6 +137,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/write_tests.scm',
     'tests/core/scheme/binary_io_tests.scm',
     'tests/core/scheme/port_tests.scm',
+    'tests/core/scheme/import_set_tests.scm',
     'tests/core/scheme/number_tests.scm',
     'tests/core/scheme/rational_tests.scm',
     'tests/core/scheme/complex_tests.scm',
