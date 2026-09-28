@@ -63,8 +63,6 @@ maps, is still to come. Current state, ranked work and rationale:
 
 ### Close the known R7RS-small deviations
 
-`string-set!` and `string-fill!` throw, because Scheme strings are JavaScript strings and those are
-immutable — a deliberate trade of compliance for interop that constraint 6 says should not stand.
 `equal?` does not terminate on circular structure, which R7RS §6.1 requires. `read-char` and
 `peek-char` return one-character strings rather than characters. And the file procedures (`call-with-input-file` and the rest) return an exact integer the
 procedure returned as inexact.
@@ -193,7 +191,7 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |
-| **JavaScript interoperability** | Scheme closures are callable JavaScript functions; numbers convert at the boundary, with one inconsistency still to fix; classes, promises and property access are reachable from Scheme. |
+| **JavaScript interoperability** | Scheme closures are callable JavaScript functions; numbers convert at the boundary, with one inconsistency still to fix, and strings cross as their characters -- a newly made string may be changed in Scheme, and JavaScript always receives a JavaScript string; classes, promises and property access are reachable from Scheme. |
 | **Lists and strings** | SRFI 1 and SRFI 152, as `(srfi 1)` and `(srfi 152)`: the list library, and the index-based string library that fits R7RS-small's own. The compiler is written with them too. |
 | **Hash tables and comparators** | SRFI 125 and SRFI 128, as `(srfi 125)` and `(srfi 128)`. Tables on `eq?`, `eqv?`, `string=?` and `string-ci=?` sit directly on a JavaScript `Map`; any other equivalence works through its hash function. |
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |

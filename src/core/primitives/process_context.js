@@ -5,6 +5,7 @@
  * Provides environment-aware implementations (Node.js vs browser).
  */
 
+import { isString, stringValue } from './string_class.js';
 import { assertArity, assertString, assertInteger } from '../interpreter/type_check.js';
 import { list, cons } from '../interpreter/cons.js';
 
@@ -86,7 +87,7 @@ export const processContextPrimitives = {
     'get-environment-variable': (...args) => {
         assertArity('get-environment-variable', args, 1, 1);
         assertString('get-environment-variable', 1, args[0]);
-        const name = args[0];
+        const name = stringValue(args[0]);
         if (isNode && process.env) {
             const value = process.env[name];
             return value !== undefined ? value : false;

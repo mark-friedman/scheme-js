@@ -2636,6 +2636,28 @@ first had been written.
 *Consequence:* both pages attach the runtime, the warning skips procedures compiled over a closure,
 and a test sets the breakpoint before debugging is on.
 
+**R89. A string could not stay a JavaScript string until it was first changed.**
+
+R31 corrected the first design for mutable strings -- a wrapper around a character array -- to
+"immutable-until-mutated": keep the JavaScript string as the representation and turn it into a
+mutable array only on the first `string-set!`. That cannot be done. `string-set!` is given the
+string's value, not the places holding it, and a JavaScript string is a value with no identity:
+every variable, pair and table holding it has its own copy, and two strings made separately with
+the same characters are the same value, so there would be no telling which one the program
+meant, or whether it was a literal. A string that may be changed has to be an object from the
+moment it is made. What survives of R31 is inside that object: it holds a JavaScript string
+until it is first changed, so a string never changed keeps V8's representation.
+
+Implementing it found a second belief false. `Interoperability.md` said numbers cross to
+JavaScript "the same in both tiers". They did not: the interpreter converts a JavaScript
+function's arguments, and compiled code called one with the Scheme values as they were -- a
+`BigInt` for an exact integer -- which, since task 34 compiles a program's own code by default,
+is what a program met.
+
+*Consequence:* a newly made string is a `SchemeString`, and every string crosses into JavaScript
+as its characters; compiled code calls a JavaScript function through `callForeign`, which converts
+as the interpreter does.
+
 ---
 
 ## Appendix — the original staged plan

@@ -233,7 +233,9 @@ export function lowerLambda(lambdaNode) {
   }
 
   const result = toArray(call(scheme.lowerLambda, [astToScheme(lambdaNode)]));
-  if (result[0].name === 'fail') return { reason: result[1] };
+  // Strings the compiler's Scheme made are Scheme strings, which may be
+  // objects; its JavaScript callers read them as JavaScript strings.
+  if (result[0].name === 'fail') return { reason: String(result[1]) };
 
   const schemeIr = result[1];
   return {
@@ -264,7 +266,7 @@ export function emitUnit(schemeIr, globals, name, guarded) {
   const result = toArray(call(scheme.generateUnit, [
     schemeIr, toList(globals.map((g) => intern(g))), name, toList(guarded.map((g) => intern(g)))
   ]));
-  return { source: result[0], constants: toArray(result[1]) };
+  return { source: String(result[0]), constants: toArray(result[1]) };
 }
 
 /**
@@ -288,7 +290,7 @@ export function compilerEnvironment() {
 export function jsNameOf(name) {
   const scheme = lowering();
   if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
-  return call(scheme.jsName, [intern(name)]);
+  return String(call(scheme.jsName, [intern(name)]));
 }
 
 /**

@@ -9,7 +9,7 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
-import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL } from './values.js';
+import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL, callWithSchemeValues } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { schemeToJsDeep } from './js_interop.js';
 import { Cons } from './cons.js';
@@ -905,9 +905,7 @@ export class CompiledFrame extends Executable {
         try {
             result = this.twin(this.pc, frame);
             while (result instanceof TailCall) {
-                const raw = result.func[SCHEME_RAW_CALL];
-                result = raw === undefined
-                    ? result.func(...result.args) : raw(...result.args);
+                result = callWithSchemeValues(result.func, result.args);
             }
         } finally {
             interpreter.popJsContext();

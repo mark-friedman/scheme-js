@@ -88,12 +88,11 @@
             (set-car! x 'mutated)
             (car x)))
             
-    ;; R7RS allows strings to be immutable.
-    ;; (test \"string produces mutable string\"
-    ;;       #\\M
-    ;;       (let ((s (string #\\m #\\u #\\t #\\e)))
-    ;;         (string-set! s 0 #\\M)
-    ;;         (string-ref s 0)))
+    (test "string produces mutable string"
+          #\M
+          (let ((s (string #\m #\u #\t #\e)))
+            (string-set! s 0 #\M)
+            (string-ref s 0)))
   )
 
   ;; --------------------------------------------------------------------------

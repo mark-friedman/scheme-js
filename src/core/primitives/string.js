@@ -2,7 +2,11 @@
  * String Primitives for Scheme.
  * 
  * Provides string operations per R7RS §6.7.
- * Strings are JavaScript strings (immutable).
+ * A string is a JavaScript string -- a literal, one `symbol->string` returned,
+ * or one from JavaScript, all immutable -- or a `SchemeString`, which every
+ * procedure here that newly allocates a string returns and which may be
+ * changed (`string_class.js`). So every procedure reads its string arguments
+ * through `stringValue`.
  */
 
 import { intern, Symbol } from '../interpreter/symbol.js';
@@ -10,6 +14,7 @@ import { list, toArray } from '../interpreter/cons.js';
 import { Values } from '../interpreter/values.js';
 import { parseNumber } from '../interpreter/reader.js';
 import { Char } from './char_class.js';
+import { SchemeString, stringValue, freshString } from './string_class.js';
 import {
     assertType,
     assertString,
@@ -57,7 +62,7 @@ function compareStrings(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllStrings(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        if (!compare(args[i], args[i + 1])) return false;
+        if (!compare(stringValue(args[i]), stringValue(args[i + 1]))) return false;
     }
     return true;
 }
@@ -73,8 +78,8 @@ function compareCiStrings(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllStrings(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        const a = args[i].toLowerCase();
-        const b = args[i + 1].toLowerCase();
+        const a = stringValue(args[i]).toLowerCase();
+        const b = stringValue(args[i + 1]).toLowerCase();
         if (!compare(a, b)) return false;
     }
     return true;
@@ -101,6 +106,25 @@ function validateRange(procName, str, start, end) {
     return [s, e];
 }
 
+/**
+ * Asserts that a string may be changed: one a procedure newly allocated, not
+ * a literal, one `symbol->string` returned, or one from JavaScript.
+ * @param {string} procName - Procedure name for error messages
+ * @param {*} str - The string
+ * @returns {SchemeString} The string
+ */
+function assertMutable(procName, str) {
+    if (!(str instanceof SchemeString)) {
+        throw new SchemeError(
+            `${procName}: this string is immutable -- a literal, a symbol's name, `
+            + 'or a string from JavaScript; string-copy makes one that can be changed',
+            [str],
+            procName
+        );
+    }
+    return str;
+}
+
 // =============================================================================
 // String Primitives
 // =============================================================================
@@ -118,7 +142,7 @@ export const stringPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a string.
      */
-    'string?': (obj) => typeof obj === 'string',
+    'string?': (obj) => typeof obj === 'string' || obj instanceof SchemeString,
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -138,10 +162,10 @@ export const stringPrimitives = {
         }
         if (char !== undefined) {
             assertChar('make-string', 2, char);
-            return char.toString().repeat(len);
+            return freshString(char.toString().repeat(len));
         }
         // R7RS: unspecified fill, we use space
-        return ' '.repeat(len);
+        return freshString(' '.repeat(len));
     },
 
     /**
@@ -151,7 +175,7 @@ export const stringPrimitives = {
      */
     'string': (...chars) => {
         assertAllChars('string', chars);
-        return chars.map(c => c.toString()).join('');
+        return freshString(chars.map(c => c.toString()).join(''));
     },
 
     // -------------------------------------------------------------------------
@@ -185,15 +209,23 @@ export const stringPrimitives = {
     },
 
     /**
-     * Mutation is not supported for JS string interoperability.
-     * @throws {SchemeError} Always throws
+     * Stores a character at position k.
+     * @param {SchemeString} str - A string that may be changed
+     * @param {bigint} k - Index
+     * @param {Char} char - The character
+     * @returns {undefined}
      */
     'string-set!': (str, k, char) => {
-        throw new SchemeError(
-            'string-set!: strings are immutable in this implementation for JavaScript interoperability',
-            [],
-            'string-set!'
-        );
+        assertString('string-set!', 1, str);
+        assertInteger('string-set!', 2, k);
+        assertChar('string-set!', 3, char);
+        assertMutable('string-set!', str);
+        const idx = Number(k);
+        if (idx < 0 || idx >= str.length) {
+            throw new SchemeRangeError('string-set!', 'index', 0, str.length - 1, k);
+        }
+        str.replace(idx, char.toString());
+        return undefined;
     },
 
     // -------------------------------------------------------------------------
@@ -290,7 +322,7 @@ export const stringPrimitives = {
         assertInteger('substring', 2, start);
         assertInteger('substring', 3, end);
         const [s, e] = validateRange('substring', str, start, end);
-        return str.slice(s, e);
+        return freshString(stringValue(str).slice(s, e));
     },
 
     /**
@@ -300,7 +332,9 @@ export const stringPrimitives = {
      */
     'string-append': (...args) => {
         args.forEach((arg, i) => assertString('string-append', i + 1, arg));
-        return args.join('');
+        let text = '';
+        for (const arg of args) text += stringValue(arg);
+        return freshString(text);
     },
 
     /**
@@ -313,19 +347,52 @@ export const stringPrimitives = {
     'string-copy': (str, start, end) => {
         assertString('string-copy', 1, str);
         const [s, e] = validateRange('string-copy', str, start, end);
-        return str.slice(s, e);
+        return freshString(stringValue(str).slice(s, e));
     },
 
     /**
-     * Mutation is not supported for JS string interoperability.
-     * @throws {SchemeError} Always throws
+     * Stores a character at every position of a string, or of a range of it.
+     * @param {SchemeString} str - A string that may be changed
+     * @param {Char} char - The character
+     * @param {bigint} [start] - Start index (default 0)
+     * @param {bigint} [end] - End index (default length)
+     * @returns {undefined}
      */
     'string-fill!': (str, char, start, end) => {
-        throw new SchemeError(
-            'string-fill!: strings are immutable in this implementation for JavaScript interoperability',
-            [],
-            'string-fill!'
-        );
+        assertString('string-fill!', 1, str);
+        assertChar('string-fill!', 2, char);
+        assertMutable('string-fill!', str);
+        const [s, e] = validateRange('string-fill!', str, start, end);
+        str.fill(char.toString(), s, e);
+        return undefined;
+    },
+
+    /**
+     * Copies the characters of a string, or of a range of it, into another at
+     * a position. The two may be the same string, overlapping.
+     * @param {SchemeString} to - A string that may be changed
+     * @param {bigint} at - Where the first character goes
+     * @param {string|SchemeString} from - The string copied from
+     * @param {bigint} [start] - Start index in `from` (default 0)
+     * @param {bigint} [end] - End index in `from` (default its length)
+     * @returns {undefined}
+     */
+    'string-copy!': (to, at, from, start, end) => {
+        assertString('string-copy!', 1, to);
+        assertInteger('string-copy!', 2, at);
+        assertString('string-copy!', 3, from);
+        assertMutable('string-copy!', to);
+        const [s, e] = validateRange('string-copy!', from, start, end);
+        const a = Number(at);
+        if (a < 0 || a + (e - s) > to.length) {
+            throw new SchemeRangeError('string-copy!', 'at', 0, to.length - (e - s), at);
+        }
+        // Read out first, so that copying within one string is not disturbed
+        // by the positions it writes.
+        const units = stringValue(from).slice(s, e).split('');
+        const target = to.unitsForChange();
+        for (let i = 0; i < units.length; i++) target[a + i] = units[i];
+        return undefined;
     },
 
     // -------------------------------------------------------------------------
@@ -342,7 +409,7 @@ export const stringPrimitives = {
     'string->list': (str, start, end) => {
         assertString('string->list', 1, str);
         const [s, e] = validateRange('string->list', str, start, end);
-        const substr = str.slice(s, e);
+        const substr = stringValue(str).slice(s, e);
         const chars = [];
         for (const char of substr) {
             chars.push(new Char(char.codePointAt(0)));
@@ -366,7 +433,7 @@ export const stringPrimitives = {
                 );
             }
         });
-        return chars.map(c => c.toString()).join('');
+        return freshString(chars.map(c => c.toString()).join(''));
     },
 
     /**
@@ -375,51 +442,7 @@ export const stringPrimitives = {
      * @param {number} [radix] - Radix (2, 8, 10, 16)
      * @returns {string} String representation.
      */
-    'number->string': (num, radix) => {
-        assertNumber('number->string', 1, num);
-
-        const r = radix === undefined ? 10 : Number(radix);
-        if (radix !== undefined) {
-            assertInteger('number->string', 2, radix);
-            if (![2, 8, 10, 16].includes(r)) {
-                throw new SchemeRangeError('number->string', 'radix', 2, 16, radix);
-            }
-        }
-
-        // Complex numbers have their own toString
-        if (num instanceof Complex) {
-            return num.toString(r);
-        }
-
-        // Rational numbers have their own toString
-        if (num instanceof Rational) {
-            return num.toString(r);
-        }
-
-        // R7RS special value formatting for inexact real numbers
-        if (typeof num === 'number') {
-            if (num === Infinity) return '+inf.0';
-            if (num === -Infinity) return '-inf.0';
-            if (Number.isNaN(num)) return '+nan.0';
-            // Handle negative zero specially - JS toString() loses the sign
-            if (Object.is(num, -0)) return '-0.0';
-
-            // For inexact integer-valued numbers, show decimal point
-            // to indicate inexactness per R7RS
-            let s = num.toString(r);
-            if (Number.isInteger(num) && !s.includes('.') && !s.includes('e')) {
-                s += '.0';
-            }
-            return s;
-        }
-
-        // BigInt (exact integers) - no decimal point
-        if (typeof num === 'bigint') {
-            return num.toString(r);
-        }
-
-        return num.toString(r);
-    },
+    'number->string': (num, radix) => freshString(numberToString(num, radix)),
 
     /**
      * Parses a string to a number.
@@ -429,72 +452,7 @@ export const stringPrimitives = {
      */
     'string->number': (str, radix) => {
         assertString('string->number', 1, str);
-        const r = radix === undefined ? 10 : Number(radix);
-        if (radix !== undefined) {
-            assertInteger('string->number', 2, radix);
-        }
-
-        // Delegate to reader's parseNumber for robust Scheme numeric syntax support
-        // Note: radix argument overrides any prefix in string if inconsistent?
-        // R7RS: "If radix is not supplied, ... If radix is supplied, ... interpret with that radix"
-
-        let prefix = "";
-
-        // If radix is explicit, we prepend the corresponding prefix if not present?
-        if (r === 2) prefix = "#b";
-        else if (r === 8) prefix = "#o";
-        else if (r === 10) prefix = "#d";
-        else if (r === 16) prefix = "#x";
-
-        try {
-            // Simplified approach: use parseNumber directly.
-
-            // If customized radix (not 2,8,10,16), full custom logic required.
-            if (![2, 8, 10, 16].includes(r)) {
-                // Fallback to old simple parsing for non-standard bases (integers only)
-                const num = parseInt(str, r);
-                if (isNaN(num)) return false;
-                // Validate chars
-                const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, r);
-                const cleanStr = str.replace(/^[+-]/, '');
-                for (const ch of cleanStr.toLowerCase()) {
-                    if (!validChars.includes(ch)) return false;
-                }
-                return num;
-            }
-
-            // Standard bases: Use parseNumber
-            // If string starts with #, parseNumber handles it.
-            // If string DOES NOT start with #, pretend it has #d (default) or the radix prefix.
-
-            let targetStr = str;
-            if (!str.trim().startsWith('#')) {
-                targetStr = prefix + str;
-            }
-            // If explicit radix given, we check if logic is consistent
-            // If (string->number "#x10" 10) -> Should fail or ignore prefix?
-            // R7RS: "If the string has a radix prefix, and a radix argument is also supplied,
-            // and they imply different radices, an error is signaled."
-            // We return #f for now to be safe (or false).
-            if (radix !== undefined) {
-                const match = str.match(/^#[boxd]/i);
-                if (match) {
-                    const p = match[0].toLowerCase();
-                    if (r === 2 && p !== '#b') return false;
-                    if (r === 8 && p !== '#o') return false;
-                    if (r === 10 && p !== '#d') return false;
-                    if (r === 16 && p !== '#x') return false;
-                }
-            }
-
-            const result = parseNumber(targetStr);
-            if (result === null) return false;
-
-            return result;
-
-        } catch (e) {
-            return false;
-        }
+        return stringToNumber(stringValue(str), radix);
     },
 
     /**
@@ -504,11 +462,12 @@ export const stringPrimitives = {
      */
     'string->symbol': (str) => {
         assertString('string->symbol', 1, str);
-        return intern(str);
+        return intern(stringValue(str));
     },
 
     /**
-     * Converts symbol to string.
+     * Converts symbol to string. R7RS makes the result immutable, so it is the
+     * symbol's own name.
      * @param {Symbol} sym - Symbol to convert.
      * @returns {string} Symbol's name.
      */
@@ -524,31 +483,162 @@ export const stringPrimitives = {
     /**
      * Returns uppercase version of string.
      * @param {string} str - String
-     * @returns {string} Uppercase string
+     * @returns {SchemeString} Uppercase string
      */
     'string-upcase': (str) => {
         assertString('string-upcase', 1, str);
-        return str.toUpperCase();
+        return freshString(stringValue(str).toUpperCase());
     },
 
     /**
      * Returns lowercase version of string.
      * @param {string} str - String
-     * @returns {string} Lowercase string
+     * @returns {SchemeString} Lowercase string
      */
     'string-downcase': (str) => {
         assertString('string-downcase', 1, str);
-        return str.toLowerCase();
+        return freshString(stringValue(str).toLowerCase());
     },
 
     /**
      * Returns case-folded version of string.
      * For simple cases, this is the same as downcase.
      * @param {string} str - String
-     * @returns {string} Folded string
+     * @returns {SchemeString} Folded string
      */
     'string-foldcase': (str) => {
         assertString('string-foldcase', 1, str);
-        return str.toLowerCase();
+        return freshString(stringValue(str).toLowerCase());
     }
 };
+
+// =============================================================================
+// Number conversion
+// =============================================================================
+
+/**
+ * A number written as a string, as `number->string` writes it.
+ * @param {*} num - Number to convert.
+ * @param {bigint} [radix] - Radix (2, 8, 10, 16)
+ * @returns {string} Its representation.
+ */
+function numberToString(num, radix) {
+    assertNumber('number->string', 1, num);
+
+    const r = radix === undefined ? 10 : Number(radix);
+    if (radix !== undefined) {
+        assertInteger('number->string', 2, radix);
+        if (![2, 8, 10, 16].includes(r)) {
+            throw new SchemeRangeError('number->string', 'radix', 2, 16, radix);
+        }
+    }
+
+    // Complex numbers have their own toString
+    if (num instanceof Complex) {
+        return num.toString(r);
+    }
+
+    // Rational numbers have their own toString
+    if (num instanceof Rational) {
+        return num.toString(r);
+    }
+
+    // R7RS special value formatting for inexact real numbers
+    if (typeof num === 'number') {
+        if (num === Infinity) return '+inf.0';
+        if (num === -Infinity) return '-inf.0';
+        if (Number.isNaN(num)) return '+nan.0';
+        // Handle negative zero specially - JS toString() loses the sign
+        if (Object.is(num, -0)) return '-0.0';
+
+        // For inexact integer-valued numbers, show decimal point
+        // to indicate inexactness per R7RS
+        let s = num.toString(r);
+        if (Number.isInteger(num) && !s.includes('.') && !s.includes('e')) {
+            s += '.0';
+        }
+        return s;
+    }
+
+    // BigInt (exact integers) - no decimal point
+    if (typeof num === 'bigint') {
+        return num.toString(r);
+    }
+
+    return num.toString(r);
+}
+
+/**
+ * Parses a string to a number, as `string->number` does.
+ * @param {string} str - String to parse
+ * @param {bigint} [radix] - Radix (2, 8, 10, 16)
+ * @returns {*} The number, or #f if it is not one.
+ */
+function stringToNumber(str, radix) {
+    const r = radix === undefined ? 10 : Number(radix);
+    if (radix !== undefined) {
+        assertInteger('string->number', 2, radix);
+    }
+
+    // Delegate to reader's parseNumber for robust Scheme numeric syntax support
+    // Note: radix argument overrides any prefix in string if inconsistent?
+    // R7RS: "If radix is not supplied, ... If radix is supplied, ... interpret with that radix"
+
+    let prefix = "";
+
+    // If radix is explicit, we prepend the corresponding prefix if not present?
+    if (r === 2) prefix = "#b";
+    else if (r === 8) prefix = "#o";
+    else if (r === 10) prefix = "#d";
+    else if (r === 16) prefix = "#x";
+
+    try {
+        // Simplified approach: use parseNumber directly.
+
+        // If customized radix (not 2,8,10,16), full custom logic required.
+        if (![2, 8, 10, 16].includes(r)) {
+            // Fallback to old simple parsing for non-standard bases (integers only)
+            const num = parseInt(str, r);
+            if (isNaN(num)) return false;
+            // Validate chars
+            const validChars = '0123456789abcdefghijklmnopqrstuvwxyz'.slice(0, r);
+            const cleanStr = str.replace(/^[+-]/, '');
+            for (const ch of cleanStr.toLowerCase()) {
+                if (!validChars.includes(ch)) return false;
+            }
+            return num;
+        }
+
+        // Standard bases: Use parseNumber
+        // If string starts with #, parseNumber handles it.
+        // If string DOES NOT start with #, pretend it has #d (default) or the radix prefix.
+
+        let targetStr = str;
+        if (!str.trim().startsWith('#')) {
+            targetStr = prefix + str;
+        }
+        // If explicit radix given, we check if logic is consistent
+        // If (string->number "#x10" 10) -> Should fail or ignore prefix?
+        // R7RS: "If the string has a radix prefix, and a radix argument is also supplied,
+        // and they imply different radices, an error is signaled."
+        // We return #f for now to be safe (or false).
+        if (radix !== undefined) {
+            const match = str.match(/^#[boxd]/i);
+            if (match) {
+                const p = match[0].toLowerCase();
+                if (r === 2 && p !== '#b') return false;
+                if (r === 8 && p !== '#o') return false;
+                if (r === 10 && p !== '#d') return false;
+                if (r === 16 && p !== '#x') return false;
+            }
+        }
+
+        const result = parseNumber(targetStr);
+        if (result === null) return false;
+
+        return result;
+
+    } catch (e) {
+        return false;
+    }
+}

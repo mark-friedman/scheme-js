@@ -73,8 +73,8 @@ second of work gives Racket one or two ticks, and two ticks is not a measurement
 
 ## What is not here
 
-- `compiler.scm` (459 KB) — blocked on `string-set!` anyway, and large enough that
-  vendoring it for a program we cannot run is not worth it.
+- `compiler.scm` (459 KB) — was blocked on `string-set!`, which works since strings became
+  mutable; not yet vendored, which `docs/compiler_plan.md` task 44 covers.
 - `cat`, `tail`, `wc`, `sum1` — need `inputs/bib` (4.5 MB) and `inputs/sum1.data`
   (1.1 MB). Host file I/O is also not a meaningful axis in a browser; the text axis
   deserves its own treatment rather than these.
@@ -92,7 +92,6 @@ run.
 | `gcbench`, `matrix`, `slatex` | Identifiers containing a dot are rejected by **extended dot notation**, a deliberate and tested interop feature. `(define x.y 1)` fails; R7RS §7.1.1 permits the dot. |
 | `parsing`, `read0` | `read-char` and `peek-char` return JavaScript strings rather than Scheme characters, so `(char? (read-char p))` is `#f`. |
 | `equal` | `equal?` does not terminate on circular structure, which R7RS §6.1 requires. Gambit runs this program in 0.08 s; we hang at every size. |
-| `compiler` (not vendored) | `string-set!` throws unconditionally — the known interop-for-compliance trade. |
 
 ## Running
 

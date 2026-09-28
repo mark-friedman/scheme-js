@@ -5,6 +5,7 @@
  * Used by the debug runtime to inspect variables and values during pause.
  */
 
+import { SchemeString } from '../core/primitives/string_class.js';
 import { Cons } from '../core/interpreter/cons.js';
 import { Symbol as SchemeSymbol } from '../core/interpreter/symbol.js';
 import { Char } from '../core/primitives/char_class.js';
@@ -113,8 +114,9 @@ export class StateInspector {
             };
         }
 
-        if (typeof value === 'string') {
-            return { type: 'string', value, description: `"${value}"` };
+        if (typeof value === 'string' || value instanceof SchemeString) {
+            const text = String(value);
+            return { type: 'string', value: text, description: `"${text}"` };
         }
 
         if (typeof value === 'boolean') {

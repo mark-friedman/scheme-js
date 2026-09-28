@@ -4,6 +4,7 @@
  * Provides vector (array) operations per R7RS §6.8.
  */
 
+import { stringValue, freshString } from './string_class.js';
 import { list, toArray } from '../interpreter/cons.js';
 import {
     assertVector,
@@ -266,7 +267,7 @@ export const vectorPrimitives = {
                 );
             }
         });
-        return slice.map(c => c.toString()).join('');
+        return freshString(slice.map(c => c.toString()).join(''));
     },
 
     /**
@@ -278,6 +279,7 @@ export const vectorPrimitives = {
      */
     'string->vector': (str, start, end) => {
         assertString('string->vector', 1, str);
+        str = stringValue(str);
         let s = start === undefined ? 0 : start;
         let e = end === undefined ? str.length : end;
 

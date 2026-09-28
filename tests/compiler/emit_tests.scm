@@ -232,8 +232,19 @@
         (< (string-contains call "$notProc($t0)") (string-contains call "[$RAW];")))
   (test "which the procedure declares" #t
         (and (string-contains call "$notProc = R.notAProcedure") #t))
-  (test "and the call itself is unchanged" 2
-        (count-of call " === undefined ? $t")))
+  (test "and the call itself is made through the raw entry, directly, or through $foreign" 2
+        (count-of call "[$PRIM] === true ? $t")))
+
+;; A callee with no raw entry is a primitive or a compiled procedure, which
+;; takes Scheme values and is called directly, or a JavaScript function, which
+;; is called as the interpreter calls one -- its arguments converted -- through
+;; `$foreign`.
+(test-group "emit - a call to a JavaScript function"
+  (define (unit-source ast globals)
+    (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
+  (define call (unit-source '(lambda (x) #f #f (seq ((app (var x) ((lit 1))) (lit 2)))) '()))
+  (test "goes through $foreign" #t (and (string-contains call "$foreign($t0, [") #t))
+  (test "which the procedure declares" #t (and (string-contains call "$foreign = R.callForeign") #t)))
 
 ;; Operands are evaluated left to right, the procedure first, as the
 ;; interpreter evaluates them: a global read or a boxed local's read written

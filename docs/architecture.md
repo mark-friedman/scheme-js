@@ -218,6 +218,7 @@ compile the page's own code as it runs (`src/compiler/tiering.js`).
 │       │   ├── math.js             # Arithmetic and numeric operations
 │       │   ├── list.js             # List operations (cons, car, cdr, etc.)
 │       │   ├── string.js           # String operations
+│       │   ├── string_class.js     # SchemeString: a string that may be changed, holding a JS string until it is
 │       │   ├── vector.js           # Vector operations
 │       │   ├── control.js          # apply, map, call/cc
 │       │   ├── char.js             # Character predicates and operations
@@ -398,6 +399,7 @@ compile the page's own code as it runs (`src/compiler/tiering.js`).
 │   │   ├── hygiene_tests.js
 │   │   ├── io_tests.js
 │   │   ├── string_tests.js
+│   │   ├── string_interop_tests.js # Mutable strings at the JavaScript boundary, both tiers
 │   │   ├── vector_tests.js
 │   │   ├── char_tests.js
 │   │   ├── tiering_tests.js        # When the tier compiles a program's procedures, and what it leaves

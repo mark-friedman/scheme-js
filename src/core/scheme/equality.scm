@@ -37,6 +37,8 @@
                      (loop (+ i 1))
                      #f)))
            #f)))
+    ;; By characters: a string that may be changed is an object, so eqv?
+    ;; would compare two of them by identity.
     ((and (string? a) (string? b))
-     (eqv? a b)) ; Strings are primitives in JS, so eqv? (Object.is) works. 
+     (string=? a b))
     (else #f)))

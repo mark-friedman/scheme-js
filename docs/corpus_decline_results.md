@@ -99,3 +99,24 @@ fixed: `(scheme inexact)` could not be imported; `rename` in an import set crash
 R7RS gives it, and nested import sets applied their filters in a fixed order rather than inside
 out; a line comment ending in CR LF or CR swallowed the rest of the file, so SRFI 41's `r5rs.ss`
 read as empty; and `#u8(#x41)` was rejected, while `#u8(65.5)` was read as `#u8(65)`.
+
+## Re-measured once strings could be changed (2026-09-28)
+
+Task 49 made newly allocated strings mutable, which was what kept `(srfi 14)` and the ten Chibi
+libraries built on it from loading, and `(chibi monad environment)` was added to the manifest as the
+dependency `(chibi show)` then asked for. 2,235 top-level definitions are measured, from 13
+libraries unmeasured rather than 21, and the conclusion stands: of 407 declines for a control form,
+399 (98%) end at `call/cc`, and `with-exception-handler` or `guard` accounts for 3.
+
+| outcome | definitions | share |
+|---|---|---|
+| compiles | 1,763 | 78.9% |
+| reaches a capture through another procedure | 305 | 13.6% |
+| captures a continuation | 94 | 4.2% |
+| the definition is not a procedure | 65 | 2.9% |
+| another control form | 8 | 0.4% |
+
+Still unmeasured: SRFI 64's R7RS libraries and SRFI 130, for dependencies with no R7RS
+implementation; SRFI 135, for dot notation; `(rapid match)` and the two libraries importing it,
+for import filters that do not reach macros; and `(chibi show)` and its two sublibraries, which
+now fail inside the expansion of `(chibi monad environment)`'s `fn` macro -- not investigated yet.

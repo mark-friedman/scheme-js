@@ -13,7 +13,7 @@
 import { suspendFlush, restoreFlush } from './unwind.js';
 import { LiteralNode, TailAppNode } from './ast_nodes.js';
 import { Cons } from './cons.js';
-import { jsToScheme } from './js_interop.js';
+import { jsToScheme, schemeToJsDeep } from './js_interop.js';
 
 // =============================================================================
 // Marker Symbols for Type Identification
@@ -325,14 +325,54 @@ export function settleTailCalls(result) {
     const flush = suspendFlush();
     try {
         while (result instanceof TailCall && typeof result.func === 'function') {
-            const raw = result.func[SCHEME_RAW_CALL];
-            const args = result.args || [];
-            result = raw === undefined ? result.func(...args) : raw(...args);
+            result = callWithSchemeValues(result.func, result.args || []);
         }
     } finally {
         restoreFlush(flush);
     }
     return result;
+}
+
+/**
+ * Calls a procedure with Scheme values, from code that holds them and is not
+ * the interpreter: compiled code, a primitive settling a tail call.
+ *
+ * A function with a raw entry is called through it -- an interpreted closure
+ * that way skips the conversions its JavaScript-facing wrapper makes, and a
+ * compiled procedure or a primitive is its own raw entry. A function without
+ * one is JavaScript's own, or a continuation, and is called by `callForeign`.
+ *
+ * @param {Function} fn - The callee.
+ * @param {Array<*>} args - Scheme values.
+ * @returns {*} Its result, which may be a pending `TailCall`.
+ */
+export function callWithSchemeValues(fn, args) {
+    const raw = fn[SCHEME_RAW_CALL];
+    return raw !== undefined ? raw(...args) : callForeign(fn, args);
+}
+
+/**
+ * Calls a function with no raw entry, from code holding Scheme values: a
+ * procedure that takes Scheme values -- a continuation, a procedure marked
+ * `SCHEME_PRIMITIVE` without a raw entry -- directly, and a JavaScript
+ * function as the interpreter calls one. Its arguments are converted to
+ * JavaScript values, an exact integer to a number and a mutable string to the
+ * characters it holds, and its result comes back as it is. Compiled frames may
+ * not move to the heap while it runs, since a compiled procedure it calls back
+ * would find no interpreter beneath it to finish the move.
+ *
+ * @param {Function} fn - The callee.
+ * @param {Array<*>} args - Scheme values.
+ * @returns {*} Its result.
+ */
+export function callForeign(fn, args) {
+    if (isSchemePrimitive(fn)) return fn(...args);
+    const flush = suspendFlush();
+    try {
+        return fn(...args.map((a) => schemeToJsDeep(a)));
+    } finally {
+        restoreFlush(flush);
+    }
 }
 
 /**

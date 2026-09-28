@@ -11,6 +11,18 @@ import {
 } from '../../core/interpreter/js_interop.js';
 import { takesSchemeValues, callSchemeMethod } from '../../core/interpreter/values.js';
 import { SchemeTypeError, SchemeError } from '../../core/interpreter/errors.js';
+import { SchemeString, stringValue } from '../../core/primitives/string_class.js';
+
+/**
+ * A Scheme value about to be stored in a JavaScript object as it is, with a
+ * mutable Scheme string replaced by the JavaScript string it holds: JavaScript
+ * has no mutable strings, so a string crosses as its characters.
+ * @param {*} value - A Scheme value.
+ * @returns {*} What to store.
+ */
+function storable(value) {
+    return value instanceof SchemeString ? value.toString() : value;
+}
 
 /**
  * Interop primitives exported to Scheme.
@@ -23,7 +35,7 @@ export const interopPrimitives = {
      */
     'js-eval': (code) => {
         assertString('js-eval', 1, code);
-        return jsToScheme((1, eval)(code));
+        return jsToScheme((1, eval)(stringValue(code)));
     },
 
     /**
@@ -36,6 +48,7 @@ export const interopPrimitives = {
      */
     'js-ref': (obj, prop) => {
         assertString('js-ref', 2, prop);
+        prop = stringValue(prop);
         if (obj === null || obj === undefined) {
             throw new SchemeError(`js-ref: cannot access property "${prop}" on ${obj}`, [obj, prop], 'js-ref');
         }
@@ -52,12 +65,14 @@ export const interopPrimitives = {
      */
     'js-set!': (obj, prop, value) => {
         assertString('js-set!', 2, prop);
+        prop = stringValue(prop);
         if (obj === null || obj === undefined) {
             throw new SchemeError(`js-set!: cannot set property "${prop}" on ${obj}`, [obj, prop], 'js-set!');
         }
-        obj[prop] = value;
+        const stored = storable(value);
+        obj[prop] = stored;
         // Noted so that an integer-valued flonum reads back as a flonum.
-        noteSchemeStore(obj, prop, value);
+        noteSchemeStore(obj, prop, stored);
         return undefined;
     },
 
@@ -73,6 +88,7 @@ export const interopPrimitives = {
      */
     'js-invoke': (obj, method, ...args) => {
         assertString('js-invoke', 2, method);
+        method = stringValue(method);
         if (obj === null || obj === undefined) {
             throw new SchemeError(`js-invoke: cannot call method "${method}" on ${obj}`, [obj, method], 'js-invoke');
         }
@@ -125,12 +141,12 @@ export const interopPrimitives = {
             if (key && typeof key === 'object' && typeof key.name === 'string') {
                 // Scheme Symbol object
                 keyStr = key.name;
-            } else if (typeof key === 'string') {
-                keyStr = key;
+            } else if (typeof key === 'string' || key instanceof SchemeString) {
+                keyStr = stringValue(key);
             } else {
                 keyStr = String(key);
             }
-            obj[keyStr] = val;
+            obj[keyStr] = storable(val);
         }
         return obj;
     },
@@ -159,6 +175,8 @@ export const interopPrimitives = {
      * @returns {string} The result of `typeof val`.
      */
     'js-typeof': (val) => {
+        // What JavaScript will see: a Scheme string arrives as a string.
+        if (val instanceof SchemeString) return 'string';
         return typeof val;
     },
 

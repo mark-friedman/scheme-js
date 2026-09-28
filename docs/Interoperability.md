@@ -15,7 +15,7 @@ We use a "shared representation" model:
 | **Exact integer** | JS `BigInt` | `'bigint'` | Converted at the boundary; see *Numbers at the boundary*. |
 | **Inexact real** | Raw JS Number | `'number'` | Passed as is. |
 | **Rational, complex** | Scheme objects | `'object'` | A rational becomes a JS number when passed to JavaScript. |
-| **String** | Raw JS String | `'string'` | 1:1 mapping. |
+| **String** | Raw JS String, or a `SchemeString` | `'string'`, or `instanceof SchemeString` | A literal, a symbol's name or a string from JavaScript is a JS string, immutable; a newly made string is a `SchemeString`, which may be changed. JavaScript always receives a JS string; see *Strings at the boundary*. |
 | **Boolean** | Raw JS Boolean | `'boolean'` | `#t` is `true`, `#f` is `false`. |
 | **Vector** | Raw JS Array | `Array.isArray()` | `(vector 1 2)` is `[1, 2]`. |
 | **Bytevector** | Raw JS `Uint8Array` | `instanceof Uint8Array` | `(bytevector 1 2 3)` is `Uint8Array([1,2,3])`. |
@@ -30,7 +30,8 @@ We use a "shared representation" model:
 ## Numbers at the boundary
 
 JavaScript has one kind of number, so `1` and `1.0` cannot stay distinct once they cross. What each
-direction does, the same in both tiers:
+direction does, the same in both tiers -- compiled code calls a JavaScript function as the
+interpreter does (`callForeign` in `src/compiler/runtime.js`):
 
 | Case | Result |
 |---|---|
@@ -45,6 +46,36 @@ direction does, the same in both tiers:
 The two ways of calling a JavaScript function disagree: a direct call converts its arguments and
 returns the result unconverted, while `js-invoke` converts the result. That is an inconsistency, not
 a rule, and is listed for fixing in `compiler_plan.md`.
+
+## Strings at the boundary
+
+R7RS strings may be changed: every string a procedure newly allocates -- `make-string`'s,
+`string-append`'s, `substring`'s, `number->string`'s -- can be altered with `string-set!`,
+`string-fill!` and `string-copy!`, and the change is seen through every reference to it. A
+JavaScript string cannot be: it is a value, with no identity, so it cannot be changed in place
+for everyone holding it, and two strings with the same characters are the same value. So a
+newly made Scheme string is an object, a `SchemeString`, which holds a JavaScript string until it
+is first changed, and splits into an array only then; a string never changed costs one small
+object.
+
+JavaScript has no mutable strings, so **a string crosses the boundary as its value**, as a number
+does:
+
+| Case | Result |
+|---|---|
+| a Scheme string passed to a JavaScript function, stored with `js-set!` or in `js-obj`, or returned to JavaScript | a JS `string` holding its characters at that moment |
+| the Scheme string changed afterwards | JavaScript's copy is unchanged |
+| a string JavaScript returns, or a property read | a JS string, immutable in Scheme, like a literal: `string-set!` on it is an error, which says to use `string-copy` |
+| a Scheme string passed to JavaScript and returned to Scheme | a JS string with the same characters, not the same Scheme string |
+
+The last row is the price. Only a program that changes a string after sending it through
+JavaScript and back, or compares strings with `eq?`, can see it: `equal?` and `string=?` compare
+characters. It is the same kind of loss as a number's exactness through JavaScript.
+
+`eq?` and `eqv?` compare a newly made string by identity, as R7RS says, so `case`, `memv` and
+`assv` do not match one against a string datum: `(case (string-append "cl" "ick") (("click")
+...))` takes no clause. A string from JavaScript is a JS string and still compares by value, so
+`(case (js-ref event "type") (("click") ...))` does.
 
 ## Callable Closures and Continuations
 

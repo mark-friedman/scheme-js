@@ -13,7 +13,9 @@
  * below is how compiled code avoids that.
  */
 
-import { TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../core/interpreter/values.js';
+import {
+  TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign
+} from '../core/interpreter/values.js';
 // The capture protocol belongs to the interpreter, which owns what a
 // continuation is; this module only makes it reachable from generated code.
 import {
@@ -26,7 +28,7 @@ import { Cons } from '../core/interpreter/cons.js';
 // reads a cell, once per inlined primitive.
 import { primitiveCell } from '../core/interpreter/primitive_bindings.js';
 
-export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, SchemeError, primitiveCell };
+export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, SchemeError, primitiveCell, callForeign };
 
 /**
  * Reports a capture beneath a redefined inlined primitive.
@@ -208,6 +210,11 @@ export function capture(receiver) {
  * doubles, bignums beyond 2^53 throw. Compiled code is not a JavaScript caller,
  * so it uses the closure's raw entry instead.
  *
+ * A compiled procedure and a primitive are their own raw entries. A function
+ * with none is JavaScript's own, and gets its arguments as JavaScript values,
+ * as the interpreter gives them (`callForeign` in
+ * `src/core/interpreter/values.js`).
+ *
  * The check is one property load on a value already in hand. It is worth
  * stating why it cannot be hoisted to compile time: the callee of a Scheme call
  * is a value, not a name, and which tier it belongs to is not known until the
@@ -218,8 +225,7 @@ export function capture(receiver) {
  * @returns {*} The callee's result, which may be a pending `TailCall`.
  */
 export function invoke(fn, args) {
-  const raw = fn[SCHEME_RAW_CALL];
-  return raw === undefined ? fn(...args) : raw(...args);
+  return callWithSchemeValues(fn, args);
 }
 
 /**
@@ -372,6 +378,9 @@ export function listFrom(items) {
  */
 export function markProcedure(fn, name) {
   fn[SCHEME_PRIMITIVE] = true;
+  // Its own raw entry, so that a call site, which looks for one first, calls
+  // it with no second look at what it is (`emit-call!` in emit.scm).
+  fn[SCHEME_RAW_CALL] = fn;
   fn.$compiled = true;
   fn.schemeName = name;
   fn.toString = () => `#<compiled-procedure${name && name !== 'anonymous' ? ' ' + name : ''}>`;

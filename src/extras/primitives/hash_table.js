@@ -20,8 +20,11 @@
  *    `eqv?`; characters, exact rationals and complex numbers are objects that
  *    `eqv?` compares by value. Those are stored under a canonical string, in a
  *    second `Map` so that no canonical string can collide with a string key.
- *  - `string`: the key as it is, which must be a string. Scheme strings are
- *    JavaScript strings, so the `Map` compares their contents.
+ *  - `string`: the key's characters, as a JavaScript string. A literal is
+ *    a JavaScript string, which the `Map` would compare by contents, but a
+ *    string that may be changed is an object, which it would compare by
+ *    identity; so every string key is stored under its characters, with the
+ *    key itself kept for `hash-table-keys`.
  *  - `string-ci`: the key folded to lower case, which is exactly what
  *    `string-ci=?` compares. The original key is kept for `hash-table-keys`.
  *
@@ -42,6 +45,7 @@ import { Rational } from '../../core/primitives/rational.js';
 import { Complex } from '../../core/primitives/complex.js';
 import { Symbol } from '../../core/interpreter/symbol.js';
 import { assertString } from '../../core/interpreter/type_check.js';
+import { stringValue } from '../../core/primitives/string_class.js';
 import { SchemeTypeError } from '../../core/interpreter/errors.js';
 
 // =============================================================================
@@ -118,10 +122,10 @@ export class HashStore {
         return eqvCanonical(key);
       case 'string':
         assertString(who, 2, key);
-        return null;
+        return stringValue(key);
       default:
         assertString(who, 2, key);
-        return key.toLowerCase();
+        return stringValue(key).toLowerCase();
     }
   }
 
@@ -374,7 +378,7 @@ export const hashTablePrimitives = {
    */
   'string-hash': (str, _bound) => {
     assertString('string-hash', 1, str);
-    return BigInt(hashString(str));
+    return BigInt(hashString(stringValue(str)));
   },
 
   /**
@@ -384,7 +388,7 @@ export const hashTablePrimitives = {
    */
   'string-ci-hash': (str, _bound) => {
     assertString('string-ci-hash', 1, str);
-    return BigInt(hashString(str.toLowerCase()));
+    return BigInt(hashString(stringValue(str).toLowerCase()));
   },
 
   /**

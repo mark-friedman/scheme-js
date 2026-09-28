@@ -893,8 +893,12 @@
     (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
     (set-form-depth! form 'call)
     (emit! form (list 'text "$stack.room = $d;"))
+    ;; No raw entry: a primitive or a compiled procedure, called directly, or
+    ;; anything else -- a JavaScript function -- through `$foreign`, which
+    ;; converts its arguments as the interpreter does.
     (emit! form (list 'assign (js result)
-                      (js raw " === undefined ? " callee "(" arglist ") : " raw "(" arglist ")")))
+                      (js raw " === undefined ? (" callee "[$PRIM] === true ? " callee "(" arglist ") : "
+                          "$foreign(" callee ", [" arglist "])) : " raw "(" arglist ")")))
     (emit! form (list 'raw (js "while (" result " instanceof $TailCall) { $stack.room = $d; "
                                result " = $step(" result "); }")))
     (if (twin? form)
@@ -1535,7 +1539,7 @@
     ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")
     ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")
     ("$stack" . "R.stack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")
-    ("$notProc" . "R.notAProcedure")))
+    ("$notProc" . "R.notAProcedure") ("$foreign" . "R.callForeign")))
 
 ;; /**
 ;;  * The declaration of the runtime values a procedure's code uses.

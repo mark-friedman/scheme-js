@@ -4,6 +4,7 @@ import { Cons, toArray } from './cons.js';
 import { Complex } from '../primitives/complex.js';
 import { Rational } from '../primitives/rational.js';
 import { Char } from '../primitives/char_class.js';
+import { SchemeString } from '../primitives/string_class.js';
 import { Closure, Continuation } from './values.js';
 
 // Registry for the JS Object Record constructor
@@ -40,6 +41,7 @@ function isPrimitive(val) {
  - BigInt: converted to Number within safe range (default)
  - Rational: converted to Number, but may lose precision
  - Char: converted to String
+ - A mutable Scheme string: converted to the JavaScript string it holds now
  - Other: returned as-is
  */
 export function schemeToJs(val) {
@@ -52,6 +54,9 @@ export function schemeToJs(val) {
         throw new Error(`BigInt ${val} is outside safe integer range for JS API call.`);
     }
     if (val instanceof Char) return val.toString();
+    // JavaScript has no mutable strings, so a Scheme string crosses as the
+    // characters it holds now, as a number crosses as its value.
+    if (val instanceof SchemeString) return val.toString();
     if (val instanceof Rational) return val.toNumber();
     // Complex, Vector, Records, Cons -> passed as opaque objects
     return val;
@@ -63,6 +68,7 @@ export function schemeToJs(val) {
  * - BigInt: converted to Number within safe range (default)
  * - Rational: converted to Number, but may lose precision
  * - Char: converted to String
+ * - A mutable Scheme string: converted to the JavaScript string it holds now
  * - Vector: recursively converted to Array
  * - JsObjectRecord: recursively converted to plain Object
  * - Other: returned as-is
@@ -85,6 +91,7 @@ export function schemeToJsDeep(val, options = {}) {
     }
 
     if (val instanceof Char) return val.toString();
+    if (val instanceof SchemeString) return val.toString();
     if (val instanceof Rational) return val.toNumber();
 
     // Vectors are Arrays in this implementation - recursively convert elements

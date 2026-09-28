@@ -8208,3 +8208,79 @@ was -- not in the CLI, the browser, or either REPL. Now it is, by default, and s
 - The differential fuzzer runs a third configuration, the tier choosing: 4,000 fresh programs agree,
   5,325 procedures compiled by the tier among them.
 - 6,222 tests pass in Node and 6,113 in the browser.
+
+# Walkthrough: mutable strings
+
+Task 49 in `docs/compiler_plan.md`. R7RS lets a program change any string a procedure newly
+allocates; here `string-set!` and `string-fill!` threw, and `string-copy!` did not exist.
+
+## The design, and why it is not R31's
+
+R31 proposed keeping a JavaScript string until the first `string-set!` and only then making it
+mutable. That cannot work: `string-set!` receives the string's value, not the places holding it,
+and a JavaScript string is a value with no identity -- every holder has its own copy, and two
+strings with the same characters are the same value (R89). So a string that may be changed is an
+object from the moment it is made. What was decided, on no user experience yet:
+
+- **Every newly allocated string is a `SchemeString`** (`src/core/primitives/string_class.js`):
+  `make-string`, `string`, `string-copy`, `string-append`, `substring`, `list->string`,
+  `vector->string`, `number->string`, the case conversions, `string-map`, `utf8->string`,
+  `get-output-string`, `read-string` and `read-line`. It holds a JavaScript string until first
+  changed, then an array of UTF-16 code units, joined again when next needed whole; positions stay
+  code units, so a character beyond the Basic Multilingual Plane takes two.
+- **Literals, `symbol->string`'s results and strings from JavaScript stay JavaScript strings**,
+  immutable, as R7RS allows for literals; changing one is an error that says to use `string-copy`.
+- **A string crosses into JavaScript as its characters**, as a number crosses as its value:
+  `schemeToJs`, `schemeToJsDeep`, `js-set!`, `js-obj`, and every value returned to JavaScript.
+  JavaScript never sees a `SchemeString`, and a string sent through JavaScript and back returns
+  as another string with the same characters -- task 59 is an explicit way round that.
+
+## What changed
+
+- **The string primitives** read their arguments' characters wherever they read a string,
+  return a `SchemeString` wherever R7RS says the result is newly allocated, and implement
+  `string-set!`, `string-fill!` and `string-copy!`, overlapping copies included.
+- **Everything that tested `typeof x === 'string'`** accepts both kinds: the type check, the
+  printers, error messages, the port and file primitives, the bytevector and vector conversions,
+  class and record names, the interop primitives, the state inspector.
+- **`equal?`** compares strings by characters; `eq?` and `eqv?` compare a newly made one by
+  identity, so `case` does not match one against a string datum (`Interoperability.md`).
+- **Hash tables** keyed by `string=?` key every string by its characters; `string-hash` and
+  `string-ci-hash` read characters.
+- **The compiler's JavaScript** reads the strings its Scheme makes -- generated source, names,
+  decline reasons -- as JavaScript strings.
+- **Compiled code calls a JavaScript function as the interpreter does.** It used to pass raw
+  Scheme values: a `BigInt` for an exact integer, and now a `SchemeString`. `callWithSchemeValues`
+  and `callForeign` in `src/core/interpreter/values.js` are the one place that decides: a raw entry
+  if there is one, else a Scheme procedure directly, else a JavaScript function with its arguments
+  converted and frame moves suspended. Compiled procedures and primitives are their own raw
+  entries, so the call site checks nothing more for them than before.
+
+## Measured
+
+- **The string class got faster**: `string` takes 0.58x the time interpreted and 0.55x compiled,
+  since `string-append` concatenates directly instead of through `Array.join`; `read1` is
+  unchanged. Other programs within noise.
+- **Call sites** (`run_codegen.js --only calls`, a new group, and `--only recursion`): a primitive,
+  a compiled procedure, and recursion within the baseline's own variation between runs; a call to
+  a JavaScript function from compiled code 8 ns to 42 ns, the conversion the interpreter always
+  made.
+- **The corpus** (`decline_reasons.js --corpus`): `(srfi 14)` and the Chibi libraries built on it
+  now load -- 2,235 definitions measured, 13 libraries unmeasured rather than 21 -- and 399 of 407
+  control declines still end at `call/cc`.
+
+## Tests
+
+- `tests/core/scheme/string_mutation_tests.scm`: a change seen through every reference; every
+  constructor's result mutable; literals, symbol names and out-of-range positions refused;
+  `string-fill!` and `string-copy!`, within one string both ways; a changed string through every
+  string operation, equality, `read` and the printers; identity; a code point beyond the Basic
+  Multilingual Plane; changed strings as `string=?`, `string-ci=?` and `equal?` table keys.
+- `tests/functional/string_interop_tests.js`: the boundary, from interpreted and compiled code,
+  direct and tail calls; `js-set!`, `js-obj`, `js-typeof`; a closure called from JavaScript; a
+  string from JavaScript refused and copied. Each conversion was removed in turn to check a test
+  fails without it.
+- Chibi's `string-set!`, `string-fill!` and `string-copy!` tests restored to the revised suite,
+  and the chapter 3 test that was commented out.
+- 6,324 tests pass in Node and 6,215 in the browser; 2,000 fresh fuzzer programs agree across the
+  three configurations.

@@ -7,6 +7,7 @@
 
 import { Cons } from './cons.js';
 import { Char } from '../primitives/char_class.js';
+import { SchemeString } from '../primitives/string_class.js';
 import { Complex } from '../primitives/complex.js';
 import { Symbol } from './symbol.js';
 import { Closure, Continuation, isSchemeClosure, isSchemeContinuation } from './values.js';
@@ -108,7 +109,7 @@ export function isInteger(x) {
  * @returns {boolean}
  */
 export function isString(x) {
-    return typeof x === 'string';
+    return typeof x === 'string' || x instanceof SchemeString;
 }
 
 /**

@@ -20,7 +20,7 @@ import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
-import { invoke, settle, stack } from '../../src/compiler/runtime.js';
+import { invoke, settle, stack, SCHEME_PRIMITIVE } from '../../src/compiler/runtime.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 
@@ -106,7 +106,12 @@ export async function runDeepRecursionTests(logger) {
   // code directly -- would take the unwind signal for a value, so beneath one
   // compiled code never moves its frames.
   const { env } = compiled;
-  env.define('flush-depth', () => (stack.flushable ? 'may' : 'never'));
+  // A primitive, so that compiled code calls it directly and it sees what the
+  // compiled frame sees: a JavaScript function is called as the interpreter
+  // calls one, with moves suspended while it runs.
+  const flushDepth = () => (stack.flushable ? 'may' : 'never');
+  flushDepth[SCHEME_PRIMITIVE] = true;
+  env.define('flush-depth', flushDepth);
   // A plain JavaScript function, as host code would be: it calls back what it
   // is given.
   env.define('call-back', (f) => f());
