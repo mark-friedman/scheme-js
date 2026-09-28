@@ -8284,3 +8284,25 @@ object from the moment it is made. What was decided, on no user experience yet:
   and the chapter 3 test that was commented out.
 - 6,324 tests pass in Node and 6,215 in the browser; 2,000 fresh fuzzer programs agree across the
   three configurations.
+
+# Walkthrough: the capture default, measured on and off
+
+Task 37 in `docs/compiler_plan.md`, its first step. The tier declines a procedure that captures a
+continuation, and every procedure that can reach one, a default kept on `btsearch` alone.
+`benchmarks/run_compiled.js` and `benchmarks/run_r7rs.js` take `--captures`, which compiles them
+anyway, and all nine benchmark programs that capture were run both ways, twice (R90):
+
+| program | shape | the default | captures compiled |
+|---|---|---|---|
+| `quicksort` | escape | 160.8 ms | 7.5 ms (21x faster) |
+| `puzzle` | escape | 98.7 ms | 23.9 ms (4.1x) |
+| `maze` | escape | 2.9 ms | 0.77 ms (3.8x) |
+| `contfib` | | 26.5 ms | 9.1 ms (2.9x) |
+| `threads` | coroutines | 47 ms | 35 ms (1.35x) |
+| `scheme`, `dynamic` | | unchanged | unchanged |
+| `ctak` | a capture at every call | 162 ms | 182 ms (1.12x slower) |
+| `fibc` | a capture at every call | 62 ms | 111 ms (1.8x slower) |
+| `btsearch` | backtracking | 70 ms | 318 ms (4.5x slower) |
+
+The comments in `src/compiler/safety.js` that justified the default with the old figures now give
+these. Which way the default should go is left for a decision.

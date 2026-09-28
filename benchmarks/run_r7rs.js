@@ -26,6 +26,12 @@
  * Usage:
  *   node benchmarks/run_r7rs.js [--profile default|full] [--target SECONDS]
  *                               [--only name,name] [--tier interpreter|compiled|both]
+ *                               [--captures]
+ *
+ * `--captures` compiles every procedure the tier can, those that capture a
+ * continuation or reach one that does included, rather than declining them as
+ * the tier does by default (`src/compiler/safety.js`): for measuring that
+ * default.
  */
 
 import { execFileSync } from 'child_process';
@@ -47,6 +53,7 @@ const PROFILE = valueOf('--profile', 'default');
 const TARGET = parseFloat(valueOf('--target', '1.0'));
 const TIER = valueOf('--tier', 'both');
 const ONLY = valueOf('--only', null);
+const CAPTURES = args.includes('--captures');
 
 /**
  * Wall-clock budget for one measurement, in seconds.
@@ -76,7 +83,9 @@ const JIFFIES_PER_SECOND = 1000;
  *   synthesised one if it was killed.
  */
 function runIsolated(bench, count, useCompiler) {
-  const request = JSON.stringify({ name: bench.name, params: bench.params, count, useCompiler });
+  const request = JSON.stringify({
+    name: bench.name, params: bench.params, count, useCompiler, allowCaptures: CAPTURES
+  });
   try {
     const out = execFileSync(process.execPath, [WORKER, request], {
       stdio: ['pipe', 'pipe', 'pipe'], encoding: 'utf8', timeout: BUDGET * 1000

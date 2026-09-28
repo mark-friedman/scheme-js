@@ -230,6 +230,9 @@ export function parseCsvLine(output) {
  * @param {Object} [options] - Options.
  * @param {string} [options.dir] - Suite directory.
  * @param {boolean} [options.useCompiler] - Compile top-level definitions.
+ * @param {boolean} [options.allowCaptures] - Compile those that capture a
+ *   continuation, or reach one that does, too, which the tier declines by
+ *   default.
  * @returns {{seconds: (number|null), label: string, incorrect: boolean,
  *   error: (string|null), compiled: number, definitions: number,
  *   output: string}} The run's outcome, with how many of the program's
@@ -237,7 +240,7 @@ export function parseCsvLine(output) {
  *   compiled would mean the harness was measuring the wrong thing.
  */
 export function runR7rsBenchmark(name, params, count, options = {}) {
-  const { dir = R7RS_DIR, useCompiler = false } = options;
+  const { dir = R7RS_DIR, useCompiler = false, allowCaptures = false } = options;
   const { prelude, body } = assembleParts(name, params, count, 'scheme-js-4', dir);
 
   const chunks = [];
@@ -264,13 +267,13 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
     // control global and is still unsafe, because `dig-maze` escapes through
     // it. Definitions are still compiled *as they appear* rather than in a
     // sweep, for the reason given above.
-    const unsafe = useCompiler ? unsafeDefinitions(asts, env) : new Map();
+    const unsafe = useCompiler && !allowCaptures ? unsafeDefinitions(asts, env) : new Map();
 
     for (const ast of asts) {
       const procedure = ast instanceof DefineNode && ast.valueExpr instanceof LambdaNode;
       if (ast instanceof DefineNode) definitions++;
       if (useCompiler && procedure && !unsafe.has(ast.name)) {
-        const result = tryCompileDefinition(ast, env);
+        const result = tryCompileDefinition(ast, env, { allowCaptures });
         if (result.compiled) {
           env.define(result.name, result.procedure);
           compiled++;
@@ -280,7 +283,7 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
         // A top-level expression, or a definition's value, that makes
         // procedures or loops: `nboyer` assigns every procedure it has from
         // inside one top-level `let`.
-        const result = tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env);
+        const result = tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, { allowCaptures });
         if (result.compiled) {
           const value = runCompiledThunk(interpreter, env, result.procedure);
           if (ast instanceof DefineNode) env.define(ast.name, value);

@@ -2658,6 +2658,21 @@ is what a program met.
 as its characters; compiled code calls a JavaScript function through `callForeign`, which converts
 as the interpreter does.
 
+**R90. Declining procedures that capture is faster only when captures are frequent.**
+
+The default that declines a procedure capturing a continuation, and every procedure that can
+reach one, was kept on `btsearch`, where it was the difference between 2x faster and 2x slower,
+and `ctak`. Measured with it on and off on all nine benchmark programs that capture, it is the
+faster choice on three -- `btsearch` 4.5x, which re-enters its continuations to backtrack, and
+`fibc` 1.8x and `ctak` 1.1-1.2x, which capture at every call -- and the slower on five, by far more:
+`quicksort` 21x, `puzzle` 4x, `maze` 3.8x, `contfib` 2.9x, `threads` 1.35x; two are unchanged.
+The losers of the default capture now and then, mostly to escape, which R86 found is nearly every
+capture in real libraries; `run_escapes.js` agrees, 1.5-3.9x.
+
+*Consequence:* the default cannot be justified on the programs it was chosen for, and cannot be
+turned the other way without costing those. Which way it goes, or whether it is decided per
+procedure as a program runs, is a decision for 37.
+
 ---
 
 ## Appendix — the original staged plan

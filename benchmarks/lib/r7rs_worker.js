@@ -33,7 +33,8 @@ console.log = (...args) => chunks.push(args.join(' '));
 let result;
 try {
   const run = runR7rsBenchmark(request.name, request.params, request.count, {
-    useCompiler: request.useCompiler
+    useCompiler: request.useCompiler,
+    allowCaptures: request.allowCaptures
   });
   result = {
     seconds: run.seconds,
