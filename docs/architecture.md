@@ -403,6 +403,7 @@ compile the page's own code as it runs (`src/compiler/tiering.js`).
 │   │   ├── vector_tests.js
 │   │   ├── char_tests.js
 │   │   ├── tiering_tests.js        # When the tier compiles a program's procedures, and what it leaves
+│   │   ├── capture_policy_tests.js # Captures compiled; re-entered procedures switched back to closures
 │   │   └── ...
 │   │
 │   └── integration/                # Library system tests

@@ -16,7 +16,7 @@ import { Cons } from './cons.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
 import { SchemeApplicationError, SchemeError } from './errors.js';
-import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlush } from './unwind.js';
+import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlush, noteResume } from './unwind.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
@@ -903,6 +903,7 @@ export class CompiledFrame extends Executable {
         interpreter.pushJsContext(registers[FSTACK]);
         let result;
         try {
+            noteResume(this.twin);
             result = this.twin(this.pc, frame);
             while (result instanceof TailCall) {
                 result = callWithSchemeValues(result.func, result.args);

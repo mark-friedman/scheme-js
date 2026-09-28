@@ -8,6 +8,7 @@
 import { toArray } from './cons.js';
 import { Symbol } from './symbol.js';
 import { SchemeSyntaxError } from './errors.js';
+import { setReentryHook } from './unwind.js';
 
 // =============================================================================
 // Feature Registry (for cond-expand)
@@ -336,6 +337,13 @@ export function substituteLibraryValues(replacements, registry = libraryRegistry
 const compiledOver = new Map();
 
 /**
+ * The environment each compiled procedure in `compiledOver` was installed
+ * into, for switching it back alone.
+ * @type {Map<Function, Object>}
+ */
+const installedIn = new Map();
+
+/**
  * The global environments of the programs being debugged, whose compiled
  * procedures run as their closures, each mapped to the library registry its
  * libraries were switched in.
@@ -384,6 +392,7 @@ export function recordCompiledOver(replaced, env) {
     const back = new Map();
     for (const [closure, compiled] of replaced) {
         compiledOver.set(compiled, closure);
+        installedIn.set(compiled, env);
         back.set(compiled, closure);
     }
     if (interpretingIn.has(env)) {
@@ -437,6 +446,40 @@ export function interpretCompiledOver(interpreted, globalEnv) {
     if (interpreted || !stillDebugged) substituteLibraryValues(replacements, registry);
     substituteInChain(globalEnv, replacements);
 }
+
+/**
+ * Switches one compiled procedure back to the interpreted closure it was
+ * compiled from, for good: where it was installed, in every library, and in
+ * every program being debugged. It is then no longer compiled over its
+ * closure, so the debugger's switching leaves it interpreted too. For a
+ * procedure whose saved frames continuations keep re-entering, which costs
+ * more compiled than interpreted (`noteResume` in `unwind.js`).
+ *
+ * Found by its resumable form, which is what the frames resumed carry; a
+ * procedure nested in a compiled one, which has no closure of its own, is
+ * left as it is.
+ *
+ * @param {Function} twin - The procedure's resumable form.
+ * @returns {boolean} Whether a procedure was switched back.
+ */
+export function switchBackToClosure(twin) {
+    let compiled = null;
+    for (const candidate of compiledOver.keys()) {
+        if (candidate.$resume === twin) { compiled = candidate; break; }
+    }
+    if (compiled === null) return false;
+    const closure = compiledOver.get(compiled);
+    const env = installedIn.get(compiled);
+    compiledOver.delete(compiled);
+    installedIn.delete(compiled);
+    const replacements = new Map([[compiled, closure]]);
+    substituteLibraryValues(replacements);
+    if (env) substituteInChain(env, replacements);
+    for (const registry of new Set(interpretingIn.values())) substituteLibraryValues(replacements, registry);
+    return true;
+}
+
+setReentryHook(switchBackToClosure);
 
 /**
  * Gets all loaded library keys (for debugging).

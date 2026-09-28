@@ -123,14 +123,14 @@ export function runProgram({ interpreter, env }, forms, toCompile) {
     for (const text of forms) {
       const ast = analyze(parse(text)[0]);
       if (ast instanceof DefineNode && wanted.has(ast.originalName || ast.name)) {
-        const result = tryCompileDefinition(ast, env, { allowCaptures: true });
+        const result = tryCompileDefinition(ast, env);
         if (result.compiled) {
           env.define(result.name, result.procedure);
           compiled++;
           continue;
         }
       } else if (toCompile !== null && !(ast instanceof DefineNode)) {
-        const result = tryCompileExpression(ast, env, { allowCaptures: true });
+        const result = tryCompileExpression(ast, env);
         if (result.compiled) {
           value = runCompiledThunk(interpreter, env, result.procedure);
           compiled++;

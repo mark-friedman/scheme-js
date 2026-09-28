@@ -87,9 +87,13 @@ function generateBounded(lowered, name, env) {
  * @param {Object} ast - An analyzed top-level node.
  * @param {Object} env - The environment the definition belongs to.
  * @param {Object} [options] - Options.
- * @param {boolean} [options.allowCaptures=false] - Compile a procedure that
- *   captures a continuation. It works, and it is slower than interpreting it,
- *   so it is off by default; see `safety.js` for the measurements.
+ * @param {boolean} [options.declineCaptures=false] - Decline a procedure that
+ *   captures a continuation, as the tier once did by default. It is compiled
+ *   otherwise: nearly every capture is an escape, which compiled code pays for
+ *   easily, and one whose continuations are re-entered over and over is
+ *   switched back to its closure as the program runs, where it has one
+ *   (`noteResume` in `src/core/interpreter/unwind.js`). See `safety.js` for
+ *   the measurements.
  * @returns {CompileResult} The outcome.
  */
 export function tryCompileDefinition(ast, env, options = {}) {
@@ -121,20 +125,15 @@ function compileLambda(value, name, env, span, options) {
     return { compiled: false, reason: lowered.reason };
   }
 
-  // A procedure that names `call/cc`, `dynamic-wind` or the like is declined
+  // A procedure that names `dynamic-wind`, `guard` or the like is declined
   // because there is no IR for those forms, not because compiling it would be
-  // wrong. A caller that can see the whole unit should use `compileProgram`,
-  // which additionally holds back the procedures a capture would unwind
-  // through -- a speed judgement rather than a correctness one.
+  // wrong.
   const control = controlGlobalIn(lowered.globals);
   if (control !== null) {
     return { compiled: false, reason: `references control global '${control}'` };
   }
-  if (lowered.captures && options.allowCaptures !== true) {
-    return {
-      compiled: false,
-      reason: 'captures a continuation, which costs more compiled than interpreted'
-    };
+  if (lowered.captures && options.declineCaptures === true) {
+    return { compiled: false, reason: 'captures a continuation, and captures are declined' };
   }
 
   const generated = generateBounded(lowered, name, env);
@@ -247,9 +246,10 @@ export function runCompiledThunk(interpreter, env, thunk) {
  *
  * @param {Function} closure - An interpreted Scheme closure.
  * @param {string} name - The name to compile it under.
+ * @param {Object} [options] - As for `tryCompileDefinition`.
  * @returns {CompileResult} The outcome.
  */
-export function tryCompileClosure(closure, name) {
+export function tryCompileClosure(closure, name, options = {}) {
   if (typeof closure !== 'function' || closure.body === undefined) {
     return { compiled: false, reason: 'not an interpreted closure' };
   }
@@ -262,6 +262,9 @@ export function tryCompileClosure(closure, name) {
   const control = controlGlobalIn(lowered.globals);
   if (control !== null) {
     return { compiled: false, reason: `references control global '${control}'` };
+  }
+  if (lowered.captures && options.declineCaptures === true) {
+    return { compiled: false, reason: 'captures a continuation, and captures are declined' };
   }
 
   // Compiled in the closure's *own* environment, so its free variables resolve
@@ -345,11 +348,12 @@ export function generateEnvironment(env, options = {}) {
     }
   }
 
-  // Decided over the whole set before anything is generated, because whether
-  // one procedure is worth compiling depends on what its callees do.
-  const unsafe = options.allowContinuationUnsafe
-    ? new Map()
-    : unsafeClosures(entries, env, { strict: options.strict === true });
+  // Only when asked: the old rule, which declines every procedure a capture
+  // could unwind through, decided over the whole set because the answer for
+  // one depends on what its callees do.
+  const unsafe = options.declineCaptures === true
+    ? unsafeClosures(entries, env, { strict: options.strict === true })
+    : new Map();
 
   const generated = [];
   const declined = [];
@@ -371,11 +375,8 @@ export function generateEnvironment(env, options = {}) {
       declined.push({ name, reason: `references control global '${control}'` });
       continue;
     }
-    if (lowered.captures && options.allowCaptures !== true) {
-      declined.push({
-        name,
-        reason: 'captures a continuation, which costs more compiled than interpreted'
-      });
+    if (lowered.captures && options.declineCaptures === true) {
+      declined.push({ name, reason: 'captures a continuation, and captures are declined' });
       continue;
     }
 
@@ -407,24 +408,21 @@ export function generateEnvironment(env, options = {}) {
  * A compiled procedure can be part of a captured continuation: on learning that
  * a callee is capturing, it saves its locals and where it had got to, and is
  * resumed from there when the continuation is invoked. So compiling such a
- * procedure is correct.
- *
- * It is often not *fast*, which is why they are still declined by default. A
- * procedure that a capture unwinds through pays to suspend and resume on every
- * capture, and on a capture-heavy program that costs more than interpreting it.
- * The analysis that finds them is in `safety.js`, which explains the measured
- * trade-off.
- *
- * One shape is genuinely not supported and is refused rather than answered:
- * a capture crossing more than one boundary between compiled and interpreted
- * code. See `CallCCNode` in `src/core/interpreter/ast_nodes.js`.
+ * procedure is correct, and it is done by default: nearly every capture is an
+ * escape, which compiled code pays for easily. What does not pay is a
+ * continuation re-entered over and over, and a procedure whose frames are is
+ * switched back to its closure as the program runs -- which is why each
+ * procedure is compiled over the closure the interpreter made of its
+ * definition, and recorded so (`recordCompiledOver`), as the debugger needs
+ * too. `declineCaptures` restores the old rule, from `safety.js`, which
+ * explains the measured trade-off.
  *
  * @param {Array<Object>} asts - Analyzed top-level nodes, in order.
  * @param {Object} env - The environment to define into.
  * @param {Object} interpreter - The interpreter, for the remaining forms.
  * @param {Object} [options] - Options.
- * @param {boolean} [options.allowContinuationUnsafe=false] - Compile every
- *   definition, including those a capture unwinds through.
+ * @param {boolean} [options.declineCaptures=false] - Decline every definition
+ *   a capture could unwind through, and every one that captures.
  * @param {boolean} [options.strict=false] - Also decline a procedure that calls
  *   a callee it cannot name.
  * A top-level expression, or the value of a definition that is not a
@@ -440,13 +438,12 @@ export function compileProgram(asts, env, interpreter, options = {}) {
   const compiled = [];
   const declined = [];
 
-  // Which definitions a capture could unwind through. Computed over the whole
-  // unit before anything is compiled, because the answer for one procedure
-  // depends on what its callees do -- `make-maze` names no control global and
-  // is still reached, because `dig-maze` escapes through it.
-  const unsafe = options.allowContinuationUnsafe
-    ? new Map()
-    : unsafeDefinitions(asts, env, { strict: options.strict === true });
+  // The old rule, only when asked: which definitions a capture could unwind
+  // through, computed over the whole unit before anything is compiled,
+  // because the answer for one procedure depends on what its callees do.
+  const unsafe = options.declineCaptures === true
+    ? unsafeDefinitions(asts, env, { strict: options.strict === true })
+    : new Map();
 
   // Kept for callers that ask "was the unit refused wholesale?". It is no
   // longer how the decision is made; a unit that uses continuations in one
@@ -454,23 +451,39 @@ export function compileProgram(asts, env, interpreter, options = {}) {
   const firstUnsafe = unsafe.size > 0 ? [...unsafe.entries()][0] : null;
   const unitDeclined = firstUnsafe === null ? null : `${firstUnsafe[0]}: ${firstUnsafe[1]}`;
 
-  const compileOptions = { allowCaptures: options.allowContinuationUnsafe === true };
+  const compileOptions = { declineCaptures: options.declineCaptures === true };
+  const run = (ast) => interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
   let value;
   let expressions = 0;
   for (const ast of asts) {
     const unsafeReason = ast instanceof DefineNode ? unsafe.get(ast.name) : undefined;
     const procedure = ast instanceof DefineNode && ast.valueExpr instanceof LambdaNode;
+
+    if (procedure) {
+      // Defined as the interpreter defines it, then compiled from the closure
+      // that made, so that the pair is recorded: a debugger runs the closure
+      // while the program is debugged, and a procedure whose continuations
+      // are re-entered is switched back to it for good.
+      run(ast);
+      value = undefined;
+      const closure = env.lookup(ast.name);
+      const result = unsafeReason !== undefined
+        ? { compiled: false, reason: unsafeReason }
+        : tryCompileClosure(closure, ast.name, compileOptions);
+      if (result.compiled) {
+        env.rebind(ast.name, result.procedure);
+        recordCompiledOver(new Map([[closure, result.procedure]]), env);
+        compiled.push(ast.name);
+      } else {
+        declined.push({ name: ast.name, reason: result.reason });
+      }
+      continue;
+    }
+
     const result = unsafeReason !== undefined
       ? { compiled: false, reason: unsafeReason }
-      : procedure
-        ? tryCompileDefinition(ast, env, compileOptions)
-        : tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, compileOptions);
-
-    if (result.compiled && procedure) {
-      env.define(result.name, result.procedure);
-      compiled.push(result.name);
-      value = undefined;
-    } else if (result.compiled) {
+      : tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, compileOptions);
+    if (result.compiled) {
       // An expression, or a definition's value: called once, here.
       value = runCompiledThunk(interpreter, env, result.procedure);
       if (ast instanceof DefineNode) {
@@ -481,7 +494,7 @@ export function compileProgram(asts, env, interpreter, options = {}) {
     } else {
       // Run it the ordinary way. Order is preserved because this happens in
       // the same pass rather than in a second one.
-      value = interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
+      value = run(ast);
       if (ast instanceof DefineNode) declined.push({ name: ast.name, reason: result.reason });
     }
   }

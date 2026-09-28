@@ -343,20 +343,15 @@ const CASES = [
 ];
 
 /**
- * Programs that use continuations, with the procedures the tier declines.
+ * Programs that use continuations, with procedures a capture unwinds through.
  *
- * What matters in every case is that the answer is right. The decline lists sit
- * beside it for a narrower reason: they stop a case passing because nothing was
- * compiled, and they record which procedures the default policy holds back.
- *
- * That policy is no longer about correctness. A compiled procedure can be part
- * of a captured continuation now, so any of these could be compiled and still
- * give the right answer -- `CAPTURE_CASES` compiles several of them on purpose.
- * They are declined because a procedure that a capture repeatedly unwinds
- * through is slower compiled than interpreted. `fail` and `enumerate` in the
- * backtracking case are deliberately *not* listed: neither reaches a capture by
- * a route the analysis follows, so both are compiled, and the answer is still
- * right.
+ * What matters in every case is that the answer is right. The lists sit beside
+ * it for a narrower reason: they stop a case passing because nothing was
+ * compiled. Each names procedures the tier once declined, because a capture
+ * unwinds through them, and compiles now: nearly every capture is an escape,
+ * which compiled code pays for easily, and one re-entered over and over is
+ * switched back to its closure as the program runs
+ * (`tests/functional/capture_policy_tests.js`).
  */
 const CONTINUATION_CASES = [
   ['escape', '(define (f) (call/cc (lambda (k) (+ 1 (k 42))))) (f)', '42', ['f']],
@@ -378,7 +373,9 @@ const CONTINUATION_CASES = [
     '(define (search n) (let* ((x (in-range 0 n)) (y (in-range 0 n)))' +
     '  (if (< (+ x y) (* n 2)) (fail) (cons x y))))' +
     '(search 5)', '(5 . 5)', ['in-range', 'search']],
-  ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3))) (f)', '2', ['f']],
+  // `f` names `dynamic-wind`, which has no IR, so it is still declined, for
+  // that reason (`MUST_DECLINE`); the answer is what is tested here.
+  ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3))) (f)', '2', []],
   // The escape variant, and the one that bites in practice. `caller` never
   // mentions `call/cc`, so a per-procedure rule compiles it happily -- but the
   // escape unwinds past its frame and the escape value becomes *its* result.
@@ -688,7 +685,7 @@ const CAPTURE_CASES = [
     "(let ((n 0) (seen (quote ())))"
       + " (let ((v (collect (lambda (x) (collect (lambda (y) (+ 1 (grab (* x y)))) (list 1 2))) (list 10 20))))"
       + " (set! seen (cons v seen)) (set! n (+ n 1)) (if (< n 3) (saved (* 100 n)) (list n seen))))",
-    ['each', 'collect', 'grab'], { allowCaptures: true }],
+    ['each', 'collect', 'grab']],
   // A capture beneath a primitive that called a procedure back, with compiled
   // code beneath the primitive. The unwind cannot pass the primitive, so the
   // continuation is taken as the interpreter takes it beneath any JavaScript
@@ -711,7 +708,7 @@ const CAPTURE_CASES = [
       + ' th (lambda () (set! trail (cons (quote out) trail)))))'
       + ' (define (p0 x y) (call/cc (lambda (k1) (call/cc (lambda (c2) x)) (k1 y))))',
     '(list (w (lambda () (p0 0 3))) trail)',
-    ['p0'], { allowCaptures: true }],
+    ['p0']],
   // Compiled code a primitive called back, calling an interpreted procedure
   // that captures. The run that procedure starts cannot pass the unwind on,
   // since `m` would hand it to `js-invoke`, so it finishes the capture itself.
@@ -760,9 +757,8 @@ const ERROR_CASES = [
  * is a feature, so it is tested like one.
  */
 const MUST_DECLINE = [
-  // Declined because compiling it is *slower*, not because it cannot be done.
-  // The capability is exercised below, with the default lifted.
-  ['call/cc', '(define (f) (call/cc (lambda (k) (k 1))))', 'captures a continuation'],
+  // A capture is not declined: nearly every capture is an escape, which
+  // compiled code pays for easily (tests/functional/capture_policy_tests.js).
   ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3)))', 'dynamic-wind'],
   // `call-with-values` is compiled when it is *called* directly, by rewriting
   // it away; a reference by any other route still has to decline, because the
@@ -1153,9 +1149,9 @@ export async function runCompilerTests(interpreter, logger) {
     assert(logger, `declines ${name}`, mentions, true);
   }
 
-  logger.title('Compiler - Procedures a Capture Unwinds Through Are Declined');
+  logger.title('Compiler - Procedures a Capture Unwinds Through Are Compiled');
 
-  for (const [name, source, expected, mustDecline] of CONTINUATION_CASES) {
+  for (const [name, source, expected, unwoundThrough] of CONTINUATION_CASES) {
     let outcome;
     try {
       outcome = evaluate(source, template, true);
@@ -1163,9 +1159,9 @@ export async function runCompilerTests(interpreter, logger) {
       logger.fail(`${name}: threw ${e.message}`);
       continue;
     }
-    for (const required of mustDecline) {
-      assert(logger, `${name} declines ${required}`,
-        outcome.compiled.includes(required), false);
+    for (const required of unwoundThrough) {
+      assert(logger, `${name} compiles ${required}`,
+        outcome.compiled.includes(required), true);
     }
     assert(logger, `${name} still produces the right answer`, render(outcome.value), expected);
   }
@@ -1393,7 +1389,7 @@ export async function runCompilerTests(interpreter, logger) {
       let compiled = 0;
       try {
         const outcome = evaluateSelective(
-          source, probe, template, ['f', 'ctak-aux'], { allowCaptures: true });
+          source, probe, template, ['f', 'ctak-aux']);
         got = render(outcome.value);
         compiled = outcome.compiled;
       } catch (e) {
@@ -1549,16 +1545,15 @@ export async function runCompilerTests(interpreter, logger) {
   // This case is the reason the reachability analysis exists: `search` and
   // `enumerate` have to be re-entered when the search backtracks, and a
   // compiled frame could not be re-entered, so both had to be declined. Now
-  // they can be, and the point of running with the guard deliberately off is
-  // that with it on these procedures are never compiled and the mechanism that
-  // re-enters them is never exercised at all.
+  // they can be, and are by default -- with the old rule, these procedures were
+  // never compiled and the mechanism that re-enters them never exercised.
   {
     const [, backtracking, expected] = CONTINUATION_CASES[2];
     const { interpreter: fresh, env } = freshEnvironment(template);
     const asts = parse(backtracking).map((form) => analyze(form));
     const definitions = asts.filter((a) => a instanceof DefineNode);
     const rest = asts.filter((a) => !(a instanceof DefineNode));
-    const outcome = compileProgram(definitions, env, fresh, { allowContinuationUnsafe: true });
+    const outcome = compileProgram(definitions, env, fresh);
 
     let value;
     let message = null;
@@ -1577,10 +1572,9 @@ export async function runCompilerTests(interpreter, logger) {
   }
 
   // `tryCompileDefinition` is the incremental entry point, and it carries *no*
-  // continuation guard: it declines a lambda that mentions a control global and
-  // compiles its callers regardless. Both benchmark harnesses use it. What used
-  // to make that unsound was that the compiled caller could not be part of the
-  // continuation; now it can, so the per-definition path is correct here too.
+  // continuation guard: it compiles a lambda that captures, and its callers. What
+  // used to make that unsound was that a compiled caller could not be part of
+  // the continuation; now it can, so the per-definition path is correct here.
   {
     const source =
       '(define (escaper n)'
@@ -1609,8 +1603,8 @@ export async function runCompilerTests(interpreter, logger) {
       message = e.message;
     }
 
-    assert(logger, 'the per-definition path declines only the procedure naming call/cc',
-      compiled, 1);
+    assert(logger, 'the per-definition path compiles both, the procedure naming call/cc included',
+      compiled, 2);
     // This used to return `escaped` -- the escape value, with everything
     // `caller` had left to do silently dropped -- and then, for a while, to be
     // refused outright rather than answered wrongly. Now `caller` suspends

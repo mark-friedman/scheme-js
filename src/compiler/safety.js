@@ -1,5 +1,12 @@
 /**
- * @fileoverview Which procedures the compiler tier declines, and why.
+ * @fileoverview A rule for declining procedures a capture could unwind through,
+ * which the compiler tier applied by default and now applies only on request
+ * (`declineCaptures`).
+ *
+ * What replaced it decides as the program runs: every procedure is compiled,
+ * those that capture included, and one whose saved frames continuations keep
+ * re-entering is switched back to its interpreted closure (`noteResume` in
+ * `src/core/interpreter/unwind.js`). The measurements below are why.
  *
  * ## What this used to be for, and no longer is
  *
@@ -23,7 +30,7 @@
  * `src/core/interpreter/unwind.js`. What is left here is a **performance**
  * rule, and a mixed one: a procedure that a capture repeatedly unwinds through
  * pays to suspend and resume every time, which can cost more than interpreting
- * it outright. Measured with the rule on and off (`--captures` on
+ * it outright. Measured with the rule on and off (`--decline-captures` on
  * `benchmarks/run_compiled.js` and `run_r7rs.js`), it wins where captures are
  * frequent or re-entered -- `btsearch` 4.5x, `fibc` 1.8x, `ctak` 1.1-1.2x --
  * and loses where a capture is an escape taken now and then -- `quicksort`
@@ -229,10 +236,10 @@ function unsafeFromFacts(local, env, options) {
       // The compiler *can* compile this -- a capture is an ordinary call site
       // that suspends. It is held back because it is slower: every capture
       // unwinds and reifies the frames between it and the interpreter, and a
-      // program that captures in a loop pays that each time. It is a default,
-      // not a rule, and `allowContinuationUnsafe` lifts it: which way it
-      // should go depends on how often the program captures, and the numbers
-      // for both are in the module comment.
+      // program that captures in a loop pays that each time. It is applied
+      // only when a caller asks for it (`declineCaptures`): which way it
+      // should go depends on how the program uses its continuations, and the
+      // numbers are in the module comment.
       unsafe.set(name, 'captures a continuation, which costs more compiled than interpreted');
     } else if (strict && facts.callsUnknown) {
       unsafe.set(name, 'calls a procedure it is given, which may capture a continuation');

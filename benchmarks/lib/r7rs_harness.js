@@ -59,7 +59,8 @@ import { createBenchmarkInterpreter } from './harness.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { DefineNode, LambdaNode } from '../../src/core/interpreter/ast_nodes.js';
-import { tryCompileDefinition, tryCompileExpression, runCompiledThunk } from '../../src/compiler/index.js';
+import { tryCompileClosure, tryCompileExpression, runCompiledThunk } from '../../src/compiler/index.js';
+import { recordCompiledOver } from '../../src/core/interpreter/library_registry.js';
 import { unsafeDefinitions } from '../../src/compiler/safety.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -230,9 +231,8 @@ export function parseCsvLine(output) {
  * @param {Object} [options] - Options.
  * @param {string} [options.dir] - Suite directory.
  * @param {boolean} [options.useCompiler] - Compile top-level definitions.
- * @param {boolean} [options.allowCaptures] - Compile those that capture a
- *   continuation, or reach one that does, too, which the tier declines by
- *   default.
+ * @param {boolean} [options.declineCaptures] - Decline those that capture a
+ *   continuation, or reach one that does, as the tier once did.
  * @returns {{seconds: (number|null), label: string, incorrect: boolean,
  *   error: (string|null), compiled: number, definitions: number,
  *   output: string}} The run's outcome, with how many of the program's
@@ -240,7 +240,7 @@ export function parseCsvLine(output) {
  *   compiled would mean the harness was measuring the wrong thing.
  */
 export function runR7rsBenchmark(name, params, count, options = {}) {
-  const { dir = R7RS_DIR, useCompiler = false, allowCaptures = false } = options;
+  const { dir = R7RS_DIR, useCompiler = false, declineCaptures = false } = options;
   const { prelude, body } = assembleParts(name, params, count, 'scheme-js-4', dir);
 
   const chunks = [];
@@ -261,29 +261,35 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
 
     const asts = parse(body).map((form) => analyze(form));
 
-    // Which definitions a continuation could be captured inside. Computed over
-    // the whole program before anything runs, because the answer for one
-    // procedure depends on what its callees do -- `maze`'s `make-maze` names no
-    // control global and is still unsafe, because `dig-maze` escapes through
-    // it. Definitions are still compiled *as they appear* rather than in a
-    // sweep, for the reason given above.
-    const unsafe = useCompiler && !allowCaptures ? unsafeDefinitions(asts, env) : new Map();
+    // Only for `declineCaptures`, the old rule: which definitions a
+    // continuation could be captured inside, computed over the whole program
+    // before anything runs, because the answer for one procedure depends on
+    // what its callees do -- `maze`'s `make-maze` names no control global and
+    // is reached, because `dig-maze` escapes through it.
+    const unsafe = useCompiler && declineCaptures ? unsafeDefinitions(asts, env) : new Map();
 
     for (const ast of asts) {
       const procedure = ast instanceof DefineNode && ast.valueExpr instanceof LambdaNode;
       if (ast instanceof DefineNode) definitions++;
-      if (useCompiler && procedure && !unsafe.has(ast.name)) {
-        const result = tryCompileDefinition(ast, env, { allowCaptures });
+      if (useCompiler && procedure) {
+        // Defined as the interpreter defines it, then compiled from the
+        // closure that made, as the tier compiles a program's procedures: so
+        // one whose continuations are re-entered can be switched back to it.
+        interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
+        if (unsafe.has(ast.name)) continue;
+        const closure = env.lookup(ast.name);
+        const result = tryCompileClosure(closure, ast.name, { declineCaptures });
         if (result.compiled) {
-          env.define(result.name, result.procedure);
+          env.rebind(ast.name, result.procedure);
+          recordCompiledOver(new Map([[closure, result.procedure]]), env);
           compiled++;
-          continue;
         }
+        continue;
       } else if (useCompiler && !procedure) {
         // A top-level expression, or a definition's value, that makes
         // procedures or loops: `nboyer` assigns every procedure it has from
         // inside one top-level `let`.
-        const result = tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, { allowCaptures });
+        const result = tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, { declineCaptures });
         if (result.compiled) {
           const value = runCompiledThunk(interpreter, env, result.procedure);
           if (ast instanceof DefineNode) env.define(ast.name, value);

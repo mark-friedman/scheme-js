@@ -540,30 +540,42 @@ Two different questions, deliberately kept apart.
 
 **Cannot be expressed.** Lowering fails and reports a reason. The procedure stays interpreted.
 
-**Can be expressed but should not be compiled.** A judgement needing more than one lambda to make,
-because it depends on what the callees do. `src/compiler/safety.js` closes it over the call graph:
-`maze`'s `make-maze` names no control global and is still held back, because `dig-maze` escapes
-through it.
+**Can be expressed, and might be slower compiled.** A procedure that captures a continuation, or
+that a capture unwinds through, is compiled; whether that pays is decided as the program runs.
+Compiled frames can take part in a captured continuation, so this is not a soundness question. It
+is a speed one: each capture unwinds and saves the compiled frames beneath it, and each re-entry
+resumes them, which costs more than the interpreter's copy of its frame stack.
 
-Since compiled frames can take part in a captured continuation, this is **no longer a soundness
-device**. What it holds back, it holds back for speed: a procedure a capture repeatedly unwinds
-through pays to suspend and resume every time, and on capture-heavy code that costs more than
-interpreting it.
+Measured with every such procedure declined and with all compiled (`--decline-captures` on
+`benchmarks/run_compiled.js` and `benchmarks/run_r7rs.js`), declining wins on three programs --
+`btsearch` 4.5x, `fibc` 1.8x, `ctak` 1.1-1.2x -- and loses on five, by more -- `quicksort` 21x,
+`puzzle` 4x, `maze` 3.8x, `contfib` 2.9x, `threads` 1.35x. The winners of declining re-enter their
+continuations or capture at every call; the losers escape now and then, which is nearly every
+capture in real libraries (`benchmarks/decline_reasons.js --corpus`, results in
+`corpus_decline_results.md`: 98% of the procedures declined for a control form ended at `call/cc`).
+No static test tells the shapes apart -- both are `call/cc` -- so a count made as the program runs
+does:
 
-**What the rule costs real programs is `call/cc` used as an escape.** `ir.scm`'s control globals
-include not only `call/cc` but `guard`, `raise`, `with-exception-handler`, `parameterize`,
-`dynamic-wind` and `exit`, and the rule declines every procedure that can reach one, or that
-captures. The benchmark programs and the compiler's own Scheme avoid these forms, so the measure is
-a corpus of SRFI reference implementations and Snow-Fort packages
-(`benchmarks/decline_reasons.js --corpus`, results in `corpus_decline_results.md`): 98% of the
-procedures declined for a control form end at `call/cc`, mostly by reaching one through another
-procedure, and the exception forms decline almost none. Nearly every capture there is an escape --
-the continuation called once, before the capture returns, to leave a search or a fold -- and for
-that shape the speed argument above runs the other way: compiling the captures is 1.5-3.9x faster
-than declining them (`benchmarks/run_escapes.js`), because an escape is taken once per call rather
-than re-entered, while the declined procedures pay the interpreter on every call. The argument holds
-for code that re-enters its continuations, which in that corpus is coroutine generators and
-backtracking.
+- **Every compiled frame saved is counted, and every saved frame resumed**, per procedure
+  (`reify` and `noteResume` in `src/core/interpreter/unwind.js`). An escape saves a frame and
+  resumes it once; so does a frame moved to the heap to make room on the JavaScript stack.
+  Backtracking resumes the same saved frame again and again: `btsearch` resumes its frames 200
+  times for each save.
+- **A procedure whose frames are resumed at least four times as often as they are saved, after a
+  thousand resumes, is switched back to its interpreted closure, for good**
+  (`switchBackToClosure` in `library_registry.js`): where it was installed, in every library, and
+  in the programs being debugged. It is then no longer compiled over its closure, so the debugger's
+  switching leaves it alone.
+
+That needs the closure, so every procedure is compiled over the one the interpreter made of its
+definition, and the pair recorded: the tier, `compileProgram`, `compileEnvironment`, the prebuilt
+tables and the canonical benchmark harness all do. A procedure nested in a compiled one has no
+closure of its own and stays compiled; so does anything compiled from its analyzed definition
+(`tryCompileDefinition`). `safety.js` keeps the old rule, closed over the call graph, for
+`declineCaptures`.
+
+What the count does not catch is a program that captures at every call and resumes each frame
+once -- `fibc`, `ctak` -- which is the shape the escape fast path below is for.
 
 An escape also needs less than the protocol gives it. A continuation called while the capture that
 made it is still on the stack reifies nothing it will use: a JavaScript `throw` caught at the

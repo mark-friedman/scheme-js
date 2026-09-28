@@ -8306,3 +8306,62 @@ anyway, and all nine benchmark programs that capture were run both ways, twice (
 
 The comments in `src/compiler/safety.js` that justified the default with the old figures now give
 these. Which way the default should go is left for a decision.
+
+# Walkthrough: the capture policy, decided as the program runs
+
+Task 37 in `docs/compiler_plan.md`, its first step completed. The tier declined every procedure
+that captured a continuation or reached one; measured, that was the slower choice on five of the
+nine programs that capture and the faster on three (R90). Decided: compile them all, and switch a
+procedure back as the program runs when compiling it does not pay.
+
+## Which signal
+
+Counting captures could not have worked. Instrumented, the winners and losers overlap: `contfib`, a
+2.9x win compiled, saves and resumes 32,836 frames in 20 ms, faster than any loser does. What
+separates them is re-entry. An escape saves a frame and resumes it once, and so does a frame moved
+to the heap to make room on the JavaScript stack; `btsearch`, which backtracks, resumes its frames
+81,204 times for 404 saves. Every winner resumes once per save.
+
+## What changed
+
+- **Captures compile by default** -- in the tier, `compileProgram`, `generateEnvironment` and so
+  the prebuilt tables, and the canonical harness. `declineCaptures` restores the old rule, and
+  `--decline-captures` on `run_compiled.js` and `run_r7rs.js` measures against it.
+- **Saves and resumes are counted per procedure** (`reify` and `noteResume` in
+  `src/core/interpreter/unwind.js`). A procedure whose frames are resumed at least four times as
+  often as saved, after a thousand resumes, is switched back to the interpreted closure it was
+  compiled from, for good (`switchBackToClosure` in `library_registry.js`): where it was installed,
+  in every library, and in programs being debugged; it is then no longer compiled over its closure,
+  so the debugger leaves it interpreted.
+- **`compileProgram` and the canonical harness compile over closures**: each procedure definition
+  runs as the interpreter runs it, then the closure is compiled and the pair recorded, as the tier
+  does -- which also lets the debugger switch them.
+
+## Measured
+
+| program | the old rule | now |
+|---|---|---|
+| `btsearch` | 69-71 ms | 69-72 ms: switched back, as fast as before |
+| `quicksort` | 156-175 ms | 7.4-7.9 ms |
+| `puzzle` | 96-99 ms | 24-25 ms |
+| `maze` | 2.8 ms | 0.75-0.78 ms |
+| `contfib` | 26 ms | 9 ms |
+| `threads` | 45-49 ms | 35 ms |
+| `fibc` | 62-64 ms | 110-113 ms |
+| `ctak` | 97-100 ms, 162-166 ms | 116 ms, 189-203 ms |
+
+`fibc` and `ctak` capture at every call and resume each frame once, which the count does not catch;
+the escape fast path, 37's next step, is for that shape.
+
+## Tests
+
+- `tests/functional/capture_policy_tests.js`: procedures that escape, or reach an escape, compiled;
+  an escape taken 5,000 times leaves them compiled; a backtracking search switched back mid-run,
+  answering the same, and staying interpreted after debugging switches everything back and forth; a
+  procedure no re-entered continuation holds staying compiled; recursion deep enough to move frames
+  to the heap, many times over, not taken for re-entry; `compileProgram` compiling over closures.
+  The switch, the ratio and the minimum were each broken in turn to check a test fails.
+- The compiler tests that asserted the old declines now assert the procedures are compiled, with
+  the same answers.
+- 6,339 tests pass in Node and 6,230 in the browser; 2,000 fresh fuzzer programs agree, with the
+  tier compiling 4,627 procedures among them against 2,726 under the old rule.

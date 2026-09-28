@@ -7,11 +7,10 @@
  * where nothing was compiled would mean the harness was measuring the wrong
  * thing, so the acceptance count is reported alongside.
  *
- * Usage: node benchmarks/run_compiled.js [--runs N] [--captures]
+ * Usage: node benchmarks/run_compiled.js [--runs N] [--decline-captures]
  *
- * `--captures` compiles every procedure, those that capture a continuation or
- * reach one that does included, rather than declining them as the tier does by
- * default: for measuring that default.
+ * `--decline-captures` declines every procedure that captures a continuation or
+ * reaches one that does, the tier's old default, for measuring against it.
  */
 
 import fs from 'fs';
@@ -27,7 +26,7 @@ import { settle } from '../src/compiler/runtime.js';
 
 const runsIndex = process.argv.indexOf('--runs');
 const RUNS = runsIndex >= 0 ? parseInt(process.argv[runsIndex + 1], 10) : 5;
-const CAPTURES = process.argv.includes('--captures');
+const DECLINE_CAPTURES = process.argv.includes('--decline-captures');
 
 /**
  * Loads a benchmark and returns a timed entry point for one tier.
@@ -51,7 +50,7 @@ function prepare(bench, size, useCompiler) {
   if (useCompiler) {
     const definitions = asts.filter((a) => a instanceof DefineNode);
     const others = asts.filter((a) => !(a instanceof DefineNode));
-    outcome = compileProgram(definitions, env, interpreter, { allowContinuationUnsafe: CAPTURES });
+    outcome = compileProgram(definitions, env, interpreter, { declineCaptures: DECLINE_CAPTURES });
     for (const ast of others) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
   } else {
     for (const ast of asts) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);

@@ -2,15 +2,16 @@
  * What the policy for procedures that capture a continuation costs on
  * escapes.
  *
- * The compiler tier declines a procedure that captures, and every procedure
- * that can reach one (`src/compiler/safety.js`), because compiling a capture
- * made `btsearch` 2x slower: a backtracking search re-enters its continuations,
- * and each capture unwinds and reifies the compiled frames beneath it. Real
- * libraries mostly capture for another reason -- to return early, the
- * continuation called once, before the capture returns, often from inside a
- * callback. Of the corpus `decline_reasons.js --corpus` measures, nearly every
- * `call/cc` is that. This times that shape three ways: everything interpreted;
- * the default policy; and every procedure compiled, captures included.
+ * The compiler tier used to decline a procedure that captures, and every
+ * procedure that can reach one (`src/compiler/safety.js`), because compiling a
+ * capture made `btsearch` 2x slower: a backtracking search re-enters its
+ * continuations, and each capture unwinds and reifies the compiled frames
+ * beneath it. Real libraries mostly capture for another reason -- to return
+ * early, the continuation called once, before the capture returns, often from
+ * inside a callback. Of the corpus `decline_reasons.js --corpus` measures,
+ * nearly every `call/cc` is that. This times that shape three ways:
+ * everything interpreted; the old rule, declining; and every procedure
+ * compiled, captures included, which is the tier's default now.
  *
  * Two shapes, each at several depths of compiled frames beneath the capture,
  * since unwinding costs more the more there are:
@@ -71,7 +72,7 @@ const PROGRAM = `
 
 /**
  * Sets the program up under one policy.
- * @param {string} policy - `interpreted`, `default` or `captures`.
+ * @param {string} policy - `interpreted`, `declining` or `compiled`.
  * @returns {{pair: Object, compiled: Array<string>}} Where it runs, and the
  *   procedures compiled.
  */
@@ -79,13 +80,13 @@ function setUp(policy) {
   const pair = interpretedLibrary();
   installStandardLibrary(pair.env);
   const asts = parse(PROGRAM).map((form) => analyze(form));
-  const declined = policy === 'default'
+  const declined = policy === 'declining'
     ? unsafeDefinitions(asts.filter((ast) => ast instanceof DefineNode), pair.env)
     : new Map();
   const compiled = [];
   for (const ast of asts) {
     if (policy !== 'interpreted' && ast instanceof DefineNode && !declined.has(ast.name)) {
-      const result = tryCompileDefinition(ast, pair.env, { allowCaptures: policy === 'captures' });
+      const result = tryCompileDefinition(ast, pair.env, { declineCaptures: policy === 'declining' });
       if (result.compiled) {
         pair.env.define(result.name, result.procedure);
         compiled.push(ast.originalName ?? ast.name);
@@ -113,10 +114,10 @@ function time(pair, shape, depth) {
   return { us: (performance.now() - start) * 1000 / CALLS, value };
 }
 
-const policies = ['interpreted', 'default', 'captures'];
+const policies = ['interpreted', 'declining', 'compiled'];
 const tiers = Object.fromEntries(policies.map((policy) => [policy, setUp(policy)]));
 for (const policy of policies) console.log(`${policy.padEnd(11)} compiles: ${tiers[policy].compiled.join(' ') || 'nothing'}`);
-console.log(`\n${'shape'.padEnd(9)}${'depth'.padStart(6)}${policies.map((p) => p.padStart(13)).join('')}   captures vs default`);
+console.log(`\n${'shape'.padEnd(9)}${'depth'.padStart(6)}${policies.map((p) => p.padStart(13)).join('')}   compiled vs declining`);
 for (const shape of ['callback', 'abort']) {
   for (const depth of [0, 10, 50]) {
     const results = policies.map((policy) => time(tiers[policy].pair, shape, depth));

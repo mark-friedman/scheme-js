@@ -139,10 +139,10 @@ export async function runTieringTests(logger) {
     assert(logger, 'every top-level name holding a compiled closure is given the compiled procedure',
       [t.compiled('twice'), t.compiled('twice-too')].join(' '), 'true true');
 
-    t.run('(define (escape x) (call/cc (lambda (k) (k x))))');
-    assert(logger, 'a procedure the tier declines stays interpreted', t.compiled('escape'), false);
-    assert(logger, 'with its reason recorded', /continuation/.test(t.tier.outcomes.get('escape')), true);
-    assert(logger, 'and answers', t.run('(escape 7)'), '7');
+    t.run('(define (wound x) (dynamic-wind (lambda () #f) (lambda () x) (lambda () #f)))');
+    assert(logger, 'a procedure the tier declines stays interpreted', t.compiled('wound'), false);
+    assert(logger, 'with its reason recorded', /dynamic-wind/.test(t.tier.outcomes.get('wound')), true);
+    assert(logger, 'and answers', t.run('(wound 7)'), '7');
   }
 
   logger.title('Tiering - Top-Level Expressions');

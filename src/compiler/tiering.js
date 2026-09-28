@@ -120,6 +120,7 @@ class Tier {
     this.interpreter = interpreter;
     this.env = env;
     this.isPrebuilt = options.isPrebuilt ?? (() => false);
+    this.declineCaptures = options.declineCaptures === true;
 
     /**
      * Closures waiting to be compiled, each mapped to the name it was bound to
@@ -211,12 +212,18 @@ class Tier {
     // Rebound since: another closure, and its own count, have the name now.
     if (env.bindings.get(name) !== closure) return;
 
-    const unsafe = unsafeClosures([{ name, closure }], env).get(name);
-    if (unsafe !== undefined) {
-      this.outcomes.set(name, unsafe);
-      return;
+    // A procedure that captures, or reaches one that does, is compiled too:
+    // one whose continuations are re-entered over and over is switched back
+    // to its closure as the program runs (`noteResume` in
+    // `src/core/interpreter/unwind.js`). The old rule declined them all.
+    if (this.declineCaptures) {
+      const unsafe = unsafeClosures([{ name, closure }], env).get(name);
+      if (unsafe !== undefined) {
+        this.outcomes.set(name, unsafe);
+        return;
+      }
     }
-    const result = tryCompileClosure(closure, name);
+    const result = tryCompileClosure(closure, name, { declineCaptures: this.declineCaptures });
     if (!result.compiled) {
       this.outcomes.set(name, result.reason);
       return;
@@ -280,6 +287,8 @@ class Tier {
  * @param {function(Array<string>): boolean} [options.isPrebuilt] - Whether a
  *   library has a prebuilt table installed over it as it loads, so that its
  *   procedures are not the tier's. None has, by default.
+ * @param {boolean} [options.declineCaptures=false] - Decline procedures that
+ *   capture a continuation, or reach one that does, as the tier once did.
  * @returns {Tier|null} The tier, or null if code cannot be generated here -- a
  *   Content-Security-Policy forbids `new Function` -- and the program runs
  *   interpreted, which is a tier and not a failure. The compiler itself starts
