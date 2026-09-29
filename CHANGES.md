@@ -8365,3 +8365,39 @@ the escape fast path, 37's next step, is for that shape.
   the same answers.
 - 6,339 tests pass in Node and 6,230 in the browser; 2,000 fresh fuzzer programs agree, with the
   tier compiling 4,627 procedures among them against 2,726 under the old rule.
+
+# Walkthrough: the plan, reordered to move the system to Scheme
+
+A policy change and the plan reordering that follows from it. No code changed.
+
+The user asked that as much of the interpreter and compiler as can be be written in Scheme: for
+dogfooding, because a compiler is a good benchmark of itself, because a Scheme system should be able
+to host an effective and performant interpreter and compiler written in Scheme, and because the
+system should show Scheme at its best. Scheme and JavaScript call each other freely, so what stays
+JavaScript is the core runtime and the parts of libraries that need JavaScript features, not whatever
+happens to be called from JavaScript.
+
+## The audit behind it
+
+The branch adds about 6,850 lines of JavaScript to `src/` and 6,650 of Scheme. About a third of the
+JavaScript belongs in Scheme: the compiler's driver (`index.js`), the decline analysis (`safety.js`),
+the tier's policy (`tiering.js`), the capture policy's decision and the switch-back bookkeeping, most
+of the string library, and the five numeric comparisons, which were Scheme and were moved into
+`math.js` in Stage 1. About 8% -- `marshal.js` and most of `lowering.js` -- goes when the expander is
+Scheme. The rest is core runtime. The rule that new compiler code starts in Scheme, decided
+2026-09-23, had been kept for the compiler's passes and broken for the code around them, most
+recently in tasks 34, 49 and 37.
+
+## The plan
+
+- New tasks: the compiler's driver and the tier's policies in Scheme (50, absorbing 51); strings and
+  the other primitives above their JavaScript cores (61); debugging the system's own Scheme, a mode
+  the user asked for (62); the reader (63); the library system (64); the numeric tower's dispatch
+  (65); the printer (66); the debugger's logic (67); and the evaluator, last and gated on speed (68).
+- 45 absorbs 52: the new hygienic expander is written in Scheme rather than changed in JavaScript
+  and ported afterwards.
+- Ranked by, heaviest first: never extend JavaScript that is to become Scheme; correctness and
+  user-visible gaps keep their places; evidence before guesses; small ports first; the reader and
+  expander once the pattern is settled; the evaluator last. So 50 now precedes 37's next step, which
+  would otherwise have added to `tiering.js` and `safety.js`, and that step is to be written in Scheme.
+- `ROADMAP.md` gains the goal; the plan's *Decided* section records the policy and the audit.

@@ -50,8 +50,8 @@ The interpreter is a **permanent** tier, not a transitional one: it is the mode 
 generating code is forbidden, the reference semantics for differential testing, the highest-fidelity
 debugging tier, and the compiler's own bootstrap.
 
-Part of the compiler is written in Scheme, and the intent is that most of it will be. A Scheme
-compiler good enough to compile a Scheme compiler is the standing test of whether this succeeded.
+A Scheme compiler good enough to compile a Scheme compiler is the standing test of whether this
+succeeded; see the next goal.
 
 **Where it stands:** the tier works, the standard library runs through it, and so does a program's
 own code, compiled as it runs, by default, in the CLI, the browser and both REPLs. Compiled code is
@@ -60,6 +60,27 @@ so every breakpoint fires in the CLI and the browser alike; debugging it in plac
 maps, is still to come. Current state, ranked work and rationale:
 [docs/compiler_plan.md](docs/compiler_plan.md) and
 [docs/compiler_design.md](docs/compiler_design.md).
+
+### An interpreter and compiler written in Scheme
+
+**Goal:** as much of the system as can be is written in Scheme -- the compiler, and the interpreter's
+reader, macro expander, library system, printer, numeric tower and primitive libraries, and the
+debugger's logic -- over a JavaScript core kept to what needs JavaScript: the evaluator for now, the
+value representations, code generation and the compiled-code runtime, and the parts of libraries that
+need JavaScript features (host input and output, interop reflection, JavaScript classes, hash-table
+storage, Unicode tables, `BigInt`). Scheme and JavaScript call each other freely, so the language of a
+caller or callee decides nothing.
+
+Why: it is the system using itself; a compiler is a good benchmark of itself, and wherever the
+compiled Scheme is slower than the JavaScript it replaced, that is the next thing for the compiler to
+optimize; a Scheme system should be able to host an effective, performant interpreter and compiler
+written in Scheme; and it shows Scheme at its best. The system's own Scheme ships compiled, so it
+costs a page nothing to load; a debugging mode will let it be stepped into and appear in stack traces
+like a program's own code, for working on the interpreter and compiler themselves.
+
+**Where it stands:** the compiler's passes are Scheme; its driver and policies, and the rest of the
+interpreter, are JavaScript. The evaluator's own loop moves last, once compiled Scheme is fast enough
+for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### Close the known R7RS-small deviations
 
