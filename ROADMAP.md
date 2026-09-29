@@ -78,8 +78,9 @@ written in Scheme; and it shows Scheme at its best. The system's own Scheme ship
 costs a page nothing to load; a debugging mode will let it be stepped into and appear in stack traces
 like a program's own code, for working on the interpreter and compiler themselves.
 
-**Where it stands:** the compiler's passes are Scheme; its driver and policies, and the rest of the
-interpreter, are JavaScript. The evaluator's own loop moves last, once compiled Scheme is fast enough
+**Where it stands:** the compiler is Scheme -- its passes, the driver that decides what to compile,
+and the tier that compiles a program's own code as it runs -- over a small JavaScript host library;
+the interpreter is JavaScript. The evaluator's own loop moves last, once compiled Scheme is fast enough
 for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### Close the known R7RS-small deviations

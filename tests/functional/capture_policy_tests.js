@@ -9,8 +9,8 @@
  * -- since every re-entry resumes each compiled frame in it through its
  * resumable form. So a procedure whose frames are resumed far more often than
  * they are saved is switched back to the interpreted closure it was compiled
- * from, for good, as the program runs (`noteResume` in
- * `src/core/interpreter/unwind.js`).
+ * from, for good, as the program runs (`note-resume` in
+ * `src/compiler/tier.scm`).
  */
 
 import { assert } from '../harness/helpers.js';

@@ -57,6 +57,10 @@ export async function runCompilerSchemeTests(logger, testFiles, fileLoader) {
   };
   analyzeLambda[SCHEME_PRIMITIVE] = true;
   env.define('analyze-lambda', analyzeLambda);
+  // And a top-level form, as the lowering receives one.
+  const analyzeForm = (form) => astToScheme(analyze(form));
+  analyzeForm[SCHEME_PRIMITIVE] = true;
+  env.define('analyze-form', analyzeForm);
   env.define('native-report-test-skip', (name, reason) => logger.skip(`${name} (Reason: ${reason})`));
   evaluate(interpreter, env, await fileLoader('tests/core/scheme/test.scm'));
 

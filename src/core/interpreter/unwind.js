@@ -102,7 +102,7 @@ export const unwinding = { frames: [], pending: null };
 export function reify(twin, pc, slots) {
   unwinding.frames.push({ twin, pc, slots });
   const counts = frameCounts.get(twin);
-  if (counts === undefined) frameCounts.set(twin, { saved: 1, resumed: 0 });
+  if (counts === undefined) frameCounts.set(twin, { saved: 1, resumed: 0, ask: undefined });
   else counts.saved++;
 }
 
@@ -110,74 +110,63 @@ export function reify(twin, pc, slots) {
 // Procedures whose saved frames are re-entered
 // =============================================================================
 //
-// A compiled procedure is compiled whether or not a continuation may be
-// captured through it: nearly every capture in real code is an escape, taken
-// now and then, and each saved frame is resumed once, which compiled code
-// pays for easily. What costs more compiled than interpreted is a continuation
-// re-entered over and over, as a backtracking search re-enters its choice
-// points: every re-entry resumes each compiled frame in it through its
-// resumable form. So each procedure's frames are counted as they are saved and
-// as they are resumed, and one whose frames are resumed far more often than
-// they are saved is switched back, for good, to the interpreted closure it was
-// compiled from (`setReentryHook`). A frame moved to the heap to make room on
-// the JavaScript stack is saved and resumed once, as an escape's is, so deep
-// recursion is not mistaken for re-entry.
-//
-// The thresholds are set by the programs that capture: `btsearch` resumes its
-// frames 200 times for each save, and every program for which compiling its
-// captures pays -- `quicksort`, `puzzle`, `maze`, `contfib`, `threads` --
-// exactly once.
+// A procedure whose frames continuations keep re-entering costs more compiled
+// than interpreted, and is switched back to the interpreted closure it was
+// compiled from. Which ones is the compiler's decision, made in Scheme
+// (`note-resume` in `src/compiler/tier.scm`); what is here is what it decides
+// from, kept where frames are saved and resumed: how many times each
+// procedure's frames have been.
 
 /**
- * Saves and resumes of each procedure's frames, by its resumable form.
- * @type {WeakMap<Function, {saved: number, resumed: number}>}
+ * Saves and resumes of each procedure's frames, by its resumable form, and the
+ * resume at which to ask the policy next, once it has been asked.
+ * @type {WeakMap<Function, {saved: number, resumed: number, ask: (number|undefined)}>}
  */
 const frameCounts = new WeakMap();
 
 /**
- * How many resumes a procedure's frames take before it may be switched back:
- * enough that a few re-entries of one continuation do not do it.
+ * Asked, at the resumes it names, whether a procedure whose frame is being
+ * resumed is re-entered, switching it back if it is; null until the compiler
+ * has started and registered it.
+ * @type {function(Function, number, number): (boolean|number)|null}
+ */
+let reentryPolicy = null;
+
+/**
+ * The resume at which the policy is first asked about a procedure. A procedure
+ * nested in another has a resumable form of its own for every closure made of
+ * it, each resumed only a few times, so asking at the first resume would ask
+ * about nearly every one.
  * @type {number}
  */
-export const REENTRY_MINIMUM = 1024;
+let firstAsk = Infinity;
 
 /**
- * How many resumes per save mark a procedure's frames as re-entered.
- * @type {number}
+ * Registers what decides whether a procedure whose frames are being resumed
+ * is re-entered, and switches it back.
+ * @param {function(Function, number, number): (boolean|number)} policy - Given
+ *   the procedure's resumable form and its frames' saves and resumes so far;
+ *   answers `true` if it judged the procedure re-entered, after which it is
+ *   not asked about it again, and otherwise the resume at which to ask next.
+ * @param {number} first - The resume at which to ask about a procedure first.
  */
-export const REENTRY_RATIO = 4;
-
-/**
- * Called with a procedure's resumable form when its frames are found to be
- * re-entered; null until something that can switch it back registers.
- * @type {Function|null}
- */
-let reentryHook = null;
-
-/**
- * Registers what switches a procedure whose frames are re-entered back to its
- * interpreted closure. The interpreter's library registry does, which knows
- * the closures compiled procedures were compiled from.
- * @param {function(Function): void} hook - Given the procedure's resumable form.
- */
-export function setReentryHook(hook) {
-  reentryHook = hook;
+export function setReentryPolicy(policy, first) {
+  reentryPolicy = policy;
+  firstAsk = first;
 }
 
 /**
- * Notes that a saved compiled frame is being resumed, and switches its
- * procedure back if its frames are re-entered.
+ * Notes that a saved compiled frame is being resumed, and asks whether its
+ * procedure is re-entered when the policy asked to be asked.
  * @param {Function} twin - The procedure's resumable form.
  */
 export function noteResume(twin) {
   const counts = frameCounts.get(twin);
   if (counts === undefined) return;
   counts.resumed++;
-  if (counts.resumed >= REENTRY_MINIMUM && counts.resumed >= REENTRY_RATIO * counts.saved
-      && reentryHook !== null) {
-    // Once only: whether or not it could be switched, it is not asked again.
-    counts.saved = Infinity;
-    reentryHook(twin);
+  if (counts.resumed >= (counts.ask ?? firstAsk) && reentryPolicy !== null) {
+    const next = reentryPolicy(twin, counts.saved, counts.resumed);
+    counts.ask = next === true ? Infinity : Number(next);
   }
 }
 

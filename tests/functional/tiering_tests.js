@@ -190,6 +190,9 @@ export async function runTieringTests(logger) {
                (import (scheme base))
                (begin (define (pre-sum n) (let loop ((i 0)) (if (> i n) i (loop (+ i 1)))))))`);
       t.run('(import (tier prebuilt))');
+      // Called as often as would compile one of the tier's own.
+      t.run('(pre-sum 1)');
+      t.run('(pre-sum 2)');
       return { ownSumLoaded, ownSum, ownInc, inOther, answers, preSum: t.compiled('pre-sum') };
     });
     // Not while the library loads: running the compiler then would register
@@ -201,7 +204,7 @@ export async function runTieringTests(logger) {
       seen.ownInc, true);
     assert(logger, 'and so does the copy another of its libraries imported', seen.inOther, true);
     assert(logger, 'and both answer', seen.answers, '(55 11)');
-    assert(logger, 'a library with a prebuilt table is left to it', seen.preSum, false);
+    assert(logger, 'a library with a prebuilt table is left to it, however often it is called', seen.preSum, false);
   }
 
   logger.title('Tiering - Debugging');

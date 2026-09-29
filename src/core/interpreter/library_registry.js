@@ -8,7 +8,6 @@
 import { toArray } from './cons.js';
 import { Symbol } from './symbol.js';
 import { SchemeSyntaxError } from './errors.js';
-import { setReentryHook } from './unwind.js';
 
 // =============================================================================
 // Feature Registry (for cond-expand)
@@ -453,7 +452,7 @@ export function interpretCompiledOver(interpreted, globalEnv) {
  * every program being debugged. It is then no longer compiled over its
  * closure, so the debugger's switching leaves it interpreted too. For a
  * procedure whose saved frames continuations keep re-entering, which costs
- * more compiled than interpreted (`noteResume` in `unwind.js`).
+ * more compiled than interpreted (`note-resume` in `src/compiler/tier.scm`).
  *
  * Found by its resumable form, which is what the frames resumed carry; a
  * procedure nested in a compiled one, which has no closure of its own, is
@@ -479,7 +478,6 @@ export function switchBackToClosure(twin) {
     return true;
 }
 
-setReentryHook(switchBackToClosure);
 
 /**
  * Gets all loaded library keys (for debugging).

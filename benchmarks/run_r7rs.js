@@ -29,7 +29,7 @@
  *                               [--decline-captures]
  *
  * `--decline-captures` declines every procedure that captures a continuation or
- * reaches one that does, the tier's old default (`src/compiler/safety.js`),
+ * reaches one that does, the tier's old default (`src/compiler/safety.scm`),
  * for measuring against it.
  */
 

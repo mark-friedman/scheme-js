@@ -468,8 +468,12 @@ The pass is Scheme: `src/compiler/ir.scm`, reached through `src/compiler/lowerin
 ## Self-hosting, and the bootstrap
 
 The compiler is meant to end up in Scheme, because a Scheme compiler good enough to compile a Scheme
-compiler is the goal and it cannot be argued from priors. Lowering and code generation are Scheme;
-the analyzer in front of them, and the safety analysis beside them, are not yet.
+compiler is the goal and it cannot be argued from priors. Lowering, code generation, the driver that
+decides what to compile and why not, and the tier's decisions about a program's own code are Scheme;
+the analyzer in front of them is not yet. What the compiler's Scheme needs from the interpreter --
+`new Function`, reading and rebinding environments, the lambda behind a closure, weak tables -- it
+imports from `(scheme-js compiler host)`, `src/compiler/host.js`, and the JavaScript entry points in
+`index.js` and `tiering.js` only hand arguments across and read back the records it returns.
 
 A compiler written in the language it compiles has to start somewhere. It starts in the
 **interpreter**, which loads the compiler's Scheme from source with no compiler at all:
@@ -481,8 +485,9 @@ A compiler written in the language it compiles has to start somewhere. It starts
 | that compiles the compiler's library | `src/packaging/compiled_compiler.js` |
 
 The compiler's Scheme is a library, `(scheme-js compiler)`: `src/compiler/compiler.sld` imports
-`(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1 and SRFI 152, includes `ir.scm` and the
-emitter's files in dependency order, and exports the entry points `lowering.js` calls. So the list of
+`(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1, SRFI 152, `(scheme-js interop)` and the
+host library, includes `ir.scm`, the emitter's files, `driver.scm`, `safety.scm` and `tier.scm` in
+dependency order, and exports the entry points `lowering.js` calls. So the list of
 files that make up the compiler, and their order, is said once, in Scheme, and SRFI 1's private
 helpers stay private to SRFI 1. Its table keeps only what its exports can reach.
 
@@ -556,22 +561,28 @@ capture in real libraries (`benchmarks/decline_reasons.js --corpus`, results in
 No static test tells the shapes apart -- both are `call/cc` -- so a count made as the program runs
 does:
 
-- **Every compiled frame saved is counted, and every saved frame resumed**, per procedure
-  (`reify` and `noteResume` in `src/core/interpreter/unwind.js`). An escape saves a frame and
-  resumes it once; so does a frame moved to the heap to make room on the JavaScript stack.
-  Backtracking resumes the same saved frame again and again: `btsearch` resumes its frames 200
-  times for each save.
+- **Every compiled frame saved is counted, and every saved frame resumed**, by the procedure's
+  resumable form (`reify` and `noteResume` in `src/core/interpreter/unwind.js`). An escape saves a
+  frame and resumes it once; so does a frame moved to the heap to make room on the JavaScript
+  stack. Backtracking resumes the same saved frame again and again: `btsearch` resumes its frames
+  200 times for each save. A procedure nested in another has a resumable form per closure, so its
+  counts are per closure (R91); only a top-level procedure can be switched back, and it has one.
 - **A procedure whose frames are resumed at least four times as often as they are saved, after a
   thousand resumes, is switched back to its interpreted closure, for good**
-  (`switchBackToClosure` in `library_registry.js`): where it was installed, in every library, and
-  in the programs being debugged. It is then no longer compiled over its closure, so the debugger's
-  switching leaves it alone.
+  (`note-resume` in `src/compiler/tier.scm`, through `switchBackToClosure` in
+  `library_registry.js`): where it was installed, in every library, and in the programs being
+  debugged. It is then no longer compiled over its closure, so the debugger's switching leaves it
+  alone. The runtime keeps the counts, since that is where frames are saved and resumed, and asks
+  the Scheme only at the resumes it names: first at the minimum, then wherever the ratio could next
+  hold, since saves only grow. Asked at every resume instead, `ctak` was 9% slower. Until the
+  compiler has started nothing is switched back, which only a program running prebuilt library
+  code with its own code interpreted can see.
 
 That needs the closure, so every procedure is compiled over the one the interpreter made of its
 definition, and the pair recorded: the tier, `compileProgram`, `compileEnvironment`, the prebuilt
 tables and the canonical benchmark harness all do. A procedure nested in a compiled one has no
 closure of its own and stays compiled; so does anything compiled from its analyzed definition
-(`tryCompileDefinition`). `safety.js` keeps the old rule, closed over the call graph, for
+(`tryCompileDefinition`). `safety.scm` keeps the old rule, closed over the call graph, for
 `declineCaptures`.
 
 What the count does not catch is a program that captures at every call and resumes each frame
@@ -616,7 +627,7 @@ replaces remains as the CSP fallback.
 ### Compiling the program's own code
 
 A program's own procedures are compiled while it runs, by a tier attached to its interpreter
-(`src/compiler/tiering.js`) -- on by default in the CLI (`--no-compile` turns it off), in the browser
+(`src/compiler/tier.scm`, attached by `src/compiler/tiering.js`) -- on by default in the CLI (`--no-compile` turns it off), in the browser
 bundle (`setUserCodeCompilation(false)`), and in both REPLs. The interpreter never depends on the
 compiler, which a browser page loads after it has started; it reports to the tier, if one is
 attached, and asks it to run top-level forms (`Interpreter.runTopLevel`):
@@ -650,8 +661,14 @@ procedure the loop makes and stores.
 straight back; a procedure due meanwhile is compiled on its first call after. Nor while a library is
 loading: the compiler is Scheme, and running it defines things, which inside a library's body would
 be registered with the scopes that library's macros resolve their free identifiers through. A
-library's procedures are compiled from their first call once it has loaded. The compiler itself
-starts at the first procedure compiled, so a script that compiles nothing does not wait for it.
+library's procedures are compiled from their first call once it has loaded.
+
+**Starting the compiler.** The tier's decisions are the compiler's Scheme, so the compiler starts when
+the tier is attached: about 130 ms, which a script that compiles nothing now pays as well -- the CLI
+running `(display 1)` takes 0.28 s against 0.14 s with `--no-compile`. A program that compiles
+anything paid it before too, at its first compile. Most of it is analyzing and running the source of
+the compiler and of `(scheme base)`, SRFI 1 and SRFI 152 in the compiler's own registry, which their
+prebuilt tables then replace; making that fast is ranked in `compiler_plan.md`.
 
 **Only top-level procedures.** A procedure nested in one is compiled with it. So a procedure the tier
 declines keeps its inner loops interpreted; compiling those separately is possible, since the
@@ -770,6 +787,9 @@ Per-module rationale is in the module headers, which are edited with the code:
 | `src/compiler/inline.scm` | primitive expansions, tower-faithful |
 | `src/compiler/lowering.js` | hosting the compiler's Scheme; the bootstrap in detail |
 | `src/compiler/marshal.js` | the JavaScript/Scheme boundary, and how it shrinks |
-| `src/compiler/safety.js` | the call-graph closure, and its measured trade-off |
+| `src/compiler/driver.scm` | what is compiled, what is declined and why, and the records the entry points return |
+| `src/compiler/safety.scm` | the call-graph closure, and its measured trade-off |
+| `src/compiler/tier.scm` | when a program's procedures are compiled, installing them, and the re-entry policy |
+| `src/compiler/host.js` | what the compiler's Scheme takes from the interpreter's JavaScript, and why each is there |
 | `src/compiler/prebuilt.js` | staleness, and why arity rather than names |
 | `src/compiler/runtime.js` | the trampoline, stack room and moving frames, global cells, reporting a non-procedure, procedure marking |

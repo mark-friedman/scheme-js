@@ -44,7 +44,7 @@ import { DefineNode, LambdaNode, BeginNode } from '../src/core/interpreter/ast_n
 import { setFileResolver, setLibraryLoadHook } from '../src/core/interpreter/library_loader.js';
 import { getLibraryEnv } from '../src/core/interpreter/library_registry.js';
 import { tryCompileDefinition, generateEnvironment } from '../src/compiler/index.js';
-import { unsafeDefinitions } from '../src/compiler/safety.js';
+import { unsafeDefinitions } from '../src/compiler/index.js';
 import { installLibraryTable } from '../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { BUNDLED_SOURCES } from '../src/packaging/bundled_libraries.js';

@@ -3,7 +3,7 @@
  * escapes.
  *
  * The compiler tier used to decline a procedure that captures, and every
- * procedure that can reach one (`src/compiler/safety.js`), because compiling a
+ * procedure that can reach one (`src/compiler/safety.scm`), because compiling a
  * capture made `btsearch` 2x slower: a backtracking search re-enters its
  * continuations, and each capture unwinds and reifies the compiled frames
  * beneath it. Real libraries mostly capture for another reason -- to return
@@ -27,7 +27,7 @@ import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
 import { tryCompileDefinition } from '../src/compiler/index.js';
-import { unsafeDefinitions } from '../src/compiler/safety.js';
+import { unsafeDefinitions } from '../src/compiler/index.js';
 import { settle } from '../src/compiler/runtime.js';
 import { interpretedLibrary, installStandardLibrary } from '../tests/harness/standard_library.js';
 

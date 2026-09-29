@@ -21,7 +21,7 @@ import { installPrebuilt } from '../../src/compiler/prebuilt.js';
 import {
   interpretedLibrary, standardLibraryFingerprint, STANDARD_LIBRARY_TABLE as PREBUILT
 } from '../harness/standard_library.js';
-import { unsafeDefinitions } from '../../src/compiler/safety.js';
+import { unsafeDefinitions } from '../../src/compiler/index.js';
 import { lowerLambda, jsNameOf } from '../../src/compiler/lowering.js';
 import { Cons } from '../../src/core/interpreter/cons.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';

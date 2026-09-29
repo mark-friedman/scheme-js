@@ -52,7 +52,7 @@ Because every shipped library arrives compiled from its table, a page runs no co
 get compiled libraries. So the compiler is not in `dist/scheme.js`: it is
 `dist/scheme_compiler.js`, split out by rollup from the dynamic import in `loadCompiler`
 (`src/packaging/scheme_compiler.js`), which the bundle fetches after it has started, to
-compile the page's own code as it runs (`src/compiler/tiering.js`).
+compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `src/compiler/tiering.js`).
 
 ## JavaScript Runtime Components
 
@@ -272,19 +272,21 @@ compile the page's own code as it runs (`src/compiler/tiering.js`).
 │           └── repl.scm            # REPL utilities
 │
 │   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)
-│      ├── index.js           # EXPORT: tryCompileDefinition(), tryCompileExpression(), compileProgram()
+│      ├── index.js           # EXPORT: tryCompileDefinition(), tryCompileExpression(), compileProgram(); hands each to driver.scm
 │      ├── compiler.sld       # (scheme-js compiler): its imports, files and entry points
 │      ├── ir.scm             # Analyzed AST -> IR, in Scheme
 │      ├── emit.scm           # IR -> JavaScript, in Scheme: both forms of a procedure
 │      ├── lift.scm           # Which nested procedures are emitted once, at top level
 │      ├── liveness.scm       # Which locals a suspended frame saves
 │      ├── inline.scm         # Inline expansions for primitives, tower-faithful
-│      ├── lowering.js        # Door into the compiler's Scheme: loads its library, calls its entry points
-│      ├── codegen.js         # Door into emit.scm, with what only the environment knows
+│      ├── driver.scm         # What to compile, and each reason not: definitions, expressions, closures, environments, programs
+│      ├── safety.scm         # The opt-in rule declining what a capture could unwind through
+│      ├── tier.scm           # A program's own code compiled as it runs: when, installing it, switching re-entered ones back
+│      ├── host.js            # (scheme-js compiler host): new Function, the interpreter's structures, weak tables
+│      ├── lowering.js        # Door into the compiler's Scheme: starts its library, calls its entry points
 │      ├── marshal.js         # The analyzed AST into Scheme data
-│      ├── safety.js          # Which procedures a capture would unwind through
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
-│      ├── tiering.js         # Compiling the program's own procedures as it runs: when, and over which closures
+│      ├── tiering.js         # The interpreter's end of the tier: attach, detach, and the hooks it calls
 │      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools

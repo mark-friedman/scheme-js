@@ -1,10 +1,12 @@
 /**
- * @fileoverview Running the compiler's Scheme: lowering and code generation.
+ * @fileoverview Running the compiler's Scheme.
  *
- * Lowering lives in `ir.scm` and code generation in `emit.scm` and the files
- * beside it. This module is the door into both: it keeps the Scheme
- * interpreter they run in, marshals an analyzed AST across, and hands back the
- * IR, which stays Scheme data, and then the generated JavaScript.
+ * The compiler is Scheme: lowering in `ir.scm`, code generation in `emit.scm`
+ * and the files beside it, what to compile and why not in `driver.scm` and
+ * `safety.scm`, and when, for a program's own code, in `tier.scm`. This module
+ * is the door into all of it: it starts the Scheme interpreter the compiler
+ * runs in, and calls its entry points (`callCompiler`), for `index.js` and
+ * `tiering.js`, and for tests that lower a lambda and inspect the IR.
  *
  * ## Why the pass is Scheme
  *
@@ -18,6 +20,10 @@
  * lambdas from the canonical benchmarks and the standard library, and that cost
  * is almost entirely off the path a user waits on: the standard library is
  * lowered at build time, and a program's definitions are lowered once each.
+ * Starting the compiler is on that path: the tier's decisions are Scheme, so a
+ * program with the tier attached starts it on attaching, about 130 ms, most of
+ * it analyzing and running the source of the compiler and of the libraries it
+ * imports, which its prebuilt tables then replace.
  *
  * ## The compiler is a library
  *
@@ -71,8 +77,10 @@ import prebuiltLibraries from '../packaging/compiled_libraries.js';
 import prebuiltCompiler from '../packaging/compiled_compiler.js';
 import { installLibraryTable } from './prebuilt.js';
 import { invoke, settle } from './runtime.js';
-import { astToScheme, irToJs, toArray, toList } from './marshal.js';
+import { astToScheme, irToJs, toArray } from './marshal.js';
 import { intern } from '../core/interpreter/symbol.js';
+import { registerCompilerHost } from './host.js';
+import { setReentryPolicy } from '../core/interpreter/unwind.js';
 
 /**
  * The compiler's library.
@@ -106,9 +114,8 @@ function resolve(name) {
 
 /**
  * The compiler, bootstrapped on first use, or null if it could not be.
- * @type {{interpreter: Object, env: Object, lowerLambda: Function,
- *   generateUnit: Function, jsName: Function, inlineExpansionNames: Function,
- *   controlGlobals: Set<string>, inlineNames?: Array<string>}|null}
+ * @type {{interpreter: Object, env: Object, exports: Map<string, Function>,
+ *   inlineNames?: Array<string>}|null}
  */
 let pass = null;
 
@@ -144,24 +151,27 @@ function bootstrap() {
     hook: (name, env) => installLibraryTable(tables, name, env, compilerSourceOf)
   }, () => {
     const { interpreter, env } = createInterpreter();
+    registerCompilerHost(env);
     const exports = loadLibrarySync(COMPILER_LIBRARY, analyze, interpreter, env);
-
-    // The control-global list is read across once, here, rather than asked
-    // for per procedure. It is a membership test on a fixed list of fourteen
-    // names, and marshalling a set of globals into Scheme to run it there
-    // would cost more than the test. Reading it from `ir.scm` is what keeps it
-    // one list: the lowering and the caller that declines on it cannot drift
-    // apart if neither owns a second copy.
-    return {
-      interpreter,
-      env: getLibraryEnv(COMPILER_LIBRARY),
-      lowerLambda: exports.get('lower-lambda'),
-      generateUnit: exports.get('generate-unit'),
-      jsName: exports.get('js-name'),
-      inlineExpansionNames: exports.get('inline-expansion-names'),
-      controlGlobals: new Set(toArray(exports.get('control-globals')).map((s) => s.name))
-    };
+    return { interpreter, env: getLibraryEnv(COMPILER_LIBRARY), exports };
   });
+}
+
+/**
+ * Starts the compiler, and hands the runtime what it asks the compiler's
+ * Scheme about as a program runs: whether a procedure whose saved frames are
+ * being resumed is re-entered often enough to switch back (`note-resume` in
+ * `tier.scm`). Until the compiler has started nothing is switched back, which
+ * only a program running prebuilt library code with its own code interpreted
+ * can see.
+ * @returns {Object} What `bootstrap` returns.
+ */
+function start() {
+  const scheme = bootstrap();
+  const noteResume = scheme.exports.get('note-resume');
+  setReentryPolicy((twin, saved, resumed) => call(noteResume, [twin, saved, resumed]),
+    Number(call(scheme.exports.get('first-resume-to-ask'), [])));
+  return scheme;
 }
 
 /**
@@ -172,7 +182,7 @@ function bootstrap() {
 function lowering() {
   if (pass !== null || bootstrapFailure !== null) return pass;
   try {
-    pass = bootstrap();
+    pass = start();
   } catch (e) {
     bootstrapFailure = e.message ?? String(e);
   }
@@ -210,15 +220,9 @@ function call(proc, args) {
 }
 
 /**
- * Lowers a lambda to IR, reporting what it references.
- *
- * Lowering failure and *safety* are kept apart, because they are different
- * questions with different answers. A form the compiler cannot express is a
- * failure and is reported as `reason`. A form it can express but should not
- * compile -- because a continuation may be captured during its extent -- is a
- * judgement the caller makes, and needs more than this one lambda to make: see
- * `controlGlobalIn` for the local part of it and `compileProgram` for the
- * call-graph closure over it.
+ * Lowers a lambda to IR, reporting what it references: for tests that inspect
+ * the lowering from JavaScript. The compiler's own driver calls `lower-lambda`
+ * from Scheme.
  *
  * @param {Object} lambdaNode - An analyzed `LambdaNode`.
  * @returns {{schemeIr: *, ir: Object, globals: Set<string>, callsUnknown: boolean,
@@ -232,7 +236,7 @@ export function lowerLambda(lambdaNode) {
     return { reason: `the Scheme lowering could not start: ${bootstrapFailure}` };
   }
 
-  const result = toArray(call(scheme.lowerLambda, [astToScheme(lambdaNode)]));
+  const result = toArray(call(scheme.exports.get('lower-lambda'), [astToScheme(lambdaNode)]));
   // Strings the compiler's Scheme made are Scheme strings, which may be
   // objects; its JavaScript callers read them as JavaScript strings.
   if (result[0].name === 'fail') return { reason: String(result[1]) };
@@ -247,26 +251,6 @@ export function lowerLambda(lambdaNode) {
     callsUnknown: result[3],
     captures: result[4]
   };
-}
-
-/**
- * Generates a lowered procedure's JavaScript with the Scheme emitter,
- * `generate-unit` in `emit.scm`.
- *
- * @param {*} schemeIr - The procedure's IR, as `lower-lambda` returned it.
- * @param {Array<string>} globals - The globals it references, in order.
- * @param {string} name - Its display name.
- * @param {Array<string>} guarded - The globals with an inline expansion that
- *   are bound to their primitive in the environment being compiled for.
- * @returns {{source: string, constants: Array<*>}} The generated code.
- */
-export function emitUnit(schemeIr, globals, name, guarded) {
-  const scheme = lowering();
-  if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
-  const result = toArray(call(scheme.generateUnit, [
-    schemeIr, toList(globals.map((g) => intern(g))), name, toList(guarded.map((g) => intern(g)))
-  ]));
-  return { source: String(result[0]), constants: toArray(result[1]) };
 }
 
 /**
@@ -290,7 +274,7 @@ export function compilerEnvironment() {
 export function jsNameOf(name) {
   const scheme = lowering();
   if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
-  return String(call(scheme.jsName, [intern(name)]));
+  return String(call(scheme.exports.get('js-name'), [intern(name)]));
 }
 
 /**
@@ -301,36 +285,22 @@ export function inlineExpansionNames() {
   const scheme = lowering();
   if (scheme === null) return [];
   if (scheme.inlineNames === undefined) {
-    scheme.inlineNames = toArray(call(scheme.inlineExpansionNames, []))
+    scheme.inlineNames = toArray(call(scheme.exports.get('inline-expansion-names'), []))
       .map((s) => s.name);
   }
   return scheme.inlineNames;
 }
 
 /**
- * Returns the first control-transferring global in a set, or null.
- *
- * This is the base case of the safety analysis: a procedure that names
- * `call/cc` or `dynamic-wind` itself is obviously unsafe to compile. It is only
- * the base case: a procedure can sit in the dynamic extent of a capture made by
- * something it calls, without naming anything itself. `safety.js` closes this
- * over the call graph for that reason.
- *
- * Which names count is `control-globals` in `ir.scm`, beside the lowering that
- * has to agree with it.
- *
- * @param {Set<string>} globals - Globals a form references.
- * @returns {string|null} The offending name, or null.
+ * Calls one of the compiler's entry points, starting the compiler if it has
+ * not started.
+ * @param {string} name - The entry point, as `compiler.sld` exports it.
+ * @param {Array<*>} args - Its arguments, as Scheme values.
+ * @returns {*} Its result; `undefined` if the compiler could not start, which
+ *   `compilerStartFailure` says why.
  */
-export function controlGlobalIn(globals) {
+export function callCompiler(name, args) {
   const scheme = lowering();
-  // Nothing can be compiled without the pass, so nothing reaches this and the
-  // answer does not matter. Reporting no control global adds no second reason
-  // for a decline that has already been made for the first.
-  if (scheme === null) return null;
-
-  for (const name of globals) {
-    if (scheme.controlGlobals.has(name)) return name;
-  }
-  return null;
+  if (scheme === null) return undefined;
+  return call(scheme.exports.get(name), args);
 }

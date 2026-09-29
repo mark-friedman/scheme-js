@@ -8401,3 +8401,60 @@ recently in tasks 34, 49 and 37.
   expander once the pattern is settled; the evaluator last. So 50 now precedes 37's next step, which
   would otherwise have added to `tiering.js` and `safety.js`, and that step is to be written in Scheme.
 - `ROADMAP.md` gains the goal; the plan's *Decided* section records the policy and the audit.
+
+# Walkthrough: the compiler's driver and the tier's policies, in Scheme (task 50)
+
+The compiler's passes were Scheme; everything around them was JavaScript: which procedures to
+compile and each reason one is declined (`index.js`), the opt-in rule declining what a capture could
+unwind through (`safety.js`), which globals may be expanded inline (`codegen.js`), and when a
+program's own procedures are compiled and what is done with them (`tiering.js`, and the re-entry
+policy in `unwind.js`). All of that is Scheme now.
+
+## What changed
+
+- `src/compiler/driver.scm`: compiling a lambda, a definition, an expression, a closure, every
+  procedure of an environment, and a program, one form at a time. Outcomes are three records --
+  `generated`, `compiled`, `declined` -- composed step by step (`generate-lambda`, then
+  `instantiate-generated`); a program is run as a list of steps, one per form, and summarised
+  with `filter` and `count`. What a form contains (`makes-procedures-or-loops?`,
+  `contains-loop?`, `defines-at-top-level?`) is read from the tagged lists `ir.scm` lowers. Code
+  generation failures are caught with `guard`, in the one procedure the compiler then leaves
+  interpreted when it compiles itself.
+- `src/compiler/safety.scm`: the capture rule, as facts per procedure and a fixpoint over them.
+- `src/compiler/tier.scm`: the tier as a record; binding, a waiting closure falling due, compiling
+  and installing it, which top-level forms run compiled, and the re-entry policy.
+- `src/compiler/host.js`, the library `(scheme-js compiler host)`: what only the interpreter's
+  JavaScript has -- `new Function`, reading and rebinding environments, the lambda behind a closure,
+  the library registry's substitutions, running a form, weak tables.
+- `index.js` and `tiering.js` now only hand arguments across and read the records back, a record
+  being an object with a property per field. `safety.js` and `codegen.js` are gone; `lowering.js`
+  gives both one way in, `callCompiler`.
+- The runtime keeps the re-entry counts, where frames are saved and resumed, and asks the Scheme
+  policy only at the resume it names.
+
+## Measured
+
+- The build's prebuilt tables came out identical to the JavaScript driver's apart from the
+  analyzer's renaming counters, and the compiler compiles its new Scheme too, 204 procedures.
+- Asking the policy at every resume cost `ctak` 9% and `fibc` 5%: a procedure nested in another
+  has a resumable form for each closure made of it, so `ctak` asked about 95,412 forms, each resumed
+  once (R91). The policy now names the next resume to ask at, first at its minimum, and both are
+  back within noise of the JavaScript policy (`ctak` 202-214 ms against 200, `fibc` 114-118 against
+  113.5); `btsearch`, `contfib`, `threads` and the rest of `run_compiled.js` are unchanged.
+- The compiler now starts when the tier is attached, about 135 ms, since the tier's decisions are
+  Scheme. `node repl.js -e '(display 1)'` went from 0.14 s to 0.28 s; with `--no-compile` it is
+  0.14 s. A program that compiles anything paid this before, at its first compile: fib(30) from the
+  CLI takes 0.34-0.39 s against 0.32-0.33 s. Task 69 is to make the start itself fast.
+- The self-host benchmark is unchanged within noise.
+
+## Tests
+
+- `tests/compiler/driver_tests.scm`, 44 Scheme tests: what a form contains, what defines at top
+  level, the thunk an expression becomes, why a lowered procedure is declined, the source size
+  limit, the capture rule over hand-written facts, and the re-entry thresholds and when to ask.
+- Each tier decision was broken in turn -- loops compiled at binding, the second-call wait, the
+  ratio, switching back, deferring, which libraries the tier manages -- and each broke a test
+  except the last, which no test covered; `tiering_tests.js` now calls the prebuilt library's
+  procedure as often as would compile one of the tier's own.
+- 6,383 tests pass in Node and 6,274 in the browser; 2,000 fresh fuzzer programs agree, with the
+  tier compiling 3,955 procedures among them; the browser REPL compiles a looping definition.

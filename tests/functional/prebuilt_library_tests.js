@@ -88,7 +88,7 @@ export async function runPrebuiltLibraryTests(logger) {
     assert(logger, "the compiler's table matches its sources",
       table && fingerprintSources(table.files.map(compilerSourceOf)), table && table.fingerprint);
     assert(logger, "the compiler's table covers its .sld and every file it includes",
-      table && table.files.join(' '), 'compiler.sld ir.scm lift.scm inline.scm liveness.scm emit.scm');
+      table && table.files.join(' '), 'compiler.sld ir.scm lift.scm inline.scm liveness.scm emit.scm driver.scm safety.scm tier.scm');
   }
   assert(logger, 'the libraries a page uses most have tables',
     ['scheme.core', 'scheme.lazy', 'srfi.1', 'srfi.125', 'srfi.128', 'srfi.152']

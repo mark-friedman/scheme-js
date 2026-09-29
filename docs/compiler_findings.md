@@ -2673,6 +2673,21 @@ capture in real libraries; `run_escapes.js` agrees, 1.5-3.9x.
 turned the other way without costing those. Which way it goes, or whether it is decided per
 procedure as a program runs, is a decision for 37.
 
+**R91. The re-entry counts are per procedure only for top-level procedures.**
+
+The capture policy (37) was written, and documented in `unwind.js`, as counting "saves and resumes
+of each procedure's frames, by its resumable form". A procedure nested in another has a resumable
+form of its own for every closure made of it, so its counts are per closure: on `ctak`, 95,412
+resumable forms each saved once and resumed once, where the source has three nested lambdas. Found
+when the policy moved to Scheme and asked about each form at its first resume, which cost `ctak`
+9%; the JavaScript policy compared two numbers inline at each resume and so never showed it.
+
+*Consequence:* the policy is first asked at the resume its minimum names, which a closure resumed a
+few times never reaches, and after that at the resume it names each time. Its decisions are
+unchanged: only a procedure compiled over a closure, which is a top-level one, can be switched
+back, and those have one resumable form each. A nested procedure's re-entries are still not
+counted towards anything.
+
 ---
 
 ## Appendix — the original staged plan
