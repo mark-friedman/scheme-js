@@ -9,6 +9,10 @@ Thumbs.db
 *.swo
 *~
 
+# Claude Code: the project's settings and hooks are committed; its worktrees
+# are not
+.claude/worktrees/
+
 # Temp artifacts
 implementation_plan.md
 tasks.md

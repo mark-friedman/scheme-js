@@ -38,7 +38,10 @@ decide its cost, in both tiers. Before designing, a ceiling (R61) and a profile 
 **New code, the interpreter's as well as the compiler's, is written in Scheme.** Not written in JavaScript and ported later — that
 ordering never produced a port (R56). Where Scheme lacks a capability the compiler needs, build it as
 a Scheme library over the minimum JavaScript. Unported JavaScript stays reachable: Scheme calls it
-through interop, and it calls Scheme through `../src/compiler/lowering.js`. A task's outcome names the JavaScript it could not avoid, and why.
+through interop, and it calls Scheme through `../src/compiler/lowering.js`, which only calls and never
+gains logic. A task's outcome names the JavaScript it could not avoid, and why, checked against
+`npm run audit:languages -- <base>`. The rule in full, with what may be JavaScript, is *Scheme first*
+in `../.agent/rules/rules.md`.
 
 ---
 

@@ -93,6 +93,10 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 /
 ├── repl.js                         # Node.js REPL entry point
 ├── rollup.config.js                # Rollup bundling configuration
+├── .agent/rules/rules.md           # The project's rules; AGENTS.md and CLAUDE.md link here
+├── .claude/                        # Claude Code project settings
+│   ├── settings.json               # Committed hooks (settings.local.json stays personal)
+│   └── hooks/scheme_first.sh       # Reminds the agent what may be JavaScript when an edit adds a JS function under src/
 ├── .github/                        # CI/CD Workflows
 │   └── workflows/
 │       └── ci.yml                  # GitHub Actions CI (Tests + Benchmarks)
@@ -158,6 +162,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── generate_compiled_compiler.js # Compiles the compiler's own library at build time
 │   ├── lib/render_prebuilt.js      # Writes a module of prebuilt tables, one per library
 │   ├── audit_r7rs.js               # R7RS-small conformance audit
+│   ├── language_balance.scm        # Lines of Scheme and JavaScript a change adds under src/ (npm run audit:languages)
 │   └── r7rs_identifiers.js         # Required-identifier reference list
 ├── src/
 │   ├── packaging/                  # Bundling and distribution logic

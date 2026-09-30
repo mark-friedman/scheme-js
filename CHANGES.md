@@ -8509,3 +8509,44 @@ in R32 for compiled code calling an interpreted closure, and nothing was made fo
   goal ranked low, part of a possible optimization level that minimizes compiled code size, perhaps
   with tree shaking. `ROADMAP.md` gains that goal, and its interoperability entry now says the bug
   exists.
+
+# Walkthrough: reinforcing Scheme first
+
+A change to the rules and the tooling around them, from the user's observation that the agent keeps
+preferring JavaScript despite the stated preference for idiomatic Scheme. No code in `src/` changed.
+
+## Why the rules had not held
+
+The rule existed, and was broken anyway (on 2026-09-29, in tasks 34, 49 and 37). Four reasons were
+found:
+- The strongest statements were not in the rules file: the whole-system decision and the list of what
+  may stay JavaScript were only in `docs/compiler_plan.md`, and the preferences for idiomatic Scheme,
+  full SRFIs and Scheme tests only in the agent's private memory.
+- "In Scheme, if possible" is a judgement, made when a JavaScript file is already open and extending
+  it is easiest.
+- The rest of the file pulled towards JavaScript: the Testing section described only JavaScript tests,
+  and the rules sanctioned JavaScript driving the compiler through `lowering.js`.
+- Rules read at the start of a session fade over a long one.
+
+## What changed
+
+- `.agent/rules/rules.md` (which `AGENTS.md` and `CLAUDE.md` link to) opens with a *Scheme first*
+  section replacing the two scattered bullets: what may be JavaScript, as a list; naming the item
+  that requires any JavaScript function or logic added under `src/`; no new logic in the door into
+  the compiler; idiomatic Scheme; helpers as full SRFIs; Scheme tests for Scheme code; and the
+  JavaScript a task added, listed in its outcome. The Testing section now says how Scheme tests are
+  registered (`tests/test_manifest.js`).
+- A Claude Code hook, `.claude/hooks/scheme_first.sh`, run from the committed `.claude/settings.json`
+  before every edit or write. When the edit adds a function to a `.js` file under `src/`, it shows the
+  agent the rules' list, read from the rules file, and asks it to name the item that applies. It never
+  blocks. Shell rather than Scheme, since it runs before every edit and must work while the Scheme
+  implementation is half-changed. It counts four shapes of definition; comments and control
+  statements are ruled out, and a definition whose parameters span lines is missed. Tested by piping
+  eight synthetic edits through it and by a live write in the session that added it.
+- `scripts/language_balance.scm`, as `npm run audit:languages -- <base>`: the lines of Scheme and of
+  JavaScript added and removed under `src/` since a commit, uncommitted and untracked files included,
+  generated files left out, and each JavaScript file that grew. Written in Scheme; it runs git through
+  Node's `child_process` by interop, since the CLI does not connect standard input to
+  `(current-input-port)`. Checked against an independent count over commit 778d990 (Scheme +1,161
+  -9, JavaScript +475 -1,204) and with untracked probe files.
+- The plan's header points at the rules and the count.
