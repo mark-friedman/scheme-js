@@ -8904,3 +8904,53 @@ in a child process whose `fs.writeSync` throws it, passed on to the port's `node
 `syncBuiltinESMExports`: EPIPE, ENOTCONN and ECONNRESET end the child with status 141 and nothing on
 standard error, and EBADF is an error. Before the change the ENOTCONN and ECONNRESET cases failed;
 after it, the CLI tests passed 50 runs in a row.
+
+# Walkthrough: two JavaScript test suites that never ran, registered (2026-09-30)
+
+`tests/functional/interop_conversion_tests.js` and `tests/functional/js_global_tests.js` were
+imported only by `tests/tests.js`, which nothing imports: both runners read `tests/test_manifest.js`.
+Both are now in its `functionalTests`, synchronous and taking the shared interpreter, after
+`interop_tests.js`. No code under `src/` changed.
+
+## What failed, and which was wrong
+
+One assertion, "set! returns new value" in `js_global_tests.js`. The test was wrong. The value of
+`set!` is unspecified in R7RS (4.1.6), and since 2026-01-04 `SetFrame` gives `undefined`, as
+`define` does; `core_tests.js` was updated then to expect it, and this suite, running nowhere, was
+missed. It now expects `undefined` for a JavaScript global's `set!`, as `core_tests.js` does for a
+local's, and checks that a second `set!` still writes through to the global.
+
+## What passes either way
+
+Two assertions in `interop_conversion_tests.js` pass whatever the answer: a JavaScript function's
+result is expected to be the exact `20`, and a vector handed through a JavaScript function to come
+back holding exact integers, but the tests' `assert` counts `20n` and `20` as equal, and both in fact
+come back as JavaScript numbers, inexact in Scheme. Which is right is task 47's open question -- a
+JavaScript function called directly returns its result unconverted, where `js-invoke` makes an
+integral-valued number exact -- so they are left as they are, and task 47 in `docs/compiler_plan.md`
+now says to tighten them once it decides.
+
+## `tests/tests.js`, removed
+
+It could not have loaded: two of its imports, `unit/unit_tests.js` and `functional/interop_tests.js`,
+have not existed since the restructuring of 2025-12-10. Nothing imported it. Each suite was
+registered there by the commit that added it (2026-01-02 and 2026-01-30), when the manifest had
+existed since 2025-12-08, and three agent instructions still named it before the manifest --
+`.agent/workflows/scaffold_library.md`, `.agent/workflows/implement_test.md` and
+`.agent/skills/create_library/SKILL.md`. They now name `schemeTestFiles` in `tests/test_manifest.js`.
+
+## Could be Scheme
+
+`js_global_tests.js` is about Scheme's own global lookup: reading a JavaScript global, `set!` writing
+one, `define` shadowing one, calling one, and the unbound-variable errors. All of it is observable
+from Scheme, with the globals set and read through `js-eval`, so it could become a Scheme test.
+`interop_conversion_tests.js` is split: a Scheme closure called from JavaScript and `run`'s
+`jsAutoConvert` option are JavaScript's to observe, but a JavaScript function receiving numbers,
+`isNaN`, and a vector handed through a JavaScript function are Scheme calling JavaScript, and could
+join `tests/extras/scheme/js_conversion_tests.scm` with the functions made by `js-eval`. Neither is
+ported here.
+
+## Verification
+
+6,633 tests pass in Node with none failing (43 skipped), and 6,451 in the browser with none failing
+(62 skipped): in each, the 18 assertions of the two suites more than before.

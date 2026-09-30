@@ -44,6 +44,8 @@ export const unitTests = [
 export const functionalTests = [
     { path: 'functional/core_tests.js', fn: 'runCoreTests', async: false },
     { path: 'extras/primitives/interop_tests.js', fn: 'runInteropTests', async: false },
+    { path: 'functional/interop_conversion_tests.js', fn: 'runInteropConversionTests', async: false },
+    { path: 'functional/js_global_tests.js', fn: 'runJsGlobalTests', async: false },
     { path: 'functional/quasiquote_tests.js', fn: 'runQuasiquoteTests', async: false },
     { path: 'functional/quote_tests.js', fn: 'runQuoteTests', async: false },
     { path: 'functional/macro_tests.js', fn: 'runMacroTests', async: true },

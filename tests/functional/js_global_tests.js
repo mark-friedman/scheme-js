@@ -19,9 +19,11 @@ export function runJsGlobalTests(interpreter, logger) {
     run(interpreter, `(set! testVar2 "Modified-By-Scheme")`);
     assert(logger, "Write JS global variable", globalThis.testVar2, "Modified-By-Scheme");
 
-    // Verify return value of set! is the new value
+    // The value of set! is unspecified in R7RS (4.1.6); a JS global's set! gives
+    // what every set! gives, and a second one still writes through to the global
     result = run(interpreter, `(set! testVar2 "Second-Mod")`);
-    assert(logger, "set! returns new value", result, "Second-Mod");
+    assert(logger, "set! of a JS global returns unspecified value", result, undefined);
+    assert(logger, "Second set! writes JS global variable", globalThis.testVar2, "Second-Mod");
 
     // 3. Shadowing
     globalThis.shadowMe = "I am JS";

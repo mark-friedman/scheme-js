@@ -22,8 +22,8 @@ description: create a new test file
     ```
 
 3.  **Register the Test.**
-    *   Open `tests/tests.js` (or `test_manifest.js` if split).
-    *   Add: `import './[path]/[name]_test.scm';` (or equivalent registration).
+    *   Open `tests/test_manifest.js`.
+    *   Add the file's path, relative to the project root, to `schemeTestFiles` (a JavaScript test module goes in `unitTests`, `functionalTests` or `integrationTests`, by path and function name).
 
 4.  **Run Tests.**
     *   Command: `node run_tests_node.js`

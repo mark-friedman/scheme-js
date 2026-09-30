@@ -65,7 +65,7 @@ If using `(include "feature.scm")`, create the corresponding `.scm` file in the 
       ;; ...
     )
     ```
-*   **Register Test**: Add the test file to `tests/tests.js` (or `test_manifest.js` if applicable) so it runs with the suite.
+*   **Register Test**: Add the test file's path to `schemeTestFiles` in `tests/test_manifest.js` so it runs with the suite.
 
 ### 5. Verification
 

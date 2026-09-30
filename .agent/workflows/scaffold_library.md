@@ -44,7 +44,7 @@ description: create a new R7RS library
     ```
 
 5.  **Register the test.**
-    *   Add the test file path to `tests/tests.js` (or `test_manifest.js`).
+    *   Add the test file path to `schemeTestFiles` in `tests/test_manifest.js`.
 
 6.  **Verify.**
     *   Run `node run_tests_node.js` to ensure the library loads and tests pass.
