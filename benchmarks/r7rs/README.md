@@ -98,9 +98,48 @@ run.
 
 ```
 npm run benchmark:r7rs                  # this implementation, both tiers, by workload class
-npm run benchmark:r7rs-implementations  # the same programs under Gambit and Racket
+npm run benchmark:r7rs-implementations  # both tiers against Gambit gsi, gsc (C and JS) and Racket
 ```
 
 Both accept `--profile full` to include the `slow` entries — programs with no parameter
 that can be reduced without changing what they measure — and `--target SECONDS` to change
 the calibration target.
+
+The comparison measures both of our tiers again unless told not to. Measuring us is most of
+its running time, and the references do not change when our code does, so it can take our
+figures from a saved `benchmark:r7rs` run instead; `--tier interpreter` or `--tier compiled`
+narrows it to one tier:
+
+```
+npm run benchmark:r7rs > ours.log
+npm run benchmark:r7rs-implementations -- --ours ours.log
+```
+
+### Gambit's compiler
+
+`gsc` builds each program twice, with upstream's `GambitC-prelude.scm` declarations, and
+the harness runs each build at every calibrated count:
+
+- **to C**, a native executable;
+- **to JavaScript** (`-target js`), one self-contained file run by the same Node as
+  scheme-js-4. Same engine, same target language: the reference closest to our compiler.
+  It needs nothing beyond Gambit and Node. (Gambit 4.9.5 has no WebAssembly target —
+  `gsc -target wasm` reports the module unavailable.)
+
+The C build needs the C compiler Gambit
+was configured with, and a Homebrew Gambit names a versioned GCC — `gsc -exe` fails with
+`gcc-13: command not found` when a different one is installed. Any recent GCC works: put a
+link under the configured name ahead of it on `PATH`, for the run only. Passing `-cc` to
+`gsc` instead is not a substitute, since it also drops every C flag Gambit was configured
+with. The harness already passes the define that lets code from a newer compiler load into
+the older runtime; see `GSC_OPTIONS` in `../compare_r7rs.js`.
+
+```
+mkdir -p /tmp/gccshim && ln -sf "$(command -v gcc-16)" /tmp/gccshim/gcc-13
+PATH=/tmp/gccshim:$PATH npm run benchmark:r7rs-implementations
+```
+
+On macOS, if the compiler reports that `xcodebuild` failed while looking for `as`, the
+selected Xcode is broken; `DEVELOPER_DIR=/Library/Developer/CommandLineTools` on the same
+command uses the Command Line Tools instead. If `gsc` still cannot build, it is reported as
+not available and the comparison runs without it.

@@ -7602,3 +7602,68 @@ were taken.
   numeric-optimization list replaced by a pointer, and the extension marked as off this branch and
   no longer a goal.
 - `docs/compiler_findings.md`: R76, R77.
+
+---
+
+# Walkthrough: The canonical suite re-measured, and compared with Gambit's compilers
+
+The canonical suite's published figures dated from 2026-09-21, before tasks 18-27. Both tiers were
+re-measured, the comparison harness gained Gambit's two compilers, and the compiled tier was set
+against other implementations for the first time (the first half of task 36).
+
+## The harness
+
+- `benchmarks/compare_r7rs.js` measured only our interpreter (`useCompiler: false` was hard-coded)
+  and re-measured it on every run. It now reports **both tiers**, or one with `--tier`, and takes
+  our figures from a saved `run_r7rs.js` run with `--ours`, measuring only the references. The
+  references do not change when our code does, and measuring us is most of the running time.
+- Two references added: **Gambit `gsc` to C** and **Gambit `gsc -target js`**, whose output runs
+  on the same Node as us -- the like-for-like reference for our compiler. Each program is built
+  once and the build is run at every calibrated count, so compile time is never charged.
+- The arithmetic -- reading a saved run, per-class geometric means of each tier against each
+  reference, leaving out failed runs -- is in `benchmarks/lib/r7rs_compare.js`, with unit tests
+  (`tests/unit/r7rs_compare_tests.js`).
+
+Getting `gsc` to build on this machine took three workarounds, recorded in
+`benchmarks/r7rs/README.md`. Homebrew's Gambit names `gcc-13`, which is not installed; `gsc -cc`
+is not the fix, because it also drops every C flag Gambit was configured with, which is what made
+the first executables exit with status 71 and print nothing. A `gcc-13` link to `gcc-16` on `PATH`
+works, with `DEVELOPER_DIR` pointing at the Command Line Tools because the selected Xcode's
+`xcodebuild` is broken. And code from GCC 16 would not load into the GCC 13 runtime ("Module is
+incompatible"): GCC 15 and later support `musttail`, which changes how compiled code returns to
+the runtime. `-D___SUPPORT_MULTIPLE_C_COMPILERS` is Gambit's own switch for that, and the harness
+now always passes it. Gambit's JavaScript runtime also drops an unterminated last line of output,
+which had made its clock probe read nothing.
+
+## What it showed
+
+Against Gambit's JavaScript backend the compiled tier is ahead on flonums (3.8x), calls (1.2x) and
+strings (23x), within 1.25x on fixnums and vectors, 1.9-2.0x behind on bignums and lists, and 2.7x
+behind on `call/cc`. The list gap is all `nboyer` and `sboyer` (43x and 53x); the other nine list
+programs are at parity. Against Gambit compiled to C and Racket CS it is 2-10x behind on numeric
+and call-bound code, about 20x on symbolic code, 24-29x on `call/cc`, and 62-82x on bignums. The
+bignum gap to Gambit's JavaScript backend is only 1.9x, while that backend is 32x slower than its
+own C build on `pi`. The interpreter against `gsi` moved less than 15% in any class since
+2026-09-19.
+
+Against the interpreter, the compiled tier went from call 21.8x, fixnum 16.2x, vector 15.2x,
+flonum 10.2x, list 10.1x on 2026-09-21 to **86.7x, 58.5x, 39.1x, 126.5x and 24.5x**. Bignums and
+strings stayed at parity.
+
+Gambit's JavaScript backend fails two programs: `quicksort` exhausts the JavaScript stack, and
+`graphs` calls Gambit's built-in `fold` in place of the program's own.
+
+## Caveat
+
+The runs shared the machine with another benchmark run and an IDE, and the same reference measured
+twice differed by up to 2x on one program. Class figures are much steadier than single programs;
+a quiet, best-of-several re-run is on the plan.
+
+## Documents
+
+- `docs/r7rs_benchmark_results.md`: rewritten around the new figures, with a section saying exactly
+  what each tier and each reference runs, and the raw per-program times -- only ratios had been
+  kept before, which is why the old Gambit and Racket figures could not be reused.
+- `docs/compiler_plan.md`: task 36's first half recorded, with what is left; 42 given the Gambit
+  JavaScript evidence; new task 54, profile `nboyer` and `sboyer`.
+- `benchmarks/r7rs/README.md`: `--ours`, `--tier`, and building with `gsc`.

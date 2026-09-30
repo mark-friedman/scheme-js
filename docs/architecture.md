@@ -112,7 +112,7 @@ of its own.
 │   ├── run_macro.js                # Transfer test: the project's own .scm test files
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
-│   ├── compare_r7rs.js             # Canonical suite under Gambit and Racket
+│   ├── compare_r7rs.js             # Canonical suite, both tiers, vs Gambit gsi/gsc (C, JS) and Racket
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
@@ -121,6 +121,7 @@ of its own.
 │   │   ├── harness.js              # Shared bootstrap and timing
 │   │   ├── r7rs_harness.js         # Canonical-suite protocol, sizing, calibration
 │   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
+│   │   ├── r7rs_compare.js         # Cross-implementation arithmetic: per-class ratios, reading a saved run
 │   │   ├── step_counts.js          # Deterministic dispatch counting
 │   │   └── progress_report.js      # Progress-document rendering
 │   ├── programs/                   # Portable R7RS benchmark programs (Stage 0)
