@@ -28,8 +28,32 @@
       #t))
 
 ;; /**
+;;  * Why the tests now running are expected to fail, or #f if they are not;
+;;  * set by `test-expect-fail`.
+;;  * @type {parameter}
+;;  */
+(define expected-failure (make-parameter #f))
+
+;; /**
+;;  * A test's name as a string: the name it was given, or the expression it
+;;  * tests, written out.
+;;  * @param {*} name - The name.
+;;  * @returns {string}
+;;  */
+(define (test-name->string name)
+  (if (string? name)
+      name
+      (let ((port (open-output-string)))
+        (display name port)
+        (get-output-string port))))
+
+;; /**
 ;;  * Internal helper to report a single test result.
 ;;  * Updates counters, prints to stdout, and calls the native reporter.
+;;  *
+;;  * A test expected to fail is reported as a skip while it fails, and as a
+;;  * failure once it passes: the expectation is then wrong, and the change that
+;;  * made the test pass has to remove it.
 ;;  *
 ;;  * @param {string} name - Name/description of the test.
 ;;  * @param {boolean} passed - Whether the test passed.
@@ -37,11 +61,21 @@
 ;;  * @param {*} actual - Actual value (for reporting failures).
 ;;  */
 (define (report-test-result name passed expected actual)
-  (if passed
-      (set! *test-passes* (+ *test-passes* 1))
-      (set! *test-failures* (+ *test-failures* 1)))
-  ;; Call native reporter (always defined in boot.scm)
-  (native-report-test-result name passed expected actual))
+  (let ((reason (expected-failure)))
+    (cond ((not reason)
+           (if passed
+               (set! *test-passes* (+ *test-passes* 1))
+               (set! *test-failures* (+ *test-failures* 1)))
+           ;; Call native reporter (always defined in boot.scm)
+           (native-report-test-result name passed expected actual))
+          (passed
+           (set! *test-failures* (+ *test-failures* 1))
+           (native-report-test-result
+            (string-append (test-name->string name)
+                           " -- passes, but is marked as expected to fail: " reason)
+            #f expected actual))
+          (else
+           (report-test-skip name (string-append "expected to fail: " reason))))))
 
 ;; /**
 ;;  * Internal helper to report a skipped test.
@@ -120,6 +154,23 @@
     ;; Legacy 2-arg form for backward compat: (test-skip "name" "reason")
     ((test-skip name reason)
      (report-test-skip name reason))))
+
+;; /**
+;;  * Runs tests that are expected to fail, for a stated reason: each is
+;;  * reported as a skip while it fails, and as a failure once it passes. Unlike
+;;  * `test-skip`, the tests run, so the change that fixes them is told so.
+;;  *
+;;  * The reason is an expression, and #f means the tests are not expected to
+;;  * fail after all, so an expectation can hold in one configuration only:
+;;  * `(test-expect-fail (and *tier-attached* "why") (test ...))`.
+;;  *
+;;  * @param {string|boolean} reason - Why they fail, or #f.
+;;  * @param {...*} body - The tests.
+;;  */
+(define-syntax test-expect-fail
+  (syntax-rules ()
+    ((test-expect-fail reason body ...)
+     (parameterize ((expected-failure reason)) body ...))))
 
 ;; /**
 ;;  * Groups related tests together.

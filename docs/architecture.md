@@ -339,7 +339,9 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_scheme_tests.js         # Node.js Scheme test runner CLI
 │   ├── run_scheme_tests_lib.js     # Shared Scheme test runner logic
 │   ├── run_compiler_scheme_tests_lib.js # Runs compiler/ tests in the compiler library's environment
+│   ├── run_tiered_scheme_tests_lib.js # Runs tiers/ tests twice, set up as a page is: program interpreted, then compiled by the tier
 │   ├── compiler/                   # Scheme tests of the compiler's own Scheme
+│   ├── tiers/                      # Scheme tests whose code runs in both tiers: JavaScript calling Scheme, when the tier compiles
 │   ├── test_bundle.js              # Integration tests for bundled artifact
 │   ├── test_script.scm             # Scheme script test for HTML adapter
 │   │
@@ -419,6 +421,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── vector_tests.js
 │   │   ├── char_tests.js
 │   │   ├── tiering_tests.js        # When the tier compiles a program's procedures, and what it leaves
+│   │   ├── tiered_interop_tests.js # The interop suites the tier compiles code from, again with it attached
 │   │   ├── capture_policy_tests.js # Captures compiled; re-entered procedures switched back to closures
 │   │   └── ...
 │   │

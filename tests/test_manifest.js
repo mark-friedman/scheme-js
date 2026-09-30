@@ -93,6 +93,8 @@ export const integrationTests = [
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
     { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
     { path: 'integration/cond_expand_library_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: true },
+    // The interop suites above that the tier compiles code from, again with it attached.
+    { path: 'functional/tiered_interop_tests.js', fn: 'runTieredInteropTests', async: true, needsInterpreter: false },
 ];
 
 // Whole-program tests: real Scheme programs run end to end under both tiers,
@@ -109,6 +111,14 @@ export const programTests = [
     { path: 'core/scheme/compliance/compliance_tests.js', fn: 'runComplianceTests', async: true, needsInterpreter: false, needsLoader: true },
     // Generated programs, run in both tiers and compared.
     { path: 'fuzz/differential_fuzz_tests.js', fn: 'runDifferentialFuzzTests', async: true, needsInterpreter: false, needsLoader: true },
+];
+
+// Scheme tests run twice, with the program's own code interpreted and with it
+// compiled by the tier, each in an environment set up as a page's is (paths
+// relative to project root, used by file loader)
+export const tieredSchemeTestFiles = [
+    'tests/tiers/js_caller_tests.scm',
+    'tests/tiers/tier_compiles_tests.scm',
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the
@@ -286,6 +296,16 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
             await runCompilerSchemeTests(logger, compilerSchemeTestFiles, loader);
         } catch (e) {
             logger.fail(`Compiler Scheme test suite crashed: ${e.message}`);
+        }
+    }
+
+    // Scheme tests in both tiers
+    if (loader) {
+        try {
+            const { runTieredSchemeTests } = await import('./run_tiered_scheme_tests_lib.js');
+            await runTieredSchemeTests(logger, tieredSchemeTestFiles, loader);
+        } catch (e) {
+            logger.fail(`Scheme test suite in both tiers crashed: ${e.message}`);
         }
     }
 

@@ -2688,6 +2688,55 @@ unchanged: only a procedure compiled over a closure, which is a top-level one, c
 back, and those have one resumable form each. A nested procedure's re-entries are still not
 counted towards anything.
 
+**R92. The tiers interoperate without conversion only when Scheme is the caller.**
+
+`src/compiler/index.js` says that a compiled procedure keeps the interpreter's value representation
+and calls its primitives, "so the two tiers interoperate without any conversion at the call
+boundary". Between the tiers that holds. For a JavaScript caller it does not: a compiled procedure is
+its own raw entry (`R.markProcedure`), with no entry facing JavaScript, so JavaScript calling it as a
+plain function gets compiled code's own calling convention. The same definitions called from
+JavaScript, interpreted and then compiled by the tier: `(define (five) 5)` returns `5` and then
+`5n`; a string made in Scheme arrives as a string and then as a `SchemeString`; `(values 1 2)` as
+`1` and then as a `Values`; tail calls 100,000 deep as their value and then as a pending `TailCall`
+object; a recursion 100,000 deep as its value and then as a JavaScript stack overflow; and an
+integer JavaScript passes in arrives exact and then as the JavaScript number, so the procedure
+computes inexactly. A page meets all of it by default, since the tier compiles a procedure that
+makes procedures when it is bound, and so the callbacks a page makes.
+
+No test had combined the tier with JavaScript calling Scheme. The tests that run compiled code from
+JavaScript go through the interpreter or `settle`, none called a compiled procedure as a plain
+function, and the interop suites, which do call Scheme procedures that way, ran without the tier. The
+raw entry was made for one direction (R32), compiled code calling an interpreted closure, and nothing
+was made for the reverse.
+
+*Consequence:* a compiled procedure's plain call is to face JavaScript as a closure's does, with the
+raw entry beneath it for compiled code to call. Until it does, the tests in
+`tests/tiers/js_caller_tests.scm` are expected to fail with the tier attached.
+
+**R93. A procedure whose second call comes from compiled code is never compiled.**
+
+`src/compiler/tier.scm` compiles a top-level procedure that neither loops nor makes procedures "on
+its second call". Not when compiled code makes that call. A helper called only from a compiled loop
+-- `(define (square x) (* x x))` from a looping `sum-of-squares` -- stays interpreted for good. The
+call runs in an interpreter nested beneath the compiled code, where compiled frames may move to the
+heap; the tier's hook calls `tier-due!` through `call` in `src/compiler/lowering.js`, which, unlike
+every other JavaScript that calls Scheme, does not stop them moving first. Compiling runs
+`emit-guarded` in `driver.scm`, left interpreted because its `guard` expands through `call/cc`; that
+capture, in the compiler's own interpreter, finds moving allowed -- the permission is global, set
+by the program's compiled code -- and unwinds out through the compiler's compiled frames to `call`,
+which returns the unwind as `tier-due!`'s value. The tier ignores it. By then the closure has been
+taken off the tier's waiting table and its count set to zero, so it is never tried again. Measured:
+`tier-due!` returned the unwind every time it was called beneath compiled code, with over 65,000
+slots of stack room left, and never when called from the top level. The unwind's state is left set;
+the program's own captures and deep recursion afterwards still gave the right answers.
+
+The suspicion recorded in task 71 was narrower: frames moving when the stack ran low. Any capture
+moves them, and every compile captures.
+
+*Consequence:* either `call` stops frames moving before it calls, as `callForeign` does (71), or the
+interpreter applies the tier's hooks itself as Scheme, so that the capture unwinds into an
+interpreter (74). `tests/tiers/tier_compiles_tests.scm` expects the failure until one of them lands.
+
 ---
 
 ## Appendix — the original staged plan

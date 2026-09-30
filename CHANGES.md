@@ -8815,3 +8815,75 @@ Taken on a loaded machine, one run each; the same reference differed by up to 2x
   runs; the reference times; the Gambit JavaScript failures explained; the tier table for tasks
   18-27, labelled with its commit.
 - `benchmarks/r7rs/README.md`: `--ours`, and building with `gsc` to C.
+
+# Walkthrough: JavaScript calling Scheme procedures, tested in both tiers (task 70)
+
+Tests only, and the findings they produced; no code in `src/` changed. The fixes are tasks 71, 72 and
+74.
+
+## A runner for both tiers
+
+`tests/run_tiered_scheme_tests_lib.js` runs Scheme test files twice, each run set up as a page is:
+every shipped library installed from its prebuilt table as it loads, in a library registry of the
+run's own, and each file run form by form through `runTopLevel`, so that the tier sees each top-level
+form as a page's. The first run leaves the program's own code interpreted; the second attaches the
+tier. A file can tell which run it is in from `*tier-attached*`. A file from which the tier compiled
+nothing, not counting the harness's own procedures, is reported as a failure, since that run tested
+the interpreter a second time -- which the first version of the check missed, counting the harness's
+procedures as the file's. The files are listed in `tieredSchemeTestFiles` in `tests/test_manifest.js`
+and live in `tests/tiers/`.
+
+## Expected failures
+
+`tests/core/scheme/test.scm` gains `test-expect-fail`: `(test-expect-fail reason test ...)` runs the
+tests, reporting each as a skip while it fails and as a failure once it passes, so the change that
+fixes them has to remove the mark. The reason is an expression, and #f expects nothing, so a failure
+can be expected in one run only -- `(and *tier-attached* "why")`. Written with a parameter object,
+which `report-test-result` reads. Tested in `test_harness_tests.scm` by capturing what the harness
+reports.
+
+## What the tests found
+
+`tests/tiers/js_caller_tests.scm` has a JavaScript caller, made with `js-eval`, describe what a Scheme
+procedure gave it. For a program's own procedures and for the callbacks a page makes, nine cases pass
+interpreted and fail with the tier attached (R92): an exact integer arrives as a `BigInt`, a string as
+a `SchemeString`, several values as a `Values`, tail calls 100,000 deep as a pending `TailCall`, a
+recursion 100,000 deep as a stack overflow, and an integer passed in stays a JavaScript number. A
+procedure handed to JavaScript and back stays `eq?` in both runs.
+
+`tests/tiers/tier_compiles_tests.scm` was to be the test for task 71, whether `call` in
+`lowering.js` hands an unwind back as a result when frames move on a low stack. It found more
+(R93): every compile the tier starts beneath compiled code is abandoned, whatever the room. The
+compiler's `emit-guarded` is interpreted, and its `guard` captures a continuation; beneath compiled
+code, where frames may move, that capture unwinds out through `call`, which returns it as `tier-due!`'s
+value. So a helper whose second call comes from compiled code -- a `square` called only from a
+looping `sum-of-squares` -- is never compiled. The program's own captures and deep recursion
+afterwards still give the right answers.
+
+## The interop suites, again
+
+`tests/functional/tiered_interop_tests.js` runs four of the JavaScript interop suites again on an
+interpreter with the tier attached: `interop_tests.js`, `js_exception_tests.js`,
+`class_interop_tests.js` and `callable_closures_tests.js`. All pass. The tier compiles only one to
+four procedures of each, most of their procedures being called once, and from
+`record_interop_tests.js` and `exception_interop_tests.js` nothing, so those two are not rerun; nor
+are the Scheme interop files in `tests/extras/scheme/`, for the same reason. The first full run failed
+one of them, and only there: `macro_tests.js` leaves a macro `foo` in the registry every interpreter
+shares, and a suite here defines and calls a procedure `foo`. Each suite now starts from the standard
+library's macros alone, and the shared registry is given back afterwards, as the conformance runner
+does.
+
+## Found on the way
+
+- `interop_conversion_tests.js` and `js_global_tests.js` are registered nowhere, so never run.
+- The closed-pipe test in `cli_stdout_tests.js` fails about one run in twenty: on macOS a write to a
+  standard output whose reader has gone can report `ENOTCONN` rather than `EPIPE`, which
+  `stdout_port.js` does not take for the reader having gone.
+
+## Verification
+
+6,610 of 6,611 tests pass in Node, the one failure being that flaky closed-pipe test, and 6,433 in the
+browser with none failing; in both, the tests that fail with the tier attached are reported as
+expected. No JavaScript was added under `src/`. The JavaScript added is the runner and the tiered
+interop module, which the tests need to set up an interpreter and attach the tier -- JavaScript tests
+for what only JavaScript can observe.
