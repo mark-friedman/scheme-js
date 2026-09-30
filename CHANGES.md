@@ -8887,3 +8887,20 @@ browser with none failing; in both, the tests that fail with the tier attached a
 expected. No JavaScript was added under `src/`. The JavaScript added is the runner and the tiered
 interop module, which the tests need to set up an interpreter and attach the tier -- JavaScript tests
 for what only JavaScript can observe.
+
+# Walkthrough: a closed pipe on a socket
+
+The closed-pipe test in `cli_stdout_tests.js` failed about one run in twenty. A program writing to a
+standard output whose reader has gone is to end quietly with status 141, as SIGPIPE would end it;
+`stdout_port.js` took only EPIPE for the reader having gone. On macOS Node makes a child process's
+standard output of a socket pair, and a write that comes as the reader shuts its end fails with
+ENOTCONN instead, which the port reported as an error and the program exited with status 1.
+
+The port now ends the process quietly for EPIPE, ENOTCONN and ECONNRESET, the last being a socket
+whose reader reset the connection rather than closing it, and reports anything else as before.
+
+A descriptor that fails on demand with a given error cannot be made, so the unit test runs each case
+in a child process whose `fs.writeSync` throws it, passed on to the port's `node:fs` import by
+`syncBuiltinESMExports`: EPIPE, ENOTCONN and ECONNRESET end the child with status 141 and nothing on
+standard error, and EBADF is an error. Before the change the ENOTCONN and ECONNRESET cases failed;
+after it, the CLI tests passed 50 runs in a row.

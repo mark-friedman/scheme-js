@@ -27,6 +27,16 @@ const PAUSE = fs ? new Int32Array(new SharedArrayBuffer(4)) : null;
  */
 const BROKEN_PIPE_STATUS = 141;
 
+/**
+ * The errors a write fails with when nothing reads what it writes any more.
+ * A pipe reports EPIPE. A socket -- which is what a child process's standard
+ * output is on macOS, where Node makes its pipes of socket pairs -- reports
+ * EPIPE, or ENOTCONN if the write comes as the reader shuts its end, or
+ * ECONNRESET if the reader reset the connection rather than closing it.
+ * @type {Set<string>}
+ */
+const READER_GONE = new Set(['EPIPE', 'ENOTCONN', 'ECONNRESET']);
+
 // ============================================================================
 // Standard Output Port (Node.js Only)
 // ============================================================================
@@ -141,7 +151,7 @@ function writeAll(fd, bytes) {
             // Nothing reads the pipe any more, as when the output goes to
             // `head` and it has had its lines. SIGPIPE would end the process,
             // silently, but Node ignores it, so the process ends here.
-            if (e.code === 'EPIPE') process.exit(BROKEN_PIPE_STATUS);
+            if (READER_GONE.has(e.code)) process.exit(BROKEN_PIPE_STATUS);
             throw new Error(`cannot write file descriptor ${fd}: ${e.message}`);
         }
     }

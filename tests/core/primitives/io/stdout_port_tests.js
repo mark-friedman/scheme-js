@@ -10,7 +10,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import { StandardOutputPort } from '../../../../src/core/primitives/io/stdout_port.js';
 import { assert } from '../../../harness/helpers.js';
 
@@ -105,10 +105,60 @@ export async function runStandardOutputPortTests(logger) {
     }
 
     await testWaitingToWrite(logger, dir);
+    testReaderGone(logger);
   } finally {
     for (const fd of opened) fs.closeSync(fd);
     fs.rmSync(dir, { recursive: true, force: true });
   }
+}
+
+/**
+ * What becomes of a process whose standard output port finds its write
+ * failing with an error: in a child process whose `fs.writeSync` is made to
+ * throw it, since a descriptor that fails on demand with a given error cannot
+ * be made. `syncBuiltinESMExports` passes the replacement on to the `node:fs`
+ * the port imports.
+ * @param {string} code - The error's code, such as `EPIPE`.
+ * @returns {{status: number, stderr: string}} How the child exited, and what
+ *   it wrote to standard error.
+ */
+function afterWriteFailing(code) {
+  const port = new URL('../../../../src/core/primitives/io/stdout_port.js', import.meta.url).href;
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e', `
+    import { createRequire } from 'module';
+    const require = createRequire(import.meta.url);
+    const fs = require('fs');
+    fs.writeSync = () => {
+      const error = new Error('the write failed');
+      error.code = ${JSON.stringify(code)};
+      throw error;
+    };
+    require('module').syncBuiltinESMExports();
+    const { StandardOutputPort } = await import(${JSON.stringify(port)});
+    new StandardOutputPort(1).writeString('a line\\n');
+    console.error('the program went on');
+  `], { encoding: 'utf8' });
+  return { status: child.status, stderr: child.stderr };
+}
+
+/**
+ * A write whose reader has gone ends the process quietly, with the status a
+ * shell gives a process SIGPIPE killed, whatever error the system reports it
+ * with: EPIPE for a pipe, and for a socket -- which is what a child process's
+ * standard output is on macOS -- EPIPE, ENOTCONN or ECONNRESET. Any other
+ * failure is an error the program sees.
+ * @param {Object} logger - Test logger.
+ */
+function testReaderGone(logger) {
+  for (const code of ['EPIPE', 'ENOTCONN', 'ECONNRESET']) {
+    const { status, stderr } = afterWriteFailing(code);
+    assert(logger, `a write failing with ${code} ends the process quietly, as SIGPIPE would`,
+      [status, stderr], [141, '']);
+  }
+  const { status, stderr } = afterWriteFailing('EBADF');
+  assert(logger, 'a write failing with any other error is an error',
+    [status, stderr.includes('cannot write file descriptor 1'), stderr.includes('the program went on')],
+    [1, true, false]);
 }
 
 /**
