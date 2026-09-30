@@ -8458,3 +8458,54 @@ policy in `unwind.js`). All of that is Scheme now.
   procedure as often as would compile one of the tier's own.
 - 6,383 tests pass in Node and 6,274 in the browser; 2,000 fresh fuzzer programs agree, with the
   tier compiling 3,955 procedures among them; the browser REPL compiles a looping definition.
+
+# Walkthrough: planning how JavaScript calls Scheme
+
+A plan change that came out of a question about the code. No code changed.
+
+The user asked why `lowering.js` calls the compiler's exports through `call` -- `settle(invoke(...))`
+-- rather than directly, as ordinary JavaScript calls any Scheme procedure. Measured on the last
+commit: calling `lower-lambda` directly gives the same answer as `call`, with the compiler compiled or
+interpreted, since a list crosses the boundary unconverted. What `call` works around is general: a
+compiled procedure is its own raw entry and has no JavaScript-facing one, so JavaScript calling it as
+a plain function gets compiled code's internal calling convention.
+
+## What was measured
+
+The same definitions, interpreted and then compiled, each called from JavaScript as a plain function:
+
+| | interpreted | compiled |
+|---|---|---|
+| `(define (five) 5)` | `5` | `5n` |
+| `(string-copy "ab")` | a string | a `SchemeString` |
+| `(values 1 2)` | `1` | a `Values` |
+| mutual tail recursion, 1,000,000 deep | `even` | a `TailCall` object |
+| non-tail recursion, 1,000,000 deep | `1000000` | a JavaScript stack overflow |
+| `(define (f x) (list x (+ x 1)))` given `1` | `(1 2)`, exact | `(1 2)`, inexact: the argument arrives unconverted |
+
+A page-style program -- callbacks made by a top-level procedure, which the tier compiles as soon as it
+is bound, handed to JavaScript and called there -- got a `TailCall` object from a 100,000-step mutual
+recursion, a `SchemeString` from `string-append`, and `(expt 2 100)` inexact. The browser attaches the
+tier by default.
+
+The tests pass because none crosses that boundary. Those that run compiled code from JavaScript go
+through the interpreter or `settle`; none calls a compiled procedure as a plain function; and the
+interop suites, which do call Scheme procedures that way, run without the tier. The raw entry was made
+in R32 for compiled code calling an interpreted closure, and nothing was made for the reverse.
+
+## The plan
+
+- New tasks: JavaScript calling Scheme procedures, tested with the tier attached (70); `call`'s
+  missing `suspendFlush`, if 70 confirms it (71); compiled procedures callable from JavaScript like
+  closures (72); the compiler's JavaScript-only entry points for tests removed, after which
+  `lower-lambda` can answer a record (73); the evaluator's hooks applied by the interpreter as Scheme
+  rather than called from a JavaScript `Tier` (74); one thin door into the compiler, with `call` and
+  `callCompiler` gone (75); the build steps and the compiler's harnesses as Scheme programs (76); and
+  compiled code without an interpreter beneath it (77).
+- 47 moves up to follow 72, the same contract seen from Scheme calling JavaScript, and gives 72 its
+  item on JavaScript calling a compiled procedure.
+- Decided by the user: 72's design -- a compiled procedure's plain call faces JavaScript and compiled
+  code calls its raw entry, with wrapping at the exits from Scheme as the fallback -- and 77 as a
+  goal ranked low, part of a possible optimization level that minimizes compiled code size, perhaps
+  with tree shaking. `ROADMAP.md` gains that goal, and its interoperability entry now says the bug
+  exists.

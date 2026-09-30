@@ -102,6 +102,20 @@ and exact integer loops are bounded by V8's own `BigInt` arithmetic, neither of 
 [docs/compiler_plan.md](docs/compiler_plan.md) -- profiling bignums, and fixnums as JavaScript
 numbers -- and the old list is in the history of this file.
 
+### Smaller compiled programs
+
+**Goal:** an optimization level that minimizes what a page loads: smaller generated code, library
+procedures a program never reaches left out, and, for a program that needs no `eval`, REPL or
+debugger, no interpreter at all. Every page carries every shipped library compiled, and one that
+compiles its own code also fetches the compiler, about 2.2 MB, so size is what a page pays for speed.
+
+The interpreter stays a permanent tier; this is a build that leaves it out where a program does not
+need it. That needs compiled code to finish its own continuation captures and moves of its frames to
+the heap, which today it hands to an interpreter beneath it.
+
+**Decision:** planned, ranked low (2026-09-30). The work is in
+[docs/compiler_plan.md](docs/compiler_plan.md).
+
 ### High-Precision Inexact Numbers (Future)
 
 For applications requiring more precision than IEEE 754 doubles (e.g., scientific computing, financial calculations), consider integrating **[decimal.js](https://github.com/MikeMcl/decimal.js)**.
@@ -213,7 +227,7 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |
-| **JavaScript interoperability** | Scheme closures are callable JavaScript functions; numbers convert at the boundary, with one inconsistency still to fix, and strings cross as their characters -- a newly made string may be changed in Scheme, and JavaScript always receives a JavaScript string; classes, promises and property access are reachable from Scheme. |
+| **JavaScript interoperability** | Scheme closures are callable JavaScript functions -- though once the compiler tier has compiled one, JavaScript calling it gets compiled code's own conventions, a bug still to fix; numbers convert at the boundary, with one inconsistency still to fix, and strings cross as their characters -- a newly made string may be changed in Scheme, and JavaScript always receives a JavaScript string; classes, promises and property access are reachable from Scheme. |
 | **Lists and strings** | SRFI 1 and SRFI 152, as `(srfi 1)` and `(srfi 152)`: the list library, and the index-based string library that fits R7RS-small's own. The compiler is written with them too. |
 | **Hash tables and comparators** | SRFI 125 and SRFI 128, as `(srfi 125)` and `(srfi 128)`. Tables on `eq?`, `eqv?`, `string=?` and `string-ci=?` sit directly on a JavaScript `Map`; any other equivalence works through its hash function. |
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |
