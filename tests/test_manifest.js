@@ -22,6 +22,9 @@ export const unitTests = [
     { path: 'core/primitives/io/string_port_tests.js', fn: 'runStringPortTests', needsInterpreter: false },
     { path: 'core/primitives/io/bytevector_port_tests.js', fn: 'runBytevectorPortTests', needsInterpreter: false },
     { path: 'core/primitives/io/file_port_tests.js', fn: 'runFilePortTests', needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/stdin_port_tests.js', fn: 'runStandardInputPortTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/stdout_port_tests.js', fn: 'runStandardOutputPortTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/console_port_tests.js', fn: 'runConsolePortTests', needsInterpreter: false },
     { path: 'core/primitives/io/printer_tests.js', fn: 'runPrinterTests', needsInterpreter: false },
     // Reader Unit Tests
     { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
@@ -54,6 +57,8 @@ export const functionalTests = [
     { path: 'functional/string_tests.js', fn: 'runStringTests', async: false },
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: true },
+    { path: 'functional/cli_stdin_tests.js', fn: 'runCliStdinTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'functional/cli_stdout_tests.js', fn: 'runCliStdoutTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },

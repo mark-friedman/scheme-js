@@ -85,9 +85,11 @@ for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### Close the known R7RS-small deviations
 
-`equal?` does not terminate on circular structure, which R7RS §6.1 requires. `read-char` and
-`peek-char` return one-character strings rather than characters. And the file procedures (`call-with-input-file` and the rest) return an exact integer the
-procedure returned as inexact.
+`equal?` does not terminate on circular structure, which R7RS §6.1 requires. The file procedures
+(`call-with-input-file` and the rest) return an exact integer the procedure returned as inexact.
+And `current-input-port`, `current-output-port` and `current-error-port` are procedures rather than
+parameter objects, so `parameterize` of one has no effect: the program goes on reading and writing
+the port it had.
 
 ### Numeric performance
 
@@ -223,11 +225,12 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 
 | | |
 |---|---|
-| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding, both with the standard library interpreted and with it compiled as the browser installs it -- three of Chibi's only because its runner rescues a failure whose values agree in JavaScript. |
+| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding, both with the standard library interpreted and with it compiled as the browser installs it -- two of Chibi's only because its runner rescues a failure whose values agree in JavaScript. |
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |
 | **JavaScript interoperability** | Scheme closures are callable JavaScript functions -- though once the compiler tier has compiled one, JavaScript calling it gets compiled code's own conventions, a bug still to fix; numbers convert at the boundary, with one inconsistency still to fix, and strings cross as their characters -- a newly made string may be changed in Scheme, and JavaScript always receives a JavaScript string; classes, promises and property access are reachable from Scheme. |
+| **Scheme programs in a pipeline** | A program run from the CLI, `node repl.js prog.scm` or `-e`, has the process's standard input, output and error as its current ports: it reads what is piped in as it arrives, and what it writes is seen a line at a time, a prompt before the program waits for its answer, and all of it by the time the program ends; errors go to standard error, and a closed pipe ends it quietly, as `head` expects. `-e` writes its result as `write` does. The interactive REPL keeps standard input for itself. |
 | **Lists and strings** | SRFI 1 and SRFI 152, as `(srfi 1)` and `(srfi 152)`: the list library, and the index-based string library that fits R7RS-small's own. The compiler is written with them too. |
 | **Hash tables and comparators** | SRFI 125 and SRFI 128, as `(srfi 125)` and `(srfi 128)`. Tables on `eq?`, `eqv?`, `string=?` and `string-ci=?` sit directly on a JavaScript `Map`; any other equivalence works through its hash function. |
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |

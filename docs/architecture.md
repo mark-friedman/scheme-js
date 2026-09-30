@@ -91,7 +91,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 
 ```text
 /
-├── repl.js                         # Node.js REPL entry point
+├── repl.js                         # Node.js REPL entry point; a program it runs has the process's standard ports
 ├── rollup.config.js                # Rollup bundling configuration
 ├── .agent/rules/rules.md           # The project's rules; AGENTS.md and CLAUDE.md link here
 ├── .claude/                        # Claude Code project settings
@@ -239,6 +239,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   │   ├── primitives.js   # Scheme binding definitions
 │       │   │   ├── file_port.js    # File ports
 │       │   │   ├── string_port.js  # String ports
+│       │   │   ├── stdin_port.js   # The port over standard input (Node.js), read synchronously
+│       │   │   ├── stdout_port.js  # The ports over standard output and error (Node.js), written synchronously
 │       │   │   ├── console_port.js # Console ports
 │       │   │   ├── bytevector_port.js # Bytevector ports
 │       │   │   ├── printer.js      # write/display logic
@@ -328,6 +330,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── helpers.js              # Test utilities (run, assert, createTestLogger)
 │   │   ├── runner.js               # Test runner logic
 │   │   ├── standard_library.js     # The standard library interpreted at top level
+│   │   ├── cli_process.js          # Runs `repl.js` in a child process, for the CLI's tests
 │   │   └── scheme_test.scm         # Scheme test harness
 │   │
 │   ├── test_manifest.js            # Central registry of all test files
@@ -359,6 +362,9 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   │   └── io/                 # I/O unit tests
 │   │   │       ├── string_port_tests.js
 │   │   │       ├── file_port_tests.js
+│   │   │       ├── stdin_port_tests.js # Reads split across characters and line endings; waiting for input
+│   │   │       ├── stdout_port_tests.js # When a buffered write reaches its descriptor; waiting for room in a pipe
+│   │   │       ├── console_port_tests.js
 │   │   │       ├── bytevector_port_tests.js
 │   │   │       └── printer_tests.js
 │   │   │
@@ -405,6 +411,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── macro_tests.js
 │   │   ├── hygiene_tests.js
 │   │   ├── io_tests.js
+│   │   ├── cli_stdin_tests.js      # `node repl.js` programs reading piped input; the REPL unaffected
+│   │   ├── cli_stdout_tests.js     # What they write: when, in what order, and to which stream
 │   │   ├── string_tests.js
 │   │   ├── string_interop_tests.js # Mutable strings at the JavaScript boundary, both tiers
 │   │   ├── vector_tests.js

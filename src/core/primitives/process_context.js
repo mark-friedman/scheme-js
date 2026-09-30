@@ -44,7 +44,8 @@ export const processContextPrimitives = {
                 code = 1;
             } else {
                 assertInteger('exit', 1, args[0]);
-                code = args[0];
+                // An exact integer is a BigInt, and Node takes a number.
+                code = Number(args[0]);
             }
         }
         if (isNode) {
@@ -69,7 +70,8 @@ export const processContextPrimitives = {
                 code = 1;
             } else {
                 assertInteger('emergency-exit', 1, args[0]);
-                code = args[0];
+                // An exact integer is a BigInt, and Node takes a number.
+                code = Number(args[0]);
             }
         }
         if (isNode) {

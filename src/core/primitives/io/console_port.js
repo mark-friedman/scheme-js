@@ -1,7 +1,8 @@
 import { Port } from './ports.js';
 
 /**
- * Console output port - writes to console.log (for default ports).
+ * Console output port - writes each line to `console.log`, or to
+ * `console.error` for the error port (for default ports).
  */
 export class ConsoleOutputPort extends Port {
     constructor(name = 'stdout') {
@@ -15,7 +16,7 @@ export class ConsoleOutputPort extends Port {
             throw new Error('write-char: port is closed');
         }
         if (ch === '\n') {
-            console.log(this._lineBuffer);
+            this._emit(this._lineBuffer);
             this._lineBuffer = '';
         } else {
             this._lineBuffer += ch;
@@ -37,9 +38,19 @@ export class ConsoleOutputPort extends Port {
      */
     flush() {
         if (this._lineBuffer.length > 0) {
-            console.log(this._lineBuffer);
+            this._emit(this._lineBuffer);
             this._lineBuffer = '';
         }
+    }
+
+    /**
+     * Writes a line to the console. `console` is looked up at each line, since
+     * the harnesses that capture a program's output replace `console.log`.
+     * @param {string} line - The line, without its newline.
+     */
+    _emit(line) {
+        if (this._name === 'stderr') console.error(line);
+        else console.log(line);
     }
 
     toString() {

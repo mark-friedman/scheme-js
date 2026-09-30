@@ -85,12 +85,12 @@ second of work gives Racket one or two ticks, and two ticks is not a measurement
 
 Kept in the manifest rather than dropped: each is the evidence for a conformance gap, and
 each becomes available the moment its gap closes. The suite found all four on its first
-run.
+run; `parsing` has run since its gap closed.
 
 | Programs | Gap |
 |---|---|
 | `gcbench`, `matrix`, `slatex` | Identifiers containing a dot are rejected by **extended dot notation**, a deliberate and tested interop feature. `(define x.y 1)` fails; R7RS §7.1.1 permits the dot. |
-| `parsing`, `read0` | `read-char` and `peek-char` return JavaScript strings rather than Scheme characters, so `(char? (read-char p))` is `#f`. |
+| `read0` | Does not finish within the correctness runner's 120 s in either tier: it reads every two-character string from `a` and U+0000 to `a` and U+10FFFF, twice each, and exercises reader syntax we do not accept. It and `parsing` were also blocked on `read-char` and `peek-char` returning strings rather than characters; `parsing` runs since that was fixed. |
 | `equal` | `equal?` does not terminate on circular structure, which R7RS §6.1 requires. Gambit runs this program in 0.08 s; we hang at every size. |
 
 ## Running

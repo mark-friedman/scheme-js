@@ -8550,3 +8550,221 @@ found:
   `(current-input-port)`. Checked against an independent count over commit 778d990 (Scheme +1,161
   -9, JavaScript +475 -1,204) and with untracked probe files.
 - The plan's header points at the rules and the count.
+
+# Walkthrough: a CLI program reads standard input (2026-09-30)
+
+`printf 'a\nb\n' | node repl.js -e '(list (read-line) (read-line))'` printed `(#<eof> #<eof>)`, and
+a program file run as `node repl.js prog.scm` read nothing either: the current input port was an
+empty string port, so a Scheme program could not stand in a shell pipeline. R7RS leaves the initial
+current input port to the implementation, so this was a gap in the CLI rather than a conformance
+failure. Now a program the CLI runs, from a file or `-e`, has the process's standard input as its
+current input port, and prints `("a" "b")`. The interactive REPL keeps the empty port: its own input
+is standard input, read by Node's readline.
+
+## The design: blocking reads of descriptor 0, as they are needed
+
+The CLI runs a program synchronously, and a Scheme read returns its character as its value, so the
+port cannot wait for `process.stdin`'s data events: they arrive in callbacks the running program
+never returns to. It reads descriptor 0 with `fs.readSync` instead, which blocks until input
+arrives. It reads only when a read needs more than it holds, and takes whatever is there, up to
+64 KB, so a program answers each line of a pipe as it arrives and reads each line typed at a
+terminal as it is typed. Reading all of standard input when the program starts would have been
+simpler, and a program could then do nothing until its input ended -- no prompt-and-answer, no
+`tail -f` into it.
+
+- Bytes are decoded as UTF-8 with a streaming `TextDecoder`, which holds back a character a read cut
+  in two; invalid bytes become U+FFFD, as Node decodes a file.
+- Once anything touches `process.stdin` -- the debugger's prompt does -- Node makes descriptor 0
+  non-blocking, and a read with nothing there fails with EAGAIN. The port waits 10 ms on
+  `Atomics.wait` and tries again, rather than taking the error for the end or a failure.
+- `char-ready?` is `#t` when characters are read ahead, at the end, and always when standard input
+  is a regular file. From a pipe or a terminal with nothing read ahead, there is no way to ask
+  without a read that might wait, so it is `#f`, even if input has in fact arrived: R7RS's promise
+  is that `#t` means the next read will not wait, and that holds.
+- There is one standard input port, made when first asked for, since two ports each reading ahead
+  would each take input the other should have had. Closing it stops reads through it; descriptor 0
+  is never closed.
+
+`repl.js`, before running a file or `-e`, does one thing: it calls `current-input-port` with the
+port that `standard-input-port` answers. `current-input-port` given a port makes it the current
+input port, as this implementation's `make-parameter` objects take a value when called with one; it
+checks that the value is an input port.
+
+## `read-char` and `peek-char` return characters
+
+The task asked that `read-char` and `peek-char` work, and they did not, on any port: they returned
+one-character JavaScript strings, so `(char? (read-char p))` was `#f` and `(char->integer
+(read-char p))` an error. `ROADMAP.md` listed it as a known deviation, and the Chibi suite's test of
+it passed only because its runner rescues a failure whose values agree once converted to
+JavaScript (R85). Now the two primitives make a `Char` of what the port returns.
+
+A port's `readChar` and `peekChar` also returned one UTF-16 code unit, half of a character outside
+the Basic Multilingual Plane. They now return a whole character, one or two code units, and
+`read-string` counts `k` in characters, so `(read-string 1 p)` is `(string (read-char p))`. String
+positions stay code units, as task 49, mutable strings, decided: `(string-length (read-string 1 p))` is 2 for
+😀. The file input port, which duplicated the string input port method for method over its file's
+contents, is now a string input port over them, so it got the same fix and is 44 lines shorter.
+
+## The JavaScript added, and why
+
+Counted with `npm run audit:languages -- 52ebb71`: 247 lines of JavaScript added and 64 removed
+under `src/`, no Scheme.
+
+- `src/core/primitives/io/stdin_port.js`, 183 lines, most of them comments: host input and output,
+  the port's core over descriptor 0. It reuses the string input port for everything but keeping its
+  string filled.
+- `current-input-port` taking a port, and `standard-input-port`, in `io/primitives.js`: the current
+  ports are JavaScript variables that the JavaScript read and write primitives default to, so
+  setting one is JavaScript for now. Making them Scheme parameter objects is task 78.
+- `charRead` in `io/primitives.js` and `passCharacters` in `string_port.js`: fixing JavaScript in
+  place.
+
+## Tests
+
+- `tests/core/scheme/port_tests.scm`, 13 Scheme tests: `read-char` and `peek-char` return characters,
+  whole ones outside the BMP; `read-string` counts characters; `current-input-port` given a port, and
+  given what is not an input port. They run in the browser too.
+- `tests/core/primitives/io/stdin_port_tests.js`, 22 JavaScript tests (Node only) over files read one
+  byte at a time, so that every multi-byte character and every `\r\n` is split across two reads, plus
+  a non-blocking FIFO that another process writes to once the port is waiting.
+- `tests/functional/cli_stdin_tests.js`, 14 tests (Node only), each running `node repl.js` with input
+  piped in: `-e` and a program file, interpreted and compiled; each of `read-line`, `read-char`,
+  `peek-char`, `read`, `read-string` and `char-ready?`, including at the end of empty input; UTF-8;
+  standard input that is a file; `with-input-from-file` putting standard input back; a program
+  answering its first line before the second is written; and the REPL answering `(read-line)` with
+  the end-of-file object and then evaluating the next line typed.
+- Each piece was broken in turn and a test failed: decoding without `stream`, EAGAIN not handled, a
+  `\r` at the end of a read taken for a line ending, the CLI not installing the port, the REPL
+  installing it too, the port reading all its input first, and `read-char` returning strings. The
+  first version of the REPL test could not see the REPL installing the port -- Node's REPL had read
+  all the piped input before `(read-line)` ran -- so it now types the second line only once the
+  first is answered. The first version of the FIFO test held its own write end open, so a port
+  reading to the end would have hung `npm test` rather than failed; the writer now holds the only
+  one.
+- 6,434 tests pass in Node, `parsing` in both tiers among them, and 6,287 in the browser.
+
+## Measured
+
+200,000 lines, 7.2 MB, counted by a `read-line` loop: 0.42-0.44 s from a pipe or a file, CLI
+start-up included; the CLI takes 0.27 s to start and evaluate `1`.
+
+## Found
+
+- **`scripts/language_balance.scm` ran git through `child_process`** because the CLI could not read
+  standard input. It still does, and its comment now gives the reason that remains: it needs two
+  git commands' output, and `npm run audit:languages` runs it with nothing piped in.
+- **`parsing` runs.** The canonical program was blocked on `read-char` returning strings; it now
+  passes in both tiers and is back in the suite's `string` class, so that class's figures from here
+  on include it. `read0` was blocked on the same, and still does not finish within the correctness
+  runner's 120 s in either tier: it reads every two-character string from `a` and U+0000 to `a` and
+  U+10FFFF, twice each.
+- **The rescue now saves two tests, not three**, each in both library configurations: `(inexact 1)`
+  and a numeric literal in 7.1. Task 48 is updated.
+- **`parameterize` of a current port does nothing.** The three current ports are JavaScript
+  procedures, not parameter objects, so `(parameterize ((current-output-port p)) ...)` leaves output
+  going where it went. New task 78; `ROADMAP.md` lists it with the known deviations.
+- **The CLI loses output with no final newline.** The console port writes a line only when it is
+  ended and nothing flushes it at exit, so a program whose last line has no newline prints nothing
+  of it, and `-e '(write 1)'` prints `undefined`. A prompt written with `display` before a
+  `read-line` does not appear until the line ends, which matters now that a program can read what is
+  typed. New task 79.
+
+# Walkthrough: the CLI's output, flushed (task 79, 2026-09-30)
+
+The console port the CLI wrote through holds a line until it ends and gives it to `console.log`, and
+nothing flushed it when the program returned. So `node repl.js prog.scm` printed nothing of a last
+line with no newline; `node repl.js -e '(write 1)'` printed `undefined`, its result, and not the
+`1`; and a prompt written with `display` did not appear before `read-line` waited for its answer,
+which mattered as soon as a program could read standard input. On the way three more turned up:
+`current-error-port` wrote to standard output; a program writing to a pipe whose reader had gone,
+as `| head` leaves one, looped forever, since `console.log` reports the error asynchronously and a
+program that never returns to the event loop never sees it; and `(exit 3)` crashed, since the exact
+integer is a `BigInt` and Node's `process.exit` takes a number.
+
+## The design
+
+A program the CLI runs, from a file or `-e`, now has the process's standard output and standard
+error as its current output and error ports, as it already had standard input. The port, in
+`src/core/primitives/io/stdout_port.js`, writes with `fs.writeSync`, so what a write sends has
+reached the descriptor when it returns: output survives `process.exit`, and standard output and
+standard error keep the order they were written in.
+
+- **Standard output is written a line at a time**: the port holds text until a write ends a line,
+  or it holds 64 K code units, or it is flushed. Writing a character at a time costs a system call
+  a line, as `console.log` did.
+- **What it holds is written when the process exits**, from a `process.on('exit')` handler, so it
+  is written however the program ends: returning, `exit`, or an error.
+- **Before a read of standard input waits**, standard input's port flushes standard output, so a
+  prompt is seen before the program waits for its answer. A read satisfied from what was read
+  ahead writes nothing.
+- **Standard error is unbuffered, and flushes standard output first**, so an error is seen after
+  the output that came before it, in a terminal or a file both go to.
+- **EAGAIN**, once Node has made the descriptor non-blocking, waits 10 ms and tries again, as reads
+  of standard input do. **EPIPE**, nothing reading the pipe any more, ends the process with status
+  141, what a shell reports for a process SIGPIPE killed. That is how `yes | head -1` behaves; Node
+  ignores SIGPIPE, so the port does what the signal would have.
+
+`repl.js` sets the three current ports by calling `current-input-port`, `current-output-port` and
+`current-error-port` each with its port, so the output and error ports now take a port as the input
+port does since the change before. `-e` writes its last result with Scheme's `write`, through the
+current output port, after what the program wrote, and writes nothing for an unspecified result.
+Its result was converted to JavaScript before, so it printed `6.0` for `(+ 1 2 3)` and `a` for
+`#\a`, the CLI item of task 47; it prints `6` and `#\a`. `-e`'s and a program file's errors are
+written to the current error port. The interactive REPL keeps the console ports, since Node's REPL
+owns the terminal, and flushes them when each evaluation ends, so `(display "hi")` shows `hi` then
+rather than when something next ends a line. Outside the CLI -- the browser, the test and benchmark
+harnesses, which capture `console.log` -- the console ports stay, and the error port writes to
+`console.error` instead of `console.log`.
+
+## The JavaScript added, and why
+
+- `src/core/primitives/io/stdout_port.js`, 203 lines, most of them comments: host input and output,
+  the ports' core over descriptors 1 and 2.
+- `current-output-port` and `current-error-port` taking a port, and the helper the three share
+  that checks what they were given, in `io/primitives.js`: the current ports are JavaScript
+  variables that the JavaScript read and write primitives default to, until task 78 makes them
+  Scheme parameter objects.
+- Standard input flushing standard output before it waits: host input and output.
+- The console error port writing `console.error`, and `exit`'s status as a number: fixing JavaScript
+  in place.
+
+## Tests
+
+- `tests/core/scheme/port_tests.scm`, 8 more Scheme tests: `current-output-port` and
+  `current-error-port` given a port, and given what is not an output port. They run in the browser.
+- `tests/core/primitives/io/stdout_port_tests.js`, 15 tests (Node only) over files: when a buffered
+  write reaches its descriptor, the limit, UTF-8, an unbuffered port and what it writes first,
+  closing; and a non-blocking FIFO filled until a write would wait, which another process drains
+  once the port is waiting.
+- `tests/core/primitives/io/console_port_tests.js`: which console method each line goes to, in Node
+  and the browser.
+- `tests/functional/cli_stdout_tests.js`, 16 tests (Node only), each running `node repl.js`: a last
+  line with no newline, both tiers; `-e` with `write`, `display`, an exact integer, a list with a
+  flonum, a string and a character, and output before its result; a prompt written before the
+  program reads a line, the line typed only once the prompt is seen; standard error apart from
+  standard output, and the two interleaved in one file; `exit 3`; `with-output-to-file`; a failing
+  program's output before its error; the current ports being the standard ones; `head` closing the
+  pipe; and the REPL showing a display before the next line is typed.
+  `tests/harness/cli_process.js` now runs `repl.js` for both CLI test files.
+- Each piece was broken in turn and a test failed: no flush at exit, no flush before reading,
+  standard error not flushing standard output, EPIPE taken for an error, EAGAIN not handled, no line
+  buffering, the REPL not flushing, `-e` printing with the JavaScript printer, and the error port
+  going to `console.log`. The first version of the FIFO test waited forever for a port that wrote
+  nothing, since its reader opened the FIFO only after the writer had closed; the reader now opens it
+  at once and waits before reading.
+- 6,474 tests pass in Node and 6,296 in the browser.
+
+## Measured
+
+200,000 lines written by `display` and `newline`, to a file or a pipe: 0.59 s, CLI start-up
+included, where the console port took 0.70-0.72 s; the output is byte for byte the same.
+`node repl.js -e` of an endless loop writing lines, into `head -3`, ends in 0.49 s.
+
+## Found
+
+- **The plan's completed log lacked task 24**, the oldest row in the plan's *Completed*, which this
+  task's row displaces; the log began at 46, so rows dropped before it existed are only in this file
+  and the history. 24 is appended to it ahead of 79, so that its number still resolves.
+- `-e` writes multiple values as the object that holds them, `#{(values #(1 2))}`, where the REPL
+  prints `#<values: 2 values>`; neither writes the values themselves. The REPL still prints results
+  with the JavaScript printer, so `#\a` typed at it prints `a`.

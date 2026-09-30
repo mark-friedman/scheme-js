@@ -10,9 +10,9 @@
 ;; Generated files are left out, since the compiled tables under src/packaging/
 ;; would swamp the count; each one starts with an "Auto-generated" line.
 ;;
-;; Git is run through Node's child_process, reached by interop, since the CLI
-;; does not connect standard input to (current-input-port) for a program to
-;; read git's output from a pipe.
+;; Git is run through Node's child_process, reached by interop, rather than
+;; read from standard input: the count needs two git commands' output, and
+;; `npm run audit:languages` runs this with no pipeline in front of it.
 
 (import (scheme base)
         (scheme write)
