@@ -9,6 +9,10 @@ Thumbs.db
 *.swo
 *~
 
+# Claude Code: the project's settings and hooks are committed; its worktrees
+# are not
+.claude/worktrees/
+
 # Temp artifacts
 implementation_plan.md
 tasks.md
@@ -27,3 +31,6 @@ npm-debug.log*
 # Benchmark programs that write output files (ray writes outputs/ray.output)
 benchmarks/r7rs/outputs/*
 !benchmarks/r7rs/outputs/.gitkeep
+
+# Other people's Scheme, downloaded by benchmarks/corpus/fetch.js from manifest.json
+benchmarks/corpus/downloads/

@@ -654,6 +654,49 @@
     (else (error "emit: cannot emit IR node" (car node)))))
 
 ;; /**
+;;  * Emits operands, left to right, each settled before any after it can
+;;  * change what it reads.
+;;  *
+;;  * A call's value is a statement and a temporary, but a global read, a boxed
+;;  * local's read or a sequence's last expression is an expression, written into
+;;  * the call that uses it -- and so evaluated after every operand to its right.
+;;  * If one of those assigns what it reads, the operand sees the new value:
+;;  * `(list g (f))`, with `f` assigning `g`, was `(5 10)` compiled where the
+;;  * interpreter says `(0 10)`. R7RS leaves the order unspecified, so both are
+;;  * Scheme; but the interpreter is the reference semantics, and a program that
+;;  * depended on the order would change its answer when compiled. So such an
+;;  * operand goes into a temporary first, when an operand after it could have
+;;  * an effect at all -- anything but a literal, a variable or a lambda. A
+;;  * literal and an unassigned local are left alone, since nothing can change
+;;  * them.
+;;  *
+;;  * @param {form} form - The emission.
+;;  * @param {list} nodes - The operands' IR nodes, in order.
+;;  * @returns {list} Their expressions.
+;;  */
+(define (emit-operands! form nodes)
+  (let loop ((nodes nodes) (acc '()))
+    (if (null? nodes)
+        (reverse acc)
+        (let ((expr (emit-value! form (car nodes))))
+          (loop (cdr nodes)
+                (cons (if (and (not (repeatable? expr)) (any effectful? (cdr nodes)))
+                          (let ((t (temp! form)))
+                            (emit! form (list 'assign (js t) expr))
+                            (js t))
+                          expr)
+                      acc))))))
+
+;; /**
+;;  * Whether evaluating an IR node could change what another reads: anything
+;;  * but a literal, a variable read or the making of a procedure.
+;;  * @param {list} node - The node.
+;;  * @returns {boolean}
+;;  */
+(define (effectful? node)
+  (not (memq (car node) '(const local global lambda))))
+
+;; /**
 ;;  * Creates a nested procedure by calling its factory with its free variables.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} lam - A lambda IR node.
@@ -810,7 +853,20 @@
 ;;  * interpreted closure is a callable function too, but calling it that way
 ;;  * enters Scheme from JavaScript and converts -- exact integers to doubles --
 ;;  * so it is called through its raw entry. Which kind the callee is belongs to
-;;  * the value, not the name, so it is tested at the call. The callee may
+;;  * the value, not the name, so it is tested at the call.
+;;  *
+;;  * Before any of that the callee is tested for being a function at all:
+;;  * called, anything else makes JavaScript report the temporary holding it --
+;;  * "$t0 is not a function" -- where the interpreter says "application: not a
+;;  * procedure", and reading the raw entry of the empty list, which is `null`,
+;;  * fails before that. How it is tested was measured, since it runs on every
+;;  * call. Written into the call expression -- only a callee with no raw entry,
+;;  * the entry read with `?.` -- it made `benchmarks/r7rs/src/divrec.scm` 9%
+;;  * slower; as a statement of its own, 2-4.5% on the programs made of calls
+;;  * between compiled procedures. Catching the call's failure in a `try`
+;;  * instead cost those nothing but a call into an interpreted procedure 15%,
+;;  * which is what the compiled library calling a program's callbacks makes,
+;;  * so `benchmarks/r7rs/src/quicksort.scm` ran 9% slower. The callee may
 ;;  * return a pending tail call, which is run out here, or report a capture --
 ;;  * or that there was no room on the stack for it to run (see `depth-entry`)
 ;;  * -- which this frame then joins.
@@ -824,18 +880,25 @@
 ;;  * @returns {list} The expression holding the value.
 ;;  */
 (define (emit-call! form node)
-  (let* ((args (map-in-order (lambda (arg) (emit-value! form arg)) (caddr node)))
+  ;; The procedure first, as the interpreter evaluates it (`emit-operands!`).
+  (let* ((operands (emit-operands! form (cons (cadr node) (caddr node))))
+         (fn (car operands))
+         (args (cdr operands))
          (callee (temp! form))
          (raw (temp! form))
          (result (temp! form))
-         (fn (emit-value! form (cadr node)))
          (arglist (join-exprs args ", ")))
     (emit! form (list 'assign (js callee) fn))
+    (emit! form (list 'raw (js "if (typeof " callee " !== 'function') $notProc(" callee ");")))
     (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
     (set-form-depth! form 'call)
     (emit! form (list 'text "$stack.room = $d;"))
+    ;; No raw entry: a primitive or a compiled procedure, called directly, or
+    ;; anything else -- a JavaScript function -- through `$foreign`, which
+    ;; converts its arguments as the interpreter does.
     (emit! form (list 'assign (js result)
-                      (js raw " === undefined ? " callee "(" arglist ") : " raw "(" arglist ")")))
+                      (js raw " === undefined ? (" callee "[$PRIM] === true ? " callee "(" arglist ") : "
+                          "$foreign(" callee ", [" arglist "])) : " raw "(" arglist ")")))
     (emit! form (list 'raw (js "while (" result " instanceof $TailCall) { $stack.room = $d; "
                                result " = $step(" result "); }")))
     (if (twin? form)
@@ -971,8 +1034,9 @@
   (let ((inlined (emit-inline! form node)))
     (if inlined
         (emit! form (list 'return inlined))
-        (let* ((fn (emit-value! form (cadr node)))
-               (args (map-in-order (lambda (arg) (emit-value! form arg)) (caddr node)))
+        (let* ((operands (emit-operands! form (cons (cadr node) (caddr node))))
+               (fn (car operands))
+               (args (cdr operands))
                (kind (call-loop node))
                (target (loop-target form)))
           (cond
@@ -1135,7 +1199,7 @@
 (define (emit-inline-loop! form node)
   (let* ((lam (car (caddr node)))
          (params (lambda-params lam))
-         (entry (map-in-order (lambda (arg) (emit-value! form arg)) (caddr (cadddr node)))))
+         (entry (emit-operands! form (caddr (cadddr node)))))
     (for-each (lambda (param value)
                 (declare! form (js-local param))
                 (emit! form (list 'assign (js (js-local param)) value)))
@@ -1474,7 +1538,8 @@
   '(("$TailCall" . "R.TailCall") ("$step" . "R.step")
     ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")
     ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")
-    ("$stack" . "R.stack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")))
+    ("$stack" . "R.stack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")
+    ("$notProc" . "R.notAProcedure") ("$foreign" . "R.callForeign")))
 
 ;; /**
 ;;  * The declaration of the runtime values a procedure's code uses.

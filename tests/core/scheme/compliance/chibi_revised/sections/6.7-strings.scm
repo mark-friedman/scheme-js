@@ -24,8 +24,12 @@
   (test #\b (string-ref "abc" 1))
   (test #\c (string-ref "abc" 2))
 
-  ;; SKIP: JavaScript strings are immutable - string-set! not supported
-  (test-skip "string-set!" "JavaScript strings are immutable")
+  (test "a-c" (let ((str (string #\a #\b #\c))) (string-set! str 1 #\-) str))
+
+  (test (string #\a #\x1F700 #\c)
+      (let ((s (string #\a #\b #\c)))
+        (string-set! s 1 #\x1F700)
+        s))
 
   (test #t (string=? "" ""))
   (test #t (string=? "abc" "abc" "abc"))
@@ -117,19 +121,27 @@
   (test "b" (string-copy "abc" 1 2))
   (test "bc" (string-copy "abc" 1 3))
 
-  ;; SKIP: JavaScript strings are immutable - string-fill! not supported
-  (test-skip "string-fill! (full)" "JavaScript strings are immutable")
-  (test-skip "string-fill! (start)" "JavaScript strings are immutable")
-  (test-skip "string-fill! (start end)" "JavaScript strings are immutable")
+  (test "-----"
+      (let ((str (make-string 5 #\x))) (string-fill! str #\-) str))
+  (test "xx---"
+      (let ((str (make-string 5 #\x))) (string-fill! str #\- 2) str))
+  (test "xx-xx"
+      (let ((str (make-string 5 #\x))) (string-fill! str #\- 2 3) str))
 
-  ;; SKIP: JavaScript strings are immutable - string-copy! not supported
-  (test-skip "string-copy! (1)" "JavaScript strings are immutable")
-  (test-skip "string-copy! (2)" "JavaScript strings are immutable")
-  (test-skip "string-copy! (3)" "JavaScript strings are immutable")
-  (test-skip "string-copy! (4)" "JavaScript strings are immutable")
-  (test-skip "string-copy! (5)" "JavaScript strings are immutable")
+  (test "a12de"
+      (let ((str (string-copy "abcde"))) (string-copy! str 1 "12345" 0 2) str))
+  (test "-----"
+      (let ((str (make-string 5 #\x))) (string-copy! str 0 "-----") str))
+  (test "---xx"
+      (let ((str (make-string 5 #\x))) (string-copy! str 0 "-----" 2) str))
+  (test "xx---"
+      (let ((str (make-string 5 #\x))) (string-copy! str 2 "-----" 0 3) str))
+  (test "xx-xx"
+      (let ((str (make-string 5 #\x))) (string-copy! str 2 "-----" 2 3) str))
 
-  ;; same source and dest - also requires mutable strings
-  (test-skip "string-copy! (same source/dest 1)" "JavaScript strings are immutable")
-  (test-skip "string-copy! (same source/dest 2)" "JavaScript strings are immutable")
+  ;; same source and dest
+  (test "aabde"
+      (let ((str (string-copy "abcde"))) (string-copy! str 1 str 0 2) str))
+  (test "abcab"
+      (let ((str (string-copy "abcde"))) (string-copy! str 3 str 0 2) str))
 )

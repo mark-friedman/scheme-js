@@ -161,6 +161,27 @@ const GROUPS = [
     ]
   },
   {
+    // Every call site with no raw entry on its callee tells a primitive or a
+    // compiled procedure, called directly, from a JavaScript function, called
+    // as the interpreter calls one -- its arguments converted and moves of
+    // frames suspended (`callForeign` in src/compiler/runtime.js).
+    name: 'calls',
+    about: 'a callee with no raw entry: a primitive not inlined, a compiled procedure, a JavaScript function',
+    definitions: `
+      (define (one x) 1)
+      (define (length-of s) (if (= (string-length s) 0) 0 1))
+      (define (through f x) (if (eq? (f x) 0) 0 1))
+      (define (ident x) x)
+      (define key-a 'a)
+      (define word "hello")
+      (define js-ident (js-eval "(x) => x"))`,
+    workloads: [
+      ['a primitive the compiler does not inline', '(length-of word)'],
+      ['a compiled procedure, passed in', '(through ident key-a)'],
+      ['a JavaScript function, passed in', '(through js-ident key-a)']
+    ]
+  },
+  {
     name: 'recursion',
     about: 'non-tail recursion: each procedure that calls takes its frame from the room left on the stack',
     definitions: `

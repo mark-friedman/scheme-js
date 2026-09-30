@@ -4,6 +4,7 @@ import { Port, EOF_OBJECT } from './ports.js';
 import { Rational } from '../rational.js';
 import { Complex } from '../complex.js';
 import { Char } from '../char_class.js';
+import { SchemeString } from '../string_class.js';
 
 // ============================================================================
 // Printer Logic (Display/Write)
@@ -34,6 +35,9 @@ export function writeString(val) {
  * @returns {string}
  */
 function genericToString(val, mode) {
+    // A mutable string is written as the characters it holds.
+    if (val instanceof SchemeString) val = val.toString();
+
     // 1. Primitive shared values
     if (val === null) return '()';
     if (val === true) return '#t';
@@ -221,6 +225,7 @@ export function writeStringShared(val) {
     const emitted = new Set();  // objects that have been output with #n=
 
     function emit(obj) {
+        if (obj instanceof SchemeString) obj = obj.toString();
         // Handle primitives
         if (obj === null) return '()';
         if (obj === true) return '#t';
@@ -395,6 +400,7 @@ function isObjectLike(val) {
     if (val instanceof Cons) return false;
     if (val instanceof Port) return false;
     if (val instanceof Symbol) return false;
+    if (val instanceof SchemeString) return false;
     if (val === EOF_OBJECT) return false;
     // Check for char objects
     if (val instanceof Char) return false;

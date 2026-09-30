@@ -4,6 +4,7 @@
  * Provides operations to create and manipulate JS-compatible classes from Scheme.
  */
 
+import { isString, stringValue } from './string_class.js';
 import { suspendFlush, restoreFlush } from '../interpreter/unwind.js';
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertSymbol } from '../interpreter/type_check.js';
@@ -105,7 +106,7 @@ export const classPrimitives = {
      * @returns {Function} The class constructor wrapper.
      */
     'make-class': (name, parent, fieldTags, constructorTags) => {
-        const typeName = typeof name === 'string' ? name : name.name;
+        const typeName = isString(name) ? stringValue(name) : name.name;
         const ownFieldNames = toArray(fieldTags).map(s => s.name);
         const constructorParamNames = toArray(constructorTags).map(s => s.name);
         const jsClassName = typeName.replace(/[^a-zA-Z0-9_$]/g, '_');
@@ -179,7 +180,7 @@ export const classPrimitives = {
      * @param {Function} proc - The Scheme procedure (callable closure).
      */
     'class-method-set!': (cls, name, proc) => {
-        const methodName = typeof name === 'string' ? name : name.name;
+        const methodName = isString(name) ? stringValue(name) : name.name;
         if (typeof proc !== 'function') {
             throw new SchemeTypeError('class-method-set!', 3, 'procedure', proc);
         }
@@ -194,7 +195,7 @@ export const classPrimitives = {
      * @returns {*} The result of calling the parent method.
      */
     'class-super-call': (instance, methodName, ...args) => {
-        const name = typeof methodName === 'string' ? methodName : methodName.name;
+        const name = isString(methodName) ? stringValue(methodName) : methodName.name;
         const cls = instance.constructor;
         const parent = cls._schemeParent;
         if (!parent) {
@@ -228,7 +229,7 @@ export const classPrimitives = {
      * @returns {Function} The class constructor wrapper.
      */
     'make-class-with-init': (name, parent, fieldTags, constructorTags, superArgsFn, initFn) => {
-        const typeName = typeof name === 'string' ? name : name.name;
+        const typeName = isString(name) ? stringValue(name) : name.name;
 
         let InternalClass;
         let Wrapper;

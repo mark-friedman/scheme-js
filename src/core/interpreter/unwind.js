@@ -15,18 +15,21 @@
  * The compiled frames put themselves into the continuation, cooperatively, by
  * unwinding:
  *
- * 1. `call/cc` notices a compiled boundary beneath it. Instead of building a
- *    continuation from a stack it knows to be incomplete, it records what it
- *    needs to finish the job later and abandons the nested run by throwing
- *    `CaptureUnwind`.
+ * 1. `call/cc` notices that compiled code called the run it is in. Instead of
+ *    building a continuation from a stack it knows to be incomplete, it
+ *    records what it needs to finish the job later, with the frames of its
+ *    own run, and abandons that run by throwing `CaptureUnwind`.
  * 2. That run returns the `UNWIND` sentinel to whoever called it -- compiled
  *    code.
  * 3. Generated code checks for `UNWIND` after every non-tail call. On seeing
  *    it, a procedure spills its locals and resume point with `reify` and
  *    returns `UNWIND` itself, so its own caller does the same.
- * 4. The outermost compiled procedure returns `UNWIND` to the interpreter,
- *    which splices the reified frames into the stack where the boundary was
- *    and finishes the capture.
+ * 4. The outermost compiled procedure returns `UNWIND` to the interpreter. If
+ *    that run was itself called by compiled code, it adds its own frames to
+ *    the capture and returns `UNWIND` in turn (`Interpreter.unwindsOut`), so
+ *    the unwind carries on through as many alternations of compiled and
+ *    interpreted code as there are. The first run that cannot pass it on puts
+ *    the frames on its own stack, in order, and finishes the capture.
  *
  * Signalling with a returned value rather than a thrown one is deliberate: on a
  * high-level virtual machine a throw costs orders of magnitude more than a
@@ -41,12 +44,15 @@
  *
  * ## What this does not cover
  *
- * A capture crossing more than one boundary between compiled and interpreted
- * code. Each boundary would need its own group of frames spliced at its own
- * position, and getting that wrong gives a wrong answer rather than a failure,
- * so `call/cc` refuses outright instead. A capture beneath a redefined inlined
- * primitive is refused for the same reason: an inline expansion is not a call
- * site the resumable form splits at, so there is no point to resume from.
+ * JavaScript that is not compiled code -- a primitive calling a procedure back,
+ * host code calling a callback -- cannot save itself, so an unwind stops at the
+ * run such a caller started. A continuation captured above one leaves out the
+ * JavaScript caller and whatever is beneath it that the interpreter did not
+ * run, exactly as it does with no compiled code anywhere: it works as an
+ * escape, and resumed after those frames have returned it resumes without
+ * them. A capture beneath a redefined inlined primitive is refused: an inline
+ * expansion is not a call site the resumable form splits at, so there is no
+ * point to resume from.
  */
 
 import { CTL, ENV, FSTACK } from './stepables_base.js';
@@ -78,7 +84,9 @@ export class CaptureUnwind {
  * generated code that knows nothing about it. A compiled procedure says "I
  * suspended" by returning `UNWIND` and leaves its frame here on the way out.
  *
- * @property {Array<Object>} frames - Suspended compiled frames, innermost first.
+ * @property {Array<Object>} frames - What the unwind has collected, innermost
+ *   first: suspended compiled frames, `{twin, pc, slots}`, and the frames of
+ *   each run of the interpreter it passed through, `{segment}`.
  * @property {Object|null} pending - What `call/cc` needs to finish the capture.
  */
 export const unwinding = { frames: [], pending: null };
@@ -93,15 +101,82 @@ export const unwinding = { frames: [], pending: null };
  */
 export function reify(twin, pc, slots) {
   unwinding.frames.push({ twin, pc, slots });
+  const counts = frameCounts.get(twin);
+  if (counts === undefined) frameCounts.set(twin, { saved: 1, resumed: 0, ask: undefined });
+  else counts.saved++;
+}
+
+// =============================================================================
+// Procedures whose saved frames are re-entered
+// =============================================================================
+//
+// A procedure whose frames continuations keep re-entering costs more compiled
+// than interpreted, and is switched back to the interpreted closure it was
+// compiled from. Which ones is the compiler's decision, made in Scheme
+// (`note-resume` in `src/compiler/tier.scm`); what is here is what it decides
+// from, kept where frames are saved and resumed: how many times each
+// procedure's frames have been.
+
+/**
+ * Saves and resumes of each procedure's frames, by its resumable form, and the
+ * resume at which to ask the policy next, once it has been asked.
+ * @type {WeakMap<Function, {saved: number, resumed: number, ask: (number|undefined)}>}
+ */
+const frameCounts = new WeakMap();
+
+/**
+ * Asked, at the resumes it names, whether a procedure whose frame is being
+ * resumed is re-entered, switching it back if it is; null until the compiler
+ * has started and registered it.
+ * @type {function(Function, number, number): (boolean|number)|null}
+ */
+let reentryPolicy = null;
+
+/**
+ * The resume at which the policy is first asked about a procedure. A procedure
+ * nested in another has a resumable form of its own for every closure made of
+ * it, each resumed only a few times, so asking at the first resume would ask
+ * about nearly every one.
+ * @type {number}
+ */
+let firstAsk = Infinity;
+
+/**
+ * Registers what decides whether a procedure whose frames are being resumed
+ * is re-entered, and switches it back.
+ * @param {function(Function, number, number): (boolean|number)} policy - Given
+ *   the procedure's resumable form and its frames' saves and resumes so far;
+ *   answers `true` if it judged the procedure re-entered, after which it is
+ *   not asked about it again, and otherwise the resume at which to ask next.
+ * @param {number} first - The resume at which to ask about a procedure first.
+ */
+export function setReentryPolicy(policy, first) {
+  reentryPolicy = policy;
+  firstAsk = first;
+}
+
+/**
+ * Notes that a saved compiled frame is being resumed, and asks whether its
+ * procedure is re-entered when the policy asked to be asked.
+ * @param {Function} twin - The procedure's resumable form.
+ */
+export function noteResume(twin) {
+  const counts = frameCounts.get(twin);
+  if (counts === undefined) return;
+  counts.resumed++;
+  if (counts.resumed >= (counts.ask ?? firstAsk) && reentryPolicy !== null) {
+    const next = reentryPolicy(twin, counts.saved, counts.resumed);
+    counts.ask = next === true ? Infinity : Number(next);
+  }
 }
 
 /**
  * Begins a capture that has to cross compiled frames.
  *
- * @param {Object} pending - `{ lambdaExpr, fstack, env, boundary }`: the
- *   receiver still to be applied, the frame stack as `call/cc` saw it, the
- *   environment to apply the receiver in, and the index in that stack of the
- *   boundary marker the compiled frames belong at.
+ * @param {Object} pending - `{ lambdaExpr, env, segment }`: the receiver still
+ *   to be applied, the environment to apply it in, and the frames of the run
+ *   `call/cc` was in, above the sentinel it started on -- the innermost part
+ *   of the continuation.
  * @returns {void}
  */
 export function beginCapture(pending) {
@@ -148,44 +223,114 @@ export function beginCapture(pending) {
  * JavaScript that calls a Scheme procedure closes one with `suspendFlush`; both
  * give back what they replaced with `restoreFlush`.
  *
+ * A run of the interpreter that compiled code called, and that passes unwinds
+ * on (`Interpreter.unwindsOut`), is not the bottom of a segment: it sits on the
+ * JavaScript stack above the compiled code that called it, so the compiled code
+ * it calls in turn continues that segment's room, less what the run itself
+ * takes (`NESTED_RUN_ROOM`), and a move started there carries on through it to
+ * the run that finishes it. That is what lets recursion alternating between
+ * compiled and interpreted code go as deep as either alone.
+ *
  * One way remains to reach compiled code beneath a JavaScript caller while it
  * is flushable: compiled code calling a plain JavaScript function directly,
  * which calls a compiled procedure back before it returns.
  *
- * @type {{room: number, limit: number, flushable: boolean}}
+ * `refusesCapture` is true while an inline expansion calls what its primitive's
+ * name has been redefined to (`R.callBinding`). Frames may not move there
+ * either, but unlike a JavaScript caller, which a continuation simply leaves
+ * out as it does with no compiled code anywhere, the expansion's frame is
+ * compiled code with no point to resume from, so a capture beneath it is
+ * refused.
+ *
+ * @type {{room: number, limit: number, flushable: boolean, refusesCapture: boolean}}
  */
-export const compiledStack = { room: 65536, limit: 65536, flushable: false };
+export const compiledStack = { room: 65536, limit: 65536, flushable: false, refusesCapture: false };
 
 /**
- * Starts a segment of compiled frames directly above the interpreter, whose
- * unwind the interpreter will finish.
- * @returns {boolean} The `flushable` to restore afterwards.
+ * Why a capture beneath a redefined primitive is refused, for `call/cc` in
+ * interpreted code and for compiled code's own check alike.
+ * @type {string}
  */
-export function openCompiledSegment() {
-  const saved = compiledStack.flushable;
-  compiledStack.room = compiledStack.limit;
-  compiledStack.flushable = true;
+export const CAPTURE_UNDER_PRIMITIVE =
+  'call/cc: a continuation was captured beneath a redefined primitive, which '
+  + 'cannot be resumed. Run this program with its code interpreted '
+  + '(--no-compile at the command line, setUserCodeCompilation(false) in a page).';
+
+/**
+ * The state `restoreFlush` gives back: `flushable` and `refusesCapture`
+ * together, as the bits of one number.
+ * @returns {number} The state.
+ */
+export function flushState() {
+  return (compiledStack.flushable ? 1 : 0) | (compiledStack.refusesCapture ? 2 : 0);
+}
+
+/**
+ * The room a nested run of the interpreter takes from the segment it
+ * continues: the JavaScript frames between compiled code and the compiled code
+ * the run calls -- the procedure's raw entry, `runWithSentinel`, `run`, `step`,
+ * the application's step, `continueApplication`. Measured on V8, recursion
+ * alternating between a small compiled procedure and an interpreted one used
+ * about 214 slots of real stack a level, nearly all of it the run; this is
+ * rounded up, so that a move comes before the stack runs out.
+ * @type {number}
+ */
+export const NESTED_RUN_ROOM = 256;
+
+/**
+ * Starts a segment of compiled frames above the interpreter, or continues one
+ * from a nested run that passes unwinds on.
+ * @param {boolean} [continues=false] - Whether the run calling compiled code
+ *   passes unwinds on, and so continues the segment of the compiled code that
+ *   called it rather than starting one of its own.
+ * @returns {number} The state to restore afterwards.
+ */
+export function openCompiledSegment(continues = false) {
+  const saved = flushState();
+  if (continues) {
+    // Still flushable: the run passes unwinds on only when its caller could.
+    compiledStack.room -= NESTED_RUN_ROOM;
+  } else {
+    compiledStack.room = compiledStack.limit;
+    compiledStack.flushable = true;
+    compiledStack.refusesCapture = false;
+  }
   return saved;
 }
 
 /**
  * Stops compiled frames moving to the heap while JavaScript that is not the
  * interpreter calls a Scheme procedure, since it would receive the unwind.
- * @returns {boolean} The `flushable` to restore afterwards.
+ * @returns {number} The state to restore afterwards.
  */
 export function suspendFlush() {
-  const saved = compiledStack.flushable;
+  const saved = flushState();
   compiledStack.flushable = false;
+  compiledStack.refusesCapture = false;
   return saved;
 }
 
 /**
- * Gives back what `openCompiledSegment` or `suspendFlush` replaced.
- * @param {boolean} saved - What it returned.
+ * Stops compiled frames moving to the heap, and refuses a capture, while an
+ * inline expansion calls what its primitive's name was redefined to.
+ * @returns {number} The state to restore afterwards.
+ */
+export function suspendForPrimitive() {
+  const saved = flushState();
+  compiledStack.flushable = false;
+  compiledStack.refusesCapture = true;
+  return saved;
+}
+
+/**
+ * Gives back what `openCompiledSegment`, `suspendFlush` or
+ * `suspendForPrimitive` replaced.
+ * @param {number} saved - What it returned.
  * @returns {void}
  */
 export function restoreFlush(saved) {
-  compiledStack.flushable = saved;
+  compiledStack.flushable = (saved & 1) !== 0;
+  compiledStack.refusesCapture = (saved & 2) !== 0;
 }
 
 /**
@@ -217,7 +362,7 @@ export function beginFlush(procedure, args) {
  */
 export function beginCompiledCapture(receiver) {
   unwinding.frames = [];
-  unwinding.pending = { lambdaExpr: receiver, fstack: null, env: null, boundary: -1 };
+  unwinding.pending = { lambdaExpr: receiver, env: null, segment: [] };
 }
 
 /**
@@ -240,61 +385,65 @@ export function beginCompiledCapture(receiver) {
  *   expression that makes a pending call, for frames moved to the heap.
  * @property {function(Array, Array): void} pushMoved - Puts frames moved to the
  *   heap, outermost first, on a frame stack.
+ * @property {function(Array): Array} segmentOf - The frames of the run a frame
+ *   stack belongs to: those above the sentinel it started on, in order.
  */
 
 /**
- * Finishes a capture whose unwind has reached the interpreter.
+ * Finishes an unwind that has reached the interpreter, or passes it on.
  *
- * The reified frames are spliced in where the boundary marker sat, so that the
- * continuation reads, from outermost to innermost: the interpreter frames
- * outside all compiled code, the compiled frames, then the interpreter frames
- * the capture was made in.
+ * A run that passes unwinds on (`Interpreter.unwindsOut`) adds its own frames
+ * and abandons itself, returning the unwind sentinel to the compiled code that
+ * called it. Any other run finishes the unwind: what it collected goes on the
+ * run's own frame stack, outermost first -- compiled frames, then the frames of
+ * the run they called, then the compiled frames that run called, and so on
+ * inwards. A capture then applies its receiver to a continuation of that
+ * stack, with the frames of the run `call/cc` was in innermost; a move to the
+ * heap makes the call that was too deep to make.
  *
  * @param {Array} registers - The interpreter registers.
  * @param {Object} interpreter - The interpreter.
  * @param {CaptureHooks} hooks - What this needs from the interpreter.
  * @returns {boolean} True, to continue the trampoline.
+ * @throws {CaptureUnwind} In a run that passes the unwind on.
  */
 export function completeCapture(registers, interpreter, hooks) {
   if (unwinding.pending === null) {
     throw new Error(
       'compiled code reported a continuation capture, but none was in progress');
   }
-  const { lambdaExpr, fstack, env, boundary, call, args } = unwinding.pending;
+  if (interpreter.unwindsOut) {
+    unwinding.frames.push({ segment: hooks.segmentOf(registers[FSTACK]) });
+    throw new CaptureUnwind();
+  }
+  const { lambdaExpr, env, segment, call, args } = unwinding.pending;
 
   // `unwinding.frames` is innermost first, because the innermost procedure
   // reifies first as the unwind travels outward. A frame stack is innermost
   // *last*, since the interpreter pops from the end.
-  const compiled = unwinding.frames
-    .map((f) => hooks.frameFor(f.twin, f.pc, f.slots))
-    .reverse();
+  const collected = [];
+  for (let i = unwinding.frames.length - 1; i >= 0; i--) {
+    const piece = unwinding.frames[i];
+    if (piece.segment !== undefined) collected.push(...piece.segment);
+    else collected.push(hooks.frameFor(piece.twin, piece.pc, piece.slots));
+  }
 
   unwinding.frames = [];
   unwinding.pending = null;
 
-  // Frames moved to the heap because the stack was deep go where a capture
-  // made by compiled code would put them, and then the call that was too deep
-  // to make is made. No continuation is taken, so they are pushed where they
-  // go, as the interpreter pushes any frame, rather than copied in with the
-  // whole stack.
+  // Frames moved to the heap because the stack was deep go on the stack as
+  // they are, as the interpreter pushes any frame, since no continuation is
+  // taken -- and then the call that was too deep to make is made.
   if (call !== undefined) {
-    hooks.pushMoved(registers[FSTACK], compiled);
+    hooks.pushMoved(registers[FSTACK], collected);
     registers[CTL] = hooks.applyCall(call, args);
     return true;
   }
 
-  // A capture made *by* compiled code records no stack and no boundary, because
-  // there were none to record: the frames that make up the rest of the
-  // continuation are the ones live right now, and the compiled frames belong
-  // directly inside them -- which is the end of the stack, since the
-  // interpreter pops from there.
-  const spliced = boundary < 0
-    ? [...registers[FSTACK], ...compiled]
-    : [...fstack.slice(0, boundary), ...compiled, ...fstack.slice(boundary + 1)];
-
-  registers[FSTACK] = spliced;
+  const stack = [...registers[FSTACK], ...collected, ...segment];
+  registers[FSTACK] = stack;
   if (env !== null) registers[ENV] = env;
   registers[CTL] =
-    hooks.applyReceiver(lambdaExpr, hooks.makeContinuation(spliced, interpreter));
+    hooks.applyReceiver(lambdaExpr, hooks.makeContinuation(stack, interpreter));
   return true;
 }

@@ -20,7 +20,7 @@ import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
-import { invoke, settle, stack } from '../../src/compiler/runtime.js';
+import { invoke, settle, stack, SCHEME_PRIMITIVE } from '../../src/compiler/runtime.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 
@@ -106,7 +106,12 @@ export async function runDeepRecursionTests(logger) {
   // code directly -- would take the unwind signal for a value, so beneath one
   // compiled code never moves its frames.
   const { env } = compiled;
-  env.define('flush-depth', () => (stack.flushable ? 'may' : 'never'));
+  // A primitive, so that compiled code calls it directly and it sees what the
+  // compiled frame sees: a JavaScript function is called as the interpreter
+  // calls one, with moves suspended while it runs.
+  const flushDepth = () => (stack.flushable ? 'may' : 'never');
+  flushDepth[SCHEME_PRIMITIVE] = true;
+  env.define('flush-depth', flushDepth);
   // A plain JavaScript function, as host code would be: it calls back what it
   // is given.
   env.define('call-back', (f) => f());
@@ -142,4 +147,48 @@ export async function runDeepRecursionTests(logger) {
   assert(logger, 'and outside any run of the interpreter, it may not',
     settle(invoke(env.lookup('depth-here'), [])), 'never');
   assert(logger, 'which is where every run leaves it', stack.flushable, false);
+
+  // Recursion alternating between compiled and interpreted code. Each call from
+  // compiled code into an interpreted procedure starts a nested run of the
+  // interpreter on the JavaScript stack, so a move of frames to the heap has to
+  // pass through the nested runs to the outermost one: each adds its own frames
+  // to the move on the way. This overflowed at about 575 levels.
+  logger.title('Compiler - Recursion Alternating Between Compiled and Interpreted Code');
+  const alternating = (pair) => {
+    run(pair, '(define (i-step n) (if (= n 0) 0 (c-step i-step n)))');
+    run(pair, '(define (tree n) (if (= n 0) (quote ()) (list (tree (- n 1)))))');
+    run(pair, '(define (depth t) (if (pair? t) (+ 1 (apply max (map depth t))) 0))');
+  };
+  const reference = interpretedLibrary();
+  alternating(reference);
+  run(reference, '(define (c-step g n) (+ 1 (g (- n 1))))');
+  const mixed = interpretedLibrary();
+  installStandardLibrary(mixed.env);
+  alternating(mixed);
+  compile('(define (c-step g n) (+ 1 (g (- n 1))))', mixed.env);
+  for (const expr of [
+    '(i-step 100000)',
+    // An interpreted tree walk through the compiled `map`.
+    '(depth (tree 20000))',
+    // A capture 30,000 levels down, resumed twice: the continuation holds
+    // compiled frames, interpreted frames and moved frames alike.
+    '(let ((k #f) (n 0)) (define (grab-at m) (if (= m 0) (call/cc (lambda (c) (set! k c) 0)) (c-step grab-at m)))'
+      + ' (let ((v (grab-at 30000))) (set! n (+ n 1)) (if (< n 3) (k (* 10 n)) (list v n))))'
+  ]) {
+    const expected = run(reference, expr);
+    assert(logger, `setup: the interpreter answers ${expr.slice(0, 40)}`, expected.startsWith('error:'), false);
+    assert(logger, `alternating recursion agrees: ${expr.slice(0, 40)}`, run(mixed, expr), expected);
+  }
+  // Moved frames, nested runs' included, are one interpreter frame a move, so
+  // the frame stack stays shallow however deep the alternation goes. Between
+  // moves it grows by a sentinel a level, since each nested run starts on its
+  // parent's stack and a sentinel of its own; a move leaves the sentinels
+  // behind. So the bound is the distance between moves, about 250 levels of
+  // this procedure, not the depth.
+  mixed.env.define('frames-beneath', () => mixed.interpreter.getParentContext().length);
+  run(mixed, '(define (i-dig n) (if (= n 0) (frames-beneath) (c-step i-dig n)))');
+  // `c-step` adds one a level, so the depth comes off the answer.
+  const alternatingBeneath = Number(run(mixed, '(- (i-dig 100000) 100000)'));
+  assert(logger, 'setup: the alternating recursion reached the bottom', Number.isInteger(alternatingBeneath), true);
+  assert(logger, 'frames moved through nested runs leave the frame stack shallow', alternatingBeneath < 400, true);
 }

@@ -5,6 +5,7 @@
  * Bytevectors are represented as Uint8Array instances.
  */
 
+import { stringValue, freshString } from './string_class.js';
 import {
     assertArity,
     assertInteger,
@@ -275,7 +276,7 @@ export const bytevectorPrimitives = {
         assertBytevector('utf8->string', 1, bv);
         const [s, e] = validateRange('utf8->string', bv, start, end);
         const decoder = new TextDecoder('utf-8');
-        return decoder.decode(bv.subarray(s, e));
+        return freshString(decoder.decode(bv.subarray(s, e)));
     },
 
     /**
@@ -287,6 +288,7 @@ export const bytevectorPrimitives = {
      */
     'string->utf8': (str, start, end) => {
         assertString('string->utf8', 1, str);
+        str = stringValue(str);
         // Convert BigInt to Number for indexing
         let s = start === undefined ? 0 : (typeof start === 'bigint' ? Number(start) : start);
         let e = end === undefined ? str.length : (typeof end === 'bigint' ? Number(end) : end);

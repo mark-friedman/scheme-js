@@ -50,23 +50,46 @@ The interpreter is a **permanent** tier, not a transitional one: it is the mode 
 generating code is forbidden, the reference semantics for differential testing, the highest-fidelity
 debugging tier, and the compiler's own bootstrap.
 
-Part of the compiler is written in Scheme, and the intent is that most of it will be. A Scheme
-compiler good enough to compile a Scheme compiler is the standing test of whether this succeeded.
+A Scheme compiler good enough to compile a Scheme compiler is the standing test of whether this
+succeeded; see the next goal.
 
-**Where it stands:** the tier works and the standard library runs through it; user code does not yet
-reach it, and compiled code cannot yet be debugged. Its first user is meant to be this implementation
-itself -- its REPLs, CLI and compiler -- and then a public comparison against Gambit, Racket and
-plain JavaScript, which has not been made yet: every figure below is against the interpreter. Current state, ranked work and rationale:
+**Where it stands:** the tier works, the standard library runs through it, and so does a program's
+own code, compiled as it runs, by default, in the CLI, the browser and both REPLs. Compiled code is
+debugged by running it as the interpreted closures it replaced while a program is being debugged,
+so every breakpoint fires in the CLI and the browser alike; debugging it in place, through source
+maps, is still to come. Current state, ranked work and rationale:
 [docs/compiler_plan.md](docs/compiler_plan.md) and
 [docs/compiler_design.md](docs/compiler_design.md).
 
+### An interpreter and compiler written in Scheme
+
+**Goal:** as much of the system as can be is written in Scheme -- the compiler, and the interpreter's
+reader, macro expander, library system, printer, numeric tower and primitive libraries, and the
+debugger's logic -- over a JavaScript core kept to what needs JavaScript: the evaluator for now, the
+value representations, code generation and the compiled-code runtime, and the parts of libraries that
+need JavaScript features (host input and output, interop reflection, JavaScript classes, hash-table
+storage, Unicode tables, `BigInt`). Scheme and JavaScript call each other freely, so the language of a
+caller or callee decides nothing.
+
+Why: it is the system using itself; a compiler is a good benchmark of itself, and wherever the
+compiled Scheme is slower than the JavaScript it replaced, that is the next thing for the compiler to
+optimize; a Scheme system should be able to host an effective, performant interpreter and compiler
+written in Scheme; and it shows Scheme at its best. The system's own Scheme ships compiled, so it
+costs a page nothing to load; a debugging mode will let it be stepped into and appear in stack traces
+like a program's own code, for working on the interpreter and compiler themselves.
+
+**Where it stands:** the compiler is Scheme -- its passes, the driver that decides what to compile,
+and the tier that compiles a program's own code as it runs -- over a small JavaScript host library;
+the interpreter is JavaScript. The evaluator's own loop moves last, once compiled Scheme is fast enough
+for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
+
 ### Close the known R7RS-small deviations
 
-`string-set!` and `string-fill!` throw, because Scheme strings are JavaScript strings and those are
-immutable — a deliberate trade of compliance for interop that constraint 6 says should not stand.
-`equal?` does not terminate on circular structure, which R7RS §6.1 requires. `call-with-port` does
-not exist. And with the compiled standard library, as every browser page has it, `call/cc` refuses a
-capture made inside a callback nested two higher-order calls deep -- `map` inside `for-each`.
+`equal?` does not terminate on circular structure, which R7RS §6.1 requires. The file procedures
+(`call-with-input-file` and the rest) return an exact integer the procedure returned as inexact.
+And `current-input-port`, `current-output-port` and `current-error-port` are procedures rather than
+parameter objects, so `parameterize` of one has no effect: the program goes on reading and writing
+the port it had.
 
 ### Numeric performance
 
@@ -80,6 +103,20 @@ compiler found since points elsewhere: the `bignum` class's cost appears to sit 
 and exact integer loops are bounded by V8's own `BigInt` arithmetic, neither of them conversion. Numeric work is now ranked in
 [docs/compiler_plan.md](docs/compiler_plan.md) -- profiling bignums, and fixnums as JavaScript
 numbers -- and the old list is in the history of this file.
+
+### Smaller compiled programs
+
+**Goal:** an optimization level that minimizes what a page loads: smaller generated code, library
+procedures a program never reaches left out, and, for a program that needs no `eval`, REPL or
+debugger, no interpreter at all. Every page carries every shipped library compiled, and one that
+compiles its own code also fetches the compiler, about 2.2 MB, so size is what a page pays for speed.
+
+The interpreter stays a permanent tier; this is a build that leaves it out where a program does not
+need it. That needs compiled code to finish its own continuation captures and moves of its frames to
+the heap, which today it hands to an interpreter beneath it.
+
+**Decision:** planned, ranked low (2026-09-30). The work is in
+[docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### High-Precision Inexact Numbers (Future)
 
@@ -188,14 +225,15 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 
 | | |
 |---|---|
-| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding -- run with the standard library interpreted, not compiled as the browser installs it. |
+| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding, both with the standard library interpreted and with it compiled as the browser installs it -- two of Chibi's only because its runner rescues a failure whose values agree in JavaScript. |
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |
-| **JavaScript interoperability** | Scheme closures are callable JavaScript functions; numbers convert at the boundary, with one inconsistency still to fix; classes, promises and property access are reachable from Scheme. |
+| **JavaScript interoperability** | Scheme closures are callable JavaScript functions -- though once the compiler tier has compiled one, JavaScript calling it gets compiled code's own conventions, a bug still to fix; numbers convert at the boundary, with one inconsistency still to fix, and strings cross as their characters -- a newly made string may be changed in Scheme, and JavaScript always receives a JavaScript string; classes, promises and property access are reachable from Scheme. |
+| **Scheme programs in a pipeline** | A program run from the CLI, `node repl.js prog.scm` or `-e`, has the process's standard input, output and error as its current ports: it reads what is piped in as it arrives, and what it writes is seen a line at a time, a prompt before the program waits for its answer, and all of it by the time the program ends; errors go to standard error, and a closed pipe ends it quietly, as `head` expects. `-e` writes its result as `write` does. The interactive REPL keeps standard input for itself. |
 | **Lists and strings** | SRFI 1 and SRFI 152, as `(srfi 1)` and `(srfi 152)`: the list library, and the index-based string library that fits R7RS-small's own. The compiler is written with them too. |
 | **Hash tables and comparators** | SRFI 125 and SRFI 128, as `(srfi 125)` and `(srfi 128)`. Tables on `eq?`, `eqv?`, `string=?` and `string-ci=?` sit directly on a JavaScript `Map`; any other equivalence works through its hash function. |
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |
 | **A debugger, twice** | Breakpoints, stepping, stack and scope inspection — in the Node and browser REPLs. A Chrome extension with a standalone window, expression-level breakpoints and mixed JavaScript/Scheme stepping was built on the `debugger-take-3` branch; it is not on the compiler branch and is no longer a goal. |
-| **A compiler tier** | Emits JavaScript for most of the standard library and every library the bundle ships, all compiled at build time, so a page starts in about 60 ms without running the compiler; a page that wants to compile its own code fetches it with `loadCompiler`. Per workload class against the interpreter, as the range over two runs: `flonum` 120–122x, `call` 83–86x, `fixnum` 57–58x, `vector` 37–38x, `list` 23x, `continuation` 4.2–4.3x, `bignum` 1.2x, `string` 1.0x. Compiled recursion is no longer bounded by the JavaScript stack: past half of it, compiled frames move to the heap (recursion that alternates with interpreted code excepted). |
-| **A measurement discipline** | 51 vendored canonical benchmarks classified by workload and never blended into one number; cross-implementation comparison against Gambit and Racket; 3,473 tests, including 41 whole programs run under both tiers. |
+| **A compiler tier** | Emits JavaScript for most of the standard library and every library the bundle ships, all compiled at build time, so a page starts in about 60 ms without running the compiler. **A program's own code is compiled as it runs, by default**, in the CLI (`--no-compile` to turn it off), a browser page (which fetches the compiler after it starts; `setUserCodeCompilation(false)`) and both REPLs: a procedure that loops when it is defined, any other on its second call, each still debuggable -- `fib(30)` from the CLI goes from 1.8 s to 64 ms. Against the other Scheme compiled to JavaScript, Gambit, on the same V8: level on calls and fixnums, faster on flonums (4x) and lists (1.7x), behind on bignums and continuations; 2.5x plain JavaScript on calls (details in `docs/r7rs_benchmark_results.md`). Per workload class against the interpreter, as the range over two runs: `flonum` 120–122x, `call` 83–86x, `fixnum` 57–58x, `vector` 37–38x, `list` 23x (and 2.8x more since top-level expressions are compiled), `continuation` 4.2–4.3x, `bignum` 1.2x, `string` 1.0x. Compiled recursion is not bounded by the JavaScript stack, alternating with interpreted code or not: past half of it, compiled frames move to the heap. A continuation may be captured beneath any number of alternations of compiled and interpreted code. |
+| **A measurement discipline** | 51 vendored canonical benchmarks classified by workload and never blended into one number; cross-implementation comparison against Gambit and Racket; a differential fuzzer running generated programs interpreted, compiled and tiered; 6,222 tests, including 41 whole programs run under both tiers. |

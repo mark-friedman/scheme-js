@@ -9,14 +9,14 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
-import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL } from './values.js';
+import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL, callWithSchemeValues } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { schemeToJsDeep } from './js_interop.js';
 import { Cons } from './cons.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
 import { SchemeApplicationError, SchemeError } from './errors.js';
-import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlush } from './unwind.js';
+import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlush, noteResume } from './unwind.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
@@ -174,6 +174,11 @@ export class SetFrame extends Executable {
     step(registers, interpreter) {
         const value = registers[ANS];
         this.env.set(this.name, value);
+        // A procedure assigned to a top-level name, as `nboyer` assigns every
+        // one of its own, is the compiler tier's as much as a defined one.
+        if (interpreter.tier && isSchemeClosure(value)) {
+            interpreter.tier.bound(this.name, value, this.env.findEnv(this.name));
+        }
         registers[ANS] = undefined;
         return false;
     }
@@ -201,6 +206,11 @@ export class DefineFrame extends Executable {
 
         // Register binding with current defining scopes for macro referential transparency
         registerBindingWithCurrentScopes(this.name, value);
+
+        // The compiler tier decides when a top-level procedure is compiled.
+        if (interpreter.tier && isSchemeClosure(value)) {
+            interpreter.tier.bound(this.name, value, this.env);
+        }
 
         registers[ANS] = undefined;
         return false;
@@ -496,6 +506,13 @@ export function continueApplication(exprs, index, values, env, registers, interp
     if (isSchemeClosure(func)) {
         registers[CTL] = func.body;
 
+        // A top-level procedure waiting to be compiled. This call runs
+        // interpreted; the compiled procedure replaces the closure's binding,
+        // so the next call through the name runs compiled.
+        if (func.tierCountdown !== 0 && --func.tierCountdown === 0 && interpreter.tier) {
+            interpreter.tier.due(func);
+        }
+
         // Handle rest parameter if present
         if (func.restParam) {
             // The operands are only materialized as their own array on the
@@ -574,13 +591,15 @@ export function continueApplication(exprs, index, values, env, registers, interp
 
         // Compiled code called from here may move its frames to the heap
         // stack when the JavaScript stack gets deep, since the unwind that
-        // does it ends here; beneath any other function it would not. Given
+        // does it ends here, or passes through this run to one it ends in;
+        // beneath any other function it would not. Given
         // back after a normal return only: after an exception, `run` gives back
         // what it found on entry, and until then every call out of this run
         // sets it again. A `finally` here would sit in every nested run on the
         // JavaScript stack, and cost recursion alternating between compiled
         // and interpreted code 8% of the depth it can reach.
-        const flush = func.$compiled === true ? openCompiledSegment() : suspendFlush();
+        const flush = func.$compiled === true
+            ? openCompiledSegment(interpreter.unwindsOut) : suspendFlush();
         let result;
         try {
             // If it's a foreign JS function (not a Scheme closure/primitive),
@@ -875,12 +894,22 @@ export class CompiledFrame extends Executable {
         // The procedure resumes directly above the interpreter's frames, so
         // what it calls may move its frames to the heap stack as well. Given
         // back as for a call the interpreter makes; see `continueApplication`.
-        const flush = openCompiledSegment();
-        let result = this.twin(this.pc, frame);
-        while (result instanceof TailCall) {
-            const raw = result.func[SCHEME_RAW_CALL];
-            result = raw === undefined
-                ? result.func(...result.args) : raw(...result.args);
+        const flush = openCompiledSegment(interpreter.unwindsOut);
+        // As when the interpreter calls compiled code: whatever the procedure
+        // calls back into Scheme -- an interpreted procedure, a continuation --
+        // starts from this stack. Without it, invoking a continuation from a
+        // resumed frame started from whatever stack was recorded last, one
+        // without the winds in force here, and ran their before-thunks again.
+        interpreter.pushJsContext(registers[FSTACK]);
+        let result;
+        try {
+            noteResume(this.twin);
+            result = this.twin(this.pc, frame);
+            while (result instanceof TailCall) {
+                result = callWithSchemeValues(result.func, result.args);
+            }
+        } finally {
+            interpreter.popJsContext();
         }
         restoreFlush(flush);
 
@@ -980,7 +1009,14 @@ const CAPTURE_HOOKS = {
         [new LiteralNode(continuation)]),
     applyCall: (procedure, args) => new TailAppNode(
         new LiteralNode(procedure), args.map((arg) => new LiteralNode(arg))),
-    pushMoved: pushMovedFrames
+    pushMoved: pushMovedFrames,
+    // A run's stack is its parent's, then the sentinel it started on, then its
+    // own frames; the parent's are there already, where the unwind ends.
+    segmentOf: (fstack) => {
+        let start = fstack.length;
+        while (start > 0 && fstack[start - 1].isSentinel !== true) start--;
+        return fstack.slice(start);
+    }
 };
 
 // =============================================================================

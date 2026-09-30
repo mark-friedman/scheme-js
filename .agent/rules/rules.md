@@ -7,6 +7,17 @@ trigger: always_on
 ## Agentic Rules
 - **Following Orders**: DO NOT make any changes or carry our implementation tasks if the user just asks a question.  Just answer the question!
 
+## Scheme first
+The system is to be as much Scheme as it can be, the interpreter as much as the compiler: for dogfooding, so that the compiler is its own benchmark and the slow parts of its Scheme say what to optimize next, and so that the code reads as Scheme at its best.
+- **What may be JavaScript**: the evaluator, for now; the value representations; `src/compiler/runtime.js`; code generation (`new Function`) and the save-and-resume protocol; and the cores of libraries that need a JavaScript feature -- host input and output, reflection for interop, JavaScript classes, the `Map` under hash tables, Unicode tables, `BigInt`. Everything else is Scheme.
+- **Before adding a function or new logic to a `.js` file under `src/`**, name the item above that requires it. If none does, write it in Scheme. A JavaScript caller, JavaScript beside it, or an existing JavaScript module is not a reason: Scheme and JavaScript call each other. Fixing JavaScript in place is allowed; extending JavaScript that is to become Scheme is not -- the change goes after its port, or is written in Scheme as the port. This holds however the file is written: an editor tool, a shell command or a script. For Claude Code, a hook in `.claude/settings.json` shows this list whenever an edit adds a JavaScript function under `src/`.
+- **Where Scheme lacks a capability** (hash tables, for example), build it as a Scheme library over the minimum JavaScript, rather than writing the code that needs it in JavaScript. New code is Scheme from the start: code written in JavaScript to be ported later has never once been ported.
+- **JavaScript that has to start Scheme** -- the evaluator's hooks, a page's or the CLI's start-up -- calls Scheme procedures and does nothing else. `src/compiler/lowering.js` is that door into the compiler, and new logic never goes in it.
+- **Idiomatic Scheme, written from the intent**: records, small procedures, folds, `cond` and `case` -- not a transliteration of JavaScript's loops, mutable accumulators and vector-slot records. Before porting JavaScript, say what each piece is for, and design the Scheme around that.
+- **General helpers are SRFIs**, implemented in full as libraries users can import, as SRFI 1, 125, 128 and 152 are, not private utilities. A specialised version of one (an `eq?`-only set union, say) is fine if its comment says why.
+- **Tests of Scheme code are Scheme** (see *Testing*). JavaScript tests are for what only JavaScript can observe: JavaScript calling Scheme, generated code, comparisons between the tiers.
+- **At the end of a task**, its outcome lists the JavaScript added or grown, each with the item above that required it. `npm run audit:languages -- <base>` counts the lines of each language added and removed under `src/` since the commit `<base>`, uncommitted and untracked files included.
+
 ## Testing Requirements
 - All new features must have accompanying unit and/or functional tests in `tests/`.
 - Any complex logic should have unit tests.  Refactor to make it testable if needed.
@@ -16,7 +27,9 @@ trigger: always_on
 ## Testing
 - **Dual Environment**: All tests must run in both Node.js and the browser.
   - Use `if (typeof process !== 'undefined')` to guard Node.js-specific code (like `process.exitCode` or `import.meta.url` checks).
-- **Structure**: Place new tests in `tests/` and register them in `tests/tests.js`.
+- **Structure**: Place new tests in `tests/` and register them in `tests/test_manifest.js`.
+  - **Scheme tests** are `.scm` files using the harness in `tests/core/scheme/test.scm`, registered by path: tests of the Scheme libraries in `tests/core/scheme/`, listed in `schemeTestFiles`; tests of the compiler's Scheme in `tests/compiler/`, listed in `compilerSchemeTestFiles`, which run in the compiler's own library environment so that its internal procedures are in scope.
+  - **JavaScript tests** are modules registered by path and function, marked `nodeOnly` when they cannot run in the browser.
 - **Execution**:
   - Run `node run_tests_node.js` to verify changes locally.
   - Verify browser compatibility via `http://localhost:8080/ui.html`.
@@ -29,8 +42,7 @@ trigger: always_on
 
 ## Scheme Code Rules
 - **Type Checking**: All standard Scheme procedures (i.e. the ones in the r7rs-small standard) must be implemented with all neccessary type, range, and arity checking.
-- **Scheme over JS**: Implementations should always be done in Scheme, if possible.  If that's not possible, isolate the minimum that is required in JavaScript and then implement the rest in Scheme.
-- **The compiler is written in Scheme**: New compiler code is written in Scheme from the start — not written in JavaScript and ported later, an ordering that has never once produced a port. Where Scheme lacks a capability or data structure the compiler needs (hash tables, for example), build it as a Scheme library with the minimum JavaScript underneath it, rather than writing the compiler code in JavaScript to avoid the gap. Unported code stays reachable while the migration is in progress: Scheme calls JavaScript through interop, and JavaScript calls the compiler's Scheme through `src/compiler/lowering.js`. `src/compiler/runtime.js` stays JavaScript, because it provides native JavaScript features that generated code and Scheme libraries need and cannot express themselves.
+- **Which language**: see *Scheme first*, above.
 
 ## Code Organization
 - **Directory and File Structure**: Follow the directory and file structure outlined in `architecture.md`.  If you need to deviate from this structure or add to it, update `architecture.md` to reflect the change.

@@ -115,7 +115,11 @@
     </div>
 
     <script type="module">
-        import { createChapterComplianceRunner, chapterFiles } from './chapter_runner_lib.js';
+        import { SUITES, loadSuiteSources, runSuite } from './compliance_suite.js';
+
+        // `?compiled` runs with the standard library compiled, installed from
+        // the prebuilt tables as the browser bundle installs it.
+        const compiledLibraries = new URLSearchParams(location.search).has('compiled');
 
         const runBtn = document.getElementById('run-btn');
         const output = document.getElementById('test-output');
@@ -180,16 +184,12 @@
             const logger = createBrowserLogger();
 
             try {
-                // Create the compliance runner with file loader and logger
-                const runner = await createChapterComplianceRunner(browserFileLoader, logger);
-
-                // Run all chapter tests
-                for (const chapterFile of chapterFiles) {
-                    logger.title(chapterFile.replace('.scm', '').replace('_', ' '));
-                    const result = await runner.runChapterTest(chapterFile);
-                    if (!result.success) {
-                        logger.fail(`Chapter ${chapterFile} crashed: ${result.error}`);
-                    }
+                const suite = SUITES.chapters;
+                logger.log(compiledLibraries ? 'Standard library compiled' : 'Standard library interpreted');
+                const sources = await loadSuiteSources(suite, browserFileLoader);
+                const { results } = runSuite(suite, sources, logger, { compiledLibraries });
+                for (const result of results) {
+                    if (result.error !== undefined) logger.fail(`${result.file} crashed: ${result.error}`);
                 }
 
                 logger.summary();

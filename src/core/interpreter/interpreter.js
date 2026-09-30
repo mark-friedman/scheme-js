@@ -1,7 +1,9 @@
 import { Values, isSchemeClosure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, restoreFlush } from './unwind.js';
+import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush } from './unwind.js';
+import { takeCompiledRaise } from './ast_nodes.js';
+import { interpretCompiledOver } from './library_registry.js';
 import { globalContext } from './context.js';
 
 /**
@@ -119,16 +121,21 @@ function unpackForJs(result, interpreter, options = {}) {
 class SentinelFrame {
   /**
    * @param {boolean} [compiledBoundary=false] - True when this marks a call
-   *   from *compiled* code into the interpreter. Compiled procedures run in
-   *   JavaScript stack frames that `FSTACK` does not represent, so a
-   *   continuation captured below this marker would silently omit everything
-   *   the compiled caller had left to do. Recording it is what lets
-   *   `CallCCNode` notice, rather than producing a wrong answer.
+   *   from *compiled* code into the interpreter that an unwind can cross.
+   *   Compiled procedures run in JavaScript stack frames that `FSTACK` does
+   *   not represent, so a continuation captured above this marker would
+   *   silently omit everything the compiled caller had left to do. Recording
+   *   it is what lets `CallCCNode` bring those frames in by unwinding, and the
+   *   run it starts pass the unwind on (`unwindsOut`).
+   * @param {boolean} [refusesCapture=false] - True when the compiled caller is
+   *   an inline expansion calling what its primitive was redefined to, which
+   *   has no point to resume from, so that a capture above is refused.
    */
-  constructor(compiledBoundary = false) {
+  constructor(compiledBoundary = false, refusesCapture = false) {
     /** Identifies every sentinel, including subclasses, for stack filtering. */
     this.isSentinel = true;
     this.compiledBoundary = compiledBoundary;
+    this.refusesCapture = refusesCapture;
   }
 
   /**
@@ -194,6 +201,19 @@ export class Interpreter {
     this.depth = 0;
 
     /**
+     * Whether the run in progress passes an unwind it receives on to its
+     * caller, rather than finishing it. True in a run compiled code called,
+     * while that compiled code could hand the unwind on in turn: the run adds
+     * its own frames to the unwind and returns the unwind sentinel, and the
+     * compiled caller saves itself as any compiled frame does. So a capture,
+     * or a move of frames to the heap, passes through as many nested runs as
+     * compiled and interpreted code alternate, and the first run that cannot
+     * pass it on finishes it. Set by `run` from the sentinel it starts on.
+     * @type {boolean}
+     */
+    this.unwindsOut = false;
+
+    /**
      * Stack of frame stacks representing the Scheme context at JS boundary crossings.
      * When Scheme calls a JS function, we push the current fstack here.
      * When JS calls back into Scheme (via a callable closure/continuation),
@@ -208,6 +228,25 @@ export class Interpreter {
      * @type {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null}
      */
     this.debugRuntime = null;
+
+    /**
+     * The compiler tier, which compiles the program's own top-level
+     * procedures as it runs, or null when nothing does
+     * (`src/compiler/tiering.js`, `attachTier`). The interpreter only reports
+     * to it -- a closure bound at top level, a waiting closure's countdown
+     * run out -- so the interpreter never depends on the compiler, which a
+     * browser page loads after it.
+     * @type {Object|null}
+     */
+    this.tier = null;
+
+    /**
+     * Whether the program is being debugged: a breakpoint set, a step in
+     * progress, or paused, as the debug runtime last said
+     * (`interpretForDebugger`). The tier compiles nothing meanwhile.
+     * @type {boolean}
+     */
+    this.debugging = false;
   }
 
 
@@ -286,7 +325,10 @@ export class Interpreter {
     this.depth++;
     // Whether compiled code may move its frames to the heap belongs to whoever
     // called this run, and is theirs again however it ends.
-    const flush = compiledStack.flushable;
+    const flush = flushState();
+    const unwindsOut = this.unwindsOut;
+    this.unwindsOut = initialStack.length > 0
+      && initialStack[initialStack.length - 1].compiledBoundary === true;
 
     // The Top-Level Trampoline
     try {
@@ -373,6 +415,15 @@ export class Interpreter {
             return unpackForJs(e.value, this, options);
           }
 
+          // Compiled code raised, and threw the raise here for this run to
+          // perform from where it called compiled code, with the handlers on
+          // this frame stack; see `raiseFromCompiledCode`.
+          const raise = takeCompiledRaise(e);
+          if (raise !== null) {
+            registers[CTL] = raise;
+            continue;
+          }
+
           // Check if there's an ExceptionHandlerFrame on the stack
           // If so, route the JS error through Scheme's exception system
           const handlerIndex = findExceptionHandler(registers[FSTACK]);
@@ -395,6 +446,7 @@ export class Interpreter {
     } finally {
       this.depth--;
       restoreFlush(flush);
+      this.unwindsOut = unwindsOut;
     }
   }
 
@@ -418,8 +470,15 @@ export class Interpreter {
   runWithSentinel(ast, thisContext = undefined, options = {}) {
     // Get the parent context (the Scheme stack at the point where we entered JS)
     const parentContext = this.getParentContext();
+    // Marked as a boundary an unwind can cross only if the compiled caller can
+    // hand the unwind on to an interpreter: `flushable` says no JavaScript
+    // caller -- a primitive calling a procedure back -- sits beneath it.
+    // Otherwise the run finishes what reaches it, as a run JavaScript called
+    // does.
     const stackWithSentinel = [
-      ...parentContext, new SentinelFrame(options.compiledBoundary === true)
+      ...parentContext,
+      new SentinelFrame(options.compiledBoundary === true && compiledStack.flushable,
+        options.compiledBoundary === true && compiledStack.refusesCapture)
     ];
     return this.run(ast, this.globalEnv, stackWithSentinel, thisContext, options);
   }
@@ -470,9 +529,48 @@ export class Interpreter {
    * @param {import('../../debug/scheme_debug_runtime.js').SchemeDebugRuntime|null} debugRuntime
    */
   setDebugRuntime(debugRuntime) {
+    // A runtime taken away can no longer pause anything, so compiled code may
+    // run again.
+    if (debugRuntime === null) this.interpretForDebugger(false);
     this.debugRuntime = debugRuntime;
     // Optional, so a runtime written against the older interface still works.
     debugRuntime?.attachInterpreter?.(this);
+  }
+
+  /**
+   * Runs every procedure compiled over an interpreted closure as that closure
+   * while the program is being debugged, or compiled again once it is not.
+   *
+   * The debugger pauses only between the interpreter's steps. Compiled code
+   * takes none, so a breakpoint inside it could not fire; and a procedure it
+   * calls runs in a synchronous nested run, which cannot wait, so a breakpoint
+   * there stopped the program only once the compiled code returned. Called by
+   * the debug runtime whenever what it needs changes (`SchemeDebugRuntime`,
+   * `updateInterpretation`). See `interpretCompiledOver`.
+   *
+   * @param {boolean} interpreted - Whether the program is being debugged.
+   */
+  interpretForDebugger(interpreted) {
+    this.debugging = interpreted;
+    if (this.globalEnv) interpretCompiledOver(interpreted, this.globalEnv);
+  }
+
+  /**
+   * Runs one top-level form of a program: through the compiler tier, which may
+   * compile it, when one is attached, and as `run` does otherwise.
+   *
+   * For the places a program's own forms come in -- a REPL, a file, a page's
+   * scripts -- and not for code the implementation runs for itself, which
+   * `run` serves.
+   *
+   * @param {Executable} ast - The analyzed form.
+   * @param {Environment} [env] - The environment; the global one by default.
+   * @param {Object} [options] - As for `run`.
+   * @returns {*} Its value.
+   */
+  runTopLevel(ast, env = this.globalEnv, options = undefined) {
+    if (this.tier) return this.tier.runTopLevel(ast, env, options);
+    return this.run(ast, env, [], undefined, options);
   }
 
   /**
@@ -494,10 +592,16 @@ export class Interpreter {
       throw new SchemeError("Interpreter global environment is not set.");
     }
 
+    // A library loaded since the program was last run is compiled, and while
+    // the program is being debugged it should run as its closures too.
+    this.debugRuntime?.updateInterpretation?.();
+
     const registers = [null, ast, env, [], undefined];
     this.depth++;
-    // As in `run`.
-    const flush = compiledStack.flushable;
+    // As in `run`. An asynchronous run is never called by compiled code.
+    const flush = flushState();
+    const unwindsOut = this.unwindsOut;
+    this.unwindsOut = false;
 
     try {
       let stepCount = 0;
@@ -565,6 +669,13 @@ export class Interpreter {
             return unpackForJs(e.value, this, options);
           }
 
+          // As in `run`.
+          const raise = takeCompiledRaise(e);
+          if (raise !== null) {
+            registers[CTL] = raise;
+            continue;
+          }
+
           // Check if debugger has paused on this exception
           if (this.debugRuntime?.pauseController?.isPaused()) {
             await this.debugRuntime.pauseController.waitForResume();
@@ -582,6 +693,7 @@ export class Interpreter {
     } finally {
       this.depth--;
       restoreFlush(flush);
+      this.unwindsOut = unwindsOut;
     }
   }
 

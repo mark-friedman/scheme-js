@@ -1,0 +1,603 @@
+{
+  "read": "2026-09-27",
+  "snowIndex": "https://snow-fort.org/s/repo.scm",
+  "sources": [
+    {
+      "kind": "git",
+      "name": "srfi-64",
+      "library": "(srfi 64)",
+      "role": "measured",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-64",
+      "commit": "2d6a9fc514050f75802ef0003cfbf4846602a3ee",
+      "measure": [
+        "contrib/taylan.kammer/64.sld",
+        "contrib/taylan.kammer/64/execution.sld",
+        "contrib/taylan.kammer/64/source-info.sld",
+        "contrib/taylan.kammer/64/test-runner.sld",
+        "contrib/taylan.kammer/64/test-runner-simple.sld",
+        "testing.scm"
+      ],
+      "note": "execution.sld and test-runner-simple.sld import SRFIs 35 and 48, whose repositories hold only the specification, so they cannot be loaded; testing.scm, the original portable implementation, needs neither and is measured as a program."
+    },
+    {
+      "kind": "git",
+      "name": "srfi-41",
+      "library": "(srfi 41)",
+      "role": "measured",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-41",
+      "commit": "26f1a35d7738965d1208e295a94914f1ed291d50",
+      "measure": [
+        "r5rs.ss"
+      ],
+      "note": "The reference implementation is R6RS libraries (streams.ss and the rest), which this implementation cannot load; r5rs.ss is its R5RS version, measured as a program."
+    },
+    {
+      "kind": "git",
+      "name": "srfi-113",
+      "library": "(srfi 113)",
+      "role": "measured",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-113",
+      "commit": "b15bfd15d0ea365cfca972691484168ac386fb8e",
+      "measure": [
+        "sets/sets.sld"
+      ]
+    },
+    {
+      "kind": "git",
+      "name": "srfi-146",
+      "library": "(srfi 146)",
+      "role": "measured",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-146",
+      "commit": "28bd72ed4d8445d8a91f84d919630d0f3a7564fb",
+      "measure": [
+        "srfi/146.sld",
+        "srfi/146/hash.sld",
+        "nieper/rbtree.sld",
+        "gleckler/hamt.sld",
+        "gleckler/hamt-map.sld",
+        "gleckler/hamt-misc.sld",
+        "gleckler/vector-edit.sld"
+      ]
+    },
+    {
+      "kind": "git",
+      "name": "srfi-158",
+      "library": "(srfi 158)",
+      "role": "measured",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-158",
+      "commit": "ffd5bac4caf70167d0b57f701a6c43aa07701158",
+      "measure": [
+        "srfi-158.sld"
+      ],
+      "aliases": {
+        "(srfi 158)": "srfi-158.sld"
+      },
+      "note": "Declares itself (srfi-158); SRFI 146 imports it as (srfi 158)."
+    },
+    {
+      "kind": "git",
+      "name": "srfi-130",
+      "library": "(srfi 130)",
+      "role": "measured",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-130",
+      "commit": "ece17b20b6ffef3a4f7b39a159a9093c531aab0a",
+      "measure": [
+        "srfi/130.sld"
+      ],
+      "note": "Imports (srfi 13), which has no R7RS library on Snow-Fort or in its SRFI repository (only a Scheme 48 module), so it cannot be loaded."
+    },
+    {
+      "kind": "git",
+      "name": "srfi-135",
+      "library": "(srfi 135)",
+      "role": "measured",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-135",
+      "commit": "9311df8276647302cb1faa2b7de86cb045497234",
+      "measure": [
+        "srfi/135.sld",
+        "srfi/135/kernel8.sld"
+      ]
+    },
+    {
+      "kind": "git",
+      "name": "srfi-143",
+      "library": "(srfi 143)",
+      "role": "dependency",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-143",
+      "commit": "267694cf8e9be0b55b377fbdd1591d1c23d1a498",
+      "aliases": {
+        "(srfi 143)": "srfi-143/srfi-143.sld"
+      },
+      "note": "Declares itself (srfi-143); SRFI 146 imports it as (srfi 143)."
+    },
+    {
+      "kind": "git",
+      "name": "srfi-151",
+      "library": "(srfi 151)",
+      "role": "dependency",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-151",
+      "commit": "6eb63d8d9da64c5bade24eaa2f91a2c0da2f5dc6",
+      "aliases": {
+        "(srfi 151)": "srfi-151/srfi-151.sld"
+      },
+      "note": "Declares itself (srfi-151); SRFI 146 imports it as (srfi 151)."
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-test",
+      "library": "(chibi test)",
+      "role": "measured",
+      "version": "0.9.0",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/test/0.9.0/chibi-test-0.9.0.tgz",
+      "sha256": "7d16948b8ad8b37a14b71e8bedd343d96341ea85b95ad405bd47f9a7c0f76044"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-diff",
+      "library": "(chibi diff)",
+      "role": "dependency",
+      "version": "0.9.1.3",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/diff/0.9.1.3/chibi-diff-0.9.1.3.tgz",
+      "sha256": "c435ab3f286af90ba50967363d77ed3bebde6ccd55f7d1f840ff740f92aae500"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-optional",
+      "library": "(chibi optional)",
+      "role": "dependency",
+      "version": "0.9.1.3",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/optional/0.9.1.3/chibi-optional-0.9.1.3.tgz",
+      "sha256": "6d4d3db9621ae7e01687446735de4fc15aa97e605df67e8d2a57c8c56e3cfbc7"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-term-ansi",
+      "library": "(chibi term ansi)",
+      "role": "dependency",
+      "version": "0.9.0",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/term/ansi/0.9.0/chibi-term-ansi-0.9.0.tgz",
+      "sha256": "70044fb7db8de49aa7da78baa6b6dd456d5fde4da69def4807fd3c4f3ce7f95e"
+    },
+    {
+      "kind": "snow",
+      "name": "nytpu-contracts",
+      "library": "(nytpu contracts)",
+      "role": "measured",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/nytpu.com/alex/nytpu/contracts/0.1.1/nytpu-contracts-0.1.1.tgz",
+      "sha256": "baf849df8222211bcad429f953db013a221e4f5e48a2a5e5a61bec630b62eeb8"
+    },
+    {
+      "kind": "snow",
+      "name": "okmij-ssax",
+      "library": "(okmij ssax)",
+      "role": "measured",
+      "version": "5.4",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/okmij/ssax/5.4/okmij-ssax-5.4.tgz",
+      "sha256": "3b4a860d27853534e6a99b2990495510946566b5ec8d9c0cd146c64894054835"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-parse",
+      "library": "(chibi parse)",
+      "role": "measured",
+      "version": "0.9.0",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/parse/0.9.0/chibi-parse-0.9.0.tgz",
+      "sha256": "4e28b73ed5dea9aee1bfba4e172222f6fb443d1e1d3696aba454cdbdf269ffb8"
+    },
+    {
+      "kind": "snow",
+      "name": "macduffie-json",
+      "library": "(macduffie json)",
+      "role": "measured",
+      "version": "0.9.5",
+      "url": "https://snow-fort.org/s/gmail.com/taknamay/macduffie/json/0.9.5/macduffie-json-0.9.5.tgz",
+      "sha256": "b8fad44c80b4feb72a21bb07776e239c2434ac856feedf87f071185867c8f905"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-69",
+      "library": "(srfi 69)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/69/0.1.1/srfi-69-0.1.1.tgz",
+      "sha256": "eecba2134b7850825c73a426a3bc93df03274998247b34c8d1884ebdd237babd"
+    },
+    {
+      "kind": "snow",
+      "name": "edn",
+      "library": "(edn)",
+      "role": "measured",
+      "version": "0.2.0",
+      "url": "https://snow-fort.org/s/edwinwatkeys.com/edwin/edn/0.2.0/edn-0.2.0.tgz",
+      "sha256": "a249b9ddd7cfb7ce4c07e212bf3374b5ada1c23757620b7c694a32a21176c910"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-read",
+      "library": "(rapid read)",
+      "role": "measured",
+      "version": "0.1.3",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/read/0.1.3/rapid-read-0.1.3.tgz",
+      "sha256": "905b07e3eb7cf1b309f44bc8e3e358f95a88d3adaa0f91db880a2fe3dd9da6f6"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-assume",
+      "library": "(rapid assume)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/assume/0.1.0/rapid-assume-0.1.0.tgz",
+      "sha256": "fc6d5d78bf5f61a35bcc55e8f16ee6d3d7e2c5b2edac02da1a329fc779386a09"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-and-let",
+      "library": "(rapid and-let)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/and-let/0.1.0/rapid-and-let-0.1.0.tgz",
+      "sha256": "5ec0303edd3c5f3b81638be12ca59df11e680bf8b141be21e13655ea94035de6"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-receive",
+      "library": "(rapid receive)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/receive/0.1.0/rapid-receive-0.1.0.tgz",
+      "sha256": "f0b4886e3d9985610e8860c80383a24279633d4bd09f73696e63943992de68d6"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-list",
+      "library": "(rapid list)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/list/0.1.0/rapid-list-0.1.0.tgz",
+      "sha256": "d987cdab39cd3d52c1f0c6f40a30bfe4324f8dcd77bc379e4759f4735c22eb88"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-format",
+      "library": "(rapid format)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/format/0.1.0/rapid-format-0.1.0.tgz",
+      "sha256": "0412e028e6178498c79fc63be736e8ea1ef154768ed3a6ce2d05ae8c96415e81"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-vicinity",
+      "library": "(rapid vicinity)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/vicinity/0.1.0/rapid-vicinity-0.1.0.tgz",
+      "sha256": "ca8fa11e15f63257323867a0e98b0557a28021bcb5b497d59b0156aeb4b01bb1"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-comparator",
+      "library": "(rapid comparator)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/comparator/0.1.1/rapid-comparator-0.1.1.tgz",
+      "sha256": "ae9482c5724730e12ec6e95a9b45af374d220f670c471e16ac3bed9f9e0aa95d"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-mapping",
+      "library": "(rapid mapping)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/mapping/0.1.1/rapid-mapping-0.1.1.tgz",
+      "sha256": "4d900c3c1a471c529d84b09ce3df5e8835b30a63a0282bd4693b7bf61ee7139a"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-syntax",
+      "library": "(rapid syntax)",
+      "role": "dependency",
+      "version": "0.1.2",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/syntax/0.1.2/rapid-syntax-0.1.2.tgz",
+      "sha256": "1ae442590aab36ad8a768f2b5b67c1b14bdf27afa26b0481f30339d08cf4b5df"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-quasiquote",
+      "library": "(rapid quasiquote)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/quasiquote/0.1.1/rapid-quasiquote-0.1.1.tgz",
+      "sha256": "543a4acea4ec93ea0bec52a3f9eddf3826626d0a4b75cdbe762796e93067e890"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-match",
+      "library": "(rapid match)",
+      "role": "dependency",
+      "version": "0.1.5",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/match/0.1.5/rapid-match-0.1.5.tgz",
+      "sha256": "f2f8539b71e9ae51d4b6c1d018a90f988d7255240a4ef9b64cd60485d17565ce"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-identity",
+      "library": "(rapid identity)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/identity/0.1.0/rapid-identity-0.1.0.tgz",
+      "sha256": "0c183e816ee9bc8f02d63c71e1e5fba5a2f464de00693b2268a015ca3fba2648"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-box",
+      "library": "(rapid box)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/box/0.1.1/rapid-box-0.1.1.tgz",
+      "sha256": "de773c3da1fa4615ffdd5076b97e022f0f727a03a56ff29f6e218d08f29bd8d0"
+    },
+    {
+      "kind": "snow",
+      "name": "rebottled-schelog",
+      "library": "(rebottled schelog)",
+      "role": "measured",
+      "version": "20150602",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/rebottled/schelog/20150602/rebottled-schelog-20150602.tgz",
+      "sha256": "644ea2715c3d37a6fb4bbbdb612b5fad4fd98ea7644c5e6a55b2c958bda3e4ae"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-irregex",
+      "library": "(chibi irregex)",
+      "role": "measured",
+      "version": "0.9.3",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/irregex/0.9.3/chibi-irregex-0.9.3.tgz",
+      "sha256": "2a1fa84c8ee26bbb2747cdcb8c9bcf9411e00e9a2a7883c80657aad8d2a6871c"
+    },
+    {
+      "kind": "snow",
+      "name": "rebottled-pregexp",
+      "library": "(rebottled pregexp)",
+      "role": "measured",
+      "version": "20050502",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/rebottled/pregexp/20050502/rebottled-pregexp-20050502.tgz",
+      "sha256": "da64e99f3ff2a4d056727d5eee9e9d0b39b18208418dcd3e60dec4ecc9f54ddd"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-regexp",
+      "library": "(chibi regexp)",
+      "role": "measured",
+      "version": "0.9.0",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/regexp/0.9.0/chibi-regexp-0.9.0.tgz",
+      "sha256": "fdaed3c61dcb301cc667311f9a64f1cd6503e774edef9723dd77b798db4f15a2"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-char-set-boundary",
+      "library": "(chibi char-set boundary)",
+      "role": "dependency",
+      "version": "0.9.0",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/char-set/boundary/0.9.0/chibi-char-set-boundary-0.9.0.tgz",
+      "sha256": "5cca696379cc997d57d08e8dfdc9acf459333db8a1c6b49af99a3afbb94069e2"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-show",
+      "library": "(chibi show)",
+      "role": "measured",
+      "version": "0.7.3.1",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/show/0.7.3.1/chibi-show-0.7.3.1.tgz",
+      "sha256": "749a70c93ff47dd00415856b66feac640cf3a3cce01ac73d717083985b112759"
+    },
+    {
+      "kind": "snow",
+      "name": "arvyy-mustache",
+      "library": "(arvyy mustache)",
+      "role": "measured",
+      "version": "1.0.2",
+      "url": "https://snow-fort.org/s/gmail.com/nma.arvydas.silanskas/arvyy/mustache/1.0.2/arvyy-mustache-1.0.2.tgz",
+      "sha256": "561374f1cfd7b784a9357e11e2070ce783154e5c7f2acf261af8702e54e55987"
+    },
+    {
+      "kind": "snow",
+      "name": "slib-pretty-print",
+      "library": "(slib pretty-print)",
+      "role": "measured",
+      "version": "SLIB-3b5-r7rs",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/slib/pretty-print/SLIB-3b5-r7rs/slib-pretty-print-SLIB-3b5-r7rs.tgz",
+      "sha256": "e927715723377862154953ed7d453845e382db2b16a97979c3061934a528cbec"
+    },
+    {
+      "kind": "snow",
+      "name": "slib-common",
+      "library": "(slib common)",
+      "role": "dependency",
+      "version": "SLIB-3b5-r7rs",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/slib/common/SLIB-3b5-r7rs/slib-common-SLIB-3b5-r7rs.tgz",
+      "sha256": "8b09851dbce425b7766c759844e828e7560e15393d52b2d221842599368b271f"
+    },
+    {
+      "kind": "snow",
+      "name": "slib-generic-write",
+      "library": "(slib generic-write)",
+      "role": "dependency",
+      "version": "SLIB-3b5-r7rs",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/slib/generic-write/SLIB-3b5-r7rs/slib-generic-write-SLIB-3b5-r7rs.tgz",
+      "sha256": "dbf8f3c9fc44731bfac66f305009b5711bba6eff87c7c35122e814b558938f1c"
+    },
+    {
+      "kind": "snow",
+      "name": "pfds-fingertree",
+      "library": "(pfds fingertree)",
+      "role": "measured",
+      "version": "1.0.0",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/pfds/fingertree/1.0.0/pfds-fingertree-1.0.0.tgz",
+      "sha256": "5411ff51bca2674a0ba42cbebc200816a412681ba0f16c49dbd3e9980f32be16"
+    },
+    {
+      "kind": "snow",
+      "name": "pfds-list-helpers",
+      "library": "(pfds list-helpers)",
+      "role": "dependency",
+      "version": "1.0.0",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/pfds/list-helpers/1.0.0/pfds-list-helpers-1.0.0.tgz",
+      "sha256": "455ce61d793f8fb19a694a63534320ce0618030eec50af687c66de1f47b07f0d"
+    },
+    {
+      "kind": "snow",
+      "name": "pfds-hash-array-mapped-trie",
+      "library": "(pfds hash-array-mapped-trie)",
+      "role": "measured",
+      "version": "1.0.0",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/pfds/hash-array-mapped-trie/1.0.0/pfds-hash-array-mapped-trie-1.0.0.tgz",
+      "sha256": "2ae7b9e45c4be2a7d381d116dd63ac7cdd3f2cda2182508c2da46dccf3a0df9d"
+    },
+    {
+      "kind": "snow",
+      "name": "pfds-alist",
+      "library": "(pfds alist)",
+      "role": "dependency",
+      "version": "1.0.0",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/pfds/alist/1.0.0/pfds-alist-1.0.0.tgz",
+      "sha256": "063b01d6471e7ef7b4122c10aed77a0728fa5dbefe2f01f4fe8cad3f222f3faf"
+    },
+    {
+      "kind": "snow",
+      "name": "pfds-bitwise",
+      "library": "(pfds bitwise)",
+      "role": "dependency",
+      "version": "1.0.0",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/pfds/bitwise/1.0.0/pfds-bitwise-1.0.0.tgz",
+      "sha256": "64fda71f9524c43b3d6400ef236b3b84f56ca8812ef1e52e7d8f29c33e82d7b9"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-60",
+      "library": "(srfi 60)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/60/0.1.1/srfi-60-0.1.1.tgz",
+      "sha256": "82d085d54215e9d4a108d1723e32a8a1608b2de0fba9adc16508121f5867ea35"
+    },
+    {
+      "kind": "snow",
+      "name": "pfds-vector",
+      "library": "(pfds vector)",
+      "role": "dependency",
+      "version": "1.0.0",
+      "url": "https://snow-fort.org/s/peterlane.info/peter/pfds/vector/1.0.0/pfds-vector-1.0.0.tgz",
+      "sha256": "54bbd07fe2ba2fb58c6f1a9220bf3cc7affa3fbe6ee5db59cea66ce1e908d4a8"
+    },
+    {
+      "kind": "snow",
+      "name": "yasos",
+      "library": "(yasos)",
+      "role": "measured",
+      "version": "1.0.1",
+      "url": "https://snow-fort.org/s/gmail.com/taknamay/yasos/1.0.1/yasos-1.0.1.tgz",
+      "sha256": "2d48bde9c7b585ad5ea60f657c67562eec110d283786bcab4d53206cce17722a"
+    },
+    {
+      "kind": "snow",
+      "name": "comparators",
+      "library": "(comparators)",
+      "role": "dependency",
+      "version": "1.0.0",
+      "url": "https://snow-fort.org/s/gmail.com/kwortman/comparators/1.0.0/comparators-1.0.0.tgz",
+      "sha256": "4025436f8baa574fd5aa62251186249099d6f5d8cca4e2809d16a954d53702d4"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-145",
+      "library": "(srfi 145)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/145/0.1.1/srfi-145-0.1.1.tgz",
+      "sha256": "cec3d8436183271cfd66ae45205a167ad57d8b509f5ccf66dfd09d2e4b809d33"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-8",
+      "library": "(srfi 8)",
+      "role": "dependency",
+      "version": "0.1.2",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/8/0.1.2/srfi-8-0.1.2.tgz",
+      "sha256": "97a2d7be05823ebebf4a70c63cb83e2e96dccf2e4f984dd3122caa2fc44f4931"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-2",
+      "library": "(srfi 2)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/2/0.1.1/srfi-2-0.1.1.tgz",
+      "sha256": "2561338ee80f91025226212976163bd694f714965881c1b86bb5d0ff04c0461d"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-16",
+      "library": "(srfi 16)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/16/0.1.1/srfi-16-0.1.1.tgz",
+      "sha256": "a285a822b2d2acb289a184f7881fa89393abc3033b93b9854520916e5d3f1e85"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-14",
+      "library": "(srfi 14)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/14/0.1.1/srfi-14-0.1.1.tgz",
+      "sha256": "cbf33cb19602e25a5d158eb709003a26208b16c229c63b11d86240cd4a253719"
+    },
+    {
+      "kind": "snow",
+      "name": "srfi-41",
+      "library": "(srfi 41)",
+      "role": "dependency",
+      "version": "0.1.1",
+      "url": "https://snow-fort.org/s/iki.fi/retropikzel/srfi/41/0.1.1/srfi-41-0.1.1.tgz",
+      "sha256": "3185b28381506a40afc9673d01c7cbee62d68ccd3d39700f5012e2dc486d56d8"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-string",
+      "library": "(chibi string)",
+      "role": "dependency",
+      "version": "0.9.0",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/string/0.9.0/chibi-string-0.9.0.tgz",
+      "sha256": "ce63f36d81d9123a86b3fce8cdc621e94c04b41c024c3d930d425861b51bd4d8"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-generator",
+      "library": "(rapid generator)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/generator/0.1.0/rapid-generator-0.1.0.tgz",
+      "sha256": "cf3b2b29b28b7533f5e8425e0db4e57d817653480190285f46180791ec8be03a"
+    },
+    {
+      "kind": "snow",
+      "name": "rapid-rbtree",
+      "library": "(rapid rbtree)",
+      "role": "dependency",
+      "version": "0.1.0",
+      "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/rbtree/0.1.0/rapid-rbtree-0.1.0.tgz",
+      "sha256": "7bccb96fcf9b1a588fd4a91cf941eaa078c562e5d2d5bf6360db8ee7dd1296e2"
+    },
+    {
+      "kind": "snow",
+      "name": "chibi-monad-environment",
+      "library": "(chibi monad environment)",
+      "role": "dependency",
+      "version": "0.9.0",
+      "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/monad/environment/0.9.0/chibi-monad-environment-0.9.0.tgz",
+      "sha256": "d2355ec1c2fd96b3e723aedf2c1a9e64e17085232ad25b9b017a6afb0dd59b69"
+    }
+  ]
+}

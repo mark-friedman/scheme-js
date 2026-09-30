@@ -211,3 +211,62 @@
   (test "and its arguments, which arrive on the stack, take room too" #t
         (and (string-contains rest " - s_r$raw.length;") #t))
   (test "a procedure that calls nothing takes no room" #f (and (string-contains leaf "$d") #t)))
+
+;; A call whose value is wanted calls the callee directly, and JavaScript's
+;; own complaint about calling what is not a function names a temporary --
+;; "$t0 is not a function" -- where the interpreter says "application: not a
+;; procedure". So the callee is tested first, which also keeps the raw entry
+;; from being read off the empty list, JavaScript `null`.
+(test-group "emit - a call to a value that is not a procedure"
+  (define (unit-source ast globals)
+    (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
+  (define (count-of source text)
+    (let loop ((from 0) (n 0))
+      (let ((at (string-contains source text from)))
+        (if at (loop (+ at 1) (+ n 1)) n))))
+  ;; (lambda (x) (x 1) 2): a call whose value is discarded.
+  (define call (unit-source '(lambda (x) #f #f (seq ((app (var x) ((lit 1))) (lit 2)))) '()))
+  (test "a callee that is not a function is reported as the interpreter reports it, in both forms" 2
+        (count-of call "if (typeof $t0 !== 'function') $notProc($t0);"))
+  (test "before its raw entry is read" #t
+        (< (string-contains call "$notProc($t0)") (string-contains call "[$RAW];")))
+  (test "which the procedure declares" #t
+        (and (string-contains call "$notProc = R.notAProcedure") #t))
+  (test "and the call itself is made through the raw entry, directly, or through $foreign" 2
+        (count-of call "[$PRIM] === true ? $t")))
+
+;; A callee with no raw entry is a primitive or a compiled procedure, which
+;; takes Scheme values and is called directly, or a JavaScript function, which
+;; is called as the interpreter calls one -- its arguments converted -- through
+;; `$foreign`.
+(test-group "emit - a call to a JavaScript function"
+  (define (unit-source ast globals)
+    (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
+  (define call (unit-source '(lambda (x) #f #f (seq ((app (var x) ((lit 1))) (lit 2)))) '()))
+  (test "goes through $foreign" #t (and (string-contains call "$foreign($t0, [") #t))
+  (test "which the procedure declares" #t (and (string-contains call "$foreign = R.callForeign") #t)))
+
+;; Operands are evaluated left to right, the procedure first, as the
+;; interpreter evaluates them: a global read or a boxed local's read written
+;; into the call itself would happen after every operand to its right, and see
+;; what they assign.
+(test-group "emit - operands in order"
+  (define (unit-source ast globals)
+    (car (generate-unit (cadr (lower-lambda ast)) globals "f" '())))
+  (define (position source text) (string-contains source text))
+  ;; (lambda () (g (h))): the procedure is a global, the argument a call.
+  (define nested (unit-source '(lambda () #f #f (app (var g) ((app (var h) ())))) '(g h)))
+  ;; (lambda () (g k (h))): a global operand before a call.
+  (define global-first (unit-source '(lambda () #f #f (app (var g) ((var k) (app (var h) ())))) '(g h k)))
+  ;; (lambda (x) (g x 1)): nothing after the operands can change them.
+  (define settled (unit-source '(lambda (x) #f #f (app (var g) ((var x) (lit 1)))) '(g)))
+  (define (count-of source text)
+    (let loop ((from 0) (n 0))
+      (let ((at (string-contains source text from)))
+        (if at (loop (+ at 1) (+ n 1)) n))))
+  (test "the procedure is read before its argument's call is made" #t
+        (< (position nested "= (C0.v ?? G0());") (position nested "(C1.v ?? G1())")))
+  (test "a global operand is read before a later operand's call" #t
+        (< (position global-first "= (C2.v ?? G2());") (position global-first "(C1.v ?? G1())")))
+  (test "operands nothing can change are not copied" 0
+        (count-of settled "= s_x;")))

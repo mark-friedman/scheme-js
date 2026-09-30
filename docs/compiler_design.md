@@ -108,7 +108,11 @@ frame on the way out **reifies itself** — saving its locals and which call sit
 the interpreter splices the resulting frames in where the tier boundary sat. Invoking the
 continuation re-enters each compiled procedure through its twin at the saved `$pc`.
 
-Multi-shot works because frames are copied rather than consumed.
+Multi-shot works because frames are copied rather than consumed. A resumed frame runs as compiled
+code the interpreter called: it records the interpreter's stack for whatever the procedure calls
+back into Scheme, as `continueApplication` does -- without it, a continuation invoked from a
+resumed frame started from whatever stack was recorded last, and rewound into winds it was already
+in, which the differential fuzzer found.
 
 **A frame saves only what is live where it resumes** (`src/compiler/liveness.scm`). Saving every
 local at every suspension point was quadratic — frame literals were 57% of all generated code in
@@ -131,12 +135,79 @@ recorded here:
 The restore side is unchanged and names every local. One that was not saved destructures to
 `undefined`, which is safe precisely because it is dead there.
 
-One shape is genuinely unsupported and is **refused rather than answered**: a capture crossing more
-than one boundary between compiled and interpreted code. A second is refused beneath a redefined
-inlined primitive. Both throw with an explanation. The first is reachable today without any user code
-compiled: an interpreted procedure passed to the compiled `for-each`, calling the compiled `map`
-with an interpreted procedure that captures, crosses two boundaries. Refusing valid R7RS is a bug,
-and unwinding through nested interpreters, which removes it, ranks as one in `compiler_plan.md`.
+**Compiled and interpreted code may alternate any number of times beneath a capture.** An
+interpreted procedure that compiled code calls runs in a nested run of the interpreter on the
+JavaScript stack, starting on a copy of its parent's frame stack and a sentinel. A run compiled code
+called passes an unwind on (`Interpreter.unwindsOut`): it adds its own frames -- those above its
+sentinel -- and returns the unwind sentinel, and the compiled code that called it saves itself as any
+compiled frame does. The first run that cannot pass it on stacks everything in order: compiled
+frames, the frames of the run they called, the compiled frames that run called, and so on inwards.
+This used to be refused past one boundary, and that shape was reachable with no user code compiled:
+an interpreted procedure passed to the compiled `for-each`, calling the compiled `map` with an
+interpreted procedure that captures.
+
+**A run passes the unwind on only if its compiled caller can pass it on in turn** -- only if
+`flushable` was true when the caller called, so that no JavaScript caller sits beneath it. JavaScript
+that is not compiled code -- the file procedures calling a procedure back, `js-invoke`, a class
+constructor, a promise's executor -- cannot save itself, so a run such a caller started finishes the
+unwind, and the continuation leaves out the JavaScript caller and anything beneath it that the
+interpreter did not run, exactly as it does with no compiled code anywhere. It works as an escape,
+which is how `guard` uses it; resumed after those frames have returned, it resumes without them. Before
+this, the unwind was handed to such a caller as a return value, which produced a wrong answer rather
+than a refusal: 11 for `(+ 1 (+ 100 ...))` with the capture beneath `with-input-from-file`.
+
+One shape is **refused rather than answered**: a capture beneath a redefined inlined primitive, whose
+expansion is not a call site the resumable form splits at. `R.callBinding` marks the state
+(`refusesCapture`), and the sentinel of the run it starts carries it to `call/cc`.
+
+## Operands in the interpreter's order
+
+A call's value is a statement and a temporary in generated code, but a global read, a boxed local's
+read, or a sequence ending in either is an expression, written into the call that uses it -- and
+so evaluated after every operand to its right. R7RS leaves the order of a call's operands
+unspecified, so that was Scheme; but the interpreter evaluates the procedure first and then the
+operands left to right, and it is the reference semantics. A program that depended on the order --
+`(list g (f))` with `f` assigning `g` -- gave a different answer compiled. So `emit-operands!` puts
+such an operand into a temporary before any later operand that could have an effect -- anything but
+a literal, a variable or a lambda. A literal and an unassigned local are left as they are, since
+nothing can change them. The differential fuzzer found this in its first long run: six programs in
+5,000, one cause.
+
+## Raising from compiled code
+
+`raise`, `raise-continuable` and `error` do not raise: they return a pending raise, a `TailCall`
+whose function is a `RaiseNode`, for their caller to perform. The interpreter performs it by
+running the node, which finds the handler on its frame stack, runs the `dynamic-wind` after-thunks
+on the way, and pauses first if the debugger breaks on exceptions. Compiled code has no evaluator,
+and continues any pending call by calling its function; so a pending raise that reached compiled
+code where it wanted a value -- the argument checks in the compiled library's `length`, `assv` and
+`member` -- used to fail with JavaScript's "args is not iterable".
+
+It is now performed by **throwing it to the nearest interpreter run**, which performs it from
+where it called compiled code. `RaiseNode` has a raw entry, as an interpreted closure does, and a
+pending raise carries the exception as its arguments, because a raw entry is called without a
+receiver (`src/core/interpreter/ast_nodes.js`). This is exactly the raise the interpreter would have
+performed, for one reason: **compiled frames never hold a handler or a wind.** A procedure that names
+`with-exception-handler`, `guard`, `parameterize` or `dynamic-wind` is not compiled, so everything
+in force where compiled code raises is on the frame stack of the run beneath it. The compiled
+frames the throw leaves are abandoned, which a raise that cannot return does to them anyway.
+
+What is thrown is what a raise nobody handles throws, so JavaScript calling a compiled procedure
+directly, with no run beneath it, receives what it would have from an interpreted one.
+
+A **continuable** raise is refused, with an explanation: a handler that returns would deliver its
+value to the frame that raised, which is compiled and which the throw has left. Compiled code only
+meets one when handed `raise-continuable` as a value.
+
+**Calling a non-procedure** is reported as the interpreter reports it, not as JavaScript does --
+naming the temporary that held it, "$t0 is not a function", or, for the empty list, which is `null`,
+failing to read its raw entry. Where a call's value is wanted, the callee is tested for being a
+function first, as a statement of its own. It runs on every such call, so the form was measured:
+folded into the call expression it made `divrec` 9% slower; as a statement it costs 2-4.5% on the
+programs made of calls between compiled procedures, and a few nanoseconds a call. Catching the
+call's failure in a `try` instead cost those nothing and a call into an *interpreted* procedure 15% --
+the call the compiled library makes to a program's callbacks, which is the browser's common case --
+so it lost. A tail call already reported a non-procedure, in `R.tailCall`.
 
 ## Boxing, and why copying was wrong
 
@@ -278,12 +349,16 @@ a continuation shares it and may be resumed more than once.
 - **A rest parameter's arguments count**: they arrive on the stack, and `apply` spreading a long list
   put 20,000 of them in one frame.
 
-What this does not reach is recursion that alternates between compiled and interpreted code: an
-interpreted procedure called from compiled code runs in a nested interpreter on the JavaScript
-stack, and a move can only unwind to the innermost one. An interpreted tree walk through compiled
-`map` overflows at about 575 levels -- 648 before this, the compiled frames being a little larger
-now. Unwinding through nested interpreters is the same problem as a capture across more than one
-boundary, which `call/cc` refuses.
+**Recursion that alternates between compiled and interpreted code** goes as deep as either alone. An
+interpreted procedure called from compiled code runs in a nested run on the JavaScript stack, so a
+run that passes unwinds on continues the room of the compiled code that called it, less a fixed
+`NESTED_RUN_ROOM` for its own JavaScript frames, rather than starting fresh; a move started deep in
+the alternation passes through the nested runs, each adding its frames, to the run that finishes it,
+and the JavaScript stack is empty again. It used to overflow at about 575 levels -- an interpreted
+tree walk through compiled `map` -- and 100,000 levels now take 169 ms against the interpreter's
+135 ms. Moving frames out of nested runs also made shallower alternation faster: each nested run
+starts on a copy of its parent's frame stack, and between moves that stack grows by a sentinel a
+level, so a tree walk 400 deep through compiled `map` went from 1.9 to 1.25 ms.
 
 ## Inlined primitives, and knowing they are still primitives
 
@@ -393,8 +468,12 @@ The pass is Scheme: `src/compiler/ir.scm`, reached through `src/compiler/lowerin
 ## Self-hosting, and the bootstrap
 
 The compiler is meant to end up in Scheme, because a Scheme compiler good enough to compile a Scheme
-compiler is the goal and it cannot be argued from priors. Lowering and code generation are Scheme;
-the analyzer in front of them, and the safety analysis beside them, are not yet.
+compiler is the goal and it cannot be argued from priors. Lowering, code generation, the driver that
+decides what to compile and why not, and the tier's decisions about a program's own code are Scheme;
+the analyzer in front of them is not yet. What the compiler's Scheme needs from the interpreter --
+`new Function`, reading and rebinding environments, the lambda behind a closure, weak tables -- it
+imports from `(scheme-js compiler host)`, `src/compiler/host.js`, and the JavaScript entry points in
+`index.js` and `tiering.js` only hand arguments across and read back the records it returns.
 
 A compiler written in the language it compiles has to start somewhere. It starts in the
 **interpreter**, which loads the compiler's Scheme from source with no compiler at all:
@@ -406,8 +485,9 @@ A compiler written in the language it compiles has to start somewhere. It starts
 | that compiles the compiler's library | `src/packaging/compiled_compiler.js` |
 
 The compiler's Scheme is a library, `(scheme-js compiler)`: `src/compiler/compiler.sld` imports
-`(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1 and SRFI 152, includes `ir.scm` and the
-emitter's files in dependency order, and exports the entry points `lowering.js` calls. So the list of
+`(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1, SRFI 152, `(scheme-js interop)` and the
+host library, includes `ir.scm`, the emitter's files, `driver.scm`, `safety.scm` and `tier.scm` in
+dependency order, and exports the entry points `lowering.js` calls. So the list of
 files that make up the compiler, and their order, is said once, in Scheme, and SRFI 1's private
 helpers stay private to SRFI 1. Its table keeps only what its exports can reach.
 
@@ -440,11 +520,24 @@ it includes -- (`src/compiler/prebuilt.js`), so a stale build costs speed and ne
 
 Because every library the bundle ships arrives compiled from its table, **a page needs no compiler
 to get compiled libraries.** The compiler is therefore not in `dist/scheme.js`: it is
-`dist/scheme_compiler.js`, fetched by `loadCompiler` only for a page that compiles code of its own.
+`dist/scheme_compiler.js`, which the bundle fetches after it has started, to compile the page's own
+code (*Compiling the program's own code*, below); the page does not wait for it.
 
 `runtime.js` stays JavaScript permanently — not because generated JavaScript calls it, but because it
 needs native JavaScript features that neither generated code nor Scheme libraries can express, a
 `Map` behind hash tables being the clearest case. Chez keeps a C kernel for the same reason.
+
+## What is compiled: procedures, and top-level expressions
+
+A top-level procedure definition is compiled as a procedure. A top-level expression, or the value of
+a definition that is not a procedure, is compiled as a thunk and called once, from the interpreter
+so that a capture or a move of frames in it finishes where it should (`tryCompileExpression`,
+`runCompiledThunk`) -- where it makes a procedure or loops; straight-line code runs once, and
+compiling it costs more than running it. A form that defines at top level through `begin` stays
+interpreted, since wrapping it would make its definitions internal. This is not a nicety:
+`benchmarks/r7rs/src/nboyer.scm` defines stubs and assigns every real procedure from inside one
+top-level `(let () ...)`, so with definitions alone compiled it never ran compiled code at all
+(R84).
 
 ## What is declined, and why
 
@@ -452,30 +545,63 @@ Two different questions, deliberately kept apart.
 
 **Cannot be expressed.** Lowering fails and reports a reason. The procedure stays interpreted.
 
-**Can be expressed but should not be compiled.** A judgement needing more than one lambda to make,
-because it depends on what the callees do. `src/compiler/safety.js` closes it over the call graph:
-`maze`'s `make-maze` names no control global and is still held back, because `dig-maze` escapes
-through it.
+**Can be expressed, and might be slower compiled.** A procedure that captures a continuation, or
+that a capture unwinds through, is compiled; whether that pays is decided as the program runs.
+Compiled frames can take part in a captured continuation, so this is not a soundness question. It
+is a speed one: each capture unwinds and saves the compiled frames beneath it, and each re-entry
+resumes them, which costs more than the interpreter's copy of its frame stack.
 
-Since compiled frames can take part in a captured continuation, this is **no longer a soundness
-device**. What it holds back, it holds back for speed: a procedure a capture repeatedly unwinds
-through pays to suspend and resume every time, and on capture-heavy code that costs more than
-interpreting it.
+Measured with every such procedure declined and with all compiled (`--decline-captures` on
+`benchmarks/run_compiled.js` and `benchmarks/run_r7rs.js`), declining wins on three programs --
+`btsearch` 4.5x, `fibc` 1.8x, `ctak` 1.1-1.2x -- and loses on five, by more -- `quicksort` 21x,
+`puzzle` 4x, `maze` 3.8x, `contfib` 2.9x, `threads` 1.35x. The winners of declining re-enter their
+continuations or capture at every call; the losers escape now and then, which is nearly every
+capture in real libraries (`benchmarks/decline_reasons.js --corpus`, results in
+`corpus_decline_results.md`: 98% of the procedures declined for a control form ended at `call/cc`).
+No static test tells the shapes apart -- both are `call/cc` -- so a count made as the program runs
+does:
 
-**The rule costs real programs more than benchmarks.** `ir.scm`'s control globals include not only
-`call/cc` but `guard`, `raise`, `with-exception-handler`, `parameterize`, `dynamic-wind` and `exit`,
-and the rule declines every procedure that can reach one -- so a `guard` in one utility holds back
-every caller of that utility. The benchmark programs rarely use these forms, and the compiler's own
-Scheme was written to avoid all of them, so neither corpus shows the cost. The forms need different
-things. Only `call/cc` needs the unwind protocol. `guard`'s escape into its clauses, and `exit`, are
-one-shot and upward, which a JavaScript `throw` caught where they were established can do, running
-`dynamic-wind` after-thunks on the way out. The others are not escapes at all: a
-`with-exception-handler` handler runs in `raise`'s dynamic context before anything unwinds,
-`raise-continuable` returns to its raiser, a `guard` with no matching clause re-raises in the
-original `raise`'s context, and `dynamic-wind` must rerun its before-thunks when a full continuation
-re-enters. Those need the handler stack and the wind list to be runtime state compiled code can call
-through. Several of these names are on the list for how they are implemented, not for what they do:
-`raise`'s primitive returns a node for the interpreter to run, and `guard` expands through `call/cc`.
+- **Every compiled frame saved is counted, and every saved frame resumed**, by the procedure's
+  resumable form (`reify` and `noteResume` in `src/core/interpreter/unwind.js`). An escape saves a
+  frame and resumes it once; so does a frame moved to the heap to make room on the JavaScript
+  stack. Backtracking resumes the same saved frame again and again: `btsearch` resumes its frames
+  200 times for each save. A procedure nested in another has a resumable form per closure, so its
+  counts are per closure (R91); only a top-level procedure can be switched back, and it has one.
+- **A procedure whose frames are resumed at least four times as often as they are saved, after a
+  thousand resumes, is switched back to its interpreted closure, for good**
+  (`note-resume` in `src/compiler/tier.scm`, through `switchBackToClosure` in
+  `library_registry.js`): where it was installed, in every library, and in the programs being
+  debugged. It is then no longer compiled over its closure, so the debugger's switching leaves it
+  alone. The runtime keeps the counts, since that is where frames are saved and resumed, and asks
+  the Scheme only at the resumes it names: first at the minimum, then wherever the ratio could next
+  hold, since saves only grow. Asked at every resume instead, `ctak` was 9% slower. Until the
+  compiler has started nothing is switched back, which only a program running prebuilt library
+  code with its own code interpreted can see.
+
+That needs the closure, so every procedure is compiled over the one the interpreter made of its
+definition, and the pair recorded: the tier, `compileProgram`, `compileEnvironment`, the prebuilt
+tables and the canonical benchmark harness all do. A procedure nested in a compiled one has no
+closure of its own and stays compiled; so does anything compiled from its analyzed definition
+(`tryCompileDefinition`). `safety.scm` keeps the old rule, closed over the call graph, for
+`declineCaptures`.
+
+What the count does not catch is a program that captures at every call and resumes each frame
+once -- `fibc`, `ctak` -- which is the shape the escape fast path below is for.
+
+An escape also needs less than the protocol gives it. A continuation called while the capture that
+made it is still on the stack reifies nothing it will use: a JavaScript `throw` caught at the
+capture does, running `dynamic-wind` after-thunks on the way out. What makes that harder than it
+looks is that the same continuation may be called again after the capture has returned, and must
+then re-enter, so a fast path has to fall back to the full protocol rather than refuse.
+
+The other forms need different things. `guard`'s escape into its clauses, and `exit`, are one-shot
+and upward, the escape just described. The others are not escapes at all: a `with-exception-handler`
+handler runs in `raise`'s dynamic context before anything unwinds, `raise-continuable` returns to its
+raiser, a `guard` with no matching clause re-raises in the original `raise`'s context, and
+`dynamic-wind` must rerun its before-thunks when a full continuation re-enters. Those need the
+handler stack and the wind list to be runtime state compiled code can call through. Several of
+these names are on the list for how they are implemented, not for what they do: `raise`'s primitive
+returns a node for the interpreter to run, and `guard` expands through `call/cc`.
 
 ## Tiering
 
@@ -498,73 +624,137 @@ design: a page under one degrades to interpreted user code, and a test enforces 
 `Function` throw. An optimization that needs `new Function` is allowed provided the code it
 replaces remains as the CSP fallback.
 
+### Compiling the program's own code
+
+A program's own procedures are compiled while it runs, by a tier attached to its interpreter
+(`src/compiler/tier.scm`, attached by `src/compiler/tiering.js`) -- on by default in the CLI (`--no-compile` turns it off), in the browser
+bundle (`setUserCodeCompilation(false)`), and in both REPLs. The interpreter never depends on the
+compiler, which a browser page loads after it has started; it reports to the tier, if one is
+attached, and asks it to run top-level forms (`Interpreter.runTopLevel`):
+
+- **A closure bound at top level**, by `define` or by `set!` -- `nboyer` assigns every procedure it
+  has from inside a `let` -- in the program's global environment or in the body of a library of the
+  program's own. A shipped library's procedures are its prebuilt table's.
+- **A waiting closure's calls running out.** Each closure carries a count, zero unless the tier set
+  it, checked where the interpreter applies closures; the check costs 1-2% of interpreted call time.
+
+**When.** Generating a procedure's code costs about a millisecond, so compiling every definition as it
+is made would cost a page with five hundred of them half a second, much of it for code run once. A
+procedure whose body loops or makes procedures is compiled when it is bound, since a loop inside a
+procedure called once is where time goes and no call count would ever see it; any other is compiled
+on its second call. A top-level expression is compiled, as a thunk called once, only if it loops.
+
+**No on-stack replacement.** Both tiers look a top-level name up at every call. Once the compiled
+procedure is bound in the closure's place, the next call through the name -- a recursive call below
+frames already made, or the next iteration of a loop written as a self tail call -- runs compiled, and
+the frames already on the stack finish interpreted. Every other name holding the closure is rebound
+too, as are the copies other libraries imported, since an import copies the value.
+
+**Over the closure, for the debugger.** Every procedure is compiled from the closure the program
+made, and the pair recorded, so it runs as that closure while the program is debugged (below), and
+its breakpoints fire. That is why a top-level expression that only makes procedures is not compiled:
+compiled as a thunk, the procedures it made and kept would have no closure to go back to. The
+procedures it binds are compiled when bound instead. A loop's thunk keeps that limitation for any
+procedure the loop makes and stores.
+
+**When not.** Nothing is compiled while the program is being debugged, since it would be switched
+straight back; a procedure due meanwhile is compiled on its first call after. Nor while a library is
+loading: the compiler is Scheme, and running it defines things, which inside a library's body would
+be registered with the scopes that library's macros resolve their free identifiers through. A
+library's procedures are compiled from their first call once it has loaded.
+
+**Starting the compiler.** The tier's decisions are the compiler's Scheme, so the compiler starts when
+the tier is attached: about 130 ms, which a script that compiles nothing now pays as well -- the CLI
+running `(display 1)` takes 0.28 s against 0.14 s with `--no-compile`. A program that compiles
+anything paid it before too, at its first compile. Most of it is analyzing and running the source of
+the compiler and of `(scheme base)`, SRFI 1 and SRFI 152 in the compiler's own registry, which their
+prebuilt tables then replace; making that fast is ranked in `compiler_plan.md`.
+
+**Only top-level procedures.** A procedure nested in one is compiled with it. So a procedure the tier
+declines keeps its inner loops interpreted; compiling those separately is possible, since the
+interpreter looks a local loop's name up in its frame at every iteration too, but not done.
+
 ## The constraints, honestly
 
 | Constraint | Status |
 |---|---|
 | **1. JS interop** | Met. Scheme closures stay callable JavaScript functions; compiled procedures keep the same wrapper. Value representation is untouched, and compiled code converts at the boundary exactly as the interpreter does -- including where the interpreter is inconsistent: a JavaScript function's integral result reads as exact through `js-invoke` and inexact through a direct call (`Interoperability.md`, *Numbers at the boundary*). No benchmark measures interop yet. |
-| **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler only if it compiles code of its own. |
-| **3. REPLs in both** | Met in principle — compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working. Not met in practice: **nothing outside `src/compiler/` compiles user code**, so a REPL never reaches the tier. |
-| **4. Debuggers in both** | **Not met for compiled code.** Generated code carries no source locations and no debug points, and `src/debug/` has no notion of a compiled procedure. The debugger's hook is inside the interpreter's step loop, which compiled procedures never enter; a breakpoint inside one is reported as never firing. And interpreted code is affected too: only `runAsync` honours a pause, compiled code calls an interpreted procedure through a synchronous nested `run`, so a breakpoint inside a callback of the compiled `for-each` or `map` takes effect only when the loop returns -- inferred from the code, not yet exercised. |
-| **5. Multi-shot `call/cc`** | Met, with two shapes **refused** rather than answered: a capture across more than one boundary between compiled and interpreted code, which the compiled standard library already makes reachable, and one beneath a redefined inlined primitive. |
-| **6. R7RS-small** | The compiler adds one gap, the refused capture above. The rest are the interpreter's: mutable strings, `equal?` on circular structure, `call-with-port` missing, and referential transparency of macro-introduced free identifiers. The conformance suites run outside `npm test`, and not with the compiled standard library. |
+| **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler after it has started, to compile the page's own code. |
+| **3. REPLs in both** | Met. Compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working, and both REPLs compile what is typed into them as it runs, by the policy above. |
+| **4. Debuggers in both** | **Met by running compiled code as its closures while debugging**, in the CLI and the browser: every breakpoint fires, the library's and the program's own included, stepping and `:bt` see every frame, and a breakpoint in a callback of the compiled `map` stops the program where it is hit. Not reached: code compiled with no closure kept -- `tryCompileDefinition`, and a procedure a compiled top-level loop made and kept -- and debugging compiled code in place, which needs source maps. See below. |
+| **5. Multi-shot `call/cc`** | Met, across any number of alternations of compiled and interpreted code. Refused rather than answered: a capture beneath a redefined inlined primitive. A continuation captured above a JavaScript caller that is not compiled code leaves that caller out, as the interpreter's always have. |
+| **6. R7RS-small** | The compiler adds two refusals: the capture above, and `raise-continuable` handed to a compiled procedure as a value. The rest are the interpreter's: `equal?` on circular structure, `read-char` returning strings, the file procedures returning a procedure's exact integer as inexact, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test` -- three of Chibi's only because its runner rescues a failure whose values agree once converted to JavaScript (R85); and passing them is not evidence of completeness, since neither tested `call-with-port`, which was missing. |
 
-Constraint 4 is the open design question of the project. The intended answer is **two mechanisms,
-not one**, which is what every real toolchain ships:
+Constraint 4 has **two mechanisms, not one**, which is what every real toolchain ships:
 
-- **Debug info** — source maps and emitted debug points, so compiled code can be stepped and
-  inspected in place. This is what calling convention B was chosen for: one live Scheme frame is one
-  JavaScript frame, so DevTools can show a Scheme stack. Until it exists that choice has been paid
-  for and not collected.
-- **Declining to optimize what is being debugged** — a procedure with a breakpoint in it is left to
-  the interpreter, and recompiled when the breakpoint moves. The equivalent of compiling one
-  translation unit at `-O0`.
+- **Declining to optimize what is being debugged** -- shipped for the whole program at once. While a
+  program is being debugged -- a breakpoint set, a step in progress, or the program paused -- every
+  procedure compiled over an interpreted closure runs as that closure again
+  (`Interpreter.interpretForDebugger`, `interpretCompiledOver` in `library_registry.js`). The
+  closures are kept when compiled code is installed over them: the libraries' prebuilt code and
+  `compileEnvironment` record each pair. The equivalent of compiling at `-O0` while debugging.
+- **Debug info** -- source maps and emitted debug points, so compiled code can be stepped and
+  inspected in place, without switching. This is what calling convention B was chosen for: one live
+  Scheme frame is one JavaScript frame, so DevTools can show a Scheme stack. Still to come.
 
-The second is not a lesser substitute for the first. Lowering already beta-reduces immediately
-applied lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes
-assigned locals — and the optimization work still to come adds direct calls, arity specialization
-and unboxing. A source map maps *locations*; it cannot resurrect a binding that no longer exists.
-So debug info yields "optimized out" exactly where a user is most confused, and the interpreter
-yields the real value. Sequencing is in `compiler_plan.md`.
+The first is not a lesser substitute for the second. Lowering beta-reduces immediately applied
+lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes assigned
+locals; a source map maps *locations*, and cannot resurrect a binding that no longer exists. So debug
+info yields "optimized out" exactly where a user is most confused, and the interpreter yields the
+real value.
 
-### What the two mechanisms leave open
+### Running compiled code as its closures while debugging
 
-Neither mechanism, as named, covers:
+The debugger pauses only between the interpreter's steps. Compiled code takes none, so a breakpoint
+inside it could not fire. Worse, a breakpoint in an *interpreted* procedure that compiled code
+called was reached in a synchronous nested run of the interpreter, which cannot wait: in the browser
+REPL, a breakpoint in a procedure given to the compiled `map` was reached on every element and the
+program stopped only when `map` returned. The first plan was to interpret only the program's own code
+while debugging and leave the library compiled; that cannot fix the callback case, since it is the
+compiled library that makes the nested runs. So the whole program switches.
 
-- **Stack traces.** The interpreter's frame stack has no entries for live compiled frames, so `:bt`
-  at a breakpoint in a callback called from compiled `map` shows a hole where `map` and its callers
-  should be. Convention B puts one JavaScript frame per Scheme frame, but nothing reads the
-  JavaScript stack back: `Error().stack` could be parsed, since procedures are named, or enter and
-  exit points emitted when a debug runtime is attached. Either needs designing and measuring.
-- **Stepping into a compiled procedure** from interpreted code. It must behave as a step over, or
-  re-interpret the callee on demand, which needs the procedure's interpreted closure -- and today
-  compiling a procedure discards it.
-- **Inspecting locals.** Compiled locals are renamed, boxed when assigned, passed to lifted factories,
-  or live only in temporaries, while `StateInspector` walks `Environment` maps. Even the source-map
-  route needs a mapping from generated names back to source names.
-- **The CLI.** Source maps help only where a JavaScript debugger consumes them. The CLI REPL's
-  debugger works through the interpreter's step hook, so there declining to optimize is the only
-  mechanism, and it has to cover stepping as well as breakpoints.
-
-The intended end state, with the Chrome extension no longer a goal, is two contexts:
+- **What switches.** The pairs are switched through the frames that hold them -- in the program's
+  global environment and in every library loaded in the current registry -- so the cells compiled
+  code reads globals through follow, and compiled code still running calls the closures from its
+  next call on. A registry's libraries are switched back once none of its programs is being
+  debugged.
+- **When.** `SchemeDebugRuntime.updateInterpretation`, on setting or removing a breakpoint, stepping,
+  pausing, resuming, enabling or disabling, and at the start of each asynchronous run, which catches
+  a library loaded during the session. An enabled runtime with nothing set costs nothing: the CLI
+  REPL enables one at start-up.
+- **What it gives.** Every breakpoint fires, the library's included; a step goes into any procedure;
+  `:bt` has every frame; every local is an interpreted binding, by its own name. In the CLI and the
+  browser alike.
+- **What it does not reach.** A procedure compiled with no closure to go back to --
+  `tryCompileDefinition` compiles from the analyzed definition, and the REPL's `:break` still warns
+  that a breakpoint there will not fire. A compiled procedure a program holds in a data structure,
+  or has captured in a closure. A pause the program asks for itself, inside a nested run, before the
+  switch: the first one is not honoured. And the program runs at the interpreter's speed while it is
+  being debugged; declining only the procedures being debugged (plan: debugging by not optimizing,
+  per procedure) is the refinement that keeps the rest fast.
 
 | Context | Interpreted code | Compiled code |
 |---|---|---|
-| CLI REPL | the existing `:break` / `:step` / `:bt` debugger | declined to the interpreter, per procedure, on a breakpoint or a step into it |
-| Browser | the existing REPL debugger, cooperative under `runAsync` | DevTools through source maps, and declining to optimize for bindings a source map cannot bring back |
-
-The first step is the left column alone: while user code is being debugged it runs interpreted, and
-the library stays compiled. What triggers that is a breakpoint being set or stepping being on, not
-a debugger being attached -- the CLI REPL attaches one at start-up.
+| CLI REPL | the `:break` / `:step` / `:bt` debugger | runs as its closures while debugging |
+| Browser | the REPL debugger, cooperative under `runAsync` | runs as its closures while debugging; in place through DevTools and source maps, still to come |
 
 ## How this is verified
 
-Gaps first, since they are what to distrust: no fuzzer generates programs across the two tiers, so
-the machinery is tested on the shapes its authors thought of, while its serious bugs were in shapes
-nobody did; CI runs only on `main` and never loads the browser tests; and the R7RS conformance
-suites are outside `npm test`. `compiler_plan.md` ranks closing each.
+The gap first, since it is what to distrust: CI runs only on `main` and never loads the browser
+tests. `compiler_plan.md` ranks closing it.
 
-- **3,473 tests**, Node and browser, via `npm test`.
+- **6,124 tests**, Node and browser, via `npm test`.
+- **A differential fuzzer** (`tests/fuzz/`): a generator, written in Scheme, builds programs from a
+  seed -- loops, closures, assignments, escapes, a continuation captured at a random site and
+  re-entered twice, errors raised and caught or not, `dynamic-wind`, multiple values, higher-order
+  calls through the library, recursion deep enough to move frames, alternating between the tiers --
+  and says which procedures to compile. Each is run with everything interpreted and with the
+  library and those procedures compiled, and the answers compared. 120 fixed seeds run in
+  `npm test`; `node tests/fuzz/run_fuzz.js` runs as many more as wanted. Five bugs reintroduced into
+  the capture, moving, boxing and liveness machinery were each found within the first 27 programs.
+- **R7RS conformance, in both library configurations**: the chapter tests and Chibi's, 1,201 in
+  all, run with the standard library interpreted and again with it installed from the prebuilt tables
+  as a browser installs it, which is also checked to have happened (`compliance_tests.js`).
 - **Whole-program correctness**: 41 canonical programs run end to end under *both* tiers and checked
   against expected results that came from Gambit — `npm run test:programs`, 8.2 s, inside `npm test`.
   This is the check that catches what unit tests structurally cannot: three compiler defects in one
@@ -597,6 +787,9 @@ Per-module rationale is in the module headers, which are edited with the code:
 | `src/compiler/inline.scm` | primitive expansions, tower-faithful |
 | `src/compiler/lowering.js` | hosting the compiler's Scheme; the bootstrap in detail |
 | `src/compiler/marshal.js` | the JavaScript/Scheme boundary, and how it shrinks |
-| `src/compiler/safety.js` | the call-graph closure, and its measured trade-off |
+| `src/compiler/driver.scm` | what is compiled, what is declined and why, and the records the entry points return |
+| `src/compiler/safety.scm` | the call-graph closure, and its measured trade-off |
+| `src/compiler/tier.scm` | when a program's procedures are compiled, installing them, and the re-entry policy |
+| `src/compiler/host.js` | what the compiler's Scheme takes from the interpreter's JavaScript, and why each is there |
 | `src/compiler/prebuilt.js` | staleness, and why arity rather than names |
-| `src/compiler/runtime.js` | the trampoline and the tail-call budget, global cells, procedure marking |
+| `src/compiler/runtime.js` | the trampoline, stack room and moving frames, global cells, reporting a non-procedure, procedure marking |

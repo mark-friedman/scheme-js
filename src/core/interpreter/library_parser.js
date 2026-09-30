@@ -169,53 +169,59 @@ function processCondExpand(declArr, result) {
 // =============================================================================
 
 /**
+ * The filters an import set can apply to the set inside it (R7RS 5.6.1).
+ * @type {Array<string>}
+ */
+const IMPORT_FILTERS = ['only', 'except', 'prefix', 'rename'];
+
+/**
  * Parses an import set.
- * 
- * @param {Cons|Symbol} importSet - The import specification
- * @returns {Object} { libraryName, only, except, prefix, rename }
+ *
+ * An import set is a library name, or a filter wrapped around another import
+ * set, and filters nest in any order: each applies to the names the set
+ * inside it provides, so `(only (prefix lib p:) p:car)` keeps `p:car`, and a
+ * fixed order of filters cannot express that. So the filters are returned as
+ * steps, innermost first, to be applied in that order (`applyImports`).
+ *
+ * @param {Cons} importSet - The import specification.
+ * @returns {{libraryName: Array<string>, steps: Array<Object>}} The library,
+ *   and the filters to apply to its exports, innermost first: `{kind: 'only'
+ *   | 'except', names}`, `{kind: 'prefix', prefix}` or `{kind: 'rename',
+ *   renames: [{from, to}]}`.
  */
 export function parseImportSet(importSet) {
     const arr = toArray(importSet);
     const first = arr[0];
+    const filtered = first instanceof Symbol && IMPORT_FILTERS.includes(first.name)
+        && arr.length >= 2 && arr[1] !== null && typeof arr[1] === 'object' && 'car' in arr[1];
 
-    // Simple case: (library name)
-    if (first instanceof Symbol && !['only', 'except', 'prefix', 'rename'].includes(first.name)) {
+    if (!filtered) {
         return {
             libraryName: arr.map(s => s instanceof Symbol ? s.name : String(s)),
-            only: null,
-            except: null,
-            prefix: null,
-            rename: null
+            steps: []
         };
     }
 
-    // Filtered imports
-    const result = { libraryName: null, only: null, except: null, prefix: null, rename: null };
-
-    if (first instanceof Symbol) {
-        switch (first.name) {
-            case 'only':
-                result.only = arr.slice(2).map(s => s.name);
-                Object.assign(result, parseImportSet(arr[1]));
-                result.only = arr.slice(2).map(s => s.name);
-                break;
-            case 'except':
-                Object.assign(result, parseImportSet(arr[1]));
-                result.except = arr.slice(2).map(s => s.name);
-                break;
-            case 'prefix':
-                Object.assign(result, parseImportSet(arr[1]));
-                result.prefix = arr[2].name;
-                break;
-            case 'rename':
-                Object.assign(result, parseImportSet(arr[1]));
-                result.rename = [];
-                for (let i = 2; i < arr.length; i += 2) {
-                    result.rename.push({ from: arr[i].name, to: arr[i + 1].name });
-                }
-                break;
-        }
+    const inner = parseImportSet(arr[1]);
+    const names = () => arr.slice(2).map(s => s.name);
+    let step;
+    switch (first.name) {
+        case 'only':
+        case 'except':
+            step = { kind: first.name, names: names() };
+            break;
+        case 'prefix':
+            step = { kind: 'prefix', prefix: arr[2].name };
+            break;
+        case 'rename':
+            step = {
+                kind: 'rename',
+                renames: arr.slice(2).map((pair) => {
+                    const [from, to] = toArray(pair);
+                    return { from: from.name, to: to.name };
+                })
+            };
+            break;
     }
-
-    return result;
+    return { libraryName: inner.libraryName, steps: [...inner.steps, step] };
 }

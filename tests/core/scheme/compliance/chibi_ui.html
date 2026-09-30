@@ -96,7 +96,11 @@
     </div>
 
     <script type="module">
-        import { createComplianceRunner, sectionFiles } from './chibi_runner_lib.js';
+        import { SUITES, loadSuiteSources, runSuite } from './compliance_suite.js';
+
+        // `?compiled` runs with the standard library compiled, installed from
+        // the prebuilt tables as the browser bundle installs it.
+        const compiledLibraries = new URLSearchParams(location.search).has('compiled');
 
         const runBtn = document.getElementById('run-btn');
         const output = document.getElementById('test-output');
@@ -161,16 +165,12 @@
             const logger = createBrowserLogger();
 
             try {
-                // Create the compliance runner with file loader and logger
-                const runner = await createComplianceRunner(browserFileLoader, logger);
-
-                // Run all section tests
-                for (const sectionFile of sectionFiles) {
-                    logger.title(sectionFile);
-                    const result = await runner.runSectionTest(sectionFile);
-                    if (!result.success) {
-                        logger.fail(`Section ${sectionFile} crashed: ${result.error}`);
-                    }
+                const suite = SUITES.chibi;
+                logger.log(compiledLibraries ? 'Standard library compiled' : 'Standard library interpreted');
+                const sources = await loadSuiteSources(suite, browserFileLoader);
+                const { results } = runSuite(suite, sources, logger, { compiledLibraries });
+                for (const result of results) {
+                    if (result.error !== undefined) logger.fail(`${result.file} crashed: ${result.error}`);
                 }
 
                 logger.summary();

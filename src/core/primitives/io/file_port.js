@@ -1,4 +1,5 @@
-import { Port, EOF_OBJECT } from './ports.js';
+import { Port } from './ports.js';
+import { StringInputPort } from './string_port.js';
 
 // ============================================================================
 // Environment Detection
@@ -35,70 +36,25 @@ if (isNode) {
 // ============================================================================
 
 /**
- * File input port - reads from a file (Node.js only).
+ * File input port - reads from a file (Node.js only). The file is read whole
+ * when the port is opened, and read from as a string port reads its string.
  */
-export class FileInputPort extends Port {
+export class FileInputPort extends StringInputPort {
     /**
      * @param {string} filename - Path to the file.
      */
     constructor(filename) {
-        super('input');
         if (!isNode || !fs) {
             throw new Error('open-input-file: file I/O not supported in browser');
         }
-        this._filename = filename;
+        let content;
         try {
-            this._content = fs.readFileSync(filename, 'utf8');
+            content = fs.readFileSync(filename, 'utf8');
         } catch (e) {
             throw new Error(`open-input-file: cannot open file ${filename}: ${e.message}`);
         }
-        this._pos = 0;
-    }
-
-    /** @returns {boolean} Whether there's more to read. */
-    hasMore() { return this._pos < this._content.length; }
-
-    readChar() {
-        if (!this._open) throw new Error('read-char: port is closed');
-        if (this._pos >= this._content.length) return EOF_OBJECT;
-        return this._content[this._pos++];
-    }
-
-    peekChar() {
-        if (!this._open) throw new Error('peek-char: port is closed');
-        if (this._pos >= this._content.length) return EOF_OBJECT;
-        return this._content[this._pos];
-    }
-
-    readLine() {
-        if (!this._open) throw new Error('read-line: port is closed');
-        if (this._pos >= this._content.length) return EOF_OBJECT;
-        let line = '';
-        while (this._pos < this._content.length) {
-            const ch = this._content[this._pos++];
-            if (ch === '\n') return line;
-            if (ch === '\r') {
-                if (this._pos < this._content.length && this._content[this._pos] === '\n') {
-                    this._pos++;
-                }
-                return line;
-            }
-            line += ch;
-        }
-        return line;
-    }
-
-    readString(k) {
-        if (!this._open) throw new Error('read-string: port is closed');
-        if (this._pos >= this._content.length) return EOF_OBJECT;
-        const end = Math.min(this._pos + k, this._content.length);
-        const result = this._content.slice(this._pos, end);
-        this._pos = end;
-        return result;
-    }
-
-    charReady() {
-        return this._open && this._pos < this._content.length;
+        super(content);
+        this._filename = filename;
     }
 
     toString() {

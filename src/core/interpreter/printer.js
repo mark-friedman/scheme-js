@@ -1,6 +1,7 @@
 import { Cons } from './cons.js';
 import { Symbol } from './symbol.js';
 import { isSchemeClosure, isSchemeContinuation } from './values.js';
+import { SchemeString } from '../primitives/string_class.js';
 import { LiteralNode, VariableNode } from './ast.js'; // VariableNode used in web/repl, LiteralNode in both
 
 /**
@@ -12,6 +13,8 @@ export function prettyPrint(val) {
     if (val instanceof LiteralNode) {
         return prettyPrint(val.value);
     }
+    // A mutable string is shown as the characters it holds.
+    if (val instanceof SchemeString) val = val.toString();
     // Check for Scheme closures (callable functions with marker)
     if (isSchemeClosure(val)) {
         return "#<procedure>";

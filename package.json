@@ -18,6 +18,7 @@
     "benchmark:profile": "node benchmarks/profile.js",
     "benchmark:implementations": "node benchmarks/compare_implementations.js",
     "audit:r7rs": "node scripts/audit_r7rs.js",
+    "audit:languages": "node repl.js scripts/language_balance.scm",
     "benchmark:record": "node benchmarks/record_progress.js",
     "benchmark:compiled": "node benchmarks/run_compiled.js",
     "benchmark:profile-compiled": "node benchmarks/profile_compiled.js",

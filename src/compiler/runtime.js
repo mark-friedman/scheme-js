@@ -13,11 +13,14 @@
  * below is how compiled code avoids that.
  */
 
-import { TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../core/interpreter/values.js';
+import {
+  TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign
+} from '../core/interpreter/values.js';
 // The capture protocol belongs to the interpreter, which owns what a
 // continuation is; this module only makes it reachable from generated code.
 import {
-  UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendFlush, restoreFlush
+  UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendForPrimitive, restoreFlush,
+  CAPTURE_UNDER_PRIMITIVE
 } from '../core/interpreter/unwind.js';
 import { SchemeError, SchemeApplicationError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
@@ -25,7 +28,7 @@ import { Cons } from '../core/interpreter/cons.js';
 // reads a cell, once per inlined primitive.
 import { primitiveCell } from '../core/interpreter/primitive_bindings.js';
 
-export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, SchemeError, primitiveCell };
+export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, SchemeError, primitiveCell, callForeign };
 
 /**
  * Reports a capture beneath a redefined inlined primitive.
@@ -42,9 +45,7 @@ export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, Schem
  * @throws {SchemeError} Always.
  */
 export function captureUnderPrimitive() {
-  throw new SchemeError(
-    'call/cc: a continuation was captured beneath a redefined primitive, which '
-    + 'cannot be resumed. Run this program with the compiler tier disabled.');
+  throw new SchemeError(CAPTURE_UNDER_PRIMITIVE);
 }
 
 /**
@@ -62,14 +63,20 @@ export function captureUnderPrimitive() {
  * that lives here, on the slow path, rather than after every expansion, where
  * it was a statement per inlined primitive that the fast path never needed.
  *
+ * The binding may have been redefined to something that is not a procedure at
+ * all, which is reported as the interpreter reports it.
+ *
  * @param {Function} fn - The name's current binding.
  * @param {Array<*>} args - Scheme values.
  * @returns {*} The call's value.
  * @throws {SchemeError} If a continuation was captured beneath it.
+ * @throws {SchemeApplicationError} If the binding is not a procedure.
  */
 export function callBinding(fn, args) {
-  // No resume point, so compiled code beneath may not move its frames either.
-  const saved = suspendFlush();
+  if (typeof fn !== 'function') notAProcedure(fn);
+  // No resume point, so compiled code beneath may not move its frames either,
+  // and a continuation captured beneath is refused.
+  const saved = suspendForPrimitive();
   let value;
   try {
     value = settle(invoke(fn, args));
@@ -138,8 +145,24 @@ export function vectorSet(vector, index, value) {
  * @throws {SchemeApplicationError} If the callee is not a procedure.
  */
 export function tailCall(callee, args) {
-  if (typeof callee !== 'function') throw new SchemeApplicationError(callee);
+  if (typeof callee !== 'function') notAProcedure(callee);
   return new TailCall(callee, args);
+}
+
+/**
+ * Reports a call to a value that is not a procedure, as the interpreter does.
+ *
+ * Where generated code wants a call's value it tests the callee first,
+ * because calling what is not a function makes JavaScript report the
+ * temporary that held it -- "$t0 is not a function" -- and calling the empty
+ * list, which is `null`, fails before that, reading its raw entry.
+ *
+ * @param {*} callee - What was called.
+ * @returns {never}
+ * @throws {SchemeApplicationError} Always.
+ */
+export function notAProcedure(callee) {
+  throw new SchemeApplicationError(callee);
 }
 
 /**
@@ -187,6 +210,11 @@ export function capture(receiver) {
  * doubles, bignums beyond 2^53 throw. Compiled code is not a JavaScript caller,
  * so it uses the closure's raw entry instead.
  *
+ * A compiled procedure and a primitive are their own raw entries. A function
+ * with none is JavaScript's own, and gets its arguments as JavaScript values,
+ * as the interpreter gives them (`callForeign` in
+ * `src/core/interpreter/values.js`).
+ *
  * The check is one property load on a value already in hand. It is worth
  * stating why it cannot be hoisted to compile time: the callee of a Scheme call
  * is a value, not a name, and which tier it belongs to is not known until the
@@ -197,8 +225,7 @@ export function capture(receiver) {
  * @returns {*} The callee's result, which may be a pending `TailCall`.
  */
 export function invoke(fn, args) {
-  const raw = fn[SCHEME_RAW_CALL];
-  return raw === undefined ? fn(...args) : raw(...args);
+  return callWithSchemeValues(fn, args);
 }
 
 /**
@@ -351,6 +378,9 @@ export function listFrom(items) {
  */
 export function markProcedure(fn, name) {
   fn[SCHEME_PRIMITIVE] = true;
+  // Its own raw entry, so that a call site, which looks for one first, calls
+  // it with no second look at what it is (`emit-call!` in emit.scm).
+  fn[SCHEME_RAW_CALL] = fn;
   fn.$compiled = true;
   fn.schemeName = name;
   fn.toString = () => `#<compiled-procedure${name && name !== 'anonymous' ? ' ' + name : ''}>`;

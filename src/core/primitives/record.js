@@ -4,6 +4,7 @@
  * Provides record type operations for R7RS define-record-type.
  */
 
+import { isString, stringValue } from './string_class.js';
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeError, SchemeTypeError, SchemeArityError } from '../interpreter/errors.js';
@@ -73,7 +74,7 @@ export const recordPrimitives = {
      */
     'make-record-type': (name, fields) => {
         // name may be a Symbol object from quoted symbol 'type
-        const typeName = typeof name === 'string' ? name : name.name;
+        const typeName = isString(name) ? stringValue(name) : name.name;
         const fieldNames = toArray(fields).map(s => s.name);
 
         // Sanitize name for use as JS class name (replace <> and other invalid chars)

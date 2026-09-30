@@ -7,12 +7,14 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK } from './stepables_base.js';
-import { createClosure, createContinuation, isSchemeClosure, isSchemeContinuation } from './values.js';
+import {
+    createClosure, createContinuation, isSchemeClosure, isSchemeContinuation, TailCall
+} from './values.js';
 import * as FrameRegistry from './frame_registry.js';
 import { GlobalRef } from './syntax_object.js';
 import { globalContext } from './context.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, beginCapture } from './unwind.js';
+import { CaptureUnwind, beginCapture, CAPTURE_UNDER_PRIMITIVE } from './unwind.js';
 
 // =============================================================================
 // Helper Function
@@ -449,37 +451,26 @@ export class CallCCNode extends Executable {
     step(registers, interpreter) {
         // A continuation is the interpreter's frame stack. Compiled procedures
         // do not appear in it -- they run in JavaScript stack frames -- so if
-        // any are live between here and the capture point, a continuation built
-        // from this stack alone would silently omit everything they had left to
-        // do. They are brought in by unwinding: this abandons the nested run,
-        // each compiled frame records itself on the way out, and the
-        // interpreter splices them in and finishes the capture.
-        let boundary = -1;
-        let boundaries = 0;
-        for (let i = registers[FSTACK].length - 1; i >= 0; i--) {
-            if (registers[FSTACK][i].compiledBoundary === true) {
-                if (boundary < 0) boundary = i;
-                boundaries++;
-            }
+        // compiled code called this run, a continuation built from this stack
+        // alone would silently omit everything it had left to do. Those frames
+        // are brought in by unwinding: this abandons the run, each compiled
+        // frame records itself on the way out, each run of the interpreter the
+        // unwind passes through adds its own frames, and the first run that
+        // cannot pass it on finishes the capture (`completeCapture`). A run is
+        // told apart by the sentinel it started on, which is the nearest one.
+        const fstack = registers[FSTACK];
+        let start = fstack.length;
+        while (start > 0 && fstack[start - 1].isSentinel !== true) start--;
+        // Called from an inline expansion of a redefined primitive, which has
+        // no point to resume from.
+        if (start > 0 && fstack[start - 1].refusesCapture === true) {
+            throw new SchemeError(CAPTURE_UNDER_PRIMITIVE);
         }
-
-        if (boundaries > 1) {
-            // Compiled and interpreted code alternating more than once. Each
-            // boundary would need its own group of frames spliced at its own
-            // position, and getting that wrong would produce a wrong answer
-            // rather than a failure, so it is refused until it is implemented.
-            throw new SchemeError(
-                'call/cc: a continuation was captured across more than one boundary between '
-                + 'compiled and interpreted code, which is not yet supported. Run this '
-                + 'program with the compiler tier disabled.');
-        }
-
-        if (boundary >= 0) {
+        if (start > 0 && fstack[start - 1].compiledBoundary === true) {
             beginCapture({
                 lambdaExpr: this.lambdaExpr,
-                fstack: [...registers[FSTACK]],
                 env: registers[ENV],
-                boundary
+                segment: fstack.slice(start)
             });
             throw new CaptureUnwind();
         }
@@ -745,11 +736,7 @@ export class RaiseNode extends Executable {
 
         if (handlerIndex === -1) {
             // No handler found - propagate as JS error
-            const exc = this.exception;
-            if (exc instanceof Error) {
-                throw exc;
-            }
-            throw new SchemeError(`Unhandled exception: ${exc}`, [exc]);
+            throw unhandled(this.exception);
         }
 
         // Get the handler
@@ -796,6 +783,108 @@ export class RaiseNode extends Executable {
         }
         return true;
     }
+}
+
+/**
+ * What a raise nobody handles throws: the raised value itself when it is an
+ * error, and otherwise an error describing it.
+ * @param {*} exception - The raised value.
+ * @returns {Error} The value to throw.
+ */
+function unhandled(exception) {
+    if (exception instanceof Error) return exception;
+    return new SchemeError(`Unhandled exception: ${exception}`, [exception]);
+}
+
+// =============================================================================
+// Raising from compiled code
+// =============================================================================
+
+/**
+ * Raises compiled code has thrown for an interpreter run to perform, each
+ * mapped to the value raised. Weak, since a raise nobody performs -- one that
+ * reached a JavaScript caller with no run beneath it -- is never taken out.
+ * @type {WeakMap<Error, *>}
+ */
+const compiledRaises = new WeakMap();
+
+/**
+ * Builds a pending raise: what `raise`, `raise-continuable` and `error` return
+ * rather than raising themselves.
+ *
+ * The interpreter performs a pending raise by running its node, which looks for
+ * a handler on the interpreter's frame stack. Compiled code cannot run a node:
+ * it continues any pending call by calling the call's function with its
+ * arguments, through the function's raw entry if it has one. So `RaiseNode`
+ * has a raw entry, `raiseFromCompiledCode`, and because a raw entry is called
+ * without a receiver, the arguments carry what it needs. The interpreter
+ * ignores them.
+ *
+ * @param {*} exception - The value raised.
+ * @param {boolean} continuable - Whether a handler may return to the raise.
+ * @returns {TailCall} The pending raise.
+ */
+export function pendingRaise(exception, continuable) {
+    return new TailCall(new RaiseNode(exception, continuable), [exception, continuable]);
+}
+
+/**
+ * Performs a raise that reached compiled code, by throwing it to the nearest
+ * interpreter run for that run to perform.
+ *
+ * This is the raise the interpreter would have performed. A compiled procedure
+ * never establishes a handler or a `dynamic-wind` -- one that names them is not
+ * compiled -- so the handlers and winds in force where compiled code raises are
+ * exactly those on the frame stack of the run beneath it, and that run performs
+ * the raise with the same `RaiseNode`, the debugger's pause on an uncaught
+ * exception included. The compiled frames the throw leaves are abandoned, which
+ * is what a raise that cannot return does to them anyway.
+ *
+ * A continuable raise can return: a handler's value becomes the value of
+ * `raise-continuable`, in the frame that raised. That frame is compiled and the
+ * throw would have left it, so the raise is refused, loudly, rather than having
+ * the value arrive somewhere else. Compiled code only reaches one by being
+ * handed `raise-continuable` as a value, since a procedure that names it is not
+ * compiled.
+ *
+ * What is thrown is what an unhandled raise throws, so a JavaScript caller with
+ * no run beneath it -- host code calling a compiled procedure directly --
+ * receives what it would have from an interpreted one.
+ *
+ * @param {*} exception - The value raised.
+ * @param {boolean} continuable - Whether a handler may return to the raise.
+ * @returns {never}
+ * @throws {Error} Always.
+ */
+function raiseFromCompiledCode(exception, continuable) {
+    if (continuable) {
+        throw new SchemeError(
+            'raise-continuable: called from compiled code, which a handler cannot return to; '
+            + 'this is not yet supported. Run this program with its code interpreted '
+            + '(--no-compile at the command line, setUserCodeCompilation(false) in a page).',
+            [exception]);
+    }
+    const thrown = unhandled(exception);
+    compiledRaises.set(thrown, exception);
+    throw thrown;
+}
+
+// `SCHEME_RAW_CALL` from values.js, which is `Symbol.for('scheme.rawCall')`.
+// Named by its key here because values.js imports this module, so on the way
+// in its binding is not yet initialised when this line runs.
+RaiseNode.prototype[Symbol.for('scheme.rawCall')] = raiseFromCompiledCode;
+
+/**
+ * Takes a raise compiled code threw for an interpreter run to perform.
+ * @param {*} thrown - What the run caught.
+ * @returns {RaiseNode|null} The raise to run in its place, or null if `thrown`
+ *   is anything else.
+ */
+export function takeCompiledRaise(thrown) {
+    if (!compiledRaises.has(thrown)) return null;
+    const exception = compiledRaises.get(thrown);
+    compiledRaises.delete(thrown);
+    return new RaiseNode(exception, false);
 }
 
 /**

@@ -113,6 +113,7 @@
     input-port-open? output-port-open?
     current-input-port current-output-port current-error-port
     close-port close-input-port close-output-port
+    call-with-port
     flush-output-port
     
     ;; I/O - String Ports

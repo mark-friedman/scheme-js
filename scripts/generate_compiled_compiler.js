@@ -47,6 +47,7 @@ import { libraryNameToKey, getLibraryEnv } from '../src/core/interpreter/library
 import { generateEnvironment } from '../src/compiler/index.js';
 import { installLibraryTable, fingerprintSources } from '../src/compiler/prebuilt.js';
 import { COMPILER_LIBRARY, compilerStartFailure } from '../src/compiler/lowering.js';
+import { registerCompilerHost } from '../src/compiler/host.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { renderLibraries, serializeConstants } from './lib/render_prebuilt.js';
 
@@ -98,6 +99,7 @@ function resolve(name) {
  */
 function bootstrap() {
   const { interpreter, env } = createInterpreter();
+  registerCompilerHost(env);
   setFileResolver(resolve);
   const stale = [];
   setLibraryLoadHook((name, libraryEnv) => {

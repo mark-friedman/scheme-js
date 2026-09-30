@@ -284,9 +284,11 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
     let debugCommands = null;
     let isEvaluating = false;
 
-    // Initialize debugger if not already present on interpreter
+    // Initialize debugger if not already present on interpreter. Attached
+    // rather than assigned, so that the runtime can run compiled code as its
+    // closures while the program is debugged, and breakpoints in it fire.
     if (!interpreter.debugRuntime) {
-        interpreter.debugRuntime = new SchemeDebugRuntime();
+        interpreter.setDebugRuntime(new SchemeDebugRuntime());
     }
 
     // Setup backend to output to this REPL
@@ -671,7 +673,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             for (const sexp of sexps) {
                 if (interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
                     // FAST MODE (Sync)
-                    result = interpreter.run(analyze(sexp), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
+                    result = interpreter.runTopLevel(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
                 } else {
                     // DEBUG MODE (Async)
                     result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });

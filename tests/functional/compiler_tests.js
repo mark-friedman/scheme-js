@@ -21,11 +21,31 @@ import { installPrebuilt } from '../../src/compiler/prebuilt.js';
 import {
   interpretedLibrary, standardLibraryFingerprint, STANDARD_LIBRARY_TABLE as PREBUILT
 } from '../harness/standard_library.js';
-import { unsafeDefinitions } from '../../src/compiler/safety.js';
+import { unsafeDefinitions } from '../../src/compiler/index.js';
 import { lowerLambda, jsNameOf } from '../../src/compiler/lowering.js';
 import { Cons } from '../../src/core/interpreter/cons.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { settle } from '../../src/compiler/runtime.js';
+
+/**
+ * Definitions shared by the cases on errors raised inside compiled code.
+ *
+ * `check` raises with `error` in tail position, and `first` calls it where it
+ * wants the value, so the raise arrives in the middle of a compiled call. `app`
+ * makes a non-tail call to whatever it is handed.
+ */
+const ERROR_DEFINITIONS =
+  '(define (check x) (if (pair? x) x (error "check: not a pair" x)))'
+  + ' (define (first x) (car (check x)))'
+  + ' (define (app g x) (+ 1 (g x)))';
+
+/**
+ * Higher-order procedures for the cases whose captures cross several
+ * boundaries: compiled, they call interpreted procedures that call them back.
+ */
+const MULTI_BOUNDARY_DEFINITIONS =
+  '(define (each f xs) (if (null? xs) (quote done) (begin (f (car xs)) (each f (cdr xs)))))'
+  + ' (define (collect f xs) (if (null? xs) (quote ()) (cons (f (car xs)) (collect f (cdr xs)))))';
 
 /**
  * Programs whose final expression's value is compared between tiers.
@@ -270,24 +290,68 @@ const CASES = [
   ['deep recursion across tiers',
     '(define (even2? n) (if (= n 0) #t (odd2? (- n 1))))' +
     '(define (odd2? n) (if (= n 0) #f (apply even2? (list (- n 1)))))' +
-    '(even2? 20)']
+    '(even2? 20)'],
+
+  // --- top-level expressions and definitions' values, compiled as thunks called once ---
+  ['procedures assigned from inside a top-level let, as nboyer defines them',
+    '(define (f x) #f) (let () (define (helper y) (* y 2)) (set! f (lambda (x) (+ 1 (helper x))))) (f 20)'],
+  ['a definition whose value is a closure over a local',
+    '(define counter (let ((n 0)) (lambda () (set! n (+ n 1)) n))) (counter) (counter)'],
+  ['a top-level do loop',
+    '(define v (make-vector 5 0)) (do ((i 0 (+ i 1))) ((= i 5)) (vector-set! v i (* i i))) v'],
+  ['a top-level begin that defines stays at top level',
+    '(begin (define (a) 1) (define b (let loop ((i 3) (acc 0)) (if (= i 0) acc (loop (- i 1) (+ acc i)))))) (list (a) b)'],
+  ['deep recursion in a top-level expression',
+    '(let loop ((i 100000)) (if (= i 0) 0 (+ 1 (loop (- i 1)))))'],
+  ['an error raised in a top-level expression and caught',
+    '(guard (e ((error-object? e) (error-object-message e))) (let loop ((i 3)) (if (= i 0) (vector-ref (vector) i) (loop (- i 1)))))'],
+
+  // --- operands in the interpreter's order: the procedure, then left to right ---
+  ['a global read before an operand that assigns it',
+    '(define g 0) (define (f) (set! g 5) 10) (define (t) (list g (f))) (t)'],
+  ['an assigned local read before an operand that assigns it',
+    '(define (u x) (list x (begin (set! x 7) x))) (u 1)'],
+  ['the procedure read before an argument that assigns its name',
+    '(define (a z) 1) (define (b z) 2) (define (swap) (set! a b) 0) (define (t) (+ (a (swap)) 0)) (t)'],
+  ['a loop entered with operands in order',
+    '(define g 1) (define (f) (set! g 50) 2) (define (t) (let loop ((i g) (j (f))) (if (> j 0) (loop i (- j 1)) (list i j)))) (t)'],
+
+  // --- errors raised inside compiled code reach Scheme's handlers as the interpreter's do ---
+  // `check` ends in a tail call to `error`, whose pending raise `first`
+  // receives in the middle of a call; `app` calls whatever it is given.
+  ['an error raised beneath a non-tail call is caught by guard',
+    ERROR_DEFINITIONS + ' (guard (e ((error-object? e) (list (error-object-message e) (error-object-irritants e))))'
+      + ' (first 5))'],
+  ['an error raised beneath a non-tail call reaches a handler that escapes',
+    ERROR_DEFINITIONS + ' (call/cc (lambda (k) (with-exception-handler'
+      + ' (lambda (e) (k (list (quote handled) (error-object-message e))))'
+      + ' (lambda () (first 5)))))'],
+  ['an error unwinds through dynamic-wind on its way to the handler',
+    ERROR_DEFINITIONS + ' (define trail (quote ()))'
+      + ' (guard (e (#t (reverse (cons (quote caught) trail))))'
+      + ' (dynamic-wind (lambda () (set! trail (cons (quote in) trail)))'
+      + ' (lambda () (first 5))'
+      + ' (lambda () (set! trail (cons (quote out) trail)))))'],
+  ['a program carries on after a caught error',
+    ERROR_DEFINITIONS + ' (list (guard (e (#t (quote caught))) (first 5)) (first (list 1 2)))'],
+  ['raise passed to a compiled procedure raises what it was given',
+    ERROR_DEFINITIONS + ' (guard (e ((symbol? e) (list (quote caught) e))) (app raise (quote boom)))'],
+  ['error passed to a compiled procedure',
+    ERROR_DEFINITIONS + ' (guard (e ((error-object? e) (error-object-message e))) (app error "from app"))'],
+  ['a call to a non-procedure beneath a non-tail call is caught by guard',
+    ERROR_DEFINITIONS + ' (guard (e ((error-object? e) (error-object-message e))) (app 5 1))']
 ];
 
 /**
- * Programs that use continuations, with the procedures the tier declines.
+ * Programs that use continuations, with procedures a capture unwinds through.
  *
- * What matters in every case is that the answer is right. The decline lists sit
- * beside it for a narrower reason: they stop a case passing because nothing was
- * compiled, and they record which procedures the default policy holds back.
- *
- * That policy is no longer about correctness. A compiled procedure can be part
- * of a captured continuation now, so any of these could be compiled and still
- * give the right answer -- `CAPTURE_CASES` compiles several of them on purpose.
- * They are declined because a procedure that a capture repeatedly unwinds
- * through is slower compiled than interpreted. `fail` and `enumerate` in the
- * backtracking case are deliberately *not* listed: neither reaches a capture by
- * a route the analysis follows, so both are compiled, and the answer is still
- * right.
+ * What matters in every case is that the answer is right. The lists sit beside
+ * it for a narrower reason: they stop a case passing because nothing was
+ * compiled. Each names procedures the tier once declined, because a capture
+ * unwinds through them, and compiles now: nearly every capture is an escape,
+ * which compiled code pays for easily, and one re-entered over and over is
+ * switched back to its closure as the program runs
+ * (`tests/functional/capture_policy_tests.js`).
  */
 const CONTINUATION_CASES = [
   ['escape', '(define (f) (call/cc (lambda (k) (+ 1 (k 42))))) (f)', '42', ['f']],
@@ -309,7 +373,9 @@ const CONTINUATION_CASES = [
     '(define (search n) (let* ((x (in-range 0 n)) (y (in-range 0 n)))' +
     '  (if (< (+ x y) (* n 2)) (fail) (cons x y))))' +
     '(search 5)', '(5 . 5)', ['in-range', 'search']],
-  ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3))) (f)', '2', ['f']],
+  // `f` names `dynamic-wind`, which has no IR, so it is still declined, for
+  // that reason (`MUST_DECLINE`); the answer is what is tested here.
+  ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3))) (f)', '2', []],
   // The escape variant, and the one that bites in practice. `caller` never
   // mentions `call/cc`, so a per-procedure rule compiles it happily -- but the
   // escape unwinds past its frame and the escape value becomes *its* result.
@@ -578,7 +644,112 @@ const CAPTURE_CASES = [
     + '      (let ((r (capturer)))'
     + '        (set! n (+ n 1))'
     + '        (if (< n 4) (saved (+ r n)) (list q r b))))))',
-    '(caller 100 (quote bee))', ['caller']]
+    '(caller 100 (quote bee))', ['caller']],
+  // --- captures crossing more than one boundary between compiled and interpreted code ---
+  // `each` and `collect` are compiled and call interpreted procedures, which call
+  // them back: interpreted, compiled, interpreted, compiled, interpreted. Each
+  // run of the interpreter entered from compiled code adds its own frames to the
+  // capture as it passes it on, and the outermost finishes it.
+  ['a capture across two boundaries, resumed twice',
+    MULTI_BOUNDARY_DEFINITIONS,
+    "(let ((k #f) (n 0) (seen (quote ())))"
+      + " (let ((v (collect (lambda (x) (collect (lambda (y) (+ 1 (call/cc (lambda (c) (if (not k) (set! k c)) (* x y)))))"
+      + " (list 1 2))) (list 10 20))))"
+      + " (set! seen (cons v seen)) (set! n (+ n 1)) (if (< n 3) (k (* 100 n)) (list n seen))))",
+    ['each', 'collect']],
+  ['a capture across three boundaries, resumed twice',
+    MULTI_BOUNDARY_DEFINITIONS,
+    "(let ((k #f) (n 0) (seen (quote ())))"
+      + " (let ((v (collect (lambda (a) (collect (lambda (x) (collect (lambda (y) (call/cc (lambda (c) (if (not k) (set! k c)) (+ a x y))))"
+      + " (list 1 2))) (list 10 20))) (list 100 200))))"
+      + " (set! seen (cons v seen)) (set! n (+ n 1)) (if (< n 3) (k (* 1000 n)) (list n seen))))",
+    ['each', 'collect']],
+  ['an escape made across two boundaries',
+    MULTI_BOUNDARY_DEFINITIONS,
+    "(cons (quote out) (call/cc (lambda (out) (each (lambda (x) (collect (lambda (y) (if (= y 2) (out (list x y)) y))"
+      + " (list 1 2 3))) (list 1 2)))))",
+    ['each', 'collect']],
+  // Compiled, interpreted, compiled, with the capture made in the innermost
+  // interpreted procedure: refused, until captures could cross more than one
+  // boundary.
+  ['a capture beneath two boundaries, escaping through all of them',
+    '(define (capture n)'
+      + '  (call/cc (lambda (q) (if (> n 0) (q (quote esc))) (quote norm))))'
+      + '(define (inner n) (cons (capture n) (quote (i))))'
+      + '(define (middle n) (cons (inner n) (quote (m))))'
+      + '(define (outer n) (cons (middle n) (quote (o))))',
+    '(list (outer 1) (outer 0))', ['outer', 'inner']],
+  // The capture made by compiled code itself, two boundaries down.
+  ['a capture made by compiled code two boundaries down, resumed twice',
+    MULTI_BOUNDARY_DEFINITIONS + ' (define saved #f) (define (grab x) (call/cc (lambda (c) (if (not saved) (set! saved c)) x)))',
+    "(let ((n 0) (seen (quote ())))"
+      + " (let ((v (collect (lambda (x) (collect (lambda (y) (+ 1 (grab (* x y)))) (list 1 2))) (list 10 20))))"
+      + " (set! seen (cons v seen)) (set! n (+ n 1)) (if (< n 3) (saved (* 100 n)) (list n seen))))",
+    ['each', 'collect', 'grab']],
+  // A capture beneath a primitive that called a procedure back, with compiled
+  // code beneath the primitive. The unwind cannot pass the primitive, so the
+  // continuation is taken as the interpreter takes it beneath any JavaScript
+  // caller; the unwind used to be handed to the primitive as a return value,
+  // and `via` then added 1 to 10 instead of to 110.
+  ['a capture beneath a primitive calling back, with compiled code beneath',
+    '(define (via f) (+ 1 (f)))',
+    '(let ((h (js-eval "({})")))'
+      + ' (js-set! h "run" (lambda () (call/cc (lambda (k) 10))))'
+      + ' (via (lambda () (+ 100 (js-invoke h "run")))))',
+    ['via']],
+  // Found by the fuzzer: a capture inside the receiver of another, then the
+  // outer continuation invoked from that receiver, inside `dynamic-wind`. The
+  // receiver resumes as a compiled frame the interpreter steps, which ran it
+  // without recording the interpreter's stack for code calling back in; the
+  // continuation's invocation then started from a stack without the wind, and
+  // ran its before-thunk a second time.
+  ['an escape from a receiver resumed after a capture of its own, inside dynamic-wind',
+    '(define trail (quote ())) (define (w th) (dynamic-wind (lambda () (set! trail (cons (quote in) trail)))'
+      + ' th (lambda () (set! trail (cons (quote out) trail)))))'
+      + ' (define (p0 x y) (call/cc (lambda (k1) (call/cc (lambda (c2) x)) (k1 y))))',
+    '(list (w (lambda () (p0 0 3))) trail)',
+    ['p0']],
+  // Compiled code a primitive called back, calling an interpreted procedure
+  // that captures. The run that procedure starts cannot pass the unwind on,
+  // since `m` would hand it to `js-invoke`, so it finishes the capture itself.
+  ['a capture beneath compiled code that a primitive called back',
+    '(define (via f) (+ 1 (f))) (define (m g) (+ 1000 (g)))',
+    '(let ((h (js-eval "({})")))'
+      + ' (js-set! h "run" m)'
+      + ' (via (lambda () (+ 100 (js-invoke h "run" (lambda () (call/cc (lambda (k) 10))))))))',
+    ['via', 'm']],
+  // The same with a JavaScript caller that has work left: it turns what the
+  // compiled procedure returns into a string, which the unwind sentinel cannot
+  // become.
+  ['a capture beneath compiled code that JavaScript called, with work left',
+    '(define (via f) (+ 1 (f))) (define (m g) (+ 1000 (g)))',
+    '(let ((h (js-eval "({wrap: (f, g) => String(f(g))})")))'
+      + ' (via (lambda () (+ 100 (string->number (js-invoke h "wrap" m (lambda () (call/cc (lambda (k) 10)))))))))',
+    ['via', 'm']]
+];
+
+/**
+ * Programs that end in an uncaught error, whose message must be the same in
+ * both tiers: a user reads it, and until now compiled code could report
+ * JavaScript's -- "args is not iterable", "$t0 is not a function".
+ *
+ * Each names the definitions that must have compiled, so a case cannot pass
+ * because the tier declined the procedure that raises.
+ */
+const ERROR_CASES = [
+  ['an error raised beneath a non-tail call', ERROR_DEFINITIONS + ' (first 5)', ['check', 'first']],
+  ['an error raised two calls down',
+    ERROR_DEFINITIONS + ' (define (second x) (car (cdr (check (first x))))) (second 5)',
+    ['check', 'first', 'second']],
+  ['a call to an exact integer, not in tail position', ERROR_DEFINITIONS + ' (app 5 1)', ['app']],
+  ['a call to the empty list, not in tail position', ERROR_DEFINITIONS + " (app '() 1)", ['app']],
+  ['a call to a string, not in tail position', ERROR_DEFINITIONS + ' (app "s" 1)', ['app']],
+  ['raise of a symbol passed to a compiled procedure', ERROR_DEFINITIONS + " (app raise 'boom)", ['app']],
+  ['a call to a non-procedure in tail position',
+    '(define (tail g x) (g x)) (tail 5 1)', ['tail']],
+  // The inline expansion of `car` finds the name rebound and calls the binding.
+  ['an inlined primitive rebound to a non-procedure',
+    '(define (head x) (car x)) (set! car 5) (head (list 1))', ['head']]
 ];
 
 /**
@@ -586,9 +757,8 @@ const CAPTURE_CASES = [
  * is a feature, so it is tested like one.
  */
 const MUST_DECLINE = [
-  // Declined because compiling it is *slower*, not because it cannot be done.
-  // The capability is exercised below, with the default lifted.
-  ['call/cc', '(define (f) (call/cc (lambda (k) (k 1))))', 'captures a continuation'],
+  // A capture is not declined: nearly every capture is an escape, which
+  // compiled code pays for easily (tests/functional/capture_policy_tests.js).
   ['dynamic-wind', '(define (f) (dynamic-wind (lambda () 1) (lambda () 2) (lambda () 3)))', 'dynamic-wind'],
   // `call-with-values` is compiled when it is *called* directly, by rewriting
   // it away; a reference by any other route still has to decline, because the
@@ -786,17 +956,42 @@ function evaluate(source, template, useCompiler) {
     return { value, compiled: [], declined: [] };
   }
 
-  // Definitions are compiled; the trailing expressions are run by the
-  // interpreter, which is what a real program does too.
-  const definitions = asts.filter((a) => a instanceof DefineNode);
-  const rest = asts.filter((a) => !(a instanceof DefineNode));
-  const outcome = compileProgram(definitions, env, interpreter);
+  // The whole program, in order, as a program is run: procedures compiled,
+  // expressions compiled where they make procedures or loop.
+  const outcome = compileProgram(asts, env, interpreter);
+  return { ...outcome, value: settle(outcome.value) };
+}
 
-  let value;
-  for (const ast of rest) {
-    value = settle(interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' }));
+/**
+ * Evaluates a program that is expected to end in an uncaught error.
+ *
+ * Its definitions are compiled first, as `evaluate` does, so that which ones
+ * compiled is known even though running the program throws.
+ *
+ * @param {string} source - Scheme source.
+ * @param {Object} template - Environment supplying the standard library.
+ * @param {boolean} useCompiler - Whether to compile definitions.
+ * @returns {{message: (string|null), compiled: Array<string>}} The error's
+ *   message, or null if nothing was raised, and the definitions compiled.
+ */
+function evaluateToError(source, template, useCompiler) {
+  const { interpreter, env } = freshEnvironment(template);
+  const asts = parse(source).map((form) => analyze(form));
+  const definitions = asts.filter((a) => a instanceof DefineNode);
+  let compiled = [];
+  let rest = asts;
+  if (useCompiler) {
+    compiled = compileProgram(definitions, env, interpreter).compiled;
+    rest = asts.filter((a) => !(a instanceof DefineNode));
   }
-  return { value, ...outcome };
+  try {
+    for (const ast of rest) {
+      settle(interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' }));
+    }
+  } catch (e) {
+    return { message: e.message, compiled };
+  }
+  return { message: null, compiled };
 }
 
 /**
@@ -900,6 +1095,52 @@ export async function runCompilerTests(interpreter, logger) {
       render(compiledResult.value), render(interpreted.value));
   }
 
+  logger.title('Compiler - Uncaught Errors Say the Same in Both Tiers');
+
+  for (const [name, source, mustCompile] of ERROR_CASES) {
+    const interpreted = evaluateToError(source, template, false);
+    const compiled = evaluateToError(source, template, true);
+    assert(logger, `${name}: the interpreter raises`, interpreted.message !== null, true);
+    assert(logger, `${name}: the same message compiled`, compiled.message, interpreted.message);
+    assert(logger, `${name}: ${mustCompile.join(', ')} compiled`,
+      mustCompile.every((n) => compiled.compiled.includes(n)), true);
+  }
+
+  // `raise-continuable` cannot be performed from compiled code: a handler that
+  // returns would have to return into compiled frames the raise has already
+  // left. Handed to a compiled procedure, it is refused with an explanation,
+  // which reaches the handler in force like any other error, rather than
+  // failing as JavaScript would.
+  {
+    let value;
+    try {
+      ({ value } = evaluate(
+        `${ERROR_DEFINITIONS} (call/cc (lambda (k) (with-exception-handler`
+          + ' (lambda (e) (k (error-object-message e)))'
+          + ' (lambda () (app raise-continuable 1)))))',
+        template, true));
+    } catch (e) {
+      value = `threw: ${e.message}`;
+    }
+    assert(logger, 'raise-continuable from compiled code is refused with an explanation',
+      typeof value === 'string' && value.includes('raise-continuable') && value.includes('not yet supported'), true);
+  }
+
+  logger.title('Compiler - Top-Level Expressions Compiled Where They Make Procedures or Loop');
+  {
+    const shapes = [
+      ['the let nboyer assigns its procedures from', '(define (f x) #f) (let () (define (h y) y) (set! f (lambda (x) (h x))))', 1],
+      ['a definition whose value makes a closure', '(define c (let ((n 0)) (lambda () n)))', 1],
+      ['a loop', '(let loop ((i 3)) (if (> i 0) (loop (- i 1))))', 1],
+      ['a call that makes nothing', '(define (g) 1) (g)', 0],
+      ['a begin that defines at top level', '(begin (define a 1) (define b (let loop ((i 1)) i)))', 0]
+    ];
+    for (const [what, source, expected] of shapes) {
+      const outcome = evaluate(source, template, true);
+      assert(logger, `${what}: ${expected ? 'compiled' : 'left to the interpreter'}`, outcome.expressions, expected);
+    }
+  }
+
   logger.title('Compiler - Declines Unsupported Forms Safely');
 
   for (const [name, source, expected] of MUST_DECLINE) {
@@ -908,9 +1149,9 @@ export async function runCompilerTests(interpreter, logger) {
     assert(logger, `declines ${name}`, mentions, true);
   }
 
-  logger.title('Compiler - Procedures a Capture Unwinds Through Are Declined');
+  logger.title('Compiler - Procedures a Capture Unwinds Through Are Compiled');
 
-  for (const [name, source, expected, mustDecline] of CONTINUATION_CASES) {
+  for (const [name, source, expected, unwoundThrough] of CONTINUATION_CASES) {
     let outcome;
     try {
       outcome = evaluate(source, template, true);
@@ -918,9 +1159,9 @@ export async function runCompilerTests(interpreter, logger) {
       logger.fail(`${name}: threw ${e.message}`);
       continue;
     }
-    for (const required of mustDecline) {
-      assert(logger, `${name} declines ${required}`,
-        outcome.compiled.includes(required), false);
+    for (const required of unwoundThrough) {
+      assert(logger, `${name} compiles ${required}`,
+        outcome.compiled.includes(required), true);
     }
     assert(logger, `${name} still produces the right answer`, render(outcome.value), expected);
   }
@@ -1148,7 +1389,7 @@ export async function runCompilerTests(interpreter, logger) {
       let compiled = 0;
       try {
         const outcome = evaluateSelective(
-          source, probe, template, ['f', 'ctak-aux'], { allowCaptures: true });
+          source, probe, template, ['f', 'ctak-aux']);
         got = render(outcome.value);
         compiled = outcome.compiled;
       } catch (e) {
@@ -1269,7 +1510,7 @@ export async function runCompilerTests(interpreter, logger) {
 
   logger.title('Compiler - Capturing a Continuation Across a Compiled Frame');
 
-  for (const [name, source, probe, names] of CAPTURE_CASES) {
+  for (const [name, source, probe, names, options] of CAPTURE_CASES) {
     // The interpreter answers the same program, and that answer is the
     // contract. Writing the expected value out by hand would only record what
     // this implementation happens to do.
@@ -1284,7 +1525,7 @@ export async function runCompilerTests(interpreter, logger) {
     let got;
     let compiled = 0;
     try {
-      const outcome = evaluateSelective(source, probe, template, names);
+      const outcome = evaluateSelective(source, probe, template, names, options);
       got = render(outcome.value);
       compiled = outcome.compiled;
     } catch (e) {
@@ -1299,51 +1540,20 @@ export async function runCompilerTests(interpreter, logger) {
     assert(logger, `${name}: matches the interpreter`, got, expected);
   }
 
-  // What the protocol does *not* cover, asserted so that nobody mistakes the
-  // cases above for completeness. Compiled and interpreted code alternating
-  // more than once would need each group of frames spliced at its own boundary,
-  // and getting that wrong yields a wrong answer rather than a failure -- so it
-  // is refused until it is built.
-  {
-    const source =
-      '(define (capture n)'
-      + '  (call/cc (lambda (q) (if (> n 0) (q (quote esc))) (quote norm))))'
-      + '(define (inner n) (cons (capture n) (quote (i))))'
-      + '(define (middle n) (cons (inner n) (quote (m))))'
-      + '(define (outer n) (cons (middle n) (quote (o))))';
-
-    let message = null;
-    try {
-      evaluateSelective(source, '(outer 1)', template, ['outer', 'inner']);
-    } catch (e) {
-      message = e.message;
-    }
-    assert(logger, 'a capture across two compiled/interpreted boundaries is refused',
-      message !== null && /more than one boundary/.test(message), true);
-
-    // Leaving `middle` compiled too makes it one boundary again, so the refusal
-    // is about the alternation rather than about the depth.
-    const { value } = evaluateSelective(
-      source, '(outer 1)', template, ['outer', 'middle', 'inner']);
-    assert(logger, 'and the same program across one boundary is answered',
-      render(value), '(((esc i) m) o)');
-  }
-
   logger.title('Compiler - The Guard Is No Longer What Makes Backtracking Work');
 
   // This case is the reason the reachability analysis exists: `search` and
   // `enumerate` have to be re-entered when the search backtracks, and a
   // compiled frame could not be re-entered, so both had to be declined. Now
-  // they can be, and the point of running with the guard deliberately off is
-  // that with it on these procedures are never compiled and the mechanism that
-  // re-enters them is never exercised at all.
+  // they can be, and are by default -- with the old rule, these procedures were
+  // never compiled and the mechanism that re-enters them never exercised.
   {
     const [, backtracking, expected] = CONTINUATION_CASES[2];
     const { interpreter: fresh, env } = freshEnvironment(template);
     const asts = parse(backtracking).map((form) => analyze(form));
     const definitions = asts.filter((a) => a instanceof DefineNode);
     const rest = asts.filter((a) => !(a instanceof DefineNode));
-    const outcome = compileProgram(definitions, env, fresh, { allowContinuationUnsafe: true });
+    const outcome = compileProgram(definitions, env, fresh);
 
     let value;
     let message = null;
@@ -1362,10 +1572,9 @@ export async function runCompilerTests(interpreter, logger) {
   }
 
   // `tryCompileDefinition` is the incremental entry point, and it carries *no*
-  // continuation guard: it declines a lambda that mentions a control global and
-  // compiles its callers regardless. Both benchmark harnesses use it. What used
-  // to make that unsound was that the compiled caller could not be part of the
-  // continuation; now it can, so the per-definition path is correct here too.
+  // continuation guard: it compiles a lambda that captures, and its callers. What
+  // used to make that unsound was that a compiled caller could not be part of
+  // the continuation; now it can, so the per-definition path is correct here.
   {
     const source =
       '(define (escaper n)'
@@ -1394,8 +1603,8 @@ export async function runCompilerTests(interpreter, logger) {
       message = e.message;
     }
 
-    assert(logger, 'the per-definition path declines only the procedure naming call/cc',
-      compiled, 1);
+    assert(logger, 'the per-definition path compiles both, the procedure naming call/cc included',
+      compiled, 2);
     // This used to return `escaped` -- the escape value, with everything
     // `caller` had left to do silently dropped -- and then, for a while, to be
     // refused outright rather than answered wrongly. Now `caller` suspends

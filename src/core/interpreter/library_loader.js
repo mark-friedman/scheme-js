@@ -175,6 +175,9 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
 
     // Create library environment (child of base env)
     const libEnv = new Environment(baseEnv);
+    // Which library's top level this is, for the compiler tier, which treats a
+    // library body's definitions as it does a program's.
+    libEnv.libraryName = libraryName;
 
     // Process imports first
     for (const importSpec of libDef.imports) {
@@ -414,45 +417,56 @@ export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, base
 
 /**
  * Applies import filters to add bindings to an environment.
- * 
+ *
  * @param {Environment} env - Target environment
  * @param {Map} exports - Source library exports
- * @param {Object} importSpec - Import specification
+ * @param {Object} importSpec - Import specification, from `parseImportSet`;
+ *   one without `steps` imports every export under its own name.
  */
 export function applyImports(env, exports, importSpec) {
     for (const [name, value] of exports) {
-        // Check only filter
-        if (importSpec.only && !importSpec.only.includes(name)) {
-            continue;
-        }
-
-        // Check except filter
-        if (importSpec.except && importSpec.except.includes(name)) {
-            continue;
-        }
-
-        // Apply rename
-        let finalName = name;
-        if (importSpec.rename) {
-            const renameEntry = importSpec.rename.find(r => r.from === name);
-            if (renameEntry) {
-                finalName = renameEntry.to;
-            }
-        }
-
-        // Apply prefix
-        if (importSpec.prefix) {
-            finalName = importSpec.prefix + finalName;
-        }
-
         // If it's a macro or keyword marker, don't define it in the environment.
         // It's already handled by the analyzer/macro registry.
         if (value && (value._isMacro || value._isKeyword)) {
             continue;
         }
 
-        env.define(finalName, value);
+        const imported = importedName(name, importSpec.steps ?? []);
+        if (imported !== null) env.define(imported, value);
     }
+}
+
+/**
+ * The name an export is imported under, after an import set's filters.
+ *
+ * The filters are applied innermost first, each to the name the one inside it
+ * produced -- an `only` around a `prefix` names prefixed names.
+ *
+ * @param {string} name - The name the library exports.
+ * @param {Array<Object>} steps - The filters, from `parseImportSet`.
+ * @returns {string|null} The name, or null if a filter leaves it out.
+ */
+function importedName(name, steps) {
+    let current = name;
+    for (const step of steps) {
+        switch (step.kind) {
+            case 'only':
+                if (!step.names.includes(current)) return null;
+                break;
+            case 'except':
+                if (step.names.includes(current)) return null;
+                break;
+            case 'prefix':
+                current = step.prefix + current;
+                break;
+            case 'rename': {
+                const renamed = step.renames.find((r) => r.from === current);
+                if (renamed) current = renamed.to;
+                break;
+            }
+        }
+    }
+    return current;
 }
 
 // =============================================================================

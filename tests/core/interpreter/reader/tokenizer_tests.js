@@ -97,6 +97,15 @@ export function runTokenizerTests(logger) {
         assert(logger, 'token after comment', tokens[1].value, 'b');
     }
 
+    // A line comment ends at any of R7RS's line endings (2.2): LF, CR LF or CR
+    {
+        for (const [ending, label] of [['\r\n', 'CR LF'], ['\r', 'CR']]) {
+            const tokens = tokenize(`a ; comment${ending}b ; another${ending}c`);
+            assert(logger, `a comment ends at ${label}`, tokens.map((t) => t.value).join(' '), 'a b c');
+            assert(logger, `the line after a comment ending in ${label} is counted`, tokens[1].source.line, 2);
+        }
+    }
+
     // Vertical bar symbols
     {
         const tokens = tokenize('|hello world|');

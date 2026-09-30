@@ -22,6 +22,9 @@ export const unitTests = [
     { path: 'core/primitives/io/string_port_tests.js', fn: 'runStringPortTests', needsInterpreter: false },
     { path: 'core/primitives/io/bytevector_port_tests.js', fn: 'runBytevectorPortTests', needsInterpreter: false },
     { path: 'core/primitives/io/file_port_tests.js', fn: 'runFilePortTests', needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/stdin_port_tests.js', fn: 'runStandardInputPortTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/stdout_port_tests.js', fn: 'runStandardOutputPortTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'core/primitives/io/console_port_tests.js', fn: 'runConsolePortTests', needsInterpreter: false },
     { path: 'core/primitives/io/printer_tests.js', fn: 'runPrinterTests', needsInterpreter: false },
     // Reader Unit Tests
     { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
@@ -56,6 +59,8 @@ export const functionalTests = [
     { path: 'functional/string_tests.js', fn: 'runStringTests', async: false },
     { path: 'functional/vector_tests.js', fn: 'runVectorExpansionTests', async: false },
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: true },
+    { path: 'functional/cli_stdin_tests.js', fn: 'runCliStdinTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'functional/cli_stdout_tests.js', fn: 'runCliStdoutTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
@@ -70,6 +75,10 @@ export const functionalTests = [
     { path: 'functional/loop_compilation_tests.js', fn: 'runLoopCompilationTests', async: true, needsInterpreter: false },
     { path: 'functional/direct_tail_call_tests.js', fn: 'runDirectTailCallTests', async: true, needsInterpreter: false },
     { path: 'functional/deep_recursion_tests.js', fn: 'runDeepRecursionTests', async: true, needsInterpreter: false },
+    { path: 'functional/compiled_error_tests.js', fn: 'runCompiledErrorTests', async: true, needsInterpreter: false },
+    { path: 'functional/tiering_tests.js', fn: 'runTieringTests', async: true, needsInterpreter: false },
+    { path: 'functional/string_interop_tests.js', fn: 'runStringInteropTests', needsInterpreter: false },
+    { path: 'functional/capture_policy_tests.js', fn: 'runCapturePolicyTests', async: true, needsInterpreter: false },
     { path: 'functional/primitive_binding_tests.js', fn: 'runPrimitiveBindingTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
@@ -95,6 +104,11 @@ export const integrationTests = [
 // they are Node-only.
 export const programTests = [
     { path: 'programs/program_correctness_tests.js', fn: 'runProgramCorrectnessTests', async: true, needsInterpreter: false, nodeOnly: true },
+    // The R7RS conformance suites, with the standard library interpreted and
+    // with it compiled as the browser installs it.
+    { path: 'core/scheme/compliance/compliance_tests.js', fn: 'runComplianceTests', async: true, needsInterpreter: false, needsLoader: true },
+    // Generated programs, run in both tiers and compared.
+    { path: 'fuzz/differential_fuzz_tests.js', fn: 'runDifferentialFuzzTests', async: true, needsInterpreter: false, needsLoader: true },
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the
@@ -103,6 +117,7 @@ export const compilerSchemeTestFiles = [
     'tests/compiler/liveness_tests.scm',
     'tests/compiler/emit_tests.scm',
     'tests/compiler/loop_tests.scm',
+    'tests/compiler/driver_tests.scm',
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)
@@ -132,6 +147,9 @@ export const schemeTestFiles = [
     'tests/core/scheme/iteration_tests.scm',
     'tests/core/scheme/write_tests.scm',
     'tests/core/scheme/binary_io_tests.scm',
+    'tests/core/scheme/port_tests.scm',
+    'tests/core/scheme/import_set_tests.scm',
+    'tests/core/scheme/string_mutation_tests.scm',
     'tests/core/scheme/number_tests.scm',
     'tests/core/scheme/rational_tests.scm',
     'tests/core/scheme/complex_tests.scm',

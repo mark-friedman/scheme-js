@@ -207,6 +207,10 @@ export const R7RS_BENCHMARKS = [
   // --- Strings and text -----------------------------------------------------
   { name: 'string', workload: 'string', status: 'ok', params: null },
   { name: 'read1', workload: 'string', status: 'ok', params: null, note: 'reads inputs/parsing.data' },
+  {
+    name: 'parsing', workload: 'string', status: 'ok', params: null,
+    note: 'blocked until read-char and peek-char returned characters rather than strings'
+  },
 
   // --- Continuations --------------------------------------------------------
   {
@@ -240,13 +244,11 @@ export const R7RS_BENCHMARKS = [
     note: 'same dotted-identifier gap (slatex.ormap and friends)'
   },
   {
-    name: 'parsing', workload: 'string', status: 'blocked', params: null,
-    note: 'read-char returns a JavaScript string rather than a Scheme character, '
-      + 'so list->string rejects what read-char produced'
-  },
-  {
     name: 'read0', workload: 'string', status: 'blocked', params: null,
-    note: 'same read-char gap; also exercises reader syntax we do not accept'
+    note: 'does not finish within the correctness runner\'s 120 s in either tier. It reads '
+      + 'every two-character string from "a" and U+0000 to "a" and U+10FFFF, twice each, and '
+      + 'also exercises reader syntax we do not accept. It was blocked on read-char too, '
+      + 'until read-char and peek-char returned characters'
   },
   {
     name: 'equal', workload: 'list', status: 'blocked', params: null,

@@ -67,6 +67,13 @@ node repl.js -e "(+ 1 2 3)"
 node repl.js myprogram.scm
 ```
 
+The program's own procedures are compiled to JavaScript as it runs -- a procedure that loops when
+it is defined, any other on its second call -- and still stop at breakpoints. To run it entirely
+interpreted:
+```bash
+node repl.js --no-compile myprogram.scm
+```
+
 ### Browser REPL (from source)
 
 1. Start a local HTTP server in the project root:
@@ -146,6 +153,12 @@ const greeting = schemeEval('(greet "World")');
 console.log(greeting); // "Hello, World!"
 </script>
 ```
+
+The bundle fetches the compiler, `dist/scheme_compiler.js`, once it has started, and from then on
+compiles the page's own procedures as they run; until it arrives they run interpreted. A page that
+wants none of that calls `setUserCodeCompilation(false)`, imported from `dist/scheme.js`, before the
+compiler arrives. Under a Content-Security-Policy that forbids `new Function`, the page's code runs
+interpreted regardless.
 
 ---
 ### Debugging Tools

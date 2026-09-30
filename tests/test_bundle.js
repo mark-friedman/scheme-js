@@ -1,6 +1,6 @@
 import {
     schemeEval, schemeEvalAsync, loadCompiler, isCompilerLoaded, libraryInstallation,
-    env, interpreter, parse, analyze
+    setUserCodeCompilation, env, interpreter, parse, analyze
 } from '../dist/scheme.js';
 import { assert } from './harness/helpers.js';
 
@@ -83,7 +83,6 @@ export async function runBundleTests(logger) {
     // compiled at build time and installed as it loaded, so nothing so far --
     // start-up, SRFI 125 -- has needed it.
     try {
-        assert(logger, "Nothing so far has loaded the compiler", isCompilerLoaded(), false);
         const outcomes = [...libraryInstallation.values()];
         assert(logger, "Every shipped library loaded so far installed its whole table",
             outcomes.filter((o) => o.stale || o.skipped.length > 0).length, 0);
@@ -93,11 +92,21 @@ export async function runBundleTests(logger) {
         logger.fail(`Prebuilt libraries in the bundle failed: ${e.message}`);
     }
 
-    // A page that wants to compile code of its own loads the compiler, which
-    // arrives as a file of its own.
+    // The bundle loads the compiler itself once it has started, as a file of
+    // its own, and from then on compiles the page's own procedures.
     try {
         const compiler = await loadCompiler();
-        assert(logger, "loadCompiler loads the compiler", isCompilerLoaded(), true);
+        assert(logger, "The bundle loads the compiler", isCompilerLoaded(), true);
+        assert(logger, "And attaches the compiler tier to the page's interpreter", interpreter.tier !== null, true);
+        runSync('(define (bundle-loop n) (let loop ((i 0) (acc 0)) (if (= i n) acc (loop (+ i 1) (+ acc i)))))');
+        assert(logger, "A page's procedure that loops is compiled when defined",
+            [runSync('bundle-loop').$compiled === true, interpreter.tier.outcomes.get('bundle-loop')], [true, 'compiled']);
+        assert(logger, "And answers", runSync('(bundle-loop 10)'), 45);
+        setUserCodeCompilation(false);
+        runSync('(define (bundle-off n) (let loop ((i 0)) (if (= i n) i (loop (+ i 1)))))');
+        assert(logger, "Turned off, the page's procedures stay interpreted", runSync('bundle-off').$compiled === true, false);
+        setUserCodeCompilation(true);
+        assert(logger, "Turned on again, the tier attaches", interpreter.tier !== null, true);
         const asts = parse('(define (bundle-square x) (* x x))').map((form) => analyze(form));
         const outcome = compiler.compileProgram(asts, env, interpreter);
         assert(logger, "The loaded compiler compiles a definition", outcome.compiled, ['bundle-square']);

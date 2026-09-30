@@ -13,6 +13,7 @@ import { DebugExceptionHandler } from './exception_handler.js';
 import { StateInspector } from './state_inspector.js';
 import { ENV } from '../core/interpreter/stepables_base.js';
 import { globalMacroRegistry } from '../core/interpreter/macro_registry.js';
+import { isCompiledOver } from '../core/interpreter/library_registry.js';
 
 /**
  * Whether a source span contains a location.
@@ -136,7 +137,9 @@ export class SchemeDebugRuntime {
      * @returns {string} Breakpoint ID
      */
     setBreakpoint(filename, line, column = null) {
-        return this.breakpointManager.setBreakpoint(filename, line, column);
+        const id = this.breakpointManager.setBreakpoint(filename, line, column);
+        this.updateInterpretation();
+        return id;
     }
 
     /**
@@ -145,7 +148,9 @@ export class SchemeDebugRuntime {
      * @returns {boolean} True if removed
      */
     removeBreakpoint(id) {
-        return this.breakpointManager.removeBreakpoint(id);
+        const removed = this.breakpointManager.removeBreakpoint(id);
+        this.updateInterpretation();
+        return removed;
     }
 
     /**
@@ -171,6 +176,25 @@ export class SchemeDebugRuntime {
      */
     attachInterpreter(interpreter) {
         this.interpreter = interpreter;
+        this.updateInterpretation();
+    }
+
+    /**
+     * Tells the interpreter whether the program is being debugged -- a
+     * breakpoint set, a step in progress, or the program paused -- so that
+     * compiled code runs as the interpreted closures it replaced while it is,
+     * and every breakpoint can fire (`Interpreter.interpretForDebugger`).
+     *
+     * An enabled runtime with none of those costs nothing: the command-line
+     * REPL attaches and enables one at start-up, and would otherwise never run
+     * compiled code at all.
+     */
+    updateInterpretation() {
+        const debugging = this.enabled && (
+            this.breakpointManager.getAllBreakpoints().length > 0
+            || this.pauseController.getStepMode() !== null
+            || this.pauseController.isPaused());
+        this.interpreter?.interpretForDebugger?.(debugging);
     }
 
     /**
@@ -179,6 +203,9 @@ export class SchemeDebugRuntime {
      * A breakpoint there is accepted and never fires: the only place this
      * runtime can pause is the interpreter's step loop, and compiled code does
      * not run through it. Callers use this to say so rather than fail silently.
+     * A procedure compiled over an interpreted closure -- the standard
+     * library's, or one the compiler tier compiled -- is not such code, since
+     * it runs as that closure while the program is being debugged.
      *
      * Only top-level bindings are searched. That is sufficient because a
      * definition is compiled as a unit -- every procedure nested inside a
@@ -199,6 +226,9 @@ export class SchemeDebugRuntime {
         for (let env = this.interpreter?.globalEnv; env; env = env.parent) {
             for (const value of env.bindings.values()) {
                 if (typeof value !== 'function' || value.$compiled !== true) continue;
+                // Compiled over an interpreted closure, it runs as the closure
+                // whenever a breakpoint could fire, so one inside it will.
+                if (isCompiledOver(value)) continue;
                 if (!spanContains(value.source, filename, line, column)) continue;
                 // Prefer the tightest span, should a redefinition leave two
                 // procedures covering the same lines.
@@ -264,6 +294,7 @@ export class SchemeDebugRuntime {
      */
     resume() {
         this.pauseController.resume();
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('resume');
         }
@@ -274,6 +305,7 @@ export class SchemeDebugRuntime {
      */
     stepInto() {
         this.pauseController.stepInto();
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('stepInto');
         }
@@ -284,6 +316,7 @@ export class SchemeDebugRuntime {
      */
     stepOver() {
         this.pauseController.stepOver(this.stackTracer.getDepth());
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('stepOver');
         }
@@ -294,6 +327,7 @@ export class SchemeDebugRuntime {
      */
     stepOut() {
         this.pauseController.stepOut(this.stackTracer.getDepth());
+        this.updateInterpretation();
         if (this.onResume) {
             this.onResume('stepOut');
         }
@@ -348,6 +382,7 @@ export class SchemeDebugRuntime {
         }
 
         this.pauseController.pause(reason, bpId);
+        this.updateInterpretation();
 
         if (this.onPause) {
             this.onPause({
@@ -377,6 +412,7 @@ export class SchemeDebugRuntime {
         const env = registers[ENV];
 
         this.pauseController.pause('exception', null);
+        this.updateInterpretation();
 
         if (this.onPause) {
             this.onPause({
@@ -473,6 +509,7 @@ export class SchemeDebugRuntime {
      */
     enable() {
         this.enabled = true;
+        this.updateInterpretation();
     }
 
     /**
@@ -480,6 +517,7 @@ export class SchemeDebugRuntime {
      */
     disable() {
         this.enabled = false;
+        this.updateInterpretation();
     }
 
     /**
@@ -497,6 +535,7 @@ export class SchemeDebugRuntime {
         this.stackTracer.clear();
         this.pauseController.reset();
         this.exceptionHandler.reset();
+        this.updateInterpretation();
     }
 }
 

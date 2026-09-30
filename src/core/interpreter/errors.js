@@ -7,6 +7,7 @@
 
 import { Cons, list } from './cons.js';
 import { Symbol } from './symbol.js';
+import { SchemeString } from '../primitives/string_class.js';
 
 /**
  * Returns a human-readable type name for a value.
@@ -18,7 +19,7 @@ export function getTypeName(value) {
     if (value === undefined) return 'undefined';
     if (typeof value === 'boolean') return 'boolean';
     if (typeof value === 'number') return 'number';
-    if (typeof value === 'string') return 'string';
+    if (typeof value === 'string' || value instanceof SchemeString) return 'string';
     if (typeof value === 'function') return 'procedure';
     if (value instanceof Symbol) return 'symbol';
     if (value instanceof Cons) return 'pair';

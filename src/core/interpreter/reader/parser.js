@@ -400,12 +400,14 @@ export function readBytevector(tokens) {
         }
         if (tokens[0].value === ')') break;
 
+        // Any exact integer datum from 0 to 255: `#x41` and `#e65` are bytes,
+        // and `65.5` and `1e2` are not, being inexact.
         const tokenObj = tokens.shift();
-        const num = parseInt(tokenObj.value, 10);
-        if (isNaN(num) || num < 0 || num > 255) {
+        const num = parseNumber(tokenObj.value);
+        if (typeof num !== 'bigint' || num < 0n || num > 255n) {
             throw new SchemeReadError(`invalid byte value: ${tokenObj.value}`, 'bytevector');
         }
-        bytes.push(num);
+        bytes.push(Number(num));
     }
     tokens.shift(); // consume ')'
     return new Uint8Array(bytes);

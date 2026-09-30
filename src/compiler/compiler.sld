@@ -2,15 +2,20 @@
 ;;
 ;; The compiler's own Scheme: lowering the analyzed AST to IR (ir.scm), lifting
 ;; closures (lift.scm), expanding primitives inline (inline.scm), liveness over
-;; frame spills (liveness.scm), and generating JavaScript (emit.scm).
+;; frame spills (liveness.scm), generating JavaScript (emit.scm), deciding what
+;; to compile and why not (driver.scm, safety.scm), and when, for a program's
+;; own code as it runs (tier.scm).
 ;;
 ;; It is written with SRFI 1 and SRFI 152 and imports them like any other
-;; program, so their private helpers stay private to them. The files are
-;; included in dependency order: each defines what the later ones call.
+;; program, so their private helpers stay private to them. What it needs from
+;; the interpreter, which is JavaScript, it imports from
+;; (scheme-js compiler host), src/compiler/host.js. The files are included in
+;; dependency order: each defines what the later ones call.
 ;;
-;; The exports are the entry points src/compiler/lowering.js calls. Everything
-;; else is internal, and the compiler's Scheme tests (tests/compiler/) reach it
-;; by running in this library's environment.
+;; The exports are the entry points JavaScript calls, through
+;; src/compiler/lowering.js. Everything else is internal, and the compiler's
+;; Scheme tests (tests/compiler/) reach it by running in this library's
+;; environment.
 ;;
 ;; The file is `compiler.sld` because every library resolver finds a library's
 ;; file by the last part of its name.
@@ -20,10 +25,19 @@
           (scheme char)
           (scheme cxr)
           (srfi 1)
-          (srfi 152))
+          (srfi 152)
+          (scheme-js interop)
+          (scheme-js compiler host))
   (export
     ;; Lowering
     lower-lambda control-globals
     ;; Code generation
-    generate-unit inline-expansion-names js-name)
-  (include "ir.scm" "lift.scm" "inline.scm" "liveness.scm" "emit.scm"))
+    generate-unit inline-expansion-names js-name
+    ;; What to compile
+    compile-definition compile-expression compile-closure
+    generate-environment compile-environment compile-program
+    program-unsafe-definitions
+    ;; A program's tier
+    make-tier tier-bound! tier-due! tier-top-level-procedure note-resume first-resume-to-ask)
+  (include "ir.scm" "lift.scm" "inline.scm" "liveness.scm" "emit.scm"
+           "driver.scm" "safety.scm" "tier.scm"))

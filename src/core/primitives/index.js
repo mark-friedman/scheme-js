@@ -1,7 +1,7 @@
 
 import { Environment } from '../interpreter/environment.js';
 import { globalScopeRegistry, GLOBAL_SCOPE_ID } from '../interpreter/syntax_object.js';
-import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
+import { SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../interpreter/values.js';
 import { registerPrimitive } from '../interpreter/primitive_bindings.js';
 
 import { mathPrimitives } from './math.js';
@@ -43,6 +43,10 @@ export function createGlobalEnvironment(interpreter) {
             // Mark as Scheme-aware so interpreter doesn't auto-convert args
             if (typeof fn === 'function') {
                 fn[SCHEME_PRIMITIVE] = true;
+                // Its own entry for callers holding Scheme values, so that
+                // compiled code, which looks for that entry first, calls it
+                // with no second look at what it is.
+                fn[SCHEME_RAW_CALL] = fn;
                 registerPrimitive(name, fn);
             }
             bindings.set(name, fn); // No wrapper needed!

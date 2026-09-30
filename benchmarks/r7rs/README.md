@@ -73,8 +73,8 @@ second of work gives Racket one or two ticks, and two ticks is not a measurement
 
 ## What is not here
 
-- `compiler.scm` (459 KB) — blocked on `string-set!` anyway, and large enough that
-  vendoring it for a program we cannot run is not worth it.
+- `compiler.scm` (459 KB) — was blocked on `string-set!`, which works since strings became
+  mutable; not yet vendored, which `docs/compiler_plan.md` task 44 covers.
 - `cat`, `tail`, `wc`, `sum1` — need `inputs/bib` (4.5 MB) and `inputs/sum1.data`
   (1.1 MB). Host file I/O is also not a meaningful axis in a browser; the text axis
   deserves its own treatment rather than these.
@@ -85,20 +85,19 @@ second of work gives Racket one or two ticks, and two ticks is not a measurement
 
 Kept in the manifest rather than dropped: each is the evidence for a conformance gap, and
 each becomes available the moment its gap closes. The suite found all four on its first
-run.
+run; `parsing` has run since its gap closed.
 
 | Programs | Gap |
 |---|---|
 | `gcbench`, `matrix`, `slatex` | Identifiers containing a dot are rejected by **extended dot notation**, a deliberate and tested interop feature. `(define x.y 1)` fails; R7RS §7.1.1 permits the dot. |
-| `parsing`, `read0` | `read-char` and `peek-char` return JavaScript strings rather than Scheme characters, so `(char? (read-char p))` is `#f`. |
+| `read0` | Does not finish within the correctness runner's 120 s in either tier: it reads every two-character string from `a` and U+0000 to `a` and U+10FFFF, twice each, and exercises reader syntax we do not accept. It and `parsing` were also blocked on `read-char` and `peek-char` returning strings rather than characters; `parsing` runs since that was fixed. |
 | `equal` | `equal?` does not terminate on circular structure, which R7RS §6.1 requires. Gambit runs this program in 0.08 s; we hang at every size. |
-| `compiler` (not vendored) | `string-set!` throws unconditionally — the known interop-for-compliance trade. |
 
 ## Running
 
 ```
 npm run benchmark:r7rs                  # this implementation, both tiers, by workload class
-npm run benchmark:r7rs-implementations  # both tiers against Gambit gsi, gsc (C and JS) and Racket
+npm run benchmark:r7rs-implementations  # both tiers against Gambit (gsi, C, JS), Racket and plain JS
 ```
 
 Both accept `--profile full` to include the `slow` entries — programs with no parameter
@@ -107,7 +106,7 @@ the calibration target.
 
 The comparison measures both of our tiers again unless told not to. Measuring us is most of
 its running time, and the references do not change when our code does, so it can take our
-figures from a saved `benchmark:r7rs` run instead; `--tier interpreter` or `--tier compiled`
+figures from a saved `benchmark:r7rs` run instead; `--tiers interpreter` or `--tiers compiled`
 narrows it to one tier:
 
 ```
@@ -126,20 +125,21 @@ the harness runs each build at every calibrated count:
   It needs nothing beyond Gambit and Node. (Gambit 4.9.5 has no WebAssembly target —
   `gsc -target wasm` reports the module unavailable.)
 
-The C build needs the C compiler Gambit
-was configured with, and a Homebrew Gambit names a versioned GCC — `gsc -exe` fails with
+The C build needs the C compiler Gambit was configured with, and a Homebrew Gambit names a
+versioned GCC — `gsc -exe` fails with
 `gcc-13: command not found` when a different one is installed. Any recent GCC works: put a
 link under the configured name ahead of it on `PATH`, for the run only. Passing `-cc` to
 `gsc` instead is not a substitute, since it also drops every C flag Gambit was configured
 with. The harness already passes the define that lets code from a newer compiler load into
-the older runtime; see `GSC_OPTIONS` in `../compare_r7rs.js`.
+the older runtime; see `GSC_C_OPTIONS` in `../compare_r7rs.js`.
 
 ```
 mkdir -p /tmp/gccshim && ln -sf "$(command -v gcc-16)" /tmp/gccshim/gcc-13
 PATH=/tmp/gccshim:$PATH npm run benchmark:r7rs-implementations
 ```
 
-On macOS, if the compiler reports that `xcodebuild` failed while looking for `as`, the
-selected Xcode is broken; `DEVELOPER_DIR=/Library/Developer/CommandLineTools` on the same
-command uses the Command Line Tools instead. If `gsc` still cannot build, it is reported as
-not available and the comparison runs without it.
+On macOS, if the comparison reports Gambit compiled to C as having no C toolchain, or the
+compiler reports that `xcodebuild` failed while looking for `as`, the selected Xcode lacks
+its compiler or is broken; `DEVELOPER_DIR=/Library/Developer/CommandLineTools` on the same
+command uses the Command Line Tools instead. If a trial build still fails, Gambit compiled
+to C is reported as not available, with the reason, and the comparison runs without it.

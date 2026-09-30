@@ -41,7 +41,7 @@ import { writeString } from '../src/core/primitives/io/printer.js';
 import { isSchemeClosure } from '../src/core/interpreter/values.js';
 import { instrumentInterpreter } from '../src/debug/instrumentation.js';
 import { tryCompileClosure, tryCompileDefinition } from '../src/compiler/index.js';
-import { unsafeDefinitions } from '../src/compiler/safety.js';
+import { unsafeDefinitions } from '../src/compiler/index.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
 import { inlineExpansionNames } from '../src/compiler/lowering.js';
 

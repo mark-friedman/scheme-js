@@ -14,8 +14,10 @@ import {
     hasFeature,
     addFeature,
     getFeatures,
-    evaluateFeatureRequirement
+    evaluateFeatureRequirement,
+    applyImports
 } from '../../src/core/interpreter/library_loader.js';
+import { Environment } from '../../src/core/interpreter/environment.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { Interpreter } from '../../src/core/interpreter/interpreter.js';
@@ -67,13 +69,37 @@ export async function runLibraryLoaderTests(logger) {
     assert(logger, "parseImportSet only library",
         onlySpec.libraryName.join('.'), "scheme.base");
     assert(logger, "parseImportSet only filter",
-        onlySpec.only.length, 2);
+        onlySpec.steps[0].names.length, 2);
 
     // 5. Test import with prefix
     const prefixImport = parse("(prefix (scheme base) base:)")[0];
     const prefixSpec = parseImportSet(prefixImport);
     assert(logger, "parseImportSet prefix",
-        prefixSpec.prefix, "base:");
+        prefixSpec.steps[0].prefix, "base:");
+
+    // 5a. Import sets nest, each filtering the names the set inside it
+    // provides (R7RS 5.6.1); rename takes (from to) pairs.
+    const exportsOf = new Map([['car', 1], ['cdr', 2], ['cons', 3]]);
+    const importedBy = (text) => {
+        const env = new Environment(null);
+        applyImports(env, exportsOf, parseImportSet(parse(text)[0]));
+        return [...env.bindings.keys()].sort().join(' ');
+    };
+    assert(logger, "parseImportSet rename pairs",
+        JSON.stringify(parseImportSet(parse("(rename (scheme base) (car first) (cdr rest))")[0]).steps),
+        JSON.stringify([{ kind: 'rename', renames: [{ from: 'car', to: 'first' }, { from: 'cdr', to: 'rest' }] }]));
+    assert(logger, "rename renames only the names it lists",
+        importedBy("(rename (lib) (car first) (cdr rest))"), "cons first rest");
+    assert(logger, "only sees the names a prefix inside it made",
+        importedBy("(only (prefix (lib) p:) p:car)"), "p:car");
+    assert(logger, "prefix applies to what an only inside it kept",
+        importedBy("(prefix (only (lib) car) p:)"), "p:car");
+    assert(logger, "rename sees the names a prefix inside it made",
+        importedBy("(rename (prefix (lib) p:) (p:car first))"), "first p:cdr p:cons");
+    assert(logger, "except sees the names a rename inside it made",
+        importedBy("(except (rename (lib) (car first)) first)"), "cdr cons");
+    assert(logger, "prefix renames what a rename inside it made",
+        importedBy("(prefix (rename (lib) (car first)) p:)"), "p:cdr p:cons p:first");
 
     // 6. Test minimal library loading (no dependencies)
     const interpreter = new Interpreter();

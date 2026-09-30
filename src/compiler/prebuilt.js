@@ -62,7 +62,7 @@
  */
 
 import * as R from './runtime.js';
-import { substituteLibraryValues, libraryNameToKey } from '../core/interpreter/library_registry.js';
+import { substituteLibraryValues, libraryNameToKey, recordCompiledOver } from '../core/interpreter/library_registry.js';
 
 /**
  * Hashes the library sources into a short fingerprint.
@@ -144,8 +144,10 @@ export function installPrebuilt(env, table, fingerprint) {
   }
 
   // Libraries imported the interpreted closures by value; see
-  // `substituteLibraryValues`.
+  // `substituteLibraryValues`. The closures are kept, for a debugger to run
+  // instead (`recordCompiledOver`).
   substituteLibraryValues(replaced);
+  recordCompiledOver(replaced, env);
   return { installed, skipped, stale: false };
 }
 

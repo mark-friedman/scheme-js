@@ -9,11 +9,48 @@ import { StringInputPort, StringOutputPort } from './string_port.js';
 import { BytevectorInputPort, BytevectorOutputPort } from './bytevector_port.js';
 import { FileInputPort, FileOutputPort, fileExists, deleteFile } from './file_port.js';
 import { ConsoleOutputPort } from './console_port.js';
+import { standardInputPort } from './stdin_port.js';
+import { standardOutputPort, standardErrorPort } from './stdout_port.js';
 import { displayString, writeString, writeStringShared } from './printer.js';
 import { readExpressionFromPort } from './reader_bridge.js';
 import { list } from '../../interpreter/cons.js';
 import { intern } from '../../interpreter/symbol.js';
 import { Char } from '../char_class.js';
+import { isString, stringValue, freshString } from '../string_class.js';
+
+/**
+ * A string argument as a JavaScript string, a mutable Scheme string's
+ * characters included.
+ * @param {*} value - The argument.
+ * @param {string} procName - The procedure, for the error.
+ * @returns {string} Its characters.
+ * @throws {Error} If it is not a string.
+ */
+function textOf(value, procName) {
+    if (!isString(value)) throw new Error(`${procName}: expected string`);
+    return stringValue(value);
+}
+
+/**
+ * What a read of a string returns, newly allocated and so mutable: a string
+ * becomes a `SchemeString`, and the end-of-file object stays as it is.
+ * @param {*} result - What the port returned.
+ * @returns {*} The result.
+ */
+function freshRead(result) {
+    return typeof result === 'string' ? freshString(result) : result;
+}
+
+/**
+ * What a read of a character returns: a character becomes a `Char`, and the
+ * end-of-file object stays as it is.
+ * @param {string|object} result - What the port returned: the character's one
+ *   or two code units, or the end-of-file object.
+ * @returns {Char|object} The result.
+ */
+function charRead(result) {
+    return typeof result === 'string' ? new Char(result.codePointAt(0)) : result;
+}
 
 /**
  * Calls a Scheme procedure a primitive here was given, from which compiled
@@ -40,6 +77,24 @@ function withoutFlush(call) {
 let currentInputPort = null;  // We'll use a placeholder for input
 let currentOutputPort = new ConsoleOutputPort('stdout');
 let currentErrorPort = new ConsoleOutputPort('stderr');
+
+/**
+ * Checks what a current port's procedure was given, and answers the port to
+ * make current, if it was given one: a port, as a parameter object made by
+ * `make-parameter` takes a value when called with one.
+ * @param {string} procName - The procedure, for the error.
+ * @param {Array<*>} args - Its arguments.
+ * @param {function(*): boolean} accepts - Whether a value is a port it takes.
+ * @param {string} kind - What it takes, for the error.
+ * @returns {Port|undefined} The port, or undefined if it was given none.
+ * @throws {Error} If it was given more than one argument, or not a port it takes.
+ */
+function newCurrentPort(procName, args, accepts, kind) {
+    if (args.length === 0) return undefined;
+    if (args.length > 1) throw new Error(`${procName}: expected at most 1 argument`);
+    if (!accepts(args[0])) throw new Error(`${procName}: expected ${kind}`);
+    return args[0];
+}
 
 // ============================================================================
 // I/O Primitives
@@ -73,7 +128,12 @@ export const ioPrimitives = {
     // Current Ports
     // --------------------------------------------------------------------------
 
-    'current-input-port': () => {
+    'current-input-port': (...args) => {
+        const port = newCurrentPort('current-input-port', args, isInputPort, 'input port');
+        if (port) {
+            currentInputPort = port;
+            return undefined;
+        }
         if (!currentInputPort) {
             // Create a dummy input port that returns EOF
             currentInputPort = new StringInputPort('');
@@ -81,23 +141,39 @@ export const ioPrimitives = {
         return currentInputPort;
     },
 
-    'current-output-port': () => currentOutputPort,
-    'current-error-port': () => currentErrorPort,
+    'current-output-port': (...args) => {
+        const port = newCurrentPort('current-output-port', args, isOutputPort, 'output port');
+        if (!port) return currentOutputPort;
+        currentOutputPort = port;
+        return undefined;
+    },
+
+    'current-error-port': (...args) => {
+        const port = newCurrentPort('current-error-port', args, isOutputPort, 'output port');
+        if (!port) return currentErrorPort;
+        currentErrorPort = port;
+        return undefined;
+    },
+
+    // The process's own standard input, output and error (Node.js only), which
+    // the CLI makes the current ports of a program it runs.
+    'standard-input-port': () => standardInputPort(),
+    'standard-output-port': () => standardOutputPort(),
+    'standard-error-port': () => standardErrorPort(),
 
     // --------------------------------------------------------------------------
     // String Ports
     // --------------------------------------------------------------------------
 
     'open-input-string': (str) => {
-        if (typeof str !== 'string') throw new Error('open-input-string: expected string');
-        return new StringInputPort(str);
+        return new StringInputPort(textOf(str, 'open-input-string'));
     },
 
     'open-output-string': () => new StringOutputPort(),
 
     'get-output-string': (port) => {
         if (!(port instanceof StringOutputPort)) throw new Error('get-output-string: expected string output port');
-        return port.getString();
+        return freshString(port.getString());
     },
 
     // --------------------------------------------------------------------------
@@ -121,28 +197,28 @@ export const ioPrimitives = {
     // --------------------------------------------------------------------------
 
     'open-input-file': (filename) => {
-        if (typeof filename !== 'string') throw new Error('open-input-file: expected string');
+        filename = textOf(filename, 'open-input-file');
         return new FileInputPort(filename);
     },
 
     'open-output-file': (filename) => {
-        if (typeof filename !== 'string') throw new Error('open-output-file: expected string');
+        filename = textOf(filename, 'open-output-file');
         return new FileOutputPort(filename);
     },
 
     'file-exists?': (filename) => {
-        if (typeof filename !== 'string') throw new Error('file-exists?: expected string');
+        filename = textOf(filename, 'file-exists?');
         return fileExists(filename);
     },
 
     'delete-file': (filename) => {
-        if (typeof filename !== 'string') throw new Error('delete-file: expected string');
+        filename = textOf(filename, 'delete-file');
         deleteFile(filename);
         return undefined;
     },
 
     'call-with-input-file': (filename, proc) => {
-        if (typeof filename !== 'string') throw new Error('call-with-input-file: expected string');
+        filename = textOf(filename, 'call-with-input-file');
         if (typeof proc !== 'function') throw new Error('call-with-input-file: expected procedure');
         const port = new FileInputPort(filename);
         try {
@@ -153,7 +229,7 @@ export const ioPrimitives = {
     },
 
     'call-with-output-file': (filename, proc) => {
-        if (typeof filename !== 'string') throw new Error('call-with-output-file: expected string');
+        filename = textOf(filename, 'call-with-output-file');
         if (typeof proc !== 'function') throw new Error('call-with-output-file: expected procedure');
         const port = new FileOutputPort(filename);
         try {
@@ -164,7 +240,7 @@ export const ioPrimitives = {
     },
 
     'with-input-from-file': (filename, thunk) => {
-        if (typeof filename !== 'string') throw new Error('with-input-from-file: expected string');
+        filename = textOf(filename, 'with-input-from-file');
         if (typeof thunk !== 'function') throw new Error('with-input-from-file: expected procedure');
         const port = new FileInputPort(filename);
         const old = currentInputPort;
@@ -178,7 +254,7 @@ export const ioPrimitives = {
     },
 
     'with-output-to-file': (filename, thunk) => {
-        if (typeof filename !== 'string') throw new Error('with-output-to-file: expected string');
+        filename = textOf(filename, 'with-output-to-file');
         if (typeof thunk !== 'function') throw new Error('with-output-to-file: expected procedure');
         const port = new FileOutputPort(filename);
         const old = currentOutputPort;
@@ -214,14 +290,14 @@ export const ioPrimitives = {
     'read-char': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-char');
-        if (port.readChar) return port.readChar();
+        if (port.readChar) return charRead(port.readChar());
         throw new Error('read-char: unsupported port type');
     },
 
     'peek-char': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'peek-char');
-        if (port.peekChar) return port.peekChar();
+        if (port.peekChar) return charRead(port.peekChar());
         throw new Error('peek-char: unsupported port type');
     },
 
@@ -236,7 +312,7 @@ export const ioPrimitives = {
     'read-line': (...args) => {
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-line');
-        if (port.readLine) return port.readLine();
+        if (port.readLine) return freshRead(port.readLine());
         throw new Error('read-line: unsupported port type');
     },
 
@@ -246,7 +322,7 @@ export const ioPrimitives = {
         if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) throw new Error('read-string: expected non-negative integer');
         const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-string');
-        if (port.readString) return port.readString(k);
+        if (port.readString) return freshRead(port.readString(k));
         throw new Error('read-string: unsupported port type');
     },
 
@@ -313,7 +389,7 @@ export const ioPrimitives = {
     },
 
     'write-string': (str, ...args) => {
-        if (typeof str !== 'string') throw new Error('write-string: expected string');
+        str = textOf(str, 'write-string');
         let port = currentOutputPort;
         let start = 0;
         let end = str.length;

@@ -2436,6 +2436,258 @@ list handed to JavaScript still holds `BigInt`s in its cars.
 *Consequence:* the boundary's number rules are written down as they are, and the direct call is
 made to agree with the other paths rather than documented as a second rule.
 
+**R78. A raise compiled code could not perform needed no machinery of its own; and a test made on
+every call costs according to where it sits, which neither an isolated measurement nor compiled
+callees alone showed.**
+
+The plan described `error` in compiled code as a pending raise the trampoline cannot run, and noted
+that declining procedures that call `error` would decline most of the library -- as if the choice
+were between the two. Neither was needed. Compiled frames never hold a handler or a `dynamic-wind`,
+since a procedure that names one is not compiled, so everything in force where compiled code raises
+is on the frame stack of the interpreter run beneath it. Throwing the raise to that run and letting
+it run the `RaiseNode` is therefore exactly the interpreter's raise, including the debugger's pause
+on an uncaught exception; the only part it cannot do is let a handler return, so
+`raise-continuable` is refused.
+
+Reporting a call to a non-procedure needs a test on every call whose value is wanted, and a `typeof`
+of a value already in hand was expected to cost nothing. Where it sat decided the cost:
+
+- written into the call expression, with the raw entry read by `?.` so that the empty list, `null`,
+  does not throw first: `divrec` 9% slower, most of it the `?.`;
+- as a statement ahead of the call: 1.6% on `divrec` measured in isolation, but 2-4.5% in the suite,
+  on `fibfp`, `diviter`, `ack`, `divrec` and `dynamic`;
+- a `try` around the call, testing only when it threw: nothing, on every procedure measured in
+  isolation -- all of whose callees were compiled or primitive. A call into an *interpreted*
+  procedure inside the `try` cost 15%, and `quicksort`, whose comparison procedure is interpreted,
+  ran 9% slower. That is the call the compiled library makes to a program's callbacks, the
+  browser's common case.
+
+*Consequence:* the statement shipped. A change to the call site is measured in the suite as well as
+in isolation, and with interpreted callees as well as compiled ones.
+
+**R79. The conformance suites were taken as the net that would catch a missing standard procedure.
+They do not test it.**
+
+`call-with-port` is in `(scheme base)` and was never defined, found in 27 by writing a test that
+needed it; the plan's entry for it guessed that the conformance suites, once inside `npm test`, would
+presumably have caught it. With both suites running there, in both library configurations, all 1,201
+tests pass -- and neither the chapter tests nor Chibi's R7RS tests, the original or the revised,
+mentions `call-with-port`. `ROADMAP.md`'s "982 of 982 applicable" is a statement about the tests
+the suite has, not about the procedures R7RS requires.
+
+*Consequence:* completeness is checked separately, by comparing each library's exports with R7RS's
+own listing of the identifiers each library provides.
+
+**R80. Refusing a capture across more than one boundary did not keep captures across boundaries from
+giving wrong answers, and unwinding through nested runs made alternation faster, not slower.**
+
+The capture protocol refused a capture crossing more than one boundary between compiled and
+interpreted code, on the stated ground that splicing the groups wrongly would give a wrong answer
+rather than a failure. Two wrong answers were already there. A capture beneath a JavaScript
+primitive that calls a procedure back, with compiled code beneath the primitive, counted as one
+boundary: the unwind was handed to the primitive as a return value, and the run beneath completed
+the capture without the frames between -- `(+ 1 (+ 100 (with-input-from-file ...)))` gave 11. And
+a capture made by compiled code two boundaries down, reachable only with `allowCaptures`, gave
+`(201 101 ...)` where the interpreter gave nested lists. Neither was refused; only the case that was
+built out was.
+
+Unwinding through nested runs was expected to cost: a move now copies every nested run's frames on
+the way out, and the moved frames finish in resumable forms. The opposite was measured. Each nested
+run starts on a copy of its parent's frame stack, which between moves grows by a sentinel a level,
+so alternation was quadratic in its depth; moves reset it. A tree walk 400 deep through compiled
+`map` went from 1.9 to 1.25 ms, and alternation 100 deep did not change.
+
+*Consequence:* a run passes an unwind on only when its compiled caller can pass it on in turn, which
+`flushable` already said; beneath a JavaScript caller the continuation leaves that caller out, as
+the interpreter's always have; the one refusal left is beneath a redefined inlined primitive.
+
+**R81. Compiled code evaluated a call's operands in an order of its own, and six thousand tests did
+not notice.**
+
+The differential fuzzer's first long run, 5,000 generated programs, found six the tiers answered
+differently, all one cause. A call's value is a statement in generated code, but a global read, an
+assigned local's read, or a sequence ending in one was an expression written into the call that
+used it, so it was evaluated after every operand to its right, and the procedure itself was read
+after its arguments. `(list g (f))`, with `f` assigning `g`, was `(5 10)` compiled and `(0 10)`
+interpreted. R7RS leaves the order unspecified, so each answer is Scheme, which is presumably why no
+test written by hand asked; but the interpreter is the reference semantics, and the whole-program
+checks never assign what an earlier operand reads.
+
+Fixing it cost nothing measurable in speed and 0.9% of the libraries' generated code, 3.8% of the
+compiler's, most of it the procedure read into a temporary before arguments that make calls.
+
+*Consequence:* operands go into temporaries in order when a later one could have an effect. The
+fuzzer is how the next shape nobody wrote a test for is meant to be found; five bugs reintroduced
+into the capture, moving, boxing and liveness machinery were each found within its first 27 programs.
+
+**R82. The debugger's first policy could not leave the library compiled.**
+
+The plan's first policy for debugging compiled code was to run the program's own code interpreted
+while it was being debugged and leave the standard library compiled, and separately to fix or record
+the pause a nested run ignores. They were one problem. The nested runs are made by compiled code
+calling an interpreted procedure -- the compiled library's `map` calling the program's callback --
+and a nested run is synchronous, so it cannot wait at a breakpoint: interpreting the program's code
+while leaving the library compiled keeps every nested run it had. What fixes both is running the
+library's compiled procedures as their interpreted closures too, which needed the closures, and
+those were discarded on installing the compiled code. They are kept now, and the whole program is
+switched while it is being debugged.
+
+*Consequence:* declining to optimize comes first for the whole program, not per procedure, and
+per-procedure declining is a refinement for speed under the debugger rather than the mechanism.
+Code compiled in future must be compiled over a closure it keeps, or it cannot be debugged.
+
+**R83. Against the other Scheme compiled to JavaScript, the calling convention the bake-off chose
+wins on calls and loses on continuations, as it predicted -- and two programs are 40x behind for a
+reason the compiler does not touch.**
+
+The compiled tier had only ever been measured against the interpreter. Against Gambit compiled to
+JavaScript, on the same V8, which uses the explicit frame stack the stage 2a bake-off rejected: calls
+0.89x, fixnums 1.10x, flonums 0.27x, strings 0.04x, vectors 1.20x, lists 2.04x, bignums 1.65x,
+continuations 2.59x -- our time over Gambit's. The bake-off's reasoning held: the native stack is at
+least as fast for ordinary calls, and an explicit frame stack captures more cheaply. Against plain
+JavaScript, calls are 2.0-2.9x, where the founding analysis measured `fib(30)` at 650x interpreted.
+
+What nobody had seen, because class means hid it: `nboyer` and `sboyer` take 16 and 20 s compiled
+against 21 and 24 s interpreted, 40x and 53x behind Gambit, most of the list class's gap. The ROADMAP's
+"list 23x" is a geometric mean over programs one of which the compiler barely helps.
+
+*Consequence:* the two are profiled with bignums, as what compiling barely speeds up; and a program
+far from its class's mean is reported by name, not left inside the mean.
+
+**R84. `nboyer` and `sboyer` were barely faster compiled because they were not compiled.**
+
+R83 read their 16 and 20 s compiled, against 21 and 24 s interpreted, as something in them the
+compiler does not speed up, and put them with bignums to be profiled. The profile said otherwise at
+once: nearly all the time was the interpreter's own. Both programs define stub procedures and then
+assign every real one from inside a single top-level `(let () ...)`, and the tier compiled top-level
+procedure definitions only, so the whole benchmark ran interpreted in both tiers. `quicksort`
+assigns its random number generator the same way. The coverage figure had hidden it too: "compiled
+5 of 7 definitions" counted the stubs.
+
+*Consequence:* top-level expressions, and definitions whose value is made by an expression, are
+compiled as thunks called once where they make procedures or loop. `nboyer` went from 16.1 to 0.23 s
+and `sboyer` from 19.7 to 0.22 s, ahead of Gambit compiled to JavaScript. A coverage figure counts
+the code that runs, not the definitions that exist.
+
+**R85. "982 of 982" counted three failures as passes.**
+
+The Chibi suite's runner checks each result twice: with the Scheme harness's own comparison, and,
+when that fails, by converting both values to JavaScript and comparing those -- meant for an exact
+integer against the same integer as a JavaScript number. A test the second check passes is counted
+as a pass. Three tests pass only that way, and each is a real difference: `read-char` and
+`peek-char` return one-character strings where R7RS returns characters (`#\a` and `"a"` are both
+`"a"` in JavaScript), found while writing a test of `call-with-port` that read a character;
+`(inexact 1)` against the literal `1`; and a numeric literal in section 7.1 against the value it
+reads as.
+
+*Consequence:* the three are fixed or recorded as known deviations, and the suites run without the
+rescue, so that a pass means what it says.
+
+**R86. Real code is declined for `call/cc` used as an escape, not for exception handling -- and for
+escapes the decline is the slower choice.**
+
+The plan held that applications use `guard`, `parameterize` and the other control forms everywhere,
+so that anyone trying the tier would meet those declines in the first program they wrote, and ranked
+compiling the exception forms accordingly. The repository could not test that, since its Scheme
+avoids them all. Measured instead on 1,855 procedures of SRFI reference implementations and
+Snow-Fort packages: 406 are declined for a control form, and 399 of those end at `call/cc` -- 305
+only by reaching a capture through another procedure. The exception forms, `parameterize` and
+`dynamic-wind` together decline five. And the captures are almost all escapes, the continuation
+called once before the capture returns, to leave a search or a fold early; only coroutine generators
+and Schelog re-enter one. The default that declines captures was justified on `btsearch`, which
+re-enters its continuations; on the escape shape (`benchmarks/run_escapes.js`) compiling the
+captures is 1.5-3.9x faster than the default at every depth measured.
+
+*Consequence:* the capture default and the reachability rule are measured again by shape before
+anything else in 37; an escape fast path comes next; the exception forms last, once the libraries
+that use them can be loaded at all.
+
+**R87. Passing both conformance suites did not mean the reader and the library system conform.**
+
+Loading the corpus for R86 found four bugs in code both suites run through on every test. A `rename`
+import set crashed on the syntax R7RS gives it, `(rename set (from to) ...)`, because the parser read
+the pairs as a flat list; nested import sets applied their filters in one fixed order, so `(only
+(prefix lib p:) p:car)` imported nothing; a line comment ending in CR LF or CR swallowed the rest of
+the file, so SRFI 41's reference implementation read as empty; and `#u8(#x41)` was rejected while
+`#u8(65.5)` read as `#u8(65)`. The suites could not see them: the revised Chibi suite has its imports
+stripped and the runner imports a fixed list of libraries whole; no test file has a CR in it; and the
+bytevectors written in hex are all in the original Chibi file, which no runner loads, and which
+could not have been read if one had. `(scheme inexact)`, which R3 called a packaging gap with a cleanup task to follow, had never
+been importable, and the task had never been written down.
+
+*Consequence:* the four are fixed and tested, `(scheme inexact)` exists, and what loading real
+libraries found that is not fixed is in the plan: import filters that do not reach macros, the rest
+of the audit's list, and dot notation against R7RS identifiers.
+
+**R88. Task 33's debugger held in the CLI, and in the tests' setup, but not in the browser.**
+
+Task 33 made compiled code run as its interpreted closures while a program is debugged, "so every
+breakpoint fires in the CLI and the browser alike", and left the REPL's "will not fire" warning to
+code compiled from its definition alone. Switching every user procedure to compiled code in 34
+showed both claims to be narrower. The switch is made by the debug runtime once it is attached to
+the interpreter (`setDebugRuntime`); the browser REPL and the development page assigned it to
+`interpreter.debugRuntime` instead, so the runtime never knew its interpreter and nothing was
+switched in the browser at all. The tests attach it properly, and the CLI does. And the warning
+asked only whether a procedure was compiled, so a breakpoint set before `:debug on` -- as the CLI
+starts -- was reported as never firing in every compiled procedure, the standard library's and every
+procedure compiled over a closure included, which do fire; only the test that turns debugging on
+first had been written.
+
+*Consequence:* both pages attach the runtime, the warning skips procedures compiled over a closure,
+and a test sets the breakpoint before debugging is on.
+
+**R89. A string could not stay a JavaScript string until it was first changed.**
+
+R31 corrected the first design for mutable strings -- a wrapper around a character array -- to
+"immutable-until-mutated": keep the JavaScript string as the representation and turn it into a
+mutable array only on the first `string-set!`. That cannot be done. `string-set!` is given the
+string's value, not the places holding it, and a JavaScript string is a value with no identity:
+every variable, pair and table holding it has its own copy, and two strings made separately with
+the same characters are the same value, so there would be no telling which one the program
+meant, or whether it was a literal. A string that may be changed has to be an object from the
+moment it is made. What survives of R31 is inside that object: it holds a JavaScript string
+until it is first changed, so a string never changed keeps V8's representation.
+
+Implementing it found a second belief false. `Interoperability.md` said numbers cross to
+JavaScript "the same in both tiers". They did not: the interpreter converts a JavaScript
+function's arguments, and compiled code called one with the Scheme values as they were -- a
+`BigInt` for an exact integer -- which, since task 34 compiles a program's own code by default,
+is what a program met.
+
+*Consequence:* a newly made string is a `SchemeString`, and every string crosses into JavaScript
+as its characters; compiled code calls a JavaScript function through `callForeign`, which converts
+as the interpreter does.
+
+**R90. Declining procedures that capture is faster only when captures are frequent.**
+
+The default that declines a procedure capturing a continuation, and every procedure that can
+reach one, was kept on `btsearch`, where it was the difference between 2x faster and 2x slower,
+and `ctak`. Measured with it on and off on all nine benchmark programs that capture, it is the
+faster choice on three -- `btsearch` 4.5x, which re-enters its continuations to backtrack, and
+`fibc` 1.8x and `ctak` 1.1-1.2x, which capture at every call -- and the slower on five, by far more:
+`quicksort` 21x, `puzzle` 4x, `maze` 3.8x, `contfib` 2.9x, `threads` 1.35x; two are unchanged.
+The losers of the default capture now and then, mostly to escape, which R86 found is nearly every
+capture in real libraries; `run_escapes.js` agrees, 1.5-3.9x.
+
+*Consequence:* the default cannot be justified on the programs it was chosen for, and cannot be
+turned the other way without costing those. Which way it goes, or whether it is decided per
+procedure as a program runs, is a decision for 37.
+
+**R91. The re-entry counts are per procedure only for top-level procedures.**
+
+The capture policy (37) was written, and documented in `unwind.js`, as counting "saves and resumes
+of each procedure's frames, by its resumable form". A procedure nested in another has a resumable
+form of its own for every closure made of it, so its counts are per closure: on `ctak`, 95,412
+resumable forms each saved once and resumed once, where the source has three nested lambdas. Found
+when the policy moved to Scheme and asked about each form at its first resume, which cost `ctak`
+9%; the JavaScript policy compared two numbers inline at each resume and so never showed it.
+
+*Consequence:* the policy is first asked at the resume its minimum names, which a closure resumed a
+few times never reaches, and after that at the resume it names each time. Its decisions are
+unchanged: only a procedure compiled over a closure, which is a top-level one, can be switched
+back, and those have one resumable form each. A nested procedure's re-entries are still not
+counted towards anything.
+
 ---
 
 ## Appendix — the original staged plan

@@ -1,6 +1,27 @@
 import { Port, EOF_OBJECT } from './ports.js';
 
 /**
+ * Where the characters after a position in a string end, counting a character
+ * outside the Basic Multilingual Plane, two UTF-16 code units, as one
+ * character, as `read-char` and `string->list` do. (`string-length` and
+ * `string-ref` count code units, since a string's positions are code units.)
+ * @param {string} str - The string.
+ * @param {number} start - A position in it, between characters.
+ * @param {number} count - How many characters to pass.
+ * @returns {{end: number, passed: number}} The position after them, or the
+ *   string's end if it has fewer, and how many were passed.
+ */
+export function passCharacters(str, start, count) {
+    let end = start;
+    let passed = 0;
+    while (passed < count && end < str.length) {
+        end += str.codePointAt(end) > 0xFFFF ? 2 : 1;
+        passed++;
+    }
+    return { end, passed };
+}
+
+/**
  * String input port - reads from a string.
  */
 export class StringInputPort extends Port {
@@ -18,21 +39,22 @@ export class StringInputPort extends Port {
 
     /**
      * Reads the next character.
-     * @returns {string|object} The character or EOF_OBJECT.
+     * @returns {string|object} The character, as a string of its one or two
+     *   code units, or EOF_OBJECT.
      */
     readChar() {
         if (!this._open) {
             throw new Error('read-char: port is closed');
         }
-        if (this._pos >= this._string.length) {
-            return EOF_OBJECT;
-        }
-        return this._string[this._pos++];
+        const ch = this.peekChar();
+        if (ch !== EOF_OBJECT) this._pos += ch.length;
+        return ch;
     }
 
     /**
      * Peeks at the next character without consuming it.
-     * @returns {string|object} The character or EOF_OBJECT.
+     * @returns {string|object} The character, as a string of its one or two
+     *   code units, or EOF_OBJECT.
      */
     peekChar() {
         if (!this._open) {
@@ -41,7 +63,7 @@ export class StringInputPort extends Port {
         if (this._pos >= this._string.length) {
             return EOF_OBJECT;
         }
-        return this._string[this._pos];
+        return String.fromCodePoint(this._string.codePointAt(this._pos));
     }
 
     /**
@@ -85,7 +107,7 @@ export class StringInputPort extends Port {
         if (this._pos >= this._string.length) {
             return EOF_OBJECT;
         }
-        const end = Math.min(this._pos + k, this._string.length);
+        const { end } = passCharacters(this._string, this._pos, k);
         const result = this._string.slice(this._pos, end);
         this._pos = end;
         return result;

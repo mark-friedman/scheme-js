@@ -51,8 +51,8 @@ program it compiles.
 Because every shipped library arrives compiled from its table, a page runs no compiler to
 get compiled libraries. So the compiler is not in `dist/scheme.js`: it is
 `dist/scheme_compiler.js`, split out by rollup from the dynamic import in `loadCompiler`
-(`src/packaging/scheme_compiler.js`), and fetched only by a page that asks to compile code
-of its own.
+(`src/packaging/scheme_compiler.js`), which the bundle fetches after it has started, to
+compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `src/compiler/tiering.js`).
 
 ## JavaScript Runtime Components
 
@@ -60,7 +60,7 @@ of its own.
 |-----------|---------|
 | `interpreter.js` | Trampoline execution loop |
 | `stepables_base.js` | Register constants + `Executable` base class |
-| `ast_nodes.js` | AST node classes (Literal, If, Lambda...) |
+| `ast_nodes.js` | AST node classes (Literal, If, Lambda...), and the pending raise compiled code throws for the interpreter to perform |
 | `frames.js` | Continuation frame classes |
 | `reader.js` | S-expression parser |
 | `analyzer.js` | Dispatcher for S-exp → AST conversion |
@@ -91,8 +91,12 @@ of its own.
 
 ```text
 /
-├── repl.js                         # Node.js REPL entry point
+├── repl.js                         # Node.js REPL entry point; a program it runs has the process's standard ports
 ├── rollup.config.js                # Rollup bundling configuration
+├── .agent/rules/rules.md           # The project's rules; AGENTS.md and CLAUDE.md link here
+├── .claude/                        # Claude Code project settings
+│   ├── settings.json               # Committed hooks (settings.local.json stays personal)
+│   └── hooks/scheme_first.sh       # Reminds the agent what may be JavaScript when an edit adds a JS function under src/
 ├── .github/                        # CI/CD Workflows
 │   └── workflows/
 │       └── ci.yml                  # GitHub Actions CI (Tests + Benchmarks)
@@ -112,7 +116,13 @@ of its own.
 │   ├── run_macro.js                # Transfer test: the project's own .scm test files
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
-│   ├── compare_r7rs.js             # Canonical suite, both tiers, vs Gambit gsi/gsc (C, JS) and Racket
+│   ├── compare_r7rs.js             # Canonical suite: both tiers vs Gambit (gsi, C, JS), Racket, plain JS
+│   ├── decline_reasons.js          # Why the tier declines procedures: this repository's Scheme, or --corpus
+│   ├── run_escapes.js              # The capture policy on escapes: interpreted, default, captures compiled
+│   ├── corpus/                     # Real R7RS code, for decline_reasons.js --corpus
+│   │   ├── manifest.json           # SRFI repositories at a commit, Snow-Fort packages at a version and SHA-256
+│   │   ├── fetch.js                # Downloads the manifest into downloads/, checking each archive
+│   │   └── downloads/              # Not committed: other people's code, under their licenses
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
@@ -130,6 +140,7 @@ of its own.
 │   │                               #   contfib, btsearch, threads
 │   │                               # NOTE: overfitted -- see benchmarks/r7rs/README.md
 │   └── r7rs/                       # Canonical Gabriel/Gambit/Larceny suite (vendored)
+│       ├── plain_js_kernels.js     # Plain JavaScript versions of seven of its programs
 │       ├── README.md               # Provenance, protocol, sizing, blocked programs
 │       ├── UPSTREAM_COMMIT         # Pinned ecraven/r7rs-benchmarks revision
 │       ├── manifest.js             # Workload class, sizes, status per program
@@ -152,11 +163,12 @@ of its own.
 │   ├── generate_compiled_compiler.js # Compiles the compiler's own library at build time
 │   ├── lib/render_prebuilt.js      # Writes a module of prebuilt tables, one per library
 │   ├── audit_r7rs.js               # R7RS-small conformance audit
+│   ├── language_balance.scm        # Lines of Scheme and JavaScript a change adds under src/ (npm run audit:languages)
 │   └── r7rs_identifiers.js         # Required-identifier reference list
 ├── src/
 │   ├── packaging/                  # Bundling and distribution logic
 │   │   ├── scheme_entry.js         # Core bundle entry point; installs library tables
-│   │   ├── scheme_compiler.js      # The compiler, as loadCompiler() fetches it on demand
+│   │   ├── scheme_compiler.js      # The compiler, as loadCompiler() fetches it after start-up
 │   │   ├── scheme_repl_wc.js       # Web Component entry point
 │   │   ├── html_adapter.js         # HTML script tag adapter
 │   │   ├── bundled_libraries.js    # GENERATED: library sources, for the browser
@@ -172,7 +184,7 @@ of its own.
 │       │   ├── stepables_base.js   # Base class + register constants
 │       │   ├── ast_nodes.js        # AST node classes (Literal, If, Lambda...)
 │       │   ├── frames.js           # Continuation frame classes, incl. CompiledFrame
-│       │   ├── unwind.js           # Capturing a continuation across compiled code; moving deep compiled frames to the heap
+│       │   ├── unwind.js           # Capturing a continuation across compiled code, and moving deep compiled frames to the heap, through nested runs
 │       │   ├── ast.js              # Legacy barrel file
 │       │   ├── frame_registry.js   # Frame factory functions
 │       │   ├── winders.js          # Dynamic-wind utilities
@@ -212,6 +224,7 @@ of its own.
 │       │   ├── math.js             # Arithmetic and numeric operations
 │       │   ├── list.js             # List operations (cons, car, cdr, etc.)
 │       │   ├── string.js           # String operations
+│       │   ├── string_class.js     # SchemeString: a string that may be changed, holding a JS string until it is
 │       │   ├── vector.js           # Vector operations
 │       │   ├── control.js          # apply, map, call/cc
 │       │   ├── char.js             # Character predicates and operations
@@ -227,6 +240,8 @@ of its own.
 │       │   │   ├── primitives.js   # Scheme binding definitions
 │       │   │   ├── file_port.js    # File ports
 │       │   │   ├── string_port.js  # String ports
+│       │   │   ├── stdin_port.js   # The port over standard input (Node.js), read synchronously
+│       │   │   ├── stdout_port.js  # The ports over standard output and error (Node.js), written synchronously
 │       │   │   ├── console_port.js # Console ports
 │       │   │   ├── bytevector_port.js # Bytevector ports
 │       │   │   ├── printer.js      # write/display logic
@@ -249,6 +264,7 @@ of its own.
 │           ├── file.sld            # (scheme file) library declaration
 │           ├── repl.sld            # (scheme repl) library declaration
 │           ├── complex.sld         # (scheme complex) library declaration
+│           ├── inexact.sld         # (scheme inexact) library declaration
 │           ├── eval.sld            # (scheme eval) library declaration
 │           ├── lazy.sld            # (scheme lazy) library declaration
 │           ├── process-context.sld # (scheme process-context)
@@ -260,23 +276,26 @@ of its own.
 │           ├── list.scm            # map, for-each, memq, assq, length, etc.
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
-│           ├── parameter.scm       # make-parameter, parameterize
+│           ├── ports.scm           # call-with-port
 │           └── repl.scm            # REPL utilities
 │
 │   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)
-│      ├── index.js           # EXPORT: tryCompileDefinition(), compileProgram()
+│      ├── index.js           # EXPORT: tryCompileDefinition(), tryCompileExpression(), compileProgram(); hands each to driver.scm
 │      ├── compiler.sld       # (scheme-js compiler): its imports, files and entry points
 │      ├── ir.scm             # Analyzed AST -> IR, in Scheme
 │      ├── emit.scm           # IR -> JavaScript, in Scheme: both forms of a procedure
 │      ├── lift.scm           # Which nested procedures are emitted once, at top level
 │      ├── liveness.scm       # Which locals a suspended frame saves
 │      ├── inline.scm         # Inline expansions for primitives, tower-faithful
-│      ├── lowering.js        # Door into the compiler's Scheme: loads its library, calls its entry points
-│      ├── codegen.js         # Door into emit.scm, with what only the environment knows
+│      ├── driver.scm         # What to compile, and each reason not: definitions, expressions, closures, environments, programs
+│      ├── safety.scm         # The opt-in rule declining what a capture could unwind through
+│      ├── tier.scm           # A program's own code compiled as it runs: when, installing it, switching re-entered ones back
+│      ├── host.js            # (scheme-js compiler host): new Function, the interpreter's structures, weak tables
+│      ├── lowering.js        # Door into the compiler's Scheme: starts its library, calls its entry points
 │      ├── marshal.js         # The analyzed AST into Scheme data
-│      ├── safety.js          # Which procedures a capture would unwind through
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
-│      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, procedure marking
+│      ├── tiering.js         # The interpreter's end of the tier: attach, detach, and the hooks it calls
+│      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools
 │      ├── index.js            # Barrel export
@@ -312,6 +331,7 @@ of its own.
 │   │   ├── helpers.js              # Test utilities (run, assert, createTestLogger)
 │   │   ├── runner.js               # Test runner logic
 │   │   ├── standard_library.js     # The standard library interpreted at top level
+│   │   ├── cli_process.js          # Runs `repl.js` in a child process, for the CLI's tests
 │   │   └── scheme_test.scm         # Scheme test harness
 │   │
 │   ├── test_manifest.js            # Central registry of all test files
@@ -343,6 +363,9 @@ of its own.
 │   │   │   └── io/                 # I/O unit tests
 │   │   │       ├── string_port_tests.js
 │   │   │       ├── file_port_tests.js
+│   │   │       ├── stdin_port_tests.js # Reads split across characters and line endings; waiting for input
+│   │   │       ├── stdout_port_tests.js # When a buffered write reaches its descriptor; waiting for room in a pipe
+│   │   │       ├── console_port_tests.js
 │   │   │       ├── bytevector_port_tests.js
 │   │   │       └── printer_tests.js
 │   │   │
@@ -363,12 +386,13 @@ of its own.
 │   │       ├── repl_tests.scm
 │   │       ├── cond_expand_tests.scm # cond-expand expression tests
 │   │       └── compliance/         # R7RS conformance tests
-│   │           ├── chibi_ui.html           # Browser UI for Chibi suite
-│   │           ├── chibi_runner_lib.js     # Chibi test runner library
+│   │           ├── compliance_suite.js     # Runs a suite, library interpreted or compiled
+│   │           ├── compliance_tests.js     # Both suites, both configurations, in npm test
+│   │           ├── compliance_cli.js       # Command-line runs (--compiled, file filters)
 │   │           ├── run_chibi_tests.js      # Node.js runner for Chibi
-│   │           ├── chapter_ui.html         # Browser UI for chapter tests
-│   │           ├── chapter_runner_lib.js   # Chapter test runner library
 │   │           ├── run_chapter_tests.js    # Node.js runner for chapters
+│   │           ├── chibi_ui.html           # Browser UI for Chibi suite (?compiled)
+│   │           ├── chapter_ui.html         # Browser UI for chapter tests (?compiled)
 │   │           ├── chapter_3.scm           # Basic concepts tests
 │   │           ├── chapter_4.scm           # Expressions tests
 │   │           ├── chapter_5.scm           # Program structure tests
@@ -376,15 +400,26 @@ of its own.
 │   │           └── chibi_revised/          # Chibi-based section tests
 │   │               └── sections/           # Individual section files
 │   │
+│   ├── fuzz/                       # Differential fuzzer: generated programs, both tiers
+│   │   ├── program_generator.scm       # Builds a program, and what to compile, from a seed
+│   │   ├── fuzz_harness.js             # Runs a program interpreted and compiled
+│   │   ├── differential_fuzz_tests.js  # 120 fixed seeds, in npm test
+│   │   └── run_fuzz.js                 # Longer runs from the command line
+│   │
 │   ├── functional/                 # Cross-cutting integration tests
 │   │   ├── core_tests.js
 │   │   ├── interop_tests.js
 │   │   ├── macro_tests.js
 │   │   ├── hygiene_tests.js
 │   │   ├── io_tests.js
+│   │   ├── cli_stdin_tests.js      # `node repl.js` programs reading piped input; the REPL unaffected
+│   │   ├── cli_stdout_tests.js     # What they write: when, in what order, and to which stream
 │   │   ├── string_tests.js
+│   │   ├── string_interop_tests.js # Mutable strings at the JavaScript boundary, both tiers
 │   │   ├── vector_tests.js
 │   │   ├── char_tests.js
+│   │   ├── tiering_tests.js        # When the tier compiles a program's procedures, and what it leaves
+│   │   ├── capture_policy_tests.js # Captures compiled; re-entered procedures switched back to closures
 │   │   └── ...
 │   │
 │   └── integration/                # Library system tests
@@ -397,6 +432,7 @@ of its own.
 │   ├── hygeine.md                  # Macro hygiene notes
 │   ├── macro_debugging.md          # Macro troubleshooting guide
 │   ├── architecture.md             # High-level architecture
+│   ├── corpus_decline_results.md   # Why the compiler tier declines procedures in real R7RS code
 │   └── REFERENCES.md               # Academic references
 │
 └── web/

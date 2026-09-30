@@ -10,7 +10,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import { createInterpreter } from './src/core/interpreter/index.js';
-import { setFileResolver, loadLibrary, loadLibrarySync, parseImportSet, applyImports, parseDefineLibrary, evaluateLibraryDefinition } from './src/core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, loadLibrary, loadLibrarySync, parseImportSet, applyImports, parseDefineLibrary, evaluateLibraryDefinition } from './src/core/interpreter/library_loader.js';
+import { libraryNameToKey } from './src/core/interpreter/library_registry.js';
+import { installLibraryTable } from './src/compiler/prebuilt.js';
+import { attachTier } from './src/compiler/tiering.js';
+import prebuiltLibraries from './src/packaging/compiled_libraries.js';
 import { analyze } from './src/core/interpreter/analyzer.js';
 import { parse } from './src/core/interpreter/reader.js';
 import { Cons, toArray, cdr, car } from './src/core/interpreter/cons.js';
@@ -28,8 +32,49 @@ import readline from 'readline';
 
 // --- Interpreter Setup ---
 
+/**
+ * The directories the shipped libraries' files are read from.
+ * @type {Array<string>}
+ */
+const LIBRARY_DIRS = [path.join(__dirname, 'src/core/scheme'), path.join(__dirname, 'src/extras/scheme')];
+
+/**
+ * One of a shipped library's files, as loaded from disk, for checking a
+ * prebuilt table against what was actually loaded.
+ * @param {string} file - The file's name, as its library's table lists it.
+ * @returns {string|undefined} Its source, or undefined if there is none.
+ */
+function shippedSource(file) {
+    for (const dir of LIBRARY_DIRS) {
+        const p = path.join(dir, file);
+        if (fs.existsSync(p)) return fs.readFileSync(p, 'utf8');
+    }
+    return undefined;
+}
+
+/**
+ * Whether a library has a prebuilt table, installed over it as it loads, so
+ * that the compiler tier leaves its procedures alone.
+ * @param {Array<string>} name - The library's name.
+ * @returns {boolean}
+ */
+function isPrebuilt(name) {
+    return prebuiltLibraries[libraryNameToKey(name)] !== undefined;
+}
+
+/**
+ * Creates the interpreter and loads the standard libraries, their prebuilt
+ * compiled code installed as each loads, as a browser page installs it.
+ * @returns {Promise<{interpreter: Object, env: Object}>}
+ */
 async function bootstrapInterpreter() {
     const { interpreter, env } = createInterpreter();
+
+    // A table whose sources no longer match the files, as after editing one
+    // without rebuilding, leaves that library interpreted.
+    setLibraryLoadHook((libraryName, libraryEnv) => {
+        if (libraryEnv) installLibraryTable(prebuiltLibraries, libraryName, libraryEnv, shippedSource);
+    });
 
     // Setup synchronous file resolver for Node.js
     setFileResolver((libraryName) => {
@@ -94,7 +139,7 @@ async function bootstrapInterpreter() {
         let result;
         for (const exp of exprs) {
             const ast = analyze(exp);
-            result = interpreter.run(ast, env);
+            result = interpreter.runTopLevel(ast, env);
         }
         return result;
     });
@@ -134,7 +179,13 @@ async function bootstrapInterpreter() {
 // --- REPL Logic ---
 
 async function startRepl() {
+    // `--no-compile` leaves the program's own code interpreted; the standard
+    // library is compiled either way, as it ships.
+    const args = process.argv.slice(2).filter((arg) => arg !== '--no-compile');
+    const compile = !process.argv.slice(2).includes('--no-compile');
+
     const { interpreter, env } = await bootstrapInterpreter();
+    if (compile) attachTier(interpreter, env, { isPrebuilt });
 
     // Initialize Debugger
     const runtime = new SchemeDebugRuntime();
@@ -193,27 +244,44 @@ async function startRepl() {
 
 
 
-    // Check command line args
-    const args = process.argv.slice(2);
-
     if (args.length > 0) {
+        // A program's current ports are the process's standard input, output
+        // and error, so it can stand in a pipeline. What it leaves in standard
+        // output is written as the process exits, however it exits. The
+        // interactive REPL below keeps the console ports: standard input is
+        // where its own input comes from, through Node's readline.
+        env.lookup('current-input-port')(env.lookup('standard-input-port')());
+        env.lookup('current-output-port')(env.lookup('standard-output-port')());
+        env.lookup('current-error-port')(env.lookup('standard-error-port')());
+        const write = env.lookup('write');
+        const display = env.lookup('display');
+        const newline = env.lookup('newline');
+        const errorPort = env.lookup('current-error-port')();
+
         // Handle -e "expression"
         if (args[0] === '-e') {
             const code = args[1];
             if (!code) {
-                console.error("Error: -e requires an argument");
+                display("Error: -e requires an argument", errorPort);
+                newline(errorPort);
                 process.exit(1);
             }
             try {
                 const sexps = parse(code);
                 let result;
                 for (const sexp of sexps) {
-                    result = interpreter.run(analyze(sexp), env);
+                    result = interpreter.runTopLevel(analyze(sexp), env, { jsAutoConvert: 'raw' });
                 }
-                console.log(prettyPrint(result));
+                // The last result as `write` writes it, after what the program
+                // wrote, unless it is unspecified.
+                if (result !== undefined) {
+                    write(result);
+                    newline();
+                }
                 process.exit(0);
             } catch (e) {
-                console.error(e.message);
+                display(e.message, errorPort);
+                newline(errorPort);
                 process.exit(1);
             }
         }
@@ -226,11 +294,22 @@ async function startRepl() {
                 loadProc(filePath);
                 process.exit(0);
             } catch (e) {
-                console.error(`Error executing ${filePath}:`, e.message);
+                display(`Error executing ${filePath}: ${e.message}`, errorPort);
+                newline(errorPort);
                 process.exit(1);
             }
         }
     }
+
+    /**
+     * Writes what an evaluation typed at the REPL displayed and did not end
+     * with a newline, so that it is seen with the evaluation's result rather
+     * than when something next ends a line.
+     */
+    const flushOutput = () => {
+        env.lookup('flush-output-port')();
+        env.lookup('flush-output-port')(env.lookup('current-error-port')());
+    };
 
     // Start Interactive REPL
     console.log('Welcome to Scheme-JS');
@@ -269,15 +348,17 @@ async function startRepl() {
                     // Check for Fast Mode (Debug Off)
                     if (runtime && !runtime.enabled) {
                         // FAST MODE: Synchronous execution for performance
-                        result = interpreter.run(analyze(sexp), env, [], undefined, { jsAutoConvert: 'raw' });
+                        result = interpreter.runTopLevel(analyze(sexp), env, { jsAutoConvert: 'raw' });
                     } else {
                         // DEBUG MODE: Asynchronous execution for breakpoints/stepping
                         result = await interpreter.runAsync(analyze(sexp), env, { jsAutoConvert: 'raw' });
                     }
                 }
+                flushOutput();
                 callback(null, result);
 
             } catch (e) {
+                flushOutput();
                 if (isRecoverableError(e)) {
                     return callback(new repl.Recoverable(e));
                 }

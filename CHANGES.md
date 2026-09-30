@@ -7603,67 +7603,1215 @@ were taken.
   no longer a goal.
 - `docs/compiler_findings.md`: R76, R77.
 
+# Walkthrough: Errors raised inside compiled code
+
+Task 28 in `docs/compiler_plan.md`. Two ways an error from compiled code arrived with JavaScript's
+message instead of Scheme's.
+
+## A raise compiled code could not perform
+
+`raise`, `raise-continuable` and `error` do not raise: they return a pending raise -- a `TailCall`
+whose function is a `RaiseNode` -- for their caller to perform, and the interpreter performs it by
+running the node. Compiled code continues a pending call by calling its function, so where it
+wanted the value it called the node with `null` arguments: `(length 5)` under the compiled standard
+library, which every browser page installs, said "args is not iterable", and a `guard` received that
+message with no irritants instead of the error `error` made.
+
+Compiled code now throws the raise to the nearest interpreter run, which performs it from where it
+called compiled code:
+
+- **`RaiseNode` has a raw entry**, as an interpreted closure does, so compiled code's existing
+  path for a pending call reaches it. A raw entry is called without a receiver, so a pending raise
+  now carries its exception and whether it is continuable as the call's arguments; the interpreter
+  ignores them.
+- **The raw entry throws** what a raise nobody handles throws -- the error itself, or an error
+  describing a raised value that is not one -- and records it, so `run` and `runAsync` recognise it
+  and run a `RaiseNode` of the original value in its place.
+- **Why that is the interpreter's raise and not an approximation:** compiled frames never hold a
+  handler or a wind, since a procedure naming `with-exception-handler`, `guard`, `parameterize` or
+  `dynamic-wind` is not compiled. Everything in force where compiled code raises is on the frame
+  stack of the run beneath it, so the `RaiseNode` run there finds the same handler, runs the same
+  after-thunks, and pauses the debugger on an uncaught exception as it would have.
+- A JavaScript caller with no run beneath it receives the same thing it would have from an
+  interpreted procedure.
+- **`raise-continuable` is refused**, with an explanation: a handler returning would deliver its
+  value to the compiled frame that raised, which the throw has left. Compiled code only reaches one
+  when handed `raise-continuable` as a value.
+
+## Calling a non-procedure
+
+A call whose value is wanted reads the callee's raw entry and calls one or the other; for anything
+not a function JavaScript said "$t0 is not a function", and for the empty list, which is `null`,
+failed reading the raw entry. The emitter now tests the callee first, as a statement of its own --
+`if (typeof $t0 !== 'function') R.notAProcedure($t0);` -- which reports it as the interpreter does,
+"application: not a procedure", and covers `null` too. `R.callBinding`, the slow path of an inlined
+primitive, checks its binding the same way. Task 26 had already fixed the tail call.
+
+The test runs on every call whose value is wanted, so its form was measured, four ways:
+
+- **Written into the call expression**, testing only a callee with no raw entry and reading the
+  entry with `?.`: `divrec` 9% slower in the suite, 8% in isolation, most of it the `?.`.
+- **Giving compiled procedures and primitives a raw entry pointing to themselves**, so that the test
+  would sit in a branch only JavaScript functions and non-procedures take: no help.
+- **A `try` around the raw read and the call**, reporting a non-procedure only when the call threw:
+  nothing on calls between compiled procedures, but 15% on a call into an interpreted procedure --
+  the call the compiled library makes to a program's callbacks, the browser's common case -- which
+  made `quicksort`, whose comparison procedure is interpreted, 9% slower. An error also paid about
+  140 ns for each compiled frame it passed through, caught and rethrown.
+- **A statement ahead of the call**, shipped: nothing measurable on calls into interpreted
+  procedures, 2-4.5% on the programs made of calls between compiled procedures.
+
+## Measured
+
+The canonical suite, compiled, against the task 27 tree, alternated five times on the programs made
+of calls: `fibfp` and `diviter` 0.96x, `ack` 0.96-0.97x, `fib` 0.97-0.98x, `divrec` and `dynamic`
+0.97-0.99x, `tak` 0.99x; `quicksort` and `maze` 1.00x; across the whole suite no class moved beyond
+noise but `call`. The interpreter tier did not change. `benchmarks/run_codegen.js`'s `recursion` group,
+per non-tail call chain: 10 levels deep 128 -> 134 ns, 100 levels 1.69 -> 1.72 us, `fib` 10 up 1.5%.
+
+The raise costs nothing until something raises. Generated code is 5.5% larger for the libraries and 8%
+for the compiler (4.7% and 8.7% gzipped), nearly all of it the test at each call site, in both forms;
+the report is called through a constant the procedure declares, `$notProc`, to keep the line short.
+
+Found on the way: breaking on an uncaught exception does not fire for an error a primitive throws, in
+either tier -- only `raise` and `error` run the `RaiseNode` the debugger checks in; and a control
+global handed to a compiled procedure as a value, `(map call/cc ...)` or `eval`, still fails with
+JavaScript's message. Both are noted where they belong in the plan.
+
+## Tests
+
+- `tests/functional/compiled_error_tests.js`, new: the compiled standard library's `length`,
+  `assv` and `member` raise what the interpreted library raises, uncaught and to a `guard`, including
+  from compiled `map` through an interpreted procedure; a compiled procedure called from JavaScript
+  throws the error `error` made, and a raise of a symbol says what the interpreter says; the debugger
+  pauses on an uncaught error raised in compiled code, with that error.
+- Differential cases: an error beneath a non-tail call caught by `guard`, by a handler escaping
+  through a continuation, and through `dynamic-wind`, whose after-thunk runs; a program continuing
+  after one; `raise` and `error` handed to a compiled procedure; a non-procedure call caught. A new
+  section compares uncaught messages between tiers, each case also asserting that the procedures that
+  raise compiled: an error one and two calls down, calls to an integer, the empty list and a string,
+  a raise of a symbol, a tail call to a non-procedure, an inlined primitive rebound to one.
+  `raise-continuable` handed to compiled code is asserted to be refused with an explanation.
+- Scheme tests in `tests/compiler/emit_tests.scm`: the call site's test, in both forms, ahead of the
+  raw read, and the constant it reports through.
+- Mutations, each run against the tests above: no raw entry on `RaiseNode`, or a pending raise
+  without its arguments, fails 23; `run` not performing a compiled raise fails the raise of a symbol
+  handed to compiled code; `runAsync` not performing it fails the debugger's pause; the raise thrown
+  unrecorded fails 3; `R.callBinding` not checking fails the rebound primitive; a continuable raise
+  thrown like any other fails its refusal -- which first crashed the differential run instead of
+  failing an assertion, and now fails it; the emitter without the test, rebuilt, fails 4.
+
+3,534 tests pass in Node and 3,429 in the browser. In the browser bundle on a fresh page the compiled
+`length`, `assv`, `member` and `map` raise the interpreter's errors, to a `guard` too.
+
+# Walkthrough: The conformance suites inside `npm test`, in both library configurations
+
+Task 29 in `docs/compiler_plan.md`. The R7RS chapter tests (219) and Chibi's R7RS tests (982) had
+their own runners and ran only when someone remembered, always with the standard library
+interpreted. Every browser page installs it compiled, from the prebuilt tables, so conformance had
+never been checked in the configuration users run.
+
+## What changed
+
+- **One runner, `tests/core/scheme/compliance/compliance_suite.js`**, replacing the two runner
+  libraries. It runs a suite synchronously inside `withPrivateLibraries`, with libraries resolved from
+  the bundled sources the browser loads from. The suites load libraries while they run --
+  `(environment '(scheme base))` -- and the old runners loaded into the registry the whole process
+  shares, harmless in a process of their own and not inside `npm test`, where a compiled
+  configuration's tables would have leaked into the interpreted one and into other tests. The shared
+  macro registry is given back as it was found; the Chibi suite starts from an empty one, as it
+  always has.
+- **The compiled configuration installs each shipped library's table as it loads**, with the same
+  hook as `src/packaging/scheme_entry.js`, and asserts that the standard library's table installed
+  procedures and that no table was stale. A stale table installs nothing, and the run would then test
+  the interpreter a second time and pass.
+- **`compliance_tests.js`** runs both suites in both configurations inside `npm test`, in Node and the
+  browser, labelling every line with its configuration.
+- The command-line runners keep their names and take `--compiled` and file filters
+  (`compliance_cli.js`); the UI pages take `?compiled`. The old runners' `SCHEME_AOT_STDLIB=1` path,
+  which compiled the library at load with the compiler rather than installing the prebuilt tables,
+  is gone from them.
+
+## What it found
+
+- **Everything passes in both configurations**, in Node and the browser: the compiled standard
+  library is conformant as far as these suites go.
+- **In the browser two tests failed, in both configurations**: `(get-environment-variable "PATH")`
+  and `(file-exists? ".")`. A browser has no environment variables and no file system, and answers
+  `#f`, which R7RS allows. They are Node-only now, through `cond-expand`, and report a skip in the
+  browser.
+- **Neither suite tests `call-with-port`**, which the plan had guessed they would catch (R79).
+
+## Tests
+
+- Deliberate breakage, each run against the suites: a hook that installs nothing fails the
+  installation check; tables checked against other sources fail it and the staleness check; compiled
+  `vector-ref` reading the wrong element fails a `vector-for-each` test in the compiled configuration
+  only, which is the case this task exists for; not giving the macro registry back fails the check
+  that it is unchanged.
+- 5,941 tests pass in Node (2,407 of them the suites and their checks), 5,832 in the browser, where
+  70 are skipped. `npm test` takes 49 s, from 42.
+
+# Walkthrough: Unwinding through nested interpreters
+
+Task 30 in `docs/compiler_plan.md`. An interpreted procedure that compiled code calls runs in a nested
+run of the interpreter on the JavaScript stack. The capture protocol and the move of deep compiled
+frames to the heap both unwound only to the innermost run, so `call/cc` refused a capture crossing
+more than one boundary -- reachable with no user code compiled, an interpreted procedure given to the
+compiled `map` inside one given to the compiled `for-each` (R76) -- and recursion alternating between
+compiled and interpreted code overflowed at about 575 levels.
+
+## The mechanism
+
+- **A run compiled code called passes an unwind on** (`Interpreter.unwindsOut`, set by `run` from
+  the sentinel it starts on). Receiving the unwind sentinel from compiled code it called, it adds its
+  own frames -- those above its sentinel -- and returns the sentinel itself; its compiled caller saves
+  itself as any compiled frame does. The first run that cannot pass the unwind on stacks everything,
+  outermost first: compiled frames, the frames of the run they called, the compiled frames that run
+  called, and so on inwards. `call/cc` looks only at the sentinel of its own run.
+- **Only when the compiled caller can pass it on in turn**: the sentinel of a raw call is marked as
+  crossable only if `flushable` was true when compiled code made the call, meaning no JavaScript
+  caller sits beneath. Otherwise the run finishes the unwind, and a continuation leaves out the
+  JavaScript caller and whatever is beneath it, as the interpreter's continuations always have.
+- **Stack room carries on across nested runs.** A run that passes unwinds on continues the room of
+  the compiled code that called it, less `NESTED_RUN_ROOM` (256 slots) for its own JavaScript frames,
+  instead of starting a segment of its own. So a move starts before the stack runs out, passes
+  through the nested runs, and leaves the JavaScript stack empty.
+- **The redefined-primitive refusal is kept.** `R.callBinding` stops frames moving, which alone would
+  have made a capture beneath it complete with the expansion's frame left out; a second bit beside
+  `flushable`, `refusesCapture`, rides on the sentinel of the run it starts and makes `call/cc`
+  refuse. Saved and restored with `flushable` as one number.
+
+## What was wrong on the way (R80)
+
+- **A capture beneath a JavaScript primitive calling back, with compiled code beneath, gave a wrong
+  answer**, not a refusal: the unwind passed through the primitive as its return value, and the run
+  beneath completed the capture without the frames between. `(via (lambda () (+ 100
+  (with-input-from-file ... (lambda () (call/cc ...))))))`, with `via` compiled, gave 11 for 111.
+  Now 111.
+- **A capture made by compiled code two boundaries down gave a wrong answer** too, with
+  `allowCaptures` only.
+- **Unwinding through nested runs made alternation faster.** Each nested run starts on a copy of its
+  parent's frame stack, which grows by a sentinel a level between moves, so alternation had been
+  quadratic in depth; moves reset it.
+- Found on the way, for task 47: JavaScript calling a compiled procedure gets a `BigInt` where an
+  interpreted one gives a number; and the file procedures call their procedure through its
+  JavaScript entry, so `(call-with-input-file f (lambda (p) 10))` is `10.0`.
+
+## Measured
+
+- Alternation 100,000 levels deep: 169 ms, against 135 ms with everything interpreted; it overflowed
+  at about 575. Six shapes of alternation -- tail and non-tail calls, `apply`, a large compiled frame,
+  a `let` in the interpreted procedure, a JavaScript callback in the chain -- all reach 100,000.
+- Against the task-29 tree: alternation 10 and 100 deep unchanged; 400 deep 596 -> 482 us; a tree walk
+  400 deep through compiled `map` 1.9 -> 1.25 ms.
+- The canonical suite, alternated three times compiled and twice interpreted: no class moved in
+  either tier (compiled 0.96-1.01x, `string` 0.96x re-measured at 0.98-1.05x; interpreted
+  0.98-1.03x).
+
+## Tests
+
+- Differential cases: captures across two and three boundaries, each resumed twice, with work
+  waiting above the capture; an escape across two boundaries; the program the refusal used to be
+  asserted on, now answered; a capture made by compiled code two boundaries down; a capture beneath
+  a primitive calling back with compiled code beneath; compiled code a primitive called back, and
+  compiled code JavaScript called with work left, each raw-calling a procedure that captures.
+- `deep_recursion_tests.js`: alternating recursion 100,000 deep, an interpreted tree walk 20,000
+  deep through the compiled `map`, a capture 30,000 levels down in alternating recursion resumed
+  twice, and the frame stack at the bottom of alternation 100,000 deep bounded by the distance
+  between moves.
+- Mutations, each run against the tests: no run passing an unwind on fails 9; a nested run taking no
+  room, or starting a segment of its own, fails 5; a run adding no frames fails 3; the innermost
+  run's frames left out fails 1; a raw call crossable whatever its caller fails 2, but only after the
+  JavaScript caller in its test was given work the sentinel could not survive -- with `js-invoke`,
+  which has none, and then with a caller that wrapped the result in an array, which the interpreter
+  happened to finish correctly anyway; `call/cc` ignoring the redefined-primitive mark fails
+  `primitive_binding_tests.js`.
+- 5,963 tests pass in Node and 5,854 in the browser. In the browser bundle, a capture through the
+  compiled `map` inside the compiled `map` resumes correctly and a tree walk 20,000 deep answers.
+
+# Walkthrough: A differential fuzzer across the two tiers
+
+Task 31 in `docs/compiler_plan.md`. The tier's serious bugs had been found by whole programs giving
+wrong answers, not by unit tests, because unit tests are written for the shapes their author had in
+mind. This generalises the whole-program check.
+
+## The fuzzer
+
+- **`tests/fuzz/program_generator.scm`**, in Scheme: from a seed, a program of two to six procedures
+  and a driver, with types tracked -- integers, lists, booleans, procedures from integers to
+  integers -- so that most programs run to an answer and errors are raised on purpose. It generates
+  loops (named `let`, `do`), closures, `set!` on locals and globals, escapes through `call/cc`, a
+  continuation captured at a random site the first time it is reached, `guard` over `raise`, `error`
+  and primitives' own errors, `with-exception-handler` escaping through a continuation,
+  `dynamic-wind` with a trail, `call-with-values`, `case`, internal definitions, vectors, and
+  `map`, `for-each`, `vector-map` and `apply` with procedures of its own. A quarter of the programs
+  add recursion 3,000 to 25,000 deep through `hop`, which calls what it is given, so it alternates
+  between the tiers, and captures at the bottom of it or walks a deep tree through `map`; a tenth
+  end in an error nothing catches. Every program terminates and means the same every time: loops
+  count down from literals, a procedure recurs only on a smaller argument and calls only those
+  before it, and the driver re-enters the saved continuation twice at most. It also picks which
+  procedures to compile, each with a chance of 60%.
+- **`fuzz_harness.js`** runs each program with everything interpreted, and with the standard library
+  compiled as the browser installs it and the chosen procedures compiled, captures allowed; the
+  answers -- the driver's records, the trail and the globals, or the error -- must agree.
+- **`differential_fuzz_tests.js`** runs seeds 1 to 120 in `npm test`, in 3.6 s, and checks that
+  enough of them re-enter a continuation, recurse deep, end in an error and compile at all, so that
+  a generator that quietly stopped doing one would fail. **`run_fuzz.js`** runs any range of seeds
+  and prints each disagreement with its seed and program.
+
+## Does it find bugs?
+
+Five were reintroduced, each run against the first 300 programs: a nested run passing no frames on
+(found by 13 programs, the first seed 27), the capturing run's frames dropped (10, seed 23), the
+frames an unwind collects stacked the wrong way round (49, seed 3), assigned locals never boxed --
+R49's bug -- (15, seed 3), and a spill saving only what its own block reads (13, seed 8). The last
+two were compiler mutations, which took effect by regenerating only `compiler_sources.js`: the
+prebuilt compiled compiler goes stale and the mutated source runs interpreted, so the mutation cannot
+miscompile the compiler that is testing it. Two more mutations survived, and turned out harmless:
+a resumed frame sharing its slots, since assigned locals are boxed and the resumable form only reads
+the frame; and moved frames pushed rather than linked, which costs depth, not answers.
+
+## What it found (R81)
+
+Its first long run, 5,000 programs, found six the tiers answered differently, all one cause:
+compiled code evaluated a call's operands in an order of its own. A call's value is a statement
+and a temporary, but a global read, an assigned local's read or a sequence ending in one was an
+expression written into the call that used it, and so evaluated after every operand to its right;
+and the procedure was read after its arguments. `(list g (f))`, with `f` assigning `g`, was `(5 10)`
+compiled and `(0 10)` interpreted. R7RS leaves the order unspecified, but the interpreter is the
+reference semantics. `emit-operands!` now puts such an operand in a temporary when a later operand
+could have an effect, and reads the procedure first. The suite did not move, alternated three times
+compiled (classes 0.99-1.05x); the generated code is 0.9% larger for the libraries and 3.8% for the
+compiler. After the fix, 10,000 programs on fresh seeds, 0 disagreements.
+
+## Tests
+
+- Scheme tests of the operand order in `tests/compiler/emit_tests.scm`, and four differential cases
+  -- a global read before an operand that assigns it, the same for an assigned local, the procedure
+  read before an argument that assigns its name, a loop entered with operands in order -- each of
+  which fails on the task-30 tree.
+- 6,094 tests pass in Node and 5,985 in the browser.
+
+# Walkthrough: Debugging compiled code
+
+Task 33 in `docs/compiler_plan.md`: write the design for debugging compiled code, ship a first policy,
+and deal with the pause a nested run ignored.
+
+## The problem
+
+The debugger pauses only between the interpreter's steps, in `runAsync`. Compiled code takes none, so
+a breakpoint inside it could not fire -- the REPL said so. And a breakpoint in an interpreted
+procedure that compiled code called was worse: the procedure runs in a synchronous nested run of the
+interpreter, which cannot wait, so the breakpoint was reached, `onPause` fired, and the program ran
+on. In the browser, whose standard library is compiled, a breakpoint in a procedure given to `map`
+was reached on every element and stopped the program only once `map` returned. A test of that
+session showed `pause 0, pause 0, pause 1, pause 1, ...` with no resume between.
+
+## The policy
+
+The plan's first policy was to interpret the program's own code while it was being debugged and leave
+the library compiled. That keeps every nested run the compiled library makes, so it could not fix the
+case above (R82). Instead, while a program is being debugged -- a breakpoint set, a step in progress,
+or paused -- every procedure compiled over an interpreted closure runs as that closure:
+
+- **The closures are kept.** `installPrebuilt` and `compileEnvironment` already built a map from each
+  interpreted closure to the compiled procedure installed over it; `recordCompiledOver`, in
+  `library_registry.js`, keeps it.
+- **The switch.** `interpretCompiledOver` substitutes each pair through the frames that hold it, in
+  the program's global environment and in every library loaded in the current registry, so the cells
+  compiled code reads globals through follow. Back again once the program is not being debugged; a
+  registry's libraries only once none of its programs is.
+- **When.** `SchemeDebugRuntime.updateInterpretation` on setting or removing a breakpoint, stepping,
+  pausing -- at a breakpoint or on an exception -- resuming, enabling and disabling, and at the start
+  of each asynchronous run, which catches a library imported during the session. An enabled runtime
+  with nothing set changes nothing, so the CLI REPL, which enables one at start-up, still runs
+  compiled code.
+
+The callback session now pauses and resumes exactly as it does with the interpreted library;
+breakpoints inside the library fire; stepping, `:bt` and locals see interpreted code throughout.
+Code compiled from its definition with `tryCompileDefinition` has no closure to go back to, and
+`:break` still warns there. The design, with what it does not reach, is in `compiler_design.md`.
+
+## Tests
+
+- `compiled_breakpoint_tests.js`: the callback session with the compiled library against the same
+  session with the interpreted one; a breakpoint inside `map`'s own definition firing; `(scheme
+  core)`'s binding and the program's both switching and switching back, with libraries loaded through
+  the library system; a library imported during a session switched from the next run; a procedure
+  compiled over its closure getting no warning and running as the closure, compiled again when the
+  breakpoint goes, and switched at once when compiled during a session; paused on an error, running as
+  closures, and compiled again after. The warning tests now compile from the definition.
+- Mutations, each against those tests: the runtime never asking fails 7; libraries never switched
+  fails 1; never switched back fails 3; a run not asking fails 1; an install during a session staying
+  compiled fails 1; a pause not counting fails 1 -- after a test was added for it, and after the
+  exception pause, which calls the pause controller directly, was made to ask too.
+- 6,111 tests pass in Node and 6,002 in the browser.
+
+# Walkthrough: The compiled tier against Gambit, Racket and plain JavaScript
+
+Task 36 in `docs/compiler_plan.md`. Every figure the project had reported for the compiled tier was
+against its own interpreter.
+
+## What was measured
+
+`benchmarks/compare_r7rs.js` measured our interpreter against Gambit's interpreter and Racket CS. It
+now measures:
+
+- **both our tiers**: the interpreter, and the compiled tier as a user would run it -- the standard
+  library compiled and the program's definitions compiled (`--tiers`);
+- **Gambit compiled to JavaScript** (`gsc -target js -exe`, a standalone file Node runs): another
+  Scheme compiled to JavaScript on the same V8, using the explicit frame stack the stage 2a bake-off
+  rejected, and so the closest reference there is. Each program is built once and run at every
+  repetition count;
+- **Gambit compiled to C**, when a C toolchain is present -- not on this machine, whose Command Line
+  Tools are not installed; the check reads the developer directory rather than running `cc`, which
+  on macOS offers to install them;
+- **plain JavaScript**, for seven programs (`benchmarks/r7rs/plain_js_kernels.js`): what a
+  JavaScript programmer would write for `fib`, `tak`, `ack`, `fibfp`, `sum`, `sumfp` and `nqueens`,
+  with JavaScript numbers, reading the same input and printing the same result line.
+
+## What it found (R83)
+
+At the manifest's default sizes, the same for every implementation, our compiled time over theirs,
+per class: against Gambit compiled to JavaScript, call 0.89x, fixnum 1.10x, flonum 0.27x, string
+0.04x, vector 1.20x, list 2.04x, bignum 1.65x, continuation 2.59x; against Racket CS, from 2.2x
+(flonum) to 87x (bignum); against plain JavaScript, 2.5x on the call kernels, 2.6x on flonums, 6.3x on
+fixnums. The founding question was a 650x gap to plain JavaScript on `fib(30)`; on `fib` it is 2.9x.
+
+- `nboyer` and `sboyer` take 16 and 20 s compiled against the interpreter's 21 and 24, and are 40x and
+  53x behind Gambit -- most of the list class's gap, hidden inside the class mean until now. Added to
+  the profiling task with bignums.
+- `pi` and `chudnovsky` are no faster compiled, as known; `ctak` is slower compiled, its capturing
+  procedures being declined.
+- Gambit compiled to JavaScript failed on `quicksort` and `graphs`.
+
+The full table, and what each class shows, is in `docs/r7rs_benchmark_results.md`. Canonical sizes,
+which published results use, would take hours and are not yet run.
+
+# Walkthrough: Compiling top-level expressions
+
+Task 35 in `docs/compiler_plan.md`, done when task 42's first profile found what it was for.
+
+## Why it mattered now
+
+Task 36 found `nboyer` and `sboyer` barely faster compiled than interpreted -- 16 and 20 s against 21
+and 24 -- and 40-53x behind Gambit compiled to JavaScript, and put them to be profiled. The profile
+was nearly all interpreter: both programs define stub procedures and assign every real one from
+inside a single top-level `(let () ...)`, and the tier compiled only top-level procedure definitions.
+They had never run compiled code (R84).
+
+## What changed
+
+- **`tryCompileExpression`** compiles a top-level expression, or the value of a definition that is
+  not a procedure, as a thunk -- where it makes a procedure or loops, since straight-line code runs
+  once and compiling it costs more. A form that defines at top level through `begin` stays
+  interpreted: wrapped, its definitions would become internal ones.
+- **`runCompiledThunk`** calls the thunk from the interpreter, so that a capture or a move of frames
+  in it finishes where it should.
+- `compileProgram` and the benchmark harness use both; `compileProgram` also returns the last form's
+  value and how many expressions it compiled, and the differential tests now hand it the whole
+  program in order rather than compiling definitions first and running the rest themselves.
+
+## What it did
+
+Compiled, best of three alternated against the task 36 tree: `nboyer` 82x faster (16.2 to 0.20 s),
+`sboyer` 94x (19.1 to 0.20 s), `scheme` 7.9x, `lattice` 7.1x; the list class 2.76x; every other class
+0.99-1.04x. Against Gambit compiled to JavaScript the list class went from 2.04x slower to 0.60x --
+faster -- and against Racket CS from 20.8x to 7.4x. `quicksort`, which assigns its random number
+generator the same way, did not move: the generator is not its hot path.
+
+## What the fuzzer found with it
+
+Half the fuzzer's drivers are named `let`s now, compiled as expressions. Its next run, 3,000
+programs, found a wrong answer older than this task: a capture inside the receiver of another,
+then the outer continuation invoked from that receiver, inside `dynamic-wind`, ran the wind's
+before-thunk twice. The receiver resumed as a `CompiledFrame`, whose `step` ran compiled code without
+recording the interpreter's stack for code calling back in, as `continueApplication` does; the
+continuation's invocation started from a stale stack without the wind, and rewound into it.
+`CompiledFrame.step` records the stack now. 6,000 more programs on fresh seeds agree.
+
+## Tests
+
+- Differential cases: procedures assigned from a top-level `let`, as `nboyer` does; a definition
+  whose value is a closure; a top-level `do` loop; a top-level `begin` that defines, which stays at
+  top level; recursion 100,000 deep in a top-level expression; an error raised in one and caught;
+  and the fuzzer's `dynamic-wind` case, which fails on the task 36 tree.
+- Which forms compile: the `let` `nboyer` uses, a definition making a closure and a loop do; a call
+  that makes nothing and a `begin` that defines do not.
+- 6,124 tests pass in Node and 6,015 in the browser.
+
+# Walkthrough: `call-with-port`
+
+Task 46 in `docs/compiler_plan.md`. R7RS puts `call-with-port` in `(scheme base)`, and nothing
+defined it; neither conformance suite tests it (R79).
+
+- **Written in Scheme**, in a new `src/core/scheme/ports.scm` included by `(scheme core)` and
+  exported from `(scheme base)`: it checks its arguments, calls the procedure with the port, and on
+  an ordinary return closes the port and returns every value the procedure returned. A port the
+  procedure escapes from stays open, as R7RS asks -- it may be closed only when it provably will not
+  be used again, and an escape can be re-entered -- so it needs no `dynamic-wind`, and nothing in
+  JavaScript, which is what made the file procedures' own versions need care beneath compiled code.
+- **Tests**, `tests/core/scheme/port_tests.scm`: the value returned, the port closed, the port passed,
+  every value returned, the port left open on an escape, and both argument errors.
+
+## Found on the way (R85)
+
+The first version of the test read a character through `call-with-port` and failed: `read-char`
+returns a one-character string. The Chibi suite tests exactly that and passes, because its runner
+counts a test the Scheme comparison failed as passed when the values agree once converted to
+JavaScript, where a character and a one-character string are the same. Counting, three tests pass
+only that way: `read-char`, `(inexact 1)` against the literal `1`, and a numeric literal in section
+7.1. They are plan item 48: fix each or record it, then run the suites without the rescue.
+
+6,132 tests pass in Node.
+
+# Walkthrough: the decline policy measured on real R7RS code
+
+Task 37 in `docs/compiler_plan.md`, its first step. The repository's own Scheme could not say what
+the tier's decline policy costs real programs, since it avoids the control forms (1 of 541
+definitions declined for one), so the measurement ran on other people's code.
+
+## The corpus
+
+- **Recorded, not committed.** `benchmarks/corpus/manifest.json` names 61 sources: 7 SRFI reference
+  implementations (41, 64, 113, 130, 135, 146, 158), each a GitHub repository at a commit; 17
+  Snow-Fort packages chosen for variety -- parsers, backtracking, regular expressions, formatting,
+  functional data structures, test frameworks; and the 37 libraries they import that this
+  implementation does not provide, SRFIs 143 and 151 from their repositories and the rest from
+  Snow-Fort. `benchmarks/corpus/fetch.js` downloads exactly those into `benchmarks/corpus/downloads/`,
+  which git ignores, and checks each archive against the SHA-256 the Snow-Fort index gives -- which
+  signs the tar, not the gzip served, found when every check failed. SRFIs 35 and 48 have only
+  their specifications in their repositories, and SRFI 13 only a Scheme 48 module, so the libraries
+  needing them are reported as unmeasurable.
+- **`decline_reasons.js --corpus`** loads each library and puts the procedures it defines to the
+  policy the build applies to a library (`generateEnvironment`), and measures a program as it
+  measures the repository's files. It reports the reasons, which control form each control decline
+  ends at, and how often the source uses each form -- needed because `guard` expands into
+  `with-exception-handler` and `parameterize` into a procedure using `dynamic-wind`. `--reasons`
+  prints every declined procedure's path.
+
+## What it found (R86)
+
+Of 1,855 procedures in 62 libraries and programs, 78% compile, and of the 406 declined for a control
+form, 399 end at `call/cc`; the exception forms, `parameterize` and `dynamic-wind` decline five.
+Read site by site, the captures are escapes -- the continuation called once before the capture
+returns, to leave a search or fold early, often from a callback -- except in coroutine generators
+and Schelog. The capture default was justified on `btsearch`, which re-enters; the new
+`benchmarks/run_escapes.js` times escapes three ways, and compiling the captures is 1.5-3.9x faster
+than the default at every depth measured. Task 37 is reordered: the capture default and the
+reachability rule by shape first, an escape fast path next, the exception forms last. The full
+tables are in `docs/corpus_decline_results.md`.
+
+## Fixed on the way (R87)
+
+Bringing the corpus up found four bugs that both conformance suites pass over, each now tested:
+
+- **`rename` import sets** crashed on R7RS's syntax, `(rename set (from to) ...)`: the parser read
+  the pairs as a flat list. And nested import sets applied `only`, `except`, `rename` and `prefix`
+  in one fixed order, each against the library's own names, so `(only (prefix lib p:) p:car)`
+  imported nothing. `parseImportSet` now returns the filters as steps, innermost first, and
+  `applyImports` applies them in order; a spec with no steps imports everything, as the callers that
+  build one by hand expect.
+- **A line comment ending in CR LF or CR** swallowed the rest of the file: the comment loop watched
+  for LF, and the tokenizer steps over CR LF as one. SRFI 41's reference implementation read as
+  empty.
+- **`#u8(#x41)`** was rejected, and `#u8(65.5)` read as `#u8(65)`: bytevector elements went through
+  `parseInt`. They are read as numbers now, and must be exact integers from 0 to 255.
+- **`(scheme inexact)`** had no library definition, although its twelve procedures exist; R3 called
+  it a cleanup task in Stage 0, and the task was never written down.
+
+Not fixed, and in the plan: import filters do not reach macros or syntax keywords, so `(rapid
+match)` cannot load (55); the rest of the audit's missing identifiers and libraries (56); and dot
+notation reads SRFI 135's identifiers as property access (57). Mutable strings (49) are the
+commonest reason a corpus library does not load: `(srfi 14)` and the ten Chibi libraries built on
+it.
+
+## Tests
+
+- Import sets: `rename`'s pairs, and every order of nesting `only`, `except`, `prefix` and
+  `rename` (`tests/integration/library_loader_tests.js`); the same through real libraries, and
+  `(scheme inexact)`'s twelve exports (`tests/core/scheme/import_set_tests.scm`).
+- The reader: comments ending in CR LF and CR, and the line counted after them; bytevector elements
+  in every radix and with exactness prefixes, and inexact, out-of-range and non-numeric ones
+  rejected.
+- 6,160 tests pass in Node and 6,051 in the browser. (For `call-with-port`, above: 6,023 in the
+  browser.)
+
+# Walkthrough: compiling the program's own code
+
+Task 34 in `docs/compiler_plan.md`. The standard library was compiled; nothing a user wrote ever
+was -- not in the CLI, the browser, or either REPL. Now it is, by default, and stays debuggable.
+
+## The tier
+
+- **`src/compiler/tiering.js`**: a tier attached to a program's interpreter (`attachTier`,
+  `detachTier`). The interpreter never imports the compiler -- a browser page loads it after starting
+  -- and only reports to it: `DefineFrame` and `SetFrame` tell it of a closure bound at top level,
+  and the closure application in `continueApplication` of a waiting closure's count running out.
+  Each closure carries the count (`tierCountdown`, 0 unless the tier set it); the check costs 1-2% of
+  interpreted call time on `fib` and `tak`.
+- **The hybrid policy**, as decided: a procedure whose body loops or makes procedures is compiled
+  when bound, any other on its second call. `set!` counts as binding, since `nboyer` assigns every
+  procedure it has. A top-level expression is compiled only if it loops (`Interpreter.runTopLevel`,
+  which the entry points now run each form through), because one that only makes procedures would
+  leave them compiled with no closure for the debugger to go back to; the procedures it binds are
+  compiled when bound instead.
+- **No on-stack replacement**: both tiers look a top-level name up at every call, so a recursion
+  continues compiled from its next call. Tested with a JavaScript probe that looks at the binding
+  from inside the recursion, tail and non-tail, and 100,000 deep.
+- **Over the closure**: every procedure is compiled from its closure and the pair recorded, so it
+  runs as the closure while the program is debugged; a breakpoint inside a tiered procedure pauses.
+  Other names holding the closure, and other libraries' imported copies, get the compiled procedure
+  too; a closure whose name has been given to another is not installed under it.
+- **When not**: while the program is being debugged (a procedure due then is compiled on its first
+  call after), and while a library is loading, since the compiler's own definitions would register
+  with that library's macro scopes. A shipped library's procedures are left to its prebuilt table.
+  The compiler starts at the first procedure compiled, and attaching adopts procedures the program
+  already bound -- once it stopped taking the library's interpreted closures for the program's, CLI
+  start-up went back from 260 ms to 130 ms.
+
+## Where it is on
+
+- **The CLI** (`repl.js`) compiles by default; `--no-compile` turns it off. It now also installs the
+  standard library's prebuilt tables as each library loads, fingerprinted against the files on disk,
+  so an edited file leaves its library interpreted rather than installing stale code. `fib(30)` from
+  the CLI: 1,821 ms with `--no-compile`, 64 ms without.
+- **The browser bundle** fetches the compiler after start-up and attaches the tier when it arrives;
+  what a page defined before then is adopted. `setUserCodeCompilation(false)` turns it off.
+  `schemeEval` runs a script form by form, so the tier sees each. `fib(25)` in the published REPL:
+  166 ms interpreted, 16 ms tiered.
+- **Both REPLs and the development page**; the development page also installs prebuilt tables now,
+  checked against the files it fetched.
+
+## Found on the way (R88)
+
+- The browser REPL and the development page assigned the debug runtime to the interpreter instead
+  of attaching it, so the runtime never knew its interpreter and task 33's switch to closures never
+  happened in the browser. Both attach it now.
+- The REPL warned that a breakpoint "will not fire" in any compiled procedure until debugging was
+  on -- as the CLI starts -- including those compiled over closures, which do fire. It no longer does
+  for them.
+- The capture beneath a redefined inlined primitive stays refused, as a decision: it needs a
+  redefined primitive and a capture inside the redefinition beneath compiled code that inlined the
+  original. Its message, and `raise-continuable`'s from compiled code, now name the switch.
+
+## Tests
+
+- `tests/functional/tiering_tests.js`: when each kind of procedure is compiled; recursions switching
+  mid-run; `set!` bindings, aliases, redefinitions and declines; top-level expressions; libraries of
+  the program's own, and one with a prebuilt table; debugging, including a breakpoint firing in a
+  tiered procedure; attaching to a running program; detaching. Each mechanism was removed in turn to
+  check a test fails without it.
+- The bundle test: the compiler loads by itself, a page's procedure compiles, and the switch works.
+- The breakpoint warning before debugging is on.
+- The differential fuzzer runs a third configuration, the tier choosing: 4,000 fresh programs agree,
+  5,325 procedures compiled by the tier among them.
+- 6,222 tests pass in Node and 6,113 in the browser.
+
+# Walkthrough: mutable strings
+
+Task 49 in `docs/compiler_plan.md`. R7RS lets a program change any string a procedure newly
+allocates; here `string-set!` and `string-fill!` threw, and `string-copy!` did not exist.
+
+## The design, and why it is not R31's
+
+R31 proposed keeping a JavaScript string until the first `string-set!` and only then making it
+mutable. That cannot work: `string-set!` receives the string's value, not the places holding it,
+and a JavaScript string is a value with no identity -- every holder has its own copy, and two
+strings with the same characters are the same value (R89). So a string that may be changed is an
+object from the moment it is made. What was decided, on no user experience yet:
+
+- **Every newly allocated string is a `SchemeString`** (`src/core/primitives/string_class.js`):
+  `make-string`, `string`, `string-copy`, `string-append`, `substring`, `list->string`,
+  `vector->string`, `number->string`, the case conversions, `string-map`, `utf8->string`,
+  `get-output-string`, `read-string` and `read-line`. It holds a JavaScript string until first
+  changed, then an array of UTF-16 code units, joined again when next needed whole; positions stay
+  code units, so a character beyond the Basic Multilingual Plane takes two.
+- **Literals, `symbol->string`'s results and strings from JavaScript stay JavaScript strings**,
+  immutable, as R7RS allows for literals; changing one is an error that says to use `string-copy`.
+- **A string crosses into JavaScript as its characters**, as a number crosses as its value:
+  `schemeToJs`, `schemeToJsDeep`, `js-set!`, `js-obj`, and every value returned to JavaScript.
+  JavaScript never sees a `SchemeString`, and a string sent through JavaScript and back returns
+  as another string with the same characters -- task 59 is an explicit way round that.
+
+## What changed
+
+- **The string primitives** read their arguments' characters wherever they read a string,
+  return a `SchemeString` wherever R7RS says the result is newly allocated, and implement
+  `string-set!`, `string-fill!` and `string-copy!`, overlapping copies included.
+- **Everything that tested `typeof x === 'string'`** accepts both kinds: the type check, the
+  printers, error messages, the port and file primitives, the bytevector and vector conversions,
+  class and record names, the interop primitives, the state inspector.
+- **`equal?`** compares strings by characters; `eq?` and `eqv?` compare a newly made one by
+  identity, so `case` does not match one against a string datum (`Interoperability.md`).
+- **Hash tables** keyed by `string=?` key every string by its characters; `string-hash` and
+  `string-ci-hash` read characters.
+- **The compiler's JavaScript** reads the strings its Scheme makes -- generated source, names,
+  decline reasons -- as JavaScript strings.
+- **Compiled code calls a JavaScript function as the interpreter does.** It used to pass raw
+  Scheme values: a `BigInt` for an exact integer, and now a `SchemeString`. `callWithSchemeValues`
+  and `callForeign` in `src/core/interpreter/values.js` are the one place that decides: a raw entry
+  if there is one, else a Scheme procedure directly, else a JavaScript function with its arguments
+  converted and frame moves suspended. Compiled procedures and primitives are their own raw
+  entries, so the call site checks nothing more for them than before.
+
+## Measured
+
+- **The string class got faster**: `string` takes 0.58x the time interpreted and 0.55x compiled,
+  since `string-append` concatenates directly instead of through `Array.join`; `read1` is
+  unchanged. Other programs within noise.
+- **Call sites** (`run_codegen.js --only calls`, a new group, and `--only recursion`): a primitive,
+  a compiled procedure, and recursion within the baseline's own variation between runs; a call to
+  a JavaScript function from compiled code 8 ns to 42 ns, the conversion the interpreter always
+  made.
+- **The corpus** (`decline_reasons.js --corpus`): `(srfi 14)` and the Chibi libraries built on it
+  now load -- 2,235 definitions measured, 13 libraries unmeasured rather than 21 -- and 399 of 407
+  control declines still end at `call/cc`.
+
+## Tests
+
+- `tests/core/scheme/string_mutation_tests.scm`: a change seen through every reference; every
+  constructor's result mutable; literals, symbol names and out-of-range positions refused;
+  `string-fill!` and `string-copy!`, within one string both ways; a changed string through every
+  string operation, equality, `read` and the printers; identity; a code point beyond the Basic
+  Multilingual Plane; changed strings as `string=?`, `string-ci=?` and `equal?` table keys.
+- `tests/functional/string_interop_tests.js`: the boundary, from interpreted and compiled code,
+  direct and tail calls; `js-set!`, `js-obj`, `js-typeof`; a closure called from JavaScript; a
+  string from JavaScript refused and copied. Each conversion was removed in turn to check a test
+  fails without it.
+- Chibi's `string-set!`, `string-fill!` and `string-copy!` tests restored to the revised suite,
+  and the chapter 3 test that was commented out.
+- 6,324 tests pass in Node and 6,215 in the browser; 2,000 fresh fuzzer programs agree across the
+  three configurations.
+
+# Walkthrough: the capture default, measured on and off
+
+Task 37 in `docs/compiler_plan.md`, its first step. The tier declines a procedure that captures a
+continuation, and every procedure that can reach one, a default kept on `btsearch` alone.
+`benchmarks/run_compiled.js` and `benchmarks/run_r7rs.js` take `--captures`, which compiles them
+anyway, and all nine benchmark programs that capture were run both ways, twice (R90):
+
+| program | shape | the default | captures compiled |
+|---|---|---|---|
+| `quicksort` | escape | 160.8 ms | 7.5 ms (21x faster) |
+| `puzzle` | escape | 98.7 ms | 23.9 ms (4.1x) |
+| `maze` | escape | 2.9 ms | 0.77 ms (3.8x) |
+| `contfib` | | 26.5 ms | 9.1 ms (2.9x) |
+| `threads` | coroutines | 47 ms | 35 ms (1.35x) |
+| `scheme`, `dynamic` | | unchanged | unchanged |
+| `ctak` | a capture at every call | 162 ms | 182 ms (1.12x slower) |
+| `fibc` | a capture at every call | 62 ms | 111 ms (1.8x slower) |
+| `btsearch` | backtracking | 70 ms | 318 ms (4.5x slower) |
+
+The comments in `src/compiler/safety.js` that justified the default with the old figures now give
+these. Which way the default should go is left for a decision.
+
+# Walkthrough: the capture policy, decided as the program runs
+
+Task 37 in `docs/compiler_plan.md`, its first step completed. The tier declined every procedure
+that captured a continuation or reached one; measured, that was the slower choice on five of the
+nine programs that capture and the faster on three (R90). Decided: compile them all, and switch a
+procedure back as the program runs when compiling it does not pay.
+
+## Which signal
+
+Counting captures could not have worked. Instrumented, the winners and losers overlap: `contfib`, a
+2.9x win compiled, saves and resumes 32,836 frames in 20 ms, faster than any loser does. What
+separates them is re-entry. An escape saves a frame and resumes it once, and so does a frame moved
+to the heap to make room on the JavaScript stack; `btsearch`, which backtracks, resumes its frames
+81,204 times for 404 saves. Every winner resumes once per save.
+
+## What changed
+
+- **Captures compile by default** -- in the tier, `compileProgram`, `generateEnvironment` and so
+  the prebuilt tables, and the canonical harness. `declineCaptures` restores the old rule, and
+  `--decline-captures` on `run_compiled.js` and `run_r7rs.js` measures against it.
+- **Saves and resumes are counted per procedure** (`reify` and `noteResume` in
+  `src/core/interpreter/unwind.js`). A procedure whose frames are resumed at least four times as
+  often as saved, after a thousand resumes, is switched back to the interpreted closure it was
+  compiled from, for good (`switchBackToClosure` in `library_registry.js`): where it was installed,
+  in every library, and in programs being debugged; it is then no longer compiled over its closure,
+  so the debugger leaves it interpreted.
+- **`compileProgram` and the canonical harness compile over closures**: each procedure definition
+  runs as the interpreter runs it, then the closure is compiled and the pair recorded, as the tier
+  does -- which also lets the debugger switch them.
+
+## Measured
+
+| program | the old rule | now |
+|---|---|---|
+| `btsearch` | 69-71 ms | 69-72 ms: switched back, as fast as before |
+| `quicksort` | 156-175 ms | 7.4-7.9 ms |
+| `puzzle` | 96-99 ms | 24-25 ms |
+| `maze` | 2.8 ms | 0.75-0.78 ms |
+| `contfib` | 26 ms | 9 ms |
+| `threads` | 45-49 ms | 35 ms |
+| `fibc` | 62-64 ms | 110-113 ms |
+| `ctak` | 97-100 ms, 162-166 ms | 116 ms, 189-203 ms |
+
+`fibc` and `ctak` capture at every call and resume each frame once, which the count does not catch;
+the escape fast path, 37's next step, is for that shape.
+
+## Tests
+
+- `tests/functional/capture_policy_tests.js`: procedures that escape, or reach an escape, compiled;
+  an escape taken 5,000 times leaves them compiled; a backtracking search switched back mid-run,
+  answering the same, and staying interpreted after debugging switches everything back and forth; a
+  procedure no re-entered continuation holds staying compiled; recursion deep enough to move frames
+  to the heap, many times over, not taken for re-entry; `compileProgram` compiling over closures.
+  The switch, the ratio and the minimum were each broken in turn to check a test fails.
+- The compiler tests that asserted the old declines now assert the procedures are compiled, with
+  the same answers.
+- 6,339 tests pass in Node and 6,230 in the browser; 2,000 fresh fuzzer programs agree, with the
+  tier compiling 4,627 procedures among them against 2,726 under the old rule.
+
+# Walkthrough: the plan, reordered to move the system to Scheme
+
+A policy change and the plan reordering that follows from it. No code changed.
+
+The user asked that as much of the interpreter and compiler as can be be written in Scheme: for
+dogfooding, because a compiler is a good benchmark of itself, because a Scheme system should be able
+to host an effective and performant interpreter and compiler written in Scheme, and because the
+system should show Scheme at its best. Scheme and JavaScript call each other freely, so what stays
+JavaScript is the core runtime and the parts of libraries that need JavaScript features, not whatever
+happens to be called from JavaScript.
+
+## The audit behind it
+
+The branch adds about 6,850 lines of JavaScript to `src/` and 6,650 of Scheme. About a third of the
+JavaScript belongs in Scheme: the compiler's driver (`index.js`), the decline analysis (`safety.js`),
+the tier's policy (`tiering.js`), the capture policy's decision and the switch-back bookkeeping, most
+of the string library, and the five numeric comparisons, which were Scheme and were moved into
+`math.js` in Stage 1. About 8% -- `marshal.js` and most of `lowering.js` -- goes when the expander is
+Scheme. The rest is core runtime. The rule that new compiler code starts in Scheme, decided
+2026-09-23, had been kept for the compiler's passes and broken for the code around them, most
+recently in tasks 34, 49 and 37.
+
+## The plan
+
+- New tasks: the compiler's driver and the tier's policies in Scheme (50, absorbing 51); strings and
+  the other primitives above their JavaScript cores (61); debugging the system's own Scheme, a mode
+  the user asked for (62); the reader (63); the library system (64); the numeric tower's dispatch
+  (65); the printer (66); the debugger's logic (67); and the evaluator, last and gated on speed (68).
+- 45 absorbs 52: the new hygienic expander is written in Scheme rather than changed in JavaScript
+  and ported afterwards.
+- Ranked by, heaviest first: never extend JavaScript that is to become Scheme; correctness and
+  user-visible gaps keep their places; evidence before guesses; small ports first; the reader and
+  expander once the pattern is settled; the evaluator last. So 50 now precedes 37's next step, which
+  would otherwise have added to `tiering.js` and `safety.js`, and that step is to be written in Scheme.
+- `ROADMAP.md` gains the goal; the plan's *Decided* section records the policy and the audit.
+
+# Walkthrough: the compiler's driver and the tier's policies, in Scheme (task 50)
+
+The compiler's passes were Scheme; everything around them was JavaScript: which procedures to
+compile and each reason one is declined (`index.js`), the opt-in rule declining what a capture could
+unwind through (`safety.js`), which globals may be expanded inline (`codegen.js`), and when a
+program's own procedures are compiled and what is done with them (`tiering.js`, and the re-entry
+policy in `unwind.js`). All of that is Scheme now.
+
+## What changed
+
+- `src/compiler/driver.scm`: compiling a lambda, a definition, an expression, a closure, every
+  procedure of an environment, and a program, one form at a time. Outcomes are three records --
+  `generated`, `compiled`, `declined` -- composed step by step (`generate-lambda`, then
+  `instantiate-generated`); a program is run as a list of steps, one per form, and summarised
+  with `filter` and `count`. What a form contains (`makes-procedures-or-loops?`,
+  `contains-loop?`, `defines-at-top-level?`) is read from the tagged lists `ir.scm` lowers. Code
+  generation failures are caught with `guard`, in the one procedure the compiler then leaves
+  interpreted when it compiles itself.
+- `src/compiler/safety.scm`: the capture rule, as facts per procedure and a fixpoint over them.
+- `src/compiler/tier.scm`: the tier as a record; binding, a waiting closure falling due, compiling
+  and installing it, which top-level forms run compiled, and the re-entry policy.
+- `src/compiler/host.js`, the library `(scheme-js compiler host)`: what only the interpreter's
+  JavaScript has -- `new Function`, reading and rebinding environments, the lambda behind a closure,
+  the library registry's substitutions, running a form, weak tables.
+- `index.js` and `tiering.js` now only hand arguments across and read the records back, a record
+  being an object with a property per field. `safety.js` and `codegen.js` are gone; `lowering.js`
+  gives both one way in, `callCompiler`.
+- The runtime keeps the re-entry counts, where frames are saved and resumed, and asks the Scheme
+  policy only at the resume it names.
+
+## Measured
+
+- The build's prebuilt tables came out identical to the JavaScript driver's apart from the
+  analyzer's renaming counters, and the compiler compiles its new Scheme too, 204 procedures.
+- Asking the policy at every resume cost `ctak` 9% and `fibc` 5%: a procedure nested in another
+  has a resumable form for each closure made of it, so `ctak` asked about 95,412 forms, each resumed
+  once (R91). The policy now names the next resume to ask at, first at its minimum, and both are
+  back within noise of the JavaScript policy (`ctak` 202-214 ms against 200, `fibc` 114-118 against
+  113.5); `btsearch`, `contfib`, `threads` and the rest of `run_compiled.js` are unchanged.
+- The compiler now starts when the tier is attached, about 135 ms, since the tier's decisions are
+  Scheme. `node repl.js -e '(display 1)'` went from 0.14 s to 0.28 s; with `--no-compile` it is
+  0.14 s. A program that compiles anything paid this before, at its first compile: fib(30) from the
+  CLI takes 0.34-0.39 s against 0.32-0.33 s. Task 69 is to make the start itself fast.
+- The self-host benchmark is unchanged within noise.
+
+## Tests
+
+- `tests/compiler/driver_tests.scm`, 44 Scheme tests: what a form contains, what defines at top
+  level, the thunk an expression becomes, why a lowered procedure is declined, the source size
+  limit, the capture rule over hand-written facts, and the re-entry thresholds and when to ask.
+- Each tier decision was broken in turn -- loops compiled at binding, the second-call wait, the
+  ratio, switching back, deferring, which libraries the tier manages -- and each broke a test
+  except the last, which no test covered; `tiering_tests.js` now calls the prebuilt library's
+  procedure as often as would compile one of the tier's own.
+- 6,383 tests pass in Node and 6,274 in the browser; 2,000 fresh fuzzer programs agree, with the
+  tier compiling 3,955 procedures among them; the browser REPL compiles a looping definition.
+
+# Walkthrough: planning how JavaScript calls Scheme
+
+A plan change that came out of a question about the code. No code changed.
+
+The user asked why `lowering.js` calls the compiler's exports through `call` -- `settle(invoke(...))`
+-- rather than directly, as ordinary JavaScript calls any Scheme procedure. Measured on the last
+commit: calling `lower-lambda` directly gives the same answer as `call`, with the compiler compiled or
+interpreted, since a list crosses the boundary unconverted. What `call` works around is general: a
+compiled procedure is its own raw entry and has no JavaScript-facing one, so JavaScript calling it as
+a plain function gets compiled code's internal calling convention.
+
+## What was measured
+
+The same definitions, interpreted and then compiled, each called from JavaScript as a plain function:
+
+| | interpreted | compiled |
+|---|---|---|
+| `(define (five) 5)` | `5` | `5n` |
+| `(string-copy "ab")` | a string | a `SchemeString` |
+| `(values 1 2)` | `1` | a `Values` |
+| mutual tail recursion, 1,000,000 deep | `even` | a `TailCall` object |
+| non-tail recursion, 1,000,000 deep | `1000000` | a JavaScript stack overflow |
+| `(define (f x) (list x (+ x 1)))` given `1` | `(1 2)`, exact | `(1 2)`, inexact: the argument arrives unconverted |
+
+A page-style program -- callbacks made by a top-level procedure, which the tier compiles as soon as it
+is bound, handed to JavaScript and called there -- got a `TailCall` object from a 100,000-step mutual
+recursion, a `SchemeString` from `string-append`, and `(expt 2 100)` inexact. The browser attaches the
+tier by default.
+
+The tests pass because none crosses that boundary. Those that run compiled code from JavaScript go
+through the interpreter or `settle`; none calls a compiled procedure as a plain function; and the
+interop suites, which do call Scheme procedures that way, run without the tier. The raw entry was made
+in R32 for compiled code calling an interpreted closure, and nothing was made for the reverse.
+
+## The plan
+
+- New tasks: JavaScript calling Scheme procedures, tested with the tier attached (70); `call`'s
+  missing `suspendFlush`, if 70 confirms it (71); compiled procedures callable from JavaScript like
+  closures (72); the compiler's JavaScript-only entry points for tests removed, after which
+  `lower-lambda` can answer a record (73); the evaluator's hooks applied by the interpreter as Scheme
+  rather than called from a JavaScript `Tier` (74); one thin door into the compiler, with `call` and
+  `callCompiler` gone (75); the build steps and the compiler's harnesses as Scheme programs (76); and
+  compiled code without an interpreter beneath it (77).
+- 47 moves up to follow 72, the same contract seen from Scheme calling JavaScript, and gives 72 its
+  item on JavaScript calling a compiled procedure.
+- Decided by the user: 72's design -- a compiled procedure's plain call faces JavaScript and compiled
+  code calls its raw entry, with wrapping at the exits from Scheme as the fallback -- and 77 as a
+  goal ranked low, part of a possible optimization level that minimizes compiled code size, perhaps
+  with tree shaking. `ROADMAP.md` gains that goal, and its interoperability entry now says the bug
+  exists.
+
+# Walkthrough: reinforcing Scheme first
+
+A change to the rules and the tooling around them, from the user's observation that the agent keeps
+preferring JavaScript despite the stated preference for idiomatic Scheme. No code in `src/` changed.
+
+## Why the rules had not held
+
+The rule existed, and was broken anyway (on 2026-09-29, in tasks 34, 49 and 37). Four reasons were
+found:
+- The strongest statements were not in the rules file: the whole-system decision and the list of what
+  may stay JavaScript were only in `docs/compiler_plan.md`, and the preferences for idiomatic Scheme,
+  full SRFIs and Scheme tests only in the agent's private memory.
+- "In Scheme, if possible" is a judgement, made when a JavaScript file is already open and extending
+  it is easiest.
+- The rest of the file pulled towards JavaScript: the Testing section described only JavaScript tests,
+  and the rules sanctioned JavaScript driving the compiler through `lowering.js`.
+- Rules read at the start of a session fade over a long one.
+
+## What changed
+
+- `.agent/rules/rules.md` (which `AGENTS.md` and `CLAUDE.md` link to) opens with a *Scheme first*
+  section replacing the two scattered bullets: what may be JavaScript, as a list; naming the item
+  that requires any JavaScript function or logic added under `src/`; no new logic in the door into
+  the compiler; idiomatic Scheme; helpers as full SRFIs; Scheme tests for Scheme code; and the
+  JavaScript a task added, listed in its outcome. The Testing section now says how Scheme tests are
+  registered (`tests/test_manifest.js`).
+- A Claude Code hook, `.claude/hooks/scheme_first.sh`, run from the committed `.claude/settings.json`
+  before every edit or write. When the edit adds a function to a `.js` file under `src/`, it shows the
+  agent the rules' list, read from the rules file, and asks it to name the item that applies. It never
+  blocks. Shell rather than Scheme, since it runs before every edit and must work while the Scheme
+  implementation is half-changed. It counts four shapes of definition; comments and control
+  statements are ruled out, and a definition whose parameters span lines is missed. Tested by piping
+  eight synthetic edits through it and by a live write in the session that added it.
+- `scripts/language_balance.scm`, as `npm run audit:languages -- <base>`: the lines of Scheme and of
+  JavaScript added and removed under `src/` since a commit, uncommitted and untracked files included,
+  generated files left out, and each JavaScript file that grew. Written in Scheme; it runs git through
+  Node's `child_process` by interop, since the CLI does not connect standard input to
+  `(current-input-port)`. Checked against an independent count over commit 778d990 (Scheme +1,161
+  -9, JavaScript +475 -1,204) and with untracked probe files.
+- The plan's header points at the rules and the count.
+
+# Walkthrough: a CLI program reads standard input (2026-09-30)
+
+`printf 'a\nb\n' | node repl.js -e '(list (read-line) (read-line))'` printed `(#<eof> #<eof>)`, and
+a program file run as `node repl.js prog.scm` read nothing either: the current input port was an
+empty string port, so a Scheme program could not stand in a shell pipeline. R7RS leaves the initial
+current input port to the implementation, so this was a gap in the CLI rather than a conformance
+failure. Now a program the CLI runs, from a file or `-e`, has the process's standard input as its
+current input port, and prints `("a" "b")`. The interactive REPL keeps the empty port: its own input
+is standard input, read by Node's readline.
+
+## The design: blocking reads of descriptor 0, as they are needed
+
+The CLI runs a program synchronously, and a Scheme read returns its character as its value, so the
+port cannot wait for `process.stdin`'s data events: they arrive in callbacks the running program
+never returns to. It reads descriptor 0 with `fs.readSync` instead, which blocks until input
+arrives. It reads only when a read needs more than it holds, and takes whatever is there, up to
+64 KB, so a program answers each line of a pipe as it arrives and reads each line typed at a
+terminal as it is typed. Reading all of standard input when the program starts would have been
+simpler, and a program could then do nothing until its input ended -- no prompt-and-answer, no
+`tail -f` into it.
+
+- Bytes are decoded as UTF-8 with a streaming `TextDecoder`, which holds back a character a read cut
+  in two; invalid bytes become U+FFFD, as Node decodes a file.
+- Once anything touches `process.stdin` -- the debugger's prompt does -- Node makes descriptor 0
+  non-blocking, and a read with nothing there fails with EAGAIN. The port waits 10 ms on
+  `Atomics.wait` and tries again, rather than taking the error for the end or a failure.
+- `char-ready?` is `#t` when characters are read ahead, at the end, and always when standard input
+  is a regular file. From a pipe or a terminal with nothing read ahead, there is no way to ask
+  without a read that might wait, so it is `#f`, even if input has in fact arrived: R7RS's promise
+  is that `#t` means the next read will not wait, and that holds.
+- There is one standard input port, made when first asked for, since two ports each reading ahead
+  would each take input the other should have had. Closing it stops reads through it; descriptor 0
+  is never closed.
+
+`repl.js`, before running a file or `-e`, does one thing: it calls `current-input-port` with the
+port that `standard-input-port` answers. `current-input-port` given a port makes it the current
+input port, as this implementation's `make-parameter` objects take a value when called with one; it
+checks that the value is an input port.
+
+## `read-char` and `peek-char` return characters
+
+The task asked that `read-char` and `peek-char` work, and they did not, on any port: they returned
+one-character JavaScript strings, so `(char? (read-char p))` was `#f` and `(char->integer
+(read-char p))` an error. `ROADMAP.md` listed it as a known deviation, and the Chibi suite's test of
+it passed only because its runner rescues a failure whose values agree once converted to
+JavaScript (R85). Now the two primitives make a `Char` of what the port returns.
+
+A port's `readChar` and `peekChar` also returned one UTF-16 code unit, half of a character outside
+the Basic Multilingual Plane. They now return a whole character, one or two code units, and
+`read-string` counts `k` in characters, so `(read-string 1 p)` is `(string (read-char p))`. String
+positions stay code units, as task 49, mutable strings, decided: `(string-length (read-string 1 p))` is 2 for
+😀. The file input port, which duplicated the string input port method for method over its file's
+contents, is now a string input port over them, so it got the same fix and is 44 lines shorter.
+
+## The JavaScript added, and why
+
+Counted with `npm run audit:languages -- 52ebb71`: 247 lines of JavaScript added and 64 removed
+under `src/`, no Scheme.
+
+- `src/core/primitives/io/stdin_port.js`, 183 lines, most of them comments: host input and output,
+  the port's core over descriptor 0. It reuses the string input port for everything but keeping its
+  string filled.
+- `current-input-port` taking a port, and `standard-input-port`, in `io/primitives.js`: the current
+  ports are JavaScript variables that the JavaScript read and write primitives default to, so
+  setting one is JavaScript for now. Making them Scheme parameter objects is task 78.
+- `charRead` in `io/primitives.js` and `passCharacters` in `string_port.js`: fixing JavaScript in
+  place.
+
+## Tests
+
+- `tests/core/scheme/port_tests.scm`, 13 Scheme tests: `read-char` and `peek-char` return characters,
+  whole ones outside the BMP; `read-string` counts characters; `current-input-port` given a port, and
+  given what is not an input port. They run in the browser too.
+- `tests/core/primitives/io/stdin_port_tests.js`, 22 JavaScript tests (Node only) over files read one
+  byte at a time, so that every multi-byte character and every `\r\n` is split across two reads, plus
+  a non-blocking FIFO that another process writes to once the port is waiting.
+- `tests/functional/cli_stdin_tests.js`, 14 tests (Node only), each running `node repl.js` with input
+  piped in: `-e` and a program file, interpreted and compiled; each of `read-line`, `read-char`,
+  `peek-char`, `read`, `read-string` and `char-ready?`, including at the end of empty input; UTF-8;
+  standard input that is a file; `with-input-from-file` putting standard input back; a program
+  answering its first line before the second is written; and the REPL answering `(read-line)` with
+  the end-of-file object and then evaluating the next line typed.
+- Each piece was broken in turn and a test failed: decoding without `stream`, EAGAIN not handled, a
+  `\r` at the end of a read taken for a line ending, the CLI not installing the port, the REPL
+  installing it too, the port reading all its input first, and `read-char` returning strings. The
+  first version of the REPL test could not see the REPL installing the port -- Node's REPL had read
+  all the piped input before `(read-line)` ran -- so it now types the second line only once the
+  first is answered. The first version of the FIFO test held its own write end open, so a port
+  reading to the end would have hung `npm test` rather than failed; the writer now holds the only
+  one.
+- 6,434 tests pass in Node, `parsing` in both tiers among them, and 6,287 in the browser.
+
+## Measured
+
+200,000 lines, 7.2 MB, counted by a `read-line` loop: 0.42-0.44 s from a pipe or a file, CLI
+start-up included; the CLI takes 0.27 s to start and evaluate `1`.
+
+## Found
+
+- **`scripts/language_balance.scm` ran git through `child_process`** because the CLI could not read
+  standard input. It still does, and its comment now gives the reason that remains: it needs two
+  git commands' output, and `npm run audit:languages` runs it with nothing piped in.
+- **`parsing` runs.** The canonical program was blocked on `read-char` returning strings; it now
+  passes in both tiers and is back in the suite's `string` class, so that class's figures from here
+  on include it. `read0` was blocked on the same, and still does not finish within the correctness
+  runner's 120 s in either tier: it reads every two-character string from `a` and U+0000 to `a` and
+  U+10FFFF, twice each.
+- **The rescue now saves two tests, not three**, each in both library configurations: `(inexact 1)`
+  and a numeric literal in 7.1. Task 48 is updated.
+- **`parameterize` of a current port does nothing.** The three current ports are JavaScript
+  procedures, not parameter objects, so `(parameterize ((current-output-port p)) ...)` leaves output
+  going where it went. New task 78; `ROADMAP.md` lists it with the known deviations.
+- **The CLI loses output with no final newline.** The console port writes a line only when it is
+  ended and nothing flushes it at exit, so a program whose last line has no newline prints nothing
+  of it, and `-e '(write 1)'` prints `undefined`. A prompt written with `display` before a
+  `read-line` does not appear until the line ends, which matters now that a program can read what is
+  typed. New task 79.
+
+# Walkthrough: the CLI's output, flushed (task 79, 2026-09-30)
+
+The console port the CLI wrote through holds a line until it ends and gives it to `console.log`, and
+nothing flushed it when the program returned. So `node repl.js prog.scm` printed nothing of a last
+line with no newline; `node repl.js -e '(write 1)'` printed `undefined`, its result, and not the
+`1`; and a prompt written with `display` did not appear before `read-line` waited for its answer,
+which mattered as soon as a program could read standard input. On the way three more turned up:
+`current-error-port` wrote to standard output; a program writing to a pipe whose reader had gone,
+as `| head` leaves one, looped forever, since `console.log` reports the error asynchronously and a
+program that never returns to the event loop never sees it; and `(exit 3)` crashed, since the exact
+integer is a `BigInt` and Node's `process.exit` takes a number.
+
+## The design
+
+A program the CLI runs, from a file or `-e`, now has the process's standard output and standard
+error as its current output and error ports, as it already had standard input. The port, in
+`src/core/primitives/io/stdout_port.js`, writes with `fs.writeSync`, so what a write sends has
+reached the descriptor when it returns: output survives `process.exit`, and standard output and
+standard error keep the order they were written in.
+
+- **Standard output is written a line at a time**: the port holds text until a write ends a line,
+  or it holds 64 K code units, or it is flushed. Writing a character at a time costs a system call
+  a line, as `console.log` did.
+- **What it holds is written when the process exits**, from a `process.on('exit')` handler, so it
+  is written however the program ends: returning, `exit`, or an error.
+- **Before a read of standard input waits**, standard input's port flushes standard output, so a
+  prompt is seen before the program waits for its answer. A read satisfied from what was read
+  ahead writes nothing.
+- **Standard error is unbuffered, and flushes standard output first**, so an error is seen after
+  the output that came before it, in a terminal or a file both go to.
+- **EAGAIN**, once Node has made the descriptor non-blocking, waits 10 ms and tries again, as reads
+  of standard input do. **EPIPE**, nothing reading the pipe any more, ends the process with status
+  141, what a shell reports for a process SIGPIPE killed. That is how `yes | head -1` behaves; Node
+  ignores SIGPIPE, so the port does what the signal would have.
+
+`repl.js` sets the three current ports by calling `current-input-port`, `current-output-port` and
+`current-error-port` each with its port, so the output and error ports now take a port as the input
+port does since the change before. `-e` writes its last result with Scheme's `write`, through the
+current output port, after what the program wrote, and writes nothing for an unspecified result.
+Its result was converted to JavaScript before, so it printed `6.0` for `(+ 1 2 3)` and `a` for
+`#\a`, the CLI item of task 47; it prints `6` and `#\a`. `-e`'s and a program file's errors are
+written to the current error port. The interactive REPL keeps the console ports, since Node's REPL
+owns the terminal, and flushes them when each evaluation ends, so `(display "hi")` shows `hi` then
+rather than when something next ends a line. Outside the CLI -- the browser, the test and benchmark
+harnesses, which capture `console.log` -- the console ports stay, and the error port writes to
+`console.error` instead of `console.log`.
+
+## The JavaScript added, and why
+
+- `src/core/primitives/io/stdout_port.js`, 203 lines, most of them comments: host input and output,
+  the ports' core over descriptors 1 and 2.
+- `current-output-port` and `current-error-port` taking a port, and the helper the three share
+  that checks what they were given, in `io/primitives.js`: the current ports are JavaScript
+  variables that the JavaScript read and write primitives default to, until task 78 makes them
+  Scheme parameter objects.
+- Standard input flushing standard output before it waits: host input and output.
+- The console error port writing `console.error`, and `exit`'s status as a number: fixing JavaScript
+  in place.
+
+## Tests
+
+- `tests/core/scheme/port_tests.scm`, 8 more Scheme tests: `current-output-port` and
+  `current-error-port` given a port, and given what is not an output port. They run in the browser.
+- `tests/core/primitives/io/stdout_port_tests.js`, 15 tests (Node only) over files: when a buffered
+  write reaches its descriptor, the limit, UTF-8, an unbuffered port and what it writes first,
+  closing; and a non-blocking FIFO filled until a write would wait, which another process drains
+  once the port is waiting.
+- `tests/core/primitives/io/console_port_tests.js`: which console method each line goes to, in Node
+  and the browser.
+- `tests/functional/cli_stdout_tests.js`, 16 tests (Node only), each running `node repl.js`: a last
+  line with no newline, both tiers; `-e` with `write`, `display`, an exact integer, a list with a
+  flonum, a string and a character, and output before its result; a prompt written before the
+  program reads a line, the line typed only once the prompt is seen; standard error apart from
+  standard output, and the two interleaved in one file; `exit 3`; `with-output-to-file`; a failing
+  program's output before its error; the current ports being the standard ones; `head` closing the
+  pipe; and the REPL showing a display before the next line is typed.
+  `tests/harness/cli_process.js` now runs `repl.js` for both CLI test files.
+- Each piece was broken in turn and a test failed: no flush at exit, no flush before reading,
+  standard error not flushing standard output, EPIPE taken for an error, EAGAIN not handled, no line
+  buffering, the REPL not flushing, `-e` printing with the JavaScript printer, and the error port
+  going to `console.log`. The first version of the FIFO test waited forever for a port that wrote
+  nothing, since its reader opened the FIFO only after the writer had closed; the reader now opens it
+  at once and waits before reading.
+- 6,474 tests pass in Node and 6,296 in the browser.
+
+## Measured
+
+200,000 lines written by `display` and `newline`, to a file or a pipe: 0.59 s, CLI start-up
+included, where the console port took 0.70-0.72 s; the output is byte for byte the same.
+`node repl.js -e` of an endless loop writing lines, into `head -3`, ends in 0.49 s.
+
+## Found
+
+- **The plan's completed log lacked task 24**, the oldest row in the plan's *Completed*, which this
+  task's row displaces; the log began at 46, so rows dropped before it existed are only in this file
+  and the history. 24 is appended to it ahead of 79, so that its number still resolves.
+- `-e` writes multiple values as the object that holds them, `#{(values #(1 2))}`, where the REPL
+  prints `#<values: 2 values>`; neither writes the values themselves. The REPL still prints results
+  with the JavaScript printer, so `#\a` typed at it prints `a`.
 ---
 
-# Walkthrough: The canonical suite re-measured, and compared with Gambit's compilers
+# Walkthrough: Gambit compiled to C in the comparison, and reusing a saved run
 
-The canonical suite's published figures dated from 2026-09-21, before tasks 18-27. Both tiers were
-re-measured, the comparison harness gained Gambit's two compilers, and the compiled tier was set
-against other implementations for the first time (the first half of task 36).
+Done on a branch cut before tasks 28-36, then merged. Task 36 had meanwhile added both our tiers,
+Gambit compiled to JavaScript and plain JavaScript to `benchmarks/compare_r7rs.js`, so the merge
+kept that and added what it lacked. The figures this branch took for our tiers, at `803ed49`,
+are superseded by task 36's for anything after task 27 and are kept only as the tier table for
+tasks 18-27.
 
 ## The harness
 
-- `benchmarks/compare_r7rs.js` measured only our interpreter (`useCompiler: false` was hard-coded)
-  and re-measured it on every run. It now reports **both tiers**, or one with `--tier`, and takes
-  our figures from a saved `run_r7rs.js` run with `--ours`, measuring only the references. The
-  references do not change when our code does, and measuring us is most of the running time.
-- Two references added: **Gambit `gsc` to C** and **Gambit `gsc -target js`**, whose output runs
-  on the same Node as us -- the like-for-like reference for our compiler. Each program is built
-  once and the build is run at every calibrated count, so compile time is never charged.
-- The arithmetic -- reading a saved run, per-class geometric means of each tier against each
-  reference, leaving out failed runs -- is in `benchmarks/lib/r7rs_compare.js`, with unit tests
-  (`tests/unit/r7rs_compare_tests.js`).
+- **`--ours <run_r7rs output>`** takes our figures from a saved `run_r7rs.js` run and measures
+  only the references. Measuring both our tiers is most of the running time, and the references do
+  not change when our code does.
+- **Gambit compiled to C builds.** Task 36 recorded it as needing a C toolchain the machine lacks;
+  the toolchain was there. Homebrew's Gambit names `gcc-13`, which is not installed, and `gsc -cc`
+  is not the fix, because it also drops every C flag Gambit was configured with -- which is what
+  made the first executables exit with status 71 and print nothing. A `gcc-13` link to `gcc-16` on
+  `PATH` works, with `DEVELOPER_DIR` at the Command Line Tools where the selected Xcode's
+  `xcodebuild` is broken. Code from GCC 16 then would not load into the GCC 13 runtime ("Module is
+  incompatible"): GCC 15 and later support `musttail`, which changes how compiled code returns to
+  the runtime, and `-D___SUPPORT_MULTIPLE_C_COMPILERS` is Gambit's own switch for that, now always
+  passed. After the toolchain check, a trial build is made and run, and a failure is reported with
+  its reason rather than failing every program.
+- The per-class arithmetic -- reading a saved run, geometric means of each tier against each
+  reference, leaving out failed runs -- is `benchmarks/lib/r7rs_compare.js`, with unit tests
+  (`tests/unit/r7rs_compare_tests.js`), in place of the loop that was inline.
 
-Getting `gsc` to build on this machine took three workarounds, recorded in
-`benchmarks/r7rs/README.md`. Homebrew's Gambit names `gcc-13`, which is not installed; `gsc -cc`
-is not the fix, because it also drops every C flag Gambit was configured with, which is what made
-the first executables exit with status 71 and print nothing. A `gcc-13` link to `gcc-16` on `PATH`
-works, with `DEVELOPER_DIR` pointing at the Command Line Tools because the selected Xcode's
-`xcodebuild` is broken. And code from GCC 16 would not load into the GCC 13 runtime ("Module is
-incompatible"): GCC 15 and later support `musttail`, which changes how compiled code returns to
-the runtime. `-D___SUPPORT_MULTIPLE_C_COMPILERS` is Gambit's own switch for that, and the harness
-now always passes it. Gambit's JavaScript runtime also drops an unterminated last line of output,
-which had made its clock probe read nothing.
+## What it measured that still stands
 
-## What it showed
+The references' per-program times, which do not depend on our code, are now in
+`docs/r7rs_benchmark_results.md` as raw times -- only ratios had been kept before, and ratios
+cannot be recombined with a later run of ours. Among them, Gambit compiled to C against its own
+interpreter: up to 100x faster, and level on `pi` and `read1`, whose work is in the runtime the
+interpreter shares. Gambit's JavaScript backend keeps bignums as 14-bit digits in JavaScript, 32x
+slower than its C build on `pi`. Its two failures are its own: `quicksort` exhausts the
+JavaScript stack, and `graphs` gets Gambit's built-in `fold` in place of the program's.
 
-Against Gambit's JavaScript backend the compiled tier is ahead on flonums (3.8x), calls (1.2x) and
-strings (23x), within 1.25x on fixnums and vectors, 1.9-2.0x behind on bignums and lists, and 2.7x
-behind on `call/cc`. The list gap is all `nboyer` and `sboyer` (43x and 53x); the other nine list
-programs are at parity. Against Gambit compiled to C and Racket CS it is 2-10x behind on numeric
-and call-bound code, about 20x on symbolic code, 24-29x on `call/cc`, and 62-82x on bignums. The
-bignum gap to Gambit's JavaScript backend is only 1.9x, while that backend is 32x slower than its
-own C build on `pi`. The interpreter against `gsi` moved less than 15% in any class since
-2026-09-19.
-
-Against the interpreter, the compiled tier went from call 21.8x, fixnum 16.2x, vector 15.2x,
-flonum 10.2x, list 10.1x on 2026-09-21 to **86.7x, 58.5x, 39.1x, 126.5x and 24.5x**. Bignums and
-strings stayed at parity.
-
-Gambit's JavaScript backend fails two programs: `quicksort` exhausts the JavaScript stack, and
-`graphs` calls Gambit's built-in `fold` in place of the program's own.
-
-## Caveat
-
-The runs shared the machine with another benchmark run and an IDE, and the same reference measured
-twice differed by up to 2x on one program. Class figures are much steadier than single programs;
-a quiet, best-of-several re-run is on the plan.
+Taken on a loaded machine, one run each; the same reference differed by up to 2x on one program.
 
 ## Documents
 
-- `docs/r7rs_benchmark_results.md`: rewritten around the new figures, with a section saying exactly
-  what each tier and each reference runs, and the raw per-program times -- only ratios had been
-  kept before, which is why the old Gambit and Racket figures could not be reused.
-- `docs/compiler_plan.md`: task 36's first half recorded, with what is left; 42 given the Gambit
-  JavaScript evidence; new task 54, profile `nboyer` and `sboyer`.
-- `benchmarks/r7rs/README.md`: `--ours`, `--tier`, and building with `gsc`.
+- `docs/r7rs_benchmark_results.md`: a section saying exactly what each tier and each reference
+  runs; the reference times; the Gambit JavaScript failures explained; the tier table for tasks
+  18-27, labelled with its commit.
+- `benchmarks/r7rs/README.md`: `--ours`, and building with `gsc` to C.
