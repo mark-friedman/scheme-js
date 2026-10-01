@@ -217,28 +217,6 @@ export const ioPrimitives = {
         return undefined;
     },
 
-    'call-with-input-file': (filename, proc) => {
-        filename = textOf(filename, 'call-with-input-file');
-        if (typeof proc !== 'function') throw new Error('call-with-input-file: expected procedure');
-        const port = new FileInputPort(filename);
-        try {
-            return settleTailCalls(withoutFlush(() => proc(port)));
-        } finally {
-            if (port.isOpen) port.close();
-        }
-    },
-
-    'call-with-output-file': (filename, proc) => {
-        filename = textOf(filename, 'call-with-output-file');
-        if (typeof proc !== 'function') throw new Error('call-with-output-file: expected procedure');
-        const port = new FileOutputPort(filename);
-        try {
-            return settleTailCalls(withoutFlush(() => proc(port)));
-        } finally {
-            if (port.isOpen) port.close();
-        }
-    },
-
     'with-input-from-file': (filename, thunk) => {
         filename = textOf(filename, 'with-input-from-file');
         if (typeof thunk !== 'function') throw new Error('with-input-from-file: expected procedure');

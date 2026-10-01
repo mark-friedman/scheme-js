@@ -38,14 +38,15 @@ interpreter does (`callForeign` in `src/compiler/runtime.js`):
 | exact `1`, inexact `1.0` or `1/2` passed to a JavaScript function | a JS `number`: `1`, `1`, `0.5` |
 | exact integer beyond ±2^53 passed to a JavaScript function | throws: outside the safe integer range |
 | a list passed to a JavaScript function | the pairs are passed as they are, so their cars are still `BigInt`s |
-| integral JS number read by `js-ref`, dot notation, `js-eval` or returned through `js-invoke` | **exact** |
-| integral JS number returned by a JavaScript function called directly, `(f 1)` | **inexact**: `(exact? (f 1))` is `#f` |
+| integral JS number read by `js-ref`, dot notation or `js-eval`, or returned by a JavaScript function, called directly, `(f 1)`, or through `js-invoke` | **exact** |
+| an array or object a JavaScript function returns | JavaScript's own, its contents as they are: an integral number inside it is still a JS `number`, inexact in Scheme |
 | JS `BigInt` returned by JavaScript | exact |
 | a flonum Scheme stored in a property with `js-set!`, read back with `js-ref` | still inexact |
 
-The two ways of calling a JavaScript function disagree: a direct call converts its arguments and
-returns the result unconverted, while `js-invoke` converts the result. That is an inconsistency, not
-a rule, and is listed for fixing in `compiler_plan.md`.
+A JavaScript function's result is converted one level, with `jsToScheme`, however it is called:
+its arguments are converted throughout on the way out, but a result converted throughout on the way
+in would be a copy of every array and object JavaScript returned, which would then lose its
+identity. A number inside an array or object is converted when it is read with `js-ref`.
 
 ## Strings at the boundary
 
@@ -179,10 +180,9 @@ exact integer is a `BigInt`, a list a chain of `Cons` pairs ending in `null`, a 
 
 The plain call converts its arguments with `jsToScheme`, and its result with `schemeToJsDeep` -- or
 with `schemeToJs` if the interpreter's `jsAutoConvert` property is `'shallow'`, and not at all if it
-is `'raw'`.
-What an integral number becomes on its way into Scheme -- exact here, where a JavaScript function's
-result returned to Scheme is not converted at all (*Numbers at the boundary*) -- is still being
-decided, in `compiler_plan.md`, and these follow that decision.
+is `'raw'`. Going the other way, Scheme calling a JavaScript function converts the arguments with
+`schemeToJsDeep` and the result with `jsToScheme`, as `js-invoke` does: into Scheme one level,
+out of it throughout (*Numbers at the boundary*).
 
 The same conversions are Scheme procedures in `(scheme-js js-conversion)`: `js->scheme`,
 `js->scheme-deep`, `scheme->js` and `scheme->js-deep`. The library also exports a parameter,

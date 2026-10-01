@@ -494,10 +494,13 @@ export async function runIOTests(interpreter, logger) {
     result = run(interpreter, `(file-exists? "${testFile}")`);
     assert(logger, "file deleted", result, false);
 
-    // Test call-with-input/output-file
+    // Test call-with-input/output-file: Scheme procedures, in (scheme core)
+    // beside call-with-port, so they are run where the standard library is.
     const testFile2 = `/tmp/scheme-test2-${Date.now()}.txt`;
+    const { interpretedLibrary } = await import('../harness/standard_library.js');
+    const withLibrary = interpretedLibrary().interpreter;
 
-    result = run(interpreter, `
+    result = run(withLibrary, `
           (call-with-output-file "${testFile2}"
             (lambda (p)
               (write-string "test content" p)
@@ -505,7 +508,7 @@ export async function runIOTests(interpreter, logger) {
         `);
     assert(logger, "call-with-output-file", result?.name || result, 'done');
 
-    result = run(interpreter, `
+    result = run(withLibrary, `
           (call-with-input-file "${testFile2}"
             (lambda (p)
               (read-line p)))
@@ -528,13 +531,13 @@ export async function runIOTests(interpreter, logger) {
                         (call-with-input-file path (lambda (p) (read-line p))))`;
       const ast = analyze(parse(source)[0]);
       const outcome = ast instanceof DefineNode
-        ? tryCompileDefinition(ast, interpreter.globalEnv) : { compiled: false };
+        ? tryCompileDefinition(ast, withLibrary.globalEnv) : { compiled: false };
       assert(logger, "a procedure using call-with-input-file compiles",
         outcome.compiled, true);
       if (outcome.compiled) {
-        interpreter.globalEnv.define(outcome.name, outcome.procedure);
+        withLibrary.globalEnv.define(outcome.name, outcome.procedure);
         assert(logger, "and its pending tail call runs before the port closes",
-          run(interpreter, `(read-it "${testFile2}")`), "test content");
+          run(withLibrary, `(read-it "${testFile2}")`), "test content");
       }
     }
 

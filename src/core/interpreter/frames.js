@@ -11,7 +11,7 @@
 import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
 import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL, callWithSchemeValues, callSchemeProcedure } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
-import { schemeToJsDeep } from './js_interop.js';
+import { schemeToJsDeep, jsToScheme } from './js_interop.js';
 import { Cons } from './cons.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
@@ -606,20 +606,21 @@ export function continueApplication(exprs, index, values, env, registers, interp
         let result;
         try {
             // If it's a foreign JS function (not a Scheme closure/primitive),
-            // auto-convert arguments (e.g., BigInt -> Number)
+            // auto-convert arguments (e.g., BigInt -> Number), and its result
+            // back one level, as `js-invoke` converts it (an integral number
+            // to an exact integer).
+            const foreign = !isSchemePrimitive(callee);
+            const mode = foreign ? (interpreter.jsAutoConvert ?? 'deep') : 'raw';
             let appliedArgs = args;
-            if (!isSchemePrimitive(callee)) {
-                // Respect the current js-auto-convert mode
-                const mode = interpreter.jsAutoConvert ?? 'deep';
-                if (mode === 'deep' || mode === true) {
-                    appliedArgs = args.map(a => schemeToJsDeep(a));
-                } else if (mode === 'shallow' || mode === false) {
-                    // We use a light conversion for shallow mode
-                    appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
-                }
+            if (mode === 'deep' || mode === true) {
+                appliedArgs = args.map(a => schemeToJsDeep(a));
+            } else if (mode === 'shallow' || mode === false) {
+                // We use a light conversion for shallow mode
+                appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
             }
 
             result = callee(...appliedArgs);
+            if (mode !== 'raw') result = jsToScheme(result);
             restoreFlush(flush);
         } finally {
             // Pop the context after JS returns (or throws)

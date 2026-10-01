@@ -2,6 +2,11 @@
 ;;
 ;; `call-with-port` (R7RS 6.13.1): calls a procedure with a port, closes the
 ;; port if the procedure returns, and returns what it returned.
+;;
+;; `call-with-input-file` and `call-with-output-file` (R7RS 6.13.1) do the same
+;; with a file's port, in Node only, since a browser has no files.
+
+(import (scheme file))
 
 (test-group "call-with-port"
 
@@ -194,3 +199,52 @@
   (test-error "rejects an input port"
     "current-error-port: expected output port"
     (current-error-port (open-input-string ""))))
+
+(test-group "call-with-input-file and call-with-output-file"
+  (cond-expand
+    (node
+      (define file "port_tests_call_with_file.tmp")
+
+      (test "call-with-output-file returns what the procedure returns, exactly"
+        '(10 #t)
+        (let ((result (call-with-output-file file (lambda (p) (write '(hello 1) p) 10))))
+          (list result (exact? result))))
+
+      (test "call-with-input-file reads what was written"
+        '(hello 1)
+        (call-with-input-file file read))
+
+      (test "call-with-input-file returns what the procedure returns, exactly"
+        #t
+        (exact? (call-with-input-file file (lambda (p) 10))))
+
+      (test "and every value it returns"
+        '(1 2)
+        (call-with-values
+          (lambda () (call-with-input-file file (lambda (p) (values 1 2))))
+          list))
+
+      (test "closes the port when the procedure returns"
+        #f
+        (let ((port #f))
+          (call-with-input-file file (lambda (p) (set! port p) (read p)))
+          (input-port-open? port)))
+
+      (test "leaves the port open when the procedure escapes"
+        #t
+        (let ((port #f))
+          (call/cc (lambda (k) (call-with-input-file file (lambda (p) (set! port p) (k 'escaped)))))
+          (input-port-open? port)))
+
+      (test-error "call-with-input-file rejects what is not a procedure"
+        "call-with-input-file: expected procedure"
+        (call-with-input-file file 5))
+
+      (test-error "call-with-output-file rejects what is not a procedure"
+        "call-with-output-file: expected procedure"
+        (call-with-output-file file 5))
+
+      (delete-file file))
+    (else
+      (test-skip "a browser has no files"
+        (test "call-with-input-file reads what was written" #t #t)))))

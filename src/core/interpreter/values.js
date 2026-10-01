@@ -495,7 +495,8 @@ export function callWithSchemeValues(fn, args) {
  * procedure marked `SCHEME_PRIMITIVE` directly, and a JavaScript function as
  * the interpreter calls one. Its arguments are converted to
  * JavaScript values, an exact integer to a number and a mutable string to the
- * characters it holds, and its result comes back as it is. Compiled frames may
+ * characters it holds, and its result back one level, as the interpreter and
+ * `js-invoke` convert it: an integral number to an exact integer. Compiled frames may
  * not move to the heap while it runs, since a compiled procedure it calls back
  * would find no interpreter beneath it to finish the move.
  *
@@ -508,7 +509,7 @@ export function callForeign(fn, args) {
     if (isSchemePrimitive(fn)) return fn(...args);
     const flush = suspendFlush();
     try {
-        return fn(...args.map((a) => schemeToJsDeep(a)));
+        return jsToScheme(fn(...args.map((a) => schemeToJsDeep(a))));
     } finally {
         restoreFlush(flush);
     }

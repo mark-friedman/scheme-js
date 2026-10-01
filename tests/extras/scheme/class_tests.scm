@@ -82,7 +82,8 @@
 ;; 5. bind from Scheme
 (define (adder a b) (+ a b))
 (define add10 (adder.bind #f 10))
-(test "bind procedure from Scheme" 25.0 (add10 15))
+;; `bind` makes a JavaScript function, whose integral result arrives exact.
+(test "bind procedure from Scheme" 25 (add10 15))
 
 (define-class <Greeter>
   Greeter

@@ -9220,3 +9220,55 @@ The rest is the evaluator's call of a compiled procedure's raw entry (`frames.js
 registering its global environment (`interpreter.js`); `runtime.js`'s `markProcedure` and its shared
 `toString`; the conversions taking several values to the first, in interop's core (`js_interop.js`);
 and the bundle's exports. Scheme: 44 lines added and 24 removed, in `emit.scm`.
+
+# Walkthrough: a JavaScript function's result, exact however it is called (task 47)
+
+## The file procedures, in Scheme
+
+`call-with-input-file` and `call-with-output-file` were JavaScript primitives that called their
+procedure through its plain call, which converts for JavaScript: `(call-with-input-file f (lambda
+(p) 10))` returned `10.0`, several values came back as the first, and the port was closed in a
+`finally`, so an escape from the procedure closed it too, where R7RS says it must not be closed
+automatically then. They are now Scheme, in `ports.scm` beside `call-with-port`, each checking its
+procedure and calling `call-with-port` on the port `open-input-file` or `open-output-file` makes;
+`(scheme core)` exports them and `(scheme file)` re-exports them. So Scheme calls Scheme, with
+Scheme values, and the bug is gone by construction. The JavaScript versions are deleted. Tested in
+`port_tests.scm`, in Node only, a browser having no files; the Scheme test runner now loads
+`(scheme file)` beforehand, as it does the SRFIs, since a test file's import cannot wait for a load.
+
+`with-input-from-file` and `with-output-to-file` stay JavaScript until task 78 makes the current
+ports parameter objects. Neither is exported by any library, so a library importing `(scheme file)`
+cannot use them; 78 now says to export them.
+
+## A JavaScript function's result
+
+The same JavaScript function called two ways gave different exactness: called directly, `(f)`
+returning `1` gave inexact `1.0`, the result handed back unconverted, where `js-invoke` gave exact
+`1`, converting it with `jsToScheme`. Decided with the user: exact, however it is called, converted
+one level, as `js-invoke` did. A deeper conversion was weighed and rejected: converting throughout
+would copy every array and turn every plain object JavaScript returns into a `js-object` record,
+losing its identity, and converting in place would put `BigInt`s into JavaScript's own data, where
+its arithmetic and `JSON` would fail on them. So an array or object comes back as JavaScript's own,
+an integral number inside it still a JavaScript number, and a field read with `js-ref` is converted
+as it is read. Arguments stay converted throughout on the way out.
+
+Both tiers changed: the interpreter's call of a JavaScript function (`continueApplication` in
+`frames.js`) and compiled code's (`callForeign` in `values.js`) now convert the result with
+`jsToScheme`, unless the interpreter's conversion mode is `'raw'`. `tests/tiers/js_callee_tests.scm`
+checks it in both, directly, through `js-invoke`, from compiled code not in tail position, an
+inexact result, and an array. The two assertions in `interop_conversion_tests.js` that passed either
+way, since the JavaScript tests' `assert` counts `20n` and `20` as equal, now compare the type: an
+exact `20` back from a JavaScript function, and an array of JavaScript numbers from `(js-echo #(1 2
+3))`, where the test's comment had expected exact integers, which no conversion into Scheme gives.
+`Interoperability.md`'s table of numbers at the boundary and its conversions say so.
+
+## Verification
+
+6,714 tests pass in Node with none failing (33 skipped), and 6,524 in the browser with none failing
+(53 skipped). Three tests had encoded the old behaviour or relied on the deleted primitives: the
+benchmark harness bootstraps from a list of `(scheme core)`'s files that left out `ports.scm`, so it
+had no `call-with-port` either, and now has both; `io_tests.js` ran the file procedures in an
+interpreter with no libraries, and now runs them where the standard library is; and a `define-class`
+test expected `25.0` from a function `bind` made, a JavaScript function, whose result is now exact.
+JavaScript under `src/`: 15 lines added and 35 removed, the evaluator's conversion of a JavaScript
+function's result and `callForeign`'s; Scheme: 35 added and 5 removed.

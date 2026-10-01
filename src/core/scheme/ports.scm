@@ -26,3 +26,31 @@
     (lambda results
       (close-port port)
       (apply values results))))
+
+;; /**
+;;  * Opens a file for input, calls a procedure with the port, and closes the
+;;  * port if the procedure returns, as `call-with-port` does (R7RS 6.13.1).
+;;  *
+;;  * The procedure is checked before the file is opened, so that a mistake
+;;  * leaves no port open.
+;;  *
+;;  * @param {string} filename - The file.
+;;  * @param {procedure} proc - Called with the port.
+;;  * @returns {*} Every value `proc` returns.
+;;  */
+(define (call-with-input-file filename proc)
+  (if (not (procedure? proc))
+      (error "call-with-input-file: expected procedure" proc))
+  (call-with-port (open-input-file filename) proc))
+
+;; /**
+;;  * Opens a file for output, calls a procedure with the port, and closes the
+;;  * port if the procedure returns, as `call-with-port` does (R7RS 6.13.1).
+;;  * @param {string} filename - The file.
+;;  * @param {procedure} proc - Called with the port.
+;;  * @returns {*} Every value `proc` returns.
+;;  */
+(define (call-with-output-file filename proc)
+  (if (not (procedure? proc))
+      (error "call-with-output-file: expected procedure" proc))
+  (call-with-port (open-output-file filename) proc))
