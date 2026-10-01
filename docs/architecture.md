@@ -191,7 +191,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── environment.js      # Environment class
 │       │   ├── primitive_bindings.js # Whether a primitive's name was ever rebound
 │       │   ├── errors.js           # SchemeError class
-│       │   ├── values.js           # Closure, Continuation, TailCall, Values
+│       │   ├── values.js           # Closure, Continuation, TailCall, Values; calling a procedure with Scheme values
 │       │   ├── cons.js             # Cons cells + list utilities
 │       │   ├── symbol.js           # Symbol interning
 │       │   ├── reader.js           # S-expression parser (re-exports from reader/)
@@ -294,7 +294,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── lowering.js        # Door into the compiler's Scheme: starts its library, calls its entry points
 │      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
-│      ├── tiering.js         # The interpreter's end of the tier: attach, detach, and the hooks it calls
+│      ├── tiering.js         # Attaching the tier: makes its record, whose Scheme procedures the interpreter calls
 │      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
 │
 │   └── debug/                  # Debugger Runtime & Tools

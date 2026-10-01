@@ -331,8 +331,8 @@ a continuation shares it and may be resumed more than once.
 - **Room is a segment's, and only some segments may move.** The interpreter resets the room whenever
   it calls compiled code (`openCompiledSegment` in `unwind.js`), because the unwind ends there and
   it can finish it. Anything else that calls a Scheme procedure from JavaScript -- a port primitive,
-  `js-invoke`, a class constructor, a promise's executor, the tier's hooks calling the compiler
-  (`call` in `lowering.js`) -- turns moving off for its duration
+  `js-invoke`, a class constructor, a promise's executor, the evaluator and `lowering.js` calling
+  the compiler (`callSchemeProcedure` in `values.js`) -- turns moving off for its duration
   (`suspendFlush`), since it would take the sentinel for a value; compiled code beneath it can still
   overflow as before. One way past that remains: compiled code calling a plain JavaScript function
   directly, which calls compiled code back. The interpreter gives the setting back after a normal
@@ -638,6 +638,18 @@ attached, and asks it to run top-level forms (`Interpreter.runTopLevel`):
   program's own. A shipped library's procedures are its prebuilt table's.
 - **A waiting closure's calls running out.** Each closure carries a count, zero unless the tier set
   it, checked where the interpreter applies closures; the check costs 1-2% of interpreted call time.
+
+**How the interpreter calls the tier.** It holds the tier's record (`interpreter.tier`), which
+carries a Scheme procedure for each of the three -- `bound`, `due` and `form` -- and calls them
+directly, from the step that noticed, with compiled frames kept from moving to the heap
+(`callSchemeProcedure` in `values.js`); the runtime asks the re-entry policy (`note-resume`, below)
+the same way. So the tier's Scheme runs compiled, or in the compiler's own interpreter, and never
+where the program's debugger could pause it. Applied instead through the program's interpreter, as
+it applies any procedure, each compile's capture -- the compiler's interpreted `emit-guarded` holds a
+`guard` -- would unwind into the program's interpreter, which would then run the rest of the
+compiler's code (R95). A mode in which the debugger may pause in the system's own code needs exactly
+that, and is planned for later (62). Calling a hook costs about 0.1 µs; what the hooks do costs about
+2 µs a binding and 0.7 µs a top-level form, and compiling about 3 ms a procedure.
 
 **When.** Generating a procedure's code costs about a millisecond, so compiling every definition as it
 is made would cost a page with five hundred of them half a second, much of it for code run once. A

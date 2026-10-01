@@ -1,4 +1,4 @@
-import { Values, isSchemeClosure } from './values.js';
+import { Values, isSchemeClosure, callSchemeProcedure } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush } from './unwind.js';
@@ -232,10 +232,14 @@ export class Interpreter {
     /**
      * The compiler tier, which compiles the program's own top-level
      * procedures as it runs, or null when nothing does
-     * (`src/compiler/tiering.js`, `attachTier`). The interpreter only reports
-     * to it -- a closure bound at top level, a waiting closure's countdown
-     * run out -- so the interpreter never depends on the compiler, which a
-     * browser page loads after it.
+     * (`src/compiler/tiering.js`, `attachTier`): the tier's record from
+     * `src/compiler/tier.scm`, holding a Scheme procedure for each thing the
+     * interpreter tells or asks it -- `bound`, given a top-level name, the
+     * closure bound to it and the environment binding it; `due`, given a
+     * closure whose countdown has run out; and `form`, given a top-level form
+     * and its environment, which answers the procedure to run the form as, or
+     * #f. The interpreter calls them with `callSchemeProcedure`, and knows
+     * nothing else about the compiler, which a browser page loads after it.
      * @type {Object|null}
      */
     this.tier = null;
@@ -556,8 +560,9 @@ export class Interpreter {
   }
 
   /**
-   * Runs one top-level form of a program: through the compiler tier, which may
-   * compile it, when one is attached, and as `run` does otherwise.
+   * Runs one top-level form of a program: as the procedure the compiler tier
+   * compiled it to, when one is attached and compiles it, and as `run` does
+   * otherwise.
    *
    * For the places a program's own forms come in -- a REPL, a file, a page's
    * scripts -- and not for code the implementation runs for itself, which
@@ -569,8 +574,9 @@ export class Interpreter {
    * @returns {*} Its value.
    */
   runTopLevel(ast, env = this.globalEnv, options = undefined) {
-    if (this.tier) return this.tier.runTopLevel(ast, env, options);
-    return this.run(ast, env, [], undefined, options);
+    const thunk = this.tier ? callSchemeProcedure(this.tier.form, [ast, env]) : false;
+    const form = thunk ? new TailAppNode(new LiteralNode(thunk), []) : ast;
+    return this.run(form, env, [], undefined, options);
   }
 
   /**

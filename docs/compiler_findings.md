@@ -2760,6 +2760,25 @@ each definition as it appears, before the run it times, and the CLI's figure for
 
 ---
 
+**R95. Applied by the program's interpreter, the tier's Scheme runs where the program's debugger can pause it.**
+
+Task 74 was planned as the interpreter applying the tier's Scheme procedures itself, as it applies
+any procedure, with the calls staying out of the program's debugger "as they are now". The two do
+not go together. A prototype applied the hook for a waiting closure's calls running out that way,
+through the interpreter's trampoline: every compile's capture, in the compiler's interpreted
+`emit-guarded`, then unwound out through the compiled hook into the program's interpreter -- 302 of
+302 compiles in one run, where called from JavaScript each stays within the compiler's own run -- and
+the program's interpreter ran the rest of `emit-guarded`. An enabled debug runtime was asked whether
+to pause at nodes of `driver.scm`. It costs nothing measurable either way: about 3 ms a compile, and
+a compile beneath interpreted recursion 100,000 deep no slower than one at the top. So keeping the
+compiler's Scheme out of the program's debugger takes either a direct call, with compiled frames
+kept from moving, or a rule in the debugger that skips the system's code.
+
+*Consequence:* the direct call (74, decided by the user); a mode in which the debugger may pause in
+the system's code, wanted later, needs the other (62).
+
+---
+
 ## Appendix — the original staged plan
 
 Kept because it is the plan the entries above were measured against, not because it is the plan.

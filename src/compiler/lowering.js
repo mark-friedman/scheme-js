@@ -79,11 +79,11 @@ import { COMPILER_SOURCES } from '../packaging/compiler_sources.js';
 import prebuiltLibraries from '../packaging/compiled_libraries.js';
 import prebuiltCompiler from '../packaging/compiled_compiler.js';
 import { installLibraryTable } from './prebuilt.js';
-import { invoke, settle } from './runtime.js';
 import { astToScheme, irToJs, toArray } from './marshal.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { registerCompilerHost } from './host.js';
-import { setReentryPolicy, suspendFlush, restoreFlush } from '../core/interpreter/unwind.js';
+import { setReentryPolicy } from '../core/interpreter/unwind.js';
+import { callSchemeProcedure } from '../core/interpreter/values.js';
 
 /**
  * The compiler's library.
@@ -171,9 +171,8 @@ function bootstrap() {
  */
 function start() {
   const scheme = bootstrap();
-  const noteResume = scheme.exports.get('note-resume');
-  setReentryPolicy((twin, saved, resumed) => call(noteResume, [twin, saved, resumed]),
-    Number(call(scheme.exports.get('first-resume-to-ask'), [])));
+  setReentryPolicy(scheme.exports.get('note-resume'),
+    Number(callSchemeProcedure(scheme.exports.get('first-resume-to-ask'), [])));
   return scheme;
 }
 
@@ -208,33 +207,6 @@ export function compilerStartFailure() {
 }
 
 /**
- * Calls a Scheme procedure with Scheme values and waits for an answer.
- *
- * `invoke` picks the raw entry point where there is one, so this works whether
- * the procedure is interpreted or compiled -- which is exactly the state this
- * module cannot predict, since it depends on whether the prebuilt code matched.
- *
- * Compiled frames may not move to the heap while it runs, as beneath any
- * JavaScript that calls Scheme: the unwind would come back here as the
- * procedure's result. The tier's hooks call from the middle of an application,
- * where the program's compiled code may have left moving allowed, and every
- * compile captures a continuation, in the compiler's own `guard`; so, without
- * this, every compile started beneath compiled code was abandoned.
- *
- * @param {Function} proc - A Scheme procedure.
- * @param {Array<*>} args - Scheme values.
- * @returns {*} Its result.
- */
-function call(proc, args) {
-  const flush = suspendFlush();
-  try {
-    return settle(invoke(proc, args));
-  } finally {
-    restoreFlush(flush);
-  }
-}
-
-/**
  * Lowers a lambda to IR, reporting what it references: for tests that inspect
  * the lowering from JavaScript. The compiler's own driver calls `lower-lambda`
  * from Scheme.
@@ -251,7 +223,7 @@ export function lowerLambda(lambdaNode) {
     return { reason: `the Scheme lowering could not start: ${bootstrapFailure}` };
   }
 
-  const result = toArray(call(scheme.exports.get('lower-lambda'), [astToScheme(lambdaNode)]));
+  const result = toArray(callSchemeProcedure(scheme.exports.get('lower-lambda'), [astToScheme(lambdaNode)]));
   // Strings the compiler's Scheme made are Scheme strings, which may be
   // objects; its JavaScript callers read them as JavaScript strings.
   if (result[0].name === 'fail') return { reason: String(result[1]) };
@@ -289,7 +261,7 @@ export function compilerEnvironment() {
 export function jsNameOf(name) {
   const scheme = lowering();
   if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
-  return String(call(scheme.exports.get('js-name'), [intern(name)]));
+  return String(callSchemeProcedure(scheme.exports.get('js-name'), [intern(name)]));
 }
 
 /**
@@ -300,7 +272,7 @@ export function inlineExpansionNames() {
   const scheme = lowering();
   if (scheme === null) return [];
   if (scheme.inlineNames === undefined) {
-    scheme.inlineNames = toArray(call(scheme.exports.get('inline-expansion-names'), []))
+    scheme.inlineNames = toArray(callSchemeProcedure(scheme.exports.get('inline-expansion-names'), []))
       .map((s) => s.name);
   }
   return scheme.inlineNames;
@@ -317,5 +289,5 @@ export function inlineExpansionNames() {
 export function callCompiler(name, args) {
   const scheme = lowering();
   if (scheme === null) return undefined;
-  return call(scheme.exports.get(name), args);
+  return callSchemeProcedure(scheme.exports.get(name), args);
 }

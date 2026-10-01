@@ -9,7 +9,7 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
-import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL, callWithSchemeValues } from './values.js';
+import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL, callWithSchemeValues, callSchemeProcedure } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { schemeToJsDeep } from './js_interop.js';
 import { Cons } from './cons.js';
@@ -177,7 +177,7 @@ export class SetFrame extends Executable {
         // A procedure assigned to a top-level name, as `nboyer` assigns every
         // one of its own, is the compiler tier's as much as a defined one.
         if (interpreter.tier && isSchemeClosure(value)) {
-            interpreter.tier.bound(this.name, value, this.env.findEnv(this.name));
+            callSchemeProcedure(interpreter.tier.bound, [this.name, value, this.env.findEnv(this.name) ?? false]);
         }
         registers[ANS] = undefined;
         return false;
@@ -209,7 +209,7 @@ export class DefineFrame extends Executable {
 
         // The compiler tier decides when a top-level procedure is compiled.
         if (interpreter.tier && isSchemeClosure(value)) {
-            interpreter.tier.bound(this.name, value, this.env);
+            callSchemeProcedure(interpreter.tier.bound, [this.name, value, this.env]);
         }
 
         registers[ANS] = undefined;
@@ -510,7 +510,7 @@ export function continueApplication(exprs, index, values, env, registers, interp
         // interpreted; the compiled procedure replaces the closure's binding,
         // so the next call through the name runs compiled.
         if (func.tierCountdown !== 0 && --func.tierCountdown === 0 && interpreter.tier) {
-            interpreter.tier.due(func);
+            callSchemeProcedure(interpreter.tier.due, [func]);
         }
 
         // Handle rest parameter if present
@@ -903,7 +903,7 @@ export class CompiledFrame extends Executable {
         interpreter.pushJsContext(registers[FSTACK]);
         let result;
         try {
-            noteResume(this.twin);
+            noteResume(this.twin, callSchemeProcedure);
             result = this.twin(this.pc, frame);
             while (result instanceof TailCall) {
                 result = callWithSchemeValues(result.func, result.args);

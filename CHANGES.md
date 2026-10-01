@@ -9051,3 +9051,71 @@ to "(46)", after the completed file had taken the earlier text; the later one is
 Every ✅ row was read from every committed version of each file and from the working copy: the task
 numbers marked ✅ anywhere in the plan, 1-31, 33-36, 46, 49, 50, 70, 71 and 79, each appear in the
 file once, and every row is byte for byte a row from that history. Task 32 was never marked ✅.
+
+# Walkthrough: the interpreter calls the tier's Scheme directly (task 74)
+
+## What changed
+
+The interpreter told the compiler tier what happened through a JavaScript `Tier` class in
+`src/compiler/tiering.js`, whose methods called the compiler's Scheme by name through `callCompiler`;
+and `lowering.js` handed the runtime a JavaScript closure that called `note-resume`. Now the tier's
+record, made in `tier.scm`, carries a Scheme procedure for each thing the interpreter tells or asks
+it -- `bound`, given a top-level name, the closure bound to it and the environment binding it; `due`,
+given a closure whose countdown has run out; `form`, given a top-level form and its environment --
+and the interpreter holds the record as `interpreter.tier` and calls them itself: `SetFrame` and
+`DefineFrame` call `bound`, the closure application calls `due`, and `runTopLevel` asks `form`. The
+runtime holds `note-resume` itself and asks it as a saved frame is resumed. Each is called through
+one helper, `callSchemeProcedure` in `src/core/interpreter/values.js`: through the procedure's raw
+entry, nothing converted, a pending tail call run to its value, and compiled frames kept from moving
+to the heap while it runs. `call` in `lowering.js`, which did the same, is gone, and its callers use
+the helper; the `Tier` class and the closure are gone; `tiering.js` only makes the record and gives it
+to the interpreter. `attachTier` returns the record, whose `outcomes` and `expressions` the tests read
+as before, the count now a Scheme integer.
+
+## Why a direct call, and not the plan's
+
+The plan had the interpreter apply the tier's procedures through its trampoline, as it applies any
+procedure, with the calls staying out of the program's debugger as they were. A prototype of the
+`due` hook showed the two do not go together (R95). Every compile captures a continuation, in the
+compiler's interpreted `emit-guarded`, which holds a `guard`; applied by the program's interpreter,
+the hook is compiled code that interpreter called, so the capture unwound out through it, 302 of 302
+compiles in one run, and the program's interpreter then ran the rest of `emit-guarded`. Neither way
+was faster: about 3 ms a compile in both, and a compile beneath interpreted recursion 100,000 deep no
+slower than one at the top.
+
+The user chose the direct call, between it and the plan's design with a rule in the debugger that
+skips the system's code. A mode in which the debugger may pause and step in the system's code is
+wanted, and later: it needs the other design, since a direct call is a nested run, which cannot pause
+(R82), so task 62's row now says that in the mode these calls are applied through the program's
+interpreter, with the skip rule beside it. Task 67's says the debugger's own hooks would be called the
+same direct way, since a hook taken at every step cannot be an application through the trampoline.
+
+## Tests
+
+`tests/functional/scheme_call_tests.js`, new, holds the helper to its contract: an interpreted
+closure gets and gives Scheme values, where called as a plain function it converts its result; a
+compiled procedure's pending tail call is run to its value; compiled frames may not move while it
+runs, and may again after it returns or throws. `tiering_tests.js` checks that the interpreter's tier
+holds the three procedures, and that a debug runtime enabled with nothing to pause at -- the
+command-line REPL's state at start-up, in which the tier compiles and the runtime is asked about
+every step the program's interpreter takes -- is asked only about the program's own file while the
+tier compiles at a binding, at a second call beneath compiled code, and for a top-level loop. With the
+`due` hook applied through the trampoline again, that test fails: the runtime was asked about
+`driver.scm`.
+
+## Cost
+
+Per hook, best of five, against the commit before: calling a hook about 0.1 µs, unchanged, measured
+as a waiting closure's calls while the program is debugged, when the tier only resets the count;
+binding a procedure that neither loops nor makes procedures 3.1-3.3 µs with the tier against 1.0-1.2
+without, and a top-level form 0.8-0.9 µs against 0.13, the same before and after. Most of that is the
+tier's work: looking through the body for a loop, and converting the form to do so.
+
+## Verification
+
+6,650 tests pass in Node with none failing (42 skipped), and 6,468 in the browser with none failing
+(61 skipped). The prebuilt tables were rebuilt for the
+changed `tier.scm`; the standard library's differ only in renaming counters. JavaScript under `src/`:
+86 lines added and 130 removed, the helper the only function added, under the save-and-resume
+protocol, whose rule it is that JavaScript calling Scheme keeps frames from moving; Scheme 22 added
+and 5 removed.

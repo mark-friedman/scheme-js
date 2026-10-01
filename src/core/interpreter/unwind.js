@@ -126,9 +126,10 @@ const frameCounts = new WeakMap();
 
 /**
  * Asked, at the resumes it names, whether a procedure whose frame is being
- * resumed is re-entered, switching it back if it is; null until the compiler
- * has started and registered it.
- * @type {function(Function, number, number): (boolean|number)|null}
+ * resumed is re-entered, switching it back if it is: a Scheme procedure, the
+ * compiler's (`note-resume` in `src/compiler/tier.scm`); null until the
+ * compiler has started and registered it.
+ * @type {Function|null}
  */
 let reentryPolicy = null;
 
@@ -144,10 +145,10 @@ let firstAsk = Infinity;
 /**
  * Registers what decides whether a procedure whose frames are being resumed
  * is re-entered, and switches it back.
- * @param {function(Function, number, number): (boolean|number)} policy - Given
- *   the procedure's resumable form and its frames' saves and resumes so far;
- *   answers `true` if it judged the procedure re-entered, after which it is
- *   not asked about it again, and otherwise the resume at which to ask next.
+ * @param {Function} policy - A Scheme procedure, given the procedure's
+ *   resumable form and its frames' saves and resumes so far; answers #t if it
+ *   judged the procedure re-entered, after which it is not asked about it
+ *   again, and otherwise the resume at which to ask next.
  * @param {number} first - The resume at which to ask about a procedure first.
  */
 export function setReentryPolicy(policy, first) {
@@ -159,13 +160,17 @@ export function setReentryPolicy(policy, first) {
  * Notes that a saved compiled frame is being resumed, and asks whether its
  * procedure is re-entered when the policy asked to be asked.
  * @param {Function} twin - The procedure's resumable form.
+ * @param {function(Function, Array<*>): *} call - Calls the policy:
+ *   `callSchemeProcedure`, as the evaluator calls the rest of the tier's
+ *   Scheme. Passed in by the evaluator, since `values.js`, where it is, imports
+ *   this module.
  */
-export function noteResume(twin) {
+export function noteResume(twin, call) {
   const counts = frameCounts.get(twin);
   if (counts === undefined) return;
   counts.resumed++;
   if (counts.resumed >= (counts.ask ?? firstAsk) && reentryPolicy !== null) {
-    const next = reentryPolicy(twin, counts.saved, counts.resumed);
+    const next = call(reentryPolicy, [twin, counts.saved, counts.resumed]);
     counts.ask = next === true ? Infinity : Number(next);
   }
 }

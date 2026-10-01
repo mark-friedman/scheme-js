@@ -334,6 +334,34 @@ export function settleTailCalls(result) {
 }
 
 /**
+ * Calls a Scheme procedure from JavaScript that holds Scheme values and wants
+ * a Scheme value back: the evaluator's hooks, which call the compiler tier's
+ * Scheme as a program runs, and the door into the compiler
+ * (`src/compiler/lowering.js`). Through the procedure's raw entry, so nothing
+ * is converted either way; a pending tail call is run to its value; and
+ * compiled frames may not move to the heap meanwhile, since the unwind that
+ * moves them would come back here as the procedure's result.
+ *
+ * So the procedure runs compiled, or in the interpreter that made it, which an
+ * interpreted closure's raw entry runs it in, and a continuation it captures
+ * stays within that run. Called by the evaluator, it is therefore never run by
+ * the program's interpreter, and the program's debugger, which can pause only
+ * that interpreter's own run, never sees it.
+ *
+ * @param {Function} proc - A Scheme procedure.
+ * @param {Array<*>} args - Scheme values.
+ * @returns {*} Its result, a Scheme value.
+ */
+export function callSchemeProcedure(proc, args) {
+    const flush = suspendFlush();
+    try {
+        return settleTailCalls(callWithSchemeValues(proc, args));
+    } finally {
+        restoreFlush(flush);
+    }
+}
+
+/**
  * Calls a procedure with Scheme values, from code that holds them and is not
  * the interpreter: compiled code, a primitive settling a tail call.
  *

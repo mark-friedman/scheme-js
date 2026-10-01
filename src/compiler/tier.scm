@@ -5,7 +5,11 @@
 ;; attaches it). The interpreter tells the tier two things -- a closure has
 ;; been bound to a top-level name, by `define` or `set!`, and a waiting
 ;; closure's calls have run out -- and asks it one: whether to run a top-level
-;; form compiled. This file answers.
+;; form compiled. This file answers. The interpreter holds the tier's record
+;; and calls the procedure in it for each, directly, with compiled frames kept
+;; from moving (`callSchemeProcedure` in src/core/interpreter/values.js): so
+;; the tier's Scheme runs compiled, or in the compiler's own interpreter, and
+;; never where the program's debugger could pause it.
 ;;
 ;; ## When
 ;;
@@ -61,9 +65,16 @@
 ;;  * @property {object} outcomes - A JavaScript `Map` from each name the tier
 ;;  *   tried to "compiled" or why not, for whoever attached it to read.
 ;;  * @property {integer} expressions - How many top-level forms it compiled.
+;;  * @property {procedure} bound - What the interpreter calls when a closure is
+;;  *   bound to a top-level name: `tier-bound!` on this tier.
+;;  * @property {procedure} due - What it calls when a waiting closure's calls
+;;  *   have run out: `tier-due!` on this tier.
+;;  * @property {procedure} form - What it asks for each top-level form, and its
+;;  *   environment: `tier-top-level-procedure` on this tier.
 ;;  */
 (define-record-type tier
-  (make-tier-record interpreter env prebuilt? decline-captures? waiting outcomes expressions)
+  (make-tier-record interpreter env prebuilt? decline-captures? waiting outcomes expressions
+                    bound due form)
   tier?
   (interpreter tier-interpreter)
   (env tier-env)
@@ -71,7 +82,10 @@
   (decline-captures? tier-declines-captures?)
   (waiting tier-waiting)
   (outcomes tier-outcomes)
-  (expressions tier-expressions set-tier-expressions!))
+  (expressions tier-expressions set-tier-expressions!)
+  (bound tier-bound-hook)
+  (due tier-due-hook)
+  (form tier-form-hook))
 
 ;; /**
 ;;  * Makes a program's tier, and takes on the procedures the program has
@@ -86,8 +100,11 @@
 ;;  */
 (define (make-tier interpreter env prebuilt? decline-captures? outcomes)
   (and (code-generation-allowed?)
-       (let ((tier (make-tier-record interpreter env prebuilt? decline-captures?
-                                     (make-weak-table) outcomes 0)))
+       (letrec ((tier (make-tier-record
+                       interpreter env prebuilt? decline-captures? (make-weak-table) outcomes 0
+                       (lambda (name closure env) (tier-bound! tier name closure env))
+                       (lambda (closure) (tier-due! tier closure))
+                       (lambda (node env) (tier-top-level-procedure tier node env)))))
          (for-each (lambda (binding)
                      (let ((value (cdr binding)))
                        (if (and (interpreted-closure? value) (programs-own? value env))

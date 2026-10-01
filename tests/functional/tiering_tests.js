@@ -148,13 +148,13 @@ export async function runTieringTests(logger) {
   logger.title('Tiering - Top-Level Expressions');
   {
     const t = tiered();
-    const before = t.tier.expressions;
+    const before = Number(t.tier.expressions);
     assert(logger, 'a top-level loop answers',
       t.run('(let loop ((i 0) (acc 0)) (if (= i 10) acc (loop (+ i 1) (+ acc i))))'), '45');
-    assert(logger, 'and was compiled', t.tier.expressions, before + 1);
+    assert(logger, 'and was compiled', Number(t.tier.expressions), before + 1);
     t.run('(define keep (let ((n 0)) (lambda () (set! n (+ n 1)) n)))');
     t.run('(list (keep) (keep))');
-    assert(logger, 'an expression that only makes procedures is not compiled', t.tier.expressions, before + 1);
+    assert(logger, 'an expression that only makes procedures is not compiled', Number(t.tier.expressions), before + 1);
     assert(logger, 'but the procedure it binds is, over its closure', t.compiled('keep'), true);
     assert(logger, 'and keeps its state', t.run('(keep)'), '3');
   }
@@ -226,9 +226,9 @@ export async function runTieringTests(logger) {
     // tier does not compile it at all.
     assert(logger, 'a procedure whose calls run out while the program is debugged is not compiled',
       t.tier.outcomes.has('waits'), false);
-    const expressionsBefore = t.tier.expressions;
+    const expressionsBefore = Number(t.tier.expressions);
     t.run('(let loop ((i 0)) (if (< i 3) (loop (+ i 1)) i))');
-    assert(logger, 'nor is a top-level loop', t.tier.expressions, expressionsBefore);
+    assert(logger, 'nor is a top-level loop', Number(t.tier.expressions), expressionsBefore);
     t.interpreter.interpretForDebugger(false);
     t.run('(waits 1)');
     assert(logger, 'and is compiled on its next call after', t.compiled('waits'), true);
@@ -298,6 +298,43 @@ export async function runTieringTests(logger) {
     assert(logger, 'a procedure the program defined before, that loops, is compiled on attaching', seen.early, true);
     assert(logger, 'another waits for its second call', seen.simple, false);
     assert(logger, 'and the library\'s interpreted procedures are not taken for the program\'s', seen.outcomes, 'early');
+  }
+
+  logger.title('Tiering - The Interpreter Calls the Tier\'s Scheme');
+  {
+    const t = tiered();
+    assert(logger, 'the tier the interpreter holds has a procedure for each thing it tells or asks the tier',
+      ['bound', 'due', 'form'].map((hook) => typeof t.tier[hook]).join(' '), 'function function function');
+    // An enabled debug runtime with nothing to pause at, as the command-line
+    // REPL starts with: the program is not being debugged, so the tier
+    // compiles, and the runtime is asked about every step the program's
+    // interpreter takes that has a source. The tier's Scheme runs compiled, or
+    // in the compiler's own interpreter, and so is never among them.
+    const runtime = new SchemeDebugRuntime();
+    t.interpreter.setDebugRuntime(runtime);
+    runtime.enable();
+    const files = new Set();
+    const shouldPause = runtime.shouldPause.bind(runtime);
+    runtime.shouldPause = (source, env) => {
+      files.add(source.filename);
+      return shouldPause(source, env);
+    };
+    const program = [
+      '(define (helper x) (* x x))',
+      // Loops, so it is compiled when bound, and `helper`'s second call, which
+      // compiles it, comes from compiled code.
+      '(define (sum-helpers n) (let loop ((i 0) (s 0)) (if (= i n) s (loop (+ i 1) (+ s (helper i))))))',
+      '(sum-helpers 10)',
+      '(let loop ((i 0)) (if (< i 3) (loop (+ i 1)) i))'
+    ].join('\n');
+    for (const form of parse(program, { filename: 'program.scm' })) {
+      settle(t.interpreter.runTopLevel(analyze(form), t.env, { jsAutoConvert: 'raw' }));
+    }
+    t.interpreter.setDebugRuntime(null);
+    assert(logger, 'setup: the tier compiled at a binding, at a second call beneath compiled code, and a top-level loop',
+      [t.compiled('sum-helpers'), t.compiled('helper'), Number(t.tier.expressions)].join(' '), 'true true 1');
+    assert(logger, 'and the program\'s debugger was asked only about the program\'s own code',
+      [...files].join(' '), 'program.scm');
   }
 
   logger.title('Tiering - Detaching');
