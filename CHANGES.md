@@ -9368,3 +9368,52 @@ registry made for one call and dropped after it, and loading the rest later, int
 needs that registry kept and a way for Scheme to ask for the load -- a change to
 `library_registry.js`, which task 64 is to port. So 69 now depends on 64 in `docs/compiler_plan.md`,
 unless the registry change is decided on first.
+
+# Walkthrough: what compiling costs a program under the tier, measured, and a third of it gone (task 80, begun)
+
+## A benchmark of the tier itself
+
+The canonical suite compiles each definition before the run it times, so it has never measured what
+compiling costs a program under the tier, which pays for it when the tier decides to compile.
+`benchmarks/run_tier.js` (`npm run benchmark:tier`) runs each canonical program once, at the suite's
+sizes, as a page runs it -- the shipped libraries from their tables, the tier attached, each form
+through `runTopLevel` -- and reports the whole run, the time spent in the tier's three procedures,
+where every compile happens, how many names the tier compiled, and the run with the tier off. The
+time in the tier is counted by putting a timing wrapper, marked as taking Scheme values, in place of
+each of the tier record's procedures.
+
+Before any change, compiling was 3,859 ms over the 42 programs, and 19 ran faster with the tier off:
+`scheme` 334 ms against 17, `maze` 229 against 58, `string` 45 against 3.5. Even a program that
+compiles four procedures spent 30-45 ms doing it, the first compiles costing about 10 ms each on a
+compiler still cold, where warm ones cost 3-4.
+
+## Where a compile's time goes
+
+A CPU profile of `parsing` under the tier, each sample charged to the procedure of the compiler's or
+the library's table its line falls in, and only samples beneath the tier's procedures counted, put
+about a third of compiling in `runtime-prelude` in `emit.scm`. It found the runtime values a
+procedure's code uses by searching the generated code once for each of a dozen names, with SRFI
+152's `string-contains`, which tries a match at every position in Scheme, and a large procedure's
+code is hundreds of kilobytes. List-based sets in `liveness.scm` were about a quarter more.
+
+## The fix
+
+`runtime-names-in` goes over the code once, taking each `$` and the name after it, and keeps the
+names that are runtime values, compared with `string=?`, which measured 10-15% faster than the
+generic `equal?` that `assoc` and `member` use by default. Tested in `emit_tests.scm`, a name that
+only begins as a runtime value's included, which the search mistook for one. Compiling over the 42
+programs: 2,670 ms, 31% less; `scheme` 313 to 171 ms, `maze` 206 to 121, `dynamic` 630 to 397,
+`fib` 45 to 31; 26 programs now faster with the tier than without, from 23.
+
+## Next
+
+The pass is still about 28% of compiling `scheme`, since it reads the code a character at a time in
+compiled Scheme, so the emitter should record the runtime values as it writes them, at the dozen
+sites that do. Then liveness's sets. A policy that compiles fewer procedures is the user's to decide;
+`docs/compiler_plan.md` has the numbers.
+
+## Verification
+
+6,741 tests pass in Node with none failing (33 skipped), and 6,544 in the browser with none failing
+(53 skipped). The prebuilt tables were rebuilt for the changed `emit.scm`. No JavaScript changed under `src/`; the benchmark is a driver in `benchmarks/`,
+as `run_r7rs.js` is, which task 76 turns into Scheme with the others.

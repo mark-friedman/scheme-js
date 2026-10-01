@@ -126,6 +126,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
+│   ├── run_tier.js                 # The canonical programs as a page runs them, the tier's compiling counted
 │   ├── record_progress.js          # Regenerates docs/performance_progress.md
 │   ├── lib/
 │   │   ├── harness.js              # Shared bootstrap and timing

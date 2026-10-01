@@ -20,6 +20,15 @@
   (test "infinity has no literal" "Number(\"Infinity\")" (js-number (/ 1. 0)))
   (test "nor has NaN" "Number(\"NaN\")" (js-number (/ 0. 0))))
 
+(test-group "emit - the runtime values a procedure's code uses"
+  (test "each runtime value the code names is declared, once, in the order they are listed"
+        "const $TailCall = R.TailCall, $stack = R.stack;"
+        (runtime-prelude "$stack.room = $d; while ($t1 instanceof $TailCall) { $stack.room = $d; }"))
+  (test "a name that only begins as one does is not one"
+        ""
+        (runtime-prelude "$stackDepth = 1;"))
+  (test "code that names none declares nothing" "" (runtime-prelude "return s_x_$1 + $t0;")))
+
 (test-group "emit - expressions"
   (test "an expression renders its parts" "f(s_a, 1)" (expr->string (js "f(" 's_a ", " "1" ")")))
   (test "a nested expression is spliced in" '("(" s_a ")") (js "(" (js 's_a) ")"))

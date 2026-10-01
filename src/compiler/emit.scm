@@ -1562,18 +1562,45 @@
     ("$notProc" . "R.notAProcedure") ("$foreign" . "R.callForeign")))
 
 ;; /**
+;;  * The runtime values a procedure's code names: every `$` and the name after
+;;  * it, found in one pass over the code, that is one of `runtime-constants`.
+;;  *
+;;  * One pass, because the code of a large procedure runs to hundreds of
+;;  * kilobytes: searching it once for each runtime value, with
+;;  * `string-contains`, was about a third of what compiling cost the canonical
+;;  * `parsing` program under the tier.
+;;  *
+;;  * @param {string} code - The procedure's code.
+;;  * @returns {list} The names, as strings, without repeats.
+;;  */
+(define (runtime-names-in code)
+  (let ((n (string-length code)))
+    (define (name-char? c) (or (char-alphabetic? c) (char-numeric? c) (char=? c #\_)))
+    (define (name-end j) (if (and (< j n) (name-char? (string-ref code j))) (name-end (+ j 1)) j))
+    (let loop ((i 0) (used '()))
+      (cond ((= i n) used)
+            ((char=? (string-ref code i) #\$)
+             (let* ((end (name-end (+ i 1)))
+                    (name (substring code i end)))
+               (loop end (if (and (assoc name runtime-constants string=?) (not (member name used string=?)))
+                             (cons name used)
+                             used))))
+            (else (loop (+ i 1) used))))))
+
+;; /**
 ;;  * The declaration of the runtime values a procedure's code uses.
 ;;  *
-;;  * Found by searching the code rather than recorded as it is emitted, since
-;;  * the names are fixed and cannot be mistaken for anything the emitter
-;;  * generates. A string constant spelling one out only declares a local the
-;;  * code does not use.
+;;  * Found in the code rather than recorded as it is emitted, since the names
+;;  * are fixed and cannot be mistaken for anything the emitter generates. A
+;;  * string constant spelling one out only declares a local the code does not
+;;  * use.
 ;;  *
 ;;  * @param {string} code - The procedure's code.
 ;;  * @returns {string} A `const` declaration, or "" if it uses none.
 ;;  */
 (define (runtime-prelude code)
-  (let ((used (filter (lambda (c) (string-contains code (car c))) runtime-constants)))
+  (let* ((names (runtime-names-in code))
+         (used (filter (lambda (c) (member (car c) names string=?)) runtime-constants)))
     (if (null? used)
         ""
         (string-append "const "
