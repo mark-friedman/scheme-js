@@ -2813,6 +2813,26 @@ the current ports now are.
 
 ---
 
+**R98. Starting the rest of the compiler at its first compile needs JavaScript.**
+
+Task 69's first candidate was to start only the tier's policy when the tier is attached, as a small
+library, and the rest of the compiler at the first compile: "a rearrangement of the compiler's
+Scheme libraries that adds no JavaScript". The second half cannot be written in Scheme as things
+stand. The compiler's libraries load into a registry of their own (`withPrivateLibraries` in
+`library_registry.js`), which is made for the one call that loads them and dropped when it returns;
+loading the rest later, into the same libraries -- the tier's records and the compiler's must be one
+`(scheme core)`'s -- needs that registry kept and entered again, and Scheme has no procedure to ask
+for a library to be loaded at that point. Both are JavaScript: a change to `library_registry.js`,
+which 64 is to port, and a procedure the compiler's host library would give. Measured, on the CLI,
+the start costs about 166 ms: `(scheme core)` 41 (31 its source, 10 its table), SRFI 1 16, SRFI
+152 19, and the compiler's own library 85 (53 and 32); the candidate would move about 120 ms of it to
+the first compile, and save it outright only for a program that never compiles.
+
+*Consequence:* 69's first candidate waits for 64, under *Scheme first*'s first criterion, or for a
+decision to make the registry change before it.
+
+---
+
 ## Appendix — the original staged plan
 
 Kept because it is the plan the entries above were measured against, not because it is the plan.

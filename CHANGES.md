@@ -9355,3 +9355,16 @@ records as evidence. On the canonical suite, compiled, alternated twice: `dynami
 again with each refetched. JavaScript under `src/`: 45 lines added and 196 removed, the cores now
 taking a port and the console ports, the shared writer's atoms, and the two `ready` answers; Scheme:
 272 added and 76 removed.
+
+# Walkthrough: task 69 measured, and blocked (2026-10-01)
+
+No code changed. Starting the compiler, which the CLI does when it attaches the tier, still doubles a
+trivial run, 0.29 s against 0.16 s with `--no-compile`. Timed library by library, the start is about
+166 ms: `(scheme core)` 41 (its source 31, its table 10), SRFI 1 16, SRFI 152 19, and the compiler's
+own library 85 (53 and 32). The plan's first candidate, the tier's policy as a small library started
+first and the rest of the compiler at the first compile, would move about 120 ms of that to the first
+compile. It cannot be written without JavaScript (R98): the compiler's libraries load into a private
+registry made for one call and dropped after it, and loading the rest later, into the same libraries,
+needs that registry kept and a way for Scheme to ask for the load -- a change to
+`library_registry.js`, which task 64 is to port. So 69 now depends on 64 in `docs/compiler_plan.md`,
+unless the registry change is decided on first.
