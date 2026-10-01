@@ -331,7 +331,8 @@ a continuation shares it and may be resumed more than once.
 - **Room is a segment's, and only some segments may move.** The interpreter resets the room whenever
   it calls compiled code (`openCompiledSegment` in `unwind.js`), because the unwind ends there and
   it can finish it. Anything else that calls a Scheme procedure from JavaScript -- a port primitive,
-  `js-invoke`, a class constructor, a promise's executor -- turns moving off for its duration
+  `js-invoke`, a class constructor, a promise's executor, the tier's hooks calling the compiler
+  (`call` in `lowering.js`) -- turns moving off for its duration
   (`suspendFlush`), since it would take the sentinel for a value; compiled code beneath it can still
   overflow as before. One way past that remains: compiled code calling a plain JavaScript function
   directly, which calls compiled code back. The interpreter gives the setting back after a normal

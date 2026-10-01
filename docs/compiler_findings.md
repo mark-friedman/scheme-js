@@ -2739,6 +2739,27 @@ interpreter (74). `tests/tiers/tier_compiles_tests.scm` expects the failure unti
 
 ---
 
+**R94. Compiling is on the path a user waits on.**
+
+R52 put the cost of the compiler's Scheme almost entirely off any path a user waits on, "the
+library is lowered at build time and a program's definitions are lowered once each", and the header
+of `src/compiler/lowering.js` said the same. Once each is not little. The canonical programs, at the
+sizes the suite runs, were assembled as `run_r7rs.js` assembles them and run form by form through
+`runTopLevel` with the tier attached, set up as `tests/run_tiered_scheme_tests_lib.js` sets up a
+page, with the time in the tier's two hooks counted. Most of a short program's time went on
+compiling it: `scheme` spent 355 of its 380 ms in the hooks, compiling 93 procedures, about 3.8 ms
+each; `fib` spent 102 of 111 ms compiling 4, since the first compiles take about 25 ms each while the
+compiler's own compiled code is cold. It was so before 71 as well -- `scheme` 312 of 342 ms -- so
+this is not 71's doing; 71 has the tier compile more, 554 names against 411, which made programs
+whose newly compiled procedures are not hot up to 20% slower (`string` 33 to 41 ms) and those whose
+hot procedure it now compiles 1.4-5.75x faster. Nothing measured it: the canonical harness compiles
+each definition as it appears, before the run it times, and the CLI's figure for the tier (34) was
+`fib(30)`, which runs long enough to repay its compiling.
+
+*Consequence:* what compiling costs a program under the tier is measured, and then reduced (80).
+
+---
+
 ## Appendix — the original staged plan
 
 Kept because it is the plan the entries above were measured against, not because it is the plan.

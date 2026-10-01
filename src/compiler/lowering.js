@@ -17,13 +17,16 @@
  * first customer, and every cost it pays is a cost a real program pays.
  *
  * It pays about 16x against the JavaScript it replaced, measured over 952
- * lambdas from the canonical benchmarks and the standard library, and that cost
- * is almost entirely off the path a user waits on: the standard library is
- * lowered at build time, and a program's definitions are lowered once each.
- * Starting the compiler is on that path: the tier's decisions are Scheme, so a
- * program with the tier attached starts it on attaching, about 130 ms, most of
- * it analyzing and running the source of the compiler and of the libraries it
- * imports, which its prebuilt tables then replace.
+ * lambdas from the canonical benchmarks and the standard library. For the
+ * standard library that cost is off the path a user waits on, since it is
+ * lowered at build time. For a program it is not: the tier compiles the
+ * program's procedures as it runs, each once, at a few milliseconds each, and a
+ * short program can spend most of its run doing it -- the canonical `scheme`
+ * benchmark, run with the tier attached, nine tenths of it, compiling 93
+ * procedures. Starting the compiler is on that path too: the tier's decisions
+ * are Scheme, so a program with the tier attached starts it on attaching,
+ * about 130 ms, most of it analyzing and running the source of the compiler
+ * and of the libraries it imports, which its prebuilt tables then replace.
  *
  * ## The compiler is a library
  *
@@ -80,7 +83,7 @@ import { invoke, settle } from './runtime.js';
 import { astToScheme, irToJs, toArray } from './marshal.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { registerCompilerHost } from './host.js';
-import { setReentryPolicy } from '../core/interpreter/unwind.js';
+import { setReentryPolicy, suspendFlush, restoreFlush } from '../core/interpreter/unwind.js';
 
 /**
  * The compiler's library.
@@ -211,12 +214,24 @@ export function compilerStartFailure() {
  * the procedure is interpreted or compiled -- which is exactly the state this
  * module cannot predict, since it depends on whether the prebuilt code matched.
  *
+ * Compiled frames may not move to the heap while it runs, as beneath any
+ * JavaScript that calls Scheme: the unwind would come back here as the
+ * procedure's result. The tier's hooks call from the middle of an application,
+ * where the program's compiled code may have left moving allowed, and every
+ * compile captures a continuation, in the compiler's own `guard`; so, without
+ * this, every compile started beneath compiled code was abandoned.
+ *
  * @param {Function} proc - A Scheme procedure.
  * @param {Array<*>} args - Scheme values.
  * @returns {*} Its result.
  */
 function call(proc, args) {
-  return settle(invoke(proc, args));
+  const flush = suspendFlush();
+  try {
+    return settle(invoke(proc, args));
+  } finally {
+    restoreFlush(flush);
+  }
 }
 
 /**

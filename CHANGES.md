@@ -8954,3 +8954,100 @@ ported here.
 
 6,633 tests pass in Node with none failing (43 skipped), and 6,451 in the browser with none failing
 (62 skipped): in each, the 18 assertions of the two suites more than before.
+
+# Walkthrough: the tier's hooks stop frames moving while they call the compiler (task 71)
+
+## The fix
+
+`call` in `src/compiler/lowering.js`, through which the tier's hooks and every other entry point
+call the compiler's Scheme, now turns off compiled frames moving to the heap while it runs
+(`suspendFlush`), and gives the setting back however the call ends, as every other JavaScript that
+calls a Scheme procedure already did: the port primitives, `js-invoke`, class constructors, a
+promise's executor, `callForeign`, `settleTailCalls`.
+
+Without it, a hook called beneath compiled code -- a waiting closure's calls running out, or a
+closure bound at top level, in a run of the interpreter that compiled code called -- left moving
+allowed, and every compile captures a continuation, in the compiler's own `guard`. That capture
+unwound out through the compiler's compiled frames to `call`, which returned the unwind as the
+hook's result, and the tier had by then taken the closure off its waiting table: so the procedure was
+never compiled (R93). With moving off, the compiler's `guard` captures within the compiler's own run,
+as it does at top level.
+
+## Tests
+
+`tests/tiers/tier_compiles_tests.scm` loses its `test-expect-fail` mark: a procedure whose first two
+calls come from a compiled loop is now compiled on its second. A second test goes through the other
+hook: a loop the interpreter made, held in a list so that nothing has bound it, is assigned to a
+top-level name by an interpreted procedure called once from a compiled loop, and is compiled when it
+is bound. Each fails without the fix and passes with it. The first version of the second test had the
+assigning procedure make the loop itself, and so passed either way: making a procedure got the
+assigning procedure compiled when it was bound, and its `set!` then ran in compiled code, which tells
+the tier nothing.
+
+## What it changes for a program
+
+The canonical programs, at the sizes the suite runs, were run as a page runs them: each assembled as
+`run_r7rs.js` assembles it, run form by form through `runTopLevel` with the tier attached, set up as
+`tests/run_tiered_scheme_tests_lib.js` sets up a page, three rounds alternating the commit before and
+the fix, best of three. Every answer was right in every round. The tier compiled 554 of the
+programs' names where it had compiled 411. Until now it had never compiled the procedure a program's
+harness loop calls, since that loop is compiled and the procedure's second call comes from beneath
+it: `fib` ran 2.50x faster, `tak` 1.80x, `takl` 1.75x, `ack` 3.89x, `fibfp` 5.75x, `mazefun` 1.42x,
+`fibc` 1.61x.
+
+About half the programs ran slower, by 2-20%: `string` 33 to 41 ms, `scheme` 317 to 351, `maze` 219
+to 241, `array1`, `bv2string`, `browse`, `simplex` and `lattice` 7-9%. Timing the tier's two hooks
+put all of it in compiling: outside the hooks each program ran as fast as before or faster, and the
+newly compiled procedures, not being hot, never repaid their compiling in a run this short. Compiling
+turned out to be most of a short program's run, before the fix as well as after it -- `scheme` spent
+355 of its 380 ms in the hooks, compiling 93 procedures, about 3.8 ms each, and the first compiles
+take about 25 ms each while the compiler is cold -- which falsifies R52's claim that compiling is off
+the path a user waits on (R94). The header of `lowering.js` said the same, and is corrected. What to
+do about it is task 80, new, beside 69: a benchmark of the programs under the tier with compiling
+counted, a profile of one compile, and only then the remedies.
+
+## Also
+
+`docs/compiler_design.md` names the tier's hooks among the JavaScript that turns moving off. Row 26
+had never reached `docs/compiler_plan_completed.md`, which lost most of its rows in two commits,
+`9b45274` and `964bacd`; it is appended there with 71's, since the plan's Completed section drops it
+now.
+
+## Verification
+
+6,638 tests pass in Node with none failing (42 skipped), and 6,456 in the browser with none failing
+(61 skipped). JavaScript grown under `src/`: five lines in `call` in `lowering.js`, the
+save-and-resume protocol's rule that JavaScript calling a Scheme procedure stops frames moving while
+it does -- a fix in place, and `call` goes in 75.
+
+# Walkthrough: `docs/compiler_plan_completed.md` restored (2026-10-01)
+
+The append-only record of completed compiler tasks held ten rows and no header, where it should have
+held 41. It is restored: the header and table header of `dc5e6bd`, then a row for every task ever
+marked ✅ in `docs/compiler_plan.md`, in the order each was first marked, so the rows for 24, 25 and
+26, appended late, move to their places. `docs/compiler_plan.md` is unchanged.
+
+## How the rows were lost
+
+Two commits truncated it: `9b45274` replaced the header and the rows for 1-21 with the row for 22,
+and `964bacd` replaced the rows for 25-28 with the row for 29. Eight more each replaced the file's
+one row with another, which a count of lines per commit does not show, since the file stayed
+at two lines through them: `4d348cf` (22, by 24; 23 never reached the file), `80b5069` (24, by 25),
+`8e2bac6` (29, by 30), `3ab7bae` (30, by 31), `dcdb1f4` (31, by 33), `b94f67c` (33, by 36),
+`3599970` (36, by 35) and `778f337` (35, by 46). Each of the ten left the file a blank line and one
+row, as if written whole where it should have been appended to. From `439d79d` on, rows were
+appended again.
+
+## Where each row came from
+
+Each row is the text it was last written with, unchanged. For all but one task that is the only text
+it has had: 1-21 are as in `dc5e6bd`, 25, 26 and 28 as in `ff047a2`, the ten already there as they
+were, and the rest from the Completed sections of past versions of the plan. The exception is 27,
+whose row in the plan was edited in `803ed49` to follow a renumbering, "(31)" to "(30)" and "(34)"
+to "(46)", after the completed file had taken the earlier text; the later one is restored.
+
+## Verification
+
+Every ✅ row was read from every committed version of each file and from the working copy: the task
+numbers marked ✅ anywhere in the plan, 1-31, 33-36, 46, 49, 50, 70, 71 and 79, each appear in the
+file once, and every row is byte for byte a row from that history. Task 32 was never marked ✅.

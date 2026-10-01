@@ -29,6 +29,25 @@
 
 (sum-of-squares 10)
 
+;; A loop the interpreter made, held in a list so that nothing binds it yet, is
+;; assigned to a top-level name by `install-counter!`, which neither loops nor
+;; makes procedures and is called once, from a compiled loop, so runs
+;; interpreted: the loop is bound, and compiled if the rule holds, beneath
+;; compiled code.
+(define counters (list (lambda (n) (let loop ((i 0)) (if (= i n) i (loop (+ i 1)))))))
+
+(define count-to #f)
+
+(define (install-counter! counter) (set! count-to counter))
+
+(define (install-once)
+  (let loop ((i 0))
+    (when (< i 1)
+      (install-counter! (car counters))
+      (loop (+ i 1)))))
+
+(install-once)
+
 ;; Makes a procedure, so it is compiled when it is bound, and captures a
 ;; continuation to escape with.
 (define (first-even numbers)
@@ -46,11 +65,11 @@
         *tier-attached* (compiled? cube))
   (test "a procedure that loops is compiled when it is bound"
         *tier-attached* (compiled? sum-of-squares))
-  (test-expect-fail
-   (and *tier-attached*
-        "compiling it beneath compiled code is abandoned: the compiler's own `guard` captures a continuation, which unwinds out through `call` in src/compiler/lowering.js")
-   (test "a procedure first called from compiled code is compiled on its second call"
-         *tier-attached* (compiled? square)))
+  (test "a procedure first called from compiled code is compiled on its second call"
+        *tier-attached* (compiled? square))
+  (test "a loop assigned to a top-level name beneath compiled code is compiled when it is bound"
+        *tier-attached* (compiled? count-to))
+  (test "and computes the same answer" 7 (count-to 7))
   (test "and the program's answer is the same in both runs" 285 (sum-of-squares 10))
   (test "after it, a continuation captured in compiled code escapes as it should"
         4 (first-even '(1 3 4 5 6)))
