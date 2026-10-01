@@ -2795,6 +2795,24 @@ conversions or is removed is a task of its own.
 
 ---
 
+**R97. A closure a library makes at its top level, inside a `let` or a call, cannot go in a prebuilt table.**
+
+`generate-environment` compiled every interpreted closure a library binds at top level, and a test
+(`prebuilt_library_tests.js`) expected one made by `(define scaled (let ((k 3)) (lambda (x) (* k
+x))))` to be in the library's table. Its code cannot work there. Compiled against the closure's own
+environment, it reaches `k` by its name, and a local's name carries the counter the analyzer renamed
+it with in that run (`k_$2164`); the run that installs the table gave it another, so the first call
+fails with an unbound variable. Nothing caught it, because the shipped libraries made no such
+closure at top level until 78 defined the current ports with `make-parameter`, whose closures
+interpreted at load are exactly this, and `(scheme core)`'s table then failed to install. The tier
+is not affected: it compiles a closure in the run that made it, where the names agree.
+
+*Consequence:* `generate-environment` declines a closure not made at a program's or a library's top
+level, saying why (78); a library that wants such a procedure compiled defines it at top level, as
+the current ports now are.
+
+---
+
 ## Appendix — the original staged plan
 
 Kept because it is the plan the entries above were measured against, not because it is the plan.

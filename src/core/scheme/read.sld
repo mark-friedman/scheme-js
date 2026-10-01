@@ -4,10 +4,7 @@
 ;; Per R7RS §6.13.2.
 
 (define-library (scheme read)
-  (import (scheme primitives))
+  ;; Scheme, over the runtime's reader, in ports.scm.
+  (import (only (scheme core) read))
   
-  (export read)
-  
-  (begin
-    ;; read is implemented as a primitive
-  ))
+  (export read))

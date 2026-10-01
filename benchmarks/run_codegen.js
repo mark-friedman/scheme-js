@@ -213,6 +213,23 @@ const GROUPS = [
     ]
   },
   {
+    // Writing with no port looks up the current output port, a parameter
+    // object, at each call. A string port is made current, so that nothing
+    // reaches the console.
+    name: 'output',
+    about: 'writing to the current output port, and to a port passed',
+    definitions: `
+      (define (one x) 1)
+      (define sink (open-output-string))
+      (current-output-port sink)
+      (define key-a 'a)`,
+    workloads: [
+      ['write-char to the current port', '(begin (write-char #\\a) 1)'],
+      ['display a symbol to the current port', '(begin (display key-a) 1)'],
+      ['write-char to a port passed', '(begin (write-char #\\a sink) 1)']
+    ]
+  },
+  {
     name: 'recursion',
     about: 'non-tail recursion: each procedure that calls takes its frame from the room left on the stack',
     definitions: `

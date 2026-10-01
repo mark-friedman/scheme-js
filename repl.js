@@ -19,7 +19,7 @@ import { analyze } from './src/core/interpreter/analyzer.js';
 import { parse } from './src/core/interpreter/reader.js';
 import { Cons, toArray, cdr, car } from './src/core/interpreter/cons.js';
 import { Symbol } from './src/core/interpreter/symbol.js';
-import { Closure, Continuation } from './src/core/interpreter/values.js';
+import { Closure, Continuation, callSchemeProcedure } from './src/core/interpreter/values.js';
 import { LiteralNode } from './src/core/interpreter/ast.js';
 
 import { prettyPrint } from './src/core/interpreter/printer.js';
@@ -250,13 +250,17 @@ async function startRepl() {
         // output is written as the process exits, however it exits. The
         // interactive REPL below keeps the console ports: standard input is
         // where its own input comes from, through Node's readline.
-        env.lookup('current-input-port')(env.lookup('standard-input-port')());
-        env.lookup('current-output-port')(env.lookup('standard-output-port')());
-        env.lookup('current-error-port')(env.lookup('standard-error-port')());
-        const write = env.lookup('write');
-        const display = env.lookup('display');
-        const newline = env.lookup('newline');
-        const errorPort = env.lookup('current-error-port')();
+        // Each is a Scheme procedure, called with Scheme values, so through
+        // the call that converts nothing: a plain call would make an
+        // integral inexact result exact before writing it.
+        const scheme = (name) => (...args) => callSchemeProcedure(env.lookup(name), args);
+        scheme('current-input-port')(scheme('standard-input-port')());
+        scheme('current-output-port')(scheme('standard-output-port')());
+        scheme('current-error-port')(scheme('standard-error-port')());
+        const write = scheme('write');
+        const display = scheme('display');
+        const newline = scheme('newline');
+        const errorPort = scheme('current-error-port')();
 
         // Handle -e "expression"
         if (args[0] === '-e') {
@@ -307,8 +311,9 @@ async function startRepl() {
      * than when something next ends a line.
      */
     const flushOutput = () => {
-        env.lookup('flush-output-port')();
-        env.lookup('flush-output-port')(env.lookup('current-error-port')());
+        const flush = env.lookup('flush-output-port');
+        callSchemeProcedure(flush, []);
+        callSchemeProcedure(flush, [callSchemeProcedure(env.lookup('current-error-port'), [])]);
     };
 
     // Start Interactive REPL

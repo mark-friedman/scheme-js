@@ -8,7 +8,7 @@
   (include "numbers.scm")    ; =, <, >, predicates, min/max
   (include "list.scm")       ; map, for-each, memq, assq, etc.
   (include "parameter.scm")  ; make-parameter, parameterize
-  (include "ports.scm")      ; call-with-port, call-with-input-file, call-with-output-file
+  (include "ports.scm")      ; the current ports, reading and writing them, call-with-port, the file procedures
   
   (export
     ;; Macros
@@ -24,6 +24,12 @@
     string-map string-for-each
     vector-map vector-for-each
     call-with-port call-with-input-file call-with-output-file
+    with-input-from-file with-output-to-file
+    current-input-port current-output-port current-error-port
+    read-char peek-char char-ready? read-line read-string
+    read-u8 peek-u8 u8-ready? read-bytevector read
+    write-char write-string write-u8 write-bytevector
+    newline display write write-simple write-shared flush-output-port
     memq memv member
     assq assv assoc
     length list-ref list-tail reverse list-copy

@@ -4,15 +4,12 @@
 ;; Per R7RS §6.13.3.
 
 (define-library (scheme write)
-  (import (scheme primitives))
+  ;; Scheme, over the runtime's writers, in ports.scm.
+  (import (only (scheme core) display write write-shared write-simple))
   
   (export
     display
     write
-    ;; write-shared and write-simple are optional extensions
-    ;; that we don't implement yet
-  )
-  
-  (begin
-    ;; Bindings come from primitives
+    write-shared
+    write-simple
   ))

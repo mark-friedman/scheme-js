@@ -6,7 +6,7 @@
 ;; `call-with-input-file` and `call-with-output-file` (R7RS 6.13.1) do the same
 ;; with a file's port, in Node only, since a browser has no files.
 
-(import (scheme file))
+(import (scheme file) (scheme read) (scheme write))
 
 (test-group "call-with-port"
 
@@ -244,7 +244,108 @@
         "call-with-output-file: expected procedure"
         (call-with-output-file file 5))
 
+      (test "with-output-to-file makes the file the current output port while the thunk runs"
+        '(11 #t)
+        (let ((result (with-output-to-file file (lambda () (write '(from thunk)) (newline) 11))))
+          (list result (exact? result))))
+
+      (test "with-input-from-file makes the file the current input port while the thunk runs"
+        '(from thunk)
+        (with-input-from-file file read))
+
+      (test "and puts the current ports back after"
+        '(#t #t)
+        (let ((in (current-input-port)) (out (current-output-port)))
+          (with-input-from-file file read)
+          (with-output-to-file file (lambda () (display "x")))
+          (list (eq? in (current-input-port)) (eq? out (current-output-port)))))
+
+      (test "and returns every value the thunk returns"
+        '(1 2)
+        (call-with-values (lambda () (with-input-from-file file (lambda () (values 1 2)))) list))
+
+      (test "and puts the current port back when the thunk escapes"
+        #t
+        (let ((out (current-output-port)))
+          (call/cc (lambda (k) (with-output-to-file file (lambda () (k #f)))))
+          (eq? out (current-output-port))))
+
+      (test-error "with-input-from-file rejects what is not a procedure"
+        "with-input-from-file: expected procedure"
+        (with-input-from-file file 5))
+
+      (test-error "with-output-to-file rejects what is not a procedure"
+        "with-output-to-file: expected procedure"
+        (with-output-to-file file 5))
+
       (delete-file file))
     (else
       (test-skip "a browser has no files"
         (test "call-with-input-file reads what was written" #t #t)))))
+
+;; R7RS 6.13.1: the current ports are parameter objects, so `parameterize`
+;; binds one for the dynamic extent of its body, and every procedure that
+;; reads or writes the current port by default sees the binding.
+(test-group "the current ports are parameter objects"
+
+  (test "parameterize binds the current output port"
+    "hello 1 \"y\" #\\z\nab"
+    (let ((p (open-output-string)))
+      (parameterize ((current-output-port p))
+        (display "hello ")
+        (write 1)
+        (write-char #\space)
+        (write-simple "y")
+        (write-char #\space)
+        (write-shared #\z)
+        (newline)
+        (write-string "ab")
+        (flush-output-port))
+      (get-output-string p)))
+
+  (test "and puts it back when the body returns"
+    #t
+    (let ((old (current-output-port)))
+      (parameterize ((current-output-port (open-output-string))) #f)
+      (eq? old (current-output-port))))
+
+  (test "and when the body escapes"
+    #t
+    (let ((old (current-output-port)))
+      (call/cc (lambda (k) (parameterize ((current-output-port (open-output-string))) (k #f))))
+      (eq? old (current-output-port))))
+
+  (test "parameterize binds the current input port"
+    '(#\a #\b "bc" (d e) "fg" #t)
+    (parameterize ((current-input-port (open-input-string "abc\n(d e)fg")))
+      (let* ((a (read-char))
+             (b (peek-char))
+             (line (read-line))
+             (datum (read))
+             (rest (read-string 2))
+             (ready (char-ready?)))
+        (list a b line datum rest ready))))
+
+  (test "parameterize binds the current error port"
+    "oops"
+    (let ((p (open-output-string)))
+      (parameterize ((current-error-port p))
+        (display "oops" (current-error-port)))
+      (get-output-string p)))
+
+  (test "an inner parameterize binds over an outer one"
+    '("inner" "outer")
+    (let ((outer (open-output-string)) (inner (open-output-string)))
+      (parameterize ((current-output-port outer))
+        (parameterize ((current-output-port inner))
+          (display "inner"))
+        (display "outer"))
+      (list (get-output-string inner) (get-output-string outer))))
+
+  (test-error "parameterize rejects what is not a port"
+    "current-output-port: expected output port"
+    (parameterize ((current-output-port 5)) #f))
+
+  (test-error "a procedure with an optional port rejects a second one"
+    "newline: too many arguments"
+    (newline (current-output-port) (current-output-port))))

@@ -118,7 +118,9 @@ export class StringInputPort extends Port {
      * @returns {boolean} Always true for string ports.
      */
     charReady() {
-        return this._open && this._pos < this._string.length;
+        // A string's characters are all there to read, and at its end so is
+        // the end of file, which R7RS has `char-ready?` answer #t for too.
+        return this._open;
     }
 
     toString() {

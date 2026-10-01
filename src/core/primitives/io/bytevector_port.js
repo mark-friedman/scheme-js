@@ -55,7 +55,8 @@ export class BytevectorInputPort extends Port {
      * @returns {boolean} Always true for bytevector ports.
      */
     u8Ready() {
-        return this._open && this._pos < this._bytevector.length;
+        // As for a string port's `charReady`: nothing here ever has to wait.
+        return this._open;
     }
 
     /**

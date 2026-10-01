@@ -168,9 +168,15 @@ export async function runPrebuiltLibraryTests(logger) {
       .map((entry) => entry.name).filter((name) => ['double', 'quadruple', 'scaled'].includes(name))
       .sort();
     assert(logger, 'without ownOnly, an imported procedure is compiled too',
-      names({}), ['double', 'quadruple', 'scaled']);
+      names({}), ['double', 'quadruple']);
     assert(logger, "with ownOnly, only the library's own procedures are",
-      names({ ownOnly: true }), ['quadruple', 'scaled']);
+      names({ ownOnly: true }), ['quadruple']);
+    // `scaled` closes over the `let`'s `k`, which code generated in one run
+    // would look up under the name that run's renaming gave it, and another
+    // run, installing the table, gives it another.
+    const declined = generateEnvironment(env, { ownOnly: true }).declined.find((d) => d.name === 'scaled');
+    assert(logger, 'a procedure made inside another, closing over its locals, is declined, saying why',
+      /made inside a procedure/.test(declined?.reason ?? ''), true);
   }
 
   logger.title('Private libraries - loading apart from the program');

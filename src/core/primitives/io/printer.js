@@ -225,37 +225,9 @@ export function writeStringShared(val) {
     const emitted = new Set();  // objects that have been output with #n=
 
     function emit(obj) {
-        if (obj instanceof SchemeString) obj = obj.toString();
-        // Handle primitives
-        if (obj === null) return '()';
-        if (obj === true) return '#t';
-        if (obj === false) return '#f';
-        if (typeof obj === 'string') {
-            return '"' + obj
-                .replace(/\\/g, '\\\\')
-                .replace(/"/g, '\\"')
-                .replace(/\n/g, '\\n')
-                .replace(/\r/g, '\\r')
-                .replace(/\t/g, '\\t') + '"';
-        }
-        if (typeof obj === 'number') {
-            if (obj === Infinity) return '+inf.0';
-            if (obj === -Infinity) return '-inf.0';
-            if (Number.isNaN(obj)) return '+nan.0';
-            let s = String(obj);
-            if (Number.isInteger(obj) && !s.includes('.') && !s.includes('e')) {
-                s += '.0';
-            }
-            return s;
-        }
-        if (obj instanceof Symbol) return writeSymbol(obj.name); // Symbol
-        if (obj === EOF_OBJECT) return '#<eof>';
-        if (obj instanceof Port) return obj.toString();
-        if (typeof obj === 'function') {
-            const name = obj.constructor ? obj.constructor.name : 'Unknown';
-            if (name === 'Closure') return obj.toString();
-            return `#<procedure ${name}>`;
-        }
+        // Only pairs, vectors and records can be shared; anything else is
+        // written as `write` writes it, characters and numbers included.
+        if (!(obj instanceof Cons) && !Array.isArray(obj) && !isObjectLike(obj)) return writeString(obj);
         // Handle compound types with sharing detection
         if (obj instanceof Cons || Array.isArray(obj) || isObjectLike(obj)) {
             const info = seen.get(obj);

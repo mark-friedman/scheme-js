@@ -9272,3 +9272,86 @@ interpreter with no libraries, and now runs them where the standard library is; 
 test expected `25.0` from a function `bind` made, a JavaScript function, whose result is now exact.
 JavaScript under `src/`: 15 lines added and 35 removed, the evaluator's conversion of a JavaScript
 function's result and `callForeign`'s; Scheme: 35 added and 5 removed.
+
+# Walkthrough: the current ports as parameter objects (task 78)
+
+## What changed
+
+R7RS 6.13.1 makes `current-input-port`, `current-output-port` and `current-error-port` parameter
+objects. They were JavaScript procedures over three module variables in `io/primitives.js`, shared by
+every interpreter in the process, so `(parameterize ((current-output-port p)) ...)`, the usual way
+to capture output in a string, silently did nothing. Now, in `ports.scm`:
+
+- the three are parameter objects, each beginning as a console port the runtime keeps
+  (`%console-output-port` and the others) and taking only a port of its kind;
+- the twenty procedures that read or write the current port by default -- `read-char`, `peek-char`,
+  `char-ready?`, `read-line`, `read-string`, `read-u8`, `peek-u8`, `u8-ready?`, `read-bytevector`,
+  `read`, `write-char`, `write-string`, `write-u8`, `write-bytevector`, `newline`, `display`,
+  `write`, `write-simple`, `write-shared` and `flush-output-port` -- are Scheme, each taking an
+  optional port and handing it, or the current one, to a JavaScript core of the same name with `%`
+  before it, which checks the port, as the hash tables' cores are named;
+- `with-input-from-file` and `with-output-to-file` `parameterize` the current port around the thunk,
+  close the file if it returns, and are exported from `(scheme file)`, which never exported them, so a
+  library importing it could not use them; `(scheme write)` now exports `write-shared` and
+  `write-simple`, which were implemented and not exported.
+
+`(scheme core)` exports all of it, and `(scheme write)`, `(scheme read)` and `(scheme file)` take
+theirs from it. The CLI sets the ports by calling each with a port, which a parameter object
+accepts; it now calls `write` and the others through `callSchemeProcedure`, since a plain call would
+make an integral inexact result exact before writing it.
+
+## Parameters known by their cells
+
+The closure `make-parameter` makes, made as a library loads, is interpreted, and every write to the
+current port would have called one, from compiled code through a nested run. So the current ports
+are top-level procedures over global cells instead, which the library's table compiles. For that,
+`parameter.scm` now knows a parameter by its global cell, a pair of its converter and its value: the
+dynamic environment is keyed by the cell, and `parameter-dispatch` does what a parameter object does
+when called, for `make-parameter`'s closures and the current ports alike. Keying by the cell rather
+than the procedure also means a binding made by `parameterize` survives the debugger swapping a
+compiled procedure for its closure in the middle of its extent.
+
+## A closure the build could not compile
+
+Defining the ports with `make-parameter` first made `(scheme core)`'s table fail to install: the
+build had compiled the closures `make-parameter` returned, which close over its locals and reach them
+by names carrying the renaming counter of the run that built the table (R97). An existing test even
+expected such a closure, made by a top-level `let`, in a table. `generate-environment` now declines a
+closure not made at a program's or a library's top level, saying why; the tier, compiling in the run
+that made the closure, is unaffected.
+
+## Fixed on the way
+
+- `write-shared` wrote a character as `display` does, `z` for `#\z`: its writer handled atoms
+  itself and missed characters. It now writes every atom as `write` does, and only labels pairs,
+  vectors and records.
+- `char-ready?` and `u8-ready?` answered #f at the end of a string or bytevector port, where R7RS
+  says #t. Such a port never has to wait, so they answer #t while it is open.
+
+## Tests
+
+`port_tests.scm` gains the parameter objects -- `parameterize` of each port, every default-port
+procedure writing or reading through the binding, nesting, restoring on return and on escape, the
+converter's error, the arity error -- and `with-input-from-file` and `with-output-to-file`, in Node.
+`tests/tiers/current_port_tests.scm` checks compiled procedures writing and reading the parameterized
+ports, in both tiers. The Scheme test runner loads `(scheme read)` and `(scheme write)` beforehand;
+`io_tests.js` runs where the standard library is, the current ports being its Scheme now; the
+benchmark harness's bootstrap includes `parameter.scm`; and `prebuilt_library_tests.js` expects the
+closure over a `let` declined, with its reason.
+
+## Cost
+
+Compiled, in a new `output` group in `run_codegen.js`, best of five, alternated with the commit before:
+`write-char` to the current port 18-19 to 40 ns, `display` 46 to 65 ns, `write-char` to a port passed
+19-20 to 49 ns. A first version, with a general helper and the parameter called through its rest
+list, took 51-58; the rest is the call and the list a rest parameter is made into, which 54 now
+records as evidence. On the canonical suite, compiled, alternated twice: `dynamic`, which calls
+`read` constantly, 5-13% slower; `read1`, `parsing`, `string` and `scheme` unchanged.
+
+## Verification
+
+6,738 tests pass in Node with none failing (33 skipped), and 6,541 in the browser with none failing
+(53 skipped). The browser first ran stale copies of the changed files from its cache, and was run
+again with each refetched. JavaScript under `src/`: 45 lines added and 196 removed, the cores now
+taking a port and the console ports, the shared writer's atoms, and the two `ready` answers; Scheme:
+272 added and 76 removed.

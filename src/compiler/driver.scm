@@ -417,6 +417,20 @@
     (and scope (or (eq? scope env) (walk (environment-parent scope))))))
 
 ;; /**
+;;  * Whether a closure was made at the top level of a program or a library,
+;;  * rather than inside a procedure or a `let`. One made inside closes over
+;;  * locals, which generated code reaches by their names, and a local's name
+;;  * carries the counter the analyzer renamed it with in this run: code
+;;  * generated for a prebuilt table, in one run, would look for it under a name
+;;  * that the run installing the table did not give it.
+;;  * @param {procedure} closure - An interpreted closure.
+;;  * @returns {boolean}
+;;  */
+(define (made-at-top-level? closure)
+  (let ((scope (closure-environment closure)))
+    (if (or (not (environment-parent scope)) (environment-library scope)) #t #f)))
+
+;; /**
 ;;  * The interpreted closures an environment binds, as (name . closure) with the
 ;;  * name a symbol, in the environment's order.
 ;;  * @param {object} env - The environment.
@@ -460,6 +474,12 @@
       (let ((name (symbol->string (car entry)))
             (closure (cdr entry)))
         (cond ((assq (car entry) unsafe) => (lambda (u) (make-declined name (cdr u) #f)))
+              ((not (made-at-top-level? closure))
+               (make-declined name
+                              (string-append "made inside a procedure, so it closes over that "
+                                             "procedure's locals, which generated code finds by "
+                                             "the names this run's renaming gave them")
+                              #f))
               (else (generate-lambda (closure-lambda closure name) name closure
                                      (closure-environment closure) (closure-span closure)
                                      decline-captures?)))))

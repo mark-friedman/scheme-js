@@ -7,67 +7,77 @@
 ;; Dynamic Environment
 ;; =============================================================================
 
-;; objects to cells (pairs where the cdr holds the value).
-;; The global binding is stored directly in each parameter object.
+;; A parameter is known by its global cell, a pair of its converter and its
+;; global value: the procedure a parameter object is may be replaced -- by its
+;; compiled form, or by its closure again while a program is debugged -- but
+;; its cell stays. The dynamic environment is a list of (global-cell .
+;; binding), innermost first, where a binding is a cell of the same shape.
 
 ;; Use a box (list) to hold the environment so we can mutate the contents
 ;; without changing the binding. This ensures multiple closures see the update.
 (define *param-dynamic-env-box* (list '()))
 
 ;; /**
-;;  * Looks up a parameter in the dynamic environment.
-;;  * Returns the cell bound to the parameter, or the global cell if not found.
+;;  * The cell holding a parameter's value now: the innermost `parameterize`
+;;  * binding of it, or else its global cell.
 ;;  *
-;;  * @param {procedure} parameter - The parameter object.
 ;;  * @param {pair} global-cell - The parameter's global cell.
 ;;  * @returns {pair} The cell containing the current value.
 ;;  */
-(define (param-dynamic-lookup parameter global-cell)
-  (let ((env (car *param-dynamic-env-box*)))
-    (let loop ((env env))
-      (cond ((null? env) global-cell)
-            ((eq? (caar env) parameter) (cdar env))
-            (else (loop (cdr env)))))))
+(define (param-dynamic-lookup global-cell)
+  (let loop ((env (car *param-dynamic-env-box*)))
+    (cond ((null? env) global-cell)
+          ((eq? (caar env) global-cell) (cdar env))
+          (else (loop (cdr env))))))
+
+;; /**
+;;  * What a parameter object does when called, given its global cell and the
+;;  * arguments it was called with:
+;;  * - with none, returns the current value;
+;;  * - with one, sets the current value, through the converter, and returns
+;;  *   unspecified;
+;;  * - with two, which only `parameterize` does, returns the global cell
+;;  *   paired with the first converted: what it binds, and to what.
+;;  *
+;;  * A top-level procedure, so that a parameter defined as one -- the current
+;;  * ports, in ports.scm -- is compiled with its library, where the closure
+;;  * `make-parameter` makes while a library loads, interpreted, would not be.
+;;  *
+;;  * @param {pair} global-cell - The parameter's global cell.
+;;  * @param {list} args - The arguments.
+;;  * @returns {*}
+;;  */
+(define (parameter-dispatch global-cell args)
+  (cond ((null? args) (cdr (param-dynamic-lookup global-cell)))
+        ((null? (cdr args))
+         (set-cdr! (param-dynamic-lookup global-cell) ((car global-cell) (car args))))
+        (else (cons global-cell ((car global-cell) (car args))))))
+
+;; /**
+;;  * A parameter's global cell, holding its converter and its initial value
+;;  * converted.
+;;  * @param {procedure} converter - The converter.
+;;  * @param {*} init - The initial value.
+;;  * @returns {pair} The cell.
+;;  */
+(define (parameter-cell converter init)
+  (cons converter (converter init)))
 
 ;; =============================================================================
 ;; make-parameter
 ;; =============================================================================
 
 ;; /**
-;;  * Creates a new parameter object.
-;;  *
-;;  * The parameter object is a procedure that:
-;;  * - Called with no arguments: returns the current value
-;;  * - Called with one argument: sets the value (through converter) and returns unspecified
-;;  * - Called with two arguments: internal use for parameterize (returns converted value)
+;;  * Creates a new parameter object: a procedure doing what
+;;  * `parameter-dispatch` says.
 ;;  *
 ;;  * @param {*} init - Initial value.
 ;;  * @param {procedure} [converter] - Optional conversion procedure.
 ;;  * @returns {procedure} The parameter object.
 ;;  */
 (define (make-parameter init . conv)
-  (let ((converter (if (null? conv) 
-                       (lambda (x) x) 
-                       (car conv))))
-    ;; Global cell: (parameter . value)
-    ;; The car is set to the parameter itself for identity
-    (let ((global-cell (cons #f (converter init))))
-      (letrec ((parameter
-                (lambda args
-                  (let ((cell (param-dynamic-lookup parameter global-cell)))
-                    (cond 
-                      ;; No arguments: return current value
-                      ((null? args) 
-                       (cdr cell))
-                      ;; One argument: set the value
-                      ((null? (cdr args))
-                       (set-cdr! cell (converter (car args))))
-                      ;; Two arguments (internal): return converted value for parameterize
-                      (else 
-                       (converter (car args))))))))
-        ;; Store parameter in car for potential debugging
-        (set-car! global-cell parameter)
-        parameter))))
+  (let ((global-cell (parameter-cell (if (null? conv) (lambda (x) x) (car conv)) init)))
+    (lambda args (parameter-dispatch global-cell args))))
 
 ;; =============================================================================
 ;; parameterize
@@ -87,24 +97,20 @@
 ;;  * @returns {*} Result of body.
 ;;  */
 (define (param-dynamic-bind params values body)
-  (let ((old-env (car *param-dynamic-env-box*)))
-    ;; Create new cells for each parameter with converted values
-    (let ((new-cells 
-           (let loop ((ps params) (vs values) (cells '()))
-             (if (null? ps)
-                 (reverse cells)
-                 (loop (cdr ps) 
-                       (cdr vs)
-                       ;; Call parameter with 2 args to get converted value
-                       (cons (cons (car ps) 
-                                   (cons (car ps) ((car ps) (car vs) #f)))
-                             cells))))))
-      ;; Extend environment and use dynamic-wind for proper unwinding
-      (let ((new-env (append new-cells old-env)))
-        (dynamic-wind
-          (lambda () (set-car! *param-dynamic-env-box* new-env))
-          body
-          (lambda () (set-car! *param-dynamic-env-box* old-env)))))))
+  (let* ((old-env (car *param-dynamic-env-box*))
+         ;; Each parameter, asked in order, gives its global cell and the value
+         ;; converted; each is bound to a fresh cell of its own.
+         (new-env (let loop ((ps params) (vs values) (bound '()))
+                    (if (null? ps)
+                        (append (reverse bound) old-env)
+                        (let ((answer ((car ps) (car vs) #f)))
+                          (loop (cdr ps) (cdr vs)
+                                (cons (cons (car answer) (cons (caar answer) (cdr answer)))
+                                      bound)))))))
+    (dynamic-wind
+      (lambda () (set-car! *param-dynamic-env-box* new-env))
+      body
+      (lambda () (set-car! *param-dynamic-env-box* old-env)))))
 
 ;; /**
 ;;  * Syntax for dynamic parameter binding.

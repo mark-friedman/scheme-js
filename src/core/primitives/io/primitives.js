@@ -1,5 +1,3 @@
-import { suspendFlush, restoreFlush } from '../../interpreter/unwind.js';
-import { settleTailCalls } from '../../interpreter/values.js';
 import {
     Port, EOF_OBJECT,
     isPort, isInputPort, isOutputPort,
@@ -52,49 +50,18 @@ function charRead(result) {
     return typeof result === 'string' ? new Char(result.codePointAt(0)) : result;
 }
 
-/**
- * Calls a Scheme procedure a primitive here was given, from which compiled
- * code may not move its frames to the heap stack: the unwind would come back
- * to the primitive, which would take it for the procedure's value and close
- * its port.
- * @param {function(): *} call - The call.
- * @returns {*} What it returns.
- */
-function withoutFlush(call) {
-    const flush = suspendFlush();
-    try {
-        return call();
-    } finally {
-        restoreFlush(flush);
-    }
-}
-
 // ============================================================================
-// Current Ports (Global State)
+// The Console Ports
 // ============================================================================
 
-// Default ports - console-based
-let currentInputPort = null;  // We'll use a placeholder for input
-let currentOutputPort = new ConsoleOutputPort('stdout');
-let currentErrorPort = new ConsoleOutputPort('stderr');
-
-/**
- * Checks what a current port's procedure was given, and answers the port to
- * make current, if it was given one: a port, as a parameter object made by
- * `make-parameter` takes a value when called with one.
- * @param {string} procName - The procedure, for the error.
- * @param {Array<*>} args - Its arguments.
- * @param {function(*): boolean} accepts - Whether a value is a port it takes.
- * @param {string} kind - What it takes, for the error.
- * @returns {Port|undefined} The port, or undefined if it was given none.
- * @throws {Error} If it was given more than one argument, or not a port it takes.
- */
-function newCurrentPort(procName, args, accepts, kind) {
-    if (args.length === 0) return undefined;
-    if (args.length > 1) throw new Error(`${procName}: expected at most 1 argument`);
-    if (!accepts(args[0])) throw new Error(`${procName}: expected ${kind}`);
-    return args[0];
-}
+// What the current ports are to begin with (`current-input-port` and the
+// others are parameter objects, in `src/core/scheme/ports.scm`): the console,
+// and for input an empty port, since a page has no standard input. One of each
+// for the whole process, so that every interpreter's current ports, and every
+// library instance's, start on the same console.
+const consoleInputPort = new StringInputPort('');
+const consoleOutputPort = new ConsoleOutputPort('stdout');
+const consoleErrorPort = new ConsoleOutputPort('stderr');
 
 // ============================================================================
 // I/O Primitives
@@ -125,35 +92,12 @@ export const ioPrimitives = {
     },
 
     // --------------------------------------------------------------------------
-    // Current Ports
+    // The Console Ports, which the current ports begin as
     // --------------------------------------------------------------------------
 
-    'current-input-port': (...args) => {
-        const port = newCurrentPort('current-input-port', args, isInputPort, 'input port');
-        if (port) {
-            currentInputPort = port;
-            return undefined;
-        }
-        if (!currentInputPort) {
-            // Create a dummy input port that returns EOF
-            currentInputPort = new StringInputPort('');
-        }
-        return currentInputPort;
-    },
-
-    'current-output-port': (...args) => {
-        const port = newCurrentPort('current-output-port', args, isOutputPort, 'output port');
-        if (!port) return currentOutputPort;
-        currentOutputPort = port;
-        return undefined;
-    },
-
-    'current-error-port': (...args) => {
-        const port = newCurrentPort('current-error-port', args, isOutputPort, 'output port');
-        if (!port) return currentErrorPort;
-        currentErrorPort = port;
-        return undefined;
-    },
+    '%console-input-port': () => consoleInputPort,
+    '%console-output-port': () => consoleOutputPort,
+    '%console-error-port': () => consoleErrorPort,
 
     // The process's own standard input, output and error (Node.js only), which
     // the CLI makes the current ports of a program it runs.
@@ -217,34 +161,6 @@ export const ioPrimitives = {
         return undefined;
     },
 
-    'with-input-from-file': (filename, thunk) => {
-        filename = textOf(filename, 'with-input-from-file');
-        if (typeof thunk !== 'function') throw new Error('with-input-from-file: expected procedure');
-        const port = new FileInputPort(filename);
-        const old = currentInputPort;
-        currentInputPort = port;
-        try {
-            return settleTailCalls(withoutFlush(() => thunk()));
-        } finally {
-            currentInputPort = old;
-            if (port.isOpen) port.close();
-        }
-    },
-
-    'with-output-to-file': (filename, thunk) => {
-        filename = textOf(filename, 'with-output-to-file');
-        if (typeof thunk !== 'function') throw new Error('with-output-to-file: expected procedure');
-        const port = new FileOutputPort(filename);
-        const old = currentOutputPort;
-        currentOutputPort = port;
-        try {
-            return settleTailCalls(withoutFlush(() => thunk()));
-        } finally {
-            currentOutputPort = old;
-            if (port.isOpen) port.close();
-        }
-    },
-
     'features': () => {
         return list(
             intern('r7rs'),
@@ -265,40 +181,35 @@ export const ioPrimitives = {
     // Input Operations
     // --------------------------------------------------------------------------
 
-    'read-char': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%read-char': (port) => {
         requireOpenInputPort(port, 'read-char');
         if (port.readChar) return charRead(port.readChar());
         throw new Error('read-char: unsupported port type');
     },
 
-    'peek-char': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%peek-char': (port) => {
         requireOpenInputPort(port, 'peek-char');
         if (port.peekChar) return charRead(port.peekChar());
         throw new Error('peek-char: unsupported port type');
     },
 
-    'char-ready?': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%char-ready?': (port) => {
         if (!isInputPort(port)) throw new Error('char-ready?: expected input port');
         if (!port.isOpen) return false;
         if (port.charReady) return port.charReady();
         return false;
     },
 
-    'read-line': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%read-line': (port) => {
         requireOpenInputPort(port, 'read-line');
         if (port.readLine) return freshRead(port.readLine());
         throw new Error('read-line: unsupported port type');
     },
 
-    'read-string': (k, ...args) => {
+    '%read-string': (k, port) => {
         // Handle BigInt k by converting to Number
         if (typeof k === 'bigint') k = Number(k);
         if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) throw new Error('read-string: expected non-negative integer');
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-string');
         if (port.readString) return freshRead(port.readString(k));
         throw new Error('read-string: unsupported port type');
@@ -308,8 +219,7 @@ export const ioPrimitives = {
     // Binary Input
     // --------------------------------------------------------------------------
 
-    'read-u8': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%read-u8': (port) => {
         requireOpenInputPort(port, 'read-u8');
         if (port.readU8) {
             const b = port.readU8();
@@ -318,8 +228,7 @@ export const ioPrimitives = {
         throw new Error('read-u8: expected binary input port');
     },
 
-    'peek-u8': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%peek-u8': (port) => {
         requireOpenInputPort(port, 'peek-u8');
         if (port.peekU8) {
             const b = port.peekU8();
@@ -328,19 +237,17 @@ export const ioPrimitives = {
         throw new Error('peek-u8: expected binary input port');
     },
 
-    'u8-ready?': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%u8-ready?': (port) => {
         if (!isInputPort(port)) throw new Error('u8-ready?: expected input port');
         if (!port.isOpen) return false;
         if (port.u8Ready) return port.u8Ready();
         return false;
     },
 
-    'read-bytevector': (k, ...args) => {
+    '%read-bytevector': (k, port) => {
         // Handle BigInt k by converting to Number
         if (typeof k === 'bigint') k = Number(k);
         if (typeof k !== 'number' || !Number.isInteger(k) || k < 0) throw new Error('read-bytevector: expected non-negative integer');
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
         requireOpenInputPort(port, 'read-bytevector');
         if (port.readBytevector) return port.readBytevector(k);
         throw new Error('read-bytevector: expected binary input port');
@@ -350,7 +257,7 @@ export const ioPrimitives = {
     // Output Operations
     // --------------------------------------------------------------------------
 
-    'write-char': (char, ...args) => {
+    '%write-char': (char, port) => {
         // Accept Char objects or single-character strings
         let charStr;
         if (char instanceof Char) {
@@ -360,27 +267,15 @@ export const ioPrimitives = {
         } else {
             throw new Error('write-char: expected character');
         }
-        const port = args.length > 0 ? args[0] : currentOutputPort;
         requireOpenOutputPort(port, 'write-char');
         port.writeChar(charStr);
         return undefined;
     },
 
-    'write-string': (str, ...args) => {
+    '%write-string': (str, port, start, end) => {
         str = textOf(str, 'write-string');
-        let port = currentOutputPort;
-        let start = 0;
-        let end = str.length;
-
-        if (args.length >= 1 && isOutputPort(args[0])) {
-            port = args[0];
-            if (args.length >= 2) start = Number(args[1]);
-            if (args.length >= 3) end = Number(args[2]);
-        } else if (args.length >= 1) {
-            start = Number(args[0]);
-            if (args.length >= 2) end = Number(args[1]);
-        }
-
+        start = start === undefined ? 0 : Number(start);
+        end = end === undefined ? str.length : Number(end);
         requireOpenOutputPort(port, 'write-string');
         port.writeString(str, start, end);
         return undefined;
@@ -390,11 +285,10 @@ export const ioPrimitives = {
     // Binary Output
     // --------------------------------------------------------------------------
 
-    'write-u8': (byte, ...args) => {
+    '%write-u8': (byte, port) => {
         // Handle BigInt byte by converting to Number
         if (typeof byte === 'bigint') byte = Number(byte);
         if (!Number.isInteger(byte) || byte < 0 || byte > 255) throw new Error('write-u8: expected byte (0-255)');
-        const port = args.length > 0 ? args[0] : currentOutputPort;
         requireOpenOutputPort(port, 'write-u8');
         if (port.writeU8) {
             port.writeU8(byte);
@@ -403,21 +297,10 @@ export const ioPrimitives = {
         throw new Error('write-u8: expected binary output port');
     },
 
-    'write-bytevector': (bv, ...args) => {
+    '%write-bytevector': (bv, port, start, end) => {
         if (!(bv instanceof Uint8Array)) throw new Error('write-bytevector: expected bytevector');
-        let port = currentOutputPort;
-        let start = 0;
-        let end = bv.length;
-
-        if (args.length >= 1 && isOutputPort(args[0])) {
-            port = args[0];
-            if (args.length >= 2) start = args[1];
-            if (args.length >= 3) end = args[2];
-        } else if (args.length >= 1) {
-            start = args[0];
-            if (args.length >= 2) end = args[1];
-        }
-
+        start = start === undefined ? 0 : start;
+        end = end === undefined ? bv.length : end;
         requireOpenOutputPort(port, 'write-bytevector');
         if (port.writeBytevector) {
             port.writeBytevector(bv, start, end);
@@ -426,39 +309,34 @@ export const ioPrimitives = {
         throw new Error('write-bytevector: expected binary output port');
     },
 
-    'newline': (...args) => {
-        const port = args.length > 0 ? args[0] : currentOutputPort;
+    '%newline': (port) => {
         requireOpenOutputPort(port, 'newline');
         port.writeChar('\n');
         return undefined;
     },
 
-    'display': (val, ...args) => {
-        const port = args.length > 0 ? args[0] : currentOutputPort;
+    '%display': (val, port) => {
         requireOpenOutputPort(port, 'display');
         const str = displayString(val);
         port.writeString(str);
         return undefined;
     },
 
-    'write': (val, ...args) => {
-        const port = args.length > 0 ? args[0] : currentOutputPort;
+    '%write': (val, port) => {
         requireOpenOutputPort(port, 'write');
         const str = writeString(val);
         port.writeString(str);
         return undefined;
     },
 
-    'write-simple': (val, ...args) => {
-        const port = args.length > 0 ? args[0] : currentOutputPort;
+    '%write-simple': (val, port) => {
         requireOpenOutputPort(port, 'write-simple');
         const str = writeString(val);
         port.writeString(str);
         return undefined;
     },
 
-    'write-shared': (val, ...args) => {
-        const port = args.length > 0 ? args[0] : currentOutputPort;
+    '%write-shared': (val, port) => {
         requireOpenOutputPort(port, 'write-shared');
         const str = writeStringShared(val);
         port.writeString(str);
@@ -487,8 +365,7 @@ export const ioPrimitives = {
         return undefined;
     },
 
-    'flush-output-port': (...args) => {
-        const port = args.length > 0 ? args[0] : currentOutputPort;
+    '%flush-output-port': (port) => {
         if (!isOutputPort(port)) throw new Error('flush-output-port: expected output port');
         if (port.flush) port.flush();
         return undefined;
@@ -498,8 +375,7 @@ export const ioPrimitives = {
     // Read
     // --------------------------------------------------------------------------
 
-    'read': (...args) => {
-        const port = args.length > 0 ? args[0] : ioPrimitives['current-input-port']();
+    '%read': (port) => {
         requireOpenInputPort(port, 'read');
         return readExpressionFromPort(port);
     }

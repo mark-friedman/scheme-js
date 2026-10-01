@@ -527,8 +527,6 @@ export function createPrimitiveExports(globalEnv) {
         // Exceptions
         'raise', 'raise-continuable', 'with-exception-handler',
         'error', 'error-object?', 'error-object-message', 'error-object-irritants',
-        // I/O
-        'display', 'newline',
         // JS Interop
         'scheme->js', 'scheme->js-deep',
         'js->scheme', 'js->scheme-deep',

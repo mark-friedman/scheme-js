@@ -5,13 +5,18 @@
  */
 
 import { assert, skip, run, createTestLogger, createTestEnv } from '../harness/helpers.js';
+import { interpretedLibrary } from '../harness/standard_library.js';
 
 /**
  * Runs I/O primitive tests.
  * @param {Interpreter} interpreter
  * @param {object} logger
  */
-export async function runIOTests(interpreter, logger) {
+export async function runIOTests(sharedInterpreter, logger) {
+  // The current ports, and the procedures that read and write them by
+  // default, are the standard library's Scheme (src/core/scheme/ports.scm),
+  // so these run where it is, not in the bare interpreter the runner shares.
+  const interpreter = interpretedLibrary().interpreter;
   // ===========================================================================
   logger.title("I/O Tests - Port Predicates");
 
@@ -497,8 +502,7 @@ export async function runIOTests(interpreter, logger) {
     // Test call-with-input/output-file: Scheme procedures, in (scheme core)
     // beside call-with-port, so they are run where the standard library is.
     const testFile2 = `/tmp/scheme-test2-${Date.now()}.txt`;
-    const { interpretedLibrary } = await import('../harness/standard_library.js');
-    const withLibrary = interpretedLibrary().interpreter;
+    const withLibrary = interpreter;
 
     result = run(withLibrary, `
           (call-with-output-file "${testFile2}"

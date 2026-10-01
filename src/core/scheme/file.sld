@@ -5,15 +5,18 @@
 
 (define-library (scheme file)
   (import (scheme primitives))
-  ;; The two that call a procedure with a port are Scheme, beside
-  ;; `call-with-port`, in ports.scm.
-  (import (only (scheme core) call-with-input-file call-with-output-file))
+  ;; The four that call a procedure with a port, or make one current, are
+  ;; Scheme, beside `call-with-port`, in ports.scm.
+  (import (only (scheme core) call-with-input-file call-with-output-file
+                              with-input-from-file with-output-to-file))
   
   (export
     open-input-file
     open-output-file
     call-with-input-file
     call-with-output-file
+    with-input-from-file
+    with-output-to-file
     file-exists?
     delete-file
   )
