@@ -31,7 +31,7 @@ We use a "shared representation" model:
 
 JavaScript has one kind of number, so `1` and `1.0` cannot stay distinct once they cross. What each
 direction does, the same in both tiers -- compiled code calls a JavaScript function as the
-interpreter does (`callForeign` in `src/compiler/runtime.js`):
+interpreter does (`callForeign` in `src/core/interpreter/values.js`):
 
 | Case | Result |
 |---|---|
@@ -47,6 +47,13 @@ A JavaScript function's result is converted one level, with `jsToScheme`, howeve
 its arguments are converted throughout on the way out, but a result converted throughout on the way
 in would be a copy of every array and object JavaScript returned, which would then lose its
 identity. A number inside an array or object is converted when it is read with `js-ref`.
+
+A JavaScript function's **arguments** are converted the same way however it is called -- directly,
+in tail position or not, as a method through dot notation or `js-invoke`, or as a constructor by
+`js-new` -- in either tier, and nothing a program does changes that: each goes through
+`schemeToJsDeep` (*The conversions*, below). So a vector reaches JavaScript as a new array of
+converted elements, and JavaScript changing that array changes no Scheme vector; and an exact
+integer beyond ±2^53, which has no JavaScript number, cannot be passed at all.
 
 ## Strings at the boundary
 
@@ -178,15 +185,18 @@ exact integer is a `BigInt`, a list a chain of `Cons` pairs ending in `null`, a 
 | `schemeToJs` | out of Scheme, one level | several values to the first; an exact integer to a number, throwing beyond ±2^53; a rational to a number; a character or a Scheme string to a JavaScript string |
 | `schemeToJsDeep` | out of Scheme, throughout | the same, and a vector to an array and a `js-object` record to a plain object, recursively; a list stays a list of pairs |
 
-The plain call converts its arguments with `jsToScheme`, and its result with `schemeToJsDeep` -- or
-with `schemeToJs` if the interpreter's `jsAutoConvert` property is `'shallow'`, and not at all if it
-is `'raw'`. Going the other way, Scheme calling a JavaScript function converts the arguments with
-`schemeToJsDeep` and the result with `jsToScheme`, as `js-invoke` does: into Scheme one level,
-out of it throughout (*Numbers at the boundary*).
+The plain call converts its arguments with `jsToScheme`, and its result with `schemeToJsDeep`,
+always: nothing a program does changes either, so JavaScript can rely on what a call gives it.
+JavaScript that wants other conversions makes them itself, around `callSchemeProcedure`. Going the
+other way, Scheme calling a JavaScript function converts the arguments with `schemeToJsDeep` and the
+result with `jsToScheme`, as `js-invoke` does: into Scheme one level, out of it throughout (*Numbers
+at the boundary*).
 
 The same conversions are Scheme procedures in `(scheme-js js-conversion)`: `js->scheme`,
-`js->scheme-deep`, `scheme->js` and `scheme->js-deep`. The library also exports a parameter,
-`js-auto-convert`, which nothing reads yet: setting it changes no conversion.
+`js->scheme-deep`, `scheme->js` and `scheme->js-deep`. They are how a program converts a value
+itself, where the boundary does not. There is no setting that changes what the boundary does: a
+parameter choosing the conversion would make one JavaScript call return different kinds of value as
+the Scheme code beneath it changed, and would cost every call to a JavaScript function a look-up.
 
 ---
 

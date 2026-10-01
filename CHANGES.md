@@ -9417,3 +9417,86 @@ sites that do. Then liveness's sets. A policy that compiles fewer procedures is 
 6,741 tests pass in Node with none failing (33 skipped), and 6,544 in the browser with none failing
 (53 skipped). The prebuilt tables were rebuilt for the changed `emit.scm`. No JavaScript changed under `src/`; the benchmark is a driver in `benchmarks/`,
 as `run_r7rs.js` is, which task 76 turns into Scheme with the others.
+
+# Walkthrough: `js-auto-convert`, removed (task 81)
+
+## The parameter
+
+`(scheme-js js-conversion)` exported `js-auto-convert`, `(make-parameter 'deep)`, which its comment
+said controls "whether automatic deep conversion happens at JS boundaries", `'deep`, `'shallow` or
+`'raw`. Nothing read it (R96), so `(parameterize ((js-auto-convert 'shallow)) ...)` did nothing, and
+its only test checked that `parameterize` changed the parameter's own value. Two conversions read a
+JavaScript property instead, `interpreter.jsAutoConvert`, defaulting to `'deep'` and set nowhere in
+the repository: `unpackForJs`, for a Scheme procedure's result returned to JavaScript, and the
+interpreter's call of a JavaScript function, for its arguments. History has the property replaced on
+2026-01-28 by a per-run option, "to avoid the need for global state changes on the interpreter";
+the parameter was never connected.
+
+Set by hand, in a scratch script, the property did not mean one thing. Compiled code calls a
+JavaScript function through `callForeign` where the call is not in tail position, and that always
+converted deeply; a tail call to one it hands to the interpreter, which read the property. So with
+`'shallow'` a compiled procedure's tail call gave JavaScript a `SchemeString`, a `Char` and an array
+of `BigInt`s where its other call, to the same function with the same values, gave strings and
+numbers; `'shallow'` converted only `BigInt`s, so every string a procedure makes reached JavaScript
+as an object. And `js-invoke` and `js-new`, which dot notation and construction go through, read
+neither the property nor the parameter.
+
+## The decision: removed
+
+The task was to connect the parameter -- a parameter object read where the property was, so that
+`parameterize` works, with `callForeign` agreeing -- or to remove it. Removed, for four reasons:
+
+- **A JavaScript caller already chooses.** Since 72 the plain call is exactly
+  `schemeToJsDeep(callSchemeProcedure(f, args.map(jsToScheme)))`, all of it public, so JavaScript
+  wanting a result unconverted, `'raw`'s use, calls `callSchemeProcedure`, and wanting it shallow
+  converts that with `schemeToJs`. A parameter would instead make the same JavaScript call return
+  different kinds of value according to whatever Scheme was beneath it, which the caller -- the one
+  that knows what it can take -- cannot see.
+- **It costs every call to a JavaScript function.** Measured in a scratch benchmark beside
+  `run_codegen.js`'s `calls` group, compiled, best of seven: a call to a JavaScript function 42 ns;
+  42 to 73 ns with the interpreter reading a parameter for it through `callSchemeProcedure`, and 107
+  inside a `parameterize` of three parameters, since the lookup walks the dynamic environment.
+- **Four places would have to read it**, not two: the direct call in each tier, `js-invoke` and
+  `js-new`.
+- **Nothing used it.**
+
+What is given up: a program cannot hand a JavaScript function a Scheme vector to change in place, or
+an exact integer beyond 2^53 as a `BigInt`. Nothing has asked to. If something does, the way is a
+form written at the call, not dynamic state (*Decided* in `compiler_plan.md`).
+
+## The change
+
+The parameter is gone from the library, and the property from both places that read it. The
+interpreter now gives a JavaScript function its arguments through `schemeToJsDeep`, and since 47
+takes its result back through `jsToScheme`, always, as `callForeign` does, so a compiled procedure's
+tail and other calls agree by construction; and
+`unpackForJs` takes its mode from the `jsAutoConvert` option of `run` alone, which the code starting
+the run chooses -- `'raw'` from the REPLs, the tests, and the raw entries of closures and
+continuations. `Interoperability.md` says the conversions are fixed, that a JavaScript function's
+arguments are converted the same way however it is called, and why there is no setting, and points
+`callForeign` at `values.js`, where it has been since 49.
+
+## Tests
+
+A section on arguments in `tests/tiers/js_callee_tests.scm`, beside 47's on results, run in both
+tiers: a JavaScript function given an exact integer, a rational, a flonum, a character, a string
+made in Scheme, a nested vector or a list sees the same through a tail call, a call in another
+position, a method call through dot notation and a construction with `js-new`; a vector arrives as
+a new array; and an exact integer beyond 2^53 is refused each way. The tier compiles every caller in the second run. They pass before the change too,
+since nothing set the property; they keep the four calls agreeing. In
+`tests/extras/scheme/js_conversion_tests.scm` the parameter's four tests are replaced by one that
+the library exports no `js-auto-convert`, which failed before the change.
+
+## Verification
+
+Written on 72 and rebased onto 47, 78, 69 and 80, which had landed meanwhile. 47 had changed the
+same lines of `frames.js`, to convert a JavaScript function's result as `js-invoke` does, and had
+added a `tests/tiers/js_callee_tests.scm` of its own, for results; the conversion of the result now
+happens always, like the arguments', and the two files are one, a section each. 6,764 tests pass in
+Node with none failing (33 skipped), and 6,567 in the browser with none failing (53 skipped), the
+browser's run loaded from an origin it had not cached, after a first run on `localhost:8080` turned
+out to have used another checkout's cached copies of the changed files. The prebuilt tables were
+rebuilt from the sources after the rebase; only `(scheme-js js-conversion)`'s changed. JavaScript
+under `src/`: 28 lines added and 30 removed, nearly all comments -- no function added, the
+property's two reads replaced in the evaluator (`frames.js`, `interpreter.js`), and `callForeign`'s
+comment; Scheme 3 added and 11 removed, the parameter and its comments.

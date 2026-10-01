@@ -605,22 +605,19 @@ export function continueApplication(exprs, index, values, env, registers, interp
         const callee = compiled ? func[SCHEME_RAW_CALL] : func;
         let result;
         try {
-            // If it's a foreign JS function (not a Scheme closure/primitive),
-            // auto-convert arguments (e.g., BigInt -> Number), and its result
-            // back one level, as `js-invoke` converts it (an integral number
-            // to an exact integer).
+            // A JavaScript function of JavaScript's own, rather than one that
+            // takes Scheme values, is given its arguments converted
+            // throughout, and its result is converted back one level, as
+            // `js-invoke` converts it (an integral number to an exact
+            // integer) -- always, as compiled code converts them (`callForeign`
+            // in values.js): nothing else may choose a conversion here, or a
+            // compiled procedure's tail calls, which come here, and its other
+            // calls, which do not, would give one function different values.
             const foreign = !isSchemePrimitive(callee);
-            const mode = foreign ? (interpreter.jsAutoConvert ?? 'deep') : 'raw';
-            let appliedArgs = args;
-            if (mode === 'deep' || mode === true) {
-                appliedArgs = args.map(a => schemeToJsDeep(a));
-            } else if (mode === 'shallow' || mode === false) {
-                // We use a light conversion for shallow mode
-                appliedArgs = args.map(a => (typeof a === 'bigint' ? Number(a) : a));
-            }
+            const appliedArgs = foreign ? args.map(a => schemeToJsDeep(a)) : args;
 
             result = callee(...appliedArgs);
-            if (mode !== 'raw') result = jsToScheme(result);
+            if (foreign) result = jsToScheme(result);
             restoreFlush(flush);
         } finally {
             // Pop the context after JS returns (or throws)

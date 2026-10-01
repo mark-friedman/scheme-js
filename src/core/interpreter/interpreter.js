@@ -40,19 +40,18 @@ import { schemeToJs, schemeToJsDeep } from './js_interop.js';
  * Also performs Scheme->JS number and char conversion.
  *
  * By default, uses deep conversion (schemeToJsDeep) which recursively
- * converts within vectors, records and objects
+ * converts within vectors, records and objects. Only the code that started
+ * the run chooses otherwise, through its `jsAutoConvert` option -- `'raw'`
+ * when it holds Scheme values -- and nothing the program does, so that a
+ * JavaScript caller of a Scheme procedure gets what the procedure's plain
+ * call promises.
  *
  * @param {*} result - The result to unpack
- * @param {Interpreter} interpreter - The interpreter instance
  * @param {Object} [options={}] - Conversion options (passed to schemeToJsDeep)
  * @returns {*} Converted value
  */
-function unpackForJs(result, interpreter, options = {}) {
-  // Determine conversion mode. Priority:
-  // 1. Explicit option passed to run()
-  // 2. Global interpreter setting
-  // 3. Default ('deep')
-  const mode = options.jsAutoConvert ?? (interpreter?.jsAutoConvert ?? 'deep');
+function unpackForJs(result, options = {}) {
+  const mode = options.jsAutoConvert ?? 'deep';
 
   if (mode === 'raw') {
     // Deliberately *not* unpacked here. Collapsing several values to the first
@@ -356,7 +355,7 @@ export class Interpreter {
             // --- Fate #1: Normal Termination ---
             // Stack is empty, computation is done.
             // Closures are now callable functions, no wrapping needed.
-            return unpackForJs(registers[ANS], this, options);
+            return unpackForJs(registers[ANS], options);
           }
 
           // --- Fate #2: Restore a Frame ---
@@ -402,7 +401,7 @@ export class Interpreter {
               const fstack = registers[FSTACK];
               if (fstack.length === 0) {
                 // Done - closures are callable, no wrapping needed
-                return unpackForJs(registers[ANS], this, options);
+                return unpackForJs(registers[ANS], options);
               }
 
               // Pop next frame and continue
@@ -419,7 +418,7 @@ export class Interpreter {
 
           // Check for SentinelResult (Control Flow for JS Interop)
           if (e instanceof SentinelResult) {
-            return unpackForJs(e.value, this, options);
+            return unpackForJs(e.value, options);
           }
 
           // Compiled code raised, and threw the raise here for this run to
@@ -647,7 +646,7 @@ export class Interpreter {
           const fstack = registers[FSTACK];
 
           if (fstack.length === 0) {
-            return unpackForJs(registers[ANS], this, options);
+            return unpackForJs(registers[ANS], options);
           }
 
           const frame = fstack.pop();
@@ -666,7 +665,7 @@ export class Interpreter {
             if (e.isReturn) {
               const fstack = registers[FSTACK];
               if (fstack.length === 0) {
-                return unpackForJs(registers[ANS], this, options);
+                return unpackForJs(registers[ANS], options);
               }
               registers[CTL] = fstack.pop();
               continue;
@@ -677,7 +676,7 @@ export class Interpreter {
           }
 
           if (e instanceof SentinelResult) {
-            return unpackForJs(e.value, this, options);
+            return unpackForJs(e.value, options);
           }
 
           // As in `run`.

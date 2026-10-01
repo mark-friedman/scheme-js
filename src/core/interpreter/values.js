@@ -494,9 +494,11 @@ export function callWithSchemeValues(fn, args) {
  * continuation with its arguments unconverted (`invokeWithSchemeValues`), a
  * procedure marked `SCHEME_PRIMITIVE` directly, and a JavaScript function as
  * the interpreter calls one. Its arguments are converted to
- * JavaScript values, an exact integer to a number and a mutable string to the
- * characters it holds, and its result back one level, as the interpreter and
- * `js-invoke` convert it: an integral number to an exact integer. Compiled frames may
+ * JavaScript values throughout (`schemeToJsDeep`), an exact integer to a
+ * number and a mutable string to the characters it holds, and its result back
+ * one level, as `js-invoke` converts it: an integral number to an exact
+ * integer -- always, as the interpreter converts both for the tail calls
+ * compiled code hands it. Compiled frames may
  * not move to the heap while it runs, since a compiled procedure it calls back
  * would find no interpreter beneath it to finish the move.
  *

@@ -20,7 +20,7 @@ import { Char } from '../core/primitives/char_class.js';
 /** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, make: Function}>}>} */
 export const LIBRARIES = {
   "scheme-js.js-conversion": {
-    fingerprint: "1a441ef2",
+    fingerprint: "47a51ec1",
     runtime: "8248e67c",
     files: ["js-conversion.sld"],
     procedures: {

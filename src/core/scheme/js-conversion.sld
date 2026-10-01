@@ -1,14 +1,15 @@
 ;; (scheme-js js-conversion) library
 ;;
 ;; Provides deep and shallow conversion procedures between Scheme and JavaScript values,
-;; and the 'js-auto-convert' parameter for controlling boundary conversion.
+;; for a program to convert a value itself. The boundary's own conversions -- a JavaScript
+;; function's arguments, a Scheme procedure's result returned to JavaScript -- are fixed
+;; for each way of calling, and no setting changes them (docs/Interoperability.md).
 ;;
 ;; Exports:
 ;;   scheme->js        - Shallow Scheme to JS conversion
 ;;   scheme->js-deep   - Deep recursive Scheme to JS conversion
 ;;   js->scheme        - Shallow JS to Scheme conversion
 ;;   js->scheme-deep   - Deep recursive JS to Scheme conversion
-;;   js-auto-convert   - Parameter controlling automatic deep conversion
 ;;   make-js-object    - Create a new js-object record
 ;;   js-object?        - Predicate for js-object records
 ;;   js-ref            - Access a property on a JS object
@@ -23,7 +24,6 @@
     scheme->js-deep
     js->scheme
     js->scheme-deep
-    js-auto-convert
     
     make-js-object
     js-object?
@@ -32,14 +32,6 @@
   )
 
   (begin
-    ;; ------------------------------------------------------------------------
-    ;; Parameter: js-auto-convert
-    ;; ------------------------------------------------------------------------
-    ;; Controls whether automatic deep conversion happens at JS boundaries.
-    ;; Possible values: 'deep, 'shallow, 'raw.
-    ;; Default is 'deep.
-    (define js-auto-convert (make-parameter 'deep))
-    
     ;; ------------------------------------------------------------------------
     ;; Record Type: js-object
     ;; ------------------------------------------------------------------------

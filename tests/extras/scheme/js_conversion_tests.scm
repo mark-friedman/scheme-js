@@ -35,27 +35,17 @@
           #(#(1 2) #(3 4)))
   )
 
-  (test-group "js-auto-convert Parameter"
-    (test "default value is 'deep" 
-          (js-auto-convert) 
-          'deep)
-    
-    (test "parameterize can change value to 'shallow"
-          (parameterize ((js-auto-convert 'shallow))
-            (js-auto-convert))
-          'shallow)
-
-    (test "parameterize can change value to 'raw"
-          (parameterize ((js-auto-convert 'raw))
-            (js-auto-convert))
-          'raw)
-    
-    (test "value restored after parameterize"
-          (begin
-            (parameterize ((js-auto-convert 'shallow))
-              'ignored)
-            (js-auto-convert))
-          'deep)
+  ;; What crosses the boundary is converted as the call says -- by these
+  ;; procedures, and by which entry JavaScript calls a Scheme procedure
+  ;; through -- and never by dynamic state, so the library has no parameter
+  ;; for it. It once exported one, `js-auto-convert`, that nothing read, so
+  ;; that `parameterize` of it silently changed nothing.
+  (test-group "No conversion parameter"
+    (test "the library exports no js-auto-convert"
+          #f
+          (guard (e (#t #f))
+            js-auto-convert
+            #t))
   )
 
   (test-group "js-object Record Type"
