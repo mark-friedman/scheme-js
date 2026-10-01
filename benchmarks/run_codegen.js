@@ -182,6 +182,37 @@ const GROUPS = [
     ]
   },
   {
+    // A compiled procedure is two functions: the one Scheme holds, which faces
+    // JavaScript, and its code, the raw entry compiled code calls. So making a
+    // closure in compiled code makes both.
+    name: 'closures',
+    about: 'making a closure in compiled code, and calling it',
+    definitions: `
+      (define (one x) 1)
+      (define (make-adder n) (lambda (x) (+ x n)))
+      (define key-a 'a)
+      (define ten 10)`,
+    workloads: [
+      ['making a closure', '(if (procedure? (make-adder ten)) 1 0)'],
+      ['making a closure and calling it', '((make-adder ten) 1)']
+    ]
+  },
+  {
+    // JavaScript calling a Scheme procedure as a plain function: its arguments
+    // converted into Scheme, the call run on an interpreter, and its result
+    // converted out, whichever tier made the procedure.
+    name: 'javascript-calls',
+    about: 'JavaScript calling a Scheme procedure as a plain function',
+    definitions: `
+      (define (one x) 1)
+      (define (ident x) x)
+      (define call-from-javascript (js-eval "(f) => f(1)"))
+      (define key-a 'a)`,
+    workloads: [
+      ['JavaScript calling a procedure of one argument', '(call-from-javascript ident)']
+    ]
+  },
+  {
     name: 'recursion',
     about: 'non-tail recursion: each procedure that calls takes its frame from the room left on the stack',
     definitions: `

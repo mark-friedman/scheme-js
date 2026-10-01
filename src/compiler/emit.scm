@@ -59,7 +59,8 @@
 ;;;                            unconditionally
 ;;;   (guarded test stmts)     if (test) { stmts }, for a guarded loop jump
 ;;;   (suspend result n slots) the fast form's spill, into its twin's block n
-;;;   (tail callee args)       a tail call, made directly or returned to the
+;;;   (tail callee args entry) a tail call, made directly to the callee's raw
+;;;                            entry, which `entry` holds, or returned to the
 ;;;                            trampoline; it returns either way
 ;;;
 ;;; ## Nested procedures
@@ -274,16 +275,16 @@
              spill)))
       ((tail)
        (let* ((callee (expr (cadr st)))
+              (entry (expr (cadddr st)))
               (arglist (string-join (map expr (caddr st)) ", "))
-              (size (number->string (frame-size form)))
               (fallback (string-append "return $tailCall(" callee ", [" arglist "]);")))
          ;; The resumable form runs only when a continuation is resumed, so it
          ;; always takes the fallback, which halves what direct calls add to
          ;; the generated code.
          (if (twin? form)
              fallback
-             (string-append "if ($d > 0 && " callee "?.[$PRIM] === true) { "
-                            "$stack.room = $d; return " callee "(" arglist "); } "
+             (string-append "if ($d > 0 && (" entry " = " callee "?.[$RAW] ?? " callee ")?.[$PRIM] === true) { "
+                            "$stack.room = $d; return " entry "(" arglist "); } "
                             fallback))))
       (else (error "emit: unknown statement" st)))))
 
@@ -347,7 +348,7 @@
     (cond ((not (form-depth form)) '())
           ((and (eq? (form-depth form) 'call) (not (twin? form)))
            (list depth
-                 (string-append "if ($d < 0 && $stack.flushable) return $flush(" (procedure-name form)
+                 (string-append "if ($d < 0 && $stack.flushable) return $flush(" (procedure-value-name form)
                                 ", [" (string-join args ", ") "]);")))
           (else (list depth)))))
 
@@ -849,8 +850,8 @@
 ;; /**
 ;;  * Emits a call whose value is wanted.
 ;;  *
-;;  * A compiled procedure or a primitive takes Scheme values directly. An
-;;  * interpreted closure is a callable function too, but calling it that way
+;;  * A primitive takes Scheme values directly. An interpreted closure or a
+;;  * compiled procedure is a callable function too, but calling it that way
 ;;  * enters Scheme from JavaScript and converts -- exact integers to doubles --
 ;;  * so it is called through its raw entry. Which kind the callee is belongs to
 ;;  * the value, not the name, so it is tested at the call.
@@ -893,9 +894,9 @@
     (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
     (set-form-depth! form 'call)
     (emit! form (list 'text "$stack.room = $d;"))
-    ;; No raw entry: a primitive or a compiled procedure, called directly, or
-    ;; anything else -- a JavaScript function -- through `$foreign`, which
-    ;; converts its arguments as the interpreter does.
+    ;; No raw entry: a primitive, called directly, or anything else -- a
+    ;; JavaScript function -- through `$foreign`, which converts its arguments
+    ;; as the interpreter does.
     (emit! form (list 'assign (js result)
                       (js raw " === undefined ? (" callee "[$PRIM] === true ? " callee "(" arglist ") : "
                           "$foreign(" callee ", [" arglist "])) : " raw "(" arglist ")")))
@@ -1046,14 +1047,17 @@
                (if (eq? kind 'local)
                    (for-each (lambda (st) (emit! form st)) jump)
                    (begin
-                     (emit! form (list 'guarded (js fn " === " (procedure-name form)) jump))
+                     (emit! form (list 'guarded (js fn " === " (procedure-value-name form)) jump))
                      (emit-transfer! form fn args)))))
             (else (emit-transfer! form fn args)))))))
 
 ;; /**
 ;;  * Emits a tail call to a callee that is not known to be this procedure.
 ;;  *
-;;  * A compiled procedure or a primitive is called directly, as long as this
+;;  * A compiled procedure or a primitive is called directly -- a compiled
+;;  * procedure through its raw entry, which faces Scheme where the procedure
+;;  * itself faces JavaScript, so the call costs a property load more than when
+;;  * the two were one -- as long as this
 ;;  * procedure leaves room on the stack (see `depth-entry`); the callee then
 ;;  * takes its frame from that room, since this frame stays on the stack
 ;;  * beneath it. With no room, and for any other callee, the call is returned
@@ -1087,13 +1091,13 @@
 ;;  */
 (define (emit-transfer! form fn args)
   (if (and (not (twin? form)) (not (form-depth form))) (set-form-depth! form 'tail))
-  (let ((callee (temp! form)))
+  (let ((callee (temp! form))
+        (entry (temp! form)))
     (emit! form (list 'assign (js callee) fn))
-    (emit! form (list 'tail (js callee) args))))
+    (emit! form (list 'tail (js callee) args (js entry)))))
 
 ;; /**
-;;  * The identifier of this procedure's fast form, which a global self-call is
-;;  * compared against: it is what the global holds.
+;;  * The identifier of this procedure's fast form, which is its raw entry.
 ;;  * @param {form} form - The emission.
 ;;  * @returns {string} The identifier.
 ;;  */
@@ -1102,6 +1106,18 @@
     (if (and (twin? form) (> n 2) (string=? (substring name (- n 2) n) "$r"))
         (substring name 0 (- n 2))
         name)))
+
+;; /**
+;;  * The identifier of the procedure itself, which faces JavaScript and has the
+;;  * fast form as its raw entry (`markProcedure` in `src/compiler/runtime.js`):
+;;  * what a global self-call is compared against, since it is what the global
+;;  * holds, and what a move of frames to the heap records to call again, since
+;;  * it is what the interpreter knows to be compiled.
+;;  * @param {form} form - The emission.
+;;  * @returns {string} The identifier.
+;;  */
+(define (procedure-value-name form)
+  (string-append (procedure-name form) "$js"))
 
 ;; ---------------------------------------------------------------------------
 ;; Loops
@@ -1497,7 +1513,9 @@
 
 ;; /**
 ;;  * A nested procedure as a factory over its free variables. Both forms go
-;;  * inside, and the closure they share is what the factory returns. A `letrec`
+;;  * inside, and what the factory returns is the procedure made over the fast
+;;  * form, which faces JavaScript with the fast form as its raw entry
+;;  * (`markProcedure` in `src/compiler/runtime.js`). A `letrec`
 ;;  * name the procedure refers to only itself by is declared here and assigned
 ;;  * before returning, so the recursive call resolves lexically -- a named
 ;;  * `let` is this shape, and usually a hot loop.
@@ -1514,14 +1532,16 @@
          (own (map js-name (plan-self-of plan lam)))
          (twin (twin-form (string-append proc "$r") lam u path))
          (fast (fast-form proc lam u path))
+         (value (string-append proc "$js"))
          (lines (append
                   (if (null? own) '() (list (string-append "let " (string-join own ", ") ";")))
                   (list fast
-                        (string-append "R.markProcedure(" proc ", " (js-string (or (lambda-name lam) "anonymous")) ");")
+                        (string-append "const " value " = R.markProcedure(" proc ", "
+                                       (js-string (or (lambda-name lam) "anonymous")) ", E);")
                         twin
-                        (string-append proc ".$resume = " proc "$r;"))
-                  (map (lambda (self) (string-append self " = " proc ";")) own)
-                  (list (string-append "return " proc ";")))))
+                        (string-append value ".$resume = " proc "$r;"))
+                  (map (lambda (self) (string-append self " = " value ";")) own)
+                  (list (string-append "return " value ";")))))
     (string-append "function " factory "(" (string-join params ", ") ") {\n"
                    (string-join (map (lambda (l) (string-append "  " l)) lines) "\n")
                    "\n}")))
@@ -1601,8 +1621,8 @@
     (list (string-join (filter (lambda (s) (not (string=? s "")))
                                (list (runtime-prelude (string-append factories fast twin))
                                      accessors factories fast twin
-                                     (string-append "R.markProcedure($proc, " (js-string name) ");")
-                                     "$proc.$resume = $proc$r;"
-                                     "return $proc;"))
+                                     (string-append "const $proc$js = R.markProcedure($proc, " (js-string name) ", E);")
+                                     "$proc$js.$resume = $proc$r;"
+                                     "return $proc$js;"))
                        "\n")
           (reverse (unit-constants u)))))

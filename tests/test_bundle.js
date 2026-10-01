@@ -1,6 +1,7 @@
 import {
     schemeEval, schemeEvalAsync, loadCompiler, isCompilerLoaded, libraryInstallation,
-    setUserCodeCompilation, env, interpreter, parse, analyze
+    setUserCodeCompilation, env, interpreter, parse, analyze,
+    callSchemeProcedure, schemeToJs, schemeToJsDeep, jsToScheme, jsToSchemeDeep
 } from '../dist/scheme.js';
 import { assert } from './harness/helpers.js';
 
@@ -130,6 +131,24 @@ export async function runBundleTests(logger) {
         } catch (e) {
             logger.fail(`Reading the bundle failed: ${e.message}`);
         }
+    }
+
+    // JavaScript calling Scheme through the bundle's public interop: the parts
+    // of a plain call, which convert, and the call that converts nothing.
+    try {
+        runSync('(define (bundle-describe x) (vector (exact? x) (+ x 1)))');
+        const describe = runSync('bundle-describe');
+        const result = callSchemeProcedure(describe, [jsToScheme(41)]);
+        assert(logger, "The call that converts nothing gives a Scheme value",
+            [result[0], typeof result[1]], [true, 'bigint']);
+        assert(logger, "The conversions convert in each direction, shallow and deep",
+            [schemeToJs(42n), jsToScheme(1), schemeToJsDeep([1n, [2n]]), jsToSchemeDeep([1, [2]])],
+            [42, 1n, [1, [2]], [1n, [2n]]]);
+        assert(logger, "A plain call is the conversions around the call that converts nothing",
+            JSON.stringify(describe(41)) === JSON.stringify(
+                schemeToJsDeep(callSchemeProcedure(describe, [41].map(jsToScheme)))), true);
+    } catch (e) {
+        logger.fail(`The bundle's public interop failed: ${e.message}`);
     }
 
     // Test 4: Shared Environment (Async)

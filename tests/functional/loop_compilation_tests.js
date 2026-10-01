@@ -92,7 +92,7 @@ export async function runLoopCompilationTests(logger) {
   {
     const { interpreter, env } = createInterpreter();
     const { source } = compile("(define (count-down n) (if (= n 0) 'done (count-down (- n 1))))", env);
-    assert(logger, 'a global self-loop is guarded on the binding', /=== \$proc\)/.test(source), true);
+    assert(logger, 'a global self-loop is guarded on the binding', /=== \$proc\$js\)/.test(source), true);
     assert(logger, 'it loops while the binding is unchanged',
       run(interpreter, env, '(count-down 100000)').name, 'done');
 

@@ -126,6 +126,68 @@ If a Scheme function returns multiple values (via `(values ...)`) to a JavaScrip
 const result = getResults(); // Returns 1
 ```
 
+## Calling Scheme from JavaScript
+
+A Scheme procedure is a JavaScript function, and called as one it behaves the same whichever tier
+runs it -- interpreted, or compiled by the tier or ahead of time:
+
+- **its arguments are converted into Scheme** with `jsToScheme`: an integral JavaScript number
+  becomes an exact integer, and anything else arrives as it is;
+- **the call runs to its end before JavaScript gets a value**: pending tail calls are run, a
+  recursion deeper than the JavaScript stack moves to the interpreter's heap, and a continuation
+  captured inside works;
+- **its result is converted out of Scheme** with `schemeToJsDeep`: several values become the first,
+  an exact integer a JavaScript number, a Scheme string a JavaScript string, a vector an array,
+  recursively.
+
+That is exactly `schemeToJsDeep(callSchemeProcedure(f, args.map(jsToScheme)))`, so JavaScript can
+make any part of the call itself. All five are exported from the bundle:
+
+```javascript
+import { callSchemeProcedure, jsToScheme, jsToSchemeDeep, schemeToJs, schemeToJsDeep } from './scheme.js';
+```
+
+A continuation called from JavaScript converts its arguments the same way, and jumps to where it
+was captured.
+
+**Primitives are the exception.** A primitive -- `car`, `+`, a record's accessor -- is a JavaScript
+function that takes and returns Scheme values, and its plain call converts nothing. To hand one to
+JavaScript, wrap it in a procedure: `(lambda (x) (car x))`.
+
+### The call that converts nothing
+
+`callSchemeProcedure(proc, args)` calls a Scheme procedure with Scheme values and returns a Scheme
+value. It is for JavaScript that holds Scheme values -- taken from a Scheme data structure, or to be
+handed back to Scheme -- and would lose something by converting them: an exact integer's exactness, a
+mutable string's identity, a list. In every other way it is the plain call: a closure or a compiled
+procedure runs on its interpreter, so tail calls, deep recursion and continuations behave as they do
+in Scheme. Anything else -- a primitive, a function of JavaScript's own -- is called directly.
+
+What JavaScript then holds are Scheme's own representations (*Data Mapping Strategy*, above): an
+exact integer is a `BigInt`, a list a chain of `Cons` pairs ending in `null`, a newly made string a
+`SchemeString`, a character a `Char`, a symbol a `Symbol`, and several values a `Values`, whose
+`first()` is the first.
+
+### The conversions
+
+| function | direction | converts |
+|---|---|---|
+| `jsToScheme` | into Scheme, one level | an integral number to an exact integer |
+| `jsToSchemeDeep` | into Scheme, throughout | the same, and an array to a vector and a plain object to a `js-object` record, recursively |
+| `schemeToJs` | out of Scheme, one level | several values to the first; an exact integer to a number, throwing beyond ±2^53; a rational to a number; a character or a Scheme string to a JavaScript string |
+| `schemeToJsDeep` | out of Scheme, throughout | the same, and a vector to an array and a `js-object` record to a plain object, recursively; a list stays a list of pairs |
+
+The plain call converts its arguments with `jsToScheme`, and its result with `schemeToJsDeep` -- or
+with `schemeToJs` if the interpreter's `jsAutoConvert` property is `'shallow'`, and not at all if it
+is `'raw'`.
+What an integral number becomes on its way into Scheme -- exact here, where a JavaScript function's
+result returned to Scheme is not converted at all (*Numbers at the boundary*) -- is still being
+decided, in `compiler_plan.md`, and these follow that decision.
+
+The same conversions are Scheme procedures in `(scheme-js js-conversion)`: `js->scheme`,
+`js->scheme-deep`, `scheme->js` and `scheme->js-deep`. The library also exports a parameter,
+`js-auto-convert`, which nothing reads yet: setting it changes no conversion.
+
 ---
 
 ## Dynamic-Wind Context Tracking

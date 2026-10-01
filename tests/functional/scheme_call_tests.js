@@ -4,18 +4,21 @@
  * `src/core/interpreter/values.js`): how the evaluator calls the tier's Scheme
  * as a program runs, and how the compiler's door calls its entry points.
  *
- * What it promises: nothing converted either way, a pending tail call run to
- * its value, and compiled frames kept from moving to the heap while it runs --
- * the unwind that moves them would otherwise come back to the JavaScript
- * caller as the procedure's result. JavaScript tests, since only JavaScript
- * calls it.
+ * What it promises: nothing converted either way, and otherwise what a plain
+ * call does -- a pending tail call run to its value, a recursion deeper than
+ * the JavaScript stack finished, a continuation captured inside working -- by
+ * running a closure or a compiled procedure on its interpreter. Anything else
+ * it calls directly, with compiled frames kept from moving to the heap
+ * meanwhile, since the unwind that moves them would otherwise come back to the
+ * JavaScript caller as the procedure's result. JavaScript tests, since only
+ * JavaScript calls it.
  */
 
 import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
-import { callSchemeProcedure, SCHEME_PRIMITIVE, TailCall } from '../../src/core/interpreter/values.js';
+import { callSchemeProcedure, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, TailCall } from '../../src/core/interpreter/values.js';
 import { compiledStack, openCompiledSegment, restoreFlush } from '../../src/core/interpreter/unwind.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
 
@@ -67,10 +70,19 @@ export async function runSchemeCallTests(logger) {
   const compiled = tryCompileDefinition(analyze(parse('(define (call-with f x) (f x))')[0]), env);
   assert(logger, 'setup: the procedure compiled', compiled.compiled, true);
   const callWith = compiled.procedure;
-  assert(logger, 'setup: a compiled procedure ending in a call to an interpreted closure returns the call pending',
-    callWith(add1, 1n) instanceof TailCall, true);
+  assert(logger, 'setup: through its raw entry, a compiled procedure ending in a call to an interpreted closure returns the call pending',
+    callWith[SCHEME_RAW_CALL](add1, 1n) instanceof TailCall, true);
   const result = callSchemeProcedure(callWith, [add1, 1n]);
   assert(logger, 'a pending tail call is run to its value', [typeof result, String(result)].join(' '), 'bigint 2');
+
+  const depth = tryCompileDefinition(analyze(parse('(define (depth n) (if (= n 0) 0 (+ 1 (depth (- n 1)))))')[0]), env);
+  env.define('depth', depth.procedure);
+  assert(logger, 'a compiled recursion 100,000 deep finishes, its frames moved to the heap',
+    String(callSchemeProcedure(depth.procedure, [100000n])), '100000');
+  const escape = tryCompileDefinition(analyze(parse(
+    '(define (escape-with x) (call-with-current-continuation (lambda (k) (+ 1 (k x)))))')[0]), env);
+  assert(logger, 'a continuation captured in compiled code beneath it escapes',
+    String(callSchemeProcedure(escape.procedure, [5n])), '5');
 
   {
     // As beneath compiled code the interpreter called, where frames may move.
@@ -83,7 +95,7 @@ export async function runSchemeCallTests(logger) {
     } finally {
       restoreFlush(flush);
     }
-    assert(logger, 'compiled frames may not move to the heap while it runs', seen.join(' '), 'false');
+    assert(logger, 'beneath a primitive it calls directly, compiled frames may not move to the heap', seen.join(' '), 'false');
     assert(logger, 'and may again once it returns', after, true);
   }
   {

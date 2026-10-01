@@ -233,6 +233,13 @@ export function schemeEvalAsync(code) {
 // Export the interpreter and environment for advanced usage (e.g. testing, extending)
 export { interpreter, env };
 
+// JavaScript calling Scheme. A procedure called as a plain function converts
+// its arguments into Scheme and its result out of it; these are the parts of
+// that call, for JavaScript that holds Scheme values or converts them itself
+// (`docs/Interoperability.md`, *Calling Scheme from JavaScript*).
+export { callSchemeProcedure } from '../core/interpreter/values.js';
+export { schemeToJs, schemeToJsDeep, jsToScheme, jsToSchemeDeep } from '../core/interpreter/js_interop.js';
+
 // Export REPL utilities
 export { parse } from '../core/interpreter/reader.js';
 export { analyze } from '../core/interpreter/analyzer.js';

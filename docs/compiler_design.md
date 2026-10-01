@@ -72,6 +72,32 @@ Scheme names for those frames, with a source map attached, has not been checked 
 
 The cost of B is procedure fragmentation, which is the next section.
 
+## A compiled procedure faces JavaScript; its code faces Scheme
+
+Every Scheme procedure is called the same way from JavaScript, whatever its tier: called as a plain
+function, it converts its arguments into Scheme and its result out of it, and finishes its tail
+calls, deep recursion and continuations before it returns, as an interpreted closure always has
+(`Interoperability.md`, *Calling Scheme from JavaScript*). Compiled code wants none of that between
+compiled procedures, so a compiled procedure is two functions:
+
+- **the procedure**, which Scheme holds and JavaScript is given, made by `markProcedure` in
+  `runtime.js` (`createCompiledProcedure` in `values.js`). Its plain call runs the procedure on the
+  interpreter its environment belongs to -- the program's, or for the compiler's own procedures the
+  compiler's -- as a closure's runs the closure on its interpreter, so the move of frames to the heap
+  and the capture of a continuation have an interpreter beneath them to finish on.
+- **its code**, the fast form, which is the procedure's raw entry, `SCHEME_RAW_CALL`, and takes and
+  returns Scheme values, a pending `TailCall` or the unwind sentinel among them. Compiled code calls
+  it: a call whose value is wanted always read the raw entry, and a direct tail call now does too,
+  `(callee?.[$RAW] ?? callee)`, a primitive being its own. So does the interpreter, which holds Scheme
+  values, and `callSchemeProcedure`, the public call that converts nothing.
+
+The procedure is what `eq?` sees, what a global holds, what a self-call through the global is
+compared with, what a move of frames records to call again, and what carries `$compiled`, `$resume`
+and `source`; the code is never a Scheme value. A primitive is a single function, which converts
+nothing.
+
+What it cost, compiled, measured in `run_codegen.js` (best of five, alternated with the commit before): a direct tail call 1.0 to 2.4 ns, ten mutually recursive ones 56 to 77 ns, a tail call to a primitive 5.8 to 7.1 ns, from the second property load; making a closure 13.5 to 14.5-14.9 ns, from the second function, once every compiled procedure shared one `toString` rather than each being given its own, which had made it 17.5; calls whose value is wanted unchanged, since they always read the raw entry; recursion deep enough to move frames 5-7% slower; JavaScript calling a compiled procedure about 600 ns, as it costs an interpreted closure, where calling the code itself was 30 ns and wrong; the generated code 1.1% larger, 1.3-1.8% gzipped. On the canonical suite, compiled, best of two passes alternated with the commit before, every workload class within 1-2% (0.99-1.02), and `earley`, which makes many tail calls, 7-8% slower, measured alone three times.
+
 ## Every procedure is emitted twice
 
 Straight-line JavaScript is fast and impossible to re-enter in the middle. So each compiled
@@ -271,8 +297,9 @@ loops in `fft` -- grows the JavaScript stack until it overflows, where Scheme re
 And a tail call to a continuation, made directly, throws to get where it is going, where a returned
 `TailCall` let the interpreter reinstate it without one: `fibc` ran 2.6 times slower.
 
-So a tail call is made directly only to a compiled procedure or a primitive -- a function marked
-`SCHEME_PRIMITIVE` -- and only while compiled frames have room left on the stack, `R.stack.room`
+So a tail call is made directly only to a compiled procedure, through its raw entry (*A compiled
+procedure faces JavaScript; its code faces Scheme*), or to a primitive -- the callee's raw entry, or
+the callee with none, being marked `SCHEME_PRIMITIVE` -- and only while compiled frames have room left on the stack, `R.stack.room`
 (see *Deep recursion*, which the same count serves). Anything else, and anything without room,
 returns a `TailCall` as before; a chain that runs out of room unwinds to the nearest trampoline and
 carries on from there, so it runs in bounded space.

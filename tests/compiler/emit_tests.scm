@@ -204,10 +204,10 @@
   (test "and so does each step of a pending tail call" #t
         (and (string-contains calls "{ $stack.room = $d; $t") #t))
   (test "entered with no room, the fast form moves the frames beneath it, passing its arguments" #t
-        (and (string-contains calls "if ($d < 0 && $stack.flushable) return $flush($proc, [s_x]);") #t))
+        (and (string-contains calls "if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_x]);") #t))
   (test "the resumable form never does" 1 (count-of calls "$stack.flushable"))
   (test "a rest parameter is passed on as it arrived" #t
-        (and (string-contains rest "return $flush($proc, [s_a, ...s_r$raw]);") #t))
+        (and (string-contains rest "return $flush($proc$js, [s_a, ...s_r$raw]);") #t))
   (test "and its arguments, which arrive on the stack, take room too" #t
         (and (string-contains rest " - s_r$raw.length;") #t))
   (test "a procedure that calls nothing takes no room" #f (and (string-contains leaf "$d") #t)))

@@ -9119,3 +9119,104 @@ changed `tier.scm`; the standard library's differ only in renaming counters. Jav
 86 lines added and 130 removed, the helper the only function added, under the save-and-resume
 protocol, whose rule it is that JavaScript calling Scheme keeps frames from moving; Scheme 22 added
 and 5 removed.
+
+# Walkthrough: compiled procedures callable from JavaScript, like closures (task 72)
+
+## The bug
+
+A compiled procedure was its own raw entry: the function Scheme held was the generated code, which
+takes Scheme values and may return a pending `TailCall` or the unwind sentinel. So JavaScript calling
+one -- a callback a page made, which the tier compiles -- got compiled code's own convention: an exact
+integer as a `BigInt`, a new string as a `SchemeString`, several values as a `Values`, tail calls
+100,000 deep as a pending `TailCall`, a recursion 100,000 deep as a stack overflow, and an integer
+it passed arriving inexact (R92). An interpreted closure did none of that.
+
+## The fix: two functions
+
+As decided on 2026-09-30, a compiled procedure is now two functions. The procedure itself, which
+Scheme holds and JavaScript is given, is made by `markProcedure` in `runtime.js` with
+`createCompiledProcedure` in `values.js`: its plain call converts its arguments with `jsToScheme`,
+runs the call on the interpreter its environment belongs to -- found through the global environment
+it is inside, which the interpreter registers when it is given one -- and converts the result, as an
+interpreted closure's plain call does. Its code, the fast form, is the procedure's raw entry, and is
+what compiled code calls.
+
+In `emit.scm`, a unit and each nested procedure's factory now return the procedure (`$proc$js`) in
+place of the code; a global self-call is compared with it, a move of frames to the heap records it,
+and it carries `$resume`. A direct tail call goes through the raw entry,
+`($t = callee?.[$RAW] ?? callee)?.[$PRIM] === true`, a primitive being its own. Calls whose value is
+wanted already read the raw entry. The interpreter, applying a compiled procedure, calls its raw
+entry, holding Scheme values; `callSchemeMethod` and `takesSchemeValues`, which `js-invoke` and
+`define-class` methods use, do too.
+
+A continuation's plain call converted its result but not its arguments, so JavaScript passing `1`
+to one sent an inexact number. It now converts them. Code holding Scheme values reaches a
+continuation through `callForeign`, which now invokes it unconverted on its interpreter, held as a
+property: a first version gave every continuation a raw entry of its own, a second function made at
+each capture, and `ctak` and `fibc`, which capture at nearly every call, ran 8-9% slower for it. Each
+continuation's `toString` is now one shared function too, where a new one was made at each capture.
+
+Primitives keep a single function, which takes Scheme values: decided with the user, since wrapping
+every primitive would cost the interpreter a property load on each application and change every
+inline expansion's guard. `Interoperability.md` says to wrap one in a lambda to hand it to
+JavaScript.
+
+## Public interop
+
+Decided with the user the same day: what the implementation's JavaScript uses to call Scheme, a
+developer can use. The bundle now exports `callSchemeProcedure`, the call that converts nothing, and
+the conversions both ways, `jsToScheme`, `jsToSchemeDeep`, `schemeToJs` and `schemeToJsDeep`, and
+the plain call is exactly `schemeToJsDeep(callSchemeProcedure(f, args.map(jsToScheme)))`: a test
+checks it for interpreted closures and for compiled procedures, top-level and nested, in both tiers,
+and another through the bundle. Two changes made that true. The conversions out of Scheme turn several
+values into the first, as the plain call did on its own. And `callSchemeProcedure`, which since 74
+called a procedure directly with compiled frames kept from moving, would have overflowed beneath a
+compiled recursion deeper than the JavaScript stack where the plain call does not: it now runs a
+closure or a compiled procedure on its interpreter, as the plain call does, and calls anything else
+directly as before. The tier's hooks, which use it, so run on the compiler's own interpreter, still
+out of the program's debugger, for about half a microsecond more each.
+
+`Interoperability.md` has a new section, *Calling Scheme from JavaScript*: the plain call, the call
+that converts nothing and what JavaScript holds then, each conversion, and the Scheme side's
+`(scheme-js js-conversion)`. Writing it found that the library's `js-auto-convert` parameter, which
+its comment says controls the conversions, is read by nothing (R96); the section says so, and fixing
+it is suggested as a task of its own.
+
+## Tests
+
+The `test-expect-fail` marks are gone from `tests/tiers/js_caller_tests.scm`, whose nine cases pass
+in both runs, and a group for a continuation JavaScript is given joins them. New:
+`tests/functional/javascript_boundary_tests.js`, the plain call against its public parts; cases in
+`scheme_call_tests.js` for a compiled recursion 100,000 deep and an escaping continuation beneath
+`callSchemeProcedure`; and the bundle's exports in `test_bundle.js`. Tests that pinned the old
+convention changed with it: the generated self-loop guard and the recorded move name `$proc$js`; and
+three in `deep_recursion_tests.js` said compiled code called back by JavaScript may not move its
+frames, which is no longer so, since its plain call now runs it on an interpreter that finishes the
+move -- the one about an error thrown out of a run now reads the setting the run gave back.
+
+## Cost
+
+Compiled, in `run_codegen.js`, best of five, alternated with the commit before, in ns a call: a
+direct tail call to a compiled procedure 1.0 to 2.4, ten mutually recursive tail calls 56 to 77, a
+tail call to a primitive 5.8 to 7.1, all from the second property load; making a closure 13.5 to
+14.5-14.9, from the second function -- it was 17.5 until every compiled procedure shared one
+`toString`, rather than being given a new one each time, as it had been before this task too;
+calls whose value is wanted unchanged; recursion deep enough to move
+frames 5-7% slower. JavaScript calling a compiled procedure costs about 600 ns, as calling an
+interpreted closure does, where calling the code itself took 30 and gave the wrong answer. The
+interpreter is unchanged, within a noise of 10-30% on the 10,000-call measurements. Two groups are
+new in `run_codegen.js`, `closures` and `javascript-calls`. The generated code is 1.1% larger,
+1.3-1.8% gzipped. On the canonical suite, compiled, best of two passes alternated with the commit before: every workload class within 1-2% (geometric means 0.99-1.02), and `earley`, which makes many tail calls, 7-8% slower, measured alone three times; `simplex` and `lattice` measured 6-8% faster, which nothing here explains. An earlier pass, before the two savings above, had the continuation class at 0.93.
+
+## Verification
+
+6,692 tests pass in Node with none failing (33 skipped, nine fewer than before, being the nine
+expected failures, which now pass), and 6,510 in the browser with none failing (52 skipped). The
+prebuilt tables were rebuilt twice, the second identical to the first. JavaScript under `src/`: 218
+lines added and 74 removed. The value representations account for most of it: a compiled
+procedure's JavaScript-facing function and the registry of each global environment's interpreter
+that it runs on, and a continuation's conversion and its call with Scheme values, in `values.js`.
+The rest is the evaluator's call of a compiled procedure's raw entry (`frames.js`) and its
+registering its global environment (`interpreter.js`); `runtime.js`'s `markProcedure` and its shared
+`toString`; the conversions taking several values to the first, in interop's core (`js_interop.js`);
+and the bundle's exports. Scheme: 44 lines added and 24 removed, in `emit.scm`.

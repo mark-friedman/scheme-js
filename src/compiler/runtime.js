@@ -14,7 +14,7 @@
  */
 
 import {
-  TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign
+  TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign, createCompiledProcedure
 } from '../core/interpreter/values.js';
 // The capture protocol belongs to the interpreter, which owns what a
 // continuation is; this module only makes it reachable from generated code.
@@ -203,17 +203,16 @@ export function capture(receiver) {
 /**
  * Invokes a callee with Scheme values, without crossing the JavaScript boundary.
  *
- * A compiled procedure and a JavaScript primitive are both plain functions that
- * take Scheme values, so they are called directly. An *interpreted* closure is
- * also a plain function, but calling it that way means entering Scheme from
- * JavaScript, and its wrapper converts accordingly -- exact integers become
- * doubles, bignums beyond 2^53 throw. Compiled code is not a JavaScript caller,
- * so it uses the closure's raw entry instead.
+ * A primitive is a plain function that takes Scheme values, so it is called
+ * directly. An interpreted closure or a compiled procedure is also a plain
+ * function, but calling it that way means entering Scheme from JavaScript, and
+ * it converts accordingly -- exact integers become doubles, bignums beyond 2^53
+ * throw. Compiled code is not a JavaScript caller, so it uses the procedure's
+ * raw entry instead: for a compiled procedure, its code.
  *
- * A compiled procedure and a primitive are their own raw entries. A function
- * with none is JavaScript's own, and gets its arguments as JavaScript values,
- * as the interpreter gives them (`callForeign` in
- * `src/core/interpreter/values.js`).
+ * A function with no raw entry is a primitive, or JavaScript's own, which gets
+ * its arguments as JavaScript values, as the interpreter gives them
+ * (`callForeign` in `src/core/interpreter/values.js`).
  *
  * The check is one property load on a value already in hand. It is worth
  * stating why it cannot be hoisted to compile time: the callee of a Scheme call
@@ -365,26 +364,39 @@ export function listFrom(items) {
 }
 
 /**
- * Marks a generated function as a Scheme procedure.
+ * Makes a compiled procedure of its generated code.
  *
- * `SCHEME_PRIMITIVE` tells the interpreter this function speaks Scheme values
- * directly, so it must not convert arguments at the boundary the way it does
- * for a foreign JavaScript function -- that conversion would turn exact
- * integers into doubles.
+ * The code is the procedure's raw entry, which takes and returns Scheme values
+ * and is what compiled code calls; the procedure itself, which this returns
+ * and Scheme holds, faces JavaScript as an interpreted closure does
+ * (`createCompiledProcedure` in `src/core/interpreter/values.js`). The raw
+ * entry is marked `SCHEME_PRIMITIVE`, a function taking Scheme values, which
+ * is what a direct tail call tests for (`tail` in emit.scm).
  *
- * @param {Function} fn - The generated function.
+ * @param {Function} code - The generated function.
  * @param {string} name - The Scheme procedure's name, for stack traces.
- * @returns {Function} The same function.
+ * @param {Object} env - The environment the procedure closes over.
+ * @returns {Function} The procedure.
  */
-export function markProcedure(fn, name) {
-  fn[SCHEME_PRIMITIVE] = true;
-  // Its own raw entry, so that a call site, which looks for one first, calls
-  // it with no second look at what it is (`emit-call!` in emit.scm).
-  fn[SCHEME_RAW_CALL] = fn;
-  fn.$compiled = true;
-  fn.schemeName = name;
-  fn.toString = () => `#<compiled-procedure${name && name !== 'anonymous' ? ' ' + name : ''}>`;
-  return fn;
+export function markProcedure(code, name, env) {
+  code[SCHEME_PRIMITIVE] = true;
+  const procedure = createCompiledProcedure(code, env);
+  procedure.$compiled = true;
+  procedure.schemeName = name;
+  // One function for every procedure, rather than one made for each: a
+  // closure made in a loop makes a procedure each time round.
+  procedure.toString = compiledProcedureText;
+  return procedure;
+}
+
+/**
+ * How a compiled procedure shows itself to JavaScript, as its `toString`.
+ * @this {Function} The procedure.
+ * @returns {string} Its text.
+ */
+function compiledProcedureText() {
+  const name = this.schemeName;
+  return `#<compiled-procedure${name && name !== 'anonymous' ? ' ' + name : ''}>`;
 }
 
 /**

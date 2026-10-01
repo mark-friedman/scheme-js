@@ -598,14 +598,17 @@ export function continueApplication(exprs, index, values, env, registers, interp
         // sets it again. A `finally` here would sit in every nested run on the
         // JavaScript stack, and cost recursion alternating between compiled
         // and interpreted code 8% of the depth it can reach.
-        const flush = func.$compiled === true
-            ? openCompiledSegment(interpreter.unwindsOut) : suspendFlush();
+        const compiled = func.$compiled === true;
+        const flush = compiled ? openCompiledSegment(interpreter.unwindsOut) : suspendFlush();
+        // A compiled procedure's plain call faces JavaScript, converting; the
+        // interpreter holds Scheme values, so calls its raw entry.
+        const callee = compiled ? func[SCHEME_RAW_CALL] : func;
         let result;
         try {
             // If it's a foreign JS function (not a Scheme closure/primitive),
             // auto-convert arguments (e.g., BigInt -> Number)
             let appliedArgs = args;
-            if (!isSchemePrimitive(func)) {
+            if (!isSchemePrimitive(callee)) {
                 // Respect the current js-auto-convert mode
                 const mode = interpreter.jsAutoConvert ?? 'deep';
                 if (mode === 'deep' || mode === true) {
@@ -616,7 +619,7 @@ export function continueApplication(exprs, index, values, env, registers, interp
                 }
             }
 
-            result = func(...appliedArgs);
+            result = callee(...appliedArgs);
             restoreFlush(flush);
         } finally {
             // Pop the context after JS returns (or throws)

@@ -5,7 +5,7 @@ import { Complex } from '../primitives/complex.js';
 import { Rational } from '../primitives/rational.js';
 import { Char } from '../primitives/char_class.js';
 import { SchemeString } from '../primitives/string_class.js';
-import { Closure, Continuation } from './values.js';
+import { Closure, Continuation, Values } from './values.js';
 
 // Registry for the JS Object Record constructor
 let JsObjectRecord = null;
@@ -42,9 +42,11 @@ function isPrimitive(val) {
  - Rational: converted to Number, but may lose precision
  - Char: converted to String
  - A mutable Scheme string: converted to the JavaScript string it holds now
+ - Several values: the first of them, converted, since JavaScript receives one
  - Other: returned as-is
  */
 export function schemeToJs(val) {
+    if (val instanceof Values) val = val.first();
     // Convert BigInt to Number for JS API calls
     // (JS APIs like Date, Math, etc. require Number, not BigInt)
     if (typeof val === 'bigint') {
@@ -69,6 +71,7 @@ export function schemeToJs(val) {
  * - Rational: converted to Number, but may lose precision
  * - Char: converted to String
  * - A mutable Scheme string: converted to the JavaScript string it holds now
+ * - Several values: the first of them, converted, since JavaScript receives one
  * - Vector: recursively converted to Array
  * - JsObjectRecord: recursively converted to plain Object
  * - Other: returned as-is
@@ -80,6 +83,7 @@ export function schemeToJs(val) {
  */
 export function schemeToJsDeep(val, options = {}) {
     const convertBigInt = options.convertBigInt !== false;
+    if (val instanceof Values) val = val.first();
 
     // 1. Primitive Conversion (Shallow Check first)
     if (typeof val === 'bigint') {

@@ -102,9 +102,12 @@ export async function runDeepRecursionTests(logger) {
   assert(logger, 'frames moved to the heap leave the frame stack shallow', beneath < 20, true);
 
   // The move needs the interpreter to receive the unwind. A JavaScript caller
-  // -- a primitive calling a procedure back, host code, a test calling compiled
-  // code directly -- would take the unwind signal for a value, so beneath one
-  // compiled code never moves its frames.
+  // holding Scheme values, which calls a compiled procedure's raw entry -- a
+  // primitive calling a procedure back, `js-invoke`, a test calling the raw
+  // entry -- would take the unwind signal for a value, so beneath one compiled
+  // code never moves its frames. JavaScript calling a compiled procedure as a
+  // plain function goes through the procedure's JavaScript-facing entry, which
+  // runs it on an interpreter that receives the unwind, so there it may.
   const { env } = compiled;
   // A primitive, so that compiled code calls it directly and it sees what the
   // compiled frame sees: a JavaScript function is called as the interpreter
@@ -122,28 +125,29 @@ export async function runDeepRecursionTests(logger) {
   compile('(define (depth-in-method) (js-invoke holder "run"))', env);
   assert(logger, 'called from the interpreter, compiled code may move its frames',
     run(compiled, '(depth-here)'), '"may"');
-  assert(logger, 'called back by JavaScript the interpreter called, it may not',
-    run(compiled, '(call-back depth-here)'), '"never"');
+  assert(logger, 'called back by JavaScript the interpreter called, it may, since its plain call runs it on an interpreter',
+    run(compiled, '(call-back depth-here)'), '"may"');
   assert(logger, 'nor as a method js-invoke calls from compiled code',
     run(compiled, '(depth-in-method)'), '"never"');
   env.define('js-holder', { run: (f) => f() });
   compile('(define (depth-in-js-method) (js-invoke js-holder "run" depth-here))', env);
-  assert(logger, 'nor beneath a JavaScript method js-invoke calls from compiled code',
-    run(compiled, '(depth-in-js-method)'), '"never"');
+  assert(logger, 'and so beneath a JavaScript method js-invoke calls from compiled code, which calls it',
+    run(compiled, '(depth-in-js-method)'), '"may"');
   // An interpreted procedure JavaScript calls runs in an interpreter of its
   // own, which can receive the unwind.
   assert(logger, 'but beneath an interpreted procedure JavaScript called, it may again',
     run(compiled, '(call-back (lambda () (depth-here)))'), '"may"');
   // An interpreter run gives back what it found however it ends. Here compiled
   // code throws out of a run that JavaScript started, the JavaScript catches it,
-  // and goes on to call compiled code directly.
-  env.define('call-both', (f, g) => {
+  // and reads what the run gave back: what the interpreter set while it called
+  // the JavaScript.
+  env.define('flush-after-error', (f) => {
     try { f(); } catch (e) { /* the error is the point */ }
-    return g();
+    return stack.flushable ? 'may' : 'never';
   });
   compile('(define (throws) (vector-ref (vector) 0))', env);
-  assert(logger, 'nor after an error thrown out of an interpreter JavaScript called',
-    run(compiled, '(call-both (lambda () (throws)) depth-here)'), '"never"');
+  assert(logger, 'after an error thrown out of an interpreter JavaScript called, it may not',
+    run(compiled, '(flush-after-error (lambda () (throws)))'), '"never"');
   assert(logger, 'and outside any run of the interpreter, it may not',
     settle(invoke(env.lookup('depth-here'), [])), 'never');
   assert(logger, 'which is where every run leaves it', stack.flushable, false);

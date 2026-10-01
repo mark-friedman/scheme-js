@@ -1,4 +1,4 @@
-import { Values, isSchemeClosure, callSchemeProcedure } from './values.js';
+import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush } from './unwind.js';
@@ -299,6 +299,9 @@ export class Interpreter {
    */
   setGlobalEnv(env) {
     this.globalEnv = env;
+    // Compiled code called from JavaScript runs on the interpreter its
+    // environment belongs to (`createCompiledProcedure`).
+    registerGlobalEnvironment(env, this);
   }
 
   /**
@@ -494,9 +497,11 @@ export class Interpreter {
    * @param {Function} continuation - The callable continuation (with fstack attached).
    * @param {*} value - The value to pass to the continuation.
    * @param {*} [thisContext] - The value for the 'this' register.
+   * @param {Object} [options] - As for `runWithSentinel`: `jsAutoConvert: 'raw'`
+   *   for a caller holding Scheme values.
    * @returns {*} The result of invoking the continuation.
    */
-  invokeContinuation(continuation, value, thisContext = undefined) {
+  invokeContinuation(continuation, value, thisContext = undefined, options = {}) {
     // Build an AST that invokes the continuation
     const ast = new TailAppNode(
       new LiteralNode(continuation),
@@ -504,7 +509,7 @@ export class Interpreter {
     );
 
     // Run with sentinel and parent context
-    return this.runWithSentinel(ast, thisContext);
+    return this.runWithSentinel(ast, thisContext, options);
   }
 
 

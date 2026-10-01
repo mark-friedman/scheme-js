@@ -13,6 +13,7 @@
 import { suspendFlush, restoreFlush } from './unwind.js';
 import { LiteralNode, TailAppNode } from './ast_nodes.js';
 import { Cons } from './cons.js';
+import { SchemeError } from './errors.js';
 import { jsToScheme, schemeToJsDeep } from './js_interop.js';
 
 // =============================================================================
@@ -186,6 +187,86 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
 }
 
 /**
+ * The interpreter each global environment belongs to, for compiled code
+ * called from JavaScript, which runs on it (`createCompiledProcedure`).
+ * @type {WeakMap<Object, Object>}
+ */
+const interpreterOfGlobalEnvironment = new WeakMap();
+
+/**
+ * Records the interpreter a global environment belongs to. Called by the
+ * interpreter when it is given one.
+ * @param {Environment} env - A global environment.
+ * @param {Interpreter} interpreter - Its interpreter.
+ */
+export function registerGlobalEnvironment(env, interpreter) {
+    interpreterOfGlobalEnvironment.set(env, interpreter);
+}
+
+/**
+ * The interpreter an environment belongs to: that of the global environment
+ * it is inside, as a library's environment is inside the global environment
+ * of the interpreter that loaded it.
+ * @param {Environment} env - The environment.
+ * @returns {Interpreter} The interpreter.
+ * @throws {SchemeError} If it is inside no interpreter's global environment.
+ */
+function interpreterOf(env) {
+    let root = env;
+    while (root.parent) root = root.parent;
+    const interpreter = interpreterOfGlobalEnvironment.get(root);
+    if (interpreter === undefined) {
+        throw new SchemeError('a compiled procedure was called from JavaScript, but its environment belongs to no interpreter');
+    }
+    return interpreter;
+}
+
+/**
+ * Creates the procedure a compiled procedure's code is the raw entry of: the
+ * value Scheme holds and JavaScript is given.
+ *
+ * Its plain call faces JavaScript as an interpreted closure's does
+ * (`createClosure`): its arguments converted into Scheme, the call run on an
+ * interpreter -- so that pending tail calls run to a value, and a capture or a
+ * move of compiled frames to the heap finishes within the call -- and its
+ * result converted out. Code that holds Scheme values -- compiled code, the
+ * interpreter, `callSchemeProcedure` -- calls the raw entry instead
+ * (`SCHEME_RAW_CALL`), which takes and returns Scheme values and may return a
+ * pending tail call or the unwind sentinel.
+ *
+ * The interpreter it runs on is the one whose global environment the
+ * procedure's is inside: the program's, or for the compiler's own procedures
+ * the compiler's.
+ *
+ * @param {Function} raw - The compiled code.
+ * @param {Environment} env - The environment the procedure closes over.
+ * @returns {Function} The procedure.
+ */
+export function createCompiledProcedure(raw, env) {
+    const procedure = function (...jsArgs) {
+        const ast = new TailAppNode(
+            new LiteralNode(procedure),
+            jsArgs.map((value) => new LiteralNode(jsToScheme(value))));
+        return interpreterOf(env).runWithSentinel(ast, this);
+    };
+    procedure[SCHEME_RAW_CALL] = raw;
+    // For `callSchemeProcedure`, which runs it on the same interpreter.
+    procedure.$environment = env;
+    return procedure;
+}
+
+/**
+ * What a continuation is invoked with: nothing, one value, or several.
+ * @param {Array<*>} args - The arguments it was called with.
+ * @returns {*} The value.
+ */
+function continuationValue(args) {
+    if (args.length === 0) return null;
+    if (args.length === 1) return args[0];
+    return new Values(args);
+}
+
+/**
  * Creates a callable Scheme continuation.
  * 
  * The returned function can be called directly from JavaScript and will
@@ -197,29 +278,45 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
  */
 export function createContinuation(fstack, interpreter) {
     // Create the callable wrapper
+    // Arguments entering Scheme from JavaScript are converted, as a closure's
+    // are.
     const continuation = function (...jsArgs) {
-        // Handle multiple values: wrap 2+ args in Values
-        let value;
-        if (jsArgs.length === 0) {
-            value = null;
-        } else if (jsArgs.length === 1) {
-            value = jsArgs[0];
-        } else {
-            value = new Values(jsArgs);
-        }
-
-        // Invoke the continuation through the interpreter
-        return interpreter.invokeContinuation(continuation, value, this);
+        return interpreter.invokeContinuation(continuation, continuationValue(jsArgs.map(jsToScheme)), this);
     };
 
     // Attach marker and continuation data
     continuation[SCHEME_CONTINUATION] = true;
     continuation.fstack = [...fstack];  // Store a copy
+    // For callers that hold Scheme values (`invokeWithSchemeValues`): a
+    // property rather than an entry of its own, since a program may capture a
+    // continuation at every call.
+    continuation.interpreter = interpreter;
 
-    // Custom toString for pretty-printing
-    continuation.toString = () => '#<continuation>';
+    // Custom toString for pretty-printing, one function for every continuation.
+    continuation.toString = continuationText;
 
     return continuation;
+}
+
+/**
+ * How a continuation shows itself to JavaScript, as its `toString`.
+ * @returns {string} Its text.
+ */
+function continuationText() {
+    return '#<continuation>';
+}
+
+/**
+ * Invokes a continuation with Scheme values, converting nothing: what compiled
+ * code, a primitive and `callSchemeProcedure` do, where JavaScript's plain call
+ * of the continuation converts its arguments.
+ * @param {Function} continuation - The continuation.
+ * @param {Array<*>} args - Scheme values.
+ * @returns {*} What the run it is invoked in returns.
+ */
+function invokeWithSchemeValues(continuation, args) {
+    return continuation.interpreter.invokeContinuation(continuation, continuationValue(args), undefined,
+        { jsAutoConvert: 'raw' });
 }
 
 // =============================================================================
@@ -335,24 +432,37 @@ export function settleTailCalls(result) {
 
 /**
  * Calls a Scheme procedure from JavaScript that holds Scheme values and wants
- * a Scheme value back: the evaluator's hooks, which call the compiler tier's
- * Scheme as a program runs, and the door into the compiler
- * (`src/compiler/lowering.js`). Through the procedure's raw entry, so nothing
- * is converted either way; a pending tail call is run to its value; and
- * compiled frames may not move to the heap meanwhile, since the unwind that
- * moves them would come back here as the procedure's result.
+ * a Scheme value back, converting nothing either way: public, for any
+ * JavaScript, and what the evaluator's hooks and the door into the compiler
+ * (`src/compiler/lowering.js`) use. A procedure's plain call is exactly this
+ * with `jsToScheme` on its arguments and `schemeToJsDeep` on its result
+ * (`docs/Interoperability.md`).
  *
- * So the procedure runs compiled, or in the interpreter that made it, which an
- * interpreted closure's raw entry runs it in, and a continuation it captures
- * stays within that run. Called by the evaluator, it is therefore never run by
- * the program's interpreter, and the program's debugger, which can pause only
- * that interpreter's own run, never sees it.
+ * Otherwise it does what the plain call does. An interpreted closure or a
+ * compiled procedure runs on the interpreter its environment belongs to, as
+ * its plain call does, so pending tail calls run to a value, a recursion
+ * deeper than the JavaScript stack moves to the interpreter's heap, and a
+ * continuation captured inside works. Anything else -- a primitive, a
+ * continuation, whose raw entry runs it on its own interpreter, or a function
+ * of JavaScript's own -- is called directly, its pending tail calls run, with
+ * compiled frames kept from moving to the heap beneath it, since the unwind
+ * that moves them would come back here as its result.
+ *
+ * Called by the evaluator, the tier's Scheme therefore runs on the compiler's
+ * own interpreter, never on the program's, so the program's debugger, which
+ * can pause only that interpreter's run, never sees it.
  *
  * @param {Function} proc - A Scheme procedure.
  * @param {Array<*>} args - Scheme values.
  * @returns {*} Its result, a Scheme value.
  */
 export function callSchemeProcedure(proc, args) {
+    const env = proc.$compiled === true ? proc.$environment
+        : proc[SCHEME_CLOSURE] === true ? proc.env : undefined;
+    if (env !== undefined) {
+        const ast = new TailAppNode(new LiteralNode(proc), args.map((value) => new LiteralNode(value)));
+        return interpreterOf(env).runWithSentinel(ast, undefined, { jsAutoConvert: 'raw' });
+    }
     const flush = suspendFlush();
     try {
         return settleTailCalls(callWithSchemeValues(proc, args));
@@ -366,9 +476,9 @@ export function callSchemeProcedure(proc, args) {
  * the interpreter: compiled code, a primitive settling a tail call.
  *
  * A function with a raw entry is called through it -- an interpreted closure
- * that way skips the conversions its JavaScript-facing wrapper makes, and a
- * compiled procedure or a primitive is its own raw entry. A function without
- * one is JavaScript's own, or a continuation, and is called by `callForeign`.
+ * or a compiled procedure that way skips the conversions its JavaScript-facing
+ * plain call makes. A function without one is a primitive, a continuation, or
+ * JavaScript's own, and is called by `callForeign`.
  *
  * @param {Function} fn - The callee.
  * @param {Array<*>} args - Scheme values.
@@ -381,9 +491,9 @@ export function callWithSchemeValues(fn, args) {
 
 /**
  * Calls a function with no raw entry, from code holding Scheme values: a
- * procedure that takes Scheme values -- a continuation, a procedure marked
- * `SCHEME_PRIMITIVE` without a raw entry -- directly, and a JavaScript
- * function as the interpreter calls one. Its arguments are converted to
+ * continuation with its arguments unconverted (`invokeWithSchemeValues`), a
+ * procedure marked `SCHEME_PRIMITIVE` directly, and a JavaScript function as
+ * the interpreter calls one. Its arguments are converted to
  * JavaScript values, an exact integer to a number and a mutable string to the
  * characters it holds, and its result comes back as it is. Compiled frames may
  * not move to the heap while it runs, since a compiled procedure it calls back
@@ -394,6 +504,7 @@ export function callWithSchemeValues(fn, args) {
  * @returns {*} Its result.
  */
 export function callForeign(fn, args) {
+    if (fn[SCHEME_CONTINUATION] === true) return invokeWithSchemeValues(fn, args);
     if (isSchemePrimitive(fn)) return fn(...args);
     const flush = suspendFlush();
     try {
@@ -405,16 +516,17 @@ export function callForeign(fn, args) {
 
 /**
  * Whether a function takes and returns Scheme values, so that a primitive
- * calling it should pass its arguments unconverted: an interpreted closure,
- * or a function marked `SCHEME_PRIMITIVE` -- a primitive, a compiled
- * procedure, a `define-class` class. A continuation is excluded: its callable
- * form is a JavaScript entry point that converts what it is given.
+ * calling it should pass its arguments unconverted: an interpreted closure or
+ * a compiled procedure, through its raw entry, or a function marked
+ * `SCHEME_PRIMITIVE` -- a primitive, a `define-class` class. A continuation is
+ * excluded: its callable form is a JavaScript entry point that converts what it
+ * is given.
  * @param {*} f - The value to check.
  * @returns {boolean}
  */
 export function takesSchemeValues(f) {
     return typeof f === 'function' &&
-        (f[SCHEME_CLOSURE] === true || f[SCHEME_PRIMITIVE] === true);
+        (f[SCHEME_CLOSURE] === true || f[SCHEME_PRIMITIVE] === true || f.$compiled === true);
 }
 
 /**
@@ -431,11 +543,12 @@ export function callSchemeMethod(proc, thisArg, args) {
     if (method !== undefined) {
         return method(thisArg, args);
     }
-    // A compiled procedure may return a pending tail call rather than a value.
-    // It may not move its frames to the heap stack beneath this JavaScript.
+    // A compiled procedure, through its raw entry, may return a pending tail
+    // call rather than a value. It may not move its frames to the heap stack
+    // beneath this JavaScript.
     const flush = suspendFlush();
     try {
-        return settleTailCalls(proc.apply(thisArg, args));
+        return settleTailCalls((proc[SCHEME_RAW_CALL] ?? proc).apply(thisArg, args));
     } finally {
         restoreFlush(flush);
     }

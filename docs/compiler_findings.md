@@ -2779,6 +2779,22 @@ the system's code, wanted later, needs the other (62).
 
 ---
 
+**R96. `js-auto-convert` controls nothing.**
+
+`(scheme-js js-conversion)` exports `js-auto-convert`, a parameter its library describes as
+controlling "whether automatic deep conversion happens at JS boundaries", `'deep`, `'shallow` or
+`'raw`. Nothing reads it. What decides the conversion of a result JavaScript receives, and of the
+arguments the interpreter passes to a JavaScript function, is a JavaScript property,
+`interpreter.jsAutoConvert`, read in `unpackForJs` (`interpreter.js`) and in the interpreter's call
+of a JavaScript function (`frames.js`), defaulting to `'deep'` and set nowhere in `src/`. So
+`(parameterize ((js-auto-convert 'shallow)) ...)` changes no conversion. Found documenting the
+conversions as public interop (72).
+
+*Consequence:* `Interoperability.md` says so; whether the parameter is made to control the
+conversions or is removed is a task of its own.
+
+---
+
 ## Appendix — the original staged plan
 
 Kept because it is the plan the entries above were measured against, not because it is the plan.

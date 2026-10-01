@@ -54,15 +54,6 @@
 (define (all-compiled? . procedures)
   (not (memq #f (map compiled? procedures))))
 
-;; /**
-;;  * Why a JavaScript caller's view of a compiled procedure is expected to be
-;;  * wrong in the run with the tier attached, and #f in the other.
-;;  * @type {string|boolean}
-;;  */
-(define no-javascript-entry
-  (and *tier-attached*
-       "a compiled procedure has no JavaScript-facing entry, so a JavaScript caller gets compiled code's own calling convention"))
-
 ;; ---------------------------------------------------------------------------
 ;; A program's own procedures
 ;; ---------------------------------------------------------------------------
@@ -86,17 +77,16 @@
   (test "the tier compiled them, and only in the run with it attached"
         *tier-attached*
         (all-compiled? five two-letters two-values even-parity odd-parity depth exactness))
-  (test-expect-fail no-javascript-entry
-    (test "an exact integer reaches JavaScript as a number" "number 5" (js-sees five))
-    (test "a string made in Scheme reaches JavaScript as a JavaScript string"
-          "string ab" (js-sees two-letters))
-    (test "of several values, JavaScript receives the first" "number 1" (js-sees two-values))
-    (test "tail calls 100,000 deep finish before JavaScript gets the value"
-          "string even" (js-sees even-parity 100000))
-    (test "a recursion 100,000 deep finishes before JavaScript gets the value"
-          "number 100000" (js-sees depth 100000))
-    (test "an integer JavaScript passes arrives as an exact integer"
-          "string exact" (js-sees exactness 1)))
+  (test "an exact integer reaches JavaScript as a number" "number 5" (js-sees five))
+  (test "a string made in Scheme reaches JavaScript as a JavaScript string"
+        "string ab" (js-sees two-letters))
+  (test "of several values, JavaScript receives the first" "number 1" (js-sees two-values))
+  (test "tail calls 100,000 deep finish before JavaScript gets the value"
+        "string even" (js-sees even-parity 100000))
+  (test "a recursion 100,000 deep finishes before JavaScript gets the value"
+        "number 100000" (js-sees depth 100000))
+  (test "an integer JavaScript passes arrives as an exact integer"
+        "string exact" (js-sees exactness 1))
   (test "a procedure handed to JavaScript and back is the same procedure"
         #t (eq? five (through-js five))))
 
@@ -125,12 +115,42 @@
   (test "the tier compiled the procedure that made them, and so them"
         *tier-attached*
         (all-compiled? make-handlers greet exactness-of parity))
-  (test-expect-fail no-javascript-entry
-    (test "a string made in Scheme reaches JavaScript as a JavaScript string"
-          "string hello, Ann" (js-sees greet "Ann"))
-    (test "an integer JavaScript passes arrives as an exact integer"
-          "string exact" (js-sees exactness-of 1))
-    (test "tail calls 100,000 deep finish before JavaScript gets the value"
-          "string even" (js-sees parity 100000)))
+  (test "a string made in Scheme reaches JavaScript as a JavaScript string"
+        "string hello, Ann" (js-sees greet "Ann"))
+  (test "an integer JavaScript passes arrives as an exact integer"
+        "string exact" (js-sees exactness-of 1))
+  (test "tail calls 100,000 deep finish before JavaScript gets the value"
+        "string even" (js-sees parity 100000))
   (test "a callback handed to JavaScript and back is the same procedure"
         #t (eq? greet (through-js greet))))
+
+;; ---------------------------------------------------------------------------
+;; A continuation JavaScript is given
+;; ---------------------------------------------------------------------------
+;;
+;; A continuation is a Scheme procedure too, and JavaScript calling it passes
+;; JavaScript values, which arrive converted as a closure's arguments do.
+
+;; /**
+;;  * Gives JavaScript the continuation of the call and returns what it is
+;;  * invoked with.
+;;  * @param {procedure} give - A JavaScript function, given the continuation.
+;;  * @returns {*} The value the continuation is invoked with.
+;;  */
+(define (value-given-back give)
+  (call-with-current-continuation (lambda (k) (give k) "not invoked")))
+
+(define (exactness-given-back give) (if (exact? (value-given-back give)) "exact" "inexact"))
+
+(value-given-back (js-eval "(k) => k(1)"))
+(value-given-back (js-eval "(k) => k(1)"))
+(exactness-given-back (js-eval "(k) => k(1)"))
+(exactness-given-back (js-eval "(k) => k(1)"))
+
+(test-group "JavaScript calling a continuation"
+  (test "the tier compiled the procedures that capture it, and only in the run with it attached"
+        *tier-attached* (all-compiled? value-given-back exactness-given-back))
+  (test "an integer JavaScript passes arrives as an exact integer"
+        "exact" (exactness-given-back (js-eval "(k) => k(1)")))
+  (test "a string JavaScript passes arrives as a string"
+        "ab" (value-given-back (js-eval "(k) => k('ab')"))))
