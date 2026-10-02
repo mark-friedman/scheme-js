@@ -74,13 +74,31 @@
 ;; ---------------------------------------------------------------------------
 
 ;; /**
-;;  * The JavaScript identifier for a renamed Scheme local. The analyzer's names
-;;  * look like `x_$147`, already close; any character JavaScript does not allow
-;;  * in an identifier becomes `_` and its code in hex.
+;;  * Each renamed Scheme local's JavaScript identifier, once worked out. A local
+;;  * is named wherever the code reads it, and working the name out again each
+;;  * time was about 6% of compiling the canonical programs under the tier.
+;;  */
+(define js-names (make-weak-table))
+
+;; /**
+;;  * The JavaScript identifier for a renamed Scheme local.
 ;;  * @param {symbol} name - A renamed Scheme identifier.
 ;;  * @returns {string} A JavaScript identifier.
 ;;  */
 (define (js-name name)
+  (or (weak-table-ref js-names name)
+      (let ((text (javascript-identifier name)))
+        (weak-table-set! js-names name text)
+        text)))
+
+;; /**
+;;  * Works out the JavaScript identifier for a renamed Scheme local. The
+;;  * analyzer's names look like `x_$147`, already close; any character
+;;  * JavaScript does not allow in an identifier becomes `_` and its code in hex.
+;;  * @param {symbol} name - A renamed Scheme identifier.
+;;  * @returns {string} A JavaScript identifier.
+;;  */
+(define (javascript-identifier name)
   (define (plain? c)
     (or (char-alphabetic? c) (char-numeric? c) (char=? c #\_) (char=? c #\$)))
   (define (ascii-plain? c) (and (< (char->integer c) 128) (plain? c)))
@@ -386,10 +404,11 @@
 ;;  * into exactly the frame the twin restores.
 ;;  */
 (define-record-type unit
-  (make-unit plan globals guarded constants factories emitted resume-points runtime)
+  (make-unit plan globals global-indices guarded constants factories emitted resume-points runtime)
   unit?
   (plan unit-plan)
   (globals unit-globals)
+  (global-indices unit-global-indices)
   (guarded unit-guarded)
   (constants unit-constants set-unit-constants!)
   (factories unit-factories set-unit-factories!)
@@ -431,7 +450,21 @@
 ;;  * @returns {string} The position, as text.
 ;;  */
 (define (global-index u name)
-  (number->string (list-index (lambda (g) (eq? g name)) (unit-globals u))))
+  (or (weak-table-ref (unit-global-indices u) name)
+      (error "emit: not a global of this unit" name)))
+
+;; /**
+;;  * Each of some globals' positions in their list, as text, for
+;;  * `global-index`: a global is read wherever the code names it, and finding
+;;  * it in the list each time grew with the square of the globals.
+;;  * @param {list} globals - The globals, as symbols.
+;;  * @returns {weak-table} Each global's position.
+;;  */
+(define (global-indices globals)
+  (let ((table (make-weak-table)))
+    (for-each (lambda (g i) (weak-table-set! table g (number->string i)))
+              globals (iota (length globals)))
+    table))
 
 ;; /**
 ;;  * A value that survived to compile time, as a JavaScript expression.
@@ -541,13 +574,15 @@
     n))
 
 ;; /**
-;;  * A fresh temporary.
+;;  * A fresh temporary. It is declared without `declare!`'s search of what the
+;;  * emission has declared, which cannot hold it: its number is new to the
+;;  * emission, and only temporaries are named `$t`.
 ;;  * @param {form} form - The emission.
 ;;  * @returns {symbol} Its name.
 ;;  */
 (define (temp! form)
   (let ((sym (string->symbol (string-append "$t" (number->string (next-number! form))))))
-    (declare! form sym)
+    (set-form-declared! form (cons sym (form-declared form)))
     sym))
 
 ;; /**
@@ -1629,7 +1664,7 @@
 ;;  * @returns {list} (source constants).
 ;;  */
 (define (generate-unit ir globals name guarded)
-  (let* ((u (make-unit (plan-lifting ir) globals guarded '() '() '() '() '()))
+  (let* ((u (make-unit (plan-lifting ir) globals (global-indices globals) guarded '() '() '() '() '()))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.
@@ -1638,7 +1673,7 @@
          (accessors
            (string-join
              (map (lambda (g)
-                    (let ((i (number->string (list-index (lambda (x) (eq? x g)) globals)))
+                    (let ((i (global-index u g))
                           (literal (js-string (symbol->string g))))
                       (string-append
                         "let C" i " = R.UNRESOLVED; const G" i " = () => (C" i " = R.globalCell(E, " literal ")).v;"

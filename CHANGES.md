@@ -9682,3 +9682,48 @@ to 69. And 64, which 69 depends on, moved up to just before it.
 The prebuilt tables rebuilt to a fixed point. 6,929 tests pass in Node with none failing (33
 skipped), the liveness tests asking `live-locals` where they read the vector. JavaScript under
 `src/`: none added; a comment in `lowering.js` names SRFI 151 among the compiler's imports.
+
+# Task 80, continued: three searches the emitter repeated (2026-10-02)
+
+## Why
+
+Profiled across the canonical programs under the tier, with each compiler procedure charged for
+the library procedures and primitives it calls, three of the emitter's procedures repeated work
+on every mention of what they were asked about:
+
+- `js-name`, the JavaScript identifier of a renamed Scheme local, about 6% of compiling: it is
+  asked wherever the code reads the local, and worked the name out each time -- the symbol's
+  text, a test of every character, a string built.
+- `global-index`, the position of a global in its unit's list, which numbers its accessor: asked
+  at every read of a global, it searched the list, so its cost grew with the square of the
+  globals; and `generate-unit` searched the same list again for each global's accessor.
+- `declare!`, recording a local the emission introduced, which searches what the emission has
+  declared so far: called for every temporary, of which a large procedure has hundreds.
+
+## The change
+
+All in `src/compiler/emit.scm`.
+
+- `js-name` keeps each local's identifier, once worked out, in a weak table of the compiler's
+  host library (`js-names`); `javascript-identifier` works it out.
+- The unit holds a weak table from each of its globals to its position, made once in
+  `generate-unit` (`global-indices`), which `global-index` reads, and the accessors use.
+- `temp!` declares its temporary without the search: its number is new to the emission, and only
+  temporaries are named `$t`, so it cannot be there already.
+
+Every procedure of every shipped library compiles to exactly the text it did before.
+
+## Measured
+
+`npm run benchmark:tier`, best of three, the commit before and this one run one after the other,
+then in the other order: compiling over the 42 programs 1,232 ms against 1,436, and 1,206 against
+1,322 (-14% and -9%); `scheme` 82 against 93 and 83 against 87, `parsing` 184 against 201 and 170
+against 193. Every program gives the right answer and the tier compiles the same 554 procedures.
+
+## Verification
+
+The prebuilt tables rebuilt to a fixed point, and every procedure of every shipped library
+compiles to the same text as before, apart from its variables' numbering. 6,929 tests pass in Node
+with none failing (33 skipped), and 6,732 in the browser with none failing (53 skipped), as the
+commit before this one, liveness on SRFI 151's bits, does too. JavaScript under `src/`: none;
+Scheme 44 lines added and 9 removed.
