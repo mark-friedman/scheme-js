@@ -9785,3 +9785,45 @@ contains `#|`, and `npm run prebuild` leaves the prebuilt tables as they were.
 JavaScript under `src/`: 91 lines added and 54 removed, all fixing the reader in place --
 `tokenizer.js` (+51 -48), `reader_bridge.js` (+37) and `reader/index.js` (+3 -5). The reader is
 JavaScript until it is ported (63); a fix to it in place is allowed. No Scheme under `src/`.
+
+# The reader: square brackets are a read error, not a reader that never returns (2026-10-02)
+
+## Why
+
+`(a [b] c)`, or a `[` or `]` anywhere outside a string, `|symbol|`, character or comment, made the
+reader loop forever, and with it `read`, `load` and the loading of a library. The tokenizer's
+`readAtom` stops at a bracket, as at a parenthesis, but no rule of the tokenizer took a bracket as
+a token, so at one it read an empty atom, dropped it, and tried the same position again.
+
+What a bracket should mean is undecided: ROADMAP.md defers, pending the user's preference, whether
+`[ ]` is kept for computed property access, `(expr)[key]`, or read as parentheses as R6RS and many
+Schemes do. R7RS 2.3 reserves them for future extensions. Of the corpus's 351 Scheme files only
+one uses them, an R6RS test file (`srfi-41/r6rs-test.ss`), and nothing in this repository's
+sources, tests or benchmarks does.
+
+## The change
+
+The tokenizer takes `[` and `]` as tokens of their own, as it does parentheses, and the parser
+reports one as reserved, with its line, and what to write instead: `read: '[' is reserved for
+future extensions (R7RS 2.3); write '(' instead at line 1`. An error leaves either meaning open;
+ROADMAP.md says so beside the deferred decision. A port's `read` and the browser REPL's
+completeness check need no change: neither treats a bracket as a delimiter, so both hand it to the
+parser, which reports it.
+
+## Verification
+
+Tests written first, which hung before the fix: in `reader_syntax_tests.scm`, a bracket read from
+a port, alone, in a list and in a `let` binding, is a read error, and in a string, a `|symbol|`, a
+character or a comment it is text; in `reader_tests.js`, the error's message and line, after `#;`
+and after an identifier; in `tokenizer_tests.js`, brackets as tokens and their positions.
+
+7,010 tests pass in Node with none failing (33 skipped), and 6,813 in the browser with none
+failing (53 skipped), served from this checkout on a port not used before. Over the corpus, the
+R6RS file that hung now stops at its first bracket, line 119; every other file reads as it did.
+
+Found on the way, not changed here: `write` does not terminate on circular structure, though
+`write-shared` does, and a quoted circular literal in a program, `'#0=(a . #0#)`, which R7RS 2.4
+allows, overflows the stack.
+
+JavaScript under `src/`: 10 lines added and 1 removed, fixing the reader in place --
+`tokenizer.js` (+4 -1) and `parser.js` (+6). The reader is JavaScript until it is ported (63).

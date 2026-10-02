@@ -144,6 +144,12 @@ export function readFromTokens(tokens, state) {
         throw new SchemeReadError("unexpected ')' - unbalanced parentheses", 'list');
     } else if (token === '}') {
         throw new SchemeReadError("unexpected '}' - unbalanced braces", 'object literal');
+    } else if (token === '[' || token === ']') {
+        // R7RS 2.3 reserves square brackets for future extensions. Other
+        // Schemes read them as parentheses, so say what to write instead.
+        throw new SchemeReadError(
+            `'${token}' is reserved for future extensions (R7RS 2.3); write '${token === '[' ? '(' : ')'}' instead`,
+            null, source?.line ?? null, source?.column ?? null);
     } else if (token === "'") {
         // Quotes - attach source to quote form
         result = listWithSource(source, intern('quote'), readFromTokens(tokens, state));

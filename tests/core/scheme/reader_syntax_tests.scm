@@ -73,6 +73,32 @@
                   (read port) (read port) (read port))))
     (test '(#\( #\) #\| #\") (read (open-input-string "(#\\( #\\) #\\| #\\\")"))))
 
+  (test-group "square-brackets"
+    ;; R7RS 2.3 reserves [ and ] for future extensions. Reading one is an
+    ;; error, not a reader that never returns.
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "[a b]"))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "(let ([x 1]) x)"))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "(a ] b)"))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "]"))))
+    ;; In a string, a |symbol|, a character or a comment they are text, in
+    ;; this file's own source and read from a port
+    (test 3 (string-length "[a]"))
+    (test "[a]" (symbol->string '|[a]|))
+    (test "[]" (string #\[ #\]))
+    (test "[a]" (read (open-input-string "\"[a]\"")))
+    (test "[a]" (symbol->string (read (open-input-string "|[a]|"))))
+    (test '(#\[ #\]) (read (open-input-string "(#\\[ #\\])")))
+    (test 'b (read (open-input-string "; [a]\nb")))
+    (test 'b (read (open-input-string "#| [a] |# b"))))
+
   (test-group "vertical-bar-symbols"
     (test 'Hello (read (open-input-string "|Hello|")))
     (test #t (symbol? (read (open-input-string "|hello world|"))))

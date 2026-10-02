@@ -308,7 +308,10 @@ export function tokenize(input, filename = '<unknown>') {
         const next = pos + 1 < input.length ? input[pos + 1] : null;
 
         // Handle different token types
-        if (ch === '(' || ch === ')' || ch === '{' || ch === '}') {
+        // Square brackets are tokens like parentheses, for the parser to
+        // report. They delimit an atom, so reading one as an atom would read
+        // nothing, and the loop would never pass it.
+        if (ch === '(' || ch === ')' || ch === '{' || ch === '}' || ch === '[' || ch === ']') {
             tokenValue = ch;
             advance();
         } else if (ch === "'" || ch === '`') {

@@ -181,6 +181,7 @@ Consider implementing `(expr)[key]` notation for computed property access, simil
 **Considerations:**
 - Conflict with Scheme implementations using `[]` as synonyms for `()`.
 - Need to decide if `[]` should be reserved for this syntax or strictly brackets-as-parens.
+- Until it is decided, the reader rejects `[` and `]` with a read error, which leaves either choice open: R7RS 2.3 reserves them. Of the corpus's 351 files only an R6RS test file uses them.
 
 **Decision:** Deferred pending user feedback on syntax preferences.
 

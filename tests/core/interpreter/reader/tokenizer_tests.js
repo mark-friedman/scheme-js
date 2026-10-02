@@ -53,6 +53,18 @@ export function runTokenizerTests(logger) {
     // Outside a comment, |# is not special: an identifier may hold it
     assert(logger, '|# in an identifier', values('a|# b'), 'a|# b');
 
+    // Square brackets are tokens of their own, as parentheses are, for the
+    // parser to report: R7RS 2.3 reserves them
+    assert(logger, 'brackets are tokens', values('(let ([x 1]) x)'), '( let ( [ x 1 ] ) x )');
+    assert(logger, 'a bracket ends an identifier', values('a[0]'), 'a [ 0 ]');
+    assert(logger, 'brackets in a string, a |symbol| and characters',
+        values('"[a]" |[b]| #\\[ #\\]'), '"[a]" |[b]| #\\[ #\\]');
+    {
+        const tokens = tokenize('(a\n [b])');
+        assert(logger, 'a bracket token, line', tokens[2].source.line, 2);
+        assert(logger, 'a bracket token, column', tokens[2].source.column, 2);
+    }
+
     // Unterminated: an error, rather than the rest of the input commented out
     assert(logger, 'an unterminated block comment is an error',
         /unterminated block comment/.test(tokenizeError('a #| b')), true);
