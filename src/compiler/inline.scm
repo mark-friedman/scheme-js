@@ -23,9 +23,13 @@
 ;;; `test` and `value` take the operands, as expressions in the emitter's
 ;;; representation (see `emit.scm`), and return an expression: `test` the
 ;;; run-time condition under which the fast path is valid, or #f when it always
-;;; is; `value` the fast path itself. `applies?`, where there is one, takes the
-;;; operands' IR nodes and decides at compile time whether to expand the call
-;;; at all, for an expansion that is only worth having for some operands.
+;;; is; `value` the fast path itself. A `value` that is a symbol instead names
+;;; the runtime helper the fast path calls with the operands, by the local name
+;;; generated code knows it by (`runtime-constants` in `emit.scm`), so that the
+;;; emitter declares the helper where it is used. `applies?`, where there is
+;;; one, takes the operands' IR nodes and decides at compile time whether to
+;;; expand the call at all, for an expansion that is only worth having for some
+;;; operands.
 
 ;; /**
 ;;  * The condition that both operands are exact integers or both are inexact
@@ -67,6 +71,18 @@
 ;;  */
 (define (total name arity value)
   (list name arity (lambda (ops) #f) value))
+
+;; /**
+;;  * An expansion whose fast path calls a runtime helper with the operands, the
+;;  * helper doing the primitive's work for every input or handing it to the
+;;  * primitive, so only the binding guard applies.
+;;  * @param {string} name - The Scheme name.
+;;  * @param {integer} arity - Its argument count.
+;;  * @param {symbol} local - The helper's local name in generated code.
+;;  * @returns {list} A table entry.
+;;  */
+(define (helper name arity local)
+  (total name arity local))
 
 ;; /**
 ;;  * Whether an operand is a constant whose identity is its value: a symbol, a
@@ -113,10 +129,8 @@
     ;; common case with the index converted once -- the same checks written
     ;; inline, comparing the `bigint` index, were slower than the primitive --
     ;; and passes everything else to the primitive, so every error is its own.
-    (total 'vector-ref 2
-           (lambda (ops) (js "$vectorRef(" (car ops) ", " (cadr ops) ")")))
-    (total 'vector-set! 3
-           (lambda (ops) (js "$vectorSet(" (car ops) ", " (cadr ops) ", " (caddr ops) ")")))
+    (helper 'vector-ref 2 '$vectorRef)
+    (helper 'vector-set! 3 '$vectorSet)
     (list 'vector-length 1
           (lambda (ops) (js "Array.isArray(" (car ops) ")"))
           (lambda (ops) (js "BigInt(" (car ops) ".length)")))

@@ -21,13 +21,48 @@
   (test "nor has NaN" "Number(\"NaN\")" (js-number (/ 0. 0))))
 
 (test-group "emit - the runtime values a procedure's code uses"
-  (test "each runtime value the code names is declared, once, in the order they are listed"
+  (test "each runtime value used is declared, in the order they are listed"
         "const $TailCall = R.TailCall, $stack = R.stack;"
-        (runtime-prelude "$stack.room = $d; while ($t1 instanceof $TailCall) { $stack.room = $d; }"))
-  (test "a name that only begins as one does is not one"
-        ""
-        (runtime-prelude "$stackDepth = 1;"))
-  (test "code that names none declares nothing" "" (runtime-prelude "return s_x_$1 + $t0;")))
+        (runtime-prelude '($stack $TailCall)))
+  (test "a unit that uses none declares nothing" "" (runtime-prelude '()))
+  ;; Each name is noted where the emitter writes it, so what a unit declares
+  ;; is compared with what its code names, found by reading the code back.
+  (define (named-in source)
+    (filter (lambda (c)
+              (let ((name (symbol->string (car c))))
+                (let loop ((from 0))
+                  (let ((at (string-contains source name from)))
+                    (and at
+                         (let ((end (+ at (string-length name))))
+                           (or (= end (string-length source))
+                               (let ((next (string-ref source end)))
+                                 (not (or (char-alphabetic? next) (char-numeric? next) (char=? next #\_))))
+                               (loop end))))))))
+            runtime-constants))
+  (define (declared-in source)
+    (filter (lambda (c) (string-contains source (string-append (symbol->string (car c)) " = " (cdr c))))
+            runtime-constants))
+  (define (declares-what-it-names? ast globals guarded)
+    (let ((source (car (generate-unit (cadr (lower-lambda ast)) globals "f" guarded))))
+      (equal? (named-in source) (declared-in source))))
+  (test "a procedure that calls nothing declares none" '()
+        (declared-in (car (generate-unit (cadr (lower-lambda '(lambda (x) #f #f (var x)))) '() "f" '()))))
+  (test "a call not in tail position declares what it names" #t
+        (declares-what-it-names? '(lambda (x) #f #f (app (var g) ((app (var g) ((var x)))))) '(g) '()))
+  (test "and so does a tail call" #t
+        (declares-what-it-names? '(lambda (x) #f #f (app (var g) ((var x)))) '(g) '()))
+  (test "a nested procedure's code is declared for as well" #t
+        (declares-what-it-names? '(lambda (x) #f #f (lambda (y) #f #f (app (var g) ((app (var g) ((var y))))))) '(g) '()))
+  (test "a capture" #t
+        (declares-what-it-names? '(lambda () #f #f (app (var call/cc) ((lambda (k) #f #f (app (var k) ((lit 1)))))))
+                                 '() '()))
+  (test "and one not in tail position" #t
+        (declares-what-it-names?
+          '(lambda () #f #f (app (var g) ((app (var call/cc) ((lambda (k) #f #f (app (var k) ((lit 1)))))))))
+          '(g) '()))
+  (test "an inline expansion calling a helper" #t
+        (declares-what-it-names? '(lambda (v) #f #f (app (var vector-set!) ((var v) (lit 0) (app (var vector-ref) ((var v) (lit 1))))))
+                                 '(vector-set! vector-ref) '(vector-set! vector-ref))))
 
 (test-group "emit - expressions"
   (test "an expression renders its parts" "f(s_a, 1)" (expr->string (js "f(" 's_a ", " "1" ")")))
@@ -137,13 +172,22 @@
 ;; the primitive's. The helper is the whole fast path, so there is no run-time
 ;; test beside the binding guard.
 (test-group "inline - vector access"
+  (define (entry-of name args)
+    (inline-expansion name (map (lambda (a) (list 'local a #f #f)) args)))
   (define (parts name args)
-    (let ((entry (inline-expansion name (map (lambda (a) (list 'local a #f #f)) args))))
-      (let ((test ((caddr entry) (map js args))))
-        (list (and test (expr->string test))
-              (expr->string ((cadddr entry) (map js args)))))))
-  (test "vector-ref is the helper" '(#f "$vectorRef(v, i)") (parts 'vector-ref '(v i)))
-  (test "and so is vector-set!" '(#f "$vectorSet(v, i, x)") (parts 'vector-set! '(v i x)))
+    (let* ((entry (entry-of name args))
+           (test ((caddr entry) (map js args))))
+      (list (and test (expr->string test))
+            (expr->string ((cadddr entry) (map js args))))))
+  (test "vector-ref is the helper, with no test" '(#f $vectorRef)
+        (let ((entry (entry-of 'vector-ref '(v i)))) (list ((caddr entry) (map js '(v i))) (cadddr entry))))
+  (test "and so is vector-set!" '(#f $vectorSet)
+        (let ((entry (entry-of 'vector-set! '(v i x)))) (list ((caddr entry) (map js '(v i x))) (cadddr entry))))
+  (test "a helper is called with the operands"
+        #t
+        (let ((source (car (generate-unit (cadr (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))
+                                          '(vector-ref) "f" '(vector-ref)))))
+          (and (string-contains source "$vectorRef(s_v, 0n)") #t)))
   (test "vector-length needs an array and is inline" '("Array.isArray(v)" "BigInt(v.length)")
         (parts 'vector-length '(v)))
   (test "a procedure using the helper declares it"

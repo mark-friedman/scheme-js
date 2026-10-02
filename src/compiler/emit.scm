@@ -244,7 +244,8 @@
 ;;  * @returns {string} Its text, which may span lines.
 ;;  */
 (define (render-statement form st)
-  (let ((expr (lambda (e) (expr->string e))))
+  (let ((expr (lambda (e) (expr->string e)))
+        (unwind (lambda () (runtime form '$UNWIND))))
     (case (car st)
       ((assign) (string-append (expr (cadr st)) " = " (expr (caddr st)) ";"))
       ((eval) (string-append (expr (cadr st)) ";"))
@@ -262,29 +263,30 @@
                                    (number->string (caddr st)) ", "
                                    (frame-literal (form-frame form (caddr st))) ");")))
          (if (cadr st)
-             (string-append "if (" (expr (cadr st)) " === $UNWIND) { " reify " return $UNWIND; }")
+             (string-append "if (" (expr (cadr st)) " === " (unwind) ") { " reify " return " (unwind) "; }")
              reify)))
       ((guarded) (string-append "if (" (expr (cadr st)) ") { "
                                 (string-join (map (lambda (s) (render-statement form s)) (caddr st)) " ")
                                 " }"))
       ((suspend)
        (let ((spill (string-append "R.reify(" (form-name form) "$r, " (number->string (caddr st))
-                                   ", " (frame-literal (cadddr st)) "); return $UNWIND;")))
+                                   ", " (frame-literal (cadddr st)) "); return " (unwind) ";")))
          (if (cadr st)
-             (string-append "if (" (expr (cadr st)) " === $UNWIND) { " spill " }")
+             (string-append "if (" (expr (cadr st)) " === " (unwind) ") { " spill " }")
              spill)))
       ((tail)
        (let* ((callee (expr (cadr st)))
               (entry (expr (cadddr st)))
               (arglist (string-join (map expr (caddr st)) ", "))
-              (fallback (string-append "return $tailCall(" callee ", [" arglist "]);")))
+              (fallback (string-append "return " (runtime form '$tailCall) "(" callee ", [" arglist "]);")))
          ;; The resumable form runs only when a continuation is resumed, so it
          ;; always takes the fallback, which halves what direct calls add to
          ;; the generated code.
          (if (twin? form)
              fallback
-             (string-append "if ($d > 0 && (" entry " = " callee "?.[$RAW] ?? " callee ")?.[$PRIM] === true) { "
-                            "$stack.room = $d; return " entry "(" arglist "); } "
+             (string-append "if ($d > 0 && (" entry " = " callee "?.[" (runtime form '$RAW) "] ?? " callee
+                            ")?.[" (runtime form '$PRIM) "] === true) { "
+                            (runtime form '$stack) ".room = $d; return " entry "(" arglist "); } "
                             fallback))))
       (else (error "emit: unknown statement" st)))))
 
@@ -344,13 +346,16 @@
          ;; Arguments arrive on the stack, and a rest parameter's can be any
          ;; number: `apply` spreading a long list is the case.
          (spread (if (and rest (not (twin? form))) (string-append " - " (js-name rest) "$raw.length") ""))
-         (depth (string-append "const $d = $stack.room - " (number->string (frame-size form)) spread ";")))
+         (depth (lambda ()
+                  (string-append "const $d = " (runtime form '$stack) ".room - "
+                                 (number->string (frame-size form)) spread ";"))))
     (cond ((not (form-depth form)) '())
           ((and (eq? (form-depth form) 'call) (not (twin? form)))
-           (list depth
-                 (string-append "if ($d < 0 && $stack.flushable) return $flush(" (procedure-value-name form)
+           (list (depth)
+                 (string-append "if ($d < 0 && " (runtime form '$stack) ".flushable) return "
+                                (runtime form '$flush) "(" (procedure-value-name form)
                                 ", [" (string-join args ", ") "]);")))
-          (else (list depth)))))
+          (else (list (depth))))))
 
 (define (goto-text n) (string-append "$pc = " (number->string n) "; continue;"))
 
@@ -373,14 +378,15 @@
 ;; /**
 ;;  * What every procedure in one compilation unit shares: the lifting plan,
 ;;  * how each global is reached, the constant pool, the factories emitted so
-;;  * far, and where each call site resumes.
+;;  * far, where each call site resumes, and the runtime values its code names
+;;  * (see `runtime`).
 ;;  *
 ;;  * A call site's resume block and saved locals are decided by the twin,
 ;;  * which is generated first, and read by the fast form, which has to spill
 ;;  * into exactly the frame the twin restores.
 ;;  */
 (define-record-type unit
-  (make-unit plan globals guarded constants factories emitted resume-points)
+  (make-unit plan globals guarded constants factories emitted resume-points runtime)
   unit?
   (plan unit-plan)
   (globals unit-globals)
@@ -388,7 +394,22 @@
   (constants unit-constants set-unit-constants!)
   (factories unit-factories set-unit-factories!)
   (emitted unit-emitted set-unit-emitted!)
-  (resume-points unit-resume-points set-unit-resume-points!))
+  (resume-points unit-resume-points set-unit-resume-points!)
+  (runtime unit-runtime set-unit-runtime!))
+
+;; /**
+;;  * The local name generated code knows a runtime value by, noted as one its
+;;  * unit uses, so that the unit declares it (see `runtime-prelude`). Every
+;;  * piece of generated code that names a runtime value names it through this.
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} name - The value's local name, one of `runtime-constants`.
+;;  * @returns {string} The name, as text.
+;;  */
+(define (runtime form name)
+  (let ((u (form-unit form)))
+    (if (not (memq name (unit-runtime u)))
+        (set-unit-runtime! u (cons name (unit-runtime u))))
+    (symbol->string name)))
 
 ;; /**
 ;;  * The JavaScript expression that reads a global: its cell's value, or, before
@@ -838,7 +859,10 @@
                 (index (global-index u (cadr fn)))
                 (read (global-read u (cadr fn)))
                 (shape ((caddr entry) operands))
-                (fast ((cadddr entry) operands))
+                (fast (let ((value (cadddr entry)))
+                        (if (symbol? value)
+                            (js (runtime form value) "(" (join-exprs operands ", ") ")")
+                            (value operands))))
                 (binding (js "(W" index ".intact || " read " === P" index ")"))
                 (result (temp! form)))
            (emit! form (list 'assign (js result)
@@ -890,18 +914,20 @@
          (result (temp! form))
          (arglist (join-exprs args ", ")))
     (emit! form (list 'assign (js callee) fn))
-    (emit! form (list 'raw (js "if (typeof " callee " !== 'function') $notProc(" callee ");")))
-    (emit! form (list 'assign (js raw) (js callee "[$RAW]")))
+    (emit! form (list 'raw (js "if (typeof " callee " !== 'function') " (runtime form '$notProc) "(" callee ");")))
+    (emit! form (list 'assign (js raw) (js callee "[" (runtime form '$RAW) "]")))
     (set-form-depth! form 'call)
-    (emit! form (list 'text "$stack.room = $d;"))
+    (emit! form (list 'text (string-append (runtime form '$stack) ".room = $d;")))
     ;; No raw entry: a primitive, called directly, or anything else -- a
     ;; JavaScript function -- through `$foreign`, which converts its arguments
     ;; as the interpreter does.
     (emit! form (list 'assign (js result)
-                      (js raw " === undefined ? (" callee "[$PRIM] === true ? " callee "(" arglist ") : "
-                          "$foreign(" callee ", [" arglist "])) : " raw "(" arglist ")")))
-    (emit! form (list 'raw (js "while (" result " instanceof $TailCall) { $stack.room = $d; "
-                               result " = $step(" result "); }")))
+                      (js raw " === undefined ? (" callee "[" (runtime form '$PRIM) "] === true ? "
+                          callee "(" arglist ") : " (runtime form '$foreign) "(" callee ", [" arglist "])) : "
+                          raw "(" arglist ")")))
+    (emit! form (list 'raw (js "while (" result " instanceof " (runtime form '$TailCall) ") { "
+                               (runtime form '$stack) ".room = $d; "
+                               result " = " (runtime form '$step) "(" result "); }")))
     (if (twin? form)
         (resume-after! form node result)
         (emit! form (suspension form node (js result))))
@@ -922,7 +948,7 @@
         (let ((resume (new-block! form)))
           (note-resume-site! form node resume)
           (emit! form (list 'spill #f resume))
-          (emit! form (list 'return (js "$UNWIND")))
+          (emit! form (list 'return (js (runtime form '$UNWIND))))
           (switch-to! form resume)
           (emit! form (list 'assign (js result) (js "$r"))))
         (emit! form (suspension form node #f)))
@@ -948,7 +974,7 @@
         ;; continuation with a hole in it.
         (list 'text (if result
                         (string-append "if (" (expr->string result)
-                                       " === $UNWIND) R.captureWithoutResume();")
+                                       " === " (runtime form '$UNWIND) ") R.captureWithoutResume();")
                         "R.captureWithoutResume();")))))
 
 ;; ---------------------------------------------------------------------------
@@ -1555,56 +1581,34 @@
 ;;  * call-heavy code.
 ;;  */
 (define runtime-constants
-  '(("$TailCall" . "R.TailCall") ("$step" . "R.step")
-    ("$UNWIND" . "R.UNWIND") ("$RAW" . "R.SCHEME_RAW_CALL")
-    ("$vectorRef" . "R.vectorRef") ("$vectorSet" . "R.vectorSet")
-    ("$stack" . "R.stack") ("$flush" . "R.flush") ("$tailCall" . "R.tailCall") ("$PRIM" . "R.SCHEME_PRIMITIVE")
-    ("$notProc" . "R.notAProcedure") ("$foreign" . "R.callForeign")))
+  '(($TailCall . "R.TailCall") ($step . "R.step")
+    ($UNWIND . "R.UNWIND") ($RAW . "R.SCHEME_RAW_CALL")
+    ($vectorRef . "R.vectorRef") ($vectorSet . "R.vectorSet")
+    ($stack . "R.stack") ($flush . "R.flush") ($tailCall . "R.tailCall") ($PRIM . "R.SCHEME_PRIMITIVE")
+    ($notProc . "R.notAProcedure") ($foreign . "R.callForeign")))
 
 ;; /**
-;;  * The runtime values a procedure's code names: every `$` and the name after
-;;  * it, found in one pass over the code, that is one of `runtime-constants`.
+;;  * The declaration of the runtime values a unit's code uses, in the order
+;;  * `runtime-constants` lists them.
 ;;  *
-;;  * One pass, because the code of a large procedure runs to hundreds of
-;;  * kilobytes: searching it once for each runtime value, with
-;;  * `string-contains`, was about a third of what compiling cost the canonical
-;;  * `parsing` program under the tier.
+;;  * The emitter notes each one as it writes it (`runtime`), rather than
+;;  * searching the finished code for them: the code of a large procedure runs
+;;  * to hundreds of kilobytes, and reading it back a character at a time was
+;;  * about a quarter of what compiling cost the canonical `scheme` program
+;;  * under the tier.
 ;;  *
-;;  * @param {string} code - The procedure's code.
-;;  * @returns {list} The names, as strings, without repeats.
-;;  */
-(define (runtime-names-in code)
-  (let ((n (string-length code)))
-    (define (name-char? c) (or (char-alphabetic? c) (char-numeric? c) (char=? c #\_)))
-    (define (name-end j) (if (and (< j n) (name-char? (string-ref code j))) (name-end (+ j 1)) j))
-    (let loop ((i 0) (used '()))
-      (cond ((= i n) used)
-            ((char=? (string-ref code i) #\$)
-             (let* ((end (name-end (+ i 1)))
-                    (name (substring code i end)))
-               (loop end (if (and (assoc name runtime-constants string=?) (not (member name used string=?)))
-                             (cons name used)
-                             used))))
-            (else (loop (+ i 1) used))))))
-
-;; /**
-;;  * The declaration of the runtime values a procedure's code uses.
-;;  *
-;;  * Found in the code rather than recorded as it is emitted, since the names
-;;  * are fixed and cannot be mistaken for anything the emitter generates. A
-;;  * string constant spelling one out only declares a local the code does not
-;;  * use.
-;;  *
-;;  * @param {string} code - The procedure's code.
+;;  * @param {list} used - The local names of the runtime values used, as
+;;  *   symbols.
 ;;  * @returns {string} A `const` declaration, or "" if it uses none.
 ;;  */
-(define (runtime-prelude code)
-  (let* ((names (runtime-names-in code))
-         (used (filter (lambda (c) (member (car c) names string=?)) runtime-constants)))
-    (if (null? used)
+(define (runtime-prelude used)
+  (let ((declared (filter (lambda (c) (memq (car c) used)) runtime-constants)))
+    (if (null? declared)
         ""
         (string-append "const "
-                       (string-join (map (lambda (c) (string-append (car c) " = " (cdr c))) used) ", ")
+                       (string-join (map (lambda (c) (string-append (symbol->string (car c)) " = " (cdr c)))
+                                         declared)
+                                    ", ")
                        ";"))))
 
 ;; /**
@@ -1626,7 +1630,7 @@
 ;;  * @returns {list} (source constants).
 ;;  */
 (define (generate-unit ir globals name guarded)
-  (let* ((u (make-unit (plan-lifting ir) globals guarded '() '() '() '()))
+  (let* ((u (make-unit (plan-lifting ir) globals guarded '() '() '() '() '()))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.
@@ -1646,7 +1650,7 @@
              "\n"))
          (factories (string-join (reverse (unit-factories u)) "\n")))
     (list (string-join (filter (lambda (s) (not (string=? s "")))
-                               (list (runtime-prelude (string-append factories fast twin))
+                               (list (runtime-prelude (unit-runtime u))
                                      accessors factories fast twin
                                      (string-append "const $proc$js = R.markProcedure($proc, " (js-string name) ", E);")
                                      "$proc$js.$resume = $proc$r;"

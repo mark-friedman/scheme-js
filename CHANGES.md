@@ -9500,3 +9500,66 @@ rebuilt from the sources after the rebase; only `(scheme-js js-conversion)`'s ch
 under `src/`: 28 lines added and 30 removed, nearly all comments -- no function added, the
 property's two reads replaced in the evaluator (`frames.js`, `interpreter.js`), and `callForeign`'s
 comment; Scheme 3 added and 11 removed, the parameter and its comments.
+
+# Task 80, continued: the emitter notes the runtime names it writes (2026-10-02)
+
+## Why
+
+Generated code names a dozen runtime values -- the unwind sentinel, the stack's room, the pending
+tail call and the like -- by locals declared once per procedure, `const $UNWIND = R.UNWIND, ...`.
+Which ones a procedure declared was found by reading its finished code back: first with
+`string-contains` once per name, then, after the first step of this task, in one pass a character
+at a time. Profiled under the tier, that pass was still about 28% of what compiling cost the
+canonical `scheme` program, since the code of a large procedure runs to hundreds of kilobytes and
+the pass runs as compiled Scheme over every character.
+
+## The change
+
+The emitter now notes each runtime value as it writes its name, and declares what it noted.
+
+- **`runtime`** (`src/compiler/emit.scm`) takes the emission and a name, adds the name to its
+  unit's list -- a new `runtime` field of the `unit` record -- and returns the name as text. Every
+  site that writes one goes through it: the spill, suspension and tail-call statements in
+  `render-statement`, the stack test in `depth-entry`, a call site in `emit-call!`, a capture, and
+  the refusal written where no resumable form exists.
+- **`runtime-prelude`** takes the names noted rather than the code, and declares them in
+  `runtime-constants`' order, which is keyed by symbols now.
+- **The inline expansions** of `vector-ref` and `vector-set!` (`src/compiler/inline.scm`) call a
+  runtime helper. Their entry now names the helper as data -- a symbol in the `value` position,
+  made by a new `helper` constructor -- and `emit-inline!` writes the call and notes the helper,
+  so an expansion cannot name a helper the emitter does not declare.
+- `runtime-names-in`, the pass, is gone.
+
+`depth-entry` built its first line before deciding whether a procedure needs it, which would
+have declared `$stack` for every procedure that calls nothing. The new tests found it; the line
+is built only where it is used.
+
+## Measured
+
+`npm run benchmark:tier`, best of three, the commit before and this one run one after the other,
+then again in the other order: compiling over the 42 programs 2,601 ms against 1,579 (-39%), and
+2,644 against 1,606 in the first pair. From the 3,859 ms the task began at, -59%. `scheme`
+compiles in 94 ms against 168, `parsing` in 338 against 431, `maze` in 70 against 118. The
+programs running faster with the tier off are 15, against 16. Every program gives the right
+answer, and the tier compiles the same 554 procedures.
+
+## Tests
+
+In `tests/compiler/emit_tests.scm`, the prelude's tests take a list of names, and new ones compare
+what generated units declare with what their code names, read back by a search written in the
+test: a procedure calling nothing declares none (this caught `depth-entry`), and a call in and out
+of tail position, a nested procedure, a capture in and out of tail position and an inline
+expansion calling a helper each declare what they name. The vector tests check that the entries
+name their helpers, and that the helper is called with the operands. In
+`tests/functional/prebuilt_library_tests.js`, every procedure in the shipped tables -- 553, the
+compiler's own included -- is read back the same way, and must declare exactly the runtime values
+its code names; dropping one declaration from one procedure makes it fail. The shipped libraries'
+tables declare exactly what they did before, line for line; only the numbering of their
+variables changed, from the compiler's own source changing.
+
+## Verification
+
+The prebuilt tables rebuilt twice, to a fixed point. 6,773 tests pass in Node with none failing
+(33 skipped), and 6,576 in the browser with none failing (53 skipped), from an origin whose copies
+of the changed files were refetched first. JavaScript under `src/`: none added or removed; Scheme
+93 lines added and 75 removed.

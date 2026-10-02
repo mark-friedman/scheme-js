@@ -94,6 +94,27 @@ export async function runPrebuiltLibraryTests(logger) {
     ['scheme.core', 'scheme.lazy', 'srfi.1', 'srfi.125', 'srfi.128', 'srfi.152']
       .filter((key) => LIBRARIES[key] === undefined), []);
 
+  logger.title('Prebuilt libraries - each procedure declares the runtime values it names');
+  {
+    // The emitter notes each runtime value as it writes its name, and declares
+    // those a procedure's code uses; a name written without being noted would
+    // fail only when the code naming it ran. So every procedure in the shipped
+    // tables is read back: the runtime values it names are those it declares.
+    const procedures = [...Object.values(LIBRARIES), ...Object.values(COMPILER)]
+      .flatMap((table) => Object.values(table.procedures));
+    const declaredIn = (code) =>
+      [...(code.match(/const ((?:\$\w+ = R\.\w+(?:, )?)+);/)?.[1] ?? '').matchAll(/(\$\w+) = /g)]
+        .map((m) => m[1]);
+    const runtimeNames = new Set(procedures.flatMap((p) => declaredIn(p.make.toString())));
+    const namedIn = (code) => [...runtimeNames].filter((name) =>
+      new RegExp(`(?<![\\w$])${name.replace('$', '\\$')}(?![\\w$])`).test(code.replace(/const (?:\$\w+ = R\.\w+(?:, )?)+;/, '')));
+    const wrong = procedures
+      .map((p) => p.make.toString())
+      .filter((code) => namedIn(code).sort().join() !== declaredIn(code).sort().join());
+    assert(logger, 'every runtime value is declared by some procedure', runtimeNames.size, 12);
+    assert(logger, 'and each procedure declares exactly those its code names', wrong.length, 0);
+  }
+
   logger.title('Prebuilt libraries - installed as each library loads');
   {
     const { exports, outcomes } = loadBundled(['srfi', '125']);
