@@ -5,7 +5,8 @@
  * This module is pure data management - no loading or parsing.
  */
 
-import { toArray, list } from './cons.js';
+import { toArray, list, Cons } from './cons.js';
+import { parse } from './reader.js';
 import { Symbol } from './symbol.js';
 import { SchemeSyntaxError } from './errors.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from './values.js';
@@ -112,11 +113,46 @@ export function evaluateFeatureRequirement(requirement) {
             }
             const libName = toArray(arr[1]);
             const libKey = libraryNameToKey(libName);
-            return libraryRegistry.has(libKey);
+            return libraryRegistry.has(libKey) || isLibraryAvailable(libName);
 
         default:
             // Unknown tag - treat as false
             return false;
+    }
+}
+
+/**
+ * Whether a library not loaded yet could be imported: whether the file
+ * resolver finds, at once, a file declaring it. Nothing is loaded.
+ *
+ * `cond-expand` is decided as its form is analyzed, so an asynchronous
+ * resolver, which would have to fetch the file, cannot answer in time; for
+ * one, a library not loaded yet is not available. A file declaring another
+ * library is not this one, though a resolver finding libraries by the last
+ * part of their names returns one.
+ *
+ * @param {Array} libName - The library's name, as written.
+ * @returns {boolean}
+ */
+function isLibraryAvailable(libName) {
+    if (fileResolver === null) return false;
+    const parts = libName.map(p => p instanceof Symbol ? p.name : String(p));
+    let source;
+    try {
+        source = fileResolver(parts);
+    } catch (e) {
+        return false;
+    }
+    if (typeof source !== 'string') {
+        // A pending fetch nothing will wait for, whose failure is not an error.
+        if (source && typeof source.then === 'function') source.then(() => {}, () => {});
+        return false;
+    }
+    try {
+        const form = parse(source).find(f => f instanceof Cons && f.car instanceof Symbol && f.car.name === 'define-library');
+        return form !== undefined && libraryNameToKey(form.cdr.car) === libraryNameToKey(libName);
+    } catch (e) {
+        return false;
     }
 }
 
@@ -561,7 +597,7 @@ export const SYNTAX_KEYWORDS = new Set([
     'define', 'set!', 'lambda', 'if', 'begin', 'quote',
     'quasiquote', 'unquote', 'unquote-splicing',
     'define-syntax', 'let-syntax', 'letrec-syntax',
-    'syntax-rules', '...', 'else', '=>', 'import', 'export',
+    'syntax-rules', '...', '_', 'else', '=>', 'import', 'export',
     'define-library', 'include', 'include-ci', 'include-library-declarations',
     'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation',
     'define-macro'

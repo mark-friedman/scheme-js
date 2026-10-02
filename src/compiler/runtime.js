@@ -22,7 +22,7 @@ import {
   UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendForPrimitive, restoreFlush,
   CAPTURE_UNDER_PRIMITIVE
 } from '../core/interpreter/unwind.js';
-import { SchemeError, SchemeApplicationError } from '../core/interpreter/errors.js';
+import { SchemeError, SchemeApplicationError, SchemeArityError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
 // Kept by the interpreter, which sees every binding write; generated code only
 // reads a cell, once per inlined primitive.
@@ -163,6 +163,22 @@ export function tailCall(callee, args) {
  */
 export function notAProcedure(callee) {
   throw new SchemeApplicationError(callee);
+}
+
+/**
+ * Reports a compiled procedure called with the wrong number of arguments, as
+ * the interpreter reports an interpreted one. Generated code tests the count
+ * on entry to a procedure's fast form and calls this when it is wrong.
+ *
+ * @param {string} name - The procedure's name.
+ * @param {number} required - How many parameters it has, besides a rest one.
+ * @param {boolean} rest - Whether it has a rest parameter.
+ * @param {number} given - How many arguments it was called with.
+ * @returns {never}
+ * @throws {SchemeArityError} Always.
+ */
+export function wrongArity(name, required, rest, given) {
+  throw new SchemeArityError(name, required, rest ? Infinity : required, given);
 }
 
 /**
@@ -373,15 +389,21 @@ export function listFrom(items) {
  * entry is marked `SCHEME_PRIMITIVE`, a function taking Scheme values, which
  * is what a direct tail call tests for (`tail` in emit.scm).
  *
+ * Whether the procedure has a rest parameter is recorded, since a call from
+ * JavaScript is fitted to its parameters, and the code's `length` counts only
+ * the others.
+ *
  * @param {Function} code - The generated function.
  * @param {string} name - The Scheme procedure's name, for stack traces.
  * @param {Object} env - The environment the procedure closes over.
+ * @param {boolean} [rest=false] - Whether it has a rest parameter.
  * @returns {Function} The procedure.
  */
-export function markProcedure(code, name, env) {
+export function markProcedure(code, name, env, rest = false) {
   code[SCHEME_PRIMITIVE] = true;
   const procedure = createCompiledProcedure(code, env);
   procedure.$compiled = true;
+  procedure.$rest = rest;
   procedure.schemeName = name;
   // One function for every procedure, rather than one made for each: a
   // closure made in a loop makes a procedure each time round.

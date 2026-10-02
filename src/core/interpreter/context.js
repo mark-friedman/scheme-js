@@ -129,6 +129,16 @@ export class InterpreterContext {
 
         /** Stack of currently active defining scopes (for library loading) */
         this.definingScopes = [];
+
+        /**
+         * The syntactic keywords each library binds -- the macros it defines
+         * and the keywords it imports, under the names it gives them -- and
+         * those a program's top level imports, by scope: a library's, or 0
+         * for the top level. Each name maps to the keyword's own name and,
+         * for a macro, its transformer. See `defineKeyword`.
+         * @type {Map<number, Map<string, {keyword: string, transformer: (Function|null)}>>}
+         */
+        this.keywordBindings = new Map();
     }
 
     // =========================================================================
@@ -316,6 +326,7 @@ export class InterpreterContext {
         this.resetMacroRegistry();
         this.libraryRegistry.clear();
         this.definingScopes = [];
+        this.keywordBindings.clear();
     }
 
     // =========================================================================
@@ -364,6 +375,55 @@ export class InterpreterContext {
      */
     lookupLibraryEnv(scope) {
         return this.libraryScopeEnvMap.get(scope);
+    }
+
+    /**
+     * Binds a syntactic keyword in a library, or at a program's top level.
+     *
+     * Macros are also defined by name, for the whole process, and a name is
+     * looked up there when nothing binds it here. These bindings are what
+     * keeps libraries apart: a library's macros expand into its own macros,
+     * though another library defines one of the same name, and a keyword it
+     * imported -- under its own name or another -- is the one it imported,
+     * though a library loaded later defines a macro of that name. A macro's
+     * transformer is kept as it was, so a library defining its own
+     * `quasiquote` on the standard one, imported under another name, still
+     * reaches the standard one through that name.
+     *
+     * @param {number} scope - A library's scope, or 0 for a program's top level.
+     * @param {string} name - The name bound.
+     * @param {string} keyword - The keyword's own name.
+     * @param {Function|null} transformer - A macro's transformer, or null for
+     *   a special form or auxiliary keyword.
+     */
+    defineKeyword(scope, name, keyword, transformer) {
+        let bindings = this.keywordBindings.get(scope);
+        if (bindings === undefined) {
+            bindings = new Map();
+            this.keywordBindings.set(scope, bindings);
+        }
+        bindings.set(name, { keyword, transformer });
+    }
+
+    /**
+     * Unbinds a syntactic keyword, so that its name is looked up by name.
+     * @param {number} scope - A library's scope, or 0 for a program's top level.
+     * @param {string} name - The name.
+     */
+    forgetKeyword(scope, name) {
+        this.keywordBindings.get(scope)?.delete(name);
+    }
+
+    /**
+     * The syntactic keyword a name is bound to in a library, or at a
+     * program's top level.
+     * @param {number} scope - A library's scope, or 0 for a program's top level.
+     * @param {string} name - A name.
+     * @returns {{keyword: string, transformer: (Function|null)}|undefined} The
+     *   keyword, or undefined if nothing there binds the name.
+     */
+    keywordBinding(scope, name) {
+        return this.keywordBindings.get(scope)?.get(name);
     }
 }
 

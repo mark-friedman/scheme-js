@@ -9884,3 +9884,156 @@ page-like runner. JavaScript under `src/`: 77 lines added and 6 removed, most of
 the two record primitives, for the value representations, and the call into the Scheme in
 `library_registry.js`, the evaluator's, which 64 ports with the rest of the registry; Scheme 92
 lines added.
+
+# The corpus's test programs: what failed, and the conformance fixes (2026-10-02)
+
+## Why
+
+`benchmarks/run_tier.js --set corpus` ran the test programs of seven corpus libraries, and the rest
+of the corpus's test programs failed on this implementation. Each failure was run down to a
+conformance bug here, fixed with Scheme tests first, or to something non-portable in the program or
+its library, noted. Each program was run interpreted with the corpus resolver, and then under the
+tier, before it went into its manifest entry's `tests`.
+
+Four of the seven already listed did not pass either: a corpus program counts as right whatever its
+tests report, and the set only compares the tier's output with the interpreter's (R103).
+
+## What each failure was
+
+| Program | Failure | Cause | Now |
+|---|---|---|---|
+| 15 `rapid-*` packages, `rapid-test` | unbound `test-result-alist!` | A library's macro could not reach the library's unexported bindings (R100) | pass |
+| `rapid-quasiquote` | unbound `scheme-quasiquote` | Keywords renamed on import named nothing; `(rapid quasiquote)` defining its own `quasiquote` replaced the standard one by name (R101) | pass |
+| `rapid-syntax` | unbound `ellipsis`; then `compile-pattern` with no clause; then a stack overflow; then a hang | `(rename (scheme base) (... ellipsis))` (R101, R102); `(rapid rbtree)`'s `compile-pattern` replacing `(rapid match)`'s (R101); a circular quoted literal through `test-equal`; `equal?` on circular lists | pass |
+| `chibi-match` | unbound `test-run`; 4 vector patterns | R100; `syntax-rules` had no vector patterns or templates | pass |
+| `chibi-regexp` | unbound `warning`; `(/"af")` read as one symbol; 16 errors | R100; `"` and `|` were not delimiters; the corpus's SRFI 14 is Latin-1 only, and the pcre group opens `tests/re-tests.txt`, which the package does not ship | 71 of 87; the rest not portable |
+| `arvyy-mustache` | `define-library: unknown clause: error` | `(library (srfi 64))` held only for a library already loaded, not one available (R7RS 4.2.1) | blocked on `(srfi 64)` |
+| `chibi-show` | `syntax-quote`: no clause | `(chibi monad environment)`'s non-chibi fallback writes `(syntax-rules ((_ x) 'x))`, its rule in the literals' place | not portable |
+| `chibi-optional` | `test-error`: no clause | its inline non-chibi `test-error` takes one argument; the test passes two | not portable |
+| `srfi-64-test.scm` | unbound `test-begin` | has no import declarations: expects SRFI 64 loaded beforehand | not portable |
+| SRFI 113's `sets-test`, SRFI 158's tests, `comparators-test` | unbound `use` | Chicken's and Gauche's module forms | not portable |
+| `nytpu-contracts` | unbound `#!/usr/bin/env` | a SRFI 22 script header, now skipped; then `(srfi 64)` | blocked on `(srfi 64)` |
+| 8 Snow `srfi-*` tests, SRFI 146's `tests.scm` | no `(srfi 48)` | SRFI 48 and then SRFI 35 now pinned; the corpus's `(srfi 64)` imports R6RS's `(rnrs syntax-case (6))` (R104) | blocked on `(srfi 64)`, kept by decision |
+| `okmij-ssax`, SRFI 130's test, SRFI 146's `gleckler/tests.scm` | no `(srfi 13)`, `(srfi 27)` | not downloaded, by decision | blocked |
+| `rapid-read` | reader | `#|` inside strings, a separate task | -- |
+| `chibi-string` (listed) | 20 of 52 | compares characters with `eq?` | 52 of 52 |
+| `chibi-term-ansi` (listed) | 4 | a closure called with extra arguments dropped them | all |
+| `edn` (listed) | 22 | compares records with `equal?`, which R7RS leaves unspecified | not portable |
+| `chibi-diff` (listed) | 2 | its colour tests need `TERM` set | the environment's |
+
+The note on the task that `rapid/test.scm` run alone gives "cannot analyze null" was a side road:
+run without its imports, `case-lambda` is unbound, so `(case-lambda (() ...))` is analysed as an
+application of `()`.
+
+## The changes
+
+- **A library's macros reach its bindings** (R100). An identifier a library's macro introduces
+  carries the library's scope (`markIntroduced`, `syntax_rules.js`), and refers to the library's
+  binding of its name (`libraryBindingEnv`, `syntax_object.js`): through `LibraryVariableNode` and
+  `LibrarySetNode` where the use site cannot reach the same binding by name, and as a plain global
+  reference -- which the compiler tier compiles -- within the library, for names the library does
+  not bind itself, and for procedures the use site holds too, which is every standard derived
+  form's case. Every prebuilt table regenerates byte-identical.
+- **Each library binds its own keywords** (R101). A library, and a program's top level, binds the
+  macros it defines and the keywords it imports under the names it imports them as, a macro with
+  its transformer as it was (`InterpreterContext.defineKeyword`); the analyzer looks there before
+  the process-wide registry (`operatorKeyword`), and pattern literals compare the keywords they name
+  (`keywordName`). `(scheme base)` exports `...`, `_`, `=>`, `else`, `syntax-rules`, `include`,
+  `include-ci` and `cond-expand` (R102).
+- **`syntax-rules` vector patterns and templates** (R7RS 4.3.2), ellipses included.
+- **Circular and shared literals through the expander** (R7RS 2.4). Copying code for a pattern
+  variable or a `quote` keeps sharing and cycles once the reader has read a datum label reference,
+  or once a tree copy outgrows 100,000 pairs and vectors; otherwise it copies as before.
+- **`equal?` terminates on circular structure** (R7RS 6.1): compared as trees within a budget of
+  1,000 pairs and vectors, then as graphs, by union-find over an `eq?` store (`equality.scm`).
+- **`(values)` delivers no values** (R7RS 6.10): a consumer was given one, the unspecified value,
+  which `define-values` with no formals tripped over once arity was checked.
+- **An inexact argument makes an inexact result** (R7RS 6.2.2): `(* 1000.0 1/3)` was the exact-
+  looking `1000/3`, so chibi's test reports read "947/10%".
+- **The reader**: `"` and `|` end an identifier, number or boolean (R7RS 7.1.1); a first line
+  `#!/...` or `#! ...` is skipped as a script header (SRFI 22).
+- **`(library <name>)` in `cond-expand`** holds for a library the resolver finds and declares that
+  name, not only one already loaded (R7RS 4.2.1).
+- **Characters are one object per code point**, so `eq?` on characters is `eqv?`, as most
+  implementations make it; the `Char` constructor returns the character already made.
+- **A procedure called from Scheme with the wrong number of arguments signals an error**, in both
+  tiers: the interpreter checks a closure's arguments, and every compiled fast form tests
+  `arguments.length` on entry (`arity-guard`, `emit.scm`; `R.wrongArity`). A call from JavaScript,
+  or a class constructor passing its arguments to its parent's, is fitted to the parameters as a
+  JavaScript function's would be (`docs/Interoperability.md`). The check found two latent bugs, the
+  `(values)` one above and class constructors relying on dropped arguments.
+- `string->list` and `vector->list` of 200,000 elements overflowed the stack, passing every element
+  to `list` as an argument.
+- A library exported a name as a JavaScript global before it exported it as a keyword, since a
+  variable lookup falls back to JavaScript's globals: browsers now define `when`, so in a browser
+  `(scheme base)` exported `when` as that function. The browser run of the tests found it; a
+  library's own variables, then its keywords, then JavaScript's globals now.
+- The Scheme test runner runs a file a top-level form at a time, as every other runner and a page
+  do, so a library a test file defines is loaded before the forms after it are analysed.
+- `run_tier.js` puts the process's macros and a top level's keyword bindings back after each
+  program, so one program's `quasiquote` does not expand the next's libraries.
+
+## The corpus
+
+Fifteen programs were added to their manifest entries' `tests`: `rapid-and-let`, `rapid-assume`,
+`rapid-box`, `rapid-comparator`, `rapid-format`, `rapid-generator`, `rapid-identity`, `rapid-list`
+(which has no tests yet, and only loads its library), `rapid-mapping`, `rapid-quasiquote`,
+`rapid-rbtree`, `rapid-receive`, `rapid-syntax`, `rapid-vicinity` and `chibi-match`: 22 in all, each
+with the same output in both tiers. `rapid-test` passes interpreted and fails one test under the
+tier, `(eq? (test-runner-factory) test-runner-simple)`: its parameter holds `test-runner-simple` in
+a closure's environment, which compiling over the closure does not reach (task 83).
+
+Pinned, with the user's agreement: SRFI 48's repository at `ad601bf`, whose reference
+implementation `benchmarks/corpus/wrappers/srfi-48.sld` makes `(srfi 48)` (a manifest `wrapper`),
+and Taylan Kammer's `scheme-srfis` at `fc092df` for `(srfi 35)` alone (a manifest `libraries` list,
+so that its other SRFIs do not stand in for the bundled ones). Together they let `decline_reasons.js
+--corpus` measure two more of SRFI 64's libraries; `(srfi 64)` itself still imports R6RS.
+
+## Measured
+
+- Analysis, macro expansion included, of the repository's 98 top-level Scheme test forms: 28.3 ms
+  cold against 29.1 (+3%), and 14.5 against 14.2 warm, after `getSyntaxKey` stopped sorting an
+  array for one to three scopes and `libraryScopeOf`'s answer was cached on the interned identifier;
+  before those, 11-20% slower.
+- The arity test on entry to compiled procedures: 2-5% on call-heavy compiled code (`run_codegen.js
+  --only recursion`, fib 10, 1,970-2,000 against 2,070-2,115), within noise elsewhere; noted on
+  task 54, since a self-call could enter past it.
+- Interned characters: a `string-ref` loop over 200,000 characters 306-316 ms against 312-340.
+- The corpus under the tier, best of one: 22 programs, 5.4 s with the tier and 3.4 s without.
+
+## Tests
+
+`library_macro_tests.scm`, `keyword_rename_tests.scm`, `syntax_rules_vector_tests.scm`,
+`datum_label_literal_tests.scm` (in `tests/core/scheme/`); `tests/tiers/arity_tests.scm`, in both
+tiers; added to `rational_tests.scm`, `reader_tests.scm`, `primitive_tests.scm`,
+`control_tests.scm`, `cond_expand_library_tests.js` and `tokenizer_tests.js`.
+
+## JavaScript added
+
+About 840 lines under `src/`, much of it comment, against 170 of Scheme (`npm run audit:languages`),
+each in a part the rules keep JavaScript: the evaluator -- the analyzer and `syntax-rules`
+expander (`analyzer.js`, `core_forms.js`, `syntax_object.js`, `syntax_rules.js`, `context.js`), its
+nodes (`ast_nodes.js`), the library loader and registry (`library_loader.js`,
+`library_registry.js`, which task 64 ports to Scheme and these changes with it), the reader
+(`tokenizer.js`, `parser.js`, `datum_labels.js`) and closure application (`frames.js`,
+`values.js`); the value representations (`char_class.js`, `Values` in `values.js`, the arithmetic in
+`math.js`, `string.js`, `vector.js`, `class.js`); and `src/compiler/runtime.js`. `equal?` is Scheme,
+as was the code it replaces, and so is the emitter's arity test.
+
+## Left open
+
+- `(srfi 64)` from the SRFI's repository imports `(rnrs syntax-case (6))`, so eleven tests written
+  against it cannot run; kept, by decision, as the corpus's SRFI 64.
+- Macros are still found by name for a name nothing binds, which is how `(scheme core)`, binding no
+  `quasiquote`, reaches one a library defined (R101).
+- `syntax-error` is not implemented (R102).
+- `(srfi 135)` cannot be loaded ("syntaxName: expected symbol or syntax object"), as before.
+- A library's procedure held in a closure's environment keeps its closure when the tier compiles it
+  (task 83).
+
+## Verification
+
+`node run_tests_node.js`: 7,088 passed, 0 failed, 34 skipped. `web/tests.html`, from an origin the
+browser had not used, every new test among the results: 6,891 passed, 0 failed, 54 skipped.
+`run_tier.js --set corpus`: 22 programs, no wrong answers; `--set canonical,tests,page`: none
+either.

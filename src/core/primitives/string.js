@@ -10,7 +10,7 @@
  */
 
 import { intern, Symbol } from '../interpreter/symbol.js';
-import { list, toArray } from '../interpreter/cons.js';
+import { Cons, toArray } from '../interpreter/cons.js';
 import { Values } from '../interpreter/values.js';
 import { parseNumber } from '../interpreter/reader.js';
 import { Char } from './char_class.js';
@@ -409,12 +409,14 @@ export const stringPrimitives = {
     'string->list': (str, start, end) => {
         assertString('string->list', 1, str);
         const [s, e] = validateRange('string->list', str, start, end);
-        const substr = stringValue(str).slice(s, e);
-        const chars = [];
-        for (const char of substr) {
-            chars.push(new Char(char.codePointAt(0)));
+        const chars = Array.from(stringValue(str).slice(s, e));
+        // Built from the end, pair by pair: passed to `list` as arguments, a
+        // long string's characters would overflow the call stack.
+        let result = null;
+        for (let i = chars.length - 1; i >= 0; i--) {
+            result = new Cons(new Char(chars[i].codePointAt(0)), result);
         }
-        return list(...chars);
+        return result;
     },
 
     /**

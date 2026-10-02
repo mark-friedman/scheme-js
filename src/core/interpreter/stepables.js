@@ -19,6 +19,8 @@ export {
     LiteralNode,
     VariableNode,
     ScopedVariable,
+    LibraryVariableNode,
+    LibrarySetNode,
     LambdaNode,
     LetNode,
     LetRecNode,

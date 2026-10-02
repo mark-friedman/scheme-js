@@ -63,4 +63,29 @@
      (test '<> (read (open-input-string "<>")))
      (test '<a-b-c> (read (open-input-string "<a-b-c>")))
   )
+
+  ;; R7RS 7.1.1: a delimiter is whitespace, a vertical line, a parenthesis,
+  ;; a double quote or a semicolon, so an identifier, number or boolean ends
+  ;; at a string or a vertical line written against it. SRE regular
+  ;; expressions write (/"az") for a range.
+  (test-group "delimiters"
+    (test "a double quote ends an identifier, in a file"
+      '(/ "af")
+      '(/"af"))
+    (test "a double quote ends an identifier"
+      '(/ "af")
+      (read (open-input-string "(/\"af\")")))
+    (test "a double quote ends a number"
+      '(1 "x")
+      (read (open-input-string "(1\"x\")")))
+    (test "a double quote ends a boolean"
+      '(#t "x")
+      (read (open-input-string "(#t\"x\")")))
+    (test "a vertical line ends an identifier"
+      '(a |b c| d)
+      (read (open-input-string "(a|b c|d)")))
+    (test "a vertical line written as a character"
+      #\|
+      (read (open-input-string "#\\|")))
+  )
 )

@@ -9,7 +9,7 @@ import { suspendFlush, restoreFlush } from '../interpreter/unwind.js';
 import { toArray } from '../interpreter/cons.js';
 import { assertString, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
-import { SCHEME_PRIMITIVE, takesSchemeValues, callSchemeMethod } from '../interpreter/values.js';
+import { SCHEME_PRIMITIVE, takesSchemeValues, callSchemeMethod, argumentsFittedTo } from '../interpreter/values.js';
 import { noteSchemeStore } from '../interpreter/js_interop.js';
 
 // ============================================================================
@@ -76,7 +76,10 @@ function takeSchemeConstruction(cls) {
  * @returns {*} The procedure's result.
  */
 function runConstructorProcedure(proc, thisArg, args, fromScheme) {
-    if (fromScheme) return callSchemeMethod(proc, thisArg, args);
+    // A class's arguments are passed on to its parent's constructor as they
+    // are, as `super(...args)` passes them, so a constructor takes those it has
+    // parameters for, as a JavaScript caller's procedure does.
+    if (fromScheme) return callSchemeMethod(proc, thisArg, argumentsFittedTo(proc, args));
     // A JavaScript construction: compiled code may not move its frames to the
     // heap stack beneath it.
     const flush = suspendFlush();

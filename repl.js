@@ -19,7 +19,7 @@ import { analyze } from './src/core/interpreter/analyzer.js';
 import { parse } from './src/core/interpreter/reader.js';
 import { Cons, toArray, cdr, car } from './src/core/interpreter/cons.js';
 import { Symbol } from './src/core/interpreter/symbol.js';
-import { Closure, Continuation, callSchemeProcedure } from './src/core/interpreter/values.js';
+import { Closure, Continuation, callSchemeProcedure, NO_VALUES } from './src/core/interpreter/values.js';
 import { LiteralNode } from './src/core/interpreter/ast.js';
 
 import { prettyPrint } from './src/core/interpreter/printer.js';
@@ -278,7 +278,7 @@ async function startRepl() {
                 }
                 // The last result as `write` writes it, after what the program
                 // wrote, unless it is unspecified.
-                if (result !== undefined) {
+                if (result !== undefined && result !== NO_VALUES) {
                     write(result);
                     newline();
                 }

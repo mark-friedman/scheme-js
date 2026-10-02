@@ -1,6 +1,7 @@
 import { run } from './harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
+import { parse } from '../src/core/interpreter/reader.js';
 import { writeString } from '../src/core/primitives/io/printer.js';
 import { SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
 
@@ -125,8 +126,10 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
         // Use the loader to read the file content
         const code = await fileLoader(file); // Changed: pass file directly to loader, loader handles relativity
 
-        // Run the test file
-        run(interpreter, code);
+        // Run the test file a top-level form at a time, as a program is run:
+        // a library the file defines is loaded, and the macros it exports
+        // known, before the forms after it are analyzed.
+        for (const form of parse(code)) interpreter.run(analyze(form));
 
         const result = run(interpreter, '(test-report)');
         if (result !== true) {

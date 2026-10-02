@@ -1418,6 +1418,29 @@
 ;; ---------------------------------------------------------------------------
 
 ;; /**
+;;  * The line that begins a procedure's fast form by testing how many
+;;  * arguments it was called with, and reports a wrong count as the
+;;  * interpreter reports one for a closure (`R.wrongArity`). Every call from
+;;  * Scheme arrives here, from compiled code directly and from the
+;;  * interpreter through the raw entry; a call from JavaScript arrives fitted
+;;  * to the parameters (`createCompiledProcedure` in
+;;  * `src/core/interpreter/values.js`). A procedure taking any number of
+;;  * arguments has no test.
+;;  *
+;;  * @param {list} ir - The lambda IR node.
+;;  * @returns {list} Lines of JavaScript: one, or none.
+;;  */
+(define (arity-guard ir)
+  (let ((required (length (lambda-params ir)))
+        (rest (lambda-rest ir)))
+    (if (and rest (= required 0))
+        '()
+        (list (string-append "if (arguments.length " (if rest "< " "!== ") (number->string required)
+                             ") R.wrongArity(" (js-string (or (lambda-name ir) "anonymous")) ", "
+                             (number->string required) ", " (if rest "true" "false")
+                             ", arguments.length);")))))
+
+;; /**
 ;;  * The fast form of a procedure, as a JavaScript function declaration.
 ;;  *
 ;;  * A boxed parameter arrives as a plain value and is boxed on entry, so the
@@ -1459,7 +1482,8 @@
                             (list (string-append "let " (string-join (map symbol->string declared) ", ") ";"))))
            (body (map (lambda (st) (render-statement form st)) (reverse (form-out form))))
            (indent (lambda (lines) (map (lambda (l) (string-append "  " l)) lines)))
-           (entry (depth-entry form (append params (if rest (list (string-append "..." (js-name rest) "$raw")) '()))))
+           (entry (append (arity-guard ir)
+                          (depth-entry form (append params (if rest (list (string-append "..." (js-name rest) "$raw")) '())))))
            (lines (if (form-loops form)
                       (append declaration entry (list "$loop: for (;;) {")
                               (indent prologue) (indent body) (list "}"))
@@ -1597,7 +1621,8 @@
                   (if (null? own) '() (list (string-append "let " (string-join own ", ") ";")))
                   (list fast
                         (string-append "const " value " = R.markProcedure(" proc ", "
-                                       (js-string (or (lambda-name lam) "anonymous")) ", E);")
+                                       (js-string (or (lambda-name lam) "anonymous")) ", E"
+                                       (if (lambda-rest lam) ", true" "") ");")
                         twin
                         (string-append value ".$resume = " proc "$r;"))
                   (map (lambda (self) (string-append self " = " value ";")) own)
@@ -1686,7 +1711,8 @@
     (list (string-join (filter (lambda (s) (not (string=? s "")))
                                (list (runtime-prelude (unit-runtime u))
                                      accessors factories fast twin
-                                     (string-append "const $proc$js = R.markProcedure($proc, " (js-string name) ", E);")
+                                     (string-append "const $proc$js = R.markProcedure($proc, " (js-string name) ", E"
+                                                    (if (lambda-rest ir) ", true" "") ");")
                                      "$proc$js.$resume = $proc$r;"
                                      "return $proc$js;"))
                        "\n")

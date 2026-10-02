@@ -160,4 +160,43 @@
         (denominator 3.14)))
   )
   
+  ;; ===== Mixed Exactness =====
+
+  ;; R7RS 6.2.2: an operation with an inexact argument returns an inexact
+  ;; result, here a flonum, whose value an integral one like 1000.0 does not
+  ;; make exact.
+  (test-group "an inexact argument makes the result inexact"
+
+    (test "* of an integral flonum and a fraction is inexact"
+      #f
+      (exact? (* 1000.0 1/3)))
+
+    (test "* of an integral flonum and a fraction is a flonum"
+      "333.3333333333333"
+      (number->string (* 1000.0 1/3)))
+
+    (test "* of a fraction and an integral flonum"
+      "0.3333333333333333"
+      (number->string (* 1/3 1.0)))
+
+    (test "+ of a fraction and an inexact zero"
+      "0.5"
+      (number->string (+ 1/2 0.0)))
+
+    (test "- of an integral flonum and a fraction"
+      0.5
+      (- 1.0 1/2))
+
+    (test "- of a fraction and an integral flonum"
+      -0.5
+      (- 1/2 1.0))
+
+    (test "rounding the product leaves it inexact"
+      #t
+      (inexact? (round (* 1000.0 71/75))))
+
+    (test "a percentage computed as a test framework computes one"
+      "94.7"
+      (number->string (/ (round (* 1000.0 (/ 71 75))) 10))))
+
 ) ;; end test-group

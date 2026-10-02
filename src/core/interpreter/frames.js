@@ -15,7 +15,7 @@ import { schemeToJsDeep, jsToScheme } from './js_interop.js';
 import { Cons } from './cons.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
-import { SchemeApplicationError, SchemeError } from './errors.js';
+import { SchemeApplicationError, SchemeArityError, SchemeError } from './errors.js';
 import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlush, noteResume } from './unwind.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
@@ -504,6 +504,15 @@ export function continueApplication(exprs, index, values, env, registers, interp
     // 1. SCHEME CLOSURE APPLICATION
     // Check for callable Scheme closures first (they are typeof 'function')
     if (isSchemeClosure(func)) {
+        // Called with the wrong number of arguments, it is an error (R7RS
+        // 4.1.4), signalled as compiled code signals it. JavaScript's calls
+        // arrive fitted to the parameters (`createClosure`), so only
+        // Scheme's are checked.
+        const argc = values.length - 1;
+        const required = func.params.length;
+        if (func.restParam ? argc < required : argc !== required) {
+            throw new SchemeArityError(func.name || 'anonymous', required, func.restParam ? Infinity : required, argc);
+        }
         registers[CTL] = func.body;
 
         // A top-level procedure waiting to be compiled. This call runs

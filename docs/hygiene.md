@@ -120,6 +120,64 @@ Macros can capture bindings from their lexical definition site via `capturedEnv`
       (get-x))))    ; → 100
 ```
 
+## Library Macros
+
+A macro a library defines means the library's bindings, even used in a program
+that cannot name them. Three mechanisms carry that across the library boundary.
+
+### The library's scope
+
+Each library has a scope of its own, registered with its environment before
+its imports are applied (`library_loader.js`). A macro defined while the
+library loads marks every identifier its templates introduce with that scope as
+well as the expansion's (`markIntroduced` in `syntax_rules.js`), unless the
+identifier already carries a library's scope -- it was written in another
+library, whose macro wrote this one. `libraryScopeOf` reads it back.
+
+### References and assignments
+
+A free identifier carrying a library's scope is the library's binding of its
+name (`libraryBindingEnv` in `syntax_object.js`). Where the use site's own
+environment would find that same binding by name, it is analyzed as a plain
+global reference, which the compiler tier can compile: within the library
+itself; when the library has no binding of the name of its own; and when the
+use site holds the same procedure under the name, as a program importing it
+does. Otherwise it becomes a `LibraryVariableNode`, or for `set!` a
+`LibrarySetNode`, which reaches into the library's environment.
+
+```scheme
+(define-library (counter)
+  (export count!)
+  (import (scheme base))
+  (begin
+    (define n 0)                        ; not exported
+    (define-syntax count!
+      (syntax-rules () ((_) (begin (set! n (+ n 1)) n))))))
+
+(import (scheme base) (counter))
+(count!)   ; => 1, though the program cannot name n
+```
+
+### Keyword bindings
+
+Macros are defined by name, for the whole process (`macro_registry.js`), so
+each library -- and a program's top level -- also binds the keywords it has:
+the macros it defines, and every macro or keyword it imports, under the name it
+imports it as (`InterpreterContext.defineKeyword`). A keyword's binding keeps
+the macro's transformer as it was, so `(import (rename (scheme base)
+(quasiquote std-quasiquote)))` still names the standard `quasiquote` after the
+library defines its own, and two libraries' internal macros of the same name
+each expand into their own. The analyzer looks an operator up in local macros
+(`let-syntax`, a body's `define-syntax`) first, then in the bindings where the
+identifier is used (`operatorKeyword`), then by name; a pattern literal is
+compared by the keyword each side names (`keywordName`), so a literal written
+`ellipsis` in a library that imported `...` as `ellipsis` matches the user's
+`...`.
+
+A name that nothing binds is still found by name, so a library that defines a
+macro for a keyword other code uses without importing -- `(scheme core)` uses
+`quasiquote` -- reaches that code too.
+
 ## Comparison Semantics
 
 ### bound-identifier=?

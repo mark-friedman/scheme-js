@@ -273,11 +273,9 @@ function genericAdd(a, b) {
 
     // Rational involved
     if (isRational(a) || isRational(b)) {
-        // If any is inexact float (not integer), result is float
-        if (typeof a === 'number' && !Number.isInteger(a)) {
-            return toNumber(a) + toNumber(b);
-        }
-        if (typeof b === 'number' && !Number.isInteger(b)) {
+        // An inexact operand -- every JavaScript number is one, integral
+        // or not -- makes the result inexact (R7RS 6.2.2), so a flonum.
+        if (typeof a === 'number' || typeof b === 'number') {
             return toNumber(a) + toNumber(b);
         }
         // Exact arithmetic
@@ -310,10 +308,7 @@ function genericSub(a, b) {
     }
 
     if (isRational(a) || isRational(b)) {
-        if (typeof a === 'number' && !Number.isInteger(a)) {
-            return toNumber(a) - toNumber(b);
-        }
-        if (typeof b === 'number' && !Number.isInteger(b)) {
+        if (typeof a === 'number' || typeof b === 'number') {
             return toNumber(a) - toNumber(b);
         }
         const res = toRational(a).subtract(toRational(b));
@@ -343,10 +338,7 @@ function genericMul(a, b) {
     }
 
     if (isRational(a) || isRational(b)) {
-        if (typeof a === 'number' && !Number.isInteger(a)) {
-            return toNumber(a) * toNumber(b);
-        }
-        if (typeof b === 'number' && !Number.isInteger(b)) {
+        if (typeof a === 'number' || typeof b === 'number') {
             return toNumber(a) * toNumber(b);
         }
         const res = toRational(a).multiply(toRational(b));

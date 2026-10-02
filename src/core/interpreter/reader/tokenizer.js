@@ -231,8 +231,9 @@ export function tokenize(input, filename = '<unknown>') {
         let atom = '';
         while (pos < input.length) {
             const ch = input[pos];
-            // Delimiters: whitespace, parens, braces, semicolon
-            if (' \t\n\r(){}[];'.includes(ch)) {
+            // Delimiters (R7RS 7.1.1): whitespace, a vertical line, parens,
+            // a double quote, a semicolon; and braces and brackets
+            if (' \t\n\r(){}[];"|'.includes(ch)) {
                 break;
             }
             atom += ch;
@@ -277,6 +278,14 @@ export function tokenize(input, filename = '<unknown>') {
             advance();
         }
         return str;
+    }
+
+    // A script header (SRFI 22): the first line of a program written to be
+    // run from a shell, `#!/usr/bin/env chibi-scheme` or `#! ` and a path.
+    // R7RS has no such syntax, and its own `#!` directives, `#!fold-case` and
+    // `#!no-fold-case`, begin with neither; the line is skipped as a comment.
+    if (input.startsWith('#!/') || input.startsWith('#! ')) {
+        while (pos < input.length && input[pos] !== '\n' && input[pos] !== '\r') advance();
     }
 
     // Main tokenization loop

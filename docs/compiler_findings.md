@@ -2856,6 +2856,75 @@ bound, and a list the program made before then holds the closure.
 *Consequence:* the library system substitutes inside the pairs, vectors and records the libraries'
 bindings reach, whenever it substitutes (82); a program's own data under the tier is open (83).
 
+**R100. A library's macro could not reach the library's own bindings.**
+
+`docs/hygiene.md` says free variables in a template "resolve in their definition context", and the
+analyzer's comment on the path that would do it called it never needed: across the test suite,
+3,966 macro-introduced free identifiers were looked up in the scope registry and all 3,966 missed,
+so each was taken to be a global of the program using the macro. The misses were the bug. A
+library's top-level definitions are registered under the library's scope, and an identifier its
+macro's template introduced carried only the expansion's scope, never the library's, so it could
+not match: it was looked up where the macro was used. A program using an exported macro whose
+template calls a procedure the library keeps to itself got "unbound variable". Found by Rapid
+Scheme's `(rapid test)`, whose `test-assert` expands into `test-result-alist!`, an unexported record
+modifier, and on which fifteen Snow-Fort packages' tests depend; also chibi's `test`, which expands
+into `test-run`, where a library imports only `test`. No library in this repository exported such a
+macro, which is why nothing failed here; every bundled macro's free identifiers name procedures the
+program also imports.
+
+*Consequence:* an identifier a library's macro introduces carries the library's scope, and resolves
+to the library's binding wherever the use site does not hold that same procedure by name
+(`libraryBindingEnv` in `syntax_object.js`); `tests/core/scheme/library_macro_tests.scm`.
+
+**R101. Macros were one namespace for the whole process.**
+
+The library loader implements R7RS libraries, and a library's procedures are its own; its macros
+were not. `define-syntax` defined a macro by name in one registry for the process, an import of a
+macro or keyword did nothing (the analyzer would find it by name), and so `rename`, `prefix`,
+`only` and `except` did nothing to syntax either. Found three ways in the corpus: `(rapid match)`
+imports `(rename (scheme base) (... ellipsis))` and `(rapid quasiquote)` imports `quasiquote` as
+`scheme-quasiquote`, neither name then naming anything; `(rapid match)` and `(rapid rbtree)` each
+define a `compile-pattern` of their own, so whichever loaded second expanded the other's patterns;
+and `(rapid quasiquote)` defines `quasiquote`, which then expanded every later quasiquote in the
+process -- `(scheme core)`'s, loaded afresh for the next program `benchmarks/run_tier.js` ran, among
+them.
+
+*Consequence:* each library, and a program's top level, binds the keywords it imports, under the
+names it imports them as, and the macros it defines (`InterpreterContext.defineKeyword`), and the
+analyzer looks a name up there before the process-wide registry, which remains for names nothing
+binds (`tests/core/scheme/keyword_rename_tests.scm`). A library that binds a name only by defining
+it for the process is still reached by it: `(scheme core)` imports no `quasiquote`, so it finds one
+by name, which is why `run_tier.js` now puts the process's macros back after each program.
+
+**R102. "(scheme base) [syntax] 40/40 complete" was not checked.**
+
+`scripts/audit_r7rs.js` reports `(scheme base)`'s syntax complete, but assumes syntax present
+rather than probing it ("syntax assumed present: 43"). `(scheme base)` exported none of `...`, `_`,
+`=>`, `else`, `syntax-rules`, `include`, `include-ci` or `cond-expand`, all in Appendix A, so none
+could be renamed or excluded; `(rapid match)`'s `(rename (scheme base) (... ellipsis))` renamed
+nothing. They are exported now; `syntax-error` is not implemented at all.
+
+**R103. Four of the corpus's seven test programs did not pass.**
+
+`run_tier.js --set corpus` ran seven test programs, the ones that ran on this implementation, and
+the rest were said to fail. "Runs" was not "passes": a corpus program counts as right whatever its
+tests report, and the set compares the tier's output with the interpreter's. chibi-string failed 20
+of 52 (it compares characters with `eq?`, which R7RS leaves unspecified and which was #f here),
+chibi-term-ansi 4 (a closure called with an extra argument dropped it rather than signalling an
+error), edn 22 (it compares records with `equal?`, which R7RS leaves unspecified and chibi makes
+structural), and chibi-diff 2, whose colour tests pass only with `TERM` set. Characters are now one
+object per code point and closures check how many arguments they are given, so the first two pass;
+edn's and chibi-diff's are the programs' own assumptions.
+
+**R104. The manifest said SRFI 48's repository holds only its specification.**
+
+`benchmarks/corpus/manifest.json` gave that as why `(srfi 64)`'s `execution.sld` and
+`test-runner-simple.sld` could not be loaded. SRFI 48's repository keeps its reference
+implementation as `test/srfi-48.scm`, a file of definitions, which a wrapper now makes `(srfi 48)`;
+SRFI 35's, from Taylan Kammer's collection, is pinned too. Neither was the obstacle that mattered:
+`(srfi 64)`'s `source-info.sld` imports R6RS's `(rnrs syntax-case (6))`, so the corpus's SRFI 64,
+and every test written against it, cannot be loaded by an R7RS-small implementation.
+
 ---
 
 ## Appendix — the original staged plan

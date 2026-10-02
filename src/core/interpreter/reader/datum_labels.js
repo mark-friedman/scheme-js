@@ -7,6 +7,29 @@ import { Cons } from '../cons.js';
 import { SchemeReadError } from '../errors.js';
 
 /**
+ * Whether a datum label reference, `#n#`, has been read. Only through one
+ * does data the reader produces share structure or contain a cycle, so until
+ * one has been, whatever copies code can copy it as a tree.
+ * @type {boolean}
+ */
+let labelReferenceRead = false;
+
+/**
+ * Notes that a datum label reference has been read.
+ */
+export function noteLabelReference() {
+    labelReferenceRead = true;
+}
+
+/**
+ * Whether a datum label reference has been read.
+ * @returns {boolean}
+ */
+export function labelReferencesRead() {
+    return labelReferenceRead;
+}
+
+/**
  * Placeholder for forward references in datum labels.
  * Used when #n# references a label that hasn't been fully read yet.
  */

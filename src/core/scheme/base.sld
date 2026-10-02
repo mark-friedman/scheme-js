@@ -144,7 +144,11 @@
     
     ;; Syntax (Macros & Special Forms)
     define set! lambda if begin quote quasiquote unquote unquote-splicing
-    define-syntax let-syntax letrec-syntax
+    define-syntax let-syntax letrec-syntax syntax-rules
+    include include-ci cond-expand
+    ;; Auxiliary syntax: the keywords other forms take, exported so that
+    ;; they can be renamed and excluded like any other
+    ... _ => else
     and or cond case do when unless guard
     let let* letrec letrec*
     let-values let*-values define-values

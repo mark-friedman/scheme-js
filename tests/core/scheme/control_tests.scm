@@ -190,4 +190,20 @@
           (let*-values (((a b) (values 2 3))
                         ((c) (values (+ a b))))
             (* c 2))))
+
+  ;; R7RS 6.10: (values) delivers no values, so a consumer receives no
+  ;; arguments, as one taking none must.
+  (test-group "no values"
+    (test "a consumer is given no arguments"
+          '()
+          (call-with-values (lambda () (values)) (lambda args args)))
+    (test "values as the producer"
+          '()
+          (call-with-values values list))
+    (test "a consumer taking none"
+          'none
+          (call-with-values (lambda () (values)) (lambda () 'none)))
+    (test "the unspecified value is one value"
+          1
+          (call-with-values (lambda () (if #f #f)) (lambda args (length args)))))
 )

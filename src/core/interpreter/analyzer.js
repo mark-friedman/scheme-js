@@ -14,6 +14,7 @@ import {
   ImportNode,
   DefineLibraryNode,
   ScopedVariable,
+  LibraryVariableNode,
   DynamicWindInit,
   CallWithValuesNode,
   WithExceptionHandlerInit,
@@ -26,7 +27,7 @@ import { Rational } from '../primitives/rational.js';
 import { Complex } from '../primitives/complex.js';
 import { Char } from '../primitives/char_class.js';
 import { Symbol, intern } from './symbol.js';
-import { SyntaxObject, globalScopeRegistry, GLOBAL_SCOPE_ID, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes } from './syntax_object.js';
+import { SyntaxObject, globalScopeRegistry, GLOBAL_SCOPE_ID, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes, libraryScopeOf, libraryBindingEnv, operatorKeyword } from './syntax_object.js';
 import { globalContext } from './context.js';
 import { SchemeSyntaxError } from './errors.js';
 import {
@@ -146,7 +147,8 @@ export function analyze(exp, syntacticEnv = null, context = null) {
     return new LiteralNode(exp);
   }
   if (Array.isArray(exp)) {
-    return new LiteralNode(exp);
+    // A vector a macro's template built holds identifiers, not symbols.
+    return new LiteralNode(holdsSyntax(exp) ? unwrapSyntax(exp) : exp);
   }
   if (exp instanceof Uint8Array) {
     return new LiteralNode(exp);
@@ -171,34 +173,25 @@ export function analyze(exp, syntacticEnv = null, context = null) {
       }
     }
 
-    if (!isShadowed) {
-      const opNameForMacro = (operator instanceof Symbol) ? operator.name :
-        (isSyntaxObject(operator) ? syntaxName(operator) : null);
+    // A macro use or special form, unless a local variable shadows the
+    // keyword (R7RS: "local variable bindings may shadow keyword bindings")
+    if (!isShadowed && (operator instanceof Symbol || isSyntaxObject(operator))) {
+      const { keyword, transformer } = operatorKeyword(operator, ctx);
 
-      if (opNameForMacro && ctx.currentMacroRegistry.isMacro(opNameForMacro)) {
-        const transformer = ctx.currentMacroRegistry.lookup(opNameForMacro);
+      if (transformer) {
         try {
           const expanded = transformer(exp, syntacticEnv);
           return analyze(expanded, syntacticEnv, ctx);
         } catch (e) {
-          throw new SchemeSyntaxError(`Error expanding macro: ${e.message}`, exp, opNameForMacro);
+          throw new SchemeSyntaxError(`Error expanding macro: ${e.message}`, exp, keyword);
         }
       }
-    }
 
-    // Check if operator is a special form keyword (only if not shadowed locally)
-    // R7RS: "local variable bindings may shadow keyword bindings"
-    if (!isShadowed) {
-      const opName = (operator instanceof Symbol) ? operator.name :
-        (isSyntaxObject(operator) ? syntaxName(operator) : null);
-
-      if (opName) {
-        const handler = getHandler(opName);
-        if (handler) {
-          // Call handler and attach source from the original Cons
-          const node = handler(exp, syntacticEnv, ctx);
-          return withSourceFrom(node, exp);
-        }
+      const handler = getHandler(keyword);
+      if (handler) {
+        // Call handler and attach source from the original Cons
+        const node = handler(exp, syntacticEnv, ctx);
+        return withSourceFrom(node, exp);
       }
     }
 
@@ -215,6 +208,22 @@ export function analyze(exp, syntacticEnv = null, context = null) {
 // Helper Functions
 // =============================================================================
 
+/**
+ * Whether a datum holds an identifier anywhere in it, as one a macro's
+ * template produced does.
+ * @param {*} datum - A datum.
+ * @returns {boolean}
+ */
+function holdsSyntax(datum, seen = new Set()) {
+  if (isSyntaxObject(datum)) return true;
+  if (!(datum instanceof Cons) && !Array.isArray(datum)) return false;
+  // A literal may be circular (R7RS 2.4).
+  if (seen.has(datum)) return false;
+  seen.add(datum);
+  if (datum instanceof Cons) return holdsSyntax(datum.car, seen) || holdsSyntax(datum.cdr, seen);
+  return datum.some((element) => holdsSyntax(element, seen));
+}
+
 function analyzeVariable(exp, syntacticEnv, ctx) {
   // Check syntactic environment for alpha-renamed local binding
   const renamed = syntacticEnv.lookup(exp);
@@ -225,6 +234,15 @@ function analyzeVariable(exp, syntacticEnv, ctx) {
 
   // Not local -> Global / Free.
   if (isSyntaxObject(exp)) {
+    // Introduced by a library's macro: the library's binding of the name,
+    // which `libraryBindingEnv` says how to reach.
+    const libraryScope = libraryScopeOf(exp);
+    if (libraryScope !== null) {
+      const libraryEnv = libraryBindingEnv(exp, libraryScope);
+      return libraryEnv === null
+        ? new VariableNode(syntaxName(exp))
+        : new LibraryVariableNode(syntaxName(exp), libraryEnv);
+    }
     // A macro-introduced identifier still carrying its expansion scopes.
     // Resolving it is the *expander's* job, not the evaluator's: in every
     // system this implementation draws on -- Kohlbecker et al., Clinger and
@@ -245,10 +263,9 @@ function analyzeVariable(exp, syntacticEnv, ctx) {
     if (resolved === null) {
       // No scoped binding matches, so this is a free reference to a global.
       // That is sound by construction rather than by luck: locals are
-      // alpha-renamed, so a plain name can only denote a global, which is
-      // exactly what the runtime fallback did. Measured across the whole test
-      // suite, this is the only case that occurs -- 3,966 resolutions, 3,966
-      // misses.
+      // alpha-renamed, and an identifier a library's macro introduced was
+      // resolved above, so a plain name here can only denote a global of the
+      // program, which is exactly what the runtime fallback did.
       return new VariableNode(syntaxName(exp));
     }
     // A scoped binding does match. Left to resolve at run time as before,

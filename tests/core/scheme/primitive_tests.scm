@@ -21,6 +21,32 @@
     (test "equal? 0.0 -0.0" #f (equal? 0.0 -0.0))
   )
 
+  ;; Lists made from strings and vectors of any length: a list was once made
+  ;; by passing every element as an argument, which JavaScript cannot do
+  ;; past some hundred thousand.
+  (test-group "long strings and vectors to lists"
+    (test "string->list" 200000 (length (string->list (make-string 200000 #\a))))
+    (test "vector->list" 200000 (length (vector->list (make-vector 200000 0))))
+    (test "vector->list keeps order" '(1 2 3) (vector->list #(0 1 2 3 4) 1 4))
+  )
+
+  ;; R7RS leaves eq? on characters unspecified, and this implementation
+  ;; makes it eqv?, as most do: code that finds characters with memq or
+  ;; assq, or compares them with eq?, as chibi's string library does, is
+  ;; common, and a character is one object per code point.
+  (test-group "eq? on characters"
+    (test "two literals" #t (eq? #\a #\a))
+    (test "a literal and string-ref" #t (eq? #\a (string-ref "abc" 0)))
+    (test "two string-refs" #t (eq? (string-ref "xyz" 1) (string-ref "y" 0)))
+    (test "integer->char" #t (eq? (integer->char 955) (string-ref "\x3bb;" 0)))
+    (test "char-upcase" #t (eq? (char-upcase #\a) #\A))
+    (test "read-char" #t (eq? (read-char (open-input-string "q")) #\q))
+    (test "string->list" #t (eq? (car (string->list "z")) #\z))
+    (test "memq finds one" '(#\b #\c) (memq #\b (string->list "abc")))
+    (test "assq finds one" '(#\b . 2) (assq #\b '((#\a . 1) (#\b . 2))))
+    (test "different characters" #f (eq? #\a #\b))
+  )
+
   (test-group "Strings"
     (test "string?" #t (string? "abc"))
     (test "string? number" #f (string? 123))

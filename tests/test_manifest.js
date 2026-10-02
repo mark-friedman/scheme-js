@@ -125,6 +125,7 @@ export const tieredSchemeTestFiles = [
     'tests/tiers/tier_compiles_tests.scm',
     'tests/tiers/js_callee_tests.scm',
     'tests/tiers/current_port_tests.scm',
+    'tests/tiers/arity_tests.scm',
     'tests/tiers/library_values_tests.scm',
 ];
 
@@ -175,6 +176,10 @@ export const schemeTestFiles = [
     'tests/core/scheme/reader_syntax_tests.scm',
     'tests/core/scheme/define_values_tests.scm',
     'tests/core/scheme/macro_hygiene_tests.scm',
+    'tests/core/scheme/library_macro_tests.scm',
+    'tests/core/scheme/syntax_rules_vector_tests.scm',
+    'tests/core/scheme/keyword_rename_tests.scm',
+    'tests/core/scheme/datum_label_literal_tests.scm',
     'tests/core/scheme/nested_macro_tests.scm',
     'tests/core/scheme/bigint_exactness_tests.scm',
     'tests/core/scheme/r7rs-pitfalls.scm',

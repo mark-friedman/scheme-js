@@ -107,6 +107,23 @@ When a `lambda` expression is evaluated, the interpreter creates a **callable Ja
 myCallback(7);  // Returns 49
 ```
 
+### Arguments From JS
+
+A Scheme procedure called from Scheme with the wrong number of arguments signals an error, in
+either tier. Called from JavaScript, it takes the arguments it has parameters for, as a JavaScript
+function does: those beyond them are dropped, and a parameter given none is undefined. JavaScript
+calls functions with whatever it has to give -- an event handler with the event, the callback of
+`Array.prototype.map` with an index and the array -- so a handler need not declare what it does
+not use.
+
+```scheme
+(js-invoke button "addEventListener" "click" (lambda () (display "clicked")))
+(js-invoke #(1 2 3) "map" (lambda (x) (* x 10)))   ; called with x, index and array
+```
+
+A class's constructor passes its arguments on to its parent's, as `super(...args)` does, so a
+parent's constructor body takes the same way the ones it has parameters for.
+
 ### Continuations From JS
 
 Continuations are also callable and can be invoked from JS to jump back into a Scheme execution context:

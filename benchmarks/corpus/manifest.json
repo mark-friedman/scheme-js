@@ -17,7 +17,7 @@
         "contrib/taylan.kammer/64/test-runner-simple.sld",
         "testing.scm"
       ],
-      "note": "execution.sld and test-runner-simple.sld import SRFIs 35 and 48, whose repositories hold only the specification, so they cannot be loaded; testing.scm, the original portable implementation, needs neither and is measured as a program."
+      "note": "execution.sld and test-runner-simple.sld import SRFIs 35 and 48, which the corpus has as dependencies: SRFI 48's reference implementation through a wrapper (benchmarks/corpus/wrappers/srfi-48.sld), SRFI 35 from Taylan Kammer's collection. source-info.sld imports R6RS's (rnrs syntax-case (6)), so (srfi 64) itself cannot be loaded, nor the tests that import it. testing.scm, the original portable implementation, needs none of them and is measured as a program."
     },
     {
       "kind": "git",
@@ -127,6 +127,28 @@
       "tests": [
         "srfi-151/chibi-test.scm"
       ]
+    },
+    {
+      "kind": "git",
+      "name": "srfi-48",
+      "library": "(srfi 48)",
+      "role": "dependency",
+      "url": "https://github.com/scheme-requests-for-implementation/srfi-48",
+      "commit": "ad601bf2c9a904062315d0600319b21d43a29d2c",
+      "wrapper": "srfi-48.sld",
+      "note": "The reference implementation, test/srfi-48.scm, is not a library: benchmarks/corpus/wrappers/srfi-48.sld makes it (srfi 48). The corpus's SRFI 64 imports it."
+    },
+    {
+      "kind": "git",
+      "name": "scheme-srfis",
+      "library": "(srfi 35)",
+      "role": "dependency",
+      "url": "https://github.com/TaylanUB/scheme-srfis",
+      "commit": "fc092df5b3650159072f2a8a4fb61bd228b4c661",
+      "libraries": [
+        "srfi/35.sld"
+      ],
+      "note": "Taylan Kammer's SRFIs as R7RS libraries, of which only SRFI 35 is used: the corpus's SRFI 64, his too, imports it, and the SRFI's own repository holds only the specification. The rest would stand in for the bundled SRFIs, so only srfi/35.sld is indexed."
     },
     {
       "kind": "snow",
@@ -246,7 +268,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/assume/0.1.0/rapid-assume-0.1.0.tgz",
-      "sha256": "fc6d5d78bf5f61a35bcc55e8f16ee6d3d7e2c5b2edac02da1a329fc779386a09"
+      "sha256": "fc6d5d78bf5f61a35bcc55e8f16ee6d3d7e2c5b2edac02da1a329fc779386a09",
+      "tests": [
+        "rapid-assume-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -255,7 +280,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/and-let/0.1.0/rapid-and-let-0.1.0.tgz",
-      "sha256": "5ec0303edd3c5f3b81638be12ca59df11e680bf8b141be21e13655ea94035de6"
+      "sha256": "5ec0303edd3c5f3b81638be12ca59df11e680bf8b141be21e13655ea94035de6",
+      "tests": [
+        "rapid-and-let-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -264,7 +292,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/receive/0.1.0/rapid-receive-0.1.0.tgz",
-      "sha256": "f0b4886e3d9985610e8860c80383a24279633d4bd09f73696e63943992de68d6"
+      "sha256": "f0b4886e3d9985610e8860c80383a24279633d4bd09f73696e63943992de68d6",
+      "tests": [
+        "rapid-receive-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -273,7 +304,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/list/0.1.0/rapid-list-0.1.0.tgz",
-      "sha256": "d987cdab39cd3d52c1f0c6f40a30bfe4324f8dcd77bc379e4759f4735c22eb88"
+      "sha256": "d987cdab39cd3d52c1f0c6f40a30bfe4324f8dcd77bc379e4759f4735c22eb88",
+      "tests": [
+        "rapid-list-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -282,7 +316,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/format/0.1.0/rapid-format-0.1.0.tgz",
-      "sha256": "0412e028e6178498c79fc63be736e8ea1ef154768ed3a6ce2d05ae8c96415e81"
+      "sha256": "0412e028e6178498c79fc63be736e8ea1ef154768ed3a6ce2d05ae8c96415e81",
+      "tests": [
+        "rapid-format-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -291,7 +328,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/vicinity/0.1.0/rapid-vicinity-0.1.0.tgz",
-      "sha256": "ca8fa11e15f63257323867a0e98b0557a28021bcb5b497d59b0156aeb4b01bb1"
+      "sha256": "ca8fa11e15f63257323867a0e98b0557a28021bcb5b497d59b0156aeb4b01bb1",
+      "tests": [
+        "rapid-vicinity-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -300,7 +340,10 @@
       "role": "dependency",
       "version": "0.1.1",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/comparator/0.1.1/rapid-comparator-0.1.1.tgz",
-      "sha256": "ae9482c5724730e12ec6e95a9b45af374d220f670c471e16ac3bed9f9e0aa95d"
+      "sha256": "ae9482c5724730e12ec6e95a9b45af374d220f670c471e16ac3bed9f9e0aa95d",
+      "tests": [
+        "rapid-comparator-0.1.1/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -309,7 +352,10 @@
       "role": "dependency",
       "version": "0.1.1",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/mapping/0.1.1/rapid-mapping-0.1.1.tgz",
-      "sha256": "4d900c3c1a471c529d84b09ce3df5e8835b30a63a0282bd4693b7bf61ee7139a"
+      "sha256": "4d900c3c1a471c529d84b09ce3df5e8835b30a63a0282bd4693b7bf61ee7139a",
+      "tests": [
+        "rapid-mapping-0.1.1/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -318,7 +364,10 @@
       "role": "dependency",
       "version": "0.1.2",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/syntax/0.1.2/rapid-syntax-0.1.2.tgz",
-      "sha256": "1ae442590aab36ad8a768f2b5b67c1b14bdf27afa26b0481f30339d08cf4b5df"
+      "sha256": "1ae442590aab36ad8a768f2b5b67c1b14bdf27afa26b0481f30339d08cf4b5df",
+      "tests": [
+        "rapid-syntax-0.1.2/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -327,7 +376,10 @@
       "role": "dependency",
       "version": "0.1.1",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/quasiquote/0.1.1/rapid-quasiquote-0.1.1.tgz",
-      "sha256": "543a4acea4ec93ea0bec52a3f9eddf3826626d0a4b75cdbe762796e93067e890"
+      "sha256": "543a4acea4ec93ea0bec52a3f9eddf3826626d0a4b75cdbe762796e93067e890",
+      "tests": [
+        "rapid-quasiquote-0.1.1/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -345,7 +397,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/identity/0.1.0/rapid-identity-0.1.0.tgz",
-      "sha256": "0c183e816ee9bc8f02d63c71e1e5fba5a2f464de00693b2268a015ca3fba2648"
+      "sha256": "0c183e816ee9bc8f02d63c71e1e5fba5a2f464de00693b2268a015ca3fba2648",
+      "tests": [
+        "rapid-identity-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -354,7 +409,10 @@
       "role": "dependency",
       "version": "0.1.1",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/box/0.1.1/rapid-box-0.1.1.tgz",
-      "sha256": "de773c3da1fa4615ffdd5076b97e022f0f727a03a56ff29f6e218d08f29bd8d0"
+      "sha256": "de773c3da1fa4615ffdd5076b97e022f0f727a03a56ff29f6e218d08f29bd8d0",
+      "tests": [
+        "rapid-box-0.1.1/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -600,7 +658,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/generator/0.1.0/rapid-generator-0.1.0.tgz",
-      "sha256": "cf3b2b29b28b7533f5e8425e0db4e57d817653480190285f46180791ec8be03a"
+      "sha256": "cf3b2b29b28b7533f5e8425e0db4e57d817653480190285f46180791ec8be03a",
+      "tests": [
+        "rapid-generator-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -609,7 +670,10 @@
       "role": "dependency",
       "version": "0.1.0",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/rbtree/0.1.0/rapid-rbtree-0.1.0.tgz",
-      "sha256": "7bccb96fcf9b1a588fd4a91cf941eaa078c562e5d2d5bf6360db8ee7dd1296e2"
+      "sha256": "7bccb96fcf9b1a588fd4a91cf941eaa078c562e5d2d5bf6360db8ee7dd1296e2",
+      "tests": [
+        "rapid-rbtree-0.1.0/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",
@@ -636,7 +700,10 @@
       "role": "dependency",
       "version": "0.9.1",
       "url": "https://snow-fort.org/s/gmail.com/alexshinn/chibi/match/0.9.1/chibi-match-0.9.1.tgz",
-      "sha256": "a758a7c449596ed83437039a5ffc1a8cc466beb0ceb7564cf0a198de6e8c16f4"
+      "sha256": "a758a7c449596ed83437039a5ffc1a8cc466beb0ceb7564cf0a198de6e8c16f4",
+      "tests": [
+        "chibi-match-0.9.1/run-tests.scm"
+      ]
     }
   ]
 }

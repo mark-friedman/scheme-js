@@ -1,6 +1,6 @@
 import { assert, run } from '../harness/helpers.js';
 import { evaluateLibraryDefinitionSync, evaluateLibraryDefinition } from '../../src/core/interpreter/library_loader.js';
-import { getLibraryExports, clearLibraryRegistry } from '../../src/core/interpreter/library_registry.js';
+import { getLibraryExports, clearLibraryRegistry, withPrivateLibraries } from '../../src/core/interpreter/library_registry.js';
 import { parseDefineLibrary } from '../../src/core/interpreter/library_parser.js';
 import { list, cons } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
@@ -57,5 +57,41 @@ export async function runLibraryLoaderTests(interpreter, logger) {
 
     } catch (e) {
         logger.fail(`Nested cond-expand failed: ${e.message}`);
+    }
+
+    // Test 3: (library <name>) holds for a library available for import, as
+    // R7RS 4.2.1 says, not only for one already loaded. Whether one is
+    // available is the file resolver's to say, so these resolve libraries
+    // from a table of sources, synchronously.
+    logger.log('Testing (library <name>) for libraries not yet loaded...');
+    const sources = {
+        'ce-probe available': '(define-library (ce-probe available) (export v) (import (scheme base)) (begin (define v 1)))',
+        // What a resolver finding libraries by their last name part returns
+        // for (ce-probe other): another library's source.
+        'ce-probe other': '(define-library (ce-probe something-else) (export w) (begin (define w 2)))'
+    };
+    const resolver = (parts) => {
+        const key = parts.map((p) => p?.name ?? String(p)).join(' ');
+        if (sources[key] === undefined) throw new Error(`no library (${key})`);
+        return sources[key];
+    };
+    const probe = (name) => run(interpreter, `(cond-expand ((library ${name}) 'available) (else 'unavailable))`).name;
+    try {
+        withPrivateLibraries({ resolver }, () => {
+            assert(logger, '(library) holds for a library the resolver finds',
+                probe('(ce-probe available)'), 'available');
+            assert(logger, '(library) does not load the library it asks about',
+                getLibraryExports(['ce-probe', 'available']), null);
+            assert(logger, '(library) fails for a library the resolver does not find',
+                probe('(ce-probe missing)'), 'unavailable');
+            assert(logger, '(library) fails for a file declaring another library',
+                probe('(ce-probe other)'), 'unavailable');
+        });
+        withPrivateLibraries({ resolver: async () => sources['ce-probe available'] }, () => {
+            assert(logger, '(library) fails for what an asynchronous resolver would have to fetch',
+                probe('(ce-probe available)'), 'unavailable');
+        });
+    } catch (e) {
+        logger.fail(`(library <name>) availability failed: ${e.message}`);
     }
 }

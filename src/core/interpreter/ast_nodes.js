@@ -144,6 +144,68 @@ export class ScopedVariable extends Executable {
 }
 
 /**
+ * A reference, introduced by a macro a library defined, to a binding in that
+ * library's own environment.
+ *
+ * A macro's template means the bindings where the macro was written, so an
+ * exported macro whose template calls a procedure the library keeps to itself
+ * still calls it from a program that cannot name it. The analyzer makes one of
+ * these when the use site's own environment would not find that same binding
+ * by name; the name is looked up in the library's environment when it is
+ * evaluated, since a library procedure may be redefined there after the use
+ * was analyzed.
+ *
+ * Deliberately not a `VariableNode`: compiled code reads a global from the
+ * environment its procedure closes over, which is not this one, so the
+ * compiler must decline a procedure containing one rather than lower it.
+ */
+export class LibraryVariableNode extends Executable {
+    /**
+     * @param {string} name - The name, as the library binds it.
+     * @param {Environment} env - The library's environment.
+     */
+    constructor(name, env) {
+        super();
+        this.name = name;
+        this.env = env;
+    }
+
+    step(registers, interpreter) {
+        registers[ANS] = this.env.lookup(this.name);
+        return false;
+    }
+
+    toString() { return `(LibraryVariable ${this.name})`; }
+}
+
+/**
+ * An assignment, introduced by a macro a library defined, to a binding in that
+ * library's own environment: the `set!` counterpart of `LibraryVariableNode`.
+ * Not a `SetNode`, for the same reason that is not a `VariableNode`.
+ */
+export class LibrarySetNode extends Executable {
+    /**
+     * @param {string} name - The name, as the library binds it.
+     * @param {Environment} env - The library's environment.
+     * @param {Executable} valueExpr - The expression to evaluate.
+     */
+    constructor(name, env, valueExpr) {
+        super();
+        this.name = name;
+        this.env = env;
+        this.valueExpr = valueExpr;
+    }
+
+    step(registers, interpreter) {
+        registers[FSTACK].push(FrameRegistry.createSetFrame(this.name, this.env));
+        registers[CTL] = this.valueExpr;
+        return true;
+    }
+
+    toString() { return `(LibrarySet ${this.name})`; }
+}
+
+/**
  * A lambda expression.
  * Creates a closure capturing the current environment.
  */

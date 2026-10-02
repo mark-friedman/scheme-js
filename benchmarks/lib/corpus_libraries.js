@@ -16,7 +16,14 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { installLibraryTable } from '../../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../../src/packaging/compiled_libraries.js';
 import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
-import { corpusSources, sourceDirectory } from '../corpus/fetch.js';
+import { corpusSources, sourceDirectory, DOWNLOADS } from '../corpus/fetch.js';
+
+/**
+ * Where the libraries are that make a source's code a library when it is not
+ * one: files of this repository's, beside the downloads.
+ * @type {string}
+ */
+const WRAPPERS = path.join(path.dirname(DOWNLOADS), 'wrappers');
 
 /**
  * A library name as written: `(srfi 146)`.
@@ -81,10 +88,18 @@ function filesUnder(dir, extensions) {
  * one name, so only the files its manifest entry lists are measured, and where
  * two files declare the same library the listed one is the one loaded. An
  * alias makes a library reachable under the name its importers use when it
- * declares another. A manifest entry's `tests` are programs, relative to its
+ * declares another. A source holding libraries the corpus does not want --
+ * other SRFIs, which would stand in for the bundled ones -- lists the
+ * `libraries` it is wanted for, and only those are indexed. A source whose
+ * code is not a library -- a reference
+ * implementation written as a file of definitions -- names a `wrapper` in
+ * `benchmarks/corpus/wrappers/` that declares it, whose includes are the
+ * source's files. A manifest entry's `tests` are programs, relative to its
  * directory, that run its library's own tests.
  *
  * @returns {{libraries: Map<string, Object>, programs: Array<Object>, tests: Array<Object>}}
+ *   A library's `dir`, if it has one, is where its includes are, if not
+ *   beside its file.
  * @throws {Error} If a source is not downloaded.
  */
 export function corpusIndex() {
@@ -100,13 +115,21 @@ export function corpusIndex() {
     const group = source.kind === 'git'
       ? `SRFI reference implementations${source.role === 'dependency' ? ' (dependencies)' : ''}`
       : `Snow-Fort packages${source.role === 'dependency' ? ' (dependencies)' : ''}`;
-    for (const file of filesUnder(dir, ['.sld'])) {
+    const files = source.libraries === undefined
+      ? filesUnder(dir, ['.sld'])
+      : source.libraries.map((f) => path.join(dir, f));
+    for (const file of files) {
       const name = libraryNameIn(file);
       if (name === null) continue;
       if (libraries.has(name) && !listed.has(file)) continue;
       const test = /(^|[-_/])tests?\.sld$/.test(file) && name !== source.library;
       const measured = source.kind === 'git' ? listed.has(file) : !test;
       libraries.set(name, { name, file, group, measured });
+    }
+    if (source.wrapper !== undefined) {
+      const file = path.join(WRAPPERS, source.wrapper);
+      const name = libraryNameIn(file);
+      libraries.set(name, { name, file, group, measured: true, dir });
     }
     for (const [alias, file] of Object.entries(source.aliases ?? {})) {
       const full = path.join(dir, file);
@@ -146,7 +169,7 @@ export function corpusResolver(index) {
       // The loader names the library's includes by the name it declares, which
       // an alias does not share.
       const declared = listParts(parse(library.name)[0]);
-      loadedDirs.unshift({ prefix: nameKey(declared.slice(0, -1)), dir: path.dirname(library.file) });
+      loadedDirs.unshift({ prefix: nameKey(declared.slice(0, -1)), dir: library.dir ?? path.dirname(library.file) });
       return fs.readFileSync(library.file, 'utf8');
     }
     if (/\.[a-z]+$/.test(last)) {

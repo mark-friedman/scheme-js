@@ -112,6 +112,47 @@ export function isSchemePrimitive(x) {
 // =============================================================================
 
 /**
+ * The arguments JavaScript gives a procedure, fitted to its parameters.
+ *
+ * A Scheme procedure called with the wrong number of arguments signals an
+ * error; a JavaScript function takes what it is given, and JavaScript calls
+ * functions so -- an event handler with the event, `Array.prototype.map`'s
+ * callback with an index and the array. So a procedure JavaScript calls takes
+ * the arguments it has parameters for, as a JavaScript function would: those
+ * beyond them are dropped, and a parameter given none is undefined.
+ *
+ * @param {Array<*>} args - The arguments JavaScript gave.
+ * @param {number} required - How many parameters the procedure has, besides
+ *   a rest parameter.
+ * @param {boolean} rest - Whether it has a rest parameter, which takes any
+ *   arguments beyond them.
+ * @returns {Array<*>} As many arguments as the procedure takes.
+ */
+function fitToParameters(args, required, rest) {
+    if (args.length === required || (rest && args.length > required)) return args;
+    const fitted = new Array(required);
+    for (let i = 0; i < required; i++) fitted[i] = args[i];
+    return fitted;
+}
+
+/**
+ * Arguments fitted to a Scheme procedure's parameters, as a JavaScript
+ * caller's are (`fitToParameters`), for a caller that passes them as
+ * JavaScript does -- a class's constructor, passing its arguments on to its
+ * parent's, as `super(...args)` does. Anything else is given them as they are.
+ * @param {Function} proc - The procedure.
+ * @param {Array<*>} args - The arguments.
+ * @returns {Array<*>} The arguments it takes.
+ */
+export function argumentsFittedTo(proc, args) {
+    if (proc[SCHEME_CLOSURE] === true) {
+        return fitToParameters(args, proc.params.length, proc.restParam !== null && proc.restParam !== undefined);
+    }
+    if (proc.$compiled === true) return fitToParameters(args, proc[SCHEME_RAW_CALL].length, proc.$rest === true);
+    return args;
+}
+
+/**
  * Creates a callable Scheme closure.
  * 
  * The returned function can be called directly from JavaScript and will
@@ -133,7 +174,8 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
     const closure = function (...jsArgs) {
         // Build the invocation AST: apply this closure to the given args
         // Normalize args entering Scheme from JS
-        const argLiterals = jsArgs.map(val => new LiteralNode(jsToScheme(val)));
+        const argLiterals = fitToParameters(jsArgs, params.length, restParam !== null && restParam !== undefined)
+            .map(val => new LiteralNode(jsToScheme(val)));
         const ast = new TailAppNode(new LiteralNode(closure), argLiterals);
 
         // Run through the interpreter with a sentinel frame to capture result.
@@ -246,7 +288,8 @@ export function createCompiledProcedure(raw, env) {
     const procedure = function (...jsArgs) {
         const ast = new TailAppNode(
             new LiteralNode(procedure),
-            jsArgs.map((value) => new LiteralNode(jsToScheme(value))));
+            fitToParameters(jsArgs, raw.length, procedure.$rest === true)
+                .map((value) => new LiteralNode(jsToScheme(value))));
         return interpreterOf(env).runWithSentinel(ast, this);
     };
     procedure[SCHEME_RAW_CALL] = raw;
@@ -608,3 +651,10 @@ export class Values {
         return `#<values: ${this.values.length} values>`;
     }
 }
+
+/**
+ * No values, as `(values)` returns them: a consumer of them is given no
+ * arguments, and a REPL shows nothing for them, as for the unspecified value.
+ * @type {Values}
+ */
+export const NO_VALUES = new Values(Object.freeze([]));

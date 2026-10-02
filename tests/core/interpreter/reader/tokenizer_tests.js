@@ -106,6 +106,21 @@ export function runTokenizerTests(logger) {
         }
     }
 
+    // A script header (SRFI 22) -- a first line `#!/...` or `#! ...`, which a
+    // program run from a shell begins with -- is skipped; `#!fold-case` and
+    // `#!no-fold-case`, R7RS's own `#!` directives, are not headers.
+    {
+        const header = tokenize('#!/usr/bin/env chibi-scheme\n(display 1)');
+        assert(logger, 'a script header is skipped', header.map((t) => t.value).join(' '), '( display 1 )');
+        assert(logger, 'the line after a script header is line 2', header[0].source.line, 2);
+        const spaced = tokenize('#! /usr/local/bin/scheme -s\nx');
+        assert(logger, 'a script header with a space is skipped', spaced.map((t) => t.value).join(' '), 'x');
+        const directive = tokenize('#!fold-case\nX');
+        assert(logger, '#!fold-case is not a script header', directive[0].value, '#!fold-case');
+        const later = tokenize('x\n#!/not/a/header');
+        assert(logger, 'only a first line is a script header', later.length > 1, true);
+    }
+
     // Vertical bar symbols
     {
         const tokens = tokenize('|hello world|');

@@ -122,6 +122,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── corpus/                     # Real R7RS code, for decline_reasons.js --corpus and run_tier.js --set corpus
 │   │   ├── manifest.json           # SRFI repositories at a commit, Snow-Fort packages at a version and SHA-256; each one's test programs
 │   │   ├── fetch.js                # Downloads the manifest into downloads/, checking each archive
+│   │   ├── wrappers/               # Libraries of ours over a source's code that is not one (srfi-48.sld over SRFI 48's reference file)
 │   │   └── downloads/              # Not committed: other people's code, under their licenses
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
@@ -351,7 +352,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_compiler_scheme_tests_lib.js # Runs compiler/ tests in the compiler library's environment
 │   ├── run_tiered_scheme_tests_lib.js # Runs tiers/ tests twice, set up as a page is: program interpreted, then compiled by the tier
 │   ├── compiler/                   # Scheme tests of the compiler's own Scheme
-│   ├── tiers/                      # Scheme tests whose code runs in both tiers: JavaScript calling Scheme, when the tier compiles
+│   ├── tiers/                      # Scheme tests whose code runs in both tiers: JavaScript calling Scheme, when the tier compiles, arity errors
 │   ├── test_bundle.js              # Integration tests for bundled artifact
 │   ├── test_script.scm             # Scheme script test for HTML adapter
 │   │
@@ -390,6 +391,10 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │       ├── exception_tests.scm
 │   │       ├── hygiene_tests.scm    # Basic hygiene
 │   │       ├── macro_hygiene_tests.scm # Advanced hygiene suite
+│   │       ├── library_macro_tests.scm # A library's macros reach its own bindings; libraries' macros of one name kept apart
+│   │       ├── keyword_rename_tests.scm # Syntactic keywords renamed and prefixed on import and export
+│   │       ├── syntax_rules_vector_tests.scm # Vector patterns and templates
+│   │       ├── datum_label_literal_tests.scm # Shared and circular literals through macros; equal? on cycles
 │   │       ├── parameter_tests.scm
 │   │       ├── number_tests.scm     # Numeric tower (r7rs)
 │   │       ├── list_tests.scm       # List library (r7rs)

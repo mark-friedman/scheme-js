@@ -5,7 +5,7 @@
  */
 
 import { stringValue, freshString } from './string_class.js';
-import { list, toArray } from '../interpreter/cons.js';
+import { Cons, toArray } from '../interpreter/cons.js';
 import {
     assertVector,
     assertInteger,
@@ -234,7 +234,11 @@ export const vectorPrimitives = {
     'vector->list': (vec, start, end) => {
         assertVector('vector->list', 1, vec);
         const [s, e] = validateRange('vector->list', vec, start, end);
-        return list(...vec.slice(s, e));
+        // Built from the end, pair by pair: passed to `list` as arguments, a
+        // long vector's elements would overflow the call stack.
+        let result = null;
+        for (let i = e - 1; i >= s; i--) result = new Cons(vec[i], result);
+        return result;
     },
 
     /**

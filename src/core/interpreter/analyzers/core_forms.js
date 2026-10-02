@@ -11,6 +11,7 @@ import {
     LambdaNode,
     IfNode,
     SetNode,
+    LibrarySetNode,
     TailAppNode,
     BeginNode,
     DefineNode,
@@ -18,7 +19,7 @@ import {
 } from '../ast.js';
 import { Cons, cons, list, car, cdr, toArray, cadr, cddr, caddr, cdddr } from '../cons.js';
 import { Symbol, intern } from '../symbol.js';
-import { isSyntaxObject, syntaxName, unwrapSyntax, GLOBAL_SCOPE_ID } from '../syntax_object.js';
+import { isSyntaxObject, syntaxName, unwrapSyntax, GLOBAL_SCOPE_ID, libraryScopeOf, libraryBindingEnv, keywordName, operatorKeyword, bindDefinedMacro } from '../syntax_object.js';
 import { globalContext } from '../context.js';
 import { MacroRegistry } from '../macro_registry.js';
 import { registerHandler } from './registry.js';
@@ -54,12 +55,13 @@ export function initCoreForms(deps) {
 function analyzeWithCurrentMacroRegistry(exp, syntacticEnv, ctx) {
     if (exp instanceof Cons) {
         const tag = exp.car;
-        // Resolve the name of the tag (handling both Symbols and SyntaxObjects)
-        const tagName = (tag instanceof Symbol) ? tag.name : (isSyntaxObject(tag) ? syntaxName(tag) : null);
+        // What the tag names, as `analyze` decides it
+        const transformer = (tag instanceof Symbol || isSyntaxObject(tag))
+            ? operatorKeyword(tag, ctx).transformer
+            : null;
 
         // If it's a macro, expand and re-analyze
-        if (tagName && ctx.currentMacroRegistry.isMacro(tagName)) {
-            const transformer = ctx.currentMacroRegistry.lookup(tagName);
+        if (transformer) {
             const expanded = transformer(exp, syntacticEnv);
             return analyzeWithCurrentMacroRegistry(expanded, syntacticEnv, ctx);
         }
@@ -206,8 +208,7 @@ function analyzeBody(body, syntacticEnv, ctx) {
     for (const exp of bodyArray) {
         if (exp instanceof Cons) {
             const head = exp.car;
-            const headName = (head instanceof Symbol) ? head.name :
-                (isSyntaxObject(head)) ? syntaxName(head) : null;
+            const headName = (head instanceof Symbol || isSyntaxObject(head)) ? keywordName(head) : null;
 
             if (headName === 'define') {
                 const defHead = cadr(exp);
@@ -446,6 +447,13 @@ function analyzeSet(exp, syntacticEnv, ctx) {
 
     // Global assignment fallthrough
     const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
+
+    // An assignment a library's macro introduced is to the library's binding.
+    const libraryScope = libraryScopeOf(varObj);
+    if (libraryScope !== null) {
+        const libraryEnv = libraryBindingEnv(varObj, libraryScope, true);
+        if (libraryEnv !== null) return new LibrarySetNode(name, libraryEnv, valExpr);
+    }
     return new SetNode(name, valExpr);
 }
 
@@ -586,6 +594,8 @@ function analyzeDefineSyntax(exp, syntacticEnv = null, ctx) {
 
             const transformer = compileSyntaxRules(literals, clauses, definingScope, ellipsisName, syntacticEnv);
             ctx.currentMacroRegistry.define(name, transformer);
+            // Not a body's own: a library's, or the top level's
+            if (ctx.currentMacroRegistry === ctx.macroRegistry) bindDefinedMacro(name, transformer);
             return new LiteralNode(null);
         }
     }
@@ -712,6 +722,7 @@ function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
     // debugger can find the transformer's source and name.
     jsTransformer.transformerProcedure = transformerClosure;
     ctx.currentMacroRegistry.define(name, jsTransformer);
+    if (ctx.currentMacroRegistry === ctx.macroRegistry) bindDefinedMacro(name, jsTransformer);
 
     return new LiteralNode(null);
 }

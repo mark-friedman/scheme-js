@@ -69,6 +69,9 @@ import { createInterpreter } from '../src/core/interpreter/index.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { withPrivateLibraries } from '../src/core/interpreter/library_registry.js';
+import { globalMacroRegistry } from '../src/core/interpreter/macro_registry.js';
+import { globalContext } from '../src/core/interpreter/context.js';
+import { GLOBAL_SCOPE_ID } from '../src/core/interpreter/syntax_object.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
 import { installLibraryTable } from '../src/compiler/prebuilt.js';
 import { attachTier } from '../src/compiler/tiering.js';
@@ -318,6 +321,13 @@ const comparable = (output) => output.join('\n').replace(/in [0-9.e-]+ seconds/g
  * @returns {{ms: number, compilingMs: number, compiled: number, right: boolean, output: string, error: (string|null)}}
  */
 function runOnce(program, withTier) {
+  // Each run is a page of its own: what its programs define by name for the
+  // whole process -- a library's macros, and what a top level imports --
+  // goes when it ends, as a page's does. Kept, a library defining its own
+  // `quasiquote` would expand every later run's quasiquotes that find
+  // `quasiquote` by name, as (scheme core) does.
+  const macros = new Map(globalMacroRegistry.macros);
+  const topLevel = new Map(globalContext.keywordBindings.get(GLOBAL_SCOPE_ID) ?? []);
   const output = [];
   const log = console.log;
   const errorLog = console.error;
@@ -376,6 +386,8 @@ function runOnce(program, withTier) {
     console.error = errorLog;
     process.exit = exit;
     process.chdir(cwd);
+    globalMacroRegistry.macros = macros;
+    globalContext.keywordBindings.set(GLOBAL_SCOPE_ID, topLevel);
   }
   return { ...result, output: comparable(output) };
 }

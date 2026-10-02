@@ -4,7 +4,7 @@
  * Provides control flow operations including apply, eval, dynamic-wind, and values.
  */
 
-import { TailCall, Values, isSchemeClosure, isSchemeContinuation, Closure, Continuation } from '../interpreter/values.js';
+import { TailCall, Values, NO_VALUES, isSchemeClosure, isSchemeContinuation, Closure, Continuation } from '../interpreter/values.js';
 import { TailAppNode, LiteralNode, DynamicWindInit, CallWithValuesNode, CallCCNode } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/analyzer.js';
 import { Cons, toArray } from '../interpreter/cons.js';
@@ -71,7 +71,9 @@ export function getControlPrimitives(interpreter) {
          */
         'values': (...args) => {
             if (args.length === 0) {
-                return undefined;
+                // No values, which a consumer receives as no arguments: not
+                // the unspecified value, which is one.
+                return NO_VALUES;
             } else if (args.length === 1) {
                 return args[0];
             } else {

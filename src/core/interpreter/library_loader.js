@@ -11,6 +11,7 @@ import { Environment } from './environment.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { parse } from './reader.js';
 import { globalContext } from './context.js';
+import { GLOBAL_SCOPE_ID } from './syntax_object.js';
 import { SchemeLibraryError } from './errors.js';
 
 // Import from focused modules
@@ -178,6 +179,11 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
     // Which library's top level this is, for the compiler tier, which treats a
     // library body's definitions as it does a program's.
     libEnv.libraryName = libraryName;
+    // The library's scope, which its imports record the keywords they rename
+    // under, and its body's definitions are made in.
+    const libraryScope = globalContext.freshScope();
+    globalContext.registerLibraryScope(libraryScope, libEnv);
+    libEnv.libraryScope = libraryScope;
 
     // Process imports first
     for (const importSpec of libDef.imports) {
@@ -257,8 +263,6 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
     }
 
     // Execute body with a defining scope for referential transparency
-    const libraryScope = globalContext.freshScope();
-    globalContext.registerLibraryScope(libraryScope, libEnv);
     globalContext.pushDefiningScope(libraryScope);
 
     try {
@@ -273,17 +277,24 @@ function evaluateLibraryDefinitionCore(libDef, analyze, interpreter, baseEnv, st
     // Build exports map
     const exports = new Map();
     for (const exp of libDef.exports) {
+        // A variable the library binds; else a keyword, under its own name or
+        // the name the library imported it as, a macro with the transformer it
+        // names here; else a JavaScript global, which a variable lookup falls
+        // back to -- last, since browsers define globals named like keywords,
+        // `when` among them.
         let value;
-        try {
+        const bound = globalContext.keywordBinding(libraryScope, exp.internal);
+        const keyword = bound?.keyword ?? exp.internal;
+        if (libEnv.findEnv(exp.internal) !== null) {
             value = libEnv.lookup(exp.internal);
-        } catch (e) {
-            if (globalMacroRegistry.isMacro(exp.internal)) {
-                value = { _isMacro: true, name: exp.internal };
-            } else if (SYNTAX_KEYWORDS.has(exp.internal)) {
-                value = { _isKeyword: true, name: exp.internal };
-            } else {
-                throw e;
-            }
+        } else if (bound?.transformer) {
+            value = { _isMacro: true, name: keyword, transformer: bound.transformer };
+        } else if (bound === undefined && globalMacroRegistry.isMacro(keyword)) {
+            value = { _isMacro: true, name: keyword, transformer: globalMacroRegistry.lookup(keyword) };
+        } else if (SYNTAX_KEYWORDS.has(keyword)) {
+            value = { _isKeyword: true, name: keyword };
+        } else {
+            value = libEnv.lookup(exp.internal);
         }
         exports.set(exp.external, value);
     }
@@ -425,13 +436,19 @@ export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, base
  */
 export function applyImports(env, exports, importSpec) {
     for (const [name, value] of exports) {
-        // If it's a macro or keyword marker, don't define it in the environment.
-        // It's already handled by the analyzer/macro registry.
+        const imported = importedName(name, importSpec.steps ?? []);
+
+        // A macro or keyword is not defined in the environment, but bound to
+        // the name it is imported under where it is imported: in the library
+        // whose environment this is, or else at a program's top level.
         if (value && (value._isMacro || value._isKeyword)) {
+            if (imported !== null) {
+                globalContext.defineKeyword(env.libraryScope ?? GLOBAL_SCOPE_ID, imported, value.name,
+                    value._isMacro ? value.transformer : null);
+            }
             continue;
         }
 
-        const imported = importedName(name, importSpec.steps ?? []);
         if (imported !== null) env.define(imported, value);
     }
 }

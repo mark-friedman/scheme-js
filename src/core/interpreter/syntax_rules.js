@@ -1,6 +1,6 @@
-import { Cons, cons, list } from './cons.js';
+import { Cons, cons, list, toArray } from './cons.js';
 import { Symbol, intern } from './symbol.js';
-import { SyntaxObject, globalScopeRegistry, internSyntax, flipScopeInExpression, identifierEquals, unwrapSyntax } from './syntax_object.js';
+import { SyntaxObject, globalScopeRegistry, internSyntax, flipScopeInExpression, identifierEquals, unwrapSyntax, libraryScopeOf, keywordName } from './syntax_object.js';
 import { globalContext } from './context.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { SPECIAL_FORMS } from './library_registry.js';
@@ -59,6 +59,13 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
     // Keep literals as objects for hygienic comparison (using bound-identifier=?)
     const literalIds = literals;
 
+    // A macro defined in a library marks what its templates introduce with
+    // the library's scope, so that their references find the library's
+    // bindings (see `libraryBindingEnv` in syntax_object.js).
+    const libraryScope = definingScope !== null && globalContext.lookupLibraryEnv(definingScope) !== undefined
+        ? definingScope
+        : null;
+
     return (exp, useSiteEnv = null) => {
         // exp is the macro call: (macro-name arg1 ...)
         // useSiteEnv is the syntactic environment at the macro invocation site
@@ -84,13 +91,13 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
             // Pass useSiteEnv for free-identifier=? comparison on literals
             // Determine definition environment for literal comparison
             const definitionEnv = capturedEnv || (definingScope !== null ? globalContext.lookupLibraryEnv(definingScope) : null);
-            const bindings = matchPattern(pattern, input, literalIds, ellipsisName, useSiteEnv, expansionScope, definitionEnv);
+            const bindings = matchPattern(pattern, input, literalIds, ellipsisName, useSiteEnv, expansionScope, definitionEnv, definingScope);
 
             if (bindings) {
                 // Pure marks hygiene: no renaming needed.
                 // All identifiers will be marked with expansionScope during transcription,
                 // making introduced bindings distinguishable from user bindings.
-                return transcribe(template, bindings, expansionScope, ellipsisName, literalIds, capturedEnv);
+                return transcribe(template, bindings, expansionScope, ellipsisName, literalIds, capturedEnv, libraryScope);
             }
         }
         // Extract macro name for better error message
@@ -114,9 +121,11 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
  * @param {SyntacticEnv} useSiteEnv - Environment at macro invocation for free-identifier=?
  * @param {number|null} expansionScope - Scope to flip on input identifiers for hygiene
  * @param {Environment|SyntacticEnv|null} definitionEnv - Environment of macro definition
+ * @param {number|null} literalScope - Where the macro was defined, which is
+ *        where its literals name the keywords they do
  * @returns {Map<string, *> | null} Bindings map or null if failed.
  */
-function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv = null, expansionScope = null, definitionEnv = null) {
+function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv = null, expansionScope = null, definitionEnv = null, literalScope = null) {
     // 1. Variables (Symbols or SyntaxObjects)
     // SyntaxObjects can appear when patterns come from macro-expanded define-syntax
     if (pattern instanceof Symbol || pattern instanceof SyntaxObject) {
@@ -132,13 +141,13 @@ function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv
         });
 
         if (isLiteral) {
-            const patName = pattern instanceof SyntaxObject ? pattern.name : pattern.name;
-            const inputName = (input instanceof Symbol) ? input.name :
-                (input instanceof SyntaxObject) ? input.name : null;
-
-            // Names must match
-            if (inputName !== patName) {
-                return null; // Different names - no match
+            // The input must name what the literal does: the same name, or
+            // the same keyword imported under different names where each is.
+            if (!(input instanceof Symbol || input instanceof SyntaxObject)) {
+                return null;
+            }
+            if (keywordName(input) !== keywordName(pattern, literalScope)) {
+                return null;
             }
 
             // free-identifier=? semantics: if the input identifier is locally 
@@ -179,7 +188,14 @@ function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv
         return null;
     }
 
-    // 3. Lists (Cons)
+    // 3. Vectors: #(P ...) matches a vector whose elements match, just as
+    // (P ...) matches a list of them, ellipses included (R7RS 4.3.2).
+    if (Array.isArray(pattern)) {
+        if (!Array.isArray(input)) return null;
+        return matchPattern(list(...pattern), list(...input), literals, ellipsisName, useSiteEnv, expansionScope, definitionEnv, literalScope);
+    }
+
+    // 4. Lists (Cons)
     if (pattern instanceof Cons) {
         // if (!(input instanceof Cons)) return null; // Incorrect for (x ...) matching ()
 
@@ -216,7 +232,7 @@ function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv
                 // Collect matches
                 for (let k = 0; k < matchCount; k++) {
                     if (!(iCurr instanceof Cons)) return null;
-                    const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName, useSiteEnv, expansionScope);
+                    const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName, useSiteEnv, expansionScope, definitionEnv, literalScope);
                     if (!subBindings) return null; // Failed to match one item
                     mergeBindings(bindings, subBindings, true);
                     iCurr = iCurr.cdr;
@@ -230,7 +246,7 @@ function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv
                 // Handle improper input list if pattern expects more
                 if (!(iCurr instanceof Cons)) return null;
 
-                const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName, useSiteEnv, expansionScope);
+                const subBindings = matchPattern(patItem, iCurr.car, literals, ellipsisName, useSiteEnv, expansionScope, definitionEnv, literalScope);
                 if (!subBindings) return null;
                 mergeBindings(bindings, subBindings, false);
 
@@ -248,7 +264,7 @@ function matchPattern(pattern, input, literals, ellipsisName = '...', useSiteEnv
         // Dotted pattern tail: (a . b)
         // pCurr is the tail (b)
         // Match tail against remaining input
-        const tailBindings = matchPattern(pCurr, iCurr, literals, ellipsisName, useSiteEnv, expansionScope);
+        const tailBindings = matchPattern(pCurr, iCurr, literals, ellipsisName, useSiteEnv, expansionScope, definitionEnv, literalScope);
         if (!tailBindings) return null;
         mergeBindings(bindings, tailBindings, false);
 
@@ -301,15 +317,41 @@ function mergeBindings(target, source, isEllipsis) {
 }
 
 /**
+ * Marks an identifier a template introduces, rather than one a pattern
+ * variable substitutes: with the expansion's scope, which keeps it apart from
+ * the user's identifiers of the same name, and, if a library defined the
+ * macro, with the library's scope, which is how a reference it makes finds
+ * the library's binding of its name.
+ *
+ * An identifier carrying a library's scope already keeps it alone: it was
+ * written in that library, by a macro of its that wrote this macro's template,
+ * and refers into that library, not this one.
+ *
+ * @param {Symbol|SyntaxObject} id - The template's identifier.
+ * @param {number} expansionScope - This expansion's scope.
+ * @param {number|null} libraryScope - The defining library's scope, or null.
+ * @returns {SyntaxObject|Symbol} The marked identifier.
+ */
+function markIntroduced(id, expansionScope, libraryScope) {
+    const inLibrary = libraryScope !== null && libraryScopeOf(id) === null;
+    if (id instanceof SyntaxObject) {
+        return (inLibrary ? id.addScope(libraryScope) : id).flipScope(expansionScope);
+    }
+    return internSyntax(id.name, new Set(inLibrary ? [libraryScope, expansionScope] : [expansionScope]));
+}
+
+/**
  * Transcribes a template literally (for escaped ellipsis handling).
  * Marks all identifiers with the expansion scope.
  * 
  * @param {*} template - The template to transcribe
  * @param {Map} bindings - Pattern variable bindings
  * @param {number|null} expansionScope - Scope ID for marking free variables
+ * @param {number|null} [libraryScope] - The scope of the library that defined
+ *        the macro, or null if no library did
  * @returns {*} The transcribed literal
  */
-function transcribeLiteral(template, bindings, expansionScope) {
+function transcribeLiteral(template, bindings, expansionScope, libraryScope = null) {
     // Symbol or SyntaxObject: substitute pattern variables, keep others with scope mark
     if (template instanceof Symbol || template instanceof SyntaxObject) {
         let name = null;
@@ -330,10 +372,7 @@ function transcribeLiteral(template, bindings, expansionScope) {
 
         // All other identifiers: mark with expansion scope (pure marks hygiene)
         if (expansionScope !== null) {
-            if (template instanceof SyntaxObject) {
-                return template.flipScope(expansionScope);
-            }
-            return internSyntax(name, new Set([expansionScope]));
+            return markIntroduced(template, expansionScope, libraryScope);
         }
 
         return template;
@@ -344,10 +383,15 @@ function transcribeLiteral(template, bindings, expansionScope) {
         return template;
     }
 
+    // Vectors - their elements, likewise
+    if (Array.isArray(template)) {
+        return template.map((element) => transcribeLiteral(element, bindings, expansionScope, libraryScope));
+    }
+
     // Lists - recurse but treat ... literally
     if (template instanceof Cons) {
-        const car = transcribeLiteral(template.car, bindings, expansionScope);
-        const cdr = transcribeLiteral(template.cdr, bindings, expansionScope);
+        const car = transcribeLiteral(template.car, bindings, expansionScope, libraryScope);
+        const cdr = transcribeLiteral(template.cdr, bindings, expansionScope, libraryScope);
         return new Cons(car, cdr);
     }
 
@@ -364,16 +408,18 @@ function transcribeLiteral(template, bindings, expansionScope) {
  * @param {string} ellipsisName - The ellipsis identifier (default '...')
  * @param {Array} literals - List of literal identifiers
  * @param {Environment|null} capturedEnv - Captured lexical environment
+ * @param {number|null} libraryScope - The scope of the library that defined
+ *        the macro, or null if no library did
  * @returns {*} Expanded expression.
  */
-function transcribe(template, bindings, expansionScope = null, ellipsisName = '...', literals = new Set(), capturedEnv = null) {
+function transcribe(template, bindings, expansionScope = null, ellipsisName = '...', literals = new Set(), capturedEnv = null, libraryScope = null) {
     if (template === null) return null;
 
     // 1. Variables (Symbols or SyntaxObjects)
     if (template instanceof Symbol || template instanceof SyntaxObject) {
         // Unwrap SyntaxObject if it wraps a Cons list (recurse on content)
         if (template instanceof SyntaxObject && template.name instanceof Cons) {
-            return transcribe(template.name, bindings, expansionScope, ellipsisName, literals, capturedEnv);
+            return transcribe(template.name, bindings, expansionScope, ellipsisName, literals, capturedEnv, libraryScope);
         }
 
         const name = template instanceof SyntaxObject ? template.name : template.name;
@@ -403,10 +449,7 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
 
         // All other identifiers (free variables, introduced bindings): mark with expansion scope
         if (expansionScope !== null) {
-            if (template instanceof SyntaxObject) {
-                return template.flipScope(expansionScope);
-            }
-            return internSyntax(name, new Set([expansionScope]));
+            return markIntroduced(template, expansionScope, libraryScope);
         }
 
         // Fallback: keep as-is (primitives, special forms, macros, or no expansionScope)
@@ -418,7 +461,13 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
         return template;
     }
 
-    // 3. Lists (Cons)
+    // 3. Vectors: built from their elements as the list of them would be,
+    // ellipses included.
+    if (Array.isArray(template)) {
+        return toArray(transcribe(list(...template), bindings, expansionScope, ellipsisName, literals, capturedEnv, libraryScope));
+    }
+
+    // 4. Lists (Cons)
     if (template instanceof Cons) {
         let carName = null;
         if (template.car instanceof Symbol) {
@@ -432,7 +481,7 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
         // This applies to the custom ellipsis name if one was specified
         if (carName === ellipsisName) {
             if (template.cdr instanceof Cons && template.cdr.cdr === null) {
-                return transcribeLiteral(template.cdr.car, bindings, expansionScope);
+                return transcribeLiteral(template.cdr.car, bindings, expansionScope, libraryScope);
             }
         }
 
@@ -462,14 +511,14 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
             }
 
             // Expand N times
-            let expandedList = transcribe(restTemplate, bindings, expansionScope, ellipsisName, literals, capturedEnv);
+            let expandedList = transcribe(restTemplate, bindings, expansionScope, ellipsisName, literals, capturedEnv, libraryScope);
 
             for (let i = len - 1; i >= 0; i--) {
                 const subBindings = new Map(bindings);
                 for (const v of listVars) {
                     subBindings.set(v, bindings.get(v)[i]);
                 }
-                const expandedItem = transcribe(item, subBindings, expansionScope, ellipsisName, literals, capturedEnv);
+                const expandedItem = transcribe(item, subBindings, expansionScope, ellipsisName, literals, capturedEnv, libraryScope);
                 expandedList = new Cons(expandedItem, expandedList);
             }
 
@@ -477,8 +526,8 @@ function transcribe(template, bindings, expansionScope = null, ellipsisName = '.
         } else {
             // Regular cons
             return new Cons(
-                transcribe(template.car, bindings, expansionScope, ellipsisName, literals, capturedEnv),
-                transcribe(template.cdr, bindings, expansionScope, ellipsisName, literals, capturedEnv)
+                transcribe(template.car, bindings, expansionScope, ellipsisName, literals, capturedEnv, libraryScope),
+                transcribe(template.cdr, bindings, expansionScope, ellipsisName, literals, capturedEnv, libraryScope)
             );
         }
     }
@@ -503,6 +552,8 @@ function getPatternVars(template, bindings) {
         } else if (node instanceof Cons) {
             traverse(node.car);
             traverse(node.cdr);
+        } else if (Array.isArray(node)) {
+            node.forEach(traverse);
         }
     }
     traverse(template);
@@ -529,6 +580,8 @@ function collectPatternVars(pattern, literals, ellipsisName = '...') {
         } else if (node instanceof Cons) {
             traverse(node.car);
             traverse(node.cdr);
+        } else if (Array.isArray(node)) {
+            node.forEach(traverse);
         }
     }
     traverse(pattern);

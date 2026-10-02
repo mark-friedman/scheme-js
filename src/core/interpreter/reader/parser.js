@@ -12,7 +12,7 @@ import { handleDotAccess, buildPropertyAccessForm } from './dot_access.js';
 import { processSymbolEscapes, processStringEscapes } from './string_utils.js';
 import { parseNumber } from './number_parser.js';
 import { readCharacter } from './character.js';
-import { Placeholder } from './datum_labels.js';
+import { Placeholder, noteLabelReference } from './datum_labels.js';
 import { createSourceInfo } from './tokenizer.js';
 
 /**
@@ -125,6 +125,7 @@ export function readFromTokens(tokens, state) {
         if (!placeholder) {
             throw new SchemeReadError(`reference to undefined label #${id}#`, 'datum label');
         }
+        noteLabelReference();
         return handleDotAccess(placeholder, tokens);
     }
 
