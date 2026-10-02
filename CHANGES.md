@@ -10300,3 +10300,107 @@ colours only the delimiters on each line.
 JavaScript under `src/`: 18 lines added and 1 removed -- `errors.js` (+10), `tokenizer.js` (+4),
 `expression_utils.js` (+1) and the bundle's exports (+3 -1). The offset in the reader is the agreed
 exception; the rest fixes the REPL's helpers in place. `web/repl.js`, outside `src/`, is +83 -134.
+
+# Circular structure: `write` and `display` label it, and a program's literals may hold it (2026-10-02)
+
+## Why
+
+Two R7RS requirements on circular data did not hold, found checking the reader against the corpus,
+where rapid-syntax's tests quote `'(bar . #0=(baz . #0#))`:
+
+- `write` and `display` must terminate on circular structure, labelling the objects that form a
+  cycle and only those (R7RS 6.13.3). Both followed a cycle until JavaScript ran out of array
+  length or stack. The REPL's `prettyPrint` did the same.
+- A program may hold circular structure in its literals (R7RS 2.4), but `(car '#0=(a . #0#))`
+  overflowed the stack in both tiers before it ran: the expander's three copiers of a form --
+  `unwrapSyntax`, which `quote` uses; `addScopeToExpression`, which binding forms apply to their
+  bodies; `flipScopeInExpression`, which macro expansion applies -- copied it as a tree.
+
+On the way: `write-shared` wrote a cycle reached through a list's tail as `(bar baz . ...)`, which
+reads as nothing, and a shared tail as `((1 2 3) #0=(2 3))`, its label on the second occurrence, so
+the sharing was lost; and `write-simple`, which must never write labels, called `write`'s printer.
+
+## The change
+
+- `io/printer.js`: one writer for all four procedures, which first walks the value depth first to
+  find the objects to label and then writes it, numbering labels in the order they are written. An
+  object reached again while it is still being walked closes a cycle, and every cycle has one;
+  `write` and `display` label those, `write-shared` also every object reached twice, and
+  `write-simple` none. A labelled pair in a list's tail ends the list after a dot, so its label can
+  be written. A list's pairs are walked in a loop, so a long list takes no stack frame per element.
+  `isCircular` tells the REPL's printer whether a value has a cycle of pairs and vectors, the only
+  structure it follows; it then shows the value as `write` does.
+- `syntax_object.js`: the three copiers share `mapForm`, which copies each pair and vector once
+  however often it is reached, so a quoted datum keeps its cycles and its sharing:
+  `'(#0=(1) #0#)` now evaluates to a list whose two elements are `eq?`, where they were two copies.
+- `tests/run_scheme_tests_lib.js`: a test's name that is the expression it tests is written with
+  `write`, as the tiered runner already wrote it, rather than with `Cons.prototype.toString`, which
+  follows a cycle.
+
+## Verification
+
+Tests written first: in `write_tests.scm`, what `write`, `display` and `write-shared` write for
+cycles through cdrs, cars and vectors, two cycles, one written twice, shared structure without a
+cycle (no labels from `write`), a shared tail, and that what `write` writes reads back as the same
+cycle; in `reader_tests.scm`, circular and shared literals at top level, in a procedure's body, in
+`let` and `lambda` bodies, through a macro and as a self-evaluating vector; in
+`tier_compiles_tests.scm`, a procedure walking a circular literal, compiled by the tier in its
+second run; in `unit_tests.js`, the REPL's printer on a circular list and vector. The tiered test
+crashed with the stack overflow before the change.
+
+7,040 tests pass in Node with none failing (33 skipped), and 6,843 in the browser with none
+failing (53 skipped), served from this checkout on a port not used before.
+
+Start-up is unchanged within its noise, though every binding form's body now goes through
+`mapForm`'s Map: the CLI's `(display 1)`, the committed tree and this one alternating, eight runs
+each, three rounds, best 292-321 ms against 301-314 with the tier and 159-168 against 159-166
+without. Writing a large value costs more, the price of the walk's Map: a list of 200,000 integers
+27 ms against 10, a tree of 2^14 leaves 9.8 against 6.7, `display` of a three-element list 0.36 us
+against 0.20.
+
+JavaScript under `src/`: 264 lines added and 261 removed, rewriting in place: `io/printer.js`
+(+168 -194), `syntax_object.js` (+74 -61), `interpreter/printer.js` (+19 -3), and the exports.
+The printer is to become Scheme (66) and the expander too (45); these are fixes to both in place,
+and the plan's entries for them now say what their ports must keep.
+
+# The side tasks, merged (2026-10-02)
+
+Four tasks run in worktrees of their own were merged into `compiler-investigation`, after this
+branch's own commits, which none of them depended on: the library-values identity fix
+(`claude/prebuilt-identity`, already fast-forwarded as `3b2a409`), the corpus's test programs and
+their conformance fixes (`claude/corpus-conformance`, fast-forwarded), the reader's comment and
+bracket fixes with the REPLs' multi-line input (`claude/brave-mcnulty-49750f`, merged as
+`6ca2b7d`), and circular structure in `write`, `display` and literals (`claude/quirky-shaw-89845e`,
+this merge).
+
+## Where they met
+
+- `src/core/interpreter/reader/tokenizer.js`: an identifier's delimiters are the corpus fixes' --
+  R7RS 7.1.1's, with `"` and `|` -- and also the start of a block comment, the reader fix's.
+- `src/core/interpreter/syntax_object.js`: both the corpus fixes and the circular-structure task had
+  made the copies of a form -- unwrapping syntax, flipping and adding a scope -- keep a literal's
+  shared and circular structure. The corpus fixes' `copyDatum` copies as a tree until a datum label
+  has been read or the copy outgrows a limit, and walks a list's spine iteratively; the other's
+  `mapForm` always copied as a graph, recursing on each `cdr`, so a long list took a JavaScript
+  frame per element. `copyDatum` is kept, `addScopeToExpression` uses it too, and `mapForm` is gone:
+  the circular-structure walkthrough above names it, and its measurement of `mapForm`'s `Map` is of
+  code no longer in the tree. Task 45's row in the plan names `copyDatum`.
+- `CHANGES.md` and `docs/compiler_plan.md`: entries both sides appended, kept.
+
+## What merging found
+
+- **Fuzz program 111 ran out of JavaScript stack compiled**, on the corpus branch alone (R105): the
+  arity test at the head of every fast form reads `arguments.length`, and code made at run time by
+  `new Function` was sloppy, where `arguments` is an object aliased to the parameters, so frames
+  grew past the stack room each procedure reserves. `instantiate` in `src/compiler/host.js` now
+  makes the code strict, as it already is in the prebuilt tables, which are modules.
+- **The unit suite stopped** at the reader task's test that `a|# b` is one identifier: since the
+  corpus fixes a vertical line is a delimiter, as R7RS 7.1.1 has it, so `a` ends there and `|# b`
+  begins an unterminated `|symbol|`. The test now says that `a|#| b` is `a` and the symbol `#`.
+
+## Verification
+
+The prebuilt tables rebuilt to a fixed point, unchanged by the merges. 7,428 tests pass in Node with
+none failing (34 skipped), and 7,223 in the browser with none failing (55 skipped), every changed
+file refetched first. JavaScript under `src/`: the strict-mode prefix and its comment in
+`host.js`, code generation; `mapForm` removed from `syntax_object.js`.

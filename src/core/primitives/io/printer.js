@@ -16,7 +16,7 @@ import { SchemeString } from '../string_class.js';
  * @returns {string}
  */
 export function displayString(val) {
-    return genericToString(val, 'display');
+    return printValue(val, 'display', 'cycles');
 }
 
 /**
@@ -25,16 +25,158 @@ export function displayString(val) {
  * @returns {string}
  */
 export function writeString(val) {
-    return genericToString(val, 'write');
+    return printValue(val, 'write', 'cycles');
 }
 
 /**
- * Internal generic string conversion with mode support.
+ * Converts a Scheme value to its write representation with shared structure detection.
+ * Uses datum labels (#n= and #n#) for cycles and shared objects.
+ * @param {*} val
+ * @returns {string}
+ */
+export function writeStringShared(val) {
+    return printValue(val, 'write', 'shared');
+}
+
+/**
+ * Converts a Scheme value to its write representation without datum labels,
+ * as `write-simple` writes it: it does not terminate on circular structure.
+ * @param {*} val
+ * @returns {string}
+ */
+export function writeStringSimple(val) {
+    return printValue(val, 'write', 'none');
+}
+
+/**
+ * Whether a value holds a cycle of pairs and vectors: one that can be
+ * reached from itself through them. Records and other objects are not
+ * followed, for a printer that does not write their fields.
+ * @param {*} val
+ * @returns {boolean}
+ */
+export function isCircular(val) {
+    const isPairOrVector = (obj) => obj instanceof Cons || Array.isArray(obj);
+    return isPairOrVector(val) && objectsToLabel(val, 'cycles', isPairOrVector).size > 0;
+}
+
+/**
+ * Converts a value to text, giving datum labels (R7RS 2.4) to the objects
+ * `labelling` asks for: 'cycles', one object in each cycle and no others, as
+ * `write` and `display` must (R7RS 6.13.3), so that a value with no cycle has
+ * no labels; 'shared', every object written more than once, as
+ * `write-shared` does; or 'none'. Labels are numbered in the order they are
+ * written.
+ * @param {*} val - Value to convert
+ * @param {'display'|'write'} mode - Printer mode
+ * @param {'cycles'|'shared'|'none'} labelling - Which objects get labels
+ * @returns {string}
+ */
+function printValue(val, mode, labelling) {
+    if (!isCompound(val)) return atomToString(val, mode);
+    const labelled = labelling === 'none' ? new Set() : objectsToLabel(val, labelling);
+    const unlabelled = labelled.size === 0;
+    const labels = new Map();  // labelled object -> its number, once written
+
+    function emit(obj) {
+        if (!isCompound(obj)) return atomToString(obj, mode);
+        if (unlabelled || !labelled.has(obj)) return body(obj);
+        const label = labels.get(obj);
+        if (label !== undefined) return `#${label}#`;
+        const next = labels.size;
+        labels.set(obj, next);
+        return `#${next}=${body(obj)}`;
+    }
+
+    function body(obj) {
+        if (obj instanceof Cons) {
+            // A pair in the list's tail that has a label ends the list after
+            // a dot, so that its label can be written
+            const parts = [emit(obj.car)];
+            let rest = obj.cdr;
+            while (rest instanceof Cons && (unlabelled || !labelled.has(rest))) {
+                parts.push(emit(rest.car));
+                rest = rest.cdr;
+            }
+            if (rest === null) return '(' + parts.join(' ') + ')';
+            return '(' + parts.join(' ') + ' . ' + emit(rest) + ')';
+        }
+        if (Array.isArray(obj)) return '#(' + obj.map(emit).join(' ') + ')';
+        return objectToString(obj, emit);
+    }
+
+    return emit(val);
+}
+
+/**
+ * Finds the objects a value's written form gives datum labels.
+ *
+ * A depth-first walk: an object reached again while it is still being
+ * walked, an ancestor of where it is reached, closes a cycle, and every
+ * cycle has one such object -- the first of it the walk reaches. With
+ * `labelling` 'shared', an object reached again after its walk ended is
+ * labelled too. A list's pairs are walked in a loop down its cdrs, so a long
+ * list does not take a stack frame per element.
+ * @param {*} root - A pair, vector or record.
+ * @param {'cycles'|'shared'} labelling - As for `printValue`.
+ * @param {function(*): boolean} [follows] - Which values are walked into.
+ * @returns {Set<Object>} The objects to label.
+ */
+function objectsToLabel(root, labelling, follows = isCompound) {
+    const labelled = new Set();
+    // Each object reached: WALKING while it is being walked, then WALKED
+    const state = new Map();
+
+    function visit(obj) {
+        if (!follows(obj)) return;
+        const reached = state.get(obj);
+        if (reached !== undefined) {
+            if (reached === WALKING || labelling === 'shared') labelled.add(obj);
+            return;
+        }
+        if (obj instanceof Cons) {
+            let pair = obj;
+            let length = 0;
+            while (pair instanceof Cons && !state.has(pair)) {
+                state.set(pair, WALKING);
+                length++;
+                visit(pair.car);
+                pair = pair.cdr;
+            }
+            visit(pair);
+            for (let p = obj, i = 0; i < length; i++, p = p.cdr) state.set(p, WALKED);
+            return;
+        }
+        state.set(obj, WALKING);
+        const children = Array.isArray(obj) ? obj : objectFieldValues(obj);
+        for (const child of children) visit(child);
+        state.set(obj, WALKED);
+    }
+
+    visit(root);
+    return labelled;
+}
+
+const WALKING = 1;
+const WALKED = 2;
+
+/**
+ * Whether a value is written with the values it holds: a pair, a vector, or
+ * a record or other object written as `#{...}`.
+ * @param {*} val
+ * @returns {boolean}
+ */
+function isCompound(val) {
+    return val instanceof Cons || Array.isArray(val) || isObjectLike(val);
+}
+
+/**
+ * Converts a value that holds no other values to text.
  * @param {*} val - Value to convert
  * @param {'display'|'write'} mode - Printer mode
  * @returns {string}
  */
-function genericToString(val, mode) {
+function atomToString(val, mode) {
     // A mutable string is written as the characters it holds.
     if (val instanceof SchemeString) val = val.toString();
 
@@ -98,16 +240,8 @@ function genericToString(val, mode) {
         return '#\\' + ch;
     }
 
-    // 7. Compound Structures (Recursive with same mode)
-    const elemFn = mode === 'display' ? displayString : writeString;
-    if (val instanceof Cons) return consToString(val, elemFn);
-    if (Array.isArray(val)) return vectorToString(val, elemFn);
+    // 7. Bytevectors, which hold only bytes
     if (val instanceof Uint8Array) return bytevectorToString(val);
-
-    // 8. Object-like (Records, JS Objects)
-    if (isObjectLike(val)) {
-        return objectToString(val, elemFn);
-    }
 
     return String(val);
 }
@@ -175,181 +309,6 @@ function symbolNeedsEscaping(name) {
 }
 
 
-/**
- * Converts a Scheme value to its write representation with shared structure detection.
- * Uses datum labels (#n= and #n#) for cycles and shared objects.
- * @param {*} val
- * @returns {string}
- */
-export function writeStringShared(val) {
-    // First pass: find shared/cyclic objects
-    const seen = new Map();  // object -> { count: number, id: number|null }
-    let nextId = 0;
-
-    function countOccurrences(obj) {
-        if (obj === null || typeof obj !== 'object') return;
-        if (typeof obj === 'function') return;
-
-        // Skip non-compound types (but include object-like values)
-        if (!(obj instanceof Cons) && !Array.isArray(obj) && !isObjectLike(obj)) return;
-
-        if (seen.has(obj)) {
-            const info = seen.get(obj);
-            info.count++;
-            if (info.id === null) {
-                info.id = nextId++;
-            }
-        } else {
-            seen.set(obj, { count: 1, id: null });
-            if (obj instanceof Cons) {
-                countOccurrences(obj.car);
-                countOccurrences(obj.cdr);
-            } else if (Array.isArray(obj)) {
-                for (const elem of obj) {
-                    countOccurrences(elem);
-                }
-            } else if (isObjectLike(obj)) {
-                // Traverse object values for circular reference detection
-                for (const key of Object.keys(obj)) {
-                    if (key !== 'type' && key !== 'typeDescriptor') {
-                        countOccurrences(obj[key]);
-                    }
-                }
-            }
-        }
-    }
-
-    countOccurrences(val);
-
-    // Second pass: build output with datum labels
-    const emitted = new Set();  // objects that have been output with #n=
-
-    function emit(obj) {
-        // Only pairs, vectors and records can be shared; anything else is
-        // written as `write` writes it, characters and numbers included.
-        if (!(obj instanceof Cons) && !Array.isArray(obj) && !isObjectLike(obj)) return writeString(obj);
-        // Handle compound types with sharing detection
-        if (obj instanceof Cons || Array.isArray(obj) || isObjectLike(obj)) {
-            const info = seen.get(obj);
-            if (info && info.id !== null) {
-                if (emitted.has(obj)) {
-                    // Already emitted - use reference
-                    return `#${info.id}#`;
-                } else {
-                    // First emission - add label
-                    emitted.add(obj);
-                    if (obj instanceof Cons) {
-                        return `#${info.id}=${consToStringShared(obj, emit)}`;
-                    } else if (Array.isArray(obj)) {
-                        return `#${info.id}=${vectorToStringShared(obj, emit)}`;
-                    } else {
-                        return `#${info.id}=${objectToStringShared(obj, emit)}`;
-                    }
-                }
-            } else {
-                // Not shared - normal output
-                if (obj instanceof Cons) {
-                    return consToStringShared(obj, emit);
-                } else if (Array.isArray(obj)) {
-                    return vectorToStringShared(obj, emit);
-                } else {
-                    return objectToStringShared(obj, emit);
-                }
-            }
-        }
-
-        if (obj instanceof Uint8Array) return bytevectorToString(obj);
-
-        return String(obj);
-    }
-
-    function objectToStringShared(obj, emitFn) {
-        const entries = Object.entries(obj).filter(([key]) => {
-            return key !== 'type' && key !== 'typeDescriptor';
-        });
-
-        if (entries.length === 0) {
-            return '#{}';
-        }
-
-        const parts = entries.map(([key, value]) => {
-            const keyStr = formatObjectKey(key);
-            const valStr = emitFn(value);
-            return `(${keyStr} ${valStr})`;
-        });
-
-        return '#{' + parts.join(' ') + '}';
-    }
-
-    function consToStringShared(cons, emitFn) {
-        const parts = [];
-        let current = cons;
-        const visitedInChain = new Set();
-
-        while (current instanceof Cons) {
-            // Check if this cons is shared and already referenced
-            const info = seen.get(current);
-            if (info && info.id !== null && emitted.has(current) &&
-                (current !== cons || parts.length > 0)) {
-                // Terminate with improper tail reference
-                return '(' + parts.join(' ') + ' . #' + info.id + '#)';
-            }
-
-            // Detect cycle within same chain (not via datum labels)
-            if (visitedInChain.has(current)) {
-                return '(' + parts.join(' ') + ' . ...)';
-            }
-            visitedInChain.add(current);
-
-            parts.push(emitFn(current.car));
-            current = current.cdr;
-        }
-
-        if (current === null) {
-            return '(' + parts.join(' ') + ')';
-        } else {
-            return '(' + parts.join(' ') + ' . ' + emitFn(current) + ')';
-        }
-    }
-
-    function vectorToStringShared(vec, emitFn) {
-        return '#(' + vec.map(emitFn).join(' ') + ')';
-    }
-
-    return emit(val);
-}
-
-/**
- * Converts a cons cell to a string.
- * @param {Cons} cons
- * @param {Function} elemFn - Function to convert elements.
- * @returns {string}
- */
-function consToString(cons, elemFn) {
-    const parts = [];
-    let current = cons;
-    while (current instanceof Cons) {
-        parts.push(elemFn(current.car));
-        current = current.cdr;
-    }
-    if (current === null) {
-        return '(' + parts.join(' ') + ')';
-    } else {
-        // Improper list
-        return '(' + parts.join(' ') + ' . ' + elemFn(current) + ')';
-    }
-}
-
-/**
- * Converts a vector to a string.
- * @param {Array} vec
- * @param {Function} elemFn
- * @returns {string}
- */
-function vectorToString(vec, elemFn) {
-    return '#(' + vec.map(elemFn).join(' ') + ')';
-}
-
 function bytevectorToString(bv) {
     return '#u8(' + Array.from(bv).join(' ') + ')';
 }
@@ -387,15 +346,11 @@ function isObjectLike(val) {
  * Format: #{(key1 val1) (key2 val2) ...}
  * Keys that are valid Scheme identifiers are unquoted; others are quoted strings.
  * @param {Object} obj - The object to convert.
- * @param {Function} elemFn - Function to convert values (displayString or writeString).
+ * @param {Function} elemFn - Converts each field's value to text.
  * @returns {string} The #{...} representation.
  */
 function objectToString(obj, elemFn) {
-    const entries = Object.entries(obj).filter(([key]) => {
-        // Skip internal properties like 'type', 'typeDescriptor' for records
-        // But include all user-defined fields
-        return key !== 'type' && key !== 'typeDescriptor';
-    });
+    const entries = objectFields(obj);
 
     if (entries.length === 0) {
         return '#{}';
@@ -408,6 +363,25 @@ function objectToString(obj, elemFn) {
     });
 
     return '#{' + parts.join(' ') + '}';
+}
+
+/**
+ * The fields of an object written as `#{...}`, as [key, value] pairs: all but
+ * a record's internal 'type' and 'typeDescriptor'.
+ * @param {Object} obj
+ * @returns {Array<[string, *]>}
+ */
+function objectFields(obj) {
+    return Object.entries(obj).filter(([key]) => key !== 'type' && key !== 'typeDescriptor');
+}
+
+/**
+ * The values of an object's fields, as `objectFields` gives them.
+ * @param {Object} obj
+ * @returns {Array<*>}
+ */
+function objectFieldValues(obj) {
+    return objectFields(obj).map(([, value]) => value);
 }
 
 /**

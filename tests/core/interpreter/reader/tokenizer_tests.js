@@ -50,8 +50,9 @@ export function runTokenizerTests(logger) {
     assert(logger, '#| in a line comment', values('a ; #| not a comment\nb'), 'a b');
     // An identifier ends where a comment starts, as at whitespace
     assert(logger, 'a block comment ends an identifier', values('(a#|c|#b)'), '( a b )');
-    // Outside a comment, |# is not special: an identifier may hold it
-    assert(logger, '|# in an identifier', values('a|# b'), 'a|# b');
+    // Outside a comment, |# is not special. A vertical line is a delimiter
+    // (R7RS 7.1.1), so after an identifier it begins a |symbol|
+    assert(logger, '|# outside a comment begins a |symbol|', values('a|#| b'), 'a |#| b');
 
     // Square brackets are tokens of their own, as parentheses are, for the
     // parser to report: R7RS 2.3 reserves them

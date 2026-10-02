@@ -2925,6 +2925,17 @@ SRFI 35's, from Taylan Kammer's collection, is pinned too. Neither was the obsta
 `(srfi 64)`'s `source-info.sld` imports R6RS's `(rnrs syntax-case (6))`, so the corpus's SRFI 64,
 and every test written against it, cannot be loaded by an R7RS-small implementation.
 
+**R105. Code compiled at run time ran as the prebuilt tables' code does.**
+
+It did not: the tables are ES modules, so their code is strict, while `instantiate` in
+`src/compiler/host.js` made a run-time procedure with `new Function`, whose code is sloppy unless it
+says otherwise. Nothing told the two apart until a procedure's code read `arguments` -- the arity
+test the corpus fixes put at the head of every fast form -- where sloppy code makes an object
+aliased to the parameters. Its frames grew past the stack room each procedure reserves, and fuzz
+program 111, a compiled recursion 6,768 deep through a second procedure, ran out of JavaScript stack
+before its frames moved to the heap, while the same code in a table would not have. Run-time code
+is strict now, as the tables' is.
+
 ---
 
 ## Appendix — the original staged plan

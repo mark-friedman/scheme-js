@@ -814,30 +814,20 @@ export function syntaxScopes(obj) {
  * @returns {any} Expression with scope marks added to all identifiers
  */
 export function addScopeToExpression(exp, scope) {
-    // Handle Symbol - wrap as SyntaxObject with scope
-    if (exp instanceof Symbol) {
-        return internSyntax(exp.name, new Set([scope]));
-    }
-
-    // Handle SyntaxObject - add scope to existing
-    if (exp instanceof SyntaxObject) {
-        return exp.addScope(scope);
-    }
-
-    // Handle Cons - recurse on car and cdr
-    if (exp instanceof Cons) {
-        const car = addScopeToExpression(exp.car, scope);
-        const cdr = addScopeToExpression(exp.cdr, scope);
-        return new Cons(car, cdr);
-    }
-
-    // Handle arrays (vectors)
-    if (Array.isArray(exp)) {
-        return exp.map(e => addScopeToExpression(e, scope));
-    }
-
-    // Primitives pass through unchanged
-    return exp;
+    // Pairs and vectors, as a graph, which a literal written with datum
+    // labels may be
+    return copyDatum(exp, (leaf) => {
+        // Handle Symbol - wrap as SyntaxObject with scope
+        if (leaf instanceof Symbol) {
+            return internSyntax(leaf.name, new Set([scope]));
+        }
+        // Handle SyntaxObject - add scope to existing
+        if (leaf instanceof SyntaxObject) {
+            return leaf.addScope(scope);
+        }
+        // Primitives pass through unchanged
+        return leaf;
+    });
 }
 
 /**

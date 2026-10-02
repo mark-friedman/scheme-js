@@ -92,9 +92,17 @@ const hostProcedures = {
   // generated code gets a scope of its own and cannot see the compiler's
   // bindings. Returns the procedure, or a string saying why it could not be
   // made.
+  //
+  // The code runs in strict mode, as the same code does in the prebuilt
+  // tables, which are modules. A procedure's fast form tests how many
+  // arguments it was given with `arguments.length`, and in sloppy code
+  // `arguments` is an object aliased to the parameters: dearer to make, and
+  // frames larger than the stack room each procedure reserves, so deep
+  // compiled recursion ran out of JavaScript stack before its frames moved to
+  // the heap.
   'instantiate': (source, env, constants, span) => {
     try {
-      const procedure = new Function('R', 'E', 'K', text(source))(R, env, toArray(constants));
+      const procedure = new Function('R', 'E', 'K', `'use strict';\n${text(source)}`)(R, env, toArray(constants));
       return R.recordSource(procedure, span === false ? null : span);
     } catch (e) {
       return `code generation failed: ${e.message}`;
