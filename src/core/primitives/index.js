@@ -23,6 +23,7 @@ import { bytevectorPrimitives } from './bytevector.js';
 import { syntaxPrimitives } from './syntax.js';
 import { getPromisePrimitives } from '../../extras/primitives/promise.js';
 import { hashTablePrimitives } from '../../extras/primitives/hash_table.js';
+import { bitwisePrimitives } from '../../extras/primitives/bitwise.js';
 import { jsInteropPrimitives } from './js_interop_primitives.js';
 import { classPrimitives } from './class.js';
 
@@ -75,6 +76,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(syntaxPrimitives);
     addPrimitives(getPromisePrimitives(interpreter));
     addPrimitives(hashTablePrimitives);
+    addPrimitives(bitwisePrimitives);
     addPrimitives(jsInteropPrimitives);
     addPrimitives(classPrimitives);
 

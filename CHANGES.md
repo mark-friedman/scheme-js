@@ -9563,3 +9563,50 @@ The prebuilt tables rebuilt twice, to a fixed point. 6,773 tests pass in Node wi
 (33 skipped), and 6,576 in the browser with none failing (53 skipped), from an origin whose copies
 of the changed files were refetched first. JavaScript under `src/`: none added or removed; Scheme
 93 lines added and 75 removed.
+
+# SRFI 151, bitwise operations (2026-10-02)
+
+## Why
+
+Found in task 80: liveness in the compiler keeps its sets of locals as lists, and its unions, which
+test each member of one set against the whole of the other, are a sixth of what compiling costs the
+canonical programs under the tier. The usual representation for such sets is bits, and this Scheme
+had no bitwise operations. Under *Scheme first*, a capability Scheme lacks is built as a library
+over the minimum JavaScript, and a general helper is an SRFI implemented in full, so SRFI 151 comes
+first, as a library any program can import.
+
+## The library
+
+`(srfi 151)`, in `src/extras/scheme/151.sld` and `bitwise.scm`, is the whole SRFI: the basic
+operations, the integer operations, single bits, bit fields, conversion to and from lists and
+vectors of booleans, and fold, unfold and a generator. An exact integer is read as an infinite
+two's-complement bit string, which is what a JavaScript `BigInt` already is, so the operations that
+need its operators are JavaScript, in `src/extras/primitives/bitwise.js`: `bitwise-and`,
+`bitwise-ior` and `bitwise-xor`, which take any number of arguments themselves, since a Scheme
+wrapper's rest list would be allocated on every call and they are what a bit set's operations are
+made of; `arithmetic-shift`; and `bit-count` and `integer-length`, which read the binary digits.
+They are `%`-prefixed primitives, exported under SRFI 151's names by the library (`(rename
+%bitwise-and bitwise-and)`). Everything else is Scheme over them, each procedure checking its
+arguments: an exact integer, a non-negative index, a field whose end is not before its start, a
+boolean, a procedure. Like every shipped library it is compiled at build time; its table has 44
+procedures.
+
+## Tests
+
+`tests/extras/scheme/srfi_151_tests.scm`: every example SRFI 151 gives, run as written, and the
+argument checks. Writing them found that the Scheme test runners could not report an exact integer
+beyond 2^53 as a test's expected or actual value: a JavaScript function called from Scheme is given
+its arguments converted for JavaScript, which such an integer cannot be, and the reporters of
+`tests/run_scheme_tests_lib.js` and `tests/run_compiler_scheme_tests_lib.js` were plain JavaScript
+functions. They write the values as Scheme does, so they are marked as taking Scheme values, as the
+tiered runner's already was. The plain runner loads `(srfi 151)` before the test files run, as it
+does the other SRFIs, since an import in a test file runs synchronously and its resolver does not.
+
+## Verification
+
+6,929 tests pass in Node with none failing (33 skipped), and 6,732 in the browser with none failing
+(53 skipped), from an origin whose copies of the changed files were refetched first. The compiler's
+table is unchanged: the compiler does not import the library yet (`compiler_plan.md`, task 80, says
+why that waits). JavaScript under `src/`: `bitwise.js`, the
+`BigInt` core of the library -- the item *the cores of libraries that need a JavaScript feature --
+... `BigInt`* -- and two lines registering it in `src/core/primitives/index.js`.

@@ -315,7 +315,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       ├── primitives/             # JavaScript primitives for extensions
 │       │   ├── interop.js          # JS interop: js-eval, js-ref, js-set!
 │       │   ├── promise.js          # Promise interop primitives
-│       │   └── hash_table.js       # Map-backed store under SRFI 125; native hash functions
+│       │   ├── hash_table.js       # Map-backed store under SRFI 125; native hash functions
+│       │   └── bitwise.js          # BigInt operators under SRFI 151
 │       └── scheme/                 # Scheme library files
 │           ├── promise.sld         # (scheme-js promise) library declaration
 │           ├── promise.scm         # Promise utilities and macros
@@ -325,6 +326,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── comparator.scm      # SRFI 128 implementation
 │           ├── 1.sld               # (srfi 1) lists
 │           ├── list_lib.scm        # SRFI 1 implementation; the compiler imports (srfi 1)
+│           ├── 151.sld             # (srfi 151) bitwise operations
+│           ├── bitwise.scm         # SRFI 151 implementation
 │           ├── 152.sld             # (srfi 152) strings
 │           └── string_lib.scm      # SRFI 152 implementation; the compiler imports (srfi 152)
 │

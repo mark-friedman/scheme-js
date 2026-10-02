@@ -2,6 +2,7 @@ import { run } from './harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../src/core/interpreter/library_loader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { writeString } from '../src/core/primitives/io/printer.js';
+import { SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
 
 export async function runSchemeTests(interpreter, logger, testFiles, fileLoader) {
     logger.title('Running Scheme Tests...');
@@ -64,6 +65,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     await loadLibrary(['srfi', '125'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['srfi', '1'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['srfi', '152'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['srfi', '151'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'inexact'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'file'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'read'], analyze, interpreter, interpreter.globalEnv);
@@ -87,8 +89,10 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
 
     // And control macros: 'when', 'unless', 'or', etc. are now in (scheme base) via (scheme control)
 
-    // Inject native reporter
-    interpreter.globalEnv.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
+    // Inject native reporter. It writes the values as Scheme does, so it takes
+    // them as Scheme values: converted for JavaScript, an exact integer beyond
+    // 2^53 could not be passed at all.
+    const reportTestResult = (name, passed, expected, actual) => {
         const expectedStr = writeString(expected);
         const actualStr = writeString(actual);
         if (passed) {
@@ -96,7 +100,9 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
         } else {
             logger.fail(`${name} (Expected: ${expectedStr}, Got: ${actualStr})`);
         }
-    });
+    };
+    reportTestResult[SCHEME_PRIMITIVE] = true;
+    interpreter.globalEnv.bindings.set('native-report-test-result', reportTestResult);
 
     interpreter.globalEnv.bindings.set('native-log-title', (title) => {
         logger.title(title);

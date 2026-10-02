@@ -43,10 +43,14 @@ export async function runCompilerSchemeTests(logger, testFiles, fileLoader) {
   logger.title('Running Scheme Tests of the Compiler...');
   const { interpreter, env } = compilerEnvironment();
 
-  env.define('native-report-test-result', (name, passed, expected, actual) => {
+  // Takes Scheme values, which it writes as Scheme does: converted for
+  // JavaScript, an exact integer beyond 2^53 could not be passed at all.
+  const reportTestResult = (name, passed, expected, actual) => {
     const detail = `(Expected: ${writeString(expected)}, Got: ${writeString(actual)})`;
     if (passed) logger.pass(`${name} ${detail}`); else logger.fail(`${name} ${detail}`);
-  });
+  };
+  reportTestResult[SCHEME_PRIMITIVE] = true;
+  env.define('native-report-test-result', reportTestResult);
   env.define('native-log-title', (title) => logger.title(title));
   // The analyzer is JavaScript, so a test that wants to lower real source
   // rather than a hand-written AST asks for it through this: a `define` or a

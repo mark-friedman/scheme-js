@@ -188,6 +188,7 @@ export const schemeTestFiles = [
     'tests/extras/scheme/srfi_125_tests.scm',
     'tests/extras/scheme/srfi_1_tests.scm',
     'tests/extras/scheme/srfi_152_tests.scm',
+    'tests/extras/scheme/srfi_151_tests.scm',
     'tests/functional/test_defmacro.scm',
 ];
 
