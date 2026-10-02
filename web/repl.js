@@ -253,6 +253,68 @@ export const replTemplate = `
     </div>
 `;
 
+// ==================== Rainbow Parens ====================
+
+/**
+ * How many colours the depths of parentheses cycle through, each a
+ * `.paren-N` class in `replStyles`.
+ * @type {number}
+ */
+const PAREN_COLORS = 6;
+
+/**
+ * Escapes text for HTML.
+ * @param {string} s - Text.
+ * @returns {string} HTML showing it.
+ */
+function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * Renders source code as HTML, its delimiter parentheses coloured by how
+ * deeply they nest. A `)` with none open is marked as a mismatch and closes
+ * nothing. The rest is escaped text, its line breaks kept, so the HTML splits
+ * into the text's lines.
+ * @param {string} text - Source code.
+ * @param {Array<{position: number, open: boolean}>} parens - Its delimiter
+ *   parentheses, in order, as `delimiterParens` finds them.
+ * @param {Set<number>} [matched] - The positions of a pair of parentheses to
+ *   mark as matching.
+ * @returns {string} HTML.
+ */
+export function renderRainbowParens(text, parens, matched = new Set()) {
+    let html = '';
+    let depth = 0;
+    let end = 0;
+    for (const { position, open } of parens) {
+        html += escapeHtml(text.slice(end, position));
+        end = position + 1;
+        const match = matched.has(position) ? ' paren-match' : '';
+        if (open) {
+            html += `<span class="paren-${depth % PAREN_COLORS}${match}">(</span>`;
+            depth++;
+        } else if (depth === 0) {
+            html += '<span class="paren-mismatch">)</span>';
+        } else {
+            depth--;
+            html += `<span class="paren-${depth % PAREN_COLORS}${match}">)</span>`;
+        }
+    }
+    return html + escapeHtml(text.slice(end));
+}
+
+/**
+ * How deeply the end of some text nests: how many of its delimiter
+ * parentheses are open and not closed. A `)` with none open closes nothing.
+ * @param {Array<{position: number, open: boolean}>} parens - The text's
+ *   delimiter parentheses, in order, as `delimiterParens` finds them.
+ * @returns {number} The depth.
+ */
+export function nestingDepth(parens) {
+    return parens.reduce((depth, { open }) => (open ? depth + 1 : Math.max(0, depth - 1)), 0);
+}
+
 /**
  * setupRepl
  * @param {Object} interpreter - The Scheme interpreter instance
@@ -270,13 +332,14 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         prettyPrint,
         isCompleteExpression,
         findMatchingDelimiter,
+        delimiterParens,
         ReplDebugBackend,
         ReplDebugCommands,
         SchemeDebugRuntime
     } = deps;
 
-    if (!parse || !analyze || !prettyPrint || !isCompleteExpression || !findMatchingDelimiter) {
-        console.error("Missing dependencies for REPL setup. Please pass { parse, analyze, prettyPrint, isCompleteExpression, findMatchingDelimiter }.");
+    if (!parse || !analyze || !prettyPrint || !isCompleteExpression || !findMatchingDelimiter || !delimiterParens) {
+        console.error("Missing dependencies for REPL setup. Please pass { parse, analyze, prettyPrint, isCompleteExpression, findMatchingDelimiter, delimiterParens }.");
     }
 
     // Debugger state
@@ -349,8 +412,6 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         });
     }
 
-    const PAREN_COLORS = 6;
-
     // ==================== History Functions ====================
 
     /**
@@ -361,8 +422,9 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
 
         if (type === 'input') {
             div.className = 'repl-history-multiline';
-            const lines = content.split('\n');
-            let depth = 0;
+            // Rendered whole, so that a list, string or block comment over
+            // several lines is read as one, then shown a line at a time
+            const lines = renderRainbowParens(content, delimiterParens(content)).split('\n');
 
             lines.forEach((line, i) => {
                 const lineDiv = document.createElement('div');
@@ -374,10 +436,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
 
                 const contentSpan = document.createElement('span');
                 contentSpan.className = 'repl-history-input';
-                contentSpan.innerHTML = renderRainbowParens(line, -1, depth);
-
-                // Update depth for next line
-                depth = calculateDepthAfterLine(line, depth);
+                contentSpan.innerHTML = line;
 
                 lineDiv.appendChild(promptSpan);
                 lineDiv.appendChild(contentSpan);
@@ -393,43 +452,6 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
 
         history.appendChild(div);
         shell.scrollTop = shell.scrollHeight;
-    }
-
-    // ==================== Depth Calculation ====================
-
-    /**
-     * Calculate paren depth after processing a line, starting from initialDepth
-     */
-    function calculateDepthAfterLine(line, initialDepth) {
-        let depth = initialDepth;
-        let inString = false;
-        let inComment = false;
-
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-
-            if (inComment) continue;
-
-            if (inString) {
-                if (char === '\\' && i + 1 < line.length) { i++; continue; }
-                if (char === '"') inString = false;
-                continue;
-            }
-
-            if (char === ';') { inComment = true; continue; }
-            if (char === '"') { inString = true; continue; }
-            if (char === '(') depth++;
-            if (char === ')') depth = Math.max(0, depth - 1);
-        }
-
-        return depth;
-    }
-
-    /**
-     * Calculate paren depth at end of text
-     */
-    function calculateDepth(text) {
-        return calculateDepthAfterLine(text.replace(/\n/g, ''), 0);
     }
 
     // ==================== Prompt Management ====================
@@ -525,95 +547,22 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         }
     }
 
-    // ==================== Rainbow Parens ====================
-
-    function escapeHtml(s) {
-        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    // ==================== Main Update Function ====================
 
     /**
-     * Render text with rainbow-colored parens
+     * The parenthesis at the cursor and the one it matches, to highlight: the
+     * one just before the cursor, or else the one just after it.
+     * @param {string} text - The input.
+     * @param {number} cursorPos - The cursor's position in it.
+     * @returns {Set<number>} The two positions, or none if there is no match.
      */
-    function renderRainbowParens(text, cursorPos, initialDepth) {
-        let html = '';
-        let depth = initialDepth;
-        let inString = false;
-        let inComment = false;
-
-        // Find matching paren if cursor is on one
-        let matchPos = -1;
-        if (cursorPos >= 0 && cursorPos <= text.length) {
-            // Check char before cursor
-            if (cursorPos > 0 && '()'.includes(text[cursorPos - 1])) {
-                matchPos = findMatchingDelimiter(text, cursorPos - 1);
-            } else if (cursorPos < text.length && '()'.includes(text[cursorPos])) {
-                matchPos = findMatchingDelimiter(text, cursorPos);
-            }
-        }
-
-        const matchSet = new Set();
-        if (matchPos !== null && matchPos >= 0) {
-            matchSet.add(matchPos);
-            if (cursorPos > 0 && '()'.includes(text[cursorPos - 1])) {
-                matchSet.add(cursorPos - 1);
-            } else if (cursorPos >= 0 && cursorPos < text.length && '()'.includes(text[cursorPos])) {
-                matchSet.add(cursorPos);
-            }
-        }
-
-        for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-
-            if (c === '\n') {
-                inComment = false;
-                html += '\n';
-                continue;
-            }
-
-            if (inComment) {
-                html += escapeHtml(c);
-                continue;
-            }
-
-            if (inString) {
-                if (c === '\\' && i + 1 < text.length) {
-                    html += escapeHtml(c + text[++i]);
-                    continue;
-                }
-                if (c === '"') inString = false;
-                html += escapeHtml(c);
-                continue;
-            }
-
-            if (c === ';') { inComment = true; html += escapeHtml(c); continue; }
-            if (c === '"') { inString = true; html += escapeHtml(c); continue; }
-
-            if (c === '(') {
-                const cls = `paren-${depth % PAREN_COLORS}${matchSet.has(i) ? ' paren-match' : ''}`;
-                html += `<span class="${cls}">(</span>`;
-                depth++;
-                continue;
-            }
-
-            if (c === ')') {
-                depth--;
-                if (depth < 0) {
-                    html += `<span class="paren-mismatch">)</span>`;
-                    depth = 0;
-                } else {
-                    const cls = `paren-${depth % PAREN_COLORS}${matchSet.has(i) ? ' paren-match' : ''}`;
-                    html += `<span class="${cls}">)</span>`;
-                }
-                continue;
-            }
-
-            html += escapeHtml(c);
-        }
-
-        return html;
+    function matchedPair(text, cursorPos) {
+        const position = cursorPos > 0 && '()'.includes(text[cursorPos - 1]) ? cursorPos - 1
+            : cursorPos >= 0 && cursorPos < text.length && '()'.includes(text[cursorPos]) ? cursorPos
+            : null;
+        const match = position === null ? null : findMatchingDelimiter(text, position);
+        return match === null ? new Set() : new Set([position, match]);
     }
-
-    // ==================== Main Update Function ====================
 
     /**
      * Update highlight overlay to match input content
@@ -621,7 +570,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
     function updateOverlay() {
         const text = inputArea.textContent || '';
         const cursor = getCursorPos();
-        highlightLayer.innerHTML = renderRainbowParens(text, cursor, 0);
+        highlightLayer.innerHTML = renderRainbowParens(text, delimiterParens(text), matchedPair(text, cursor));
         updatePrompts();
     }
 
@@ -730,7 +679,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                     const cursor = getCursorPos();
                     const before = text.slice(0, cursor);
                     const after = text.slice(cursor);
-                    const depth = calculateDepth(before);
+                    const depth = nestingDepth(delimiterParens(before));
                     const indent = '  '.repeat(depth);
 
                     inputArea.textContent = before + '\n' + indent + after;

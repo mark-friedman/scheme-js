@@ -10037,3 +10037,266 @@ as was the code it replaces, and so is the emitter's arity test.
 browser had not used, every new test among the results: 6,891 passed, 0 failed, 54 skipped.
 `run_tier.js --set corpus`: 22 programs, no wrong answers; `--set canonical,tests,page`: none
 either.
+
+# The reader: `#|` inside strings, |symbols| and characters (2026-10-02)
+
+## Why
+
+The reader took block comments out of its input before tokenizing it, in a pass over the raw text
+that knew nothing of strings, `|symbols|`, characters or line comments, so a `#|` anywhere opened a
+comment. The string `"#|"` read as an unterminated string; `(a "#|x" "y|#" b)` read as a list of
+`a`, a string of blanks and `b`; `'(#\#|a|)` and `'(|a#| b)` commented out the rest of the input up
+to the next `|#`; and so did a line comment that mentioned `#|`. R7RS 2.2 has `#|` begin a comment
+only where a token could begin. Found reading rapid-read's tests from the corpus:
+`(read-error "#|#||")`, in `rapid/read-test.sld`, could not be read at all.
+
+The pass also dropped a comment's opening `#|` without leaving spaces in its place, so a token
+after a block comment on the same line was given a column two short of its own -- wrong positions
+for the debugger.
+
+And the tests of block comments in `reader_syntax_tests.scm` and the chibi compliance tests,
+`(read (open-input-string "#| comment |# 5"))` and the like, passed only because of the bug: the
+pass took the comment out of the string literal in the test file, so `read` never saw one. Given
+one, `read` on a port failed. It goes through `reader_bridge.js`, which collects one datum's
+characters before parsing them, and that did not know block comments either: it took the `|` of
+`#|` for the start of a `|symbol|`, and returned `#` for that input. Nor did it know characters:
+`#\|`, `#\(` and `#\"` opened a symbol, a list or a string.
+
+## The change
+
+- `tokenizer.js`: a block comment is skipped where whitespace and line comments are, between
+  tokens, with the comments nested in it, and the position tracking runs over it, so the token
+  after it is placed where it is in the source. Inside a string, a `|symbol|`, a character or a
+  line comment, `#|` is part of that token or comment. A comment ends an identifier, as whitespace
+  would: `(a#|c|#b)` is still `(a b)`. An unterminated block comment is now a read error saying
+  where it began; before, it silently commented out the rest of the input. `stripBlockComments`,
+  the pass, is gone.
+- `reader_bridge.js`: collecting a datum from a port, a `#|` outside a string or `|symbol|` is
+  read through to its matching `|#` and left in the text for the parser to skip, and `#\` takes
+  the character after it, whatever it is.
+
+## Verification
+
+Tests written first: in `reader_syntax_tests.scm`, a group of `#|` and `|#` in strings, in
+`|symbols|` and around characters, in the file's own source and read from ports, and the block
+comment group extended -- comments between the data of one port, holding parentheses, quotes and
+semicolons, nested, over lines, after `#;`, hidden by a line comment, and unterminated; in
+`tokenizer_tests.js`, the same at the level of tokens, in place of the tests of
+`stripBlockComments`; in `source_location_tests.js`, the line and column of tokens after a block
+comment on its line, nested, spanning lines and with CR LF, and of a list holding one.
+
+6,983 tests pass in Node with none failing (33 skipped), and 6,786 in the browser with none
+failing (53 skipped), served from this checkout on a port of its own so that no other checkout's
+cached files ran. Of the corpus's 351 Scheme files, 350 read exactly as before, the two others
+with block comments among them (`srfi-135/texts-test.sps`, `srfi-64/srfi-64-test.scm`), and
+rapid-read's `read-test.sld` now reads, its four strings holding `#|` intact. No shipped source
+contains `#|`, and `npm run prebuild` leaves the prebuilt tables as they were.
+
+JavaScript under `src/`: 91 lines added and 54 removed, all fixing the reader in place --
+`tokenizer.js` (+51 -48), `reader_bridge.js` (+37) and `reader/index.js` (+3 -5). The reader is
+JavaScript until it is ported (63); a fix to it in place is allowed. No Scheme under `src/`.
+
+# The reader: square brackets are a read error, not a reader that never returns (2026-10-02)
+
+## Why
+
+`(a [b] c)`, or a `[` or `]` anywhere outside a string, `|symbol|`, character or comment, made the
+reader loop forever, and with it `read`, `load` and the loading of a library. The tokenizer's
+`readAtom` stops at a bracket, as at a parenthesis, but no rule of the tokenizer took a bracket as
+a token, so at one it read an empty atom, dropped it, and tried the same position again.
+
+What a bracket should mean is undecided: ROADMAP.md defers, pending the user's preference, whether
+`[ ]` is kept for computed property access, `(expr)[key]`, or read as parentheses as R6RS and many
+Schemes do. R7RS 2.3 reserves them for future extensions. Of the corpus's 351 Scheme files only
+one uses them, an R6RS test file (`srfi-41/r6rs-test.ss`), and nothing in this repository's
+sources, tests or benchmarks does.
+
+## The change
+
+The tokenizer takes `[` and `]` as tokens of their own, as it does parentheses, and the parser
+reports one as reserved, with its line, and what to write instead: `read: '[' is reserved for
+future extensions (R7RS 2.3); write '(' instead at line 1`. An error leaves either meaning open;
+ROADMAP.md says so beside the deferred decision. A port's `read` and the browser REPL's
+completeness check need no change: neither treats a bracket as a delimiter, so both hand it to the
+parser, which reports it.
+
+## Verification
+
+Tests written first, which hung before the fix: in `reader_syntax_tests.scm`, a bracket read from
+a port, alone, in a list and in a `let` binding, is a read error, and in a string, a `|symbol|`, a
+character or a comment it is text; in `reader_tests.js`, the error's message and line, after `#;`
+and after an identifier; in `tokenizer_tests.js`, brackets as tokens and their positions.
+
+7,010 tests pass in Node with none failing (33 skipped), and 6,813 in the browser with none
+failing (53 skipped), served from this checkout on a port not used before. Over the corpus, the
+R6RS file that hung now stops at its first bracket, line 119; every other file reads as it did.
+
+Found on the way, not changed here: `write` does not terminate on circular structure, though
+`write-shared` does, and a quoted circular literal in a program, `'#0=(a . #0#)`, which R7RS 2.4
+allows, overflows the stack.
+
+JavaScript under `src/`: 10 lines added and 1 removed, fixing the reader in place --
+`tokenizer.js` (+4 -1) and `parser.js` (+6). The reader is JavaScript until it is ported (63).
+
+# The browser REPL asks the reader whether its input is complete (2026-10-02)
+
+## Why
+
+The browser REPL submits its input on Enter when `isCompleteExpression` (`expression_utils.js`)
+says the input is complete, and otherwise starts another line. That function had a scanner of its
+own, which knew strings, line comments and nested block comments, but not characters or
+`|symbols|`: `#\"` opened a string, `#\(` a list, and the `#|` in `'|a#|` a block comment. So
+`(display #\")`, `(list #\( 1)` and `'|a#|`, each one complete datum, never submitted, and Enter
+kept adding lines. Of the corpus's 351 Scheme files, 7 could not be pasted in and run, each holding
+a `#\"`. Since the reader's fix earlier today, `#|` inside strings, `|symbols|` and characters, the
+reader and this scanner disagreed about where a comment starts, too.
+
+`findMatchingDelimiter`, which finds the parenthesis to highlight against the one at the cursor,
+had the same blind spots, and its backward search knew no comments at all: in `(list #\( 1)` the
+final `)` matched the `(` of `#\(`, and in `(a #| ( |# b)` the one in the comment.
+
+Asking the reader instead showed it had holes of its own at the end of the input, where the REPL
+looks. A string whose last quote is escaped, `"\"`, read as the string `\`, because the parser
+took any token ending in a quote for an ended string; `|abc` read as the symbol `|abc`, and a lone
+`|` as the empty symbol; and `#\` at the end was an unknown character name.
+
+## The change
+
+- `errors.js`: `SchemeReadError.endOfInput` makes a read error marked `incomplete`, for input that
+  ends inside a datum, so that more input could complete it.
+- `tokenizer.js`: input that ends inside a string, a `|symbol|` or a block comment, or just after
+  `#\`, is such an error, saying where the token began. Each token records its `offset` in the
+  input.
+- `parser.js`: each error for running out of tokens is marked `incomplete`: a list, vector,
+  bytevector or object literal not closed, a quote, `#;` or datum label with nothing after it, and
+  a dot with nothing after it. A dot before `)` and a second datum after a dot are still plain
+  errors. No message changes.
+- `expression_utils.js`: `isCompleteExpression` reads the input and calls it complete unless
+  reading fails with an `incomplete` error. An error more input cannot mend, such as an unbalanced
+  `)` or a reserved bracket, counts as complete, so that Enter submits it and evaluating it reports
+  the error, as before. `findMatchingDelimiter` walks the parentheses among the tokenizer's tokens,
+  `(`, `#(`, `#u8(` and `)`, so a parenthesis in a string, a `|symbol|`, a character or a comment
+  is no delimiter and has no match. While the text ends inside one of those it cannot be
+  tokenized, and nothing is highlighted, where the old forward scan could still find a match before
+  it. `analyzeDelimiters`, a third scanner with the same blind spots and no callers, is removed.
+
+## Verification
+
+Tests written first: `expression_utils_tests.js`, a new module, of complete and incomplete input
+-- characters, `|symbols|`, strings and comments holding the delimiters of the others, escaped
+quotes and bars, each way the input can end inside a datum -- and of matching parentheses past and
+inside each of those; in `reader_tests.js`, which read errors are marked incomplete and which not,
+and the unterminated strings and `|symbols|` that read wrongly before; in `tokenizer_tests.js`,
+the errors for input ending inside a token, their line and column, and token offsets over comments
+and CR LF; in `reader_syntax_tests.scm`, `read` from a port signals a read error for them. 85 of the
+new tests failed before the change, the three inputs above among them.
+
+7,178 tests pass in Node with none failing (33 skipped), and 6,981 in the browser with none failing
+(53 skipped), served from this checkout on a port not used before, with the new tests' names in
+its output. In the REPL at `web/index.html`, `(display #\")`, `(list #\( 1)` and `'|a#|` each
+submit on Enter, `(+ 1` and `(f "a)"` take another line, and the cursor after `(list #\( 1)`
+highlights the first `(`. All 351 corpus files read exactly as before, errors included, and
+`isCompleteExpression` changes its answer only for the 7 files above, from incomplete to complete.
+
+Found on the way, not changed here: the Node REPL (`repl.js`) decides whether to read another line
+by matching messages the reader never produces (`'Unexpected EOF'`, `"Missing ')'"`), so `(+ 1`
+there is reported as an error rather than continued; it could ask `incomplete` instead.
+`web/repl.js` keeps two more scanners, for colouring parentheses and for indenting a new line,
+which know strings and line comments only, so `#\(` is coloured as an opening parenthesis and
+deepens the indentation. And the tokenizer's atoms do not end at `"` or `|`, which R7RS 7.1.1 makes
+delimiters: `abc"d"` is one atom.
+
+JavaScript under `src/`: 127 lines added and 346 removed, all fixing in place what is JavaScript
+until the reader is ported (63) -- `expression_utils.js` (+60 -327), `tokenizer.js` (+28 -9),
+`parser.js` (+16 -10) and `errors.js` (+23). No Scheme under `src/`.
+
+# The Node REPL continues an expression over lines (2026-10-02)
+
+## Why
+
+The REPL `node repl.js` starts with no arguments could not take an expression over more than one
+line. Typing `(+ 1` and Enter reported `read: missing ')' (while reading list)`, and the `2)`
+typed next a second error. Node's REPL continues a line when its evaluator reports the input
+`Recoverable`, and `repl.js` decided that by matching the error's message against
+`'Unexpected EOF'`, `"Missing ')'"` and `'Unterminated string'`, none of which the reader writes:
+its messages begin `read:` and are in lower case. Every incomplete line also logged
+`Parse error in input:` to standard error, besides the error itself.
+
+## The change
+
+`repl.js` asks the reader instead, as the browser REPL now does: input whose reading fails with a
+`SchemeReadError` marked `incomplete` -- a list or vector not closed, a string, `|symbol|` or block
+comment not ended, a quote, `#;` or `#\` with nothing after it -- is `Recoverable`, and Node's REPL
+prompts for another line and reads both. The input is read whole before any of it is evaluated,
+and only an error reading it is recoverable: evaluating `(read (open-input-string "(a"))` raises
+the same incomplete read error, and taking that for unfinished input would have the REPL wait for
+more and then evaluate everything again. The input is read with the parse error log suppressed;
+an error more input cannot mend, such as an unbalanced `)`, is still reported, at once.
+
+## Verification
+
+Tests written first: `cli_repl_input_tests.js`, a new Node-only module, runs `repl.js` with input
+piped in, each expression written once the one before is answered -- a list, a string and a block
+comment continued on the next line, characters and a `|symbol|` holding the other delimiters on
+one, an unbalanced `)` reported and the next line a new expression, and a read error from
+evaluating reported rather than continued. All 8 failed before the change. With the change made
+but evaluation errors also allowed to be recoverable, the last test fails, the REPL left waiting.
+
+7,186 tests pass in Node with none failing (33 skipped), and 6,981 in the browser with none failing
+(54 skipped: the new module is Node-only), served from this checkout on a port not used before.
+`printf '(+ 1\n2)\n' | node repl.js` prints `3`.
+
+No JavaScript under `src/`: the fix is in `repl.js`, the CLI's start-up, at the root (+20 -10).
+
+# The browser REPL colours and indents by the reader's parentheses (2026-10-02)
+
+## Why
+
+After its completeness check and parenthesis matching came to ask the reader, the browser REPL
+still had two scanners of its own in `web/repl.js`: `renderRainbowParens`, which colours
+parentheses by depth, and `calculateDepthAfterLine`, which sets how deep Enter indents a new line.
+Both knew strings and line comments only. In `(list #\( 1)` the `(` of `#\(` was coloured as
+opening a list and the closing `)` given the colour of the wrong depth; `(f #\(` and Enter indented
+two levels; a parenthesis in a `|symbol|` or block comment counted. A history entry was coloured a
+line at a time, so a string or block comment over lines was misread from its second line, and the
+indent depth was found with the input's line breaks taken out, so a line comment hid the lines
+after it.
+
+And the change before last left `findMatchingDelimiter` with no match at all while the input ended
+inside a string, `|symbol|` or block comment -- the usual state while typing one -- because the
+tokenizer could not read such text.
+
+## The change
+
+- `tokenizer.js`, `errors.js`: an error for input that ends inside a string, `|symbol|`, block
+  comment or `#\` carries the `offset` where that begins. An exception to *Scheme first*, agreed
+  for this change: it extends the reader, which is JavaScript until it is ported, by an offset
+  beside the line and column it already reported, rather than have the REPL work the offset out
+  from the line and column by the tokenizer's rules for line endings.
+- `expression_utils.js`: `delimiterParens`, now exported, gives the delimiter parentheses of the
+  text before what it ends inside, those of the text up to that offset; `findMatchingDelimiter`
+  matches them, so a pair before an unfinished string matches again.
+- `web/repl.js`: `renderRainbowParens` colours the parentheses `delimiterParens` finds, and
+  `nestingDepth` counts them for the indent; both are module functions now, tested on their own.
+  A history entry is rendered whole and then split into lines. `delimiterParens` reaches the REPL
+  as `findMatchingDelimiter` does, through `setupRepl`'s dependencies, from `web/main.js` and the
+  web component's bundle (`scheme_entry.js`, `scheme_repl_wc.js`).
+
+## Verification
+
+Tests written first: `repl_parens_tests.js`, a new module, of the colours -- by depth, cycling,
+mismatched, with parentheses in characters, `|symbols|`, strings and comments as text, before an
+unfinished string or comment, escaped, a matching pair marked, and a history entry's lines -- and
+of the indent depth; in `expression_utils_tests.js`, `delimiterParens` and matches before an
+unfinished token; in `tokenizer_tests.js`, the errors' offsets.
+
+7,239 tests pass in Node with none failing (33 skipped), and 7,034 in the browser with none failing
+(54 skipped), served from this checkout on a port not used before. In the REPL at `web/index.html`
+and the `<scheme-repl>` element of `dist/index.html`, `(list #\( 1)` colours only its own pair, the
+pair matching from the cursor; `(f #\(` and `(f "((` indent one level; parentheses before an open
+string keep their colours; and a history entry with a string and a block comment over lines
+colours only the delimiters on each line.
+
+JavaScript under `src/`: 18 lines added and 1 removed -- `errors.js` (+10), `tokenizer.js` (+4),
+`expression_utils.js` (+1) and the bundle's exports (+3 -1). The offset in the reader is the agreed
+exception; the rest fixes the REPL's helpers in place. `web/repl.js`, outside `src/`, is +83 -134.

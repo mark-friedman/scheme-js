@@ -70,4 +70,61 @@ export function runReaderTests(logger) {
     assert(logger, "Comment ending in CR LF", parse("; comment\r\n1 ; more\r\n2").length, 2);
     assert(logger, "Comment ending in CR", parse("; comment\r1").length, 1);
 
+    // 10. Square brackets are reserved for future extensions (R7RS 2.3):
+    // reading one is an error naming it and where it is, not a reader that
+    // never returns. In a string, a |symbol| or a character they are text.
+    const readError = (text) => {
+        try {
+            parse(text, { suppressLog: true });
+            return null;
+        } catch (e) {
+            return e.message;
+        }
+    };
+    assert(logger, "Open bracket is an error", /'\[' is reserved/.test(readError("[a b]")), true);
+    assert(logger, "Close bracket is an error", /'\]' is reserved/.test(readError("(a ] b)")), true);
+    assert(logger, "Bracketed let binding is an error", /'\[' is reserved/.test(readError("(let ([x 1]) x)")), true);
+    assert(logger, "Bracket after an identifier is an error", /'\[' is reserved/.test(readError("a[0]")), true);
+    assert(logger, "Bracket error gives its line", /at line 2/.test(readError("(a\n [b])")), true);
+    assert(logger, "Bracket after #; is an error", /'\[' is reserved/.test(readError("#; [a] b")), true);
+    assert(logger, "Brackets in a string", parse('"[a]"')[0], "[a]");
+    assert(logger, "Brackets in a |symbol|", parse("|[a]|")[0].name, "[a]");
+    const brackets = parse("(#\\[ #\\])")[0];
+    assert(logger, "Bracket characters", [brackets.car.codePoint, brackets.cdr.car.codePoint], [0x5b, 0x5d]);
+    assert(logger, "Brackets in comments", parse("; [a]\n#| ] |# 1")[0], 1);
+
+    // 11. An error for input that ends inside a datum is marked incomplete,
+    // so that a REPL asks for another line instead of reporting it; an error
+    // more input cannot mend is not.
+    const incomplete = (text) => {
+        try {
+            parse(text, { suppressLog: true });
+            return 'read';
+        } catch (e) {
+            return e.incomplete;
+        }
+    };
+    for (const text of ["(a", "(a (b)", "#(1", "#u8(1", "#{(a 1)", "#{(a", "'", "(a '", ",@",
+        "(a .", "(a . b", "(a . #;", "#;", "(a #;", "#0=", "\"abc", "\"a\\\"", "|abc", "|",
+        "#| a", "#\\"]) {
+        assert(logger, `Incomplete: ${text}`, incomplete(text), true);
+    }
+    for (const text of [")", "(a . )", "(1 . 2 3)", "( #; )", "#u8(256)", "#u8(a)", "#\\nosuchname",
+        "[a]", "#1#", "(. a)"]) {
+        assert(logger, `Not incomplete: ${text}`, incomplete(text), false);
+    }
+
+    // 12. A string or |symbol| whose last delimiter is escaped is not ended
+    assert(logger, "A string of one escaped quote is unterminated",
+        /unterminated string/.test(readError('"\\"')), true);
+    assert(logger, "A string ending in an escaped quote is unterminated",
+        /unterminated string/.test(readError('(display "a\\")')), true);
+    assert(logger, "A string ending in an escaped backslash ends", parse('"a\\\\"')[0], "a\\");
+    assert(logger, "An unterminated |symbol| is an error", /unterminated \|symbol\|/.test(readError("|abc")), true);
+    assert(logger, "A lone | is an unterminated |symbol|", /unterminated \|symbol\|/.test(readError("|")), true);
+    assert(logger, "A |symbol| ending in an escaped | is unterminated",
+        /unterminated \|symbol\|/.test(readError("|a\\|")), true);
+    assert(logger, "An unterminated string gives its line", /at line 2/.test(readError('(a\n "b)')), true);
+    assert(logger, "#\\ at the end is an error", /end of input after #\\/.test(readError("(a #\\")), true);
+
 }

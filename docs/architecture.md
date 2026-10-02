@@ -361,6 +361,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   │   ├── unit_tests.js
 │   │   │   ├── reader/             # Reader submodule tests
 │   │   │   ├── reader_tests.js
+│   │   │   ├── expression_utils_tests.js # The browser REPL's input: complete or not, matching parentheses
 │   │   │   ├── nodes_tests.js      # AST node behavior tests
 │   │   │   ├── frames_tests.js     # Continuation frame tests
 │   │   │   ├── primitives_tests.js
@@ -431,6 +432,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── io_tests.js
 │   │   ├── cli_stdin_tests.js      # `node repl.js` programs reading piped input; the REPL unaffected
 │   │   ├── cli_stdout_tests.js     # What they write: when, in what order, and to which stream
+│   │   ├── cli_repl_input_tests.js # The interactive REPL continuing an expression over lines
 │   │   ├── string_tests.js
 │   │   ├── string_interop_tests.js # Mutable strings at the JavaScript boundary, both tiers
 │   │   ├── vector_tests.js
@@ -440,9 +442,14 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── capture_policy_tests.js # Captures compiled; re-entered procedures switched back to closures
 │   │   └── ...
 │   │
-│   └── integration/                # Library system tests
-│       ├── library_loader_tests.js
-│       └── cond_expand_library_tests.js # cond-expand in libraries
+│   ├── integration/                # Library system tests
+│   │   ├── library_loader_tests.js
+│   │   └── cond_expand_library_tests.js # cond-expand in libraries
+│   │
+│   └── unit/                       # Unit tests of tools around the interpreter
+│       ├── repl_debug_commands_tests.js # The REPLs' debug commands
+│       ├── repl_parens_tests.js    # The browser REPL colouring and indenting by delimiter parentheses
+│       └── r7rs_compare_tests.js   # The benchmark harness's arithmetic
 │
 ├── docs/
 │   ├── core-interpreter-implementation.md               # Execution model details
@@ -456,7 +463,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 └── web/
     ├── ui.html                     # Browser REPL + test runner
     ├── main.js                     # Browser entry point
-    └── repl.js                     # REPL UI logic
+    └── repl.js                     # REPL UI logic; colours and indents by the reader's delimiter parentheses
 ```
 
 ### Key Principles

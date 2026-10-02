@@ -30,12 +30,15 @@ export const unitTests = [
     { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/number_parser_tests.js', fn: 'runNumberParserTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/source_location_tests.js', fn: 'runSourceLocationTests', needsInterpreter: false },
+    // The browser REPL's questions about its input
+    { path: 'core/interpreter/expression_utils_tests.js', fn: 'runExpressionUtilsTests', needsInterpreter: false },
     // Debug Unit Tests
     { path: 'debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
     { path: 'debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
     { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
     { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
+    { path: 'unit/repl_parens_tests.js', fn: 'runReplParensTests', needsInterpreter: false },
     // Benchmark harness arithmetic
     { path: 'unit/r7rs_compare_tests.js', fn: 'runR7rsCompareTests', needsInterpreter: false },
 ];
@@ -63,6 +66,7 @@ export const functionalTests = [
     { path: 'functional/io_tests.js', fn: 'runIOTests', async: true },
     { path: 'functional/cli_stdin_tests.js', fn: 'runCliStdinTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/cli_stdout_tests.js', fn: 'runCliStdoutTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'functional/cli_repl_input_tests.js', fn: 'runCliReplInputTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
