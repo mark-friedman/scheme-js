@@ -8,7 +8,7 @@
  * PHASE 0: Foundation - Tests MUST be created BEFORE implementation.
  */
 
-import { tokenize, stripBlockComments } from '../../../../src/core/interpreter/reader/tokenizer.js';
+import { tokenize } from '../../../../src/core/interpreter/reader/tokenizer.js';
 import { parse } from '../../../../src/core/interpreter/reader.js';
 import { assert } from '../../../harness/helpers.js';
 import { Cons } from '../../../../src/core/interpreter/cons.js';
@@ -158,8 +158,30 @@ export function runSourceLocationTests(logger) {
         }
     }
 
-    // Note: Block comments are handled by stripBlockComments before tokenize
-    // so we need to test position adjustment if we track that
+    // Block comments: a token after one is where it is in the source, on the
+    // comment's line as well as after one that spans lines
+    {
+        const tokens = tokenize('(a #| c |# b)');
+        assert(logger, 'token after a block comment, column', tokens[2].source.column, 12);
+        assert(logger, 'close paren after a block comment, column', tokens[3].source.column, 13);
+
+        const nested = tokenize('a #| x #| y |# z |# b');
+        assert(logger, 'token after a nested block comment, column', nested[1].source.column, 21);
+
+        const spanning = tokenize('a #| one\ntwo |# b\n  c');
+        assert(logger, 'token after a block comment spanning lines, line', spanning[1].source.line, 2);
+        assert(logger, 'token after a block comment spanning lines, column', spanning[1].source.column, 8);
+        assert(logger, 'token on the line after, line', spanning[2].source.line, 3);
+        assert(logger, 'token on the line after, column', spanning[2].source.column, 3);
+
+        const crlf = tokenize('#| one\r\ntwo |# b');
+        assert(logger, 'token after a block comment with CR LF, line', crlf[0].source.line, 2);
+        assert(logger, 'token after a block comment with CR LF, column', crlf[0].source.column, 8);
+
+        // A string holding #| does not move what follows it
+        const inString = tokenize('"#|" x');
+        assert(logger, 'token after a string holding #|, column', inString[1].source.column, 6);
+    }
 
     // Test: Tokenizer produces position info for special tokens
     logger.title('Tokenizer Source Position - Special Tokens');
@@ -222,6 +244,14 @@ export function runSourceLocationTests(logger) {
         } else {
             logger.skip('list position info (not yet implemented)');
         }
+    }
+
+    // Test: a list holding a block comment ends where its close paren does
+    {
+        const [expr] = parse('(a #| c |# b) #| d |# (e)');
+        assert(logger, 'list holding a block comment, end column', expr.source.endColumn, 14);
+        const [, second] = parse('(a #| c |# b) #| d |# (e)');
+        assert(logger, 'list after block comments, start column', second.source.column, 23);
     }
 
     // Test: Parser preserves positions for vectors

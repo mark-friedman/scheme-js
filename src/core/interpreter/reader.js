@@ -9,7 +9,6 @@
 export {
   parse,
   tokenize,
-  stripBlockComments,
   readFromTokens,
   readList,
   readVector,

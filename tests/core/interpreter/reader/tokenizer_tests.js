@@ -2,33 +2,64 @@
  * @fileoverview Unit tests for reader/tokenizer.js
  */
 
-import { tokenize, stripBlockComments } from '../../../../src/core/interpreter/reader/tokenizer.js';
+import { tokenize } from '../../../../src/core/interpreter/reader/tokenizer.js';
 import { assert } from '../../../harness/helpers.js';
 
 export function runTokenizerTests(logger) {
-    logger.title('stripBlockComments');
+    logger.title('tokenize - block comments');
 
-    // Simple block comment
-    {
-        const result = stripBlockComments('(define x #| comment |# 10)');
-        assert(logger, 'preserves code before comment', result.includes('define'), true);
-        assert(logger, 'preserves code after comment', result.includes('10'), true);
-        assert(logger, 'removes comment content', result.includes('comment'), false);
-    }
+    /**
+     * The values of the tokens a string is read into.
+     * @param {string} input - Source code.
+     * @returns {string} The token values, separated by spaces.
+     */
+    const values = (input) => tokenize(input).map((t) => t.value).join(' ');
 
-    // Nested block comments
-    {
-        const result = stripBlockComments('(a #| outer #| inner |# outer |# b)');
-        assert(logger, 'preserves before nested', result.includes('a'), true);
-        assert(logger, 'preserves after nested', result.includes('b'), true);
-        assert(logger, 'removes nested comments', result.includes('inner'), false);
-    }
+    /**
+     * The message of the error tokenizing a string raises, or null if none.
+     * @param {string} input - Source code.
+     * @returns {string|null}
+     */
+    const tokenizeError = (input) => {
+        try {
+            tokenize(input);
+            return null;
+        } catch (e) {
+            return e.message;
+        }
+    };
 
-    // No comments
-    {
-        const result = stripBlockComments('(+ 1 2)');
-        assert(logger, 'unchanged without comments', result, '(+ 1 2)');
-    }
+    // A block comment is skipped like whitespace, nested ones with it
+    assert(logger, 'a block comment is skipped', values('(define x #| comment |# 10)'), '( define x 10 )');
+    assert(logger, 'nested block comments are skipped', values('(a #| outer #| inner |# outer |# b)'), '( a b )');
+    assert(logger, 'a block comment over several lines', values('a #| one\ntwo\r\nthree |# b'), 'a b');
+    assert(logger, 'only a block comment', values('#| nothing |#'), '');
+    assert(logger, 'a token after a block comment follows space',
+        tokenize('a#|c|#b').map((t) => t.hasPrecedingSpace), [true, true]);
+
+    // R7RS 2.2: #| starts a comment only where a token can start, so what is
+    // in a string, a |symbol| or a character is never one
+    assert(logger, '#| in a string', values('"#|"'), '"#|"');
+    assert(logger, '#| and |# in strings', values('(a "#|x" "y|#" b)'), '( a "#|x" "y|#" b )');
+    assert(logger, '#| in a string after an escaped quote', values('"\\"#|"'), '"\\"#|"');
+    assert(logger, 'a |symbol| ending in #', values('(|a#| b)'), '( |a#| b )');
+    assert(logger, 'the |symbol| #', values('(|#| b)'), '( |#| b )');
+    assert(logger, 'a |symbol| holding #|', values('|a#\\|b|'), '|a#\\|b|');
+    assert(logger, '#\\# then a |symbol|', values('#\\#|a|'), '#\\# |a|');
+    assert(logger, '#\\| then #\\#', values('#\\| #\\#'), '#\\| #\\#');
+    assert(logger, '#| in a line comment', values('a ; #| not a comment\nb'), 'a b');
+    // An identifier ends where a comment starts, as at whitespace
+    assert(logger, 'a block comment ends an identifier', values('(a#|c|#b)'), '( a b )');
+    // Outside a comment, |# is not special: an identifier may hold it
+    assert(logger, '|# in an identifier', values('a|# b'), 'a|# b');
+
+    // Unterminated: an error, rather than the rest of the input commented out
+    assert(logger, 'an unterminated block comment is an error',
+        /unterminated block comment/.test(tokenizeError('a #| b')), true);
+    assert(logger, 'an unterminated nested block comment is an error',
+        /unterminated block comment/.test(tokenizeError('#|#||')), true);
+    assert(logger, 'an unterminated block comment in a list is an error',
+        /unterminated block comment/.test(tokenizeError('(a #| b #| c |# d)')), true);
 
     logger.title('tokenize - basic');
 

@@ -162,6 +162,43 @@ export function readExpressionFromPort(port) {
                         } else {
                             buffer += 'u'; // 'u' + something else (next iter reads ch2)
                         }
+                    } else if (n === '\\') {
+                        // Character: the one after #\ is taken whatever it
+                        // is, so that #\| opens no |symbol|, #\( no list, #\"
+                        // no string, and #\; starts no comment. The rest of a
+                        // name like #\newline is read as an atom's characters.
+                        buffer += port.readChar();
+                        if (port.peekChar() !== EOF_OBJECT) {
+                            buffer += port.readChar();
+                        }
+                        started = true;
+                    } else if (n === '|') {
+                        // Block comment: read through to its end, nested ones
+                        // with it, so that what it holds is not taken for a
+                        // string, a |symbol| or a parenthesis. It stays in the
+                        // buffer for the parser to skip, which reports it if
+                        // it is never closed.
+                        buffer += port.readChar();
+                        let depth = 1;
+                        let previous = null;
+                        while (depth > 0 && port.peekChar() !== EOF_OBJECT) {
+                            const c = port.readChar();
+                            buffer += c;
+                            if (previous === '#' && c === '|') {
+                                depth++;
+                                previous = null;
+                            } else if (previous === '|' && c === '#') {
+                                depth--;
+                                previous = null;
+                            } else {
+                                previous = c;
+                            }
+                        }
+                        // A comment ends an atom at top level as a delimiter
+                        // would
+                        if (started && parenDepth === 0 && braceDepth === 0) {
+                            break;
+                        }
                     }
                 } else if (!started && !/\s/.test(ch)) {
                     // Started a hidden atom (symbol, number, etc)

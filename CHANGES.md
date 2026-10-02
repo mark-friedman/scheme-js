@@ -9727,3 +9727,61 @@ compiles to the same text as before, apart from its variables' numbering. 6,929 
 with none failing (33 skipped), and 6,732 in the browser with none failing (53 skipped), as the
 commit before this one, liveness on SRFI 151's bits, does too. JavaScript under `src/`: none;
 Scheme 44 lines added and 9 removed.
+
+# The reader: `#|` inside strings, |symbols| and characters (2026-10-02)
+
+## Why
+
+The reader took block comments out of its input before tokenizing it, in a pass over the raw text
+that knew nothing of strings, `|symbols|`, characters or line comments, so a `#|` anywhere opened a
+comment. The string `"#|"` read as an unterminated string; `(a "#|x" "y|#" b)` read as a list of
+`a`, a string of blanks and `b`; `'(#\#|a|)` and `'(|a#| b)` commented out the rest of the input up
+to the next `|#`; and so did a line comment that mentioned `#|`. R7RS 2.2 has `#|` begin a comment
+only where a token could begin. Found reading rapid-read's tests from the corpus:
+`(read-error "#|#||")`, in `rapid/read-test.sld`, could not be read at all.
+
+The pass also dropped a comment's opening `#|` without leaving spaces in its place, so a token
+after a block comment on the same line was given a column two short of its own -- wrong positions
+for the debugger.
+
+And the tests of block comments in `reader_syntax_tests.scm` and the chibi compliance tests,
+`(read (open-input-string "#| comment |# 5"))` and the like, passed only because of the bug: the
+pass took the comment out of the string literal in the test file, so `read` never saw one. Given
+one, `read` on a port failed. It goes through `reader_bridge.js`, which collects one datum's
+characters before parsing them, and that did not know block comments either: it took the `|` of
+`#|` for the start of a `|symbol|`, and returned `#` for that input. Nor did it know characters:
+`#\|`, `#\(` and `#\"` opened a symbol, a list or a string.
+
+## The change
+
+- `tokenizer.js`: a block comment is skipped where whitespace and line comments are, between
+  tokens, with the comments nested in it, and the position tracking runs over it, so the token
+  after it is placed where it is in the source. Inside a string, a `|symbol|`, a character or a
+  line comment, `#|` is part of that token or comment. A comment ends an identifier, as whitespace
+  would: `(a#|c|#b)` is still `(a b)`. An unterminated block comment is now a read error saying
+  where it began; before, it silently commented out the rest of the input. `stripBlockComments`,
+  the pass, is gone.
+- `reader_bridge.js`: collecting a datum from a port, a `#|` outside a string or `|symbol|` is
+  read through to its matching `|#` and left in the text for the parser to skip, and `#\` takes
+  the character after it, whatever it is.
+
+## Verification
+
+Tests written first: in `reader_syntax_tests.scm`, a group of `#|` and `|#` in strings, in
+`|symbols|` and around characters, in the file's own source and read from ports, and the block
+comment group extended -- comments between the data of one port, holding parentheses, quotes and
+semicolons, nested, over lines, after `#;`, hidden by a line comment, and unterminated; in
+`tokenizer_tests.js`, the same at the level of tokens, in place of the tests of
+`stripBlockComments`; in `source_location_tests.js`, the line and column of tokens after a block
+comment on its line, nested, spanning lines and with CR LF, and of a list holding one.
+
+6,983 tests pass in Node with none failing (33 skipped), and 6,786 in the browser with none
+failing (53 skipped), served from this checkout on a port of its own so that no other checkout's
+cached files ran. Of the corpus's 351 Scheme files, 350 read exactly as before, the two others
+with block comments among them (`srfi-135/texts-test.sps`, `srfi-64/srfi-64-test.scm`), and
+rapid-read's `read-test.sld` now reads, its four strings holding `#|` intact. No shipped source
+contains `#|`, and `npm run prebuild` leaves the prebuilt tables as they were.
+
+JavaScript under `src/`: 91 lines added and 54 removed, all fixing the reader in place --
+`tokenizer.js` (+51 -48), `reader_bridge.js` (+37) and `reader/index.js` (+3 -5). The reader is
+JavaScript until it is ported (63); a fix to it in place is allowed. No Scheme under `src/`.

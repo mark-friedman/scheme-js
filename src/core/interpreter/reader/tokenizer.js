@@ -4,6 +4,8 @@
  * source position information for debugger support.
  */
 
+import { SchemeReadError } from '../errors.js';
+
 /**
  * Source location information for a token or S-expression.
  * @typedef {Object} SourceInfo
@@ -34,54 +36,15 @@ export function createSourceInfo(filename, line, column, endLine = null, endColu
 }
 
 /**
- * Strips block comments #|...|# from input, including nested ones.
- * Returns both the stripped string and a mapping for position adjustment.
- * @param {string} input - Source code
- * @returns {string} Input with block comments removed (replaced with spaces)
- */
-export function stripBlockComments(input) {
-    let result = '';
-    let i = 0;
-
-    while (i < input.length) {
-        if (i + 1 < input.length && input[i] === '#' && input[i + 1] === '|') {
-            // Start of block comment - find matching end
-            let depth = 1;
-            i += 2;
-            let commentContent = '';
-            while (i < input.length && depth > 0) {
-                if (i + 1 < input.length && input[i] === '#' && input[i + 1] === '|') {
-                    depth++;
-                    commentContent += '#|';
-                    i += 2;
-                } else if (i + 1 < input.length && input[i] === '|' && input[i + 1] === '#') {
-                    depth--;
-                    if (depth > 0) commentContent += '|#';
-                    i += 2;
-                } else {
-                    commentContent += input[i];
-                    i++;
-                }
-            }
-            // Replace comment with spaces/newlines to preserve line numbering
-            for (const ch of commentContent) {
-                result += (ch === '\n' || ch === '\r') ? ch : ' ';
-            }
-            // Add space for the |# closing
-            result += '  ';
-        } else {
-            result += input[i];
-            i++;
-        }
-    }
-    return result;
-}
-
-/**
  * Tokenizes Scheme source code into an array of token objects with source locations.
  * Each token has a `value` string, `hasPrecedingSpace` boolean, and `source` info.
  * 
- * @param {string} input - Source code (after block comment stripping)
+ * Line and block comments are skipped where a token could start, and only
+ * there (R7RS 2.2): a `#|` inside a string, a |symbol| or a character is part
+ * of that token, and one inside a line comment is part of the comment. A datum
+ * comment, `#;`, is a token, for the parser to skip the datum after it.
+ *
+ * @param {string} input - Source code
  * @param {string} [filename='<unknown>'] - Source file name for error messages
  * @returns {Array<{value: string, hasPrecedingSpace: boolean, source: SourceInfo}>} Token array
  */
@@ -166,6 +129,45 @@ export function tokenize(input, filename = '<unknown>') {
     }
 
     /**
+     * Whether a block comment starts at the current position.
+     * @returns {boolean}
+     */
+    function atBlockComment() {
+        return input[pos] === '#' && input[pos + 1] === '|';
+    }
+
+    /**
+     * Skip a block comment, `#| ... |#`, and the comments nested in it.
+     * Inside one only `#|` and `|#` mean anything: R7RS 2.2 defines its text
+     * as any characters but those two, so a string or a character in it is
+     * not read as one.
+     * @returns {boolean} True if a comment was skipped
+     * @throws {SchemeReadError} If the input ends inside the comment
+     */
+    function skipBlockComment() {
+        if (!atBlockComment()) return false;
+        const startLine = line;
+        const startColumn = column;
+        advance(2);
+        let depth = 1;
+        while (depth > 0) {
+            if (pos >= input.length) {
+                throw new SchemeReadError('unterminated block comment', 'block comment', startLine, startColumn);
+            }
+            if (atBlockComment()) {
+                depth++;
+                advance(2);
+            } else if (input[pos] === '|' && input[pos + 1] === '#') {
+                depth--;
+                advance(2);
+            } else {
+                advance();
+            }
+        }
+        return true;
+    }
+
+    /**
      * Read a string token (including quotes).
      * @returns {string}
      */
@@ -231,8 +233,9 @@ export function tokenize(input, filename = '<unknown>') {
         let atom = '';
         while (pos < input.length) {
             const ch = input[pos];
-            // Delimiters: whitespace, parens, braces, semicolon
-            if (' \t\n\r(){}[];'.includes(ch)) {
+            // Delimiters: whitespace, parens, braces, semicolon, and the start
+            // of a block comment, which ends an identifier as whitespace would
+            if (' \t\n\r(){}[];'.includes(ch) || atBlockComment()) {
                 break;
             }
             atom += ch;
@@ -286,7 +289,7 @@ export function tokenize(input, filename = '<unknown>') {
 
         while (true) {
             const skippedWs = skipWhitespace();
-            const skippedComment = skipLineComment();
+            const skippedComment = skipLineComment() || skipBlockComment();
             if (skippedWs || skippedComment) {
                 hasSpace = true;
             } else {
