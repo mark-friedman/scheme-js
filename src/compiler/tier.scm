@@ -47,10 +47,21 @@
 
 ;; /**
 ;;  * How many calls a procedure that neither loops nor makes procedures waits
-;;  * before it is compiled.
+;;  * before it is compiled. A variable, so that `benchmarks/run_tier.js` can
+;;  * measure another count.
 ;;  * @type {integer}
 ;;  */
 (define calls-before-compiling 2)
+
+;; /**
+;;  * Whether a top-level procedure is compiled as soon as it is bound rather
+;;  * than after `calls-before-compiling` calls: when its body loops or makes
+;;  * procedures. A procedure of its own, like the count a variable, so that
+;;  * `benchmarks/run_tier.js` can measure another rule in its place.
+;;  * @param {list} body - The procedure's analyzed body.
+;;  * @returns {boolean}
+;;  */
+(define (compiled-when-bound? body) (makes-procedures-or-loops? body))
 
 ;; /**
 ;;  * The compiler tier of one program.
@@ -161,7 +172,7 @@
   (when (tier-manages? tier env)
     (weak-table-set! (tier-waiting tier) closure (cons name env))
     (cond ((tier-deferring? tier) (wait-calls! closure 1))
-          ((makes-procedures-or-loops? (closure-body closure)) (tier-compile! tier closure))
+          ((compiled-when-bound? (closure-body closure)) (tier-compile! tier closure))
           (else (wait-calls! closure calls-before-compiling)))))
 
 ;; /**

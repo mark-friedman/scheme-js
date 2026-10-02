@@ -45,11 +45,8 @@ import { setFileResolver, setLibraryLoadHook } from '../src/core/interpreter/lib
 import { getLibraryEnv } from '../src/core/interpreter/library_registry.js';
 import { tryCompileDefinition, generateEnvironment } from '../src/compiler/index.js';
 import { unsafeDefinitions } from '../src/compiler/index.js';
-import { installLibraryTable } from '../src/compiler/prebuilt.js';
-import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
-import { BUNDLED_SOURCES } from '../src/packaging/bundled_libraries.js';
 import { interpretedLibrary, installStandardLibrary } from '../tests/harness/standard_library.js';
-import { corpusSources, sourceDirectory } from './corpus/fetch.js';
+import { corpusIndex, corpusResolver, listParts } from './lib/corpus_libraries.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const perFile = process.argv.includes('--files');
@@ -60,139 +57,13 @@ const corpusMode = process.argv.includes('--corpus');
 // Finding libraries
 // =============================================================================
 
-/**
- * A library name as written: `(srfi 146)`.
- * @param {Array} parts - The name's parts, symbols or numbers.
- * @returns {string} The name.
- */
-function nameKey(parts) {
-  return `(${parts.map((p) => p?.name ?? String(p)).join(' ')})`;
-}
-
-/**
- * The name a file's `define-library` declares, if it has one.
- * @param {string} file - The file.
- * @returns {string|null} The name, or null if the file is not a library.
- */
-function libraryNameIn(file) {
-  let forms;
-  try {
-    forms = parse(fs.readFileSync(file, 'utf8'));
-  } catch (e) {
-    return null;
-  }
-  const form = forms.find((f) => f?.car?.name === 'define-library');
-  if (form === undefined) return null;
-  const parts = [];
-  for (let c = form.cdr.car; c !== null && c !== undefined; c = c.cdr) parts.push(c.car);
-  return nameKey(parts);
-}
-
-/**
- * Every file under a directory with one of some extensions, outside `.git`.
- * @param {string} dir - The directory.
- * @param {Array<string>} extensions - The extensions.
- * @returns {Array<string>} The files.
- */
-function filesUnder(dir, extensions) {
-  const out = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === '.git') continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...filesUnder(full, extensions));
-    else if (extensions.some((ext) => entry.name.endsWith(ext))) out.push(full);
-  }
-  return out;
-}
-
-/**
- * The corpus's libraries, by the name each declares, and its programs.
- *
- * A Snow-Fort package's libraries are all measured except its tests. An SRFI
- * repository often holds several implementations, or libraries under more than
- * one name, so only the files its manifest entry lists are measured, and where
- * two files declare the same library the listed one is the one loaded. An
- * alias makes a library reachable under the name its importers use when it
- * declares another.
- *
- * @returns {{libraries: Map<string, Object>, programs: Array<Object>}}
- */
-function corpusIndex() {
-  const libraries = new Map();
-  const programs = [];
-  for (const source of corpusSources()) {
-    const dir = sourceDirectory(source);
-    if (!fs.existsSync(dir)) {
-      throw new Error(`${source.library} is not downloaded; run node benchmarks/corpus/fetch.js`);
-    }
-    const listed = new Set((source.measure ?? []).map((f) => path.join(dir, f)));
-    const group = source.kind === 'git'
-      ? `SRFI reference implementations${source.role === 'dependency' ? ' (dependencies)' : ''}`
-      : `Snow-Fort packages${source.role === 'dependency' ? ' (dependencies)' : ''}`;
-    for (const file of filesUnder(dir, ['.sld'])) {
-      const name = libraryNameIn(file);
-      if (name === null) continue;
-      if (libraries.has(name) && !listed.has(file)) continue;
-      const test = /(^|[-_/])tests?\.sld$/.test(file) && name !== source.library;
-      const measured = source.kind === 'git' ? listed.has(file) : !test;
-      libraries.set(name, { name, file, group, measured });
-    }
-    for (const [alias, file] of Object.entries(source.aliases ?? {})) {
-      const full = path.join(dir, file);
-      const declared = libraryNameIn(full);
-      libraries.set(alias, { name: declared, file: full, group, measured: false });
-      if (!listed.has(full) && source.role === 'dependency') {
-        libraries.set(declared, { name: declared, file: full, group, measured: true });
-      }
-    }
-    for (const file of listed) {
-      if (!file.endsWith('.sld')) programs.push({ group, file, prefix: '' });
-    }
-  }
-  return { libraries, programs };
-}
-
 const index = corpusMode ? corpusIndex() : { libraries: new Map(), programs: [] };
-
-/**
- * The directories an `include` might be relative to, most recently loaded
- * library first. The loader names an included file by the including library's
- * name prefix and the file's name, not by the library's directory, and a
- * package may keep `(chibi irregex)` in `irregex.sld` at its root.
- * @type {Array<{prefix: string, dir: string}>}
- */
-const loadedDirs = [];
 
 // A library is read from the corpus if it is there, and from the bundled
 // sources otherwise, with its prebuilt table installed as a browser page does.
-setFileResolver((parts) => {
-  const last = String(parts[parts.length - 1]?.name ?? parts[parts.length - 1]);
-  const library = index.libraries.get(nameKey(parts));
-  if (library !== undefined && !/\.[a-z]+$/.test(last)) {
-    // The loader names the library's includes by the name it declares, which
-    // an alias does not share.
-    const declared = listParts(parse(library.name)[0]);
-    loadedDirs.unshift({ prefix: nameKey(declared.slice(0, -1)), dir: path.dirname(library.file) });
-    return fs.readFileSync(library.file, 'utf8');
-  }
-  if (/\.[a-z]+$/.test(last)) {
-    const prefix = nameKey(parts.slice(0, -1));
-    for (const { prefix: p, dir } of loadedDirs) {
-      if (p !== prefix) continue;
-      const file = path.join(dir, last);
-      if (fs.existsSync(file)) return fs.readFileSync(file, 'utf8');
-    }
-  }
-  const source = BUNDLED_SOURCES[`${last}.sld`] ?? BUNDLED_SOURCES[`${last}.scm`] ?? BUNDLED_SOURCES[last];
-  if (source === undefined) throw new Error(`no library or file ${nameKey(parts)}`);
-  return source;
-});
-setLibraryLoadHook((name, env) => {
-  const last = name[name.length - 1];
-  if (!index.libraries.has(nameKey(name)) && BUNDLED_SOURCES[`${last}.sld`] !== undefined && env) {
-    installLibraryTable(prebuiltLibraries, name, env, (file) => BUNDLED_SOURCES[file]);
-  }
-});
+const { resolve, hook } = corpusResolver(index);
+setFileResolver(resolve);
+setLibraryLoadHook(hook);
 
 /**
  * The files the repository's own measurement reads, by group.
@@ -359,17 +230,6 @@ function measureLibrary(pair, name) {
     compiles: new Set(generated.map((g) => g.name)),
     reasons: new Map(declined.map((d) => [d.name, d.reason]))
   };
-}
-
-/**
- * A Scheme list's elements.
- * @param {Object} list - A list.
- * @returns {Array} Its elements.
- */
-function listParts(list) {
-  const parts = [];
-  for (let c = list; c !== null && c !== undefined; c = c.cdr) parts.push(c.car);
-  return parts;
 }
 
 // =============================================================================

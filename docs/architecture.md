@@ -119,20 +119,25 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── compare_r7rs.js             # Canonical suite: both tiers vs Gambit (gsi, C, JS), Racket, plain JS
 │   ├── decline_reasons.js          # Why the tier declines procedures: this repository's Scheme, or --corpus
 │   ├── run_escapes.js              # The capture policy on escapes: interpreted, default, captures compiled
-│   ├── corpus/                     # Real R7RS code, for decline_reasons.js --corpus
-│   │   ├── manifest.json           # SRFI repositories at a commit, Snow-Fort packages at a version and SHA-256
+│   ├── corpus/                     # Real R7RS code, for decline_reasons.js --corpus and run_tier.js --set corpus
+│   │   ├── manifest.json           # SRFI repositories at a commit, Snow-Fort packages at a version and SHA-256; each one's test programs
 │   │   ├── fetch.js                # Downloads the manifest into downloads/, checking each archive
 │   │   └── downloads/              # Not committed: other people's code, under their licenses
 │   ├── run_self_host.js            # The compiler lowering its own corpus, three ways
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
-│   ├── run_tier.js                 # The canonical programs as a page runs them, the tier's compiling counted
+│   ├── run_tier.js                 # Programs as a page runs them, the tier's compiling counted: canonical, test files, corpus, page; the policy settable
+│   ├── tier_programs/              # Synthetic programs in the shapes of a page's code, for run_tier.js --set page
+│   │   ├── events.scm              # Handlers made once by a setup procedure, then called by a stream of events
+│   │   ├── messages.scm            # A model updated by messages through a dispatch table; selectors made once
+│   │   └── render.scm              # A page rendered from its data a few times: many small templates
 │   ├── record_progress.js          # Regenerates docs/performance_progress.md
 │   ├── lib/
 │   │   ├── harness.js              # Shared bootstrap and timing
 │   │   ├── r7rs_harness.js         # Canonical-suite protocol, sizing, calibration
 │   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
 │   │   ├── r7rs_compare.js         # Cross-implementation arithmetic: per-class ratios, reading a saved run
+│   │   ├── corpus_libraries.js     # The corpus's libraries and test programs, and a resolver over them and the bundle
 │   │   ├── step_counts.js          # Deterministic dispatch counting
 │   │   └── progress_report.js      # Progress-document rendering
 │   ├── programs/                   # Portable R7RS benchmark programs (Stage 0)

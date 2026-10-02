@@ -9727,3 +9727,85 @@ compiles to the same text as before, apart from its variables' numbering. 6,929 
 with none failing (33 skipped), and 6,732 in the browser with none failing (53 skipped), as the
 commit before this one, liveness on SRFI 151's bits, does too. JavaScript under `src/`: none;
 Scheme 44 lines added and 9 removed.
+
+# Task 80, continued: a broader benchmark for the tier's policy (2026-10-02)
+
+## Why
+
+The tier's policy -- what it compiles and when -- was about to be decided on the canonical suite
+alone, and asked whether those programs stand for Scheme programs in general, the answer was no:
+they are kernels, each built to stress one workload, with a handful of top-level procedures and one
+hot loop, sized for native implementations. A compile policy matters most where many procedures are
+each called a few times -- applications, pages, scripts -- which the suite barely has. And the
+pattern the alternative policies lost on, a procedure called once that makes closures called many
+times, is what a page's setup code does with its event handlers. So the user asked for a broader set
+before deciding.
+
+## The benchmark
+
+`benchmarks/run_tier.js` runs four sets, chosen with `--set` (`all` for every one):
+
+- `canonical`, as before: the 42 canonical programs that run here.
+- `tests`: this repository's Scheme test files (`schemeTestFiles` and `tieredSchemeTestFiles` in
+  `tests/test_manifest.js`), each after the harness `tests/core/scheme/test.scm`, whose procedures
+  are the program's: scripts of many top-level forms, 1-15 ms each interpreted. One needs a browser
+  window and is left out.
+- `corpus`: the test programs of other people's libraries in the downloaded corpus, which the
+  manifest now lists as each source's `tests`. Their libraries are not shipped, so the tier compiles
+  them as a program's own. Seven run: SRFI 143's and SRFI 151's reference implementations' tests,
+  and `chibi-diff`, `chibi-parse`, `chibi-string`, `chibi-term-ansi` and `edn`'s. A program's `exit`
+  -- chibi's test framework exits when it has reported -- ends the program, not the benchmark.
+- `page`: `benchmarks/tier_programs/`, three synthetic programs in the shapes of a page's code that
+  the others lack: `events.scm`, handlers made once by a setup procedure and called by 20,000
+  events; `render.scm`, a store's listing rendered to HTML four times by small templates; and
+  `messages.scm`, a task board updated by 4,000 messages through a dispatch table, with selectors
+  made once.
+
+A run is wrong if its output with the tier differs from its output without, a canonical program's if
+it reports a wrong answer, and a test file's if its tests fail. The console port keeps a line until
+its newline and is shared between runs, so each run flushes it at its end; before that, a program
+that wrote `0.0` without a newline put it into the next program's output.
+
+`--policies` measures other policies: `N`, a procedure that neither loops nor makes procedures
+compiled at its Nth call, or `loops:N`, where only a procedure that loops is compiled at definition.
+Today's is `2`. The two parts are globals of the compiler's library, `calls-before-compiling` and,
+new in `src/compiler/tier.scm`, `compiled-when-bound?`, which `tier-bound!` now asks, so the harness
+sets them between runs. The policies are interleaved, each program run under every one in turn,
+each round starting at the next: measured one after another, five runs of the same policy came out
+as far apart as 1,898 and 4,320 ms on the corpus set while other sessions loaded the machine, and
+the run straight after the interpreted one came out slower than the rest. Naming a policy twice
+measures the noise; with the rotation, two runs of `2` on the page set agreed within 0.2%.
+
+The corpus's library resolver, from `benchmarks/decline_reasons.js`, is now
+`benchmarks/lib/corpus_libraries.js`, shared by both; `decline_reasons.js --corpus` prints the same
+apart from its stack traces' paths. Two Snow-Fort packages were added to the manifest, pinned by URL
+and SHA-256 and fetched by `fetch.js`, with the user's approval: `(rapid test)` and `(chibi match)`,
+which most of the corpus's other test programs need. They load, but the programs still fail, on gaps
+in this implementation, and `(srfi 48)` and `(srfi 13)`, which more of them need, are not on
+Snow-Fort.
+
+## Found on the way
+
+Running real code this way found three things, each now a task of its own: the reader treats `#|`
+inside a string literal as the start of a block comment, so `"#|"` is an unterminated string and
+`(a "#|x" "y|#" b)` reads as `(a b)` (it strips comments before tokenizing); a procedure a library
+stores while it loads -- `default-hash` in SRFI 128's comparators -- is not `eq?` to the library's
+binding once the prebuilt table replaces the binding with the compiled procedure, which fails two of
+SRFI 128's tests whenever the libraries are installed as a page installs them; and most of the
+corpus's test programs fail on gaps in this implementation, listed in that task.
+
+## First observations, under today's policy
+
+On a loaded machine, so only what held in every one of five runs: the corpus programs spend about
+half their time with the tier compiling (54-60%), and six of the seven run faster without it; 50 or
+51 of the 54 test files run faster without it, their few procedures costing more to compile than
+their runs; and the three page programs run 6-17x faster with it -- `render` about 6x, `events` and
+`messages` 12-17x. The policies are compared once the machine is
+quiet.
+
+## Verification
+
+6,929 tests pass in Node with none failing (33 skipped), and 6,732 in the browser with none failing
+(53 skipped). JavaScript under `src/`: none. Scheme: the one procedure in `tier.scm`. The harness is
+JavaScript under `benchmarks/`, as the rest of the compiler's harnesses are until 76 makes them
+Scheme programs.
