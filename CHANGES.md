@@ -9827,3 +9827,75 @@ allows, overflows the stack.
 
 JavaScript under `src/`: 10 lines added and 1 removed, fixing the reader in place --
 `tokenizer.js` (+4 -1) and `parser.js` (+6). The reader is JavaScript until it is ported (63).
+
+# The browser REPL asks the reader whether its input is complete (2026-10-02)
+
+## Why
+
+The browser REPL submits its input on Enter when `isCompleteExpression` (`expression_utils.js`)
+says the input is complete, and otherwise starts another line. That function had a scanner of its
+own, which knew strings, line comments and nested block comments, but not characters or
+`|symbols|`: `#\"` opened a string, `#\(` a list, and the `#|` in `'|a#|` a block comment. So
+`(display #\")`, `(list #\( 1)` and `'|a#|`, each one complete datum, never submitted, and Enter
+kept adding lines. Of the corpus's 351 Scheme files, 7 could not be pasted in and run, each holding
+a `#\"`. Since the reader's fix earlier today, `#|` inside strings, `|symbols|` and characters, the
+reader and this scanner disagreed about where a comment starts, too.
+
+`findMatchingDelimiter`, which finds the parenthesis to highlight against the one at the cursor,
+had the same blind spots, and its backward search knew no comments at all: in `(list #\( 1)` the
+final `)` matched the `(` of `#\(`, and in `(a #| ( |# b)` the one in the comment.
+
+Asking the reader instead showed it had holes of its own at the end of the input, where the REPL
+looks. A string whose last quote is escaped, `"\"`, read as the string `\`, because the parser
+took any token ending in a quote for an ended string; `|abc` read as the symbol `|abc`, and a lone
+`|` as the empty symbol; and `#\` at the end was an unknown character name.
+
+## The change
+
+- `errors.js`: `SchemeReadError.endOfInput` makes a read error marked `incomplete`, for input that
+  ends inside a datum, so that more input could complete it.
+- `tokenizer.js`: input that ends inside a string, a `|symbol|` or a block comment, or just after
+  `#\`, is such an error, saying where the token began. Each token records its `offset` in the
+  input.
+- `parser.js`: each error for running out of tokens is marked `incomplete`: a list, vector,
+  bytevector or object literal not closed, a quote, `#;` or datum label with nothing after it, and
+  a dot with nothing after it. A dot before `)` and a second datum after a dot are still plain
+  errors. No message changes.
+- `expression_utils.js`: `isCompleteExpression` reads the input and calls it complete unless
+  reading fails with an `incomplete` error. An error more input cannot mend, such as an unbalanced
+  `)` or a reserved bracket, counts as complete, so that Enter submits it and evaluating it reports
+  the error, as before. `findMatchingDelimiter` walks the parentheses among the tokenizer's tokens,
+  `(`, `#(`, `#u8(` and `)`, so a parenthesis in a string, a `|symbol|`, a character or a comment
+  is no delimiter and has no match. While the text ends inside one of those it cannot be
+  tokenized, and nothing is highlighted, where the old forward scan could still find a match before
+  it. `analyzeDelimiters`, a third scanner with the same blind spots and no callers, is removed.
+
+## Verification
+
+Tests written first: `expression_utils_tests.js`, a new module, of complete and incomplete input
+-- characters, `|symbols|`, strings and comments holding the delimiters of the others, escaped
+quotes and bars, each way the input can end inside a datum -- and of matching parentheses past and
+inside each of those; in `reader_tests.js`, which read errors are marked incomplete and which not,
+and the unterminated strings and `|symbols|` that read wrongly before; in `tokenizer_tests.js`,
+the errors for input ending inside a token, their line and column, and token offsets over comments
+and CR LF; in `reader_syntax_tests.scm`, `read` from a port signals a read error for them. 85 of the
+new tests failed before the change, the three inputs above among them.
+
+7,178 tests pass in Node with none failing (33 skipped), and 6,981 in the browser with none failing
+(53 skipped), served from this checkout on a port not used before, with the new tests' names in
+its output. In the REPL at `web/index.html`, `(display #\")`, `(list #\( 1)` and `'|a#|` each
+submit on Enter, `(+ 1` and `(f "a)"` take another line, and the cursor after `(list #\( 1)`
+highlights the first `(`. All 351 corpus files read exactly as before, errors included, and
+`isCompleteExpression` changes its answer only for the 7 files above, from incomplete to complete.
+
+Found on the way, not changed here: the Node REPL (`repl.js`) decides whether to read another line
+by matching messages the reader never produces (`'Unexpected EOF'`, `"Missing ')'"`), so `(+ 1`
+there is reported as an error rather than continued; it could ask `incomplete` instead.
+`web/repl.js` keeps two more scanners, for colouring parentheses and for indenting a new line,
+which know strings and line comments only, so `#\(` is coloured as an opening parenthesis and
+deepens the indentation. And the tokenizer's atoms do not end at `"` or `|`, which R7RS 7.1.1 makes
+delimiters: `abc"d"` is one atom.
+
+JavaScript under `src/`: 127 lines added and 346 removed, all fixing in place what is JavaScript
+until the reader is ported (63) -- `expression_utils.js` (+60 -327), `tokenizer.js` (+28 -9),
+`parser.js` (+16 -10) and `errors.js` (+23). No Scheme under `src/`.

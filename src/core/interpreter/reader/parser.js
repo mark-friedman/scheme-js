@@ -41,7 +41,7 @@ function listWithSource(source, ...args) {
  */
 export function readFromTokens(tokens, state) {
     if (tokens.length === 0) {
-        throw new SchemeReadError('unexpected end of input', state.current || 'expression');
+        throw SchemeReadError.endOfInput('unexpected end of input', state.current || 'expression');
     }
 
     const tokenObj = tokens.shift();
@@ -62,7 +62,7 @@ export function readFromTokens(tokens, state) {
     // Handle datum comments: #; skips the next datum
     if (token === '#;') {
         if (tokens.length === 0) {
-            throw new SchemeReadError('unexpected end of input after #;', 'datum comment');
+            throw SchemeReadError.endOfInput('unexpected end of input after #;', 'datum comment');
         }
         readFromTokens(tokens, state); // Read and discard next datum
         if (tokens.length === 0) return undefined;
@@ -182,14 +182,14 @@ export function readList(tokens, state, openSource = null) {
     const listItems = [];
     while (true) {
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')'", 'list');
+            throw SchemeReadError.endOfInput("missing ')'", 'list');
         }
         if (tokens[0].value === ')') break;
 
         // Handle datum comment inside list
         if (tokens[0].value === '#;') {
             tokens.shift(); // consume #;
-            if (tokens.length === 0) throw new SchemeReadError('unexpected end of input', 'datum comment');
+            if (tokens.length === 0) throw SchemeReadError.endOfInput('unexpected end of input', 'datum comment');
 
             // Can't use datum comment on syntactic markers
             if (tokens[0].value === '.') {
@@ -213,7 +213,10 @@ export function readList(tokens, state, openSource = null) {
                 readFromTokens(tokens, state);
             }
             // Ensure there's actually a datum after the dot
-            if (tokens.length === 0 || tokens[0].value === ')') {
+            if (tokens.length === 0) {
+                throw SchemeReadError.endOfInput("illegal use of '.' - no datum after dot", 'dotted list');
+            }
+            if (tokens[0].value === ')') {
                 throw new SchemeReadError("illegal use of '.' - no datum after dot", 'dotted list');
             }
             const tail = readFromTokens(tokens, state);
@@ -223,7 +226,10 @@ export function readList(tokens, state, openSource = null) {
                 readFromTokens(tokens, state);
             }
             const closeToken = tokens.shift();
-            if (!closeToken || closeToken.value !== ')') {
+            if (!closeToken) {
+                throw SchemeReadError.endOfInput("expected ')' after improper list tail", 'dotted list');
+            }
+            if (closeToken.value !== ')') {
                 throw new SchemeReadError("expected ')' after improper list tail", 'dotted list');
             }
             // Build improper list with source info on head
@@ -276,7 +282,7 @@ export function readVector(tokens, state, openSource = null) {
     const elements = [];
     while (true) {
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')'", 'vector');
+            throw SchemeReadError.endOfInput("missing ')'", 'vector');
         }
         if (tokens[0].value === ')') break;
         elements.push(readFromTokens(tokens, state));
@@ -321,7 +327,7 @@ export function readJSObjectLiteral(tokens, state, openSource = null) {
             entryItems.push(readFromTokens(tokens, state));
         }
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')' in property entry", 'object literal');
+            throw SchemeReadError.endOfInput("missing ')' in property entry", 'object literal');
         }
         tokens.shift(); // consume ')'
 
@@ -343,7 +349,7 @@ export function readJSObjectLiteral(tokens, state, openSource = null) {
     }
 
     if (tokens.length === 0) {
-        throw new SchemeReadError("missing '}'", 'object literal');
+        throw SchemeReadError.endOfInput("missing '}'", 'object literal');
     }
     tokens.shift(); // consume '}'
 
@@ -402,7 +408,7 @@ export function readBytevector(tokens) {
     const bytes = [];
     while (true) {
         if (tokens.length === 0) {
-            throw new SchemeReadError("missing ')'", 'bytevector');
+            throw SchemeReadError.endOfInput("missing ')'", 'bytevector');
         }
         if (tokens[0].value === ')') break;
 

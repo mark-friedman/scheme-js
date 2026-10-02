@@ -30,6 +30,8 @@ export const unitTests = [
     { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/number_parser_tests.js', fn: 'runNumberParserTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/source_location_tests.js', fn: 'runSourceLocationTests', needsInterpreter: false },
+    // The browser REPL's questions about its input
+    { path: 'core/interpreter/expression_utils_tests.js', fn: 'runExpressionUtilsTests', needsInterpreter: false },
     // Debug Unit Tests
     { path: 'debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
     { path: 'debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },

@@ -105,6 +105,32 @@
     (test #t (symbol? (read (open-input-string "||"))))  ; empty symbol
     )
 
+  (test-group "input-ending-inside-a-token"
+    ;; R7RS 6.13.2: the end of the input inside a datum is an error that
+    ;; satisfies read-error?. A string or |symbol| whose last delimiter is
+    ;; escaped has not ended, nor has a #\ with no character after it.
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "\"abc"))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "\"a\\\""))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "|abc"))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "|"))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "|a\\|"))))
+    (test 'read-error
+          (guard (e ((read-error? e) 'read-error) (#t 'other))
+            (read (open-input-string "#\\"))))
+    ;; Ended, they are read
+    (test "a\\" (read (open-input-string "\"a\\\\\"")))
+    (test "a|" (symbol->string (read (open-input-string "|a\\||")))))
+
   (test-group "symbol-writing"
     ;; When written, special symbols should be wrapped in |...|
     (let ((port (open-output-string)))

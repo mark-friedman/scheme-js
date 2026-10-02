@@ -354,6 +354,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   │   ├── unit_tests.js
 │   │   │   ├── reader/             # Reader submodule tests
 │   │   │   ├── reader_tests.js
+│   │   │   ├── expression_utils_tests.js # The browser REPL's input: complete or not, matching parentheses
 │   │   │   ├── nodes_tests.js      # AST node behavior tests
 │   │   │   ├── frames_tests.js     # Continuation frame tests
 │   │   │   ├── primitives_tests.js

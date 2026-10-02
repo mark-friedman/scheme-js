@@ -37,16 +37,21 @@ export function createSourceInfo(filename, line, column, endLine = null, endColu
 
 /**
  * Tokenizes Scheme source code into an array of token objects with source locations.
- * Each token has a `value` string, `hasPrecedingSpace` boolean, and `source` info.
- * 
+ * Each token has a `value` string, `hasPrecedingSpace` boolean, `source` info,
+ * and the `offset` in the input where it starts.
+ *
  * Line and block comments are skipped where a token could start, and only
  * there (R7RS 2.2): a `#|` inside a string, a |symbol| or a character is part
  * of that token, and one inside a line comment is part of the comment. A datum
  * comment, `#;`, is a token, for the parser to skip the datum after it.
  *
+ * Input that ends inside a string, a |symbol|, a block comment or a `#\` is
+ * an error marked `incomplete` (`SchemeReadError.endOfInput`).
+ *
  * @param {string} input - Source code
  * @param {string} [filename='<unknown>'] - Source file name for error messages
- * @returns {Array<{value: string, hasPrecedingSpace: boolean, source: SourceInfo}>} Token array
+ * @returns {Array<{value: string, hasPrecedingSpace: boolean, source: SourceInfo, offset: number}>} Token array
+ * @throws {SchemeReadError} If the input ends inside a token or a block comment
  */
 export function tokenize(input, filename = '<unknown>') {
     const tokens = [];
@@ -152,7 +157,7 @@ export function tokenize(input, filename = '<unknown>') {
         let depth = 1;
         while (depth > 0) {
             if (pos >= input.length) {
-                throw new SchemeReadError('unterminated block comment', 'block comment', startLine, startColumn);
+                throw SchemeReadError.endOfInput('unterminated block comment', 'block comment', startLine, startColumn);
             }
             if (atBlockComment()) {
                 depth++;
@@ -170,8 +175,11 @@ export function tokenize(input, filename = '<unknown>') {
     /**
      * Read a string token (including quotes).
      * @returns {string}
+     * @throws {SchemeReadError} If the input ends before the closing quote
      */
     function readString() {
+        const startLine = line;
+        const startColumn = column;
         let str = '"';
         advance(); // Skip opening quote
 
@@ -187,20 +195,25 @@ export function tokenize(input, filename = '<unknown>') {
             } else if (ch === '"') {
                 str += ch;
                 advance();
-                break;
+                return str;
             } else {
                 str += ch;
                 advance();
             }
         }
-        return str;
+        // The input ended first, perhaps just after an escaped quote, which
+        // closes nothing
+        throw SchemeReadError.endOfInput('unterminated string', 'string', startLine, startColumn);
     }
 
     /**
      * Read a vertical-bar symbol |...|.
      * @returns {string}
+     * @throws {SchemeReadError} If the input ends before the closing bar
      */
     function readBarSymbol() {
+        const startLine = line;
+        const startColumn = column;
         let str = '|';
         advance(); // Skip opening |
 
@@ -216,13 +229,13 @@ export function tokenize(input, filename = '<unknown>') {
             } else if (ch === '|') {
                 str += ch;
                 advance();
-                break;
+                return str;
             } else {
                 str += ch;
                 advance();
             }
         }
-        return str;
+        throw SchemeReadError.endOfInput('unterminated |symbol|', 'symbol', startLine, startColumn);
     }
 
     /**
@@ -247,8 +260,12 @@ export function tokenize(input, filename = '<unknown>') {
     /**
      * Read a character literal #\...
      * @returns {string}
+     * @throws {SchemeReadError} If the input ends just after the `#\`
      */
     function readCharLiteral() {
+        if (pos + 2 >= input.length) {
+            throw SchemeReadError.endOfInput('unexpected end of input after #\\', 'character', line, column);
+        }
         let str = '#\\';
         advance(); // Skip #
         advance(); // Skip \
@@ -302,6 +319,7 @@ export function tokenize(input, filename = '<unknown>') {
         // Record token start position
         const startLine = line;
         const startColumn = column;
+        const startOffset = pos;
         let tokenValue = '';
 
         const ch = input[pos];
@@ -369,7 +387,8 @@ export function tokenize(input, filename = '<unknown>') {
             tokens.push({
                 value: tokenValue,
                 hasPrecedingSpace: hasSpace,
-                source: createSourceInfo(filename, startLine, startColumn, line, column)
+                source: createSourceInfo(filename, startLine, startColumn, line, column),
+                offset: startOffset
             });
         }
 

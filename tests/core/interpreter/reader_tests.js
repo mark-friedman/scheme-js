@@ -93,4 +93,38 @@ export function runReaderTests(logger) {
     assert(logger, "Bracket characters", [brackets.car.codePoint, brackets.cdr.car.codePoint], [0x5b, 0x5d]);
     assert(logger, "Brackets in comments", parse("; [a]\n#| ] |# 1")[0], 1);
 
+    // 11. An error for input that ends inside a datum is marked incomplete,
+    // so that a REPL asks for another line instead of reporting it; an error
+    // more input cannot mend is not.
+    const incomplete = (text) => {
+        try {
+            parse(text, { suppressLog: true });
+            return 'read';
+        } catch (e) {
+            return e.incomplete;
+        }
+    };
+    for (const text of ["(a", "(a (b)", "#(1", "#u8(1", "#{(a 1)", "#{(a", "'", "(a '", ",@",
+        "(a .", "(a . b", "(a . #;", "#;", "(a #;", "#0=", "\"abc", "\"a\\\"", "|abc", "|",
+        "#| a", "#\\"]) {
+        assert(logger, `Incomplete: ${text}`, incomplete(text), true);
+    }
+    for (const text of [")", "(a . )", "(1 . 2 3)", "( #; )", "#u8(256)", "#u8(a)", "#\\nosuchname",
+        "[a]", "#1#", "(. a)"]) {
+        assert(logger, `Not incomplete: ${text}`, incomplete(text), false);
+    }
+
+    // 12. A string or |symbol| whose last delimiter is escaped is not ended
+    assert(logger, "A string of one escaped quote is unterminated",
+        /unterminated string/.test(readError('"\\"')), true);
+    assert(logger, "A string ending in an escaped quote is unterminated",
+        /unterminated string/.test(readError('(display "a\\")')), true);
+    assert(logger, "A string ending in an escaped backslash ends", parse('"a\\\\"')[0], "a\\");
+    assert(logger, "An unterminated |symbol| is an error", /unterminated \|symbol\|/.test(readError("|abc")), true);
+    assert(logger, "A lone | is an unterminated |symbol|", /unterminated \|symbol\|/.test(readError("|")), true);
+    assert(logger, "A |symbol| ending in an escaped | is unterminated",
+        /unterminated \|symbol\|/.test(readError("|a\\|")), true);
+    assert(logger, "An unterminated string gives its line", /at line 2/.test(readError('(a\n "b)')), true);
+    assert(logger, "#\\ at the end is an error", /end of input after #\\/.test(readError("(a #\\")), true);
+
 }

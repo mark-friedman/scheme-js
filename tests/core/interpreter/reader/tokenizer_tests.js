@@ -73,6 +73,60 @@ export function runTokenizerTests(logger) {
     assert(logger, 'an unterminated block comment in a list is an error',
         /unterminated block comment/.test(tokenizeError('(a #| b #| c |# d)')), true);
 
+    logger.title('tokenize - input ending inside a token');
+
+    /**
+     * The error tokenizing a string raises, or null if none.
+     * @param {string} input - Source code.
+     * @returns {Error|null}
+     */
+    const errorOf = (input) => {
+        try {
+            tokenize(input);
+            return null;
+        } catch (e) {
+            return e;
+        }
+    };
+
+    // A string, a |symbol| or a character the input ends in is an error, and
+    // one more input could mend, as an unterminated block comment is
+    for (const [input, pattern, description] of [
+        ['(a "bc', /unterminated string/, 'a string'],
+        ['"a\\"', /unterminated string/, 'a string whose last quote is escaped'],
+        ['"a\\', /unterminated string/, 'a string ending in a backslash'],
+        ['(a |bc', /unterminated \|symbol\|/, 'a |symbol|'],
+        ['|a\\|', /unterminated \|symbol\|/, 'a |symbol| whose last | is escaped'],
+        ['|', /unterminated \|symbol\|/, 'a lone |'],
+        ['(a #\\', /end of input after #\\/, 'a #\\ with no character'],
+        ['a #| b', /unterminated block comment/, 'a block comment'],
+    ]) {
+        const error = errorOf(input);
+        assert(logger, `${description} the input ends in is an error`, pattern.test(error?.message), true);
+        assert(logger, `${description} the input ends in is incomplete`, error?.incomplete, true);
+    }
+    {
+        const error = errorOf('(a\n  "bc');
+        assert(logger, 'an unterminated string gives the line it starts on', error?.line, 2);
+        assert(logger, 'an unterminated string gives the column it starts at', error?.column, 3);
+    }
+    // Ended, they are no errors
+    assert(logger, 'a string ending in an escaped backslash', values('"a\\\\" b'), '"a\\\\" b');
+    assert(logger, 'a |symbol| holding an escaped |', values('|a\\|| b'), '|a\\|| b');
+    assert(logger, '#\\ then a space is the space character', values('#\\ '), '#\\ ');
+
+    logger.title('tokenize - offsets');
+
+    // Each token records the index in the input where it starts, counting a
+    // CR LF as the two characters it is
+    {
+        const offsets = (input) => tokenize(input).map((t) => t.offset);
+        assert(logger, 'token offsets', offsets('(a "b c" #\\( |d e|)'), [0, 1, 3, 9, 13, 18]);
+        assert(logger, 'token offsets past comments', offsets('a ; c\n#| d |# b #;c'), [0, 14, 16, 18]);
+        assert(logger, 'token offsets past CR LF', offsets('a\r\nb\rc'), [0, 3, 5]);
+        assert(logger, 'token offsets of #( and #u8(', offsets('#(1) #u8(2)'), [0, 2, 3, 5, 9, 10]);
+    }
+
     logger.title('tokenize - basic');
 
     // Basic tokens

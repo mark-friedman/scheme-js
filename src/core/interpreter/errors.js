@@ -168,6 +168,29 @@ export class SchemeReadError extends SchemeError {
         this.context = context;
         this.line = line;
         this.column = column;
+        /**
+         * Whether the input ended inside a datum, so that more input could
+         * complete it. Set by `endOfInput`.
+         * @type {boolean}
+         */
+        this.incomplete = false;
+    }
+
+    /**
+     * A read error for input that ends inside a datum: a list or vector not
+     * closed, a string, |symbol| or block comment not ended, a quote, `#;`
+     * or `#\` with nothing after it. Reading more could complete the datum,
+     * so a REPL asks for another line rather than report the error.
+     * @param {string} message - Error description
+     * @param {string} [context] - What was being read
+     * @param {number} [line] - Line number if available
+     * @param {number} [column] - Column number if available
+     * @returns {SchemeReadError} An error whose `incomplete` is true
+     */
+    static endOfInput(message, context = null, line = null, column = null) {
+        const error = new SchemeReadError(message, context, line, column);
+        error.incomplete = true;
+        return error;
     }
 }
 
