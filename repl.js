@@ -17,6 +17,7 @@ import { attachTier } from './src/compiler/tiering.js';
 import prebuiltLibraries from './src/packaging/compiled_libraries.js';
 import { analyze } from './src/core/interpreter/analyzer.js';
 import { parse } from './src/core/interpreter/reader.js';
+import { SchemeReadError } from './src/core/interpreter/errors.js';
 import { Cons, toArray, cdr, car } from './src/core/interpreter/cons.js';
 import { Symbol } from './src/core/interpreter/symbol.js';
 import { Closure, Continuation, callSchemeProcedure } from './src/core/interpreter/values.js';
@@ -343,9 +344,17 @@ async function startRepl() {
                     return callback(null, output);
                 }
 
-                // Attempt to parse first to catch syntax errors early and check for recoverability
-                // We parse SYNCHRONOUSLY here to detect syntax errors before running
-                const sexps = parse(cmd);
+                // Read all of the input before evaluating any of it. Input
+                // that ends inside a datum is continued: Node's REPL prompts
+                // for another line and calls this again with both. Only an
+                // error reading the input is, never one evaluating raises,
+                // which a `read` or `load` of incomplete text can.
+                let sexps;
+                try {
+                    sexps = parse(cmd, { suppressLog: true });
+                } catch (e) {
+                    return callback(isRecoverableError(e) ? new repl.Recoverable(e) : e);
+                }
 
                 isEvaluating = true;
                 let result;
@@ -364,9 +373,6 @@ async function startRepl() {
 
             } catch (e) {
                 flushOutput();
-                if (isRecoverableError(e)) {
-                    return callback(new repl.Recoverable(e));
-                }
                 callback(e);
             } finally {
                 isEvaluating = false;
@@ -380,11 +386,15 @@ async function startRepl() {
     });
 }
 
+/**
+ * Whether reading the REPL's input failed only because the input ended inside
+ * a datum -- a list not closed, a string, |symbol| or block comment not ended,
+ * a quote with nothing after it -- so that another line could complete it.
+ * @param {*} error - What reading the input threw.
+ * @returns {boolean}
+ */
 function isRecoverableError(error) {
-    const msg = error.message;
-    return msg === 'Unexpected EOF' ||
-        msg.includes("Missing ')'") ||
-        msg === 'Unterminated string';
+    return error instanceof SchemeReadError && error.incomplete;
 }
 
 startRepl();

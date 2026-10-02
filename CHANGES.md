@@ -9899,3 +9899,41 @@ delimiters: `abc"d"` is one atom.
 JavaScript under `src/`: 127 lines added and 346 removed, all fixing in place what is JavaScript
 until the reader is ported (63) -- `expression_utils.js` (+60 -327), `tokenizer.js` (+28 -9),
 `parser.js` (+16 -10) and `errors.js` (+23). No Scheme under `src/`.
+
+# The Node REPL continues an expression over lines (2026-10-02)
+
+## Why
+
+The REPL `node repl.js` starts with no arguments could not take an expression over more than one
+line. Typing `(+ 1` and Enter reported `read: missing ')' (while reading list)`, and the `2)`
+typed next a second error. Node's REPL continues a line when its evaluator reports the input
+`Recoverable`, and `repl.js` decided that by matching the error's message against
+`'Unexpected EOF'`, `"Missing ')'"` and `'Unterminated string'`, none of which the reader writes:
+its messages begin `read:` and are in lower case. Every incomplete line also logged
+`Parse error in input:` to standard error, besides the error itself.
+
+## The change
+
+`repl.js` asks the reader instead, as the browser REPL now does: input whose reading fails with a
+`SchemeReadError` marked `incomplete` -- a list or vector not closed, a string, `|symbol|` or block
+comment not ended, a quote, `#;` or `#\` with nothing after it -- is `Recoverable`, and Node's REPL
+prompts for another line and reads both. The input is read whole before any of it is evaluated,
+and only an error reading it is recoverable: evaluating `(read (open-input-string "(a"))` raises
+the same incomplete read error, and taking that for unfinished input would have the REPL wait for
+more and then evaluate everything again. The input is read with the parse error log suppressed;
+an error more input cannot mend, such as an unbalanced `)`, is still reported, at once.
+
+## Verification
+
+Tests written first: `cli_repl_input_tests.js`, a new Node-only module, runs `repl.js` with input
+piped in, each expression written once the one before is answered -- a list, a string and a block
+comment continued on the next line, characters and a `|symbol|` holding the other delimiters on
+one, an unbalanced `)` reported and the next line a new expression, and a read error from
+evaluating reported rather than continued. All 8 failed before the change. With the change made
+but evaluation errors also allowed to be recoverable, the last test fails, the REPL left waiting.
+
+7,186 tests pass in Node with none failing (33 skipped), and 6,981 in the browser with none failing
+(54 skipped: the new module is Node-only), served from this checkout on a port not used before.
+`printf '(+ 1\n2)\n' | node repl.js` prints `3`.
+
+No JavaScript under `src/`: the fix is in `repl.js`, the CLI's start-up, at the root (+20 -10).

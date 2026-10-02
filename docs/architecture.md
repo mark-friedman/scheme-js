@@ -421,6 +421,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── io_tests.js
 │   │   ├── cli_stdin_tests.js      # `node repl.js` programs reading piped input; the REPL unaffected
 │   │   ├── cli_stdout_tests.js     # What they write: when, in what order, and to which stream
+│   │   ├── cli_repl_input_tests.js # The interactive REPL continuing an expression over lines
 │   │   ├── string_tests.js
 │   │   ├── string_interop_tests.js # Mutable strings at the JavaScript boundary, both tiers
 │   │   ├── vector_tests.js
