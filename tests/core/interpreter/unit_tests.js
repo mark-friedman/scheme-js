@@ -206,6 +206,18 @@ export function runUnitTests(interpreter, logger) {
         assert(logger, "Unit: prettyPrint symbol", prettyPrint(intern("x")), "x");
         assert(logger, "Unit: prettyPrint number", prettyPrint(123), "123.0");
         assert(logger, "Unit: prettyPrint list", prettyPrint(list(1, intern("a"))), "(1.0 a)");
+
+        // Circular structure is shown with datum labels, as write shows it,
+        // rather than followed until memory or the stack runs out
+        const cycle = list(intern("a"), intern("b"));
+        cycle.cdr.cdr = cycle;
+        assert(logger, "Unit: prettyPrint circular list", prettyPrint(cycle), "#0=(a b . #0#)");
+        const vector = [1n, null];
+        vector[1] = vector;
+        assert(logger, "Unit: prettyPrint circular vector", prettyPrint(vector), "#0=#(1 #0#)");
+        // Shared structure without a cycle is shown as before
+        const shared = list(1n);
+        assert(logger, "Unit: prettyPrint shared list", prettyPrint(list(shared, shared)), "((1) (1))");
     } catch (e) {
         logger.fail(`REPL unit tests failed: ${e.message}`);
     }

@@ -467,31 +467,68 @@ export function identifierEquals(id1, id2) {
 }
 
 /**
+ * Rebuilds a form's pairs and vectors, applying `leaf` to everything else in
+ * it. Each pair and vector is copied once however often it is reached, so a
+ * quoted datum's shared and circular structure, which R7RS 2.4 allows in
+ * literals, is kept: copied as a tree, its sharing would be lost and a cycle
+ * would be followed until the stack ran out.
+ * @param {any} exp - The form.
+ * @param {function(any, Map): any} leaf - Maps what is neither a pair nor a
+ *   vector; it is given `copies` to pass on if it maps a form inside one.
+ * @param {Map<Object, Object>} [copies] - Each pair and vector copied so far,
+ *   to its copy.
+ * @returns {any}
+ */
+function mapForm(exp, leaf, copies = new Map()) {
+    if (exp instanceof Cons) {
+        let copy = copies.get(exp);
+        if (copy === undefined) {
+            copy = new Cons(null, null);
+            copies.set(exp, copy);
+            copy.car = mapForm(exp.car, leaf, copies);
+            copy.cdr = mapForm(exp.cdr, leaf, copies);
+        }
+        return copy;
+    }
+    if (Array.isArray(exp)) {
+        let copy = copies.get(exp);
+        if (copy === undefined) {
+            copy = new Array(exp.length);
+            copies.set(exp, copy);
+            for (let i = 0; i < exp.length; i++) {
+                copy[i] = mapForm(exp[i], leaf, copies);
+            }
+        }
+        return copy;
+    }
+    return leaf(exp, copies);
+}
+
+/**
  * Unwrap a syntax object to get the underlying symbol/value.
  * If strictly a symbol is needed, use toSymbol().
  * @param {any} obj 
  * @returns {any}
  */
 export function unwrapSyntax(obj) {
+    return mapForm(obj, unwrapLeaf);
+}
+
+/**
+ * The datum a syntax object stands for: an identifier's symbol, or the
+ * unwrapped form it wraps. Anything else is returned as it is.
+ * @param {any} obj
+ * @param {Map<Object, Object>} copies - As for `mapForm`.
+ * @returns {any}
+ */
+function unwrapLeaf(obj, copies) {
     if (obj instanceof SyntaxObject) {
-        // recursively unwrap the content
         // If the content is a string, it's an identifier name -> Symbol
         if (typeof obj.name === 'string') {
             return intern(obj.name);
         }
-        return unwrapSyntax(obj.name);
+        return mapForm(obj.name, unwrapLeaf, copies);
     }
-    // Recursively unwrap Cons structures
-    if (obj instanceof Cons) {
-        const car = unwrapSyntax(obj.car);
-        const cdr = unwrapSyntax(obj.cdr);
-        return new Cons(car, cdr);
-    }
-    // Handle arrays (vectors)
-    if (Array.isArray(obj)) {
-        return obj.map(unwrapSyntax);
-    }
-    // Base case: return as is (Symbol, Number, String, etc)
     return obj;
 }
 
@@ -517,30 +554,18 @@ export function syntaxScopes(obj) {
  * @returns {any} Expression with scope marks added to all identifiers
  */
 export function addScopeToExpression(exp, scope) {
-    // Handle Symbol - wrap as SyntaxObject with scope
-    if (exp instanceof Symbol) {
-        return internSyntax(exp.name, new Set([scope]));
-    }
-
-    // Handle SyntaxObject - add scope to existing
-    if (exp instanceof SyntaxObject) {
-        return exp.addScope(scope);
-    }
-
-    // Handle Cons - recurse on car and cdr
-    if (exp instanceof Cons) {
-        const car = addScopeToExpression(exp.car, scope);
-        const cdr = addScopeToExpression(exp.cdr, scope);
-        return new Cons(car, cdr);
-    }
-
-    // Handle arrays (vectors)
-    if (Array.isArray(exp)) {
-        return exp.map(e => addScopeToExpression(e, scope));
-    }
-
-    // Primitives pass through unchanged
-    return exp;
+    return mapForm(exp, (leaf) => {
+        // Handle Symbol - wrap as SyntaxObject with scope
+        if (leaf instanceof Symbol) {
+            return internSyntax(leaf.name, new Set([scope]));
+        }
+        // Handle SyntaxObject - add scope to existing
+        if (leaf instanceof SyntaxObject) {
+            return leaf.addScope(scope);
+        }
+        // Primitives pass through unchanged
+        return leaf;
+    });
 }
 
 /**
@@ -552,28 +577,16 @@ export function addScopeToExpression(exp, scope) {
  * @returns {any} Expression with scope marks flipped on all identifiers
  */
 export function flipScopeInExpression(exp, scope) {
-    // Handle Symbol - wrap as SyntaxObject with scope (flip on empty = add)
-    if (exp instanceof Symbol) {
-        return internSyntax(exp.name, new Set([scope]));
-    }
-
-    // Handle SyntaxObject - flip scope on existing
-    if (exp instanceof SyntaxObject) {
-        return exp.flipScope(scope);
-    }
-
-    // Handle Cons - recurse on car and cdr
-    if (exp instanceof Cons) {
-        const car = flipScopeInExpression(exp.car, scope);
-        const cdr = flipScopeInExpression(exp.cdr, scope);
-        return new Cons(car, cdr);
-    }
-
-    // Handle arrays (vectors)
-    if (Array.isArray(exp)) {
-        return exp.map(e => flipScopeInExpression(e, scope));
-    }
-
-    // Primitives pass through unchanged
-    return exp;
+    return mapForm(exp, (leaf) => {
+        // Handle Symbol - wrap as SyntaxObject with scope (flip on empty = add)
+        if (leaf instanceof Symbol) {
+            return internSyntax(leaf.name, new Set([scope]));
+        }
+        // Handle SyntaxObject - flip scope on existing
+        if (leaf instanceof SyntaxObject) {
+            return leaf.flipScope(scope);
+        }
+        // Primitives pass through unchanged
+        return leaf;
+    });
 }

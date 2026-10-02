@@ -9827,3 +9827,65 @@ allows, overflows the stack.
 
 JavaScript under `src/`: 10 lines added and 1 removed, fixing the reader in place --
 `tokenizer.js` (+4 -1) and `parser.js` (+6). The reader is JavaScript until it is ported (63).
+
+# Circular structure: `write` and `display` label it, and a program's literals may hold it (2026-10-02)
+
+## Why
+
+Two R7RS requirements on circular data did not hold, found checking the reader against the corpus,
+where rapid-syntax's tests quote `'(bar . #0=(baz . #0#))`:
+
+- `write` and `display` must terminate on circular structure, labelling the objects that form a
+  cycle and only those (R7RS 6.13.3). Both followed a cycle until JavaScript ran out of array
+  length or stack. The REPL's `prettyPrint` did the same.
+- A program may hold circular structure in its literals (R7RS 2.4), but `(car '#0=(a . #0#))`
+  overflowed the stack in both tiers before it ran: the expander's three copiers of a form --
+  `unwrapSyntax`, which `quote` uses; `addScopeToExpression`, which binding forms apply to their
+  bodies; `flipScopeInExpression`, which macro expansion applies -- copied it as a tree.
+
+On the way: `write-shared` wrote a cycle reached through a list's tail as `(bar baz . ...)`, which
+reads as nothing, and a shared tail as `((1 2 3) #0=(2 3))`, its label on the second occurrence, so
+the sharing was lost; and `write-simple`, which must never write labels, called `write`'s printer.
+
+## The change
+
+- `io/printer.js`: one writer for all four procedures, which first walks the value depth first to
+  find the objects to label and then writes it, numbering labels in the order they are written. An
+  object reached again while it is still being walked closes a cycle, and every cycle has one;
+  `write` and `display` label those, `write-shared` also every object reached twice, and
+  `write-simple` none. A labelled pair in a list's tail ends the list after a dot, so its label can
+  be written. A list's pairs are walked in a loop, so a long list takes no stack frame per element.
+  `isCircular` tells the REPL's printer whether a value has a cycle of pairs and vectors, the only
+  structure it follows; it then shows the value as `write` does.
+- `syntax_object.js`: the three copiers share `mapForm`, which copies each pair and vector once
+  however often it is reached, so a quoted datum keeps its cycles and its sharing:
+  `'(#0=(1) #0#)` now evaluates to a list whose two elements are `eq?`, where they were two copies.
+- `tests/run_scheme_tests_lib.js`: a test's name that is the expression it tests is written with
+  `write`, as the tiered runner already wrote it, rather than with `Cons.prototype.toString`, which
+  follows a cycle.
+
+## Verification
+
+Tests written first: in `write_tests.scm`, what `write`, `display` and `write-shared` write for
+cycles through cdrs, cars and vectors, two cycles, one written twice, shared structure without a
+cycle (no labels from `write`), a shared tail, and that what `write` writes reads back as the same
+cycle; in `reader_tests.scm`, circular and shared literals at top level, in a procedure's body, in
+`let` and `lambda` bodies, through a macro and as a self-evaluating vector; in
+`tier_compiles_tests.scm`, a procedure walking a circular literal, compiled by the tier in its
+second run; in `unit_tests.js`, the REPL's printer on a circular list and vector. The tiered test
+crashed with the stack overflow before the change.
+
+7,040 tests pass in Node with none failing (33 skipped), and 6,843 in the browser with none
+failing (53 skipped), served from this checkout on a port not used before.
+
+Start-up is unchanged within its noise, though every binding form's body now goes through
+`mapForm`'s Map: the CLI's `(display 1)`, the committed tree and this one alternating, eight runs
+each, three rounds, best 292-321 ms against 301-314 with the tier and 159-168 against 159-166
+without. Writing a large value costs more, the price of the walk's Map: a list of 200,000 integers
+27 ms against 10, a tree of 2^14 leaves 9.8 against 6.7, `display` of a three-element list 0.36 us
+against 0.20.
+
+JavaScript under `src/`: 264 lines added and 261 removed, rewriting in place: `io/printer.js`
+(+168 -194), `syntax_object.js` (+74 -61), `interpreter/printer.js` (+19 -3), and the exports.
+The printer is to become Scheme (66) and the expander too (45); these are fixes to both in place,
+and the plan's entries for them now say what their ports must keep.

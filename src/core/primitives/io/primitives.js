@@ -9,7 +9,7 @@ import { FileInputPort, FileOutputPort, fileExists, deleteFile } from './file_po
 import { ConsoleOutputPort } from './console_port.js';
 import { standardInputPort } from './stdin_port.js';
 import { standardOutputPort, standardErrorPort } from './stdout_port.js';
-import { displayString, writeString, writeStringShared } from './printer.js';
+import { displayString, writeString, writeStringShared, writeStringSimple } from './printer.js';
 import { readExpressionFromPort } from './reader_bridge.js';
 import { list } from '../../interpreter/cons.js';
 import { intern } from '../../interpreter/symbol.js';
@@ -331,7 +331,7 @@ export const ioPrimitives = {
 
     '%write-simple': (val, port) => {
         requireOpenOutputPort(port, 'write-simple');
-        const str = writeString(val);
+        const str = writeStringSimple(val);
         port.writeString(str);
         return undefined;
     },

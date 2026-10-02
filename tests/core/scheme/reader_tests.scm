@@ -56,6 +56,26 @@
       (test 'a (caar x)))
   )
   
+  (test-group "datum-labels-in-literals"
+    ;; R7RS 2.4: a program may hold circular structure in its literals, and
+    ;; evaluating one gives the structure as read
+    (test 'baz (car '#0=(baz . #0#)))
+    (test #t (let ((x '#0=(a b . #0#))) (eq? x (cddr x))))
+    (test #t (let ((v '#0=#(1 #0#))) (eq? v (vector-ref v 1))))
+    (test #t (let ((v #0=#(1 #0#))) (eq? v (vector-ref v 1))))
+    (test #t (let ((x '#0=(#0#))) (eq? x (car x))))
+    ;; In a procedure's body, which the binding forms walk to mark their
+    ;; scope, and through a macro
+    (define (a-cycle) '#0=(x . #0#))
+    (test #t (eq? (a-cycle) (cdr (a-cycle))))
+    (test 'a (let ((y 1)) (car '#0=(a . #0#))))
+    (test 'a ((lambda () (car '#0=(a . #0#)))))
+    (define-syntax head-of (syntax-rules () ((_ x) (car x))))
+    (test 'm (head-of '#0=(m . #0#)))
+    ;; Structure shared without a cycle stays shared
+    (test #t (let ((x '(#0=(1) #0#))) (eq? (car x) (cadr x))))
+  )
+
   (test-group "angle-bracket-identifiers"
      (test '<pare> (read (open-input-string "<pare>")))
      (test '< (read (open-input-string "<")))

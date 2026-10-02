@@ -2,6 +2,30 @@
 ;;
 ;; Tests for write, write-simple, and write-shared
 
+;; /**
+;;  * What a write procedure writes for a value.
+;;  * @param {procedure} write-proc - write, display, write-shared or write-simple.
+;;  * @param {*} x - The value.
+;;  * @returns {string}
+;;  */
+(define (written write-proc x)
+  (let ((out (open-output-string)))
+    (write-proc x out)
+    (get-output-string out)))
+
+;; /**
+;;  * A circular list of the values given: its last pair's cdr is its first.
+;;  * @param {...*} xs - At least one value.
+;;  * @returns {pair}
+;;  */
+(define (circular . xs)
+  (let ((x (list-copy xs)))
+    (let loop ((last x))
+      (if (null? (cdr last))
+          (set-cdr! last x)
+          (loop (cdr last))))
+    x))
+
 (test-group "Write Procedures tests"
   
   ;; ===== write tests =====
@@ -28,6 +52,62 @@
         ;; Check that output is "a\nb" with escaped newline
         (= (string-length (get-output-string out)) 6)))
   )
+
+  ;; ===== circular structure (R7RS 6.13.3) =====
+  ;;
+  ;; write and display must terminate on circular structure, labelling at
+  ;; least the objects that form a cycle, and write must use no labels
+  ;; where there is no cycle.
+
+  (test-group "write, circular"
+
+    (test "the example in R7RS 2.4"
+      "#0=(a b c . #0#)"
+      (written write (circular 'a 'b 'c)))
+
+    (test "a cycle reached through a list's tail"
+      "(bar . #0=(baz . #0#))"
+      (written write (cons 'bar (circular 'baz))))
+
+    (test "a circular list as an element"
+      "(bar #0=(baz . #0#))"
+      (written write (list 'bar (circular 'baz))))
+
+    (test "a pair that is its own car"
+      "#0=(#0#)"
+      (let ((x (list 1)))
+        (set-car! x x)
+        (written write x)))
+
+    (test "a vector that holds itself"
+      "#0=#(1 #0#)"
+      (let ((v (vector 1 2)))
+        (vector-set! v 1 v)
+        (written write v)))
+
+    (test "two cycles, numbered as written"
+      "(#0=(a . #0#) #1=(b . #1#))"
+      (written write (list (circular 'a) (circular 'b))))
+
+    (test "a cycle written twice is referred to the second time"
+      "(#0=(1 . #0#) #0#)"
+      (let ((x (circular 1)))
+        (written write (list x x))))
+
+    (test "shared structure that is not circular has no labels"
+      "((1 2) (1 2))"
+      (let ((x (list 1 2)))
+        (written write (list x x))))
+
+    (test "what write writes reads back as the same cycle"
+      #t
+      (let ((y (read (open-input-string (written write (circular 'a 'b 'c))))))
+        (and (eq? y (cdddr y)) (eq? 'c (caddr y)))))
+
+    (test "display labels a cycle too, writing its strings as display does"
+      "#0=(a b . #0#)"
+      (written display (circular "a" #\b)))
+  )
   
   ;; ===== write-simple tests =====
   
@@ -53,16 +133,23 @@
     
     (test "write-shared shows sharing"
       ;; When the same list appears twice, write-shared uses datum labels
-      #t
-      (let* ((out (open-output-string))
-             (x (list 1 2 3))
-             (result (begin 
-                       (write-shared (list x x) out)
-                       (get-output-string out))))
-        ;; Should contain #0= label
-        (or (string=? result "((1 2 3) (1 2 3))")  ; no sharing detected (ok)
-            (and (> (string-length result) 0)      ; something written
-                 (not (string=? result ""))))))    ; non-empty
+      "(#0=(1 2 3) #0#)"
+      (let ((x (list 1 2 3)))
+        (written write-shared (list x x))))
+
+    (test "write-shared, a shared tail"
+      ;; A pair shared in a list's tail breaks the list there
+      "((1 . #0=(2 3)) #0#)"
+      (let ((tail (list 2 3)))
+        (written write-shared (list (cons 1 tail) tail))))
+
+    (test "write-shared, a cycle reached through a list's tail"
+      "(bar . #0=(baz . #0#))"
+      (written write-shared (cons 'bar (circular 'baz))))
+
+    (test "write-shared, a list that is its own tail"
+      "#0=(a b c . #0#)"
+      (written write-shared (circular 'a 'b 'c)))
     
     (test "write-shared with no sharing"
       "((1 2) (3 4))"

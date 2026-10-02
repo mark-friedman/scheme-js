@@ -60,6 +60,13 @@
 (depth 2)
 (depth 2)
 
+;; Loops, so it is compiled when it is bound, and walks a circular literal,
+;; which R7RS 2.4 allows in a program: the compiler takes it as a constant
+;; like any other, rather than following it.
+(define (nth-of-cycle n)
+  (let loop ((i 0) (xs '#0=(a b . #0#)))
+    (if (= i n) (car xs) (loop (+ i 1) (cdr xs)))))
+
 (test-group "When the tier compiles a procedure"
   (test "a procedure called twice from the top level is compiled on its second call"
         *tier-attached* (compiled? cube))
@@ -74,4 +81,7 @@
   (test "after it, a continuation captured in compiled code escapes as it should"
         4 (first-even '(1 3 4 5 6)))
   (test "and a recursion 100,000 deep in compiled code finishes"
-        100000 (depth 100000)))
+        100000 (depth 100000))
+  (test "a procedure holding a circular literal is compiled"
+        *tier-attached* (compiled? nth-of-cycle))
+  (test "and finds in it what was written" 'b (nth-of-cycle 5)))

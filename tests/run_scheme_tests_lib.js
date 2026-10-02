@@ -92,13 +92,16 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     // Inject native reporter. It writes the values as Scheme does, so it takes
     // them as Scheme values: converted for JavaScript, an exact integer beyond
     // 2^53 could not be passed at all.
+    // A test's name is a string, or the expression it tests, written as
+    // Scheme writes it -- which terminates if a literal in it is circular.
+    const nameOf = (name) => (typeof name === 'string' ? name : writeString(name));
     const reportTestResult = (name, passed, expected, actual) => {
         const expectedStr = writeString(expected);
         const actualStr = writeString(actual);
         if (passed) {
-            logger.pass(`${name} (Expected: ${expectedStr}, Got: ${actualStr})`);
+            logger.pass(`${nameOf(name)} (Expected: ${expectedStr}, Got: ${actualStr})`);
         } else {
-            logger.fail(`${name} (Expected: ${expectedStr}, Got: ${actualStr})`);
+            logger.fail(`${nameOf(name)} (Expected: ${expectedStr}, Got: ${actualStr})`);
         }
     };
     reportTestResult[SCHEME_PRIMITIVE] = true;
@@ -109,7 +112,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     });
 
     interpreter.globalEnv.bindings.set('native-report-test-skip', (name, reason) => {
-        logger.skip(`${name} (Reason: ${reason})`);
+        logger.skip(`${nameOf(name)} (Reason: ${reason})`);
     });
 
     // 2. Load test.scm (Harness)
