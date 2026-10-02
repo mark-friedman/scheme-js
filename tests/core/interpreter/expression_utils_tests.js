@@ -4,7 +4,7 @@
  * parenthesis the one at the cursor matches.
  */
 
-import { isCompleteExpression, findMatchingDelimiter } from '../../../src/core/interpreter/expression_utils.js';
+import { isCompleteExpression, findMatchingDelimiter, delimiterParens } from '../../../src/core/interpreter/expression_utils.js';
 import { assert } from '../../harness/helpers.js';
 
 /**
@@ -135,6 +135,15 @@ export function runExpressionUtilsTests(logger) {
         ['(f |a)b|)', 5, null, 'a ) in a |symbol|'],
         ['(a #| ( |# b)', 6, null, 'a ( in a block comment'],
         ['(a ; )\n b)', 5, null, 'a ) in a line comment'],
+        // Before a string, |symbol|, block comment or character the text ends
+        // inside, parentheses match; in it, none is a delimiter
+        ['(a) "b', 2, 0, 'before an unfinished string'],
+        ['(a) "b', 0, 2, 'before an unfinished string forward'],
+        ['(a (b) |c', 5, 3, 'before an unfinished |symbol|'],
+        ['(a) #| (', 2, 0, 'before an unfinished block comment'],
+        ['(a) #\\', 2, 0, 'before an unfinished #\\'],
+        ['(a "(b', 4, null, 'a ( in an unfinished string'],
+        ['(a "(b)', 0, null, 'a ( whose ) is in an unfinished string'],
         // Nor does an unbalanced one, a character that is no parenthesis, or
         // a position outside the text
         ['(a (b)', 0, null, 'an unclosed ('],
@@ -148,6 +157,31 @@ export function runExpressionUtilsTests(logger) {
             findMatchingDelimiter(text, position), expected);
     }
 
+    logger.title('delimiterParens');
+
+    /**
+     * The text's delimiter parentheses, each as `(` or `)` and its position.
+     * @param {string} text - Source code.
+     * @returns {string} Them in order, separated by spaces.
+     */
+    const parens = (text) => delimiterParens(text)
+        .map(({ position, open }) => `${open ? '(' : ')'}${position}`).join(' ');
+
+    // [text, expected, description]
+    const delimiters = [
+        ['(a (b) c)', '(0 (3 )5 )8', 'nested lists'],
+        ['#(1 #u8(2))', '(1 (7 )9 )10', 'the ( of #( and #u8('],
+        ['(f "(" |)| #\\( #| ( |# ; )\n)', '(0 )27', 'none in a string, |symbol|, character or comment'],
+        ['', '', 'no text'],
+        // Those before what the text ends inside, and none in it
+        ['(a (b "c)', '(0 (3', 'an unfinished string'],
+        ['(a |b)', '(0', 'an unfinished |symbol|'],
+        ['(a) #| (b)', '(0 )2', 'an unfinished block comment'],
+        ['(a #\\', '(0', 'an unfinished #\\'],
+    ];
+    for (const [text, expected, description] of delimiters) {
+        assert(logger, `delimiters: ${description}: ${JSON.stringify(text)}`, parens(text), expected);
+    }
 }
 
 export default runExpressionUtilsTests;

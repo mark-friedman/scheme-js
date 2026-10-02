@@ -38,6 +38,7 @@ export const unitTests = [
     { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
     { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
+    { path: 'unit/repl_parens_tests.js', fn: 'runReplParensTests', needsInterpreter: false },
     // Benchmark harness arithmetic
     { path: 'unit/r7rs_compare_tests.js', fn: 'runR7rsCompareTests', needsInterpreter: false },
 ];

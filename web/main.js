@@ -8,7 +8,7 @@ import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { prettyPrint } from '../src/core/interpreter/printer.js';
-import { isCompleteExpression, findMatchingDelimiter } from '../src/core/interpreter/expression_utils.js';
+import { isCompleteExpression, findMatchingDelimiter, delimiterParens } from '../src/core/interpreter/expression_utils.js';
 import {
     SchemeDebugRuntime,
     ReplDebugBackend,
@@ -147,6 +147,7 @@ import {
         prettyPrint,
         isCompleteExpression,
         findMatchingDelimiter,
+        delimiterParens,
         ReplDebugBackend,
         ReplDebugCommands,
         SchemeDebugRuntime

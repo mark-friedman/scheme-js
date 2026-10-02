@@ -10,6 +10,7 @@ import {
     prettyPrint,
     isCompleteExpression,
     findMatchingDelimiter,
+    delimiterParens,
     SchemeDebugRuntime,
     ReplDebugBackend,
     ReplDebugCommands
@@ -51,6 +52,7 @@ class SchemeRepl extends HTMLElement {
             prettyPrint,
             isCompleteExpression,
             findMatchingDelimiter,
+            delimiterParens,
             SchemeDebugRuntime,
             ReplDebugBackend,
             ReplDebugCommands

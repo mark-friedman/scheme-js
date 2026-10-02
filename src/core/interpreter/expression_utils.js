@@ -38,19 +38,21 @@ export function isCompleteExpression(input) {
 
 /**
  * The parentheses in the text that are delimiters, opening or closing a
- * list, a vector or a bytevector, in order.
+ * list, a vector or a bytevector, in order. If the text ends inside a string,
+ * a |symbol|, a character or a block comment, those before it.
  * @param {string} text - Source code
- * @returns {Array<{position: number, open: boolean}>|null} Each one's index
- *   in the text and whether it opens, or null if the text ends inside a
- *   string, a |symbol|, a character or a block comment
+ * @returns {Array<{position: number, open: boolean}>} Each one's index in
+ *   the text and whether it opens
  */
-function delimiterParens(text) {
+export function delimiterParens(text) {
     let tokens;
     try {
         tokens = tokenize(text);
     } catch (e) {
-        if (e instanceof SchemeReadError) return null;
-        throw e;
+        if (!(e instanceof SchemeReadError && e.offset !== null)) throw e;
+        // What is unfinished starts where a token could, so the text before
+        // it reads as the same tokens
+        tokens = tokenize(text.slice(0, e.offset));
     }
     const parens = [];
     for (const token of tokens) {
@@ -68,8 +70,7 @@ function delimiterParens(text) {
  * Finds the position of the matching delimiter for the one at the given position.
  *
  * A parenthesis in a string, a |symbol|, a character or a comment is no
- * delimiter, and has no match. Nor has any while the text ends inside one of
- * those, which the reader cannot tokenize.
+ * delimiter, and has no match.
  *
  * @param {string} text - Source code
  * @param {number} position - Position of the delimiter to match
@@ -80,7 +81,7 @@ export function findMatchingDelimiter(text, position) {
         return null;
     }
     const parens = delimiterParens(text);
-    const start = parens ? parens.findIndex((paren) => paren.position === position) : -1;
+    const start = parens.findIndex((paren) => paren.position === position);
     if (start < 0) {
         return null;
     }

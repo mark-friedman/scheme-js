@@ -9937,3 +9937,56 @@ but evaluation errors also allowed to be recoverable, the last test fails, the R
 `printf '(+ 1\n2)\n' | node repl.js` prints `3`.
 
 No JavaScript under `src/`: the fix is in `repl.js`, the CLI's start-up, at the root (+20 -10).
+
+# The browser REPL colours and indents by the reader's parentheses (2026-10-02)
+
+## Why
+
+After its completeness check and parenthesis matching came to ask the reader, the browser REPL
+still had two scanners of its own in `web/repl.js`: `renderRainbowParens`, which colours
+parentheses by depth, and `calculateDepthAfterLine`, which sets how deep Enter indents a new line.
+Both knew strings and line comments only. In `(list #\( 1)` the `(` of `#\(` was coloured as
+opening a list and the closing `)` given the colour of the wrong depth; `(f #\(` and Enter indented
+two levels; a parenthesis in a `|symbol|` or block comment counted. A history entry was coloured a
+line at a time, so a string or block comment over lines was misread from its second line, and the
+indent depth was found with the input's line breaks taken out, so a line comment hid the lines
+after it.
+
+And the change before last left `findMatchingDelimiter` with no match at all while the input ended
+inside a string, `|symbol|` or block comment -- the usual state while typing one -- because the
+tokenizer could not read such text.
+
+## The change
+
+- `tokenizer.js`, `errors.js`: an error for input that ends inside a string, `|symbol|`, block
+  comment or `#\` carries the `offset` where that begins. An exception to *Scheme first*, agreed
+  for this change: it extends the reader, which is JavaScript until it is ported, by an offset
+  beside the line and column it already reported, rather than have the REPL work the offset out
+  from the line and column by the tokenizer's rules for line endings.
+- `expression_utils.js`: `delimiterParens`, now exported, gives the delimiter parentheses of the
+  text before what it ends inside, those of the text up to that offset; `findMatchingDelimiter`
+  matches them, so a pair before an unfinished string matches again.
+- `web/repl.js`: `renderRainbowParens` colours the parentheses `delimiterParens` finds, and
+  `nestingDepth` counts them for the indent; both are module functions now, tested on their own.
+  A history entry is rendered whole and then split into lines. `delimiterParens` reaches the REPL
+  as `findMatchingDelimiter` does, through `setupRepl`'s dependencies, from `web/main.js` and the
+  web component's bundle (`scheme_entry.js`, `scheme_repl_wc.js`).
+
+## Verification
+
+Tests written first: `repl_parens_tests.js`, a new module, of the colours -- by depth, cycling,
+mismatched, with parentheses in characters, `|symbols|`, strings and comments as text, before an
+unfinished string or comment, escaped, a matching pair marked, and a history entry's lines -- and
+of the indent depth; in `expression_utils_tests.js`, `delimiterParens` and matches before an
+unfinished token; in `tokenizer_tests.js`, the errors' offsets.
+
+7,239 tests pass in Node with none failing (33 skipped), and 7,034 in the browser with none failing
+(54 skipped), served from this checkout on a port not used before. In the REPL at `web/index.html`
+and the `<scheme-repl>` element of `dist/index.html`, `(list #\( 1)` colours only its own pair, the
+pair matching from the cursor; `(f #\(` and `(f "((` indent one level; parentheses before an open
+string keep their colours; and a history entry with a string and a block comment over lines
+colours only the delimiters on each line.
+
+JavaScript under `src/`: 18 lines added and 1 removed -- `errors.js` (+10), `tokenizer.js` (+4),
+`expression_utils.js` (+1) and the bundle's exports (+3 -1). The offset in the reader is the agreed
+exception; the rest fixes the REPL's helpers in place. `web/repl.js`, outside `src/`, is +83 -134.

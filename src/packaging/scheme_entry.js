@@ -244,7 +244,7 @@ export { schemeToJs, schemeToJsDeep, jsToScheme, jsToSchemeDeep } from '../core/
 export { parse } from '../core/interpreter/reader.js';
 export { analyze } from '../core/interpreter/analyzer.js';
 export { prettyPrint } from '../core/interpreter/printer.js';
-export { isCompleteExpression, findMatchingDelimiter } from '../core/interpreter/expression_utils.js';
+export { isCompleteExpression, findMatchingDelimiter, delimiterParens } from '../core/interpreter/expression_utils.js';
 export { SchemeDebugRuntime, ReplDebugBackend, ReplDebugCommands };
 
 // The page's code is compiled from when the compiler arrives, unless the page

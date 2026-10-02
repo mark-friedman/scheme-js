@@ -90,20 +90,24 @@ export function runTokenizerTests(logger) {
     };
 
     // A string, a |symbol| or a character the input ends in is an error, and
-    // one more input could mend, as an unterminated block comment is
-    for (const [input, pattern, description] of [
-        ['(a "bc', /unterminated string/, 'a string'],
-        ['"a\\"', /unterminated string/, 'a string whose last quote is escaped'],
-        ['"a\\', /unterminated string/, 'a string ending in a backslash'],
-        ['(a |bc', /unterminated \|symbol\|/, 'a |symbol|'],
-        ['|a\\|', /unterminated \|symbol\|/, 'a |symbol| whose last | is escaped'],
-        ['|', /unterminated \|symbol\|/, 'a lone |'],
-        ['(a #\\', /end of input after #\\/, 'a #\\ with no character'],
-        ['a #| b', /unterminated block comment/, 'a block comment'],
+    // one more input could mend, as an unterminated block comment is. The
+    // error gives the offset in the input where what is unfinished begins.
+    for (const [input, pattern, offset, description] of [
+        ['(a "bc', /unterminated string/, 3, 'a string'],
+        ['"a\\"', /unterminated string/, 0, 'a string whose last quote is escaped'],
+        ['"a\\', /unterminated string/, 0, 'a string ending in a backslash'],
+        ['(a |bc', /unterminated \|symbol\|/, 3, 'a |symbol|'],
+        ['|a\\|', /unterminated \|symbol\|/, 0, 'a |symbol| whose last | is escaped'],
+        ['|', /unterminated \|symbol\|/, 0, 'a lone |'],
+        ['(a #\\', /end of input after #\\/, 3, 'a #\\ with no character'],
+        ['a #| b', /unterminated block comment/, 2, 'a block comment'],
+        ['(a)\r\n "b', /unterminated string/, 6, 'a string after CR LF'],
+        ['(a "b" #| c #| d |#', /unterminated block comment/, 7, 'a block comment holding an ended one'],
     ]) {
         const error = errorOf(input);
         assert(logger, `${description} the input ends in is an error`, pattern.test(error?.message), true);
         assert(logger, `${description} the input ends in is incomplete`, error?.incomplete, true);
+        assert(logger, `${description} the input ends in: where it begins`, error?.offset, offset);
     }
     {
         const error = errorOf('(a\n  "bc');

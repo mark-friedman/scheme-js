@@ -174,6 +174,13 @@ export class SchemeReadError extends SchemeError {
          * @type {boolean}
          */
         this.incomplete = false;
+        /**
+         * Where in the input the token or block comment the input ended
+         * inside begins, so that the tokens before it can be read. Set by
+         * `endOfInput` for the tokenizer's errors.
+         * @type {number|null}
+         */
+        this.offset = null;
     }
 
     /**
@@ -185,11 +192,14 @@ export class SchemeReadError extends SchemeError {
      * @param {string} [context] - What was being read
      * @param {number} [line] - Line number if available
      * @param {number} [column] - Column number if available
+     * @param {number} [offset] - Where in the input the unfinished token or
+     *   block comment begins, if the input ended inside one
      * @returns {SchemeReadError} An error whose `incomplete` is true
      */
-    static endOfInput(message, context = null, line = null, column = null) {
+    static endOfInput(message, context = null, line = null, column = null, offset = null) {
         const error = new SchemeReadError(message, context, line, column);
         error.incomplete = true;
+        error.offset = offset;
         return error;
     }
 }

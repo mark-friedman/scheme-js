@@ -46,7 +46,8 @@ export function createSourceInfo(filename, line, column, endLine = null, endColu
  * comment, `#;`, is a token, for the parser to skip the datum after it.
  *
  * Input that ends inside a string, a |symbol|, a block comment or a `#\` is
- * an error marked `incomplete` (`SchemeReadError.endOfInput`).
+ * an error marked `incomplete` (`SchemeReadError.endOfInput`), whose `offset`
+ * is where the unfinished one begins.
  *
  * @param {string} input - Source code
  * @param {string} [filename='<unknown>'] - Source file name for error messages
@@ -153,11 +154,12 @@ export function tokenize(input, filename = '<unknown>') {
         if (!atBlockComment()) return false;
         const startLine = line;
         const startColumn = column;
+        const startOffset = pos;
         advance(2);
         let depth = 1;
         while (depth > 0) {
             if (pos >= input.length) {
-                throw SchemeReadError.endOfInput('unterminated block comment', 'block comment', startLine, startColumn);
+                throw SchemeReadError.endOfInput('unterminated block comment', 'block comment', startLine, startColumn, startOffset);
             }
             if (atBlockComment()) {
                 depth++;
@@ -180,6 +182,7 @@ export function tokenize(input, filename = '<unknown>') {
     function readString() {
         const startLine = line;
         const startColumn = column;
+        const startOffset = pos;
         let str = '"';
         advance(); // Skip opening quote
 
@@ -203,7 +206,7 @@ export function tokenize(input, filename = '<unknown>') {
         }
         // The input ended first, perhaps just after an escaped quote, which
         // closes nothing
-        throw SchemeReadError.endOfInput('unterminated string', 'string', startLine, startColumn);
+        throw SchemeReadError.endOfInput('unterminated string', 'string', startLine, startColumn, startOffset);
     }
 
     /**
@@ -214,6 +217,7 @@ export function tokenize(input, filename = '<unknown>') {
     function readBarSymbol() {
         const startLine = line;
         const startColumn = column;
+        const startOffset = pos;
         let str = '|';
         advance(); // Skip opening |
 
@@ -235,7 +239,7 @@ export function tokenize(input, filename = '<unknown>') {
                 advance();
             }
         }
-        throw SchemeReadError.endOfInput('unterminated |symbol|', 'symbol', startLine, startColumn);
+        throw SchemeReadError.endOfInput('unterminated |symbol|', 'symbol', startLine, startColumn, startOffset);
     }
 
     /**
@@ -264,7 +268,7 @@ export function tokenize(input, filename = '<unknown>') {
      */
     function readCharLiteral() {
         if (pos + 2 >= input.length) {
-            throw SchemeReadError.endOfInput('unexpected end of input after #\\', 'character', line, column);
+            throw SchemeReadError.endOfInput('unexpected end of input after #\\', 'character', line, column, pos);
         }
         let str = '#\\';
         advance(); // Skip #

@@ -431,9 +431,14 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── capture_policy_tests.js # Captures compiled; re-entered procedures switched back to closures
 │   │   └── ...
 │   │
-│   └── integration/                # Library system tests
-│       ├── library_loader_tests.js
-│       └── cond_expand_library_tests.js # cond-expand in libraries
+│   ├── integration/                # Library system tests
+│   │   ├── library_loader_tests.js
+│   │   └── cond_expand_library_tests.js # cond-expand in libraries
+│   │
+│   └── unit/                       # Unit tests of tools around the interpreter
+│       ├── repl_debug_commands_tests.js # The REPLs' debug commands
+│       ├── repl_parens_tests.js    # The browser REPL colouring and indenting by delimiter parentheses
+│       └── r7rs_compare_tests.js   # The benchmark harness's arithmetic
 │
 ├── docs/
 │   ├── core-interpreter-implementation.md               # Execution model details
@@ -447,7 +452,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 └── web/
     ├── ui.html                     # Browser REPL + test runner
     ├── main.js                     # Browser entry point
-    └── repl.js                     # REPL UI logic
+    └── repl.js                     # REPL UI logic; colours and indents by the reader's delimiter parentheses
 ```
 
 ### Key Principles
