@@ -31,7 +31,8 @@
  * ## The compiler is a library
  *
  * Its Scheme is the library `(scheme-js compiler)`, in `compiler.sld`, which
- * imports what it is written with -- `(scheme base)`, SRFI 1, SRFI 152 --
+ * imports what it is written with -- `(scheme base)`, SRFI 1, SRFI 151,
+ * SRFI 152 --
  * includes its files in order, and exports the entry points this module calls.
  * Which files make up the compiler, and in what order, is therefore said once,
  * in Scheme, where the build step that compiles them reads it too.

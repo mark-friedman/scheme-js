@@ -327,7 +327,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── 1.sld               # (srfi 1) lists
 │           ├── list_lib.scm        # SRFI 1 implementation; the compiler imports (srfi 1)
 │           ├── 151.sld             # (srfi 151) bitwise operations
-│           ├── bitwise.scm         # SRFI 151 implementation
+│           ├── bitwise.scm         # SRFI 151 implementation; the compiler's liveness sets are its bits
 │           ├── 152.sld             # (srfi 152) strings
 │           └── string_lib.scm      # SRFI 152 implementation; the compiler imports (srfi 152)
 │

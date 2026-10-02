@@ -1465,8 +1465,7 @@
            (sites (reverse (form-sites form))))
       (set-form-frames! form
         (map (lambda (site)
-               (let ((at (vector-ref live (cdr site))))
-                 (cons (cdr site) (filter (lambda (s) (memq s at)) slots))))
+               (cons (cdr site) (live-among live (cdr site) slots)))
              sites))
       ;; The fast form spills into the frame this one restores, so each of its
       ;; suspension points saves exactly what this one expects there.

@@ -15,7 +15,7 @@
     (cond ((null? sorted) (list s))
           ((string<? s (car sorted)) (cons s sorted))
           (else (cons (car sorted) (insert s (cdr sorted))))))
-  (string-join (fold insert '() (map symbol->string (vector-ref (live-in blocks) i))) ","))
+  (string-join (fold insert '() (map symbol->string (live-locals (live-in blocks) i))) ","))
 
 (test-group "liveness - within a block"
   (test "a read makes a variable live" "a"

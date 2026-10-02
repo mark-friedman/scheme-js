@@ -6,8 +6,8 @@
 ;; to compile and why not (driver.scm, safety.scm), and when, for a program's
 ;; own code as it runs (tier.scm).
 ;;
-;; It is written with SRFI 1 and SRFI 152 and imports them like any other
-;; program, so their private helpers stay private to them. What it needs from
+;; It is written with SRFI 1, SRFI 151 and SRFI 152 and imports them like any
+;; other program, so their private helpers stay private to them. What it needs from
 ;; the interpreter, which is JavaScript, it imports from
 ;; (scheme-js compiler host), src/compiler/host.js. The files are included in
 ;; dependency order: each defines what the later ones call.
@@ -25,6 +25,7 @@
           (scheme char)
           (scheme cxr)
           (srfi 1)
+          (srfi 151)
           (srfi 152)
           (scheme-js interop)
           (scheme-js compiler host))

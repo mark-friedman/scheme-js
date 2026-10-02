@@ -9610,3 +9610,75 @@ table is unchanged: the compiler does not import the library yet (`compiler_plan
 why that waits). JavaScript under `src/`: `bitwise.js`, the
 `BigInt` core of the library -- the item *the cores of libraries that need a JavaScript feature --
 ... `BigInt`* -- and two lines registering it in `src/core/primitives/index.js`.
+
+# Task 80, continued: SRFI 151, and liveness on bit sets (2026-10-02)
+
+## Why
+
+Profiled across the canonical programs under the tier, after the emitter stopped reading its own
+code back, liveness was the largest single part of compiling: about 350 of 2,070 ms in the tier's
+hooks -- `block-entry` 124, `union` 108, `live-in` 68 and the procedures beneath them. The analysis
+kept each set of locals as a list, and its union tested every member of one set against the whole
+of the other, with `memq`. A large procedure has hundreds of locals live across its call sites, and
+a spill -- every call site of the resumable form -- unions a whole live set into another, so the
+work went as the square of the locals, on every statement of every sweep.
+
+The usual representation for such sets is bits, and this Scheme had no bitwise operations. Under
+*Scheme first*, a capability Scheme lacks is built as a library over the minimum JavaScript, and a
+general helper is an SRFI implemented in full, so the change is in two parts: SRFI 151, then
+liveness written with it.
+
+## SRFI 151
+
+`(srfi 151)`, in `src/extras/scheme/151.sld` and `bitwise.scm`, is the whole SRFI: the basic
+operations, the integer operations, single bits, bit fields, conversion to and from lists and
+vectors of booleans, and fold, unfold and a generator. An exact integer is read as an infinite
+two's-complement bit string, which is what a JavaScript `BigInt` already is, so the operations that
+need its operators are JavaScript, in `src/extras/primitives/bitwise.js`: `bitwise-and`,
+`bitwise-ior` and `bitwise-xor`, which take any number of arguments themselves, since a Scheme
+wrapper's rest list would be allocated on every call; `arithmetic-shift`; and `bit-count` and
+`integer-length`, which read the binary digits. They are `%`-prefixed primitives, exported under
+SRFI 151's names by the library (`(rename %bitwise-and bitwise-and)`), so a program sees them only
+by importing it. Everything else is Scheme over them, each procedure checking its arguments: an
+exact integer, a non-negative index, a field whose end is not before its start, a boolean, a
+procedure.
+
+## Liveness
+
+`live-in` (`src/compiler/liveness.scm`) numbers the locals as it meets them, in a weak table of the
+compiler's host library, and keeps each set as an exact integer with a bit per local. Each
+statement is turned once into its *transfer* -- the locals it does not write, as a mask, the locals
+it reads, and the block it spills a frame for -- and going backwards through a block, what is live
+above a statement is what is live below it and kept, with what it reads and what is live where it
+spills: one `bitwise-and` and one `bitwise-ior`, whatever the sets' sizes. A set that has not
+changed is at its fixed point, compared with `=`. The result is a `liveness` record, asked with
+`live-among` -- which of some locals are live on entry to a block, in their order, which is what the
+emitter asks of a frame's slots, where it filtered the slots with `memq` against a list -- or with
+`live-locals`, every one, which the tests use.
+
+The compiler's library imports `(srfi 151)`; it is written with SRFI 1, SRFI 151 and SRFI 152 now.
+
+## Measured
+
+`npm run benchmark:tier`, best of three, the commit before and this one run one after the other,
+then in the other order: compiling over the 42 programs 1,444 ms against 1,602, and 1,480 against
+1,642 (-10%). The saving is in large procedures: `parsing` 202 ms against 341 and 203 against 364,
+while `scheme`, `maze` and `string` do not move. Every program gives the right answer, the tier
+compiles the same 554 procedures, and the generated code is the same: every procedure of every
+shipped library compiles to the same text, apart from its variables' numbering, so the frames save
+what they did.
+
+The cost is at start. The compiler's library now imports `(srfi 151)`, which its registry loads
+from source like the others: starting the compiler took 163 ms against 157 in the same process, six
+times each, and on the CLI, best four of eight, `(display 1)` with the tier 303-305 ms against
+292-295 and fib(25) 338-341 against 327-332, with `--no-compile` unchanged. That is more than the
+saving for a program whose procedures are small. Offered the choice -- this; liveness calling the
+library's `%` primitives without importing it, which would have the compiler use what is internal
+to a library; or lists until starting a library is cheap -- the user took this, leaving the start
+to 69. And 64, which 69 depends on, moved up to just before it.
+
+## Verification
+
+The prebuilt tables rebuilt to a fixed point. 6,929 tests pass in Node with none failing (33
+skipped), the liveness tests asking `live-locals` where they read the vector. JavaScript under
+`src/`: none added; a comment in `lowering.js` names SRFI 151 among the compiler's imports.

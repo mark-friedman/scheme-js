@@ -120,7 +120,7 @@ same order; getting it wrong once produced a nested `$fn0` that shadowed its par
 **Statements are data.** The emitter builds each statement as a tagged list, and each expression as
 a list of text and local variables, and renders them last. So which locals a statement reads is
 in the data rather than recovered by scanning the text — which is what liveness, below, needs. The
-emitter is Scheme, written with SRFI 1 and SRFI 152 like any other Scheme program, and it replaced
+emitter is Scheme, written with SRFI 1, SRFI 151 and SRFI 152 like any other Scheme program, and it replaced
 a JavaScript one after producing byte-identical output across the test suite, the benchmark
 programs, the standard library and the compiler itself — except for frames that save less.
 
@@ -157,6 +157,12 @@ recorded here:
   nested procedure its free variables as factory arguments, so creating one is a visible read. An
   inline closure could instead read a local whenever it was *called*, invisibly; the emitter has
   no way to write one, since every nested lambda is lifted.
+
+The analysis is ordinary backward dataflow over the twin's blocks, with each set of locals an exact
+integer holding a bit per local (SRFI 151): a large procedure has hundreds of locals live across
+its call sites, and kept as lists, where each union tests every member of one set against the
+whole of the other, the sets were a sixth of what compiling cost the canonical programs under the
+tier.
 
 The restore side is unchanged and names every local. One that was not saved destructures to
 `undefined`, which is safe precisely because it is dead there.
@@ -513,7 +519,7 @@ A compiler written in the language it compiles has to start somewhere. It starts
 | that compiles the compiler's library | `src/packaging/compiled_compiler.js` |
 
 The compiler's Scheme is a library, `(scheme-js compiler)`: `src/compiler/compiler.sld` imports
-`(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1, SRFI 152, `(scheme-js interop)` and the
+`(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1, SRFI 151, SRFI 152, `(scheme-js interop)` and the
 host library, includes `ir.scm`, the emitter's files, `driver.scm`, `safety.scm` and `tier.scm` in
 dependency order, and exports the entry points `lowering.js` calls. So the list of
 files that make up the compiler, and their order, is said once, in Scheme, and SRFI 1's private
@@ -707,7 +713,7 @@ library's procedures are compiled from their first call once it has loaded.
 the tier is attached: about 130 ms, which a script that compiles nothing now pays as well -- the CLI
 running `(display 1)` takes 0.28 s against 0.14 s with `--no-compile`. A program that compiles
 anything paid it before too, at its first compile. Most of it is analyzing and running the source of
-the compiler and of `(scheme base)`, SRFI 1 and SRFI 152 in the compiler's own registry, which their
+the compiler and of `(scheme base)`, SRFI 1, SRFI 151 and SRFI 152 in the compiler's own registry, which their
 prebuilt tables then replace; making that fast is ranked in `compiler_plan.md`.
 
 **Only top-level procedures.** A procedure nested in one is compiled with it. So a procedure the tier
