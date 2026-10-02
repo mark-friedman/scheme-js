@@ -59,6 +59,13 @@
  * replaces. Only the compilation step is moved. Skipping the load as well would
  * mean separating each file's macro definitions from its procedure definitions,
  * which is a larger change than this one.
+ *
+ * So whatever the source made as it loaded was made with the closures: SRFI
+ * 128's default comparators are records holding `default-hash`, interpreted.
+ * Installing the table replaces them there too, in the pairs, vectors and
+ * records the library's bindings reach (`substitute-within!` in
+ * `src/core/scheme/substitute.scm`), so that a procedure stays `eq?` to itself
+ * and runs compiled however it is reached.
  */
 
 import * as R from './runtime.js';
@@ -143,9 +150,10 @@ export function installPrebuilt(env, table, fingerprint) {
     installed.push(name);
   }
 
-  // Libraries imported the interpreted closures by value; see
-  // `substituteLibraryValues`. The closures are kept, for a debugger to run
-  // instead (`recordCompiledOver`).
+  // Libraries imported the interpreted closures by value, and values the
+  // library made as it loaded hold them; `substituteLibraryValues` replaces
+  // both. The closures are kept, for a debugger to run instead
+  // (`recordCompiledOver`).
   substituteLibraryValues(replaced);
   recordCompiledOver(replaced, env);
   return { installed, skipped, stale: false };

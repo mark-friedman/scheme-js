@@ -253,7 +253,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   │   ├── printer.js      # write/display logic
 │       │   │   └── reader_bridge.js # read logic
 │       │   ├── eq.js               # Equality predicates (eq?, eqv?, boolean=?)
-│       │   ├── record.js           # define-record-type support
+│       │   ├── record.js           # define-record-type support, and a record's type and fields for Scheme that looks inside any record
 │       │   ├── exception.js        # Exception handling primitives
 │       │   ├── interop.js          # JavaScript interop utilities
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
@@ -280,6 +280,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── cxr.scm             # All 28 cxr accessors
 │           ├── numbers.scm         # Variadic comparisons, predicates, min/max
 │           ├── list.scm            # map, for-each, memq, assq, length, etc.
+│           ├── substitute.scm      # Compiled procedures substituted inside the values holding their closures
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
 │           ├── ports.scm           # call-with-port

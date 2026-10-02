@@ -416,6 +416,33 @@ export async function runCompiledBreakpointTests(logger) {
     });
     assert(logger, 'setup: a library imported while a breakpoint is set arrives compiled', late.imported, true);
     assert(logger, 'and runs as its closures from the next run', late.run, false);
+
+    // A value a library made as it loaded holds the library's procedures, and
+    // switches with them: SRFI 128's default comparator, a record, holds
+    // `default-hash`.
+    const held = withPrivateLibraries({ resolver: bundled, hook: install }, () => {
+      const { interpreter } = createInterpreter();
+      loadLibrarySync(['srfi', '128'], analyze, interpreter, interpreter.globalEnv);
+      const library = getLibraryEnv(['srfi', '128']);
+      const hash = () => {
+        const held = library.bindings.get('default-comparator').hash;
+        return `${held === library.bindings.get('default-hash')} ${held.$compiled === true}`;
+      };
+      const before = hash();
+      const runtime = new SchemeDebugRuntime();
+      interpreter.setDebugRuntime(runtime);
+      runtime.enable();
+      const id = runtime.setBreakpoint('anywhere.scm', 1);
+      const during = hash();
+      runtime.removeBreakpoint(id);
+      const after = hash();
+      interpreter.setDebugRuntime(null);
+      return { before, during, after };
+    });
+    assert(logger, "setup: a library's record holds the compiled procedure its name is bound to",
+      held.before, 'true true');
+    assert(logger, 'with a breakpoint set, it holds the closure, as the name is bound to', held.during, 'true false');
+    assert(logger, 'and the compiled procedure again once there is none', held.after, 'true true');
   }
   {
     // Paused with no breakpoint set -- on an uncaught error -- the program may

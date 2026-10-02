@@ -5,9 +5,10 @@
  * This module is pure data management - no loading or parsing.
  */
 
-import { toArray } from './cons.js';
+import { toArray, list } from './cons.js';
 import { Symbol } from './symbol.js';
 import { SchemeSyntaxError } from './errors.js';
+import { callSchemeProcedure, SCHEME_PRIMITIVE } from './values.js';
 
 // =============================================================================
 // Feature Registry (for cond-expand)
@@ -285,7 +286,8 @@ export function registerLibrary(key, exports, env) {
  * Whatever replaces a binding in place calls this with what it replaced.
  *
  * Only values identical to a replaced one change; a library that bound the
- * same name to something else keeps it.
+ * same name to something else keeps it. Values are replaced inside the data
+ * the libraries' bindings reach as well (`substituteWithinLibraryValues`).
  *
  * @param {Map<*, *>} replacements - Each replaced value, mapped to its
  *   replacement.
@@ -311,6 +313,39 @@ export function substituteLibraryValues(replacements, registry = libraryRegistry
             }
         }
     }
+    substituteWithinLibraryValues(replacements, registry);
+}
+
+/**
+ * Substitutes values inside the pairs, vectors and records the libraries'
+ * bindings reach, such as the records a library made as it loaded holding
+ * procedures since replaced, by calling the Scheme that does it:
+ * `substitute-within!` in `src/core/scheme/substitute.scm`, which says why.
+ *
+ * It is looked up at each call, in the registry's own `(scheme core)`, so that
+ * it is that library's procedure as now bound -- compiled, once the library's
+ * table is installed. A registry without `(scheme core)` has no Scheme to call,
+ * and nothing is substituted inside values.
+ *
+ * A global environment's bindings are not looked inside: they are a program's,
+ * and what they reach is the program's data, as large as the program makes it.
+ *
+ * @param {Map<*, *>} replacements - Each replaced value, mapped to its
+ *   replacement.
+ * @param {Map<string, Object>} registry - The registry whose libraries to
+ *   change.
+ */
+function substituteWithinLibraryValues(replacements, registry) {
+    const substituteWithin = registry.get('scheme.core')?.exports.get('substitute-within!');
+    if (typeof substituteWithin !== 'function') return;
+    const roots = new Set();
+    for (const { env } of registry.values()) {
+        if (!env || !env.parent || !(env.bindings instanceof Map)) continue;
+        for (const value of env.bindings.values()) roots.add(value);
+    }
+    const replacement = (value) => replacements.get(value) ?? false;
+    replacement[SCHEME_PRIMITIVE] = true;
+    callSchemeProcedure(substituteWithin, [list(...roots), replacement]);
 }
 
 // =============================================================================

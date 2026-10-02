@@ -169,6 +169,61 @@ export async function runPrebuiltLibraryTests(logger) {
   assert(logger, 'a library with no table is left alone',
     installLibraryTable(LIBRARIES, ['test', 'no-table'], new Environment(null), () => ''), null);
 
+  logger.title('Prebuilt libraries - what a library made as it loaded holds its compiled procedures');
+  {
+    // A library's source runs before its table is installed, so anything it
+    // made as it loaded held the closures the table replaces. Every library
+    // with a table is loaded, and every value its bindings reach is searched --
+    // more widely than the library system substitutes, through closures'
+    // environments and JavaScript maps too, so that a library holding a
+    // replaced closure where nothing substitutes is caught here. Objects are
+    // searched if they are instances of a class -- records, pairs, a hash
+    // table's store -- and not JavaScript's plain objects, such as the host's.
+    const replaced = new Map();
+    const libraryEnvs = [];
+    const hook = (loaded, env) => {
+      if (!env) return;
+      const before = new Map(env.bindings);
+      libraryEnvs.push([libraryNameToKey(loaded), env]);
+      installLibraryTable(LIBRARIES, loaded, env, (file) => BUNDLED_SOURCES[file]);
+      for (const [name, value] of before) {
+        if (env.bindings.get(name) !== value) replaced.set(value, `${libraryNameToKey(loaded)} ${name}`);
+      }
+    };
+    const coreEnv = withPrivateLibraries({ resolver: bundledResolver, hook }, () => {
+      const { interpreter, env } = createInterpreter();
+      for (const key of Object.keys(LIBRARIES)) loadLibrarySync(key.split('.'), analyze, interpreter, env);
+      return getLibraryEnv(['scheme', 'core']);
+    });
+    const ownEnvs = new Set(libraryEnvs.map(([, env]) => env));
+    const stale = [];
+    const seen = new Set();
+    const search = (value, path) => {
+      if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return;
+      if (replaced.has(value)) { stale.push(`${path}: ${replaced.get(value)}`); return; }
+      if (seen.has(value) || ownEnvs.has(value)) return;
+      seen.add(value);
+      if (value instanceof Map) {
+        for (const [key, entry] of value) search(entry, `${path}{${String(key)}}`);
+      } else if (value instanceof Environment) {
+        for (const [name, entry] of value.bindings) search(entry, `${path} ${name}`);
+        search(value.parent, path);
+      } else if (typeof value === 'function') {
+        if (value.body !== undefined) search(value.env, `${path} closing over`);
+      } else if (Array.isArray(value) || Object.getPrototypeOf(value)?.constructor !== Object) {
+        for (const key of Object.keys(value)) search(value[key], `${path}.${key}`);
+      }
+    };
+    for (const [key, env] of libraryEnvs) {
+      for (const [name, value] of env.bindings) if (!replaced.has(value)) search(value, `(${key}) ${name}`);
+    }
+    assert(logger, 'every library with a table was loaded and installed',
+      Object.keys(LIBRARIES).filter((key) => !libraryEnvs.some(([loaded]) => loaded === key)), []);
+    assert(logger, 'no value a library made as it loaded holds a closure its table replaced', stale, []);
+    assert(logger, "so a current port's parameter cell holds its compiled converter",
+      coreEnv.bindings.get('current-output-port-cell').car.$compiled, true);
+  }
+
   logger.title("Prebuilt libraries - a library's table holds only what it defines");
   {
     const sources = {

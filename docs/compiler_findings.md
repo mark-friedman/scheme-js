@@ -2833,6 +2833,31 @@ decision to make the registry change before it.
 
 ---
 
+**R99. Installing a library's prebuilt table is not invisible to the program.**
+
+`src/compiler/prebuilt.js` moved "only the compilation step" to build time: a shipped library still
+loads from its source, interpreted, and its table is then installed over the closures the source
+made, in the library's bindings and, through `substituteLibraryValues`, wherever an import copied
+them. That was taken to be every place a closure could be held. It is not: a library can make
+values as it loads that hold its procedures, and those went on holding the closures. Found by two
+of SRFI 128's tests, `(eq? default-hash (comparator-hash-function equal-cmp))` and the same of the
+default comparator, which pass in the ordinary test runner, where libraries are interpreted, and
+failed on every page and CLI run, where they are prebuilt. A search of everything the shipped
+libraries' bindings reach found sixteen such references in two libraries: the four comparators SRFI
+128 makes at its top level, records holding `any?`, `default-equality`, the default ordering and
+`default-hash`; and the three current ports' parameter cells in `(scheme core)`, pairs holding their
+converters. So a
+procedure was not `eq?` to itself, and ran interpreted wherever it was reached through the value: a
+hash table made from the default comparator, 20,000 list keys inserted and looked up, took 329-346
+ms on a page against 78-80 once the comparator holds the compiled procedures. The compiler tier is
+the same in kind: a program's procedure it compiles on its second call is replaced where its name is
+bound, and a list the program made before then holds the closure.
+
+*Consequence:* the library system substitutes inside the pairs, vectors and records the libraries'
+bindings reach, whenever it substitutes (82); a program's own data under the tier is open (83).
+
+---
+
 ## Appendix — the original staged plan
 
 Kept because it is the plan the entries above were measured against, not because it is the plan.

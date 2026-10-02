@@ -9809,3 +9809,78 @@ quiet.
 (53 skipped). JavaScript under `src/`: none. Scheme: the one procedure in `tier.scm`. The harness is
 JavaScript under `benchmarks/`, as the rest of the compiler's harnesses are until 76 makes them
 Scheme programs.
+
+# Task 82: a library's procedures, held in values it made as it loaded (2026-10-02)
+
+## Why
+
+Two of SRFI 128's tests, `(eq? default-hash (comparator-hash-function equal-cmp))` and the same of
+the default comparator, passed in the ordinary Scheme test runner and failed wherever libraries are
+installed from their prebuilt tables -- every page and CLI run, `tests/run_tiered_scheme_tests_lib.js`
+-- with the tier attached or not. A shipped library loads from its source, interpreted, and its
+table is installed afterwards, binding each compiled procedure in place of the closure the source
+made and, through `substituteLibraryValues`, wherever an import copied it. SRFI 128 makes its
+default, `eq?`, `eqv?` and `equal?` comparators at its top level, records holding `any?`,
+`default-equality`, the default ordering and `default-hash`, and those records kept the closures.
+So `default-hash` was not `eq?` to itself, and everything reached through a comparator ran
+interpreted (R99).
+
+Searching everything the shipped libraries' bindings reach found sixteen such references, in two
+libraries: those four comparators, and the three current ports' parameter cells in `(scheme core)`,
+pairs holding their converters, interpreted at every `parameterize` of a port. The compiler tier
+does the same when it compiles a procedure of a library that is not shipped, after the library has
+loaded, and so does a debugger switching every compiled procedure to its closure and back.
+
+## The change
+
+- `substitute-within!`, in a new `src/core/scheme/substitute.scm` included in `(scheme core)`:
+  given some values and a procedure from a value to its replacement, it replaces each part of the
+  pairs, vectors and records they reach that has a replacement, in place, and looks inside every
+  other, each value once, however the data is shared or circular.
+- `substituteLibraryValues` (`library_registry.js`), through which every substitution goes -- a
+  table installed, the tier's and `compileEnvironment`'s compiles of a library's procedures, the
+  debugger's switching -- calls it, from the registry's own `(scheme core)`, with every value a
+  library environment binds. A program's global environment is left out: what it reaches is the
+  program's data, as large as the program makes it.
+- Two primitives in `record.js`, `%record-type` and `%record-type-fields`, give a record's type and
+  its fields, so the Scheme reads and replaces them through `record-accessor` and
+  `record-modifier`.
+
+It does not reach a closure's environment, a hash table's store, or the variables a compiled
+procedure closed over. No shipped library holds a replaced closure in the first two, and a test
+(`prebuilt_library_tests.js`) searches all of them, so that one that comes to is caught.
+
+Still open, and now task 83: a program's own procedure, compiled by the tier on its second call, is
+replaced where it is bound, and a value the program made before then holds the closure.
+
+## Measured
+
+A hash table made from the default comparator, 20,000 list keys inserted and looked up, on a page
+(`scheme_entry.js`), best of five, twice: 329 and 346 ms before, 78 and 80 after. Tables made from
+the `equal?` predicate were not affected; they get `default-hash` by import. The search costs a
+page about 1.4 ms of its start (four installs, about 1,100 values), and about 3 ms in all once SRFI
+125, 1, 152 and 151 are imported too (nine).
+
+## Tests
+
+- `tests/tiers/library_values_tests.scm`, run interpreted and with the tier attached, both set up
+  as a page: SRFI 128's comparators hold the procedures `default-hash` and the others are bound to,
+  compiled; a library the program writes itself, compiled by the tier at its first call, holds its
+  procedure in a list and a vector it made as it loaded; and the program's own case, expected to
+  fail with the tier attached.
+- `prebuilt_library_tests.js`: every shipped library loaded, and nothing any library binding
+  reaches, closures' environments and JavaScript maps included, holds a closure its table replaced;
+  a current port's cell holds its compiled converter.
+- `compiled_breakpoint_tests.js`: with a breakpoint set, SRFI 128's comparator holds the closure
+  `default-hash` is then bound to, and the compiled procedure again once there is none.
+
+## Verification
+
+The prebuilt tables rebuilt to a fixed point (`npm run prebuild` twice, identical output). 6,956
+tests pass in Node with none failing (34 skipped, one of them the program's case, expected to fail),
+and 6,759 in the browser with none failing (54 skipped), from a fresh origin, the new tests among
+them. The two SRFI 128 tests pass in the
+page-like runner. JavaScript under `src/`: 77 lines added and 6 removed, most of them comments --
+the two record primitives, for the value representations, and the call into the Scheme in
+`library_registry.js`, the evaluator's, which 64 ports with the rest of the registry; Scheme 92
+lines added.
