@@ -51,7 +51,10 @@
  * neither loops nor makes procedures is compiled at its Nth call
  * (`calls-before-compiling` in `src/compiler/tier.scm`) and one that does at
  * definition -- or `loops:N`, where only one that loops is compiled at
- * definition (`compiled-when-bound?`). Today's is `2`. The policies are
+ * definition (`compiled-when-bound?`); either followed by `/M` for a
+ * library's procedures to wait M calls after it loads, however they loop,
+ * where they wait one (`library-calls-before-compiling`). Today's is `2`,
+ * which is `2/1`. The policies are
  * interleaved, each program run under every one in turn, round after round,
  * each round starting at the next, so that whatever else the machine is doing
  * falls on them alike; naming one twice measures how far apart two runs of
@@ -101,9 +104,9 @@ const JSON_OUT = args.includes('--json');
  * @type {Array<{label: string, wait: number, loopsOnly: boolean}>}
  */
 const POLICIES = valueOf('--policies', '2').split(',').map((spec) => {
-  const match = /^(loops:)?([0-9]+)$/.exec(spec);
-  if (match === null) throw new Error(`a policy is N or loops:N, not ${spec}`);
-  return { label: spec, wait: Number(match[2]), loopsOnly: match[1] !== undefined };
+  const match = /^(loops:)?([0-9]+)(?:\/([0-9]+))?$/.exec(spec);
+  if (match === null) throw new Error(`a policy is N or loops:N, then /M if it says, not ${spec}`);
+  return { label: spec, wait: Number(match[2]), loopsOnly: match[1] !== undefined, libraryWait: Number(match[3] ?? 1) };
 });
 
 for (const set of SETS) {
@@ -120,11 +123,12 @@ const loopsOrProcedures = compilerEnvironment().env.lookup('compiled-when-bound?
  * Sets the tier's policy: both parts are globals of the compiler's library,
  * which its compiled code reads through their cells, so a change applies from
  * the next decision on.
- * @param {{wait: number, loopsOnly: boolean}} policy - The policy.
+ * @param {{wait: number, loopsOnly: boolean, libraryWait: number}} policy - The policy.
  */
 function usePolicy(policy) {
   const { env } = compilerEnvironment();
   env.set('calls-before-compiling', BigInt(policy.wait));
+  env.set('library-calls-before-compiling', BigInt(policy.libraryWait));
   env.set('compiled-when-bound?', policy.loopsOnly ? env.lookup('contains-loop?') : loopsOrProcedures);
 }
 

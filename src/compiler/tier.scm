@@ -64,6 +64,16 @@
 (define (compiled-when-bound? body) (makes-procedures-or-loops? body))
 
 ;; /**
+;;  * How many calls a procedure a library defines waits, once the library has
+;;  * loaded, before it is compiled, however it loops: compiling waits while a
+;;  * library loads (see the notes at the head of this file), and the call that
+;;  * finds it due runs interpreted either way. A variable, so that
+;;  * `benchmarks/run_tier.js` can measure another count.
+;;  * @type {integer}
+;;  */
+(define library-calls-before-compiling 1)
+
+;; /**
 ;;  * The compiler tier of one program.
 ;;  * @property {object} interpreter - The program's interpreter.
 ;;  * @property {object} env - The program's global environment.
@@ -171,7 +181,8 @@
 (define (tier-bound! tier name closure env)
   (when (tier-manages? tier env)
     (weak-table-set! (tier-waiting tier) closure (cons name env))
-    (cond ((tier-deferring? tier) (wait-calls! closure 1))
+    (cond ((debugging? (tier-interpreter tier)) (wait-calls! closure 1))
+          ((library-loading?) (wait-calls! closure library-calls-before-compiling))
           ((compiled-when-bound? (closure-body closure)) (tier-compile! tier closure))
           (else (wait-calls! closure calls-before-compiling)))))
 

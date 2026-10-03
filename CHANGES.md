@@ -10445,3 +10445,63 @@ table for the process, it was.
 7,430 tests pass in Node with none failing (34 skipped), and 7,225 in the browser with none failing
 (55 skipped). JavaScript under `src/`: `library_registry.js` fixed in place -- the records' table,
 and `compiledOverRecords`, which makes a registry's -- as task 64 is to port it.
+
+# Task 80, continued: the tier's policy compared on the broader set (2026-10-02)
+
+## How
+
+`benchmarks/run_tier.js --set <set> --only <program> --policies ...`, once per program, each in a
+process of its own -- one process for all of them ran out of memory, as the walkthrough before this
+one says -- best of three, the policies interleaved and each round starting at the next, after the
+four side tasks were merged, so that the corpus set had 22 programs. Today's policy was run twice:
+the two came out within 2% of each other on every set, so smaller differences are noise.
+
+## A program's own procedures
+
+Five policies against today's (compiled at definition if a procedure loops or makes procedures,
+else at its second call), total ms with the tier, and against today:
+
+| set | today | others at call 10 | at call 100 | only loops at definition, call 2 | the same, call 10 |
+|---|---|---|---|---|---|
+| canonical (42) | 3,286 | 3,301 (0%) | 3,285 (0%) | 3,326 (+1%) | 3,249 (-1%) |
+| test files (60) | 732 | 753 (+3%) | 696 (-5%) | 667 (-9%) | 617 (-16%) |
+| page (3) | 215 | 208 (-3%) | 211 (-2%) | 291 (+35%) | 303 (+41%) |
+
+Waiting longer for a procedure that neither loops nor makes procedures changes nothing beyond the
+noise but the test files. Compiling at definition only what loops makes the test files faster and
+12-19 canonical kernels at least 15% faster -- `scheme` 101 ms to 47 -- but the page programs
+`events` and `messages` 35-41% slower and `cpstak`, `quicksort` and `graphs` 2.2-3.8x slower: in
+each, a procedure called once makes closures that are then called many times, which stay
+interpreted when their maker is not compiled. The five `tests/tiers/` files are counted wrong under
+the policies that wait longer, since they call a procedure twice and assert the tier compiled it.
+
+## A library's procedures
+
+None of those policies reached the corpus programs: the corpus's libraries are not shipped, and a
+library's procedures were compiled at their first call after it loaded, whatever the policy. 21 of
+the 22 ran slower with the tier than without, compiling about half of the time. So that part of the
+policy became a variable too, `library-calls-before-compiling` in `src/compiler/tier.scm` (`/M` in a
+`--policies` entry), and was measured on the corpus set, 3,205 ms without the tier:
+
+| a library's procedures compiled | ms with the tier | against today |
+|---|---|---|
+| at the first call (today) | 4,806 | |
+| at the second | 4,156 | -14% |
+| at the tenth | 3,437 | -28%, none of the 22 more than 15% slower |
+| at the hundredth | 3,055 | -36%, but `edn` 575 ms to 756 |
+
+Exempting from the wait the procedures that loop or make procedures, as a program's are, kept only
+5-7%: most of these libraries' procedures do one or the other, and most are not hot in their tests.
+And compiling one at its first call does not help that call, which runs interpreted either way.
+
+## For the user
+
+Recommended: a program's procedures as today, a library's waiting ten calls. The decision is the
+user's, recorded with these numbers in `docs/compiler_plan.md` under task 80.
+
+## Verification
+
+The prebuilt tables rebuilt to a fixed point. 7,430 tests pass in Node with none failing (34
+skipped), and 7,225 in the browser with none failing (55 skipped). JavaScript under `src/`: none.
+Scheme: the variable, and `tier-bound!` telling debugging from a library's loading, which it had
+treated alike, waiting one call.
