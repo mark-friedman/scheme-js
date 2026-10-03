@@ -60,6 +60,18 @@
 (define (some? ok? xs)
   (and (pair? xs) (or (and (ok? (car xs)) #t) (some? ok? (cdr xs)))))
 
+;; /**
+;;  * A list's elements folded into a value from the left: SRFI 1's `fold` for
+;;  * one list, written here for the reason `append-each` is.
+;;  * @param {procedure} kons - From an element and the value so far to the
+;;  *   next value.
+;;  * @param {*} knil - The value to start from.
+;;  * @param {list} xs - The list.
+;;  * @returns {*}
+;;  */
+(define (fold kons knil xs)
+  (if (null? xs) knil (fold kons (kons (car xs) knil) (cdr xs))))
+
 ;; ---------------------------------------------------------------------------
 ;; Feature requirements
 ;; ---------------------------------------------------------------------------
@@ -984,3 +996,139 @@
            (for-each (lambda (in) (substitute-in-libraries! in store))
                      (distinct (%hash-store-values debugged)))
            #t))))
+
+;; ---------------------------------------------------------------------------
+;; The files a load would read
+;; ---------------------------------------------------------------------------
+;;
+;; A file resolver that has to fetch files answers with promises, and a load
+;; cannot wait for one. So the host fetches first every file a load will read:
+;; it asks which files a library needs that it does not have, from the files
+;; it has, fetches those, and asks again, until it lacks none -- each round
+;; learning what the files just fetched import, include and declare -- and
+;; then loads from them.
+
+;; /**
+;;  * What a walk over a library's files has found so far.
+;;  * @property {list} paths - The paths wanted, the latest first.
+;;  * @property {list} seen - The keys of the libraries walked.
+;;  */
+(define-record-type wants
+  (make-wants paths seen)
+  wants?
+  (paths wants-paths)
+  (seen wants-seen))
+
+;; /**
+;;  * The files loading a library would read that a loader cannot read now,
+;;  * as far as the files it can read tell: its own file, and, from those at
+;;  * hand, the files of the libraries it imports and the files it includes,
+;;  * in turn. A library loaded already reads none.
+;;  * @param {loader} loader - A loader whose `resolve` gives the text of a
+;;  *   file at hand and #f for any other.
+;;  * @param {list} name - The library's name.
+;;  * @returns {list} The paths wanted, each a list of strings, each once.
+;;  */
+(define (files-wanted loader name)
+  (reverse (wants-paths (library-wants loader name (make-wants '() '())))))
+
+;; /**
+;;  * The files defining a library from a `define-library` form would read
+;;  * that a loader cannot read now, as `files-wanted` finds them.
+;;  * @param {loader} loader - As for `files-wanted`.
+;;  * @param {list} form - The form.
+;;  * @returns {list} The paths wanted.
+;;  */
+(define (definition-files-wanted loader form)
+  (let ((definition (parse-define-library form (feature-test loader))))
+    (reverse (wants-paths (definition-wants loader (library-definition-name definition) definition
+                                            (make-wants '() '()))))))
+
+;; /**
+;;  * What a library's files want, added to what was found so far.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} name - The library's name.
+;;  * @param {wants} found - What was found so far.
+;;  * @returns {wants}
+;;  */
+(define (library-wants loader name found)
+  (let ((key (library-key name))
+        (path (name-strings name)))
+    (cond ((or (member key (wants-seen found)) (registered-library (loader-registry loader) key)) found)
+          ((not (at-hand? loader path)) (want path found))
+          (else
+           (let ((forms (read-library-file loader path (library-path name) #f))
+                 (found (make-wants (wants-paths found) (cons key (wants-seen found)))))
+             ;; A file that is not a library's says so when it is loaded.
+             (if (and (pair? forms) (pair? (car forms)) (eq? (caar forms) 'define-library))
+                 (definition-wants loader name (parse-define-library (car forms) (feature-test loader)) found)
+                 found))))))
+
+;; /**
+;;  * What a definition wants: what the libraries it imports want, the files
+;;  * it includes, and, of each file of library declarations, the file, or
+;;  * what its declarations want.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} name - The library's name, which its files are found by.
+;;  * @param {library-definition} definition - The definition.
+;;  * @param {wants} found - What was found so far.
+;;  * @returns {wants}
+;;  */
+(define (definition-wants loader name definition found)
+  (define (file-wants file found)
+    (let ((path (include-path name file)))
+      (if (at-hand? loader path) found (want path found))))
+  (define (declarations-want file found)
+    (let ((path (include-path name file)))
+      (if (at-hand? loader path)
+          (definition-wants loader name
+                            (parse-declarations #f (read-library-file loader path file #f) (feature-test loader))
+                            found)
+          (want path found))))
+  (let* ((found (fold (lambda (spec found) (library-wants loader (import-set-library-name spec) found))
+                      found
+                      (library-definition-imports definition)))
+         (found (fold file-wants found
+                      (append (library-definition-includes definition)
+                              (library-definition-includes-ci definition)))))
+    (fold declarations-want found (library-definition-declaration-files definition))))
+
+;; /**
+;;  * Whether a loader can read a file now.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} path - The path.
+;;  * @returns {boolean}
+;;  */
+(define (at-hand? loader path)
+  (string? ((loader-resolve loader) path)))
+
+;; /**
+;;  * What was found, with a path wanted, if it was not already.
+;;  * @param {list} path - The path.
+;;  * @param {wants} found - What was found so far.
+;;  * @returns {wants}
+;;  */
+(define (want path found)
+  (if (member path (wants-paths found))
+      found
+      (make-wants (cons path (wants-paths found)) (wants-seen found))))
+
+;; /**
+;;  * A `define-library` form's parts, for the host's tools that read which
+;;  * files a library is made of: its name, its exports as `(internal .
+;;  * external)`, the names of the libraries it imports, its body's forms, and
+;;  * the files of its three kinds of `include`, its `cond-expand` declarations
+;;  * decided in a registry.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {list} form - The form.
+;;  * @returns {list}
+;;  */
+(define (define-library-parts registry form)
+  (let ((definition (parse-define-library form (feature-test (registry-loader registry #f #f)))))
+    (list (library-definition-name definition)
+          (library-definition-exports definition)
+          (map import-set-library-name (library-definition-imports definition))
+          (library-definition-body definition)
+          (library-definition-includes definition)
+          (library-definition-includes-ci definition)
+          (library-definition-declaration-files definition))))

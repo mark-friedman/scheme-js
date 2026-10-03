@@ -39,6 +39,8 @@
     import-sets! import-into! syntactic-keyword?
     ;; Substituting values, and procedures compiled over closures
     substitute-library-values! make-debugged-programs record-compiled-over!
-    compiled-over? interpret-compiled-over! switch-back-to-closure!)
+    compiled-over? interpret-compiled-over! switch-back-to-closure!
+    ;; The files a load would read
+    files-wanted definition-files-wanted define-library-parts)
   (include "library_system.scm"
            "substitute.scm"))

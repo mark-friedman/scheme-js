@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import { createInterpreter } from './src/core/interpreter/index.js';
-import { setFileResolver, setLibraryLoadHook, loadLibrary, loadLibrarySync, parseImportSet, applyImports, parseDefineLibrary, evaluateLibraryDefinition } from './src/core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook } from './src/core/interpreter/library_loader.js';
 import { libraryNameToKey } from './src/core/interpreter/library_registry.js';
 import { installLibraryTable } from './src/compiler/prebuilt.js';
 import { attachTier } from './src/compiler/tiering.js';

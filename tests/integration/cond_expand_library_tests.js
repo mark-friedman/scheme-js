@@ -1,7 +1,5 @@
 import { assert, run } from '../harness/helpers.js';
-import { evaluateLibraryDefinitionSync, evaluateLibraryDefinition } from '../../src/core/interpreter/library_loader.js';
 import { getLibraryExports, clearLibraryRegistry, withPrivateLibraries } from '../../src/core/interpreter/library_registry.js';
-import { parseDefineLibrary } from '../../src/core/interpreter/library_parser.js';
 import { list, cons } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
 

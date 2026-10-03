@@ -67,8 +67,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 | `analyzers/` | Modular handlers for special forms |
 | `library_registry.js` | The library system's door from JavaScript: the current registry, and the API calling the Scheme |
 | `library_seed.js` | Loads the library system (Scheme) at first use, apart from programs, and installs its prebuilt tables |
-| `library_parser.js` | define-library parser, for fetching an asynchronous resolver's files ahead |
-| `library_loader.js` | Loading, defining and importing libraries from JavaScript, through the Scheme |
+| `library_loader.js` | Loading, defining and importing libraries from JavaScript, through the Scheme; fetching an asynchronous resolver's files first |
 | `syntax_rules.js` | Macro transformer + hygiene primitives |
 | `primitives/` | Native procedures |
 | `primitives/io/` | Port system, Reader execution, Printer |
@@ -226,8 +225,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── type_check.js       # Type checking utilities for primitives
 │       │   ├── library_loader.js   # Loading, defining and importing libraries, through the Scheme + barrel (re-exports)
 │       │   ├── library_registry.js # The library system's door from JavaScript: the current registry, the API
-│       │   ├── library_seed.js     # Loads the library system at first use, on an interpreter of its own, compiled
-│       │   └── library_parser.js   # define-library parser, for an asynchronous resolver's files
+│       │   └── library_seed.js     # Loads the library system at first use, on an interpreter of its own, compiled
 │       ├── primitives/             # Native procedures (+, cons, etc.)
 │       │   ├── index.js            # Creates global environment
 │       │   ├── math.js             # Arithmetic and numeric operations

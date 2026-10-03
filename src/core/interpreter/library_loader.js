@@ -10,12 +10,10 @@
  *
  * A file resolver that fetches files answers with promises, which a load
  * cannot wait for; `loadLibrary` fetches every file a library will read first,
- * and loads it from them.
+ * asking the library system which, and loads it from them.
  */
 
-import { parse } from './reader.js';
 import { toArray, list } from './cons.js';
-import { Symbol } from './symbol.js';
 import { globalContext } from './context.js';
 import { SCHEME_PRIMITIVE } from './values.js';
 import { SchemeLibraryError } from './errors.js';
@@ -34,8 +32,6 @@ import {
     exportsAlist,
     SYNTAX_KEYWORDS
 } from './library_registry.js';
-import { parseDefineLibrary, parseImportSet } from './library_parser.js';
-
 // =============================================================================
 // Re-exports for backwards compatibility
 // =============================================================================
@@ -58,8 +54,6 @@ export {
     registerBuiltinLibrary,
     SYNTAX_KEYWORDS
 } from './library_registry.js';
-
-export { parseDefineLibrary, parseImportSet } from './library_parser.js';
 
 // =============================================================================
 // Loaders
@@ -112,22 +106,13 @@ function loaderFor(analyze, interpreter, baseEnv, files = null) {
     return callLibrarySystem('make-loader', registry, resolve, baseEnv, evaluate);
 }
 
-/**
- * A library's name as the resolver is given it.
- * @param {Array} name - The name, its parts strings, symbols or numbers.
- * @returns {string[]}
- */
-function namePath(name) {
-    return name.map(p => p instanceof Symbol ? p.name : String(p));
-}
-
 // =============================================================================
 // Library Loading
 // =============================================================================
 
 /**
- * Loads a library by name, fetching first the files it and the libraries it
- * imports will read.
+ * Loads a library by name, with a resolver that may answer with promises:
+ * every file the load will read fetched first.
  * 
  * @param {string[]} libraryName - Library name parts
  * @param {Function} analyze - The analyze function
@@ -136,28 +121,9 @@ function namePath(name) {
  * @returns {Promise<Map>} The library's exports
  */
 export async function loadLibrary(libraryName, analyze, interpreter, baseEnv) {
-    const key = libraryNameToKey(libraryName);
-    const cached = _getLibraryExports(key);
-    if (cached) {
-        return cached;
-    }
-
-    const fileResolver = getFileResolver();
-    if (!fileResolver) {
-        throw new SchemeLibraryError('no file resolver set - call setFileResolver first');
-    }
-
-    const path = namePath(libraryName);
-    const source = await fileResolver(path);
-    const forms = parse(source, { filename: path.join('/') });
-    if (forms.length === 0) {
-        throw new SchemeLibraryError('empty library file', key);
-    }
-
-    const files = await fetchDefinitionFiles(parseDefineLibrary(forms[0]), analyze, interpreter, baseEnv);
-    files.set(path.join('/'), source);
-    return exportsMap(callLibrarySystem('load-library', loaderFor(analyze, interpreter, baseEnv, files),
-        schemeLibraryName(libraryName)));
+    const name = schemeLibraryName(libraryName);
+    const files = await fetchWanted((loader) => callLibrarySystem('files-wanted', loader, name));
+    return exportsMap(callLibrarySystem('load-library', loaderFor(analyze, interpreter, baseEnv, files), name));
 }
 
 /**
@@ -176,49 +142,33 @@ export function loadLibrarySync(libraryName, analyze, interpreter, baseEnv) {
 }
 
 /**
- * Fetches, through a resolver that may answer with promises, the files a
- * library definition will read, and loads the libraries it imports.
+ * Fetches, through the resolver, the files a load will read: asks the
+ * library system which it lacks of those it has (`files-wanted` in
+ * library_system.scm), fetches them together, and asks again, until it lacks
+ * none.
  *
- * @param {Object} libDef - The parsed library definition (`parseDefineLibrary`)
- * @param {Function} analyze - The analyze function
- * @param {Object} interpreter - The interpreter instance
- * @param {Environment} baseEnv - Base environment for primitives
+ * @param {(loader: Object) => Cons} wantedBy - The paths still wanted, given
+ *   a loader that has the files fetched so far.
  * @returns {Promise<Map<string, string>>} The files, by path joined with `/`.
  */
-async function fetchDefinitionFiles(libDef, analyze, interpreter, baseEnv) {
-    const fileResolver = getFileResolver();
+async function fetchWanted(wantedBy) {
     const files = new Map();
-
-    async function fetchFile(path) {
-        const pathKey = path.join('/');
-        if (!files.has(pathKey)) files.set(pathKey, await fileResolver(path));
-        return files.get(pathKey);
-    }
-
-    for (const importSpec of libDef.imports) {
-        await loadLibrary(importSpec.libraryName, analyze, interpreter, baseEnv);
-    }
-
-    if (fileResolver) {
-        const directory = namePath(libDef.name.slice(0, -1));
-        for (const includeFile of [...libDef.includes, ...libDef.includesCi]) {
-            await fetchFile([...directory, includeFile]);
+    const resolver = getFileResolver();
+    const atHand = (path) => files.get(toArray(path).map(stringValue).join('/')) ?? false;
+    atHand[SCHEME_PRIMITIVE] = true;
+    const loader = callLibrarySystem('make-loader', currentLibraryRegistry(), atHand, false, false);
+    for (let wanted = toArray(wantedBy(loader)); wanted.length > 0; wanted = toArray(wantedBy(loader))) {
+        if (resolver === null) {
+            throw new SchemeLibraryError('no file resolver set - call setFileResolver first');
         }
-        for (const declFile of libDef.includeLibraryDeclarations) {
-            const declForms = parse(await fetchFile([...directory, declFile]), { filename: declFile });
-
-            // Imports within library declarations
-            for (const decl of declForms) {
-                const declArr = toArray(decl);
-                if (declArr.length === 0) continue;
-                const declTag = declArr[0];
-                if (declTag instanceof Symbol && declTag.name === 'import') {
-                    for (let j = 1; j < declArr.length; j++) {
-                        await loadLibrary(parseImportSet(declArr[j]).libraryName, analyze, interpreter, baseEnv);
-                    }
-                }
+        await Promise.all(wanted.map(async (path) => {
+            const parts = toArray(path).map(stringValue);
+            const source = await resolver(parts);
+            if (typeof source !== 'string') {
+                throw new SchemeLibraryError(`the file resolver gave no text for ${parts.join('/')}`);
             }
-        }
+            files.set(parts.join('/'), source);
+        }));
     }
     return files;
 }
@@ -234,7 +184,7 @@ async function fetchDefinitionFiles(libDef, analyze, interpreter, baseEnv) {
  * @returns {Promise<Map>} The library's exports
  */
 export async function evaluateLibraryDefinition(libDef, analyze, interpreter, baseEnv) {
-    const files = await fetchDefinitionFiles(libDef, analyze, interpreter, baseEnv);
+    const files = await fetchWanted((loader) => callLibrarySystem('definition-files-wanted', loader, libDef.form));
     return exportsMap(callLibrarySystem('define-library!', loaderFor(analyze, interpreter, baseEnv, files), libDef.form));
 }
 
@@ -249,6 +199,34 @@ export async function evaluateLibraryDefinition(libDef, analyze, interpreter, ba
  */
 export function evaluateLibraryDefinitionSync(libDef, analyze, interpreter, baseEnv) {
     return defineLibrary(libDef.form, analyze, interpreter, baseEnv);
+}
+
+/**
+ * A `define-library` form's parts, its `cond-expand` declarations decided
+ * (`define-library-parts` in library_system.scm), for tools that read which
+ * files a library is made of.
+ *
+ * @param {Cons} form - The form.
+ * @returns {{name: Array, exports: Array<{internal: string, external: string}>,
+ *   imports: Array<{libraryName: string[]}>, body: Array, includes: string[],
+ *   includesCi: string[], includeLibraryDeclarations: string[], form: Cons}}
+ *   Its name as written, its exports, the libraries it imports, its body's
+ *   forms, the files of its three kinds of `include`, and the form itself.
+ */
+export function parseDefineLibrary(form) {
+    const [name, exports, imports, body, includes, includesCi, declarationFiles] =
+        toArray(callLibrarySystem('define-library-parts', currentLibraryRegistry(), form));
+    const names = (parts) => toArray(parts).map((part) => part.name ?? String(part));
+    return {
+        name: toArray(name),
+        exports: toArray(exports).map((pair) => ({ internal: pair.car.name, external: pair.cdr.name })),
+        imports: toArray(imports).map((library) => ({ libraryName: names(library) })),
+        body: toArray(body),
+        includes: toArray(includes).map(stringValue),
+        includesCi: toArray(includesCi).map(stringValue),
+        includeLibraryDeclarations: toArray(declarationFiles).map(stringValue),
+        form
+    };
 }
 
 /**

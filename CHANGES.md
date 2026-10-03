@@ -10925,3 +10925,75 @@ none failing (56 skipped). `npm run prebuild` reaches a fixed point. Lines under
 last step: Scheme 247 added, 27 removed; JavaScript 64 added, 194 removed. The JavaScript added:
 the primitives, 34 lines, `Environment`'s (the evaluator, until 68) and a compiled procedure's
 resumable form (the save-and-resume protocol); the API's calls into the Scheme.
+
+# Task 64, step 4: an asynchronous resolver's files, fetched by asking the Scheme (2026-10-03)
+
+## Why
+
+The last step of task 64. A file resolver that fetches files -- the development page's, the
+browser test runner's -- answers with promises, which a load cannot wait for, so every file a load
+reads is fetched first. JavaScript found which, with its own `define-library` parser, loading each
+import as it went; that parser was the library system's last JavaScript.
+
+## What changed
+
+- **Which files, in Scheme**: `files-wanted` walks a library with only the files at hand -- its
+  own file, then the libraries it imports, the files it includes, its files of library
+  declarations and what they declare, in turn -- and returns the paths it lacks, each once;
+  `definition-files-wanted` does the same for a `define-library` form. A library loaded already
+  wants nothing.
+- **The loop, in JavaScript** (`fetchWanted` in `library_loader.js`): asks which files are
+  wanted, fetches them together, and asks again, each round learning what the files just fetched
+  import and include, until none is wanted; then loads synchronously from them. A resolver giving
+  no text for a file is an error, rather than a file asked for forever.
+- **`library_parser.js` is gone.** `parseDefineLibrary` stays in the JavaScript API, for the
+  build scripts and the test harness that read which files a library is made of, as a view of the
+  Scheme's `define-library-parts`. `parseImportSet` is gone from it: only the parser's own tests
+  used it, and the Scheme's import-set tests cover the same cases. `repl.js` imported six of the
+  API's functions and used none of them.
+
+## Tests
+
+`library_system_tests.scm`: the files wanted with nothing at hand, then with the library's own
+file, then with everything; `include-ci`'s files; a file of library declarations and then what it
+imports; each file once; nothing of a library loaded already; and a `define-library` form's.
+`library_loader_tests.js`: a resolver answering with promises is asked for each file once, a round
+at a time. The JavaScript parser's import-set tests are removed.
+
+## Measured
+
+The development page's start, in Node -- an asynchronous resolver over the files, tables installed
+as each library loads, its 14 libraries loaded and imported: 97 ms with step 3's JavaScript
+prefetch, 102 with the loop. In a browser each round's files are fetched together, where the
+prefetch fetched one file at a time. The CLI, the bundle and `run_tier.js` use synchronous
+resolvers, which this does not touch.
+
+## Verification
+
+7,552 tests pass in Node with none failing (34 skipped), and 7,340 in the browser with
+none failing (56 skipped). `npm run prebuild` reaches a fixed point. Lines under `src/` since step
+3: Scheme 151 added, 1 removed; JavaScript 56 added, 308 removed -- the loop and the API's view,
+the entry points' part.
+
+# Task 64 done: the library system, in Scheme (2026-10-03)
+
+Parsing `define-library` and import sets, `cond-expand`'s features and requirements, the
+registries, private registries and the load hook, loading, importing, the export tables with their
+macros and keywords, substituting library values, the records of what was compiled over what, and
+which files a load must fetch first are Scheme, in `(scheme-js library-system)`. JavaScript keeps
+the reader, the evaluator, the analyzer's tables, the resolvers, `Environment`, and an API that
+only calls the Scheme and converts. A seed loads the library system from the bundled sources, apart
+from programs, and installs its prebuilt tables, so that it runs compiled.
+
+Over the task, lines under `src/`: Scheme 1,186 added, 9 removed; JavaScript 763 added, 1,030
+removed. The JavaScript added: the seed (165 lines), the bootstrap the user chose; the library
+primitives (173), host input and output, the reader, `Environment`, the analyzer's tables and a
+compiled procedure's resumable form; the installer's split in `prebuilt.js`, code generation's;
+the API, which calls the Scheme; and the evaluator's fix to `eval`.
+
+Every start pays about 40 ms more than before the task -- the seed running the sources of
+`(scheme core)`, `(scheme control)` and the library system, `(scheme core)` loaded a second time --
+which task 69's tables needing no source to run are to remove. Loading libraries otherwise costs
+what it did: the test files 1.00 and the corpus 1.03 in the geometric mean. Found on the way: `eval`
+ran its expression in the wrong environment when not called in tail position; and the start-up
+estimate was a tenth of the first measurement (R109), until the library system ran compiled.

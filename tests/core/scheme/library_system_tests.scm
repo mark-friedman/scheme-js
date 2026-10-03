@@ -157,6 +157,7 @@
                            (cond-expand ((library (test liar)) (begin (define liar 'yes))) (else (begin (define liar 'no))))
                            (cond-expand ((library (test missing)) (begin (define missing 'yes))) (else (begin (define missing 'no)))))")
     (("test" "liar") . "(define-library (test other) (export o) (begin (define o 0)))")
+    (("test" "twice") . "(define-library (test twice) (import (test a) (prefix (test a) p:)) (include \"b.scm\" \"b.scm\"))")
     (("test" "empty") . "")))
 
 (test-group "library system - loading"
@@ -243,3 +244,29 @@
         (begin (interpret-compiled-over! registry debugged #f program) (%environment-ref program 'g)))
   (test "a procedure with no resumable form that a record names is not switched back" #f
         (switch-back-to-closure! registry debugged closure)))
+
+(test-group "library system - the files a load would read"
+  ;; A loader that has at hand only the files named, of the test files, and
+  ;; answers #f for any other, as one waiting for a fetch does.
+  (define (loader-with paths)
+    (make-loader (make-library-registry #f #f '(r7rs))
+                 (lambda (path) (and (member path paths) (cdr (assoc path test-files))))
+                 #f #f))
+  (define (wanted paths name) (files-wanted (loader-with paths) name))
+  (test "with nothing at hand, the library's own file" '(("test" "b")) (wanted '() '(test b)))
+  (test "with that, the files of what it imports, then what it includes"
+        '(("test" "a") ("test" "b.scm"))
+        (wanted '(("test" "b")) '(test b)))
+  (test "with those too, nothing" '() (wanted '(("test" "b") ("test" "a") ("test" "b.scm")) '(test b)))
+  (test "include-ci's files" '(("test" "ci.scm")) (wanted '(("test" "ci")) '(test ci)))
+  (test "a file of library declarations" '(("test" "decls.scm")) (wanted '(("test" "decls")) '(test decls)))
+  (test "and then what its declarations import" '(("test" "a"))
+        (wanted '(("test" "decls") ("test" "decls.scm")) '(test decls)))
+  (test "each file once" '(("test" "a") ("test" "b.scm")) (wanted '(("test" "twice")) '(test twice)))
+  (test "nothing of a library loaded already" '(("test" "b.scm"))
+        (let ((loader (loader-with '(("test" "b")))))
+          (register-exports! (loader-registry loader) "test.a" (list (cons 'x 1) (cons 'z 2)) #f)
+          (files-wanted loader '(test b))))
+  (test "a define-library form's" '(("test" "a") ("test" "b.scm"))
+        (definition-files-wanted (loader-with '())
+                                 '(define-library (test form) (import (test a)) (include "b.scm")))))

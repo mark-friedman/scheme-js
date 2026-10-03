@@ -5,7 +5,6 @@
 import { assert, createTestLogger } from '../harness/helpers.js';
 import {
     parseDefineLibrary,
-    parseImportSet,
     libraryNameToKey,
     clearLibraryRegistry,
     isLibraryLoaded,
@@ -63,37 +62,15 @@ export async function runLibraryLoaderTests(logger) {
     assert(logger, "parseDefineLibrary body count",
         libDef.body.length, 2);
 
-    // 3. Test parseImportSet
-    const simpleImport = parse("(scheme base)")[0];
-    const simpleSpec = parseImportSet(simpleImport);
-    assert(logger, "parseImportSet simple",
-        simpleSpec.libraryName.join('.'), "scheme.base");
-
-    // 4. Test import with only
-    const onlyImport = parse("(only (scheme base) cons car)")[0];
-    const onlySpec = parseImportSet(onlyImport);
-    assert(logger, "parseImportSet only library",
-        onlySpec.libraryName.join('.'), "scheme.base");
-    assert(logger, "parseImportSet only filter",
-        onlySpec.steps[0].names.length, 2);
-
-    // 5. Test import with prefix
-    const prefixImport = parse("(prefix (scheme base) base:)")[0];
-    const prefixSpec = parseImportSet(prefixImport);
-    assert(logger, "parseImportSet prefix",
-        prefixSpec.steps[0].prefix, "base:");
-
-    // 5a. Import sets nest, each filtering the names the set inside it
-    // provides (R7RS 5.6.1); rename takes (from to) pairs.
+    // 3. Import sets nest, each filtering the names the set inside it
+    // provides (R7RS 5.6.1); rename takes (from to) pairs. How each is taken
+    // apart is tested in tests/core/scheme/library_system_tests.scm.
     registerLibrary('lib', new Map([['car', 1], ['cdr', 2], ['cons', 3]]), null);
     const importedBy = (text) => {
         const env = new Environment(null);
         importLibraries([parse(text)[0]], analyze, null, env);
         return [...env.bindings.keys()].sort().join(' ');
     };
-    assert(logger, "parseImportSet rename pairs",
-        JSON.stringify(parseImportSet(parse("(rename (scheme base) (car first) (cdr rest))")[0]).steps),
-        JSON.stringify([{ kind: 'rename', renames: [{ from: 'car', to: 'first' }, { from: 'cdr', to: 'rest' }] }]));
     assert(logger, "rename renames only the names it lists",
         importedBy("(rename (lib) (car first) (cdr rest))"), "cons first rest");
     assert(logger, "only sees the names a prefix inside it made",
@@ -228,6 +205,32 @@ export async function runLibraryLoaderTests(logger) {
         logger.fail(`loading beside a program's own bindings failed: ${e.message}`);
     } finally {
         for (const name of ['car', 'cdr', 'cons', 'assoc', 'append', 'map', 'for-each']) globalEnv.bindings.delete(name);
+    }
+
+    // 7c. A resolver answering with promises is asked for each file a load
+    // reads once, in rounds: the library's own file, then what that imports
+    // and includes, then what those do.
+    clearLibraryRegistry();
+    registerBuiltinLibrary(['scheme', 'base'], schemeBaseExports, globalEnv);
+    const fetchable = {
+        'test/top': '(define-library (test top) (export top) (import (scheme base) (test left) (test right)) (include "top.scm"))',
+        'test/top.scm': '(define top (+ left right))',
+        'test/left': '(define-library (test left) (export left) (import (scheme base)) (include "left.scm"))',
+        'test/left.scm': '(define left 1)',
+        'test/right': '(define-library (test right) (export right) (import (scheme base) (test left)) (begin (define right (+ left 1))))'
+    };
+    const asked = [];
+    setFileResolver(async (parts) => {
+        asked.push(parts.join('/'));
+        return fetchable[parts.join('/')];
+    });
+    try {
+        const topExports = await loadLibrary(['test', 'top'], analyze, interpreter, globalEnv);
+        assert(logger, "a library loaded from files fetched first", topExports.get('top'), 3);
+        assert(logger, "each file asked for once, a round at a time", asked,
+            ['test/top', 'test/left', 'test/right', 'test/top.scm', 'test/left.scm']);
+    } catch (e) {
+        logger.fail(`loading through a resolver answering with promises failed: ${e.message}`);
     }
 
     // 7b. The seed installs the prebuilt tables of the libraries it loads, so
