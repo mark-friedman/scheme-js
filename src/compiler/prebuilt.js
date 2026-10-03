@@ -109,7 +109,8 @@ export const RUNTIME_INTERFACE = fingerprintSources([Object.keys(R).sort().join(
 
 /**
  * Installs prebuilt procedures into an environment, replacing the interpreted
- * ones.
+ * ones, and everywhere the library system holds those: in every library of the
+ * current registry, and inside the values they hold.
  *
  * @param {Object} env - The environment holding the interpreted library.
  * @param {Object} table - A generated table: `{fingerprint, files, procedures}`.
@@ -118,17 +119,32 @@ export const RUNTIME_INTERFACE = fingerprintSources([Object.keys(R).sort().join(
  *   stale: boolean}} What was installed, and what was left interpreted.
  */
 export function installPrebuilt(env, table, fingerprint) {
-  if (table === undefined || table.fingerprint !== fingerprint) {
-    return {
-      installed: [],
-      skipped: [],
-      stale: true
-    };
-  }
+  return substituteInstalled(installProcedures(env, table, fingerprint), env);
+}
 
+/**
+ * Installs prebuilt procedures into an environment, replacing the interpreted
+ * ones there and nowhere else.
+ *
+ * For a library no registry holds: the library system's own, which its seed
+ * loads before there is a registry, each library installed before the next
+ * imports it.
+ *
+ * @param {Object} env - The environment holding the interpreted library.
+ * @param {Object} table - A generated table: `{fingerprint, files, procedures}`.
+ * @param {string} fingerprint - The fingerprint of the sources actually loaded.
+ * @returns {{installed: Array<string>, skipped: Array<{name: string, reason: string}>,
+ *   stale: boolean, replaced: Map<Function, Function>}} What was installed,
+ *   what was left interpreted, and each closure replaced, mapped to the
+ *   procedure that replaced it.
+ */
+export function installProcedures(env, table, fingerprint) {
   const installed = [];
   const skipped = [];
   const replaced = new Map();
+  if (table === undefined || table.fingerprint !== fingerprint) {
+    return { installed, skipped, stale: true, replaced };
+  }
 
   for (const [name, entry] of Object.entries(table.procedures)) {
     const closure = env.bindings.get(name);
@@ -149,19 +165,32 @@ export function installPrebuilt(env, table, fingerprint) {
     replaced.set(closure, procedure);
     installed.push(name);
   }
+  return { installed, skipped, stale: false, replaced };
+}
 
-  // Libraries imported the interpreted closures by value, and values the
-  // library made as it loaded hold them; `substituteLibraryValues` replaces
-  // both. The closures are kept, for a debugger to run instead
-  // (`recordCompiledOver`).
+/**
+ * Puts procedures just installed wherever else the closures they replaced are.
+ *
+ * Libraries imported the interpreted closures by value, and values the library
+ * made as it loaded hold them; `substituteLibraryValues` replaces both. The
+ * closures are kept, for a debugger to run instead (`recordCompiledOver`).
+ *
+ * @param {{installed: Array<string>, skipped: Array<Object>, stale: boolean,
+ *   replaced: Map<Function, Function>}} outcome - What `installProcedures` did.
+ * @param {Object} env - The environment they were installed into.
+ * @returns {{installed: Array<string>, skipped: Array<{name: string, reason: string}>,
+ *   stale: boolean}} The outcome, without the closures.
+ */
+function substituteInstalled({ installed, skipped, stale, replaced }, env) {
   substituteLibraryValues(replaced);
   recordCompiledOver(replaced, env);
-  return { installed, skipped, stale: false };
+  return { installed, skipped, stale };
 }
 
 /**
  * Installs a library's prebuilt table into the library's own environment, if
- * there is one and it was generated from the sources being loaded.
+ * there is one and it was generated from the sources being loaded, and
+ * everywhere the library system holds what it replaces (`installPrebuilt`).
  *
  * Meant to run from the library loader's hook, once the library's body has
  * been evaluated: the closures it replaces must exist, and nothing has yet
@@ -179,16 +208,33 @@ export function installPrebuilt(env, table, fingerprint) {
  *   no table.
  */
 export function installLibraryTable(tables, libraryName, env, sourceOf) {
+  const outcome = installLibraryProcedures(tables, libraryName, env, sourceOf);
+  return outcome === null ? null : substituteInstalled(outcome, env);
+}
+
+/**
+ * Installs a library's prebuilt table into the library's own environment, if
+ * there is one and it was generated from the sources being loaded, replacing
+ * the interpreted closures there and nowhere else (`installProcedures`).
+ *
+ * @param {Object<string, Object>} tables - As for `installLibraryTable`.
+ * @param {string[]} libraryName - The library just loaded.
+ * @param {Object} env - Its own environment.
+ * @param {(file: string) => (string|undefined)} sourceOf - As for
+ *   `installLibraryTable`.
+ * @returns {Object|null} What `installProcedures` did, or null if the library
+ *   has no table.
+ */
+export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
   const table = tables[libraryNameToKey(libraryName)];
   if (table === undefined) return null;
-  if (table.runtime !== RUNTIME_INTERFACE) return { installed: [], skipped: [], stale: true };
+  const stale = { installed: [], skipped: [], stale: true, replaced: new Map() };
+  if (table.runtime !== RUNTIME_INTERFACE) return stale;
   const sources = table.files.map(sourceOf);
   // A file the table was built from and the loader cannot find now means the
   // library has changed shape since the build, which is staleness too.
-  if (sources.some((source) => typeof source !== 'string')) {
-    return { installed: [], skipped: [], stale: true };
-  }
-  return installPrebuilt(env, table, fingerprintSources(sources));
+  if (sources.some((source) => typeof source !== 'string')) return stale;
+  return installProcedures(env, table, fingerprintSources(sources));
 }
 
 /**

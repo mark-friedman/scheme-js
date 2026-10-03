@@ -18,6 +18,16 @@
  * level, must not change how its libraries load. A program's `(scheme core)`
  * is loaded for it by the library system, like any other library.
  *
+ * Each library's prebuilt table is installed as soon as its source has run,
+ * before the next imports it, as the entry points install every shipped
+ * library's: interpreted, the library system's loops -- binding each export a
+ * library imports, finding each one it exports -- took a start from 159 ms to
+ * 246 on the CLI. Nothing else holds their procedures, so nothing else is
+ * changed; what the libraries made as they loaded keeps the closures it was
+ * made with -- the current ports' converters, in `(scheme core)` -- which the
+ * library system never uses. A table that does not match the bundled sources,
+ * as after editing one without rebuilding, leaves its library interpreted.
+ *
  * Once a library's prebuilt table can be installed without running its source,
  * the library system's will be, and this goes.
  */
@@ -34,6 +44,8 @@ import { createGlobalEnvironment } from '../primitives/index.js';
 import { BUNDLED_SOURCES } from '../../packaging/bundled_libraries.js';
 import { createPrimitiveExports } from './library_loader.js';
 import { SYNTAX_KEYWORDS } from './library_registry.js';
+import { installLibraryProcedures } from '../../compiler/prebuilt.js';
+import prebuiltLibraries from '../../packaging/compiled_libraries.js';
 
 /** The libraries the seed loads, in the order they need each other. */
 const SEED_LIBRARIES = [['scheme', 'core'], ['scheme', 'control'], ['scheme-js', 'library-system']];
@@ -55,16 +67,18 @@ class SeedKeyword {
 
 /**
  * Loads the library system.
+ * @param {Object<string, Object>} [tables] - The prebuilt tables to install,
+ *   by library key; the shipped ones by default.
  * @returns {Map<string, Function>} The procedures `(scheme-js library-system)`
  *   exports, by name.
  */
-export function seedLibrarySystem() {
+export function seedLibrarySystem(tables = prebuiltLibraries) {
     const interpreter = new Interpreter(globalContext);
     const globalEnv = createGlobalEnvironment(interpreter);
     interpreter.setGlobalEnv(globalEnv);
     const loaded = new Map([['scheme.primitives', createPrimitiveExports(globalEnv)]]);
     for (const name of SEED_LIBRARIES) {
-        loaded.set(name.join('.'), seedLibrary(name, loaded, interpreter, globalEnv));
+        loaded.set(name.join('.'), seedLibrary(name, loaded, interpreter, globalEnv, tables));
     }
     return loaded.get('scheme-js.library-system');
 }
@@ -76,9 +90,10 @@ export function seedLibrarySystem() {
  *   loaded so far, by key.
  * @param {Interpreter} interpreter - The seed's interpreter.
  * @param {Environment} globalEnv - Its global environment.
+ * @param {Object<string, Object>} tables - The prebuilt tables to install.
  * @returns {Map<string, *>} The library's exports.
  */
-function seedLibrary(name, loaded, interpreter, globalEnv) {
+function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
     const [form] = parse(BUNDLED_SOURCES[`${name[name.length - 1]}.sld`], { filename: name.join('/') });
     const env = new Environment(globalEnv);
     env.libraryName = name;
@@ -121,6 +136,7 @@ function seedLibrary(name, loaded, interpreter, globalEnv) {
             globalContext.popDefiningScope();
         }
     }
+    installLibraryProcedures(tables, name, env, (file) => BUNDLED_SOURCES[file]);
 
     return new Map(exports.map((spec) => {
         const [internal, external] = spec instanceof Symbol ? [spec.name, spec.name] : toArray(spec).slice(1).map(s => s.name);

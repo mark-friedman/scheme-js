@@ -20,6 +20,9 @@ import {
     getLoadedLibraries
 } from '../../src/core/interpreter/library_loader.js';
 import { registerLibrary } from '../../src/core/interpreter/library_registry.js';
+import { seedLibrarySystem } from '../../src/core/interpreter/library_seed.js';
+import { callSchemeProcedure } from '../../src/core/interpreter/values.js';
+import { list } from '../../src/core/interpreter/cons.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
@@ -220,12 +223,23 @@ export async function runLibraryLoaderTests(logger) {
         const apartExports = loadLibrarySync(['test', 'apart'], analyze, interpreter, globalEnv);
         assert(logger, "a program's own bindings do not change loading", apartExports.get('seven'), 7);
         assert(logger, "and the library system's libraries are not the program's",
-            getLoadedLibraries().join(' '), 'scheme.base test.apart');
+            getLoadedLibraries(), ['scheme.base', 'test.apart']);
     } catch (e) {
         logger.fail(`loading beside a program's own bindings failed: ${e.message}`);
     } finally {
         for (const name of ['car', 'cdr', 'cons', 'assoc', 'append', 'map', 'for-each']) globalEnv.bindings.delete(name);
     }
+
+    // 7b. The seed installs the prebuilt tables of the libraries it loads, so
+    // that the library system runs compiled; given none, it runs interpreted,
+    // and works the same.
+    const keyBy = (system) => String(callSchemeProcedure(system.get('library-key'), [list(intern('srfi'), 1n)]));
+    const compiledSystem = seedLibrarySystem();
+    assert(logger, "the library system runs compiled", compiledSystem.get('load-library').$compiled === true, true);
+    assert(logger, "and works", keyBy(compiledSystem), 'srfi.1');
+    const interpretedSystem = seedLibrarySystem({});
+    assert(logger, "given no tables, it runs interpreted", interpretedSystem.get('load-library').$compiled === true, false);
+    assert(logger, "and works the same", keyBy(interpretedSystem), 'srfi.1');
 
     clearLibraryRegistry();
 

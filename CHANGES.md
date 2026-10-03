@@ -10808,3 +10808,58 @@ start-up bootstrap the user chose; the library primitives, 139, host input and o
 resolver, the hook), the reader (until 63), and `Environment` and the analyzer's tables (the
 evaluator, until 68); the API's rewrite, which only calls the Scheme and converts; and 4 lines in
 `frames.js`, the evaluator's fix.
+
+# Task 64: the library system runs compiled (2026-10-03)
+
+## Why
+
+The switch-over made every start 77-118 ms slower, where 5-10 ms had been estimated (R109): most of
+it was the library system running interpreted, its loops over each library's imports and exports
+taking far longer than the JavaScript's had. The library system has a prebuilt table, as every
+shipped library does, and the seed did not install it. The user decided it should, in a step of
+its own before step 3 -- which moves the substitution's loops, run at every table installed, into
+the library system too.
+
+## What changed
+
+- **The installer, in two** (`src/compiler/prebuilt.js`): `installProcedures` replaces a
+  library's closures with the prebuilt procedures in its own environment and nowhere else;
+  `installPrebuilt` and `installLibraryTable` do that and then what they always did besides, the
+  procedures put wherever else the library system holds the closures and recorded for a debugger.
+  `installLibraryProcedures` is `installLibraryTable`'s check -- a table for the library, built
+  against this runtime, from these sources -- around `installProcedures`.
+- **The seed installs the tables** (`library_seed.js`) of `(scheme core)` and the library system
+  as soon as each one's source has run, before the next imports it; `(scheme control)` holds only
+  macros and has none. Nothing else holds their procedures, so nothing else changes; what
+  `(scheme core)` made as it loaded keeps its closures (the current ports' converters), which the
+  library system never uses. A table that does not match the bundled sources leaves its library
+  interpreted, as anywhere else. `seedLibrarySystem` takes the tables, the shipped ones by default.
+- `getLoadedLibraries` returns JavaScript strings: the library system's keys are made by
+  `string-append`, whose strings may be changed, and JavaScript compared them as objects.
+
+## Tests
+
+`library_loader_tests.js`: the seed's library system runs compiled and works; given no tables it
+runs interpreted and works the same.
+
+## Measured
+
+Old (before the switch-over) against new, interleaved, the machine somewhat slower than for step 2:
+
+- **Start-up**, `(display 1)` from the CLI: 331 to 368 ms with the tier, 171 to 215 without -- 37
+  and 44 ms over, where step 2 was 118 and 87. A page's start, the bundle's evaluation: 114 to
+  156 ms, 42 over, where step 2 was 77.
+- **`run_tier.js`**: the test files 1,014 to 996 ms in all with the tier, geometric mean 0.99; the
+  corpus 3,390 to 3,454 ms, geometric mean 1.03, where step 2's were 1.04 and 1.45. Nothing wrong
+  or broken.
+
+The 40 ms left is the seed running its three libraries' sources, `(scheme core)` the most of it,
+which task 69's tables that need no source to run are to remove.
+
+## Verification
+
+7,530 tests pass in Node with none failing (34 skipped), and 7,318 in the browser with
+none failing (56 skipped). The generated tables are unchanged, and `npm run prebuild` reaches a
+fixed point. Lines under `src/` since step 2: JavaScript 86 added, 23 removed, nearly all the
+installer's split and its documentation -- installing generated code, which is code generation's
+-- and the seed's 19 lines installing the tables, the bootstrap the user chose; no Scheme.

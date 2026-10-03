@@ -530,6 +530,15 @@ installed into the library's own environment as the library loads (`installLibra
 library's environment also holds everything it imported; `generateEnvironment`'s `ownOnly` option
 leaves those out, so no procedure is compiled into two tables.
 
+Installing is two parts: replacing a library's closures in its own environment
+(`installProcedures`), which is code generation's, and putting the procedures wherever else the
+library system holds those closures -- every library of the current registry, the values they made
+-- and recording them for a debugger. The library system's own libraries, which its seed loads
+before there is a registry (`src/core/interpreter/library_seed.js`), take only the first: nothing
+else holds their procedures, and each is installed before the next imports it. The library system
+runs compiled from the first library it loads, and so does every loop it runs over a library's
+imports and exports.
+
 The compiler loads its library, and the ones that imports, into **a registry of its own**
 (`withPrivateLibraries` in `src/core/interpreter/library_registry.js`). The library registry is
 otherwise one per process, and sharing it would be wrong both ways: a program that redefined a

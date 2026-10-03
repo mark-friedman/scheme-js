@@ -18,6 +18,7 @@ import { Symbol, intern } from './symbol.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from './values.js';
 import { globalContext } from './context.js';
 import { seedLibrarySystem } from './library_seed.js';
+import { stringValue } from '../primitives/string_class.js';
 
 // =============================================================================
 // The library system, and the current registry
@@ -532,7 +533,7 @@ export function switchBackToClosure(twin) {
  * @returns {string[]}
  */
 export function getLoadedLibraries() {
-    return toArray(callLibrarySystem('registered-keys', currentLibraryRegistry()));
+    return toArray(callLibrarySystem('registered-keys', currentLibraryRegistry())).map(stringValue);
 }
 
 /**
