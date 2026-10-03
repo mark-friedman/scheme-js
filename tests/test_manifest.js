@@ -188,6 +188,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/nested_macro_tests.scm',
     'tests/core/scheme/bigint_exactness_tests.scm',
     'tests/core/scheme/r7rs-pitfalls.scm',
+    'tests/core/scheme/library_system_tests.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',
     'tests/extras/scheme/promise_interop_tests.scm',

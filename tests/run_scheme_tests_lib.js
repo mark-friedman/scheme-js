@@ -67,6 +67,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     await loadLibrary(['srfi', '1'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['srfi', '152'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['srfi', '151'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme-js', 'library-system'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'inexact'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'file'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'read'], analyze, interpreter, interpreter.globalEnv);

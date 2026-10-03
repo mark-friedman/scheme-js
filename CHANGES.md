@@ -10648,3 +10648,51 @@ counter, the keyword tables, `enterPrivateLibraries` and `leavePrivateLibraries`
 `internSyntaxObject`; `syntax_rules.js` -- a macro holding its libraries and putting their entries
 back, and `librariesNamedIn`; `syntax_object.js`, interning through the context; and seven lines in
 `library_registry.js`, fixed in place, as task 64 is to port it. Scheme: none.
+
+# Task 64, step 1: the library system's Scheme, not yet used (2026-10-03)
+
+## Why
+
+Task 64 moves the library system to Scheme; the user chose its bootstrap -- a small JavaScript seed
+loader for `(scheme core)` and the library system's own library, the Scheme loading everything
+else -- and the order of work, recorded in `docs/compiler_plan.md`. This is the first step: the
+parts that need neither files nor the analyzer, written and tested, used by nothing yet.
+
+## The library
+
+`(scheme-js library-system)`, in `src/core/scheme/library-system.sld` and `library_system.scm`,
+written with `(scheme core)` and `(scheme control)` alone, since it is to be loaded before any
+other library by the seed loader, which can load only what is as simple as they are:
+
+- `parse-define-library` takes a `define-library` form apart into a `library-definition` record --
+  its name, its exports as `(internal . external)`, its import sets, its body, and the files of
+  its three kinds of `include` -- each part in the order written. `cond-expand` declarations are
+  decided first, by the first clause whose requirement is met or by `else`, recursively, so that a
+  clause may hold any declaration, `cond-expand` included. An unknown declaration, one that is not
+  a list, and an export neither a name nor a `rename` are errors.
+- `parse-import-set` takes an import set apart into the library it names and its filters,
+  innermost first; a filter's keyword begins a filter only when an import set follows it, since a
+  library may be named `(only lib)`. `imported-name` is the name an export arrives under through
+  them, or #f.
+- `requirement-met?` decides a `cond-expand` requirement, given the features present and a
+  procedure saying whether a library could be imported.
+
+Names are symbols, where the JavaScript used strings; the switch-over converts at the boundary. The
+top level is procedure and record-type definitions only, so that the library can later be
+installed from compiled code without running its source. SRFI 1 is not available when the library
+system starts, so three of its procedures are written as small helpers, each saying why.
+
+## Tests
+
+`tests/core/scheme/library_system_tests.scm`: feature requirements, present and absent, nested, a
+library available or not, and the arity errors; import sets, their filters and nesting, and a
+library named by a filter's keyword; the names an import set gives through each filter and through
+filters nested both ways; and `define-library`'s parts, `cond-expand` taking the first clause met,
+its `else` or nothing, nested in a clause, and the errors. The plain Scheme test runner loads the
+library before its files run, as it does the other libraries they import.
+
+## Verification
+
+The library ships, compiled at build time (13 procedures). 7,502 tests pass in Node with none
+failing (34 skipped), and 7,290 in the browser with none failing (56 skipped), the library
+system's four groups among them. JavaScript under `src/`: none; Scheme 296 lines added.
