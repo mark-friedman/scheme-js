@@ -10505,3 +10505,42 @@ The prebuilt tables rebuilt to a fixed point. 7,430 tests pass in Node with none
 skipped), and 7,225 in the browser with none failing (55 skipped). JavaScript under `src/`: none.
 Scheme: the variable, and `tier-bound!` telling debugging from a library's loading, which it had
 treated alike, waiting one call.
+
+# Task 80 done: a library's procedures wait ten calls (2026-10-02)
+
+## The decision
+
+On the comparison in the walkthrough before this one, the user chose: a program's own procedures as
+before -- compiled at definition if they loop or make procedures, at their second call otherwise --
+and a library's procedures, once it has loaded, compiled at their tenth call however they loop,
+where they were compiled at their first. `library-calls-before-compiling` in `src/compiler/tier.scm`
+is now 10, and its comment and the notes at the head of the file say why; `compiler_design.md`'s
+account of when the tier does not compile says so too. The shipped libraries are not affected,
+their procedures being compiled at build time; a program importing a library that is not shipped is.
+`run_tier.js` reads the compiler's count for a policy that names none, so `2` is today's.
+
+## Tests
+
+Written to the new rule before it was made: in `tests/functional/tiering_tests.js`, a looping
+procedure of a program's own library is not compiled while the library loads, nor at its first call
+after, but is by its tenth, and so is one that does not loop; and a library with a prebuilt table is
+left alone however often it is called. `tests/tiers/library_values_tests.scm` calls its library's
+procedure ten times before testing that the tier compiled it.
+
+## The plan
+
+Task 80 is complete, with the decision under *Decided*. The user also decided how the compiler's
+work is measured from now on, written at the head of `docs/compiler_plan.md` beside *Code-generation
+decisions are measured twice*: anything about what compiling costs or when the tier compiles is
+judged on `run_tier.js --set all`; a code-generation change keeps the canonical suite and
+`run_codegen.js` as its gate and must not regress the corpus and page sets; and a port of
+JavaScript to Scheme is measured on the test-file and corpus sets too. Each task this concerns
+notes it in its row. Task 41's row says that with a library's procedures waiting ten calls, 20 of
+the corpus's 22 programs still run slower with the tier than without, compiling about 29% of the
+time.
+
+## Verification
+
+The prebuilt tables rebuilt to a fixed point. 7,431 tests pass in Node with none failing (34
+skipped), and 7,226 in the browser with none failing (55 skipped). JavaScript under `src/`: none.
+Scheme: the count, and its comments.

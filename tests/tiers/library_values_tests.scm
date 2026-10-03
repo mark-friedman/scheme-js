@@ -52,7 +52,7 @@
         (all-hash-with? default-hash (list (make-comparator #t equal? #f default-hash)))))
 
 ;; A library that is not shipped has no table. With the tier attached, its
-;; procedures are compiled from their first call once it has loaded
+;; procedures are compiled at their tenth call once it has loaded
 ;; (src/compiler/tier.scm), and the list it made as it loaded holds what it
 ;; held before: the procedure `doubled` is bound to.
 (define-library (test library-values)
@@ -64,7 +64,7 @@
 
 (import (test library-values))
 
-(doubled 1)
+(for-each doubled '(1 2 3 4 5 6 7 8 9 10))
 
 (test-group "A library's own procedures, held in values it made as it loaded"
   (test "the tier compiled the procedure, and only in the run with it attached"

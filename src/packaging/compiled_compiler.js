@@ -20,7 +20,7 @@ import { Char } from '../core/primitives/char_class.js';
 /** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, make: Function}>}>} */
 export const LIBRARIES = {
   "scheme-js.compiler": {
-    fingerprint: "a3926cfc",
+    fingerprint: "f0e08171",
     runtime: "226117ea",
     files: ["compiler.sld","ir.scm","lift.scm","inline.scm","liveness.scm","emit.scm","driver.scm","safety.scm","tier.scm"],
     procedures: {

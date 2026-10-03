@@ -40,8 +40,9 @@
 ;;
 ;; Nor while a library is being loaded: the compiler's own definitions would
 ;; be registered with the scopes that library's macros resolve their free
-;; identifiers through. So a library's procedures are compiled from their
-;; first call once it has loaded, however they loop. An expression compiled
+;; identifiers through. So a library's procedures wait for calls once it has
+;; loaded, however they loop -- ten, since most of what a library defines is
+;; not hot in any one program (`library-calls-before-compiling`). An expression compiled
 ;; as a thunk has no closure to go back to, which is why only loops are: a
 ;; procedure such a loop makes and keeps stays compiled while debugging.
 
@@ -67,11 +68,20 @@
 ;;  * How many calls a procedure a library defines waits, once the library has
 ;;  * loaded, before it is compiled, however it loops: compiling waits while a
 ;;  * library loads (see the notes at the head of this file), and the call that
-;;  * finds it due runs interpreted either way. A variable, so that
-;;  * `benchmarks/run_tier.js` can measure another count.
+;;  * finds it due runs interpreted either way.
+;;  *
+;;  * Ten, measured over the test programs of 22 libraries that are not
+;;  * shipped (`benchmarks/run_tier.js --set corpus`): compiled at their first
+;;  * call, as they were, 21 of the programs ran slower with the tier than
+;;  * without, compiling half the time; at their tenth, 28% faster, none more
+;;  * than 15% slower. At their hundredth they ran faster still, but a program
+;;  * whose library's loops were hot ran 31% slower. Keeping the program's own
+;;  * rule, compiling at the first call what loops or makes procedures, kept
+;;  * only 5-7%: most procedures a library defines do one or the other. A
+;;  * variable, so that `benchmarks/run_tier.js` can measure another count.
 ;;  * @type {integer}
 ;;  */
-(define library-calls-before-compiling 1)
+(define library-calls-before-compiling 10)
 
 ;; /**
 ;;  * The compiler tier of one program.

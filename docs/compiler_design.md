@@ -707,7 +707,10 @@ procedure the loop makes and stores.
 straight back; a procedure due meanwhile is compiled on its first call after. Nor while a library is
 loading: the compiler is Scheme, and running it defines things, which inside a library's body would
 be registered with the scopes that library's macros resolve their free identifiers through. A
-library's procedures are compiled from their first call once it has loaded.
+library's procedures wait for calls once it has loaded, however they loop: ten, since most of what a
+library defines is not hot in any one program -- compiled at their first call, as they were, the
+test programs of 21 of 22 libraries that are not shipped ran slower with the tier than without
+(`library-calls-before-compiling` in `tier.scm` says why ten).
 
 **Starting the compiler.** The tier's decisions are the compiler's Scheme, so the compiler starts when
 the tier is attached: about 130 ms, which a script that compiles nothing now pays as well -- the CLI

@@ -179,9 +179,10 @@ export async function runTieringTests(logger) {
                (begin (define (use-inc x) (own-inc x))))`);
       const ownSumLoaded = t.compiled('own-sum');
       t.run('(own-sum 1)');
+      const ownSumOnce = t.compiled('own-sum');
+      for (let i = 0; i < 9; i++) t.run('(own-sum 1)');
       const ownSum = t.compiled('own-sum');
-      t.run('(own-inc 1)');
-      t.run('(own-inc 2)');
+      for (let i = 0; i < 10; i++) t.run('(own-inc 1)');
       const ownInc = t.compiled('own-inc');
       const inOther = isCompiledOver(getLibraryEnv(['tier', 'user']).bindings.get('own-inc'));
       const answers = t.run('(list (own-sum 10) (own-inc 10))');
@@ -191,16 +192,19 @@ export async function runTieringTests(logger) {
                (begin (define (pre-sum n) (let loop ((i 0)) (if (> i n) i (loop (+ i 1)))))))`);
       t.run('(import (tier prebuilt))');
       // Called as often as would compile one of the tier's own.
-      t.run('(pre-sum 1)');
-      t.run('(pre-sum 2)');
-      return { ownSumLoaded, ownSum, ownInc, inOther, answers, preSum: t.compiled('pre-sum') };
+      for (let i = 0; i < 10; i++) t.run('(pre-sum 1)');
+      return { ownSumLoaded, ownSumOnce, ownSum, ownInc, inOther, answers, preSum: t.compiled('pre-sum') };
     });
     // Not while the library loads: running the compiler then would register
     // its definitions with the scopes the library's macros resolve through.
     assert(logger, 'a procedure of the program\'s own library is not compiled while the library loads',
       seen.ownSumLoaded, false);
-    assert(logger, 'but on its first call after', seen.ownSum, true);
-    assert(logger, 'another is compiled on its second call, and the program\'s imported copy follows',
+    // Nor at its first call after, though it loops: a library's procedures
+    // wait ten calls, however they loop, since most a library defines are
+    // not hot in any one program.
+    assert(logger, 'nor on its first call after', seen.ownSumOnce, false);
+    assert(logger, 'but by its tenth', seen.ownSum, true);
+    assert(logger, 'another is compiled by its tenth call too, and the program\'s imported copy follows',
       seen.ownInc, true);
     assert(logger, 'and so does the copy another of its libraries imported', seen.inOther, true);
     assert(logger, 'and both answer', seen.answers, '(55 11)');

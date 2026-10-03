@@ -52,9 +52,9 @@
  * (`calls-before-compiling` in `src/compiler/tier.scm`) and one that does at
  * definition -- or `loops:N`, where only one that loops is compiled at
  * definition (`compiled-when-bound?`); either followed by `/M` for a
- * library's procedures to wait M calls after it loads, however they loop,
- * where they wait one (`library-calls-before-compiling`). Today's is `2`,
- * which is `2/1`. The policies are
+ * library's procedures to wait M calls after it loads, however they loop
+ * (`library-calls-before-compiling`), where they wait as many as the
+ * compiler says. Today's is `2`, which is `2/10`. The policies are
  * interleaved, each program run under every one in turn, round after round,
  * each round starting at the next, so that whatever else the machine is doing
  * falls on them alike; naming one twice measures how far apart two runs of
@@ -103,10 +103,16 @@ const JSON_OUT = args.includes('--json');
  * The policies to measure, as `--policies` names them.
  * @type {Array<{label: string, wait: number, loopsOnly: boolean}>}
  */
+/**
+ * How many calls a library's procedures wait, as the compiler has it now.
+ * @type {number}
+ */
+const LIBRARY_WAIT = Number(compilerEnvironment().env.lookup('library-calls-before-compiling'));
+
 const POLICIES = valueOf('--policies', '2').split(',').map((spec) => {
   const match = /^(loops:)?([0-9]+)(?:\/([0-9]+))?$/.exec(spec);
   if (match === null) throw new Error(`a policy is N or loops:N, then /M if it says, not ${spec}`);
-  return { label: spec, wait: Number(match[2]), loopsOnly: match[1] !== undefined, libraryWait: Number(match[3] ?? 1) };
+  return { label: spec, wait: Number(match[2]), loopsOnly: match[1] !== undefined, libraryWait: Number(match[3] ?? LIBRARY_WAIT) };
 });
 
 for (const set of SETS) {
