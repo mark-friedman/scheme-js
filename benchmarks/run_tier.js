@@ -226,7 +226,8 @@ const TEST_IMPORTS = `(import (scheme base) (scheme write) (scheme read) (scheme
  * @type {Object<string, string>}
  */
 const TESTS_LEFT_OUT = {
-  'tests/core/scheme/dynamic_wind_interop_tests.scm': 'needs a browser window'
+  'tests/core/scheme/dynamic_wind_interop_tests.scm': 'needs a browser window',
+  'tests/scripts/table_writer_tests.scm': 'tests a build tool, from scripts/lib/, which no page loads'
 };
 
 /**

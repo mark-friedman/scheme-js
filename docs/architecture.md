@@ -168,7 +168,9 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── generate_bundled_libraries.js # Inlines .sld/.scm sources for the browser
 │   ├── generate_compiled_libraries.js # Compiles every shipped library at build time
 │   ├── generate_compiled_compiler.js # Compiles the compiler's own library at build time
-│   ├── lib/render_prebuilt.js      # Writes a module of prebuilt tables, one per library
+│   ├── lib/table-writer.sld        # (scheme-js table-writer): writes a module of prebuilt tables, one per library
+│   ├── lib/table_writer.scm        # Its procedures: constants as JavaScript, entries, tables, the module
+│   ├── lib/table_writer.js         # Loads it for the build scripts, and calls it
 │   ├── audit_r7rs.js               # R7RS-small conformance audit
 │   ├── language_balance.scm        # Lines of Scheme and JavaScript a change adds under src/ (npm run audit:languages)
 │   └── r7rs_identifiers.js         # Required-identifier reference list

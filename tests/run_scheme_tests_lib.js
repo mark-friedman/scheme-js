@@ -24,15 +24,18 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
         // Try to find the library in multiple locations
         const searchPaths = [];
 
+        // The build's own libraries, in scripts/lib/, are tested here too.
         if (fileName.endsWith('.scm') || fileName.endsWith('.sld')) {
             // Include directive - fileName already has extension
             searchPaths.push(`src/core/scheme/${fileName}`);
             searchPaths.push(`src/extras/scheme/${fileName}`);
+            searchPaths.push(`scripts/lib/${fileName}`);
         } else {
             // Library import - add .sld extension
             // Check standard library first, then extras
             searchPaths.push(`src/core/scheme/${fileName}.sld`);
             searchPaths.push(`src/extras/scheme/${fileName}.sld`);
+            searchPaths.push(`scripts/lib/${fileName}.sld`);
         }
 
         // Try each path until one succeeds
@@ -68,6 +71,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     await loadLibrary(['srfi', '152'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['srfi', '151'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme-js', 'library-system'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme-js', 'table-writer'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'inexact'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'file'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'read'], analyze, interpreter, interpreter.globalEnv);

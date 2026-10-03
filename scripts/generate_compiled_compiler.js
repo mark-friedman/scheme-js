@@ -49,7 +49,7 @@ import { installLibraryTable, fingerprintSources } from '../src/compiler/prebuil
 import { COMPILER_LIBRARY, compilerStartFailure } from '../src/compiler/lowering.js';
 import { registerCompilerHost } from '../src/compiler/host.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
-import { renderLibraries, serializeConstants } from './lib/render_prebuilt.js';
+import { tableWriter } from './lib/table_writer.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/compiled_compiler.js');
@@ -87,6 +87,13 @@ function resolve(name) {
 }
 
 /**
+ * The interpreter the compiler's library is loaded on, and its global
+ * environment, for loading the table writer beside it.
+ * @type {{interpreter: Object, env: Object}|null}
+ */
+let globalInterpreter = null;
+
+/**
  * Loads the compiler's library, with the libraries it imports installed from
  * their prebuilt tables.
  *
@@ -99,6 +106,7 @@ function resolve(name) {
  */
 function bootstrap() {
   const { interpreter, env } = createInterpreter();
+  globalInterpreter = { interpreter, env };
   registerCompilerHost(env);
   setFileResolver(resolve);
   const stale = [];
@@ -145,10 +153,12 @@ function main() {
     pending.push(...byName.get(name).globals);
   }
   const mine = generated.filter((entry) => reachable.has(entry.name));
-  const usable = mine.filter((entry) => serializeConstants(entry.constants) !== null);
-  const unserializable = mine.filter((entry) => serializeConstants(entry.constants) === null);
+  // Loaded beside the compiler's library, whose registry holds what it imports.
+  const writer = tableWriter(globalInterpreter.interpreter, globalInterpreter.env);
+  const usable = mine.filter((entry) => writer.writable(entry.constants));
+  const unserializable = mine.filter((entry) => !writer.writable(entry.constants));
 
-  fs.writeFileSync(OUTPUT, renderLibraries({
+  fs.writeFileSync(OUTPUT, writer.render({
     generator: 'scripts/generate_compiled_compiler.js',
     title: 'The compiler\'s own library, compiled -- the step where it compiles itself.',
     libraries: [{ key: libraryNameToKey(COMPILER_LIBRARY), fingerprint, files, entries: usable }]

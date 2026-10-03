@@ -48,11 +48,12 @@ import { analyze } from '../src/core/interpreter/analyzer.js';
 import {
   setFileResolver, setLibraryLoadHook, loadLibrarySync, parseDefineLibrary
 } from '../src/core/interpreter/library_loader.js';
-import { libraryNameToKey } from '../src/core/interpreter/library_registry.js';
+import { libraryNameToKey, withPrivateLibraries } from '../src/core/interpreter/library_registry.js';
 import { generateEnvironment } from '../src/compiler/index.js';
-import { installPrebuilt, fingerprintSources } from '../src/compiler/prebuilt.js';
+import { installPrebuilt, installLibraryTable, fingerprintSources } from '../src/compiler/prebuilt.js';
+import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { compilerStartFailure } from '../src/compiler/lowering.js';
-import { renderLibraries, serializeConstants } from './lib/render_prebuilt.js';
+import { tableWriter } from './lib/table_writer.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/compiled_libraries.js');
@@ -107,19 +108,20 @@ function libraryFiles(name) {
  * environment.
  * @param {string[]} name - The library's name.
  * @param {Object} env - Its own environment, just loaded.
+ * @param {Object} writer - The table writer (`tableWriter`).
  * @returns {Object} Its table, and what was left out of it.
  */
-function compileLibrary(name, env) {
+function compileLibrary(name, env, writer) {
   const files = libraryFiles(name);
   const fingerprint = fingerprintSources(files.map(readSource));
   const { generated, declined } = generateEnvironment(env, { ownOnly: true });
 
   // A constant pool has to be rebuilt in the generated module, and not every
-  // value can be written down -- see `serializeConstants`. One that cannot be
-  // is left out and reported, and the runtime leaves that procedure
-  // interpreted.
-  const entries = generated.filter((entry) => serializeConstants(entry.constants) !== null);
-  const unserializable = generated.filter((entry) => serializeConstants(entry.constants) === null);
+  // value can be written down -- see `constants-expression` in
+  // scripts/lib/table_writer.scm. One that cannot be is left out and
+  // reported, and the runtime leaves that procedure interpreted.
+  const entries = generated.filter((entry) => writer.writable(entry.constants));
+  const unserializable = generated.filter((entry) => !writer.writable(entry.constants));
 
   const procedures = {};
   for (const entry of entries) {
@@ -145,8 +147,20 @@ function main() {
   }
   const { interpreter, env } = createInterpreter();
   setFileResolver(resolve);
+
+  // The writer is Scheme, and imports `(scheme base)` and SRFI 152, so it is
+  // loaded first, in a registry of its own, with those it imports, from their
+  // tables as they were built last -- they are loaded again below, apart, to
+  // be compiled -- or from source where those are stale.
+  const writer = withPrivateLibraries({
+    resolver: resolve,
+    hook: (name, libraryEnv) => installLibraryTable(prebuiltLibraries, name, libraryEnv, readSource)
+  }, () => {
+    const scratch = createInterpreter();
+    return tableWriter(scratch.interpreter, scratch.env);
+  });
   const libraries = [];
-  setLibraryLoadHook((name, libraryEnv) => libraries.push(compileLibrary(name, libraryEnv)));
+  setLibraryLoadHook((name, libraryEnv) => libraries.push(compileLibrary(name, libraryEnv, writer)));
 
   // Loading a library loads what it imports first, so the hook sees every
   // library after the ones it depends on.
@@ -162,7 +176,7 @@ function main() {
   // re-exports, or whose procedures are all primitives -- needs no table.
   const tables = libraries.filter((library) => library.entries.length > 0)
     .sort((a, b) => a.key.localeCompare(b.key));
-  fs.writeFileSync(OUTPUT, renderLibraries({
+  fs.writeFileSync(OUTPUT, writer.render({
     generator: 'scripts/generate_compiled_libraries.js',
     title: 'The libraries the bundle ships, compiled.',
     libraries: tables

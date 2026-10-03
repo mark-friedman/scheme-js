@@ -10997,3 +10997,52 @@ which task 69's tables needing no source to run are to remove. Loading libraries
 what it did: the test files 1.00 and the corpus 1.03 in the geometric mean. Found on the way: `eval`
 ran its expression in the wrong environment when not called in tail position; and the start-up
 estimate was a tenth of the first measurement (R109), until the library system ran compiled.
+
+# Task 69, step 1: the prebuilt tables' writer, in Scheme (2026-10-03)
+
+## Why
+
+Task 69, designed and decided with the user: a library's prebuilt table is to restore the whole
+library, so that no shipped library's source runs at start. The table's format grows for it, and
+its writer, `scripts/lib/render_prebuilt.js`, was JavaScript that task 76 was to port; so it is
+ported first, before it grows.
+
+## The writer
+
+`(scheme-js table-writer)`, in `scripts/lib/table-writer.sld` and `table_writer.scm`, a library of
+the build's, not shipped:
+
+- `json-string` and `json-strings`: strings and lists of strings as `JSON.stringify` writes them.
+- `constant-expression` and `constants-expression`: JavaScript that rebuilds a constant -- the
+  empty list, a boolean, an exact integer as a `BigInt`, a finite inexact real, a string, a symbol
+  by `intern`, a character by code point, a pair -- or #f for one that cannot be written down, a
+  vector or a record, which leaves its procedure out of the table.
+- `render-tables`: the module, each library's table and each procedure's entry, its code indented,
+  and only the imports its constants need, decided from the constants themselves rather than by
+  searching their text.
+
+`scripts/lib/table_writer.js` loads it for the two build scripts, beside the libraries the build has
+loaded -- the shipped libraries' build loads it first, in a registry of its own, with the tables as
+last built -- compiles it, since it writes megabytes and has no table, and calls it. The output is
+the JavaScript writer's byte for byte, but for the analyzer's numbering of local names, which moved
+because the writer now loads first. `render_prebuilt.js` is gone.
+
+## Tests
+
+`tests/scripts/table_writer_tests.scm`: strings, their escapes and lists of them; every kind of
+constant, and what cannot be written down, alone and inside a list; and a module's banner,
+imports, table and entries. The plain Scheme test runner finds libraries in `scripts/lib/` too.
+`run_tier.js` leaves the file out of its test-file set: it tests a build tool no page loads.
+
+## Measured
+
+`npm run prebuild`, from a checked-in build, 2.0 s to 2.85 s: each build script about 0.35 s
+slower, most of it SRFI 152's `string-split` finding lines character by character in about 3 MB of
+generated code. Writing to one string port and indenting as it copies was slower still, and
+compiling the writer, rather than leaving it interpreted, saves about 0.2 s a script.
+
+## Verification
+
+7,584 tests pass in Node with none failing (34 skipped), and 7,372 in the browser with
+none failing (56 skipped). `npm run prebuild` reaches a fixed point. Nothing under `src/` changed
+but the generated tables' local names.
