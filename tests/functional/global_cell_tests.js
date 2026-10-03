@@ -19,7 +19,9 @@ import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
-import { registerLibrary, substituteLibraryValues } from '../../src/core/interpreter/library_registry.js';
+import { createInterpreter } from '../../src/core/interpreter/index.js';
+import { runCompiled } from '../../src/core/interpreter/values.js';
+import { markProcedure } from '../../src/compiler/runtime.js';
 import { compileProgram } from '../../src/compiler/index.js';
 import { globalCell, settle } from '../../src/compiler/runtime.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
@@ -102,16 +104,15 @@ export async function runGlobalCellTests(logger) {
     assert(logger, 'writes to a name without a cell create none', global.cells.has('z'), false);
   }
   {
-    // Installing compiled code replaces a library's copies of a procedure in
-    // place; a cell over one of those copies must follow.
-    const before = () => 'before';
-    const after = () => 'after';
-    const libraryEnv = new Environment(null);
-    libraryEnv.define('p', before);
-    registerLibrary('test.global-cells', new Map([['p', before]]), libraryEnv);
-    const cell = libraryEnv.cellFor('p');
-    substituteLibraryValues(new Map([[before, after]]));
-    assert(logger, 'substituting a library value updates its cell', cell.v === after, true);
+    // Compiling a closure makes it run compiled in place, so a cell compiled
+    // code reads it through holds the closure still, which runs compiled.
+    const { interpreter, env } = createInterpreter();
+    interpreter.run(analyze(parse("(define (p) 'interpreted)")[0]), env);
+    const closure = env.lookup('p');
+    const cell = env.cellFor('p');
+    runCompiled(closure, markProcedure(() => 'compiled', 'p', env));
+    assert(logger, "a closure run compiled is what its cell holds, and runs compiled",
+      [cell.v === closure, cell.v.$compiled === true], [true, true]);
   }
   {
     const global = new Environment(null);

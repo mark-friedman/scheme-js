@@ -242,10 +242,9 @@
         (compile-closure closure name (tier-declines-captures? tier)))))
 
 ;; /**
-;;  * Binds a compiled procedure wherever its closure was bound: under its name,
-;;  * under any other name in the program holding the closure, and -- for a
-;;  * library's procedure -- in every library and program that imported it,
-;;  * since an import copies the value.
+;;  * Makes a closure run as what it compiled to, staying the object every
+;;  * holder of it has -- the name that binds it, any other name, a library
+;;  * that imported it, the program's data -- and records it for a debugger.
 ;;  * @param {tier} tier - The tier.
 ;;  * @param {procedure} closure - The closure.
 ;;  * @param {procedure} procedure - What it compiled to.
@@ -253,14 +252,8 @@
 ;;  * @param {object} env - The environment that binds it.
 ;;  */
 (define (install-compiled! tier closure procedure name env)
-  (let ((program (tier-env tier))
-        (replaced (list (cons closure procedure))))
-    (environment-rebind! env name procedure)
-    (for-each (lambda (binding)
-                (if (eq? (cdr binding) closure) (environment-rebind! program (car binding) procedure)))
-              (environment-bindings program))
-    (if (not (eq? env program)) (substitute-library-values! replaced))
-    (record-compiled-over! replaced program)))
+  (run-compiled! closure procedure)
+  (record-compiled-over! (list (cons closure procedure)) (tier-env tier)))
 
 ;; /**
 ;;  * The compiled procedure to run a top-level form as, or #f to interpret it.

@@ -284,9 +284,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── cxr.scm             # All 28 cxr accessors
 │           ├── numbers.scm         # Variadic comparisons, predicates, min/max
 │           ├── list.scm            # map, for-each, memq, assq, length, etc.
-│           ├── substitute.scm      # The library system's: compiled procedures substituted inside the values holding their closures
 │           ├── library-system.sld  # (scheme-js library-system): the library system
-│           ├── library_system.scm  # define-library, import sets, cond-expand, registries, loading, importing, substituting, compiled-over records
+│           ├── library_system.scm  # define-library, import sets, cond-expand, registries, loading, importing, closures run compiled for a debugger
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
 │           ├── ports.scm           # call-with-port
@@ -478,7 +477,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 3. **`src/lib/`**: (Future) Additional R7RS libraries built on-top of the core.
 4. **Tests mirror source**: `tests/core/` tests `src/core/`.
 5. **Split Stepables**: AST nodes in `ast_nodes.js`, frames in `frames.js`, shared base in `stepables_base.js`.
-6. **The library system is Scheme**: `(scheme-js library-system)` parses libraries, keeps the registries, loads and imports libraries, substitutes values throughout them, and keeps the procedures compiled over closures for a debugger. Its seed (`library_seed.js`) loads it, with `(scheme core)` and `(scheme control)`, from the bundled sources onto an interpreter of its own, apart from every program, installing their prebuilt tables so that it runs compiled; `library_registry.js` and `library_loader.js` are the JavaScript API, which calls it; `primitives/library.js` is what it needs of the host.
+6. **The library system is Scheme**: `(scheme-js library-system)` parses libraries, keeps the registries, loads and imports libraries, and keeps the closures run compiled for a debugger to run as themselves. Its seed (`library_seed.js`) loads it, with `(scheme core)` and `(scheme control)`, from the bundled sources onto an interpreter of its own, apart from every program, installing their prebuilt tables so that it runs compiled; `library_registry.js` and `library_loader.js` are the JavaScript API, which calls it; `primitives/library.js` is what it needs of the host.
 7. **Modular Analyzer**: `analyzer.js` acts as a dispatcher to themed handlers in `analyzers/`, ensuring the analysis phase is extensible and isolated.
 8. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.
 9. **Self-hosting where it pays**: the compiler's lowering pass is Scheme, and the

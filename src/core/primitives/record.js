@@ -5,8 +5,7 @@
  */
 
 import { isString, stringValue } from './string_class.js';
-import { toArray, list } from '../interpreter/cons.js';
-import { intern } from '../interpreter/symbol.js';
+import { toArray } from '../interpreter/cons.js';
 import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeError, SchemeTypeError, SchemeArityError } from '../interpreter/errors.js';
 import { noteSchemeStore, storedToScheme } from '../interpreter/js_interop.js';
@@ -217,32 +216,5 @@ export const recordPrimitives = {
         };
         mod[SCHEME_PRIMITIVE] = true;
         return mod;
-    },
-
-    /**
-     * The record type of a record, for Scheme that looks inside records
-     * whatever their type, through `record-accessor` and `record-modifier`:
-     * the library system substituting a compiled procedure for the closure it
-     * replaced (`substitute-within!` in `src/core/scheme/substitute.scm`).
-     * @param {*} obj - Any value.
-     * @returns {Function|boolean} Its record type descriptor, or #f if it is
-     *   not a record of a type made by make-record-type.
-     */
-    '%record-type': (obj) => {
-        const rtd = obj !== null && typeof obj === 'object' ? obj.constructor : undefined;
-        return rtd !== undefined && rtd[RECORD_FIELDS] !== undefined ? rtd : false;
-    },
-
-    /**
-     * A record type's fields, in field order.
-     * @param {Function} rtd - A record type descriptor made by make-record-type.
-     * @returns {Cons|null} The field names, as symbols.
-     */
-    '%record-type-fields': (rtd) => {
-        const fieldNames = typeof rtd === 'function' ? rtd[RECORD_FIELDS] : undefined;
-        if (fieldNames === undefined) {
-            throw new SchemeTypeError('%record-type-fields', 1, 'record type', rtd);
-        }
-        return list(...fieldNames.map(intern));
     }
 };

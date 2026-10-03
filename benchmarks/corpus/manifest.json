@@ -691,7 +691,10 @@
       "role": "dependency",
       "version": "0.1.3",
       "url": "https://snow-fort.org/s/rapid-scheme.org/marc/rapid/test/0.1.3/rapid-test-0.1.3.tgz",
-      "sha256": "ed3774f8e0478d01b5e58a281a004bd2201904a6c5434b8d97afab05fac91152"
+      "sha256": "ed3774f8e0478d01b5e58a281a004bd2201904a6c5434b8d97afab05fac91152",
+      "tests": [
+        "rapid-test-0.1.3/run-tests.scm"
+      ]
     },
     {
       "kind": "snow",

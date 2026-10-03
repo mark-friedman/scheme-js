@@ -4,10 +4,11 @@
  * The library system is Scheme (src/core/scheme/library_system.scm). What it
  * cannot do in Scheme is here: calling the host's file resolver and load hook,
  * reading a file's text into forms (the reader), making a library's
- * environment and binding names in it (`Environment`), and the analyzer's
+ * environment and binding names in it (`Environment`), the analyzer's
  * tables of library scopes, syntactic keywords and macros (context.js,
  * macro_registry.js), which the analyzer, still JavaScript, reads as it
- * expands.
+ * expands, and running a closure compiled or as itself (the value
+ * representation).
  *
  * Names arrive as symbols and leave as the strings the JavaScript keys its
  * tables by. A resolver's path and a library's name go to the host as arrays
@@ -23,10 +24,7 @@ import { cons, list, toArray } from '../interpreter/cons.js';
 import { intern } from '../interpreter/symbol.js';
 import { SYNTAX_KEYWORDS } from '../interpreter/library_registry.js';
 import { stringValue } from './string_class.js';
-import { hashTablePrimitives } from '../../extras/primitives/hash_table.js';
-
-/** What `%hash-store-ref` returns for a key a store does not hold. */
-const ABSENT = { absent: true };
+import { runCompiled, runInterpreted } from '../interpreter/values.js';
 
 /**
  * Calls a file resolver for a file it can return now.
@@ -106,26 +104,18 @@ export const libraryPrimitives = {
      */
     '%environment-scope': (env) => env.libraryScope ?? GLOBAL_SCOPE_ID,
 
-    /** Whether a value is an environment. */
-    '%environment?': (value) => value instanceof Environment,
-
-    /** The environment an environment is inside, or #f for a global one. */
-    '%environment-parent': (env) => env.parent ?? false,
-
-    /** The values an environment's own bindings hold. */
-    '%environment-values': (env) => list(...env.bindings.values()),
-
     /**
-     * Replaces each value an environment's own bindings hold that an `eq`
-     * store has a replacement for. Through the frame, so a cell compiled code
-     * reads the binding through follows the replacement.
+     * Makes a closure run as a compiled procedure, staying the object every
+     * holder of it has (`runCompiled` in values.js).
      */
-    '%environment-replace!': (env, store) => {
-        const ref = hashTablePrimitives['%hash-store-ref'];
-        for (const [name, value] of env.bindings) {
-            const replacement = ref(store, value, ABSENT);
-            if (replacement !== ABSENT) env.rebind(name, replacement);
-        }
+    '%run-compiled!': (closure, procedure) => {
+        runCompiled(closure, procedure);
+        return undefined;
+    },
+
+    /** Makes a closure run compiled run as itself again (`runInterpreted`). */
+    '%run-interpreted!': (closure) => {
+        runInterpreted(closure);
         return undefined;
     },
 

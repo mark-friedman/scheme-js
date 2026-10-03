@@ -143,9 +143,9 @@ let bootstrapFailure = null;
  * source running: its procedures bound from their compiled code, and its other
  * forms -- the macros the analyzer needs, record types, values -- run in their
  * places. A table that no longer matches its sources leaves its library to
- * load from source, and then installs over the closures the source made, a
- * substitution rather than a definition -- which is what lets the fingerprint
- * check fail towards leaving a procedure alone.
+ * load from source, and then makes the closures the source made run compiled,
+ * defining nothing -- which is what lets the fingerprint check fail towards
+ * leaving a procedure alone.
  *
  * @returns {Object} The interpreter, the library's environment, and what is
  *   read from its exports up front.

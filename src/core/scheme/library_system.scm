@@ -818,109 +818,24 @@
               exports)))
 
 ;; ---------------------------------------------------------------------------
-;; Substituting values
+;; Closures run compiled, and run as themselves for a debugger
 ;; ---------------------------------------------------------------------------
 ;;
-;; Importing copies values, so a procedure one library exports lives on in its
-;; exports and in the environment of every library that imported it. Replacing
-;; the binding where it was defined -- which is how a library's prebuilt table
-;; is installed after it has loaded, and how the compiler tier compiles a
-;; library's procedure -- reaches none of those copies, and a library loaded
-;; afterwards would import the procedure replaced. So whatever replaces a
-;; binding substitutes what it replaced throughout a registry's libraries.
-;; Replacements are given as `(old . new)` pairs, and kept in an `eq` store.
-
-;; /**
-;;  * The registries in a list, each once: SRFI 1's `delete-duplicates` with
-;;  * `eq?`, written here for the reason `append-each` is.
-;;  * @param {list} xs - The list.
-;;  * @returns {list}
-;;  */
-(define (distinct xs)
-  (let loop ((xs xs) (seen '()))
-    (cond ((null? xs) (reverse seen))
-          ((memq (car xs) seen) (loop (cdr xs) seen))
-          (else (loop (cdr xs) (cons (car xs) seen))))))
-
-;; /**
-;;  * An `eq` store of replacements.
-;;  * @param {list} replacements - Each `(old . new)`.
-;;  * @returns {object} The store, from each old value to its new one.
-;;  */
-(define (replacement-store replacements)
-  (let ((store (%make-hash-store 'eq)))
-    (for-each (lambda (pair) (%hash-store-set! store (car pair) (cdr pair))) replacements)
-    store))
-
-;; /**
-;;  * Substitutes values throughout a registry's libraries.
-;;  *
-;;  * Only values identical to a replaced one change; a library that bound the
-;;  * same name to something else keeps it.
-;;  * @param {library-registry} registry - The registry.
-;;  * @param {list} replacements - Each `(old . new)`.
-;;  */
-(define (substitute-library-values! registry replacements)
-  (if (pair? replacements)
-      (substitute-in-libraries! registry (replacement-store replacements))))
-
-;; /**
-;;  * Substitutes values in a registry's libraries: in their exports, in their
-;;  * environments' bindings, and inside the pairs, vectors and records those
-;;  * bindings hold (`substitute-within!`, which says why). A global
-;;  * environment -- `(scheme primitives)`'s -- is not looked inside: its
-;;  * bindings are a program's, and what they hold the program's data, as large
-;;  * as the program makes it.
-;;  * @param {library-registry} registry - The registry.
-;;  * @param {object} store - The replacements (`replacement-store`).
-;;  */
-(define (substitute-in-libraries! registry store)
-  (let ((replacement (lambda (value) (%hash-store-ref store value #f)))
-        (libraries (map cdr (registry-libraries registry))))
-    (for-each
-      (lambda (library)
-        (for-each (lambda (export)
-                    (let ((new (replacement (cdr export))))
-                      (if new (set-cdr! export new))))
-                  (library-exports library))
-        (if (%environment? (library-environment library))
-            (%environment-replace! (library-environment library) store)))
-      libraries)
-    (substitute-within!
-      (append-each (lambda (library)
-                     (let ((env (library-environment library)))
-                       (if (and (%environment? env) (%environment-parent env))
-                           (%environment-values env)
-                           '())))
-                   libraries)
-      replacement)))
-
-;; /**
-;;  * Substitutes values in an environment's bindings and those of every
-;;  * environment it is inside.
-;;  * @param {object|boolean} env - The innermost environment, or #f.
-;;  * @param {object} store - The replacements.
-;;  */
-(define (substitute-in-chain! env store)
-  (when (%environment? env)
-    (%environment-replace! env store)
-    (substitute-in-chain! (%environment-parent env) store)))
-
-;; ---------------------------------------------------------------------------
-;; Running compiled procedures as their interpreted closures, for a debugger
-;; ---------------------------------------------------------------------------
+;; A closure compiled -- by the compiler tier, or from a library's prebuilt
+;; table installed over it -- stays the object every holder of it has and runs
+;; compiled (`runCompiled` in src/core/interpreter/values.js): nothing that
+;; holds it, a library's exports, a program's data, needs to change.
 ;;
 ;; A debugger pauses only between the interpreter's steps, which compiled code
 ;; never takes: a breakpoint inside a compiled procedure cannot fire, and one
 ;; inside an interpreted procedure that compiled code called is reached in a
 ;; synchronous nested run of the interpreter, which cannot wait, so the program
 ;; stops only once the compiled code returns. So while a program is being
-;; debugged, every procedure compiled over an interpreted closure -- the
-;; libraries' prebuilt code, the procedures the compiler tier compiled -- runs
-;; as that closure again: the declining-to-optimize every toolchain offers
-;; beside its debug info, applied to the whole program. The closures are kept
-;; for that when the compiled code is installed, by the registry current then,
-;; so that a registry made for a while takes its records with it when it goes.
+;; debugged, every closure run compiled runs as itself again: the
+;; declining-to-optimize every toolchain offers beside its debug info, applied
+;; to the whole program. Each is recorded, with the compiled procedure it runs
+;; as, by the registry current when it was compiled, so that a registry made for
+;; a while takes its records with it.
 ;;
 ;; Which programs are being debugged, and in which registry, the host keeps in
 ;; an `eq` store from each program's global environment to its registry
@@ -934,37 +849,32 @@
   (%make-hash-store 'eq))
 
 ;; /**
-;;  * Records compiled procedures just installed over interpreted closures, so a
-;;  * debugger can switch back to the closures.
+;;  * Records closures just made to run compiled, so a debugger can run them as
+;;  * themselves: each with the compiled procedure it runs as, and the
+;;  * environment it was compiled in -- a program's, whose closures follow that
+;;  * program's debugging alone, or a library's, shared by the registry's
+;;  * programs.
 ;;  *
-;;  * Installed straight into the global environment of a program being
-;;  * debugged, they are switched back at once. A library loaded while a
-;;  * program is being debugged is switched back when the program next runs
-;;  * (`interpret-compiled-over!`): its values reach the program by import,
-;;  * after this. A tool's own procedures -- the compiler's, in its own
-;;  * registry -- are recorded too, and never switched: switching reaches only
-;;  * the libraries of the registry it is made in and the program's global
-;;  * environment.
+;;  * Compiled in the global environment of a program being debugged, they run
+;;  * as themselves at once. A library loaded while a program is being debugged
+;;  * runs as itself when the program next runs (`interpret-compiled-over!`).
+;;  * A tool's own closures -- the compiler's, in its own registry -- are
+;;  * recorded too, and never switched: switching reaches only the records of
+;;  * the registry it is made in.
 ;;  * @param {library-registry} registry - The registry current now.
 ;;  * @param {object} debugged - The programs being debugged.
-;;  * @param {list} replacements - Each `(closure . compiled)` installed.
-;;  * @param {object} env - The environment they were installed into.
+;;  * @param {list} compiled - Each `(closure . procedure)`: a closure run
+;;  *   compiled, and the procedure it runs as.
+;;  * @param {object} env - The environment they were compiled in.
 ;;  */
-(define (record-compiled-over! registry debugged replacements env)
-  (if (pair? replacements)
-      (let ((records (registry-compiled-over registry)))
-        (for-each (lambda (pair) (%hash-store-set! records (cdr pair) (cons (car pair) env)))
-                  replacements)
-        (let ((debugged-in (%hash-store-ref debugged env #f)))
-          (if debugged-in
-              (let ((back (replacement-store
-                            (map (lambda (pair) (cons (cdr pair) (car pair))) replacements))))
-                (substitute-in-libraries! debugged-in back)
-                (substitute-in-chain! env back)))))))
+(define (record-compiled-over! registry debugged compiled env)
+  (let ((records (registry-compiled-over registry)))
+    (for-each (lambda (pair) (%hash-store-set! records (car pair) (cons (cdr pair) env))) compiled)
+    (if (%hash-store-ref debugged env #f)
+        (for-each (lambda (pair) (%run-interpreted! (car pair))) compiled))))
 
 ;; /**
-;;  * Whether a compiled procedure was installed over an interpreted closure it
-;;  * can run as instead.
+;;  * Whether a procedure is a closure run compiled, which can run as itself.
 ;;  * @param {library-registry} registry - The registry current now.
 ;;  * @param {procedure} procedure - The procedure.
 ;;  * @returns {boolean}
@@ -973,21 +883,20 @@
   (%hash-store-contains? (registry-compiled-over registry) procedure))
 
 ;; /**
-;;  * Switches every recorded compiled procedure to its interpreted closure, or
-;;  * back, for one program: in its global environment, and in every library
-;;  * of the registry -- which the registry's other programs share, so they are
-;;  * compiled again only once none of those is being debugged.
+;;  * Runs the recorded closures of one program, and of the registry's
+;;  * libraries, as themselves while the program is debugged, or compiled again
+;;  * once it is not. The libraries' are the registry's other programs' too, so
+;;  * they are compiled again only once none of those is being debugged; other
+;;  * programs' own are left as they are.
 ;;  *
 ;;  * Switching to the closures again is harmless, and catches what was
-;;  * compiled since. Bindings are replaced through their frames, so the cells
-;;  * compiled code reads globals through follow, and compiled code still
-;;  * running calls the closures from its next call on. A compiled procedure a
-;;  * program holds in a data structure, or has captured in a closure, is not
-;;  * found and stays compiled.
+;;  * compiled since. Whatever holds a closure, a name or a program's data,
+;;  * holds the object switched, and compiled code still running calls the
+;;  * closure from its next call on.
 ;;  * @param {library-registry} registry - The registry current now, which a
 ;;  *   program starting to be debugged is debugged in.
 ;;  * @param {object} debugged - The programs being debugged.
-;;  * @param {boolean} interpreted? - Whether to run the closures.
+;;  * @param {boolean} interpreted? - Whether to run the closures as themselves.
 ;;  * @param {object} program - The program's global environment.
 ;;  */
 (define (interpret-compiled-over! registry debugged interpreted? program)
@@ -996,48 +905,44 @@
       (if interpreted?
           (%hash-store-set! debugged program in)
           (%hash-store-delete! debugged program))
-      (let ((records (registry-compiled-over in))
-            (store (%make-hash-store 'eq)))
-        (for-each (lambda (compiled record)
-                    (if interpreted?
-                        (%hash-store-set! store compiled (car record))
-                        (%hash-store-set! store (car record) compiled)))
-                  (%hash-store-keys records)
-                  (%hash-store-values records))
-        (if (or interpreted? (not (memq in (%hash-store-values debugged))))
-            (substitute-in-libraries! in store))
-        (substitute-in-chain! program store)))))
+      (let ((libraries-too? (or interpreted? (not (memq in (%hash-store-values debugged))))))
+        (for-each (lambda (closure record)
+                    (let ((env (cdr record)))
+                      ;; A library's environment has a scope of its own; a
+                      ;; program's is the top level's, 0.
+                      (when (or (eq? env program)
+                                (and libraries-too? (not (zero? (%environment-scope env)))))
+                        (if interpreted?
+                            (%run-interpreted! closure)
+                            (%run-compiled! closure (car record))))))
+                  (%hash-store-keys (registry-compiled-over in))
+                  (%hash-store-values (registry-compiled-over in)))))))
 
 ;; /**
-;;  * Switches one compiled procedure back to the interpreted closure it was
-;;  * compiled from, for good: where it was installed, in every library, and in
-;;  * every program being debugged. It is then no longer compiled over its
-;;  * closure, so the debugger's switching leaves it interpreted too. For a
-;;  * procedure whose saved frames continuations keep re-entering, which costs
-;;  * more compiled than interpreted (`note-resume` in `src/compiler/tier.scm`).
+;;  * Runs one closure as itself again, for good: for a procedure whose saved
+;;  * frames continuations keep re-entering, which costs more compiled than
+;;  * interpreted (`note-resume` in `src/compiler/tier.scm`). It is then no
+;;  * longer recorded, so a debugger's switching leaves it as it is.
 ;;  *
-;;  * Found by its resumable form, which is what the frames resumed carry; a
-;;  * procedure nested in a compiled one, which has no closure of its own, is
-;;  * left as it is.
+;;  * Found by its compiled procedure's resumable form, which is what the frames
+;;  * resumed carry; a procedure nested in a compiled one, which has no closure
+;;  * of its own, is left as it is.
 ;;  * @param {library-registry} registry - The registry current now.
 ;;  * @param {object} debugged - The programs being debugged.
-;;  * @param {procedure} twin - The procedure's resumable form.
-;;  * @returns {boolean} Whether a procedure was switched back.
+;;  * @param {procedure} twin - The compiled procedure's resumable form.
+;;  * @returns {boolean} Whether a closure was switched back.
 ;;  */
 (define (switch-back-to-closure! registry debugged twin)
   (let* ((records (registry-compiled-over registry))
-         (compiled (let loop ((candidates (%hash-store-keys records)))
-                     (cond ((null? candidates) #f)
-                           ((eq? (%resumable-form (car candidates)) twin) (car candidates))
-                           (else (loop (cdr candidates)))))))
-    (and compiled
-         (let* ((record (%hash-store-ref records compiled #f))
-                (store (replacement-store (list (cons compiled (car record))))))
-           (%hash-store-delete! records compiled)
-           (substitute-in-libraries! registry store)
-           (substitute-in-chain! (cdr record) store)
-           (for-each (lambda (in) (substitute-in-libraries! in store))
-                     (distinct (%hash-store-values debugged)))
+         (closure (let loop ((closures (%hash-store-keys records)))
+                    (cond ((null? closures) #f)
+                          ((eq? (%resumable-form (car (%hash-store-ref records (car closures) #f))) twin)
+                           (car closures))
+                          (else (loop (cdr closures)))))))
+    (and closure
+         (begin
+           (%hash-store-delete! records closure)
+           (%run-interpreted! closure)
            #t))))
 
 ;; ---------------------------------------------------------------------------

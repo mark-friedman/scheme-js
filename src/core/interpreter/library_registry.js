@@ -311,20 +311,6 @@ export function registerLibrary(key, exports, env) {
 }
 
 /**
- * Substitutes values throughout every loaded library: in their exports, their
- * environments, and the values those hold (`substitute-library-values!` in
- * library_system.scm, which says why).
- *
- * @param {Map<*, *>} replacements - Each replaced value, mapped to its
- *   replacement.
- * @param {Object} [registry] - The registry whose libraries to change; the
- *   current one by default.
- */
-export function substituteLibraryValues(replacements, registry = currentLibraryRegistry()) {
-    callLibrarySystem('substitute-library-values!', registry, pairsOf(replacements));
-}
-
-/**
  * A map's entries as a list of pairs.
  * @param {Map<*, *>} map - The map.
  * @returns {Cons|null} Each `(key . value)`.
@@ -334,7 +320,7 @@ function pairsOf(map) {
 }
 
 // =============================================================================
-// Running compiled procedures as their interpreted closures, for a debugger
+// Closures run compiled, run as themselves for a debugger
 // =============================================================================
 
 /**
@@ -355,21 +341,20 @@ function debugged() {
 }
 
 /**
- * Records compiled procedures just installed over interpreted closures, so a
- * debugger can switch back to the closures (`record-compiled-over!` in
+ * Records closures just made to run compiled (`runCompiled` in values.js), so
+ * a debugger can run them as themselves (`record-compiled-over!` in
  * library_system.scm).
  *
- * @param {Map<Function, Function>} replaced - Each interpreted closure, mapped
- *   to the compiled procedure installed over it.
- * @param {Object} env - The environment they were installed into.
+ * @param {Map<Function, Function>} replaced - Each closure, mapped to the
+ *   compiled procedure it runs as.
+ * @param {Object} env - The environment they were compiled in.
  */
 export function recordCompiledOver(replaced, env) {
     callLibrarySystem('record-compiled-over!', currentLibraryRegistry(), debugged(), pairsOf(replaced), env);
 }
 
 /**
- * Whether a compiled procedure was installed over an interpreted closure it
- * can run as instead.
+ * Whether a procedure is a closure run compiled, which can run as itself.
  * @param {Function} procedure - The procedure.
  * @returns {boolean}
  */
@@ -378,11 +363,10 @@ export function isCompiledOver(procedure) {
 }
 
 /**
- * Switches every recorded compiled procedure to its interpreted closure, or
- * back, for one program, while it is debugged (`interpret-compiled-over!` in
- * library_system.scm).
+ * Runs every recorded closure as itself, or compiled again, while a program
+ * is debugged (`interpret-compiled-over!` in library_system.scm).
  *
- * @param {boolean} interpreted - Whether to run the closures.
+ * @param {boolean} interpreted - Whether to run the closures as themselves.
  * @param {Object} globalEnv - The program's global environment.
  */
 export function interpretCompiledOver(interpreted, globalEnv) {
@@ -390,10 +374,11 @@ export function interpretCompiledOver(interpreted, globalEnv) {
 }
 
 /**
- * Switches one compiled procedure back to the interpreted closure it was
- * compiled from, for good (`switch-back-to-closure!` in library_system.scm).
+ * Runs one closure as itself again, for good, found by its compiled
+ * procedure's resumable form (`switch-back-to-closure!` in
+ * library_system.scm).
  *
- * @param {Function} twin - The procedure's resumable form.
+ * @param {Function} twin - The compiled procedure's resumable form.
  * @returns {boolean} Whether a procedure was switched back.
  */
 export function switchBackToClosure(twin) {

@@ -195,55 +195,35 @@
         '(("test" "b") ("test" "a") ("test" "b.scm"))
         (reverse asked)))
 
-(test-group "library system - substituting values"
-  (define registry (make-library-registry #f #f '()))
-  (define old (lambda () 'old))
-  (define new (lambda () 'new))
-  (define other (lambda () 'other))
-  (define env (%make-library-environment (interaction-environment) '("test" "substituted")))
-  (%environment-define! env 'p old)
-  (%environment-define! env 'q other)
-  (%environment-define! env 'held (list old (vector 1 old)))
-  (register-exports! registry "test.substituted" (list (cons 'p old) (cons 'q other)) env)
-  (substitute-library-values! registry (list (cons old new)))
-  (test "in a library's exports" new (cdr (assq 'p (registered-exports registry "test.substituted"))))
-  (test "in its environment" new (%environment-ref env 'p))
-  (test "inside the values its bindings hold" (list new (vector 1 new)) (%environment-ref env 'held))
-  (test "and nothing else" other (%environment-ref env 'q))
-  (test "nothing to substitute is nothing done" #t
-        (begin (substitute-library-values! registry '()) (eq? new (%environment-ref env 'p)))))
-
-(test-group "library system - procedures compiled over closures"
+(test-group "library system - closures run compiled, and as themselves for a debugger"
+  ;; A closure run compiled, here as another procedure standing in for what
+  ;; the compiler would make of it, so that which ran shows.
   (define registry (make-library-registry #f #f '()))
   (define debugged (make-debugged-programs))
-  (define closure (lambda () 'interpreted))
+  (define f (lambda () 'interpreted))
   (define compiled (lambda () 'compiled))
-  (define env (%make-library-environment (interaction-environment) '("test" "compiled-over")))
+  (define held (list f))
   (define program (%make-library-environment (interaction-environment) '("test" "program")))
-  (%environment-define! env 'f compiled)
-  (%environment-define! program 'g compiled)
-  (register-exports! registry "test.compiled-over" (list (cons 'f compiled)) env)
-  (record-compiled-over! registry debugged (list (cons closure compiled)) env)
-  (test "a procedure installed over a closure is compiled over it" #t (compiled-over? registry compiled))
-  (test "the closure is not" #f (compiled-over? registry closure))
+  (%run-compiled! f compiled)
+  (record-compiled-over! registry debugged (list (cons f compiled)) program)
+  (test "a closure run compiled runs compiled" 'compiled (f))
+  (test "and is recorded as such" #t (compiled-over? registry f))
+  (test "what it runs as is not" #f (compiled-over? registry compiled))
   (interpret-compiled-over! registry debugged #t program)
-  (test "a program being debugged runs the closure" closure (%environment-ref program 'g))
-  (test "and so do the registry's libraries" closure (%environment-ref env 'f))
-  (test "and their exports" closure (cdr (assq 'f (registered-exports registry "test.compiled-over"))))
-  (let ((compiled-later (lambda () 'compiled-later))
-        (closure-later (lambda () 'interpreted-later)))
-    (%environment-define! program 'h compiled-later)
-    (record-compiled-over! registry debugged (list (cons closure-later compiled-later)) program)
-    (test "one installed into it while it is debugged runs as its closure at once" closure-later
-          (%environment-ref program 'h))
+  (test "a program being debugged runs it as itself" 'interpreted (f))
+  (test "and so does whatever holds it" 'interpreted ((car held)))
+  (let ((later (lambda () 'interpreted-later))
+        (later-compiled (lambda () 'compiled-later)))
+    (%run-compiled! later later-compiled)
+    (record-compiled-over! registry debugged (list (cons later later-compiled)) program)
+    (test "one compiled while the program is debugged runs as itself at once" 'interpreted-later (later))
     (interpret-compiled-over! registry debugged #f program)
-    (test "and, debugging over, is compiled again" compiled-later (%environment-ref program 'h)))
-  (test "as are the others" compiled (%environment-ref program 'g))
-  (test "and the libraries'" compiled (%environment-ref env 'f))
-  (test "a program not debugged is left as it is" compiled
-        (begin (interpret-compiled-over! registry debugged #f program) (%environment-ref program 'g)))
-  (test "a procedure with no resumable form that a record names is not switched back" #f
-        (switch-back-to-closure! registry debugged closure)))
+    (test "and, debugging over, compiled again" 'compiled-later (later)))
+  (test "as is the other" 'compiled (f))
+  (test "a program not debugged is left as it is" 'compiled
+        (begin (interpret-compiled-over! registry debugged #f program) (f)))
+  (test "a procedure whose resumable form no record's names is not switched back" #f
+        (switch-back-to-closure! registry debugged f)))
 
 (test-group "library system - the files a load would read"
   ;; A loader that has at hand only the files named, of the test files, and

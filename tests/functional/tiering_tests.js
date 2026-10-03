@@ -46,7 +46,9 @@ function tiered(options) {
     }
     return writeString(value);
   };
-  const compiled = (name) => isCompiledOver(env.lookup(name));
+  // Runs compiled now: compiled by the tier, and not running as its closure
+  // for a debugger.
+  const compiled = (name) => env.lookup(name).$compiled === true;
   return { interpreter, env, tier, run, compiled };
 }
 

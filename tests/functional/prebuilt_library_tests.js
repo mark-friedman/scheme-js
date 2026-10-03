@@ -277,57 +277,34 @@ export async function runPrebuiltLibraryTests(logger) {
 
   logger.title('Prebuilt libraries - what a library made as it loaded holds its compiled procedures');
   {
-    // A library's source runs before its table is installed, so anything it
-    // made as it loaded held the closures the table replaces. Every library
-    // with a table is loaded, and every value its bindings reach is searched --
-    // more widely than the library system substitutes, through closures'
-    // environments and JavaScript maps too, so that a library holding a
-    // replaced closure where nothing substitutes is caught here. Objects are
-    // searched if they are instances of a class -- records, pairs, a hash
-    // table's store -- and not JavaScript's plain objects, such as the host's.
-    const replaced = new Map();
+    // Loaded from source, a library makes values as it loads that hold its
+    // closures -- SRFI 128's comparators, the current ports' parameter cells
+    // -- and its table is installed afterwards. Each closure the table
+    // compiles is made to run compiled in place, so those values hold
+    // procedures that run compiled, with nothing searched. Every library with
+    // a table is loaded so, as one is when its table is stale.
     const libraryEnvs = [];
     const hook = (loaded, env) => {
       if (!env) return;
-      const before = new Map(env.bindings);
       libraryEnvs.push([libraryNameToKey(loaded), env]);
       installLibraryTable(LIBRARIES, loaded, env, (file) => BUNDLED_SOURCES[file]);
-      for (const [name, value] of before) {
-        if (env.bindings.get(name) !== value) replaced.set(value, `${libraryNameToKey(loaded)} ${name}`);
-      }
     };
-    const coreEnv = withPrivateLibraries({ resolver: bundledResolver, hook }, () => {
+    const { core, srfi128 } = withPrivateLibraries({ resolver: bundledResolver, hook }, () => {
       const { interpreter, env } = createInterpreter();
       for (const key of Object.keys(LIBRARIES)) loadLibrarySync(key.split('.'), analyze, interpreter, env);
-      return getLibraryEnv(['scheme', 'core']);
+      return { core: getLibraryEnv(['scheme', 'core']), srfi128: getLibraryEnv(['srfi', '128']) };
     });
-    const ownEnvs = new Set(libraryEnvs.map(([, env]) => env));
-    const stale = [];
-    const seen = new Set();
-    const search = (value, path) => {
-      if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return;
-      if (replaced.has(value)) { stale.push(`${path}: ${replaced.get(value)}`); return; }
-      if (seen.has(value) || ownEnvs.has(value)) return;
-      seen.add(value);
-      if (value instanceof Map) {
-        for (const [key, entry] of value) search(entry, `${path}{${String(key)}}`);
-      } else if (value instanceof Environment) {
-        for (const [name, entry] of value.bindings) search(entry, `${path} ${name}`);
-        search(value.parent, path);
-      } else if (typeof value === 'function') {
-        if (value.body !== undefined) search(value.env, `${path} closing over`);
-      } else if (Array.isArray(value) || Object.getPrototypeOf(value)?.constructor !== Object) {
-        for (const key of Object.keys(value)) search(value[key], `${path}.${key}`);
-      }
-    };
-    for (const [key, env] of libraryEnvs) {
-      for (const [name, value] of env.bindings) if (!replaced.has(value)) search(value, `(${key}) ${name}`);
-    }
     assert(logger, 'every library with a table was loaded and installed',
       Object.keys(LIBRARIES).filter((key) => !libraryEnvs.some(([loaded]) => loaded === key)), []);
-    assert(logger, 'no value a library made as it loaded holds a closure its table replaced', stale, []);
+    const interpreted = libraryEnvs.filter(([key]) => LIBRARIES[key] !== undefined)
+      .flatMap(([key, env]) => Object.keys(LIBRARIES[key].procedures)
+      .filter((name) => env.bindings.get(name)?.$compiled !== true).map((name) => `(${key}) ${name}`));
+    assert(logger, 'every procedure a table holds runs compiled where its library binds it', interpreted, []);
     assert(logger, "so a current port's parameter cell holds its compiled converter",
-      coreEnv.bindings.get('current-output-port-cell').car.$compiled, true);
+      core.bindings.get('current-output-port-cell').car.$compiled, true);
+    const hash = srfi128.bindings.get('default-comparator').hash;
+    assert(logger, "and SRFI 128's default comparator holds default-hash, the object bound, compiled",
+      [hash === srfi128.bindings.get('default-hash'), hash.$compiled === true], [true, true]);
   }
 
   logger.title("Prebuilt libraries - a library's table holds only what it defines");

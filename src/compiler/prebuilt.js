@@ -52,24 +52,23 @@
  * procedure. Arity is renaming-independent and still catches a changed
  * signature.
  *
- * ## What is not prebuilt
+ * ## Restored, or installed over closures
  *
- * The library's *source* still loads and is still interpreted first, because
- * that is what creates the macros the analyzer needs and the closures this
- * replaces. Only the compilation step is moved. Skipping the load as well would
- * mean separating each file's macro definitions from its procedure definitions,
- * which is a larger change than this one.
- *
- * So whatever the source made as it loaded was made with the closures: SRFI
- * 128's default comparators are records holding `default-hash`, interpreted.
- * Installing the table replaces them there too, in the pairs, vectors and
- * records the library's bindings reach (`substitute-within!` in
- * `src/core/scheme/substitute.scm`), so that a procedure stays `eq?` to itself
- * and runs compiled however it is reached.
+ * A table whose sources match restores its library without the source running
+ * (`libraryRestorer`): its procedures bound from compiled code, its other
+ * forms run. A library loaded from source -- one a restorer was not given, or
+ * one of whose forms made a closure the table compiled -- has the table
+ * installed over its closures afterwards: each closure is made to run as its
+ * compiled procedure, staying the object it is (`runCompiled` in
+ * src/core/interpreter/values.js), so that whatever holds it -- a library that
+ * imported it, a value the source made as it loaded, such as SRFI 128's
+ * default comparators holding `default-hash` -- holds a procedure that runs
+ * compiled, and still `eq?` to itself, with nothing searched or replaced.
  */
 
 import * as R from './runtime.js';
-import { substituteLibraryValues, libraryNameToKey, recordCompiledOver } from '../core/interpreter/library_registry.js';
+import { libraryNameToKey, recordCompiledOver } from '../core/interpreter/library_registry.js';
+import { runCompiled } from '../core/interpreter/values.js';
 import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
 
@@ -110,9 +109,8 @@ export function fingerprintSources(sources) {
 export const RUNTIME_INTERFACE = fingerprintSources([Object.keys(R).sort().join(' ')]);
 
 /**
- * Installs prebuilt procedures into an environment, replacing the interpreted
- * ones, and everywhere the library system holds those: in every library of the
- * current registry, and inside the values they hold.
+ * Installs prebuilt procedures into an environment, each interpreted closure
+ * made to run as its compiled procedure, and records them for a debugger.
  *
  * @param {Object} env - The environment holding the interpreted library.
  * @param {Object} table - A generated table: `{fingerprint, files, procedures}`.
@@ -123,16 +121,14 @@ export const RUNTIME_INTERFACE = fingerprintSources([Object.keys(R).sort().join(
  *   interpreted.
  */
 export function installPrebuilt(env, table, fingerprint) {
-  return substituteInstalled(installProcedures(env, table, fingerprint), env);
+  return recordInstalled(installProcedures(env, table, fingerprint), env);
 }
 
 /**
- * Installs prebuilt procedures into an environment, replacing the interpreted
- * ones there and nowhere else.
- *
- * For a library no registry holds: the library system's own, which its seed
- * loads before there is a registry, each library installed before the next
- * imports it.
+ * Installs prebuilt procedures into an environment: each interpreted closure
+ * made to run as its compiled procedure, staying the object every holder of
+ * it has. Nothing is recorded: for a library no registry holds, the library
+ * system's own, which its seed loads before there is a registry.
  *
  * @param {Object} env - The environment holding the interpreted library.
  * @param {Object} table - A generated table: `{fingerprint, files, procedures}`.
@@ -141,7 +137,7 @@ export function installPrebuilt(env, table, fingerprint) {
  *   skipped: Array<{name: string, reason: string}>, stale: boolean,
  *   replaced: Map<Function, Function>}} What was installed, what the table
  *   had restored already (`restoreProcedure`), what was left interpreted, and
- *   each closure replaced, mapped to the procedure that replaced it.
+ *   each closure made to run compiled, mapped to its compiled procedure.
  */
 export function installProcedures(env, table, fingerprint) {
   const installed = [];
@@ -161,6 +157,12 @@ export function installProcedures(env, table, fingerprint) {
       restored.push(name);
       continue;
     }
+    // Run compiled already from this table, under another name that holds
+    // the same closure.
+    if (replaced.has(closure)) {
+      installed.push(name);
+      continue;
+    }
     if (typeof closure !== 'function' || closure.body === undefined || closure.compiled !== undefined) {
       // Not an interpreted closure any more -- already compiled, redefined, or
       // never loaded. Whatever is there now is what the program asked for.
@@ -174,7 +176,7 @@ export function installProcedures(env, table, fingerprint) {
     // Built against the closure's own environment, so its free variables
     // resolve where they did when it was interpreted.
     const procedure = R.recordSource(entry.make(R, closure.env, entry.constants), closure.source);
-    env.define(name, procedure);
+    runCompiled(closure, procedure);
     replaced.set(closure, procedure);
     installed.push(name);
   }
@@ -182,34 +184,29 @@ export function installProcedures(env, table, fingerprint) {
 }
 
 /**
- * Puts procedures just installed wherever else the closures they replaced are.
+ * Records closures just made to run compiled, for a debugger to run as
+ * themselves (`recordCompiledOver`).
  *
- * Libraries imported the interpreted closures by value, and values the library
- * made as it loaded hold them; `substituteLibraryValues` replaces both. The
- * closures are kept, for a debugger to run instead (`recordCompiledOver`).
- *
- * @param {{installed: Array<string>, skipped: Array<Object>, stale: boolean,
+ * @param {{installed: Array<string>, restored: Array<string>,
+ *   skipped: Array<Object>, stale: boolean,
  *   replaced: Map<Function, Function>}} outcome - What `installProcedures` did.
  * @param {Object} env - The environment they were installed into.
  * @returns {{installed: Array<string>, restored: Array<string>,
  *   skipped: Array<{name: string, reason: string}>, stale: boolean}} The
  *   outcome, without the closures.
  */
-function substituteInstalled({ installed, restored, skipped, stale, replaced }, env) {
-  substituteLibraryValues(replaced);
+function recordInstalled({ installed, restored, skipped, stale, replaced }, env) {
   recordCompiledOver(replaced, env);
   return { installed, restored, skipped, stale };
 }
 
 /**
  * Installs a library's prebuilt table into the library's own environment, if
- * there is one and it was generated from the sources being loaded, and
- * everywhere the library system holds what it replaces (`installPrebuilt`).
+ * there is one and it was generated from the sources being loaded
+ * (`installPrebuilt`).
  *
  * Meant to run from the library loader's hook, once the library's body has
- * been evaluated: the closures it replaces must exist, and nothing has yet
- * imported them except through the export map, which `installPrebuilt` keeps
- * in step.
+ * been evaluated: the closures it compiles must exist.
  *
  * @param {Object<string, Object>} tables - Generated tables, keyed by library
  *   name as `libraryNameToKey` writes it.
@@ -223,13 +220,13 @@ function substituteInstalled({ installed, restored, skipped, stale, replaced }, 
  */
 export function installLibraryTable(tables, libraryName, env, sourceOf) {
   const outcome = installLibraryProcedures(tables, libraryName, env, sourceOf);
-  return outcome === null ? null : substituteInstalled(outcome, env);
+  return outcome === null ? null : recordInstalled(outcome, env);
 }
 
 /**
  * Installs a library's prebuilt table into the library's own environment, if
- * there is one and it was generated from the sources being loaded, replacing
- * the interpreted closures there and nowhere else (`installProcedures`).
+ * there is one and it was generated from the sources being loaded, recording
+ * nothing (`installProcedures`).
  *
  * @param {Object<string, Object>} tables - As for `installLibraryTable`.
  * @param {string[]} libraryName - The library just loaded.

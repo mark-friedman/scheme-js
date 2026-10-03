@@ -61,6 +61,7 @@ import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { DefineNode, LambdaNode } from '../../src/core/interpreter/ast_nodes.js';
 import { tryCompileClosure, tryCompileExpression, runCompiledThunk } from '../../src/compiler/index.js';
 import { recordCompiledOver } from '../../src/core/interpreter/library_registry.js';
+import { runCompiled } from '../../src/core/interpreter/values.js';
 import { unsafeDefinitions } from '../../src/compiler/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -280,7 +281,7 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
         const closure = env.lookup(ast.name);
         const result = tryCompileClosure(closure, ast.name, { declineCaptures });
         if (result.compiled) {
-          env.rebind(ast.name, result.procedure);
+          runCompiled(closure, result.procedure);
           recordCompiledOver(new Map([[closure, result.procedure]]), env);
           compiled++;
         }

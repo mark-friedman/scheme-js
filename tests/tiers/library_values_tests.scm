@@ -75,11 +75,10 @@
         (eq? doubled (vector-ref (cadr procedures) 0)))
   (test "which computes as before" 6 ((car procedures) 3)))
 
-;; A program's own procedure, compiled by the tier on its second call, is
-;; replaced where its name is bound and under any other name the program binds
-;; it to, but not inside the program's data, which is as large as the program
-;; makes it and would be searched at every compile: a list made before the
-;; compile holds the closure.
+;; A program's own procedure, compiled by the tier on its second call, stays
+;; the object every holder of it has and runs compiled: a list made before the
+;; compile holds the procedure its name is bound to, though nothing searched
+;; the program's data, which is as large as the program makes it.
 (define (tripled x) (* 3 x))
 
 (define program-procedures (list tripled))
@@ -90,6 +89,6 @@
 (test-group "A program's own procedure, held in a value it made before the tier compiled it"
   (test "the tier compiled the procedure, and only in the run with it attached"
         *tier-attached* (compiled? tripled))
-  (test-expect-fail (and *tier-attached* "the tier replaces a procedure only where it is bound, not inside the program's data")
-    (test "a list the program made holds the procedure its name is bound to" #t
-          (eq? tripled (car program-procedures)))))
+  (test "a list the program made holds the procedure its name is bound to" #t
+        (eq? tripled (car program-procedures)))
+  (test "and runs it compiled" *tier-attached* (compiled? (car program-procedures))))

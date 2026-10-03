@@ -11260,3 +11260,66 @@ frames move to the heap and are resumed, both through names that hold the closur
 7,654 tests pass in Node with none failing (34 skipped), and 7,442 in the browser with
 none failing (56 skipped). `fib(27)` interpreted, and making 300,000 closures, as fast as before.
 Lines under `src/`: JavaScript only, in the value representation and the compiler's two tests.
+
+# Task 83, steps 2 and 3: compiled closures keep their identity; the substitution goes (2026-10-03)
+
+## Why
+
+The rest of task 83, as the user decided it (B): every closure the system compiles -- the compiler
+tier's, `compileEnvironment`'s, a compiled program's, and a prebuilt table installed over a
+library's -- runs compiled in place (step 1's `runCompiled`), so that every holder of it has the
+one object, and nothing needs substituting anywhere. The two steps went together: the tier's
+compiles alone would have left the debugger's switching handling closures run compiled beside
+tables still substituted.
+
+## What changed
+
+- **Installing**: the tier's `install-compiled!`, `compile-environment` and `run-top-level` in the
+  compiler's Scheme, and `installProcedures` in `prebuilt.js`, make each closure run as its
+  compiled procedure (`run-compiled!`, a host procedure, and `runCompiled`) and record it; none
+  rebinds a name or substitutes. The table installer counts a closure two names hold, as SRFI
+  125's `hash-table-exists?` and `hash-table-contains?` are, installed once.
+- **The records** (`library_system.scm`) map each closure run compiled to its compiled procedure
+  and the environment it was compiled in. `interpret-compiled-over!` switches a program's own
+  closures, and its libraries', to run as themselves while it is debugged and back after -- the
+  libraries' only once none of the registry's programs is debugged, as before; whatever holds a
+  closure, a program's data too, holds the object switched. `switch-back-to-closure!` runs one as
+  itself for good. `%run-compiled!` and `%run-interpreted!` are the primitives.
+- **Gone**: `substitute-library-values!` and its helpers, `substitute.scm` (`substitute-within!`,
+  82's), `substituteLibraryValues`, the compiler host's `substitute-library-values!` and
+  `environment-rebind!`, the four environment primitives and the two record primitives only
+  substitution used.
+
+So what R99 found -- a value a library or a program made, holding a procedure compiled since --
+holds a procedure that runs compiled, `eq?` to itself, by construction rather than by search: a
+program's `(define kept (list f))` and then `f` compiled by the tier, `(eq? f (car kept))`;
+`(rapid test)`'s parameter holding `test-runner-simple`.
+
+## Tests
+
+`library_system_tests.scm`'s groups for substitution and the compiled-over records give way to
+one for closures run compiled: run compiled and recorded, run as themselves while a program is
+debugged and by whatever holds them, one compiled while debugged switched at once, a program not
+debugged left alone. `tests/tiers/library_values_tests.scm` no longer expects a program's list to
+hold a stale closure under the tier, and finds it running compiled. `prebuilt_library_tests.js`'s
+search of every library value for a replaced closure, which would now find nothing however it
+failed, gives way to: every procedure a table holds runs compiled where its library binds it, and
+the values made as libraries loaded hold those objects. Tests that compared a binding with the
+procedure that replaced it compare with the closure, which now runs compiled; the tier's tests
+ask `$compiled` for "runs compiled now", since a closure stays recorded while it runs as itself;
+the global cell test checks a cell keeps the closure. rapid-test's test program joins the corpus
+(`benchmarks/corpus/manifest.json`): 51 expected passes and 2 expected failures, with the tier and
+without.
+
+## Measured
+
+Before task 83 against now, interleaved: `(display 1)` from the CLI 230 to 224 ms with the tier
+and 168 to 166 without; a page's start 115 to 113 ms. `run_tier.js`, all four sets: with the task's
+close, below.
+
+## Verification
+
+7,652 tests pass in Node with none failing (33 skipped: the expected failure above passes now),
+and 7,440 in the browser with none failing (55 skipped). `npm run prebuild` reaches a fixed
+point.
+Lines under `src/`: Scheme 91 added, 286 removed; JavaScript 84 added, 145 removed.

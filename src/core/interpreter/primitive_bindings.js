@@ -25,12 +25,9 @@
  * might resolve its globals in.
  *
  * Which writes report: `Environment.define` and `Environment.set`, which are
- * how programs, imports and the REPL bind and assign. Three other paths write a
+ * how programs, imports and the REPL bind and assign. Two other paths write a
  * frame's bindings directly and need not. The interpreter's `letrec` frames
- * bind only renamed locals, which can never be a primitive's name.
- * `substituteLibraryValues` only replaces an interpreted closure with its
- * compiled form, so the name it writes was already bound to something other
- * than a primitive, and that binding was reported when it was made. And
+ * bind only renamed locals, which can never be a primitive's name. And
  * installing the primitives themselves registers each one here instead.
  *
  * This module is the interpreter's, because the writes it has to see are the

@@ -59,7 +59,7 @@ function libraryCopying(key, name, env) {
  * @returns {Promise<void>}
  */
 export async function runLibraryCompilationTests(logger) {
-  logger.title('Compiled procedures reach the libraries that export them');
+  logger.title('Compiled procedures reach the libraries that export them, being the closures they hold');
 
   {
     const { interpreter, env } = createInterpreter();
@@ -69,9 +69,9 @@ export async function runLibraryCompilationTests(logger) {
     compileEnvironment(env);
     const compiled = env.lookup('area');
     assert(logger, 'setup: compileEnvironment compiled the global', compiled.$compiled, true);
-    assert(logger, 'compileEnvironment updates the export map',
+    assert(logger, 'the export map holds the procedure compileEnvironment compiled',
       getLibraryExports('test.compile-environment').get('area') === compiled, true);
-    assert(logger, "compileEnvironment updates an importing library's binding",
+    assert(logger, "and so does an importing library's binding",
       libraryEnv.lookup('area') === compiled, true);
   }
 
@@ -82,14 +82,14 @@ export async function runLibraryCompilationTests(logger) {
     installStandardLibrary(env);
     const compiled = env.lookup('map');
     assert(logger, 'setup: installPrebuilt installed map', compiled.$compiled, true);
-    assert(logger, 'installPrebuilt updates the export map',
+    assert(logger, 'the export map holds the procedure installPrebuilt compiled',
       getLibraryExports('test.install-prebuilt').get('map') === compiled, true);
-    assert(logger, "installPrebuilt updates an importing library's binding",
+    assert(logger, "and so does an importing library's binding",
       libraryEnv.lookup('map') === compiled, true);
   }
 
-  // Only the replaced object is substituted. A library that bound the same name
-  // to something else keeps it.
+  // Only the closure compiled runs compiled. A library that bound the same
+  // name to something else keeps it.
   {
     const { interpreter, env } = createInterpreter();
     evaluate(interpreter, env, '(define (area w h) (* w h))');

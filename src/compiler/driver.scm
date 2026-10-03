@@ -496,8 +496,7 @@
 ;;  * compiled procedure calling one interpreted crosses into the interpreter on
 ;;  * what is often its hottest path: on the compiler's own lowering, compiling
 ;;  * the library too was worth 10.8x. Callers pick up each compiled procedure
-;;  * without being compiled again, since compiled code reads a global through a
-;;  * cell that follows its binding.
+;;  * without being compiled again: they hold the closure, which runs compiled.
 ;;  *
 ;;  * @param {object} env - The environment.
 ;;  * @param {boolean} strict? - As for `generate-environment`.
@@ -513,12 +512,10 @@
                                       (and (compiled? outcome)
                                            (cons (generated-closure code) (compiled-procedure outcome))))
                                     codes outcomes)))
-         (for-each (lambda (outcome)
-                     (environment-define! env (compiled-name outcome) (compiled-procedure outcome)))
-                   (filter compiled? outcomes))
-         ;; Libraries imported the closures by value, and a debugger runs the
-         ;; closures instead, so both are told.
-         (substitute-library-values! replaced)
+         ;; Each closure runs compiled, staying the object whatever holds it
+         ;; has -- a library that imported it, a value made with it -- and is
+         ;; recorded for a debugger to run as itself.
+         (for-each (lambda (pair) (run-compiled! (car pair) (cdr pair))) replaced)
          (record-compiled-over! replaced env)
          (cons (filter compiled? outcomes) (append (cdr generation) (remove compiled? outcomes))))))
 
@@ -589,7 +586,7 @@
                            (compile-closure closure name decline-captures?))))
          (if (compiled? outcome)
              (let ((procedure (compiled-procedure outcome)))
-               (environment-rebind! env name procedure)
+               (run-compiled! closure procedure)
                (record-compiled-over! (list (cons closure procedure)) env)))
          (make-step 'procedure outcome js-undefined)))
       (else

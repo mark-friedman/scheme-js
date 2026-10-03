@@ -25,10 +25,10 @@
 
 import { LambdaNode, LiteralNode, TailAppNode } from '../core/interpreter/ast_nodes.js';
 import { Cons } from '../core/interpreter/cons.js';
-import { SCHEME_PRIMITIVE, SCHEME_RAW_CALL } from '../core/interpreter/values.js';
+import { SCHEME_PRIMITIVE, SCHEME_RAW_CALL, runCompiled } from '../core/interpreter/values.js';
 import { globalContext } from '../core/interpreter/context.js';
 import {
-  registerBuiltinLibrary, substituteLibraryValues, recordCompiledOver, switchBackToClosure
+  registerBuiltinLibrary, recordCompiledOver, switchBackToClosure
 } from '../core/interpreter/library_registry.js';
 import { astToScheme, toArray } from './marshal.js';
 import * as R from './runtime.js';
@@ -159,8 +159,6 @@ const hostProcedures = {
     return holder === null ? false : holder.bindings.get(text(name));
   },
 
-  'environment-rebind!': (env, name, value) => { env.rebind(text(name), value); },
-
   'environment-define!': (env, name, value) => { env.define(text(name), value); },
 
   // Whether a global is bound, in an environment, to the primitive its name
@@ -184,17 +182,17 @@ const hostProcedures = {
 
   // -- The library registry -----------------------------------------------------
 
-  // Each (closure . procedure) installed: libraries imported the closures by
-  // value, so each is replaced wherever a library holds it.
-  'substitute-library-values!': (replaced) => { substituteLibraryValues(alistToMap(replaced)); },
+  // Makes a closure run as the compiled procedure made of it, staying the
+  // object every holder of it has (`runCompiled` in values.js).
+  'run-compiled!': (closure, procedure) => { runCompiled(closure, procedure); },
 
-  // Each (closure . procedure) installed into an environment, recorded so a
-  // debugger can run the closures instead, and so one can be switched back to
-  // its closure alone.
-  'record-compiled-over!': (replaced, env) => { recordCompiledOver(alistToMap(replaced), env); },
+  // Each (closure . procedure) made to run compiled in an environment,
+  // recorded so a debugger can run the closures as themselves, and so one can
+  // be switched back for good.
+  'record-compiled-over!': (compiled, env) => { recordCompiledOver(alistToMap(compiled), env); },
 
-  // Switches a procedure back to its closure for good, found by its resumable
-  // form. Whether there was one to switch.
+  // Runs a closure as itself again for good, found by its compiled
+  // procedure's resumable form. Whether there was one to switch.
   'switch-back-to-closure!': (twin) => switchBackToClosure(twin),
 
   // -- Running the program's code --------------------------------------------

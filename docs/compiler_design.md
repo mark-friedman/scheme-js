@@ -530,14 +530,17 @@ installed into the library's own environment as the library loads (`installLibra
 library's environment also holds everything it imported; `generateEnvironment`'s `ownOnly` option
 leaves those out, so no procedure is compiled into two tables.
 
-Installing is two parts: replacing a library's closures in its own environment
-(`installProcedures`), which is code generation's, and putting the procedures wherever else the
-library system holds those closures -- every library of the current registry, the values they made
--- and recording them for a debugger. The library system's own libraries, which its seed loads
-before there is a registry (`src/core/interpreter/library_seed.js`), take only the first: nothing
-else holds their procedures, and each is installed before the next imports it. The library system
-runs compiled from the first library it loads, and so does every loop it runs over a library's
-imports and exports.
+A shipped library whose table matches its sources is restored from it, its procedures bound from
+compiled code and its other forms run, and no closure is made (`libraryRestorer`). One loaded from
+source has its table installed over the closures its source made: **each closure runs compiled in
+place** (`runCompiled` in `src/core/interpreter/values.js`), staying the object every holder of it
+has -- a library that imported it, a value made with it, a name bound to it -- so nothing is
+searched or replaced, and installing is only that and recording the closures for a debugger. The
+compiler tier's compiles, `compileEnvironment` and a compiled program's procedures are the same: a
+closure compiled keeps its identity, `(eq? f (car kept))` after `(define kept (list f))` and `f`
+compiled. A closure run compiled stops being marked a closure, the interpreter's mark for entering
+its body, and answers as a compiled procedure, with the compiled procedure's raw entry, so neither
+tier asks anything more on a call.
 
 The compiler loads its library, and the ones that imports, into **a registry of its own**
 (`withPrivateLibraries` in `src/core/interpreter/library_registry.js`). The library registry is
@@ -613,9 +616,8 @@ does:
 - **A procedure whose frames are resumed at least four times as often as they are saved, after a
   thousand resumes, is switched back to its interpreted closure, for good**
   (`note-resume` in `src/compiler/tier.scm`, through `switch-back-to-closure!` in
-  `src/core/scheme/library_system.scm`): where it was installed, in every library, and in the programs being
-  debugged. It is then no longer compiled over its closure, so the debugger's switching leaves it
-  alone. The runtime keeps the counts, since that is where frames are saved and resumed, and asks
+  `src/core/scheme/library_system.scm`): the closure runs as itself again, for whatever holds it.
+  It is then no longer recorded, so the debugger's switching leaves it alone. The runtime keeps the counts, since that is where frames are saved and resumed, and asks
   the Scheme only at the resumes it names: first at the minimum, then wherever the ratio could next
   hold, since saves only grow. Asked at every resume instead, `ctak` was 9% slower. Until the
   compiler has started nothing is switched back, which only a program running prebuilt library
@@ -748,11 +750,12 @@ Constraint 4 has **two mechanisms, not one**, which is what every real toolchain
 
 - **Declining to optimize what is being debugged** -- shipped for the whole program at once. While a
   program is being debugged -- a breakpoint set, a step in progress, or the program paused -- every
-  procedure compiled over an interpreted closure runs as that closure again
-  (`Interpreter.interpretForDebugger`, `interpret-compiled-over!` in
-  `src/core/scheme/library_system.scm`). The closures are kept when compiled code is installed
-  over them, by the library registry current then: the libraries' prebuilt code and
-  `compileEnvironment` record each pair. The equivalent of compiling at `-O0` while debugging. A
+  closure run compiled runs as itself again (`Interpreter.interpretForDebugger`,
+  `interpret-compiled-over!` in `src/core/scheme/library_system.scm`): its own and its libraries',
+  which the registry's other programs share and get back once none of them is being debugged.
+  The closures are recorded when they are made to run compiled, by the library registry current
+  then, each with the environment it was compiled in. Whatever holds a closure holds the object
+  switched, a program's data too. The equivalent of compiling at `-O0` while debugging. A
   shipped library restored from its table makes no closures (`libraryRestorer` in
   `src/compiler/prebuilt.js`), so its procedures stay compiled while a program is debugged, and a
   breakpoint inside one is reported as being in compiled code: the user's choice, since
