@@ -11192,3 +11192,25 @@ often, there being none. `docs/compiler_design.md` says both.
 
 7,635 tests pass in Node with none failing (34 skipped), and 7,423 in the browser with
 none failing (56 skipped). Nothing under `src/` changed.
+
+# Task 69 done: the shipped libraries, restored without their sources running (2026-10-03)
+
+A shipped library's prebuilt table now restores it: its procedures bound from compiled code, its
+other top-level forms -- macros, record types, values -- run in their places, and its files read
+only to check the table was built from them. The tables are written by a writer that is Scheme
+now, `(scheme-js table-writer)`, and the CLI, the bundle, the development page, the compiler's own
+registry and the library system's seed restore from them. Restored procedures have no closures,
+and stay compiled while a program is debugged, until task 39 debugs compiled code in place.
+
+Measured, from the commit designing the task to now, interleaved: `(display 1)` from the CLI 359
+to 228 ms with the tier and 213 to 168 without; a page's start 155 to 113 ms; the compiler's cold
+start about 200 to 95 ms. `run_tier.js` over all four sets, which times programs once their
+libraries are set up, is as it was: geometric means 1.00 for the canonical programs, 1.02 for the
+test files, 1.01 for the corpus and 1.00 for the page programs, nothing wrong or broken, and the
+three test files that came out 1.6 times as long as they were came out the same when run again.
+`npm run prebuild` takes 2.85 s where it took 2.0; the bundle grew by 180 KB.
+
+Over the task, lines under `src/`: Scheme 62 added, 18 removed; JavaScript 184 added, 47 removed
+-- the restorer and binding restored procedures, code generation's; `setLibraryRestorer`, the
+API's; the seed's restoring, the bootstrap; the entry points'. The build tools' JavaScript shrank:
+`render_prebuilt.js`, 150 lines, became the writer's Scheme.
