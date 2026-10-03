@@ -11214,3 +11214,49 @@ Over the task, lines under `src/`: Scheme 62 added, 18 removed; JavaScript 184 a
 -- the restorer and binding restored procedures, code generation's; `setLibraryRestorer`, the
 API's; the seed's restoring, the bootstrap; the entry points'. The build tools' JavaScript shrank:
 `render_prebuilt.js`, 150 lines, became the writer's Scheme.
+
+# Task 83, step 1: a closure that runs compiled (2026-10-03)
+
+## Why
+
+Task 83, designed and decided with the user (B): a closure the compiler compiles is to stay the
+object every holder of it has and run compiled, so that the tier's compiles keep a procedure's
+identity -- `(define kept (list f))` and then `f` compiled, `(eq? f (car kept))` -- and so that
+installing a prebuilt table over a closure needs nothing substituted anywhere. This step builds
+the mechanism, used by nothing yet.
+
+## The mechanism
+
+In the value representation (`src/core/interpreter/values.js`):
+
+- `runCompiled(closure, procedure)`: the closure answers as the compiled procedure. It stops being
+  marked a closure -- the interpreter's mark for "enter the body" -- and takes the compiled
+  procedure's raw entry, `$compiled`, environment, rest flag and resumable form. The interpreter
+  and compiled code then call it as they call any compiled procedure, its raw entry, with nothing
+  more asked on the way; JavaScript calling it calls the compiled procedure, its plain entry
+  checking for one. It keeps its parameters, body and environment, and its own raw entry, saved
+  then rather than when every closure is made.
+- `runInterpreted(closure)`: the closure again, marked, with its own entries.
+
+The compiler's `interpreted-closure?`, and the table installer's test for a closure to install
+over, count a closure run compiled as compiled.
+
+A first version had the interpreter's application ask each closure whether it had been compiled:
+`fib(27)` interpreted 5% slower. Unmarking the closure instead asks nothing; and keeping the
+interpreted entry only once a closure is compiled leaves making one, in a loop, as fast as before.
+
+## Tests
+
+`tests/functional/compiled_closure_tests.js`, with a stand-in compiled procedure that answers
+differently from the closure, so that which ran shows: the interpreter applies it compiled, and so
+does every holder of the one object; in a tail call; through `apply`; JavaScript calling it;
+compiled code calling its raw entry; `callSchemeProcedure`; answering as compiled and printing as
+before; the compiler counting it compiled; and all of it back to the closure's own once it runs
+interpreted again. With what the compiler makes of `fact` and of a recursion deep enough that its
+frames move to the heap and are resumed, both through names that hold the closure.
+
+## Verification
+
+7,654 tests pass in Node with none failing (34 skipped), and 7,442 in the browser with
+none failing (56 skipped). `fib(27)` interpreted, and making 300,000 closures, as fast as before.
+Lines under `src/`: JavaScript only, in the value representation and the compiler's two tests.

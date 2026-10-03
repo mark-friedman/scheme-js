@@ -161,7 +161,7 @@ export function installProcedures(env, table, fingerprint) {
       restored.push(name);
       continue;
     }
-    if (typeof closure !== 'function' || closure.body === undefined) {
+    if (typeof closure !== 'function' || closure.body === undefined || closure.compiled !== undefined) {
       // Not an interpreted closure any more -- already compiled, redefined, or
       // never loaded. Whatever is there now is what the program asked for.
       skipped.push({ name, reason: 'not an interpreted closure' });

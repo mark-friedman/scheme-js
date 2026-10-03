@@ -119,7 +119,8 @@ const hostProcedures = {
   // A definition's span: its value's, or else its own; or #f.
   'definition-span': (node) => (node.valueExpr ?? node.value)?.source ?? node.source ?? false,
 
-  'interpreted-closure?': (value) => typeof value === 'function' && value.body !== undefined,
+  'interpreted-closure?': (value) => typeof value === 'function' && value.body !== undefined
+    && value.compiled === undefined,
 
   // The lambda an interpreted closure was made from, as the compiler reads it.
   // A closure keeps its parameters, body and environment, so a procedure that

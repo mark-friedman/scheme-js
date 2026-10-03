@@ -172,6 +172,9 @@ export function argumentsFittedTo(proc, args) {
 export function createClosure(params, body, env, restParam, interpreter, name = 'anonymous', source = null, originalParams = null, originalRestParam = null) {
     // Create the callable wrapper
     const closure = function (...jsArgs) {
+        // Run compiled, it is its compiled procedure (`runCompiled`); the
+        // property is absent from a closure never compiled.
+        if (closure.compiled !== undefined) return closure.compiled.apply(this, jsArgs);
         // Build the invocation AST: apply this closure to the given args
         // Normalize args entering Scheme from JS
         const argLiterals = fitToParameters(jsArgs, params.length, restParam !== null && restParam !== undefined)
@@ -226,6 +229,61 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
     closure.toString = () => `#<procedure${name !== 'anonymous' ? ' ' + name : ''}>`;
 
     return closure;
+}
+
+/**
+ * A closure's own raw entry, which runs it on the interpreter, kept while it
+ * runs compiled for when it runs interpreted again (`runInterpreted`). Kept
+ * then, not when the closure is made: a closure made in a loop is made at
+ * every turn, and nearly none is ever compiled.
+ */
+const INTERPRETED_RAW_CALL = Symbol('interpreted raw call');
+
+/**
+ * Makes a closure run as a compiled procedure, staying the object it is.
+ *
+ * Compiling a closure makes a new procedure, and every holder of the closure
+ * -- a name bound to it, a library's exports, a list the program made, another
+ * closure's environment -- holds the closure still. Rather than search them
+ * all, the closure itself runs compiled: it stops being marked a closure and
+ * answers as a compiled procedure, with the compiled procedure's raw entry, so
+ * the interpreter and compiled code call that, as they call any compiled
+ * procedure, with nothing more asked on the way; JavaScript calling it calls
+ * the compiled procedure. It keeps what it needs to run interpreted again --
+ * its parameters, its body, its environment.
+ *
+ * @param {Function} closure - An interpreted closure.
+ * @param {Function} procedure - The compiled procedure to run as, made from
+ *   it (`markProcedure` in src/compiler/runtime.js).
+ */
+export function runCompiled(closure, procedure) {
+    if (closure.compiled === undefined) closure[INTERPRETED_RAW_CALL] = closure[SCHEME_RAW_CALL];
+    closure[SCHEME_CLOSURE] = false;
+    closure.compiled = procedure;
+    closure[SCHEME_RAW_CALL] = procedure[SCHEME_RAW_CALL];
+    closure.$compiled = true;
+    closure.$environment = procedure.$environment;
+    closure.$rest = procedure.$rest;
+    closure.$resume = procedure.$resume;
+    // Compiled, it is not waiting to be.
+    closure.tierCountdown = 0;
+}
+
+/**
+ * Makes a closure run interpreted again, after `runCompiled`: what a debugger
+ * does while a program is being debugged, and the compiler tier does to a
+ * procedure whose saved frames are re-entered too often.
+ *
+ * @param {Function} closure - A closure run compiled.
+ */
+export function runInterpreted(closure) {
+    closure[SCHEME_CLOSURE] = true;
+    closure.compiled = undefined;
+    closure[SCHEME_RAW_CALL] = closure[INTERPRETED_RAW_CALL];
+    closure.$compiled = undefined;
+    closure.$environment = undefined;
+    closure.$rest = undefined;
+    closure.$resume = undefined;
 }
 
 /**
