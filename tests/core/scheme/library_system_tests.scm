@@ -270,3 +270,36 @@
   (test "a define-library form's" '(("test" "a") ("test" "b.scm"))
         (definition-files-wanted (loader-with '())
                                  '(define-library (test form) (import (test a)) (include "b.scm")))))
+
+(test-group "library system - restoring a library from its table"
+  ;; A restorer standing for a table of (test a): given the library's name
+  ;; and its files' text, it answers with what binds a procedure the table
+  ;; restores and the library's forms in order -- x such a procedure, bound
+  ;; here to 1000, and y's definition a form -- or #f for any other library,
+  ;; or for text it was not built from.
+  (define bound '())
+  (define (restorer name texts)
+    (and (equal? name '("test" "a"))
+         (equal? texts (list (cdr (assoc '("test" "a") test-files))))
+         (cons (lambda (env name)
+                 (set! bound (cons name bound))
+                 (%environment-define! env name 1000))
+               '((procedure x) (form (define y 2000))))))
+  (define loader (loader-over test-files))
+  (set-registry-restorer! (loader-registry loader) restorer)
+  (test "a procedure the table restores, bound by it" 1000 (exported loader '(test a) 'x))
+  (test "and the forms run in their places, not its source" 2000 (exported loader '(test a) 'z))
+  (test "each procedure bound once" '(x) bound)
+  (test "a library the restorer declines loads from its source, importing the restored one"
+        3010 (exported loader '(test b) 'w))
+  (test "text other than the table's is declined" 1
+        (let ((other (loader-over (cons (cons '("test" "a") "(define-library (test a) (export x (rename y z)) (begin (define x 1) (define y 2) 'edited))")
+                                        test-files))))
+          (set-registry-restorer! (loader-registry other) restorer)
+          (exported other '(test a) 'x)))
+  (test "a define-library form is the program's own, never restored" 5
+        (let ((inline (loader-over test-files)))
+          (set-registry-restorer! (loader-registry inline)
+                                  (lambda (name texts) (cons (lambda (env name) (%environment-define! env name 0))
+                                                             '((procedure v)))))
+          (cdr (assq 'v (define-library! inline '(define-library (test a) (export v) (begin (define v 5)))))))))

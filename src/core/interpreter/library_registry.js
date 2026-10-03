@@ -15,7 +15,7 @@
 
 import { list, cons, toArray } from './cons.js';
 import { Symbol, intern } from './symbol.js';
-import { callSchemeProcedure } from './values.js';
+import { callSchemeProcedure, SCHEME_PRIMITIVE } from './values.js';
 import { globalContext } from './context.js';
 import { seedLibrarySystem } from './library_seed.js';
 import { stringValue } from '../primitives/string_class.js';
@@ -172,6 +172,40 @@ export function setLibraryLoadHook(hook) {
 }
 
 /**
+ * Sets what restores a library from a prebuilt table rather than running its
+ * source (`libraryRestorer` in src/compiler/prebuilt.js): asked, for each
+ * library loaded by name, with the library's name and its files' text.
+ *
+ * @param {((libraryName: string[], texts: Array<*>) =>
+ *   ({bind: Function, items: Cons}|null))|null} restorer - The restorer, or
+ *   null for none.
+ */
+export function setLibraryRestorer(restorer) {
+  callLibrarySystem('set-registry-restorer!', currentLibraryRegistry(), schemeRestorer(restorer));
+}
+
+/**
+ * A restorer as the library system calls it: with a list of the strings of a
+ * library's name and a list of its files' text, answering `(bind . items)`
+ * or #f (`registry-restorer` in library_system.scm).
+ * @param {Function|null} restorer - The host's restorer, or null.
+ * @returns {Function|boolean} The procedure, or #f for none.
+ */
+function schemeRestorer(restorer) {
+  if (!restorer) return false;
+  const restore = (name, texts) => {
+    const restoring = restorer(toArray(name).map(stringValue),
+      toArray(texts).map((text) => (text === false ? null : stringValue(text))));
+    if (restoring === null) return false;
+    const bind = (env, procedure) => { restoring.bind(env, procedure.name); return undefined; };
+    bind[SCHEME_PRIMITIVE] = true;
+    return cons(bind, restoring.items);
+  };
+  restore[SCHEME_PRIMITIVE] = true;
+  return restore;
+}
+
+/**
  * Loads libraries apart from every library loaded so far, and from every one
  * loaded afterwards.
  *
@@ -196,13 +230,16 @@ export function setLibraryLoadHook(hook) {
  * @param {Function} loader.resolver - The file resolver to use, which must be
  *   synchronous for `loadLibrarySync`.
  * @param {Function|null} [loader.hook=null] - The load hook to use.
+ * @param {Function|null} [loader.restorer=null] - The restorer to use
+ *   (`setLibraryRestorer`).
  * @param {() => *} fn - What to run.
  * @returns {*} What `fn` returned.
  */
-export function withPrivateLibraries({ resolver, hook = null }, fn) {
+export function withPrivateLibraries({ resolver, hook = null, restorer = null }, fn) {
     const saved = currentLibraryRegistry();
     const registry = callLibrarySystem('make-library-registry', resolver ?? false, hook ?? false,
         callLibrarySystem('registry-features', saved));
+    callLibrarySystem('set-registry-restorer!', registry, schemeRestorer(restorer));
     globalContext.enterPrivateLibraries();
     libraryRegistry = registry;
     try {

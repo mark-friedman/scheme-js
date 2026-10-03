@@ -45,6 +45,7 @@ export {
     // Library registry
     setFileResolver,
     setLibraryLoadHook,
+    setLibraryRestorer,
     withPrivateLibraries,
     libraryNameToKey,
     isLibraryLoaded,

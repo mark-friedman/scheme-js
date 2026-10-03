@@ -18,18 +18,16 @@
  * level, must not change how its libraries load. A program's `(scheme core)`
  * is loaded for it by the library system, like any other library.
  *
- * Each library's prebuilt table is installed as soon as its source has run,
- * before the next imports it, as the entry points install every shipped
- * library's: interpreted, the library system's loops -- binding each export a
- * library imports, finding each one it exports -- took a start from 159 ms to
- * 246 on the CLI. Nothing else holds their procedures, so nothing else is
- * changed; what the libraries made as they loaded keeps the closures it was
- * made with -- the current ports' converters, in `(scheme core)` -- which the
- * library system never uses. A table that does not match the bundled sources,
- * as after editing one without rebuilding, leaves its library interpreted.
- *
- * Once a library's prebuilt table can be installed without running its source,
- * the library system's will be, and this goes.
+ * Each library is restored from its prebuilt table where the table was built
+ * from the bundled sources as they are: its procedures bound from their
+ * compiled code and its other top-level forms run, in order, so that its
+ * files are read only to be fingerprinted, never parsed or run
+ * (`libraryRestorer` in src/compiler/prebuilt.js). Interpreted, the library
+ * system's loops -- binding each export a library imports, finding each one it
+ * exports -- took a start from 159 ms to 246 on the CLI. A table that does not
+ * match, as after editing a file without rebuilding, leaves its library to
+ * load from source, its procedures installed from what the table has once it
+ * has run; nothing else holds them, so nothing else is changed.
  */
 
 import { parse } from './reader.js';
@@ -44,7 +42,7 @@ import { createGlobalEnvironment } from '../primitives/index.js';
 import { BUNDLED_SOURCES } from '../../packaging/bundled_libraries.js';
 import { createPrimitiveExports } from './library_loader.js';
 import { SYNTAX_KEYWORDS } from './library_registry.js';
-import { installLibraryProcedures } from '../../compiler/prebuilt.js';
+import { installLibraryProcedures, libraryRestorer } from '../../compiler/prebuilt.js';
 import prebuiltLibraries from '../../packaging/compiled_libraries.js';
 
 /** The libraries the seed loads, in the order they need each other. */
@@ -94,14 +92,16 @@ export function seedLibrarySystem(tables = prebuiltLibraries) {
  * @returns {Map<string, *>} The library's exports.
  */
 function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
-    const [form] = parse(BUNDLED_SOURCES[`${name[name.length - 1]}.sld`], { filename: name.join('/') });
+    const source = BUNDLED_SOURCES[`${name[name.length - 1]}.sld`];
+    const [form] = parse(source, { filename: name.join('/') });
     const env = new Environment(globalEnv);
     env.libraryName = name;
     const scope = globalContext.freshScope();
     globalContext.registerLibraryScope(scope, env);
     env.libraryScope = scope;
 
-    const body = [];
+    const begins = [];
+    const includes = [];
     const exports = [];
     for (const declaration of toArray(form).slice(2)) {
         const [keyword, ...parts] = toArray(declaration);
@@ -115,10 +115,10 @@ function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
                 }
                 break;
             case 'include':
-                for (const file of parts) body.push(...parse(BUNDLED_SOURCES[file], { filename: file }));
+                includes.push(...parts);
                 break;
             case 'begin':
-                body.push(...parts);
+                begins.push(...parts);
                 break;
             case 'export':
                 exports.push(...parts);
@@ -128,13 +128,26 @@ function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
         }
     }
 
-    for (const expr of body) {
+    const evaluate = (expr) => {
         globalContext.pushDefiningScope(scope);
         try {
             interpreter.run(analyze(expr), env);
         } finally {
             globalContext.popDefiningScope();
         }
+    };
+    // As the library system orders a library's forms: its `begin` forms, then
+    // its included files'.
+    const restoring = libraryRestorer(tables)(name, [source, ...includes.map((file) => BUNDLED_SOURCES[file])]);
+    if (restoring !== null) {
+        for (const item of toArray(restoring.items)) {
+            const [kind, part] = toArray(item);
+            if (kind.name === 'procedure') restoring.bind(env, part.name);
+            else evaluate(part);
+        }
+    } else {
+        begins.forEach(evaluate);
+        for (const file of includes) parse(BUNDLED_SOURCES[file], { filename: file }).forEach(evaluate);
     }
     installLibraryProcedures(tables, name, env, (file) => BUNDLED_SOURCES[file]);
 

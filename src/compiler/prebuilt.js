@@ -70,6 +70,8 @@
 
 import * as R from './runtime.js';
 import { substituteLibraryValues, libraryNameToKey, recordCompiledOver } from '../core/interpreter/library_registry.js';
+import { list } from '../core/interpreter/cons.js';
+import { intern } from '../core/interpreter/symbol.js';
 
 /**
  * Hashes the library sources into a short fingerprint.
@@ -115,8 +117,10 @@ export const RUNTIME_INTERFACE = fingerprintSources([Object.keys(R).sort().join(
  * @param {Object} env - The environment holding the interpreted library.
  * @param {Object} table - A generated table: `{fingerprint, files, procedures}`.
  * @param {string} fingerprint - The fingerprint of the sources actually loaded.
- * @returns {{installed: Array<string>, skipped: Array<{name: string, reason: string}>,
- *   stale: boolean}} What was installed, and what was left interpreted.
+ * @returns {{installed: Array<string>, restored: Array<string>,
+ *   skipped: Array<{name: string, reason: string}>, stale: boolean}} What was
+ *   installed, what the table had restored already, and what was left
+ *   interpreted.
  */
 export function installPrebuilt(env, table, fingerprint) {
   return substituteInstalled(installProcedures(env, table, fingerprint), env);
@@ -133,21 +137,30 @@ export function installPrebuilt(env, table, fingerprint) {
  * @param {Object} env - The environment holding the interpreted library.
  * @param {Object} table - A generated table: `{fingerprint, files, procedures}`.
  * @param {string} fingerprint - The fingerprint of the sources actually loaded.
- * @returns {{installed: Array<string>, skipped: Array<{name: string, reason: string}>,
- *   stale: boolean, replaced: Map<Function, Function>}} What was installed,
- *   what was left interpreted, and each closure replaced, mapped to the
- *   procedure that replaced it.
+ * @returns {{installed: Array<string>, restored: Array<string>,
+ *   skipped: Array<{name: string, reason: string}>, stale: boolean,
+ *   replaced: Map<Function, Function>}} What was installed, what the table
+ *   had restored already (`restoreProcedure`), what was left interpreted, and
+ *   each closure replaced, mapped to the procedure that replaced it.
  */
 export function installProcedures(env, table, fingerprint) {
   const installed = [];
+  const restored = [];
   const skipped = [];
   const replaced = new Map();
   if (table === undefined || table.fingerprint !== fingerprint) {
-    return { installed, skipped, stale: true, replaced };
+    return { installed, restored, skipped, stale: true, replaced };
   }
 
   for (const [name, entry] of Object.entries(table.procedures)) {
     const closure = env.bindings.get(name);
+    // Restored from the table as the library loaded: under this name, or
+    // under another and bound to this one too by a form such as SRFI 125's
+    // `(define hash-table-exists? hash-table-contains?)`.
+    if (typeof closure === 'function' && closure[RESTORED] !== undefined) {
+      restored.push(name);
+      continue;
+    }
     if (typeof closure !== 'function' || closure.body === undefined) {
       // Not an interpreted closure any more -- already compiled, redefined, or
       // never loaded. Whatever is there now is what the program asked for.
@@ -165,7 +178,7 @@ export function installProcedures(env, table, fingerprint) {
     replaced.set(closure, procedure);
     installed.push(name);
   }
-  return { installed, skipped, stale: false, replaced };
+  return { installed, restored, skipped, stale: false, replaced };
 }
 
 /**
@@ -178,13 +191,14 @@ export function installProcedures(env, table, fingerprint) {
  * @param {{installed: Array<string>, skipped: Array<Object>, stale: boolean,
  *   replaced: Map<Function, Function>}} outcome - What `installProcedures` did.
  * @param {Object} env - The environment they were installed into.
- * @returns {{installed: Array<string>, skipped: Array<{name: string, reason: string}>,
- *   stale: boolean}} The outcome, without the closures.
+ * @returns {{installed: Array<string>, restored: Array<string>,
+ *   skipped: Array<{name: string, reason: string}>, stale: boolean}} The
+ *   outcome, without the closures.
  */
-function substituteInstalled({ installed, skipped, stale, replaced }, env) {
+function substituteInstalled({ installed, restored, skipped, stale, replaced }, env) {
   substituteLibraryValues(replaced);
   recordCompiledOver(replaced, env);
-  return { installed, skipped, stale };
+  return { installed, restored, skipped, stale };
 }
 
 /**
@@ -203,9 +217,9 @@ function substituteInstalled({ installed, skipped, stale, replaced }, env) {
  * @param {Object} env - Its own environment.
  * @param {(file: string) => (string|undefined)} sourceOf - The source of one
  *   of the library's files, by the name its table lists it under.
- * @returns {{installed: Array<string>, skipped: Array<{name: string, reason: string}>,
- *   stale: boolean}|null} What `installPrebuilt` did, or null if the library has
- *   no table.
+ * @returns {{installed: Array<string>, restored: Array<string>,
+ *   skipped: Array<{name: string, reason: string}>, stale: boolean}|null} What
+ *   `installPrebuilt` did, or null if the library has no table.
  */
 export function installLibraryTable(tables, libraryName, env, sourceOf) {
   const outcome = installLibraryProcedures(tables, libraryName, env, sourceOf);
@@ -228,7 +242,7 @@ export function installLibraryTable(tables, libraryName, env, sourceOf) {
 export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
   const table = tables[libraryNameToKey(libraryName)];
   if (table === undefined) return null;
-  const stale = { installed: [], skipped: [], stale: true, replaced: new Map() };
+  const stale = { installed: [], restored: [], skipped: [], stale: true, replaced: new Map() };
   if (table.runtime !== RUNTIME_INTERFACE) return stale;
   const sources = table.files.map(sourceOf);
   // A file the table was built from and the loader cannot find now means the
@@ -236,6 +250,68 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
   if (sources.some((source) => typeof source !== 'string')) return stale;
   return installProcedures(env, table, fingerprintSources(sources));
 }
+
+/**
+ * A restorer over prebuilt tables, for the library system: given a library's
+ * name and the text of its files -- its `.sld`, then what it includes, as a
+ * table's `files` lists them -- the table that restores the library, if there
+ * is one, built against this runtime from that very text.
+ *
+ * Restoring is the library's top-level forms in the order loading runs them,
+ * as the table's `restore` sequence gives them: each procedure the table holds
+ * bound straight from its compiled code, with no closure made and nothing else
+ * to change, since nothing holds a closure; each other form run as source is
+ * (`evaluate-definition!` in src/core/scheme/library_system.scm). A procedure
+ * restored so has no closure for a debugger to run instead; it is debugged as
+ * compiled code is.
+ *
+ * @param {Object<string, Object>} tables - Generated tables, keyed by library
+ *   name as `libraryNameToKey` writes it.
+ * @returns {(libraryName: string[], texts: Array<*>) =>
+ *   ({bind: (env: Object, name: string) => void, items: Cons}|null)} The
+ *   restorer: what binds a restored procedure, and the sequence as a list of
+ *   `(procedure name)` and `(form form)`; or null.
+ */
+export function libraryRestorer(tables) {
+  return (libraryName, texts) => {
+    const table = tables[libraryNameToKey(libraryName)];
+    if (table === undefined || table.restore === undefined || table.runtime !== RUNTIME_INTERFACE) return null;
+    if (texts.some((text) => typeof text !== 'string') || fingerprintSources(texts) !== table.fingerprint) {
+      return null;
+    }
+    return {
+      bind: (env, name) => restoreProcedure(table, env, name),
+      items: list(...table.restore.map((item) => item.procedure !== undefined
+        ? list(PROCEDURE, intern(item.procedure))
+        : list(FORM, item.form)))
+    };
+  };
+}
+
+/** The kinds of item in a restore sequence, as the library system reads them. */
+const PROCEDURE = intern('procedure');
+const FORM = intern('form');
+
+/**
+ * Binds a procedure a table restores, from its compiled code, in its
+ * library's environment, which its globals resolve in as the closure's would
+ * have.
+ * @param {Object} table - The table.
+ * @param {Object} env - The library's environment.
+ * @param {string} name - The procedure's name.
+ */
+export function restoreProcedure(table, env, name) {
+  const entry = table.procedures[name];
+  const procedure = R.recordSource(entry.make(R, env, entry.constants), entry.span);
+  procedure[RESTORED] = entry;
+  env.define(name, procedure);
+}
+
+/**
+ * The entry a procedure was restored from, on the procedure, so that the
+ * table's installing, which follows, counts it restored rather than skipped.
+ */
+const RESTORED = Symbol('restored from');
 
 /**
  * Whether a live closure still takes the arguments the generated code expects.

@@ -1,8 +1,8 @@
 import { createInterpreter } from '../src/core/interpreter/index.js';
 import { setupRepl } from './repl.js';
-import { setFileResolver, setLibraryLoadHook, loadLibrary } from '../src/core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, loadLibrary } from '../src/core/interpreter/library_loader.js';
 import { libraryNameToKey } from '../src/core/interpreter/library_registry.js';
-import { installLibraryTable } from '../src/compiler/prebuilt.js';
+import { installLibraryTable, libraryRestorer } from '../src/compiler/prebuilt.js';
 import { attachTier } from '../src/compiler/tiering.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
@@ -31,9 +31,11 @@ import {
         debugRuntime.pause(source, env, reason);
     });
 
-    // Each shipped library's prebuilt code is installed as it loads, as the
-    // bundle installs it, checked against the files actually fetched: one
-    // edited since the last build leaves its library interpreted.
+    // Each shipped library is restored from its prebuilt table, and the rest
+    // of its prebuilt code installed as it loads, as the bundle does, checked
+    // against the files actually fetched: one edited since the last build
+    // leaves its library to load from source, interpreted.
+    setLibraryRestorer(libraryRestorer(prebuiltLibraries));
     const fetched = new Map();
     setLibraryLoadHook((libraryName, libraryEnv) => {
         if (libraryEnv) installLibraryTable(prebuiltLibraries, libraryName, libraryEnv, (file) => fetched.get(file));

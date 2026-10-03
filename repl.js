@@ -10,9 +10,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import { createInterpreter } from './src/core/interpreter/index.js';
-import { setFileResolver, setLibraryLoadHook } from './src/core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, setLibraryRestorer } from './src/core/interpreter/library_loader.js';
 import { libraryNameToKey } from './src/core/interpreter/library_registry.js';
-import { installLibraryTable } from './src/compiler/prebuilt.js';
+import { installLibraryTable, libraryRestorer } from './src/compiler/prebuilt.js';
 import { attachTier } from './src/compiler/tiering.js';
 import prebuiltLibraries from './src/packaging/compiled_libraries.js';
 import { analyze } from './src/core/interpreter/analyzer.js';
@@ -71,8 +71,12 @@ function isPrebuilt(name) {
 async function bootstrapInterpreter() {
     const { interpreter, env } = createInterpreter();
 
-    // A table whose sources no longer match the files, as after editing one
-    // without rebuilding, leaves that library interpreted.
+    // A shipped library is restored from its table, without its source
+    // running, and what the table holds for whatever its other forms made is
+    // installed as it loads. A table whose sources no longer match the files,
+    // as after editing one without rebuilding, leaves that library to load
+    // from source, interpreted.
+    setLibraryRestorer(libraryRestorer(prebuiltLibraries));
     setLibraryLoadHook((libraryName, libraryEnv) => {
         if (libraryEnv) installLibraryTable(prebuiltLibraries, libraryName, libraryEnv, shippedSource);
     });

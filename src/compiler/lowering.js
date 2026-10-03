@@ -79,7 +79,7 @@ import { BUNDLED_SOURCES } from '../packaging/bundled_libraries.js';
 import { COMPILER_SOURCES } from '../packaging/compiler_sources.js';
 import prebuiltLibraries from '../packaging/compiled_libraries.js';
 import prebuiltCompiler from '../packaging/compiled_compiler.js';
-import { installLibraryTable } from './prebuilt.js';
+import { installLibraryTable, libraryRestorer } from './prebuilt.js';
 import { astToScheme, irToJs, toArray } from './marshal.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { registerCompilerHost } from './host.js';
@@ -139,11 +139,13 @@ let bootstrapFailure = null;
 /**
  * Loads the compiler's library, and finds its entry points.
  *
- * Each library installs its prebuilt table as it loads, after its source has
- * run. The source is what defines the macros the analyzer needs and the
- * closures the prebuilt code replaces, so installing over it is a substitution
- * rather than a definition -- which is what lets the fingerprint check fail
- * towards leaving a procedure alone.
+ * Each library is restored from its prebuilt table as it loads, without its
+ * source running: its procedures bound from their compiled code, and its other
+ * forms -- the macros the analyzer needs, record types, values -- run in their
+ * places. A table that no longer matches its sources leaves its library to
+ * load from source, and then installs over the closures the source made, a
+ * substitution rather than a definition -- which is what lets the fingerprint
+ * check fail towards leaving a procedure alone.
  *
  * @returns {Object} The interpreter, the library's environment, and what is
  *   read from its exports up front.
@@ -152,7 +154,8 @@ function bootstrap() {
   const tables = { ...prebuiltLibraries, ...prebuiltCompiler };
   return withPrivateLibraries({
     resolver: resolve,
-    hook: (name, env) => installLibraryTable(tables, name, env, compilerSourceOf)
+    hook: (name, env) => installLibraryTable(tables, name, env, compilerSourceOf),
+    restorer: libraryRestorer(tables)
   }, () => {
     const { interpreter, env } = createInterpreter();
     registerCompilerHost(env);

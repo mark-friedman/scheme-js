@@ -407,15 +407,22 @@
 ;;  *   an interpreted closure while the registry was current, in an `eq`
 ;;  *   store, mapped to `(closure . environment)`: the closure, and the
 ;;  *   environment the procedure was installed into (`record-compiled-over!`).
+;;  * @property {procedure|boolean} restorer - The host's restorer, or #f:
+;;  *   from a library's name and its files' text, as strings, to
+;;  *   `(bind . items)` if a prebuilt table built from that text restores the
+;;  *   library, else #f. `items` are the library's top-level forms in the
+;;  *   order loading runs them, each `(procedure name)`, bound by `(bind env
+;;  *   name)` from compiled code, or `(form form)`, run as source is.
 ;;  */
 (define-record-type library-registry
-  (make-registry libraries resolver load-hook features compiled-over)
+  (make-registry libraries resolver load-hook features compiled-over restorer)
   library-registry?
   (libraries registry-libraries set-registry-libraries!)
   (resolver registry-resolver set-registry-resolver!)
   (load-hook registry-load-hook set-registry-load-hook!)
   (features registry-features set-registry-features!)
-  (compiled-over registry-compiled-over))
+  (compiled-over registry-compiled-over)
+  (restorer registry-restorer set-registry-restorer!))
 
 ;; /**
 ;;  * A registry with no libraries in it.
@@ -425,7 +432,7 @@
 ;;  * @returns {library-registry}
 ;;  */
 (define (make-library-registry resolver load-hook features)
-  (make-registry '() resolver load-hook features (%make-hash-store 'eq)))
+  (make-registry '() resolver load-hook features (%make-hash-store 'eq) #f))
 
 ;; /**
 ;;  * The features this implementation has, on a host: R7RS's, its own name,
@@ -622,8 +629,10 @@
     (%read-forms source filename fold-case?)))
 
 ;; /**
-;;  * The exports of a library, loaded from its file if it is not loaded yet.
-;;  * A library loaded so is given to the load hook.
+;;  * The exports of a library, loaded from its file if it is not loaded yet:
+;;  * restored from its prebuilt table, if the registry's restorer has one
+;;  * built from the library's files as they are, or else from its source. A
+;;  * library loaded so is given to the load hook.
 ;;  * @param {loader} loader - The loader.
 ;;  * @param {list} name - The library's name.
 ;;  * @returns {list} Its exports, `(name . value)`.
@@ -632,10 +641,11 @@
   (let ((registry (loader-registry loader)))
     (cond ((registered-library registry (library-key name)) => library-exports)
           (else
-           (let ((forms (read-library-file loader (name-strings name) (library-path name) #f)))
+           (let* ((path (name-strings name))
+                  (forms (read-library-file loader path (library-path name) #f)))
              (if (null? forms) (error "library: empty library file" (library-key name)))
              (let* ((definition (parse-define-library (car forms) (feature-test loader)))
-                    (library (evaluate-definition! loader definition)))
+                    (library (evaluate-definition! loader definition (restoring loader path definition))))
                (let ((hook (registry-load-hook registry)))
                  (if hook
                      (%call-load-hook hook (name-strings (library-definition-name definition))
@@ -643,35 +653,68 @@
                (library-exports library)))))))
 
 ;; /**
+;;  * How the registry's restorer restores a library, if it can: asked with
+;;  * the library's name and the text of its files -- the file declaring it,
+;;  * then those it includes, then its files of library declarations -- which
+;;  * a prebuilt table was built from if it matches them.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} path - The path the library's file was read at.
+;;  * @param {library-definition} definition - The library's definition.
+;;  * @returns {pair|boolean} `(bind . items)`, as the restorer gives it, or #f.
+;;  */
+(define (restoring loader path definition)
+  (let ((restorer (registry-restorer (loader-registry loader)))
+        (name (library-definition-name definition)))
+    (and restorer
+         (restorer (name-strings name)
+                   (map (loader-resolve loader)
+                        (cons path
+                              (map (lambda (file) (include-path name file))
+                                   (append (library-definition-includes definition)
+                                           (library-definition-includes-ci definition)
+                                           (library-definition-declaration-files definition)))))))))
+
+;; /**
 ;;  * Defines a library from a `define-library` form a program holds. The
-;;  * load hook is not called: the library is the program's own code.
+;;  * load hook is not called, and no table restores it: the library is the
+;;  * program's own code.
 ;;  * @param {loader} loader - The loader.
 ;;  * @param {list} form - The form.
 ;;  * @returns {list} Its exports.
 ;;  */
 (define (define-library! loader form)
-  (library-exports (evaluate-definition! loader (parse-define-library form (feature-test loader)))))
+  (library-exports (evaluate-definition! loader (parse-define-library form (feature-test loader)) #f)))
 
 ;; /**
 ;;  * Makes a library of a definition, and registers it: its environment, its
-;;  * imports, its body run, and what it exports.
+;;  * imports, its body, and what it exports.
 ;;  *
-;;  * Its `begin` forms run before the files it includes, whatever order they
-;;  * are declared in, as they always have here -- `(scheme lazy)` declares its
-;;  * file before the macros its `begin` defines -- and then each file of
-;;  * library declarations' forms, in turn.
+;;  * Its body is its top-level forms in order: restored, each procedure bound
+;;  * from the table's compiled code and each other form run, in its place; or
+;;  * else read from its files and run. Its `begin` forms run before the files
+;;  * it includes, whatever order they are declared in, as they always have
+;;  * here -- `(scheme lazy)` declares its file before the macros its `begin`
+;;  * defines -- and then each file of library declarations' forms, in turn.
 ;;  * @param {loader} loader - The loader.
 ;;  * @param {library-definition} definition - The definition.
+;;  * @param {pair|boolean} restoring - How to restore it (`restoring`), or #f
+;;  *   to run its source.
 ;;  * @returns {library}
 ;;  */
-(define (evaluate-definition! loader definition)
+(define (evaluate-definition! loader definition restoring)
   (let* ((name (library-definition-name definition))
          (env (%make-library-environment (loader-base-environment loader) (name-strings name)))
-         (definitions (cons definition (declared-definitions loader name definition))))
+         (definitions (cons definition (declared-definitions loader name definition)))
+         (evaluate (lambda (form) ((loader-evaluate loader) form env))))
     (for-each (lambda (spec) (import! loader env spec))
               (append-each library-definition-imports definitions))
-    (for-each (lambda (form) ((loader-evaluate loader) form env))
-              (append-each (lambda (part) (body-forms loader name part)) definitions))
+    (if restoring
+        (for-each (lambda (item)
+                    (if (eq? (car item) 'procedure)
+                        ((car restoring) env (cadr item))
+                        (evaluate (cadr item))))
+                  (cdr restoring))
+        (for-each evaluate (append-each (lambda (part) (body-forms loader name part)) definitions)))
     (let ((library (make-library (map (lambda (spec) (cons (cdr spec) (export-value env (car spec))))
                                       (append-each library-definition-exports definitions))
                                  env)))

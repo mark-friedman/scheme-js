@@ -1,9 +1,9 @@
 import { createInterpreter } from '../core/interpreter/index.js';
 import { parse } from '../core/interpreter/reader.js';
 import { analyze } from '../core/interpreter/analyzer.js';
-import { setFileResolver, setLibraryLoadHook } from '../core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, setLibraryRestorer } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
-import { installLibraryTable } from '../compiler/prebuilt.js';
+import { installLibraryTable, libraryRestorer } from '../compiler/prebuilt.js';
 import prebuiltLibraries from './compiled_libraries.js';
 import {
     SchemeDebugRuntime,
@@ -53,10 +53,17 @@ setFileResolver((libraryName) => {
 
 /**
  * What installing each shipped library's prebuilt table did, keyed by the
- * library's name as written, such as `srfi 125`.
- * @type {Map<string, {installed: Array<string>, skipped: Array<Object>, stale: boolean}>}
+ * library's name as written, such as `srfi 125`: the procedures restored from
+ * it as the library loaded, without its source running, and those installed
+ * over the closures its other forms made.
+ * @type {Map<string, {installed: Array<string>, restored: Array<string>, skipped: Array<Object>, stale: boolean}>}
  */
 export const libraryInstallation = new Map();
+
+// Each shipped library is restored from its table: its procedures bound from
+// their compiled code, its other forms -- macros, records, values -- run, and
+// its source never read but to check the table was built from it.
+setLibraryRestorer(libraryRestorer(prebuiltLibraries));
 
 /**
  * The compiler, once `loadCompiler` has loaded it.

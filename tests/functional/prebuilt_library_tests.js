@@ -25,7 +25,7 @@ import {
 } from '../../src/core/interpreter/library_registry.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { generateEnvironment } from '../../src/compiler/index.js';
-import { installLibraryTable, fingerprintSources, RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
+import { installLibraryTable, libraryRestorer, fingerprintSources, RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
 import {
   compilerEnvironment, compilerSourceOf, COMPILER_LIBRARY, lowerLambda
 } from '../../src/compiler/lowering.js';
@@ -228,6 +228,52 @@ export async function runPrebuiltLibraryTests(logger) {
   }
   assert(logger, 'a library with no table is left alone',
     installLibraryTable(LIBRARIES, ['test', 'no-table'], new Environment(null), () => ''), null);
+
+  logger.title('Prebuilt libraries - restored from their tables, without their source running');
+  {
+    // As the entry points load them: each library restored from its table
+    // where the table matches its files, and then installed as before.
+    const restoreBundled = (name, resolver = bundledResolver) => {
+      const outcomes = new Map();
+      const hook = (loaded, env) => {
+        const outcome = installLibraryTable(LIBRARIES, loaded, env, (file) => resolver([file]));
+        if (outcome !== null) outcomes.set(libraryNameToKey(loaded), outcome);
+      };
+      return withPrivateLibraries({ resolver, hook, restorer: libraryRestorer(LIBRARIES) }, () => {
+        const { interpreter, env } = createInterpreter();
+        const exports = loadLibrarySync(name, analyze, interpreter, env);
+        const run = (text) => interpreter.run(analyze(parse(text)[0]), env, [], undefined, { jsAutoConvert: 'raw' });
+        loadLibrarySync(['scheme', 'base'], analyze, interpreter, env);
+        run('(import (scheme base) (srfi 128))');
+        return { exports, outcomes, run, core: getLibraryEnv(['scheme', 'core']) };
+      });
+    };
+    const { exports, outcomes, run, core } = restoreBundled(['srfi', '128']);
+    const map = core.bindings.get('map');
+    assert(logger, "(scheme core)'s procedures are restored, none installed over a closure",
+      [outcomes.get('scheme.core').restored.length, outcomes.get('scheme.core').installed.length,
+        outcomes.get('scheme.core').skipped.length],
+      [Object.keys(LIBRARIES['scheme.core'].procedures).length, 0, 0]);
+    assert(logger, 'a procedure restored is compiled, and was never a closure the debugger could run',
+      [map.$compiled === true, isCompiledOver(map)], [true, false]);
+    assert(logger, 'and knows where its source is', map.source?.filename, 'list.scm');
+    assert(logger, "(scheme core)'s macros work, its forms having run", run("(cond ((assq 'b '((a 1) (b 2))) => cadr))"), 2n);
+    assert(logger, 'what a library makes as it loads holds its restored procedures',
+      run('(eq? (comparator-hash-function (make-default-comparator)) default-hash)'), true);
+    assert(logger, 'and its exports are those procedures',
+      [exports.get('default-hash').$compiled === true, isCompiledOver(exports.get('default-hash'))], [true, false]);
+
+    const edited = (path) => {
+      const file = path[path.length - 1];
+      const source = bundledResolver(path);
+      return file === 'list.scm' ? `${source}\n` : source;
+    };
+    const stale = restoreBundled(['srfi', '128'], edited);
+    assert(logger, 'a library whose files changed since the build loads from its source, interpreted',
+      [stale.outcomes.get('scheme.core').stale, stale.core.bindings.get('map').$compiled === true], [true, false]);
+    assert(logger, 'while the libraries that import it are restored still',
+      stale.outcomes.get('srfi.128').restored.length > 20, true);
+  }
 
   logger.title('Prebuilt libraries - what a library made as it loaded holds its compiled procedures');
   {

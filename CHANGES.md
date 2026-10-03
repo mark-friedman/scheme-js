@@ -11097,3 +11097,71 @@ with a span, each form item the form there -- and `(scheme core)`'s macros run a
 7,618 tests pass in Node with none failing (34 skipped), and 7,406 in the browser with
 none failing (56 skipped). `npm run prebuild` reaches a fixed point. Nothing under `src/` changed
 but the generated tables.
+
+# Task 69, step 3: libraries restored from their tables (2026-10-03)
+
+## Why
+
+The step task 69 was for: a shipped library loads without its source running. Its table's
+`restore` sequence, written by step 2, is now what loading runs.
+
+## How a library is restored
+
+- **The library system** (`load-library` in `library_system.scm`) asks the registry's *restorer*,
+  for a library loaded by name, with the library's name and the text of its files -- read, not
+  parsed: the file declaring it, then those it includes, then its files of library declarations.
+  If a table built from that very text restores it, the restorer answers with what binds a
+  restored procedure and the library's forms in order; `evaluate-definition!` then makes the
+  library's environment and imports as before, and walks the forms in order -- each procedure
+  bound from compiled code, each other form run as source is -- in place of reading and running
+  its files. A `define-library` form a program holds is the program's own code, and never
+  restored.
+- **The restorer** (`libraryRestorer` in `src/compiler/prebuilt.js`): the table for the library, if
+  its fingerprint, as before, matches the text and its runtime this one; `restoreProcedure` binds
+  a procedure from its compiled code, with its span, and marks it, so that the installing that
+  follows counts it restored rather than skipped -- under its own name, or another a form bound
+  it to, as SRFI 125's `(define hash-table-exists? hash-table-contains?)` does.
+- **The installing after it** is as before: what a table holds for the closures the other forms
+  made -- a procedure over a `let`, one a later form redefined -- is installed over them. Nothing
+  holds a restored procedure's closure, since there is none, so nothing is substituted for it.
+- **Who restores**: the CLI, the bundle, the development page and the compiler's own registry set
+  a restorer with their tables (`setLibraryRestorer`, or `withPrivateLibraries`'s `restorer`).
+  The seed restores its three libraries the same way, reading their files only to fingerprint
+  them. A table that does not match, or a library with none, loads from source, as before.
+
+Restored procedures have no closures, so a debugger cannot run one as its closure, and the tier
+cannot switch one back; per the user's decision (B), they are debugged as compiled code is, until
+debugging compiled code in place is built (task 39).
+
+## Tests
+
+`library_system_tests.scm`: a library restored through a restorer -- its procedures bound by it,
+its forms run, not its source; each procedure bound once; a library the restorer declines loading
+from source, importing the restored one; text other than the table's declined; a `define-library`
+form never restored. `prebuilt_library_tests.js`, through the real tables: `(scheme core)`'s
+procedures all restored, none installed over a closure; one compiled, never compiled over, and
+knowing where its source is; macros working, their forms having run; SRFI 128's default
+comparator holding the restored `default-hash`; and a library whose file changed loading from
+source, interpreted, while those importing it are restored still. The bundle's test now finds
+`(scheme core)`'s procedures restored rather than installed.
+
+## Measured
+
+Before task 69 (the commit designing it) against now, interleaved:
+
+- `(display 1)` from the CLI: 359 to 228 ms with the tier, 213 to 168 without.
+- A page's start, the bundle's evaluation: 155 to 113 ms.
+- The compiler's start, cold, the seed included: about 200 to 95 ms. Its own library 83 to 34
+  ms, `(scheme core)` 23 to 8, SRFI 1 17 to 7. The seed, warm, 3.4 ms.
+- `run_tier.js`, all four sets: with the task's last step, below.
+
+Against the start before task 64 -- 305 ms with the tier, 159 without, 108 for a page -- a tiered
+CLI start is about 75 ms faster, and the others about where they were. The bundle grew by 180 KB.
+
+## Verification
+
+7,632 tests pass in Node with none failing (34 skipped), and 7,420 in the browser with
+none failing (56 skipped). `npm run prebuild` reaches a fixed point. Lines under `src/` since step
+2: Scheme 62 added, 18 removed; JavaScript 184 added, 47 removed. The JavaScript: the restorer
+and binding a restored procedure, code generation's; `setLibraryRestorer` and its conversion, the
+API's; the seed's restoring, the bootstrap; and the entry points' restorers.

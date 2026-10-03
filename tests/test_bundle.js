@@ -87,8 +87,9 @@ export async function runBundleTests(logger) {
         const outcomes = [...libraryInstallation.values()];
         assert(logger, "Every shipped library loaded so far installed its whole table",
             outcomes.filter((o) => o.stale || o.skipped.length > 0).length, 0);
-        assert(logger, "The standard library was installed from its table",
-            libraryInstallation.get('scheme core').installed.length > 20, true);
+        const core = libraryInstallation.get('scheme core');
+        assert(logger, "The standard library's procedures came from its table, restored without its source",
+            [core.restored.length > 20, core.installed.length], [true, 0]);
     } catch (e) {
         logger.fail(`Prebuilt libraries in the bundle failed: ${e.message}`);
     }
