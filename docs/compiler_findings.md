@@ -2936,6 +2936,59 @@ program 111, a compiled recursion 6,768 deep through a second procedure, ran out
 before its frames moved to the heap, while the same code in a table would not have. Run-time code
 is strict now, as the tables' is.
 
+**R106. Scope 0 was the top level's.**
+
+`GLOBAL_SCOPE_ID`, the scope the analyzer gives a program's top level, is 0, and so was the first
+scope `freshScope` made; the first library a process loaded -- the CLI's `(scheme base)` -- was given
+it. Its environment was then the top level's library environment (`lookupLibraryEnv(0)`), so every
+top-level `syntax-rules` macro was taken for that library's: an identifier its template introduced
+named that library's binding of the name wherever the use site held something else. On the CLI,
+`(define (log . items) 'logged)` and a macro expanding into `(log x)` gave `0.0`, the `log` of
+`(scheme primitives)`, which `(scheme base)` imports and does not export. And the library's
+keywords were the top level's: a program saw `define-record-field`, `define-class-field` and
+`define-class-method`, which it had not imported, and a top-level `define-syntax` unbound the
+library's keyword of its name. A test process loads hundreds of libraries after its first, so
+nothing here failed. Found designing R107's release of library scopes, which would have dropped
+scope 0's library and changed the top level's expansions with it.
+
+*Consequence:* no fresh scope is the top level's; scopes start at 1, after a reset too.
+
+**R107. A table of `WeakRef`s did not release a library once nothing else held it.**
+
+The tables keyed by a library's scope (`libraryScopeEnvMap`, `keywordBindings`) kept every library
+loaded in a short-lived registry, and through its environment its program's global environment: the
+tier benchmark grew by 10 MB a run of `messages` and ran out of a 4 GB heap. Holding the
+environments through `WeakRef`s, with each macro holding its own library so that one kept by name
+for the process still expanded as before, measured exactly as before: 10 MB a run. A heap snapshot's
+retaining path ran from `weak_refs_keep_during_job`. ECMAScript keeps whatever a `WeakRef` refers
+to alive until the job that made or read it ends, and `run_tier.js` runs every program in one job,
+as a script run from start to end does; `FinalizationRegistry` callbacks too run only after it. A
+test that awaited before collecting passed, since an `await` ends the job.
+
+*Consequence:* within one job, only a `WeakMap` or an explicit removal lets go. The scope table holds
+its libraries, and a registry made by `withPrivateLibraries` takes the entries made while it was
+current with it when it ends; a macro holds the libraries its expansions name by scope and puts
+their entries back when it expands where they have gone. A library's keywords are kept in a
+`WeakMap` keyed by its environment. `tests/functional/library_release_tests.js` collects in the job
+that dropped the libraries, watching them with a `FinalizationRegistry`, which keeps nothing alive.
+
+**R108. The scope tables were not all that kept every run.**
+
+They were found from a heap snapshot, as what retained a program's records, and taken to be the
+rest of the tier benchmark's growth. With them fixed, `messages` kept 0.7 MB a run instead of 10, but
+the corpus set alone still grew from 27 MB to 2.2 GB live, and `rapid-mapping` 48 MB a run: the
+syntax intern cache (`syntaxInternCache`, a name and its scopes to the one syntax object for them)
+kept every syntax object ever interned, and since each expansion makes a scope of its own, nearly
+every one is new -- 137,000 a run of `rapid-mapping`. It holds no environment, so no retaining path
+from a library reaches it. Over the whole benchmark it reached JavaScript's limit on a `Map`'s
+size, about 16.7 million entries, and from then every expansion failed with "Map maximum size
+exceeded": the last two corpus programs and all three page programs, which the report gave as
+failing without the tier.
+
+*Consequence:* a registry made by `withPrivateLibraries` takes with it the syntax objects interned
+while it was current that hold a scope made since it began. A leak is measured by what grows,
+object counts compared between snapshots, not only by what retains something already suspected.
+
 ---
 
 ## Appendix — the original staged plan

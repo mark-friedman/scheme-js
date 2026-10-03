@@ -11,6 +11,20 @@
 
 import { MacroRegistry, globalMacroRegistry } from './macro_registry.js';
 
+/**
+ * The scope of a program's top level. No scope `freshScope` makes is this
+ * one: were the first library a process loads given it, it would be taken
+ * for the top level, and the top level for it.
+ * @type {number}
+ */
+export const GLOBAL_SCOPE_ID = 0;
+
+/**
+ * The first scope `freshScope` makes.
+ * @type {number}
+ */
+const FIRST_FRESH_SCOPE = GLOBAL_SCOPE_ID + 1;
+
 // =============================================================================
 // Scope Binding Registry (moved from syntax_object.js)
 // =============================================================================
@@ -95,17 +109,52 @@ export class InterpreterContext {
     constructor() {
         // Counters
         /** Scope ID counter for unique scope marks */
-        this.scopeCounter = 0;
+        this.scopeCounter = FIRST_FRESH_SCOPE;
         /** Unique ID counter for analyzed variables */
         this.uniqueIdCounter = 0;
 
         // Caches and Registries
-        /** Interned SyntaxObjects: key → SyntaxObject */
+        /**
+         * Interned SyntaxObjects: key → SyntaxObject. What a library registry
+         * made for a while interned goes with it (`leavePrivateLibraries`).
+         */
         this.syntaxInternCache = new Map();
         /** Scope → Binding registry */
         this.scopeRegistry = new ScopeBindingRegistry();
-        /** Library scope → Environment map */
+        /**
+         * Each library's scope, mapped to its environment.
+         *
+         * A process that loads libraries into many registries must not keep
+         * every library it has loaded, so a registry made for a while takes
+         * the entries made while it was current with it when it goes
+         * (`leavePrivateLibraries`). A library is needed by scope for as
+         * long as something naming its scope can be expanded -- its macros,
+         * and what they expand into -- and each such macro holds the library,
+         * and puts its entry back when it expands where the entry has gone
+         * (`compileSyntaxRules` in syntax_rules.js).
+         *
+         * Not held weakly: a `WeakRef` keeps what it refers to alive until the
+         * job that made or read it ends, and a program run from start to end
+         * in one job, as a benchmark runs many, would keep every library it
+         * loaded.
+         * @type {Map<number, Environment>}
+         */
         this.libraryScopeEnvMap = new Map();
+        /**
+         * The library registries made for a while that are current, inner
+         * ones last, each with where the logs below stood when it began.
+         * @type {Array<{scopes: number, syntax: number, firstScope: number}>}
+         */
+        this.privateLibraries = [];
+        /**
+         * The scopes entered in `libraryScopeEnvMap`, and the keys entered in
+         * `syntaxInternCache`, while a registry made for a while was current,
+         * in the order they were entered.
+         * @type {number[]}
+         */
+        this.libraryScopeLog = [];
+        /** @type {string[]} */
+        this.syntaxInternLog = [];
         /** Macro transformer registry (global for this context) - isolated but sees global macros */
         this.macroRegistry = new MacroRegistry(globalMacroRegistry);
         /** Current macro registry stack for scoped expansion (transient during analysis) */
@@ -131,14 +180,20 @@ export class InterpreterContext {
         this.definingScopes = [];
 
         /**
-         * The syntactic keywords each library binds -- the macros it defines
-         * and the keywords it imports, under the names it gives them -- and
-         * those a program's top level imports, by scope: a library's, or 0
-         * for the top level. Each name maps to the keyword's own name and,
+         * The syntactic keywords a program's top level binds, by its scope,
+         * `GLOBAL_SCOPE_ID`. Each name maps to the keyword's own name and,
          * for a macro, its transformer. See `defineKeyword`.
          * @type {Map<number, Map<string, {keyword: string, transformer: (Function|null)}>>}
          */
         this.keywordBindings = new Map();
+        /**
+         * The syntactic keywords each library binds -- the macros it defines
+         * and the keywords it imports, under the names it gives them -- by
+         * the library's environment, so that they go when it does: they hold
+         * transformers, which hold their own libraries.
+         * @type {WeakMap<Environment, Map<string, {keyword: string, transformer: (Function|null)}>>}
+         */
+        this.libraryKeywords = new WeakMap();
     }
 
     // =========================================================================
@@ -157,7 +212,7 @@ export class InterpreterContext {
      * Resets the scope counter. (For testing)
      */
     resetScopeCounter() {
-        this.scopeCounter = 0;
+        this.scopeCounter = FIRST_FRESH_SCOPE;
     }
 
     // =========================================================================
@@ -192,6 +247,16 @@ export class InterpreterContext {
     getSyntaxKey(name, scopes) {
         const sortedScopes = [...scopes].sort((a, b) => a - b).join(',');
         return `${name}|${sortedScopes}`;
+    }
+
+    /**
+     * Interns a syntax object under its key.
+     * @param {string} key - From `getSyntaxKey`.
+     * @param {SyntaxObject} obj - The syntax object.
+     */
+    internSyntaxObject(key, obj) {
+        this.syntaxInternCache.set(key, obj);
+        if (this.privateLibraries.length > 0) this.syntaxInternLog.push(key);
     }
 
     /**
@@ -318,15 +383,18 @@ export class InterpreterContext {
      * Useful for test isolation.
      */
     reset() {
-        this.scopeCounter = 0;
+        this.scopeCounter = FIRST_FRESH_SCOPE;
         this.uniqueIdCounter = 0;
         this.syntaxInternCache.clear();
+        this.syntaxInternLog = [];
         this.scopeRegistry.clear();
         this.libraryScopeEnvMap.clear();
+        this.libraryScopeLog = [];
         this.resetMacroRegistry();
         this.libraryRegistry.clear();
         this.definingScopes = [];
         this.keywordBindings.clear();
+        this.libraryKeywords = new WeakMap();
     }
 
     // =========================================================================
@@ -365,16 +433,57 @@ export class InterpreterContext {
      * @param {Environment} env - The library's environment
      */
     registerLibraryScope(scope, env) {
+        if (this.libraryScopeEnvMap.get(scope) === env) return;
         this.libraryScopeEnvMap.set(scope, env);
+        if (this.privateLibraries.length > 0) this.libraryScopeLog.push(scope);
     }
 
     /**
      * Look up the environment for a library scope.
      * @param {number} scope - The scope ID
-     * @returns {Environment|undefined}
+     * @returns {Environment|undefined} The library's environment, or
+     *   undefined if the scope is no library's, or its entry has gone.
      */
     lookupLibraryEnv(scope) {
         return this.libraryScopeEnvMap.get(scope);
+    }
+
+    /**
+     * Begins a library registry made for a while (`withPrivateLibraries` in
+     * library_registry.js): what the tables keyed by scope gain from now on
+     * is logged, for it to take with it when it ends.
+     */
+    enterPrivateLibraries() {
+        this.privateLibraries.push({
+            scopes: this.libraryScopeLog.length,
+            syntax: this.syntaxInternLog.length,
+            firstScope: this.scopeCounter
+        });
+    }
+
+    /**
+     * Ends the innermost library registry made for a while, taking with it
+     * the library scopes entered since it began -- its libraries', and those
+     * its programs' use of other registries' macros put back -- and the
+     * syntax objects interned since that hold a scope made since. Nothing
+     * outside can make such a syntax object again, except from one that came
+     * out of the registry, which keeps its own identity; one interned since
+     * from older scopes alone is left, for an enclosing registry to take.
+     */
+    leavePrivateLibraries() {
+        const { scopes, syntax, firstScope } = this.privateLibraries.pop();
+        for (const scope of this.libraryScopeLog.splice(scopes)) this.libraryScopeEnvMap.delete(scope);
+        const outer = this.privateLibraries.length > 0;
+        for (const key of this.syntaxInternLog.splice(syntax)) {
+            const obj = this.syntaxInternCache.get(key);
+            if (obj === undefined) continue;
+            let madeSince = false;
+            for (const scope of obj.scopes) {
+                if (scope >= firstScope) { madeSince = true; break; }
+            }
+            if (madeSince) this.syntaxInternCache.delete(key);
+            else if (outer) this.syntaxInternLog.push(key);
+        }
     }
 
     /**
@@ -397,12 +506,7 @@ export class InterpreterContext {
      *   a special form or auxiliary keyword.
      */
     defineKeyword(scope, name, keyword, transformer) {
-        let bindings = this.keywordBindings.get(scope);
-        if (bindings === undefined) {
-            bindings = new Map();
-            this.keywordBindings.set(scope, bindings);
-        }
-        bindings.set(name, { keyword, transformer });
+        this.keywordsIn(scope, true).set(name, { keyword, transformer });
     }
 
     /**
@@ -411,7 +515,27 @@ export class InterpreterContext {
      * @param {string} name - The name.
      */
     forgetKeyword(scope, name) {
-        this.keywordBindings.get(scope)?.delete(name);
+        this.keywordsIn(scope, false)?.delete(name);
+    }
+
+    /**
+     * The keywords bound in a library, kept with its environment, or at a
+     * program's top level, kept by its scope.
+     * @param {number} scope - A library's scope, or 0 for a program's top level.
+     * @param {boolean} make - Whether to make the table if there is none.
+     * @returns {Map<string, {keyword: string, transformer: (Function|null)}>|undefined}
+     */
+    keywordsIn(scope, make) {
+        const env = scope === GLOBAL_SCOPE_ID ? undefined : this.lookupLibraryEnv(scope);
+        // A scope that is no library's is kept by number, as the top level's is.
+        const tables = env === undefined ? this.keywordBindings : this.libraryKeywords;
+        const key = env === undefined ? scope : env;
+        let bindings = tables.get(key);
+        if (bindings === undefined && make) {
+            bindings = new Map();
+            tables.set(key, bindings);
+        }
+        return bindings;
     }
 
     /**
@@ -423,7 +547,7 @@ export class InterpreterContext {
      *   keyword, or undefined if nothing there binds the name.
      */
     keywordBinding(scope, name) {
-        return this.keywordBindings.get(scope)?.get(name);
+        return this.keywordsIn(scope, false)?.get(name);
     }
 }
 

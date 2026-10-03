@@ -62,13 +62,26 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
     // A macro defined in a library marks what its templates introduce with
     // the library's scope, so that their references find the library's
     // bindings (see `libraryBindingEnv` in syntax_object.js).
-    const libraryScope = definingScope !== null && globalContext.lookupLibraryEnv(definingScope) !== undefined
-        ? definingScope
-        : null;
+    const libraryEnv = definingScope !== null ? globalContext.lookupLibraryEnv(definingScope) ?? null : null;
+    const libraryScope = libraryEnv !== null ? definingScope : null;
+    // The libraries the macro's expansions name by scope: its own, and those
+    // whose macros' expansions defined it, whose scopes its identifiers
+    // carry. The macro may outlive their registry -- it is defined by name
+    // for the process -- so it holds them itself.
+    const libraries = librariesNamedIn([literals, clauses], libraryEnv === null ? [] : [libraryEnv]);
 
     return (exp, useSiteEnv = null) => {
         // exp is the macro call: (macro-name arg1 ...)
         // useSiteEnv is the syntactic environment at the macro invocation site
+
+        // The libraries this expansion names by scope are found by scope
+        // while it is analyzed, wherever the macro is used: their registry
+        // may have gone, and taken their entries with it.
+        for (const env of libraries) {
+            if (globalContext.lookupLibraryEnv(env.libraryScope) === undefined) {
+                globalContext.registerLibraryScope(env.libraryScope, env);
+            }
+        }
 
         // Generate a UNIQUE scope ID for THIS macro expansion.
         // This is the core of Dybvig-style hygiene - each expansion gets its own scope
@@ -90,7 +103,7 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
 
             // Pass useSiteEnv for free-identifier=? comparison on literals
             // Determine definition environment for literal comparison
-            const definitionEnv = capturedEnv || (definingScope !== null ? globalContext.lookupLibraryEnv(definingScope) : null);
+            const definitionEnv = capturedEnv || libraryEnv;
             const bindings = matchPattern(pattern, input, literalIds, ellipsisName, useSiteEnv, expansionScope, definitionEnv, definingScope);
 
             if (bindings) {
@@ -106,6 +119,37 @@ export function compileSyntaxRules(literals, clauses, definingScope = null, elli
             : 'unknown';
         throw new SchemeSyntaxError(`No matching clause for macro '${macroName}'`, exp, macroName);
     };
+}
+
+/**
+ * Adds to `libraries` the environment of each library whose scope an
+ * identifier in `datum` carries.
+ * @param {*} datum - Syntax: pairs, vectors and arrays of them, identifiers.
+ * @param {Array<Environment>} libraries - The environments found so far.
+ * @returns {Array<Environment>} `libraries`.
+ */
+function librariesNamedIn(datum, libraries) {
+    const seen = new Set();
+    const visit = (node) => {
+        while (node instanceof Cons) {
+            if (seen.has(node)) return;
+            seen.add(node);
+            visit(node.car);
+            node = node.cdr;
+        }
+        if (Array.isArray(node)) {
+            if (seen.has(node)) return;
+            seen.add(node);
+            node.forEach(visit);
+        } else if (node instanceof SyntaxObject) {
+            for (const scope of node.scopes) {
+                const env = globalContext.lookupLibraryEnv(scope);
+                if (env !== undefined && !libraries.includes(env)) libraries.push(env);
+            }
+        }
+    };
+    visit(datum);
+    return libraries;
 }
 
 // Note: findIntroducedBindings was removed as part of the pure marks refactor.

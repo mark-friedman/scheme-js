@@ -35,8 +35,8 @@ export async function runMultiInterpreterTests(interpreter, logger) {
     const scope1b = ctx1.freshScope();
     const scope2a = ctx2.freshScope();
 
-    assert(logger, 'Context 1 scope counter increments', scope1b, 1);
-    assert(logger, 'Context 2 scope counter starts fresh', scope2a, 0);
+    assert(logger, 'Context 1 scope counter increments', scope1b, scope1a + 1);
+    assert(logger, 'Context 2 scope counter starts fresh', scope2a, scope1a);
 
     // Test 3: Unique ID counters are independent
     const id1 = ctx1.freshUniqueId();
@@ -70,7 +70,7 @@ export async function runMultiInterpreterTests(interpreter, logger) {
 
     // Test 7: Reset clears context state
     ctx1.reset();
-    assert(logger, 'After reset, scope counter is 0', ctx1.scopeCounter, 0);
+    assert(logger, 'After reset, scope counter starts again', ctx1.freshScope(), scope1a);
     assert(logger, 'After reset, macro registry cleared', ctx1.macroRegistry.isMacro('my-macro-1'), false);
     assert(logger, 'After reset, library registry cleared', ctx1.isLibraryLoaded('test.lib1'), false);
 

@@ -15,7 +15,7 @@
 import { Symbol, intern } from './symbol.js';
 import { Cons } from './cons.js';
 import { SchemeTypeError } from './errors.js';
-import { globalContext } from './context.js';
+import { globalContext, GLOBAL_SCOPE_ID } from './context.js';
 import { labelReferencesRead } from './reader/datum_labels.js';
 
 // =============================================================================
@@ -93,7 +93,7 @@ export function internSyntax(name, scopes, context = null) {
     // The constructor does NOT intern automatically to allow temporary objects if needed,
     // but typically internSyntax should be used.
     const obj = new SyntaxObject(name, scopeSet, context);
-    globalContext.syntaxInternCache.set(key, obj);
+    globalContext.internSyntaxObject(key, obj);
     return obj;
 }
 
@@ -106,10 +106,10 @@ export function resetSyntaxCache() {
 }
 
 /**
- * The global scope ID, used for top-level bindings.
- * @type {number}
+ * The global scope ID, used for top-level bindings; defined in context.js,
+ * which makes every other scope.
  */
-export const GLOBAL_SCOPE_ID = 0;
+export { GLOBAL_SCOPE_ID };
 
 // =============================================================================
 // Library Scope Environment Map (delegated to globalContext)
@@ -205,7 +205,6 @@ export function keywordName(identifier, scope = null) {
  * @returns {{keyword: string, transformer: (Function|null)}|undefined}
  */
 export function keywordBindingOf(identifier, scope = null) {
-    if (globalContext.keywordBindings.size === 0) return undefined;
     return globalContext.keywordBinding(scopeOfUse(identifier, scope), identifier.name);
 }
 

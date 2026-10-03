@@ -10,6 +10,7 @@ import { parse } from './reader.js';
 import { Symbol } from './symbol.js';
 import { SchemeSyntaxError } from './errors.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from './values.js';
+import { globalContext } from './context.js';
 
 // =============================================================================
 // Feature Registry (for cond-expand)
@@ -234,8 +235,10 @@ export function runLibraryLoadHook(libraryName, env) {
  * Inside `fn`, the registry starts empty and the resolver and hook are the
  * ones given; afterwards all three are as they were, whether `fn` returned or
  * threw. Libraries loaded inside stay alive through whatever holds them, and
- * are found by nothing outside. Loading is synchronous, so nothing else can
- * observe the swap.
+ * are found by nothing outside: not by name, and not by scope, since the
+ * entries made inside in the analyzer's tables keyed by scope go too
+ * (`leavePrivateLibraries` in context.js). Loading is synchronous, so nothing
+ * else can observe the swap.
  *
  * @param {Object} loader - How to load inside.
  * @param {Function} loader.resolver - The file resolver to use, which must be
@@ -246,12 +249,14 @@ export function runLibraryLoadHook(libraryName, env) {
  */
 export function withPrivateLibraries({ resolver, hook = null }, fn) {
     const saved = { registry: libraryRegistry, resolver: fileResolver, hook: libraryLoadHook };
+    globalContext.enterPrivateLibraries();
     libraryRegistry = new Map();
     fileResolver = resolver;
     libraryLoadHook = hook;
     try {
         return fn();
     } finally {
+        globalContext.leavePrivateLibraries();
         libraryRegistry = saved.registry;
         fileResolver = saved.resolver;
         libraryLoadHook = saved.hook;

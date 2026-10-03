@@ -10544,3 +10544,107 @@ time.
 The prebuilt tables rebuilt to a fixed point. 7,431 tests pass in Node with none failing (34
 skipped), and 7,226 in the browser with none failing (55 skipped). JavaScript under `src/`: none.
 Scheme: the count, and its comments.
+
+# A library registry made for a while takes its scopes and syntax with it (2026-10-02)
+
+## Why
+
+The walkthrough "Compiled-over records kept by their registry" left the tier benchmark running each
+program in a process of its own: a process making many interpreters, each with a library registry of its own
+(`withPrivateLibraries`), still kept every library each registry loaded, through the interpreter's
+tables keyed by a library's scope -- `libraryScopeEnvMap` (a scope to its library's environment)
+and `keywordBindings` (a scope to the keywords the library binds) in
+`src/core/interpreter/context.js` -- and through each library's environment its program's global
+environment. With collections forced, the live heap grew 10 MB a run of
+`benchmarks/tier_programs/messages.scm`.
+
+The catch was that a library has to stay found by its scope for as long as a macro of its own can
+still be expanded: what its templates introduce names its bindings, and its keywords, by its scope,
+and the process-wide registry of macros by name can keep such a macro after its registry is gone.
+
+## What did not work
+
+Holding the environments through `WeakRef`s, with each macro holding its own library: 10 MB a run,
+as before. ECMAScript keeps whatever a `WeakRef` refers to alive until the job that made or read it
+ends, and `run_tier.js` runs every program in one job (R107). A first test of it passed, because it
+awaited before collecting, which ends the job.
+
+## The change
+
+- **The scope table holds its libraries, and a registry made for a while takes the entries made
+  while it was current with it.** `withPrivateLibraries` (`library_registry.js`) calls
+  `enterPrivateLibraries` and `leavePrivateLibraries` on the context, which log what the tables
+  keyed by scope gain while it is current and remove it when it ends.
+- **A macro holds the libraries its expansions name by scope** -- its own, and those whose macros'
+  expansions defined it, found from the scopes its template's identifiers carry -- and puts their
+  entries back when it expands where they have gone (`compileSyntaxRules` in `syntax_rules.js`). So
+  a macro defined by name in a registry that has ended expands, in another, as it did in its own.
+- **A library's keywords are kept in a `WeakMap` keyed by its environment** (`libraryKeywords`),
+  and go when it does; the top level's stay in `keywordBindings`, where `run_tier.js` reads them.
+- **No fresh scope is the top level's.** `GLOBAL_SCOPE_ID` and the first fresh scope were both 0, so
+  the first library a process loaded was taken for the top level, and every top-level macro for one
+  of that library's (R106): on the CLI, a program defining its own `log` and a macro calling it got
+  `(scheme primitives)`'s `log`. Fresh scopes start at 1, and `GLOBAL_SCOPE_ID` moved to
+  `context.js`, which makes every scope.
+- **The syntax intern cache.** With the scope tables fixed, the tier benchmark's corpus set alone
+  still grew from 27 MB to 2.2 GB live, and `rapid-mapping` 48 MB a run (R108): each expansion makes a scope of its own, so nearly
+  every syntax object it interns is new, and the cache (`syntaxInternCache`, name and scopes to the
+  syntax object) kept them all -- 137,000 a run of `rapid-mapping`. A registry made for a while now
+  takes with it the syntax objects interned while it was current that hold a scope made since it
+  began: nothing outside can make such a key again except from an object that came out of the
+  registry, which keeps its own identity, and identity is compared only among identifiers made
+  together, a macro's pattern and template. Over the whole benchmark the cache had reached
+  JavaScript's limit on a `Map`'s size, and every expansion after that failed with "Map maximum
+  size exceeded" -- the last two corpus programs and all three page programs, reported as failing
+  without the tier.
+
+## Tests
+
+`tests/functional/library_release_tests.js`, written before the change and run under
+`--expose-gc` (`npm test`); the collections are skipped where `gc` is not exposed, the rest run in
+the browser too. A fresh scope is never the top level's, nor after a reset, and the CLI's top-level
+macro calls the program's `log`. A registry takes its libraries' scope entries with it; a macro
+outliving its registry, used by name in another, expands as it did -- reaching a procedure only its
+library binds, through a keyword only another library binds -- and the entries it put back, and the
+syntax objects its expansions interned, go with that registry. Loading two libraries and collecting
+in the same job, as `run_tier.js` does, they are collected, watched by a `FinalizationRegistry`,
+which keeps nothing alive; a macro defined by name keeps its libraries until it goes. Each part was
+checked against a version without it: the old code fails 11 of 14, the `WeakRef` table 4 -- the
+collection in one job among them -- and the change without macros holding their libraries 3, its
+macro failing with "unbound variable: probe".
+`tests/integration/multi_interpreter_tests.js` and `tests/core/interpreter/state_isolation_tests.js`
+asserted that the first scope is 0; they now assert the counter starts again where it started.
+
+## Measured
+
+Live heap after forced collections, per run of one program in a fresh interpreter and registry:
+
+| | before | scope tables fixed | and the intern cache |
+|---|---|---|---|
+| `messages` (page set) | 10.0 MB | 0.7-0.9 MB | 0.35 MB |
+| `rapid-mapping` (corpus) | | 48 MB | 2 MB |
+
+`run_tier.js --set all --runs 3 --policies 2,2,10` in one process: before, out of a 4 GB heap; with
+the scope tables alone it finished in 281 s, its live heap after a full collection rising to 2.86 GB
+and peak resident memory 3.1 GB, with five programs failing on the intern cache; now 281 s, the live
+heap after every full collection between 27 and 186 MB and 104 MB at the end, peak resident memory
+1.22 GB, and nothing wrong but the five `tests/tiers/` files that a policy waiting ten calls counts
+wrong, as the walkthrough on task 80 says. Eight rounds of the page set peak at 501 MB, two at 407,
+against 1,093 and 485 before the compiled-over records were fixed and 640 after.
+
+What is left per run is about 140 KB of V8 code for the procedures the tier compiles at run time,
+which V8 keeps as it sees fit, and about a thousand interned symbols, in the process's symbol table.
+And a process keeps its first interpreter: `primitive_bindings.js` keeps the first primitive
+installed under each name, and `apply` is made for each interpreter, closing over it -- one
+interpreter, however many follow.
+
+## Verification
+
+7,445 tests pass under `npm test` with none failing (34 skipped), 7,439 under `node
+run_tests_node.js` (35 skipped: the collections, without `gc`), and 7,233 in the browser with none
+failing (56 skipped). JavaScript under `src/`, 202 lines added, most of them comments, all the
+evaluator's own state, which the evaluator may keep in JavaScript for now: `context.js` -- the scope
+counter, the keyword tables, `enterPrivateLibraries` and `leavePrivateLibraries` and their logs,
+`internSyntaxObject`; `syntax_rules.js` -- a macro holding its libraries and putting their entries
+back, and `librariesNamedIn`; `syntax_object.js`, interning through the context; and seven lines in
+`library_registry.js`, fixed in place, as task 64 is to port it. Scheme: none.

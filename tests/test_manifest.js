@@ -77,6 +77,7 @@ export const functionalTests = [
     { path: 'debug/macro_breakpoint_tests.js', fn: 'runMacroBreakpointTests', async: true, needsInterpreter: false },
     { path: 'functional/library_compilation_tests.js', fn: 'runLibraryCompilationTests', async: true, needsInterpreter: false },
     { path: 'functional/prebuilt_library_tests.js', fn: 'runPrebuiltLibraryTests', async: true, needsInterpreter: false },
+    { path: 'functional/library_release_tests.js', fn: 'runLibraryReleaseTests', async: true, needsInterpreter: false },
     { path: 'functional/global_cell_tests.js', fn: 'runGlobalCellTests', async: true, needsInterpreter: false },
     { path: 'functional/loop_compilation_tests.js', fn: 'runLoopCompilationTests', async: true, needsInterpreter: false },
     { path: 'functional/direct_tail_call_tests.js', fn: 'runDirectTailCallTests', async: true, needsInterpreter: false },

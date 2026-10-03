@@ -23,7 +23,7 @@ export function runStateIsolationTests(logger) {
 
         clearGlobalState(); // Reset
         const s3 = globalContext.freshScope();
-        assert(logger, 'Scope counter reset', s3, 0); // Context counter starts at 0
+        assert(logger, 'Scope counter reset', s3, s1);
 
         // Test 2: Syntax Cache Clearing (using context)
         clearGlobalState();
