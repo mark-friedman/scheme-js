@@ -11323,3 +11323,35 @@ close, below.
 and 7,440 in the browser with none failing (55 skipped). `npm run prebuild` reaches a fixed
 point.
 Lines under `src/`: Scheme 91 added, 286 removed; JavaScript 84 added, 145 removed.
+
+# Task 83 done: closures, compiled, keep their identity (2026-10-03)
+
+## A last finding: closures' slow properties
+
+`run_tier.js` over all four sets, with steps 2 and 3, found the canonical programs and the test
+files 1.5% and 3.6% slower under the tier, and `fib(30)` compiled by the tier 34 ms where it had
+been before task 83 now took 50. Compiled code reads its callee's raw entry from the callee, now the
+closure, whose properties V8 kept in its slow dictionary form: `createClosure` named each function
+with `Object.defineProperty(closure, 'name', ...)`, which reconfigures a function's own property,
+and had since closures were made so. Every read of a closure's properties was a hash lookup -- the
+interpreter's of its parameters, body and environment at each call too (R110). A closure is now
+named by the key it is made under, and shares one `toString`; its properties stay fast, compiled or
+not: `fib(30)` under the tier 34 ms, as before; `fib(27)` interpreted 455 to 402 ms; making 300,000
+closures 397 to 283.
+
+## Measured
+
+Before task 83 against now, interleaved, `run_tier.js` over all four sets: the canonical programs
+3,666 to 3,628 ms with the tier, geometric mean 0.99, and 55.0 to 51.6 s without; the test files
+1,104 to 1,085 ms, 1.02, and 1,713 to 1,656 ms without; the corpus 3,832 to 3,451 ms, 0.91, and
+3,126 to 2,908 without; the page programs 230 to 229 ms, 0.99, and 2,375 to 2,196 without. Nothing
+wrong or broken. `(display 1)` from the CLI 230 to 224 ms with the tier and 168 to 166 without; a
+page's start 115 to 113 ms.
+
+## Verification
+
+7,652 tests pass in Node with none failing (33 skipped), and 7,440 in the browser with none
+failing (55 skipped). Over the task, lines under `src/`: Scheme 91 added, 286 removed -- the
+substitution and `substitute.scm` gone; JavaScript 164 added, 153 removed -- `runCompiled`,
+`runInterpreted` and the closure's entry checking for a compiled procedure, in the value
+representation, and the primitives and host procedures that call them.

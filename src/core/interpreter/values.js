@@ -170,8 +170,12 @@ export function argumentsFittedTo(proc, args) {
  * @returns {Function} A callable function representing the Scheme closure.
  */
 export function createClosure(params, body, env, restParam, interpreter, name = 'anonymous', source = null, originalParams = null, originalRestParam = null) {
-    // Create the callable wrapper
-    const closure = function (...jsArgs) {
+    // Create the callable wrapper, named as the procedure is. Named by the
+    // key it is made under rather than by `Object.defineProperty` afterwards,
+    // which leaves a function's properties in V8's slow dictionary form: every
+    // read of one -- the interpreter's of its parameters and body at each
+    // call, compiled code's of its raw entry -- a hash lookup.
+    const closure = { [name]: function (...jsArgs) {
         // Run compiled, it is its compiled procedure (`runCompiled`); the
         // property is absent from a closure never compiled.
         if (closure.compiled !== undefined) return closure.compiled.apply(this, jsArgs);
@@ -184,7 +188,7 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
         // Run through the interpreter with a sentinel frame to capture result.
         // Unpacking will respect the default interop policy (deep conversion by default).
         return interpreter.runWithSentinel(ast, this);
-    };
+    } }[name];
 
     // Entry point for callers that already hold Scheme values -- today, the
     // compiler tier. The wrapper above exists for JavaScript callers and so
@@ -213,8 +217,6 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
     closure.env = env;
     closure.restParam = restParam;
 
-    // Set function name safely (function.name is normally read-only)
-    Object.defineProperty(closure, 'name', { value: name, configurable: true });
     closure.schemeName = name; // Also store in custom property for clarity
     closure.source = source;
     closure.originalParams = originalParams || params;
@@ -226,9 +228,20 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
     closure.tierCountdown = 0;
 
     // Custom toString for pretty-printing
-    closure.toString = () => `#<procedure${name !== 'anonymous' ? ' ' + name : ''}>`;
+    closure.toString = closureText;
 
     return closure;
+}
+
+/**
+ * How a closure shows itself to JavaScript, as its `toString`: one function
+ * for every closure, rather than one made for each.
+ * @this {Function} The closure.
+ * @returns {string} Its text.
+ */
+function closureText() {
+    const name = this.schemeName;
+    return `#<procedure${name !== 'anonymous' ? ' ' + name : ''}>`;
 }
 
 /**

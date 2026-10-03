@@ -3240,3 +3240,22 @@ each, 1.45 times as long in the geometric mean.
 
 *Consequence:* the library system has to run compiled. It has a prebuilt table, as every shipped
 library does, which nothing installs while the seed loads it.
+
+**R110. A closure run compiled was called as a compiled procedure is.**
+
+Task 83's design had a closure the compiler compiles stay the object its holders have, unmarked as
+a closure and given the compiled procedure's raw entry, "so neither tier asks anything more on a
+call". The interpreter asked nothing more: `fib(27)` interpreted was as fast as before. But
+compiled code calling it was slower: `fib(30)` under the tier went from 34 ms to 50. Compiled code
+reads its callee's raw entry from the callee, and the callee was now the closure, whose properties
+V8 kept in its slow dictionary form, and had since the closure was made: `createClosure` named the
+function with `Object.defineProperty(closure, 'name', ...)`, which reconfigures a function's own
+property. So every read of a closure's properties had been a hash lookup -- not only compiled
+code's, but the interpreter's of its parameters, body and environment at each call. Named by the
+key it is made under instead, a closure keeps fast properties, as a compiled procedure has: `fib(30)`
+under the tier 34 ms again, `fib(27)` interpreted 455 to 402 ms, and making 300,000 closures 397 to
+283.
+
+*Consequence:* a function's own properties are not reconfigured after it is made. Whether an
+object's properties are fast is measured (`%HasFastProperties`, under `--allow-natives-syntax`),
+not assumed from how it is used.
