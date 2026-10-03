@@ -19,7 +19,7 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
 import {
-  withPrivateLibraries, getFileResolver, setFileResolver, setLibraryLoadHook,
+  withPrivateLibraries, getFileResolver, setFileResolver, setLibraryLoadHook, isCompiledOver,
   isLibraryLoaded, getLibraryEnv, getLibraryExports, registerLibrary, libraryNameToKey
 } from '../../src/core/interpreter/library_registry.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
@@ -113,6 +113,25 @@ export async function runPrebuiltLibraryTests(logger) {
       .filter((code) => namedIn(code).sort().join() !== declaredIn(code).sort().join());
     assert(logger, 'every runtime value is declared by some procedure', runtimeNames.size, 12);
     assert(logger, 'and each procedure declares exactly those its code names', wrong.length, 0);
+  }
+
+  logger.title('Prebuilt libraries - a registry keeps its own records');
+  {
+    // A compiled procedure installed over its closure is recorded, so that a
+    // debugger can run the closure instead; by the registry it was installed
+    // in, which takes the record with it when it goes, rather than in one
+    // table for the process, which kept every library a short-lived registry
+    // had loaded alive.
+    let inside = null;
+    const hook = (loaded, env) => { installLibraryTable(LIBRARIES, loaded, env, (file) => BUNDLED_SOURCES[file]); };
+    const exports = withPrivateLibraries({ resolver: bundledResolver, hook }, () => {
+      const { interpreter, env } = createInterpreter();
+      const loaded = loadLibrarySync(['srfi', '1'], analyze, interpreter, env);
+      inside = isCompiledOver(loaded.get('fold'));
+      return loaded;
+    });
+    assert(logger, 'a procedure installed over its closure is recorded where it was installed', inside, true);
+    assert(logger, 'and not in another registry', isCompiledOver(exports.get('fold')), false);
   }
 
   logger.title('Prebuilt libraries - installed as each library loads');

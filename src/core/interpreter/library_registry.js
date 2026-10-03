@@ -401,17 +401,31 @@ function substituteWithinLibraryValues(replacements, registry) {
 
 /**
  * Each compiled procedure installed over an interpreted closure, mapped to the
- * closure.
- * @type {Map<Function, Function>}
+ * closure and to the environment it was installed into, for switching it back
+ * alone; kept by the library registry that was current when it was installed.
+ *
+ * By registry, because switching reaches only the libraries of one registry
+ * and the program's global environment, and because a registry made for a
+ * while -- a tool's, a test's, each run of a benchmark -- should take its
+ * records with it when it goes: one table for the process kept every library
+ * such a registry had loaded alive, a few megabytes a registry.
+ * @type {WeakMap<Map<string, Object>, Map<Function, {closure: Function, env: Object}>>}
  */
-const compiledOver = new Map();
+const compiledOverIn = new WeakMap();
 
 /**
- * The environment each compiled procedure in `compiledOver` was installed
- * into, for switching it back alone.
- * @type {Map<Function, Object>}
+ * The compiled-over records of a library registry, made empty if it has none.
+ * @param {Map<string, Object>} registry - The registry.
+ * @returns {Map<Function, {closure: Function, env: Object}>}
  */
-const installedIn = new Map();
+function compiledOverRecords(registry) {
+    let records = compiledOverIn.get(registry);
+    if (records === undefined) {
+        records = new Map();
+        compiledOverIn.set(registry, records);
+    }
+    return records;
+}
 
 /**
  * The global environments of the programs being debugged, whose compiled
@@ -459,10 +473,10 @@ function substituteInChain(env, replacements) {
  */
 export function recordCompiledOver(replaced, env) {
     if (replaced.size === 0) return;
+    const records = compiledOverRecords(libraryRegistry);
     const back = new Map();
     for (const [closure, compiled] of replaced) {
-        compiledOver.set(compiled, closure);
-        installedIn.set(compiled, env);
+        records.set(compiled, { closure, env });
         back.set(compiled, closure);
     }
     if (interpretingIn.has(env)) {
@@ -478,7 +492,7 @@ export function recordCompiledOver(replaced, env) {
  * @returns {boolean}
  */
 export function isCompiledOver(procedure) {
-    return compiledOver.has(procedure);
+    return compiledOverIn.get(libraryRegistry)?.has(procedure) ?? false;
 }
 
 /**
@@ -508,7 +522,7 @@ export function interpretCompiledOver(interpreted, globalEnv) {
         interpretingIn.delete(globalEnv);
     }
     const replacements = new Map();
-    for (const [compiled, closure] of compiledOver) {
+    for (const [compiled, { closure }] of compiledOverRecords(registry)) {
         if (interpreted) replacements.set(compiled, closure);
         else replacements.set(closure, compiled);
     }
@@ -533,15 +547,14 @@ export function interpretCompiledOver(interpreted, globalEnv) {
  * @returns {boolean} Whether a procedure was switched back.
  */
 export function switchBackToClosure(twin) {
+    const records = compiledOverRecords(libraryRegistry);
     let compiled = null;
-    for (const candidate of compiledOver.keys()) {
+    for (const candidate of records.keys()) {
         if (candidate.$resume === twin) { compiled = candidate; break; }
     }
     if (compiled === null) return false;
-    const closure = compiledOver.get(compiled);
-    const env = installedIn.get(compiled);
-    compiledOver.delete(compiled);
-    installedIn.delete(compiled);
+    const { closure, env } = records.get(compiled);
+    records.delete(compiled);
     const replacements = new Map([[compiled, closure]]);
     substituteLibraryValues(replacements);
     if (env) substituteInChain(env, replacements);

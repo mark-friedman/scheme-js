@@ -10404,3 +10404,44 @@ The prebuilt tables rebuilt to a fixed point, unchanged by the merges. 7,428 tes
 none failing (34 skipped), and 7,223 in the browser with none failing (55 skipped), every changed
 file refetched first. JavaScript under `src/`: the strict-mode prefix and its comment in
 `host.js`, code generation; `mapForm` removed from `syntax_object.js`.
+
+# Compiled-over records kept by their registry (2026-10-02)
+
+## Why
+
+The tier benchmark, run with six policies interleaved over all four sets, ran out of a 4 GB heap
+after about six minutes. A process that makes many interpreters, each with a library registry of its
+own (`withPrivateLibraries`), kept a few megabytes of each: with collections forced, the live heap
+grew by about 115 MB for every twelve runs of `benchmarks/tier_programs/messages.scm`, and peak
+memory over eight rounds of the page set was 1,093 MB against 485 MB over two. Test runners and
+harnesses make interpreters that way; a page makes one.
+
+## The change
+
+`src/core/interpreter/library_registry.js` recorded every compiled procedure installed over an
+interpreted closure -- each procedure of every prebuilt table, as its library loads -- in two Maps
+for the whole process, `compiledOver` and `installedIn`, so that a debugger can run the closures
+instead. Nothing removed them, so each registry's libraries stayed reachable through them. The
+records are now kept by the registry that was current when they were made, in a `WeakMap` keyed by
+it (`compiledOverIn`), and go with it. Switching for the debugger (`interpretCompiledOver`) and
+switching a re-entered procedure back for good (`switchBackToClosure`) only ever reached the
+current registry's libraries and the program's global environment, so they read the current
+registry's records, as `isCompiledOver` does.
+
+That took eight rounds of the page set to 640 MB. The rest is held by the interpreter's
+process-wide tables keyed by a library's scope (`libraryScopeEnvMap` and `keywordBindings` in
+`src/core/interpreter/context.js`), whose library environments reach their program's global
+environment; how to release them without changing what a macro expands to is a task of its own.
+Until then the tier benchmark's long comparisons run each program in a process of its own.
+
+## Tests
+
+In `tests/functional/prebuilt_library_tests.js`: a procedure installed over its closure while a
+private registry loads `(srfi 1)` is recorded there, and not in another registry -- which, with one
+table for the process, it was.
+
+## Verification
+
+7,430 tests pass in Node with none failing (34 skipped), and 7,225 in the browser with none failing
+(55 skipped). JavaScript under `src/`: `library_registry.js` fixed in place -- the records' table,
+and `compiledOverRecords`, which makes a registry's -- as task 64 is to port it.
