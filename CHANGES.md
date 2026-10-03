@@ -11165,3 +11165,30 @@ none failing (56 skipped). `npm run prebuild` reaches a fixed point. Lines under
 2: Scheme 62 added, 18 removed; JavaScript 184 added, 47 removed. The JavaScript: the restorer
 and binding a restored procedure, code generation's; `setLibraryRestorer` and its conversion, the
 API's; the seed's restoring, the bootstrap; and the entry points' restorers.
+
+# Task 69, step 4: restored procedures and the debugger (2026-10-03)
+
+## Why
+
+A procedure restored from its library's table has no interpreted closure. The user chose (B):
+such procedures stay compiled while a program is debugged, rather than closures being made for
+them on demand from their sources, since debugging compiled code in place -- source maps and
+debug points, task 39 -- is what is to reach them, and closures made on demand would be work it
+makes unnecessary.
+
+## What it means
+
+Nothing in the debugger changed: switching a program being debugged to the closures goes by the
+compiled-over records, which a restored procedure is not in, and a breakpoint inside compiled code
+that has no closure is reported as being in compiled code, where it cannot fire. Now pinned:
+`compiled_breakpoint_tests.js` loads `(scheme base)` as the entry points do, restored, and finds
+`map` compiled, staying compiled in the program and in `(scheme core)` with a breakpoint set, and
+a breakpoint inside it reported as in compiled code. A library loaded from its source -- one
+without a table, or whose table is stale -- switches as before, as the tests above it still show.
+The tier cannot switch a restored procedure back to a closure when its frames are re-entered too
+often, there being none. `docs/compiler_design.md` says both.
+
+## Verification
+
+7,635 tests pass in Node with none failing (34 skipped), and 7,423 in the browser with
+none failing (56 skipped). Nothing under `src/` changed.

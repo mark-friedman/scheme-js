@@ -619,7 +619,8 @@ does:
   the Scheme only at the resumes it names: first at the minimum, then wherever the ratio could next
   hold, since saves only grow. Asked at every resume instead, `ctak` was 9% slower. Until the
   compiler has started nothing is switched back, which only a program running prebuilt library
-  code with its own code interpreted can see.
+  code with its own code interpreted can see. A procedure restored from a library's table has no
+  closure, and is never switched back.
 
 That needs the closure, so every procedure is compiled over the one the interpreter made of its
 definition, and the pair recorded: the tier, `compileProgram`, `compileEnvironment`, the prebuilt
@@ -751,7 +752,12 @@ Constraint 4 has **two mechanisms, not one**, which is what every real toolchain
   (`Interpreter.interpretForDebugger`, `interpret-compiled-over!` in
   `src/core/scheme/library_system.scm`). The closures are kept when compiled code is installed
   over them, by the library registry current then: the libraries' prebuilt code and
-  `compileEnvironment` record each pair. The equivalent of compiling at `-O0` while debugging.
+  `compileEnvironment` record each pair. The equivalent of compiling at `-O0` while debugging. A
+  shipped library restored from its table makes no closures (`libraryRestorer` in
+  `src/compiler/prebuilt.js`), so its procedures stay compiled while a program is debugged, and a
+  breakpoint inside one is reported as being in compiled code: the user's choice, since
+  debugging compiled code in place, below, is what is to reach them. A library loaded from its
+  source -- one without a table, or whose table is stale -- switches as before.
 - **Debug info** -- source maps and emitted debug points, so compiled code can be stepped and
   inspected in place, without switching. This is what calling convention B was chosen for: one live
   Scheme frame is one JavaScript frame, so DevTools can show a Scheme stack. Still to come.

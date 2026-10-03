@@ -36,7 +36,7 @@ import { writeString } from '../../src/core/primitives/io/printer.js';
 import { loadLibrarySync, applyImports } from '../../src/core/interpreter/library_loader.js';
 import { withPrivateLibraries, getLibraryEnv } from '../../src/core/interpreter/library_registry.js';
 import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
-import { installLibraryTable } from '../../src/compiler/prebuilt.js';
+import { installLibraryTable, libraryRestorer } from '../../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../../src/packaging/compiled_libraries.js';
 
 /**
@@ -443,6 +443,38 @@ export async function runCompiledBreakpointTests(logger) {
       held.before, 'true true');
     assert(logger, 'with a breakpoint set, it holds the closure, as the name is bound to', held.during, 'true false');
     assert(logger, 'and the compiled procedure again once there is none', held.after, 'true true');
+  }
+  {
+    // Libraries restored from their tables, as the entry points restore them,
+    // made no closures: their procedures stay compiled while a program is
+    // debugged, as compiled code without a closure does, and a breakpoint set
+    // inside one is reported as being in compiled code, where it cannot fire.
+    // Debugging compiled code in place, with source maps and debug points, is
+    // what will reach them.
+    const bundled = (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] ?? BUNDLED_SOURCES[name[name.length - 1]];
+    const install = (name, env) => {
+      if (env) installLibraryTable(prebuiltLibraries, name, env, (file) => BUNDLED_SOURCES[file]);
+    };
+    const restored = withPrivateLibraries({
+      resolver: bundled, hook: install, restorer: libraryRestorer(prebuiltLibraries)
+    }, () => {
+      const { interpreter } = createInterpreter();
+      const env = interpreter.globalEnv;
+      applyImports(env, loadLibrarySync(['scheme', 'base'], analyze, interpreter, env), { libraryName: ['scheme', 'base'] });
+      const map = env.bindings.get('map');
+      const runtime = new SchemeDebugRuntime();
+      interpreter.setDebugRuntime(runtime);
+      runtime.enable();
+      const id = runtime.setBreakpoint('anywhere.scm', 1);
+      const during = env.bindings.get('map') === map && getLibraryEnv(['scheme', 'core']).bindings.get('map') === map;
+      const inside = runtime.compiledProcedureAt(map.source.filename, map.source.line);
+      runtime.removeBreakpoint(id);
+      interpreter.setDebugRuntime(null);
+      return { compiled: map.$compiled === true, during, inside: inside?.name };
+    });
+    assert(logger, 'setup: a restored library procedure is compiled', restored.compiled, true);
+    assert(logger, 'with a breakpoint set, it stays compiled, in the program and in its library', restored.during, true);
+    assert(logger, 'and a breakpoint inside it is reported as in compiled code', restored.inside, 'map');
   }
   {
     // Paused with no breakpoint set -- on an uncaught error -- the program may
