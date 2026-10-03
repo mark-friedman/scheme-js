@@ -11,15 +11,17 @@ import { globalContext } from '../../src/core/interpreter/context.js';
  * Clears all global state in the interpreter subsystem.
  * Call this before running an isolated test or suite.
  * 
- * All mutable state is now managed through the globalContext,
- * so a single reset() call clears everything:
+ * The analyzer's mutable state is managed through the globalContext,
+ * so a single reset() call clears it:
  * - Scope counters
  * - Syntax intern cache
  * - Library scope environment map
  * - Scope registry
  * - Macro registry
- * - Library registry
  * - Defining scopes stack
+ *
+ * The library registries are Scheme's (library_registry.js), and are not
+ * cleared here.
  */
 export function clearGlobalState() {
     globalContext.reset();

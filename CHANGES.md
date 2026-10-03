@@ -10997,3 +10997,38 @@ which task 69's tables needing no source to run are to remove. Loading libraries
 what it did: the test files 1.00 and the corpus 1.03 in the geometric mean. Found on the way: `eval`
 ran its expression in the wrong environment when not called in tail position; and the start-up
 estimate was a tenth of the first measurement (R109), until the library system ran compiled.
+
+# The interpreter context's dead library registry and features (2026-10-03)
+
+## Why
+
+`InterpreterContext` (`src/core/interpreter/context.js`) kept its own registry of loaded
+libraries, set of features and file resolver, with `libraryNameToKey`, `isLibraryLoaded`,
+`getLibraryExports`, `registerLibrary`, `clearLibraryRegistry`, `hasFeature` and `addFeature`.
+None of it was the library system: since task 64 the registries and features are Scheme, in
+`(scheme-js library-system)`, reached from JavaScript through `library_registry.js`, whose
+functions of the same names call the Scheme. Nothing under `src/` used the context's copies; only
+two tests did, and they tested only the copies.
+
+## What changed
+
+- **`context.js`**: the three fields, the seven methods and `reset()`'s clearing of the registry
+  are gone. What the analyzer uses stays: scopes, the syntax intern cache, the library scope table,
+  defining scopes, keyword bindings, the private-library logs and the macro registry. The file's
+  and the class's comments said they held all of an interpreter's mutable state; they now say the
+  analyzer's, and where the registries and features are.
+- **`tests/harness/state_control.js`**: `clearGlobalState`'s comment no longer lists the library
+  registry among what `reset()` clears, and says the Scheme's registries are not cleared there.
+
+## Tests
+
+`multi_interpreter_tests.js` loses its library-registry and feature-set tests and the assertion
+that `reset()` cleared the registry; `state_isolation_tests.js` loses its library-registry test.
+Their other assertions stay, under renumbered test comments. 8 assertions removed in all.
+
+## Verification
+
+7,544 tests pass in Node with none failing (34 skipped), and 7,332 in the browser with none
+failing (56 skipped): 8 fewer in each than at the end of task 64. Lines under `src/` against
+`8551c93`: Scheme none; JavaScript 7 added, 98 removed. The 98: 41 lines of code, 46 of comment,
+11 blank. The 7 added are the two rewritten comments.
