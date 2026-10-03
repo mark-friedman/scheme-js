@@ -7,6 +7,10 @@
 // taking the runtime, the environment its globals resolve in, and its constant
 // pool.
 //
+// A table that can restore its library has a `restore` sequence: every
+// top-level form loading the library runs, in order, each a procedure its code
+// restores, which needs no source run, or the form itself, run as source is.
+//
 // Each table's `fingerprint` is of the sources it was generated from, and
 // `runtime` of the runtime interface its code calls.
 // `installLibraryTable` in src/compiler/prebuilt.js recomputes it and installs
@@ -17,7 +21,7 @@ import { intern } from '../core/interpreter/symbol.js';
 import { Cons } from '../core/interpreter/cons.js';
 import { Char } from '../core/primitives/char_class.js';
 
-/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, make: Function}>}>} */
+/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, restore?: Array<{procedure: string}|{form: *}>}>} */
 export const LIBRARIES = {
   "scheme-js.compiler": {
     fingerprint: "f0e08171",
@@ -28,6 +32,7 @@ export const LIBRARIES = {
         params: ["parent_$3898"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":120,"column":1,"endLine":121,"endColumn":30},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cons")).v;
@@ -79,6 +84,7 @@ export const LIBRARIES = {
         params: ["scope_$3899","name_$3900","callable_$3901"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":130,"column":1,"endLine":132,"endColumn":77},
         make: (R, E, K) => {
         const $vectorRef = R.vectorRef, $vectorSet = R.vectorSet;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -124,6 +130,7 @@ export const LIBRARIES = {
         params: ["scope_$3903","name_$3904"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":140,"column":1,"endLine":144,"endColumn":56},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -216,6 +223,7 @@ export const LIBRARIES = {
         params: ["scope_$3906","name_$3907"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":151,"column":1,"endLine":152,"endColumn":40},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "scope-lookup")).v;
@@ -271,6 +279,7 @@ export const LIBRARIES = {
         params: ["scope_$3908","name_$3909"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":159,"column":1,"endLine":161,"endColumn":28},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "scope-lookup")).v;
@@ -332,6 +341,7 @@ export const LIBRARIES = {
         params: [],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":186,"column":1,"endLine":186,"endColumn":71},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector")).v;
@@ -361,6 +371,7 @@ export const LIBRARIES = {
         params: ["st_$3911"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":188,"column":1,"endLine":188,"endColumn":46},
         make: (R, E, K) => {
         const $vectorRef = R.vectorRef;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -390,6 +401,7 @@ export const LIBRARIES = {
         params: ["st_$3912"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":189,"column":1,"endLine":189,"endColumn":53},
         make: (R, E, K) => {
         const $vectorRef = R.vectorRef;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -419,6 +431,7 @@ export const LIBRARIES = {
         params: ["st_$3913"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":190,"column":1,"endLine":190,"endColumn":45},
         make: (R, E, K) => {
         const $vectorRef = R.vectorRef;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -448,6 +461,7 @@ export const LIBRARIES = {
         params: ["st_$3914"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":191,"column":1,"endLine":191,"endColumn":48},
         make: (R, E, K) => {
         const $vectorRef = R.vectorRef;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -477,6 +491,7 @@ export const LIBRARIES = {
         params: ["st_$3915","name_$3916"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":199,"column":1,"endLine":202,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "memq")).v;
@@ -548,6 +563,7 @@ export const LIBRARIES = {
         params: ["st_$3917"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":209,"column":1,"endLine":209,"endColumn":57},
         make: (R, E, K) => {
         const $vectorSet = R.vectorSet;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-set!")).v;
@@ -577,6 +593,7 @@ export const LIBRARIES = {
         params: ["st_$3918"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":216,"column":1,"endLine":216,"endColumn":52},
         make: (R, E, K) => {
         const $vectorSet = R.vectorSet;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-set!")).v;
@@ -606,6 +623,7 @@ export const LIBRARIES = {
         params: ["st_$3919"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":224,"column":1,"endLine":224,"endColumn":52},
         make: (R, E, K) => {
         const $vectorSet = R.vectorSet;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-set!")).v;
@@ -635,6 +653,7 @@ export const LIBRARIES = {
         params: ["st_$3920","name_$3921"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":232,"column":1,"endLine":235,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "memq")).v;
@@ -706,6 +725,7 @@ export const LIBRARIES = {
         params: ["st_$3922","name_$3923"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":243,"column":1,"endLine":246,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "memq")).v;
@@ -777,6 +797,7 @@ export const LIBRARIES = {
         params: ["st_$3924","reason_$3925"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":255,"column":1,"endLine":257,"endColumn":6},
         make: (R, E, K) => {
         const $vectorRef = R.vectorRef, $vectorSet = R.vectorSet;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -825,6 +846,7 @@ export const LIBRARIES = {
         params: ["st_$3926","kind_$3927","name_$3928"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":293,"column":1,"endLine":294,"endColumn":39},
         make: (R, E, K) => {
         const $vectorSet = R.vectorSet;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-set!")).v;
@@ -858,6 +880,7 @@ export const LIBRARIES = {
         params: ["st_$3929","node_$3930"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":303,"column":1,"endLine":308,"endColumn":14},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -995,6 +1018,7 @@ export const LIBRARIES = {
         params: ["fn_$3932","args_$3933","tail_$3934","st_$3935"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":318,"column":1,"endLine":326,"endColumn":14},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -1183,6 +1207,7 @@ export const LIBRARIES = {
         params: ["names_$3937","inits_$3938","body_$3939","tail_$3940","st_$3941"],
         rest: null,
         constants: [intern("call"), intern("local"), intern("call"), intern("local")],
+        span: {"filename":"ir.scm","line":349,"column":1,"endLine":364,"endColumn":67},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -1627,6 +1652,7 @@ export const LIBRARIES = {
         params: ["name_$3945","node_$3946","counts_$3947"],
         rest: null,
         constants: [intern("const"), intern("global"), intern("local"), intern("call"), intern("local"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("capture"), intern("const"), intern("global"), intern("local"), intern("call"), intern("local"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("capture")],
+        span: {"filename":"ir.scm","line":375,"column":1,"endLine":400,"endColumn":59},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -2344,6 +2370,7 @@ export const LIBRARIES = {
         params: ["name_$3950","nodes_$3951","counts_$3952"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":409,"column":1,"endLine":412,"endColumn":75},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -2422,6 +2449,7 @@ export const LIBRARIES = {
         params: ["name_$3953","lam_$3954"],
         rest: null,
         constants: [intern("call"), intern("local"), intern("if"), intern("seq"), intern("let"), intern("letrec"), intern("call"), intern("local"), intern("if"), intern("seq"), intern("let"), intern("letrec")],
+        span: {"filename":"ir.scm","line":422,"column":1,"endLine":435,"endColumn":25},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -2849,6 +2877,7 @@ export const LIBRARIES = {
         params: ["st_$3959","name_$3960"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":444,"column":1,"endLine":445,"endColumn":54},
         make: (R, E, K) => {
         const $vectorRef = R.vectorRef, $vectorSet = R.vectorSet;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-set!")).v;
@@ -2886,6 +2915,7 @@ export const LIBRARIES = {
         params: ["st_$3961"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":453,"column":1,"endLine":464,"endColumn":28},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -3118,6 +3148,7 @@ export const LIBRARIES = {
         params: ["node_$3968"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":470,"column":1,"endLine":470,"endColumn":35},
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
@@ -3146,6 +3177,7 @@ export const LIBRARIES = {
         params: ["node_$3969"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":471,"column":1,"endLine":471,"endColumn":34},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadr")).v;
@@ -3175,6 +3207,7 @@ export const LIBRARIES = {
         params: ["node_$3970"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":472,"column":1,"endLine":472,"endColumn":35},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "caddr")).v;
@@ -3204,6 +3237,7 @@ export const LIBRARIES = {
         params: ["node_$3971"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":473,"column":1,"endLine":473,"endColumn":36},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadddr")).v;
@@ -3233,6 +3267,7 @@ export const LIBRARIES = {
         params: ["node_$3972"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":474,"column":1,"endLine":474,"endColumn":42},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -3284,6 +3319,7 @@ export const LIBRARIES = {
         params: ["node_$3973"],
         rest: null,
         constants: [intern("local"), intern("global"), intern("lambda"), intern("if"), intern("seq"), intern("let"), intern("letrec"), intern("local"), intern("global"), intern("lambda"), intern("if"), intern("seq"), intern("let"), intern("letrec")],
+        span: {"filename":"ir.scm","line":488,"column":1,"endLine":497,"endColumn":23},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -3498,6 +3534,7 @@ export const LIBRARIES = {
         params: ["node_$3975","scope_$3976","tail_$3977","st_$3978"],
         rest: null,
         constants: [intern("lit"), intern("const"), intern("var"), intern("local"), intern("global"), intern("if"), intern("if"), intern("seq"), intern("seq"), intern("lambda"), intern("lambda"), intern("let"), intern("lambda"), intern("let"), intern("letrec"), intern("letrec"), intern("set"), intern("set"), intern("define"), intern("lambda"), intern("local"), intern("lambda"), intern("define"), intern("app"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("lit"), intern("const"), intern("var"), intern("local"), intern("global"), intern("if"), intern("if"), intern("seq"), intern("seq"), intern("lambda"), intern("lambda"), intern("let"), intern("lambda"), intern("let"), intern("letrec"), intern("letrec"), intern("set"), intern("set"), intern("define"), intern("lambda"), intern("local"), intern("lambda"), intern("define"), intern("app"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape")],
+        span: {"filename":"ir.scm","line":511,"column":1,"endLine":630,"endColumn":40},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-tag")).v;
@@ -5402,6 +5439,7 @@ export const LIBRARIES = {
         params: ["node_$4001","scope_$4002","tail_$4003","st_$4004"],
         rest: null,
         constants: [intern("var"), intern("not-this-shape"), intern("call/cc"), intern("call-with-current-continuation"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("capture"), intern("var"), intern("not-this-shape"), intern("call/cc"), intern("call-with-current-continuation"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("capture")],
+        span: {"filename":"ir.scm","line":648,"column":1,"endLine":669,"endColumn":67},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-1")).v;
@@ -5771,6 +5809,7 @@ export const LIBRARIES = {
         params: ["node_$4007","scope_$4008","tail_$4009","st_$4010"],
         rest: null,
         constants: [intern("var"), intern("not-this-shape"), intern("call-with-values"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("apply"), intern("%values->list"), intern("let"), intern("call"), intern("global"), intern("apply"), intern("call"), intern("global"), intern("%values->list"), intern("call"), intern("local"), intern("var"), intern("not-this-shape"), intern("call-with-values"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("apply"), intern("%values->list"), intern("let"), intern("call"), intern("global"), intern("apply"), intern("call"), intern("global"), intern("%values->list"), intern("call"), intern("local")],
+        span: {"filename":"ir.scm","line":691,"column":1,"endLine":729,"endColumn":63},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-1")).v;
@@ -6354,6 +6393,7 @@ export const LIBRARIES = {
         params: ["st_$4015"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":736,"column":1,"endLine":739,"endColumn":65},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -6445,6 +6485,7 @@ export const LIBRARIES = {
         params: ["node_$4017","scope_$4018","tail_$4019","st_$4020"],
         rest: null,
         constants: [intern("lambda"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("lambda"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape")],
+        span: {"filename":"ir.scm","line":761,"column":1,"endLine":781,"endColumn":82},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-1")).v;
@@ -6775,6 +6816,7 @@ export const LIBRARIES = {
         params: ["scope_$4027","params_$4028","inits_$4029"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
+        span: {"filename":"ir.scm","line":790,"column":1,"endLine":795,"endColumn":62},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -6865,6 +6907,7 @@ export const LIBRARIES = {
         params: ["params_$4030","inits_$4031","body_$4032","tail_$4033"],
         rest: null,
         constants: [intern("let"), intern("let")],
+        span: {"filename":"ir.scm","line":805,"column":1,"endLine":810,"endColumn":50},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -6977,6 +7020,7 @@ export const LIBRARIES = {
         params: ["node_$4035","scope_$4036","tail_$4037","st_$4038"],
         rest: null,
         constants: [intern("local"), intern("call"), intern("local"), intern("local"), intern("call"), intern("local")],
+        span: {"filename":"ir.scm","line":821,"column":1,"endLine":839,"endColumn":30},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lower-node")).v;
@@ -7359,6 +7403,7 @@ export const LIBRARIES = {
         params: ["fn_$4043"],
         rest: null,
         constants: [intern("letrec"), intern("local"), intern("letrec"), intern("local")],
+        span: {"filename":"ir.scm","line":847,"column":1,"endLine":851,"endColumn":50},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -7529,6 +7574,7 @@ export const LIBRARIES = {
         params: ["fn_$4044","args_$4045","tail_$4046","st_$4047"],
         rest: null,
         constants: [intern("call"), intern("letrec"), intern("call"), intern("letrec")],
+        span: {"filename":"ir.scm","line":870,"column":1,"endLine":877,"endColumn":53},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadr")).v;
@@ -7725,6 +7771,7 @@ export const LIBRARIES = {
         params: ["scope_$4051","names_$4052"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":885,"column":1,"endLine":889,"endColumn":49},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -7805,6 +7852,7 @@ export const LIBRARIES = {
         params: ["scope_$4053","names_$4054"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":897,"column":1,"endLine":901,"endColumn":58},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -7885,6 +7933,7 @@ export const LIBRARIES = {
         params: ["lst_$4055"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":907,"column":1,"endLine":908,"endColumn":56},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -7942,6 +7991,7 @@ export const LIBRARIES = {
         params: ["nodes_$4056","scope_$4057","st_$4058"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":917,"column":1,"endLine":924,"endColumn":55},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8062,6 +8112,7 @@ export const LIBRARIES = {
         params: ["names_$4061","inits_$4062","scope_$4063","st_$4064"],
         rest: null,
         constants: [intern("local"), intern("local")],
+        span: {"filename":"ir.scm","line":935,"column":1,"endLine":944,"endColumn":58},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8209,6 +8260,7 @@ export const LIBRARIES = {
         params: ["nodes_$4067","scope_$4068","tail_$4069","st_$4070"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":954,"column":1,"endLine":962,"endColumn":55},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8348,6 +8400,7 @@ export const LIBRARIES = {
         params: ["node_$4074","scope_$4075","st_$4076"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":977,"column":1,"endLine":978,"endColumn":36},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lower-body-in")).v;
@@ -8377,6 +8430,7 @@ export const LIBRARIES = {
         params: ["node_$4077","scope_$4078","st_$4079","tail_$4080"],
         rest: null,
         constants: [intern("seq"), intern("define"), intern("lambda"), intern("seq"), intern("define"), intern("lambda")],
+        span: {"filename":"ir.scm","line":992,"column":1,"endLine":998,"endColumn":38},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-tag")).v;
@@ -8567,6 +8621,7 @@ export const LIBRARIES = {
         params: ["exprs_$4082","scope_$4083"],
         rest: null,
         constants: [intern("define"), intern("lambda"), intern("define"), intern("lambda")],
+        span: {"filename":"ir.scm","line":1006,"column":1,"endLine":1014,"endColumn":55},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8735,6 +8790,7 @@ export const LIBRARIES = {
         params: ["node_$4084"],
         rest: null,
         constants: [intern("global"), intern("global")],
+        span: {"filename":"ir.scm","line":1028,"column":1,"endLine":1035,"endColumn":33},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-state")).v;
@@ -8902,6 +8958,7 @@ export const LIBRARIES = {
         params: ["node_$4086","st_$4087"],
         rest: null,
         constants: [intern("fail"), intern("ok"), intern("fail"), intern("ok")],
+        span: {"filename":"ir.scm","line":1043,"column":1,"endLine":1054,"endColumn":39},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lower-node")).v;
@@ -9179,6 +9236,7 @@ export const LIBRARIES = {
         params: ["called_$4090","assigned_$4091"],
         rest: null,
         constants: [],
+        span: {"filename":"ir.scm","line":1062,"column":1,"endLine":1067,"endColumn":51},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -9265,6 +9323,7 @@ export const LIBRARIES = {
         params: ["plan_$4092","lam_$4093"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":74,"column":1,"endLine":75,"endColumn":58},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "assq")).v;
@@ -9347,6 +9406,7 @@ export const LIBRARIES = {
         params: ["plan_$4095","lam_$4096"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":83,"column":1,"endLine":84,"endColumn":58},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "assq")).v;
@@ -9429,6 +9489,7 @@ export const LIBRARIES = {
         params: ["plan_$4098","name_$4099"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":92,"column":1,"endLine":92,"endColumn":58},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "memq")).v;
@@ -9481,6 +9542,7 @@ export const LIBRARIES = {
         params: ["node_$4100"],
         rest: null,
         constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture")],
+        span: {"filename":"lift.scm","line":108,"column":1,"endLine":119,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -9901,6 +9963,7 @@ export const LIBRARIES = {
         params: ["lam_$4102"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":121,"column":1,"endLine":121,"endColumn":40},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadr")).v;
@@ -9930,6 +9993,7 @@ export const LIBRARIES = {
         params: ["lam_$4103"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":122,"column":1,"endLine":122,"endColumn":39},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "caddr")).v;
@@ -9959,6 +10023,7 @@ export const LIBRARIES = {
         params: ["lam_$4104"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":123,"column":1,"endLine":123,"endColumn":40},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadddr")).v;
@@ -9988,6 +10053,7 @@ export const LIBRARIES = {
         params: ["lam_$4105"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":124,"column":1,"endLine":124,"endColumn":46},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -10039,6 +10105,7 @@ export const LIBRARIES = {
         params: ["lam_$4106"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":131,"column":1,"endLine":134,"endColumn":28},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lambda-rest")).v;
@@ -10137,6 +10204,7 @@ export const LIBRARIES = {
         params: ["keep?_$4107","node_$4108"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":142,"column":1,"endLine":144,"endColumn":48},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-map")).v;
@@ -10262,6 +10330,7 @@ export const LIBRARIES = {
         params: ["node_$4111"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
+        span: {"filename":"lift.scm","line":152,"column":1,"endLine":155,"endColumn":58},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -10336,6 +10405,7 @@ export const LIBRARIES = {
         params: ["tag_$4112"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":157,"column":1,"endLine":157,"endColumn":60},
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
         const W0 = R.primitiveCell("eq?"), P0 = W0.primitive;
@@ -10389,6 +10459,7 @@ export const LIBRARIES = {
         params: ["node_$4114","name_$4115"],
         rest: null,
         constants: [intern("local"), intern("set"), intern("local"), intern("set")],
+        span: {"filename":"lift.scm","line":167,"column":1,"endLine":172,"endColumn":78},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -10606,6 +10677,7 @@ export const LIBRARIES = {
         params: ["lam_$4119"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":184,"column":1,"endLine":185,"endColumn":64},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reverse")).v;
@@ -10698,6 +10770,7 @@ export const LIBRARIES = {
         params: ["node_$4120","bound_$4121","found_$4122"],
         rest: null,
         constants: [intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define"), intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define")],
+        span: {"filename":"lift.scm","line":202,"column":1,"endLine":217,"endColumn":55},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "fold")).v;
@@ -11407,6 +11480,7 @@ export const LIBRARIES = {
         params: ["ir_$4133"],
         rest: null,
         constants: [intern("letrec"), intern("letrec")],
+        span: {"filename":"lift.scm","line":233,"column":1,"endLine":240,"endColumn":63},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ir-find")).v;
@@ -11625,6 +11699,7 @@ export const LIBRARIES = {
         params: ["ir_$4137"],
         rest: null,
         constants: [intern("set"), intern("set")],
+        span: {"filename":"lift.scm","line":254,"column":1,"endLine":255,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "map")).v;
@@ -11725,6 +11800,7 @@ export const LIBRARIES = {
         params: ["groups_$4138"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":263,"column":1,"endLine":271,"endColumn":13},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-map")).v;
@@ -11889,6 +11965,7 @@ export const LIBRARIES = {
         params: ["ir_$4145"],
         rest: null,
         constants: [intern("lambda"), intern("define"), intern("lambda"), intern("define")],
+        span: {"filename":"lift.scm","line":284,"column":1,"endLine":287,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ir-find")).v;
@@ -12095,6 +12172,7 @@ export const LIBRARIES = {
         params: ["groups_$4149","boxed_$4150"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
+        span: {"filename":"lift.scm","line":297,"column":1,"endLine":303,"endColumn":13},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-map")).v;
@@ -12254,6 +12332,7 @@ export const LIBRARIES = {
         params: ["keep?_$4154","names_$4155","inits_$4156"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":312,"column":1,"endLine":317,"endColumn":62},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -12396,6 +12475,7 @@ export const LIBRARIES = {
         params: ["lam_$4157","self_$4158"],
         rest: null,
         constants: [],
+        span: {"filename":"lift.scm","line":326,"column":1,"endLine":332,"endColumn":44},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-map")).v;
@@ -12623,6 +12703,7 @@ export const LIBRARIES = {
         params: ["name_$4194","args_$4195"],
         rest: null,
         constants: [],
+        span: {"filename":"inline.scm","line":150,"column":1,"endLine":156,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "assq")).v;
@@ -12801,6 +12882,7 @@ export const LIBRARIES = {
         params: [],
         rest: null,
         constants: [],
+        span: {"filename":"inline.scm","line":162,"column":1,"endLine":162,"endColumn":62},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "map")).v;
@@ -12833,6 +12915,7 @@ export const LIBRARIES = {
         params: ["numbering_$4199","local_$4200"],
         rest: null,
         constants: [],
+        span: {"filename":"liveness.scm","line":51,"column":1,"endLine":57,"endColumn":13},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "weak-table-ref")).v;
@@ -13046,6 +13129,7 @@ export const LIBRARIES = {
         params: ["numbering_$4203","locals_$4204"],
         rest: null,
         constants: [],
+        span: {"filename":"liveness.scm","line":65,"column":1,"endLine":67,"endColumn":19},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "fold")).v;
@@ -13144,6 +13228,7 @@ export const LIBRARIES = {
         params: ["st_$4207","numbering_$4208"],
         rest: null,
         constants: [],
+        span: {"filename":"liveness.scm","line":91,"column":1,"endLine":95,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "statement-def")).v;
@@ -13331,6 +13416,7 @@ export const LIBRARIES = {
         params: ["blocks_$4210"],
         rest: null,
         constants: [],
+        span: {"filename":"liveness.scm","line":124,"column":1,"endLine":152,"endColumn":64},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-numbering")).v;
@@ -13874,6 +13960,7 @@ export const LIBRARIES = {
         params: ["transfers_$4228","exit_$4229","live_$4230"],
         rest: null,
         constants: [],
+        span: {"filename":"liveness.scm","line":161,"column":1,"endLine":167,"endColumn":20},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "fold")).v;
@@ -14029,6 +14116,7 @@ export const LIBRARIES = {
         params: ["liveness_$4234","block_$4235","locals_$4236"],
         rest: null,
         constants: [],
+        span: {"filename":"liveness.scm","line":176,"column":1,"endLine":182,"endColumn":22},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector-ref")).v;
@@ -14183,6 +14271,7 @@ export const LIBRARIES = {
         params: ["st_$4243"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"liveness.scm","line":199,"column":1,"endLine":202,"endColumn":75},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -14297,6 +14386,7 @@ export const LIBRARIES = {
         params: ["st_$4245"],
         rest: null,
         constants: [intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail")],
+        span: {"filename":"liveness.scm","line":209,"column":1,"endLine":221,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -14797,6 +14887,7 @@ export const LIBRARIES = {
         params: ["st_$4247"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"liveness.scm","line":228,"column":1,"endLine":231,"endColumn":34},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -14930,6 +15021,7 @@ export const LIBRARIES = {
         params: ["st_$4249"],
         rest: null,
         constants: [intern("spill"), intern("spill")],
+        span: {"filename":"liveness.scm","line":239,"column":1,"endLine":240,"endColumn":42},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -14975,6 +15067,7 @@ export const LIBRARIES = {
         params: ["stmts_$4250","index_$4251"],
         rest: null,
         constants: [new Cons(intern("return"), new Cons(intern("goto"), new Cons(intern("branch"), new Cons(intern("tail"), null)))), new Cons(intern("return"), new Cons(intern("goto"), new Cons(intern("branch"), new Cons(intern("tail"), null))))],
+        span: {"filename":"liveness.scm","line":250,"column":1,"endLine":254,"endColumn":81},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-map")).v;
@@ -15179,6 +15272,7 @@ export const LIBRARIES = {
         params: ["st_$4254"],
         rest: null,
         constants: [intern("goto"), intern("branch"), intern("guarded"), intern("goto"), intern("branch"), intern("guarded")],
+        span: {"filename":"liveness.scm","line":261,"column":1,"endLine":266,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -15337,6 +15431,7 @@ export const LIBRARIES = {
         params: ["name_$4256"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":88,"column":1,"endLine":92,"endColumn":16},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "weak-table-ref")).v;
@@ -15437,6 +15532,7 @@ export const LIBRARIES = {
         params: ["name_$4259"],
         rest: null,
         constants: [new Char(95), new Char(36), new Char(95), new Char(36)],
+        span: {"filename":"emit.scm","line":101,"column":1,"endLine":115,"endColumn":45},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "char-alphabetic?")).v;
@@ -15868,6 +15964,7 @@ export const LIBRARIES = {
         params: ["name_$4267"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":122,"column":1,"endLine":122,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string->symbol")).v;
@@ -15920,6 +16017,7 @@ export const LIBRARIES = {
         params: ["s_$4268"],
         rest: null,
         constants: [new Char(34), new Char(34), new Char(92), new Char(48), new Char(34), new Char(92), new Char(48), new Char(34), new Char(34), new Char(34)],
+        span: {"filename":"emit.scm","line":129,"column":1,"endLine":149,"endColumn":30},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "open-output-string")).v;
@@ -16291,6 +16389,7 @@ export const LIBRARIES = {
         params: ["x_$4272"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":158,"column":1,"endLine":166,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -16511,6 +16610,7 @@ export const LIBRARIES = {
         params: [],
         rest: "parts_$4275",
         constants: [],
+        span: {"filename":"emit.scm","line":178,"column":1,"endLine":183,"endColumn":22},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-map")).v;
@@ -16678,6 +16778,7 @@ export const LIBRARIES = {
         params: ["expr_$4278"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":190,"column":1,"endLine":192,"endColumn":85},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
@@ -16787,6 +16888,7 @@ export const LIBRARIES = {
         params: ["expr_$4280"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":199,"column":1,"endLine":199,"endColumn":50},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "filter")).v;
@@ -16817,6 +16919,7 @@ export const LIBRARIES = {
         params: ["expr_$4281"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":207,"column":1,"endLine":210,"endColumn":62},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
@@ -16915,6 +17018,7 @@ export const LIBRARIES = {
         params: ["expr_$4283"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":219,"column":1,"endLine":224,"endColumn":80},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
@@ -17051,6 +17155,7 @@ export const LIBRARIES = {
         params: ["sym_$4285"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":231,"column":1,"endLine":235,"endColumn":75},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "symbol->string")).v;
@@ -17225,6 +17330,7 @@ export const LIBRARIES = {
         params: ["s_$4287"],
         rest: null,
         constants: [new Cons("null", new Cons("true", new Cons("false", null))), new Char(45), new Char(110), new Char(93), new Cons("null", new Cons("true", new Cons("false", null))), new Char(45), new Char(110), new Char(93)],
+        span: {"filename":"emit.scm","line":243,"column":1,"endLine":255,"endColumn":51},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, ">")).v;
@@ -17760,6 +17866,7 @@ export const LIBRARIES = {
         params: ["form_$4295","st_$4296"],
         rest: null,
         constants: [intern("$UNWIND"), intern("$UNWIND"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("if"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("if"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack")],
+        span: {"filename":"emit.scm","line":264,"column":1,"endLine":309,"endColumn":53},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "expr->string")).v;
@@ -19317,6 +19424,7 @@ export const LIBRARIES = {
         params: ["form_$4308"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":321,"column":1,"endLine":326,"endColumn":12},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "form-ir")).v;
@@ -19483,6 +19591,7 @@ export const LIBRARIES = {
         params: ["form_$4310","args_$4311"],
         rest: null,
         constants: [intern("$stack"), intern("$stack"), intern("call"), intern("$stack"), intern("$flush"), intern("call"), intern("$stack"), intern("$flush")],
+        span: {"filename":"emit.scm","line":362,"column":1,"endLine":376,"endColumn":35},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lambda-rest")).v;
@@ -19978,6 +20087,7 @@ export const LIBRARIES = {
         params: ["n_$4315"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":378,"column":1,"endLine":378,"endColumn":81},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -20032,6 +20142,7 @@ export const LIBRARIES = {
         params: ["slots_$4316"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":380,"column":1,"endLine":381,"endColumn":75},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -20108,6 +20219,7 @@ export const LIBRARIES = {
         params: ["form_$4317","stmts_$4318"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":389,"column":1,"endLine":390,"endColumn":94},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-join")).v;
@@ -20210,6 +20322,7 @@ export const LIBRARIES = {
         params: ["form_$4320","name_$4321"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":427,"column":1,"endLine":431,"endColumn":28},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "form-unit")).v;
@@ -20364,6 +20477,7 @@ export const LIBRARIES = {
         params: ["u_$4323","name_$4324"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":442,"column":1,"endLine":444,"endColumn":47},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "global-index")).v;
@@ -20416,6 +20530,7 @@ export const LIBRARIES = {
         params: ["u_$4326","name_$4327"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":452,"column":1,"endLine":454,"endColumn":55},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "weak-table-ref")).v;
@@ -20497,6 +20612,7 @@ export const LIBRARIES = {
         params: ["globals_$4329"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":463,"column":1,"endLine":467,"endColumn":12},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-weak-table")).v;
@@ -20657,6 +20773,7 @@ export const LIBRARIES = {
         params: ["u_$4333","v_$4334"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":480,"column":1,"endLine":491,"endColumn":63},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -21000,6 +21117,7 @@ export const LIBRARIES = {
         params: ["name_$4336","ir_$4337","u_$4338","mode_$4339","path_$4340"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":541,"column":1,"endLine":542,"endColumn":73},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-form")).v;
@@ -21029,6 +21147,7 @@ export const LIBRARIES = {
         params: ["form_$4341"],
         rest: null,
         constants: [intern("twin"), intern("twin")],
+        span: {"filename":"emit.scm","line":544,"column":1,"endLine":544,"endColumn":51},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -21080,6 +21199,7 @@ export const LIBRARIES = {
         params: ["form_$4342"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":545,"column":1,"endLine":545,"endColumn":53},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "unit-plan")).v;
@@ -21132,6 +21252,7 @@ export const LIBRARIES = {
         params: ["form_$4343","st_$4344"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":553,"column":1,"endLine":553,"endColumn":72},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-form-out!")).v;
@@ -21188,6 +21309,7 @@ export const LIBRARIES = {
         params: ["form_$4345","sym_$4346"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":561,"column":1,"endLine":563,"endColumn":66},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -21295,6 +21417,7 @@ export const LIBRARIES = {
         params: ["form_$4347"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":571,"column":1,"endLine":574,"endColumn":8},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "form-counter")).v;
@@ -21371,6 +21494,7 @@ export const LIBRARIES = {
         params: ["form_$4349"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":583,"column":1,"endLine":586,"endColumn":10},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string->symbol")).v;
@@ -21531,6 +21655,7 @@ export const LIBRARIES = {
         params: ["form_$4351"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":597,"column":1,"endLine":601,"endColumn":45},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "number->string")).v;
@@ -21717,6 +21842,7 @@ export const LIBRARIES = {
         params: ["form_$4354","thunk_$4355"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":611,"column":1,"endLine":617,"endColumn":19},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "form-out")).v;
@@ -21868,6 +21994,7 @@ export const LIBRARIES = {
         params: ["form_$4358","name_$4359"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":621,"column":1,"endLine":621,"endColumn":63},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "boxed?")).v;
@@ -21920,6 +22047,7 @@ export const LIBRARIES = {
         params: ["form_$4360","name_$4361"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":629,"column":1,"endLine":632,"endColumn":29},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "boxed-local?")).v;
@@ -22021,6 +22149,7 @@ export const LIBRARIES = {
         params: ["form_$4362","name_$4363","value_$4364"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"emit.scm","line":642,"column":1,"endLine":645,"endColumn":65},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "declare!")).v;
@@ -22185,6 +22314,7 @@ export const LIBRARIES = {
         params: ["form_$4365","body_$4366"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"emit.scm","line":658,"column":1,"endLine":664,"endColumn":36},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "for-each")).v;
@@ -22434,6 +22564,7 @@ export const LIBRARIES = {
         params: ["node_$4369"],
         rest: null,
         constants: [intern("lambda"), intern("define"), intern("lambda"), intern("define")],
+        span: {"filename":"emit.scm","line":672,"column":1,"endLine":676,"endColumn":60},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -22560,6 +22691,7 @@ export const LIBRARIES = {
         params: ["form_$4371","node_$4372"],
         rest: null,
         constants: [intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call"), intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call")],
+        span: {"filename":"emit.scm","line":688,"column":1,"endLine":711,"endColumn":60},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -23253,6 +23385,7 @@ export const LIBRARIES = {
         params: ["form_$4378","nodes_$4379"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"emit.scm","line":734,"column":1,"endLine":745,"endColumn":32},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -23518,6 +23651,7 @@ export const LIBRARIES = {
         params: ["node_$4385"],
         rest: null,
         constants: [new Cons(intern("const"), new Cons(intern("local"), new Cons(intern("global"), new Cons(intern("lambda"), null)))), new Cons(intern("const"), new Cons(intern("local"), new Cons(intern("global"), new Cons(intern("lambda"), null))))],
+        span: {"filename":"emit.scm","line":753,"column":1,"endLine":754,"endColumn":56},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -23575,6 +23709,7 @@ export const LIBRARIES = {
         params: ["form_$4386","lam_$4387"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"emit.scm","line":762,"column":1,"endLine":769,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "nested-name!")).v;
@@ -23887,6 +24022,7 @@ export const LIBRARIES = {
         params: ["exprs_$4392","separator_$4393"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":777,"column":1,"endLine":780,"endColumn":77},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -23963,6 +24099,7 @@ export const LIBRARIES = {
         params: ["form_$4396","node_$4397"],
         rest: null,
         constants: [intern("assign"), intern("eval"), intern("assign"), intern("eval")],
+        span: {"filename":"emit.scm","line":788,"column":1,"endLine":794,"endColumn":23},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-value!")).v;
@@ -24234,6 +24371,7 @@ export const LIBRARIES = {
         params: ["form_$4400","node_$4401"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"emit.scm","line":804,"column":1,"endLine":813,"endColumn":23},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadr")).v;
@@ -24561,6 +24699,7 @@ export const LIBRARIES = {
         params: ["form_$4405","node_$4406"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("assign"), intern("assign")],
+        span: {"filename":"emit.scm","line":827,"column":1,"endLine":841,"endColumn":36},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadr")).v;
@@ -25032,6 +25171,7 @@ export const LIBRARIES = {
         params: ["form_$4413","node_$4414"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("if"), intern("if")],
+        span: {"filename":"emit.scm","line":850,"column":1,"endLine":861,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-value!")).v;
@@ -25359,6 +25499,7 @@ export const LIBRARIES = {
         params: ["form_$4422","node_$4423"],
         rest: null,
         constants: [intern("global"), intern("assign"), intern("assign"), intern("assign"), intern("global"), intern("assign")],
+        span: {"filename":"emit.scm","line":879,"column":1,"endLine":907,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadr")).v;
@@ -26218,6 +26359,7 @@ export const LIBRARIES = {
         params: ["form_$4438","node_$4439"],
         rest: null,
         constants: [intern("assign"), intern("raw"), intern("$notProc"), intern("assign"), intern("$RAW"), intern("call"), intern("text"), intern("$stack"), intern("assign"), intern("$PRIM"), intern("$foreign"), intern("raw"), intern("$TailCall"), intern("$stack"), intern("$step"), intern("assign"), intern("raw"), intern("$notProc"), intern("assign"), intern("$RAW"), intern("call"), intern("text"), intern("$stack"), intern("assign"), intern("$PRIM"), intern("$foreign"), intern("raw"), intern("$TailCall"), intern("$stack"), intern("$step")],
+        span: {"filename":"emit.scm","line":942,"column":1,"endLine":969,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-operands!")).v;
@@ -27121,6 +27263,7 @@ export const LIBRARIES = {
         params: ["form_$4447","node_$4448"],
         rest: null,
         constants: [intern("eval"), intern("spill"), intern("return"), intern("$UNWIND"), intern("assign"), intern("eval"), intern("spill"), intern("return"), intern("$UNWIND"), intern("assign")],
+        span: {"filename":"emit.scm","line":978,"column":1,"endLine":990,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-value!")).v;
@@ -27602,6 +27745,7 @@ export const LIBRARIES = {
         params: ["form_$4452","node_$4453","result_$4454"],
         rest: null,
         constants: [intern("suspend"), intern("text"), intern("$UNWIND"), intern("suspend"), intern("text"), intern("$UNWIND")],
+        span: {"filename":"emit.scm","line":1003,"column":1,"endLine":1013,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "assq")).v;
@@ -27824,6 +27968,7 @@ export const LIBRARIES = {
         params: ["form_$4456","node_$4457"],
         rest: null,
         constants: [intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return"), intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return")],
+        span: {"filename":"emit.scm","line":1027,"column":1,"endLine":1046,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -28390,6 +28535,7 @@ export const LIBRARIES = {
         params: ["node_$4461"],
         rest: null,
         constants: [intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec")],
+        span: {"filename":"emit.scm","line":1054,"column":1,"endLine":1064,"endColumn":16},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -28660,6 +28806,7 @@ export const LIBRARIES = {
         params: ["node_$4463"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1066,"column":1,"endLine":1066,"endColumn":58},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -28711,6 +28858,7 @@ export const LIBRARIES = {
         params: ["form_$4464","node_$4465"],
         rest: null,
         constants: [intern("if"), intern("if")],
+        span: {"filename":"emit.scm","line":1075,"column":1,"endLine":1079,"endColumn":46},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-value!")).v;
@@ -28941,6 +29089,7 @@ export const LIBRARIES = {
         params: ["form_$4469","node_$4470"],
         rest: null,
         constants: [intern("return"), intern("local"), intern("guarded"), intern("return"), intern("local"), intern("guarded")],
+        span: {"filename":"emit.scm","line":1095,"column":1,"endLine":1113,"endColumn":54},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-inline!")).v;
@@ -29458,6 +29607,7 @@ export const LIBRARIES = {
         params: ["form_$4479","fn_$4480","args_$4481"],
         rest: null,
         constants: [intern("tail"), intern("assign"), intern("tail"), intern("tail"), intern("assign"), intern("tail")],
+        span: {"filename":"emit.scm","line":1153,"column":1,"endLine":1158,"endColumn":60},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -29741,6 +29891,7 @@ export const LIBRARIES = {
         params: ["form_$4484"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1165,"column":1,"endLine":1169,"endColumn":16},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "form-name")).v;
@@ -29920,6 +30071,7 @@ export const LIBRARIES = {
         params: ["form_$4487"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1180,"column":1,"endLine":1181,"endColumn":47},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -29972,6 +30124,7 @@ export const LIBRARIES = {
         params: ["form_$4488"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("goto"), intern("text"), intern("goto"), intern("text")],
+        span: {"filename":"emit.scm","line":1208,"column":1,"endLine":1223,"endColumn":78},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
@@ -30339,6 +30492,7 @@ export const LIBRARIES = {
         params: ["form_$4492","args_$4493","target_$4494"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
+        span: {"filename":"emit.scm","line":1237,"column":1,"endLine":1251,"endColumn":84},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -30824,6 +30978,7 @@ export const LIBRARIES = {
         params: ["node_$4503"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1259,"column":1,"endLine":1261,"endColumn":36},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cddddr")).v;
@@ -30889,6 +31044,7 @@ export const LIBRARIES = {
         params: ["form_$4505","node_$4506"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("assign"), intern("assign"), intern("text"), intern("text")],
+        span: {"filename":"emit.scm","line":1276,"column":1,"endLine":1296,"endColumn":63},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -31597,6 +31753,7 @@ export const LIBRARIES = {
         params: ["form_$4514","params_$4515"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("goto"), intern("goto"), intern("text"), intern("text"), intern("goto"), intern("goto"), intern("text"), intern("text")],
+        span: {"filename":"emit.scm","line":1306,"column":1,"endLine":1316,"endColumn":103},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list")).v;
@@ -32039,6 +32196,7 @@ export const LIBRARIES = {
         params: ["form_$4521"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1327,"column":1,"endLine":1330,"endColumn":8},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "form-block-count")).v;
@@ -32115,6 +32273,7 @@ export const LIBRARIES = {
         params: ["form_$4523","n_$4524"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1339,"column":1,"endLine":1343,"endColumn":28},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-form-blocks!")).v;
@@ -32274,6 +32433,7 @@ export const LIBRARIES = {
         params: ["form_$4525","node_$4526","block_$4527"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1353,"column":1,"endLine":1354,"endColumn":69},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-form-sites!")).v;
@@ -32332,6 +32492,7 @@ export const LIBRARIES = {
         params: ["form_$4528","node_$4529","result_$4530"],
         rest: null,
         constants: [intern("spill"), intern("assign"), intern("goto"), intern("assign"), intern("spill"), intern("assign"), intern("goto"), intern("assign")],
+        span: {"filename":"emit.scm","line":1365,"column":1,"endLine":1372,"endColumn":56},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "new-block!")).v;
@@ -32664,6 +32825,7 @@ export const LIBRARIES = {
         params: ["form_$4532","node_$4533"],
         rest: null,
         constants: [intern("branch"), intern("branch")],
+        span: {"filename":"emit.scm","line":1380,"column":1,"endLine":1388,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-value!")).v;
@@ -32923,6 +33085,7 @@ export const LIBRARIES = {
         params: ["form_$4537","node_$4538"],
         rest: null,
         constants: [intern("assign"), intern("goto"), intern("assign"), intern("goto"), intern("branch"), intern("branch")],
+        span: {"filename":"emit.scm","line":1399,"column":1,"endLine":1414,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "emit-value!")).v;
@@ -33367,6 +33530,7 @@ export const LIBRARIES = {
         params: ["ir_$4548"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1433,"column":1,"endLine":1441,"endColumn":57},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "length")).v;
@@ -33635,6 +33799,7 @@ export const LIBRARIES = {
         params: ["name_$4552","ir_$4553","u_$4554","path_$4555"],
         rest: null,
         constants: [intern("fast"), intern("fast")],
+        span: {"filename":"emit.scm","line":1458,"column":1,"endLine":1492,"endColumn":65},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "new-form")).v;
@@ -34915,6 +35080,7 @@ export const LIBRARIES = {
         params: ["name_$4573","ir_$4574","u_$4575","path_$4576"],
         rest: null,
         constants: [intern("twin"), new Cons(intern("$r"), null), intern("twin"), new Cons(intern("$r"), null)],
+        span: {"filename":"emit.scm","line":1510,"column":1,"endLine":1554,"endColumn":32},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "new-form")).v;
@@ -36048,6 +36214,7 @@ export const LIBRARIES = {
         params: ["form_$4593","block_$4594"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1562,"column":1,"endLine":1563,"endColumn":62},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "assv")).v;
@@ -36130,6 +36297,7 @@ export const LIBRARIES = {
         params: ["blocks_$4596"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1570,"column":1,"endLine":1573,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorSet = R.vectorSet, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-vector")).v;
@@ -36253,6 +36421,7 @@ export const LIBRARIES = {
         params: ["u_$4599","proc_$4600","path_$4601","lam_$4602"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1590,"column":1,"endLine":1596,"endColumn":19},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "assq")).v;
@@ -36483,6 +36652,7 @@ export const LIBRARIES = {
         params: ["u_$4607","factory_$4608","proc_$4609","path_$4610","lam_$4611"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1613,"column":1,"endLine":1632,"endColumn":28},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "unit-plan")).v;
@@ -37128,6 +37298,7 @@ export const LIBRARIES = {
         params: ["used_$4622"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1663,"column":1,"endLine":1671,"endColumn":31},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "filter")).v;
@@ -37325,6 +37496,7 @@ export const LIBRARIES = {
         params: ["ir_$4626","globals_$4627","name_$4628","guarded_$4629"],
         rest: null,
         constants: [],
+        span: {"filename":"emit.scm","line":1691,"column":1,"endLine":1719,"endColumn":42},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-unit")).v;
@@ -37978,6 +38150,7 @@ export const LIBRARIES = {
         params: ["lowered_$4640"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":85,"column":1,"endLine":85,"endColumn":51},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "caddr")).v;
@@ -38007,6 +38180,7 @@ export const LIBRARIES = {
         params: ["lowered_$4641"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":86,"column":1,"endLine":86,"endColumn":59},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadddr")).v;
@@ -38036,6 +38210,7 @@ export const LIBRARIES = {
         params: ["lowered_$4642"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":87,"column":1,"endLine":87,"endColumn":60},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
@@ -38087,6 +38262,7 @@ export const LIBRARIES = {
         params: ["globals_$4643"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":95,"column":1,"endLine":96,"endColumn":56},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "find")).v;
@@ -38142,6 +38318,7 @@ export const LIBRARIES = {
         params: ["lowered_$4645","decline-captures?_$4646"],
         rest: null,
         constants: [intern("fail"), intern("fail")],
+        span: {"filename":"driver.scm","line":113,"column":1,"endLine":120,"endColumn":16},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -38307,6 +38484,7 @@ export const LIBRARIES = {
         params: ["form_$4649"],
         rest: null,
         constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app")],
+        span: {"filename":"driver.scm","line":137,"column":1,"endLine":146,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-tag")).v;
@@ -38670,6 +38848,7 @@ export const LIBRARIES = {
         params: ["tags_$4651","form_$4652"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":154,"column":1,"endLine":157,"endColumn":40},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "memq")).v;
@@ -38813,6 +38992,7 @@ export const LIBRARIES = {
         params: ["form_$4656"],
         rest: null,
         constants: [new Cons(intern("lambda"), new Cons(intern("letrec"), null)), new Cons(intern("lambda"), new Cons(intern("letrec"), null))],
+        span: {"filename":"driver.scm","line":166,"column":1,"endLine":166,"endColumn":82},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "contains-kind?")).v;
@@ -38842,6 +39022,7 @@ export const LIBRARIES = {
         params: ["form_$4657"],
         rest: null,
         constants: [new Cons(intern("letrec"), null), new Cons(intern("letrec"), null)],
+        span: {"filename":"driver.scm","line":173,"column":1,"endLine":173,"endColumn":63},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "contains-kind?")).v;
@@ -38871,6 +39052,7 @@ export const LIBRARIES = {
         params: ["form_$4658"],
         rest: null,
         constants: [intern("define"), intern("seq"), intern("define"), intern("seq")],
+        span: {"filename":"driver.scm","line":181,"column":1,"endLine":185,"endColumn":16},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-tag")).v;
@@ -38969,6 +39151,7 @@ export const LIBRARIES = {
         params: ["form_$4660"],
         rest: null,
         constants: [intern("define"), intern("lambda"), intern("define"), intern("lambda")],
+        span: {"filename":"driver.scm","line":192,"column":1,"endLine":193,"endColumn":75},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -39069,6 +39252,7 @@ export const LIBRARIES = {
         params: ["node_$4685","name_$4686","closure_$4687","env_$4688","span_$4689","decline-captures?_$4690"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":292,"column":1,"endLine":297,"endColumn":56},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lower-lambda")).v;
@@ -39153,6 +39337,7 @@ export const LIBRARIES = {
         params: ["code_$4693"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":305,"column":1,"endLine":310,"endColumn":83},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "instantiate")).v;
@@ -39390,6 +39575,7 @@ export const LIBRARIES = {
         params: ["node_$4695","name_$4696","closure_$4697","env_$4698","span_$4699","decline-captures?_$4700"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":316,"column":1,"endLine":318,"endColumn":69},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "generate-lambda")).v;
@@ -39469,6 +39655,7 @@ export const LIBRARIES = {
         params: ["node_$4702","env_$4703","decline-captures?_$4704"],
         rest: null,
         constants: [intern("define"), intern("lambda"), intern("define"), intern("lambda")],
+        span: {"filename":"driver.scm","line":331,"column":1,"endLine":338,"endColumn":74},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast->scheme")).v;
@@ -39731,6 +39918,7 @@ export const LIBRARIES = {
         params: ["form_$4706"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
+        span: {"filename":"driver.scm","line":345,"column":1,"endLine":345,"endColumn":72},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list")).v;
@@ -39760,6 +39948,7 @@ export const LIBRARIES = {
         params: ["node_$4707","env_$4708","name_$4709","decline-captures?_$4710"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":369,"column":1,"endLine":370,"endColumn":91},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "compile-expression-form")).v;
@@ -39831,6 +40020,7 @@ export const LIBRARIES = {
         params: ["form_$4711","env_$4712","span_$4713","name_$4714","decline-captures?_$4715"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":381,"column":1,"endLine":386,"endColumn":96},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "defines-at-top-level?")).v;
@@ -39946,6 +40136,7 @@ export const LIBRARIES = {
         params: ["closure_$4716","name_$4717","decline-captures?_$4718"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":397,"column":1,"endLine":401,"endColumn":61},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "interpreted-closure?")).v;
@@ -40066,6 +40257,7 @@ export const LIBRARIES = {
         params: ["closure_$4719","env_$4720"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":415,"column":1,"endLine":417,"endColumn":73},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -40162,6 +40354,7 @@ export const LIBRARIES = {
         params: ["closure_$4724"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":429,"column":1,"endLine":431,"endColumn":83},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "closure-environment")).v;
@@ -40276,6 +40469,7 @@ export const LIBRARIES = {
         params: ["env_$4727","own-only?_$4728"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":443,"column":1,"endLine":449,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "filter-map")).v;
@@ -40460,6 +40654,7 @@ export const LIBRARIES = {
         params: ["env_$4732","own-only?_$4733","decline-captures?_$4734","strict?_$4735"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":470,"column":1,"endLine":486,"endColumn":88},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "environment-closures")).v;
@@ -40865,6 +41060,7 @@ export const LIBRARIES = {
         params: ["env_$4743","strict?_$4744"],
         rest: null,
         constants: [],
+        span: {"filename":"driver.scm","line":507,"column":1,"endLine":523,"endColumn":101},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "code-generation-allowed?")).v;
@@ -41297,6 +41493,7 @@ export const LIBRARIES = {
         params: ["node_$4752","env_$4753","interpreter_$4754","unsafe_$4755","decline-captures?_$4756"],
         rest: null,
         constants: [intern("define"), intern("procedure"), intern("interpreted"), intern("expression"), intern("expression"), intern("define"), intern("procedure"), intern("interpreted"), intern("expression"), intern("expression")],
+        span: {"filename":"driver.scm","line":579,"column":1,"endLine":607,"endColumn":108},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast->scheme")).v;
@@ -42037,6 +42234,7 @@ export const LIBRARIES = {
         params: ["nodes_$4764","env_$4765","interpreter_$4766","decline-captures?_$4767","strict?_$4768"],
         rest: null,
         constants: [intern("procedure"), intern("procedure"), intern("expression"), intern("expression")],
+        span: {"filename":"driver.scm","line":622,"column":1,"endLine":638,"endColumn":67},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "vector->list")).v;
@@ -42595,6 +42793,7 @@ export const LIBRARIES = {
         params: ["node_$4779"],
         rest: null,
         constants: [intern("ok"), intern("ok")],
+        span: {"filename":"safety.scm","line":57,"column":1,"endLine":62,"endColumn":84},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lower-lambda")).v;
@@ -42743,6 +42942,7 @@ export const LIBRARIES = {
         params: ["closure_$4782","name_$4783"],
         rest: null,
         constants: [],
+        span: {"filename":"safety.scm","line":70,"column":1,"endLine":71,"endColumn":65},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "lambda-facts")).v;
@@ -42816,6 +43016,7 @@ export const LIBRARIES = {
         params: ["env_$4784"],
         rest: null,
         constants: [],
+        span: {"filename":"safety.scm","line":80,"column":1,"endLine":83,"endColumn":71},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "environment-value")).v;
@@ -42937,6 +43138,7 @@ export const LIBRARIES = {
         params: ["local_$4787","external_$4788","strict?_$4789"],
         rest: null,
         constants: [],
+        span: {"filename":"safety.scm","line":98,"column":1,"endLine":153,"endColumn":68},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "assq")).v;
@@ -44060,6 +44262,7 @@ export const LIBRARIES = {
         params: ["forms_$4817","env_$4818","strict?_$4819"],
         rest: null,
         constants: [],
+        span: {"filename":"safety.scm","line":163,"column":1,"endLine":171,"endColumn":14},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "unsafe-from-facts")).v;
@@ -44255,6 +44458,7 @@ export const LIBRARIES = {
         params: ["nodes_$4822","env_$4823","strict?_$4824"],
         rest: null,
         constants: [],
+        span: {"filename":"safety.scm","line":179,"column":1,"endLine":180,"endColumn":75},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "unsafe-definitions")).v;
@@ -44331,6 +44535,7 @@ export const LIBRARIES = {
         params: ["closures_$4825","env_$4826","strict?_$4827"],
         rest: null,
         constants: [],
+        span: {"filename":"safety.scm","line":192,"column":1,"endLine":199,"endColumn":14},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "unsafe-from-facts")).v;
@@ -44471,6 +44676,7 @@ export const LIBRARIES = {
         params: ["body_$4830"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":65,"column":1,"endLine":65,"endColumn":71},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "makes-procedures-or-loops?")).v;
@@ -44500,6 +44706,7 @@ export const LIBRARIES = {
         params: ["interpreter_$4831","env_$4832","prebuilt?_$4833","decline-captures?_$4834","outcomes_$4835"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":132,"column":1,"endLine":144,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "code-generation-allowed?")).v;
@@ -44819,6 +45026,7 @@ export const LIBRARIES = {
         params: ["closure_$4846","env_$4847"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":154,"column":1,"endLine":158,"endColumn":91},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -44946,6 +45154,7 @@ export const LIBRARIES = {
         params: ["tier_$4851","env_$4852"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":168,"column":1,"endLine":172,"endColumn":73},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -45085,6 +45294,7 @@ export const LIBRARIES = {
         params: ["tier_$4855"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":180,"column":1,"endLine":181,"endColumn":64},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugging?")).v;
@@ -45166,6 +45376,7 @@ export const LIBRARIES = {
         params: ["tier_$4857","name_$4858","closure_$4859","env_$4860"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":191,"column":1,"endLine":197,"endColumn":65},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "tier-manages?")).v;
@@ -45402,6 +45613,7 @@ export const LIBRARIES = {
         params: ["tier_$4861","closure_$4862"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":205,"column":1,"endLine":208,"endColumn":37},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "tier-deferring?")).v;
@@ -45463,6 +45675,7 @@ export const LIBRARIES = {
         params: ["tier_$4863","closure_$4864"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":217,"column":1,"endLine":228,"endColumn":86},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "weak-table-ref")).v;
@@ -45828,6 +46041,7 @@ export const LIBRARIES = {
         params: ["tier_$4869","closure_$4870","name_$4871","env_$4872"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":237,"column":1,"endLine":242,"endColumn":73},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "tier-declines-captures?")).v;
@@ -46014,6 +46228,7 @@ export const LIBRARIES = {
         params: ["tier_$4874","closure_$4875","procedure_$4876","name_$4877","env_$4878"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":255,"column":1,"endLine":263,"endColumn":47},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "tier-env")).v;
@@ -46242,6 +46457,7 @@ export const LIBRARIES = {
         params: ["tier_$4882","node_$4883","env_$4884"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":279,"column":1,"endLine":290,"endColumn":59},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -46546,6 +46762,7 @@ export const LIBRARIES = {
         params: ["saved_$4887","resumed_$4888"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":336,"column":1,"endLine":337,"endColumn":75},
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, ">=")).v;
         const W0 = R.primitiveCell(">="), P0 = W0.primitive;
@@ -46594,6 +46811,7 @@ export const LIBRARIES = {
         params: ["saved_$4889","resumed_$4890"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":347,"column":1,"endLine":348,"endColumn":63},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "max")).v;
@@ -46639,6 +46857,7 @@ export const LIBRARIES = {
         params: [],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":354,"column":1,"endLine":354,"endColumn":56},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "next-resume-to-ask")).v;
@@ -46668,6 +46887,7 @@ export const LIBRARIES = {
         params: ["twin_$4891","saved_$4892","resumed_$4893"],
         rest: null,
         constants: [],
+        span: {"filename":"tier.scm","line":367,"column":1,"endLine":370,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "re-entered?")).v;
@@ -46743,7 +46963,261 @@ export const LIBRARIES = {
         return $proc$js;
         }
       }
-    }
+    },
+    restore: [
+      {form: new Cons(intern("define"), new Cons(intern("control-globals"), new Cons(new Cons(intern("quote"), new Cons(new Cons(intern("call/cc"), new Cons(intern("call-with-current-continuation"), new Cons(intern("dynamic-wind"), new Cons(intern("call-with-values"), new Cons(intern("eval"), new Cons(intern("with-exception-handler"), new Cons(intern("raise"), new Cons(intern("raise-continuable"), new Cons(intern("guard"), new Cons(intern("call-with-escape-continuation"), new Cons(intern("exit"), new Cons(intern("emergency-exit"), new Cons(intern("make-parameter"), new Cons(intern("parameterize"), null)))))))))))))), null)), null)))},
+      {procedure: "make-scope"},
+      {procedure: "scope-declare!"},
+      {procedure: "scope-lookup"},
+      {procedure: "scope-has?"},
+      {procedure: "scope-callable?"},
+      {procedure: "make-state"},
+      {procedure: "state-globals"},
+      {procedure: "state-calls-unknown?"},
+      {procedure: "state-reason"},
+      {procedure: "state-captures?"},
+      {procedure: "state-add-global!"},
+      {procedure: "state-calls-unknown!"},
+      {procedure: "state-captures!"},
+      {procedure: "state-suspends!"},
+      {procedure: "state-called-local!"},
+      {procedure: "state-assigned-local!"},
+      {procedure: "fail!"},
+      {procedure: "state-pending-self!"},
+      {procedure: "take-self!"},
+      {procedure: "loop-kind"},
+      {procedure: "inline-loop?"},
+      {procedure: "mentions"},
+      {procedure: "mentions-all"},
+      {procedure: "looping-calls"},
+      {procedure: "state-defined!"},
+      {procedure: "confirm-local-loops!"},
+      {procedure: "ast-tag"},
+      {procedure: "ast-1"},
+      {procedure: "ast-2"},
+      {procedure: "ast-3"},
+      {procedure: "ast-4"},
+      {procedure: "ir-callable?"},
+      {procedure: "lower-node"},
+      {procedure: "lower-call-cc"},
+      {procedure: "lower-call-with-values"},
+      {procedure: "synthesized-name!"},
+      {procedure: "lower-direct-application"},
+      {procedure: "declare-bindings!"},
+      {procedure: "wrap-bindings"},
+      {procedure: "lower-ordinary-application"},
+      {procedure: "named-let-operator?"},
+      {procedure: "lower-named-let-call"},
+      {procedure: "declare-all!"},
+      {procedure: "declare-all-callable!"},
+      {procedure: "last-of"},
+      {procedure: "lower-each"},
+      {procedure: "lower-letrec-inits"},
+      {procedure: "lower-sequence"},
+      {procedure: "lower-body"},
+      {procedure: "lower-body-in"},
+      {procedure: "predeclare-definitions!"},
+      {procedure: "lower-lambda"},
+      {procedure: "lower-top-lambda"},
+      {procedure: "any-assigned?"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("lift-plan"), new Cons(new Cons(intern("make-lift-plan"), new Cons(intern("free"), new Cons(intern("boxed"), new Cons(intern("self"), null)))), new Cons(intern("lift-plan?"), new Cons(new Cons(intern("free"), new Cons(intern("plan-free"), null)), new Cons(new Cons(intern("boxed"), new Cons(intern("plan-boxed"), null)), new Cons(new Cons(intern("self"), new Cons(intern("plan-self"), null)), null)))))))},
+      {procedure: "plan-free-of"},
+      {procedure: "plan-self-of"},
+      {procedure: "boxed?"},
+      {procedure: "ir-children"},
+      {procedure: "lambda-params"},
+      {procedure: "lambda-rest"},
+      {procedure: "lambda-name"},
+      {procedure: "lambda-body"},
+      {procedure: "lambda-bound"},
+      {procedure: "ir-find"},
+      {procedure: "outermost-lambdas"},
+      {procedure: "tagged?"},
+      {procedure: "mentions?"},
+      {procedure: "free-variables"},
+      {procedure: "free-in"},
+      {procedure: "plan-lifting"},
+      {procedure: "assigned-locals"},
+      {procedure: "sibling-references"},
+      {procedure: "defined-and-captured"},
+      {procedure: "self-bindings"},
+      {procedure: "filter-pairs"},
+      {procedure: "factory-parameters"},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("both-exact-or-both-inexact"), new Cons(intern("a"), new Cons(intern("b"), null))), new Cons(new Cons(intern("js"), new Cons("(typeof ", new Cons(intern("a"), new Cons(" === 'bigint' && typeof ", new Cons(intern("b"), new Cons(" === 'bigint') || ", new Cons("(typeof ", new Cons(intern("a"), new Cons(" === 'number' && typeof ", new Cons(intern("b"), new Cons(" === 'number')", null))))))))))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("numeric-binary"), new Cons(intern("name"), new Cons(intern("op"), null))), new Cons(new Cons(intern("list"), new Cons(intern("name"), new Cons(2n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("both-exact-or-both-inexact"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(new Cons(intern("cadr"), new Cons(intern("ops"), null)), null))), null))), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" ", new Cons(intern("op"), new Cons(" ", new Cons(new Cons(intern("cadr"), new Cons(intern("ops"), null)), null)))))), null))), null))))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("total"), new Cons(intern("name"), new Cons(intern("arity"), new Cons(intern("value"), null)))), new Cons(new Cons(intern("list"), new Cons(intern("name"), new Cons(intern("arity"), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(false, null))), new Cons(intern("value"), null))))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("helper"), new Cons(intern("name"), new Cons(intern("arity"), new Cons(intern("local"), null)))), new Cons(new Cons(intern("total"), new Cons(intern("name"), new Cons(intern("arity"), new Cons(intern("local"), null)))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("identity-constant?"), new Cons(intern("node"), null)), new Cons(new Cons(intern("and"), new Cons(new Cons(intern("eq?"), new Cons(new Cons(intern("car"), new Cons(intern("node"), null)), new Cons(new Cons(intern("quote"), new Cons(intern("const"), null)), null))), new Cons(new Cons(intern("let"), new Cons(new Cons(new Cons(intern("value"), new Cons(new Cons(intern("cadr"), new Cons(intern("node"), null)), null)), null), new Cons(new Cons(intern("or"), new Cons(new Cons(intern("symbol?"), new Cons(intern("value"), null)), new Cons(new Cons(intern("boolean?"), new Cons(intern("value"), null)), new Cons(new Cons(intern("null?"), new Cons(intern("value"), null)), null)))), null))), null))), null)))},
+      {form: new Cons(intern("define"), new Cons(intern("inline-expansions"), new Cons(new Cons(intern("list"), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern("+"), null)), new Cons("+", null))), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern("-"), null)), new Cons("-", null))), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern("*"), null)), new Cons("*", null))), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern("<"), null)), new Cons("<", null))), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern(">"), null)), new Cons(">", null))), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern("<="), null)), new Cons("<=", null))), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern(">="), null)), new Cons(">=", null))), new Cons(new Cons(intern("numeric-binary"), new Cons(new Cons(intern("quote"), new Cons(intern("="), null)), new Cons("===", null))), new Cons(new Cons(intern("list"), new Cons(new Cons(intern("quote"), new Cons(intern("car"), null)), new Cons(1n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" instanceof R.Cons", null))), null))), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(".car", null))), null))), null))))), new Cons(new Cons(intern("list"), new Cons(new Cons(intern("quote"), new Cons(intern("cdr"), null)), new Cons(1n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" instanceof R.Cons", null))), null))), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(".cdr", null))), null))), null))))), new Cons(new Cons(intern("total"), new Cons(new Cons(intern("quote"), new Cons(intern("cons"), null)), new Cons(2n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons("new R.Cons(", new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(", ", new Cons(new Cons(intern("cadr"), new Cons(intern("ops"), null)), new Cons(")", null)))))), null))), null)))), new Cons(new Cons(intern("total"), new Cons(new Cons(intern("quote"), new Cons(intern("pair?"), null)), new Cons(1n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" instanceof R.Cons", null))), null))), null)))), new Cons(new Cons(intern("total"), new Cons(new Cons(intern("quote"), new Cons(intern("null?"), null)), new Cons(1n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" === null", null))), null))), null)))), new Cons(new Cons(intern("total"), new Cons(new Cons(intern("quote"), new Cons(intern("not"), null)), new Cons(1n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" === false", null))), null))), null)))), new Cons(new Cons(intern("total"), new Cons(new Cons(intern("quote"), new Cons(intern("eq?"), null)), new Cons(2n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" === ", new Cons(new Cons(intern("cadr"), new Cons(intern("ops"), null)), null)))), null))), null)))), new Cons(new Cons(intern("helper"), new Cons(new Cons(intern("quote"), new Cons(intern("vector-ref"), null)), new Cons(2n, new Cons(new Cons(intern("quote"), new Cons(intern("$vectorRef"), null)), null)))), new Cons(new Cons(intern("helper"), new Cons(new Cons(intern("quote"), new Cons(intern("vector-set!"), null)), new Cons(3n, new Cons(new Cons(intern("quote"), new Cons(intern("$vectorSet"), null)), null)))), new Cons(new Cons(intern("list"), new Cons(new Cons(intern("quote"), new Cons(intern("vector-length"), null)), new Cons(1n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons("Array.isArray(", new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(")", null)))), null))), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons("BigInt(", new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(".length)", null)))), null))), null))))), new Cons(new Cons(intern("list"), new Cons(new Cons(intern("quote"), new Cons(intern("eqv?"), null)), new Cons(2n, new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(false, null))), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("ops"), null), new Cons(new Cons(intern("js"), new Cons(new Cons(intern("car"), new Cons(intern("ops"), null)), new Cons(" === ", new Cons(new Cons(intern("cadr"), new Cons(intern("ops"), null)), null)))), null))), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("args"), null), new Cons(new Cons(intern("any"), new Cons(intern("identity-constant?"), new Cons(intern("args"), null))), null))), null)))))), null)))))))))))))))))))), null)))},
+      {procedure: "inline-expansion"},
+      {procedure: "inline-expansion-names"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("numbering"), new Cons(new Cons(intern("make-numbering"), new Cons(intern("bits"), new Cons(intern("count"), new Cons(intern("locals"), null)))), new Cons(intern("numbering?"), new Cons(new Cons(intern("bits"), new Cons(intern("numbering-bits"), null)), new Cons(new Cons(intern("count"), new Cons(intern("numbering-count"), new Cons(intern("set-numbering-count!"), null))), new Cons(new Cons(intern("locals"), new Cons(intern("numbering-locals"), new Cons(intern("set-numbering-locals!"), null))), null)))))))},
+      {procedure: "local-bit"},
+      {procedure: "set-of"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("transfer"), new Cons(new Cons(intern("make-transfer"), new Cons(intern("keeps"), new Cons(intern("reads"), new Cons(intern("spill"), null)))), new Cons(intern("transfer?"), new Cons(new Cons(intern("keeps"), new Cons(intern("transfer-keeps"), null)), new Cons(new Cons(intern("reads"), new Cons(intern("transfer-reads"), null)), new Cons(new Cons(intern("spill"), new Cons(intern("transfer-spill"), null)), null)))))))},
+      {procedure: "statement-transfer"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("liveness"), new Cons(new Cons(intern("make-liveness"), new Cons(intern("numbering"), new Cons(intern("live"), null))), new Cons(intern("liveness?"), new Cons(new Cons(intern("numbering"), new Cons(intern("liveness-numbering"), null)), new Cons(new Cons(intern("live"), new Cons(intern("liveness-live"), null)), null))))))},
+      {procedure: "live-in"},
+      {procedure: "block-entry"},
+      {procedure: "live-among"},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("live-locals"), new Cons(intern("liveness"), new Cons(intern("block"), null))), new Cons(new Cons(intern("live-among"), new Cons(intern("liveness"), new Cons(intern("block"), new Cons(new Cons(intern("reverse"), new Cons(new Cons(intern("numbering-locals"), new Cons(new Cons(intern("liveness-numbering"), new Cons(intern("liveness"), null)), null)), null)), null)))), null)))},
+      {procedure: "statement-def"},
+      {procedure: "statement-reads"},
+      {procedure: "statement-mentions"},
+      {procedure: "statement-spill"},
+      {procedure: "block-successors"},
+      {procedure: "statement-jumps"},
+      {form: new Cons(intern("define"), new Cons(intern("js-names"), new Cons(new Cons(intern("make-weak-table"), null), null)))},
+      {procedure: "js-name"},
+      {procedure: "javascript-identifier"},
+      {procedure: "js-local"},
+      {procedure: "js-string"},
+      {procedure: "js-number"},
+      {procedure: "js"},
+      {procedure: "expr->string"},
+      {procedure: "expr-locals"},
+      {procedure: "repeatable?"},
+      {procedure: "settled?"},
+      {procedure: "temporary?"},
+      {procedure: "literal-text?"},
+      {procedure: "render-statement"},
+      {procedure: "frame-size"},
+      {procedure: "depth-entry"},
+      {procedure: "goto-text"},
+      {procedure: "frame-literal"},
+      {procedure: "render-block"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("unit"), new Cons(new Cons(intern("make-unit"), new Cons(intern("plan"), new Cons(intern("globals"), new Cons(intern("global-indices"), new Cons(intern("guarded"), new Cons(intern("constants"), new Cons(intern("factories"), new Cons(intern("emitted"), new Cons(intern("resume-points"), new Cons(intern("runtime"), null)))))))))), new Cons(intern("unit?"), new Cons(new Cons(intern("plan"), new Cons(intern("unit-plan"), null)), new Cons(new Cons(intern("globals"), new Cons(intern("unit-globals"), null)), new Cons(new Cons(intern("global-indices"), new Cons(intern("unit-global-indices"), null)), new Cons(new Cons(intern("guarded"), new Cons(intern("unit-guarded"), null)), new Cons(new Cons(intern("constants"), new Cons(intern("unit-constants"), new Cons(intern("set-unit-constants!"), null))), new Cons(new Cons(intern("factories"), new Cons(intern("unit-factories"), new Cons(intern("set-unit-factories!"), null))), new Cons(new Cons(intern("emitted"), new Cons(intern("unit-emitted"), new Cons(intern("set-unit-emitted!"), null))), new Cons(new Cons(intern("resume-points"), new Cons(intern("unit-resume-points"), new Cons(intern("set-unit-resume-points!"), null))), new Cons(new Cons(intern("runtime"), new Cons(intern("unit-runtime"), new Cons(intern("set-unit-runtime!"), null))), null)))))))))))))},
+      {procedure: "runtime"},
+      {procedure: "global-read"},
+      {procedure: "global-index"},
+      {procedure: "global-indices"},
+      {procedure: "constant"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("form"), new Cons(new Cons(intern("make-form"), new Cons(intern("name"), new Cons(intern("ir"), new Cons(intern("unit"), new Cons(intern("mode"), new Cons(intern("path"), new Cons(intern("counter"), new Cons(intern("labels"), new Cons(intern("loops"), new Cons(intern("loop-targets"), new Cons(intern("declared"), new Cons(intern("out"), new Cons(intern("blocks"), new Cons(intern("block-count"), new Cons(intern("current"), new Cons(intern("sites"), new Cons(intern("frames"), new Cons(intern("depth"), null)))))))))))))))))), new Cons(intern("form?"), new Cons(new Cons(intern("name"), new Cons(intern("form-name"), null)), new Cons(new Cons(intern("ir"), new Cons(intern("form-ir"), null)), new Cons(new Cons(intern("unit"), new Cons(intern("form-unit"), null)), new Cons(new Cons(intern("mode"), new Cons(intern("form-mode"), null)), new Cons(new Cons(intern("path"), new Cons(intern("form-path"), null)), new Cons(new Cons(intern("counter"), new Cons(intern("form-counter"), new Cons(intern("set-form-counter!"), null))), new Cons(new Cons(intern("labels"), new Cons(intern("form-labels"), new Cons(intern("set-form-labels!"), null))), new Cons(new Cons(intern("loops"), new Cons(intern("form-loops"), new Cons(intern("set-form-loops!"), null))), new Cons(new Cons(intern("loop-targets"), new Cons(intern("form-loop-targets"), new Cons(intern("set-form-loop-targets!"), null))), new Cons(new Cons(intern("declared"), new Cons(intern("form-declared"), new Cons(intern("set-form-declared!"), null))), new Cons(new Cons(intern("out"), new Cons(intern("form-out"), new Cons(intern("set-form-out!"), null))), new Cons(new Cons(intern("blocks"), new Cons(intern("form-blocks"), new Cons(intern("set-form-blocks!"), null))), new Cons(new Cons(intern("block-count"), new Cons(intern("form-block-count"), new Cons(intern("set-form-block-count!"), null))), new Cons(new Cons(intern("current"), new Cons(intern("form-current"), new Cons(intern("set-form-current!"), null))), new Cons(new Cons(intern("sites"), new Cons(intern("form-sites"), new Cons(intern("set-form-sites!"), null))), new Cons(new Cons(intern("frames"), new Cons(intern("form-frames"), new Cons(intern("set-form-frames!"), null))), new Cons(new Cons(intern("depth"), new Cons(intern("form-depth"), new Cons(intern("set-form-depth!"), null))), null)))))))))))))))))))))},
+      {procedure: "new-form"},
+      {procedure: "twin?"},
+      {procedure: "plan-of"},
+      {procedure: "emit!"},
+      {procedure: "declare!"},
+      {procedure: "next-number!"},
+      {procedure: "temp!"},
+      {procedure: "nested-name!"},
+      {procedure: "collect-statements"},
+      {procedure: "boxed-local?"},
+      {procedure: "read-local"},
+      {procedure: "bind-local"},
+      {procedure: "emit-define-boxes!"},
+      {procedure: "definitions-in"},
+      {procedure: "emit-value!"},
+      {procedure: "emit-operands!"},
+      {procedure: "effectful?"},
+      {procedure: "emit-closure!"},
+      {procedure: "join-exprs"},
+      {procedure: "emit-assignment!"},
+      {procedure: "emit-definition!"},
+      {procedure: "emit-letrec-bindings!"},
+      {procedure: "emit-value-if!"},
+      {procedure: "emit-inline!"},
+      {procedure: "emit-call!"},
+      {procedure: "emit-capture!"},
+      {procedure: "suspension"},
+      {procedure: "emit-statement!"},
+      {procedure: "node-tail?"},
+      {procedure: "letrec-inline?"},
+      {procedure: "emit-tail-if!"},
+      {procedure: "emit-tail-call!"},
+      {procedure: "emit-transfer!"},
+      {procedure: "procedure-name"},
+      {procedure: "procedure-value-name"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("loop-target"), new Cons(new Cons(intern("make-loop-target"), new Cons(intern("params"), new Cons(intern("fixed-arity"), new Cons(intern("procedure"), new Cons(intern("assign"), new Cons(intern("jump"), null)))))), new Cons(intern("loop-target?"), new Cons(new Cons(intern("params"), new Cons(intern("loop-params"), null)), new Cons(new Cons(intern("fixed-arity"), new Cons(intern("loop-fixed-arity?"), null)), new Cons(new Cons(intern("procedure"), new Cons(intern("loop-procedure?"), null)), new Cons(new Cons(intern("assign"), new Cons(intern("loop-assign"), null)), new Cons(new Cons(intern("jump"), new Cons(intern("loop-jump"), null)), null)))))))))},
+      {procedure: "loop-target"},
+      {procedure: "loop-back!"},
+      {procedure: "call-loop"},
+      {procedure: "emit-inline-loop!"},
+      {procedure: "enter-inline-loop!"},
+      {procedure: "new-block!"},
+      {procedure: "switch-to!"},
+      {procedure: "note-resume-site!"},
+      {procedure: "resume-after!"},
+      {procedure: "emit-twin-tail-if!"},
+      {procedure: "emit-twin-value-if!"},
+      {procedure: "arity-guard"},
+      {procedure: "fast-form"},
+      {procedure: "twin-form"},
+      {procedure: "form-frame"},
+      {procedure: "sort-blocks"},
+      {procedure: "factory-for!"},
+      {procedure: "render-factory"},
+      {form: new Cons(intern("define"), new Cons(intern("runtime-constants"), new Cons(new Cons(intern("quote"), new Cons(new Cons(new Cons(intern("$TailCall"), "R.TailCall"), new Cons(new Cons(intern("$step"), "R.step"), new Cons(new Cons(intern("$UNWIND"), "R.UNWIND"), new Cons(new Cons(intern("$RAW"), "R.SCHEME_RAW_CALL"), new Cons(new Cons(intern("$vectorRef"), "R.vectorRef"), new Cons(new Cons(intern("$vectorSet"), "R.vectorSet"), new Cons(new Cons(intern("$stack"), "R.stack"), new Cons(new Cons(intern("$flush"), "R.flush"), new Cons(new Cons(intern("$tailCall"), "R.tailCall"), new Cons(new Cons(intern("$PRIM"), "R.SCHEME_PRIMITIVE"), new Cons(new Cons(intern("$notProc"), "R.notAProcedure"), new Cons(new Cons(intern("$foreign"), "R.callForeign"), null)))))))))))), null)), null)))},
+      {procedure: "runtime-prelude"},
+      {procedure: "generate-unit"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("generated"), new Cons(new Cons(intern("make-generated"), new Cons(intern("name"), new Cons(intern("closure"), new Cons(intern("env"), new Cons(intern("span"), new Cons(intern("source"), new Cons(intern("constants"), new Cons(intern("globals"), null)))))))), new Cons(intern("generated?"), new Cons(new Cons(intern("name"), new Cons(intern("generated-name"), null)), new Cons(new Cons(intern("closure"), new Cons(intern("generated-closure"), null)), new Cons(new Cons(intern("env"), new Cons(intern("generated-env"), null)), new Cons(new Cons(intern("span"), new Cons(intern("generated-span"), null)), new Cons(new Cons(intern("source"), new Cons(intern("generated-source"), null)), new Cons(new Cons(intern("constants"), new Cons(intern("generated-constants"), null)), new Cons(new Cons(intern("globals"), new Cons(intern("generated-globals"), null)), null)))))))))))},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("compiled"), new Cons(new Cons(intern("make-compiled"), new Cons(intern("name"), new Cons(intern("procedure"), new Cons(intern("source"), null)))), new Cons(intern("compiled?"), new Cons(new Cons(intern("name"), new Cons(intern("compiled-name"), null)), new Cons(new Cons(intern("procedure"), new Cons(intern("compiled-procedure"), null)), new Cons(new Cons(intern("source"), new Cons(intern("compiled-source"), null)), null)))))))},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("declined"), new Cons(new Cons(intern("make-declined"), new Cons(intern("name"), new Cons(intern("reason"), new Cons(intern("source"), null)))), new Cons(intern("declined?"), new Cons(new Cons(intern("name"), new Cons(intern("declined-name"), null)), new Cons(new Cons(intern("reason"), new Cons(intern("declined-reason"), null)), new Cons(new Cons(intern("source"), new Cons(intern("declined-source"), null)), null)))))))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("lowered-ir"), new Cons(intern("lowered"), null)), new Cons(new Cons(intern("cadr"), new Cons(intern("lowered"), null)), null)))},
+      {procedure: "lowered-globals"},
+      {procedure: "lowered-calls-unknown?"},
+      {procedure: "lowered-captures?"},
+      {procedure: "control-global-in"},
+      {procedure: "lowering-decline"},
+      {procedure: "subforms"},
+      {procedure: "contains-kind?"},
+      {procedure: "makes-procedures-or-loops?"},
+      {procedure: "contains-loop?"},
+      {procedure: "defines-at-top-level?"},
+      {procedure: "procedure-definition?"},
+      {form: new Cons(intern("define"), new Cons(intern("max-source"), new Cons(new Cons(intern("*"), new Cons(4n, new Cons(1024n, new Cons(1024n, null)))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("source-too-large"), new Cons(intern("source"), null)), new Cons(new Cons(intern("let"), new Cons(new Cons(new Cons(intern("size"), new Cons(new Cons(intern("string-length"), new Cons(intern("source"), null)), null)), null), new Cons(new Cons(intern("and"), new Cons(new Cons(intern(">"), new Cons(intern("size"), new Cons(intern("max-source"), null))), new Cons(new Cons(intern("string-append"), new Cons("generated source is ", new Cons(new Cons(intern("number->string"), new Cons(intern("size"), null)), new Cons(" characters, over the ", new Cons(new Cons(intern("number->string"), new Cons(intern("max-source"), null)), new Cons(" limit; the procedure nests too deeply to emit twice", null)))))), null))), null))), null)))},
+      {form: new Cons(intern("define"), new Cons(intern("expandable-globals"), new Cons(new Cons(intern("inline-expansion-names"), null), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("guarded-globals"), new Cons(intern("globals"), new Cons(intern("env"), null))), new Cons(new Cons(intern("filter"), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("g"), null), new Cons(new Cons(intern("and"), new Cons(new Cons(intern("memq"), new Cons(intern("g"), new Cons(intern("expandable-globals"), null))), new Cons(new Cons(intern("bound-to-primitive?"), new Cons(intern("env"), new Cons(new Cons(intern("symbol->string"), new Cons(intern("g"), null)), null))), null))), null))), new Cons(intern("globals"), null))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("emit-lowered"), new Cons(intern("lowered"), new Cons(intern("name"), new Cons(intern("closure"), new Cons(intern("env"), new Cons(intern("span"), null)))))), new Cons(new Cons(intern("let*"), new Cons(new Cons(new Cons(intern("globals"), new Cons(new Cons(intern("lowered-globals"), new Cons(intern("lowered"), null)), null)), new Cons(new Cons(intern("unit"), new Cons(new Cons(intern("generate-unit"), new Cons(new Cons(intern("lowered-ir"), new Cons(intern("lowered"), null)), new Cons(intern("globals"), new Cons(intern("name"), new Cons(new Cons(intern("guarded-globals"), new Cons(intern("globals"), new Cons(intern("env"), null))), null))))), null)), new Cons(new Cons(intern("source"), new Cons(new Cons(intern("car"), new Cons(intern("unit"), null)), null)), null))), new Cons(new Cons(intern("cond"), new Cons(new Cons(new Cons(intern("source-too-large"), new Cons(intern("source"), null)), new Cons(intern("=>"), new Cons(new Cons(intern("lambda"), new Cons(new Cons(intern("reason"), null), new Cons(new Cons(intern("make-declined"), new Cons(intern("name"), new Cons(intern("reason"), new Cons(false, null)))), null))), null))), new Cons(new Cons(intern("else"), new Cons(new Cons(intern("make-generated"), new Cons(intern("name"), new Cons(intern("closure"), new Cons(intern("env"), new Cons(intern("span"), new Cons(intern("source"), new Cons(new Cons(intern("cadr"), new Cons(intern("unit"), null)), new Cons(intern("globals"), null)))))))), null)), null))), null))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("failure-message"), new Cons(intern("e"), null)), new Cons(new Cons(intern("if"), new Cons(new Cons(intern("error-object?"), new Cons(intern("e"), null)), new Cons(new Cons(intern("error-object-message"), new Cons(intern("e"), null)), new Cons("an object that is not an error was raised", null)))), null)))},
+      {form: new Cons(intern("define"), new Cons(new Cons(intern("emit-guarded"), new Cons(intern("lowered"), new Cons(intern("name"), new Cons(intern("closure"), new Cons(intern("env"), new Cons(intern("span"), null)))))), new Cons(new Cons(intern("guard"), new Cons(new Cons(intern("e"), new Cons(new Cons(true, new Cons(new Cons(intern("make-declined"), new Cons(intern("name"), new Cons(new Cons(intern("string-append"), new Cons("code generation failed: ", new Cons(new Cons(intern("failure-message"), new Cons(intern("e"), null)), null))), new Cons(false, null)))), null)), null)), new Cons(new Cons(intern("emit-lowered"), new Cons(intern("lowered"), new Cons(intern("name"), new Cons(intern("closure"), new Cons(intern("env"), new Cons(intern("span"), null)))))), null))), null)))},
+      {procedure: "generate-lambda"},
+      {procedure: "instantiate-generated"},
+      {procedure: "compile-lambda"},
+      {procedure: "compile-definition"},
+      {procedure: "expression-thunk"},
+      {procedure: "compile-expression"},
+      {procedure: "compile-expression-form"},
+      {procedure: "compile-closure"},
+      {procedure: "defined-within?"},
+      {procedure: "made-at-top-level?"},
+      {procedure: "environment-closures"},
+      {procedure: "generate-environment"},
+      {procedure: "compile-environment"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("step"), new Cons(new Cons(intern("make-step"), new Cons(intern("kind"), new Cons(intern("outcome"), new Cons(intern("value"), null)))), new Cons(intern("step?"), new Cons(new Cons(intern("kind"), new Cons(intern("step-kind"), null)), new Cons(new Cons(intern("outcome"), new Cons(intern("step-outcome"), null)), new Cons(new Cons(intern("value"), new Cons(intern("step-value"), null)), null)))))))},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("program-run"), new Cons(new Cons(intern("make-program-run"), new Cons(intern("compiled"), new Cons(intern("declined"), new Cons(intern("unsafe"), new Cons(intern("expressions"), new Cons(intern("value"), null)))))), new Cons(intern("program-run?"), new Cons(new Cons(intern("compiled"), new Cons(intern("program-run-compiled"), null)), new Cons(new Cons(intern("declined"), new Cons(intern("program-run-declined"), null)), new Cons(new Cons(intern("unsafe"), new Cons(intern("program-run-unsafe"), null)), new Cons(new Cons(intern("expressions"), new Cons(intern("program-run-expressions"), null)), new Cons(new Cons(intern("value"), new Cons(intern("program-run-value"), null)), null)))))))))},
+      {procedure: "run-top-level"},
+      {procedure: "compile-program"},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("facts"), new Cons(new Cons(intern("make-facts"), new Cons(intern("globals"), new Cons(intern("calls-unknown?"), new Cons(intern("control"), new Cons(intern("captures?"), null))))), new Cons(intern("facts?"), new Cons(new Cons(intern("globals"), new Cons(intern("facts-globals"), null)), new Cons(new Cons(intern("calls-unknown?"), new Cons(intern("facts-calls-unknown?"), null)), new Cons(new Cons(intern("control"), new Cons(intern("facts-control"), null)), new Cons(new Cons(intern("captures?"), new Cons(intern("facts-captures?"), null)), null))))))))},
+      {procedure: "lambda-facts"},
+      {procedure: "closure-facts"},
+      {procedure: "environment-facts"},
+      {procedure: "unsafe-from-facts"},
+      {procedure: "unsafe-definitions"},
+      {procedure: "program-unsafe-definitions"},
+      {procedure: "unsafe-closures"},
+      {form: new Cons(intern("define"), new Cons(intern("calls-before-compiling"), new Cons(2n, null)))},
+      {procedure: "compiled-when-bound?"},
+      {form: new Cons(intern("define"), new Cons(intern("library-calls-before-compiling"), new Cons(10n, null)))},
+      {form: new Cons(intern("define-record-type"), new Cons(intern("tier"), new Cons(new Cons(intern("make-tier-record"), new Cons(intern("interpreter"), new Cons(intern("env"), new Cons(intern("prebuilt?"), new Cons(intern("decline-captures?"), new Cons(intern("waiting"), new Cons(intern("outcomes"), new Cons(intern("expressions"), new Cons(intern("bound"), new Cons(intern("due"), new Cons(intern("form"), null))))))))))), new Cons(intern("tier?"), new Cons(new Cons(intern("interpreter"), new Cons(intern("tier-interpreter"), null)), new Cons(new Cons(intern("env"), new Cons(intern("tier-env"), null)), new Cons(new Cons(intern("prebuilt?"), new Cons(intern("tier-prebuilt-test"), null)), new Cons(new Cons(intern("decline-captures?"), new Cons(intern("tier-declines-captures?"), null)), new Cons(new Cons(intern("waiting"), new Cons(intern("tier-waiting"), null)), new Cons(new Cons(intern("outcomes"), new Cons(intern("tier-outcomes"), null)), new Cons(new Cons(intern("expressions"), new Cons(intern("tier-expressions"), new Cons(intern("set-tier-expressions!"), null))), new Cons(new Cons(intern("bound"), new Cons(intern("tier-bound-hook"), null)), new Cons(new Cons(intern("due"), new Cons(intern("tier-due-hook"), null)), new Cons(new Cons(intern("form"), new Cons(intern("tier-form-hook"), null)), null))))))))))))))},
+      {procedure: "make-tier"},
+      {procedure: "programs-own?"},
+      {procedure: "tier-manages?"},
+      {procedure: "tier-deferring?"},
+      {procedure: "tier-bound!"},
+      {procedure: "tier-due!"},
+      {procedure: "tier-compile!"},
+      {procedure: "compile-waiting"},
+      {procedure: "install-compiled!"},
+      {procedure: "tier-top-level-procedure"},
+      {form: new Cons(intern("define"), new Cons(intern("reentry-minimum"), new Cons(1024n, null)))},
+      {form: new Cons(intern("define"), new Cons(intern("reentry-ratio"), new Cons(4n, null)))},
+      {procedure: "re-entered?"},
+      {procedure: "next-resume-to-ask"},
+      {procedure: "first-resume-to-ask"},
+      {procedure: "note-resume"}
+    ]
   }
 };
 

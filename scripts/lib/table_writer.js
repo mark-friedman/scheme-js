@@ -11,8 +11,8 @@ import { setFileResolver, loadLibrarySync } from '../../src/core/interpreter/lib
 import { getFileResolver, getLibraryEnv } from '../../src/core/interpreter/library_registry.js';
 import { compileEnvironment } from '../../src/compiler/index.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
-import { callSchemeProcedure } from '../../src/core/interpreter/values.js';
-import { list } from '../../src/core/interpreter/cons.js';
+import { callSchemeProcedure, SCHEME_PRIMITIVE } from '../../src/core/interpreter/values.js';
+import { list, toArray } from '../../src/core/interpreter/cons.js';
 import { RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -25,10 +25,12 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
  * @param {Object} interpreter - The build's interpreter.
  * @param {Object} env - Its global environment.
  * @returns {{writable: (constants: Array<*>) => boolean,
+ *   restoring: (forms: Array<*>, env: Object, entries: Array<Object>) => Object,
  *   render: (module: Object) => string}} Whether a constant pool can be written
- *   down (`constants-expression`); and a module's text (`render-tables`), from
- *   `{generator, title, libraries}`, each library `{key, fingerprint, files,
- *   entries}` and each entry as `generateEnvironment` gives it.
+ *   down (`constants-expression`); what restores a library (`restoring`); and a
+ *   module's text (`render-tables`), from `{generator, title, libraries}`,
+ *   each library `{key, fingerprint, files, entries, restore}` and each entry
+ *   as `generateEnvironment` gives it, with a `span` if it is restored.
  */
 export function tableWriter(interpreter, env) {
   const previous = getFileResolver();
@@ -50,10 +52,75 @@ export function tableWriter(interpreter, env) {
   // build compiles it here.
   compileEnvironment(getLibraryEnv(['scheme-js', 'table-writer']));
   const call = (name, ...args) => callSchemeProcedure(exports.get(name), args);
-  const entry = (e) => list(e.name, list(...e.params), e.rest ?? false, list(...e.constants), e.source);
+  const entry = (e) => list(e.name, list(...e.params), e.rest ?? false, list(...e.constants), e.source,
+    e.span ?? false);
+
+  /**
+   * What restores a library from its table (`restore-sequence`): the forms
+   * its loading ran, each a procedure the table restores or the form itself,
+   * and which procedures those are, each given the span of its source. A
+   * procedure is restored when its definition made its final binding: the
+   * closure bound now, made in the library's own environment from source
+   * inside the form, and compiled in an entry.
+   * @param {Array<*>} forms - The library's top-level forms, in the order
+   *   loading ran them.
+   * @param {Object} env - The library's environment, before its table is
+   *   installed.
+   * @param {Array<Object>} entries - The entries its table will hold.
+   * @returns {{restore: (Cons|boolean), restored: Set<string>}} The sequence,
+   *   or false if a form in it cannot be written down; and the names restored.
+   */
+  const restoring = (forms, env, entries) => {
+    const byName = new Map(entries.map((e) => [e.name, e]));
+    const madeFinal = (name, form) => {
+      const closure = env.bindings.get(name.name);
+      return byName.get(name.name)?.closure === closure && closure.env === env
+        && within(closure.source, form.source);
+    };
+    madeFinal[SCHEME_PRIMITIVE] = true;
+    const restore = call('restore-sequence', list(...forms), madeFinal);
+    const restored = new Set(toArray(restore).filter((item) => item.car.name === 'procedure')
+      .map((item) => item.cdr.car.name));
+    for (const name of restored) byName.get(name).span = JSON.stringify(byName.get(name).closure.source);
+    return { restore: call('restore-writable?', restore) ? restore : false, restored };
+  };
+
   return {
     writable: (constants) => call('constants-expression', list(...constants)) !== false,
+    restoring,
     render: ({ generator, title, libraries }) => String(call('render-tables', generator, title, RUNTIME_INTERFACE,
-      list(...libraries.map((l) => list(l.key, l.fingerprint, list(...l.files), list(...l.entries.map(entry)))))))
+      list(...libraries.map((l) => list(l.key, l.fingerprint, list(...l.files), list(...l.entries.map(entry)),
+        l.restore ?? false)))))
+  };
+}
+
+/**
+ * Whether a span of source lies within another.
+ * @param {Object|undefined} inner - The inner span: `{filename, line, column,
+ *   endLine, endColumn}`.
+ * @param {Object|undefined} outer - The outer span.
+ * @returns {boolean}
+ */
+function within(inner, outer) {
+  if (!inner || !outer || inner.filename !== outer.filename) return false;
+  const before = (l1, c1, l2, c2) => l1 < l2 || (l1 === l2 && c1 <= c2);
+  return before(outer.line, outer.column, inner.line, inner.column)
+    && before(inner.endLine, inner.endColumn, outer.endLine, outer.endColumn);
+}
+
+/**
+ * An `analyze` that notes each form it is given, for the libraries' loading:
+ * the evaluator analyzes each top-level form of a library's body with it, all
+ * of one library's after the libraries it imports have loaded, and before its
+ * load hook runs.
+ * @param {Function} analyze - The analyzer.
+ * @returns {{analyze: Function, take: () => Array<*>}} The noting analyzer,
+ *   and the forms noted since last asked, which it forgets.
+ */
+export function notingAnalyzer(analyze) {
+  let noted = [];
+  return {
+    analyze: (form) => { noted.push(form); return analyze(form); },
+    take: () => { const forms = noted; noted = []; return forms; }
   };
 }

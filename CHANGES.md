@@ -11046,3 +11046,54 @@ compiling the writer, rather than leaving it interpreted, saves about 0.2 s a sc
 7,584 tests pass in Node with none failing (34 skipped), and 7,372 in the browser with
 none failing (56 skipped). `npm run prebuild` reaches a fixed point. Nothing under `src/` changed
 but the generated tables' local names.
+
+# Task 69, step 2: tables that say how to restore their libraries (2026-10-03)
+
+## Why
+
+A library's prebuilt table is to restore the library without its source running. For that it has
+to hold every top-level form loading the library runs, in order: a procedure's definition its
+compiled code stands for, or the form itself, to run as source is. This step writes that into the
+tables; libraries still load as before.
+
+## What a table now holds
+
+- **`restore`**: the library's top-level forms in the order loading runs them -- its `begin`
+  forms, then its included files' -- each `{procedure: name}` or `{form: ...}`, the form as data.
+  A form is a procedure item when it is a plain definition of a procedure, `(define (f ...) ...)`
+  or `(define f (lambda ...))` or with `case-lambda`, whose closure is the name's final binding,
+  made in the library's own environment from source inside that form, and compiled in the table.
+  Any other definition of the name runs as a form, in its place, so a form between two
+  definitions sees what it saw; a closure over a `let`, a procedure the compiler declined, and
+  the compiler's procedures that nothing it exports reaches, run as forms too.
+- **`span`**, on each procedure restored: where its source is, for the debugger, which a procedure
+  without a closure takes its location from.
+- **Tables for libraries of forms alone**: `(scheme control)` and `(scheme case-lambda)`, which
+  define macros and no procedures, have tables now, so that they too load without their files
+  being read.
+
+Over the shipped libraries, 447 procedures are restored and 65 forms run; over the compiler, 216
+and 36. The tables grew by 4% and 2%.
+
+## How the build finds them
+
+`notingAnalyzer` in `scripts/lib/table_writer.js` notes each form the evaluator analyzes as
+loading runs a library's body -- all of one library's after the libraries it imports have
+loaded, and before its load hook -- and the hook takes them. Which forms are procedure items is
+the writer's Scheme (`procedure-definition-name`, `restore-sequence`); whether a definition made
+the final binding, which needs the closures and their spans, is the wrapper's. A table whose forms
+cannot all be written down has no `restore`; none of today's lacks one.
+
+## Tests
+
+`table_writer_tests.scm`: which definitions name a procedure and which do not; a sequence in
+which a later definition replaces an earlier; a table's spans and `restore`, and one without.
+`prebuilt_library_tests.js`: every shipped table's sequence read back against its library's files
+-- one item for each top-level form, in order, each procedure item where its definition stands and
+with a span, each form item the form there -- and `(scheme core)`'s macros run as forms.
+
+## Verification
+
+7,618 tests pass in Node with none failing (34 skipped), and 7,406 in the browser with
+none failing (56 skipped). `npm run prebuild` reaches a fixed point. Nothing under `src/` changed
+but the generated tables.

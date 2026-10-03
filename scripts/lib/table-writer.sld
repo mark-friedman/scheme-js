@@ -10,5 +10,6 @@
   (import (scheme base)
           (only (srfi 152) string-split string-join))
   (export render-tables constants-expression constant-expression
-          json-string json-strings)
+          json-string json-strings
+          procedure-definition-name restore-sequence restore-writable?)
   (include "table_writer.scm"))

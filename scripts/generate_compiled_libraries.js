@@ -53,7 +53,7 @@ import { generateEnvironment } from '../src/compiler/index.js';
 import { installPrebuilt, installLibraryTable, fingerprintSources } from '../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { compilerStartFailure } from '../src/compiler/lowering.js';
-import { tableWriter } from './lib/table_writer.js';
+import { tableWriter, notingAnalyzer } from './lib/table_writer.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/compiled_libraries.js');
@@ -109,9 +109,10 @@ function libraryFiles(name) {
  * @param {string[]} name - The library's name.
  * @param {Object} env - Its own environment, just loaded.
  * @param {Object} writer - The table writer (`tableWriter`).
+ * @param {Array<*>} forms - Its top-level forms, in the order loading ran them.
  * @returns {Object} Its table, and what was left out of it.
  */
-function compileLibrary(name, env, writer) {
+function compileLibrary(name, env, writer, forms) {
   const files = libraryFiles(name);
   const fingerprint = fingerprintSources(files.map(readSource));
   const { generated, declined } = generateEnvironment(env, { ownOnly: true });
@@ -122,6 +123,8 @@ function compileLibrary(name, env, writer) {
   // reported, and the runtime leaves that procedure interpreted.
   const entries = generated.filter((entry) => writer.writable(entry.constants));
   const unserializable = generated.filter((entry) => !writer.writable(entry.constants));
+  // Decided before the table is installed, while the closures are bound.
+  const { restore, restored } = writer.restoring(forms, env, entries);
 
   const procedures = {};
   for (const entry of entries) {
@@ -134,7 +137,7 @@ function compileLibrary(name, env, writer) {
   }
   installPrebuilt(env, { fingerprint, files, procedures }, fingerprint);
 
-  return { key: libraryNameToKey(name), fingerprint, files, entries, declined, unserializable };
+  return { key: libraryNameToKey(name), fingerprint, files, entries, restore, restored, forms, declined, unserializable };
 }
 
 function main() {
@@ -160,7 +163,8 @@ function main() {
     return tableWriter(scratch.interpreter, scratch.env);
   });
   const libraries = [];
-  setLibraryLoadHook((name, libraryEnv) => libraries.push(compileLibrary(name, libraryEnv, writer)));
+  const noting = notingAnalyzer(analyze);
+  setLibraryLoadHook((name, libraryEnv) => libraries.push(compileLibrary(name, libraryEnv, writer, noting.take())));
 
   // Loading a library loads what it imports first, so the hook sees every
   // library after the ones it depends on.
@@ -168,13 +172,15 @@ function main() {
     .filter((file) => file.endsWith('.sld')).sort();
   for (const file of sldFiles) {
     const { name } = parseDefineLibrary(parse(readSource(file))[0]);
-    loadLibrarySync(name, analyze, interpreter, env);
+    loadLibrarySync(name, noting.analyze, interpreter, env);
   }
   setLibraryLoadHook(null);
 
-  // A library that defines no procedure of its own -- one that only
-  // re-exports, or whose procedures are all primitives -- needs no table.
-  const tables = libraries.filter((library) => library.entries.length > 0)
+  // A library that runs no form of its own -- one that only re-exports --
+  // needs no table. One whose forms are all macros, say, has one, which
+  // restores it without its files being read.
+  const tables = libraries.filter((library) => library.entries.length > 0
+    || (library.restore !== false && library.forms.length > 0))
     .sort((a, b) => a.key.localeCompare(b.key));
   fs.writeFileSync(OUTPUT, writer.render({
     generator: 'scripts/generate_compiled_libraries.js',
@@ -187,6 +193,9 @@ function main() {
     const bytes = library.entries.reduce((total, entry) => total + entry.source.length, 0);
     console.log(`  ${library.key}: ${library.entries.length} procedures, `
       + `${(bytes / 1024).toFixed(0)} KB, fingerprint ${library.fingerprint}`);
+    console.log(library.restore === false
+      ? '    cannot be restored: a form it runs cannot be written down'
+      : `    restores ${library.restored.size} procedures, and runs ${library.forms.length - library.restored.size} forms`);
     if (library.unserializable.length > 0) {
       console.log(`    ${library.unserializable.length} left out for a constant that cannot be `
         + `written down: ${library.unserializable.map((e) => e.name).join(' ')}`);

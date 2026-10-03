@@ -49,7 +49,7 @@ import { installLibraryTable, fingerprintSources } from '../src/compiler/prebuil
 import { COMPILER_LIBRARY, compilerStartFailure } from '../src/compiler/lowering.js';
 import { registerCompilerHost } from '../src/compiler/host.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
-import { tableWriter } from './lib/table_writer.js';
+import { tableWriter, notingAnalyzer } from './lib/table_writer.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/compiled_compiler.js');
@@ -101,8 +101,9 @@ let globalInterpreter = null;
  * whichever bindings are still *interpreted* closures, and the compiler's own
  * procedures are the only ones it should find.
  *
- * @returns {{env: Object, exports: Map<string, *>, files: string[]}} The
- *   library's environment and exports, and the files the fingerprint covers.
+ * @returns {{env: Object, exports: Map<string, *>, files: string[],
+ *   forms: Array<*>}} The library's environment and exports, the files the
+ *   fingerprint covers, and its top-level forms, in the order loading ran them.
  */
 function bootstrap() {
   const { interpreter, env } = createInterpreter();
@@ -110,11 +111,15 @@ function bootstrap() {
   registerCompilerHost(env);
   setFileResolver(resolve);
   const stale = [];
+  const noting = notingAnalyzer(analyze);
+  let forms = [];
   setLibraryLoadHook((name, libraryEnv) => {
+    const mine = noting.take();
+    if (libraryNameToKey(name) === libraryNameToKey(COMPILER_LIBRARY)) forms = mine;
     const outcome = installLibraryTable(prebuiltLibraries, name, libraryEnv, readSource);
     if (outcome !== null && outcome.stale) stale.push(libraryNameToKey(name));
   });
-  const exports = loadLibrarySync(COMPILER_LIBRARY, analyze, interpreter, env);
+  const exports = loadLibrarySync(COMPILER_LIBRARY, noting.analyze, interpreter, env);
   setLibraryLoadHook(null);
   if (stale.length > 0) {
     console.log(`  prebuilt tables are stale for ${stale.join(', ')}, so those stay interpreted;`);
@@ -124,7 +129,7 @@ function bootstrap() {
   const sld = `${COMPILER_LIBRARY[COMPILER_LIBRARY.length - 1]}.sld`;
   const libDef = parseDefineLibrary(parse(readSource(sld))[0]);
   const files = [sld, ...libDef.includes, ...libDef.includesCi, ...libDef.includeLibraryDeclarations];
-  return { env: getLibraryEnv(COMPILER_LIBRARY), exports, files };
+  return { env: getLibraryEnv(COMPILER_LIBRARY), exports, files, forms };
 }
 
 function main() {
@@ -135,7 +140,7 @@ function main() {
     console.error(`The compiler could not start, so nothing can be compiled: ${failure}`);
     process.exit(1);
   }
-  const { env, exports, files } = bootstrap();
+  const { env, exports, files, forms } = bootstrap();
   const fingerprint = fingerprintSources(files.map(readSource));
   const { generated, declined } = generateEnvironment(env, { ownOnly: true });
 
@@ -157,17 +162,21 @@ function main() {
   const writer = tableWriter(globalInterpreter.interpreter, globalInterpreter.env);
   const usable = mine.filter((entry) => writer.writable(entry.constants));
   const unserializable = mine.filter((entry) => !writer.writable(entry.constants));
+  const { restore, restored } = writer.restoring(forms, env, usable);
 
   fs.writeFileSync(OUTPUT, writer.render({
     generator: 'scripts/generate_compiled_compiler.js',
     title: 'The compiler\'s own library, compiled -- the step where it compiles itself.',
-    libraries: [{ key: libraryNameToKey(COMPILER_LIBRARY), fingerprint, files, entries: usable }]
+    libraries: [{ key: libraryNameToKey(COMPILER_LIBRARY), fingerprint, files, entries: usable, restore }]
   }), 'utf8');
 
   const bytes = usable.reduce((total, entry) => total + entry.source.length, 0);
   console.log(`Compiled the compiler -> ${path.relative(ROOT, OUTPUT)}`);
   console.log(`  ${usable.length} procedures, ${(bytes / 1024).toFixed(0)} KB of generated code`);
   console.log(`  fingerprint ${fingerprint}`);
+  console.log(restore === false
+    ? '  cannot be restored: a form it runs cannot be written down'
+    : `  restores ${restored.size} procedures, and runs ${forms.length - restored.size} forms`);
   const unreached = generated.length - mine.length;
   if (unreached > 0) console.log(`  ${unreached} not reachable from the exports, left out`);
   if (unserializable.length > 0) {

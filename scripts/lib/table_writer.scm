@@ -97,6 +97,64 @@
          (string-append "[" (string-join expressions ", ") "]"))))
 
 ;; ---------------------------------------------------------------------------
+;; What restores a library
+;; ---------------------------------------------------------------------------
+;;
+;; A library's table restores it when every top-level form loading it runs is
+;; either a procedure its code can bind at once, with no source run, or a form
+;; the table holds to run as source is. Nearly every form is a procedure's
+;; definition; the rest -- macros, record types, values -- are run in their
+;; places, so that the library ends as its source would leave it.
+
+;; /**
+;;  * The name a form defines a procedure under, if it is a plain top-level
+;;  * definition of one -- `(define (name . params) body ...)`, or `(define
+;;  * name (lambda ...))` or with `case-lambda` -- which does nothing but bind
+;;  * the name; else #f.
+;;  * @param {*} form - The form.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (procedure-definition-name form)
+  (and (pair? form) (eq? (car form) 'define) (pair? (cdr form))
+       (let ((target (cadr form)))
+         (cond ((pair? target) (and (symbol? (car target)) (car target)))
+               ((and (symbol? target) (pair? (cddr form)) (null? (cdddr form))
+                     (pair? (caddr form)) (memq (car (caddr form)) '(lambda case-lambda)))
+                target)
+               (else #f)))))
+
+;; /**
+;;  * A library's restore sequence: the top-level forms its loading ran, in
+;;  * order, each `(procedure name)` where it is a procedure's definition that
+;;  * made the name's final binding, which the table's code restores, or else
+;;  * `(form form)`. A definition whose binding a later form replaced runs as
+;;  * source, so that what the forms between them see is what they saw.
+;;  * @param {list} forms - The forms, in the order loading ran them.
+;;  * @param {procedure} made-final? - From a name and the form defining it to
+;;  *   whether that form made the name's final binding and the table holds its
+;;  *   procedure.
+;;  * @returns {list}
+;;  */
+(define (restore-sequence forms made-final?)
+  (map (lambda (form)
+         (let ((name (procedure-definition-name form)))
+           (if (and name (made-final? name form))
+               (list 'procedure name)
+               (list 'form form))))
+       forms))
+
+;; /**
+;;  * Whether every form a restore sequence holds can be written down.
+;;  * @param {list} restore - The sequence.
+;;  * @returns {boolean}
+;;  */
+(define (restore-writable? restore)
+  (let loop ((items restore))
+    (or (null? items)
+        (and (or (eq? (car (car items)) 'procedure) (constant-expression (cadr (car items))))
+             (loop (cdr items))))))
+
+;; ---------------------------------------------------------------------------
 ;; Modules
 ;; ---------------------------------------------------------------------------
 
@@ -106,9 +164,11 @@
 ;;  * The generated code is a function body that declares the procedure, marks
 ;;  * it and returns it; wrapped in an arrow, it is a value the module can
 ;;  * export, with no `new Function` anywhere.
-;;  * @param {list} entry - `(name params rest constants source)`: the
+;;  * @param {list} entry - `(name params rest constants source span)`: the
 ;;  *   procedure's name, its parameters' names, its rest parameter's name or
-;;  *   #f, its constant pool, and its code. Every constant can be written down.
+;;  *   #f, its constant pool, its code, and, for a procedure restored from the
+;;  *   table, the span of its source as a JavaScript object literal, or #f.
+;;  *   Every constant can be written down.
 ;;  * @returns {string}
 ;;  */
 (define (entry-text entry)
@@ -116,34 +176,59 @@
         (params (list-ref entry 1))
         (rest (list-ref entry 2))
         (constants (list-ref entry 3))
-        (source (list-ref entry 4)))
+        (source (list-ref entry 4))
+        (span (list-ref entry 5)))
     (string-append
       "      " (json-string name) ": {\n"
       "        params: " (json-strings params) ",\n"
       "        rest: " (if rest (json-string rest) "null") ",\n"
       "        constants: " (constants-expression constants) ",\n"
+      (if span (string-append "        span: " span ",\n") "")
       "        make: (R, E, K) => {\n"
       (string-join (map (lambda (line) (string-append "        " line)) (string-split source "\n")) "\n")
       "\n        }\n"
       "      }")))
 
 ;; /**
+;;  * A library's restore sequence, as the text of an array: each top-level
+;;  * form loading runs, in order, as `{procedure: name}` for one the table's
+;;  * code restores, or `{form: ...}`, the form itself, to be run as source is.
+;;  * @param {list} restore - The sequence (`restore-sequence`), every form in
+;;  *   it one that can be written down (`restore-writable?`).
+;;  * @returns {string}
+;;  */
+(define (restore-text restore)
+  (string-append
+    "    restore: [\n"
+    (string-join
+      (map (lambda (item)
+             (if (eq? (car item) 'procedure)
+                 (string-append "      {procedure: " (json-string (symbol->string (cadr item))) "}")
+                 (string-append "      {form: " (constant-expression (cadr item)) "}")))
+           restore)
+      ",\n")
+    "\n    ]\n"))
+
+;; /**
 ;;  * One library's table, as the text of an object property.
 ;;  * @param {string} runtime - The fingerprint of the runtime interface.
-;;  * @param {list} library - `(key fingerprint files entries)`: the library's
-;;  *   key, the fingerprint of its sources, the sources in the order the
-;;  *   fingerprint covers them -- its `.sld` and then each file it includes --
-;;  *   and its entries (`entry-text`).
+;;  * @param {list} library - `(key fingerprint files entries restore)`: the
+;;  *   library's key, the fingerprint of its sources, the sources in the order
+;;  *   the fingerprint covers them -- its `.sld` and then each file it
+;;  *   includes -- its entries (`entry-text`), and its restore sequence
+;;  *   (`restore-text`), or #f if it has none.
 ;;  * @returns {string}
 ;;  */
 (define (table-text runtime library)
-  (string-append
-    "  " (json-string (list-ref library 0)) ": {\n"
-    "    fingerprint: " (json-string (list-ref library 1)) ",\n"
-    "    runtime: " (json-string runtime) ",\n"
-    "    files: " (json-strings (list-ref library 2)) ",\n"
-    "    procedures: {\n" (string-join (map entry-text (list-ref library 3)) ",\n") "\n    }\n"
-    "  }"))
+  (let ((restore (list-ref library 4)))
+    (string-append
+      "  " (json-string (list-ref library 0)) ": {\n"
+      "    fingerprint: " (json-string (list-ref library 1)) ",\n"
+      "    runtime: " (json-string runtime) ",\n"
+      "    files: " (json-strings (list-ref library 2)) ",\n"
+      "    procedures: {\n" (string-join (map entry-text (list-ref library 3)) ",\n") "\n    }"
+      (if restore (string-append ",\n" (restore-text restore)) "\n")
+      "  }")))
 
 ;; /**
 ;;  * Whether a constant is, or holds inside its pairs, a value a predicate is
@@ -193,6 +278,10 @@
       "// taking the runtime, the environment its globals resolve in, and its constant\n"
       "// pool.\n"
       "//\n"
+      "// A table that can restore its library has a `restore` sequence: every\n"
+      "// top-level form loading the library runs, in order, each a procedure its code\n"
+      "// restores, which needs no source run, or the form itself, run as source is.\n"
+      "//\n"
       "// Each table's `fingerprint` is of the sources it was generated from, and\n"
       "// `runtime` of the runtime interface its code calls.\n"
       "// `installLibraryTable` in src/compiler/prebuilt.js recomputes it and installs\n"
@@ -200,7 +289,7 @@
       "// rather than running code for source that has since changed.\n"
       (if (null? imports) "" (string-append "\n" (string-join imports "\n") "\n"))
       "\n"
-      "/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, make: Function}>}>} */\n"
+      "/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, restore?: Array<{procedure: string}|{form: *}>}>} */\n"
       "export const LIBRARIES = {\n"
       (string-join (map (lambda (library) (table-text runtime library)) libraries) ",\n")
       "\n};\n"

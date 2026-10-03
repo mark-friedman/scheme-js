@@ -17,7 +17,8 @@ import { assert } from '../harness/helpers.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
-import { loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
+import { loadLibrarySync, parseDefineLibrary } from '../../src/core/interpreter/library_loader.js';
+import { writeString } from '../../src/core/primitives/io/printer.js';
 import {
   withPrivateLibraries, getFileResolver, setFileResolver, setLibraryLoadHook, isCompiledOver,
   isLibraryLoaded, getLibraryEnv, getLibraryExports, registerLibrary, libraryNameToKey
@@ -93,6 +94,46 @@ export async function runPrebuiltLibraryTests(logger) {
   assert(logger, 'the libraries a page uses most have tables',
     ['scheme.core', 'scheme.lazy', 'srfi.1', 'srfi.125', 'srfi.128', 'srfi.152']
       .filter((key) => LIBRARIES[key] === undefined), []);
+
+  logger.title('Prebuilt libraries - each table restores its library');
+  {
+    // A table restores its library from its `restore` sequence: every
+    // top-level form loading the library runs -- its `begin` forms, then its
+    // included files' -- in that order, each a procedure the table's code
+    // binds or the form itself. Read back against the files it was built from.
+    const sourceForms = (files, sourceOf) => {
+      const definition = parseDefineLibrary(parse(sourceOf(files[0]))[0]);
+      return [...definition.body,
+        ...definition.includes.flatMap((file) => parse(sourceOf(file))),
+        ...definition.includesCi.flatMap((file) => parse(sourceOf(file), { caseFold: true }))];
+    };
+    const defines = (form, name) => form.car?.name === 'define'
+      && (form.cdr.car.car?.name === name || form.cdr.car.name === name);
+    const tables = [...Object.entries(LIBRARIES).map(([key, table]) => [key, table, (f) => BUNDLED_SOURCES[f]]),
+      ...Object.entries(COMPILER).map(([key, table]) => [key, table, compilerSourceOf])];
+    for (const [key, table, sourceOf] of tables) {
+      const library = `(${key.replace('.', ' ')})`;
+      const restore = table.restore ?? [];
+      const forms = sourceForms(table.files, sourceOf);
+      const wrong = restore.map((item, i) => {
+        if (forms[i] === undefined) return `item ${i}: no form`;
+        if (item.procedure !== undefined) {
+          if (!defines(forms[i], item.procedure)) return `item ${i}: ${item.procedure} is not defined there`;
+          if (table.procedures[item.procedure]?.span === undefined) return `item ${i}: ${item.procedure} has no span`;
+          return null;
+        }
+        return writeString(item.form) === writeString(forms[i]) ? null : `item ${i}: not the form there`;
+      }).filter((problem) => problem !== null);
+      assert(logger, `${library} restores from a sequence of its forms, in order`,
+        [table.restore !== undefined, restore.length, wrong], [true, forms.length, []]);
+    }
+    const core = LIBRARIES['scheme.core'].restore;
+    assert(logger, "(scheme core)'s macros run as forms", core.some((item) =>
+      item.form?.car?.name === 'define-syntax' && item.form.cdr.car.name === 'cond'), true);
+    assert(logger, 'and its procedures are restored', core.some((item) => item.procedure === 'map'), true);
+    assert(logger, 'a library of macros alone has a table that restores it',
+      LIBRARIES['scheme.control']?.restore?.every((item) => item.form !== undefined), true);
+  }
 
   logger.title('Prebuilt libraries - each procedure declares the runtime values it names');
   {
