@@ -18,7 +18,9 @@ import { SchemeSyntaxError } from './errors.js';
  * Parses a define-library form and extracts its clauses.
  * 
  * @param {Cons} form - The define-library S-expression
- * @returns {Object} { name, exports, imports, body, includes, includesCi, includeLibraryDeclarations }
+ * @returns {Object} { name, exports, imports, body, includes, includesCi,
+ *   includeLibraryDeclarations, form }, `form` the form itself, which the
+ *   library system takes apart again to define the library.
  */
 export function parseDefineLibrary(form) {
     const arr = toArray(form);
@@ -40,7 +42,8 @@ export function parseDefineLibrary(form) {
         body: [],
         includes: [],
         includesCi: [],
-        includeLibraryDeclarations: []
+        includeLibraryDeclarations: [],
+        form
     };
 
     // Parse clauses using shared processor

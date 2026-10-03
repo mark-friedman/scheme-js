@@ -3223,3 +3223,20 @@ inlining, arity specialization, unboxed fixnum paths guarded by tower fallback, 
 analysis to stack-allocate environments for procedures whose closures never escape.
 
 ---
+
+**R109. The library system in Scheme was to cost 5-10 ms a start.**
+
+Task 64's design estimated what moving the library system to Scheme would cost a start: reading and
+running its source, 5-10 ms, which it is (8). The start grew by 87 ms from the CLI without the tier,
+118 with it, and 77 for a page. The estimate counted the library system's source and nothing it
+does. Kept apart from programs, the library system loads its own `(scheme core)`, so a process
+loads that twice, 24 ms counting the reader's and analyzer's warming up. And the loader itself is
+interpreted: binding each of a library's exports, finding each export's value, taking each
+`define-library` apart -- loops the JavaScript ran in microseconds -- took the CLI's imports from 48
+ms to 100. The belief under the estimate, that loading libraries is a small cost beside a program's
+own work, holds for a long program and is false at a start, which is mostly loading the standard
+library; and for the corpus, whose libraries load from source, short programs took about 22 ms more
+each, 1.45 times as long in the geometric mean.
+
+*Consequence:* the library system has to run compiled. It has a prebuilt table, as every shipped
+library does, which nothing installs while the seed loads it.

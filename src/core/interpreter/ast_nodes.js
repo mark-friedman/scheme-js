@@ -582,32 +582,26 @@ export class BeginNode extends Executable {
 }
 
 /**
- * AST Node for top-level import.
- * Populates the environment with exports from a loaded library.
- * Libraries must be loaded into the registry first.
+ * AST Node for import.
+ * Imports its import sets into the environment it runs in, loading their
+ * libraries synchronously.
  */
 export class ImportNode extends Executable {
     /**
-     * @param {Array<object>} importSpecs - Array of { libraryName, only, except, rename, prefix }
-     * @param {Function} loadLibrary - Function to load a library recursively (sync or async depending on usage)
-     * @param {Function} applyImports - Function to apply imports to an environment
+     * @param {Array} importSpecs - The import sets, as the form writes them.
+     * @param {Function} importLibraries - Imports import sets into an
+     *   environment (`importLibraries` in library_loader.js).
      * @param {Function} analyze - Analyze function for loading libraries
      */
-    constructor(importSpecs, loadLibrary, applyImports, analyze) {
+    constructor(importSpecs, importLibraries, analyze) {
         super();
         this.importSpecs = importSpecs;
-        this.loadLibrary = loadLibrary;
-        this.applyImports = applyImports;
+        this.importLibraries = importLibraries;
         this.analyze = analyze;
     }
 
     step(registers, interpreter) {
-        const env = registers[ENV];
-        for (const spec of this.importSpecs) {
-            // Load the library (synchronously if loadLibrary is sync)
-            const exports = this.loadLibrary(spec.libraryName, this.analyze, interpreter, env);
-            this.applyImports(env, exports, spec);
-        }
+        this.importLibraries(this.importSpecs, this.analyze, interpreter, registers[ENV]);
         registers[ANS] = true;
         return false;
     }
@@ -619,21 +613,20 @@ export class ImportNode extends Executable {
  */
 export class DefineLibraryNode extends Executable {
     /**
-     * @param {Object} libDef - Parsed library definition
-     * @param {Function} evaluateLibraryDefinition - Function to evaluate and register library
+     * @param {Cons} form - The define-library form.
+     * @param {Function} defineLibrary - Defines and registers a library from
+     *   its form (`defineLibrary` in library_loader.js).
      * @param {Function} analyze - Analyze function
      */
-    constructor(libDef, evaluateLibraryDefinition, analyze) {
+    constructor(form, defineLibrary, analyze) {
         super();
-        this.libDef = libDef;
-        this.evaluateLibraryDefinition = evaluateLibraryDefinition;
+        this.form = form;
+        this.defineLibrary = defineLibrary;
         this.analyze = analyze;
     }
 
     step(registers, interpreter) {
-        const env = registers[ENV];
-        // Evaluate the library (synchronously if evaluateLibraryDefinition is sync)
-        this.evaluateLibraryDefinition(this.libDef, this.analyze, interpreter, env);
+        this.defineLibrary(this.form, this.analyze, interpreter, registers[ENV]);
         registers[ANS] = true; // Returns true/unspecified
         return false;
     }

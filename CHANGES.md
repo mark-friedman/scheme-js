@@ -10696,3 +10696,115 @@ library before its files run, as it does the other libraries they import.
 The library ships, compiled at build time (13 procedures). 7,502 tests pass in Node with none
 failing (34 skipped), and 7,290 in the browser with none failing (56 skipped), the library
 system's four groups among them. JavaScript under `src/`: none; Scheme 296 lines added.
+
+# Task 64, step 2: the switch-over -- libraries loaded by the Scheme (2026-10-03)
+
+## Why
+
+The second step of task 64: the library system in Scheme, `(scheme-js library-system)`, now loads
+every library, from the JavaScript seed loader the user chose, and the JavaScript that loaded them
+is gone. What remains for the task: substituting library values and the compiled-over records
+(step 3), and the loop that fetches an asynchronous resolver's files by asking the Scheme (step 4),
+which takes `library_parser.js` with it.
+
+## The Scheme
+
+`library_system.scm` gained, beside step 1's parsing:
+
+- **Names**: a library's key (`library-key`, "scheme.base"), the strings the resolver is given, the
+  name its source is read under, and the path of a file it includes.
+- **Registries**: a `library-registry` record -- the libraries loaded, by key, the host's file
+  resolver and load hook, and the features `cond-expand` finds -- and a `library` record, a
+  library's exports, `(name . value)`, and its environment. A syntactic keyword a library exports
+  is a `syntactic-keyword` record, its name and its transformer or #f. The top level still holds
+  no state: whoever starts the system makes the registry and holds it.
+- **Loading**: a `loader` record -- the registry, where files come from, and the host's environment
+  and evaluator for the load -- and `load-library`, `define-library!` and `evaluate-definition!`:
+  a library's file read, its definition taken apart, its environment made, its imports loaded and
+  imported, its files of library declarations read and taken apart as declarations, its body and
+  included files run, and its exports found (`export-value`: a variable's value; a keyword, under
+  its own name or the one it was imported as; a JavaScript global last). Libraries loaded by name
+  go to the load hook. `library-available?` decides `(library ...)` in `cond-expand` as the
+  JavaScript did: loaded, or a file the resolver returns at once that declares that library.
+- **Importing**: `import-sets!`, an `import` form's import sets, and `import-into!`, a library's
+  exports bound in an environment under the names the filters give: a variable defined there, a
+  keyword bound in the analyzer's tables under the environment's scope.
+
+A library's `begin` forms still run before its included files whatever order they are declared in,
+as they always have here (`(scheme lazy)` declares its file before the macros its `begin` defines),
+and each file of library declarations' forms after. The files such a file includes are now read;
+the JavaScript collected them after reading the library's includes, and so never read them.
+
+## The host's part
+
+- **The seed** (`src/core/interpreter/library_seed.js`): loads `(scheme core)`, `(scheme control)`
+  and the library system from the bundled sources, handling only `import`, `include`, `begin` and
+  `export`, on an interpreter of its own, and registers them nowhere. The library system is a tool
+  that runs Scheme on a program's behalf, as the compiler is, and kept apart for the same reason:
+  a program binding `car` or `assoc` at its own top level must not change how its libraries load.
+  A program's `(scheme core)` is loaded for it like any other library.
+- **Primitives** (`src/core/primitives/library.js`): calling the resolver (a promise is no answer
+  now, and is left to settle) and the load hook, reading a file's forms, making a library's
+  environment with its scope, defining and looking up names in one, and the analyzer's keyword
+  and macro tables.
+- **The JavaScript API** (`library_registry.js`, `library_loader.js`) keeps its signatures and only
+  calls the Scheme: it holds the current registry, made at first use (which loads the library
+  system), swaps it for `withPrivateLibraries`, and converts names to lists of symbols and exports
+  to `Map`s. It hands the Scheme an evaluator over the caller's interpreter, which runs each form
+  with the library's defining scope. `import` and `define-library` forms now go to
+  `importLibraries` and `defineLibrary`. `loadLibrary`, for a resolver answering with promises,
+  still fetches the files ahead with the JavaScript parser, then loads through the Scheme from
+  them; step 4 replaces that.
+- **Substitution and the compiled-over records** stay JavaScript until step 3, reading the
+  registry's libraries through `library-bindings`.
+
+## A bug in `eval`, found on the way
+
+`eval` returns its analyzed expression for the interpreter to run in the environment given, but
+where the call was not in tail position the interpreter ran it in the environment around the call:
+`(eval '(define x 1) env)` inside a procedure defined `x` in the procedure's frame. The library
+system's tests evaluate a library's body that way, and found it. Fixed in `frames.js`; two tests
+in `tests/core/scheme/eval_tests.scm`.
+
+## Tests
+
+`library_system_tests.scm`: library names and their errors; loading from files given as an
+association list -- exports, renamed exports, an import set's filters, includes, `include-ci`,
+files of library declarations, `cond-expand` finding a loadable library and not one whose file
+declares another or that cannot be found, the order libraries are registered, a `define-library`
+form, importing into an environment, an empty file, and a resolver that cannot answer now -- and
+each file read once. `library_loader_tests.js`: a program binding, at its own top level, names the
+library system uses changes nothing about loading, and the library system's libraries are not the
+program's. One test changed: it applied a filtered import set with `applyImports`, which now
+imports every export, and imports it through `importLibraries` instead.
+
+## Measured
+
+Every figure old against new, interleaved.
+
+- **Start-up**, `(display 1)` from the CLI: 305 to 423 ms with the tier, 159 to 246 ms without.
+  A page's start, the bundle's evaluation: 108 to 185 ms.
+- **Where the CLI's 87 ms go**: the seed, 35 ms -- `(scheme core)` 24, which a process now loads
+  twice, and which pays the reader's and analyzer's warming up; `(scheme control)` 2; the library
+  system's own source 8. The rest is the loader running interpreted: the CLI's imports took 48 ms
+  and take 100, about 30 of it the loop binding each import. Running libraries' bodies and
+  installing their tables cost what they did.
+- **`run_tier.js`**, each program in a process of its own: the test files, 978 to 1,026 ms in all
+  with the tier, geometric mean 1.04, the files that define many small libraries up to 4x; the
+  corpus, whose libraries load from source, 3,468 to 4,314 ms, geometric mean 1.45, its short
+  programs about 22 ms more each. Nothing wrong or broken in either.
+
+The plan estimated the start-up cost of reading and running the library system's source at 5-10
+ms; that part is 8, but the whole is 77 to 118 ms (R109 in the findings log). The library system
+has a prebuilt table, which the seed does not install.
+
+## Verification
+
+7,526 tests pass in Node with none failing (34 skipped), and 7,314 in the browser with none failing
+(56 skipped). `npm run prebuild` reaches a fixed point; the generated tables' local names moved,
+since the seed takes unique ids first. Lines under `src/` since step 1: Scheme 520 added, 9
+removed; JavaScript 627 added, 575 removed. The JavaScript added: the seed, 149 lines, the
+start-up bootstrap the user chose; the library primitives, 139, host input and output (the
+resolver, the hook), the reader (until 63), and `Environment` and the analyzer's tables (the
+evaluator, until 68); the API's rewrite, which only calls the Scheme and converts; and 4 lines in
+`frames.js`, the evaluator's fix.

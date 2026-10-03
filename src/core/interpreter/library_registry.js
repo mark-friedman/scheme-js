@@ -1,45 +1,102 @@
 /**
- * Library Registry Module
- * 
- * Manages the registry of loaded libraries and feature detection.
- * This module is pure data management - no loading or parsing.
+ * The library system's door from JavaScript.
+ *
+ * The library system is Scheme: `(scheme-js library-system)`, in
+ * src/core/scheme/library_system.scm, loaded at first use by its seed
+ * (library_seed.js). It holds the registries of loaded libraries, the
+ * features `cond-expand` finds, and how libraries are loaded and imported.
+ * What is here is the JavaScript API, which only calls it: it holds the
+ * current registry, which a tool swaps for one of its own for a while
+ * (`withPrivateLibraries`), and converts what crosses -- a library's name, as
+ * an array of strings, to a list of symbols, and a library's exports, a list
+ * of `(name . value)`, to a `Map` -- so that JavaScript callers see what they
+ * always have.
  */
 
-import { toArray, list, Cons } from './cons.js';
-import { parse } from './reader.js';
-import { Symbol } from './symbol.js';
-import { SchemeSyntaxError } from './errors.js';
+import { list, cons, toArray } from './cons.js';
+import { Symbol, intern } from './symbol.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from './values.js';
 import { globalContext } from './context.js';
+import { seedLibrarySystem } from './library_seed.js';
 
 // =============================================================================
-// Feature Registry (for cond-expand)
+// The library system, and the current registry
 // =============================================================================
 
 /**
- * Feature registry for cond-expand and (features) primitive.
- * Standard R7RS features plus implementation-specific ones.
- * This is the single source of truth for all features.
+ * The procedures `(scheme-js library-system)` exports, once it is loaded.
+ * @type {Map<string, Function>|null}
  */
-const features = new Set([
-    'r7rs',           // R7RS Scheme
-    'scheme-js',      // This implementation
-    'exact-closed',   // Rationals not implemented, but we can claim this for integers
-    'ratios',         // Rational number support
-    'ieee-float',     // JavaScript uses IEEE 754
-    'full-unicode',   // Full Unicode support in strings
-]);
+let librarySystem = null;
 
-// Detect Node.js vs browser and add appropriate feature
-const isNode = typeof process !== 'undefined' &&
-    process.versions != null &&
-    process.versions.node != null;
+/**
+ * The registry libraries are loaded into and found in now.
+ * @type {Object|null}
+ */
+let libraryRegistry = null;
 
-if (isNode) {
-    features.add('node');
-} else {
-    features.add('browser');
+/**
+ * Calls one of the library system's procedures, loading the library system
+ * first if this is the first call.
+ * @param {string} name - The procedure's name, as the library exports it.
+ * @param {...*} args - Its arguments, Scheme values.
+ * @returns {*} Its result.
+ */
+export function callLibrarySystem(name, ...args) {
+    if (librarySystem === null) librarySystem = seedLibrarySystem();
+    return callSchemeProcedure(librarySystem.get(name), args);
 }
+
+/**
+ * The registry libraries are loaded into now, made at first use with no
+ * libraries, no resolver, and the features of this implementation on this
+ * host.
+ * @returns {Object} The registry.
+ */
+export function currentLibraryRegistry() {
+    if (libraryRegistry === null) {
+        const host = typeof process !== 'undefined' && process.versions?.node != null ? 'node' : 'browser';
+        libraryRegistry = callLibrarySystem('make-library-registry', false, false,
+            callLibrarySystem('standard-features', intern(host)));
+    }
+    return libraryRegistry;
+}
+
+/**
+ * A library's name as the library system takes it: a list of symbols.
+ * @param {Array|Cons} name - The name, its parts strings, symbols or numbers.
+ * @returns {Cons}
+ */
+export function schemeLibraryName(name) {
+    const parts = Array.isArray(name) ? name : toArray(name);
+    return list(...parts.map(p => p instanceof Symbol ? p : intern(String(p))));
+}
+
+/**
+ * A library's exports as JavaScript is given them.
+ * @param {Cons|null|boolean} exports - The exports, `(name . value)`, or #f.
+ * @returns {Map<string, *>|null} The exports by name, or null for #f.
+ */
+export function exportsMap(exports) {
+    if (exports === false) return null;
+    const map = new Map();
+    for (let rest = exports; rest !== null; rest = rest.cdr) map.set(rest.car.car.name, rest.car.cdr);
+    return map;
+}
+
+/**
+ * A library's exports as the library system holds them.
+ * @param {Map<string, *>|Object} exports - The exports by name.
+ * @returns {Cons|null} The exports, `(name . value)`.
+ */
+export function exportsAlist(exports) {
+    const entries = exports instanceof Map ? [...exports] : Object.entries(exports);
+    return list(...entries.map(([name, value]) => cons(intern(name), value)));
+}
+
+// =============================================================================
+// Features (for cond-expand)
+// =============================================================================
 
 /**
  * Checks if a feature is supported.
@@ -47,7 +104,7 @@ if (isNode) {
  * @returns {boolean}
  */
 export function hasFeature(featureName) {
-    return features.has(featureName);
+    return getFeatures().includes(featureName);
 }
 
 /**
@@ -55,7 +112,7 @@ export function hasFeature(featureName) {
  * @param {string} featureName - Feature identifier
  */
 export function addFeature(featureName) {
-    features.add(featureName);
+    callLibrarySystem('add-feature!', currentLibraryRegistry(), intern(featureName));
 }
 
 /**
@@ -63,98 +120,17 @@ export function addFeature(featureName) {
  * @returns {string[]}
  */
 export function getFeatures() {
-    return Array.from(features);
+    return toArray(callLibrarySystem('registry-features', currentLibraryRegistry())).map(f => f.name);
 }
 
 /**
  * Evaluates a cond-expand feature requirement.
- * 
+ *
  * @param {Symbol|Cons} requirement - Feature requirement expression
  * @returns {boolean} True if requirement is satisfied
  */
 export function evaluateFeatureRequirement(requirement) {
-    // Simple feature identifier
-    if (requirement instanceof Symbol) {
-        return features.has(requirement.name);
-    }
-
-    // Compound requirement: (and ...), (or ...), (not ...), (library ...)
-    const arr = toArray(requirement);
-    if (arr.length === 0) return false;
-
-    const tag = arr[0];
-    if (!(tag instanceof Symbol)) return false;
-
-    switch (tag.name) {
-        case 'and':
-            // All requirements must be true
-            for (let i = 1; i < arr.length; i++) {
-                if (!evaluateFeatureRequirement(arr[i])) return false;
-            }
-            return true;
-
-        case 'or':
-            // At least one requirement must be true
-            for (let i = 1; i < arr.length; i++) {
-                if (evaluateFeatureRequirement(arr[i])) return true;
-            }
-            return false;
-
-        case 'not':
-            // Negation
-            if (arr.length !== 2) {
-                throw new SchemeSyntaxError('(not) requires exactly one argument', requirement, 'cond-expand');
-            }
-            return !evaluateFeatureRequirement(arr[1]);
-
-        case 'library':
-            // Check if library is available (loaded or loadable)
-            if (arr.length !== 2) {
-                throw new SchemeSyntaxError('(library) requires a library name', requirement, 'cond-expand');
-            }
-            const libName = toArray(arr[1]);
-            const libKey = libraryNameToKey(libName);
-            return libraryRegistry.has(libKey) || isLibraryAvailable(libName);
-
-        default:
-            // Unknown tag - treat as false
-            return false;
-    }
-}
-
-/**
- * Whether a library not loaded yet could be imported: whether the file
- * resolver finds, at once, a file declaring it. Nothing is loaded.
- *
- * `cond-expand` is decided as its form is analyzed, so an asynchronous
- * resolver, which would have to fetch the file, cannot answer in time; for
- * one, a library not loaded yet is not available. A file declaring another
- * library is not this one, though a resolver finding libraries by the last
- * part of their names returns one.
- *
- * @param {Array} libName - The library's name, as written.
- * @returns {boolean}
- */
-function isLibraryAvailable(libName) {
-    if (fileResolver === null) return false;
-    const parts = libName.map(p => p instanceof Symbol ? p.name : String(p));
-    let source;
-    try {
-        source = fileResolver(parts);
-    } catch (e) {
-        return false;
-    }
-    if (typeof source !== 'string') {
-        // A pending fetch nothing will wait for, whose failure is not an error.
-        if (source && typeof source.then === 'function') source.then(() => {}, () => {});
-        return false;
-    }
-    try {
-        const form = parse(source).find(f => f instanceof Cons && f.car instanceof Symbol && f.car.name === 'define-library');
-        return form !== undefined && libraryNameToKey(form.cdr.car) === libraryNameToKey(libName);
-    } catch (e) {
-        return false;
-    }
+    return callLibrarySystem('registry-requirement-met?', currentLibraryRegistry(), requirement);
 }
 
 // =============================================================================
@@ -162,24 +138,12 @@ function isLibraryAvailable(libName) {
 // =============================================================================
 
 /**
- * Registry of loaded libraries.
- * Key: stringified library name (e.g., "scheme.base")
- * Value: { exports: Map<string, value>, env: Environment }
- */
-let libraryRegistry = new Map();
-
-/**
- * File resolver function (set by runtime).
- * @type {(libraryName: string[]) => Promise<string>}
- */
-let fileResolver = null;
-
-/**
  * Sets the file resolver for loading library files.
- * @param {Function} resolver - (libraryName: string[]) => Promise<string>
+ * @param {Function|null} resolver - (libraryName: string[]) => string, or a
+ *   promise of it
  */
 export function setFileResolver(resolver) {
-    fileResolver = resolver;
+    callLibrarySystem('set-registry-resolver!', currentLibraryRegistry(), resolver ?? false);
 }
 
 /**
@@ -187,14 +151,9 @@ export function setFileResolver(resolver) {
  * @returns {Function|null}
  */
 export function getFileResolver() {
-    return fileResolver;
+    const resolver = callLibrarySystem('registry-resolver', currentLibraryRegistry());
+    return resolver === false ? null : resolver;
 }
-
-/**
- * Called with each library loaded from a file, once it has been evaluated.
- * @type {((libraryName: string[], env: Environment) => void)|null}
- */
-let libraryLoadHook = null;
 
 /**
  * Sets what runs on each library loaded from a file.
@@ -208,16 +167,7 @@ let libraryLoadHook = null;
  *   with the library's name and its own environment, or null for none.
  */
 export function setLibraryLoadHook(hook) {
-    libraryLoadHook = hook;
-}
-
-/**
- * Runs the library-load hook, if one is set.
- * @param {string[]} libraryName - The library's name.
- * @param {Environment} env - The library's own environment.
- */
-export function runLibraryLoadHook(libraryName, env) {
-    if (libraryLoadHook !== null) libraryLoadHook(libraryName, env);
+    callLibrarySystem('set-registry-load-hook!', currentLibraryRegistry(), hook ?? false);
 }
 
 /**
@@ -233,10 +183,11 @@ export function runLibraryLoadHook(libraryName, env) {
  * find them already loaded -- by the compiler -- and never see them load.
  *
  * Inside `fn`, the registry starts empty and the resolver and hook are the
- * ones given; afterwards all three are as they were, whether `fn` returned or
- * threw. Libraries loaded inside stay alive through whatever holds them, and
- * are found by nothing outside: not by name, and not by scope, since the
- * entries made inside in the analyzer's tables keyed by scope go too
+ * ones given, with the features of the registry outside; afterwards the
+ * registry outside is current again, whether `fn` returned or threw.
+ * Libraries loaded inside stay alive through whatever holds them, and are
+ * found by nothing outside: not by name, and not by scope, since the entries
+ * made inside in the analyzer's tables keyed by scope go too
  * (`leavePrivateLibraries` in context.js). Loading is synchronous, so nothing
  * else can observe the swap.
  *
@@ -248,24 +199,23 @@ export function runLibraryLoadHook(libraryName, env) {
  * @returns {*} What `fn` returned.
  */
 export function withPrivateLibraries({ resolver, hook = null }, fn) {
-    const saved = { registry: libraryRegistry, resolver: fileResolver, hook: libraryLoadHook };
+    const saved = currentLibraryRegistry();
+    const registry = callLibrarySystem('make-library-registry', resolver ?? false, hook ?? false,
+        callLibrarySystem('registry-features', saved));
     globalContext.enterPrivateLibraries();
-    libraryRegistry = new Map();
-    fileResolver = resolver;
-    libraryLoadHook = hook;
+    libraryRegistry = registry;
     try {
         return fn();
     } finally {
         globalContext.leavePrivateLibraries();
-        libraryRegistry = saved.registry;
-        fileResolver = saved.resolver;
-        libraryLoadHook = saved.hook;
+        libraryRegistry = saved;
     }
 }
 
 
 /**
- * Converts a library name to a string key.
+ * Converts a library name to a string key, as the library system keys its
+ * registries (`library-key`).
  * (scheme base) -> "scheme.base"
  * @param {Array|Cons} name - Library name as list or array
  * @returns {string}
@@ -276,12 +226,21 @@ export function libraryNameToKey(name) {
 }
 
 /**
+ * The key of a library given by name parts or by key.
+ * @param {string|Array} library - Library name parts or library key.
+ * @returns {string}
+ */
+function keyOf(library) {
+    return typeof library === 'string' ? library : libraryNameToKey(library);
+}
+
+/**
  * Checks if a library is already loaded.
  * @param {string} key - Library key
  * @returns {boolean}
  */
 export function isLibraryLoaded(key) {
-    return libraryRegistry.has(key);
+    return callLibrarySystem('registered-exports', currentLibraryRegistry(), key) !== false;
 }
 
 /**
@@ -290,9 +249,7 @@ export function isLibraryLoaded(key) {
  * @returns {Map|null}
  */
 export function getLibraryExports(library) {
-    const key = Array.isArray(library) ? libraryNameToKey(library) : library;
-    const lib = libraryRegistry.get(key);
-    return lib ? lib.exports : null;
+    return exportsMap(callLibrarySystem('registered-exports', currentLibraryRegistry(), keyOf(library)));
 }
 
 /**
@@ -301,9 +258,8 @@ export function getLibraryExports(library) {
  * @returns {Environment|null}
  */
 export function getLibraryEnv(library) {
-    const key = Array.isArray(library) ? libraryNameToKey(library) : library;
-    const lib = libraryRegistry.get(key);
-    return lib ? lib.env : null;
+    const env = callLibrarySystem('registered-environment', currentLibraryRegistry(), keyOf(library));
+    return env === false ? null : env;
 }
 
 /**
@@ -313,7 +269,7 @@ export function getLibraryEnv(library) {
  * @param {Environment} env - Library environment
  */
 export function registerLibrary(key, exports, env) {
-    libraryRegistry.set(key, { exports, env });
+    callLibrarySystem('register-exports!', currentLibraryRegistry(), key, exportsAlist(exports), env);
 }
 
 /**
@@ -332,15 +288,17 @@ export function registerLibrary(key, exports, env) {
  *
  * @param {Map<*, *>} replacements - Each replaced value, mapped to its
  *   replacement.
- * @param {Map<string, Object>} [registry] - The registry whose libraries to
- *   change; the current one by default.
+ * @param {Object} [registry] - The registry whose libraries to change; the
+ *   current one by default.
  */
-export function substituteLibraryValues(replacements, registry = libraryRegistry) {
+export function substituteLibraryValues(replacements, registry = currentLibraryRegistry()) {
     if (replacements.size === 0) return;
-    for (const { exports, env } of registry.values()) {
-        for (const [name, value] of exports) {
-            const replacement = replacements.get(value);
-            if (replacement !== undefined) exports.set(name, replacement);
+    const libraries = toArray(callLibrarySystem('library-bindings', registry));
+    for (const { car: exports, cdr: env } of libraries) {
+        // Each export is a pair the library system holds, `(name . value)`.
+        for (let rest = exports; rest !== null; rest = rest.cdr) {
+            const replacement = replacements.get(rest.car.cdr);
+            if (replacement !== undefined) rest.car.cdr = replacement;
         }
         if (env && env.bindings instanceof Map) {
             for (const [name, value] of env.bindings) {
@@ -354,7 +312,7 @@ export function substituteLibraryValues(replacements, registry = libraryRegistry
             }
         }
     }
-    substituteWithinLibraryValues(replacements, registry);
+    substituteWithinLibraryValues(replacements, registry, libraries);
 }
 
 /**
@@ -373,14 +331,15 @@ export function substituteLibraryValues(replacements, registry = libraryRegistry
  *
  * @param {Map<*, *>} replacements - Each replaced value, mapped to its
  *   replacement.
- * @param {Map<string, Object>} registry - The registry whose libraries to
- *   change.
+ * @param {Object} registry - The registry whose libraries to change.
+ * @param {Array<Cons>} libraries - Its libraries, each `(exports . env)`.
  */
-function substituteWithinLibraryValues(replacements, registry) {
-    const substituteWithin = registry.get('scheme.core')?.exports.get('substitute-within!');
+function substituteWithinLibraryValues(replacements, registry, libraries) {
+    const core = exportsMap(callLibrarySystem('registered-exports', registry, 'scheme.core'));
+    const substituteWithin = core?.get('substitute-within!');
     if (typeof substituteWithin !== 'function') return;
     const roots = new Set();
-    for (const { env } of registry.values()) {
+    for (const { cdr: env } of libraries) {
         if (!env || !env.parent || !(env.bindings instanceof Map)) continue;
         for (const value of env.bindings.values()) roots.add(value);
     }
@@ -414,13 +373,13 @@ function substituteWithinLibraryValues(replacements, registry) {
  * while -- a tool's, a test's, each run of a benchmark -- should take its
  * records with it when it goes: one table for the process kept every library
  * such a registry had loaded alive, a few megabytes a registry.
- * @type {WeakMap<Map<string, Object>, Map<Function, {closure: Function, env: Object}>>}
+ * @type {WeakMap<Object, Map<Function, {closure: Function, env: Object}>>}
  */
 const compiledOverIn = new WeakMap();
 
 /**
  * The compiled-over records of a library registry, made empty if it has none.
- * @param {Map<string, Object>} registry - The registry.
+ * @param {Object} registry - The registry.
  * @returns {Map<Function, {closure: Function, env: Object}>}
  */
 function compiledOverRecords(registry) {
@@ -436,7 +395,7 @@ function compiledOverRecords(registry) {
  * The global environments of the programs being debugged, whose compiled
  * procedures run as their closures, each mapped to the library registry its
  * libraries were switched in.
- * @type {Map<Object, Map<string, Object>>}
+ * @type {Map<Object, Object>}
  */
 const interpretingIn = new Map();
 
@@ -478,7 +437,7 @@ function substituteInChain(env, replacements) {
  */
 export function recordCompiledOver(replaced, env) {
     if (replaced.size === 0) return;
-    const records = compiledOverRecords(libraryRegistry);
+    const records = compiledOverRecords(currentLibraryRegistry());
     const back = new Map();
     for (const [closure, compiled] of replaced) {
         records.set(compiled, { closure, env });
@@ -497,7 +456,7 @@ export function recordCompiledOver(replaced, env) {
  * @returns {boolean}
  */
 export function isCompiledOver(procedure) {
-    return compiledOverIn.get(libraryRegistry)?.has(procedure) ?? false;
+    return compiledOverIn.get(currentLibraryRegistry())?.has(procedure) ?? false;
 }
 
 /**
@@ -519,7 +478,7 @@ export function isCompiledOver(procedure) {
 export function interpretCompiledOver(interpreted, globalEnv) {
     let registry;
     if (interpreted) {
-        registry = libraryRegistry;
+        registry = currentLibraryRegistry();
         interpretingIn.set(globalEnv, registry);
     } else {
         registry = interpretingIn.get(globalEnv);
@@ -552,7 +511,7 @@ export function interpretCompiledOver(interpreted, globalEnv) {
  * @returns {boolean} Whether a procedure was switched back.
  */
 export function switchBackToClosure(twin) {
-    const records = compiledOverRecords(libraryRegistry);
+    const records = compiledOverRecords(currentLibraryRegistry());
     let compiled = null;
     for (const candidate of records.keys()) {
         if (candidate.$resume === twin) { compiled = candidate; break; }
@@ -573,14 +532,14 @@ export function switchBackToClosure(twin) {
  * @returns {string[]}
  */
 export function getLoadedLibraries() {
-    return Array.from(libraryRegistry.keys());
+    return toArray(callLibrarySystem('registered-keys', currentLibraryRegistry()));
 }
 
 /**
  * Clears the library registry (for testing).
  */
 export function clearLibraryRegistry() {
-    libraryRegistry.clear();
+    callLibrarySystem('clear-registry!', currentLibraryRegistry());
 }
 
 /**
@@ -592,14 +551,7 @@ export function clearLibraryRegistry() {
  * @param {Environment} env - The environment containing the bindings
  */
 export function registerBuiltinLibrary(libraryName, exports, env) {
-    const key = libraryNameToKey(libraryName);
-
-    // Convert object to Map if needed
-    const exportsMap = exports instanceof Map
-        ? exports
-        : new Map(Object.entries(exports));
-
-    libraryRegistry.set(key, { exports: exportsMap, env });
+    registerLibrary(libraryNameToKey(libraryName), exports, env);
 }
 
 // =============================================================================
@@ -608,8 +560,8 @@ export function registerBuiltinLibrary(libraryName, exports, env) {
 
 /**
  * Standard Scheme syntax keywords.
- * These are handled by the analyzer as special forms.
- * Used by library_loader to filter keywords from exports.
+ * These are handled by the analyzer as special forms; a library exporting one
+ * exports it as a keyword (`%special-keyword?` in primitives/library.js).
  */
 export const SYNTAX_KEYWORDS = new Set([
     'define', 'set!', 'lambda', 'if', 'begin', 'quote',

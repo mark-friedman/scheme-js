@@ -25,6 +25,7 @@ import { getPromisePrimitives } from '../../extras/primitives/promise.js';
 import { hashTablePrimitives } from '../../extras/primitives/hash_table.js';
 import { bitwisePrimitives } from '../../extras/primitives/bitwise.js';
 import { jsInteropPrimitives } from './js_interop_primitives.js';
+import { libraryPrimitives } from './library.js';
 import { classPrimitives } from './class.js';
 
 /**
@@ -79,6 +80,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(bitwisePrimitives);
     addPrimitives(jsInteropPrimitives);
     addPrimitives(classPrimitives);
+    addPrimitives(libraryPrimitives);
 
     return new Environment(null, bindings);
 }

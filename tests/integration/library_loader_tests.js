@@ -15,8 +15,11 @@ import {
     addFeature,
     getFeatures,
     evaluateFeatureRequirement,
-    applyImports
+    importLibraries,
+    loadLibrarySync,
+    getLoadedLibraries
 } from '../../src/core/interpreter/library_loader.js';
+import { registerLibrary } from '../../src/core/interpreter/library_registry.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
@@ -79,10 +82,10 @@ export async function runLibraryLoaderTests(logger) {
 
     // 5a. Import sets nest, each filtering the names the set inside it
     // provides (R7RS 5.6.1); rename takes (from to) pairs.
-    const exportsOf = new Map([['car', 1], ['cdr', 2], ['cons', 3]]);
+    registerLibrary('lib', new Map([['car', 1], ['cdr', 2], ['cons', 3]]), null);
     const importedBy = (text) => {
         const env = new Environment(null);
-        applyImports(env, exportsOf, parseImportSet(parse(text)[0]));
+        importLibraries([parse(text)[0]], analyze, null, env);
         return [...env.bindings.keys()].sort().join(' ');
     };
     assert(logger, "parseImportSet rename pairs",
@@ -198,6 +201,30 @@ export async function runLibraryLoaderTests(logger) {
             doubleFn !== undefined, true);
     } catch (e) {
         logger.fail(`loadLibrary with deps failed: ${e.message}`);
+    }
+
+    // 7a. The library system runs apart from programs, on an interpreter of
+    // its own: a program that binds, at its own top level, names the library
+    // system's Scheme uses changes nothing about how libraries load, and the
+    // library system's own libraries are not the program's.
+    clearLibraryRegistry();
+    registerBuiltinLibrary(['scheme', 'base'], schemeBaseExports, globalEnv);
+    for (const name of ['car', 'cdr', 'cons', 'assoc', 'append', 'map', 'for-each']) {
+        globalEnv.define(name, () => { throw new Error(`the program's own ${name}`); });
+    }
+    setFileResolver((name) => ({
+        'test.apart': '(define-library (test apart) (export seven) (import (prefix (scheme base) b:)) (include "apart.scm"))',
+        'test.apart.scm': '(define seven (b:+ 3 4))'
+    })[name.join('.')]);
+    try {
+        const apartExports = loadLibrarySync(['test', 'apart'], analyze, interpreter, globalEnv);
+        assert(logger, "a program's own bindings do not change loading", apartExports.get('seven'), 7);
+        assert(logger, "and the library system's libraries are not the program's",
+            getLoadedLibraries().join(' '), 'scheme.base test.apart');
+    } catch (e) {
+        logger.fail(`loading beside a program's own bindings failed: ${e.message}`);
+    } finally {
+        for (const name of ['car', 'cdr', 'cons', 'assoc', 'append', 'map', 'for-each']) globalEnv.bindings.delete(name);
     }
 
     clearLibraryRegistry();

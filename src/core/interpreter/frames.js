@@ -13,6 +13,7 @@ import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, Con
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { schemeToJsDeep, jsToScheme } from './js_interop.js';
 import { Cons } from './cons.js';
+import { Environment } from './environment.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
 import { SchemeApplicationError, SchemeArityError, SchemeError } from './errors.js';
@@ -650,6 +651,9 @@ export function continueApplication(exprs, index, values, env, registers, interp
                 return true;
             }
             registers[CTL] = target;
+            // `eval` hands back the expression with the environment it is to
+            // run in, which is not the one around the call.
+            if (result.args instanceof Environment) registers[ENV] = result.args;
             return true;
         }
 

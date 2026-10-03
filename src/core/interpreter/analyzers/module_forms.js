@@ -7,7 +7,7 @@
 
 import { ImportNode, DefineLibraryNode } from '../ast.js';
 import { cdr, toArray, Cons, cons, list } from '../cons.js';
-import { loadLibrarySync, parseImportSet, applyImports, parseDefineLibrary, evaluateLibraryDefinitionSync, evaluateFeatureRequirement } from '../library_loader.js';
+import { importLibraries, defineLibrary, evaluateFeatureRequirement } from '../library_loader.js';
 import { Symbol, intern } from '../symbol.js';
 import { registerHandler } from './registry.js';
 import { SchemeSyntaxError } from '../errors.js';
@@ -28,13 +28,11 @@ export function initModuleForms(deps) {
 // =============================================================================
 
 function analyzeImport(exp, syntacticEnv, ctx) {
-    const specs = toArray(cdr(exp)).map(spec => parseImportSet(spec));
-    return new ImportNode(specs, loadLibrarySync, applyImports, analyze);
+    return new ImportNode(toArray(cdr(exp)), importLibraries, analyze);
 }
 
 function analyzeDefineLibrary(exp, syntacticEnv, ctx) {
-    const libDef = parseDefineLibrary(exp);
-    return new DefineLibraryNode(libDef, evaluateLibraryDefinitionSync, analyze);
+    return new DefineLibraryNode(exp, defineLibrary, analyze);
 }
 
 function analyzeCondExpand(exp, syntacticEnv, ctx) {

@@ -2,9 +2,15 @@
 ;;
 ;; What R7RS's libraries mean, as Scheme: a `define-library` form taken apart
 ;; into its declarations, an import set into the library it names and the
-;; filters around it, and a `cond-expand` requirement decided. Reading files,
-;; analyzing and running code, and the analyzer's tables of scopes and
-;; keywords are the host's, which this is given what it needs from.
+;; filters around it, a `cond-expand` requirement decided, the registries of
+;; loaded libraries, and loading a library -- its imports, the files it
+;; includes, its body, and the table of what it exports.
+;;
+;; What only the host can do it is given: the file resolver, a procedure from
+;; a path to a file's text (and the load hook, called with each library
+;; loaded by name), and through primitives the reader, environments, and the
+;; analyzer's tables of scopes and syntactic keywords. Analyzing and running a
+;; library's body is the host's too, the `evaluate` procedure a loader holds.
 ;;
 ;; Names are symbols here: a library's name is the list it is written as, of
 ;; symbols and exact integers, and the names it exports and an import set
@@ -12,7 +18,8 @@
 ;;
 ;; The top level is definitions of procedures and record types only, so that
 ;; the library can one day be installed from compiled code without running
-;; this source: it is loaded at every start, before anything else.
+;; this source: it is loaded at every start, before anything else. A registry
+;; is made by whoever starts the system, which holds it.
 
 ;; ---------------------------------------------------------------------------
 ;; Small list helpers
@@ -200,11 +207,23 @@
       (error "define-library: expected a define-library form" form))
   (if (not (pair? (cdr form)))
       (error "define-library: requires a library name" form))
-  (let ((declarations (decided-declarations (cddr form) met?)))
+  (parse-declarations (cadr form) (cddr form) met?))
+
+;; /**
+;;  * Library declarations taken apart, as `parse-define-library` takes apart
+;;  * a library's: its own, or those a file `include-library-declarations`
+;;  * names holds.
+;;  * @param {list|boolean} name - The library's name, or #f for a file's.
+;;  * @param {list} declarations - The declarations, as written.
+;;  * @param {procedure} met? - As for `parse-define-library`.
+;;  * @returns {library-definition}
+;;  */
+(define (parse-declarations name declarations met?)
+  (let ((declarations (decided-declarations declarations met?)))
     (define (contents kind)
       (append-each (lambda (d) (if (eq? (car d) kind) (cdr d) '())) declarations))
     (make-library-definition
-      (cadr form)
+      name
       (append-each export-specs (filter-kind 'export declarations))
       (map parse-import-set (contents 'import))
       (contents 'begin)
@@ -267,3 +286,483 @@
                 (cons (cadr spec) (caddr spec)))
                (else (error "define-library: an export is a name or (rename internal external)" spec))))
        (cdr declaration)))
+
+;; ---------------------------------------------------------------------------
+;; Library names
+;; ---------------------------------------------------------------------------
+
+;; /**
+;;  * The parts of a library's name as strings, as the file resolver is given
+;;  * them: an identifier's name, an exact integer in decimal.
+;;  * @param {list} name - The library's name.
+;;  * @returns {list} Strings.
+;;  */
+(define (name-strings name)
+  (define (wrong) (error "library: a library's name is a list of identifiers and exact integers" name))
+  (if (not (pair? name)) (wrong))
+  (map (lambda (part)
+         (cond ((symbol? part) (symbol->string part))
+               ((and (exact-integer? part) (not (negative? part))) (number->string part))
+               (else (wrong))))
+       name))
+
+;; /**
+;;  * The key a library is registered under: the parts of its name joined by
+;;  * periods, "scheme.base" for `(scheme base)`. A part that is a number and
+;;  * one that is the identifier written the same are one key, as they are one
+;;  * file to the resolver.
+;;  * @param {list} name - The library's name.
+;;  * @returns {string}
+;;  */
+(define (library-key name)
+  (joined (name-strings name) "."))
+
+;; /**
+;;  * The name a library's source is read under, for the locations of its
+;;  * forms: "scheme/base" for `(scheme base)`.
+;;  * @param {list} name - The library's name.
+;;  * @returns {string}
+;;  */
+(define (library-path name)
+  (joined (name-strings name) "/"))
+
+;; /**
+;;  * The path the resolver is given for a file a library includes: the file's
+;;  * name in place of the last part of the library's.
+;;  * @param {list} name - The library's name.
+;;  * @param {string} file - The file's name, as the library writes it.
+;;  * @returns {list} Strings.
+;;  */
+(define (include-path name file)
+  (let loop ((parts (name-strings name)))
+    (if (null? (cdr parts))
+        (list file)
+        (cons (car parts) (loop (cdr parts))))))
+
+;; /**
+;;  * Strings joined by a separator.
+;;  * @param {list} strings - At least one string.
+;;  * @param {string} separator - What goes between them.
+;;  * @returns {string}
+;;  */
+(define (joined strings separator)
+  (if (null? (cdr strings))
+      (car strings)
+      (string-append (car strings) separator (joined (cdr strings) separator))))
+
+;; ---------------------------------------------------------------------------
+;; Registries
+;; ---------------------------------------------------------------------------
+
+;; /**
+;;  * A library loaded.
+;;  * @property {list} exports - Each export, `(name . value)`; a syntactic
+;;  *   keyword's value is a `syntactic-keyword`.
+;;  * @property {object} environment - The environment its body ran in.
+;;  */
+(define-record-type library
+  (make-library exports environment)
+  library?
+  (exports library-exports)
+  (environment library-environment))
+
+;; /**
+;;  * A syntactic keyword a library exports: a macro, with its transformer, or
+;;  * a special form or auxiliary keyword, which has none. Imported, it is bound
+;;  * in the analyzer's tables rather than in an environment, under the name it
+;;  * is imported as, and stays the keyword it is though the name is another.
+;;  * @property {symbol} name - The keyword's own name.
+;;  * @property {procedure|boolean} transformer - A macro's transformer, or #f.
+;;  */
+(define-record-type syntactic-keyword
+  (make-syntactic-keyword name transformer)
+  syntactic-keyword?
+  (name syntactic-keyword-name)
+  (transformer syntactic-keyword-transformer))
+
+;; /**
+;;  * The libraries loaded, and how to load more: one for a program and the
+;;  * libraries it imports, and others made for a while by tools that run
+;;  * Scheme on a program's behalf, apart from it.
+;;  * @property {list} libraries - Each library, `(key . library)`, the latest
+;;  *   first.
+;;  * @property {procedure|boolean} resolver - The host's file resolver, called
+;;  *   through `%resolve`; or #f for none.
+;;  * @property {procedure|boolean} load-hook - The host's procedure called
+;;  *   with each library loaded by name, through `%call-load-hook`; or #f.
+;;  * @property {list} features - The features `cond-expand` finds, as symbols.
+;;  */
+(define-record-type library-registry
+  (make-registry libraries resolver load-hook features)
+  library-registry?
+  (libraries registry-libraries set-registry-libraries!)
+  (resolver registry-resolver set-registry-resolver!)
+  (load-hook registry-load-hook set-registry-load-hook!)
+  (features registry-features set-registry-features!))
+
+;; /**
+;;  * A registry with no libraries in it.
+;;  * @param {procedure|boolean} resolver - The host's file resolver, or #f.
+;;  * @param {procedure|boolean} load-hook - The host's load hook, or #f.
+;;  * @param {list} features - The features `cond-expand` finds.
+;;  * @returns {library-registry}
+;;  */
+(define (make-library-registry resolver load-hook features)
+  (make-registry '() resolver load-hook features))
+
+;; /**
+;;  * The features this implementation has, on a host: R7RS's, its own name,
+;;  * the numbers it has, and `node` or `browser`.
+;;  * @param {symbol} host - The host's feature.
+;;  * @returns {list}
+;;  */
+(define (standard-features host)
+  (list 'r7rs 'scheme-js 'exact-closed 'ratios 'ieee-float 'full-unicode host))
+
+;; /**
+;;  * Adds a feature `cond-expand` finds.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {symbol} feature - The feature.
+;;  */
+(define (add-feature! registry feature)
+  (if (not (memq feature (registry-features registry)))
+      (set-registry-features! registry (append (registry-features registry) (list feature)))))
+
+;; /**
+;;  * The library registered under a key, or #f.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {string} key - The library's key (`library-key`).
+;;  * @returns {library|boolean}
+;;  */
+(define (registered-library registry key)
+  (let ((entry (assoc key (registry-libraries registry))))
+    (and entry (cdr entry))))
+
+;; /**
+;;  * The exports of the library registered under a key, or #f.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {string} key - The library's key.
+;;  * @returns {list|boolean}
+;;  */
+(define (registered-exports registry key)
+  (let ((library (registered-library registry key)))
+    (and library (library-exports library))))
+
+;; /**
+;;  * The environment of the library registered under a key, or #f.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {string} key - The library's key.
+;;  * @returns {object|boolean}
+;;  */
+(define (registered-environment registry key)
+  (let ((library (registered-library registry key)))
+    (and library (library-environment library))))
+
+;; /**
+;;  * Registers a library under a key, in place of any registered there.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {string} key - The library's key.
+;;  * @param {library} library - The library.
+;;  */
+(define (register-library! registry key library)
+  (let ((entry (assoc key (registry-libraries registry))))
+    (if entry
+        (set-cdr! entry library)
+        (set-registry-libraries! registry (cons (cons key library) (registry-libraries registry))))))
+
+;; /**
+;;  * Registers a library the host made: its exports and environment.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {string} key - The library's key.
+;;  * @param {list} exports - Its exports, `(name . value)`.
+;;  * @param {object} environment - Its environment.
+;;  */
+(define (register-exports! registry key exports environment)
+  (register-library! registry key (make-library exports environment)))
+
+;; /**
+;;  * The keys of the libraries registered, in the order they were.
+;;  * @param {library-registry} registry - The registry.
+;;  * @returns {list} Strings.
+;;  */
+(define (registered-keys registry)
+  (reverse (map car (registry-libraries registry))))
+
+;; /**
+;;  * Each library registered, `(exports . environment)`, for the host to
+;;  * substitute values in.
+;;  * @param {library-registry} registry - The registry.
+;;  * @returns {list}
+;;  */
+(define (library-bindings registry)
+  (map (lambda (entry) (cons (library-exports (cdr entry)) (library-environment (cdr entry))))
+       (registry-libraries registry)))
+
+;; /**
+;;  * Forgets every library registered.
+;;  * @param {library-registry} registry - The registry.
+;;  */
+(define (clear-registry! registry)
+  (set-registry-libraries! registry '()))
+
+;; ---------------------------------------------------------------------------
+;; Loading
+;; ---------------------------------------------------------------------------
+
+;; /**
+;;  * What a load needs besides the registry: where files come from, and the
+;;  * host's environment and evaluator for it.
+;;  * @property {library-registry} registry - Where libraries are found and
+;;  *   registered.
+;;  * @property {procedure} resolve - From a path, a list of strings, to the
+;;  *   file's text, or #f if the host can answer only later.
+;;  * @property {object|boolean} base-environment - The environment a
+;;  *   library's own is made inside, or #f where nothing is to be loaded.
+;;  * @property {procedure|boolean} evaluate - From a form and a library's
+;;  *   environment: analyzes and runs the form there, the library's scope the
+;;  *   one its definitions are made in. Or #f where nothing is to be loaded.
+;;  */
+(define-record-type loader
+  (make-loader registry resolve base-environment evaluate)
+  loader?
+  (registry loader-registry)
+  (resolve loader-resolve)
+  (base-environment loader-base-environment)
+  (evaluate loader-evaluate))
+
+;; /**
+;;  * A loader that reads files through its registry's resolver.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {object|boolean} base-environment - As for `make-loader`.
+;;  * @param {procedure|boolean} evaluate - As for `make-loader`.
+;;  * @returns {loader}
+;;  */
+(define (registry-loader registry base-environment evaluate)
+  (make-loader registry
+               (let ((resolver (registry-resolver registry)))
+                 (if resolver
+                     (lambda (path) (%resolve resolver path))
+                     (lambda (path) (error "library: no file resolver is set" (joined path "/")))))
+               base-environment
+               evaluate))
+
+;; /**
+;;  * Whether a feature requirement is met for a loader: its registry's
+;;  * features, and the libraries it could load.
+;;  * @param {loader} loader - The loader.
+;;  * @returns {procedure} From a requirement to whether it is met.
+;;  */
+(define (feature-test loader)
+  (lambda (requirement)
+    (requirement-met? requirement
+                      (registry-features (loader-registry loader))
+                      (lambda (name) (library-available? loader name)))))
+
+;; /**
+;;  * Whether a feature requirement is met in a registry, for a `cond-expand`
+;;  * in a program.
+;;  * @param {library-registry} registry - The registry.
+;;  * @param {*} requirement - The requirement.
+;;  * @returns {boolean}
+;;  */
+(define (registry-requirement-met? registry requirement)
+  ((feature-test (registry-loader registry #f #f)) requirement))
+
+;; /**
+;;  * Whether a library could be imported: whether it is loaded, or the
+;;  * resolver finds, at once, a file declaring it. Nothing is loaded.
+;;  *
+;;  * `cond-expand` is decided as its form is analyzed, so a resolver that
+;;  * would have to fetch the file cannot answer in time; for one, a library
+;;  * not loaded yet is not available. A file declaring another library is not
+;;  * this one, though a resolver finding libraries by the last part of their
+;;  * names returns one. A name that is not a library's names none.
+;;  * @param {loader} loader - The loader.
+;;  * @param {*} name - The library's name, as written.
+;;  * @returns {boolean}
+;;  */
+(define (library-available? loader name)
+  (guard (condition (else #f))
+    (let ((key (library-key name)))
+      (or (and (registered-library (loader-registry loader) key) #t)
+          (let ((source ((loader-resolve loader) (name-strings name))))
+            (and (string? source)
+                 (let ((form (first-define-library (%read-forms source #f #f))))
+                   (and form (pair? (cdr form)) (equal? (library-key (cadr form)) key)))))))))
+
+;; /**
+;;  * The first `define-library` form among forms, or #f.
+;;  * @param {list} forms - The forms.
+;;  * @returns {pair|boolean}
+;;  */
+(define (first-define-library forms)
+  (cond ((null? forms) #f)
+        ((and (pair? (car forms)) (eq? (caar forms) 'define-library)) (car forms))
+        (else (first-define-library (cdr forms)))))
+
+;; /**
+;;  * The forms of a file, read.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} path - The path the resolver is given.
+;;  * @param {string} filename - The name the forms' locations give.
+;;  * @param {boolean} fold-case? - Whether to read as `#!fold-case` does.
+;;  * @returns {list}
+;;  */
+(define (read-library-file loader path filename fold-case?)
+  (let ((source ((loader-resolve loader) path)))
+    (if (not (string? source))
+        (error "library: async resolver not supported in sync load" (joined path "/")))
+    (%read-forms source filename fold-case?)))
+
+;; /**
+;;  * The exports of a library, loaded from its file if it is not loaded yet.
+;;  * A library loaded so is given to the load hook.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} name - The library's name.
+;;  * @returns {list} Its exports, `(name . value)`.
+;;  */
+(define (load-library loader name)
+  (let ((registry (loader-registry loader)))
+    (cond ((registered-library registry (library-key name)) => library-exports)
+          (else
+           (let ((forms (read-library-file loader (name-strings name) (library-path name) #f)))
+             (if (null? forms) (error "library: empty library file" (library-key name)))
+             (let* ((definition (parse-define-library (car forms) (feature-test loader)))
+                    (library (evaluate-definition! loader definition)))
+               (let ((hook (registry-load-hook registry)))
+                 (if hook
+                     (%call-load-hook hook (name-strings (library-definition-name definition))
+                                      (library-environment library))))
+               (library-exports library)))))))
+
+;; /**
+;;  * Defines a library from a `define-library` form a program holds. The
+;;  * load hook is not called: the library is the program's own code.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} form - The form.
+;;  * @returns {list} Its exports.
+;;  */
+(define (define-library! loader form)
+  (library-exports (evaluate-definition! loader (parse-define-library form (feature-test loader)))))
+
+;; /**
+;;  * Makes a library of a definition, and registers it: its environment, its
+;;  * imports, its body run, and what it exports.
+;;  *
+;;  * Its `begin` forms run before the files it includes, whatever order they
+;;  * are declared in, as they always have here -- `(scheme lazy)` declares its
+;;  * file before the macros its `begin` defines -- and then each file of
+;;  * library declarations' forms, in turn.
+;;  * @param {loader} loader - The loader.
+;;  * @param {library-definition} definition - The definition.
+;;  * @returns {library}
+;;  */
+(define (evaluate-definition! loader definition)
+  (let* ((name (library-definition-name definition))
+         (env (%make-library-environment (loader-base-environment loader) (name-strings name)))
+         (definitions (cons definition (declared-definitions loader name definition))))
+    (for-each (lambda (spec) (import! loader env spec))
+              (append-each library-definition-imports definitions))
+    (for-each (lambda (form) ((loader-evaluate loader) form env))
+              (append-each (lambda (part) (body-forms loader name part)) definitions))
+    (let ((library (make-library (map (lambda (spec) (cons (cdr spec) (export-value env (car spec))))
+                                      (append-each library-definition-exports definitions))
+                                 env)))
+      (register-library! (loader-registry loader) (library-key name) library)
+      library)))
+
+;; /**
+;;  * The declarations of the files a definition's
+;;  * `include-library-declarations` names, each followed by those of the
+;;  * files it names in turn.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} name - The library's name, which the files are found by.
+;;  * @param {library-definition} definition - The definition.
+;;  * @returns {list} Definitions without names.
+;;  */
+(define (declared-definitions loader name definition)
+  (append-each
+    (lambda (file)
+      (let ((declared (parse-declarations #f (read-library-file loader (include-path name file) file #f)
+                                          (feature-test loader))))
+        (cons declared (declared-definitions loader name declared))))
+    (library-definition-declaration-files definition)))
+
+;; /**
+;;  * The forms a definition's body runs: its `begin` forms, then those of the
+;;  * files it includes, then those of the files it includes folding case.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} name - The library's name, which the files are found by.
+;;  * @param {library-definition} definition - The definition.
+;;  * @returns {list}
+;;  */
+(define (body-forms loader name definition)
+  (define (included fold-case?)
+    (lambda (file) (read-library-file loader (include-path name file) file fold-case?)))
+  (append (library-definition-body definition)
+          (append-each (included #f) (library-definition-includes definition))
+          (append-each (included #t) (library-definition-includes-ci definition))))
+
+;; /**
+;;  * The value a library exports for a name it binds: a variable's value; else
+;;  * a keyword, under its own name or the one the library imported it as, a
+;;  * macro with the transformer the name has here; else a JavaScript global,
+;;  * which a variable's lookup falls back to -- last, since browsers define
+;;  * globals named like keywords, `when` among them.
+;;  * @param {object} env - The library's environment.
+;;  * @param {symbol} internal - The name, as the library binds it.
+;;  * @returns {*}
+;;  */
+(define (export-value env internal)
+  (let* ((bound (%keyword-binding (%environment-scope env) internal))
+         (keyword (if bound (car bound) internal)))
+    (cond ((%environment-bound? env internal) (%environment-ref env internal))
+          ((and bound (cdr bound)) (make-syntactic-keyword keyword (cdr bound)))
+          ((and (not bound) (%global-macro keyword))
+           => (lambda (transformer) (make-syntactic-keyword keyword transformer)))
+          ((%special-keyword? keyword) (make-syntactic-keyword keyword #f))
+          (else (%environment-ref env internal)))))
+
+;; ---------------------------------------------------------------------------
+;; Importing
+;; ---------------------------------------------------------------------------
+
+;; /**
+;;  * Imports an import set into an environment, loading its library if need
+;;  * be.
+;;  * @param {loader} loader - The loader.
+;;  * @param {object} env - The environment.
+;;  * @param {import-set} spec - The import set.
+;;  */
+(define (import! loader env spec)
+  (import-into! env (load-library loader (import-set-library-name spec)) (import-set-steps spec)))
+
+;; /**
+;;  * Imports import sets, as written, into an environment: an `import` form's.
+;;  * @param {loader} loader - The loader.
+;;  * @param {object} env - The environment.
+;;  * @param {list} specs - The import sets.
+;;  */
+(define (import-sets! loader env specs)
+  (for-each (lambda (spec) (import! loader env (parse-import-set spec))) specs))
+
+;; /**
+;;  * Binds a library's exports in an environment, under the names an import
+;;  * set's filters give them. A variable is defined in the environment; a
+;;  * syntactic keyword is bound in the analyzer's tables, in the library whose
+;;  * environment it is, or else at a program's top level.
+;;  * @param {object} env - The environment.
+;;  * @param {list} exports - The exports, `(name . value)`.
+;;  * @param {list} steps - The filters, innermost first (`import-set-steps`).
+;;  */
+(define (import-into! env exports steps)
+  (let ((scope (%environment-scope env)))
+    (for-each (lambda (export)
+                (let ((name (imported-name (car export) steps))
+                      (value (cdr export)))
+                  (cond ((not name))
+                        ((syntactic-keyword? value)
+                         (%define-keyword! scope name (syntactic-keyword-name value)
+                                           (syntactic-keyword-transformer value)))
+                        (else (%environment-define! env name value)))))
+              exports)))

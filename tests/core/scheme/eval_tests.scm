@@ -87,3 +87,22 @@
     'error-caught)
   
   ) ;; end test-group
+
+;; eval called where the environment around the call is not the one eval is
+;; given: inside procedures, not in tail position.
+(define eval-shadowed 'global)
+
+(test-group "eval inside a procedure"
+  (test "looks names up in the environment it is given"
+    (let ((eval-shadowed 'local))
+      (let ((found (eval 'eval-shadowed (interaction-environment))))
+        found))
+    'global)
+
+  (test "defines in the environment it is given, not the procedure's"
+    (begin
+      (let ((env (interaction-environment)))
+        (eval '(define eval-defined-from-a-procedure 'there) env)
+        'done)
+      (eval 'eval-defined-from-a-procedure (interaction-environment)))
+    'there))

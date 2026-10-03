@@ -20,7 +20,6 @@ import {
   WithExceptionHandlerInit,
   RaiseNode
 } from './ast.js';
-import { getLibraryExports, applyImports, parseImportSet, loadLibrarySync, evaluateLibraryDefinitionSync, parseDefineLibrary } from './library_loader.js';
 import { globalMacroRegistry, MacroRegistry } from './macro_registry.js';
 import { Cons, cons, list, car, cdr, toArray, cadr, caddr, cadddr } from './cons.js';
 import { Rational } from '../primitives/rational.js';
