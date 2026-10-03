@@ -7,7 +7,6 @@
   (include "cxr.scm")        ; caar, cadr, etc.
   (include "numbers.scm")    ; =, <, >, predicates, min/max
   (include "list.scm")       ; map, for-each, memq, assq, etc.
-  (include "substitute.scm") ; substituting compiled procedures inside the values holding their closures
   (include "parameter.scm")  ; make-parameter, parameterize
   (include "ports.scm")      ; the current ports, reading and writing them, call-with-port, the file procedures
   
@@ -60,9 +59,6 @@
     ;; Parameter objects
     make-parameter parameterize param-dynamic-bind
     
-    ;; The library system's, substituting compiled procedures for closures
-    substitute-within!
-
     ;; Misc
     native-report-test-result
   )

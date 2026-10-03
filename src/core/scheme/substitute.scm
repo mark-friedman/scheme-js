@@ -1,10 +1,11 @@
 ;; Substituting one value for another inside the data that holds it.
 ;;
-;; A compiled procedure is installed where the interpreted closure it was
-;; compiled from is bound, and the library system puts it wherever an import
-;; copied the closure: in every library's bindings and exports
-;; (`substituteLibraryValues` in src/core/interpreter/library_registry.js). A
-;; closure can also be held as data. A library can make values as it loads
+;; Part of the library system, `(scheme-js library-system)`. A compiled
+;; procedure is installed where the interpreted closure it was compiled from is
+;; bound, and the library system puts it wherever an import copied the
+;; closure: in every library's bindings and exports
+;; (`substitute-in-libraries!` in library_system.scm). A closure can also be
+;; held as data. A library can make values as it loads
 ;; that hold its own procedures -- SRFI 128's default comparators are records
 ;; holding `default-hash` and three others, and a current port's parameter cell
 ;; is a pair holding its converter -- and a shipped library loads from its

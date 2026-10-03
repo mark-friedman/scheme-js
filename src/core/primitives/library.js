@@ -23,6 +23,10 @@ import { cons, list, toArray } from '../interpreter/cons.js';
 import { intern } from '../interpreter/symbol.js';
 import { SYNTAX_KEYWORDS } from '../interpreter/library_registry.js';
 import { stringValue } from './string_class.js';
+import { hashTablePrimitives } from '../../extras/primitives/hash_table.js';
+
+/** What `%hash-store-ref` returns for a key a store does not hold. */
+const ABSENT = { absent: true };
 
 /**
  * Calls a file resolver for a file it can return now.
@@ -101,6 +105,36 @@ export const libraryPrimitives = {
      * library's, or a program's top level's.
      */
     '%environment-scope': (env) => env.libraryScope ?? GLOBAL_SCOPE_ID,
+
+    /** Whether a value is an environment. */
+    '%environment?': (value) => value instanceof Environment,
+
+    /** The environment an environment is inside, or #f for a global one. */
+    '%environment-parent': (env) => env.parent ?? false,
+
+    /** The values an environment's own bindings hold. */
+    '%environment-values': (env) => list(...env.bindings.values()),
+
+    /**
+     * Replaces each value an environment's own bindings hold that an `eq`
+     * store has a replacement for. Through the frame, so a cell compiled code
+     * reads the binding through follows the replacement.
+     */
+    '%environment-replace!': (env, store) => {
+        const ref = hashTablePrimitives['%hash-store-ref'];
+        for (const [name, value] of env.bindings) {
+            const replacement = ref(store, value, ABSENT);
+            if (replacement !== ABSENT) env.rebind(name, replacement);
+        }
+        return undefined;
+    },
+
+    /**
+     * A compiled procedure's resumable form, which the frames of its calls
+     * saved and resumed carry; #f for any other value.
+     */
+    '%resumable-form': (procedure) =>
+        typeof procedure === 'function' && procedure.$resume !== undefined ? procedure.$resume : false,
 
     /** Whether an environment, or one it is inside, binds a name. */
     '%environment-bound?': (env, name) => env.findEnv(name.name) !== null,

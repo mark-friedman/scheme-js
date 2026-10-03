@@ -10863,3 +10863,65 @@ none failing (56 skipped). The generated tables are unchanged, and `npm run preb
 fixed point. Lines under `src/` since step 2: JavaScript 86 added, 23 removed, nearly all the
 installer's split and its documentation -- installing generated code, which is code generation's
 -- and the seed's 19 lines installing the tables, the bootstrap the user chose; no Scheme.
+
+# Task 64, step 3: substitution and the compiled-over records, in Scheme (2026-10-03)
+
+## Why
+
+The third step of task 64. Installing a library's prebuilt table, or compiling one of its
+procedures, replaces a binding where it was defined; the library system then puts the new
+procedure wherever imports copied the old one, and keeps the old closure for a debugger to run
+instead. That was the last JavaScript of the library system that was not host work.
+
+## What moved
+
+Into `library_system.scm`:
+
+- **Substituting values**: `substitute-library-values!` puts each replacement, given as
+  `(old . new)` pairs and kept in an `eq` store, into every library of a registry -- its exports,
+  its environment's bindings, and the pairs, vectors and records those hold (`substitute-within!`)
+  -- and `substitute-in-chain!` into an environment and those it is inside.
+- **The compiled-over records**: a registry keeps each compiled procedure installed over a
+  closure while it was current, in an `eq` store, so that a registry made for a while takes its
+  records with it. `record-compiled-over!`, `compiled-over?`, `interpret-compiled-over!` --
+  switching a program being debugged, and its registry's libraries, to the closures and back --
+  and `switch-back-to-closure!`, for a procedure whose frames are resumed too often. Which programs
+  are being debugged, and in which registry, is a store the JavaScript makes at first use and
+  holds, as it holds the current registry (`make-debugged-programs`).
+
+`substitute.scm` moved from `(scheme core)` to the library system, which is all that used it: core
+exported `substitute-within!` only for the library system, and a library system now running its
+own compiled copy no longer looks up the registry's. A registry without `(scheme core)` now has
+values substituted inside too.
+
+The JavaScript API -- `substituteLibraryValues`, `recordCompiledOver`, `isCompiledOver`,
+`interpretCompiledOver`, `switchBackToClosure` -- keeps its signatures and calls the Scheme. New
+primitives, `Environment`'s: whether a value is an environment, its parent, its own bindings'
+values, replacing the values a store has replacements for, through the frame so that compiled
+code's cells follow; and a compiled procedure's resumable form.
+
+## Tests
+
+`library_system_tests.scm`: substitution in a library's exports, its environment and the values
+it holds, and nothing else; a procedure recorded as compiled over its closure, a program being
+debugged and the registry's libraries switched to the closures and back, one installed while the
+program is debugged switched at once, a program not debugged left alone, and a procedure no record
+names not switched back. The JavaScript tests of the same behaviour -- prebuilt tables, the
+debugger's switching, switching back, global cells -- pass unchanged.
+
+## Measured
+
+Old (before the switch-over) against new, interleaved: `(display 1)` from the CLI 304 to 342 ms
+with the tier, 160 to 206 without; a page's start 109 to 154 ms -- as after the last step, within
+a few milliseconds. `run_tier.js`: the test files 963 to 969 ms, geometric mean 1.00; the corpus
+3,391 to 3,493 ms, geometric mean 1.03. Nothing wrong or broken. One of the library system's 56
+procedures is declined by the compiler, `library-available?`, whose `guard` uses
+`with-exception-handler`; only `cond-expand`'s `(library ...)` reaches it.
+
+## Verification
+
+7,546 tests pass in Node with none failing (34 skipped), and 7,334 in the browser with
+none failing (56 skipped). `npm run prebuild` reaches a fixed point. Lines under `src/` since the
+last step: Scheme 247 added, 27 removed; JavaScript 64 added, 194 removed. The JavaScript added:
+the primitives, 34 lines, `Environment`'s (the evaluator, until 68) and a compiled procedure's
+resumable form (the save-and-resume protocol); the API's calls into the Scheme.

@@ -612,8 +612,8 @@ does:
   counts are per closure (R91); only a top-level procedure can be switched back, and it has one.
 - **A procedure whose frames are resumed at least four times as often as they are saved, after a
   thousand resumes, is switched back to its interpreted closure, for good**
-  (`note-resume` in `src/compiler/tier.scm`, through `switchBackToClosure` in
-  `library_registry.js`): where it was installed, in every library, and in the programs being
+  (`note-resume` in `src/compiler/tier.scm`, through `switch-back-to-closure!` in
+  `src/core/scheme/library_system.scm`): where it was installed, in every library, and in the programs being
   debugged. It is then no longer compiled over its closure, so the debugger's switching leaves it
   alone. The runtime keeps the counts, since that is where frames are saved and resumed, and asks
   the Scheme only at the resumes it names: first at the minimum, then wherever the ratio could next
@@ -748,8 +748,9 @@ Constraint 4 has **two mechanisms, not one**, which is what every real toolchain
 - **Declining to optimize what is being debugged** -- shipped for the whole program at once. While a
   program is being debugged -- a breakpoint set, a step in progress, or the program paused -- every
   procedure compiled over an interpreted closure runs as that closure again
-  (`Interpreter.interpretForDebugger`, `interpretCompiledOver` in `library_registry.js`). The
-  closures are kept when compiled code is installed over them: the libraries' prebuilt code and
+  (`Interpreter.interpretForDebugger`, `interpret-compiled-over!` in
+  `src/core/scheme/library_system.scm`). The closures are kept when compiled code is installed
+  over them, by the library registry current then: the libraries' prebuilt code and
   `compileEnvironment` record each pair. The equivalent of compiling at `-O0` while debugging.
 - **Debug info** -- source maps and emitted debug points, so compiled code can be stepped and
   inspected in place, without switching. This is what calling convention B was chosen for: one live

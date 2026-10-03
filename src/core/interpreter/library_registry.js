@@ -15,7 +15,7 @@
 
 import { list, cons, toArray } from './cons.js';
 import { Symbol, intern } from './symbol.js';
-import { callSchemeProcedure, SCHEME_PRIMITIVE } from './values.js';
+import { callSchemeProcedure } from './values.js';
 import { globalContext } from './context.js';
 import { seedLibrarySystem } from './library_seed.js';
 import { stringValue } from '../primitives/string_class.js';
@@ -274,18 +274,9 @@ export function registerLibrary(key, exports, env) {
 }
 
 /**
- * Substitutes values throughout every loaded library.
- *
- * Importing copies values, so a procedure exported by one library lives on in
- * that library's export map and in the environment of every library that
- * imported it. Replacing the global binding -- which is how the standard
- * library is compiled after it has been loaded -- reaches none of those copies,
- * and a library loaded afterwards would import the procedure that was replaced.
- * Whatever replaces a binding in place calls this with what it replaced.
- *
- * Only values identical to a replaced one change; a library that bound the
- * same name to something else keeps it. Values are replaced inside the data
- * the libraries' bindings reach as well (`substituteWithinLibraryValues`).
+ * Substitutes values throughout every loaded library: in their exports, their
+ * environments, and the values those hold (`substitute-library-values!` in
+ * library_system.scm, which says why).
  *
  * @param {Map<*, *>} replacements - Each replaced value, mapped to its
  *   replacement.
@@ -293,161 +284,50 @@ export function registerLibrary(key, exports, env) {
  *   current one by default.
  */
 export function substituteLibraryValues(replacements, registry = currentLibraryRegistry()) {
-    if (replacements.size === 0) return;
-    const libraries = toArray(callLibrarySystem('library-bindings', registry));
-    for (const { car: exports, cdr: env } of libraries) {
-        // Each export is a pair the library system holds, `(name . value)`.
-        for (let rest = exports; rest !== null; rest = rest.cdr) {
-            const replacement = replacements.get(rest.car.cdr);
-            if (replacement !== undefined) rest.car.cdr = replacement;
-        }
-        if (env && env.bindings instanceof Map) {
-            for (const [name, value] of env.bindings) {
-                const replacement = replacements.get(value);
-                // Through the frame, so a cell compiled code reads the
-                // binding through follows the replacement.
-                if (replacement !== undefined) {
-                    if (typeof env.rebind === 'function') env.rebind(name, replacement);
-                    else env.bindings.set(name, replacement);
-                }
-            }
-        }
-    }
-    substituteWithinLibraryValues(replacements, registry, libraries);
+    callLibrarySystem('substitute-library-values!', registry, pairsOf(replacements));
 }
 
 /**
- * Substitutes values inside the pairs, vectors and records the libraries'
- * bindings reach, such as the records a library made as it loaded holding
- * procedures since replaced, by calling the Scheme that does it:
- * `substitute-within!` in `src/core/scheme/substitute.scm`, which says why.
- *
- * It is looked up at each call, in the registry's own `(scheme core)`, so that
- * it is that library's procedure as now bound -- compiled, once the library's
- * table is installed. A registry without `(scheme core)` has no Scheme to call,
- * and nothing is substituted inside values.
- *
- * A global environment's bindings are not looked inside: they are a program's,
- * and what they reach is the program's data, as large as the program makes it.
- *
- * @param {Map<*, *>} replacements - Each replaced value, mapped to its
- *   replacement.
- * @param {Object} registry - The registry whose libraries to change.
- * @param {Array<Cons>} libraries - Its libraries, each `(exports . env)`.
+ * A map's entries as a list of pairs.
+ * @param {Map<*, *>} map - The map.
+ * @returns {Cons|null} Each `(key . value)`.
  */
-function substituteWithinLibraryValues(replacements, registry, libraries) {
-    const core = exportsMap(callLibrarySystem('registered-exports', registry, 'scheme.core'));
-    const substituteWithin = core?.get('substitute-within!');
-    if (typeof substituteWithin !== 'function') return;
-    const roots = new Set();
-    for (const { cdr: env } of libraries) {
-        if (!env || !env.parent || !(env.bindings instanceof Map)) continue;
-        for (const value of env.bindings.values()) roots.add(value);
-    }
-    const replacement = (value) => replacements.get(value) ?? false;
-    replacement[SCHEME_PRIMITIVE] = true;
-    callSchemeProcedure(substituteWithin, [list(...roots), replacement]);
+function pairsOf(map) {
+    return list(...[...map].map(([key, value]) => cons(key, value)));
 }
 
 // =============================================================================
 // Running compiled procedures as their interpreted closures, for a debugger
 // =============================================================================
-//
-// A debugger pauses only between the interpreter's steps, which compiled code
-// never takes: a breakpoint inside a compiled procedure cannot fire, and one
-// inside an interpreted procedure that compiled code called is reached in a
-// synchronous nested run of the interpreter, which cannot wait, so the program
-// stops only once the compiled code returns. So while a program is being
-// debugged, every procedure compiled over an interpreted closure -- the
-// libraries' prebuilt code, `compileEnvironment` -- runs as that closure again:
-// the declining-to-optimize every toolchain offers beside its debug info,
-// applied to the whole program. The closures are kept for that when the
-// compiled code is installed.
 
 /**
- * Each compiled procedure installed over an interpreted closure, mapped to the
- * closure and to the environment it was installed into, for switching it back
- * alone; kept by the library registry that was current when it was installed.
- *
- * By registry, because switching reaches only the libraries of one registry
- * and the program's global environment, and because a registry made for a
- * while -- a tool's, a test's, each run of a benchmark -- should take its
- * records with it when it goes: one table for the process kept every library
- * such a registry had loaded alive, a few megabytes a registry.
- * @type {WeakMap<Object, Map<Function, {closure: Function, env: Object}>>}
+ * The programs being debugged, each mapped to the registry its libraries were
+ * switched in (`make-debugged-programs` in library_system.scm); one for the
+ * process, made at first use.
+ * @type {Object|null}
  */
-const compiledOverIn = new WeakMap();
+let debuggedPrograms = null;
 
 /**
- * The compiled-over records of a library registry, made empty if it has none.
- * @param {Object} registry - The registry.
- * @returns {Map<Function, {closure: Function, env: Object}>}
+ * The programs being debugged.
+ * @returns {Object}
  */
-function compiledOverRecords(registry) {
-    let records = compiledOverIn.get(registry);
-    if (records === undefined) {
-        records = new Map();
-        compiledOverIn.set(registry, records);
-    }
-    return records;
-}
-
-/**
- * The global environments of the programs being debugged, whose compiled
- * procedures run as their closures, each mapped to the library registry its
- * libraries were switched in.
- * @type {Map<Object, Object>}
- */
-const interpretingIn = new Map();
-
-/**
- * Replaces values in an environment and every environment it is inside.
- * @param {Object} env - The innermost environment.
- * @param {Map<*, *>} replacements - Each replaced value, mapped to its
- *   replacement.
- */
-function substituteInChain(env, replacements) {
-    for (let e = env; e; e = e.parent) {
-        if (!(e.bindings instanceof Map)) continue;
-        for (const [name, value] of e.bindings) {
-            const replacement = replacements.get(value);
-            if (replacement === undefined) continue;
-            if (typeof e.rebind === 'function') e.rebind(name, replacement);
-            else e.bindings.set(name, replacement);
-        }
-    }
+function debugged() {
+    if (debuggedPrograms === null) debuggedPrograms = callLibrarySystem('make-debugged-programs');
+    return debuggedPrograms;
 }
 
 /**
  * Records compiled procedures just installed over interpreted closures, so a
- * debugger can switch back to the closures.
- *
- * Installed straight into the global environment of a program being debugged
- * -- `compileEnvironment` on it -- they are switched back at once. A library
- * loaded while a program is being debugged is switched back when the program
- * next runs (`interpretCompiledOver`, which each asynchronous run asks for):
- * the library's values reach the program by import, after this.
- *
- * A tool's own procedures -- the compiler's, in its private libraries -- are
- * recorded too, and never switched: switching reaches only the libraries
- * loaded where the switch is made and the program's global environment.
+ * debugger can switch back to the closures (`record-compiled-over!` in
+ * library_system.scm).
  *
  * @param {Map<Function, Function>} replaced - Each interpreted closure, mapped
  *   to the compiled procedure installed over it.
  * @param {Object} env - The environment they were installed into.
  */
 export function recordCompiledOver(replaced, env) {
-    if (replaced.size === 0) return;
-    const records = compiledOverRecords(currentLibraryRegistry());
-    const back = new Map();
-    for (const [closure, compiled] of replaced) {
-        records.set(compiled, { closure, env });
-        back.set(compiled, closure);
-    }
-    if (interpretingIn.has(env)) {
-        substituteLibraryValues(back, interpretingIn.get(env));
-        substituteInChain(env, back);
-    }
+    callLibrarySystem('record-compiled-over!', currentLibraryRegistry(), debugged(), pairsOf(replaced), env);
 }
 
 /**
@@ -457,74 +337,30 @@ export function recordCompiledOver(replaced, env) {
  * @returns {boolean}
  */
 export function isCompiledOver(procedure) {
-    return compiledOverIn.get(currentLibraryRegistry())?.has(procedure) ?? false;
+    return callLibrarySystem('compiled-over?', currentLibraryRegistry(), procedure);
 }
 
 /**
  * Switches every recorded compiled procedure to its interpreted closure, or
- * back, for one program: in its global environment, and in every library
- * loaded in the current registry -- which the registry's other programs share,
- * so they are compiled again only once none of those is being debugged.
- *
- * Switching to the closures again is harmless, and catches what was compiled
- * since. Bindings are replaced through their frames, so the cells compiled
- * code reads globals through follow, and compiled code still running calls the
- * closures from its next call on. A compiled procedure a program holds in a
- * data structure, or has captured in a closure, is not found and stays
- * compiled.
+ * back, for one program, while it is debugged (`interpret-compiled-over!` in
+ * library_system.scm).
  *
  * @param {boolean} interpreted - Whether to run the closures.
  * @param {Object} globalEnv - The program's global environment.
  */
 export function interpretCompiledOver(interpreted, globalEnv) {
-    let registry;
-    if (interpreted) {
-        registry = currentLibraryRegistry();
-        interpretingIn.set(globalEnv, registry);
-    } else {
-        registry = interpretingIn.get(globalEnv);
-        if (registry === undefined) return;
-        interpretingIn.delete(globalEnv);
-    }
-    const replacements = new Map();
-    for (const [compiled, { closure }] of compiledOverRecords(registry)) {
-        if (interpreted) replacements.set(compiled, closure);
-        else replacements.set(closure, compiled);
-    }
-    const stillDebugged = [...interpretingIn.values()].includes(registry);
-    if (interpreted || !stillDebugged) substituteLibraryValues(replacements, registry);
-    substituteInChain(globalEnv, replacements);
+    callLibrarySystem('interpret-compiled-over!', currentLibraryRegistry(), debugged(), interpreted, globalEnv);
 }
 
 /**
  * Switches one compiled procedure back to the interpreted closure it was
- * compiled from, for good: where it was installed, in every library, and in
- * every program being debugged. It is then no longer compiled over its
- * closure, so the debugger's switching leaves it interpreted too. For a
- * procedure whose saved frames continuations keep re-entering, which costs
- * more compiled than interpreted (`note-resume` in `src/compiler/tier.scm`).
- *
- * Found by its resumable form, which is what the frames resumed carry; a
- * procedure nested in a compiled one, which has no closure of its own, is
- * left as it is.
+ * compiled from, for good (`switch-back-to-closure!` in library_system.scm).
  *
  * @param {Function} twin - The procedure's resumable form.
  * @returns {boolean} Whether a procedure was switched back.
  */
 export function switchBackToClosure(twin) {
-    const records = compiledOverRecords(currentLibraryRegistry());
-    let compiled = null;
-    for (const candidate of records.keys()) {
-        if (candidate.$resume === twin) { compiled = candidate; break; }
-    }
-    if (compiled === null) return false;
-    const { closure, env } = records.get(compiled);
-    records.delete(compiled);
-    const replacements = new Map([[compiled, closure]]);
-    substituteLibraryValues(replacements);
-    if (env) substituteInChain(env, replacements);
-    for (const registry of new Set(interpretingIn.values())) substituteLibraryValues(replacements, registry);
-    return true;
+    return callLibrarySystem('switch-back-to-closure!', currentLibraryRegistry(), debugged(), twin);
 }
 
 

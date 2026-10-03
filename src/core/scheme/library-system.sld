@@ -2,8 +2,9 @@
 ;;
 ;; The library system: parsing `define-library` and import sets, the names an
 ;; import set gives, the feature requirements `cond-expand` tests, the
-;; registries of loaded libraries, and loading and importing libraries. Its
-;; procedures are Scheme, in library_system.scm.
+;; registries of loaded libraries, loading and importing libraries, and
+;; substituting values throughout them. Its procedures are Scheme, in
+;; library_system.scm and substitute.scm.
 ;;
 ;; It is written with (scheme core) and (scheme control) alone, since it is
 ;; loaded before any other library, by the little that is JavaScript of the
@@ -32,8 +33,12 @@
     library-key make-library-registry library-registry? add-feature! registry-features
     registry-resolver set-registry-resolver! registry-load-hook set-registry-load-hook!
     registered-exports registered-environment register-exports! registered-keys
-    library-bindings clear-registry!
+    clear-registry!
     ;; Loading and importing
     make-loader registry-loader loader-registry load-library define-library!
-    import-sets! import-into! syntactic-keyword?)
-  (include "library_system.scm"))
+    import-sets! import-into! syntactic-keyword?
+    ;; Substituting values, and procedures compiled over closures
+    substitute-library-values! make-debugged-programs record-compiled-over!
+    compiled-over? interpret-compiled-over! switch-back-to-closure!)
+  (include "library_system.scm"
+           "substitute.scm"))
