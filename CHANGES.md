@@ -10997,3 +10997,50 @@ which task 69's tables needing no source to run are to remove. Loading libraries
 what it did: the test files 1.00 and the corpus 1.03 in the geometric mean. Found on the way: `eval`
 ran its expression in the wrong environment when not called in tail position; and the start-up
 estimate was a tenth of the first measurement (R109), until the library system ran compiled.
+
+# `(features)` returns what `cond-expand` finds (2026-10-03)
+
+## Why
+
+R7RS 6.14 defines `(features)` as the list of feature identifiers `cond-expand` treats as true.
+The primitive returned a fixed list -- `r7rs`, `ieee-float`, `full-unicode`, `scheme-js` -- written
+before `cond-expand`'s features became the library system's data. Since task 64 those are each
+registry's own (`standard-features`: also `exact-closed`, `ratios`, and `node` or `browser`, plus
+any a host adds with `addFeature`), so `(features)` left out three of the seven `cond-expand` takes
+on any host, and every feature a host added.
+
+## What changed
+
+- **`registry-feature-list`** (Scheme, `library_system.scm`): a registry's features in a list of
+  the caller's own. `registry-features` hands back the registry's list itself, which a program
+  could then change with `set-cdr!` and so change what `cond-expand` finds.
+- **The `features` primitive** (`io/primitives.js`) calls it with the current registry, through the
+  library system's JavaScript door (`callLibrarySystem`, `currentLibraryRegistry`), in place of
+  the fixed list. It has to be JavaScript: the library system runs apart from programs, on the
+  seed's interpreter, and the current registry is held by `library_registry.js`, so a program has
+  no Scheme path to it; the primitive is the runtime twin of the analyzer's `cond-expand` hook,
+  which reaches the registry the same way. The import makes a cycle
+  (`io/primitives.js` -> `library_registry.js` -> `library_seed.js` -> `primitives/index.js`), which
+  is harmless because the bindings are used only when the primitive runs; each of the three
+  modules loads first without error.
+- **Arity**: `(features 'r7rs)` returned the list; it now raises an arity error, as
+  `command-line` does.
+
+## Tests
+
+`features_tests.scm`: `features` takes no arguments; for each of `r7rs`, `scheme-js`,
+`exact-closed`, `ratios`, `ieee-float`, `full-unicode`, `node` and `browser`, being in
+`(features)` agrees with `cond-expand`; one of `node` and `browser` is there; a feature
+`cond-expand` does not take is not; `cond-expand` (through `eval`) takes every feature in the
+list; no feature is listed twice; and a program that changes the list it was given does not change
+the next one. Before the change, the arity test, the
+agreement tests for `exact-closed`, `ratios` and `node`, and the host test failed.
+
+## Verification
+
+7,566 tests pass in Node with none failing (34 skipped), and 7,354 in the browser with none
+failing (56 skipped; `web/tests.html`, headless, cache disabled). `npm run prebuild` reaches a fixed
+point; the library system's prebuilt table gains the new procedure, and the rest of the tables
+change only by the gensym counters it shifts. Lines
+under `src/`: Scheme 11 added; JavaScript 7 added, 9 removed -- the primitive's body, fixed in
+place, and its two imports.
