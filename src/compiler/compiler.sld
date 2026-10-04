@@ -41,4 +41,4 @@
     ;; A program's tier
     make-tier tier-bound! tier-due! tier-top-level-procedure note-resume first-resume-to-ask)
   (include "ir.scm" "lift.scm" "inline.scm" "liveness.scm" "emit.scm"
-           "driver.scm" "safety.scm" "tier.scm"))
+           "sourcemap.scm" "driver.scm" "safety.scm" "tier.scm"))

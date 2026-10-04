@@ -68,8 +68,8 @@ about speed: **the JavaScript call stack would be one frame deep**, so DevTools 
 Scheme frames, and the browser would have no debugger for compiled code but a custom one. Under B, one live Scheme frame is
 one JavaScript frame, until the stack is deep enough that some move to the heap, and tail calls add
 none beyond the room below. The bake-off's probe measured that shape. Each frame shows as its Scheme
-procedure (*Compiled code in a stack trace*, below); that a source map can then put it at its place
-in the Scheme source has not been checked yet.
+procedure, and a source map puts it at its place in the Scheme source (*Compiled code in a stack
+trace*, below).
 
 The cost of B is procedure fragmentation, which is the next section.
 
@@ -80,8 +80,8 @@ function's `name`, and places it by its script's URL. Generated code would show 
 `$proc`, at `eval at instantiate (host.js)`. So each fast and resumable form is made as the value of a
 property keyed by the Scheme procedure's name, `const $proc = { "count-down": function (n) {...}
 }["count-down"]`, which names the function as it is made (`named-function` in `emit.scm`); a nested
-procedure shows as its name if a named `let` or an internal definition gave it one, and as `lambda`
-otherwise. Setting `name` afterwards would read the same in a trace, but reconfiguring a function's
+procedure shows as its name if a named `let` or an internal definition gave it one, and as
+`anonymous`, the analyzer's name for it, otherwise. Setting `name` afterwards would read the same in a trace, but reconfiguring a function's
 own property leaves all its properties slow to read (R110), and compiled code reads its callee's on
 every call. V8 removes the object literal, so making a closure costs what it did.
 
@@ -89,6 +89,21 @@ Code generated as a program runs is given a `//# sourceURL=scheme:///<file>/<pro
 being the one the procedure was read from, or else its library, or else `program`
 (`source-url` in `driver.scm`), so a debugger lists each procedure's code as a source of its own.
 The prebuilt tables are module code, placed by their module's URL, and named the same way.
+
+And it is given a source map, which places each frame in the Scheme source. Positions ride from the
+reader to the lines of generated code: the analyzer's span of each application is passed to the
+compiler with it (`marshal.js`), the lowering keeps it on the `call` node it makes, and while the
+emitter emits a call, each statement it makes is noted as coming from that span -- beside the
+statement, in a weak table, since every reader of a statement would otherwise have to step over
+it. A procedure renders as items, each a line, a line with its span, or an indented group of them,
+so the function, the factory and the unit around it wrap what is inside rather than copying it, and
+the unit's text is written once, listing each line's span (`render-items` in `emit.scm`). Each line
+with a span maps, from its start, to the start of the span (`sourcemap.scm`): a frame shows at the
+Scheme expression whose code holds its call. The map goes into the script as a `data:` URL holding
+the JSON as it is: a URL's parser percent-encodes what it must and the URL's body is
+percent-decoded, so only `%`, `#`, `?` and spaces in a file's name are escaped. Only code read from
+a file is mapped. A page's scripts are run with no name yet, and the prebuilt tables, which are
+modules, have no map of their own.
 
 ## A compiled procedure faces JavaScript; its code faces Scheme
 
@@ -782,8 +797,8 @@ Constraint 4 has **two mechanisms, not one**, which is what every real toolchain
 - **Debug info** -- source maps and emitted debug points, so compiled code can be stepped and
   inspected in place, without switching. This is what calling convention B was chosen for: one live
   Scheme frame is one JavaScript frame, so DevTools can show a Scheme stack. Its frames are named for
-  their procedures (*Compiled code in a stack trace*); mapping them to source positions is still to
-  come.
+  their procedures and, where the code was read from a file, mapped to their places in it
+  (*Compiled code in a stack trace*); a page's scripts and the prebuilt tables are still to be.
 
 The first is not a lesser substitute for the second. Lowering beta-reduces immediately applied
 lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes assigned

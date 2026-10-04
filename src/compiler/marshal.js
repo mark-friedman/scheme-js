@@ -20,7 +20,7 @@
  *     (lit value) (var name) (if test then else) (seq exprs)
  *     (lambda params rest name body) (let var init body)
  *     (letrec names inits body) (set name value) (define name value)
- *     (app fn args) (other description)
+ *     (app fn args span) (other description)
  *
  * and an IR node comes back in the same shape, with the fields in the order
  * `ir.scm` documents. Names are symbols on the Scheme side so that membership
@@ -114,9 +114,13 @@ export function astToScheme(node) {
       astToScheme(node.valueExpr ?? node.value)]);
   }
 
+  // An application carries where it was read from, for the source map of the
+  // code generated for it (`sourcemap.scm`). This module goes when the
+  // expander is Scheme, which will hand the compiler its spans itself; until
+  // then the span is passed here, the one field added since.
   if (node instanceof TailAppNode) {
     return toList([intern('app'), astToScheme(node.funcExpr),
-      toList(node.argExprs.map(astToScheme))]);
+      toList(node.argExprs.map(astToScheme)), node.source ?? false]);
   }
 
   return toList([intern('other'),

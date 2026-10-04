@@ -35,9 +35,11 @@
 ;;  *   environment `E` and the constant pool `K`.
 ;;  * @property {list} constants - The constant pool.
 ;;  * @property {list} globals - The globals it references, as symbols.
+;;  * @property {list} spans - The span of each of the source's lines, or #f,
+;;  *   which its source map is written from (`sourcemap.scm`).
 ;;  */
 (define-record-type generated
-  (make-generated name closure env span source constants globals)
+  (make-generated name closure env span source constants globals spans)
   generated?
   (name generated-name)
   (closure generated-closure)
@@ -45,7 +47,8 @@
   (span generated-span)
   (source generated-source)
   (constants generated-constants)
-  (globals generated-globals))
+  (globals generated-globals)
+  (spans generated-spans))
 
 ;; /**
 ;;  * A procedure compiled.
@@ -255,7 +258,7 @@
          (unit (generate-unit (lowered-ir lowered) globals name (guarded-globals globals env)))
          (source (car unit)))
     (cond ((source-too-large source) => (lambda (reason) (make-declined name reason #f)))
-          (else (make-generated name closure env span source (cadr unit) globals)))))
+          (else (make-generated name closure env span source (cadr unit) globals (caddr unit))))))
 
 ;; /**
 ;;  * The message an error raised while generating code carries.
@@ -294,32 +297,6 @@
         (emit-guarded lowered name closure env span))))
 
 ;; /**
-;;  * Whether a character would end a URL's path or begin an escape in it, or
-;;  * is a space.
-;;  * @param {char} c - The character.
-;;  * @returns {boolean}
-;;  */
-(define (url-path-special? c)
-  (case c ((#\% #\? #\# #\space) #t) (else #f)))
-
-;; /**
-;;  * A name escaped for a URL's path: only the characters
-;;  * `url-path-special?` names, so that a Scheme name stays readable where it
-;;  * can. Most names have none, and are returned as they are.
-;;  * @param {string} name - The name.
-;;  * @returns {string}
-;;  */
-(define (url-path-escape name)
-  (if (string-index name url-path-special?)
-      (string-concatenate
-        (map (lambda (c)
-               (case c
-                 ((#\%) "%25") ((#\?) "%3F") ((#\#) "%23") ((#\space) "%20")
-                 (else (string c))))
-             (string->list name)))
-      name))
-
-;; /**
 ;;  * Where generated code says it comes from, in a stack trace and in a
 ;;  * debugger's list of sources: `scheme:///` and the file the procedure was
 ;;  * read from -- or else its library, or else the program -- and the
@@ -330,9 +307,7 @@
 ;;  */
 (define (source-url code)
   (let* ((span (generated-span code))
-         ;; The reader records `<unknown>` for source it was given no file for.
-         (file (and span (let ((f (js-ref span "filename")))
-                           (and (string? f) (not (string=? f "<unknown>")) f))))
+         (file (and span (span-file span)))
          (library (environment-library (generated-env code)))
          (place (cond (file file)
                       ;; A library's name, which the host keeps as a vector of strings.
@@ -341,19 +316,38 @@
     (string-append "scheme:///" (url-path-escape place) "/" (url-path-escape (generated-name code)))))
 
 ;; /**
-;;  * Makes generated code a procedure, named for a debugger by `source-url`.
-;;  * Only here, as a program runs: the build writes the same code into a
-;;  * module, whose own URL it has.
+;;  * How many lines the script `instantiate` makes has before the generated
+;;  * code: the two of the function `new Function` wraps a body in, `function
+;;  * anonymous(R,E,K` and `) {`, and the `'use strict';` before the body
+;;  * (`instantiate` in `host.js`).
+;;  */
+(define lines-before-generated-code 3)
+
+;; /**
+;;  * Generated code as the script it runs as: named for a debugger by
+;;  * `source-url`, and with its source map where it has one. Only as a program
+;;  * runs: the build writes the same code into a module, whose own URL it has.
 ;;  * @param {generated} code - The code.
-;;  * @returns {compiled|declined} The procedure, or why JavaScript would not
-;;  *   take the code.
+;;  * @returns {string}
+;;  */
+(define (script-of code)
+  (let ((map (source-map (generated-spans code) lines-before-generated-code)))
+    (string-append (generated-source code)
+                   "\n//# sourceURL=" (source-url code)
+                   (if map (string-append "\n//# sourceMappingURL=" (source-map-url map)) ""))))
+
+;; /**
+;;  * Makes generated code a procedure.
+;;  * @param {generated} code - The code.
+;;  * @returns {compiled|declined} The procedure, with the script it was made
+;;  *   from, or why JavaScript would not take the code.
 ;;  */
 (define (instantiate-generated code)
-  (let ((procedure (instantiate (string-append (generated-source code) "\n//# sourceURL=" (source-url code))
-                                (generated-env code) (generated-constants code) (generated-span code))))
+  (let* ((script (script-of code))
+         (procedure (instantiate script (generated-env code) (generated-constants code) (generated-span code))))
     (if (string? procedure)
-        (make-declined (generated-name code) procedure (generated-source code))
-        (make-compiled (generated-name code) procedure (generated-source code)))))
+        (make-declined (generated-name code) procedure script)
+        (make-compiled (generated-name code) procedure script))))
 
 ;; /**
 ;;  * Compiles a lambda: `generate-lambda`, then `instantiate-generated`.

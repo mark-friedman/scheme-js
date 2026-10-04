@@ -255,11 +255,12 @@
              (digits? (substring s 2 (- n 1)))))))
 
 ;; /**
-;;  * A statement as JavaScript text.
+;;  * A statement as a line of JavaScript: any but the fast form's `if`, whose
+;;  * branches are lines of their own (`statement-lines`).
 ;;  * @param {form} form - The emission it belongs to, which names the
 ;;  *   procedure and says what a spill saves.
 ;;  * @param {list} st - The statement.
-;;  * @returns {string} Its text, which may span lines.
+;;  * @returns {string} Its text.
 ;;  */
 (define (render-statement form st)
   (let ((expr (lambda (e) (expr->string e)))
@@ -270,9 +271,6 @@
       ((return) (string-append "return " (expr (cadr st)) ";"))
       ((raw) (expr (cadr st)))
       ((text) (cadr st))
-      ((if) (string-append "if (" (expr (cadr st)) " !== false) {\n"
-                           (render-block form (caddr st)) "\n} else {\n"
-                           (render-block form (cadddr st)) "\n}"))
       ((goto) (goto-text (cadr st)))
       ((branch) (string-append "if (" (expr (cadr st)) " !== false) { "
                                (goto-text (caddr st)) " } " (goto-text (cadddr st))))
@@ -380,14 +378,69 @@
 (define (frame-literal slots)
   (string-append "{ " (string-join (map symbol->string slots) ", ") " }"))
 
+;; ---------------------------------------------------------------------------
+;; Lines
+;; ---------------------------------------------------------------------------
+;;
+;; A procedure is rendered as a list of items, each a line or an indented
+;; group of them:
+;;
+;;   string            a line
+;;   (text . span)     a line the source map maps to `span`
+;;   #(prefix items)   items, each line of them indented by `prefix`
+;;
+;; The function, the factory and the unit around a procedure each wrap the
+;; items inside rather than indenting every line again, and the unit's text is
+;; written once, at the end (`render-items`), which also lists the span of
+;; each line it writes, for the source map (`sourcemap.scm`).
+
 ;; /**
-;;  * Statements rendered as the body of a JavaScript block, each indented.
+;;  * A statement's items: one line, but for the fast form's `if`, whose
+;;  * branches are lines of their own, indented.
 ;;  * @param {form} form - The emission.
-;;  * @param {list} stmts - The statements.
-;;  * @returns {string} The lines.
+;;  * @param {list} st - The statement.
+;;  * @returns {list}
 ;;  */
-(define (render-block form stmts)
-  (string-join (map (lambda (s) (string-append "  " (render-statement form s))) stmts) "\n"))
+(define (statement-lines form st)
+  (if (eq? (car st) 'if)
+      (list (spanned (string-append "if (" (expr->string (cadr st)) " !== false) {") (statement-span st))
+            (vector "  " (append-map (lambda (s) (statement-lines form s)) (caddr st)))
+            "} else {"
+            (vector "  " (append-map (lambda (s) (statement-lines form s)) (cadddr st)))
+            "}")
+      (list (spanned (render-statement form st) (statement-span st)))))
+
+;; /**
+;;  * A line, with its span if it has one.
+;;  * @param {string} text - The line.
+;;  * @param {object|boolean} span - Its span, or #f.
+;;  * @returns {string|pair}
+;;  */
+(define (spanned text span) (if span (cons text span) text))
+
+;; /**
+;;  * Items as text, and the span of each line, in order: #f for a line with
+;;  * none. The text is appended to line by line, which a JavaScript engine
+;;  * does as a rope, joined once when the code is read; a string port, which
+;;  * checks its port at each write, made rendering a unit a third dearer.
+;;  * @param {list} items - The items.
+;;  * @returns {pair} (text . spans).
+;;  */
+(define (render-items items)
+  ;; The accumulator is (text . spans), the text #f until the first line and
+  ;; the spans most recent first.
+  (define (add acc indent text span)
+    (cons (if (car acc) (string-append (car acc) "\n" indent text) (string-append indent text))
+          (cons span (cdr acc))))
+  (define (walk items indent acc)
+    (fold (lambda (item acc)
+            (cond ((string? item) (add acc indent item #f))
+                  ((pair? item) (add acc indent (car item) (cdr item)))
+                  (else (walk (vector-ref item 1) (string-append indent (vector-ref item 0)) acc))))
+          acc
+          items))
+  (let ((acc (walk items "" (cons #f '()))))
+    (cons (or (car acc) "") (reverse (cdr acc)))))
 
 ;; ---------------------------------------------------------------------------
 ;; The unit
@@ -505,11 +558,13 @@
 ;;  * the current block. `declared` is every local the emission introduced, most
 ;;  * recent first. `loop-targets` is the stack of loops a looping call can jump
 ;;  * to. `blocks` holds the twin's finished blocks by number, and `sites` its
-;;  * suspension points with the block each resumes at.
+;;  * suspension points with the block each resumes at. `span` is the source
+;;  * span of the call being emitted, which each statement emitted meanwhile is
+;;  * noted as coming from (`emit!`), or #f.
 ;;  */
 (define-record-type form
   (make-form name ir unit mode path counter labels loops loop-targets declared
-             out blocks block-count current sites frames depth)
+             out blocks block-count current sites frames depth span)
   form?
   (name form-name)
   (ir form-ir)
@@ -527,7 +582,8 @@
   (current form-current set-form-current!)
   (sites form-sites set-form-sites!)
   (frames form-frames set-form-frames!)
-  (depth form-depth set-form-depth!))
+  (depth form-depth set-form-depth!)
+  (span form-span set-form-span!))
 
 ;; /**
 ;;  * A fresh emission of a procedure.
@@ -539,18 +595,57 @@
 ;;  * @returns {form} The emission.
 ;;  */
 (define (new-form name ir u mode path)
-  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f))
+  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f))
 
 (define (twin? form) (eq? (form-mode form) 'twin))
 (define (plan-of form) (unit-plan (form-unit form)))
 
 ;; /**
-;;  * Appends a statement to the emission.
+;;  * The source span each statement was emitted from, where it was emitted
+;;  * while a call with one was (`form-span`): what the line it renders to maps
+;;  * to in the source map (`sourcemap.scm`). Kept beside the statements rather
+;;  * than in them, since every reader of a statement -- liveness, the blocks of
+;;  * the resumable form, rendering -- would otherwise have to step over it.
+;;  */
+(define statement-spans (make-weak-table))
+
+;; /**
+;;  * The source span a statement was emitted from, or #f.
+;;  * @param {list} st - The statement.
+;;  * @returns {object|boolean}
+;;  */
+(define (statement-span st) (weak-table-ref statement-spans st))
+
+;; /**
+;;  * Appends a statement to the emission, noting the span of the call it comes
+;;  * from.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} st - The statement.
 ;;  * @returns {unspecified}
 ;;  */
-(define (emit! form st) (set-form-out! form (cons st (form-out form))))
+(define (emit! form st)
+  (let ((span (form-span form)))
+    (if span (weak-table-set! statement-spans st span) #f))
+  (set-form-out! form (cons st (form-out form))))
+
+;; /**
+;;  * Emits a call node with its source span as the emission's, so that the
+;;  * statements it makes are noted as coming from it; a call with none leaves
+;;  * the span of the call it is in.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - A `call` IR node.
+;;  * @param {procedure} emit - Emits it, and returns what it returns.
+;;  * @returns {*} What `emit` returns.
+;;  */
+(define (with-call-span form node emit)
+  (let ((span (call-span node)))
+    (if (not span)
+        (emit)
+        (let ((outer (form-span form)))
+          (set-form-span! form span)
+          (let ((result (emit)))
+            (set-form-span! form outer)
+            result)))))
 
 ;; /**
 ;;  * Records a local as introduced by this emission, keeping first-seen order.
@@ -707,7 +802,7 @@
      (emit-letrec-bindings! form node)
      (emit-value! form (cadddr node)))
     ((capture) (emit-capture! form node))
-    ((call) (or (emit-inline! form node) (emit-call! form node)))
+    ((call) (with-call-span form node (lambda () (or (emit-inline! form node) (emit-call! form node)))))
     (else (error "emit: cannot emit IR node" (car node)))))
 
 ;; /**
@@ -1042,7 +1137,7 @@
              (emit-inline-loop! form node)
              (begin (emit-letrec-bindings! form node)
                     (emit-statement! form (cadddr node)))))
-        ((call) (emit-tail-call! form node))
+        ((call) (with-call-span form node (lambda () (emit-tail-call! form node))))
         (else (emit! form (list 'return (emit-value! form node)))))))
 
 ;; /**
@@ -1261,6 +1356,16 @@
     (and (pair? rest) (car rest))))
 
 ;; /**
+;;  * A call's source span: that of the application it was lowered from, or #f.
+;;  * The calls lowering synthesizes carry none.
+;;  * @param {list} node - A `call` IR node.
+;;  * @returns {object|boolean} The span.
+;;  */
+(define (call-span node)
+  (let ((rest (cddddr node)))
+    (and (pair? rest) (pair? (cdr rest)) (cadr rest))))
+
+;; /**
 ;;  * Emits a `letrec` loop inside this procedure rather than as a procedure of
 ;;  * its own. The lowering marks a group so when its one lambda is only ever
 ;;  * running as a loop entered from here (`inline-loop?` in `ir.scm`), so its
@@ -1456,11 +1561,14 @@
 ;;  * @param {string} binding - The JavaScript name it is bound to.
 ;;  * @param {string} key - The name it shows as, as a JavaScript string
 ;;  *   literal (`js-string`), made once for both of a procedure's forms.
-;;  * @param {string} function - A JavaScript function expression.
-;;  * @returns {string} A `const` declaration.
+;;  * @param {string} header - The function's head, `function (...)`.
+;;  * @param {list} body - Its body's items.
+;;  * @returns {list} The items of a `const` declaration.
 ;;  */
-(define (named-function binding key function)
-  (string-append "const " binding " = { " key ": " function " }[" key "];"))
+(define (named-function binding key header body)
+  (list (string-append "const " binding " = { " key ": " header " {")
+        (vector "  " body)
+        (string-append "} }[" key "];")))
 
 ;; /**
 ;;  * The fast form of a procedure, as a JavaScript function bound to a name.
@@ -1477,7 +1585,7 @@
 ;;  * @param {list} ir - The lambda IR node.
 ;;  * @param {unit} u - The unit.
 ;;  * @param {string} path - Its position in the tree of procedures.
-;;  * @returns {string} JavaScript source.
+;;  * @returns {list} Its items.
 ;;  */
 (define (fast-form name shown ir u path)
   (let ((form (new-form name ir u 'fast path)))
@@ -1504,17 +1612,14 @@
            (declaration (if (null? declared)
                             '()
                             (list (string-append "let " (string-join (map symbol->string declared) ", ") ";"))))
-           (body (map (lambda (st) (render-statement form st)) (reverse (form-out form))))
-           (indent (lambda (lines) (map (lambda (l) (string-append "  " l)) lines)))
+           (body (append-map (lambda (st) (statement-lines form st)) (reverse (form-out form))))
            (entry (append (arity-guard ir)
                           (depth-entry form (append params (if rest (list (string-append "..." (js-name rest) "$raw")) '())))))
-           (lines (if (form-loops form)
-                      (append declaration entry (list "$loop: for (;;) {")
-                              (indent prologue) (indent body) (list "}"))
+           (items (if (form-loops form)
+                      (append declaration entry
+                              (list "$loop: for (;;) {" (vector "  " (append prologue body)) "}"))
                       (append declaration entry prologue body))))
-      (named-function name shown
-                      (string-append "function (" signature ") {\n"
-                                     (string-join (indent lines) "\n") "\n}")))))
+      (named-function name shown (string-append "function (" signature ")") items))))
 
 ;; /**
 ;;  * The resumable form of a procedure, as a JavaScript function bound to a
@@ -1534,7 +1639,7 @@
 ;;  * @param {list} ir - The lambda IR node.
 ;;  * @param {unit} u - The unit.
 ;;  * @param {string} path - Its position in the tree of procedures.
-;;  * @returns {string} JavaScript source.
+;;  * @returns {list} Its items.
 ;;  */
 (define (twin-form name shown ir u path)
   (let ((form (new-form name ir u 'twin path)))
@@ -1566,22 +1671,18 @@
             (cases (let number ((blocks blocks) (i 0))
                      (if (null? blocks)
                          '()
-                         (cons (string-append
-                                 "      case " (number->string i) ":\n"
-                                 (string-join (map (lambda (st) (string-append "        " (render-statement form st)))
-                                                   (car blocks))
-                                              "\n"))
-                               (number (cdr blocks) (+ i 1)))))))
-        (named-function name shown
-         (string-append "function ($pc, $f) {\n"
-                       "  let " names ";\n"
-                       "  ({ " names " } = $f);\n"
-                       (string-join (map (lambda (l) (string-append "  " l "\n")) (depth-entry form '())) "")
-                       "  for (;;) switch ($pc) {\n"
-                       (string-join cases "\n") "\n"
-                       "      default: throw new Error('" name ": bad resume point ' + $pc);\n"
-                       "  }\n"
-                       "}"))))))
+                         (cons (string-append "    case " (number->string i) ":")
+                               (cons (vector "      " (append-map (lambda (st) (statement-lines form st))
+                                                                  (car blocks)))
+                                     (number (cdr blocks) (+ i 1))))))))
+        (named-function name shown "function ($pc, $f)"
+          (append (list (string-append "let " names ";")
+                        (string-append "({ " names " } = $f);"))
+                  (depth-entry form '())
+                  (list "for (;;) switch ($pc) {")
+                  cases
+                  (list (string-append "    default: throw new Error('" name ": bad resume point ' + $pc);")
+                        "}")))))))
 
 ;; /**
 ;;  * The locals a frame suspended at a resume block saves.
@@ -1621,8 +1722,8 @@
   (or (cond ((assq lam (unit-emitted u)) => cdr) (else #f))
       (let ((factory (string-append "$mk" proc)))
         (set-unit-emitted! u (cons (cons lam factory) (unit-emitted u)))
-        (let ((source (render-factory u factory proc path lam)))
-          (set-unit-factories! u (cons source (unit-factories u))))
+        (let ((items (render-factory u factory proc path lam)))
+          (set-unit-factories! u (cons items (unit-factories u))))
         factory)))
 
 ;; /**
@@ -1638,31 +1739,31 @@
 ;;  * @param {string} proc - The procedure's name.
 ;;  * @param {string} path - Its position in the tree of procedures.
 ;;  * @param {list} lam - Its lambda IR node.
-;;  * @returns {string} JavaScript source.
+;;  * @returns {list} Its items.
 ;;  */
 (define (render-factory u factory proc path lam)
   (let* ((plan (unit-plan u))
          (params (map js-name (plan-free-of plan lam)))
          (own (map js-name (plan-self-of plan lam)))
          ;; A procedure made by a named `let` or an internal definition shows
-         ;; as its name; any other, as `lambda`.
-         (shown (js-string (or (lambda-name lam) "lambda")))
+         ;; as its name; any other, as `anonymous`, as the analyzer names it.
+         (shown (js-string (or (lambda-name lam) "anonymous")))
          (twin (twin-form (string-append proc "$r") shown lam u path))
          (fast (fast-form proc shown lam u path))
          (value (string-append proc "$js"))
-         (lines (append
+         (items (append
                   (if (null? own) '() (list (string-append "let " (string-join own ", ") ";")))
-                  (list fast
+                  (list (vector "" fast)
                         (string-append "const " value " = R.markProcedure(" proc ", "
                                        (js-string (or (lambda-name lam) "anonymous")) ", E"
                                        (if (lambda-rest lam) ", true" "") ");")
-                        twin
+                        (vector "" twin)
                         (string-append value ".$resume = " proc "$r;"))
                   (map (lambda (self) (string-append self " = " value ";")) own)
                   (list (string-append "return " value ";")))))
-    (string-append "function " factory "(" (string-join params ", ") ") {\n"
-                   (string-join (map (lambda (l) (string-append "  " l)) lines) "\n")
-                   "\n}")))
+    (list (string-append "function " factory "(" (string-join params ", ") ") {")
+          (vector "  " items)
+          "}")))
 
 ;; /**
 ;;  * The runtime values call sites and inline expansions use, each with the
@@ -1719,7 +1820,9 @@
 ;;  * @param {string} name - Its display name.
 ;;  * @param {list} guarded - The globals with an expansion that are bound to
 ;;  *   their primitive here, which the caller finds out from the environment.
-;;  * @returns {list} (source constants).
+;;  * @returns {list} (source constants spans): the source, its constants, and
+;;  *   the span of each of its lines, or #f, which its source map is written
+;;  *   from.
 ;;  */
 (define (generate-unit ir globals name guarded)
   (let* ((u (make-unit (plan-lifting ir) globals (global-indices globals) guarded '() '() '() '() '()))
@@ -1730,24 +1833,27 @@
          (twin (twin-form "$proc$r" key ir u ""))
          (fast (fast-form "$proc" key ir u ""))
          (accessors
-           (string-join
-             (map (lambda (g)
-                    (let ((i (global-index u g))
-                          (literal (js-string (symbol->string g))))
-                      (string-append
-                        "let C" i " = R.UNRESOLVED; const G" i " = () => (C" i " = R.globalCell(E, " literal ")).v;"
-                        (if (memq g guarded)
-                            (string-append "\nconst W" i " = R.primitiveCell(" literal "), P" i " = W" i ".primitive;")
-                            ""))))
-                  globals)
-             "\n"))
-         (factories (string-join (reverse (unit-factories u)) "\n")))
-    (list (string-join (filter (lambda (s) (not (string=? s "")))
-                               (list (runtime-prelude (unit-runtime u))
-                                     accessors factories fast twin
-                                     (string-append "const $proc$js = R.markProcedure($proc, " key ", E"
-                                                    (if (lambda-rest ir) ", true" "") ");")
-                                     "$proc$js.$resume = $proc$r;"
-                                     "return $proc$js;"))
-                       "\n")
-          (reverse (unit-constants u)))))
+           (append-map
+             (lambda (g)
+               (let ((i (global-index u g))
+                     (literal (js-string (symbol->string g))))
+                 (cons (string-append "let C" i " = R.UNRESOLVED; const G" i
+                                      " = () => (C" i " = R.globalCell(E, " literal ")).v;")
+                       (if (memq g guarded)
+                           (list (string-append "const W" i " = R.primitiveCell(" literal "), P" i
+                                                " = W" i ".primitive;"))
+                           '()))))
+             globals))
+         (prelude (runtime-prelude (unit-runtime u)))
+         (rendered
+           (render-items
+             (append (if (string=? prelude "") '() (list prelude))
+                     accessors
+                     (map (lambda (factory) (vector "" factory)) (reverse (unit-factories u)))
+                     (list (vector "" fast)
+                           (vector "" twin)
+                           (string-append "const $proc$js = R.markProcedure($proc, " key ", E"
+                                          (if (lambda-rest ir) ", true" "") ");")
+                           "$proc$js.$resume = $proc$r;"
+                           "return $proc$js;")))))
+    (list (car rendered) (reverse (unit-constants u)) (cdr rendered))))

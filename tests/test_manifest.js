@@ -143,6 +143,7 @@ export const compilerSchemeTestFiles = [
     'tests/compiler/emit_tests.scm',
     'tests/compiler/loop_tests.scm',
     'tests/compiler/driver_tests.scm',
+    'tests/compiler/sourcemap_tests.scm',
 ];
 
 // Scheme Test Files (paths relative to project root, used by file loader)

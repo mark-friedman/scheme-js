@@ -11627,3 +11627,60 @@ for the compiler.
 7,671 tests pass in Node with none failing (33 skipped), and 7,459 in the browser -- headless
 Chrome, its cache off -- with none failing (55 skipped). Lines under `src/`: Scheme 101 added and
 18 removed; no JavaScript.
+
+# Task 39, step 2: compiled Scheme carries a source map (2026-10-03)
+
+Step 1 named compiled frames for their procedures; now code the tier generates as a program runs
+says where in the Scheme source each frame is. A debugger shows the frame at its expression, and
+takes a breakpoint set in the source. `count-down`, compiled from `stack.scm` and raising at the
+bottom of its recursion, has its innermost frame mapped to `stack.scm:2:26`, the `(vector-ref
+(vector) 0)` that raised, and each frame beneath to `stack.scm:2:55`, the recursive call.
+
+- **Where positions come from.** The analyzer records a span on each application. `marshal.js`, the
+  JavaScript that hands the analyzed tree to the compiler, now passes it: six lines added to code
+  that goes when the expander is Scheme (45), an exception to the rule against extending such code,
+  decided with the user. `ir.scm` keeps it on the `call` node it makes, and while `emit.scm` emits a
+  call, each statement it makes is noted as coming from that span, in a weak table beside the
+  statements, so that liveness and the resumable form's blocks read statements as before.
+- **Where lines end up.** A procedure renders as items -- a line, a line with its span, or an
+  indented group -- so the function, the factory and the unit wrap what is inside rather than
+  copying every line again, and the unit's text is written once, listing each line's span
+  (`render-items`).
+- **The map** (`sourcemap.scm`): each line with a span maps, from its start, to the start of the
+  span, so a frame shows at the expression whose code holds its call. It goes into the script as a
+  `data:` URL holding the JSON as it is, since a URL's reader percent-decodes its body: only `%`,
+  `#`, `?` and spaces in a file's name are escaped. Only code read from a file is mapped: on this
+  branch a page's scripts run with no name, and the prebuilt tables are modules, with no map yet.
+
+Step 1's entry above says a nested procedure with no name shows as `lambda`; it shows as
+`anonymous`, the analyzer's name for it.
+
+## Cost
+
+A first version made compiling 42% dearer, measured by compiling the 437 definitions of eight
+canonical programs: escaping the mappings and base-64-encoding the map a character at a time,
+indenting every line again at each level, and writing through a string port. Writing the JSON
+into the URL as it is, remembering the quantities of small integers, wrapping rather than
+indenting, appending text as JavaScript ropes it, and mapping a line repeating the span before as
+`AAAA` brought it to about 4%: 326 to 340 ms.
+
+Step 1 against this, interleaved, over `run_tier.js`'s four sets: geometric means with the tier
+1.021 on the canonical programs, 1.020 on the test files, 1.014 on the corpus and 1.012 on the page
+programs; the time spent compiling 1.035, 1.027, 1.065 and 1.057 -- most on the corpus, whose code
+is read from files and so is mapped -- and running the compiled code unchanged.
+
+## Tests
+
+`sourcemap_tests.scm`, in the compiler's environment: the variable-length quantities, escaping for
+a URL, and maps from lines' spans -- lines with none, differences between segments, several files
+in the order first named, a file name escaped, and no map without a span from a file.
+`compiled_stack_tests.js`: the script carries a map naming its file, and decoding it puts each frame
+of a real stack trace at the expression it should. In the browser, the debugger domain of the
+DevTools protocol reports the map on the script, which is what DevTools reads.
+
+## Verification
+
+7,691 tests pass in Node with none failing (33 skipped), and 7,479 in the browser -- headless
+Chrome, cache off -- with none failing (55 skipped). `npm run prebuild` reaches a fixed point. Lines
+under `src/`: Scheme 412 added and 130 removed; JavaScript 6 added and 2 removed, in `marshal.js`,
+the exception above.

@@ -33,7 +33,72 @@ function compile(source, env, filename) {
   const result = tryCompileDefinition(analyze(form), env);
   if (!result.compiled) throw new Error(`did not compile: ${result.reason}`);
   env.define(result.name, result.procedure);
-  return result.procedure;
+  return result;
+}
+
+const BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/**
+ * The source map a script names in a `data:` URL, decoded: its sources, and
+ * for each generated line its segments as absolute
+ * `[column, source, line, column]`, counted from zero.
+ * @param {string} script - The script.
+ * @returns {{sources: string[], lines: Array<Array<number[]>>}|null}
+ */
+function sourceMapOf(script) {
+  const match = /\/\/# sourceMappingURL=data:application\/json;charset=utf-8,(\S+)/.exec(script);
+  if (match === null) return null;
+  const map = JSON.parse(decodeURIComponent(match[1]));
+  const state = [0, 0, 0];
+  const lines = map.mappings.split(';').map((text) => {
+    let column = 0;
+    return text === '' ? [] : text.split(',').map((segment) => {
+      const fields = [];
+      let value = 0;
+      let shift = 0;
+      for (const digit of segment) {
+        const d = BASE64.indexOf(digit);
+        value += (d & 31) << shift;
+        shift += 5;
+        if ((d & 32) === 0) {
+          fields.push(value & 1 ? -(value >> 1) : value >> 1);
+          value = 0;
+          shift = 0;
+        }
+      }
+      column += fields[0];
+      for (let i = 0; i < 3; i++) state[i] += fields[i + 1];
+      return [column, ...state];
+    });
+  });
+  return { sources: map.sources, lines };
+}
+
+/**
+ * Where a source map puts a position of its script: the last segment of its
+ * line at or before its column.
+ * @param {Object} map - What `sourceMapOf` returns.
+ * @param {number} line - The script's line, from one, as a stack trace says.
+ * @param {number} column - Its column, from one.
+ * @returns {string|null} As `file:line:column`, counted from one, as a stack
+ *   trace counts.
+ */
+function originalPosition(map, line, column) {
+  const segments = (map.lines[line - 1] ?? []).filter((segment) => segment[0] <= column - 1);
+  if (segments.length === 0) return null;
+  const [, source, sourceLine, sourceColumn] = segments[segments.length - 1];
+  return `${map.sources[source]}:${sourceLine + 1}:${sourceColumn + 1}`;
+}
+
+/**
+ * The positions of a procedure's frames in a stack trace, innermost first.
+ * @param {string} trace - The trace.
+ * @param {string} url - The URL its code is named by.
+ * @returns {Array<{line: number, column: number}>}
+ */
+function framesAt(trace, url) {
+  const pattern = new RegExp(`${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:(\\d+):(\\d+)`, 'g');
+  return [...trace.matchAll(pattern)].map((m) => ({ line: Number(m[1]), column: Number(m[2]) }));
 }
 
 /**
@@ -90,13 +155,29 @@ export async function runCompiledStackTests(logger) {
 function traces(logger, env) {
 
   // A recursion that raises at the bottom: each level is a frame of its own.
-  compile(`(define (count-down n)
-             (if (= n 0) (vector-ref (vector) 0) (+ 1 (count-down (- n 1)))))`, env, 'stack.scm');
+  const countDown = `(define (count-down n)
+             (if (= n 0) (vector-ref (vector) 0) (+ 1 (count-down (- n 1)))))`;
+  const { source: script } = compile(countDown, env, 'stack.scm');
   const recursion = traceOf(env.lookup('count-down'), [3n]);
   assert(logger, 'a compiled procedure\'s frames are named after it, one for each level',
     occurrences(recursion, 'count-down') >= 4, true);
   assert(logger, 'generated as the program runs, its code is named for the procedure it holds',
     recursion.includes('scheme:///stack.scm/count-down'), true);
+
+  // Its source map puts each frame at the Scheme expression whose code holds
+  // the call the frame is in: the innermost at the `vector-ref` that raised,
+  // each other at the recursive call.
+  const map = sourceMapOf(script);
+  assert(logger, 'its code carries a source map naming its file', map?.sources, ['stack.scm']);
+  const sourceLine = countDown.split('\n')[1];
+  const at = (text) => `stack.scm:2:${sourceLine.indexOf(text) + 1}`;
+  const frames = framesAt(recursion, 'scheme:///stack.scm/count-down');
+  assert(logger, 'which puts the frame that raised at the expression that raised',
+    map && frames.length > 0 ? originalPosition(map, frames[0].line, frames[0].column) : null,
+    at('(vector-ref (vector) 0)'));
+  assert(logger, 'and each frame beneath it at the recursive call',
+    map ? frames.slice(1).map((f) => originalPosition(map, f.line, f.column)) : null,
+    [at('(count-down (- n 1))'), at('(count-down (- n 1))'), at('(count-down (- n 1))')]);
 
   // A loop inside a procedure is a procedure of its own, named after its loop.
   compile(`(define (sum-to n)

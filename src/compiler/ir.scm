@@ -47,7 +47,10 @@
 ;;;     (lit value) (var name) (if test then else) (seq exprs)
 ;;;     (lambda params rest name body) (let var init body)
 ;;;     (letrec names inits body) (set name value) (define name value)
-;;;     (app fn args) (other description)
+;;;     (app fn args span) (other description)
+;;;
+;;; An application's `span` is where it was read from, the reader's, or #f;
+;;; data written by hand may leave it out.
 ;;;
 ;;; An IR node is the same idea, with the fields the JavaScript version stores
 ;;; in an object, in the same order:
@@ -58,7 +61,11 @@
 ;;;     (let name init body tail callable)
 ;;;     (letrec names inits body tail callable inline)
 ;;;     (set name local value tail) (define name value tail)
-;;;     (call fn args tail loop)
+;;;     (call fn args tail loop span)
+;;;
+;;; A call's `span` is its application's, which the source map of the code
+;;; generated for it reads (`sourcemap.scm`); the calls this pass synthesizes
+;;; carry none, and may stop before `loop`.
 ;;;
 ;;; A call's `loop` is `local` or `global` when the call is a tail call to the
 ;;; procedure that contains it, which the emitter compiles as a jump back to
@@ -474,6 +481,15 @@
 (define (ast-4 node) (car (cddddr node)))
 
 ;; /**
+;;  * An application's source span, or #f.
+;;  * @param {list} node - An `app` AST node.
+;;  * @returns {object|boolean}
+;;  */
+(define (app-span node)
+  (let ((rest (cdddr node)))
+    (and (pair? rest) (car rest))))
+
+;; /**
 ;;  * Whether an IR node denotes something this pass can name as a callee.
 ;;  *
 ;;  * A global can be looked up and followed; a lambda, and a local bound to
@@ -825,14 +841,14 @@
         (let ((args (lower-each (ast-2 node) scope st)))
           (cond
             ((not args) #f)
-            ((named-let-operator? fn) (lower-named-let-call fn args tail st))
+            ((named-let-operator? fn) (lower-named-let-call fn args tail (app-span node) st))
             (else
                 (if (ir-callable? fn)
                     (if (eq? (car fn) 'local) (state-called-local! st (ast-1 fn)) #f)
                     (state-calls-unknown! st))
                 (if tail #f (state-suspends! st))
                 (let* ((loop (loop-kind fn args tail st))
-                       (call (list 'call fn args tail loop)))
+                       (call (list 'call fn args tail loop (app-span node))))
                   (if (eq? loop 'local)
                       (vector-set! st 10 (cons call (vector-ref st 10)))
                       #f)
@@ -864,13 +880,14 @@
 ;;  * @param {list} fn - The lowered `letrec` operator.
 ;;  * @param {list} args - The lowered arguments.
 ;;  * @param {boolean} tail - Whether the application is in tail position.
+;;  * @param {object|boolean} span - The application's source span, or #f.
 ;;  * @param {vector} st - Lowering state.
 ;;  * @returns {list} A `letrec` IR node.
 ;;  */
-(define (lower-named-let-call fn args tail st)
+(define (lower-named-let-call fn args tail span st)
   (let* ((names (cadr fn))
          (inits (caddr fn))
-         (call (list 'call (cadddr fn) args tail #f)))
+         (call (list 'call (cadddr fn) args tail #f span)))
     (state-called-local! st (car names))
     (if tail #f (state-suspends! st))
     (list 'letrec names inits call tail #f

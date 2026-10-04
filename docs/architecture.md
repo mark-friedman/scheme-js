@@ -298,6 +298,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── emit.scm           # IR -> JavaScript, in Scheme: both forms of a procedure
 │      ├── lift.scm           # Which nested procedures are emitted once, at top level
 │      ├── liveness.scm       # Which locals a suspended frame saves
+│      ├── sourcemap.scm      # Source maps: each line of generated code to the Scheme it came from
 │      ├── inline.scm         # Inline expansions for primitives, tower-faithful
 │      ├── driver.scm         # What to compile, and each reason not: definitions, expressions, closures, environments, programs
 │      ├── safety.scm         # The opt-in rule declining what a capture could unwind through
