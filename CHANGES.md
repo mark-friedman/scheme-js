@@ -11581,3 +11581,49 @@ primitive calls Scheme back. Decided with the user: the primitives stay JavaScri
 above them, or one that would call Scheme back, is Scheme. `.agent/rules/rules.md` (`CLAUDE.md`)
 says so under *What may be JavaScript*; the plan drops 61 into *Decided*, points 56 at the
 primitives, and marks 65, the numeric primitives, to be re-decided the same way before it starts.
+
+# Task 39, step 1: compiled Scheme names itself in a stack trace (2026-10-03)
+
+Calling convention B was chosen so that one live Scheme frame is one JavaScript frame, which a
+debugger, a stack trace or a profile could show as a Scheme stack -- had the frames said which
+procedures they were. Every compiled frame read `$proc (eval at instantiate (host.js:105:25),
+<anonymous>:29:49)`. Now a recursion reads `count-down (scheme:///stack.scm/count-down:29:49)`, once
+for each level, and a profile names the same frames `fib`.
+
+- **Named as made** (`named-function` in `emit.scm`): each fast and resumable form is the value of a
+  property keyed by the procedure's Scheme name, `const $proc = { "count-down": function (n) {...}
+  }["count-down"]`, since an engine names a frame by its function's `name` and a function made as a
+  property's value takes the key. A nested procedure shows as the name a named `let` or an internal
+  definition gave it, or else as `lambda`. Setting `name` afterwards reads the same in a trace, but
+  leaves a function's properties slow to read (R110), and compiled code reads its callee's on every
+  call. The prebuilt tables are named the same way, so a shipped library's procedures show too.
+- **Placed by a URL** (`source-url` in `driver.scm`): code generated as a program runs ends with
+  `//# sourceURL=scheme:///<file>/<procedure>` -- the file the procedure was read from, or its
+  library, or `program` -- so a debugger lists each procedure's code as a source of its own. A name's
+  `%`, `?`, `#` and spaces are escaped in the URL, and only there. The tables are module code, placed
+  by their module's URL.
+
+## Tests
+
+`compiled_stack_tests.js`, written first, since only JavaScript sees a stack trace: a compiled
+recursion's frames are named after it, one for each level; its code's URL names its file and
+procedure, or the program when it has no file; a name is escaped in the URL and not in the frame;
+and a procedure of a shipped library, installed from its table, shows by its name.
+
+## Measured
+
+The commit before against this, interleaved, over `run_tier.js`'s four sets: geometric means with
+the tier 1.009 on the canonical programs, 1.021 on the test files, 1.009 on the corpus and 1.029 on
+the three page programs; the time spent compiling 1.000, 1.014, 1.038 and 1.044, and the compiled
+code's running unchanged within noise. A first version cost compiling 3-4% on every set: escaping a
+name a character at a time whether it needed it or not, and writing each name's JavaScript literal
+for each form; now a name with nothing to escape is used as it is, and the literal is made once per
+procedure. Making a closure in compiled code took 16.1-16.4 ns before and 16.3-16.5 after: V8
+removes the object a function is named by. The prebuilt tables grow 1.4% for the libraries and 2.5%
+for the compiler.
+
+## Verification
+
+7,671 tests pass in Node with none failing (33 skipped), and 7,459 in the browser -- headless
+Chrome, its cache off -- with none failing (55 skipped). Lines under `src/`: Scheme 101 added and
+18 removed; no JavaScript.

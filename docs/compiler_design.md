@@ -67,10 +67,28 @@ the faster-measured design in the published literature and it was rejected for a
 about speed: **the JavaScript call stack would be one frame deep**, so DevTools could never show
 Scheme frames, and the browser would have no debugger for compiled code but a custom one. Under B, one live Scheme frame is
 one JavaScript frame, until the stack is deep enough that some move to the heap, and tail calls add
-none beyond the room below. The bake-off's probe measured that shape; whether DevTools then shows
-Scheme names for those frames, with a source map attached, has not been checked yet.
+none beyond the room below. The bake-off's probe measured that shape. Each frame shows as its Scheme
+procedure (*Compiled code in a stack trace*, below); that a source map can then put it at its place
+in the Scheme source has not been checked yet.
 
 The cost of B is procedure fragmentation, which is the next section.
+
+### Compiled code in a stack trace
+
+An engine names a frame, in an error's stack trace, a debugger's call stack or a profile, by its
+function's `name`, and places it by its script's URL. Generated code would show every procedure as
+`$proc`, at `eval at instantiate (host.js)`. So each fast and resumable form is made as the value of a
+property keyed by the Scheme procedure's name, `const $proc = { "count-down": function (n) {...}
+}["count-down"]`, which names the function as it is made (`named-function` in `emit.scm`); a nested
+procedure shows as its name if a named `let` or an internal definition gave it one, and as `lambda`
+otherwise. Setting `name` afterwards would read the same in a trace, but reconfiguring a function's
+own property leaves all its properties slow to read (R110), and compiled code reads its callee's on
+every call. V8 removes the object literal, so making a closure costs what it did.
+
+Code generated as a program runs is given a `//# sourceURL=scheme:///<file>/<procedure>`, the file
+being the one the procedure was read from, or else its library, or else `program`
+(`source-url` in `driver.scm`), so a debugger lists each procedure's code as a source of its own.
+The prebuilt tables are module code, placed by their module's URL, and named the same way.
 
 ## A compiled procedure faces JavaScript; its code faces Scheme
 
@@ -763,7 +781,9 @@ Constraint 4 has **two mechanisms, not one**, which is what every real toolchain
   source -- one without a table, or whose table is stale -- switches as before.
 - **Debug info** -- source maps and emitted debug points, so compiled code can be stepped and
   inspected in place, without switching. This is what calling convention B was chosen for: one live
-  Scheme frame is one JavaScript frame, so DevTools can show a Scheme stack. Still to come.
+  Scheme frame is one JavaScript frame, so DevTools can show a Scheme stack. Its frames are named for
+  their procedures (*Compiled code in a stack trace*); mapping them to source positions is still to
+  come.
 
 The first is not a lesser substitute for the second. Lowering beta-reduces immediately applied
 lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes assigned

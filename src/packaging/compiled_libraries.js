@@ -36,14 +36,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-js-object-internal")).v;
-        function $proc() {
+        const $proc = { "make-js-object": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("make-js-object", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(); } return $tailCall($t0, []);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-js-object"];
+        const $proc$r = { "make-js-object": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -52,7 +52,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, []);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-js-object"];
         const $proc$js = R.markProcedure($proc, "make-js-object", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -85,7 +85,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "car")).v;
         const W3 = R.primitiveCell("car"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "reverse")).v;
-        function $proc(s_f_$2316, s_xs_$2317) {
+        const $proc = { "append-each": function (s_f_$2316, s_xs_$2317) {
           let $t0, $t1, $t2, s_xs_$2319, s_acc_$2320, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 2) R.wrongArity("append-each", 2, false, arguments.length);
           const $d = $stack.room - 25;
@@ -126,8 +126,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["append-each"];
+        const $proc$r = { "append-each": function ($pc, $f) {
           let $t0, $t1, $t2, s_xs_$2319, s_acc_$2320, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_f_$2316, s_xs_$2317, $r;
           ({ $t0, $t1, $t2, s_xs_$2319, s_acc_$2320, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_f_$2316, s_xs_$2317, $r } = $f);
           const $d = $stack.room - 25;
@@ -183,7 +183,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append-each"];
         const $proc$js = R.markProcedure($proc, "append-each", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -203,7 +203,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "all?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
-        function $proc(s_ok_3f_$2321, s_xs_$2322) {
+        const $proc = { "all?": function (s_ok_3f_$2321, s_xs_$2322) {
           let $t0, s_x_$2323, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("all?", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -233,8 +233,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["all?"];
+        const $proc$r = { "all?": function ($pc, $f) {
           let $t0, s_x_$2323, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_ok_3f_$2321, s_xs_$2322, $r;
           ({ $t0, s_x_$2323, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_ok_3f_$2321, s_xs_$2322, $r } = $f);
           const $d = $stack.room - 20;
@@ -269,7 +269,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["all?"];
         const $proc$js = R.markProcedure($proc, "all?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -289,7 +289,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "some?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
-        function $proc(s_ok_3f_$2324, s_xs_$2325) {
+        const $proc = { "some?": function (s_ok_3f_$2324, s_xs_$2325) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_x_$2326, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("some?", 2, false, arguments.length);
           const $d = $stack.room - 21;
@@ -324,8 +324,8 @@ export const LIBRARIES = {
           return false;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["some?"];
+        const $proc$r = { "some?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_x_$2326, $t6, $t7, $t8, $t9, s_ok_3f_$2324, s_xs_$2325, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_x_$2326, $t6, $t7, $t8, $t9, s_ok_3f_$2324, s_xs_$2325, $r } = $f);
           const $d = $stack.room - 21;
@@ -368,7 +368,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_ok_3f_$2324, $t7]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["some?"];
         const $proc$js = R.markProcedure($proc, "some?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -388,7 +388,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
-        function $proc(s_kons_$2327, s_knil_$2328, s_xs_$2329) {
+        const $proc = { "fold": function (s_kons_$2327, s_knil_$2328, s_xs_$2329) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 3) R.wrongArity("fold", 3, false, arguments.length);
           const $d = $stack.room - 20;
@@ -413,8 +413,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8(s_kons_$2327, $t5, $t6); } return $tailCall($t7, [s_kons_$2327, $t5, $t6]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["fold"];
+        const $proc$r = { "fold": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_kons_$2327, s_knil_$2328, s_xs_$2329, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_kons_$2327, s_knil_$2328, s_xs_$2329, $r } = $f);
           const $d = $stack.room - 20;
@@ -444,7 +444,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [s_kons_$2327, $t5, $t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["fold"];
         const $proc$js = R.markProcedure($proc, "fold", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -478,15 +478,15 @@ export const LIBRARIES = {
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "error")).v;
         let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "cadr")).v;
         function $mk$fn0(s_features_$2331, s_library_2davailable_3f_$2332) {
-          function $fn0(s_r_$2333) {
+          const $fn0 = { "met?": function (s_r_$2333) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("met?", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_r_$2333, s_features_$2331, s_library_2davailable_3f_$2332); } return $tailCall($t0, [s_r_$2333, s_features_$2331, s_library_2davailable_3f_$2332]);
-        }
+        } }["met?"];
           const $fn0$js = R.markProcedure($fn0, "met?", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "met?": function ($pc, $f) {
           let $t0, $t1, s_r_$2333, $r;
           ({ $t0, $t1, s_r_$2333, $r } = $f);
           for (;;) switch ($pc) {
@@ -495,11 +495,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_r_$2333, s_features_$2331, s_library_2davailable_3f_$2332]);
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["met?"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_requirement_$2330, s_features_$2331, s_library_2davailable_3f_$2332) {
+        const $proc = { "requirement-met?": function (s_requirement_$2330, s_features_$2331, s_library_2davailable_3f_$2332) {
           let $t1, s_met_3f, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_atom_2dkey_$2334, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53;
           if (arguments.length !== 3) R.wrongArity("requirement-met?", 3, false, arguments.length);
           const $d = $stack.room - 66;
@@ -641,8 +641,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["requirement-met?"];
+        const $proc$r = { "requirement-met?": function ($pc, $f) {
           let $t1, s_met_3f, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_atom_2dkey_$2334, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, s_requirement_$2330, s_features_$2331, s_library_2davailable_3f_$2332, $r;
           ({ $t1, s_met_3f, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_atom_2dkey_$2334, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, s_requirement_$2330, s_features_$2331, s_library_2davailable_3f_$2332, $r } = $f);
           const $d = $stack.room - 66;
@@ -833,7 +833,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["requirement-met?"];
         const $proc$js = R.markProcedure($proc, "requirement-met?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -862,7 +862,7 @@ export const LIBRARIES = {
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "list")).v;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "import-filter")).v;
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "cddr")).v;
-        function $proc(s_spec_$2335) {
+        const $proc = { "parse-import-set": function (s_spec_$2335) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_inner_$2336, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48;
           if (arguments.length !== 1) R.wrongArity("parse-import-set", 1, false, arguments.length);
           const $d = $stack.room - 59;
@@ -972,8 +972,8 @@ export const LIBRARIES = {
           $t47 = (C6.v ?? G6());
           if ($d > 0 && ($t48 = $t47?.[$RAW] ?? $t47)?.[$PRIM] === true) { $stack.room = $d; return $t48(s_spec_$2335, null); } return $tailCall($t47, [s_spec_$2335, null]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["parse-import-set"];
+        const $proc$r = { "parse-import-set": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_inner_$2336, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, s_spec_$2335, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_inner_$2336, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, s_spec_$2335, $r } = $f);
           const $d = $stack.room - 59;
@@ -1135,7 +1135,7 @@ export const LIBRARIES = {
                 return $tailCall($t45, [$t25, $t44]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["parse-import-set"];
         const $proc$js = R.markProcedure($proc, "parse-import-set", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -1157,7 +1157,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "map")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cadr")).v;
         function $mk$fn8() {
-          function $fn8(s_renaming_$2340) {
+          const $fn8 = { "anonymous": function (s_renaming_$2340) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -1172,9 +1172,9 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn8$r, 1, { $t0 }); return $UNWIND; }
           $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? (new R.Cons($t0, $t3)) : R.callBinding((C1.v ?? G1()), [$t0, $t3]);
           return $t4;
-        }
+        } }["anonymous"];
           const $fn8$js = R.markProcedure($fn8, "anonymous", E);
-          function $fn8$r($pc, $f) {
+          const $fn8$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_renaming_$2340, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_renaming_$2340, $r } = $f);
           const $d = $stack.room - 14;
@@ -1196,11 +1196,11 @@ export const LIBRARIES = {
                 return $t4;
               default: throw new Error('$fn8$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn8$js.$resume = $fn8$r;
           return $fn8$js;
         }
-        function $proc(s_kind_$2337, s_args_$2338) {
+        const $proc = { "import-filter": function (s_kind_$2337, s_args_$2338) {
           let s_atom_2dkey_$2339, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("import-filter", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -1240,8 +1240,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["import-filter"];
+        const $proc$r = { "import-filter": function ($pc, $f) {
           let s_atom_2dkey_$2339, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11, $t12, $t13, s_kind_$2337, s_args_$2338, $r;
           ({ s_atom_2dkey_$2339, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11, $t12, $t13, s_kind_$2337, s_args_$2338, $r } = $f);
           const $d = $stack.room - 24;
@@ -1291,7 +1291,7 @@ export const LIBRARIES = {
                 return $t13;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["import-filter"];
         const $proc$js = R.markProcedure($proc, "import-filter", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -1314,7 +1314,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_name_$2341, s_steps_$2342) {
+        const $proc = { "imported-name": function (s_name_$2341, s_steps_$2342) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 2) R.wrongArity("imported-name", 2, false, arguments.length);
           const $d = $stack.room - 21;
@@ -1345,8 +1345,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["imported-name"];
+        const $proc$r = { "imported-name": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_name_$2341, s_steps_$2342, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_name_$2341, s_steps_$2342, $r } = $f);
           const $d = $stack.room - 21;
@@ -1382,7 +1382,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t7, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["imported-name"];
         const $proc$js = R.markProcedure($proc, "imported-name", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -1408,7 +1408,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "string-append")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "symbol->string")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "assq")).v;
-        function $proc(s_step_$2343, s_name_$2344) {
+        const $proc = { "filtered-name": function (s_step_$2343, s_name_$2344) {
           let $t0, s_atom_2dkey_$2345, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_renaming_$2346, $t36;
           if (arguments.length !== 2) R.wrongArity("filtered-name", 2, false, arguments.length);
           const $d = $stack.room - 49;
@@ -1504,8 +1504,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["filtered-name"];
+        const $proc$r = { "filtered-name": function ($pc, $f) {
           let $t0, s_atom_2dkey_$2345, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_renaming_$2346, $t36, s_step_$2343, s_name_$2344, $r;
           ({ $t0, s_atom_2dkey_$2345, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_renaming_$2346, $t36, s_step_$2343, s_name_$2344, $r } = $f);
           const $d = $stack.room - 49;
@@ -1628,7 +1628,7 @@ export const LIBRARIES = {
                 return s_name_$2344;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["filtered-name"];
         const $proc$js = R.markProcedure($proc, "filtered-name", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -1655,7 +1655,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "parse-declarations")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cadr")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "cddr")).v;
-        function $proc(s_form_$2347, s_met_3f_$2348) {
+        const $proc = { "parse-define-library": function (s_form_$2347, s_met_3f_$2348) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24;
           if (arguments.length !== 2) R.wrongArity("parse-define-library", 2, false, arguments.length);
           const $d = $stack.room - 35;
@@ -1715,8 +1715,8 @@ export const LIBRARIES = {
           if ($t22 === $UNWIND) { R.reify($proc$r, 13, { $t16, $t19, s_met_3f_$2348 }); return $UNWIND; }
           $t23 = $t16;
           if ($d > 0 && ($t24 = $t23?.[$RAW] ?? $t23)?.[$PRIM] === true) { $stack.room = $d; return $t24($t19, $t22, s_met_3f_$2348); } return $tailCall($t23, [$t19, $t22, s_met_3f_$2348]);
-        }
-        function $proc$r($pc, $f) {
+        } }["parse-define-library"];
+        const $proc$r = { "parse-define-library": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_form_$2347, s_met_3f_$2348, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_form_$2347, s_met_3f_$2348, $r } = $f);
           const $d = $stack.room - 35;
@@ -1804,7 +1804,7 @@ export const LIBRARIES = {
                 return $tailCall($t23, [$t19, $t22, s_met_3f_$2348]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["parse-define-library"];
         const $proc$js = R.markProcedure($proc, "parse-define-library", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -1831,7 +1831,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "map")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "parse-import-set")).v;
         function $mk$fn3_0(s_kind_$2353) {
-          function $fn3_0(s_d_$2354) {
+          const $fn3_0 = { "anonymous": function (s_d_$2354) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W3.intact || (C3.v ?? G3()) === P3) && (s_d_$2354 instanceof R.Cons) ? (s_d_$2354.car) : R.callBinding((C3.v ?? G3()), [s_d_$2354]);
@@ -1842,9 +1842,9 @@ export const LIBRARIES = {
         } else {
           return null;
         }
-        }
+        } }["anonymous"];
           const $fn3_0$js = R.markProcedure($fn3_0, "anonymous", E);
-          function $fn3_0$r($pc, $f) {
+          const $fn3_0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_d_$2354, $r;
           ({ $t0, $t1, $t2, s_d_$2354, $r } = $f);
           for (;;) switch ($pc) {
@@ -1859,21 +1859,21 @@ export const LIBRARIES = {
                 return null;
               default: throw new Error('$fn3_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_0$js.$resume = $fn3_0$r;
           return $fn3_0$js;
         }
         function $mk$fn3(s_declarations_$2352) {
-          function $fn3(s_kind_$2353) {
+          const $fn3 = { "contents": function (s_kind_$2353) {
           let $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("contents", 1, false, arguments.length);
           const $d = $stack.room - 12;
           $t1 = $mk$fn3_0(s_kind_$2353);
           $t2 = (C1.v ?? G1());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_declarations_$2352); } return $tailCall($t2, [$t1, s_declarations_$2352]);
-        }
+        } }["contents"];
           const $fn3$js = R.markProcedure($fn3, "contents", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "contents": function ($pc, $f) {
           let $t1, $t2, $t3, s_kind_$2353, $r;
           ({ $t1, $t2, $t3, s_kind_$2353, $r } = $f);
           for (;;) switch ($pc) {
@@ -1883,11 +1883,11 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_declarations_$2352]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["contents"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_name_$2349, s_declarations_$2350, s_met_3f_$2351) {
+        const $proc = { "parse-declarations": function (s_name_$2349, s_declarations_$2350, s_met_3f_$2351) {
           let $t0, $t1, $t2, s_declarations_$2352, $t4, s_contents, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35;
           if (arguments.length !== 3) R.wrongArity("parse-declarations", 3, false, arguments.length);
           const $d = $stack.room - 48;
@@ -1966,8 +1966,8 @@ export const LIBRARIES = {
           if ($t33 === $UNWIND) { R.reify($proc$r, 9, { $t5, $t13, $t21, $t24, $t27, $t30, s_name_$2349 }); return $UNWIND; }
           $t34 = $t5;
           if ($d > 0 && ($t35 = $t34?.[$RAW] ?? $t34)?.[$PRIM] === true) { $stack.room = $d; return $t35(s_name_$2349, $t13, $t21, $t24, $t27, $t30, $t33); } return $tailCall($t34, [s_name_$2349, $t13, $t21, $t24, $t27, $t30, $t33]);
-        }
-        function $proc$r($pc, $f) {
+        } }["parse-declarations"];
+        const $proc$r = { "parse-declarations": function ($pc, $f) {
           let $t0, $t1, $t2, s_declarations_$2352, $t4, s_contents, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_name_$2349, s_declarations_$2350, s_met_3f_$2351, $r;
           ({ $t0, $t1, $t2, s_declarations_$2352, $t4, s_contents, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_name_$2349, s_declarations_$2350, s_met_3f_$2351, $r } = $f);
           const $d = $stack.room - 48;
@@ -2085,7 +2085,7 @@ export const LIBRARIES = {
                 return $tailCall($t34, [s_name_$2349, $t13, $t21, $t24, $t27, $t30, $t33]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["parse-declarations"];
         const $proc$js = R.markProcedure($proc, "parse-declarations", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -2105,7 +2105,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "list")).v;
         function $mk$fn0(s_kind_$2355) {
-          function $fn0(s_d_$2357) {
+          const $fn0 = { "anonymous": function (s_d_$2357) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -2117,9 +2117,9 @@ export const LIBRARIES = {
         } else {
           return null;
         }
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_d_$2357, $r;
           ({ $t0, $t1, $t2, $t3, s_d_$2357, $r } = $f);
           for (;;) switch ($pc) {
@@ -2134,19 +2134,19 @@ export const LIBRARIES = {
                 return null;
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_kind_$2355, s_declarations_$2356) {
+        const $proc = { "filter-kind": function (s_kind_$2355, s_declarations_$2356) {
           let $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("filter-kind", 2, false, arguments.length);
           const $d = $stack.room - 13;
           $t1 = $mk$fn0(s_kind_$2355);
           $t2 = (C0.v ?? G0());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_declarations_$2356); } return $tailCall($t2, [$t1, s_declarations_$2356]);
-        }
-        function $proc$r($pc, $f) {
+        } }["filter-kind"];
+        const $proc$r = { "filter-kind": function ($pc, $f) {
           let $t1, $t2, $t3, s_kind_$2355, s_declarations_$2356, $r;
           ({ $t1, $t2, $t3, s_kind_$2355, s_declarations_$2356, $r } = $f);
           for (;;) switch ($pc) {
@@ -2156,7 +2156,7 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_declarations_$2356]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["filter-kind"];
         const $proc$js = R.markProcedure($proc, "filter-kind", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -2189,7 +2189,7 @@ export const LIBRARIES = {
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "memq")).v;
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "list")).v;
         function $mk$fn0(s_met_3f_$2359) {
-          function $fn0(s_d_$2360) {
+          const $fn0 = { "anonymous": function (s_d_$2360) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 42;
@@ -2256,9 +2256,9 @@ export const LIBRARIES = {
         }
         }
         }
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_d_$2360, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_d_$2360, $r } = $f);
           const $d = $stack.room - 42;
@@ -2343,19 +2343,19 @@ export const LIBRARIES = {
                 return $tailCall($t31, [$t29, $t30]);
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_declarations_$2358, s_met_3f_$2359) {
+        const $proc = { "decided-declarations": function (s_declarations_$2358, s_met_3f_$2359) {
           let $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("decided-declarations", 2, false, arguments.length);
           const $d = $stack.room - 13;
           $t1 = $mk$fn0(s_met_3f_$2359);
           $t2 = (C0.v ?? G0());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_declarations_$2358); } return $tailCall($t2, [$t1, s_declarations_$2358]);
-        }
-        function $proc$r($pc, $f) {
+        } }["decided-declarations"];
+        const $proc$r = { "decided-declarations": function ($pc, $f) {
           let $t1, $t2, $t3, s_declarations_$2358, s_met_3f_$2359, $r;
           ({ $t1, $t2, $t3, s_declarations_$2358, s_met_3f_$2359, $r } = $f);
           for (;;) switch ($pc) {
@@ -2365,7 +2365,7 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_declarations_$2358]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["decided-declarations"];
         const $proc$js = R.markProcedure($proc, "decided-declarations", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -2387,7 +2387,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "chosen-clause")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_clauses_$2361, s_met_3f_$2362) {
+        const $proc = { "chosen-clause": function (s_clauses_$2361, s_met_3f_$2362) {
           let $t0, s_x_$2363, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17;
           if (arguments.length !== 2) R.wrongArity("chosen-clause", 2, false, arguments.length);
           const $d = $stack.room - 29;
@@ -2437,8 +2437,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["chosen-clause"];
+        const $proc$r = { "chosen-clause": function ($pc, $f) {
           let $t0, s_x_$2363, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_clauses_$2361, s_met_3f_$2362, $r;
           ({ $t0, s_x_$2363, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_clauses_$2361, s_met_3f_$2362, $r } = $f);
           const $d = $stack.room - 29;
@@ -2504,7 +2504,7 @@ export const LIBRARIES = {
                 return $tailCall($t16, [$t15, s_met_3f_$2362]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["chosen-clause"];
         const $proc$js = R.markProcedure($proc, "chosen-clause", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -2536,7 +2536,7 @@ export const LIBRARIES = {
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "cdr")).v;
         const W11 = R.primitiveCell("cdr"), P11 = W11.primitive;
         function $mk$fn1() {
-          function $fn1(s_spec_$2365) {
+          const $fn1 = { "anonymous": function (s_spec_$2365) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 47;
@@ -2635,9 +2635,9 @@ export const LIBRARIES = {
           if ($d > 0 && ($t37 = $t36?.[$RAW] ?? $t36)?.[$PRIM] === true) { $stack.room = $d; return $t37("define-library: an export is a name or (rename internal external)", s_spec_$2365); } return $tailCall($t36, ["define-library: an export is a name or (rename internal external)", s_spec_$2365]);
         }
         }
-        }
+        } }["anonymous"];
           const $fn1$js = R.markProcedure($fn1, "anonymous", E);
-          function $fn1$r($pc, $f) {
+          const $fn1$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_spec_$2365, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_spec_$2365, $r } = $f);
           const $d = $stack.room - 47;
@@ -2783,11 +2783,11 @@ export const LIBRARIES = {
                 return $t35;
               default: throw new Error('$fn1$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn1$js.$resume = $fn1$r;
           return $fn1$js;
         }
-        function $proc(s_declaration_$2364) {
+        const $proc = { "export-specs": function (s_declaration_$2364) {
           let $t0, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("export-specs", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -2796,8 +2796,8 @@ export const LIBRARIES = {
           $t3 = (W11.intact || (C11.v ?? G11()) === P11) && (s_declaration_$2364 instanceof R.Cons) ? (s_declaration_$2364.cdr) : R.callBinding((C11.v ?? G11()), [s_declaration_$2364]);
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t2, $t3); } return $tailCall($t4, [$t2, $t3]);
-        }
-        function $proc$r($pc, $f) {
+        } }["export-specs"];
+        const $proc$r = { "export-specs": function ($pc, $f) {
           let $t0, $t2, $t3, $t4, $t5, s_declaration_$2364, $r;
           ({ $t0, $t2, $t3, $t4, $t5, s_declaration_$2364, $r } = $f);
           for (;;) switch ($pc) {
@@ -2809,7 +2809,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t2, $t3]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["export-specs"];
         const $proc$js = R.markProcedure($proc, "export-specs", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -2834,15 +2834,15 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "negative?")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "number->string")).v;
         function $mk$fn0(s_name_$2366) {
-          function $fn0() {
+          const $fn0 = { "wrong": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("wrong", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("library: a library's name is a list of identifiers and exact integers", s_name_$2366); } return $tailCall($t0, ["library: a library's name is a list of identifiers and exact integers", s_name_$2366]);
-        }
+        } }["wrong"];
           const $fn0$js = R.markProcedure($fn0, "wrong", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "wrong": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -2851,12 +2851,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["library: a library's name is a list of identifiers and exact integers", s_name_$2366]);
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["wrong"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
         function $mk$fn8(s_wrong) {
-          function $fn8(s_part_$2367) {
+          const $fn8 = { "anonymous": function (s_part_$2367) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 26;
@@ -2900,9 +2900,9 @@ export const LIBRARIES = {
           if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16(); } return $tailCall($t15, []);
         }
         }
-        }
+        } }["anonymous"];
           const $fn8$js = R.markProcedure($fn8, "anonymous", E);
-          function $fn8$r($pc, $f) {
+          const $fn8$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_part_$2367, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_part_$2367, $r } = $f);
           const $d = $stack.room - 26;
@@ -2964,11 +2964,11 @@ export const LIBRARIES = {
                 return $tailCall($t15, []);
               default: throw new Error('$fn8$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn8$js.$resume = $fn8$r;
           return $fn8$js;
         }
-        function $proc(s_name_$2366) {
+        const $proc = { "name-strings": function (s_name_$2366) {
           let s_wrong, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("name-strings", 1, false, arguments.length);
           const $d = $stack.room - 20;
@@ -2995,8 +2995,8 @@ export const LIBRARIES = {
           $t9 = $mk$fn8(s_wrong);
           $t10 = (C3.v ?? G3());
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11($t9, s_name_$2366); } return $tailCall($t10, [$t9, s_name_$2366]);
-        }
-        function $proc$r($pc, $f) {
+        } }["name-strings"];
+        const $proc$r = { "name-strings": function ($pc, $f) {
           let s_wrong, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11, s_name_$2366, $r;
           ({ s_wrong, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11, s_name_$2366, $r } = $f);
           const $d = $stack.room - 20;
@@ -3033,7 +3033,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["name-strings"];
         const $proc$js = R.markProcedure($proc, "name-strings", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3048,7 +3048,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "joined")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "name-strings")).v;
-        function $proc(s_name_$2368) {
+        const $proc = { "library-key": function (s_name_$2368) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("library-key", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -3063,8 +3063,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3, "."); } return $tailCall($t4, [$t3, "."]);
-        }
-        function $proc$r($pc, $f) {
+        } }["library-key"];
+        const $proc$r = { "library-key": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_name_$2368, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_name_$2368, $r } = $f);
           const $d = $stack.room - 15;
@@ -3086,7 +3086,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3, "."]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["library-key"];
         const $proc$js = R.markProcedure($proc, "library-key", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3101,7 +3101,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "joined")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "name-strings")).v;
-        function $proc(s_name_$2369) {
+        const $proc = { "library-path": function (s_name_$2369) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("library-path", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -3116,8 +3116,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3, "/"); } return $tailCall($t4, [$t3, "/"]);
-        }
-        function $proc$r($pc, $f) {
+        } }["library-path"];
+        const $proc$r = { "library-path": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_name_$2369, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_name_$2369, $r } = $f);
           const $d = $stack.room - 15;
@@ -3139,7 +3139,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3, "/"]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["library-path"];
         const $proc$js = R.markProcedure($proc, "library-path", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3164,7 +3164,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "name-strings")).v;
         function $mk$fn0(s_file_$2371) {
           let s_loop_$2372;
-          function $fn0(s_parts_$2373) {
+          const $fn0 = { "anonymous": function (s_parts_$2373) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -3187,9 +3187,9 @@ export const LIBRARIES = {
           $t9 = (W3.intact || (C3.v ?? G3()) === P3) ? (new R.Cons($t4, $t8)) : R.callBinding((C3.v ?? G3()), [$t4, $t8]);
           return $t9;
         }
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_parts_$2373, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_parts_$2373, $r } = $f);
           const $d = $stack.room - 19;
@@ -3219,12 +3219,12 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           s_loop_$2372 = $fn0$js;
           return $fn0$js;
         }
-        function $proc(s_name_$2370, s_file_$2371) {
+        const $proc = { "include-path": function (s_name_$2370, s_file_$2371) {
           let s_loop_$2372, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 2) R.wrongArity("include-path", 2, false, arguments.length);
           const $d = $stack.room - 17;
@@ -3240,8 +3240,8 @@ export const LIBRARIES = {
           if ($t4 === $UNWIND) { R.reify($proc$r, 1, { s_loop_$2372 }); return $UNWIND; }
           $t5 = s_loop_$2372;
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4); } return $tailCall($t5, [$t4]);
-        }
-        function $proc$r($pc, $f) {
+        } }["include-path"];
+        const $proc$r = { "include-path": function ($pc, $f) {
           let s_loop_$2372, $t1, $t2, $t3, $t4, $t5, $t6, s_name_$2370, s_file_$2371, $r;
           ({ s_loop_$2372, $t1, $t2, $t3, $t4, $t5, $t6, s_name_$2370, s_file_$2371, $r } = $f);
           const $d = $stack.room - 17;
@@ -3264,7 +3264,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["include-path"];
         const $proc$js = R.markProcedure($proc, "include-path", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3285,7 +3285,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "joined")).v;
-        function $proc(s_strings_$2374, s_separator_$2375) {
+        const $proc = { "joined": function (s_strings_$2374, s_separator_$2375) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 2) R.wrongArity("joined", 2, false, arguments.length);
           const $d = $stack.room - 22;
@@ -3310,8 +3310,8 @@ export const LIBRARIES = {
           $t10 = $t3;
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11($t4, s_separator_$2375, $t9); } return $tailCall($t10, [$t4, s_separator_$2375, $t9]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["joined"];
+        const $proc$r = { "joined": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_strings_$2374, s_separator_$2375, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_strings_$2374, s_separator_$2375, $r } = $f);
           const $d = $stack.room - 22;
@@ -3343,7 +3343,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [$t4, s_separator_$2375, $t9]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["joined"];
         const $proc$js = R.markProcedure($proc, "joined", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3358,7 +3358,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "make-registry")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%make-hash-store")).v;
-        function $proc(s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378) {
+        const $proc = { "make-library-registry": function (s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 3) R.wrongArity("make-library-registry", 3, false, arguments.length);
           const $d = $stack.room - 17;
@@ -3373,8 +3373,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0, s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5(null, s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378, $t3, false); } return $tailCall($t4, [null, s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378, $t3, false]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-library-registry"];
+        const $proc$r = { "make-library-registry": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378, $r } = $f);
           const $d = $stack.room - 17;
@@ -3396,7 +3396,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [null, s_resolver_$2376, s_load_2dhook_$2377, s_features_$2378, $t3, false]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-library-registry"];
         const $proc$js = R.markProcedure($proc, "make-library-registry", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3410,14 +3410,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list")).v;
-        function $proc(s_host_$2379) {
+        const $proc = { "standard-features": function (s_host_$2379) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("standard-features", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(K[6], K[7], K[8], K[9], K[10], K[11], s_host_$2379); } return $tailCall($t0, [K[6], K[7], K[8], K[9], K[10], K[11], s_host_$2379]);
-        }
-        function $proc$r($pc, $f) {
+        } }["standard-features"];
+        const $proc$r = { "standard-features": function ($pc, $f) {
           let $t0, $t1, s_host_$2379, $r;
           ({ $t0, $t1, s_host_$2379, $r } = $f);
           for (;;) switch ($pc) {
@@ -3426,7 +3426,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [K[0], K[1], K[2], K[3], K[4], K[5], s_host_$2379]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["standard-features"];
         const $proc$js = R.markProcedure($proc, "standard-features", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3441,7 +3441,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-copy")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "registry-features")).v;
-        function $proc(s_registry_$2380) {
+        const $proc = { "registry-feature-list": function (s_registry_$2380) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("registry-feature-list", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -3456,8 +3456,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3); } return $tailCall($t4, [$t3]);
-        }
-        function $proc$r($pc, $f) {
+        } }["registry-feature-list"];
+        const $proc$r = { "registry-feature-list": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_registry_$2380, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_registry_$2380, $r } = $f);
           const $d = $stack.room - 15;
@@ -3479,7 +3479,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registry-feature-list"];
         const $proc$js = R.markProcedure($proc, "registry-feature-list", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3499,7 +3499,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "set-registry-features!")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "append")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "list")).v;
-        function $proc(s_registry_$2381, s_feature_$2382) {
+        const $proc = { "add-feature!": function (s_registry_$2381, s_feature_$2382) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20;
           if (arguments.length !== 2) R.wrongArity("add-feature!", 2, false, arguments.length);
           const $d = $stack.room - 31;
@@ -3549,8 +3549,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["add-feature!"];
+        const $proc$r = { "add-feature!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_registry_$2381, s_feature_$2382, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_registry_$2381, s_feature_$2382, $r } = $f);
           const $d = $stack.room - 31;
@@ -3623,7 +3623,7 @@ export const LIBRARIES = {
                 return $tailCall($t19, [s_registry_$2381, $t18]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["add-feature!"];
         const $proc$js = R.markProcedure($proc, "add-feature!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3640,7 +3640,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "registry-libraries")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
         const W2 = R.primitiveCell("cdr"), P2 = W2.primitive;
-        function $proc(s_registry_$2383, s_key_$2384) {
+        const $proc = { "registered-library": function (s_registry_$2383, s_key_$2384) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_entry_$2385, $t7;
           if (arguments.length !== 2) R.wrongArity("registered-library", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -3667,8 +3667,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["registered-library"];
+        const $proc$r = { "registered-library": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_entry_$2385, $t7, s_registry_$2383, s_key_$2384, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_entry_$2385, $t7, s_registry_$2383, s_key_$2384, $r } = $f);
           const $d = $stack.room - 19;
@@ -3706,7 +3706,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registered-library"];
         const $proc$js = R.markProcedure($proc, "registered-library", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3721,7 +3721,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "registered-library")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "library-exports")).v;
-        function $proc(s_registry_$2386, s_key_$2387) {
+        const $proc = { "registered-exports": function (s_registry_$2386, s_key_$2387) {
           let $t0, $t1, $t2, s_library_$2388, $t3, $t4;
           if (arguments.length !== 2) R.wrongArity("registered-exports", 2, false, arguments.length);
           const $d = $stack.room - 16;
@@ -3740,8 +3740,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["registered-exports"];
+        const $proc$r = { "registered-exports": function ($pc, $f) {
           let $t0, $t1, $t2, s_library_$2388, $t3, $t4, s_registry_$2386, s_key_$2387, $r;
           ({ $t0, $t1, $t2, s_library_$2388, $t3, $t4, s_registry_$2386, s_key_$2387, $r } = $f);
           const $d = $stack.room - 16;
@@ -3767,7 +3767,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registered-exports"];
         const $proc$js = R.markProcedure($proc, "registered-exports", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3782,7 +3782,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "registered-library")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "library-environment")).v;
-        function $proc(s_registry_$2389, s_key_$2390) {
+        const $proc = { "registered-environment": function (s_registry_$2389, s_key_$2390) {
           let $t0, $t1, $t2, s_library_$2391, $t3, $t4;
           if (arguments.length !== 2) R.wrongArity("registered-environment", 2, false, arguments.length);
           const $d = $stack.room - 16;
@@ -3801,8 +3801,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["registered-environment"];
+        const $proc$r = { "registered-environment": function ($pc, $f) {
           let $t0, $t1, $t2, s_library_$2391, $t3, $t4, s_registry_$2389, s_key_$2390, $r;
           ({ $t0, $t1, $t2, s_library_$2391, $t3, $t4, s_registry_$2389, s_key_$2390, $r } = $f);
           const $d = $stack.room - 16;
@@ -3828,7 +3828,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registered-environment"];
         const $proc$js = R.markProcedure($proc, "registered-environment", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3847,7 +3847,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "set-registry-libraries!")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cons")).v;
         const W4 = R.primitiveCell("cons"), P4 = W4.primitive;
-        function $proc(s_registry_$2392, s_key_$2393, s_library_$2394) {
+        const $proc = { "register-library!": function (s_registry_$2392, s_key_$2393, s_library_$2394) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_entry_$2395, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length !== 3) R.wrongArity("register-library!", 3, false, arguments.length);
           const $d = $stack.room - 29;
@@ -3885,8 +3885,8 @@ export const LIBRARIES = {
           $t15 = $t9;
           if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16(s_registry_$2392, $t14); } return $tailCall($t15, [s_registry_$2392, $t14]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["register-library!"];
+        const $proc$r = { "register-library!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_entry_$2395, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_registry_$2392, s_key_$2393, s_library_$2394, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_entry_$2395, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_registry_$2392, s_key_$2393, s_library_$2394, $r } = $f);
           const $d = $stack.room - 29;
@@ -3939,7 +3939,7 @@ export const LIBRARIES = {
                 return $tailCall($t15, [s_registry_$2392, $t14]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["register-library!"];
         const $proc$js = R.markProcedure($proc, "register-library!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -3954,7 +3954,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "register-library!")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "make-library")).v;
-        function $proc(s_registry_$2396, s_key_$2397, s_exports_$2398, s_environment_$2399) {
+        const $proc = { "register-exports!": function (s_registry_$2396, s_key_$2397, s_exports_$2398, s_environment_$2399) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 4) R.wrongArity("register-exports!", 4, false, arguments.length);
           const $d = $stack.room - 18;
@@ -3969,8 +3969,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0, s_registry_$2396, s_key_$2397 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5(s_registry_$2396, s_key_$2397, $t3); } return $tailCall($t4, [s_registry_$2396, s_key_$2397, $t3]);
-        }
-        function $proc$r($pc, $f) {
+        } }["register-exports!"];
+        const $proc$r = { "register-exports!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_registry_$2396, s_key_$2397, s_exports_$2398, s_environment_$2399, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_registry_$2396, s_key_$2397, s_exports_$2398, s_environment_$2399, $r } = $f);
           const $d = $stack.room - 18;
@@ -3992,7 +3992,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [s_registry_$2396, s_key_$2397, $t3]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["register-exports!"];
         const $proc$js = R.markProcedure($proc, "register-exports!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4010,7 +4010,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "registry-libraries")).v;
-        function $proc(s_registry_$2400) {
+        const $proc = { "registered-keys": function (s_registry_$2400) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 1) R.wrongArity("registered-keys", 1, false, arguments.length);
           const $d = $stack.room - 20;
@@ -4034,8 +4034,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 2, { $t0 }); return $UNWIND; }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t8); } return $tailCall($t9, [$t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["registered-keys"];
+        const $proc$r = { "registered-keys": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_registry_$2400, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_registry_$2400, $r } = $f);
           const $d = $stack.room - 20;
@@ -4070,7 +4070,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registered-keys"];
         const $proc$js = R.markProcedure($proc, "registered-keys", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4084,14 +4084,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-registry-libraries!")).v;
-        function $proc(s_registry_$2401) {
+        const $proc = { "clear-registry!": function (s_registry_$2401) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("clear-registry!", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_registry_$2401, null); } return $tailCall($t0, [s_registry_$2401, null]);
-        }
-        function $proc$r($pc, $f) {
+        } }["clear-registry!"];
+        const $proc$r = { "clear-registry!": function ($pc, $f) {
           let $t0, $t1, s_registry_$2401, $r;
           ({ $t0, $t1, s_registry_$2401, $r } = $f);
           for (;;) switch ($pc) {
@@ -4100,7 +4100,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_registry_$2401, null]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["clear-registry!"];
         const $proc$js = R.markProcedure($proc, "clear-registry!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4119,15 +4119,15 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "error")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "joined")).v;
         function $mk$fn5(s_resolver_$2405) {
-          function $fn5(s_path_$2406) {
+          const $fn5 = { "anonymous": function (s_path_$2406) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C2.v ?? G2());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_resolver_$2405, s_path_$2406); } return $tailCall($t0, [s_resolver_$2405, s_path_$2406]);
-        }
+        } }["anonymous"];
           const $fn5$js = R.markProcedure($fn5, "anonymous", E);
-          function $fn5$r($pc, $f) {
+          const $fn5$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_path_$2406, $r;
           ({ $t0, $t1, s_path_$2406, $r } = $f);
           for (;;) switch ($pc) {
@@ -4136,12 +4136,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_resolver_$2405, s_path_$2406]);
               default: throw new Error('$fn5$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn5$js.$resume = $fn5$r;
           return $fn5$js;
         }
         function $mk$fn7() {
-          function $fn7(s_path_$2407) {
+          const $fn7 = { "anonymous": function (s_path_$2407) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 16;
@@ -4157,9 +4157,9 @@ export const LIBRARIES = {
           if ($t4 === $UNWIND) { R.reify($fn7$r, 1, { $t0, $t1 }); return $UNWIND; }
           $t5 = $t0;
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t1, $t4); } return $tailCall($t5, [$t1, $t4]);
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_path_$2407, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_path_$2407, $r } = $f);
           const $d = $stack.room - 16;
@@ -4182,11 +4182,11 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t1, $t4]);
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_registry_$2402, s_base_2denvironment_$2403, s_evaluate_$2404) {
+        const $proc = { "registry-loader": function (s_registry_$2402, s_base_2denvironment_$2403, s_evaluate_$2404) {
           let $t0, s_resolver_$2405, $t1, $t2, $t3, $t4, $t6, $t8, $t9, $t10;
           if (arguments.length !== 3) R.wrongArity("registry-loader", 3, false, arguments.length);
           const $d = $stack.room - 21;
@@ -4209,8 +4209,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_registry_$2402, $t4, s_base_2denvironment_$2403, s_evaluate_$2404); } return $tailCall($t9, [s_registry_$2402, $t4, s_base_2denvironment_$2403, s_evaluate_$2404]);
-        }
-        function $proc$r($pc, $f) {
+        } }["registry-loader"];
+        const $proc$r = { "registry-loader": function ($pc, $f) {
           let $t0, s_resolver_$2405, $t1, $t2, $t3, $t4, $t6, $t8, $t9, $t10, s_registry_$2402, s_base_2denvironment_$2403, s_evaluate_$2404, $r;
           ({ $t0, s_resolver_$2405, $t1, $t2, $t3, $t4, $t6, $t8, $t9, $t10, s_registry_$2402, s_base_2denvironment_$2403, s_evaluate_$2404, $r } = $f);
           const $d = $stack.room - 21;
@@ -4243,7 +4243,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [s_registry_$2402, $t4, s_base_2denvironment_$2403, s_evaluate_$2404]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registry-loader"];
         const $proc$js = R.markProcedure($proc, "registry-loader", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4261,15 +4261,15 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "loader-registry")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "library-available?")).v;
         function $mk$fn0_8(s_loader_$2408) {
-          function $fn0_8(s_name_$2410) {
+          const $fn0_8 = { "anonymous": function (s_name_$2410) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C3.v ?? G3());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_loader_$2408, s_name_$2410); } return $tailCall($t0, [s_loader_$2408, s_name_$2410]);
-        }
+        } }["anonymous"];
           const $fn0_8$js = R.markProcedure($fn0_8, "anonymous", E);
-          function $fn0_8$r($pc, $f) {
+          const $fn0_8$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_name_$2410, $r;
           ({ $t0, $t1, s_name_$2410, $r } = $f);
           for (;;) switch ($pc) {
@@ -4278,12 +4278,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_loader_$2408, s_name_$2410]);
               default: throw new Error('$fn0_8$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0_8$js.$resume = $fn0_8$r;
           return $fn0_8$js;
         }
         function $mk$fn0(s_loader_$2408) {
-          function $fn0(s_requirement_$2409) {
+          const $fn0 = { "anonymous": function (s_requirement_$2409) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 20;
@@ -4307,9 +4307,9 @@ export const LIBRARIES = {
           $t9 = $mk$fn0_8(s_loader_$2408);
           $t10 = $t0;
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11(s_requirement_$2409, $t7, $t9); } return $tailCall($t10, [s_requirement_$2409, $t7, $t9]);
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11, s_requirement_$2409, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t9, $t10, $t11, s_requirement_$2409, $r } = $f);
           const $d = $stack.room - 20;
@@ -4344,17 +4344,17 @@ export const LIBRARIES = {
                 return $tailCall($t10, [s_requirement_$2409, $t7, $t9]);
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_loader_$2408) {
+        const $proc = { "feature-test": function (s_loader_$2408) {
           let $t1;
           if (arguments.length !== 1) R.wrongArity("feature-test", 1, false, arguments.length);
           $t1 = $mk$fn0(s_loader_$2408);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["feature-test"];
+        const $proc$r = { "feature-test": function ($pc, $f) {
           let $t1, s_loader_$2408, $r;
           ({ $t1, s_loader_$2408, $r } = $f);
           for (;;) switch ($pc) {
@@ -4363,7 +4363,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["feature-test"];
         const $proc$js = R.markProcedure($proc, "feature-test", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4378,7 +4378,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "feature-test")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "registry-loader")).v;
-        function $proc(s_registry_$2411, s_requirement_$2412) {
+        const $proc = { "registry-requirement-met?": function (s_registry_$2411, s_requirement_$2412) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("registry-requirement-met?", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -4400,8 +4400,8 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { s_requirement_$2412 }); return $UNWIND; }
           $t7 = $t6;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8(s_requirement_$2412); } return $tailCall($t7, [s_requirement_$2412]);
-        }
-        function $proc$r($pc, $f) {
+        } }["registry-requirement-met?"];
+        const $proc$r = { "registry-requirement-met?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_registry_$2411, s_requirement_$2412, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_registry_$2411, s_requirement_$2412, $r } = $f);
           const $d = $stack.room - 19;
@@ -4434,7 +4434,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [s_requirement_$2412]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registry-requirement-met?"];
         const $proc$js = R.markProcedure($proc, "registry-requirement-met?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4459,7 +4459,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "first-define-library")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdr")).v;
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
-        function $proc(s_forms_$2422) {
+        const $proc = { "first-define-library": function (s_forms_$2422) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 1) R.wrongArity("first-define-library", 1, false, arguments.length);
           const $d = $stack.room - 22;
@@ -4496,8 +4496,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["first-define-library"];
+        const $proc$r = { "first-define-library": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_forms_$2422, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_forms_$2422, $r } = $f);
           const $d = $stack.room - 22;
@@ -4542,7 +4542,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, [$t10]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["first-define-library"];
         const $proc$js = R.markProcedure($proc, "first-define-library", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4562,7 +4562,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "error")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "joined")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "%read-forms")).v;
-        function $proc(s_loader_$2423, s_path_$2424, s_filename_$2425, s_fold_2dcase_3f_$2426) {
+        const $proc = { "read-library-file": function (s_loader_$2423, s_path_$2424, s_filename_$2425, s_fold_2dcase_3f_$2426) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_source_$2427, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20;
           if (arguments.length !== 4) R.wrongArity("read-library-file", 4, false, arguments.length);
           const $d = $stack.room - 34;
@@ -4614,8 +4614,8 @@ export const LIBRARIES = {
           $t10;
           $t19 = (C5.v ?? G5());
           if ($d > 0 && ($t20 = $t19?.[$RAW] ?? $t19)?.[$PRIM] === true) { $stack.room = $d; return $t20(s_source_$2427, s_filename_$2425, s_fold_2dcase_3f_$2426); } return $tailCall($t19, [s_source_$2427, s_filename_$2425, s_fold_2dcase_3f_$2426]);
-        }
-        function $proc$r($pc, $f) {
+        } }["read-library-file"];
+        const $proc$r = { "read-library-file": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_source_$2427, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_loader_$2423, s_path_$2424, s_filename_$2425, s_fold_2dcase_3f_$2426, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_source_$2427, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_loader_$2423, s_path_$2424, s_filename_$2425, s_fold_2dcase_3f_$2426, $r } = $f);
           const $d = $stack.room - 34;
@@ -4693,7 +4693,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["read-library-file"];
         const $proc$js = R.markProcedure($proc, "read-library-file", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -4726,7 +4726,7 @@ export const LIBRARIES = {
         let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "%call-load-hook")).v;
         let C16 = R.UNRESOLVED; const G16 = () => (C16 = R.globalCell(E, "library-definition-name")).v;
         let C17 = R.UNRESOLVED; const G17 = () => (C17 = R.globalCell(E, "library-environment")).v;
-        function $proc(s_loader_$2428, s_name_$2429) {
+        const $proc = { "load-library": function (s_loader_$2428, s_name_$2429) {
           let $t0, $t1, $t2, s_registry_$2430, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_temp_$2431, $t10, $t11, $t12, $t13, $t14, s_path_$2432, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_forms_$2433, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, s_definition_$2434, $t40, $t41, $t42, $t43, $t44, $t45, $t46, s_library_$2435, s_hook_$2436, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66;
           if (arguments.length !== 2) R.wrongArity("load-library", 2, false, arguments.length);
           const $d = $stack.room - 84;
@@ -4886,8 +4886,8 @@ export const LIBRARIES = {
           $t65 = (C3.v ?? G3());
           if ($d > 0 && ($t66 = $t65?.[$RAW] ?? $t65)?.[$PRIM] === true) { $stack.room = $d; return $t66(s_library_$2435); } return $tailCall($t65, [s_library_$2435]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["load-library"];
+        const $proc$r = { "load-library": function ($pc, $f) {
           let $t0, $t1, $t2, s_registry_$2430, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_temp_$2431, $t10, $t11, $t12, $t13, $t14, s_path_$2432, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_forms_$2433, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, s_definition_$2434, $t40, $t41, $t42, $t43, $t44, $t45, $t46, s_library_$2435, s_hook_$2436, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, s_loader_$2428, s_name_$2429, $r;
           ({ $t0, $t1, $t2, s_registry_$2430, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_temp_$2431, $t10, $t11, $t12, $t13, $t14, s_path_$2432, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_forms_$2433, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, s_definition_$2434, $t40, $t41, $t42, $t43, $t44, $t45, $t46, s_library_$2435, s_hook_$2436, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, s_loader_$2428, s_name_$2429, $r } = $f);
           const $d = $stack.room - 84;
@@ -5124,7 +5124,7 @@ export const LIBRARIES = {
                 $pc = 21; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["load-library"];
         const $proc$js = R.markProcedure($proc, "load-library", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -5151,15 +5151,15 @@ export const LIBRARIES = {
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "library-definition-includes-ci")).v;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "library-definition-declaration-files")).v;
         function $mk$fn18(s_name_$2441) {
-          function $fn18(s_file_$2442) {
+          const $fn18 = { "anonymous": function (s_file_$2442) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C7.v ?? G7());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_name_$2441, s_file_$2442); } return $tailCall($t0, [s_name_$2441, s_file_$2442]);
-        }
+        } }["anonymous"];
           const $fn18$js = R.markProcedure($fn18, "anonymous", E);
-          function $fn18$r($pc, $f) {
+          const $fn18$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_file_$2442, $r;
           ({ $t0, $t1, s_file_$2442, $r } = $f);
           for (;;) switch ($pc) {
@@ -5168,11 +5168,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_name_$2441, s_file_$2442]);
               default: throw new Error('$fn18$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn18$js.$resume = $fn18$r;
           return $fn18$js;
         }
-        function $proc(s_loader_$2437, s_path_$2438, s_definition_$2439) {
+        const $proc = { "restoring": function (s_loader_$2437, s_path_$2438, s_definition_$2439) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_restorer_$2440, $t7, $t8, $t9, s_name_$2441, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41;
           if (arguments.length !== 3) R.wrongArity("restoring", 3, false, arguments.length);
           const $d = $stack.room - 54;
@@ -5268,8 +5268,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["restoring"];
+        const $proc$r = { "restoring": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_restorer_$2440, $t7, $t8, $t9, s_name_$2441, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, s_loader_$2437, s_path_$2438, s_definition_$2439, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_restorer_$2440, $t7, $t8, $t9, s_name_$2441, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, s_loader_$2437, s_path_$2438, s_definition_$2439, $r } = $f);
           const $d = $stack.room - 54;
@@ -5412,7 +5412,7 @@ export const LIBRARIES = {
                 return $tailCall($t40, [$t12, $t39]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["restoring"];
         const $proc$js = R.markProcedure($proc, "restoring", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -5429,7 +5429,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "evaluate-definition!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "parse-define-library")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "feature-test")).v;
-        function $proc(s_loader_$2443, s_form_$2444) {
+        const $proc = { "define-library!": function (s_loader_$2443, s_form_$2444) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("define-library!", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -5460,8 +5460,8 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 3, { $t0 }); return $UNWIND; }
           $t12 = $t0;
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13($t11); } return $tailCall($t12, [$t11]);
-        }
-        function $proc$r($pc, $f) {
+        } }["define-library!"];
+        const $proc$r = { "define-library!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_loader_$2443, s_form_$2444, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_loader_$2443, s_form_$2444, $r } = $f);
           const $d = $stack.room - 24;
@@ -5507,7 +5507,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [$t11]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["define-library!"];
         const $proc$js = R.markProcedure($proc, "define-library!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -5548,7 +5548,7 @@ export const LIBRARIES = {
         let C21 = R.UNRESOLVED; const G21 = () => (C21 = R.globalCell(E, "loader-registry")).v;
         let C22 = R.UNRESOLVED; const G22 = () => (C22 = R.globalCell(E, "library-key")).v;
         function $mk$fn17(s_loader_$2445, s_env_$2449) {
-          function $fn17(s_form_$2452) {
+          const $fn17 = { "anonymous": function (s_form_$2452) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -5562,9 +5562,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn17$r, 1, { s_form_$2452 }); return $UNWIND; }
           $t3 = $t2;
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_form_$2452, s_env_$2449); } return $tailCall($t3, [s_form_$2452, s_env_$2449]);
-        }
+        } }["anonymous"];
           const $fn17$js = R.markProcedure($fn17, "anonymous", E);
-          function $fn17$r($pc, $f) {
+          const $fn17$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_form_$2452, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_form_$2452, $r } = $f);
           const $d = $stack.room - 14;
@@ -5585,20 +5585,20 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_form_$2452, s_env_$2449]);
               default: throw new Error('$fn17$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn17$js.$resume = $fn17$r;
           return $fn17$js;
         }
         function $mk$fn20(s_loader_$2445, s_env_$2449) {
-          function $fn20(s_spec_$2453) {
+          const $fn20 = { "anonymous": function (s_spec_$2453) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C8.v ?? G8());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_loader_$2445, s_env_$2449, s_spec_$2453); } return $tailCall($t0, [s_loader_$2445, s_env_$2449, s_spec_$2453]);
-        }
+        } }["anonymous"];
           const $fn20$js = R.markProcedure($fn20, "anonymous", E);
-          function $fn20$r($pc, $f) {
+          const $fn20$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_spec_$2453, $r;
           ({ $t0, $t1, s_spec_$2453, $r } = $f);
           for (;;) switch ($pc) {
@@ -5607,12 +5607,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_loader_$2445, s_env_$2449, s_spec_$2453]);
               default: throw new Error('$fn20$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn20$js.$resume = $fn20$r;
           return $fn20$js;
         }
         function $mk$fn30(s_restoring_$2447, s_env_$2449, s_evaluate_$2451) {
-          function $fn30(s_item_$2454) {
+          const $fn30 = { "anonymous": function (s_item_$2454) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 22;
@@ -5641,9 +5641,9 @@ export const LIBRARIES = {
           $t11 = s_evaluate_$2451;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12($t10); } return $tailCall($t11, [$t10]);
         }
-        }
+        } }["anonymous"];
           const $fn30$js = R.markProcedure($fn30, "anonymous", E);
-          function $fn30$r($pc, $f) {
+          const $fn30$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_item_$2454, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_item_$2454, $r } = $f);
           const $d = $stack.room - 22;
@@ -5683,20 +5683,20 @@ export const LIBRARIES = {
                 return $tailCall($t11, [$t10]);
               default: throw new Error('$fn30$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn30$js.$resume = $fn30$r;
           return $fn30$js;
         }
         function $mk$fn37(s_loader_$2445, s_name_$2448) {
-          function $fn37(s_part_$2455) {
+          const $fn37 = { "anonymous": function (s_part_$2455) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C15.v ?? G15());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_loader_$2445, s_name_$2448, s_part_$2455); } return $tailCall($t0, [s_loader_$2445, s_name_$2448, s_part_$2455]);
-        }
+        } }["anonymous"];
           const $fn37$js = R.markProcedure($fn37, "anonymous", E);
-          function $fn37$r($pc, $f) {
+          const $fn37$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_part_$2455, $r;
           ({ $t0, $t1, s_part_$2455, $r } = $f);
           for (;;) switch ($pc) {
@@ -5705,12 +5705,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_loader_$2445, s_name_$2448, s_part_$2455]);
               default: throw new Error('$fn37$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn37$js.$resume = $fn37$r;
           return $fn37$js;
         }
         function $mk$fn47(s_env_$2449) {
-          function $fn47(s_spec_$2457) {
+          const $fn47 = { "anonymous": function (s_spec_$2457) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 16;
@@ -5727,9 +5727,9 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($fn47$r, 1, { $t0 }); return $UNWIND; }
           $t6 = (W4.intact || (C4.v ?? G4()) === P4) ? (new R.Cons($t0, $t5)) : R.callBinding((C4.v ?? G4()), [$t0, $t5]);
           return $t6;
-        }
+        } }["anonymous"];
           const $fn47$js = R.markProcedure($fn47, "anonymous", E);
-          function $fn47$r($pc, $f) {
+          const $fn47$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_spec_$2457, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_spec_$2457, $r } = $f);
           const $d = $stack.room - 16;
@@ -5753,11 +5753,11 @@ export const LIBRARIES = {
                 return $t6;
               default: throw new Error('$fn47$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn47$js.$resume = $fn47$r;
           return $fn47$js;
         }
-        function $proc(s_loader_$2445, s_definition_$2446, s_restoring_$2447) {
+        const $proc = { "evaluate-definition!": function (s_loader_$2445, s_definition_$2446, s_restoring_$2447) {
           let $t0, $t1, $t2, s_name_$2448, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_env_$2449, $t13, $t14, $t15, $t16, s_definitions_$2450, $t18, s_evaluate_$2451, $t19, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t31, $t32, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, s_library_$2456, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67;
           if (arguments.length !== 3) R.wrongArity("evaluate-definition!", 3, false, arguments.length);
           const $d = $stack.room - 79;
@@ -5902,8 +5902,8 @@ export const LIBRARIES = {
           if ($t67 === $UNWIND) { R.reify($proc$r, 19, { s_library_$2456 }); return $UNWIND; }
           $t67;
           return s_library_$2456;
-        }
-        function $proc$r($pc, $f) {
+        } }["evaluate-definition!"];
+        const $proc$r = { "evaluate-definition!": function ($pc, $f) {
           let $t0, $t1, $t2, s_name_$2448, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_env_$2449, $t13, $t14, $t15, $t16, s_definitions_$2450, $t18, s_evaluate_$2451, $t19, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t31, $t32, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, s_library_$2456, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, s_loader_$2445, s_definition_$2446, s_restoring_$2447, $r;
           ({ $t0, $t1, $t2, s_name_$2448, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_env_$2449, $t13, $t14, $t15, $t16, s_definitions_$2450, $t18, s_evaluate_$2451, $t19, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t31, $t32, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, s_library_$2456, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, s_loader_$2445, s_definition_$2446, s_restoring_$2447, $r } = $f);
           const $d = $stack.room - 79;
@@ -6118,7 +6118,7 @@ export const LIBRARIES = {
                 return s_library_$2456;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["evaluate-definition!"];
         const $proc$js = R.markProcedure($proc, "evaluate-definition!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -6141,7 +6141,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "declared-definitions")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "library-definition-declaration-files")).v;
         function $mk$fn1(s_loader_$2458, s_name_$2459) {
-          function $fn1(s_file_$2461) {
+          const $fn1 = { "anonymous": function (s_file_$2461) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_declared_$2462, $t14, $t15, $t16, $t17;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 28;
@@ -6186,9 +6186,9 @@ export const LIBRARIES = {
           if ($t16 === $UNWIND) { R.reify($fn1$r, 5, { s_declared_$2462 }); return $UNWIND; }
           $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? (new R.Cons(s_declared_$2462, $t16)) : R.callBinding((C5.v ?? G5()), [s_declared_$2462, $t16]);
           return $t17;
-        }
+        } }["anonymous"];
           const $fn1$js = R.markProcedure($fn1, "anonymous", E);
-          function $fn1$r($pc, $f) {
+          const $fn1$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_declared_$2462, $t14, $t15, $t16, $t17, s_file_$2461, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_declared_$2462, $t14, $t15, $t16, $t17, s_file_$2461, $r } = $f);
           const $d = $stack.room - 28;
@@ -6256,11 +6256,11 @@ export const LIBRARIES = {
                 return $t17;
               default: throw new Error('$fn1$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn1$js.$resume = $fn1$r;
           return $fn1$js;
         }
-        function $proc(s_loader_$2458, s_name_$2459, s_definition_$2460) {
+        const $proc = { "declared-definitions": function (s_loader_$2458, s_name_$2459, s_definition_$2460) {
           let $t0, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 3) R.wrongArity("declared-definitions", 3, false, arguments.length);
           const $d = $stack.room - 18;
@@ -6276,8 +6276,8 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 1, { $t0, $t2 }); return $UNWIND; }
           $t6 = $t0;
           if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7($t2, $t5); } return $tailCall($t6, [$t2, $t5]);
-        }
-        function $proc$r($pc, $f) {
+        } }["declared-definitions"];
+        const $proc$r = { "declared-definitions": function ($pc, $f) {
           let $t0, $t2, $t3, $t4, $t5, $t6, $t7, s_loader_$2458, s_name_$2459, s_definition_$2460, $r;
           ({ $t0, $t2, $t3, $t4, $t5, $t6, $t7, s_loader_$2458, s_name_$2459, s_definition_$2460, $r } = $f);
           const $d = $stack.room - 18;
@@ -6300,7 +6300,7 @@ export const LIBRARIES = {
                 return $tailCall($t6, [$t2, $t5]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["declared-definitions"];
         const $proc$js = R.markProcedure($proc, "declared-definitions", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -6321,7 +6321,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "library-definition-includes")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "library-definition-includes-ci")).v;
         function $mk$fn0_0(s_loader_$2463, s_name_$2464, s_fold_2dcase_3f_$2466) {
-          function $fn0_0(s_file_$2467) {
+          const $fn0_0 = { "anonymous": function (s_file_$2467) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -6336,9 +6336,9 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn0_0$r, 1, { $t0, s_file_$2467 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5(s_loader_$2463, $t3, s_file_$2467, s_fold_2dcase_3f_$2466); } return $tailCall($t4, [s_loader_$2463, $t3, s_file_$2467, s_fold_2dcase_3f_$2466]);
-        }
+        } }["anonymous"];
           const $fn0_0$js = R.markProcedure($fn0_0, "anonymous", E);
-          function $fn0_0$r($pc, $f) {
+          const $fn0_0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_file_$2467, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_file_$2467, $r } = $f);
           const $d = $stack.room - 15;
@@ -6360,19 +6360,19 @@ export const LIBRARIES = {
                 return $tailCall($t4, [s_loader_$2463, $t3, s_file_$2467, s_fold_2dcase_3f_$2466]);
               default: throw new Error('$fn0_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0_0$js.$resume = $fn0_0$r;
           return $fn0_0$js;
         }
         function $mk$fn0(s_loader_$2463, s_name_$2464) {
-          function $fn0(s_fold_2dcase_3f_$2466) {
+          const $fn0 = { "included": function (s_fold_2dcase_3f_$2466) {
           let $t1;
           if (arguments.length !== 1) R.wrongArity("included", 1, false, arguments.length);
           $t1 = $mk$fn0_0(s_loader_$2463, s_name_$2464, s_fold_2dcase_3f_$2466);
           return $t1;
-        }
+        } }["included"];
           const $fn0$js = R.markProcedure($fn0, "included", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "included": function ($pc, $f) {
           let $t1, s_fold_2dcase_3f_$2466, $r;
           ({ $t1, s_fold_2dcase_3f_$2466, $r } = $f);
           for (;;) switch ($pc) {
@@ -6381,11 +6381,11 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["included"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_loader_$2463, s_name_$2464, s_definition_$2465) {
+        const $proc = { "body-forms": function (s_loader_$2463, s_name_$2464, s_definition_$2465) {
           let $t1, s_included, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27;
           if (arguments.length !== 3) R.wrongArity("body-forms", 3, false, arguments.length);
           const $d = $stack.room - 39;
@@ -6447,8 +6447,8 @@ export const LIBRARIES = {
           if ($t25 === $UNWIND) { R.reify($proc$r, 7, { $t2, $t5, $t15 }); return $UNWIND; }
           $t26 = $t2;
           if ($d > 0 && ($t27 = $t26?.[$RAW] ?? $t26)?.[$PRIM] === true) { $stack.room = $d; return $t27($t5, $t15, $t25); } return $tailCall($t26, [$t5, $t15, $t25]);
-        }
-        function $proc$r($pc, $f) {
+        } }["body-forms"];
+        const $proc$r = { "body-forms": function ($pc, $f) {
           let $t1, s_included, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_loader_$2463, s_name_$2464, s_definition_$2465, $r;
           ({ $t1, s_included, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_loader_$2463, s_name_$2464, s_definition_$2465, $r } = $f);
           const $d = $stack.room - 39;
@@ -6541,7 +6541,7 @@ export const LIBRARIES = {
                 return $tailCall($t26, [$t5, $t15, $t25]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["body-forms"];
         const $proc$js = R.markProcedure($proc, "body-forms", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -6567,7 +6567,7 @@ export const LIBRARIES = {
         const W7 = R.primitiveCell("not"), P7 = W7.primitive;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "%global-macro")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "%special-keyword?")).v;
-        function $proc(s_env_$2468, s_internal_$2469) {
+        const $proc = { "export-value": function (s_env_$2468, s_internal_$2469) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_bound_$2470, $t7, $t8, s_keyword_$2471, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_temp_$2472, s_transformer_$2473, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33;
           if (arguments.length !== 2) R.wrongArity("export-value", 2, false, arguments.length);
           const $d = $stack.room - 48;
@@ -6654,8 +6654,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["export-value"];
+        const $proc$r = { "export-value": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_bound_$2470, $t7, $t8, s_keyword_$2471, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_temp_$2472, s_transformer_$2473, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_env_$2468, s_internal_$2469, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_bound_$2470, $t7, $t8, s_keyword_$2471, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_temp_$2472, s_transformer_$2473, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_env_$2468, s_internal_$2469, $r } = $f);
           const $d = $stack.room - 48;
@@ -6774,7 +6774,7 @@ export const LIBRARIES = {
                 return $tailCall($t32, [s_env_$2468, s_internal_$2469]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["export-value"];
         const $proc$js = R.markProcedure($proc, "export-value", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -6791,7 +6791,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "load-library")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "import-set-library-name")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "import-set-steps")).v;
-        function $proc(s_loader_$2474, s_env_$2475, s_spec_$2476) {
+        const $proc = { "import!": function (s_loader_$2474, s_env_$2475, s_spec_$2476) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 3) R.wrongArity("import!", 3, false, arguments.length);
           const $d = $stack.room - 24;
@@ -6821,8 +6821,8 @@ export const LIBRARIES = {
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { $t0, $t7, s_env_$2475 }); return $UNWIND; }
           $t11 = $t0;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12(s_env_$2475, $t7, $t10); } return $tailCall($t11, [s_env_$2475, $t7, $t10]);
-        }
-        function $proc$r($pc, $f) {
+        } }["import!"];
+        const $proc$r = { "import!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loader_$2474, s_env_$2475, s_spec_$2476, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_loader_$2474, s_env_$2475, s_spec_$2476, $r } = $f);
           const $d = $stack.room - 24;
@@ -6867,7 +6867,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, [s_env_$2475, $t7, $t10]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["import!"];
         const $proc$js = R.markProcedure($proc, "import!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -6884,7 +6884,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "import!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "parse-import-set")).v;
         function $mk$fn0(s_loader_$2477, s_env_$2478) {
-          function $fn0(s_spec_$2480) {
+          const $fn0 = { "anonymous": function (s_spec_$2480) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -6899,9 +6899,9 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn0$r, 1, { $t0 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5(s_loader_$2477, s_env_$2478, $t3); } return $tailCall($t4, [s_loader_$2477, s_env_$2478, $t3]);
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_spec_$2480, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_spec_$2480, $r } = $f);
           const $d = $stack.room - 15;
@@ -6923,19 +6923,19 @@ export const LIBRARIES = {
                 return $tailCall($t4, [s_loader_$2477, s_env_$2478, $t3]);
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_loader_$2477, s_env_$2478, s_specs_$2479) {
+        const $proc = { "import-sets!": function (s_loader_$2477, s_env_$2478, s_specs_$2479) {
           let $t1, $t2, $t3;
           if (arguments.length !== 3) R.wrongArity("import-sets!", 3, false, arguments.length);
           const $d = $stack.room - 14;
           $t1 = $mk$fn0(s_loader_$2477, s_env_$2478);
           $t2 = (C0.v ?? G0());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_specs_$2479); } return $tailCall($t2, [$t1, s_specs_$2479]);
-        }
-        function $proc$r($pc, $f) {
+        } }["import-sets!"];
+        const $proc$r = { "import-sets!": function ($pc, $f) {
           let $t1, $t2, $t3, s_loader_$2477, s_env_$2478, s_specs_$2479, $r;
           ({ $t1, $t2, $t3, s_loader_$2477, s_env_$2478, s_specs_$2479, $r } = $f);
           for (;;) switch ($pc) {
@@ -6945,7 +6945,7 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_specs_$2479]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["import-sets!"];
         const $proc$js = R.markProcedure($proc, "import-sets!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -6973,7 +6973,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "syntactic-keyword-transformer")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "%environment-define!")).v;
         function $mk$fn3(s_steps_$2483, s_scope_$2484, s_env_$2481) {
-          function $fn3(s_export_$2485) {
+          const $fn3 = { "anonymous": function (s_export_$2485) {
           let $t0, $t1, $t2, $t3, $t4, s_name_$2486, $t5, s_value_$2487, $t6, s_temp_$2488, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 33;
@@ -7025,9 +7025,9 @@ export const LIBRARIES = {
           if ($d > 0 && ($t20 = $t19?.[$RAW] ?? $t19)?.[$PRIM] === true) { $stack.room = $d; return $t20(s_env_$2481, s_name_$2486, s_value_$2487); } return $tailCall($t19, [s_env_$2481, s_name_$2486, s_value_$2487]);
         }
         }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_name_$2486, $t5, s_value_$2487, $t6, s_temp_$2488, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_export_$2485, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_name_$2486, $t5, s_value_$2487, $t6, s_temp_$2488, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_export_$2485, $r } = $f);
           const $d = $stack.room - 33;
@@ -7098,11 +7098,11 @@ export const LIBRARIES = {
                 return $tailCall($t17, [s_scope_$2484, s_name_$2486, $t13, $t16]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_env_$2481, s_exports_$2482, s_steps_$2483) {
+        const $proc = { "import-into!": function (s_env_$2481, s_exports_$2482, s_steps_$2483) {
           let $t0, $t1, $t2, s_scope_$2484, $t4, $t5, $t6;
           if (arguments.length !== 3) R.wrongArity("import-into!", 3, false, arguments.length);
           const $d = $stack.room - 18;
@@ -7118,8 +7118,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_steps_$2483, s_scope_$2484, s_env_$2481);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_exports_$2482); } return $tailCall($t5, [$t4, s_exports_$2482]);
-        }
-        function $proc$r($pc, $f) {
+        } }["import-into!"];
+        const $proc$r = { "import-into!": function ($pc, $f) {
           let $t0, $t1, $t2, s_scope_$2484, $t4, $t5, $t6, s_env_$2481, s_exports_$2482, s_steps_$2483, $r;
           ({ $t0, $t1, $t2, s_scope_$2484, $t4, $t5, $t6, s_env_$2481, s_exports_$2482, s_steps_$2483, $r } = $f);
           const $d = $stack.room - 18;
@@ -7142,7 +7142,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_exports_$2482]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["import-into!"];
         const $proc$js = R.markProcedure($proc, "import-into!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -7156,14 +7156,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%make-hash-store")).v;
-        function $proc() {
+        const $proc = { "make-debugged-programs": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("make-debugged-programs", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(K[1]); } return $tailCall($t0, [K[1]]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-debugged-programs"];
+        const $proc$r = { "make-debugged-programs": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -7172,7 +7172,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [K[0]]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-debugged-programs"];
         const $proc$js = R.markProcedure($proc, "make-debugged-programs", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -7197,7 +7197,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "%hash-store-ref")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "%run-interpreted!")).v;
         function $mk$fn3(s_records_$2493, s_env_$2492) {
-          function $fn3(s_pair_$2494) {
+          const $fn3 = { "anonymous": function (s_pair_$2494) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -7207,9 +7207,9 @@ export const LIBRARIES = {
           $t3 = (W4.intact || (C4.v ?? G4()) === P4) ? (new R.Cons($t2, s_env_$2492)) : R.callBinding((C4.v ?? G4()), [$t2, s_env_$2492]);
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5(s_records_$2493, $t1, $t3); } return $tailCall($t4, [s_records_$2493, $t1, $t3]);
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_pair_$2494, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_pair_$2494, $r } = $f);
           for (;;) switch ($pc) {
@@ -7222,12 +7222,12 @@ export const LIBRARIES = {
                 return $tailCall($t4, [s_records_$2493, $t1, $t3]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
         function $mk$fn11() {
-          function $fn11(s_pair_$2495) {
+          const $fn11 = { "anonymous": function (s_pair_$2495) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -7235,9 +7235,9 @@ export const LIBRARIES = {
           $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_pair_$2495 instanceof R.Cons) ? (s_pair_$2495.car) : R.callBinding((C3.v ?? G3()), [s_pair_$2495]);
           $t2 = $t0;
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1); } return $tailCall($t2, [$t1]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_pair_$2495, $r;
           ({ $t0, $t1, $t2, $t3, s_pair_$2495, $r } = $f);
           for (;;) switch ($pc) {
@@ -7248,11 +7248,11 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s_registry_$2489, s_debugged_$2490, s_compiled_$2491, s_env_$2492) {
+        const $proc = { "record-compiled-over!": function (s_registry_$2489, s_debugged_$2490, s_compiled_$2491, s_env_$2492) {
           let $t0, $t1, $t2, s_records_$2493, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14;
           if (arguments.length !== 4) R.wrongArity("record-compiled-over!", 4, false, arguments.length);
           const $d = $stack.room - 26;
@@ -7288,8 +7288,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["record-compiled-over!"];
+        const $proc$r = { "record-compiled-over!": function ($pc, $f) {
           let $t0, $t1, $t2, s_records_$2493, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, s_registry_$2489, s_debugged_$2490, s_compiled_$2491, s_env_$2492, $r;
           ({ $t0, $t1, $t2, s_records_$2493, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, s_registry_$2489, s_debugged_$2490, s_compiled_$2491, s_env_$2492, $r } = $f);
           const $d = $stack.room - 26;
@@ -7340,7 +7340,7 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["record-compiled-over!"];
         const $proc$js = R.markProcedure($proc, "record-compiled-over!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -7355,7 +7355,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%hash-store-contains?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "registry-compiled-over")).v;
-        function $proc(s_registry_$2496, s_procedure_$2497) {
+        const $proc = { "compiled-over?": function (s_registry_$2496, s_procedure_$2497) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 2) R.wrongArity("compiled-over?", 2, false, arguments.length);
           const $d = $stack.room - 16;
@@ -7370,8 +7370,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0, s_procedure_$2497 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3, s_procedure_$2497); } return $tailCall($t4, [$t3, s_procedure_$2497]);
-        }
-        function $proc$r($pc, $f) {
+        } }["compiled-over?"];
+        const $proc$r = { "compiled-over?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_registry_$2496, s_procedure_$2497, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_registry_$2496, s_procedure_$2497, $r } = $f);
           const $d = $stack.room - 16;
@@ -7393,7 +7393,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3, s_procedure_$2497]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["compiled-over?"];
         const $proc$js = R.markProcedure($proc, "compiled-over?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -7427,7 +7427,7 @@ export const LIBRARIES = {
         let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "%hash-store-keys")).v;
         let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "registry-compiled-over")).v;
         function $mk$fn21(s_program_$2501, s_libraries_2dtoo_3f_$2503, s_interpreted_3f_$2500) {
-          function $fn21(s_closure_$2505, s_record_$2506) {
+          const $fn21 = { "anonymous": function (s_closure_$2505, s_record_$2506) {
           let $t0, s_env_$2507, s_x_$2508, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 30;
@@ -7475,9 +7475,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn21$js = R.markProcedure($fn21, "anonymous", E);
-          function $fn21$r($pc, $f) {
+          const $fn21$r = { "anonymous": function ($pc, $f) {
           let $t0, s_env_$2507, s_x_$2508, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_closure_$2505, s_record_$2506, $r;
           ({ $t0, s_env_$2507, s_x_$2508, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_closure_$2505, s_record_$2506, $r } = $f);
           const $d = $stack.room - 30;
@@ -7542,11 +7542,11 @@ export const LIBRARIES = {
                 return $tailCall($t16, [s_closure_$2505, $t15]);
               default: throw new Error('$fn21$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn21$js.$resume = $fn21$r;
           return $fn21$js;
         }
-        function $proc(s_registry_$2498, s_debugged_$2499, s_interpreted_3f_$2500, s_program_$2501) {
+        const $proc = { "interpret-compiled-over!": function (s_registry_$2498, s_debugged_$2499, s_interpreted_3f_$2500, s_program_$2501) {
           let $t0, $t1, $t2, $t3, s_in_$2502, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_x_$2504, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, s_libraries_2dtoo_3f_$2503, $t20, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38;
           if (arguments.length !== 4) R.wrongArity("interpret-compiled-over!", 4, false, arguments.length);
           const $d = $stack.room - 53;
@@ -7645,8 +7645,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["interpret-compiled-over!"];
+        const $proc$r = { "interpret-compiled-over!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_in_$2502, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_x_$2504, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, s_libraries_2dtoo_3f_$2503, $t20, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_registry_$2498, s_debugged_$2499, s_interpreted_3f_$2500, s_program_$2501, $r;
           ({ $t0, $t1, $t2, $t3, s_in_$2502, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_x_$2504, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, s_libraries_2dtoo_3f_$2503, $t20, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, s_registry_$2498, s_debugged_$2499, s_interpreted_3f_$2500, s_program_$2501, $r } = $f);
           const $d = $stack.room - 53;
@@ -7793,7 +7793,7 @@ export const LIBRARIES = {
                 return $tailCall($t37, [$t22, $t29, $t36]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["interpret-compiled-over!"];
         const $proc$js = R.markProcedure($proc, "interpret-compiled-over!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -7822,7 +7822,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "%run-interpreted!")).v;
         function $mk$fn3(s_records_$2512, s_twin_$2511) {
           let s_loop_$2514;
-          function $fn3(s_closures_$2515) {
+          const $fn3 = { "anonymous": function (s_closures_$2515) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 23;
@@ -7861,9 +7861,9 @@ export const LIBRARIES = {
         }
         }
           }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_closures_$2515, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_closures_$2515, $r } = $f);
           const $d = $stack.room - 23;
@@ -7911,12 +7911,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           s_loop_$2514 = $fn3$js;
           return $fn3$js;
         }
-        function $proc(s_registry_$2509, s_debugged_$2510, s_twin_$2511) {
+        const $proc = { "switch-back-to-closure!": function (s_registry_$2509, s_debugged_$2510, s_twin_$2511) {
           let $t0, $t1, $t2, s_records_$2512, s_loop_$2514, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_closure_$2513, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length !== 3) R.wrongArity("switch-back-to-closure!", 3, false, arguments.length);
           const $d = $stack.room - 30;
@@ -7967,8 +7967,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["switch-back-to-closure!"];
+        const $proc$r = { "switch-back-to-closure!": function ($pc, $f) {
           let $t0, $t1, $t2, s_records_$2512, s_loop_$2514, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_closure_$2513, $t11, $t12, $t13, $t14, $t15, $t16, s_registry_$2509, s_debugged_$2510, s_twin_$2511, $r;
           ({ $t0, $t1, $t2, s_records_$2512, s_loop_$2514, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_closure_$2513, $t11, $t12, $t13, $t14, $t15, $t16, s_registry_$2509, s_debugged_$2510, s_twin_$2511, $r } = $f);
           const $d = $stack.room - 30;
@@ -8042,7 +8042,7 @@ export const LIBRARIES = {
                 return true;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["switch-back-to-closure!"];
         const $proc$js = R.markProcedure($proc, "switch-back-to-closure!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -8059,7 +8059,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "wants-paths")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "library-wants")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "make-wants")).v;
-        function $proc(s_loader_$2516, s_name_$2517) {
+        const $proc = { "files-wanted": function (s_loader_$2516, s_name_$2517) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("files-wanted", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -8090,8 +8090,8 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 3, { $t0 }); return $UNWIND; }
           $t12 = $t0;
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13($t11); } return $tailCall($t12, [$t11]);
-        }
-        function $proc$r($pc, $f) {
+        } }["files-wanted"];
+        const $proc$r = { "files-wanted": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_loader_$2516, s_name_$2517, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_loader_$2516, s_name_$2517, $r } = $f);
           const $d = $stack.room - 24;
@@ -8137,7 +8137,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [$t11]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["files-wanted"];
         const $proc$js = R.markProcedure($proc, "files-wanted", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -8157,7 +8157,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "definition-wants")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "library-definition-name")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "make-wants")).v;
-        function $proc(s_loader_$2518, s_form_$2519) {
+        const $proc = { "definition-files-wanted": function (s_loader_$2518, s_form_$2519) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_definition_$2520, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23;
           if (arguments.length !== 2) R.wrongArity("definition-files-wanted", 2, false, arguments.length);
           const $d = $stack.room - 35;
@@ -8211,8 +8211,8 @@ export const LIBRARIES = {
           if ($t21 === $UNWIND) { R.reify($proc$r, 6, { $t7 }); return $UNWIND; }
           $t22 = $t7;
           if ($d > 0 && ($t23 = $t22?.[$RAW] ?? $t22)?.[$PRIM] === true) { $stack.room = $d; return $t23($t21); } return $tailCall($t22, [$t21]);
-        }
-        function $proc$r($pc, $f) {
+        } }["definition-files-wanted"];
+        const $proc$r = { "definition-files-wanted": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_definition_$2520, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_loader_$2518, s_form_$2519, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_definition_$2520, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_loader_$2518, s_form_$2519, $r } = $f);
           const $d = $stack.room - 35;
@@ -8293,7 +8293,7 @@ export const LIBRARIES = {
                 return $tailCall($t22, [$t21]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["definition-files-wanted"];
         const $proc$js = R.markProcedure($proc, "definition-files-wanted", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -8332,7 +8332,7 @@ export const LIBRARIES = {
         let C18 = R.UNRESOLVED; const G18 = () => (C18 = R.globalCell(E, "definition-wants")).v;
         let C19 = R.UNRESOLVED; const G19 = () => (C19 = R.globalCell(E, "parse-define-library")).v;
         let C20 = R.UNRESOLVED; const G20 = () => (C20 = R.globalCell(E, "feature-test")).v;
-        function $proc(s_loader_$2521, s_name_$2522, s_found_$2523) {
+        const $proc = { "library-wants": function (s_loader_$2521, s_name_$2522, s_found_$2523) {
           let $t0, $t1, $t2, s_key_$2524, $t3, $t4, $t5, s_path_$2525, s_x_$2526, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_forms_$2527, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, s_found_$2528, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64;
           if (arguments.length !== 3) R.wrongArity("library-wants", 3, false, arguments.length);
           const $d = $stack.room - 81;
@@ -8490,8 +8490,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["library-wants"];
+        const $proc$r = { "library-wants": function ($pc, $f) {
           let $t0, $t1, $t2, s_key_$2524, $t3, $t4, $t5, s_path_$2525, s_x_$2526, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_forms_$2527, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, s_found_$2528, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, s_loader_$2521, s_name_$2522, s_found_$2523, $r;
           ({ $t0, $t1, $t2, s_key_$2524, $t3, $t4, $t5, s_path_$2525, s_x_$2526, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_forms_$2527, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, s_found_$2528, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, s_loader_$2521, s_name_$2522, s_found_$2523, $r } = $f);
           const $d = $stack.room - 81;
@@ -8721,7 +8721,7 @@ export const LIBRARIES = {
                 return $tailCall($t63, [s_loader_$2521, s_name_$2522, $t62, s_found_$2528]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["library-wants"];
         const $proc$js = R.markProcedure($proc, "library-wants", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -8750,7 +8750,7 @@ export const LIBRARIES = {
         let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "library-definition-includes-ci")).v;
         let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "library-definition-declaration-files")).v;
         function $mk$fn0(s_name_$2530, s_loader_$2529) {
-          function $fn0(s_file_$2533, s_found_$2534) {
+          const $fn0 = { "file-wants": function (s_file_$2533, s_found_$2534) {
           let $t0, $t1, $t2, s_path_$2535, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 2) R.wrongArity("file-wants", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -8776,9 +8776,9 @@ export const LIBRARIES = {
           $t6 = (C2.v ?? G2());
           if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7(s_path_$2535, s_found_$2534); } return $tailCall($t6, [s_path_$2535, s_found_$2534]);
         }
-        }
+        } }["file-wants"];
           const $fn0$js = R.markProcedure($fn0, "file-wants", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "file-wants": function ($pc, $f) {
           let $t0, $t1, $t2, s_path_$2535, $t3, $t4, $t5, $t6, $t7, s_file_$2533, s_found_$2534, $r;
           ({ $t0, $t1, $t2, s_path_$2535, $t3, $t4, $t5, $t6, $t7, s_file_$2533, s_found_$2534, $r } = $f);
           const $d = $stack.room - 19;
@@ -8815,12 +8815,12 @@ export const LIBRARIES = {
                 return $tailCall($t6, [s_path_$2535, s_found_$2534]);
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["file-wants"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
         function $mk$fn2(s_name_$2530, s_loader_$2529) {
-          function $fn2(s_file_$2536, s_found_$2537) {
+          const $fn2 = { "declarations-want": function (s_file_$2536, s_found_$2537) {
           let $t0, $t1, $t2, s_path_$2538, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20;
           if (arguments.length !== 2) R.wrongArity("declarations-want", 2, false, arguments.length);
           const $d = $stack.room - 32;
@@ -8870,9 +8870,9 @@ export const LIBRARIES = {
           $t19 = (C2.v ?? G2());
           if ($d > 0 && ($t20 = $t19?.[$RAW] ?? $t19)?.[$PRIM] === true) { $stack.room = $d; return $t20(s_path_$2538, s_found_$2537); } return $tailCall($t19, [s_path_$2538, s_found_$2537]);
         }
-        }
+        } }["declarations-want"];
           const $fn2$js = R.markProcedure($fn2, "declarations-want", E);
-          function $fn2$r($pc, $f) {
+          const $fn2$r = { "declarations-want": function ($pc, $f) {
           let $t0, $t1, $t2, s_path_$2538, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_file_$2536, s_found_$2537, $r;
           ({ $t0, $t1, $t2, s_path_$2538, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_file_$2536, s_found_$2537, $r } = $f);
           const $d = $stack.room - 32;
@@ -8945,12 +8945,12 @@ export const LIBRARIES = {
                 return $tailCall($t17, [s_loader_$2529, s_name_$2530, $t16, s_found_$2537]);
               default: throw new Error('$fn2$r: bad resume point ' + $pc);
           }
-        }
+        } }["declarations-want"];
           $fn2$js.$resume = $fn2$r;
           return $fn2$js;
         }
         function $mk$fn5(s_loader_$2529) {
-          function $fn5(s_spec_$2540, s_found_$2541) {
+          const $fn5 = { "anonymous": function (s_spec_$2540, s_found_$2541) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 16;
@@ -8965,9 +8965,9 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($fn5$r, 1, { $t0, s_found_$2541 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5(s_loader_$2529, $t3, s_found_$2541); } return $tailCall($t4, [s_loader_$2529, $t3, s_found_$2541]);
-        }
+        } }["anonymous"];
           const $fn5$js = R.markProcedure($fn5, "anonymous", E);
-          function $fn5$r($pc, $f) {
+          const $fn5$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_spec_$2540, s_found_$2541, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_spec_$2540, s_found_$2541, $r } = $f);
           const $d = $stack.room - 16;
@@ -8989,11 +8989,11 @@ export const LIBRARIES = {
                 return $tailCall($t4, [s_loader_$2529, $t3, s_found_$2541]);
               default: throw new Error('$fn5$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn5$js.$resume = $fn5$r;
           return $fn5$js;
         }
-        function $proc(s_loader_$2529, s_name_$2530, s_definition_$2531, s_found_$2532) {
+        const $proc = { "definition-wants": function (s_loader_$2529, s_name_$2530, s_definition_$2531, s_found_$2532) {
           let $t1, s_file_2dwants, $t3, s_declarations_2dwant, $t4, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_found_$2539, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_found_$2542, $t27, $t28, $t29, $t30, $t31, $t32;
           if (arguments.length !== 4) R.wrongArity("definition-wants", 4, false, arguments.length);
           const $d = $stack.room - 46;
@@ -9062,8 +9062,8 @@ export const LIBRARIES = {
           if ($t30 === $UNWIND) { R.reify($proc$r, 7, { s_declarations_2dwant, s_found_$2542, $t27 }); return $UNWIND; }
           $t31 = $t27;
           if ($d > 0 && ($t32 = $t31?.[$RAW] ?? $t31)?.[$PRIM] === true) { $stack.room = $d; return $t32(s_declarations_2dwant, s_found_$2542, $t30); } return $tailCall($t31, [s_declarations_2dwant, s_found_$2542, $t30]);
-        }
-        function $proc$r($pc, $f) {
+        } }["definition-wants"];
+        const $proc$r = { "definition-wants": function ($pc, $f) {
           let $t1, s_file_2dwants, $t3, s_declarations_2dwant, $t4, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_found_$2539, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_found_$2542, $t27, $t28, $t29, $t30, $t31, $t32, s_loader_$2529, s_name_$2530, s_definition_$2531, s_found_$2532, $r;
           ({ $t1, s_file_2dwants, $t3, s_declarations_2dwant, $t4, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_found_$2539, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_found_$2542, $t27, $t28, $t29, $t30, $t31, $t32, s_loader_$2529, s_name_$2530, s_definition_$2531, s_found_$2532, $r } = $f);
           const $d = $stack.room - 46;
@@ -9163,7 +9163,7 @@ export const LIBRARIES = {
                 return $tailCall($t31, [s_declarations_2dwant, s_found_$2542, $t30]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["definition-wants"];
         const $proc$js = R.markProcedure($proc, "definition-wants", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -9178,7 +9178,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "loader-resolve")).v;
-        function $proc(s_loader_$2543, s_path_$2544) {
+        const $proc = { "at-hand?": function (s_loader_$2543, s_path_$2544) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("at-hand?", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -9200,8 +9200,8 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t0 }); return $UNWIND; }
           $t7 = $t0;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8($t6); } return $tailCall($t7, [$t6]);
-        }
-        function $proc$r($pc, $f) {
+        } }["at-hand?"];
+        const $proc$r = { "at-hand?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_loader_$2543, s_path_$2544, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_loader_$2543, s_path_$2544, $r } = $f);
           const $d = $stack.room - 19;
@@ -9234,7 +9234,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [$t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["at-hand?"];
         const $proc$js = R.markProcedure($proc, "at-hand?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -9253,7 +9253,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cons")).v;
         const W3 = R.primitiveCell("cons"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "wants-seen")).v;
-        function $proc(s_path_$2545, s_found_$2546) {
+        const $proc = { "want": function (s_path_$2545, s_found_$2546) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length !== 2) R.wrongArity("want", 2, false, arguments.length);
           const $d = $stack.room - 27;
@@ -9295,8 +9295,8 @@ export const LIBRARIES = {
           $t15 = $t7;
           if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16($t11, $t14); } return $tailCall($t15, [$t11, $t14]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["want"];
+        const $proc$r = { "want": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_path_$2545, s_found_$2546, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_path_$2545, s_found_$2546, $r } = $f);
           const $d = $stack.room - 27;
@@ -9357,7 +9357,7 @@ export const LIBRARIES = {
                 return $tailCall($t15, [$t11, $t14]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["want"];
         const $proc$js = R.markProcedure($proc, "want", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -9383,7 +9383,7 @@ export const LIBRARIES = {
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "library-definition-includes")).v;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "library-definition-includes-ci")).v;
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "library-definition-declaration-files")).v;
-        function $proc(s_registry_$2547, s_form_$2548) {
+        const $proc = { "define-library-parts": function (s_registry_$2547, s_form_$2548) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_definition_$2549, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39;
           if (arguments.length !== 2) R.wrongArity("define-library-parts", 2, false, arguments.length);
           const $d = $stack.room - 51;
@@ -9473,8 +9473,8 @@ export const LIBRARIES = {
           if ($t37 === $UNWIND) { R.reify($proc$r, 11, { $t11, $t14, $t17, $t25, $t28, $t31, $t34 }); return $UNWIND; }
           $t38 = $t11;
           if ($d > 0 && ($t39 = $t38?.[$RAW] ?? $t38)?.[$PRIM] === true) { $stack.room = $d; return $t39($t14, $t17, $t25, $t28, $t31, $t34, $t37); } return $tailCall($t38, [$t14, $t17, $t25, $t28, $t31, $t34, $t37]);
-        }
-        function $proc$r($pc, $f) {
+        } }["define-library-parts"];
+        const $proc$r = { "define-library-parts": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_definition_$2549, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, s_registry_$2547, s_form_$2548, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_definition_$2549, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, s_registry_$2547, s_form_$2548, $r } = $f);
           const $d = $stack.room - 51;
@@ -9611,7 +9611,7 @@ export const LIBRARIES = {
                 return $tailCall($t38, [$t14, $t17, $t25, $t28, $t31, $t34, $t37]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["define-library-parts"];
         const $proc$js = R.markProcedure($proc, "define-library-parts", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -9700,14 +9700,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-promise-then")).v;
-        function $proc(s_f_$2550, s_p_$2551) {
+        const $proc = { "js-promise-map": function (s_f_$2550, s_p_$2551) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("js-promise-map", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_p_$2551, s_f_$2550); } return $tailCall($t0, [s_p_$2551, s_f_$2550]);
-        }
-        function $proc$r($pc, $f) {
+        } }["js-promise-map"];
+        const $proc$r = { "js-promise-map": function ($pc, $f) {
           let $t0, $t1, s_f_$2550, s_p_$2551, $r;
           ({ $t0, $t1, s_f_$2550, s_p_$2551, $r } = $f);
           for (;;) switch ($pc) {
@@ -9716,7 +9716,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_p_$2551, s_f_$2550]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["js-promise-map"];
         const $proc$js = R.markProcedure($proc, "js-promise-map", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -9738,7 +9738,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_p_$2552, ...s_fs_$2553$raw) {
+        const $proc = { "js-promise-chain": function (s_p_$2552, ...s_fs_$2553$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("js-promise-chain", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_fs_$2553$raw.length;
@@ -9763,8 +9763,8 @@ export const LIBRARIES = {
           $t9 = $t1;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2, $t7, $t8); } return $tailCall($t9, [$t2, $t7, $t8]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["js-promise-chain"];
+        const $proc$r = { "js-promise-chain": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_p_$2552, s_fs_$2553, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_p_$2552, s_fs_$2553, $r } = $f);
           const $d = $stack.room - 21;
@@ -9795,7 +9795,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t2, $t7, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["js-promise-chain"];
         const $proc$js = R.markProcedure($proc, "js-promise-chain", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -9859,7 +9859,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "<")).v;
         const W3 = R.primitiveCell("<"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "equal-as-graphs")).v;
-        function $proc(s_a_$755, s_b_$756) {
+        const $proc = { "equal?": function (s_a_$755, s_b_$756) {
           let $t0, $t1, $t2, s_left_$757, $t3, $t4, $t5, $t6;
           if (arguments.length !== 2) R.wrongArity("equal?", 2, false, arguments.length);
           const $d = $stack.room - 18;
@@ -9884,8 +9884,8 @@ export const LIBRARIES = {
           return true;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["equal?"];
+        const $proc$r = { "equal?": function ($pc, $f) {
           let $t0, $t1, $t2, s_left_$757, $t3, $t4, $t5, $t6, s_a_$755, s_b_$756, $r;
           ({ $t0, $t1, $t2, s_left_$757, $t3, $t4, $t5, $t6, s_a_$755, s_b_$756, $r } = $f);
           const $d = $stack.room - 18;
@@ -9917,7 +9917,7 @@ export const LIBRARIES = {
                 return true;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["equal?"];
         const $proc$js = R.markProcedure($proc, "equal?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -9943,7 +9943,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "string=?")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "bytevector?")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "equal-bytevectors?")).v;
-        function $proc(s_a_$758, s_b_$759) {
+        const $proc = { "equal-compare-shallow": function (s_a_$758, s_b_$759) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35;
           if (arguments.length !== 2) R.wrongArity("equal-compare-shallow", 2, false, arguments.length);
           const $d = $stack.room - 46;
@@ -10069,8 +10069,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["equal-compare-shallow"];
+        const $proc$r = { "equal-compare-shallow": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_a_$758, s_b_$759, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_a_$758, s_b_$759, $r } = $f);
           const $d = $stack.room - 46;
@@ -10247,7 +10247,7 @@ export const LIBRARIES = {
                 return K[7];
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["equal-compare-shallow"];
         const $proc$js = R.markProcedure($proc, "equal-compare-shallow", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -10266,7 +10266,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "bytevector-u8-ref")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "+")).v;
         const W3 = R.primitiveCell("+"), P3 = W3.primitive;
-        function $proc(s_a_$760, s_b_$761) {
+        const $proc = { "equal-bytevectors?": function (s_a_$760, s_b_$761) {
           let $t0, $t1, $t2, s_len_$762, $t3, $t4, $t5, $t6, s_i_$764, $t7, s_x_$765, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
           if (arguments.length !== 2) R.wrongArity("equal-bytevectors?", 2, false, arguments.length);
           const $d = $stack.room - 29;
@@ -10322,8 +10322,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["equal-bytevectors?"];
+        const $proc$r = { "equal-bytevectors?": function ($pc, $f) {
           let $t0, $t1, $t2, s_len_$762, $t3, $t4, $t5, $t6, s_i_$764, $t7, s_x_$765, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_a_$760, s_b_$761, $r;
           ({ $t0, $t1, $t2, s_len_$762, $t3, $t4, $t5, $t6, s_i_$764, $t7, s_x_$765, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_a_$760, s_b_$761, $r } = $f);
           const $d = $stack.room - 29;
@@ -10398,7 +10398,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["equal-bytevectors?"];
         const $proc$js = R.markProcedure($proc, "equal-bytevectors?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -10435,7 +10435,7 @@ export const LIBRARIES = {
         const W11 = R.primitiveCell("+"), P11 = W11.primitive;
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "vector-ref")).v;
         const W12 = R.primitiveCell("vector-ref"), P12 = W12.primitive;
-        function $proc(s_a_$766, s_b_$767, s_k_$768) {
+        const $proc = { "equal-as-trees": function (s_a_$766, s_b_$767, s_k_$768) {
           let $t0, $t1, $t2, $t3, s_kind_$769, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_k_$770, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_$771, $t23, s_i_$773, s_k_$774, s_x_$775, $t24, $t25, s_x_$776, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35;
           if (arguments.length !== 3) R.wrongArity("equal-as-trees", 3, false, arguments.length);
           const $d = $stack.room - 54;
@@ -10537,8 +10537,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["equal-as-trees"];
+        const $proc$r = { "equal-as-trees": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_kind_$769, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_k_$770, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_$771, $t23, s_i_$773, s_k_$774, s_x_$775, $t24, $t25, s_x_$776, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_a_$766, s_b_$767, s_k_$768, $r;
           ({ $t0, $t1, $t2, $t3, s_kind_$769, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_k_$770, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_len_$771, $t23, s_i_$773, s_k_$774, s_x_$775, $t24, $t25, s_x_$776, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, s_a_$766, s_b_$767, s_k_$768, $r } = $f);
           const $d = $stack.room - 54;
@@ -10662,7 +10662,7 @@ export const LIBRARIES = {
                 $pc = 16; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["equal-as-trees"];
         const $proc$js = R.markProcedure($proc, "equal-as-trees", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -10697,7 +10697,7 @@ export const LIBRARIES = {
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "+")).v;
         const W12 = R.primitiveCell("+"), P12 = W12.primitive;
         function $mk$fn3(s_classes_$779) {
-          function $fn3(s_x_$780) {
+          const $fn3 = { "class-of": function (s_x_$780) {
           let $t0, $t1, $t2, s_x_$781, $t3, s_class_$782, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("class-of", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -10725,9 +10725,9 @@ export const LIBRARIES = {
           $t6;
           return s_class_$782;
         }
-        }
+        } }["class-of"];
           const $fn3$js = R.markProcedure($fn3, "class-of", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "class-of": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$781, $t3, s_class_$782, $t4, $t5, $t6, s_x_$780, $r;
           ({ $t0, $t1, $t2, s_x_$781, $t3, s_class_$782, $t4, $t5, $t6, s_x_$780, $r } = $f);
           const $d = $stack.room - 18;
@@ -10766,12 +10766,12 @@ export const LIBRARIES = {
                 return s_class_$782;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["class-of"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
         function $mk$fn5(s_root) {
-          function $fn5(s_class_$783) {
+          const $fn5 = { "root": function (s_class_$783) {
           let $t0, s_up_$784, $t1, $t2, $t3, s_top_$785, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("root", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -10799,9 +10799,9 @@ export const LIBRARIES = {
         } else {
           return s_class_$783;
         }
-        }
+        } }["root"];
           const $fn5$js = R.markProcedure($fn5, "root", E);
-          function $fn5$r($pc, $f) {
+          const $fn5$r = { "root": function ($pc, $f) {
           let $t0, s_up_$784, $t1, $t2, $t3, s_top_$785, $t4, $t5, $t6, s_class_$783, $r;
           ({ $t0, s_up_$784, $t1, $t2, $t3, s_top_$785, $t4, $t5, $t6, s_class_$783, $r } = $f);
           const $d = $stack.room - 18;
@@ -10840,12 +10840,12 @@ export const LIBRARIES = {
                 return s_top_$785;
               default: throw new Error('$fn5$r: bad resume point ' + $pc);
           }
-        }
+        } }["root"];
           $fn5$js.$resume = $fn5$r;
           return $fn5$js;
         }
         function $mk$fn7(s_root, s_class_2dof) {
-          function $fn7(s_x_$786, s_y_$787) {
+          const $fn7 = { "assumed-equal!": function (s_x_$786, s_y_$787) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_rx_$788, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_ry_$789, $t14, s_x_$790, $t15, $t16, $t17;
           if (arguments.length !== 2) R.wrongArity("assumed-equal!", 2, false, arguments.length);
           const $d = $stack.room - 31;
@@ -10897,9 +10897,9 @@ export const LIBRARIES = {
           $t17;
           return false;
         }
-        }
+        } }["assumed-equal!"];
           const $fn7$js = R.markProcedure($fn7, "assumed-equal!", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "assumed-equal!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_rx_$788, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_ry_$789, $t14, s_x_$790, $t15, $t16, $t17, s_x_$786, s_y_$787, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_rx_$788, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_ry_$789, $t14, s_x_$790, $t15, $t16, $t17, s_x_$786, s_y_$787, $r } = $f);
           const $d = $stack.room - 31;
@@ -10974,13 +10974,13 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["assumed-equal!"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
         function $mk$fn9(s_assumed_2dequal_21) {
           let s_compare_$791;
-          function $fn9(s_a_$792, s_b_$793) {
+          const $fn9 = { "anonymous": function (s_a_$792, s_b_$793) {
           let $t0, $t1, $t2, s_kind_$794, $t3, $t4, $t5, $t6, $t7, s_x_$795, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_x_$796, $t19, s_len_$797, s_i_$799, $t20, s_x_$800, $t21, $t22, $t23, $t24, $t25, $t26;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 43;
@@ -11078,9 +11078,9 @@ export const LIBRARIES = {
         }
         }
           }
-        }
+        } }["anonymous"];
           const $fn9$js = R.markProcedure($fn9, "anonymous", E);
-          function $fn9$r($pc, $f) {
+          const $fn9$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_kind_$794, $t3, $t4, $t5, $t6, $t7, s_x_$795, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_x_$796, $t19, s_len_$797, s_i_$799, $t20, s_x_$800, $t21, $t22, $t23, $t24, $t25, $t26, s_a_$792, s_b_$793, $r;
           ({ $t0, $t1, $t2, s_kind_$794, $t3, $t4, $t5, $t6, $t7, s_x_$795, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_x_$796, $t19, s_len_$797, s_i_$799, $t20, s_x_$800, $t21, $t22, $t23, $t24, $t25, $t26, s_a_$792, s_b_$793, $r } = $f);
           const $d = $stack.room - 43;
@@ -11199,12 +11199,12 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$fn9$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn9$js.$resume = $fn9$r;
           s_compare_$791 = $fn9$js;
           return $fn9$js;
         }
-        function $proc(s_a_$777, s_b_$778) {
+        const $proc = { "equal-as-graphs": function (s_a_$777, s_b_$778) {
           let s_class_2dof, s_root, s_assumed_2dequal_21, $t0, $t1, $t2, s_classes_$779, $t4, $t6, $t8, s_compare_$791, $t10, $t11, $t12;
           if (arguments.length !== 2) R.wrongArity("equal-as-graphs", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -11233,8 +11233,8 @@ export const LIBRARIES = {
           s_compare_$791 = $t10;
           $t11 = s_compare_$791;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12(s_a_$777, s_b_$778); } return $tailCall($t11, [s_a_$777, s_b_$778]);
-        }
-        function $proc$r($pc, $f) {
+        } }["equal-as-graphs"];
+        const $proc$r = { "equal-as-graphs": function ($pc, $f) {
           let s_class_2dof, s_root, s_assumed_2dequal_21, $t0, $t1, $t2, s_classes_$779, $t4, $t6, $t8, s_compare_$791, $t10, $t11, $t12, s_a_$777, s_b_$778, $r;
           ({ s_class_2dof, s_root, s_assumed_2dequal_21, $t0, $t1, $t2, s_classes_$779, $t4, $t6, $t8, s_compare_$791, $t10, $t11, $t12, s_a_$777, s_b_$778, $r } = $f);
           const $d = $stack.room - 24;
@@ -11270,7 +11270,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, [s_a_$777, s_b_$778]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["equal-as-graphs"];
         const $proc$js = R.markProcedure($proc, "equal-as-graphs", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11284,14 +11284,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        function $proc(s_x_$801) {
+        const $proc = { "caar": function (s_x_$801) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("caar", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$801 instanceof R.Cons) ? (s_x_$801.car) : R.callBinding((C0.v ?? G0()), [s_x_$801]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.car) : R.callBinding((C0.v ?? G0()), [$t0]);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["caar"];
+        const $proc$r = { "caar": function ($pc, $f) {
           let $t0, $t1, s_x_$801, $r;
           ({ $t0, $t1, s_x_$801, $r } = $f);
           for (;;) switch ($pc) {
@@ -11301,7 +11301,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caar"];
         const $proc$js = R.markProcedure($proc, "caar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11317,14 +11317,14 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$802) {
+        const $proc = { "cadr": function (s_x_$802) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("cadr", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$802 instanceof R.Cons) ? (s_x_$802.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$802]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.car) : R.callBinding((C0.v ?? G0()), [$t0]);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["cadr"];
+        const $proc$r = { "cadr": function ($pc, $f) {
           let $t0, $t1, s_x_$802, $r;
           ({ $t0, $t1, s_x_$802, $r } = $f);
           for (;;) switch ($pc) {
@@ -11334,7 +11334,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cadr"];
         const $proc$js = R.markProcedure($proc, "cadr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11350,14 +11350,14 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$803) {
+        const $proc = { "cdar": function (s_x_$803) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("cdar", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$803 instanceof R.Cons) ? (s_x_$803.car) : R.callBinding((C1.v ?? G1()), [s_x_$803]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.cdr) : R.callBinding((C0.v ?? G0()), [$t0]);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdar"];
+        const $proc$r = { "cdar": function ($pc, $f) {
           let $t0, $t1, s_x_$803, $r;
           ({ $t0, $t1, s_x_$803, $r } = $f);
           for (;;) switch ($pc) {
@@ -11367,7 +11367,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdar"];
         const $proc$js = R.markProcedure($proc, "cdar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11381,14 +11381,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cdr")).v;
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
-        function $proc(s_x_$804) {
+        const $proc = { "cddr": function (s_x_$804) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("cddr", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$804 instanceof R.Cons) ? (s_x_$804.cdr) : R.callBinding((C0.v ?? G0()), [s_x_$804]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.cdr) : R.callBinding((C0.v ?? G0()), [$t0]);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["cddr"];
+        const $proc$r = { "cddr": function ($pc, $f) {
           let $t0, $t1, s_x_$804, $r;
           ({ $t0, $t1, s_x_$804, $r } = $f);
           for (;;) switch ($pc) {
@@ -11398,7 +11398,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cddr"];
         const $proc$js = R.markProcedure($proc, "cddr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11412,15 +11412,15 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        function $proc(s_x_$805) {
+        const $proc = { "caaar": function (s_x_$805) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("caaar", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$805 instanceof R.Cons) ? (s_x_$805.car) : R.callBinding((C0.v ?? G0()), [s_x_$805]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.car) : R.callBinding((C0.v ?? G0()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["caaar"];
+        const $proc$r = { "caaar": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$805, $r;
           ({ $t0, $t1, $t2, s_x_$805, $r } = $f);
           for (;;) switch ($pc) {
@@ -11431,7 +11431,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caaar"];
         const $proc$js = R.markProcedure($proc, "caaar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11447,15 +11447,15 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$806) {
+        const $proc = { "caadr": function (s_x_$806) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("caadr", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$806 instanceof R.Cons) ? (s_x_$806.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$806]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.car) : R.callBinding((C0.v ?? G0()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["caadr"];
+        const $proc$r = { "caadr": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$806, $r;
           ({ $t0, $t1, $t2, s_x_$806, $r } = $f);
           for (;;) switch ($pc) {
@@ -11466,7 +11466,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caadr"];
         const $proc$js = R.markProcedure($proc, "caadr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11482,15 +11482,15 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$807) {
+        const $proc = { "cadar": function (s_x_$807) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("cadar", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$807 instanceof R.Cons) ? (s_x_$807.car) : R.callBinding((C0.v ?? G0()), [s_x_$807]);
           $t1 = (W1.intact || (C1.v ?? G1()) === P1) && ($t0 instanceof R.Cons) ? ($t0.cdr) : R.callBinding((C1.v ?? G1()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["cadar"];
+        const $proc$r = { "cadar": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$807, $r;
           ({ $t0, $t1, $t2, s_x_$807, $r } = $f);
           for (;;) switch ($pc) {
@@ -11501,7 +11501,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cadar"];
         const $proc$js = R.markProcedure($proc, "cadar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11517,15 +11517,15 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$808) {
+        const $proc = { "caddr": function (s_x_$808) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("caddr", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$808 instanceof R.Cons) ? (s_x_$808.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$808]);
           $t1 = (W1.intact || (C1.v ?? G1()) === P1) && ($t0 instanceof R.Cons) ? ($t0.cdr) : R.callBinding((C1.v ?? G1()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["caddr"];
+        const $proc$r = { "caddr": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$808, $r;
           ({ $t0, $t1, $t2, s_x_$808, $r } = $f);
           for (;;) switch ($pc) {
@@ -11536,7 +11536,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caddr"];
         const $proc$js = R.markProcedure($proc, "caddr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11552,15 +11552,15 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$809) {
+        const $proc = { "cdaar": function (s_x_$809) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("cdaar", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$809 instanceof R.Cons) ? (s_x_$809.car) : R.callBinding((C1.v ?? G1()), [s_x_$809]);
           $t1 = (W1.intact || (C1.v ?? G1()) === P1) && ($t0 instanceof R.Cons) ? ($t0.car) : R.callBinding((C1.v ?? G1()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdaar"];
+        const $proc$r = { "cdaar": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$809, $r;
           ({ $t0, $t1, $t2, s_x_$809, $r } = $f);
           for (;;) switch ($pc) {
@@ -11571,7 +11571,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdaar"];
         const $proc$js = R.markProcedure($proc, "cdaar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11587,15 +11587,15 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$810) {
+        const $proc = { "cdadr": function (s_x_$810) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("cdadr", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$810 instanceof R.Cons) ? (s_x_$810.cdr) : R.callBinding((C0.v ?? G0()), [s_x_$810]);
           $t1 = (W1.intact || (C1.v ?? G1()) === P1) && ($t0 instanceof R.Cons) ? ($t0.car) : R.callBinding((C1.v ?? G1()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdadr"];
+        const $proc$r = { "cdadr": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$810, $r;
           ({ $t0, $t1, $t2, s_x_$810, $r } = $f);
           for (;;) switch ($pc) {
@@ -11606,7 +11606,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdadr"];
         const $proc$js = R.markProcedure($proc, "cdadr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11622,15 +11622,15 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$811) {
+        const $proc = { "cddar": function (s_x_$811) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("cddar", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$811 instanceof R.Cons) ? (s_x_$811.car) : R.callBinding((C1.v ?? G1()), [s_x_$811]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.cdr) : R.callBinding((C0.v ?? G0()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["cddar"];
+        const $proc$r = { "cddar": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$811, $r;
           ({ $t0, $t1, $t2, s_x_$811, $r } = $f);
           for (;;) switch ($pc) {
@@ -11641,7 +11641,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cddar"];
         const $proc$js = R.markProcedure($proc, "cddar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11655,15 +11655,15 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cdr")).v;
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
-        function $proc(s_x_$812) {
+        const $proc = { "cdddr": function (s_x_$812) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("cdddr", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$812 instanceof R.Cons) ? (s_x_$812.cdr) : R.callBinding((C0.v ?? G0()), [s_x_$812]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) && ($t0 instanceof R.Cons) ? ($t0.cdr) : R.callBinding((C0.v ?? G0()), [$t0]);
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           return $t2;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdddr"];
+        const $proc$r = { "cdddr": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$812, $r;
           ({ $t0, $t1, $t2, s_x_$812, $r } = $f);
           for (;;) switch ($pc) {
@@ -11674,7 +11674,7 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdddr"];
         const $proc$js = R.markProcedure($proc, "cdddr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11688,7 +11688,7 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        function $proc(s_x_$813) {
+        const $proc = { "caaaar": function (s_x_$813) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("caaaar", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$813 instanceof R.Cons) ? (s_x_$813.car) : R.callBinding((C0.v ?? G0()), [s_x_$813]);
@@ -11696,8 +11696,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["caaaar"];
+        const $proc$r = { "caaaar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$813, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$813, $r } = $f);
           for (;;) switch ($pc) {
@@ -11709,7 +11709,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caaaar"];
         const $proc$js = R.markProcedure($proc, "caaaar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11725,7 +11725,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$814) {
+        const $proc = { "caaadr": function (s_x_$814) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("caaadr", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$814 instanceof R.Cons) ? (s_x_$814.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$814]);
@@ -11733,8 +11733,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["caaadr"];
+        const $proc$r = { "caaadr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$814, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$814, $r } = $f);
           for (;;) switch ($pc) {
@@ -11746,7 +11746,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caaadr"];
         const $proc$js = R.markProcedure($proc, "caaadr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11762,7 +11762,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$815) {
+        const $proc = { "caadar": function (s_x_$815) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("caadar", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$815 instanceof R.Cons) ? (s_x_$815.car) : R.callBinding((C0.v ?? G0()), [s_x_$815]);
@@ -11770,8 +11770,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["caadar"];
+        const $proc$r = { "caadar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$815, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$815, $r } = $f);
           for (;;) switch ($pc) {
@@ -11783,7 +11783,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caadar"];
         const $proc$js = R.markProcedure($proc, "caadar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11799,7 +11799,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$816) {
+        const $proc = { "caaddr": function (s_x_$816) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("caaddr", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$816 instanceof R.Cons) ? (s_x_$816.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$816]);
@@ -11807,8 +11807,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["caaddr"];
+        const $proc$r = { "caaddr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$816, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$816, $r } = $f);
           for (;;) switch ($pc) {
@@ -11820,7 +11820,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caaddr"];
         const $proc$js = R.markProcedure($proc, "caaddr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11836,7 +11836,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$817) {
+        const $proc = { "cadaar": function (s_x_$817) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cadaar", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$817 instanceof R.Cons) ? (s_x_$817.car) : R.callBinding((C0.v ?? G0()), [s_x_$817]);
@@ -11844,8 +11844,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cadaar"];
+        const $proc$r = { "cadaar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$817, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$817, $r } = $f);
           for (;;) switch ($pc) {
@@ -11857,7 +11857,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cadaar"];
         const $proc$js = R.markProcedure($proc, "cadaar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11873,7 +11873,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$818) {
+        const $proc = { "cadadr": function (s_x_$818) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cadadr", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$818 instanceof R.Cons) ? (s_x_$818.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$818]);
@@ -11881,8 +11881,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cadadr"];
+        const $proc$r = { "cadadr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$818, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$818, $r } = $f);
           for (;;) switch ($pc) {
@@ -11894,7 +11894,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cadadr"];
         const $proc$js = R.markProcedure($proc, "cadadr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11910,7 +11910,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$819) {
+        const $proc = { "caddar": function (s_x_$819) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("caddar", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$819 instanceof R.Cons) ? (s_x_$819.car) : R.callBinding((C0.v ?? G0()), [s_x_$819]);
@@ -11918,8 +11918,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["caddar"];
+        const $proc$r = { "caddar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$819, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$819, $r } = $f);
           for (;;) switch ($pc) {
@@ -11931,7 +11931,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["caddar"];
         const $proc$js = R.markProcedure($proc, "caddar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11947,7 +11947,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_x_$820) {
+        const $proc = { "cadddr": function (s_x_$820) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cadddr", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$820 instanceof R.Cons) ? (s_x_$820.cdr) : R.callBinding((C1.v ?? G1()), [s_x_$820]);
@@ -11955,8 +11955,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.car) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cadddr"];
+        const $proc$r = { "cadddr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$820, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$820, $r } = $f);
           for (;;) switch ($pc) {
@@ -11968,7 +11968,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cadddr"];
         const $proc$js = R.markProcedure($proc, "cadddr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -11984,7 +11984,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$821) {
+        const $proc = { "cdaaar": function (s_x_$821) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cdaaar", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$821 instanceof R.Cons) ? (s_x_$821.car) : R.callBinding((C1.v ?? G1()), [s_x_$821]);
@@ -11992,8 +11992,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdaaar"];
+        const $proc$r = { "cdaaar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$821, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$821, $r } = $f);
           for (;;) switch ($pc) {
@@ -12005,7 +12005,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdaaar"];
         const $proc$js = R.markProcedure($proc, "cdaaar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12021,7 +12021,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$822) {
+        const $proc = { "cdaadr": function (s_x_$822) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cdaadr", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$822 instanceof R.Cons) ? (s_x_$822.cdr) : R.callBinding((C0.v ?? G0()), [s_x_$822]);
@@ -12029,8 +12029,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdaadr"];
+        const $proc$r = { "cdaadr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$822, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$822, $r } = $f);
           for (;;) switch ($pc) {
@@ -12042,7 +12042,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdaadr"];
         const $proc$js = R.markProcedure($proc, "cdaadr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12058,7 +12058,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$823) {
+        const $proc = { "cdadar": function (s_x_$823) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cdadar", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$823 instanceof R.Cons) ? (s_x_$823.car) : R.callBinding((C1.v ?? G1()), [s_x_$823]);
@@ -12066,8 +12066,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdadar"];
+        const $proc$r = { "cdadar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$823, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$823, $r } = $f);
           for (;;) switch ($pc) {
@@ -12079,7 +12079,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdadar"];
         const $proc$js = R.markProcedure($proc, "cdadar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12095,7 +12095,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$824) {
+        const $proc = { "cdaddr": function (s_x_$824) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cdaddr", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$824 instanceof R.Cons) ? (s_x_$824.cdr) : R.callBinding((C0.v ?? G0()), [s_x_$824]);
@@ -12103,8 +12103,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ($t1 instanceof R.Cons) ? ($t1.car) : R.callBinding((C1.v ?? G1()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdaddr"];
+        const $proc$r = { "cdaddr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$824, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$824, $r } = $f);
           for (;;) switch ($pc) {
@@ -12116,7 +12116,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdaddr"];
         const $proc$js = R.markProcedure($proc, "cdaddr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12132,7 +12132,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$825) {
+        const $proc = { "cddaar": function (s_x_$825) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cddaar", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$825 instanceof R.Cons) ? (s_x_$825.car) : R.callBinding((C1.v ?? G1()), [s_x_$825]);
@@ -12140,8 +12140,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cddaar"];
+        const $proc$r = { "cddaar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$825, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$825, $r } = $f);
           for (;;) switch ($pc) {
@@ -12153,7 +12153,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cddaar"];
         const $proc$js = R.markProcedure($proc, "cddaar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12169,7 +12169,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$826) {
+        const $proc = { "cddadr": function (s_x_$826) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cddadr", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$826 instanceof R.Cons) ? (s_x_$826.cdr) : R.callBinding((C0.v ?? G0()), [s_x_$826]);
@@ -12177,8 +12177,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cddadr"];
+        const $proc$r = { "cddadr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$826, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$826, $r } = $f);
           for (;;) switch ($pc) {
@@ -12190,7 +12190,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cddadr"];
         const $proc$js = R.markProcedure($proc, "cddadr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12206,7 +12206,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_x_$827) {
+        const $proc = { "cdddar": function (s_x_$827) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cdddar", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_x_$827 instanceof R.Cons) ? (s_x_$827.car) : R.callBinding((C1.v ?? G1()), [s_x_$827]);
@@ -12214,8 +12214,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cdddar"];
+        const $proc$r = { "cdddar": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$827, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$827, $r } = $f);
           for (;;) switch ($pc) {
@@ -12227,7 +12227,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdddar"];
         const $proc$js = R.markProcedure($proc, "cdddar", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12241,7 +12241,7 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cdr")).v;
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
-        function $proc(s_x_$828) {
+        const $proc = { "cddddr": function (s_x_$828) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("cddddr", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$828 instanceof R.Cons) ? (s_x_$828.cdr) : R.callBinding((C0.v ?? G0()), [s_x_$828]);
@@ -12249,8 +12249,8 @@ export const LIBRARIES = {
           $t2 = (W0.intact || (C0.v ?? G0()) === P0) && ($t1 instanceof R.Cons) ? ($t1.cdr) : R.callBinding((C0.v ?? G0()), [$t1]);
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["cddddr"];
+        const $proc$r = { "cddddr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$828, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$828, $r } = $f);
           for (;;) switch ($pc) {
@@ -12262,7 +12262,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cddddr"];
         const $proc$js = R.markProcedure($proc, "cddddr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12281,7 +12281,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "=")).v;
         const W3 = R.primitiveCell("="), P3 = W3.primitive;
-        function $proc(s_x_$829) {
+        const $proc = { "zero?": function (s_x_$829) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("zero?", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -12309,8 +12309,8 @@ export const LIBRARIES = {
           $t4;
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_x_$829 === 'bigint' && typeof 0n === 'bigint') || (typeof s_x_$829 === 'number' && typeof 0n === 'number')) ? (s_x_$829 === 0n) : R.callBinding((C3.v ?? G3()), [s_x_$829, 0n]);
           return $t8;
-        }
-        function $proc$r($pc, $f) {
+        } }["zero?"];
+        const $proc$r = { "zero?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$829, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$829, $r } = $f);
           const $d = $stack.room - 18;
@@ -12352,7 +12352,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["zero?"];
         const $proc$js = R.markProcedure($proc, "zero?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12371,7 +12371,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, ">")).v;
         const W3 = R.primitiveCell(">"), P3 = W3.primitive;
-        function $proc(s_x_$830) {
+        const $proc = { "positive?": function (s_x_$830) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("positive?", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -12399,8 +12399,8 @@ export const LIBRARIES = {
           $t4;
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_x_$830 === 'bigint' && typeof 0n === 'bigint') || (typeof s_x_$830 === 'number' && typeof 0n === 'number')) ? (s_x_$830 > 0n) : R.callBinding((C3.v ?? G3()), [s_x_$830, 0n]);
           return $t8;
-        }
-        function $proc$r($pc, $f) {
+        } }["positive?"];
+        const $proc$r = { "positive?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$830, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$830, $r } = $f);
           const $d = $stack.room - 18;
@@ -12442,7 +12442,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["positive?"];
         const $proc$js = R.markProcedure($proc, "positive?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12461,7 +12461,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "<")).v;
         const W3 = R.primitiveCell("<"), P3 = W3.primitive;
-        function $proc(s_x_$831) {
+        const $proc = { "negative?": function (s_x_$831) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("negative?", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -12489,8 +12489,8 @@ export const LIBRARIES = {
           $t4;
           $t8 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_x_$831 === 'bigint' && typeof 0n === 'bigint') || (typeof s_x_$831 === 'number' && typeof 0n === 'number')) ? (s_x_$831 < 0n) : R.callBinding((C3.v ?? G3()), [s_x_$831, 0n]);
           return $t8;
-        }
-        function $proc$r($pc, $f) {
+        } }["negative?"];
+        const $proc$r = { "negative?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$831, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_x_$831, $r } = $f);
           const $d = $stack.room - 18;
@@ -12532,7 +12532,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["negative?"];
         const $proc$js = R.markProcedure($proc, "negative?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12552,7 +12552,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "=")).v;
         const W3 = R.primitiveCell("="), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "modulo")).v;
-        function $proc(s_x_$832) {
+        const $proc = { "odd?": function (s_x_$832) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 1) R.wrongArity("odd?", 1, false, arguments.length);
           const $d = $stack.room - 22;
@@ -12588,8 +12588,8 @@ export const LIBRARIES = {
           $t11 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof $t10 === 'bigint' && typeof 0n === 'bigint') || (typeof $t10 === 'number' && typeof 0n === 'number')) ? ($t10 === 0n) : R.callBinding((C3.v ?? G3()), [$t10, 0n]);
           $t12 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t11 === false) : R.callBinding((C0.v ?? G0()), [$t11]);
           return $t12;
-        }
-        function $proc$r($pc, $f) {
+        } }["odd?"];
+        const $proc$r = { "odd?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$832, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$832, $r } = $f);
           const $d = $stack.room - 22;
@@ -12643,7 +12643,7 @@ export const LIBRARIES = {
                 return $t12;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["odd?"];
         const $proc$js = R.markProcedure($proc, "odd?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12663,7 +12663,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "=")).v;
         const W3 = R.primitiveCell("="), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "modulo")).v;
-        function $proc(s_x_$833) {
+        const $proc = { "even?": function (s_x_$833) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("even?", 1, false, arguments.length);
           const $d = $stack.room - 21;
@@ -12698,8 +12698,8 @@ export const LIBRARIES = {
           if ($t10 === $UNWIND) { R.reify($proc$r, 6, {  }); return $UNWIND; }
           $t11 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof $t10 === 'bigint' && typeof 0n === 'bigint') || (typeof $t10 === 'number' && typeof 0n === 'number')) ? ($t10 === 0n) : R.callBinding((C3.v ?? G3()), [$t10, 0n]);
           return $t11;
-        }
-        function $proc$r($pc, $f) {
+        } }["even?"];
+        const $proc$r = { "even?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$833, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_x_$833, $r } = $f);
           const $d = $stack.room - 21;
@@ -12752,7 +12752,7 @@ export const LIBRARIES = {
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["even?"];
         const $proc$js = R.markProcedure($proc, "even?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12773,7 +12773,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell(">"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "inexact?")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "inexact")).v;
-        function $proc(s_x_$834, ...s_rest_$835$raw) {
+        const $proc = { "m-max": function (s_x_$834, ...s_rest_$835$raw) {
           let $t0, $t1, $t2, $t3, s_res_$836, $t4, $t5, s_m_$837, s_x_$838, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length < 1) R.wrongArity("m-max", 1, true, arguments.length);
           const $d = $stack.room - 28 - s_rest_$835$raw.length;
@@ -12825,8 +12825,8 @@ export const LIBRARIES = {
           return s_m_$837;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["m-max"];
+        const $proc$r = { "m-max": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_res_$836, $t4, $t5, s_m_$837, s_x_$838, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$834, s_rest_$835, $r;
           ({ $t0, $t1, $t2, $t3, s_res_$836, $t4, $t5, s_m_$837, s_x_$838, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$834, s_rest_$835, $r } = $f);
           const $d = $stack.room - 28;
@@ -12898,7 +12898,7 @@ export const LIBRARIES = {
                 return s_m_$837;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["m-max"];
         const $proc$js = R.markProcedure($proc, "m-max", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -12917,7 +12917,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "apply")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "m-max")).v;
-        function $proc(s_x_$839, ...s_rest_$840$raw) {
+        const $proc = { "max": function (s_x_$839, ...s_rest_$840$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length < 1) R.wrongArity("max", 1, true, arguments.length);
           const $d = $stack.room - 20 - s_rest_$840$raw.length;
@@ -12946,8 +12946,8 @@ export const LIBRARIES = {
           $t4;
           $t8 = (C3.v ?? G3());
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9((C4.v ?? G4()), s_x_$839, s_rest_$840); } return $tailCall($t8, [(C4.v ?? G4()), s_x_$839, s_rest_$840]);
-        }
-        function $proc$r($pc, $f) {
+        } }["max"];
+        const $proc$r = { "max": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_x_$839, s_rest_$840, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_x_$839, s_rest_$840, $r } = $f);
           const $d = $stack.room - 20;
@@ -12989,7 +12989,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["max"];
         const $proc$js = R.markProcedure($proc, "max", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -13010,7 +13010,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("<"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "inexact?")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "inexact")).v;
-        function $proc(s_x_$841, ...s_rest_$842$raw) {
+        const $proc = { "m-min": function (s_x_$841, ...s_rest_$842$raw) {
           let $t0, $t1, $t2, $t3, s_res_$843, $t4, $t5, s_m_$844, s_x_$845, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length < 1) R.wrongArity("m-min", 1, true, arguments.length);
           const $d = $stack.room - 28 - s_rest_$842$raw.length;
@@ -13062,8 +13062,8 @@ export const LIBRARIES = {
           return s_m_$844;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["m-min"];
+        const $proc$r = { "m-min": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_res_$843, $t4, $t5, s_m_$844, s_x_$845, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$841, s_rest_$842, $r;
           ({ $t0, $t1, $t2, $t3, s_res_$843, $t4, $t5, s_m_$844, s_x_$845, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$841, s_rest_$842, $r } = $f);
           const $d = $stack.room - 28;
@@ -13135,7 +13135,7 @@ export const LIBRARIES = {
                 return s_m_$844;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["m-min"];
         const $proc$js = R.markProcedure($proc, "m-min", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -13154,7 +13154,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "apply")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "m-min")).v;
-        function $proc(s_x_$846, ...s_rest_$847$raw) {
+        const $proc = { "min": function (s_x_$846, ...s_rest_$847$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length < 1) R.wrongArity("min", 1, true, arguments.length);
           const $d = $stack.room - 20 - s_rest_$847$raw.length;
@@ -13183,8 +13183,8 @@ export const LIBRARIES = {
           $t4;
           $t8 = (C3.v ?? G3());
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9((C4.v ?? G4()), s_x_$846, s_rest_$847); } return $tailCall($t8, [(C4.v ?? G4()), s_x_$846, s_rest_$847]);
-        }
-        function $proc$r($pc, $f) {
+        } }["min"];
+        const $proc$r = { "min": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_x_$846, s_rest_$847, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_x_$846, s_rest_$847, $r } = $f);
           const $d = $stack.room - 20;
@@ -13226,7 +13226,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["min"];
         const $proc$js = R.markProcedure($proc, "min", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -13244,7 +13244,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%gcd2")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "modulo")).v;
-        function $proc(s_a_$848, s_b_$849) {
+        const $proc = { "%gcd2": function (s_a_$848, s_b_$849) {
           let $t0, $t1, $t2, s_aa_$850, $t3, $t4, $t5, s_bb_$851, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("%gcd2", 2, false, arguments.length);
           const $d = $stack.room - 26;
@@ -13283,8 +13283,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13(s_bb_$851, $t10); } return $tailCall($t12, [s_bb_$851, $t10]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["%gcd2"];
+        const $proc$r = { "%gcd2": function ($pc, $f) {
           let $t0, $t1, $t2, s_aa_$850, $t3, $t4, $t5, s_bb_$851, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_a_$848, s_b_$849, $r;
           ({ $t0, $t1, $t2, s_aa_$850, $t3, $t4, $t5, s_bb_$851, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_a_$848, s_b_$849, $r } = $f);
           const $d = $stack.room - 26;
@@ -13336,7 +13336,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [s_bb_$851, $t10]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["%gcd2"];
         const $proc$js = R.markProcedure($proc, "%gcd2", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -13363,7 +13363,7 @@ export const LIBRARIES = {
         const W7 = R.primitiveCell("cdr"), P7 = W7.primitive;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "abs")).v;
         function $mk$fn0() {
-          function $fn0(s_x_$853) {
+          const $fn0 = { "anonymous": function (s_x_$853) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -13382,9 +13382,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_x_$853, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_x_$853, $r } = $f);
           const $d = $stack.room - 15;
@@ -13410,11 +13410,11 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(...s_args_$852$raw) {
+        const $proc = { "gcd": function (...s_args_$852$raw) {
           let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_result_$855, s_rest_$856, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           const $d = $stack.room - 29 - s_args_$852$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$852$raw]);
@@ -13465,8 +13465,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["gcd"];
+        const $proc$r = { "gcd": function ($pc, $f) {
           let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_result_$855, s_rest_$856, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_args_$852, $r;
           ({ $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_result_$855, s_rest_$856, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_args_$852, $r } = $f);
           const $d = $stack.room - 29;
@@ -13532,7 +13532,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["gcd"];
         const $proc$js = R.markProcedure($proc, "gcd", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -13564,7 +13564,7 @@ export const LIBRARIES = {
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "cdr")).v;
         const W11 = R.primitiveCell("cdr"), P11 = W11.primitive;
         function $mk$fn0() {
-          function $fn0(s_x_$858) {
+          const $fn0 = { "anonymous": function (s_x_$858) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -13583,9 +13583,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_x_$858, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_x_$858, $r } = $f);
           const $d = $stack.room - 15;
@@ -13611,11 +13611,11 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(...s_args_$857$raw) {
+        const $proc = { "lcm": function (...s_args_$857$raw) {
           let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_result_$860, s_rest_$861, $t12, $t13, $t14, $t15, $t16, $t17, s_b_$862, s_x_$863, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29;
           const $d = $stack.room - 42 - s_args_$857$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$857$raw]);
@@ -13695,8 +13695,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["lcm"];
+        const $proc$r = { "lcm": function ($pc, $f) {
           let $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_result_$860, s_rest_$861, $t12, $t13, $t14, $t15, $t16, $t17, s_b_$862, s_x_$863, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_args_$857, $r;
           ({ $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_result_$860, s_rest_$861, $t12, $t13, $t14, $t15, $t16, $t17, s_b_$862, s_x_$863, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_args_$857, $r } = $f);
           const $d = $stack.room - 42;
@@ -13802,7 +13802,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lcm"];
         const $proc$js = R.markProcedure($proc, "lcm", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -13814,11 +13814,11 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":12,"column":1,"endLine":12,"endColumn":47},
         make: (R, E, K) => {
-        function $proc(...s_args_$864$raw) {
+        const $proc = { "native-report-test-result": function (...s_args_$864$raw) {
           let s_args_$864 = R.listFrom(s_args_$864$raw);
           return false;
-        }
-        function $proc$r($pc, $f) {
+        } }["native-report-test-result"];
+        const $proc$r = { "native-report-test-result": function ($pc, $f) {
           let s_args_$864, $r;
           ({ s_args_$864, $r } = $f);
           for (;;) switch ($pc) {
@@ -13826,7 +13826,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["native-report-test-result"];
         const $proc$js = R.markProcedure($proc, "native-report-test-result", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -13859,7 +13859,7 @@ export const LIBRARIES = {
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "apply")).v;
         function $mk$fn18(s_proc_$865) {
           let s_loop_$868;
-          function $fn18(s_l_$869) {
+          const $fn18 = { "anonymous": function (s_l_$869) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -13887,9 +13887,9 @@ export const LIBRARIES = {
           $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? (new R.Cons($t4, $t8)) : R.callBinding((C5.v ?? G5()), [$t4, $t8]);
           return $t9;
         }
-        }
+        } }["anonymous"];
           const $fn18$js = R.markProcedure($fn18, "anonymous", E);
-          function $fn18$r($pc, $f) {
+          const $fn18$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$869, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$869, $r } = $f);
           const $d = $stack.room - 19;
@@ -13928,13 +13928,13 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$fn18$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn18$js.$resume = $fn18$r;
           s_loop_$868 = $fn18$js;
           return $fn18$js;
         }
         function $mk$fn22() {
-          function $fn22(s_l_$870) {
+          const $fn22 = { "anonymous": function (s_l_$870) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 16;
@@ -13953,9 +13953,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn22$js = R.markProcedure($fn22, "anonymous", E);
-          function $fn22$r($pc, $f) {
+          const $fn22$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$870, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_l_$870, $r } = $f);
           for (;;) switch ($pc) {
@@ -13980,12 +13980,12 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn22$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn22$js.$resume = $fn22$r;
           return $fn22$js;
         }
         function $mk$fn27(s_any_2dnull_3f_$871) {
-          function $fn27(s_lists_$875) {
+          const $fn27 = { "anonymous": function (s_lists_$875) {
           let $t0, $t1, $t2, s_x_$876, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $loop: for (;;) {
@@ -14006,9 +14006,9 @@ export const LIBRARIES = {
         }
         }
           }
-        }
+        } }["anonymous"];
           const $fn27$js = R.markProcedure($fn27, "anonymous", E);
-          function $fn27$r($pc, $f) {
+          const $fn27$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$876, $t3, $t4, s_lists_$875, $r;
           ({ $t0, $t1, $t2, s_x_$876, $t3, $t4, s_lists_$875, $r } = $f);
           for (;;) switch ($pc) {
@@ -14031,12 +14031,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn27$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn27$js.$resume = $fn27$r;
           return $fn27$js;
         }
         function $mk$fn29(s_all_2dcars_$872) {
-          function $fn29(s_lists_$877) {
+          const $fn29 = { "anonymous": function (s_lists_$877) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -14064,9 +14064,9 @@ export const LIBRARIES = {
           $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? (new R.Cons($t3, $t8)) : R.callBinding((C5.v ?? G5()), [$t3, $t8]);
           return $t9;
         }
-        }
+        } }["anonymous"];
           const $fn29$js = R.markProcedure($fn29, "anonymous", E);
-          function $fn29$r($pc, $f) {
+          const $fn29$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$877, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$877, $r } = $f);
           const $d = $stack.room - 19;
@@ -14105,12 +14105,12 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$fn29$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn29$js.$resume = $fn29$r;
           return $fn29$js;
         }
         function $mk$fn31(s_all_2dcdrs_$873) {
-          function $fn31(s_lists_$878) {
+          const $fn31 = { "anonymous": function (s_lists_$878) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -14138,9 +14138,9 @@ export const LIBRARIES = {
           $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? (new R.Cons($t3, $t8)) : R.callBinding((C5.v ?? G5()), [$t3, $t8]);
           return $t9;
         }
-        }
+        } }["anonymous"];
           const $fn31$js = R.markProcedure($fn31, "anonymous", E);
-          function $fn31$r($pc, $f) {
+          const $fn31$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$878, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$878, $r } = $f);
           const $d = $stack.room - 19;
@@ -14179,13 +14179,13 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$fn31$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn31$js.$resume = $fn31$r;
           return $fn31$js;
         }
         function $mk$fn33(s_any_2dnull_3f_$871, s_proc_$865, s_all_2dcars_$872, s_all_2dcdrs_$873) {
           let s_loop_$874;
-          function $fn33(s_first_2dlist_$879, s_rest_2dlists_$880) {
+          const $fn33 = { "anonymous": function (s_first_2dlist_$879, s_rest_2dlists_$880) {
           let s_x_$881, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 33;
@@ -14242,9 +14242,9 @@ export const LIBRARIES = {
           $t21 = (W5.intact || (C5.v ?? G5()) === P5) ? (new R.Cons($t13, $t20)) : R.callBinding((C5.v ?? G5()), [$t13, $t20]);
           return $t21;
         }
-        }
+        } }["anonymous"];
           const $fn33$js = R.markProcedure($fn33, "anonymous", E);
-          function $fn33$r($pc, $f) {
+          const $fn33$r = { "anonymous": function ($pc, $f) {
           let s_x_$881, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_first_2dlist_$879, s_rest_2dlists_$880, $r;
           ({ s_x_$881, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_first_2dlist_$879, s_rest_2dlists_$880, $r } = $f);
           const $d = $stack.room - 33;
@@ -14327,12 +14327,12 @@ export const LIBRARIES = {
                 return $t21;
               default: throw new Error('$fn33$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn33$js.$resume = $fn33$r;
           s_loop_$874 = $fn33$js;
           return $fn33$js;
         }
-        function $proc(s_proc_$865, s_lst_$866, ...s_lsts_$867$raw) {
+        const $proc = { "map": function (s_proc_$865, s_lst_$866, ...s_lsts_$867$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$868, $t19, $t20, $t21, $t23, $t24, $t25, $t26, s_any_2dnull_3f_$871, s_all_2dcars_$872, s_all_2dcdrs_$873, s_loop_$874, $t28, $t30, $t32, $t34, $t35, $t36;
           if (arguments.length < 2) R.wrongArity("map", 2, true, arguments.length);
           const $d = $stack.room - 47 - s_lsts_$867$raw.length;
@@ -14411,8 +14411,8 @@ export const LIBRARIES = {
           $t35 = s_loop_$874;
           if ($d > 0 && ($t36 = $t35?.[$RAW] ?? $t35)?.[$PRIM] === true) { $stack.room = $d; return $t36(s_lst_$866, s_lsts_$867); } return $tailCall($t35, [s_lst_$866, s_lsts_$867]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["map"];
+        const $proc$r = { "map": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$868, $t19, $t20, $t21, $t23, $t24, $t25, $t26, s_any_2dnull_3f_$871, s_all_2dcars_$872, s_all_2dcdrs_$873, s_loop_$874, $t28, $t30, $t32, $t34, $t35, $t36, s_proc_$865, s_lst_$866, s_lsts_$867, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_loop_$868, $t19, $t20, $t21, $t23, $t24, $t25, $t26, s_any_2dnull_3f_$871, s_all_2dcars_$872, s_all_2dcdrs_$873, s_loop_$874, $t28, $t30, $t32, $t34, $t35, $t36, s_proc_$865, s_lst_$866, s_lsts_$867, $r } = $f);
           const $d = $stack.room - 47;
@@ -14518,7 +14518,7 @@ export const LIBRARIES = {
                 return $tailCall($t35, [s_lst_$866, s_lsts_$867]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["map"];
         const $proc$js = R.markProcedure($proc, "map", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -14549,7 +14549,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "cdar")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "apply")).v;
         function $mk$fn25(s_any_2dnull_3f_$887) {
-          function $fn25(s_lists_$891) {
+          const $fn25 = { "anonymous": function (s_lists_$891) {
           let $t0, $t1, $t2, s_x_$892, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $loop: for (;;) {
@@ -14570,9 +14570,9 @@ export const LIBRARIES = {
         }
         }
           }
-        }
+        } }["anonymous"];
           const $fn25$js = R.markProcedure($fn25, "anonymous", E);
-          function $fn25$r($pc, $f) {
+          const $fn25$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$892, $t3, $t4, s_lists_$891, $r;
           ({ $t0, $t1, $t2, s_x_$892, $t3, $t4, s_lists_$891, $r } = $f);
           for (;;) switch ($pc) {
@@ -14595,12 +14595,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn25$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn25$js.$resume = $fn25$r;
           return $fn25$js;
         }
         function $mk$fn27(s_all_2dcars_$888) {
-          function $fn27(s_lists_$893) {
+          const $fn27 = { "anonymous": function (s_lists_$893) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -14628,9 +14628,9 @@ export const LIBRARIES = {
           $t9 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t3, $t8)) : R.callBinding((C7.v ?? G7()), [$t3, $t8]);
           return $t9;
         }
-        }
+        } }["anonymous"];
           const $fn27$js = R.markProcedure($fn27, "anonymous", E);
-          function $fn27$r($pc, $f) {
+          const $fn27$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$893, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$893, $r } = $f);
           const $d = $stack.room - 19;
@@ -14669,12 +14669,12 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$fn27$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn27$js.$resume = $fn27$r;
           return $fn27$js;
         }
         function $mk$fn29(s_all_2dcdrs_$889) {
-          function $fn29(s_lists_$894) {
+          const $fn29 = { "anonymous": function (s_lists_$894) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -14702,9 +14702,9 @@ export const LIBRARIES = {
           $t9 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t3, $t8)) : R.callBinding((C7.v ?? G7()), [$t3, $t8]);
           return $t9;
         }
-        }
+        } }["anonymous"];
           const $fn29$js = R.markProcedure($fn29, "anonymous", E);
-          function $fn29$r($pc, $f) {
+          const $fn29$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$894, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_lists_$894, $r } = $f);
           const $d = $stack.room - 19;
@@ -14743,13 +14743,13 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$fn29$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn29$js.$resume = $fn29$r;
           return $fn29$js;
         }
         function $mk$fn31(s_any_2dnull_3f_$887, s_proc_$882, s_all_2dcars_$888, s_all_2dcdrs_$889) {
           let s_loop_$890;
-          function $fn31(s_first_2dlist_$895, s_rest_2dlists_$896) {
+          const $fn31 = { "anonymous": function (s_first_2dlist_$895, s_rest_2dlists_$896) {
           let s_x_$897, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 30;
@@ -14804,9 +14804,9 @@ export const LIBRARIES = {
           return undefined;
         }
           }
-        }
+        } }["anonymous"];
           const $fn31$js = R.markProcedure($fn31, "anonymous", E);
-          function $fn31$r($pc, $f) {
+          const $fn31$r = { "anonymous": function ($pc, $f) {
           let s_x_$897, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_first_2dlist_$895, s_rest_2dlists_$896, $r;
           ({ s_x_$897, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_first_2dlist_$895, s_rest_2dlists_$896, $r } = $f);
           const $d = $stack.room - 30;
@@ -14881,12 +14881,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn31$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn31$js.$resume = $fn31$r;
           s_loop_$890 = $fn31$js;
           return $fn31$js;
         }
-        function $proc(s_proc_$882, s_lst_$883, ...s_lsts_$884$raw) {
+        const $proc = { "for-each": function (s_proc_$882, s_lst_$883, ...s_lsts_$884$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$886, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$887, s_all_2dcars_$888, s_all_2dcdrs_$889, s_loop_$890, $t26, $t28, $t30, $t32, $t33, $t34;
           if (arguments.length < 2) R.wrongArity("for-each", 2, true, arguments.length);
           const $d = $stack.room - 47 - s_lsts_$884$raw.length;
@@ -14973,8 +14973,8 @@ export const LIBRARIES = {
           $t33 = s_loop_$890;
           if ($d > 0 && ($t34 = $t33?.[$RAW] ?? $t33)?.[$PRIM] === true) { $stack.room = $d; return $t34(s_lst_$883, s_lsts_$884); } return $tailCall($t33, [s_lst_$883, s_lsts_$884]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["for-each"];
+        const $proc$r = { "for-each": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$886, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$887, s_all_2dcars_$888, s_all_2dcdrs_$889, s_loop_$890, $t26, $t28, $t30, $t32, $t33, $t34, s_proc_$882, s_lst_$883, s_lsts_$884, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$886, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_any_2dnull_3f_$887, s_all_2dcars_$888, s_all_2dcdrs_$889, s_loop_$890, $t26, $t28, $t30, $t32, $t33, $t34, s_proc_$882, s_lst_$883, s_lsts_$884, $r } = $f);
           const $d = $stack.room - 47;
@@ -15088,7 +15088,7 @@ export const LIBRARIES = {
                 $pc = 15; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["for-each"];
         const $proc$js = R.markProcedure($proc, "for-each", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -15126,7 +15126,7 @@ export const LIBRARIES = {
         let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "apply")).v;
         function $mk$fn16() {
           let s_loop_$902;
-          function $fn16(s_min_2dlen_$903, s_ss_$904) {
+          const $fn16 = { "anonymous": function (s_min_2dlen_$903, s_ss_$904) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 34;
@@ -15185,9 +15185,9 @@ export const LIBRARIES = {
           continue $loop;
         }
           }
-        }
+        } }["anonymous"];
           const $fn16$js = R.markProcedure($fn16, "anonymous", E);
-          function $fn16$r($pc, $f) {
+          const $fn16$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_min_2dlen_$903, s_ss_$904, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_min_2dlen_$903, s_ss_$904, $r } = $f);
           const $d = $stack.room - 34;
@@ -15266,14 +15266,14 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn16$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn16$js.$resume = $fn16$r;
           s_loop_$902 = $fn16$js;
           return $fn16$js;
         }
         function $mk$fn26(s_proc_$898, s_str_$899) {
           let s_loop_$905;
-          function $fn26(s_i_$906, s_acc_$907) {
+          const $fn26 = { "anonymous": function (s_i_$906, s_acc_$907) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -15304,9 +15304,9 @@ export const LIBRARIES = {
           continue $loop;
         }
           }
-        }
+        } }["anonymous"];
           const $fn26$js = R.markProcedure($fn26, "anonymous", E);
-          function $fn26$r($pc, $f) {
+          const $fn26$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$906, s_acc_$907, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$906, s_acc_$907, $r } = $f);
           const $d = $stack.room - 19;
@@ -15346,21 +15346,21 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn26$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn26$js.$resume = $fn26$r;
           s_loop_$905 = $fn26$js;
           return $fn26$js;
         }
         function $mk$fn35_4(s_i_$909) {
-          function $fn35_4(s_s_$912) {
+          const $fn35_4 = { "anonymous": function (s_s_$912) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C13.v ?? G13());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_s_$912, s_i_$909); } return $tailCall($t0, [s_s_$912, s_i_$909]);
-        }
+        } }["anonymous"];
           const $fn35_4$js = R.markProcedure($fn35_4, "anonymous", E);
-          function $fn35_4$r($pc, $f) {
+          const $fn35_4$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_s_$912, $r;
           ({ $t0, $t1, s_s_$912, $r } = $f);
           for (;;) switch ($pc) {
@@ -15369,13 +15369,13 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_s_$912, s_i_$909]);
               default: throw new Error('$fn35_4$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn35_4$js.$resume = $fn35_4$r;
           return $fn35_4$js;
         }
         function $mk$fn35(s_str_$899, s_strs_$900, s_proc_$898) {
           let s_loop_$908;
-          function $fn35(s_i_$909, s_acc_$910) {
+          const $fn35 = { "anonymous": function (s_i_$909, s_acc_$910) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$911, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 25;
@@ -15416,9 +15416,9 @@ export const LIBRARIES = {
           continue $loop;
         }
           }
-        }
+        } }["anonymous"];
           const $fn35$js = R.markProcedure($fn35, "anonymous", E);
-          function $fn35$r($pc, $f) {
+          const $fn35$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$911, $t10, $t11, $t12, $t13, $t14, s_i_$909, s_acc_$910, $r;
           ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, s_chars_$911, $t10, $t11, $t12, $t13, $t14, s_i_$909, s_acc_$910, $r } = $f);
           const $d = $stack.room - 25;
@@ -15472,12 +15472,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn35$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn35$js.$resume = $fn35$r;
           s_loop_$908 = $fn35$js;
           return $fn35$js;
         }
-        function $proc(s_proc_$898, s_str_$899, ...s_strs_$900$raw) {
+        const $proc = { "string-map": function (s_proc_$898, s_str_$899, ...s_strs_$900$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$902, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$901, $t24, $t25, s_loop_$905, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, s_loop_$908, $t36, $t37, $t38, $t39, $t40, $t41, $t42;
           if (arguments.length < 2) R.wrongArity("string-map", 2, true, arguments.length);
           const $d = $stack.room - 55 - s_strs_$900$raw.length;
@@ -15572,8 +15572,8 @@ export const LIBRARIES = {
           $t41 = $t34;
           if ($d > 0 && ($t42 = $t41?.[$RAW] ?? $t41)?.[$PRIM] === true) { $stack.room = $d; return $t42($t40); } return $tailCall($t41, [$t40]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-map"];
+        const $proc$r = { "string-map": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$902, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$901, $t24, $t25, s_loop_$905, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, s_loop_$908, $t36, $t37, $t38, $t39, $t40, $t41, $t42, s_proc_$898, s_str_$899, s_strs_$900, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$902, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_len_$901, $t24, $t25, s_loop_$905, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, s_loop_$908, $t36, $t37, $t38, $t39, $t40, $t41, $t42, s_proc_$898, s_str_$899, s_strs_$900, $r } = $f);
           const $d = $stack.room - 55;
@@ -15708,7 +15708,7 @@ export const LIBRARIES = {
                 return $tailCall($t41, [$t40]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-map"];
         const $proc$js = R.markProcedure($proc, "string-map", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -15742,7 +15742,7 @@ export const LIBRARIES = {
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "map")).v;
         let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "apply")).v;
         function $mk$fn19(s_len_$916) {
-          function $fn19(s_s_$917) {
+          const $fn19 = { "anonymous": function (s_s_$917) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 24;
@@ -15783,9 +15783,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn19$js = R.markProcedure($fn19, "anonymous", E);
-          function $fn19$r($pc, $f) {
+          const $fn19$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_s_$917, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_s_$917, $r } = $f);
           const $d = $stack.room - 24;
@@ -15844,20 +15844,20 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn19$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn19$js.$resume = $fn19$r;
           return $fn19$js;
         }
         function $mk$fn37(s_i_$921) {
-          function $fn37(s_s_$923) {
+          const $fn37 = { "anonymous": function (s_s_$923) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C9.v ?? G9());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_s_$923, s_i_$921); } return $tailCall($t0, [s_s_$923, s_i_$921]);
-        }
+        } }["anonymous"];
           const $fn37$js = R.markProcedure($fn37, "anonymous", E);
-          function $fn37$r($pc, $f) {
+          const $fn37$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_s_$923, $r;
           ({ $t0, $t1, s_s_$923, $r } = $f);
           for (;;) switch ($pc) {
@@ -15866,11 +15866,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_s_$923, s_i_$921]);
               default: throw new Error('$fn37$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn37$js.$resume = $fn37$r;
           return $fn37$js;
         }
-        function $proc(s_proc_$913, s_str_$914, ...s_strs_$915$raw) {
+        const $proc = { "string-for-each": function (s_proc_$913, s_str_$914, ...s_strs_$915$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$916, $t20, $t21, $t22, $t23, $t24, s_i_$919, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$921, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_chars_$922, $t43, $t44, $t45, $t46;
           if (arguments.length < 2) R.wrongArity("string-for-each", 2, true, arguments.length);
           const $d = $stack.room - 60 - s_strs_$915$raw.length;
@@ -16001,8 +16001,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-for-each"];
+        const $proc$r = { "string-for-each": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$916, $t20, $t21, $t22, $t23, $t24, s_i_$919, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$921, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_chars_$922, $t43, $t44, $t45, $t46, s_proc_$913, s_str_$914, s_strs_$915, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_len_$916, $t20, $t21, $t22, $t23, $t24, s_i_$919, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$921, $t33, $t34, $t35, $t36, $t38, $t39, $t40, $t41, $t42, s_chars_$922, $t43, $t44, $t45, $t46, s_proc_$913, s_str_$914, s_strs_$915, $r } = $f);
           const $d = $stack.room - 60;
@@ -16185,7 +16185,7 @@ export const LIBRARIES = {
                 $pc = 20; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-for-each"];
         const $proc$js = R.markProcedure($proc, "string-for-each", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -16227,7 +16227,7 @@ export const LIBRARIES = {
         let C16 = R.UNRESOLVED; const G16 = () => (C16 = R.globalCell(E, "apply")).v;
         function $mk$fn16() {
           let s_loop_$928;
-          function $fn16(s_min_2dlen_$929, s_vs_$930) {
+          const $fn16 = { "anonymous": function (s_min_2dlen_$929, s_vs_$930) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 31;
@@ -16279,9 +16279,9 @@ export const LIBRARIES = {
           continue $loop;
         }
           }
-        }
+        } }["anonymous"];
           const $fn16$js = R.markProcedure($fn16, "anonymous", E);
-          function $fn16$r($pc, $f) {
+          const $fn16$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_min_2dlen_$929, s_vs_$930, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_min_2dlen_$929, s_vs_$930, $r } = $f);
           const $d = $stack.room - 31;
@@ -16349,14 +16349,14 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn16$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn16$js.$resume = $fn16$r;
           s_loop_$928 = $fn16$js;
           return $fn16$js;
         }
         function $mk$fn26(s_len_$927, s_result_$931, s_proc_$924, s_vec_$925) {
           let s_loop_$932;
-          function $fn26(s_i_$933) {
+          const $fn26 = { "anonymous": function (s_i_$933) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 16;
@@ -16381,9 +16381,9 @@ export const LIBRARIES = {
           return undefined;
         }
           }
-        }
+        } }["anonymous"];
           const $fn26$js = R.markProcedure($fn26, "anonymous", E);
-          function $fn26$r($pc, $f) {
+          const $fn26$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_i_$933, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_i_$933, $r } = $f);
           const $d = $stack.room - 16;
@@ -16413,20 +16413,20 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn26$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn26$js.$resume = $fn26$r;
           s_loop_$932 = $fn26$js;
           return $fn26$js;
         }
         function $mk$fn34_2(s_i_$936) {
-          function $fn34_2(s_v_$938) {
+          const $fn34_2 = { "anonymous": function (s_v_$938) {
           let $t0;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_v_$938, s_i_$936)) : R.callBinding((C12.v ?? G12()), [s_v_$938, s_i_$936]);
           return $t0;
-        }
+        } }["anonymous"];
           const $fn34_2$js = R.markProcedure($fn34_2, "anonymous", E);
-          function $fn34_2$r($pc, $f) {
+          const $fn34_2$r = { "anonymous": function ($pc, $f) {
           let $t0, s_v_$938, $r;
           ({ $t0, s_v_$938, $r } = $f);
           for (;;) switch ($pc) {
@@ -16435,13 +16435,13 @@ export const LIBRARIES = {
                 return $t0;
               default: throw new Error('$fn34_2$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn34_2$js.$resume = $fn34_2$r;
           return $fn34_2$js;
         }
         function $mk$fn34(s_len_$927, s_vec_$925, s_vecs_$926, s_result_$934, s_proc_$924) {
           let s_loop_$935;
-          function $fn34(s_i_$936) {
+          const $fn34 = { "anonymous": function (s_i_$936) {
           let $t0, $t1, $t3, $t4, $t5, $t6, $t7, s_elems_$937, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 22;
@@ -16476,9 +16476,9 @@ export const LIBRARIES = {
           return undefined;
         }
           }
-        }
+        } }["anonymous"];
           const $fn34$js = R.markProcedure($fn34, "anonymous", E);
-          function $fn34$r($pc, $f) {
+          const $fn34$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t3, $t4, $t5, $t6, $t7, s_elems_$937, $t8, $t9, $t10, $t11, $t12, s_i_$936, $r;
           ({ $t0, $t1, $t3, $t4, $t5, $t6, $t7, s_elems_$937, $t8, $t9, $t10, $t11, $t12, s_i_$936, $r } = $f);
           const $d = $stack.room - 22;
@@ -16522,12 +16522,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn34$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn34$js.$resume = $fn34$r;
           s_loop_$935 = $fn34$js;
           return $fn34$js;
         }
-        function $proc(s_proc_$924, s_vec_$925, ...s_vecs_$926$raw) {
+        const $proc = { "vector-map": function (s_proc_$924, s_vec_$925, ...s_vecs_$926$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$928, $t17, $t18, $t19, $t20, $t21, s_len_$927, $t22, $t23, $t24, $t25, s_result_$931, s_loop_$932, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_result_$934, s_loop_$935, $t35, $t36, $t37, $t38;
           if (arguments.length < 2) R.wrongArity("vector-map", 2, true, arguments.length);
           const $d = $stack.room - 53 - s_vecs_$926$raw.length;
@@ -16628,8 +16628,8 @@ export const LIBRARIES = {
           $t38;
           return s_result_$934;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["vector-map"];
+        const $proc$r = { "vector-map": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$928, $t17, $t18, $t19, $t20, $t21, s_len_$927, $t22, $t23, $t24, $t25, s_result_$931, s_loop_$932, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_result_$934, s_loop_$935, $t35, $t36, $t37, $t38, s_proc_$924, s_vec_$925, s_vecs_$926, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_loop_$928, $t17, $t18, $t19, $t20, $t21, s_len_$927, $t22, $t23, $t24, $t25, s_result_$931, s_loop_$932, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_result_$934, s_loop_$935, $t35, $t36, $t37, $t38, s_proc_$924, s_vec_$925, s_vecs_$926, $r } = $f);
           const $d = $stack.room - 53;
@@ -16774,7 +16774,7 @@ export const LIBRARIES = {
                 return s_result_$934;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["vector-map"];
         const $proc$js = R.markProcedure($proc, "vector-map", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -16810,7 +16810,7 @@ export const LIBRARIES = {
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "map")).v;
         let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "apply")).v;
         function $mk$fn17(s_len_$942) {
-          function $fn17(s_v_$943) {
+          const $fn17 = { "anonymous": function (s_v_$943) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 22;
@@ -16845,9 +16845,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn17$js = R.markProcedure($fn17, "anonymous", E);
-          function $fn17$r($pc, $f) {
+          const $fn17$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$943, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_v_$943, $r } = $f);
           const $d = $stack.room - 22;
@@ -16896,19 +16896,19 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn17$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn17$js.$resume = $fn17$r;
           return $fn17$js;
         }
         function $mk$fn31(s_i_$947) {
-          function $fn31(s_v_$949) {
+          const $fn31 = { "anonymous": function (s_v_$949) {
           let $t0;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_v_$949, s_i_$947)) : R.callBinding((C9.v ?? G9()), [s_v_$949, s_i_$947]);
           return $t0;
-        }
+        } }["anonymous"];
           const $fn31$js = R.markProcedure($fn31, "anonymous", E);
-          function $fn31$r($pc, $f) {
+          const $fn31$r = { "anonymous": function ($pc, $f) {
           let $t0, s_v_$949, $r;
           ({ $t0, s_v_$949, $r } = $f);
           for (;;) switch ($pc) {
@@ -16917,11 +16917,11 @@ export const LIBRARIES = {
                 return $t0;
               default: throw new Error('$fn31$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn31$js.$resume = $fn31$r;
           return $fn31$js;
         }
-        function $proc(s_proc_$939, s_vec_$940, ...s_vecs_$941$raw) {
+        const $proc = { "vector-for-each": function (s_proc_$939, s_vec_$940, ...s_vecs_$941$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_len_$942, $t18, $t19, $t20, $t21, $t22, s_i_$945, $t23, $t24, $t25, $t26, $t27, $t28, s_i_$947, $t29, $t30, $t32, $t33, $t34, $t35, $t36, s_elems_$948, $t37, $t38, $t39, $t40;
           if (arguments.length < 2) R.wrongArity("vector-for-each", 2, true, arguments.length);
           const $d = $stack.room - 54 - s_vecs_$941$raw.length;
@@ -17034,8 +17034,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["vector-for-each"];
+        const $proc$r = { "vector-for-each": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_len_$942, $t18, $t19, $t20, $t21, $t22, s_i_$945, $t23, $t24, $t25, $t26, $t27, $t28, s_i_$947, $t29, $t30, $t32, $t33, $t34, $t35, $t36, s_elems_$948, $t37, $t38, $t39, $t40, s_proc_$939, s_vec_$940, s_vecs_$941, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_len_$942, $t18, $t19, $t20, $t21, $t22, s_i_$945, $t23, $t24, $t25, $t26, $t27, $t28, s_i_$947, $t29, $t30, $t32, $t33, $t34, $t35, $t36, s_elems_$948, $t37, $t38, $t39, $t40, s_proc_$939, s_vec_$940, s_vecs_$941, $r } = $f);
           const $d = $stack.room - 54;
@@ -17188,7 +17188,7 @@ export const LIBRARIES = {
                 $pc = 18; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["vector-for-each"];
         const $proc$js = R.markProcedure($proc, "vector-for-each", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -17213,7 +17213,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("car"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdr")).v;
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
-        function $proc(s_obj_$950, s_lst_$951) {
+        const $proc = { "memq": function (s_obj_$950, s_lst_$951) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$953, $t8, $t9, $t10, $t11;
           if (arguments.length !== 2) R.wrongArity("memq", 2, false, arguments.length);
           const $d = $stack.room - 23;
@@ -17256,8 +17256,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["memq"];
+        const $proc$r = { "memq": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$953, $t8, $t9, $t10, $t11, s_obj_$950, s_lst_$951, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$953, $t8, $t9, $t10, $t11, s_obj_$950, s_lst_$951, $r } = $f);
           const $d = $stack.room - 23;
@@ -17314,7 +17314,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["memq"];
         const $proc$js = R.markProcedure($proc, "memq", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -17339,7 +17339,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("car"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdr")).v;
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
-        function $proc(s_obj_$954, s_lst_$955) {
+        const $proc = { "memv": function (s_obj_$954, s_lst_$955) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$957, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("memv", 2, false, arguments.length);
           const $d = $stack.room - 26;
@@ -17389,8 +17389,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["memv"];
+        const $proc$r = { "memv": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$957, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_obj_$954, s_lst_$955, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$957, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_obj_$954, s_lst_$955, $r } = $f);
           const $d = $stack.room - 26;
@@ -17458,7 +17458,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["memv"];
         const $proc$js = R.markProcedure($proc, "memv", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -17482,7 +17482,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("car"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdr")).v;
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
-        function $proc(s_obj_$958, s_lst_$959, ...s_compare_$960$raw) {
+        const $proc = { "member": function (s_obj_$958, s_lst_$959, ...s_compare_$960$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$961, s_l_$963, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length < 2) R.wrongArity("member", 2, true, arguments.length);
           const $d = $stack.room - 30 - s_compare_$960$raw.length;
@@ -17540,8 +17540,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["member"];
+        const $proc$r = { "member": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$961, s_l_$963, $t11, $t12, $t13, $t14, $t15, $t16, s_obj_$958, s_lst_$959, s_compare_$960, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$961, s_l_$963, $t11, $t12, $t13, $t14, $t15, $t16, s_obj_$958, s_lst_$959, s_compare_$960, $r } = $f);
           const $d = $stack.room - 30;
@@ -17619,7 +17619,7 @@ export const LIBRARIES = {
                 $pc = 9; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["member"];
         const $proc$js = R.markProcedure($proc, "member", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -17646,7 +17646,7 @@ export const LIBRARIES = {
         const W6 = R.primitiveCell("eq?"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cdr")).v;
         const W7 = R.primitiveCell("cdr"), P7 = W7.primitive;
-        function $proc(s_obj_$964, s_alist_$965) {
+        const $proc = { "assq": function (s_obj_$964, s_alist_$965) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$967, $t8, $t9, s_pair_$968, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           if (arguments.length !== 2) R.wrongArity("assq", 2, false, arguments.length);
           const $d = $stack.room - 31;
@@ -17706,8 +17706,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["assq"];
+        const $proc$r = { "assq": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$967, $t8, $t9, s_pair_$968, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_obj_$964, s_alist_$965, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$967, $t8, $t9, s_pair_$968, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_obj_$964, s_alist_$965, $r } = $f);
           const $d = $stack.room - 31;
@@ -17788,7 +17788,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["assq"];
         const $proc$js = R.markProcedure($proc, "assq", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -17815,7 +17815,7 @@ export const LIBRARIES = {
         const W6 = R.primitiveCell("eqv?"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cdr")).v;
         const W7 = R.primitiveCell("cdr"), P7 = W7.primitive;
-        function $proc(s_obj_$969, s_alist_$970) {
+        const $proc = { "assv": function (s_obj_$969, s_alist_$970) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$972, $t8, $t9, s_pair_$973, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21;
           if (arguments.length !== 2) R.wrongArity("assv", 2, false, arguments.length);
           const $d = $stack.room - 34;
@@ -17882,8 +17882,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["assv"];
+        const $proc$r = { "assv": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$972, $t8, $t9, s_pair_$973, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_obj_$969, s_alist_$970, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$972, $t8, $t9, s_pair_$973, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_obj_$969, s_alist_$970, $r } = $f);
           const $d = $stack.room - 34;
@@ -17975,7 +17975,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["assv"];
         const $proc$js = R.markProcedure($proc, "assv", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -18001,7 +18001,7 @@ export const LIBRARIES = {
         const W6 = R.primitiveCell("pair?"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cdr")).v;
         const W7 = R.primitiveCell("cdr"), P7 = W7.primitive;
-        function $proc(s_obj_$974, s_alist_$975, ...s_compare_$976$raw) {
+        const $proc = { "assoc": function (s_obj_$974, s_alist_$975, ...s_compare_$976$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$977, s_l_$979, $t11, $t12, s_pair_$980, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23;
           if (arguments.length < 2) R.wrongArity("assoc", 2, true, arguments.length);
           const $d = $stack.room - 38 - s_compare_$976$raw.length;
@@ -18076,8 +18076,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["assoc"];
+        const $proc$r = { "assoc": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$977, s_l_$979, $t11, $t12, s_pair_$980, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_obj_$974, s_alist_$975, s_compare_$976, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_cmp_$977, s_l_$979, $t11, $t12, s_pair_$980, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_obj_$974, s_alist_$975, s_compare_$976, $r } = $f);
           const $d = $stack.room - 38;
@@ -18179,7 +18179,7 @@ export const LIBRARIES = {
                 $pc = 9; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["assoc"];
         const $proc$js = R.markProcedure($proc, "assoc", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -18202,7 +18202,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("cdr"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "+")).v;
         const W5 = R.primitiveCell("+"), P5 = W5.primitive;
-        function $proc(s_lst_$981) {
+        const $proc = { "length": function (s_lst_$981) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$983, s_count_$984, $t8, $t9, $t10;
           if (arguments.length !== 1) R.wrongArity("length", 1, false, arguments.length);
           const $d = $stack.room - 22;
@@ -18242,8 +18242,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["length"];
+        const $proc$r = { "length": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$983, s_count_$984, $t8, $t9, $t10, s_lst_$981, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$983, s_count_$984, $t8, $t9, $t10, s_lst_$981, $r } = $f);
           const $d = $stack.room - 22;
@@ -18297,7 +18297,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["length"];
         const $proc$js = R.markProcedure($proc, "length", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -18328,7 +18328,7 @@ export const LIBRARIES = {
         const W8 = R.primitiveCell("cdr"), P8 = W8.primitive;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "-")).v;
         const W9 = R.primitiveCell("-"), P9 = W9.primitive;
-        function $proc(s_lst_$985, s_k_$986) {
+        const $proc = { "list-ref": function (s_lst_$985, s_k_$986) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_l_$988, s_i_$989, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29;
           if (arguments.length !== 2) R.wrongArity("list-ref", 2, false, arguments.length);
           const $d = $stack.room - 42;
@@ -18411,8 +18411,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["list-ref"];
+        const $proc$r = { "list-ref": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_l_$988, s_i_$989, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_lst_$985, s_k_$986, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_l_$988, s_i_$989, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_lst_$985, s_k_$986, $r } = $f);
           const $d = $stack.room - 42;
@@ -18523,7 +18523,7 @@ export const LIBRARIES = {
                 $pc = 14; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list-ref"];
         const $proc$js = R.markProcedure($proc, "list-ref", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -18552,7 +18552,7 @@ export const LIBRARIES = {
         const W7 = R.primitiveCell("cdr"), P7 = W7.primitive;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "-")).v;
         const W8 = R.primitiveCell("-"), P8 = W8.primitive;
-        function $proc(s_lst_$990, s_k_$991) {
+        const $proc = { "list-tail": function (s_lst_$990, s_k_$991) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$993, s_i_$994, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22;
           if (arguments.length !== 2) R.wrongArity("list-tail", 2, false, arguments.length);
           const $d = $stack.room - 35;
@@ -18619,8 +18619,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["list-tail"];
+        const $proc$r = { "list-tail": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$993, s_i_$994, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_lst_$990, s_k_$991, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$993, s_i_$994, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_lst_$990, s_k_$991, $r } = $f);
           const $d = $stack.room - 35;
@@ -18708,7 +18708,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list-tail"];
         const $proc$js = R.markProcedure($proc, "list-tail", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -18733,7 +18733,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("cons"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "car")).v;
         const W6 = R.primitiveCell("car"), P6 = W6.primitive;
-        function $proc(s_lst_$995) {
+        const $proc = { "reverse": function (s_lst_$995) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$997, s_result_$998, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("reverse", 1, false, arguments.length);
           const $d = $stack.room - 23;
@@ -18774,8 +18774,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["reverse"];
+        const $proc$r = { "reverse": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$997, s_result_$998, $t8, $t9, $t10, $t11, s_lst_$995, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_l_$997, s_result_$998, $t8, $t9, $t10, $t11, s_lst_$995, $r } = $f);
           const $d = $stack.room - 23;
@@ -18830,7 +18830,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["reverse"];
         const $proc$js = R.markProcedure($proc, "reverse", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -18854,7 +18854,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "list-copy")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_obj_$999) {
+        const $proc = { "list-copy": function (s_obj_$999) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("list-copy", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -18877,8 +18877,8 @@ export const LIBRARIES = {
           $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? (new R.Cons($t2, $t7)) : R.callBinding((C2.v ?? G2()), [$t2, $t7]);
           return $t8;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["list-copy"];
+        const $proc$r = { "list-copy": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_obj_$999, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_obj_$999, $r } = $f);
           const $d = $stack.room - 18;
@@ -18908,7 +18908,7 @@ export const LIBRARIES = {
                 return $t8;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list-copy"];
         const $proc$js = R.markProcedure($proc, "list-copy", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -18939,7 +18939,7 @@ export const LIBRARIES = {
         const W8 = R.primitiveCell("-"), P8 = W8.primitive;
         function $mk$fn16(s_fill_$1002) {
           let s_loop_$1003;
-          function $fn16(s_n_$1004) {
+          const $fn16 = { "anonymous": function (s_n_$1004) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -18959,9 +18959,9 @@ export const LIBRARIES = {
           $t5 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons(s_fill_$1002, $t4)) : R.callBinding((C7.v ?? G7()), [s_fill_$1002, $t4]);
           return $t5;
         }
-        }
+        } }["anonymous"];
           const $fn16$js = R.markProcedure($fn16, "anonymous", E);
-          function $fn16$r($pc, $f) {
+          const $fn16$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_n_$1004, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_n_$1004, $r } = $f);
           const $d = $stack.room - 15;
@@ -18988,12 +18988,12 @@ export const LIBRARIES = {
                 return $t5;
               default: throw new Error('$fn16$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn16$js.$resume = $fn16$r;
           s_loop_$1003 = $fn16$js;
           return $fn16$js;
         }
-        function $proc(s_k_$1000, ...s_rest_$1001$raw) {
+        const $proc = { "make-list": function (s_k_$1000, ...s_rest_$1001$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$1002, s_loop_$1003, $t17, $t18, $t19;
           if (arguments.length < 1) R.wrongArity("make-list", 1, true, arguments.length);
           const $d = $stack.room - 31 - s_rest_$1001$raw.length;
@@ -19046,8 +19046,8 @@ export const LIBRARIES = {
           s_loop_$1003 = $t17;
           $t18 = s_loop_$1003;
           if ($d > 0 && ($t19 = $t18?.[$RAW] ?? $t18)?.[$PRIM] === true) { $stack.room = $d; return $t19(s_k_$1000); } return $tailCall($t18, [s_k_$1000]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-list"];
+        const $proc$r = { "make-list": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$1002, s_loop_$1003, $t17, $t18, $t19, s_k_$1000, s_rest_$1001, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_fill_$1002, s_loop_$1003, $t17, $t18, $t19, s_k_$1000, s_rest_$1001, $r } = $f);
           const $d = $stack.room - 31;
@@ -19123,7 +19123,7 @@ export const LIBRARIES = {
                 return $tailCall($t18, [s_k_$1000]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-list"];
         const $proc$js = R.markProcedure($proc, "make-list", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -19154,7 +19154,7 @@ export const LIBRARIES = {
         const W10 = R.primitiveCell("cdr"), P10 = W10.primitive;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "-")).v;
         const W11 = R.primitiveCell("-"), P11 = W11.primitive;
-        function $proc(s_lst_$1005, s_k_$1006, s_obj_$1007) {
+        const $proc = { "list-set!": function (s_lst_$1005, s_k_$1006, s_obj_$1007) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$1008, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33;
           if (arguments.length !== 3) R.wrongArity("list-set!", 3, false, arguments.length);
           const $d = $stack.room - 46;
@@ -19243,8 +19243,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t33 = $t32?.[$RAW] ?? $t32)?.[$PRIM] === true) { $stack.room = $d; return $t33($t30, $t31, s_obj_$1007); } return $tailCall($t32, [$t30, $t31, s_obj_$1007]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["list-set!"];
+        const $proc$r = { "list-set!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$1008, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_lst_$1005, s_k_$1006, s_obj_$1007, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_x_$1008, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_lst_$1005, s_k_$1006, s_obj_$1007, $r } = $f);
           const $d = $stack.room - 46;
@@ -19370,7 +19370,7 @@ export const LIBRARIES = {
                 return $tailCall($t32, [$t30, $t31, s_obj_$1007]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list-set!"];
         const $proc$js = R.markProcedure($proc, "list-set!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -19394,7 +19394,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "car")).v;
         const W5 = R.primitiveCell("car"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "*param-dynamic-env-box*")).v;
-        function $proc(s_global_2dcell_$1009) {
+        const $proc = { "param-dynamic-lookup": function (s_global_2dcell_$1009) {
           let $t0, $t1, s_env_$1011, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("param-dynamic-lookup", 1, false, arguments.length);
           const $d = $stack.room - 20;
@@ -19425,8 +19425,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["param-dynamic-lookup"];
+        const $proc$r = { "param-dynamic-lookup": function ($pc, $f) {
           let $t0, $t1, s_env_$1011, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_global_2dcell_$1009, $r;
           ({ $t0, $t1, s_env_$1011, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_global_2dcell_$1009, $r } = $f);
           const $d = $stack.room - 20;
@@ -19464,7 +19464,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["param-dynamic-lookup"];
         const $proc$js = R.markProcedure($proc, "param-dynamic-lookup", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -19487,7 +19487,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cons")).v;
         const W5 = R.primitiveCell("cons"), P5 = W5.primitive;
-        function $proc(s_global_2dcell_$1012, s_args_$1013) {
+        const $proc = { "parameter-dispatch": function (s_global_2dcell_$1012, s_args_$1013) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23;
           if (arguments.length !== 2) R.wrongArity("parameter-dispatch", 2, false, arguments.length);
           const $d = $stack.room - 34;
@@ -19540,8 +19540,8 @@ export const LIBRARIES = {
           return $t23;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["parameter-dispatch"];
+        const $proc$r = { "parameter-dispatch": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_global_2dcell_$1012, s_args_$1013, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_global_2dcell_$1012, s_args_$1013, $r } = $f);
           const $d = $stack.room - 34;
@@ -19613,7 +19613,7 @@ export const LIBRARIES = {
                 return $t23;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["parameter-dispatch"];
         const $proc$js = R.markProcedure($proc, "parameter-dispatch", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -19628,7 +19628,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cons")).v;
         const W0 = R.primitiveCell("cons"), P0 = W0.primitive;
-        function $proc(s_converter_$1014, s_init_$1015) {
+        const $proc = { "parameter-cell": function (s_converter_$1014, s_init_$1015) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("parameter-cell", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -19642,8 +19642,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_converter_$1014 }); return $UNWIND; }
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons(s_converter_$1014, $t2)) : R.callBinding((C0.v ?? G0()), [s_converter_$1014, $t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["parameter-cell"];
+        const $proc$r = { "parameter-cell": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_converter_$1014, s_init_$1015, $r;
           ({ $t0, $t1, $t2, $t3, s_converter_$1014, s_init_$1015, $r } = $f);
           const $d = $stack.room - 14;
@@ -19664,7 +19664,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["parameter-cell"];
         const $proc$js = R.markProcedure($proc, "parameter-cell", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -19684,12 +19684,12 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "parameter-dispatch")).v;
         function $mk$fn3() {
-          function $fn3(s_x_$1019) {
+          const $fn3 = { "anonymous": function (s_x_$1019) {
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           return s_x_$1019;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let s_x_$1019, $r;
           ({ s_x_$1019, $r } = $f);
           for (;;) switch ($pc) {
@@ -19697,20 +19697,20 @@ export const LIBRARIES = {
                 return s_x_$1019;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
         function $mk$fn9(s_global_2dcell_$1018) {
-          function $fn9(...s_args_$1020$raw) {
+          const $fn9 = { "anonymous": function (...s_args_$1020$raw) {
           let $t0, $t1;
           const $d = $stack.room - 11 - s_args_$1020$raw.length;
           let s_args_$1020 = R.listFrom(s_args_$1020$raw);
           $t0 = (C3.v ?? G3());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_global_2dcell_$1018, s_args_$1020); } return $tailCall($t0, [s_global_2dcell_$1018, s_args_$1020]);
-        }
+        } }["anonymous"];
           const $fn9$js = R.markProcedure($fn9, "anonymous", E, true);
-          function $fn9$r($pc, $f) {
+          const $fn9$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_args_$1020, $r;
           ({ $t0, $t1, s_args_$1020, $r } = $f);
           for (;;) switch ($pc) {
@@ -19719,11 +19719,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_global_2dcell_$1018, s_args_$1020]);
               default: throw new Error('$fn9$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn9$js.$resume = $fn9$r;
           return $fn9$js;
         }
-        function $proc(s_init_$1016, ...s_conv_$1017$raw) {
+        const $proc = { "make-parameter": function (s_init_$1016, ...s_conv_$1017$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6, $t7, $t8, s_global_2dcell_$1018, $t10;
           if (arguments.length < 1) R.wrongArity("make-parameter", 1, true, arguments.length);
           const $d = $stack.room - 20 - s_conv_$1017$raw.length;
@@ -19748,8 +19748,8 @@ export const LIBRARIES = {
           s_global_2dcell_$1018 = $t8;
           $t10 = $mk$fn9(s_global_2dcell_$1018);
           return $t10;
-        }
-        function $proc$r($pc, $f) {
+        } }["make-parameter"];
+        const $proc$r = { "make-parameter": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, $t7, $t8, s_global_2dcell_$1018, $t10, s_init_$1016, s_conv_$1017, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, $t7, $t8, s_global_2dcell_$1018, $t10, s_init_$1016, s_conv_$1017, $r } = $f);
           const $d = $stack.room - 20;
@@ -19783,7 +19783,7 @@ export const LIBRARIES = {
                 return $t10;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-parameter"];
         const $proc$js = R.markProcedure($proc, "make-parameter", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -19806,15 +19806,15 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "values")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "%values->list")).v;
         function $mk$fn16(s_proc_$1032, s_port_$1031) {
-          function $fn16() {
+          const $fn16 = { "anonymous": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = s_proc_$1032;
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_port_$1031); } return $tailCall($t0, [s_port_$1031]);
-        }
+        } }["anonymous"];
           const $fn16$js = R.markProcedure($fn16, "anonymous", E);
-          function $fn16$r($pc, $f) {
+          const $fn16$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -19823,12 +19823,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_port_$1031]);
               default: throw new Error('$fn16$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn16$js.$resume = $fn16$r;
           return $fn16$js;
         }
         function $mk$fn19(s_port_$1031) {
-          function $fn19(...s_results_$1033$raw) {
+          const $fn19 = { "anonymous": function (...s_results_$1033$raw) {
           let $t0, $t1, $t2, $t3, $t4;
           const $d = $stack.room - 14 - s_results_$1033$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($fn19$js, [...s_results_$1033$raw]);
@@ -19843,9 +19843,9 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C5.v ?? G5());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4((C6.v ?? G6()), s_results_$1033); } return $tailCall($t3, [(C6.v ?? G6()), s_results_$1033]);
-        }
+        } }["anonymous"];
           const $fn19$js = R.markProcedure($fn19, "anonymous", E, true);
-          function $fn19$r($pc, $f) {
+          const $fn19$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_results_$1033, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_results_$1033, $r } = $f);
           const $d = $stack.room - 14;
@@ -19867,11 +19867,11 @@ export const LIBRARIES = {
                 return $tailCall($t3, [(C6.v ?? G6()), s_results_$1033]);
               default: throw new Error('$fn19$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn19$js.$resume = $fn19$r;
           return $fn19$js;
         }
-        function $proc(s_port_$1031, s_proc_$1032) {
+        const $proc = { "call-with-port": function (s_port_$1031, s_proc_$1032) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t17, s__25cwv0, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29;
           if (arguments.length !== 2) R.wrongArity("call-with-port", 2, false, arguments.length);
           const $d = $stack.room - 39;
@@ -19939,8 +19939,8 @@ export const LIBRARIES = {
           if ($t27 === $UNWIND) { R.reify($proc$r, 12, { $t18, $t20 }); return $UNWIND; }
           $t28 = $t18;
           if ($d > 0 && ($t29 = $t28?.[$RAW] ?? $t28)?.[$PRIM] === true) { $stack.room = $d; return $t29($t20, $t27); } return $tailCall($t28, [$t20, $t27]);
-        }
-        function $proc$r($pc, $f) {
+        } }["call-with-port"];
+        const $proc$r = { "call-with-port": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t17, s__25cwv0, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_port_$1031, s_proc_$1032, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t17, s__25cwv0, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_port_$1031, s_proc_$1032, $r } = $f);
           const $d = $stack.room - 39;
@@ -20041,7 +20041,7 @@ export const LIBRARIES = {
                 return $tailCall($t28, [$t20, $t27]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["call-with-port"];
         const $proc$js = R.markProcedure($proc, "call-with-port", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20060,7 +20060,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "call-with-port")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "open-input-file")).v;
-        function $proc(s_filename_$1034, s_proc_$1035) {
+        const $proc = { "call-with-input-file": function (s_filename_$1034, s_proc_$1035) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("call-with-input-file", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -20096,8 +20096,8 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 6, { $t8, s_proc_$1035 }); return $UNWIND; }
           $t12 = $t8;
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13($t11, s_proc_$1035); } return $tailCall($t12, [$t11, s_proc_$1035]);
-        }
-        function $proc$r($pc, $f) {
+        } }["call-with-input-file"];
+        const $proc$r = { "call-with-input-file": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_filename_$1034, s_proc_$1035, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_filename_$1034, s_proc_$1035, $r } = $f);
           const $d = $stack.room - 24;
@@ -20151,7 +20151,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [$t11, s_proc_$1035]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["call-with-input-file"];
         const $proc$js = R.markProcedure($proc, "call-with-input-file", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20170,7 +20170,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "call-with-port")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "open-output-file")).v;
-        function $proc(s_filename_$1036, s_proc_$1037) {
+        const $proc = { "call-with-output-file": function (s_filename_$1036, s_proc_$1037) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("call-with-output-file", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -20206,8 +20206,8 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 6, { $t8, s_proc_$1037 }); return $UNWIND; }
           $t12 = $t8;
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13($t11, s_proc_$1037); } return $tailCall($t12, [$t11, s_proc_$1037]);
-        }
-        function $proc$r($pc, $f) {
+        } }["call-with-output-file"];
+        const $proc$r = { "call-with-output-file": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_filename_$1036, s_proc_$1037, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_filename_$1036, s_proc_$1037, $r } = $f);
           const $d = $stack.room - 24;
@@ -20261,7 +20261,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [$t11, s_proc_$1037]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["call-with-output-file"];
         const $proc$js = R.markProcedure($proc, "call-with-output-file", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20276,7 +20276,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "input-port?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
-        function $proc(s_port_$1038) {
+        const $proc = { "as-current-input-port": function (s_port_$1038) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("as-current-input-port", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -20294,8 +20294,8 @@ export const LIBRARIES = {
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4("current-input-port: expected input port", s_port_$1038); } return $tailCall($t3, ["current-input-port: expected input port", s_port_$1038]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["as-current-input-port"];
+        const $proc$r = { "as-current-input-port": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_port_$1038, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_port_$1038, $r } = $f);
           const $d = $stack.room - 14;
@@ -20320,7 +20320,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, ["current-input-port: expected input port", s_port_$1038]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["as-current-input-port"];
         const $proc$js = R.markProcedure($proc, "as-current-input-port", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20335,7 +20335,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "output-port?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
-        function $proc(s_port_$1039) {
+        const $proc = { "as-current-output-port": function (s_port_$1039) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("as-current-output-port", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -20353,8 +20353,8 @@ export const LIBRARIES = {
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4("current-output-port: expected output port", s_port_$1039); } return $tailCall($t3, ["current-output-port: expected output port", s_port_$1039]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["as-current-output-port"];
+        const $proc$r = { "as-current-output-port": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_port_$1039, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_port_$1039, $r } = $f);
           const $d = $stack.room - 14;
@@ -20379,7 +20379,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, ["current-output-port: expected output port", s_port_$1039]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["as-current-output-port"];
         const $proc$js = R.markProcedure($proc, "as-current-output-port", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20394,7 +20394,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "output-port?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
-        function $proc(s_port_$1040) {
+        const $proc = { "as-current-error-port": function (s_port_$1040) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("as-current-error-port", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -20412,8 +20412,8 @@ export const LIBRARIES = {
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4("current-error-port: expected output port", s_port_$1040); } return $tailCall($t3, ["current-error-port: expected output port", s_port_$1040]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["as-current-error-port"];
+        const $proc$r = { "as-current-error-port": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_port_$1040, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_port_$1040, $r } = $f);
           const $d = $stack.room - 14;
@@ -20438,7 +20438,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, ["current-error-port: expected output port", s_port_$1040]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["as-current-error-port"];
         const $proc$js = R.markProcedure($proc, "as-current-error-port", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20453,14 +20453,14 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "parameter-dispatch")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "current-input-port-cell")).v;
-        function $proc(...s_args_$1041$raw) {
+        const $proc = { "current-input-port": function (...s_args_$1041$raw) {
           let $t0, $t1;
           const $d = $stack.room - 11 - s_args_$1041$raw.length;
           let s_args_$1041 = R.listFrom(s_args_$1041$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_args_$1041); } return $tailCall($t0, [(C1.v ?? G1()), s_args_$1041]);
-        }
-        function $proc$r($pc, $f) {
+        } }["current-input-port"];
+        const $proc$r = { "current-input-port": function ($pc, $f) {
           let $t0, $t1, s_args_$1041, $r;
           ({ $t0, $t1, s_args_$1041, $r } = $f);
           for (;;) switch ($pc) {
@@ -20469,7 +20469,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_args_$1041]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["current-input-port"];
         const $proc$js = R.markProcedure($proc, "current-input-port", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20484,14 +20484,14 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "parameter-dispatch")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "current-output-port-cell")).v;
-        function $proc(...s_args_$1042$raw) {
+        const $proc = { "current-output-port": function (...s_args_$1042$raw) {
           let $t0, $t1;
           const $d = $stack.room - 11 - s_args_$1042$raw.length;
           let s_args_$1042 = R.listFrom(s_args_$1042$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_args_$1042); } return $tailCall($t0, [(C1.v ?? G1()), s_args_$1042]);
-        }
-        function $proc$r($pc, $f) {
+        } }["current-output-port"];
+        const $proc$r = { "current-output-port": function ($pc, $f) {
           let $t0, $t1, s_args_$1042, $r;
           ({ $t0, $t1, s_args_$1042, $r } = $f);
           for (;;) switch ($pc) {
@@ -20500,7 +20500,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_args_$1042]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["current-output-port"];
         const $proc$js = R.markProcedure($proc, "current-output-port", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20515,14 +20515,14 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "parameter-dispatch")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "current-error-port-cell")).v;
-        function $proc(...s_args_$1043$raw) {
+        const $proc = { "current-error-port": function (...s_args_$1043$raw) {
           let $t0, $t1;
           const $d = $stack.room - 11 - s_args_$1043$raw.length;
           let s_args_$1043 = R.listFrom(s_args_$1043$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_args_$1043); } return $tailCall($t0, [(C1.v ?? G1()), s_args_$1043]);
-        }
-        function $proc$r($pc, $f) {
+        } }["current-error-port"];
+        const $proc$r = { "current-error-port": function ($pc, $f) {
           let $t0, $t1, s_args_$1043, $r;
           ({ $t0, $t1, s_args_$1043, $r } = $f);
           for (;;) switch ($pc) {
@@ -20531,7 +20531,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_args_$1043]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["current-error-port"];
         const $proc$js = R.markProcedure($proc, "current-error-port", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20548,7 +20548,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "param-dynamic-lookup")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "current-input-port-cell")).v;
-        function $proc() {
+        const $proc = { "the-current-input-port": function () {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 0) R.wrongArity("the-current-input-port", 0, false, arguments.length);
           const $d = $stack.room - 12;
@@ -20562,8 +20562,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["the-current-input-port"];
+        const $proc$r = { "the-current-input-port": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $r;
           ({ $t0, $t1, $t2, $t3, $r } = $f);
           const $d = $stack.room - 12;
@@ -20584,7 +20584,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["the-current-input-port"];
         const $proc$js = R.markProcedure($proc, "the-current-input-port", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20601,7 +20601,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cdr"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "param-dynamic-lookup")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "current-output-port-cell")).v;
-        function $proc() {
+        const $proc = { "the-current-output-port": function () {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 0) R.wrongArity("the-current-output-port", 0, false, arguments.length);
           const $d = $stack.room - 12;
@@ -20615,8 +20615,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ($t2 instanceof R.Cons) ? ($t2.cdr) : R.callBinding((C0.v ?? G0()), [$t2]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["the-current-output-port"];
+        const $proc$r = { "the-current-output-port": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $r;
           ({ $t0, $t1, $t2, $t3, $r } = $f);
           const $d = $stack.room - 12;
@@ -20637,7 +20637,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["the-current-output-port"];
         const $proc$js = R.markProcedure($proc, "the-current-output-port", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20658,7 +20658,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "error")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1044, s_rest_$1045) {
+        const $proc = { "port-given": function (s_who_$1044, s_rest_$1045) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("port-given", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -20680,8 +20680,8 @@ export const LIBRARIES = {
           $t7 = $t3;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8($t6, s_rest_$1045); } return $tailCall($t7, [$t6, s_rest_$1045]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["port-given"];
+        const $proc$r = { "port-given": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_who_$1044, s_rest_$1045, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_who_$1044, s_rest_$1045, $r } = $f);
           const $d = $stack.room - 19;
@@ -20710,7 +20710,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [$t6, s_rest_$1045]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["port-given"];
         const $proc$js = R.markProcedure($proc, "port-given", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20728,7 +20728,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1046$raw) {
+        const $proc = { "read-char": function (...s_port_$1046$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1046$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1046$raw]);
@@ -20756,8 +20756,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["read-char"];
+        const $proc$r = { "read-char": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1046, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1046, $r } = $f);
           const $d = $stack.room - 20;
@@ -20799,7 +20799,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["read-char"];
         const $proc$js = R.markProcedure($proc, "read-char", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20817,7 +20817,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1047$raw) {
+        const $proc = { "peek-char": function (...s_port_$1047$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1047$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1047$raw]);
@@ -20845,8 +20845,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["peek-char"];
+        const $proc$r = { "peek-char": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1047, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1047, $r } = $f);
           const $d = $stack.room - 20;
@@ -20888,7 +20888,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["peek-char"];
         const $proc$js = R.markProcedure($proc, "peek-char", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20906,7 +20906,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1048$raw) {
+        const $proc = { "char-ready?": function (...s_port_$1048$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1048$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1048$raw]);
@@ -20934,8 +20934,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["char-ready?"];
+        const $proc$r = { "char-ready?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1048, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1048, $r } = $f);
           const $d = $stack.room - 20;
@@ -20977,7 +20977,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["char-ready?"];
         const $proc$js = R.markProcedure($proc, "char-ready?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -20995,7 +20995,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1049$raw) {
+        const $proc = { "read-line": function (...s_port_$1049$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1049$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1049$raw]);
@@ -21023,8 +21023,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["read-line"];
+        const $proc$r = { "read-line": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1049, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1049, $r } = $f);
           const $d = $stack.room - 20;
@@ -21066,7 +21066,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["read-line"];
         const $proc$js = R.markProcedure($proc, "read-line", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21084,7 +21084,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_k_$1050, ...s_port_$1051$raw) {
+        const $proc = { "read-string": function (s_k_$1050, ...s_port_$1051$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("read-string", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1051$raw.length;
@@ -21113,8 +21113,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_k_$1050, $t2); } return $tailCall($t9, [s_k_$1050, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["read-string"];
+        const $proc$r = { "read-string": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_k_$1050, s_port_$1051, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_k_$1050, s_port_$1051, $r } = $f);
           const $d = $stack.room - 21;
@@ -21156,7 +21156,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["read-string"];
         const $proc$js = R.markProcedure($proc, "read-string", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21174,7 +21174,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1052$raw) {
+        const $proc = { "read-u8": function (...s_port_$1052$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1052$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1052$raw]);
@@ -21202,8 +21202,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["read-u8"];
+        const $proc$r = { "read-u8": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1052, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1052, $r } = $f);
           const $d = $stack.room - 20;
@@ -21245,7 +21245,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["read-u8"];
         const $proc$js = R.markProcedure($proc, "read-u8", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21263,7 +21263,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1053$raw) {
+        const $proc = { "peek-u8": function (...s_port_$1053$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1053$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1053$raw]);
@@ -21291,8 +21291,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["peek-u8"];
+        const $proc$r = { "peek-u8": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1053, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1053, $r } = $f);
           const $d = $stack.room - 20;
@@ -21334,7 +21334,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["peek-u8"];
         const $proc$js = R.markProcedure($proc, "peek-u8", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21352,7 +21352,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1054$raw) {
+        const $proc = { "u8-ready?": function (...s_port_$1054$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1054$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1054$raw]);
@@ -21380,8 +21380,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["u8-ready?"];
+        const $proc$r = { "u8-ready?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1054, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1054, $r } = $f);
           const $d = $stack.room - 20;
@@ -21423,7 +21423,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["u8-ready?"];
         const $proc$js = R.markProcedure($proc, "u8-ready?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21441,7 +21441,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_k_$1055, ...s_port_$1056$raw) {
+        const $proc = { "read-bytevector": function (s_k_$1055, ...s_port_$1056$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("read-bytevector", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1056$raw.length;
@@ -21470,8 +21470,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_k_$1055, $t2); } return $tailCall($t9, [s_k_$1055, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["read-bytevector"];
+        const $proc$r = { "read-bytevector": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_k_$1055, s_port_$1056, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_k_$1055, s_port_$1056, $r } = $f);
           const $d = $stack.room - 21;
@@ -21513,7 +21513,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["read-bytevector"];
         const $proc$js = R.markProcedure($proc, "read-bytevector", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21531,7 +21531,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-input-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1057$raw) {
+        const $proc = { "read": function (...s_port_$1057$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1057$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1057$raw]);
@@ -21559,8 +21559,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["read"];
+        const $proc$r = { "read": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1057, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1057, $r } = $f);
           const $d = $stack.room - 20;
@@ -21602,7 +21602,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["read"];
         const $proc$js = R.markProcedure($proc, "read", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21620,7 +21620,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_char_$1058, ...s_port_$1059$raw) {
+        const $proc = { "write-char": function (s_char_$1058, ...s_port_$1059$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("write-char", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1059$raw.length;
@@ -21649,8 +21649,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_char_$1058, $t2); } return $tailCall($t9, [s_char_$1058, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write-char"];
+        const $proc$r = { "write-char": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_char_$1058, s_port_$1059, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_char_$1058, s_port_$1059, $r } = $f);
           const $d = $stack.room - 21;
@@ -21692,7 +21692,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write-char"];
         const $proc$js = R.markProcedure($proc, "write-char", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21710,7 +21710,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_byte_$1060, ...s_port_$1061$raw) {
+        const $proc = { "write-u8": function (s_byte_$1060, ...s_port_$1061$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("write-u8", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1061$raw.length;
@@ -21739,8 +21739,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_byte_$1060, $t2); } return $tailCall($t9, [s_byte_$1060, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write-u8"];
+        const $proc$r = { "write-u8": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_byte_$1060, s_port_$1061, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_byte_$1060, s_port_$1061, $r } = $f);
           const $d = $stack.room - 21;
@@ -21782,7 +21782,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write-u8"];
         const $proc$js = R.markProcedure($proc, "write-u8", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21800,7 +21800,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1062$raw) {
+        const $proc = { "newline": function (...s_port_$1062$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1062$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1062$raw]);
@@ -21828,8 +21828,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["newline"];
+        const $proc$r = { "newline": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1062, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1062, $r } = $f);
           const $d = $stack.room - 20;
@@ -21871,7 +21871,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["newline"];
         const $proc$js = R.markProcedure($proc, "newline", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21889,7 +21889,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_obj_$1063, ...s_port_$1064$raw) {
+        const $proc = { "display": function (s_obj_$1063, ...s_port_$1064$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("display", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1064$raw.length;
@@ -21918,8 +21918,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_obj_$1063, $t2); } return $tailCall($t9, [s_obj_$1063, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["display"];
+        const $proc$r = { "display": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1063, s_port_$1064, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1063, s_port_$1064, $r } = $f);
           const $d = $stack.room - 21;
@@ -21961,7 +21961,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["display"];
         const $proc$js = R.markProcedure($proc, "display", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -21979,7 +21979,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_obj_$1065, ...s_port_$1066$raw) {
+        const $proc = { "write": function (s_obj_$1065, ...s_port_$1066$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("write", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1066$raw.length;
@@ -22008,8 +22008,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_obj_$1065, $t2); } return $tailCall($t9, [s_obj_$1065, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write"];
+        const $proc$r = { "write": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1065, s_port_$1066, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1065, s_port_$1066, $r } = $f);
           const $d = $stack.room - 21;
@@ -22051,7 +22051,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write"];
         const $proc$js = R.markProcedure($proc, "write", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22069,7 +22069,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_obj_$1067, ...s_port_$1068$raw) {
+        const $proc = { "write-simple": function (s_obj_$1067, ...s_port_$1068$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("write-simple", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1068$raw.length;
@@ -22098,8 +22098,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_obj_$1067, $t2); } return $tailCall($t9, [s_obj_$1067, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write-simple"];
+        const $proc$r = { "write-simple": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1067, s_port_$1068, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1067, s_port_$1068, $r } = $f);
           const $d = $stack.room - 21;
@@ -22141,7 +22141,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write-simple"];
         const $proc$js = R.markProcedure($proc, "write-simple", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22159,7 +22159,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(s_obj_$1069, ...s_port_$1070$raw) {
+        const $proc = { "write-shared": function (s_obj_$1069, ...s_port_$1070$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("write-shared", 1, true, arguments.length);
           const $d = $stack.room - 21 - s_port_$1070$raw.length;
@@ -22188,8 +22188,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_obj_$1069, $t2); } return $tailCall($t9, [s_obj_$1069, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write-shared"];
+        const $proc$r = { "write-shared": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1069, s_port_$1070, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_obj_$1069, s_port_$1070, $r } = $f);
           const $d = $stack.room - 21;
@@ -22231,7 +22231,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write-shared"];
         const $proc$js = R.markProcedure($proc, "write-shared", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22249,7 +22249,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "the-current-output-port")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "port-given")).v;
-        function $proc(...s_port_$1071$raw) {
+        const $proc = { "flush-output-port": function (...s_port_$1071$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 20 - s_port_$1071$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_port_$1071$raw]);
@@ -22277,8 +22277,8 @@ export const LIBRARIES = {
         }
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t2); } return $tailCall($t9, [$t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["flush-output-port"];
+        const $proc$r = { "flush-output-port": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1071, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1071, $r } = $f);
           const $d = $stack.room - 20;
@@ -22320,7 +22320,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["flush-output-port"];
         const $proc$js = R.markProcedure($proc, "flush-output-port", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22345,7 +22345,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "error")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "string-append")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "apply")).v;
-        function $proc(s_who_$1072, s_writer_$1073, s_sequence_$1074, s_rest_$1075) {
+        const $proc = { "write-part": function (s_who_$1072, s_writer_$1073, s_sequence_$1074, s_rest_$1075) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_port_2dfirst_$1076, $t7, $t8, $t9, $t10, $t11, s_port_$1077, $t12, $t13, s_bounds_$1078, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32;
           if (arguments.length !== 4) R.wrongArity("write-part", 4, false, arguments.length);
           const $d = $stack.room - 48;
@@ -22431,8 +22431,8 @@ export const LIBRARIES = {
           $t23;
           $t31 = (C8.v ?? G8());
           if ($d > 0 && ($t32 = $t31?.[$RAW] ?? $t31)?.[$PRIM] === true) { $stack.room = $d; return $t32(s_writer_$1073, s_sequence_$1074, s_port_$1077, s_bounds_$1078); } return $tailCall($t31, [s_writer_$1073, s_sequence_$1074, s_port_$1077, s_bounds_$1078]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write-part"];
+        const $proc$r = { "write-part": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_port_2dfirst_$1076, $t7, $t8, $t9, $t10, $t11, s_port_$1077, $t12, $t13, s_bounds_$1078, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_who_$1072, s_writer_$1073, s_sequence_$1074, s_rest_$1075, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_port_2dfirst_$1076, $t7, $t8, $t9, $t10, $t11, s_port_$1077, $t12, $t13, s_bounds_$1078, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_who_$1072, s_writer_$1073, s_sequence_$1074, s_rest_$1075, $r } = $f);
           const $d = $stack.room - 48;
@@ -22559,7 +22559,7 @@ export const LIBRARIES = {
                 $pc = 21; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write-part"];
         const $proc$js = R.markProcedure($proc, "write-part", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22574,15 +22574,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "write-part")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%write-string")).v;
-        function $proc(s_string_$1079, ...s_rest_$1080$raw) {
+        const $proc = { "write-string": function (s_string_$1079, ...s_rest_$1080$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("write-string", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_rest_$1080$raw.length;
           let s_rest_$1080 = R.listFrom(s_rest_$1080$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("write-string", (C1.v ?? G1()), s_string_$1079, s_rest_$1080); } return $tailCall($t0, ["write-string", (C1.v ?? G1()), s_string_$1079, s_rest_$1080]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write-string"];
+        const $proc$r = { "write-string": function ($pc, $f) {
           let $t0, $t1, s_string_$1079, s_rest_$1080, $r;
           ({ $t0, $t1, s_string_$1079, s_rest_$1080, $r } = $f);
           for (;;) switch ($pc) {
@@ -22591,7 +22591,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["write-string", (C1.v ?? G1()), s_string_$1079, s_rest_$1080]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write-string"];
         const $proc$js = R.markProcedure($proc, "write-string", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22606,15 +22606,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "write-part")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%write-bytevector")).v;
-        function $proc(s_bytevector_$1081, ...s_rest_$1082$raw) {
+        const $proc = { "write-bytevector": function (s_bytevector_$1081, ...s_rest_$1082$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("write-bytevector", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_rest_$1082$raw.length;
           let s_rest_$1082 = R.listFrom(s_rest_$1082$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("write-bytevector", (C1.v ?? G1()), s_bytevector_$1081, s_rest_$1082); } return $tailCall($t0, ["write-bytevector", (C1.v ?? G1()), s_bytevector_$1081, s_rest_$1082]);
-        }
-        function $proc$r($pc, $f) {
+        } }["write-bytevector"];
+        const $proc$r = { "write-bytevector": function ($pc, $f) {
           let $t0, $t1, s_bytevector_$1081, s_rest_$1082, $r;
           ({ $t0, $t1, s_bytevector_$1081, s_rest_$1082, $r } = $f);
           for (;;) switch ($pc) {
@@ -22623,7 +22623,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["write-bytevector", (C1.v ?? G1()), s_bytevector_$1081, s_rest_$1082]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["write-bytevector"];
         const $proc$js = R.markProcedure($proc, "write-bytevector", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22649,15 +22649,15 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "values")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "%values->list")).v;
         function $mk$fn11_7(s_thunk_$1084) {
-          function $fn11_7() {
+          const $fn11_7 = { "anonymous": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = s_thunk_$1084;
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(); } return $tailCall($t0, []);
-        }
+        } }["anonymous"];
           const $fn11_7$js = R.markProcedure($fn11_7, "anonymous", E);
-          function $fn11_7$r($pc, $f) {
+          const $fn11_7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -22666,12 +22666,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, []);
               default: throw new Error('$fn11_7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11_7$js.$resume = $fn11_7$r;
           return $fn11_7$js;
         }
         function $mk$fn11(s_port_$1085, s_thunk_$1084) {
-          function $fn11() {
+          const $fn11 = { "anonymous": function () {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 18;
@@ -22694,9 +22694,9 @@ export const LIBRARIES = {
           $t8 = $mk$fn11_7(s_thunk_$1084);
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t3, $t6, $t8); } return $tailCall($t9, [$t3, $t6, $t8]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $r } = $f);
           const $d = $stack.room - 18;
@@ -22730,12 +22730,12 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t3, $t6, $t8]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
         function $mk$fn14(s_port_$1085) {
-          function $fn14(...s_results_$1086$raw) {
+          const $fn14 = { "anonymous": function (...s_results_$1086$raw) {
           let $t0, $t1, $t2, $t3, $t4;
           const $d = $stack.room - 14 - s_results_$1086$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($fn14$js, [...s_results_$1086$raw]);
@@ -22750,9 +22750,9 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C8.v ?? G8());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4((C9.v ?? G9()), s_results_$1086); } return $tailCall($t3, [(C9.v ?? G9()), s_results_$1086]);
-        }
+        } }["anonymous"];
           const $fn14$js = R.markProcedure($fn14, "anonymous", E, true);
-          function $fn14$r($pc, $f) {
+          const $fn14$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_results_$1086, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_results_$1086, $r } = $f);
           const $d = $stack.room - 14;
@@ -22774,11 +22774,11 @@ export const LIBRARIES = {
                 return $tailCall($t3, [(C9.v ?? G9()), s_results_$1086]);
               default: throw new Error('$fn14$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn14$js.$resume = $fn14$r;
           return $fn14$js;
         }
-        function $proc(s_filename_$1083, s_thunk_$1084) {
+        const $proc = { "with-input-from-file": function (s_filename_$1083, s_thunk_$1084) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1085, $t12, s__25cwv0, $t13, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24;
           if (arguments.length !== 2) R.wrongArity("with-input-from-file", 2, false, arguments.length);
           const $d = $stack.room - 35;
@@ -22833,8 +22833,8 @@ export const LIBRARIES = {
           if ($t22 === $UNWIND) { R.reify($proc$r, 8, { $t13, $t15 }); return $UNWIND; }
           $t23 = $t13;
           if ($d > 0 && ($t24 = $t23?.[$RAW] ?? $t23)?.[$PRIM] === true) { $stack.room = $d; return $t24($t15, $t22); } return $tailCall($t23, [$t15, $t22]);
-        }
-        function $proc$r($pc, $f) {
+        } }["with-input-from-file"];
+        const $proc$r = { "with-input-from-file": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1085, $t12, s__25cwv0, $t13, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_filename_$1083, s_thunk_$1084, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1085, $t12, s__25cwv0, $t13, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_filename_$1083, s_thunk_$1084, $r } = $f);
           const $d = $stack.room - 35;
@@ -22915,7 +22915,7 @@ export const LIBRARIES = {
                 return $tailCall($t23, [$t15, $t22]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["with-input-from-file"];
         const $proc$js = R.markProcedure($proc, "with-input-from-file", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -22941,15 +22941,15 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "values")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "%values->list")).v;
         function $mk$fn11_7(s_thunk_$1088) {
-          function $fn11_7() {
+          const $fn11_7 = { "anonymous": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = s_thunk_$1088;
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(); } return $tailCall($t0, []);
-        }
+        } }["anonymous"];
           const $fn11_7$js = R.markProcedure($fn11_7, "anonymous", E);
-          function $fn11_7$r($pc, $f) {
+          const $fn11_7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -22958,12 +22958,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, []);
               default: throw new Error('$fn11_7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11_7$js.$resume = $fn11_7$r;
           return $fn11_7$js;
         }
         function $mk$fn11(s_port_$1089, s_thunk_$1088) {
-          function $fn11() {
+          const $fn11 = { "anonymous": function () {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 18;
@@ -22986,9 +22986,9 @@ export const LIBRARIES = {
           $t8 = $mk$fn11_7(s_thunk_$1088);
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t3, $t6, $t8); } return $tailCall($t9, [$t3, $t6, $t8]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $r } = $f);
           const $d = $stack.room - 18;
@@ -23022,12 +23022,12 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t3, $t6, $t8]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
         function $mk$fn14(s_port_$1089) {
-          function $fn14(...s_results_$1090$raw) {
+          const $fn14 = { "anonymous": function (...s_results_$1090$raw) {
           let $t0, $t1, $t2, $t3, $t4;
           const $d = $stack.room - 14 - s_results_$1090$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($fn14$js, [...s_results_$1090$raw]);
@@ -23042,9 +23042,9 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C8.v ?? G8());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4((C9.v ?? G9()), s_results_$1090); } return $tailCall($t3, [(C9.v ?? G9()), s_results_$1090]);
-        }
+        } }["anonymous"];
           const $fn14$js = R.markProcedure($fn14, "anonymous", E, true);
-          function $fn14$r($pc, $f) {
+          const $fn14$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_results_$1090, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_results_$1090, $r } = $f);
           const $d = $stack.room - 14;
@@ -23066,11 +23066,11 @@ export const LIBRARIES = {
                 return $tailCall($t3, [(C9.v ?? G9()), s_results_$1090]);
               default: throw new Error('$fn14$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn14$js.$resume = $fn14$r;
           return $fn14$js;
         }
-        function $proc(s_filename_$1087, s_thunk_$1088) {
+        const $proc = { "with-output-to-file": function (s_filename_$1087, s_thunk_$1088) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1089, $t12, s__25cwv0, $t13, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24;
           if (arguments.length !== 2) R.wrongArity("with-output-to-file", 2, false, arguments.length);
           const $d = $stack.room - 35;
@@ -23125,8 +23125,8 @@ export const LIBRARIES = {
           if ($t22 === $UNWIND) { R.reify($proc$r, 8, { $t13, $t15 }); return $UNWIND; }
           $t23 = $t13;
           if ($d > 0 && ($t24 = $t23?.[$RAW] ?? $t23)?.[$PRIM] === true) { $stack.room = $d; return $t24($t15, $t22); } return $tailCall($t23, [$t15, $t22]);
-        }
-        function $proc$r($pc, $f) {
+        } }["with-output-to-file"];
+        const $proc$r = { "with-output-to-file": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1089, $t12, s__25cwv0, $t13, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_filename_$1087, s_thunk_$1088, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_port_$1089, $t12, s__25cwv0, $t13, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_filename_$1087, s_thunk_$1088, $r } = $f);
           const $d = $stack.room - 35;
@@ -23207,7 +23207,7 @@ export const LIBRARIES = {
                 return $tailCall($t23, [$t15, $t22]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["with-output-to-file"];
         const $proc$js = R.markProcedure($proc, "with-output-to-file", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23351,14 +23351,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "interaction-environment")).v;
-        function $proc(...s_import_2dspecs_$2310$raw) {
+        const $proc = { "environment": function (...s_import_2dspecs_$2310$raw) {
           let $t0, $t1;
           const $d = $stack.room - 11 - s_import_2dspecs_$2310$raw.length;
           let s_import_2dspecs_$2310 = R.listFrom(s_import_2dspecs_$2310$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(); } return $tailCall($t0, []);
-        }
-        function $proc$r($pc, $f) {
+        } }["environment"];
+        const $proc$r = { "environment": function ($pc, $f) {
           let $t0, $t1, s_import_2dspecs_$2310, $r;
           ({ $t0, $t1, s_import_2dspecs_$2310, $r } = $f);
           for (;;) switch ($pc) {
@@ -23367,7 +23367,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, []);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["environment"];
         const $proc$js = R.markProcedure($proc, "environment", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23397,7 +23397,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "eq?")).v;
         const W2 = R.primitiveCell("eq?"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "caar")).v;
-        function $proc(s_obj_$2311) {
+        const $proc = { "promise?": function (s_obj_$2311) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("promise?", 1, false, arguments.length);
           const $d = $stack.room - 16;
@@ -23422,8 +23422,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["promise?"];
+        const $proc$r = { "promise?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_obj_$2311, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_obj_$2311, $r } = $f);
           const $d = $stack.room - 16;
@@ -23455,7 +23455,7 @@ export const LIBRARIES = {
                 return $t6;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["promise?"];
         const $proc$js = R.markProcedure($proc, "promise?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23469,14 +23469,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cons")).v;
         const W0 = R.primitiveCell("cons"), P0 = W0.primitive;
-        function $proc(s_thunk_$2312) {
+        const $proc = { "make-promise-internal": function (s_thunk_$2312) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("make-promise-internal", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons(K[1], false)) : R.callBinding((C0.v ?? G0()), [K[1], false]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons($t0, s_thunk_$2312)) : R.callBinding((C0.v ?? G0()), [$t0, s_thunk_$2312]);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["make-promise-internal"];
+        const $proc$r = { "make-promise-internal": function ($pc, $f) {
           let $t0, $t1, s_thunk_$2312, $r;
           ({ $t0, $t1, s_thunk_$2312, $r } = $f);
           for (;;) switch ($pc) {
@@ -23486,7 +23486,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-promise-internal"];
         const $proc$js = R.markProcedure($proc, "make-promise-internal", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23502,7 +23502,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "promise?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cons")).v;
         const W1 = R.primitiveCell("cons"), P1 = W1.primitive;
-        function $proc(s_obj_$2313) {
+        const $proc = { "make-promise": function (s_obj_$2313) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("make-promise", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -23521,8 +23521,8 @@ export const LIBRARIES = {
           $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? (new R.Cons($t3, s_obj_$2313)) : R.callBinding((C1.v ?? G1()), [$t3, s_obj_$2313]);
           return $t4;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["make-promise"];
+        const $proc$r = { "make-promise": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_obj_$2313, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_obj_$2313, $r } = $f);
           const $d = $stack.room - 14;
@@ -23548,7 +23548,7 @@ export const LIBRARIES = {
                 return $t4;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-promise"];
         const $proc$js = R.markProcedure($proc, "make-promise", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23571,7 +23571,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "set-cdr!")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "car")).v;
         const W6 = R.primitiveCell("car"), P6 = W6.primitive;
-        function $proc(s_promise_$2314) {
+        const $proc = { "force": function (s_promise_$2314) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$2315, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27;
           if (arguments.length !== 1) R.wrongArity("force", 1, false, arguments.length);
           const $d = $stack.room - 38;
@@ -23649,8 +23649,8 @@ export const LIBRARIES = {
           return s_result_$2315;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["force"];
+        const $proc$r = { "force": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$2315, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_promise_$2314, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_result_$2315, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_promise_$2314, $r } = $f);
           const $d = $stack.room - 38;
@@ -23762,7 +23762,7 @@ export const LIBRARIES = {
                 return s_result_$2315;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["force"];
         const $proc$js = R.markProcedure($proc, "force", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23795,7 +23795,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1091, s_f_$1092) {
+        const $proc = { "check-procedure": function (s_who_$1091, s_f_$1092) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("check-procedure", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -23822,8 +23822,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-procedure"];
+        const $proc$r = { "check-procedure": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1091, s_f_$1092, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1091, s_f_$1092, $r } = $f);
           const $d = $stack.room - 20;
@@ -23861,7 +23861,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_f_$1092]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-procedure"];
         const $proc$js = R.markProcedure($proc, "check-procedure", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23881,7 +23881,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell(">="), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "error")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1093, s_k_$1094) {
+        const $proc = { "check-count": function (s_who_$1093, s_k_$1094) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 2) R.wrongArity("check-count", 2, false, arguments.length);
           const $d = $stack.room - 22;
@@ -23914,8 +23914,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-count"];
+        const $proc$r = { "check-count": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_who_$1093, s_k_$1094, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_who_$1093, s_k_$1094, $r } = $f);
           const $d = $stack.room - 22;
@@ -23962,7 +23962,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [$t9, s_k_$1094]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-count"];
         const $proc$js = R.markProcedure($proc, "check-count", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -23986,7 +23986,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("cdr"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cons")).v;
         const W5 = R.primitiveCell("cons"), P5 = W5.primitive;
-        function $proc(s_lists_$1095) {
+        const $proc = { "cars-of": function (s_lists_$1095) {
           let s_lists_$1097, s_acc_$1098, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("cars-of", 1, false, arguments.length);
           const $d = $stack.room - 20;
@@ -24013,8 +24013,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["cars-of"];
+        const $proc$r = { "cars-of": function ($pc, $f) {
           let s_lists_$1097, s_acc_$1098, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$1095, $r;
           ({ s_lists_$1097, s_acc_$1098, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_lists_$1095, $r } = $f);
           for (;;) switch ($pc) {
@@ -24044,7 +24044,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cars-of"];
         const $proc$js = R.markProcedure($proc, "cars-of", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24060,14 +24060,14 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "map")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
-        function $proc(s_lists_$1099) {
+        const $proc = { "cdrs-of": function (s_lists_$1099) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("cdrs-of", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_lists_$1099); } return $tailCall($t0, [(C1.v ?? G1()), s_lists_$1099]);
-        }
-        function $proc$r($pc, $f) {
+        } }["cdrs-of"];
+        const $proc$r = { "cdrs-of": function ($pc, $f) {
           let $t0, $t1, s_lists_$1099, $r;
           ({ $t0, $t1, s_lists_$1099, $r } = $f);
           for (;;) switch ($pc) {
@@ -24076,7 +24076,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_lists_$1099]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cdrs-of"];
         const $proc$js = R.markProcedure($proc, "cdrs-of", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24090,13 +24090,13 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cons")).v;
         const W0 = R.primitiveCell("cons"), P0 = W0.primitive;
-        function $proc(s_d_$1100, s_a_$1101) {
+        const $proc = { "xcons": function (s_d_$1100, s_a_$1101) {
           let $t0;
           if (arguments.length !== 2) R.wrongArity("xcons", 2, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons(s_a_$1101, s_d_$1100)) : R.callBinding((C0.v ?? G0()), [s_a_$1101, s_d_$1100]);
           return $t0;
-        }
-        function $proc$r($pc, $f) {
+        } }["xcons"];
+        const $proc$r = { "xcons": function ($pc, $f) {
           let $t0, s_d_$1100, s_a_$1101, $r;
           ({ $t0, s_d_$1100, s_a_$1101, $r } = $f);
           for (;;) switch ($pc) {
@@ -24105,7 +24105,7 @@ export const LIBRARIES = {
                 return $t0;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["xcons"];
         const $proc$js = R.markProcedure($proc, "xcons", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24128,7 +24128,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_first_$1102, ...s_rest_$1103$raw) {
+        const $proc = { "cons*": function (s_first_$1102, ...s_rest_$1103$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_backwards_$1104, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length < 1) R.wrongArity("cons*", 1, true, arguments.length);
           const $d = $stack.room - 23 - s_rest_$1103$raw.length;
@@ -24155,8 +24155,8 @@ export const LIBRARIES = {
           $t10 = $t6;
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11($t7, $t8, $t9); } return $tailCall($t10, [$t7, $t8, $t9]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["cons*"];
+        const $proc$r = { "cons*": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_backwards_$1104, $t6, $t7, $t8, $t9, $t10, $t11, s_first_$1102, s_rest_$1103, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_backwards_$1104, $t6, $t7, $t8, $t9, $t10, $t11, s_first_$1102, s_rest_$1103, $r } = $f);
           const $d = $stack.room - 23;
@@ -24189,7 +24189,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [$t7, $t8, $t9]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["cons*"];
         const $proc$js = R.markProcedure($proc, "cons*", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24210,7 +24210,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("-"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cons")).v;
         const W4 = R.primitiveCell("cons"), P4 = W4.primitive;
-        function $proc(s_n_$1105, s_init_$1106) {
+        const $proc = { "list-tabulate": function (s_n_$1105, s_init_$1106) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_i_$1108, s_acc_$1109, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 2) R.wrongArity("list-tabulate", 2, false, arguments.length);
           const $d = $stack.room - 25;
@@ -24253,8 +24253,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["list-tabulate"];
+        const $proc$r = { "list-tabulate": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_i_$1108, s_acc_$1109, $t7, $t8, $t9, $t10, $t11, $t12, s_n_$1105, s_init_$1106, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_i_$1108, s_acc_$1109, $t7, $t8, $t9, $t10, $t11, $t12, s_n_$1105, s_init_$1106, $r } = $f);
           const $d = $stack.room - 25;
@@ -24312,7 +24312,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list-tabulate"];
         const $proc$js = R.markProcedure($proc, "list-tabulate", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24329,7 +24329,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("cons"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "set-cdr!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "last-pair")).v;
-        function $proc(s_first_$1110, ...s_rest_$1111$raw) {
+        const $proc = { "circular-list": function (s_first_$1110, ...s_rest_$1111$raw) {
           let $t0, s_l_$1112, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length < 1) R.wrongArity("circular-list", 1, true, arguments.length);
           const $d = $stack.room - 19 - s_rest_$1111$raw.length;
@@ -24354,8 +24354,8 @@ export const LIBRARIES = {
           if ($t7 === $UNWIND) { R.reify($proc$r, 2, { s_l_$1112 }); return $UNWIND; }
           $t7;
           return s_l_$1112;
-        }
-        function $proc$r($pc, $f) {
+        } }["circular-list"];
+        const $proc$r = { "circular-list": function ($pc, $f) {
           let $t0, s_l_$1112, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_first_$1110, s_rest_$1111, $r;
           ({ $t0, s_l_$1112, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_first_$1110, s_rest_$1111, $r } = $f);
           const $d = $stack.room - 19;
@@ -24390,7 +24390,7 @@ export const LIBRARIES = {
                 return s_l_$1112;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["circular-list"];
         const $proc$js = R.markProcedure($proc, "circular-list", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24421,7 +24421,7 @@ export const LIBRARIES = {
         const W8 = R.primitiveCell("+"), P8 = W8.primitive;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "*")).v;
         const W9 = R.primitiveCell("*"), P9 = W9.primitive;
-        function $proc(s_count_$1113, ...s_options_$1114$raw) {
+        const $proc = { "iota": function (s_count_$1113, ...s_options_$1114$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_start_$1115, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_step_$1116, $t14, s_i_$1118, s_acc_$1119, $t15, $t16, $t17, $t18, $t19;
           if (arguments.length < 1) R.wrongArity("iota", 1, true, arguments.length);
           const $d = $stack.room - 34 - s_options_$1114$raw.length;
@@ -24481,8 +24481,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["iota"];
+        const $proc$r = { "iota": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_start_$1115, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_step_$1116, $t14, s_i_$1118, s_acc_$1119, $t15, $t16, $t17, $t18, $t19, s_count_$1113, s_options_$1114, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_start_$1115, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_step_$1116, $t14, s_i_$1118, s_acc_$1119, $t15, $t16, $t17, $t18, $t19, s_count_$1113, s_options_$1114, $r } = $f);
           const $d = $stack.room - 34;
@@ -24561,7 +24561,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["iota"];
         const $proc$js = R.markProcedure($proc, "iota", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24575,14 +24575,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list?")).v;
-        function $proc(s_x_$1120) {
+        const $proc = { "proper-list?": function (s_x_$1120) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("proper-list?", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1120); } return $tailCall($t0, [s_x_$1120]);
-        }
-        function $proc$r($pc, $f) {
+        } }["proper-list?"];
+        const $proc$r = { "proper-list?": function ($pc, $f) {
           let $t0, $t1, s_x_$1120, $r;
           ({ $t0, $t1, s_x_$1120, $r } = $f);
           for (;;) switch ($pc) {
@@ -24591,7 +24591,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1120]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["proper-list?"];
         const $proc$js = R.markProcedure($proc, "proper-list?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24609,7 +24609,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "eq?")).v;
         const W2 = R.primitiveCell("eq?"), P2 = W2.primitive;
-        function $proc(s_x_$1121) {
+        const $proc = { "circular-list?": function (s_x_$1121) {
           let s_slow_$1123, s_fast_$1124, $t0, $t1, s_fast_$1125, $t2, $t3, s_fast_$1126, $t4, s_slow_$1127, $t5, s_x_$1128, $t6, $t7;
           if (arguments.length !== 1) R.wrongArity("circular-list?", 1, false, arguments.length);
           s_slow_$1123 = s_x_$1121;
@@ -24643,8 +24643,8 @@ export const LIBRARIES = {
           return false;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["circular-list?"];
+        const $proc$r = { "circular-list?": function ($pc, $f) {
           let s_slow_$1123, s_fast_$1124, $t0, $t1, s_fast_$1125, $t2, $t3, s_fast_$1126, $t4, s_slow_$1127, $t5, s_x_$1128, $t6, $t7, s_x_$1121, $r;
           ({ s_slow_$1123, s_fast_$1124, $t0, $t1, s_fast_$1125, $t2, $t3, s_fast_$1126, $t4, s_slow_$1127, $t5, s_x_$1128, $t6, $t7, s_x_$1121, $r } = $f);
           for (;;) switch ($pc) {
@@ -24682,7 +24682,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["circular-list?"];
         const $proc$js = R.markProcedure($proc, "circular-list?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24706,7 +24706,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cddr")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "eq?")).v;
         const W5 = R.primitiveCell("eq?"), P5 = W5.primitive;
-        function $proc(s_x_$1129) {
+        const $proc = { "dotted-list?": function (s_x_$1129) {
           let s_slow_$1131, s_fast_$1132, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_fast_$1133, $t13, s_slow_$1134, $t14, $t15, $t16, $t17;
           if (arguments.length !== 1) R.wrongArity("dotted-list?", 1, false, arguments.length);
           const $d = $stack.room - 31;
@@ -24754,8 +24754,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["dotted-list?"];
+        const $proc$r = { "dotted-list?": function ($pc, $f) {
           let s_slow_$1131, s_fast_$1132, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_fast_$1133, $t13, s_slow_$1134, $t14, $t15, $t16, $t17, s_x_$1129, $r;
           ({ s_slow_$1131, s_fast_$1132, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_fast_$1133, $t13, s_slow_$1134, $t14, $t15, $t16, $t17, s_x_$1129, $r } = $f);
           const $d = $stack.room - 31;
@@ -24810,7 +24810,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["dotted-list?"];
         const $proc$js = R.markProcedure($proc, "dotted-list?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24826,14 +24826,14 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
-        function $proc(s_x_$1135) {
+        const $proc = { "not-pair?": function (s_x_$1135) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("not-pair?", 1, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) ? (s_x_$1135 instanceof R.Cons) : R.callBinding((C1.v ?? G1()), [s_x_$1135]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t0 === false) : R.callBinding((C0.v ?? G0()), [$t0]);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["not-pair?"];
+        const $proc$r = { "not-pair?": function ($pc, $f) {
           let $t0, $t1, s_x_$1135, $r;
           ({ $t0, $t1, s_x_$1135, $r } = $f);
           for (;;) switch ($pc) {
@@ -24843,7 +24843,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["not-pair?"];
         const $proc$js = R.markProcedure($proc, "not-pair?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24861,7 +24861,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
-        function $proc(s_l_$1136) {
+        const $proc = { "null-list?": function (s_l_$1136) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("null-list?", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -24877,8 +24877,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3("null-list?: expected a list", s_l_$1136); } return $tailCall($t2, ["null-list?: expected a list", s_l_$1136]);
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["null-list?"];
+        const $proc$r = { "null-list?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_l_$1136, $r;
           ({ $t0, $t1, $t2, $t3, s_l_$1136, $r } = $f);
           for (;;) switch ($pc) {
@@ -24897,7 +24897,7 @@ export const LIBRARIES = {
                 return $tailCall($t2, ["null-list?: expected a list", s_l_$1136]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["null-list?"];
         const $proc$js = R.markProcedure($proc, "null-list?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -24924,7 +24924,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "null?")).v;
         const W6 = R.primitiveCell("null?"), P6 = W6.primitive;
         function $mk$fn0(s_elt_3d_$1137) {
-          function $fn0(s_a_$1139, s_b_$1140) {
+          const $fn0 = { "equal-pair?": function (s_a_$1139, s_b_$1140) {
           let $t0, s_x_$1141, s_a_$1143, s_b_$1144, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("equal-pair?", 2, false, arguments.length);
           const $d = $stack.room - 27;
@@ -24971,9 +24971,9 @@ export const LIBRARIES = {
         }
           }
         }
-        }
+        } }["equal-pair?"];
           const $fn0$js = R.markProcedure($fn0, "equal-pair?", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "equal-pair?": function ($pc, $f) {
           let $t0, s_x_$1141, s_a_$1143, s_b_$1144, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_a_$1139, s_b_$1140, $r;
           ({ $t0, s_x_$1141, s_a_$1143, s_b_$1144, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_a_$1139, s_b_$1140, $r } = $f);
           const $d = $stack.room - 27;
@@ -25027,11 +25027,11 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["equal-pair?"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_elt_3d_$1137, ...s_lists_$1138$raw) {
+        const $proc = { "list=": function (s_elt_3d_$1137, ...s_lists_$1138$raw) {
           let s_equal_2dpair_3f, $t1, $t2, $t3, $t4, $t5, s_x_$1145, $t6, $t7, s_a_$1147, s_rest_$1148, $t8, s_x_$1149, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
           if (arguments.length < 1) R.wrongArity("list=", 1, true, arguments.length);
           const $d = $stack.room - 30 - s_lists_$1138$raw.length;
@@ -25085,8 +25085,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["list="];
+        const $proc$r = { "list=": function ($pc, $f) {
           let s_equal_2dpair_3f, $t1, $t2, $t3, $t4, $t5, s_x_$1145, $t6, $t7, s_a_$1147, s_rest_$1148, $t8, s_x_$1149, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_elt_3d_$1137, s_lists_$1138, $r;
           ({ s_equal_2dpair_3f, $t1, $t2, $t3, $t4, $t5, s_x_$1145, $t6, $t7, s_a_$1147, s_rest_$1148, $t8, s_x_$1149, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_elt_3d_$1137, s_lists_$1138, $r } = $f);
           const $d = $stack.room - 30;
@@ -25150,7 +25150,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list="];
         const $proc$js = R.markProcedure($proc, "list=", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25164,13 +25164,13 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        function $proc(s_x_$1150) {
+        const $proc = { "first": function (s_x_$1150) {
           let $t0;
           if (arguments.length !== 1) R.wrongArity("first", 1, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (s_x_$1150 instanceof R.Cons) ? (s_x_$1150.car) : R.callBinding((C0.v ?? G0()), [s_x_$1150]);
           return $t0;
-        }
-        function $proc$r($pc, $f) {
+        } }["first"];
+        const $proc$r = { "first": function ($pc, $f) {
           let $t0, s_x_$1150, $r;
           ({ $t0, s_x_$1150, $r } = $f);
           for (;;) switch ($pc) {
@@ -25179,7 +25179,7 @@ export const LIBRARIES = {
                 return $t0;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["first"];
         const $proc$js = R.markProcedure($proc, "first", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25193,14 +25193,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadr")).v;
-        function $proc(s_x_$1151) {
+        const $proc = { "second": function (s_x_$1151) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("second", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1151); } return $tailCall($t0, [s_x_$1151]);
-        }
-        function $proc$r($pc, $f) {
+        } }["second"];
+        const $proc$r = { "second": function ($pc, $f) {
           let $t0, $t1, s_x_$1151, $r;
           ({ $t0, $t1, s_x_$1151, $r } = $f);
           for (;;) switch ($pc) {
@@ -25209,7 +25209,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1151]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["second"];
         const $proc$js = R.markProcedure($proc, "second", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25223,14 +25223,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "caddr")).v;
-        function $proc(s_x_$1152) {
+        const $proc = { "third": function (s_x_$1152) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("third", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1152); } return $tailCall($t0, [s_x_$1152]);
-        }
-        function $proc$r($pc, $f) {
+        } }["third"];
+        const $proc$r = { "third": function ($pc, $f) {
           let $t0, $t1, s_x_$1152, $r;
           ({ $t0, $t1, s_x_$1152, $r } = $f);
           for (;;) switch ($pc) {
@@ -25239,7 +25239,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1152]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["third"];
         const $proc$js = R.markProcedure($proc, "third", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25253,14 +25253,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cadddr")).v;
-        function $proc(s_x_$1153) {
+        const $proc = { "fourth": function (s_x_$1153) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("fourth", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1153); } return $tailCall($t0, [s_x_$1153]);
-        }
-        function $proc$r($pc, $f) {
+        } }["fourth"];
+        const $proc$r = { "fourth": function ($pc, $f) {
           let $t0, $t1, s_x_$1153, $r;
           ({ $t0, $t1, s_x_$1153, $r } = $f);
           for (;;) switch ($pc) {
@@ -25269,7 +25269,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1153]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["fourth"];
         const $proc$js = R.markProcedure($proc, "fourth", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25283,14 +25283,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
-        function $proc(s_x_$1154) {
+        const $proc = { "fifth": function (s_x_$1154) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("fifth", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1154, 4n); } return $tailCall($t0, [s_x_$1154, 4n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["fifth"];
+        const $proc$r = { "fifth": function ($pc, $f) {
           let $t0, $t1, s_x_$1154, $r;
           ({ $t0, $t1, s_x_$1154, $r } = $f);
           for (;;) switch ($pc) {
@@ -25299,7 +25299,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1154, 4n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["fifth"];
         const $proc$js = R.markProcedure($proc, "fifth", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25313,14 +25313,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
-        function $proc(s_x_$1155) {
+        const $proc = { "sixth": function (s_x_$1155) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("sixth", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1155, 5n); } return $tailCall($t0, [s_x_$1155, 5n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["sixth"];
+        const $proc$r = { "sixth": function ($pc, $f) {
           let $t0, $t1, s_x_$1155, $r;
           ({ $t0, $t1, s_x_$1155, $r } = $f);
           for (;;) switch ($pc) {
@@ -25329,7 +25329,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1155, 5n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["sixth"];
         const $proc$js = R.markProcedure($proc, "sixth", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25343,14 +25343,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
-        function $proc(s_x_$1156) {
+        const $proc = { "seventh": function (s_x_$1156) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("seventh", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1156, 6n); } return $tailCall($t0, [s_x_$1156, 6n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["seventh"];
+        const $proc$r = { "seventh": function ($pc, $f) {
           let $t0, $t1, s_x_$1156, $r;
           ({ $t0, $t1, s_x_$1156, $r } = $f);
           for (;;) switch ($pc) {
@@ -25359,7 +25359,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1156, 6n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["seventh"];
         const $proc$js = R.markProcedure($proc, "seventh", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25373,14 +25373,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
-        function $proc(s_x_$1157) {
+        const $proc = { "eighth": function (s_x_$1157) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("eighth", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1157, 7n); } return $tailCall($t0, [s_x_$1157, 7n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["eighth"];
+        const $proc$r = { "eighth": function ($pc, $f) {
           let $t0, $t1, s_x_$1157, $r;
           ({ $t0, $t1, s_x_$1157, $r } = $f);
           for (;;) switch ($pc) {
@@ -25389,7 +25389,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1157, 7n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["eighth"];
         const $proc$js = R.markProcedure($proc, "eighth", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25403,14 +25403,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
-        function $proc(s_x_$1158) {
+        const $proc = { "ninth": function (s_x_$1158) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("ninth", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1158, 8n); } return $tailCall($t0, [s_x_$1158, 8n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["ninth"];
+        const $proc$r = { "ninth": function ($pc, $f) {
           let $t0, $t1, s_x_$1158, $r;
           ({ $t0, $t1, s_x_$1158, $r } = $f);
           for (;;) switch ($pc) {
@@ -25419,7 +25419,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1158, 8n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["ninth"];
         const $proc$js = R.markProcedure($proc, "ninth", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25433,14 +25433,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
-        function $proc(s_x_$1159) {
+        const $proc = { "tenth": function (s_x_$1159) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("tenth", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1159, 9n); } return $tailCall($t0, [s_x_$1159, 9n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["tenth"];
+        const $proc$r = { "tenth": function ($pc, $f) {
           let $t0, $t1, s_x_$1159, $r;
           ({ $t0, $t1, s_x_$1159, $r } = $f);
           for (;;) switch ($pc) {
@@ -25449,7 +25449,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1159, 9n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["tenth"];
         const $proc$js = R.markProcedure($proc, "tenth", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25467,7 +25467,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
         const W2 = R.primitiveCell("cdr"), P2 = W2.primitive;
-        function $proc(s_p_$1160) {
+        const $proc = { "car+cdr": function (s_p_$1160) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("car+cdr", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -25476,8 +25476,8 @@ export const LIBRARIES = {
           $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (s_p_$1160 instanceof R.Cons) ? (s_p_$1160.cdr) : R.callBinding((C2.v ?? G2()), [s_p_$1160]);
           $t3 = $t0;
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4($t1, $t2); } return $tailCall($t3, [$t1, $t2]);
-        }
-        function $proc$r($pc, $f) {
+        } }["car+cdr"];
+        const $proc$r = { "car+cdr": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_p_$1160, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_p_$1160, $r } = $f);
           for (;;) switch ($pc) {
@@ -25489,7 +25489,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [$t1, $t2]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["car+cdr"];
         const $proc$js = R.markProcedure($proc, "car+cdr", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25517,7 +25517,7 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "car")).v;
         const W7 = R.primitiveCell("car"), P7 = W7.primitive;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "error")).v;
-        function $proc(s_l_$1161, s_k_$1162) {
+        const $proc = { "take": function (s_l_$1161, s_k_$1162) {
           let $t0, $t1, $t2, s_l_$1164, s_k_$1165, s_acc_$1166, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 2) R.wrongArity("take", 2, false, arguments.length);
           const $d = $stack.room - 26;
@@ -25555,8 +25555,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["take"];
+        const $proc$r = { "take": function ($pc, $f) {
           let $t0, $t1, $t2, s_l_$1164, s_k_$1165, s_acc_$1166, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$1161, s_k_$1162, $r;
           ({ $t0, $t1, $t2, s_l_$1164, s_k_$1165, s_acc_$1166, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_l_$1161, s_k_$1162, $r } = $f);
           const $d = $stack.room - 26;
@@ -25601,7 +25601,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, ["take: list has fewer elements than requested", s_k_$1165]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["take"];
         const $proc$js = R.markProcedure($proc, "take", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25624,7 +25624,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "-")).v;
         const W4 = R.primitiveCell("-"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "error")).v;
-        function $proc(s_l_$1167, s_k_$1168) {
+        const $proc = { "drop": function (s_l_$1167, s_k_$1168) {
           let $t0, $t1, $t2, s_l_$1170, s_k_$1171, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("drop", 2, false, arguments.length);
           const $d = $stack.room - 21;
@@ -25657,8 +25657,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["drop"];
+        const $proc$r = { "drop": function ($pc, $f) {
           let $t0, $t1, $t2, s_l_$1170, s_k_$1171, $t3, $t4, $t5, $t6, $t7, $t8, s_l_$1167, s_k_$1168, $r;
           ({ $t0, $t1, $t2, s_l_$1170, s_k_$1171, $t3, $t4, $t5, $t6, $t7, $t8, s_l_$1167, s_k_$1168, $r } = $f);
           const $d = $stack.room - 21;
@@ -25698,7 +25698,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, ["drop: list has fewer elements than requested", s_k_$1171]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["drop"];
         const $proc$js = R.markProcedure($proc, "drop", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25716,7 +25716,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cdr")).v;
         const W1 = R.primitiveCell("cdr"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "drop")).v;
-        function $proc(s_l_$1172, s_k_$1173) {
+        const $proc = { "take-right": function (s_l_$1172, s_k_$1173) {
           let $t0, $t1, $t2, s_lag_$1175, s_lead_$1176, $t3, $t4, $t5;
           if (arguments.length !== 2) R.wrongArity("take-right", 2, false, arguments.length);
           const $d = $stack.room - 18;
@@ -25742,8 +25742,8 @@ export const LIBRARIES = {
           return s_lag_$1175;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["take-right"];
+        const $proc$r = { "take-right": function ($pc, $f) {
           let $t0, $t1, $t2, s_lag_$1175, s_lead_$1176, $t3, $t4, $t5, s_l_$1172, s_k_$1173, $r;
           ({ $t0, $t1, $t2, s_lag_$1175, s_lead_$1176, $t3, $t4, $t5, s_l_$1172, s_k_$1173, $r } = $f);
           const $d = $stack.room - 18;
@@ -25776,7 +25776,7 @@ export const LIBRARIES = {
                 return s_lag_$1175;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["take-right"];
         const $proc$js = R.markProcedure($proc, "take-right", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25799,7 +25799,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("car"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "reverse")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "drop")).v;
-        function $proc(s_l_$1177, s_k_$1178) {
+        const $proc = { "drop-right": function (s_l_$1177, s_k_$1178) {
           let $t0, $t1, $t2, s_lag_$1180, s_lead_$1181, s_acc_$1182, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("drop-right", 2, false, arguments.length);
           const $d = $stack.room - 23;
@@ -25830,8 +25830,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_acc_$1182); } return $tailCall($t8, [s_acc_$1182]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["drop-right"];
+        const $proc$r = { "drop-right": function ($pc, $f) {
           let $t0, $t1, $t2, s_lag_$1180, s_lead_$1181, s_acc_$1182, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$1177, s_k_$1178, $r;
           ({ $t0, $t1, $t2, s_lag_$1180, s_lead_$1181, s_acc_$1182, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$1177, s_k_$1178, $r } = $f);
           const $d = $stack.room - 23;
@@ -25869,7 +25869,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_acc_$1182]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["drop-right"];
         const $proc$js = R.markProcedure($proc, "drop-right", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25883,14 +25883,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "take")).v;
-        function $proc(s_l_$1183, s_k_$1184) {
+        const $proc = { "take!": function (s_l_$1183, s_k_$1184) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("take!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_l_$1183, s_k_$1184); } return $tailCall($t0, [s_l_$1183, s_k_$1184]);
-        }
-        function $proc$r($pc, $f) {
+        } }["take!"];
+        const $proc$r = { "take!": function ($pc, $f) {
           let $t0, $t1, s_l_$1183, s_k_$1184, $r;
           ({ $t0, $t1, s_l_$1183, s_k_$1184, $r } = $f);
           for (;;) switch ($pc) {
@@ -25899,7 +25899,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_l_$1183, s_k_$1184]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["take!"];
         const $proc$js = R.markProcedure($proc, "take!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25913,14 +25913,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "drop-right")).v;
-        function $proc(s_l_$1185, s_k_$1186) {
+        const $proc = { "drop-right!": function (s_l_$1185, s_k_$1186) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("drop-right!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_l_$1185, s_k_$1186); } return $tailCall($t0, [s_l_$1185, s_k_$1186]);
-        }
-        function $proc$r($pc, $f) {
+        } }["drop-right!"];
+        const $proc$r = { "drop-right!": function ($pc, $f) {
           let $t0, $t1, s_l_$1185, s_k_$1186, $r;
           ({ $t0, $t1, s_l_$1185, s_k_$1186, $r } = $f);
           for (;;) switch ($pc) {
@@ -25929,7 +25929,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_l_$1185, s_k_$1186]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["drop-right!"];
         const $proc$js = R.markProcedure($proc, "drop-right!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -25945,7 +25945,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "take")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "drop")).v;
-        function $proc(s_l_$1187, s_k_$1188) {
+        const $proc = { "split-at": function (s_l_$1187, s_k_$1188) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("split-at", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -25967,8 +25967,8 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t0, $t3 }); return $UNWIND; }
           $t7 = $t0;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8($t3, $t6); } return $tailCall($t7, [$t3, $t6]);
-        }
-        function $proc$r($pc, $f) {
+        } }["split-at"];
+        const $proc$r = { "split-at": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_l_$1187, s_k_$1188, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_l_$1187, s_k_$1188, $r } = $f);
           const $d = $stack.room - 19;
@@ -26001,7 +26001,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [$t3, $t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["split-at"];
         const $proc$js = R.markProcedure($proc, "split-at", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26015,14 +26015,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "split-at")).v;
-        function $proc(s_l_$1189, s_k_$1190) {
+        const $proc = { "split-at!": function (s_l_$1189, s_k_$1190) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("split-at!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_l_$1189, s_k_$1190); } return $tailCall($t0, [s_l_$1189, s_k_$1190]);
-        }
-        function $proc$r($pc, $f) {
+        } }["split-at!"];
+        const $proc$r = { "split-at!": function ($pc, $f) {
           let $t0, $t1, s_l_$1189, s_k_$1190, $r;
           ({ $t0, $t1, s_l_$1189, s_k_$1190, $r } = $f);
           for (;;) switch ($pc) {
@@ -26031,7 +26031,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_l_$1189, s_k_$1190]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["split-at!"];
         const $proc$js = R.markProcedure($proc, "split-at!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26051,7 +26051,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
-        function $proc(s_l_$1191) {
+        const $proc = { "last-pair": function (s_l_$1191) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_l_$1193, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("last-pair", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -26083,8 +26083,8 @@ export const LIBRARIES = {
           return s_l_$1193;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["last-pair"];
+        const $proc$r = { "last-pair": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_l_$1193, $t6, $t7, $t8, s_l_$1191, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_l_$1193, $t6, $t7, $t8, s_l_$1191, $r } = $f);
           const $d = $stack.room - 19;
@@ -26126,7 +26126,7 @@ export const LIBRARIES = {
                 return s_l_$1193;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["last-pair"];
         const $proc$js = R.markProcedure($proc, "last-pair", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26147,7 +26147,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "car")).v;
         const W3 = R.primitiveCell("car"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "last-pair")).v;
-        function $proc(s_l_$1194) {
+        const $proc = { "last": function (s_l_$1194) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 1) R.wrongArity("last", 1, false, arguments.length);
           const $d = $stack.room - 19;
@@ -26176,8 +26176,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 5, {  }); return $UNWIND; }
           $t9 = (W3.intact || (C3.v ?? G3()) === P3) && ($t8 instanceof R.Cons) ? ($t8.car) : R.callBinding((C3.v ?? G3()), [$t8]);
           return $t9;
-        }
-        function $proc$r($pc, $f) {
+        } }["last"];
+        const $proc$r = { "last": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$1194, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_l_$1194, $r } = $f);
           const $d = $stack.room - 19;
@@ -26220,7 +26220,7 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["last"];
         const $proc$js = R.markProcedure($proc, "last", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26242,7 +26242,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("+"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "eq?")).v;
         const W4 = R.primitiveCell("eq?"), P4 = W4.primitive;
-        function $proc(s_x_$1195) {
+        const $proc = { "length+": function (s_x_$1195) {
           let s_slow_$1197, s_fast_$1198, s_n_$1199, $t0, $t1, $t2, s_fast_$1200, $t3, s_n_$1201, $t4, $t5, $t6, s_fast_$1202, $t7, s_slow_$1203, $t8, s_n_$1204, $t9, $t10, $t11, $t12;
           if (arguments.length !== 1) R.wrongArity("length+", 1, false, arguments.length);
           s_slow_$1197 = s_x_$1195;
@@ -26284,8 +26284,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["length+"];
+        const $proc$r = { "length+": function ($pc, $f) {
           let s_slow_$1197, s_fast_$1198, s_n_$1199, $t0, $t1, $t2, s_fast_$1200, $t3, s_n_$1201, $t4, $t5, $t6, s_fast_$1202, $t7, s_slow_$1203, $t8, s_n_$1204, $t9, $t10, $t11, $t12, s_x_$1195, $r;
           ({ s_slow_$1197, s_fast_$1198, s_n_$1199, $t0, $t1, $t2, s_fast_$1200, $t3, s_n_$1201, $t4, $t5, $t6, s_fast_$1202, $t7, s_slow_$1203, $t8, s_n_$1204, $t9, $t10, $t11, $t12, s_x_$1195, $r } = $f);
           for (;;) switch ($pc) {
@@ -26331,7 +26331,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["length+"];
         const $proc$js = R.markProcedure($proc, "length+", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26346,14 +26346,14 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reduce-right")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "append")).v;
-        function $proc(s_lists_$1205) {
+        const $proc = { "concatenate": function (s_lists_$1205) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("concatenate", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), null, s_lists_$1205); } return $tailCall($t0, [(C1.v ?? G1()), null, s_lists_$1205]);
-        }
-        function $proc$r($pc, $f) {
+        } }["concatenate"];
+        const $proc$r = { "concatenate": function ($pc, $f) {
           let $t0, $t1, s_lists_$1205, $r;
           ({ $t0, $t1, s_lists_$1205, $r } = $f);
           for (;;) switch ($pc) {
@@ -26362,7 +26362,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), null, s_lists_$1205]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["concatenate"];
         const $proc$js = R.markProcedure($proc, "concatenate", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26376,14 +26376,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "concatenate")).v;
-        function $proc(s_lists_$1206) {
+        const $proc = { "concatenate!": function (s_lists_$1206) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("concatenate!", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_lists_$1206); } return $tailCall($t0, [s_lists_$1206]);
-        }
-        function $proc$r($pc, $f) {
+        } }["concatenate!"];
+        const $proc$r = { "concatenate!": function ($pc, $f) {
           let $t0, $t1, s_lists_$1206, $r;
           ({ $t0, $t1, s_lists_$1206, $r } = $f);
           for (;;) switch ($pc) {
@@ -26392,7 +26392,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_lists_$1206]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["concatenate!"];
         const $proc$js = R.markProcedure($proc, "concatenate!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26406,14 +26406,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "concatenate")).v;
-        function $proc(...s_lists_$1207$raw) {
+        const $proc = { "append!": function (...s_lists_$1207$raw) {
           let $t0, $t1;
           const $d = $stack.room - 11 - s_lists_$1207$raw.length;
           let s_lists_$1207 = R.listFrom(s_lists_$1207$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_lists_$1207); } return $tailCall($t0, [s_lists_$1207]);
-        }
-        function $proc$r($pc, $f) {
+        } }["append!"];
+        const $proc$r = { "append!": function ($pc, $f) {
           let $t0, $t1, s_lists_$1207, $r;
           ({ $t0, $t1, s_lists_$1207, $r } = $f);
           for (;;) switch ($pc) {
@@ -26422,7 +26422,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_lists_$1207]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append!"];
         const $proc$js = R.markProcedure($proc, "append!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26436,14 +26436,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reverse")).v;
-        function $proc(s_l_$1208) {
+        const $proc = { "reverse!": function (s_l_$1208) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("reverse!", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_l_$1208); } return $tailCall($t0, [s_l_$1208]);
-        }
-        function $proc$r($pc, $f) {
+        } }["reverse!"];
+        const $proc$r = { "reverse!": function ($pc, $f) {
           let $t0, $t1, s_l_$1208, $r;
           ({ $t0, $t1, s_l_$1208, $r } = $f);
           for (;;) switch ($pc) {
@@ -26452,7 +26452,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_l_$1208]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["reverse!"];
         const $proc$js = R.markProcedure($proc, "reverse!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26468,14 +26468,14 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "fold")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cons")).v;
         const W1 = R.primitiveCell("cons"), P1 = W1.primitive;
-        function $proc(s_rev_2dhead_$1209, s_tail_$1210) {
+        const $proc = { "append-reverse": function (s_rev_2dhead_$1209, s_tail_$1210) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("append-reverse", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_tail_$1210, s_rev_2dhead_$1209); } return $tailCall($t0, [(C1.v ?? G1()), s_tail_$1210, s_rev_2dhead_$1209]);
-        }
-        function $proc$r($pc, $f) {
+        } }["append-reverse"];
+        const $proc$r = { "append-reverse": function ($pc, $f) {
           let $t0, $t1, s_rev_2dhead_$1209, s_tail_$1210, $r;
           ({ $t0, $t1, s_rev_2dhead_$1209, s_tail_$1210, $r } = $f);
           for (;;) switch ($pc) {
@@ -26484,7 +26484,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_tail_$1210, s_rev_2dhead_$1209]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append-reverse"];
         const $proc$js = R.markProcedure($proc, "append-reverse", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26498,14 +26498,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append-reverse")).v;
-        function $proc(s_rev_2dhead_$1211, s_tail_$1212) {
+        const $proc = { "append-reverse!": function (s_rev_2dhead_$1211, s_tail_$1212) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("append-reverse!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_rev_2dhead_$1211, s_tail_$1212); } return $tailCall($t0, [s_rev_2dhead_$1211, s_tail_$1212]);
-        }
-        function $proc$r($pc, $f) {
+        } }["append-reverse!"];
+        const $proc$r = { "append-reverse!": function ($pc, $f) {
           let $t0, $t1, s_rev_2dhead_$1211, s_tail_$1212, $r;
           ({ $t0, $t1, s_rev_2dhead_$1211, s_tail_$1212, $r } = $f);
           for (;;) switch ($pc) {
@@ -26514,7 +26514,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_rev_2dhead_$1211, s_tail_$1212]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append-reverse!"];
         const $proc$js = R.markProcedure($proc, "append-reverse!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26530,15 +26530,15 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "map")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "list")).v;
-        function $proc(s_l_$1213, ...s_lists_$1214$raw) {
+        const $proc = { "zip": function (s_l_$1213, ...s_lists_$1214$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("zip", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_lists_$1214$raw.length;
           let s_lists_$1214 = R.listFrom(s_lists_$1214$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), (C2.v ?? G2()), s_l_$1213, s_lists_$1214); } return $tailCall($t0, [(C1.v ?? G1()), (C2.v ?? G2()), s_l_$1213, s_lists_$1214]);
-        }
-        function $proc$r($pc, $f) {
+        } }["zip"];
+        const $proc$r = { "zip": function ($pc, $f) {
           let $t0, $t1, s_l_$1213, s_lists_$1214, $r;
           ({ $t0, $t1, s_l_$1213, s_lists_$1214, $r } = $f);
           for (;;) switch ($pc) {
@@ -26547,7 +26547,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), (C2.v ?? G2()), s_l_$1213, s_lists_$1214]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["zip"];
         const $proc$js = R.markProcedure($proc, "zip", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26563,14 +26563,14 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "map")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_l_$1215) {
+        const $proc = { "unzip1": function (s_l_$1215) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("unzip1", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_l_$1215); } return $tailCall($t0, [(C1.v ?? G1()), s_l_$1215]);
-        }
-        function $proc$r($pc, $f) {
+        } }["unzip1"];
+        const $proc$r = { "unzip1": function ($pc, $f) {
           let $t0, $t1, s_l_$1215, $r;
           ({ $t0, $t1, s_l_$1215, $r } = $f);
           for (;;) switch ($pc) {
@@ -26579,7 +26579,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_l_$1215]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["unzip1"];
         const $proc$js = R.markProcedure($proc, "unzip1", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26597,7 +26597,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cadr")).v;
-        function $proc(s_l_$1216) {
+        const $proc = { "unzip2": function (s_l_$1216) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("unzip2", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -26619,8 +26619,8 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t0, $t3 }); return $UNWIND; }
           $t7 = $t0;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8($t3, $t6); } return $tailCall($t7, [$t3, $t6]);
-        }
-        function $proc$r($pc, $f) {
+        } }["unzip2"];
+        const $proc$r = { "unzip2": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_l_$1216, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_l_$1216, $r } = $f);
           const $d = $stack.room - 18;
@@ -26653,7 +26653,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [$t3, $t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["unzip2"];
         const $proc$js = R.markProcedure($proc, "unzip2", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26672,7 +26672,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cadr")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "caddr")).v;
-        function $proc(s_l_$1217) {
+        const $proc = { "unzip3": function (s_l_$1217) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("unzip3", 1, false, arguments.length);
           const $d = $stack.room - 21;
@@ -26701,8 +26701,8 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 3, { $t0, $t3, $t6 }); return $UNWIND; }
           $t10 = $t0;
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11($t3, $t6, $t9); } return $tailCall($t10, [$t3, $t6, $t9]);
-        }
-        function $proc$r($pc, $f) {
+        } }["unzip3"];
+        const $proc$r = { "unzip3": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_l_$1217, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_l_$1217, $r } = $f);
           const $d = $stack.room - 21;
@@ -26746,7 +26746,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [$t3, $t6, $t9]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["unzip3"];
         const $proc$js = R.markProcedure($proc, "unzip3", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26766,7 +26766,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cadr")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "caddr")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cadddr")).v;
-        function $proc(s_l_$1218) {
+        const $proc = { "unzip4": function (s_l_$1218) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 1) R.wrongArity("unzip4", 1, false, arguments.length);
           const $d = $stack.room - 24;
@@ -26802,8 +26802,8 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 4, { $t0, $t3, $t6, $t9 }); return $UNWIND; }
           $t13 = $t0;
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14($t3, $t6, $t9, $t12); } return $tailCall($t13, [$t3, $t6, $t9, $t12]);
-        }
-        function $proc$r($pc, $f) {
+        } }["unzip4"];
+        const $proc$r = { "unzip4": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_l_$1218, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_l_$1218, $r } = $f);
           const $d = $stack.room - 24;
@@ -26858,7 +26858,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [$t3, $t6, $t9, $t12]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["unzip4"];
         const $proc$js = R.markProcedure($proc, "unzip4", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -26879,7 +26879,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "caddr")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cadddr")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "fifth")).v;
-        function $proc(s_l_$1219) {
+        const $proc = { "unzip5": function (s_l_$1219) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17;
           if (arguments.length !== 1) R.wrongArity("unzip5", 1, false, arguments.length);
           const $d = $stack.room - 27;
@@ -26922,8 +26922,8 @@ export const LIBRARIES = {
           if ($t15 === $UNWIND) { R.reify($proc$r, 5, { $t0, $t3, $t6, $t9, $t12 }); return $UNWIND; }
           $t16 = $t0;
           if ($d > 0 && ($t17 = $t16?.[$RAW] ?? $t16)?.[$PRIM] === true) { $stack.room = $d; return $t17($t3, $t6, $t9, $t12, $t15); } return $tailCall($t16, [$t3, $t6, $t9, $t12, $t15]);
-        }
-        function $proc$r($pc, $f) {
+        } }["unzip5"];
+        const $proc$r = { "unzip5": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$1219, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_l_$1219, $r } = $f);
           const $d = $stack.room - 27;
@@ -26989,7 +26989,7 @@ export const LIBRARIES = {
                 return $tailCall($t16, [$t3, $t6, $t9, $t12, $t15]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["unzip5"];
         const $proc$js = R.markProcedure($proc, "unzip5", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -27010,7 +27010,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "+")).v;
         const W5 = R.primitiveCell("+"), P5 = W5.primitive;
         function $mk$fn3(s_pred_$1220) {
-          function $fn3(...s_args_$1223$raw) {
+          const $fn3 = { "anonymous": function (...s_args_$1223$raw) {
           let $t0, $t1, $t2, s_n_$1224, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           const $d = $stack.room - 21 - s_args_$1223$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($fn3$js, [...s_args_$1223$raw]);
@@ -27044,9 +27044,9 @@ export const LIBRARIES = {
         } else {
           return s_n_$1224;
         }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E, true);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_n_$1224, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_args_$1223, $r;
           ({ $t0, $t1, $t2, s_n_$1224, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_args_$1223, $r } = $f);
           const $d = $stack.room - 21;
@@ -27095,11 +27095,11 @@ export const LIBRARIES = {
                 return s_n_$1224;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_pred_$1220, s_l_$1221, ...s_lists_$1222$raw) {
+        const $proc = { "count": function (s_pred_$1220, s_l_$1221, ...s_lists_$1222$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("count", 2, true, arguments.length);
           const $d = $stack.room - 17 - s_lists_$1222$raw.length;
@@ -27116,8 +27116,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_pred_$1220);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6((C2.v ?? G2()), $t4, 0n, s_l_$1221, s_lists_$1222); } return $tailCall($t5, [(C2.v ?? G2()), $t4, 0n, s_l_$1221, s_lists_$1222]);
-        }
-        function $proc$r($pc, $f) {
+        } }["count"];
+        const $proc$r = { "count": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$1220, s_l_$1221, s_lists_$1222, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$1220, s_l_$1221, s_lists_$1222, $r } = $f);
           const $d = $stack.room - 17;
@@ -27140,7 +27140,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [(C2.v ?? G2()), $t4, 0n, s_l_$1221, s_lists_$1222]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["count"];
         const $proc$js = R.markProcedure($proc, "count", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -27169,7 +27169,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "list")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "cons")).v;
         const W10 = R.primitiveCell("cons"), P10 = W10.primitive;
-        function $proc(s_kons_$1225, s_knil_$1226, s_l_$1227, ...s_lists_$1228$raw) {
+        const $proc = { "fold": function (s_kons_$1225, s_knil_$1226, s_l_$1227, ...s_lists_$1228$raw) {
           let $t0, $t1, $t2, $t3, s_l_$1230, s_acc_$1231, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_ls_$1233, s_acc_$1234, $t11, $t12, $t13, s_cars_$1235, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27;
           if (arguments.length < 3) R.wrongArity("fold", 3, true, arguments.length);
           const $d = $stack.room - 45 - s_lists_$1228$raw.length;
@@ -27258,8 +27258,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["fold"];
+        const $proc$r = { "fold": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_l_$1230, s_acc_$1231, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_ls_$1233, s_acc_$1234, $t11, $t12, $t13, s_cars_$1235, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_kons_$1225, s_knil_$1226, s_l_$1227, s_lists_$1228, $r;
           ({ $t0, $t1, $t2, $t3, s_l_$1230, s_acc_$1231, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_ls_$1233, s_acc_$1234, $t11, $t12, $t13, s_cars_$1235, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_kons_$1225, s_knil_$1226, s_l_$1227, s_lists_$1228, $r } = $f);
           const $d = $stack.room - 45;
@@ -27378,7 +27378,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["fold"];
         const $proc$js = R.markProcedure($proc, "fold", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -27401,7 +27401,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "list")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "map")).v;
         function $mk$fn11(s_kons_$1236) {
-          function $fn11(s_group_$1240, s_acc_$1241) {
+          const $fn11 = { "anonymous": function (s_group_$1240, s_acc_$1241) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -27424,9 +27424,9 @@ export const LIBRARIES = {
           if ($t7 === $UNWIND) { R.reify($fn11$r, 2, { $t0 }); return $UNWIND; }
           $t8 = $t0;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_kons_$1236, $t7); } return $tailCall($t8, [s_kons_$1236, $t7]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_group_$1240, s_acc_$1241, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_group_$1240, s_acc_$1241, $r } = $f);
           const $d = $stack.room - 20;
@@ -27460,11 +27460,11 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_kons_$1236, $t7]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s_kons_$1236, s_knil_$1237, s_l_$1238, ...s_lists_$1239$raw) {
+        const $proc = { "fold-right": function (s_kons_$1236, s_knil_$1237, s_l_$1238, ...s_lists_$1239$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21;
           if (arguments.length < 3) R.wrongArity("fold-right", 3, true, arguments.length);
           const $d = $stack.room - 33 - s_lists_$1239$raw.length;
@@ -27511,8 +27511,8 @@ export const LIBRARIES = {
           $t20 = $t10;
           if ($d > 0 && ($t21 = $t20?.[$RAW] ?? $t20)?.[$PRIM] === true) { $stack.room = $d; return $t21($t12, s_knil_$1237, $t19); } return $tailCall($t20, [$t12, s_knil_$1237, $t19]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["fold-right"];
+        const $proc$r = { "fold-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_kons_$1236, s_knil_$1237, s_l_$1238, s_lists_$1239, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_kons_$1236, s_knil_$1237, s_l_$1238, s_lists_$1239, $r } = $f);
           const $d = $stack.room - 33;
@@ -27577,7 +27577,7 @@ export const LIBRARIES = {
                 return $tailCall($t20, [$t12, s_knil_$1237, $t19]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["fold-right"];
         const $proc$js = R.markProcedure($proc, "fold-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -27598,7 +27598,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "list")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cons")).v;
         const W6 = R.primitiveCell("cons"), P6 = W6.primitive;
-        function $proc(s_kons_$1242, s_knil_$1243, s_l_$1244, ...s_lists_$1245$raw) {
+        const $proc = { "pair-fold": function (s_kons_$1242, s_knil_$1243, s_l_$1244, ...s_lists_$1245$raw) {
           let $t0, $t1, $t2, $t3, s_ls_$1247, s_acc_$1248, $t4, $t5, $t6, $t7, $t8, $t9, s_next_$1249, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21;
           if (arguments.length < 3) R.wrongArity("pair-fold", 3, true, arguments.length);
           const $d = $stack.room - 37 - s_lists_$1245$raw.length;
@@ -27663,8 +27663,8 @@ export const LIBRARIES = {
           return s_acc_$1248;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["pair-fold"];
+        const $proc$r = { "pair-fold": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_ls_$1247, s_acc_$1248, $t4, $t5, $t6, $t7, $t8, $t9, s_next_$1249, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_kons_$1242, s_knil_$1243, s_l_$1244, s_lists_$1245, $r;
           ({ $t0, $t1, $t2, $t3, s_ls_$1247, s_acc_$1248, $t4, $t5, $t6, $t7, $t8, $t9, s_next_$1249, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_kons_$1242, s_knil_$1243, s_l_$1244, s_lists_$1245, $r } = $f);
           const $d = $stack.room - 37;
@@ -27755,7 +27755,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["pair-fold"];
         const $proc$js = R.markProcedure($proc, "pair-fold", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -27778,7 +27778,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "append")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "list")).v;
         function $mk$fn11(s_kons_$1250) {
-          function $fn11(s_group_$1257, s_acc_$1258) {
+          const $fn11 = { "anonymous": function (s_group_$1257, s_acc_$1258) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -27801,9 +27801,9 @@ export const LIBRARIES = {
           if ($t7 === $UNWIND) { R.reify($fn11$r, 2, { $t0 }); return $UNWIND; }
           $t8 = $t0;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_kons_$1250, $t7); } return $tailCall($t8, [s_kons_$1250, $t7]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_group_$1257, s_acc_$1258, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_group_$1257, s_acc_$1258, $r } = $f);
           const $d = $stack.room - 20;
@@ -27837,11 +27837,11 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_kons_$1250, $t7]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s_kons_$1250, s_knil_$1251, s_l_$1252, ...s_lists_$1253$raw) {
+        const $proc = { "pair-fold-right": function (s_kons_$1250, s_knil_$1251, s_l_$1252, ...s_lists_$1253$raw) {
           let $t0, $t1, $t2, $t3, s_ls_$1255, s_tails_$1256, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14;
           if (arguments.length < 3) R.wrongArity("pair-fold-right", 3, true, arguments.length);
           const $d = $stack.room - 28 - s_lists_$1253$raw.length;
@@ -27884,8 +27884,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14($t12, s_knil_$1251, s_tails_$1256); } return $tailCall($t13, [$t12, s_knil_$1251, s_tails_$1256]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["pair-fold-right"];
+        const $proc$r = { "pair-fold-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_ls_$1255, s_tails_$1256, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, s_kons_$1250, s_knil_$1251, s_l_$1252, s_lists_$1253, $r;
           ({ $t0, $t1, $t2, $t3, s_ls_$1255, s_tails_$1256, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, s_kons_$1250, s_knil_$1251, s_l_$1252, s_lists_$1253, $r } = $f);
           const $d = $stack.room - 28;
@@ -27942,7 +27942,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["pair-fold-right"];
         const $proc$js = R.markProcedure($proc, "pair-fold-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -27963,7 +27963,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("car"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cdr")).v;
         const W4 = R.primitiveCell("cdr"), P4 = W4.primitive;
-        function $proc(s_f_$1259, s_ridentity_$1260, s_l_$1261) {
+        const $proc = { "reduce": function (s_f_$1259, s_ridentity_$1260, s_l_$1261) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 3) R.wrongArity("reduce", 3, false, arguments.length);
           const $d = $stack.room - 20;
@@ -27986,8 +27986,8 @@ export const LIBRARIES = {
         } else {
           return s_ridentity_$1260;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["reduce"];
+        const $proc$r = { "reduce": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_f_$1259, s_ridentity_$1260, s_l_$1261, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_f_$1259, s_ridentity_$1260, s_l_$1261, $r } = $f);
           const $d = $stack.room - 20;
@@ -28017,7 +28017,7 @@ export const LIBRARIES = {
                 return s_ridentity_$1260;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["reduce"];
         const $proc$js = R.markProcedure($proc, "reduce", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28039,7 +28039,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_f_$1262, s_ridentity_$1263, s_l_$1264) {
+        const $proc = { "reduce-right": function (s_f_$1262, s_ridentity_$1263, s_l_$1264) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_backwards_$1265, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 3) R.wrongArity("reduce-right", 3, false, arguments.length);
           const $d = $stack.room - 24;
@@ -28070,8 +28070,8 @@ export const LIBRARIES = {
         } else {
           return s_ridentity_$1263;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["reduce-right"];
+        const $proc$r = { "reduce-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_backwards_$1265, $t7, $t8, $t9, $t10, $t11, s_f_$1262, s_ridentity_$1263, s_l_$1264, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_backwards_$1265, $t7, $t8, $t9, $t10, $t11, s_f_$1262, s_ridentity_$1263, s_l_$1264, $r } = $f);
           const $d = $stack.room - 24;
@@ -28113,7 +28113,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [s_f_$1262, $t8, $t9]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["reduce-right"];
         const $proc$js = R.markProcedure($proc, "reduce-right", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28133,7 +28133,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cons")).v;
         const W3 = R.primitiveCell("cons"), P3 = W3.primitive;
-        function $proc(s_p_$1266, s_f_$1267, s_g_$1268, s_seed_$1269, ...s_tail_2dgen_$1270$raw) {
+        const $proc = { "unfold": function (s_p_$1266, s_f_$1267, s_g_$1268, s_seed_$1269, ...s_tail_2dgen_$1270$raw) {
           let s_seed_$1272, s_acc_$1273, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           if (arguments.length < 4) R.wrongArity("unfold", 4, true, arguments.length);
           const $d = $stack.room - 34 - s_tail_2dgen_$1270$raw.length;
@@ -28188,8 +28188,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["unfold"];
+        const $proc$r = { "unfold": function ($pc, $f) {
           let s_seed_$1272, s_acc_$1273, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_p_$1266, s_f_$1267, s_g_$1268, s_seed_$1269, s_tail_2dgen_$1270, $r;
           ({ s_seed_$1272, s_acc_$1273, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_p_$1266, s_f_$1267, s_g_$1268, s_seed_$1269, s_tail_2dgen_$1270, $r } = $f);
           const $d = $stack.room - 34;
@@ -28265,7 +28265,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["unfold"];
         const $proc$js = R.markProcedure($proc, "unfold", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28284,7 +28284,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
-        function $proc(s_p_$1274, s_f_$1275, s_g_$1276, s_seed_$1277, ...s_tail_$1278$raw) {
+        const $proc = { "unfold-right": function (s_p_$1274, s_f_$1275, s_g_$1276, s_seed_$1277, ...s_tail_$1278$raw) {
           let $t0, $t1, $t2, s_seed_$1280, s_acc_$1281, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length < 4) R.wrongArity("unfold-right", 4, true, arguments.length);
           const $d = $stack.room - 28 - s_tail_$1278$raw.length;
@@ -28330,8 +28330,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["unfold-right"];
+        const $proc$r = { "unfold-right": function ($pc, $f) {
           let $t0, $t1, $t2, s_seed_$1280, s_acc_$1281, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_p_$1274, s_f_$1275, s_g_$1276, s_seed_$1277, s_tail_$1278, $r;
           ({ $t0, $t1, $t2, s_seed_$1280, s_acc_$1281, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_p_$1274, s_f_$1275, s_g_$1276, s_seed_$1277, s_tail_$1278, $r } = $f);
           const $d = $stack.room - 28;
@@ -28394,7 +28394,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["unfold-right"];
         const $proc$js = R.markProcedure($proc, "unfold-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28411,7 +28411,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "concatenate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "map-in-order")).v;
-        function $proc(s_f_$1282, s_l_$1283, ...s_lists_$1284$raw) {
+        const $proc = { "append-map": function (s_f_$1282, s_l_$1283, ...s_lists_$1284$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length < 2) R.wrongArity("append-map", 2, true, arguments.length);
           const $d = $stack.room - 20 - s_lists_$1284$raw.length;
@@ -28435,8 +28435,8 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t3 }); return $UNWIND; }
           $t7 = $t3;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8($t6); } return $tailCall($t7, [$t6]);
-        }
-        function $proc$r($pc, $f) {
+        } }["append-map"];
+        const $proc$r = { "append-map": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_f_$1282, s_l_$1283, s_lists_$1284, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_f_$1282, s_l_$1283, s_lists_$1284, $r } = $f);
           const $d = $stack.room - 20;
@@ -28470,7 +28470,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [$t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append-map"];
         const $proc$js = R.markProcedure($proc, "append-map", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28485,15 +28485,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "append-map")).v;
-        function $proc(s_f_$1285, s_l_$1286, ...s_lists_$1287$raw) {
+        const $proc = { "append-map!": function (s_f_$1285, s_l_$1286, ...s_lists_$1287$raw) {
           let $t0, $t1;
           if (arguments.length < 2) R.wrongArity("append-map!", 2, true, arguments.length);
           const $d = $stack.room - 13 - s_lists_$1287$raw.length;
           let s_lists_$1287 = R.listFrom(s_lists_$1287$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_f_$1285, s_l_$1286, s_lists_$1287); } return $tailCall($t0, [(C1.v ?? G1()), s_f_$1285, s_l_$1286, s_lists_$1287]);
-        }
-        function $proc$r($pc, $f) {
+        } }["append-map!"];
+        const $proc$r = { "append-map!": function ($pc, $f) {
           let $t0, $t1, s_f_$1285, s_l_$1286, s_lists_$1287, $r;
           ({ $t0, $t1, s_f_$1285, s_l_$1286, s_lists_$1287, $r } = $f);
           for (;;) switch ($pc) {
@@ -28502,7 +28502,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_f_$1285, s_l_$1286, s_lists_$1287]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append-map!"];
         const $proc$js = R.markProcedure($proc, "append-map!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28521,7 +28521,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "apply")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cons")).v;
         const W4 = R.primitiveCell("cons"), P4 = W4.primitive;
-        function $proc(s_f_$1288, s_l_$1289, ...s_lists_$1290$raw) {
+        const $proc = { "pair-for-each": function (s_f_$1288, s_l_$1289, ...s_lists_$1290$raw) {
           let $t0, $t1, $t2, $t3, s_ls_$1292, $t4, $t5, $t6, $t7, $t8, $t9, s_next_$1293, $t10, $t11, $t12, $t13;
           if (arguments.length < 2) R.wrongArity("pair-for-each", 2, true, arguments.length);
           const $d = $stack.room - 27 - s_lists_$1290$raw.length;
@@ -28569,8 +28569,8 @@ export const LIBRARIES = {
           return undefined;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["pair-for-each"];
+        const $proc$r = { "pair-for-each": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_ls_$1292, $t4, $t5, $t6, $t7, $t8, $t9, s_next_$1293, $t10, $t11, $t12, $t13, s_f_$1288, s_l_$1289, s_lists_$1290, $r;
           ({ $t0, $t1, $t2, $t3, s_ls_$1292, $t4, $t5, $t6, $t7, $t8, $t9, s_next_$1293, $t10, $t11, $t12, $t13, s_f_$1288, s_l_$1289, s_lists_$1290, $r } = $f);
           const $d = $stack.room - 27;
@@ -28636,7 +28636,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["pair-for-each"];
         const $proc$js = R.markProcedure($proc, "pair-for-each", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28654,12 +28654,12 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "map-in-order")).v;
         function $mk$fn4() {
-          function $fn4(s_x_$1297) {
+          const $fn4 = { "anonymous": function (s_x_$1297) {
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           return s_x_$1297;
-        }
+        } }["anonymous"];
           const $fn4$js = R.markProcedure($fn4, "anonymous", E);
-          function $fn4$r($pc, $f) {
+          const $fn4$r = { "anonymous": function ($pc, $f) {
           let s_x_$1297, $r;
           ({ s_x_$1297, $r } = $f);
           for (;;) switch ($pc) {
@@ -28667,11 +28667,11 @@ export const LIBRARIES = {
                 return s_x_$1297;
               default: throw new Error('$fn4$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn4$js.$resume = $fn4$r;
           return $fn4$js;
         }
-        function $proc(s_f_$1294, s_l_$1295, ...s_lists_$1296$raw) {
+        const $proc = { "filter-map": function (s_f_$1294, s_l_$1295, ...s_lists_$1296$raw) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 2) R.wrongArity("filter-map", 2, true, arguments.length);
           const $d = $stack.room - 21 - s_lists_$1296$raw.length;
@@ -28696,8 +28696,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 2, { $t3, $t5 }); return $UNWIND; }
           $t9 = $t3;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t5, $t8); } return $tailCall($t9, [$t5, $t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["filter-map"];
+        const $proc$r = { "filter-map": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_f_$1294, s_l_$1295, s_lists_$1296, $r;
           ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_f_$1294, s_l_$1295, s_lists_$1296, $r } = $f);
           const $d = $stack.room - 21;
@@ -28732,7 +28732,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t5, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["filter-map"];
         const $proc$js = R.markProcedure($proc, "filter-map", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28760,7 +28760,7 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cars-of")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "apply")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "cdrs-of")).v;
-        function $proc(s_f_$1298, s_l_$1299, ...s_lists_$1300$raw) {
+        const $proc = { "map-in-order": function (s_f_$1298, s_l_$1299, ...s_lists_$1300$raw) {
           let $t0, $t1, $t2, $t3, s_l_$1302, s_acc_$1303, $t4, $t5, $t6, $t7, $t8, s_y_$1304, $t9, $t10, $t11, $t12, $t13, s_ls_$1306, s_acc_$1307, $t14, $t15, $t16, s_cars_$1308, $t17, $t18, $t19, s_y_$1309, $t20, $t21, $t22, $t23, $t24, $t25;
           if (arguments.length < 2) R.wrongArity("map-in-order", 2, true, arguments.length);
           const $d = $stack.room - 44 - s_lists_$1300$raw.length;
@@ -28839,8 +28839,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["map-in-order"];
+        const $proc$r = { "map-in-order": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_l_$1302, s_acc_$1303, $t4, $t5, $t6, $t7, $t8, s_y_$1304, $t9, $t10, $t11, $t12, $t13, s_ls_$1306, s_acc_$1307, $t14, $t15, $t16, s_cars_$1308, $t17, $t18, $t19, s_y_$1309, $t20, $t21, $t22, $t23, $t24, $t25, s_f_$1298, s_l_$1299, s_lists_$1300, $r;
           ({ $t0, $t1, $t2, $t3, s_l_$1302, s_acc_$1303, $t4, $t5, $t6, $t7, $t8, s_y_$1304, $t9, $t10, $t11, $t12, $t13, s_ls_$1306, s_acc_$1307, $t14, $t15, $t16, s_cars_$1308, $t17, $t18, $t19, s_y_$1309, $t20, $t21, $t22, $t23, $t24, $t25, s_f_$1298, s_l_$1299, s_lists_$1300, $r } = $f);
           const $d = $stack.room - 44;
@@ -28941,7 +28941,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["map-in-order"];
         const $proc$js = R.markProcedure($proc, "map-in-order", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28956,15 +28956,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "map")).v;
-        function $proc(s_f_$1310, s_l_$1311, ...s_lists_$1312$raw) {
+        const $proc = { "map!": function (s_f_$1310, s_l_$1311, ...s_lists_$1312$raw) {
           let $t0, $t1;
           if (arguments.length < 2) R.wrongArity("map!", 2, true, arguments.length);
           const $d = $stack.room - 13 - s_lists_$1312$raw.length;
           let s_lists_$1312 = R.listFrom(s_lists_$1312$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_f_$1310, s_l_$1311, s_lists_$1312); } return $tailCall($t0, [(C1.v ?? G1()), s_f_$1310, s_l_$1311, s_lists_$1312]);
-        }
-        function $proc$r($pc, $f) {
+        } }["map!"];
+        const $proc$r = { "map!": function ($pc, $f) {
           let $t0, $t1, s_f_$1310, s_l_$1311, s_lists_$1312, $r;
           ({ $t0, $t1, s_f_$1310, s_l_$1311, s_lists_$1312, $r } = $f);
           for (;;) switch ($pc) {
@@ -28973,7 +28973,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_f_$1310, s_l_$1311, s_lists_$1312]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["map!"];
         const $proc$js = R.markProcedure($proc, "map!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -28998,7 +28998,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cons")).v;
         const W6 = R.primitiveCell("cons"), P6 = W6.primitive;
-        function $proc(s_pred_$1313, s_l_$1314) {
+        const $proc = { "filter": function (s_pred_$1313, s_l_$1314) {
           let $t0, $t1, $t2, s_l_$1316, s_acc_$1317, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("filter", 2, false, arguments.length);
           const $d = $stack.room - 27;
@@ -29042,8 +29042,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["filter"];
+        const $proc$r = { "filter": function ($pc, $f) {
           let $t0, $t1, $t2, s_l_$1316, s_acc_$1317, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_pred_$1313, s_l_$1314, $r;
           ({ $t0, $t1, $t2, s_l_$1316, s_acc_$1317, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_pred_$1313, s_l_$1314, $r } = $f);
           const $d = $stack.room - 27;
@@ -29098,7 +29098,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["filter"];
         const $proc$js = R.markProcedure($proc, "filter", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29116,7 +29116,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
         const W2 = R.primitiveCell("not"), P2 = W2.primitive;
         function $mk$fn3(s_pred_$1318) {
-          function $fn3(s_x_$1320) {
+          const $fn3 = { "anonymous": function (s_x_$1320) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -29130,9 +29130,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t2 === false) : R.callBinding((C2.v ?? G2()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1320, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1320, $r } = $f);
           const $d = $stack.room - 13;
@@ -29153,11 +29153,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_pred_$1318, s_l_$1319) {
+        const $proc = { "remove": function (s_pred_$1318, s_l_$1319) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length !== 2) R.wrongArity("remove", 2, false, arguments.length);
           const $d = $stack.room - 16;
@@ -29173,8 +29173,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_pred_$1318);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_l_$1319); } return $tailCall($t5, [$t4, s_l_$1319]);
-        }
-        function $proc$r($pc, $f) {
+        } }["remove"];
+        const $proc$r = { "remove": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$1318, s_l_$1319, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$1318, s_l_$1319, $r } = $f);
           const $d = $stack.room - 16;
@@ -29197,7 +29197,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_l_$1319]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["remove"];
         const $proc$js = R.markProcedure($proc, "remove", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29223,7 +29223,7 @@ export const LIBRARIES = {
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cons")).v;
         const W7 = R.primitiveCell("cons"), P7 = W7.primitive;
-        function $proc(s_pred_$1321, s_l_$1322) {
+        const $proc = { "partition": function (s_pred_$1321, s_l_$1322) {
           let $t0, $t1, $t2, s_l_$1324, s_in_$1325, s_out_$1326, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23;
           if (arguments.length !== 2) R.wrongArity("partition", 2, false, arguments.length);
           const $d = $stack.room - 37;
@@ -29286,8 +29286,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["partition"];
+        const $proc$r = { "partition": function ($pc, $f) {
           let $t0, $t1, $t2, s_l_$1324, s_in_$1325, s_out_$1326, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_pred_$1321, s_l_$1322, $r;
           ({ $t0, $t1, $t2, s_l_$1324, s_in_$1325, s_out_$1326, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_pred_$1321, s_l_$1322, $r } = $f);
           const $d = $stack.room - 37;
@@ -29369,7 +29369,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["partition"];
         const $proc$js = R.markProcedure($proc, "partition", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29383,14 +29383,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "filter")).v;
-        function $proc(s_pred_$1327, s_l_$1328) {
+        const $proc = { "filter!": function (s_pred_$1327, s_l_$1328) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("filter!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_pred_$1327, s_l_$1328); } return $tailCall($t0, [s_pred_$1327, s_l_$1328]);
-        }
-        function $proc$r($pc, $f) {
+        } }["filter!"];
+        const $proc$r = { "filter!": function ($pc, $f) {
           let $t0, $t1, s_pred_$1327, s_l_$1328, $r;
           ({ $t0, $t1, s_pred_$1327, s_l_$1328, $r } = $f);
           for (;;) switch ($pc) {
@@ -29399,7 +29399,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_pred_$1327, s_l_$1328]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["filter!"];
         const $proc$js = R.markProcedure($proc, "filter!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29413,14 +29413,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "remove")).v;
-        function $proc(s_pred_$1329, s_l_$1330) {
+        const $proc = { "remove!": function (s_pred_$1329, s_l_$1330) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("remove!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_pred_$1329, s_l_$1330); } return $tailCall($t0, [s_pred_$1329, s_l_$1330]);
-        }
-        function $proc$r($pc, $f) {
+        } }["remove!"];
+        const $proc$r = { "remove!": function ($pc, $f) {
           let $t0, $t1, s_pred_$1329, s_l_$1330, $r;
           ({ $t0, $t1, s_pred_$1329, s_l_$1330, $r } = $f);
           for (;;) switch ($pc) {
@@ -29429,7 +29429,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_pred_$1329, s_l_$1330]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["remove!"];
         const $proc$js = R.markProcedure($proc, "remove!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29443,14 +29443,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "partition")).v;
-        function $proc(s_pred_$1331, s_l_$1332) {
+        const $proc = { "partition!": function (s_pred_$1331, s_l_$1332) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("partition!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_pred_$1331, s_l_$1332); } return $tailCall($t0, [s_pred_$1331, s_l_$1332]);
-        }
-        function $proc$r($pc, $f) {
+        } }["partition!"];
+        const $proc$r = { "partition!": function ($pc, $f) {
           let $t0, $t1, s_pred_$1331, s_l_$1332, $r;
           ({ $t0, $t1, s_pred_$1331, s_l_$1332, $r } = $f);
           for (;;) switch ($pc) {
@@ -29459,7 +29459,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_pred_$1331, s_l_$1332]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["partition!"];
         const $proc$js = R.markProcedure($proc, "partition!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29479,7 +29479,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
-        function $proc(s_pred_$1333, s_l_$1334) {
+        const $proc = { "find-tail": function (s_pred_$1333, s_l_$1334) {
           let $t0, $t1, $t2, s_l_$1336, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("find-tail", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -29515,8 +29515,8 @@ export const LIBRARIES = {
           return false;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["find-tail"];
+        const $proc$r = { "find-tail": function ($pc, $f) {
           let $t0, $t1, $t2, s_l_$1336, $t3, $t4, $t5, $t6, $t7, $t8, s_pred_$1333, s_l_$1334, $r;
           ({ $t0, $t1, $t2, s_l_$1336, $t3, $t4, $t5, $t6, $t7, $t8, s_pred_$1333, s_l_$1334, $r } = $f);
           const $d = $stack.room - 20;
@@ -29563,7 +29563,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["find-tail"];
         const $proc$js = R.markProcedure($proc, "find-tail", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29579,7 +29579,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "find-tail")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
-        function $proc(s_pred_$1337, s_l_$1338) {
+        const $proc = { "find": function (s_pred_$1337, s_l_$1338) {
           let $t0, $t1, $t2, s_tail_$1339, $t3;
           if (arguments.length !== 2) R.wrongArity("find", 2, false, arguments.length);
           const $d = $stack.room - 15;
@@ -29598,8 +29598,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["find"];
+        const $proc$r = { "find": function ($pc, $f) {
           let $t0, $t1, $t2, s_tail_$1339, $t3, s_pred_$1337, s_l_$1338, $r;
           ({ $t0, $t1, $t2, s_tail_$1339, $t3, s_pred_$1337, s_l_$1338, $r } = $f);
           const $d = $stack.room - 15;
@@ -29625,7 +29625,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["find"];
         const $proc$js = R.markProcedure($proc, "find", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29652,7 +29652,7 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "apply")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "cons")).v;
         const W8 = R.primitiveCell("cons"), P8 = W8.primitive;
-        function $proc(s_pred_$1340, s_l_$1341, ...s_lists_$1342$raw) {
+        const $proc = { "any": function (s_pred_$1340, s_l_$1341, ...s_lists_$1342$raw) {
           let $t0, $t1, $t2, $t3, $t4, s_l_$1344, $t5, $t6, $t7, $t8, $t9, $t10, s_x_$1345, $t11, $t12, $t13, $t14, $t15, s_ls_$1347, $t16, $t17, $t18, s_cars_$1348, $t19, $t20, $t21, s_next_$1349, $t22, $t23, $t24, $t25, $t26, $t27, s_x_$1350, $t28, $t29, $t30;
           if (arguments.length < 2) R.wrongArity("any", 2, true, arguments.length);
           const $d = $stack.room - 48 - s_lists_$1342$raw.length;
@@ -29753,8 +29753,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["any"];
+        const $proc$r = { "any": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_l_$1344, $t5, $t6, $t7, $t8, $t9, $t10, s_x_$1345, $t11, $t12, $t13, $t14, $t15, s_ls_$1347, $t16, $t17, $t18, s_cars_$1348, $t19, $t20, $t21, s_next_$1349, $t22, $t23, $t24, $t25, $t26, $t27, s_x_$1350, $t28, $t29, $t30, s_pred_$1340, s_l_$1341, s_lists_$1342, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_l_$1344, $t5, $t6, $t7, $t8, $t9, $t10, s_x_$1345, $t11, $t12, $t13, $t14, $t15, s_ls_$1347, $t16, $t17, $t18, s_cars_$1348, $t19, $t20, $t21, s_next_$1349, $t22, $t23, $t24, $t25, $t26, $t27, s_x_$1350, $t28, $t29, $t30, s_pred_$1340, s_l_$1341, s_lists_$1342, $r } = $f);
           const $d = $stack.room - 48;
@@ -29881,7 +29881,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["any"];
         const $proc$js = R.markProcedure($proc, "any", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -29910,7 +29910,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "apply")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "cons")).v;
         const W9 = R.primitiveCell("cons"), P9 = W9.primitive;
-        function $proc(s_pred_$1351, s_l_$1352, ...s_lists_$1353$raw) {
+        const $proc = { "every": function (s_pred_$1351, s_l_$1352, ...s_lists_$1353$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_x_$1354, s_l_$1356, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_ls_$1358, $t17, $t18, $t19, s_cars_$1359, $t20, s_x_$1360, $t21, $t22, $t23, s_next_$1361, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32;
           if (arguments.length < 2) R.wrongArity("every", 2, true, arguments.length);
           const $d = $stack.room - 50 - s_lists_$1353$raw.length;
@@ -30013,8 +30013,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["every"];
+        const $proc$r = { "every": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_x_$1354, s_l_$1356, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_ls_$1358, $t17, $t18, $t19, s_cars_$1359, $t20, s_x_$1360, $t21, $t22, $t23, s_next_$1361, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_pred_$1351, s_l_$1352, s_lists_$1353, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_x_$1354, s_l_$1356, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_ls_$1358, $t17, $t18, $t19, s_cars_$1359, $t20, s_x_$1360, $t21, $t22, $t23, s_next_$1361, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_pred_$1351, s_l_$1352, s_lists_$1353, $r } = $f);
           const $d = $stack.room - 50;
@@ -30143,7 +30143,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["every"];
         const $proc$js = R.markProcedure($proc, "every", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30164,7 +30164,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("+"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cons")).v;
         const W5 = R.primitiveCell("cons"), P5 = W5.primitive;
-        function $proc(s_pred_$1362, s_l_$1363, ...s_lists_$1364$raw) {
+        const $proc = { "list-index": function (s_pred_$1362, s_l_$1363, ...s_lists_$1364$raw) {
           let $t0, $t1, $t2, $t3, s_ls_$1366, s_i_$1367, $t4, $t5, $t6, s_cars_$1368, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length < 2) R.wrongArity("list-index", 2, true, arguments.length);
           const $d = $stack.room - 28 - s_lists_$1364$raw.length;
@@ -30217,8 +30217,8 @@ export const LIBRARIES = {
           return false;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["list-index"];
+        const $proc$r = { "list-index": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_ls_$1366, s_i_$1367, $t4, $t5, $t6, s_cars_$1368, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_pred_$1362, s_l_$1363, s_lists_$1364, $r;
           ({ $t0, $t1, $t2, $t3, s_ls_$1366, s_i_$1367, $t4, $t5, $t6, s_cars_$1368, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_pred_$1362, s_l_$1363, s_lists_$1364, $r } = $f);
           const $d = $stack.room - 28;
@@ -30289,7 +30289,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list-index"];
         const $proc$js = R.markProcedure($proc, "list-index", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30312,7 +30312,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cons")).v;
         const W4 = R.primitiveCell("cons"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "reverse")).v;
-        function $proc(s_pred_$1369, s_l_$1370) {
+        const $proc = { "take-while": function (s_pred_$1369, s_l_$1370) {
           let $t0, $t1, $t2, s_l_$1372, s_acc_$1373, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("take-while", 2, false, arguments.length);
           const $d = $stack.room - 26;
@@ -30354,8 +30354,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13(s_acc_$1373); } return $tailCall($t12, [s_acc_$1373]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["take-while"];
+        const $proc$r = { "take-while": function ($pc, $f) {
           let $t0, $t1, $t2, s_l_$1372, s_acc_$1373, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_pred_$1369, s_l_$1370, $r;
           ({ $t0, $t1, $t2, s_l_$1372, s_acc_$1373, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_pred_$1369, s_l_$1370, $r } = $f);
           const $d = $stack.room - 26;
@@ -30411,7 +30411,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [s_acc_$1373]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["take-while"];
         const $proc$js = R.markProcedure($proc, "take-while", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30431,7 +30431,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
-        function $proc(s_pred_$1374, s_l_$1375) {
+        const $proc = { "drop-while": function (s_pred_$1374, s_l_$1375) {
           let $t0, $t1, $t2, s_l_$1377, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("drop-while", 2, false, arguments.length);
           const $d = $stack.room - 21;
@@ -30468,8 +30468,8 @@ export const LIBRARIES = {
           return s_l_$1377;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["drop-while"];
+        const $proc$r = { "drop-while": function ($pc, $f) {
           let $t0, $t1, $t2, s_l_$1377, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_pred_$1374, s_l_$1375, $r;
           ({ $t0, $t1, $t2, s_l_$1377, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_pred_$1374, s_l_$1375, $r } = $f);
           const $d = $stack.room - 21;
@@ -30520,7 +30520,7 @@ export const LIBRARIES = {
                 return s_l_$1377;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["drop-while"];
         const $proc$js = R.markProcedure($proc, "drop-while", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30534,14 +30534,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "take-while")).v;
-        function $proc(s_pred_$1378, s_l_$1379) {
+        const $proc = { "take-while!": function (s_pred_$1378, s_l_$1379) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("take-while!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_pred_$1378, s_l_$1379); } return $tailCall($t0, [s_pred_$1378, s_l_$1379]);
-        }
-        function $proc$r($pc, $f) {
+        } }["take-while!"];
+        const $proc$r = { "take-while!": function ($pc, $f) {
           let $t0, $t1, s_pred_$1378, s_l_$1379, $r;
           ({ $t0, $t1, s_pred_$1378, s_l_$1379, $r } = $f);
           for (;;) switch ($pc) {
@@ -30550,7 +30550,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_pred_$1378, s_l_$1379]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["take-while!"];
         const $proc$js = R.markProcedure($proc, "take-while!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30566,7 +30566,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "values")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "take-while")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "drop-while")).v;
-        function $proc(s_pred_$1380, s_l_$1381) {
+        const $proc = { "span": function (s_pred_$1380, s_l_$1381) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("span", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -30588,8 +30588,8 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t0, $t3 }); return $UNWIND; }
           $t7 = $t0;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8($t3, $t6); } return $tailCall($t7, [$t3, $t6]);
-        }
-        function $proc$r($pc, $f) {
+        } }["span"];
+        const $proc$r = { "span": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_pred_$1380, s_l_$1381, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_pred_$1380, s_l_$1381, $r } = $f);
           const $d = $stack.room - 19;
@@ -30622,7 +30622,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [$t3, $t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["span"];
         const $proc$js = R.markProcedure($proc, "span", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30640,7 +30640,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
         const W2 = R.primitiveCell("not"), P2 = W2.primitive;
         function $mk$fn3(s_pred_$1382) {
-          function $fn3(s_x_$1384) {
+          const $fn3 = { "anonymous": function (s_x_$1384) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -30654,9 +30654,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t2 === false) : R.callBinding((C2.v ?? G2()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1384, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1384, $r } = $f);
           const $d = $stack.room - 13;
@@ -30677,11 +30677,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_pred_$1382, s_l_$1383) {
+        const $proc = { "break": function (s_pred_$1382, s_l_$1383) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length !== 2) R.wrongArity("break", 2, false, arguments.length);
           const $d = $stack.room - 16;
@@ -30697,8 +30697,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_pred_$1382);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_l_$1383); } return $tailCall($t5, [$t4, s_l_$1383]);
-        }
-        function $proc$r($pc, $f) {
+        } }["break"];
+        const $proc$r = { "break": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$1382, s_l_$1383, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$1382, s_l_$1383, $r } = $f);
           const $d = $stack.room - 16;
@@ -30721,7 +30721,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_l_$1383]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["break"];
         const $proc$js = R.markProcedure($proc, "break", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30735,14 +30735,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "span")).v;
-        function $proc(s_pred_$1385, s_l_$1386) {
+        const $proc = { "span!": function (s_pred_$1385, s_l_$1386) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("span!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_pred_$1385, s_l_$1386); } return $tailCall($t0, [s_pred_$1385, s_l_$1386]);
-        }
-        function $proc$r($pc, $f) {
+        } }["span!"];
+        const $proc$r = { "span!": function ($pc, $f) {
           let $t0, $t1, s_pred_$1385, s_l_$1386, $r;
           ({ $t0, $t1, s_pred_$1385, s_l_$1386, $r } = $f);
           for (;;) switch ($pc) {
@@ -30751,7 +30751,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_pred_$1385, s_l_$1386]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["span!"];
         const $proc$js = R.markProcedure($proc, "span!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30765,14 +30765,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "break")).v;
-        function $proc(s_pred_$1387, s_l_$1388) {
+        const $proc = { "break!": function (s_pred_$1387, s_l_$1388) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("break!", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_pred_$1387, s_l_$1388); } return $tailCall($t0, [s_pred_$1387, s_l_$1388]);
-        }
-        function $proc$r($pc, $f) {
+        } }["break!"];
+        const $proc$r = { "break!": function ($pc, $f) {
           let $t0, $t1, s_pred_$1387, s_l_$1388, $r;
           ({ $t0, $t1, s_pred_$1387, s_l_$1388, $r } = $f);
           for (;;) switch ($pc) {
@@ -30781,7 +30781,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_pred_$1387, s_l_$1388]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["break!"];
         const $proc$js = R.markProcedure($proc, "break!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30803,7 +30803,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "not")).v;
         const W4 = R.primitiveCell("not"), P4 = W4.primitive;
         function $mk$fn3(s_same_3f_$1392, s_x_$1389) {
-          function $fn3(s_y_$1393) {
+          const $fn3 = { "anonymous": function (s_y_$1393) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -30817,9 +30817,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W4.intact || (C4.v ?? G4()) === P4) ? ($t2 === false) : R.callBinding((C4.v ?? G4()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_y_$1393, $r;
           ({ $t0, $t1, $t2, $t3, s_y_$1393, $r } = $f);
           const $d = $stack.room - 13;
@@ -30840,11 +30840,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_x_$1389, s_l_$1390, ...s_maybe_3d_$1391$raw) {
+        const $proc = { "delete": function (s_x_$1389, s_l_$1390, ...s_maybe_3d_$1391$raw) {
           let $t0, $t1, $t2, s_same_3f_$1392, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("delete", 2, true, arguments.length);
           const $d = $stack.room - 18 - s_maybe_3d_$1391$raw.length;
@@ -30860,8 +30860,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_same_3f_$1392, s_x_$1389);
           $t5 = (C3.v ?? G3());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_l_$1390); } return $tailCall($t5, [$t4, s_l_$1390]);
-        }
-        function $proc$r($pc, $f) {
+        } }["delete"];
+        const $proc$r = { "delete": function ($pc, $f) {
           let $t0, $t1, $t2, s_same_3f_$1392, $t4, $t5, $t6, s_x_$1389, s_l_$1390, s_maybe_3d_$1391, $r;
           ({ $t0, $t1, $t2, s_same_3f_$1392, $t4, $t5, $t6, s_x_$1389, s_l_$1390, s_maybe_3d_$1391, $r } = $f);
           for (;;) switch ($pc) {
@@ -30882,7 +30882,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_l_$1390]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["delete"];
         const $proc$js = R.markProcedure($proc, "delete", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30897,15 +30897,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "delete")).v;
-        function $proc(s_x_$1394, s_l_$1395, ...s_maybe_3d_$1396$raw) {
+        const $proc = { "delete!": function (s_x_$1394, s_l_$1395, ...s_maybe_3d_$1396$raw) {
           let $t0, $t1;
           if (arguments.length < 2) R.wrongArity("delete!", 2, true, arguments.length);
           const $d = $stack.room - 13 - s_maybe_3d_$1396$raw.length;
           let s_maybe_3d_$1396 = R.listFrom(s_maybe_3d_$1396$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_x_$1394, s_l_$1395, s_maybe_3d_$1396); } return $tailCall($t0, [(C1.v ?? G1()), s_x_$1394, s_l_$1395, s_maybe_3d_$1396]);
-        }
-        function $proc$r($pc, $f) {
+        } }["delete!"];
+        const $proc$r = { "delete!": function ($pc, $f) {
           let $t0, $t1, s_x_$1394, s_l_$1395, s_maybe_3d_$1396, $r;
           ({ $t0, $t1, s_x_$1394, s_l_$1395, s_maybe_3d_$1396, $r } = $f);
           for (;;) switch ($pc) {
@@ -30914,7 +30914,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_x_$1394, s_l_$1395, s_maybe_3d_$1396]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["delete!"];
         const $proc$js = R.markProcedure($proc, "delete!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -30941,16 +30941,16 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cons")).v;
         const W7 = R.primitiveCell("cons"), P7 = W7.primitive;
         function $mk$fn7(s_same_3f_$1399, s_l_$1401) {
-          function $fn7(s_k_$1403) {
+          const $fn7 = { "anonymous": function (s_k_$1403) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_l_$1401 instanceof R.Cons) ? (s_l_$1401.car) : R.callBinding((C1.v ?? G1()), [s_l_$1401]);
           $t1 = s_same_3f_$1399;
           if ($d > 0 && ($t2 = $t1?.[$RAW] ?? $t1)?.[$PRIM] === true) { $stack.room = $d; return $t2(s_k_$1403, $t0); } return $tailCall($t1, [s_k_$1403, $t0]);
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_k_$1403, $r;
           ({ $t0, $t1, $t2, s_k_$1403, $r } = $f);
           for (;;) switch ($pc) {
@@ -30960,11 +30960,11 @@ export const LIBRARIES = {
                 return $tailCall($t1, [s_k_$1403, $t0]);
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_l_$1397, ...s_maybe_3d_$1398$raw) {
+        const $proc = { "delete-duplicates": function (s_l_$1397, ...s_maybe_3d_$1398$raw) {
           let $t0, $t1, $t2, s_same_3f_$1399, s_l_$1401, s_kept_$1402, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
           if (arguments.length < 1) R.wrongArity("delete-duplicates", 1, true, arguments.length);
           const $d = $stack.room - 28 - s_maybe_3d_$1398$raw.length;
@@ -31009,8 +31009,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["delete-duplicates"];
+        const $proc$r = { "delete-duplicates": function ($pc, $f) {
           let $t0, $t1, $t2, s_same_3f_$1399, s_l_$1401, s_kept_$1402, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_l_$1397, s_maybe_3d_$1398, $r;
           ({ $t0, $t1, $t2, s_same_3f_$1399, s_l_$1401, s_kept_$1402, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_l_$1397, s_maybe_3d_$1398, $r } = $f);
           const $d = $stack.room - 28;
@@ -31064,7 +31064,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["delete-duplicates"];
         const $proc$js = R.markProcedure($proc, "delete-duplicates", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31079,15 +31079,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "delete-duplicates")).v;
-        function $proc(s_l_$1404, ...s_maybe_3d_$1405$raw) {
+        const $proc = { "delete-duplicates!": function (s_l_$1404, ...s_maybe_3d_$1405$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("delete-duplicates!", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_maybe_3d_$1405$raw.length;
           let s_maybe_3d_$1405 = R.listFrom(s_maybe_3d_$1405$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_l_$1404, s_maybe_3d_$1405); } return $tailCall($t0, [(C1.v ?? G1()), s_l_$1404, s_maybe_3d_$1405]);
-        }
-        function $proc$r($pc, $f) {
+        } }["delete-duplicates!"];
+        const $proc$r = { "delete-duplicates!": function ($pc, $f) {
           let $t0, $t1, s_l_$1404, s_maybe_3d_$1405, $r;
           ({ $t0, $t1, s_l_$1404, s_maybe_3d_$1405, $r } = $f);
           for (;;) switch ($pc) {
@@ -31096,7 +31096,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_l_$1404, s_maybe_3d_$1405]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["delete-duplicates!"];
         const $proc$js = R.markProcedure($proc, "delete-duplicates!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31110,14 +31110,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "cons")).v;
         const W0 = R.primitiveCell("cons"), P0 = W0.primitive;
-        function $proc(s_key_$1406, s_value_$1407, s_alist_$1408) {
+        const $proc = { "alist-cons": function (s_key_$1406, s_value_$1407, s_alist_$1408) {
           let $t0, $t1;
           if (arguments.length !== 3) R.wrongArity("alist-cons", 3, false, arguments.length);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons(s_key_$1406, s_value_$1407)) : R.callBinding((C0.v ?? G0()), [s_key_$1406, s_value_$1407]);
           $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? (new R.Cons($t0, s_alist_$1408)) : R.callBinding((C0.v ?? G0()), [$t0, s_alist_$1408]);
           return $t1;
-        }
-        function $proc$r($pc, $f) {
+        } }["alist-cons"];
+        const $proc$r = { "alist-cons": function ($pc, $f) {
           let $t0, $t1, s_key_$1406, s_value_$1407, s_alist_$1408, $r;
           ({ $t0, $t1, s_key_$1406, s_value_$1407, s_alist_$1408, $r } = $f);
           for (;;) switch ($pc) {
@@ -31127,7 +31127,7 @@ export const LIBRARIES = {
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["alist-cons"];
         const $proc$js = R.markProcedure($proc, "alist-cons", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31148,16 +31148,16 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
         function $mk$fn0() {
-          function $fn0(s_a_$1410) {
+          const $fn0 = { "anonymous": function (s_a_$1410) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W2.intact || (C2.v ?? G2()) === P2) && (s_a_$1410 instanceof R.Cons) ? (s_a_$1410.car) : R.callBinding((C2.v ?? G2()), [s_a_$1410]);
           $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_a_$1410 instanceof R.Cons) ? (s_a_$1410.cdr) : R.callBinding((C3.v ?? G3()), [s_a_$1410]);
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) ? (new R.Cons($t0, $t1)) : R.callBinding((C1.v ?? G1()), [$t0, $t1]);
           return $t2;
-        }
+        } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
-          function $fn0$r($pc, $f) {
+          const $fn0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_a_$1410, $r;
           ({ $t0, $t1, $t2, s_a_$1410, $r } = $f);
           for (;;) switch ($pc) {
@@ -31168,19 +31168,19 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$fn0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        function $proc(s_alist_$1409) {
+        const $proc = { "alist-copy": function (s_alist_$1409) {
           let $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("alist-copy", 1, false, arguments.length);
           const $d = $stack.room - 12;
           $t1 = $mk$fn0();
           $t2 = (C0.v ?? G0());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_alist_$1409); } return $tailCall($t2, [$t1, s_alist_$1409]);
-        }
-        function $proc$r($pc, $f) {
+        } }["alist-copy"];
+        const $proc$r = { "alist-copy": function ($pc, $f) {
           let $t1, $t2, $t3, s_alist_$1409, $r;
           ({ $t1, $t2, $t3, s_alist_$1409, $r } = $f);
           for (;;) switch ($pc) {
@@ -31190,7 +31190,7 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_alist_$1409]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["alist-copy"];
         const $proc$js = R.markProcedure($proc, "alist-copy", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31210,16 +31210,16 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "equal?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "remove")).v;
         function $mk$fn3(s_same_3f_$1414, s_key_$1411) {
-          function $fn3(s_a_$1415) {
+          const $fn3 = { "anonymous": function (s_a_$1415) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (s_a_$1415 instanceof R.Cons) ? (s_a_$1415.car) : R.callBinding((C1.v ?? G1()), [s_a_$1415]);
           $t1 = s_same_3f_$1414;
           if ($d > 0 && ($t2 = $t1?.[$RAW] ?? $t1)?.[$PRIM] === true) { $stack.room = $d; return $t2(s_key_$1411, $t0); } return $tailCall($t1, [s_key_$1411, $t0]);
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_a_$1415, $r;
           ({ $t0, $t1, $t2, s_a_$1415, $r } = $f);
           for (;;) switch ($pc) {
@@ -31229,11 +31229,11 @@ export const LIBRARIES = {
                 return $tailCall($t1, [s_key_$1411, $t0]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_key_$1411, s_alist_$1412, ...s_maybe_3d_$1413$raw) {
+        const $proc = { "alist-delete": function (s_key_$1411, s_alist_$1412, ...s_maybe_3d_$1413$raw) {
           let $t0, $t1, $t2, s_same_3f_$1414, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("alist-delete", 2, true, arguments.length);
           const $d = $stack.room - 18 - s_maybe_3d_$1413$raw.length;
@@ -31249,8 +31249,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_same_3f_$1414, s_key_$1411);
           $t5 = (C3.v ?? G3());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_alist_$1412); } return $tailCall($t5, [$t4, s_alist_$1412]);
-        }
-        function $proc$r($pc, $f) {
+        } }["alist-delete"];
+        const $proc$r = { "alist-delete": function ($pc, $f) {
           let $t0, $t1, $t2, s_same_3f_$1414, $t4, $t5, $t6, s_key_$1411, s_alist_$1412, s_maybe_3d_$1413, $r;
           ({ $t0, $t1, $t2, s_same_3f_$1414, $t4, $t5, $t6, s_key_$1411, s_alist_$1412, s_maybe_3d_$1413, $r } = $f);
           for (;;) switch ($pc) {
@@ -31271,7 +31271,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_alist_$1412]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["alist-delete"];
         const $proc$js = R.markProcedure($proc, "alist-delete", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31286,15 +31286,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "alist-delete")).v;
-        function $proc(s_key_$1416, s_alist_$1417, ...s_maybe_3d_$1418$raw) {
+        const $proc = { "alist-delete!": function (s_key_$1416, s_alist_$1417, ...s_maybe_3d_$1418$raw) {
           let $t0, $t1;
           if (arguments.length < 2) R.wrongArity("alist-delete!", 2, true, arguments.length);
           const $d = $stack.room - 13 - s_maybe_3d_$1418$raw.length;
           let s_maybe_3d_$1418 = R.listFrom(s_maybe_3d_$1418$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s_key_$1416, s_alist_$1417, s_maybe_3d_$1418); } return $tailCall($t0, [(C1.v ?? G1()), s_key_$1416, s_alist_$1417, s_maybe_3d_$1418]);
-        }
-        function $proc$r($pc, $f) {
+        } }["alist-delete!"];
+        const $proc$r = { "alist-delete!": function ($pc, $f) {
           let $t0, $t1, s_key_$1416, s_alist_$1417, s_maybe_3d_$1418, $r;
           ({ $t0, $t1, s_key_$1416, s_alist_$1417, s_maybe_3d_$1418, $r } = $f);
           for (;;) switch ($pc) {
@@ -31303,7 +31303,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s_key_$1416, s_alist_$1417, s_maybe_3d_$1418]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["alist-delete!"];
         const $proc$js = R.markProcedure($proc, "alist-delete!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31328,7 +31328,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdr")).v;
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
         function $mk$fn10(s_rest_$1424, s__3d_$1419) {
-          function $fn10(s_x_$1427) {
+          const $fn10 = { "anonymous": function (s_x_$1427) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -31336,9 +31336,9 @@ export const LIBRARIES = {
           $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_rest_$1424 instanceof R.Cons) ? (s_rest_$1424.car) : R.callBinding((C3.v ?? G3()), [s_rest_$1424]);
           $t2 = $t0;
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3(s_x_$1427, $t1, s__3d_$1419); } return $tailCall($t2, [s_x_$1427, $t1, s__3d_$1419]);
-        }
+        } }["anonymous"];
           const $fn10$js = R.markProcedure($fn10, "anonymous", E);
-          function $fn10$r($pc, $f) {
+          const $fn10$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1427, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1427, $r } = $f);
           for (;;) switch ($pc) {
@@ -31349,11 +31349,11 @@ export const LIBRARIES = {
                 return $tailCall($t2, [s_x_$1427, $t1, s__3d_$1419]);
               default: throw new Error('$fn10$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn10$js.$resume = $fn10$r;
           return $fn10$js;
         }
-        function $proc(s__3d_$1419, ...s_lists_$1420$raw) {
+        const $proc = { "lset<=": function (s__3d_$1419, ...s_lists_$1420$raw) {
           let $t0, $t1, $t2, $t3, s_x_$1421, $t4, $t5, s_a_$1423, s_rest_$1424, $t6, s_x_$1425, s_x_$1426, $t7, $t8, $t9, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length < 1) R.wrongArity("lset<=", 1, true, arguments.length);
           const $d = $stack.room - 31 - s_lists_$1420$raw.length;
@@ -31410,8 +31410,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["lset<="];
+        const $proc$r = { "lset<=": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1421, $t4, $t5, s_a_$1423, s_rest_$1424, $t6, s_x_$1425, s_x_$1426, $t7, $t8, $t9, $t11, $t12, $t13, $t14, $t15, $t16, s__3d_$1419, s_lists_$1420, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1421, $t4, $t5, s_a_$1423, s_rest_$1424, $t6, s_x_$1425, s_x_$1426, $t7, $t8, $t9, $t11, $t12, $t13, $t14, $t15, $t16, s__3d_$1419, s_lists_$1420, $r } = $f);
           const $d = $stack.room - 31;
@@ -31481,7 +31481,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset<="];
         const $proc$js = R.markProcedure($proc, "lset<=", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31504,7 +31504,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "lset<=")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s__3d_$1428, ...s_lists_$1429$raw) {
+        const $proc = { "lset=": function (s__3d_$1428, ...s_lists_$1429$raw) {
           let $t0, $t1, $t2, $t3, s_x_$1430, $t4, $t5, s_a_$1432, s_rest_$1433, $t6, s_x_$1434, s_x_$1435, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22;
           if (arguments.length < 1) R.wrongArity("lset=", 1, true, arguments.length);
           const $d = $stack.room - 38 - s_lists_$1429$raw.length;
@@ -31576,8 +31576,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["lset="];
+        const $proc$r = { "lset=": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1430, $t4, $t5, s_a_$1432, s_rest_$1433, $t6, s_x_$1434, s_x_$1435, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s__3d_$1428, s_lists_$1429, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1430, $t4, $t5, s_a_$1432, s_rest_$1433, $t6, s_x_$1434, s_x_$1435, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s__3d_$1428, s_lists_$1429, $r } = $f);
           const $d = $stack.room - 38;
@@ -31669,7 +31669,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset="];
         const $proc$js = R.markProcedure($proc, "lset=", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31688,7 +31688,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cons")).v;
         const W3 = R.primitiveCell("cons"), P3 = W3.primitive;
         function $mk$fn3(s__3d_$1436) {
-          function $fn3(s_elt_$1439, s_set_$1440) {
+          const $fn3 = { "anonymous": function (s_elt_$1439, s_set_$1440) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -31706,9 +31706,9 @@ export const LIBRARIES = {
           $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? (new R.Cons(s_elt_$1439, s_set_$1440)) : R.callBinding((C3.v ?? G3()), [s_elt_$1439, s_set_$1440]);
           return $t3;
         }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_elt_$1439, s_set_$1440, $r;
           ({ $t0, $t1, $t2, $t3, s_elt_$1439, s_set_$1440, $r } = $f);
           const $d = $stack.room - 14;
@@ -31733,11 +31733,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s__3d_$1436, s_l_$1437, ...s_elts_$1438$raw) {
+        const $proc = { "lset-adjoin": function (s__3d_$1436, s_l_$1437, ...s_elts_$1438$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("lset-adjoin", 2, true, arguments.length);
           const $d = $stack.room - 17 - s_elts_$1438$raw.length;
@@ -31754,8 +31754,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s__3d_$1436);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_l_$1437, s_elts_$1438); } return $tailCall($t5, [$t4, s_l_$1437, s_elts_$1438]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-adjoin"];
+        const $proc$r = { "lset-adjoin": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s__3d_$1436, s_l_$1437, s_elts_$1438, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s__3d_$1436, s_l_$1437, s_elts_$1438, $r } = $f);
           const $d = $stack.room - 17;
@@ -31778,7 +31778,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_l_$1437, s_elts_$1438]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-adjoin"];
         const $proc$js = R.markProcedure($proc, "lset-adjoin", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31802,15 +31802,15 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cons")).v;
         const W6 = R.primitiveCell("cons"), P6 = W6.primitive;
         function $mk$fn3_3_0(s__3d_$1441, s_elt_$1445) {
-          function $fn3_3_0(s_x_$1447) {
+          const $fn3_3_0 = { "anonymous": function (s_x_$1447) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = s__3d_$1441;
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1447, s_elt_$1445); } return $tailCall($t0, [s_x_$1447, s_elt_$1445]);
-        }
+        } }["anonymous"];
           const $fn3_3_0$js = R.markProcedure($fn3_3_0, "anonymous", E);
-          function $fn3_3_0$r($pc, $f) {
+          const $fn3_3_0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_x_$1447, $r;
           ({ $t0, $t1, s_x_$1447, $r } = $f);
           for (;;) switch ($pc) {
@@ -31819,12 +31819,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1447, s_elt_$1445]);
               default: throw new Error('$fn3_3_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_3_0$js.$resume = $fn3_3_0$r;
           return $fn3_3_0$js;
         }
         function $mk$fn3_3(s__3d_$1441) {
-          function $fn3_3(s_elt_$1445, s_set_$1446) {
+          const $fn3_3 = { "anonymous": function (s_elt_$1445, s_set_$1446) {
           let $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 15;
@@ -31843,9 +31843,9 @@ export const LIBRARIES = {
           $t5 = (W6.intact || (C6.v ?? G6()) === P6) ? (new R.Cons(s_elt_$1445, s_set_$1446)) : R.callBinding((C6.v ?? G6()), [s_elt_$1445, s_set_$1446]);
           return $t5;
         }
-        }
+        } }["anonymous"];
           const $fn3_3$js = R.markProcedure($fn3_3, "anonymous", E);
-          function $fn3_3$r($pc, $f) {
+          const $fn3_3$r = { "anonymous": function ($pc, $f) {
           let $t1, $t2, $t3, $t4, $t5, s_elt_$1445, s_set_$1446, $r;
           ({ $t1, $t2, $t3, $t4, $t5, s_elt_$1445, s_set_$1446, $r } = $f);
           const $d = $stack.room - 15;
@@ -31871,12 +31871,12 @@ export const LIBRARIES = {
                 return $t5;
               default: throw new Error('$fn3_3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_3$js.$resume = $fn3_3$r;
           return $fn3_3$js;
         }
         function $mk$fn3(s__3d_$1441) {
-          function $fn3(s_l_$1443, s_set_$1444) {
+          const $fn3 = { "anonymous": function (s_l_$1443, s_set_$1444) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 16;
@@ -31898,9 +31898,9 @@ export const LIBRARIES = {
         }
         }
         }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_l_$1443, s_set_$1444, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_l_$1443, s_set_$1444, $r } = $f);
           for (;;) switch ($pc) {
@@ -31925,11 +31925,11 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_set_$1444, s_l_$1443]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s__3d_$1441, ...s_lists_$1442$raw) {
+        const $proc = { "lset-union": function (s__3d_$1441, ...s_lists_$1442$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 1) R.wrongArity("lset-union", 1, true, arguments.length);
           const $d = $stack.room - 16 - s_lists_$1442$raw.length;
@@ -31946,8 +31946,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s__3d_$1441);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, null, s_lists_$1442); } return $tailCall($t5, [$t4, null, s_lists_$1442]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-union"];
+        const $proc$r = { "lset-union": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s__3d_$1441, s_lists_$1442, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s__3d_$1441, s_lists_$1442, $r } = $f);
           const $d = $stack.room - 16;
@@ -31970,7 +31970,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, null, s_lists_$1442]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-union"];
         const $proc$js = R.markProcedure($proc, "lset-union", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -31994,14 +31994,14 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "every")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "member")).v;
         function $mk$fn3(s_l_$1449) {
-          function $fn3(s_x_$1452) {
+          const $fn3 = { "anonymous": function (s_x_$1452) {
           let $t0;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W2.intact || (C2.v ?? G2()) === P2) ? (s_x_$1452 === s_l_$1449) : R.callBinding((C2.v ?? G2()), [s_x_$1452, s_l_$1449]);
           return $t0;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, s_x_$1452, $r;
           ({ $t0, s_x_$1452, $r } = $f);
           for (;;) switch ($pc) {
@@ -32010,20 +32010,20 @@ export const LIBRARIES = {
                 return $t0;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
         function $mk$fn11_0(s_x_$1453, s__3d_$1448) {
-          function $fn11_0(s_other_$1454) {
+          const $fn11_0 = { "anonymous": function (s_other_$1454) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C7.v ?? G7());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1453, s_other_$1454, s__3d_$1448); } return $tailCall($t0, [s_x_$1453, s_other_$1454, s__3d_$1448]);
-        }
+        } }["anonymous"];
           const $fn11_0$js = R.markProcedure($fn11_0, "anonymous", E);
-          function $fn11_0$r($pc, $f) {
+          const $fn11_0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_other_$1454, $r;
           ({ $t0, $t1, s_other_$1454, $r } = $f);
           for (;;) switch ($pc) {
@@ -32032,21 +32032,21 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1453, s_other_$1454, s__3d_$1448]);
               default: throw new Error('$fn11_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11_0$js.$resume = $fn11_0$r;
           return $fn11_0$js;
         }
         function $mk$fn11(s__3d_$1448, s_others_$1451) {
-          function $fn11(s_x_$1453) {
+          const $fn11 = { "anonymous": function (s_x_$1453) {
           let $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 12;
           $t1 = $mk$fn11_0(s_x_$1453, s__3d_$1448);
           $t2 = (C6.v ?? G6());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_others_$1451); } return $tailCall($t2, [$t1, s_others_$1451]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t1, $t2, $t3, s_x_$1453, $r;
           ({ $t1, $t2, $t3, s_x_$1453, $r } = $f);
           for (;;) switch ($pc) {
@@ -32056,11 +32056,11 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_others_$1451]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s__3d_$1448, s_l_$1449, ...s_lists_$1450$raw) {
+        const $proc = { "lset-intersection": function (s__3d_$1448, s_l_$1449, ...s_lists_$1450$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6, $t7, s_others_$1451, $t8, $t9, $t10, $t12, $t13, $t14;
           if (arguments.length < 2) R.wrongArity("lset-intersection", 2, true, arguments.length);
           const $d = $stack.room - 25 - s_lists_$1450$raw.length;
@@ -32097,8 +32097,8 @@ export const LIBRARIES = {
           $t13 = (C5.v ?? G5());
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14($t12, s_l_$1449); } return $tailCall($t13, [$t12, s_l_$1449]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-intersection"];
+        const $proc$r = { "lset-intersection": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, $t7, s_others_$1451, $t8, $t9, $t10, $t12, $t13, $t14, s__3d_$1448, s_l_$1449, s_lists_$1450, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, $t7, s_others_$1451, $t8, $t9, $t10, $t12, $t13, $t14, s__3d_$1448, s_l_$1449, s_lists_$1450, $r } = $f);
           const $d = $stack.room - 25;
@@ -32149,7 +32149,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [$t12, s_l_$1449]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-intersection"];
         const $proc$js = R.markProcedure($proc, "lset-intersection", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32174,14 +32174,14 @@ export const LIBRARIES = {
         const W6 = R.primitiveCell("not"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "member")).v;
         function $mk$fn6(s_l_$1456) {
-          function $fn6(s_x_$1459) {
+          const $fn6 = { "anonymous": function (s_x_$1459) {
           let $t0;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W4.intact || (C4.v ?? G4()) === P4) ? (s_x_$1459 === s_l_$1456) : R.callBinding((C4.v ?? G4()), [s_x_$1459, s_l_$1456]);
           return $t0;
-        }
+        } }["anonymous"];
           const $fn6$js = R.markProcedure($fn6, "anonymous", E);
-          function $fn6$r($pc, $f) {
+          const $fn6$r = { "anonymous": function ($pc, $f) {
           let $t0, s_x_$1459, $r;
           ({ $t0, s_x_$1459, $r } = $f);
           for (;;) switch ($pc) {
@@ -32190,12 +32190,12 @@ export const LIBRARIES = {
                 return $t0;
               default: throw new Error('$fn6$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn6$js.$resume = $fn6$r;
           return $fn6$js;
         }
         function $mk$fn11_0(s_x_$1460, s__3d_$1455) {
-          function $fn11_0(s_other_$1461) {
+          const $fn11_0 = { "anonymous": function (s_other_$1461) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -32209,9 +32209,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn11_0$r, 1, {  }); return $UNWIND; }
           $t3 = (W6.intact || (C6.v ?? G6()) === P6) ? ($t2 === false) : R.callBinding((C6.v ?? G6()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn11_0$js = R.markProcedure($fn11_0, "anonymous", E);
-          function $fn11_0$r($pc, $f) {
+          const $fn11_0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_other_$1461, $r;
           ({ $t0, $t1, $t2, $t3, s_other_$1461, $r } = $f);
           const $d = $stack.room - 13;
@@ -32232,21 +32232,21 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn11_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11_0$js.$resume = $fn11_0$r;
           return $fn11_0$js;
         }
         function $mk$fn11(s__3d_$1455, s_others_$1458) {
-          function $fn11(s_x_$1460) {
+          const $fn11 = { "anonymous": function (s_x_$1460) {
           let $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 12;
           $t1 = $mk$fn11_0(s_x_$1460, s__3d_$1455);
           $t2 = (C5.v ?? G5());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_others_$1458); } return $tailCall($t2, [$t1, s_others_$1458]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t1, $t2, $t3, s_x_$1460, $r;
           ({ $t1, $t2, $t3, s_x_$1460, $r } = $f);
           for (;;) switch ($pc) {
@@ -32256,11 +32256,11 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_others_$1458]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s__3d_$1455, s_l_$1456, ...s_lists_$1457$raw) {
+        const $proc = { "lset-difference": function (s__3d_$1455, s_l_$1456, ...s_lists_$1457$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_others_$1458, $t7, $t8, $t9, $t10, $t12, $t13, $t14;
           if (arguments.length < 2) R.wrongArity("lset-difference", 2, true, arguments.length);
           const $d = $stack.room - 25 - s_lists_$1457$raw.length;
@@ -32297,8 +32297,8 @@ export const LIBRARIES = {
           $t13 = (C1.v ?? G1());
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14($t12, s_l_$1456); } return $tailCall($t13, [$t12, s_l_$1456]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-difference"];
+        const $proc$r = { "lset-difference": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_others_$1458, $t7, $t8, $t9, $t10, $t12, $t13, $t14, s__3d_$1455, s_l_$1456, s_lists_$1457, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_others_$1458, $t7, $t8, $t9, $t10, $t12, $t13, $t14, s__3d_$1455, s_l_$1456, s_lists_$1457, $r } = $f);
           const $d = $stack.room - 25;
@@ -32349,7 +32349,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [$t12, s_l_$1456]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-difference"];
         const $proc$js = R.markProcedure($proc, "lset-difference", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32376,15 +32376,15 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "apply")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "%values->list")).v;
         function $mk$fn3_0(s__3d_$1462, s_a_$1465, s_b_$1464) {
-          function $fn3_0() {
+          const $fn3_0 = { "anonymous": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = (C2.v ?? G2());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s__3d_$1462, s_a_$1465, s_b_$1464); } return $tailCall($t0, [s__3d_$1462, s_a_$1465, s_b_$1464]);
-        }
+        } }["anonymous"];
           const $fn3_0$js = R.markProcedure($fn3_0, "anonymous", E);
-          function $fn3_0$r($pc, $f) {
+          const $fn3_0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -32393,12 +32393,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s__3d_$1462, s_a_$1465, s_b_$1464]);
               default: throw new Error('$fn3_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_0$js.$resume = $fn3_0$r;
           return $fn3_0$js;
         }
         function $mk$fn3_3_6(s_a_2ab_$1467, s__3d_$1462) {
-          function $fn3_3_6(s_x_$1468, s_set_$1469) {
+          const $fn3_3_6 = { "anonymous": function (s_x_$1468, s_set_$1469) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -32416,9 +32416,9 @@ export const LIBRARIES = {
           $t3 = (W8.intact || (C8.v ?? G8()) === P8) ? (new R.Cons(s_x_$1468, s_set_$1469)) : R.callBinding((C8.v ?? G8()), [s_x_$1468, s_set_$1469]);
           return $t3;
         }
-        }
+        } }["anonymous"];
           const $fn3_3_6$js = R.markProcedure($fn3_3_6, "anonymous", E);
-          function $fn3_3_6$r($pc, $f) {
+          const $fn3_3_6$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1468, s_set_$1469, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1468, s_set_$1469, $r } = $f);
           const $d = $stack.room - 14;
@@ -32443,12 +32443,12 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3_3_6$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_3_6$js.$resume = $fn3_3_6$r;
           return $fn3_3_6$js;
         }
         function $mk$fn3_3(s__3d_$1462, s_b_$1464, s_a_$1465) {
-          function $fn3_3(s_a_2db_$1466, s_a_2ab_$1467) {
+          const $fn3_3 = { "anonymous": function (s_a_2db_$1466, s_a_2ab_$1467) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -32467,9 +32467,9 @@ export const LIBRARIES = {
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9($t7, s_a_2db_$1466, s_b_$1464); } return $tailCall($t8, [$t7, s_a_2db_$1466, s_b_$1464]);
         }
         }
-        }
+        } }["anonymous"];
           const $fn3_3$js = R.markProcedure($fn3_3, "anonymous", E);
-          function $fn3_3$r($pc, $f) {
+          const $fn3_3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t7, $t8, $t9, s_a_2db_$1466, s_a_2ab_$1467, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t7, $t8, $t9, s_a_2db_$1466, s_a_2ab_$1467, $r } = $f);
           for (;;) switch ($pc) {
@@ -32491,12 +32491,12 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_a_2db_$1466, s_b_$1464]);
               default: throw new Error('$fn3_3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_3$js.$resume = $fn3_3$r;
           return $fn3_3$js;
         }
         function $mk$fn3(s__3d_$1462) {
-          function $fn3(s_b_$1464, s_a_$1465) {
+          const $fn3 = { "anonymous": function (s_b_$1464, s_a_$1465) {
           let $t1, s__25cwv0, $t2, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 23;
@@ -32522,9 +32522,9 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($fn3$r, 2, { $t2, $t4 }); return $UNWIND; }
           $t12 = $t2;
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13($t4, $t11); } return $tailCall($t12, [$t4, $t11]);
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t1, s__25cwv0, $t2, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_b_$1464, s_a_$1465, $r;
           ({ $t1, s__25cwv0, $t2, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_b_$1464, s_a_$1465, $r } = $f);
           const $d = $stack.room - 23;
@@ -32561,11 +32561,11 @@ export const LIBRARIES = {
                 return $tailCall($t12, [$t4, $t11]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s__3d_$1462, ...s_lists_$1463$raw) {
+        const $proc = { "lset-xor": function (s__3d_$1462, ...s_lists_$1463$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 1) R.wrongArity("lset-xor", 1, true, arguments.length);
           const $d = $stack.room - 16 - s_lists_$1463$raw.length;
@@ -32582,8 +32582,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s__3d_$1462);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, null, s_lists_$1463); } return $tailCall($t5, [$t4, null, s_lists_$1463]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-xor"];
+        const $proc$r = { "lset-xor": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s__3d_$1462, s_lists_$1463, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s__3d_$1462, s_lists_$1463, $r } = $f);
           const $d = $stack.room - 16;
@@ -32606,7 +32606,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, null, s_lists_$1463]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-xor"];
         const $proc$js = R.markProcedure($proc, "lset-xor", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32627,15 +32627,15 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "apply")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "%values->list")).v;
         function $mk$fn3_0_0(s_x_$1473, s__3d_$1470) {
-          function $fn3_0_0(s_other_$1474) {
+          const $fn3_0_0 = { "anonymous": function (s_other_$1474) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C3.v ?? G3());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1473, s_other_$1474, s__3d_$1470); } return $tailCall($t0, [s_x_$1473, s_other_$1474, s__3d_$1470]);
-        }
+        } }["anonymous"];
           const $fn3_0_0$js = R.markProcedure($fn3_0_0, "anonymous", E);
-          function $fn3_0_0$r($pc, $f) {
+          const $fn3_0_0$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_other_$1474, $r;
           ({ $t0, $t1, s_other_$1474, $r } = $f);
           for (;;) switch ($pc) {
@@ -32644,21 +32644,21 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1473, s_other_$1474, s__3d_$1470]);
               default: throw new Error('$fn3_0_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_0_0$js.$resume = $fn3_0_0$r;
           return $fn3_0_0$js;
         }
         function $mk$fn3_0(s__3d_$1470, s_lists_$1472) {
-          function $fn3_0(s_x_$1473) {
+          const $fn3_0 = { "anonymous": function (s_x_$1473) {
           let $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 12;
           $t1 = $mk$fn3_0_0(s_x_$1473, s__3d_$1470);
           $t2 = (C2.v ?? G2());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_lists_$1472); } return $tailCall($t2, [$t1, s_lists_$1472]);
-        }
+        } }["anonymous"];
           const $fn3_0$js = R.markProcedure($fn3_0, "anonymous", E);
-          function $fn3_0$r($pc, $f) {
+          const $fn3_0$r = { "anonymous": function ($pc, $f) {
           let $t1, $t2, $t3, s_x_$1473, $r;
           ({ $t1, $t2, $t3, s_x_$1473, $r } = $f);
           for (;;) switch ($pc) {
@@ -32668,21 +32668,21 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_lists_$1472]);
               default: throw new Error('$fn3_0$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_0$js.$resume = $fn3_0$r;
           return $fn3_0$js;
         }
         function $mk$fn3(s__3d_$1470, s_lists_$1472, s_l_$1471) {
-          function $fn3() {
+          const $fn3 = { "anonymous": function () {
           let $t1, $t2, $t3;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 11;
           $t1 = $mk$fn3_0(s__3d_$1470, s_lists_$1472);
           $t2 = (C1.v ?? G1());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1, s_l_$1471); } return $tailCall($t2, [$t1, s_l_$1471]);
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t1, $t2, $t3, $r;
           ({ $t1, $t2, $t3, $r } = $f);
           for (;;) switch ($pc) {
@@ -32692,20 +32692,20 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t1, s_l_$1471]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
         function $mk$fn6() {
-          function $fn6(s_in_$1475, s_out_$1476) {
+          const $fn6 = { "anonymous": function (s_in_$1475, s_out_$1476) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C4.v ?? G4());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_out_$1476, s_in_$1475); } return $tailCall($t0, [s_out_$1476, s_in_$1475]);
-        }
+        } }["anonymous"];
           const $fn6$js = R.markProcedure($fn6, "anonymous", E);
-          function $fn6$r($pc, $f) {
+          const $fn6$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_in_$1475, s_out_$1476, $r;
           ({ $t0, $t1, s_in_$1475, s_out_$1476, $r } = $f);
           for (;;) switch ($pc) {
@@ -32714,11 +32714,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_out_$1476, s_in_$1475]);
               default: throw new Error('$fn6$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn6$js.$resume = $fn6$r;
           return $fn6$js;
         }
-        function $proc(s__3d_$1470, s_l_$1471, ...s_lists_$1472$raw) {
+        const $proc = { "lset-diff+intersection": function (s__3d_$1470, s_l_$1471, ...s_lists_$1472$raw) {
           let $t0, $t1, $t2, $t4, s__25cwv0, $t5, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length < 2) R.wrongArity("lset-diff+intersection", 2, true, arguments.length);
           const $d = $stack.room - 27 - s_lists_$1472$raw.length;
@@ -32753,8 +32753,8 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 3, { $t5, $t7 }); return $UNWIND; }
           $t15 = $t5;
           if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16($t7, $t14); } return $tailCall($t15, [$t7, $t14]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-diff+intersection"];
+        const $proc$r = { "lset-diff+intersection": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, s__25cwv0, $t5, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s__3d_$1470, s_l_$1471, s_lists_$1472, $r;
           ({ $t0, $t1, $t2, $t4, s__25cwv0, $t5, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s__3d_$1470, s_l_$1471, s_lists_$1472, $r } = $f);
           const $d = $stack.room - 27;
@@ -32803,7 +32803,7 @@ export const LIBRARIES = {
                 return $tailCall($t15, [$t7, $t14]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-diff+intersection"];
         const $proc$js = R.markProcedure($proc, "lset-diff+intersection", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32818,15 +32818,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "lset-union")).v;
-        function $proc(s__3d_$1477, ...s_lists_$1478$raw) {
+        const $proc = { "lset-union!": function (s__3d_$1477, ...s_lists_$1478$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("lset-union!", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_lists_$1478$raw.length;
           let s_lists_$1478 = R.listFrom(s_lists_$1478$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s__3d_$1477, s_lists_$1478); } return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1477, s_lists_$1478]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-union!"];
+        const $proc$r = { "lset-union!": function ($pc, $f) {
           let $t0, $t1, s__3d_$1477, s_lists_$1478, $r;
           ({ $t0, $t1, s__3d_$1477, s_lists_$1478, $r } = $f);
           for (;;) switch ($pc) {
@@ -32835,7 +32835,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1477, s_lists_$1478]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-union!"];
         const $proc$js = R.markProcedure($proc, "lset-union!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32850,15 +32850,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "lset-intersection")).v;
-        function $proc(s__3d_$1479, s_l_$1480, ...s_lists_$1481$raw) {
+        const $proc = { "lset-intersection!": function (s__3d_$1479, s_l_$1480, ...s_lists_$1481$raw) {
           let $t0, $t1;
           if (arguments.length < 2) R.wrongArity("lset-intersection!", 2, true, arguments.length);
           const $d = $stack.room - 13 - s_lists_$1481$raw.length;
           let s_lists_$1481 = R.listFrom(s_lists_$1481$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s__3d_$1479, s_l_$1480, s_lists_$1481); } return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1479, s_l_$1480, s_lists_$1481]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-intersection!"];
+        const $proc$r = { "lset-intersection!": function ($pc, $f) {
           let $t0, $t1, s__3d_$1479, s_l_$1480, s_lists_$1481, $r;
           ({ $t0, $t1, s__3d_$1479, s_l_$1480, s_lists_$1481, $r } = $f);
           for (;;) switch ($pc) {
@@ -32867,7 +32867,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1479, s_l_$1480, s_lists_$1481]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-intersection!"];
         const $proc$js = R.markProcedure($proc, "lset-intersection!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32882,15 +32882,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "lset-difference")).v;
-        function $proc(s__3d_$1482, s_l_$1483, ...s_lists_$1484$raw) {
+        const $proc = { "lset-difference!": function (s__3d_$1482, s_l_$1483, ...s_lists_$1484$raw) {
           let $t0, $t1;
           if (arguments.length < 2) R.wrongArity("lset-difference!", 2, true, arguments.length);
           const $d = $stack.room - 13 - s_lists_$1484$raw.length;
           let s_lists_$1484 = R.listFrom(s_lists_$1484$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s__3d_$1482, s_l_$1483, s_lists_$1484); } return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1482, s_l_$1483, s_lists_$1484]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-difference!"];
+        const $proc$r = { "lset-difference!": function ($pc, $f) {
           let $t0, $t1, s__3d_$1482, s_l_$1483, s_lists_$1484, $r;
           ({ $t0, $t1, s__3d_$1482, s_l_$1483, s_lists_$1484, $r } = $f);
           for (;;) switch ($pc) {
@@ -32899,7 +32899,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1482, s_l_$1483, s_lists_$1484]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-difference!"];
         const $proc$js = R.markProcedure($proc, "lset-difference!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32914,15 +32914,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "lset-xor")).v;
-        function $proc(s__3d_$1485, ...s_lists_$1486$raw) {
+        const $proc = { "lset-xor!": function (s__3d_$1485, ...s_lists_$1486$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("lset-xor!", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_lists_$1486$raw.length;
           let s_lists_$1486 = R.listFrom(s_lists_$1486$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s__3d_$1485, s_lists_$1486); } return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1485, s_lists_$1486]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-xor!"];
+        const $proc$r = { "lset-xor!": function ($pc, $f) {
           let $t0, $t1, s__3d_$1485, s_lists_$1486, $r;
           ({ $t0, $t1, s__3d_$1485, s_lists_$1486, $r } = $f);
           for (;;) switch ($pc) {
@@ -32931,7 +32931,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1485, s_lists_$1486]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-xor!"];
         const $proc$js = R.markProcedure($proc, "lset-xor!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -32946,15 +32946,15 @@ export const LIBRARIES = {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "apply")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "lset-diff+intersection")).v;
-        function $proc(s__3d_$1487, s_l_$1488, ...s_lists_$1489$raw) {
+        const $proc = { "lset-diff+intersection!": function (s__3d_$1487, s_l_$1488, ...s_lists_$1489$raw) {
           let $t0, $t1;
           if (arguments.length < 2) R.wrongArity("lset-diff+intersection!", 2, true, arguments.length);
           const $d = $stack.room - 13 - s_lists_$1489$raw.length;
           let s_lists_$1489 = R.listFrom(s_lists_$1489$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1((C1.v ?? G1()), s__3d_$1487, s_l_$1488, s_lists_$1489); } return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1487, s_l_$1488, s_lists_$1489]);
-        }
-        function $proc$r($pc, $f) {
+        } }["lset-diff+intersection!"];
+        const $proc$r = { "lset-diff+intersection!": function ($pc, $f) {
           let $t0, $t1, s__3d_$1487, s_l_$1488, s_lists_$1489, $r;
           ({ $t0, $t1, s__3d_$1487, s_l_$1488, s_lists_$1489, $r } = $f);
           for (;;) switch ($pc) {
@@ -32963,7 +32963,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [(C1.v ?? G1()), s__3d_$1487, s_l_$1488, s_lists_$1489]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lset-diff+intersection!"];
         const $proc$js = R.markProcedure($proc, "lset-diff+intersection!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -33095,7 +33095,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-ci=?")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "symbol=?")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "char=?")).v;
-        function $proc(s_equality_$1680) {
+        const $proc = { "native-kind": function (s_equality_$1680) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("native-kind", 1, false, arguments.length);
           $t0 = (C0.v ?? G0());
@@ -33135,8 +33135,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["native-kind"];
+        const $proc$r = { "native-kind": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_equality_$1680, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_equality_$1680, $r } = $f);
           for (;;) switch ($pc) {
@@ -33180,7 +33180,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["native-kind"];
         const $proc$js = R.markProcedure($proc, "native-kind", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -33196,7 +33196,7 @@ export const LIBRARIES = {
         const W0 = R.primitiveCell("eqv?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-hash")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-ci-hash")).v;
-        function $proc(s_kind_$1681) {
+        const $proc = { "standard-hash": function (s_kind_$1681) {
           let s_atom_2dkey_$1682, $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("standard-hash", 1, false, arguments.length);
           s_atom_2dkey_$1682 = s_kind_$1681;
@@ -33211,8 +33211,8 @@ export const LIBRARIES = {
           return false;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["standard-hash"];
+        const $proc$r = { "standard-hash": function ($pc, $f) {
           let s_atom_2dkey_$1682, $t0, $t1, s_kind_$1681, $r;
           ({ s_atom_2dkey_$1682, $t0, $t1, s_kind_$1681, $r } = $f);
           for (;;) switch ($pc) {
@@ -33231,7 +33231,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["standard-hash"];
         const $proc$js = R.markProcedure($proc, "standard-hash", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -33255,7 +33255,7 @@ export const LIBRARIES = {
         const W7 = R.primitiveCell("eq?"), P7 = W7.primitive;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "equal?")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "default-hash")).v;
-        function $proc(s_who_$1683, s_equality_$1684, s_hash_$1685, s_comparator_$1686) {
+        const $proc = { "make-table": function (s_who_$1683, s_equality_$1684, s_hash_$1685, s_comparator_$1686) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_kind_$1687, $t14, $t15, $t16, $t17, s_x_$1688, $t18, $t19, $t20, $t21, $t22, $t23, s_x_$1690, $t24, $t25, $t26, $t27, s_temp_$1689, s_hash_$1691, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39;
           if (arguments.length !== 4) R.wrongArity("make-table", 4, false, arguments.length);
           const $d = $stack.room - 57;
@@ -33360,8 +33360,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t39 = $t38?.[$RAW] ?? $t38)?.[$PRIM] === true) { $stack.room = $d; return $t39($t37, s_equality_$1684); } return $tailCall($t38, [$t37, s_equality_$1684]);
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["make-table"];
+        const $proc$r = { "make-table": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_kind_$1687, $t14, $t15, $t16, $t17, s_x_$1688, $t18, $t19, $t20, $t21, $t22, $t23, s_x_$1690, $t24, $t25, $t26, $t27, s_temp_$1689, s_hash_$1691, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, s_who_$1683, s_equality_$1684, s_hash_$1685, s_comparator_$1686, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_kind_$1687, $t14, $t15, $t16, $t17, s_x_$1688, $t18, $t19, $t20, $t21, $t22, $t23, s_x_$1690, $t24, $t25, $t26, $t27, s_temp_$1689, s_hash_$1691, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, s_who_$1683, s_equality_$1684, s_hash_$1685, s_comparator_$1686, $r } = $f);
           const $d = $stack.room - 57;
@@ -33513,7 +33513,7 @@ export const LIBRARIES = {
                 return $tailCall($t38, [$t37, s_equality_$1684]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-table"];
         const $proc$js = R.markProcedure($proc, "make-table", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -33536,7 +33536,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "procedure?")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "car")).v;
         const W7 = R.primitiveCell("car"), P7 = W7.primitive;
-        function $proc(s_who_$1692, s_spec_$1693, s_args_$1694) {
+        const $proc = { "table-from": function (s_who_$1692, s_spec_$1693, s_args_$1694) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27;
           if (arguments.length !== 3) R.wrongArity("table-from", 3, false, arguments.length);
           const $d = $stack.room - 39;
@@ -33604,8 +33604,8 @@ export const LIBRARIES = {
           $t26 = $t16;
           if ($d > 0 && ($t27 = $t26?.[$RAW] ?? $t26)?.[$PRIM] === true) { $stack.room = $d; return $t27(s_who_$1692, s_spec_$1693, $t18, false); } return $tailCall($t26, [s_who_$1692, s_spec_$1693, $t18, false]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["table-from"];
+        const $proc$r = { "table-from": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_who_$1692, s_spec_$1693, s_args_$1694, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_who_$1692, s_spec_$1693, s_args_$1694, $r } = $f);
           const $d = $stack.room - 39;
@@ -33705,7 +33705,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["table-from"];
         const $proc$js = R.markProcedure($proc, "table-from", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -33721,7 +33721,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "hash-table?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1695, s_ht_$1696) {
+        const $proc = { "check-table": function (s_who_$1695, s_ht_$1696) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("check-table", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -33747,8 +33747,8 @@ export const LIBRARIES = {
           $t7 = $t3;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8($t6, s_ht_$1696); } return $tailCall($t7, [$t6, s_ht_$1696]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-table"];
+        const $proc$r = { "check-table": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_who_$1695, s_ht_$1696, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_who_$1695, s_ht_$1696, $r } = $f);
           const $d = $stack.room - 19;
@@ -33785,7 +33785,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [$t6, s_ht_$1696]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-table"];
         const $proc$js = R.markProcedure($proc, "check-table", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -33802,7 +33802,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-mutable?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1697, s_ht_$1698) {
+        const $proc = { "check-mutable": function (s_who_$1697, s_ht_$1698) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 2) R.wrongArity("check-mutable", 2, false, arguments.length);
           const $d = $stack.room - 22;
@@ -33836,8 +33836,8 @@ export const LIBRARIES = {
           $t10 = $t6;
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11($t9, s_ht_$1698); } return $tailCall($t10, [$t9, s_ht_$1698]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-mutable"];
+        const $proc$r = { "check-mutable": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_who_$1697, s_ht_$1698, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_who_$1697, s_ht_$1698, $r } = $f);
           const $d = $stack.room - 22;
@@ -33886,7 +33886,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [$t9, s_ht_$1698]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-mutable"];
         const $proc$js = R.markProcedure($proc, "check-mutable", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -33910,7 +33910,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "%hash-store-ref")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "table-store")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "table-hash")).v;
-        function $proc(s_ht_$1699, s_key_$1700) {
+        const $proc = { "general-entry": function (s_ht_$1699, s_key_$1700) {
           let $t0, $t1, $t2, s_same_3f_$1701, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_bucket_$1703, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24;
           if (arguments.length !== 2) R.wrongArity("general-entry", 2, false, arguments.length);
           const $d = $stack.room - 37;
@@ -33982,8 +33982,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["general-entry"];
+        const $proc$r = { "general-entry": function ($pc, $f) {
           let $t0, $t1, $t2, s_same_3f_$1701, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_bucket_$1703, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_ht_$1699, s_key_$1700, $r;
           ({ $t0, $t1, $t2, s_same_3f_$1701, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_bucket_$1703, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_ht_$1699, s_key_$1700, $r } = $f);
           const $d = $stack.room - 37;
@@ -34086,7 +34086,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["general-entry"];
         const $proc$js = R.markProcedure($proc, "general-entry", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -34106,7 +34106,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "general-entry")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_ht_$1704, s_key_$1705) {
+        const $proc = { "lookup": function (s_ht_$1704, s_key_$1705) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_entry_$1706, $t12;
           if (arguments.length !== 2) R.wrongArity("lookup", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -34145,8 +34145,8 @@ export const LIBRARIES = {
           return (C3.v ?? G3());
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["lookup"];
+        const $proc$r = { "lookup": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_entry_$1706, $t12, s_ht_$1704, s_key_$1705, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_entry_$1706, $t12, s_ht_$1704, s_key_$1705, $r } = $f);
           const $d = $stack.room - 24;
@@ -34200,7 +34200,7 @@ export const LIBRARIES = {
                 return (C3.v ?? G3());
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["lookup"];
         const $proc$js = R.markProcedure($proc, "lookup", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -34233,7 +34233,7 @@ export const LIBRARIES = {
         const W13 = R.primitiveCell("car"), P13 = W13.primitive;
         let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "cdr")).v;
         const W14 = R.primitiveCell("cdr"), P14 = W14.primitive;
-        function $proc(s_ht_$1707, s_key_$1708, s_value_$1709) {
+        const $proc = { "put!": function (s_ht_$1707, s_key_$1708, s_value_$1709) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_store_$1710, $t12, $t13, $t14, $t15, $t16, $t17, s_h_$1711, $t18, $t19, $t20, s_bucket_$1712, $t21, $t22, $t23, s_same_3f_$1713, s_b_$1715, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48;
           if (arguments.length !== 3) R.wrongArity("put!", 3, false, arguments.length);
           const $d = $stack.room - 65;
@@ -34350,8 +34350,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["put!"];
+        const $proc$r = { "put!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_store_$1710, $t12, $t13, $t14, $t15, $t16, $t17, s_h_$1711, $t18, $t19, $t20, s_bucket_$1712, $t21, $t22, $t23, s_same_3f_$1713, s_b_$1715, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, s_ht_$1707, s_key_$1708, s_value_$1709, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_store_$1710, $t12, $t13, $t14, $t15, $t16, $t17, s_h_$1711, $t18, $t19, $t20, s_bucket_$1712, $t21, $t22, $t23, s_same_3f_$1713, s_b_$1715, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, s_ht_$1707, s_key_$1708, s_value_$1709, $r } = $f);
           const $d = $stack.room - 65;
@@ -34515,7 +34515,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["put!"];
         const $proc$js = R.markProcedure($proc, "put!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -34549,7 +34549,7 @@ export const LIBRARIES = {
         let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "car")).v;
         const W14 = R.primitiveCell("car"), P14 = W14.primitive;
         let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "%hash-store-ref")).v;
-        function $proc(s_ht_$1716, s_key_$1717) {
+        const $proc = { "remove!": function (s_ht_$1716, s_key_$1717) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_store_$1718, $t12, $t13, $t14, $t15, $t16, $t17, s_h_$1719, $t18, $t19, $t20, s_same_3f_$1720, $t21, $t22, $t23, s_b_$1722, s_kept_$1723, $t24, $t25, $t26, $t27, $t28, $t29, $t30, s_rest_$1724, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54;
           if (arguments.length !== 2) R.wrongArity("remove!", 2, false, arguments.length);
           const $d = $stack.room - 71;
@@ -34693,8 +34693,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["remove!"];
+        const $proc$r = { "remove!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_store_$1718, $t12, $t13, $t14, $t15, $t16, $t17, s_h_$1719, $t18, $t19, $t20, s_same_3f_$1720, $t21, $t22, $t23, s_b_$1722, s_kept_$1723, $t24, $t25, $t26, $t27, $t28, $t29, $t30, s_rest_$1724, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, s_ht_$1716, s_key_$1717, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_store_$1718, $t12, $t13, $t14, $t15, $t16, $t17, s_h_$1719, $t18, $t19, $t20, s_same_3f_$1720, $t21, $t22, $t23, s_b_$1722, s_kept_$1723, $t24, $t25, $t26, $t27, $t28, $t29, $t30, s_rest_$1724, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, s_ht_$1716, s_key_$1717, $r } = $f);
           const $d = $stack.room - 71;
@@ -34900,7 +34900,7 @@ export const LIBRARIES = {
                 return true;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["remove!"];
         const $proc$js = R.markProcedure($proc, "remove!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -34922,7 +34922,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("cons"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "car")).v;
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
-        function $proc(s_reversed_$1725, s_tail_$1726) {
+        const $proc = { "append-reverse": function (s_reversed_$1725, s_tail_$1726) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 2) R.wrongArity("append-reverse", 2, false, arguments.length);
           const $d = $stack.room - 17;
@@ -34940,8 +34940,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t2, $t4); } return $tailCall($t5, [$t2, $t4]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["append-reverse"];
+        const $proc$r = { "append-reverse": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_reversed_$1725, s_tail_$1726, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_reversed_$1725, s_tail_$1726, $r } = $f);
           for (;;) switch ($pc) {
@@ -34960,7 +34960,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t2, $t4]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append-reverse"];
         const $proc$js = R.markProcedure($proc, "append-reverse", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -34990,7 +34990,7 @@ export const LIBRARIES = {
         const W10 = R.primitiveCell("car"), P10 = W10.primitive;
         function $mk$fn21() {
           let s_collect_$1732;
-          function $fn21(s_b_$1733, s_result_$1734) {
+          const $fn21 = { "anonymous": function (s_b_$1733, s_result_$1734) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -35022,9 +35022,9 @@ export const LIBRARIES = {
           continue $loop;
         }
           }
-        }
+        } }["anonymous"];
           const $fn21$js = R.markProcedure($fn21, "anonymous", E);
-          function $fn21$r($pc, $f) {
+          const $fn21$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_b_$1733, s_result_$1734, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_b_$1733, s_result_$1734, $r } = $f);
           const $d = $stack.room - 20;
@@ -35065,12 +35065,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn21$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn21$js.$resume = $fn21$r;
           s_collect_$1732 = $fn21$js;
           return $fn21$js;
         }
-        function $proc(s_ht_$1727) {
+        const $proc = { "entries": function (s_ht_$1727) {
           let $t0, $t1, $t2, s_store_$1728, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_buckets_$1730, s_result_$1731, $t19, $t20, s_collect_$1732, $t22, $t23, $t24, $t25, $t26;
           if (arguments.length !== 1) R.wrongArity("entries", 1, false, arguments.length);
           const $d = $stack.room - 39;
@@ -35141,8 +35141,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["entries"];
+        const $proc$r = { "entries": function ($pc, $f) {
           let $t0, $t1, $t2, s_store_$1728, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_buckets_$1730, s_result_$1731, $t19, $t20, s_collect_$1732, $t22, $t23, $t24, $t25, $t26, s_ht_$1727, $r;
           ({ $t0, $t1, $t2, s_store_$1728, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_buckets_$1730, s_result_$1731, $t19, $t20, s_collect_$1732, $t22, $t23, $t24, $t25, $t26, s_ht_$1727, $r } = $f);
           const $d = $stack.room - 39;
@@ -35240,7 +35240,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["entries"];
         const $proc$js = R.markProcedure($proc, "entries", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -35254,15 +35254,15 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-from")).v;
-        function $proc(s_spec_$1735, ...s_args_$1736$raw) {
+        const $proc = { "make-hash-table": function (s_spec_$1735, ...s_args_$1736$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("make-hash-table", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_args_$1736$raw.length;
           let s_args_$1736 = R.listFrom(s_args_$1736$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("make-hash-table", s_spec_$1735, s_args_$1736); } return $tailCall($t0, ["make-hash-table", s_spec_$1735, s_args_$1736]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-hash-table"];
+        const $proc$r = { "make-hash-table": function ($pc, $f) {
           let $t0, $t1, s_spec_$1735, s_args_$1736, $r;
           ({ $t0, $t1, s_spec_$1735, s_args_$1736, $r } = $f);
           for (;;) switch ($pc) {
@@ -35271,7 +35271,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["make-hash-table", s_spec_$1735, s_args_$1736]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-hash-table"];
         const $proc$js = R.markProcedure($proc, "make-hash-table", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -35298,7 +35298,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "set-table-mutable!")).v;
         function $mk$fn3(s_ht_$1739) {
           let s_loop_$1740;
-          function $fn3(s_args_$1741) {
+          const $fn3 = { "anonymous": function (s_args_$1741) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 28;
@@ -35346,9 +35346,9 @@ export const LIBRARIES = {
         }
         }
           }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_args_$1741, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_args_$1741, $r } = $f);
           const $d = $stack.room - 28;
@@ -35409,12 +35409,12 @@ export const LIBRARIES = {
                 $pc = 0; continue;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           s_loop_$1740 = $fn3$js;
           return $fn3$js;
         }
-        function $proc(s_comparator_$1737, ...s_args_$1738$raw) {
+        const $proc = { "hash-table": function (s_comparator_$1737, ...s_args_$1738$raw) {
           let $t0, $t1, $t2, s_ht_$1739, s_loop_$1740, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("hash-table", 1, true, arguments.length);
           const $d = $stack.room - 22 - s_args_$1738$raw.length;
@@ -35447,8 +35447,8 @@ export const LIBRARIES = {
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { s_ht_$1739 }); return $UNWIND; }
           $t10;
           return s_ht_$1739;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table"];
+        const $proc$r = { "hash-table": function ($pc, $f) {
           let $t0, $t1, $t2, s_ht_$1739, s_loop_$1740, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_comparator_$1737, s_args_$1738, $r;
           ({ $t0, $t1, $t2, s_ht_$1739, s_loop_$1740, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_comparator_$1737, s_args_$1738, $r } = $f);
           const $d = $stack.room - 22;
@@ -35495,7 +35495,7 @@ export const LIBRARIES = {
                 return s_ht_$1739;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table"];
         const $proc$js = R.markProcedure($proc, "hash-table", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -35513,15 +35513,15 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "%values->list")).v;
         function $mk$fn3_3(s_mapper_$1743, s_seed_$1750) {
-          function $fn3_3() {
+          const $fn3_3 = { "anonymous": function () {
           let $t0, $t1;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 10;
           $t0 = s_mapper_$1743;
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_seed_$1750); } return $tailCall($t0, [s_seed_$1750]);
-        }
+        } }["anonymous"];
           const $fn3_3$js = R.markProcedure($fn3_3, "anonymous", E);
-          function $fn3_3$r($pc, $f) {
+          const $fn3_3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $r;
           ({ $t0, $t1, $r } = $f);
           for (;;) switch ($pc) {
@@ -35530,12 +35530,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_seed_$1750]);
               default: throw new Error('$fn3_3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_3$js.$resume = $fn3_3$r;
           return $fn3_3$js;
         }
         function $mk$fn3_6(s_ht_$1748, s_loop_$1749, s_successor_$1744, s_seed_$1750) {
-          function $fn3_6(s_key_$1751, s_value_$1752) {
+          const $fn3_6 = { "anonymous": function (s_key_$1751, s_value_$1752) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 18;
@@ -35557,9 +35557,9 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($fn3_6$r, 2, {  }); return $UNWIND; }
           $t6 = s_loop_$1749;
           if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7($t5); } return $tailCall($t6, [$t5]);
-        }
+        } }["anonymous"];
           const $fn3_6$js = R.markProcedure($fn3_6, "anonymous", E);
-          function $fn3_6$r($pc, $f) {
+          const $fn3_6$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_key_$1751, s_value_$1752, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_key_$1751, s_value_$1752, $r } = $f);
           const $d = $stack.room - 18;
@@ -35592,13 +35592,13 @@ export const LIBRARIES = {
                 return $tailCall($t6, [$t5]);
               default: throw new Error('$fn3_6$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3_6$js.$resume = $fn3_6$r;
           return $fn3_6$js;
         }
         function $mk$fn3(s_stop_3f_$1742, s_ht_$1748, s_mapper_$1743, s_successor_$1744) {
           let s_loop_$1749;
-          function $fn3(s_seed_$1750) {
+          const $fn3 = { "anonymous": function (s_seed_$1750) {
           let $t0, $t1, $t2, $t4, s__25cwv0, $t5, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 25;
@@ -35635,9 +35635,9 @@ export const LIBRARIES = {
           $t15 = $t5;
           if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16($t7, $t14); } return $tailCall($t15, [$t7, $t14]);
         }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, s__25cwv0, $t5, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_seed_$1750, $r;
           ({ $t0, $t1, $t2, $t4, s__25cwv0, $t5, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_seed_$1750, $r } = $f);
           const $d = $stack.room - 25;
@@ -35689,12 +35689,12 @@ export const LIBRARIES = {
                 return $tailCall($t15, [$t7, $t14]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           s_loop_$1749 = $fn3$js;
           return $fn3$js;
         }
-        function $proc(s_stop_3f_$1742, s_mapper_$1743, s_successor_$1744, s_seed_$1745, s_comparator_$1746, ...s_args_$1747$raw) {
+        const $proc = { "hash-table-unfold": function (s_stop_3f_$1742, s_mapper_$1743, s_successor_$1744, s_seed_$1745, s_comparator_$1746, ...s_args_$1747$raw) {
           let $t0, $t1, $t2, s_ht_$1748, s_loop_$1749, $t4, $t5, $t6;
           if (arguments.length < 5) R.wrongArity("hash-table-unfold", 5, true, arguments.length);
           const $d = $stack.room - 22 - s_args_$1747$raw.length;
@@ -35712,8 +35712,8 @@ export const LIBRARIES = {
           s_loop_$1749 = $t4;
           $t5 = s_loop_$1749;
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6(s_seed_$1745); } return $tailCall($t5, [s_seed_$1745]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-unfold"];
+        const $proc$r = { "hash-table-unfold": function ($pc, $f) {
           let $t0, $t1, $t2, s_ht_$1748, s_loop_$1749, $t4, $t5, $t6, s_stop_3f_$1742, s_mapper_$1743, s_successor_$1744, s_seed_$1745, s_comparator_$1746, s_args_$1747, $r;
           ({ $t0, $t1, $t2, s_ht_$1748, s_loop_$1749, $t4, $t5, $t6, s_stop_3f_$1742, s_mapper_$1743, s_successor_$1744, s_seed_$1745, s_comparator_$1746, s_args_$1747, $r } = $f);
           const $d = $stack.room - 22;
@@ -35737,7 +35737,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [s_seed_$1745]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-unfold"];
         const $proc$js = R.markProcedure($proc, "hash-table-unfold", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -35762,7 +35762,7 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cdr")).v;
         const W7 = R.primitiveCell("cdr"), P7 = W7.primitive;
         function $mk$fn3(s_ht_$1756) {
-          function $fn3(s_pair_$1757) {
+          const $fn3 = { "anonymous": function (s_pair_$1757) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 21;
@@ -35787,9 +35787,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_pair_$1757, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_pair_$1757, $r } = $f);
           const $d = $stack.room - 21;
@@ -35821,11 +35821,11 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_alist_$1753, s_spec_$1754, ...s_args_$1755$raw) {
+        const $proc = { "alist->hash-table": function (s_alist_$1753, s_spec_$1754, ...s_args_$1755$raw) {
           let $t0, $t1, $t2, s_ht_$1756, $t4, $t5, $t6, $t7;
           if (arguments.length < 2) R.wrongArity("alist->hash-table", 2, true, arguments.length);
           const $d = $stack.room - 19 - s_args_$1755$raw.length;
@@ -35849,8 +35849,8 @@ export const LIBRARIES = {
           if ($t7 === $UNWIND) { R.reify($proc$r, 2, { s_ht_$1756 }); return $UNWIND; }
           $t7;
           return s_ht_$1756;
-        }
-        function $proc$r($pc, $f) {
+        } }["alist->hash-table"];
+        const $proc$r = { "alist->hash-table": function ($pc, $f) {
           let $t0, $t1, $t2, s_ht_$1756, $t4, $t5, $t6, $t7, s_alist_$1753, s_spec_$1754, s_args_$1755, $r;
           ({ $t0, $t1, $t2, s_ht_$1756, $t4, $t5, $t6, $t7, s_alist_$1753, s_spec_$1754, s_args_$1755, $r } = $f);
           const $d = $stack.room - 19;
@@ -35884,7 +35884,7 @@ export const LIBRARIES = {
                 return s_ht_$1756;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["alist->hash-table"];
         const $proc$js = R.markProcedure($proc, "alist->hash-table", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -35902,7 +35902,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-contains?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "table-store")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "general-entry")).v;
-        function $proc(s_ht_$1758, s_key_$1759) {
+        const $proc = { "hash-table-contains?": function (s_ht_$1758, s_key_$1759) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("hash-table-contains?", 2, false, arguments.length);
           const $d = $stack.room - 25;
@@ -35947,8 +35947,8 @@ export const LIBRARIES = {
           return false;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-contains?"];
+        const $proc$r = { "hash-table-contains?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1758, s_key_$1759, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1758, s_key_$1759, $r } = $f);
           const $d = $stack.room - 25;
@@ -36012,7 +36012,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-contains?"];
         const $proc$js = R.markProcedure($proc, "hash-table-contains?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -36029,7 +36029,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-contains?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "table-store")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "general-entry")).v;
-        function $proc(s_ht_$1758, s_key_$1759) {
+        const $proc = { "hash-table-exists?": function (s_ht_$1758, s_key_$1759) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("hash-table-exists?", 2, false, arguments.length);
           const $d = $stack.room - 25;
@@ -36074,8 +36074,8 @@ export const LIBRARIES = {
           return false;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-exists?"];
+        const $proc$r = { "hash-table-exists?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1758, s_key_$1759, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1758, s_key_$1759, $r } = $f);
           const $d = $stack.room - 25;
@@ -36139,7 +36139,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-exists?"];
         const $proc$js = R.markProcedure($proc, "hash-table-exists?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -36155,7 +36155,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "hash-table-size")).v;
-        function $proc(s_ht_$1760) {
+        const $proc = { "hash-table-empty?": function (s_ht_$1760) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("hash-table-empty?", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -36169,8 +36169,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ((typeof $t2 === 'bigint' && typeof 0n === 'bigint') || (typeof $t2 === 'number' && typeof 0n === 'number')) ? ($t2 === 0n) : R.callBinding((C0.v ?? G0()), [$t2, 0n]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-empty?"];
+        const $proc$r = { "hash-table-empty?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_ht_$1760, $r;
           ({ $t0, $t1, $t2, $t3, s_ht_$1760, $r } = $f);
           const $d = $stack.room - 13;
@@ -36191,7 +36191,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-empty?"];
         const $proc$js = R.markProcedure($proc, "hash-table-empty?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -36222,7 +36222,7 @@ export const LIBRARIES = {
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "cdr")).v;
         const W11 = R.primitiveCell("cdr"), P11 = W11.primitive;
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "entries")).v;
-        function $proc(s_value_2dcomparator_$1761, s_ht1_$1762, s_ht2_$1763) {
+        const $proc = { "hash-table=?": function (s_value_2dcomparator_$1761, s_ht1_$1762, s_ht2_$1763) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_same_3f_$1764, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_es_$1766, $t19, s_x_$1767, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_other_$1768, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36;
           if (arguments.length !== 3) R.wrongArity("hash-table=?", 3, false, arguments.length);
           const $d = $stack.room - 52;
@@ -36330,8 +36330,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table=?"];
+        const $proc$r = { "hash-table=?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_same_3f_$1764, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_es_$1766, $t19, s_x_$1767, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_other_$1768, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, s_value_2dcomparator_$1761, s_ht1_$1762, s_ht2_$1763, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_same_3f_$1764, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_es_$1766, $t19, s_x_$1767, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_other_$1768, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, s_value_2dcomparator_$1761, s_ht1_$1762, s_ht2_$1763, $r } = $f);
           const $d = $stack.room - 52;
@@ -36482,7 +36482,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table=?"];
         const $proc$js = R.markProcedure($proc, "hash-table=?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -36497,7 +36497,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-mutable?")).v;
-        function $proc(s_ht_$1769) {
+        const $proc = { "hash-table-mutable?": function (s_ht_$1769) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("hash-table-mutable?", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -36512,8 +36512,8 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_ht_$1769); } return $tailCall($t3, [s_ht_$1769]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-mutable?"];
+        const $proc$r = { "hash-table-mutable?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_ht_$1769, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_ht_$1769, $r } = $f);
           const $d = $stack.room - 14;
@@ -36535,7 +36535,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_ht_$1769]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-mutable?"];
         const $proc$js = R.markProcedure($proc, "hash-table-mutable?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -36569,7 +36569,7 @@ export const LIBRARIES = {
         const W13 = R.primitiveCell("="), P13 = W13.primitive;
         let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "length")).v;
         let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "cadddr")).v;
-        function $proc(...s_args_$1770$raw) {
+        const $proc = { "hash-table-ref": function (...s_args_$1770$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_ht_$1771, $t10, $t11, $t12, s_key_$1772, $t13, $t14, $t15, $t16, $t17, $t18, s_value_$1773, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1774, $t38, $t39, $t40, s_key_$1775, $t41, $t42, $t43, s_failure_$1776, $t44, $t45, $t46, $t47, $t48, $t49, s_value_$1777, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, s_ht_$1778, $t59, $t60, $t61, s_key_$1779, $t62, $t63, $t64, s_failure_$1780, $t65, $t66, $t67, s_success_$1781, $t68, $t69, $t70, $t71, $t72, $t73, s_value_$1782, $t74, $t75, $t76, $t77, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86;
           const $d = $stack.room - 108 - s_args_$1770$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$1770$raw]);
@@ -36784,8 +36784,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-ref"];
+        const $proc$r = { "hash-table-ref": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_ht_$1771, $t10, $t11, $t12, s_key_$1772, $t13, $t14, $t15, $t16, $t17, $t18, s_value_$1773, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1774, $t38, $t39, $t40, s_key_$1775, $t41, $t42, $t43, s_failure_$1776, $t44, $t45, $t46, $t47, $t48, $t49, s_value_$1777, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, s_ht_$1778, $t59, $t60, $t61, s_key_$1779, $t62, $t63, $t64, s_failure_$1780, $t65, $t66, $t67, s_success_$1781, $t68, $t69, $t70, $t71, $t72, $t73, s_value_$1782, $t74, $t75, $t76, $t77, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, s_args_$1770, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_ht_$1771, $t10, $t11, $t12, s_key_$1772, $t13, $t14, $t15, $t16, $t17, $t18, s_value_$1773, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1774, $t38, $t39, $t40, s_key_$1775, $t41, $t42, $t43, s_failure_$1776, $t44, $t45, $t46, $t47, $t48, $t49, s_value_$1777, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, s_ht_$1778, $t59, $t60, $t61, s_key_$1779, $t62, $t63, $t64, s_failure_$1780, $t65, $t66, $t67, s_success_$1781, $t68, $t69, $t70, $t71, $t72, $t73, s_value_$1782, $t74, $t75, $t76, $t77, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, s_args_$1770, $r } = $f);
           const $d = $stack.room - 108;
@@ -37086,7 +37086,7 @@ export const LIBRARIES = {
                 return $tailCall($t85, [$t81, $t84]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-ref"];
         const $proc$js = R.markProcedure($proc, "hash-table-ref", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -37106,7 +37106,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "general-entry")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_ht_$1783, s_key_$1784, s_default_$1785) {
+        const $proc = { "hash-table-ref/default": function (s_ht_$1783, s_key_$1784, s_default_$1785) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_entry_$1786, $t15;
           if (arguments.length !== 3) R.wrongArity("hash-table-ref/default", 3, false, arguments.length);
           const $d = $stack.room - 28;
@@ -37153,8 +37153,8 @@ export const LIBRARIES = {
           return s_default_$1785;
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-ref/default"];
+        const $proc$r = { "hash-table-ref/default": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_entry_$1786, $t15, s_ht_$1783, s_key_$1784, s_default_$1785, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_entry_$1786, $t15, s_ht_$1783, s_key_$1784, s_default_$1785, $r } = $f);
           const $d = $stack.room - 28;
@@ -37220,7 +37220,7 @@ export const LIBRARIES = {
                 return s_default_$1785;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-ref/default"];
         const $proc$js = R.markProcedure($proc, "hash-table-ref/default", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -37248,7 +37248,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "put!")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "error")).v;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "length")).v;
-        function $proc(...s_args_$1787$raw) {
+        const $proc = { "hash-table-set!": function (...s_args_$1787$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1788, $t15, $t16, $t17, s_key_$1789, $t18, $t19, $t20, s_value_$1790, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_ht_$1791, $t28, s_args_$1792, $t29, $t30, $t31, s_args_$1794, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57;
           const $d = $stack.room - 73 - s_args_$1787$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$1787$raw]);
@@ -37389,8 +37389,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t57 = $t56?.[$RAW] ?? $t56)?.[$PRIM] === true) { $stack.room = $d; return $t57($t52, $t55); } return $tailCall($t56, [$t52, $t55]);
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-set!"];
+        const $proc$r = { "hash-table-set!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1788, $t15, $t16, $t17, s_key_$1789, $t18, $t19, $t20, s_value_$1790, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_ht_$1791, $t28, s_args_$1792, $t29, $t30, $t31, s_args_$1794, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, s_args_$1787, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1788, $t15, $t16, $t17, s_key_$1789, $t18, $t19, $t20, s_value_$1790, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_ht_$1791, $t28, s_args_$1792, $t29, $t30, $t31, s_args_$1794, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, s_args_$1787, $r } = $f);
           const $d = $stack.room - 73;
@@ -37583,7 +37583,7 @@ export const LIBRARIES = {
                 return $tailCall($t56, [$t52, $t55]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-set!"];
         const $proc$js = R.markProcedure($proc, "hash-table-set!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -37606,7 +37606,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "+")).v;
         const W5 = R.primitiveCell("+"), P5 = W5.primitive;
-        function $proc(s_ht_$1795, ...s_keys_$1796$raw) {
+        const $proc = { "hash-table-delete!": function (s_ht_$1795, ...s_keys_$1796$raw) {
           let $t0, $t1, $t2, s_keys_$1798, s_n_$1799, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length < 1) R.wrongArity("hash-table-delete!", 1, true, arguments.length);
           const $d = $stack.room - 24 - s_keys_$1796$raw.length;
@@ -37648,8 +37648,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-delete!"];
+        const $proc$r = { "hash-table-delete!": function ($pc, $f) {
           let $t0, $t1, $t2, s_keys_$1798, s_n_$1799, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ht_$1795, s_keys_$1796, $r;
           ({ $t0, $t1, $t2, s_keys_$1798, s_n_$1799, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ht_$1795, s_keys_$1796, $r } = $f);
           const $d = $stack.room - 24;
@@ -37704,7 +37704,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-delete!"];
         const $proc$js = R.markProcedure($proc, "hash-table-delete!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -37723,7 +37723,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("eq?"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "missing")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "put!")).v;
-        function $proc(s_ht_$1800, s_key_$1801, s_failure_$1802) {
+        const $proc = { "hash-table-intern!": function (s_ht_$1800, s_key_$1801, s_failure_$1802) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_value_$1803, $t6, $t7, $t8, $t9, $t10, s_value_$1804, $t11, $t12, $t13;
           if (arguments.length !== 3) R.wrongArity("hash-table-intern!", 3, false, arguments.length);
           const $d = $stack.room - 27;
@@ -37767,8 +37767,8 @@ export const LIBRARIES = {
         } else {
           return s_value_$1803;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-intern!"];
+        const $proc$r = { "hash-table-intern!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_value_$1803, $t6, $t7, $t8, $t9, $t10, s_value_$1804, $t11, $t12, $t13, s_ht_$1800, s_key_$1801, s_failure_$1802, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_value_$1803, $t6, $t7, $t8, $t9, $t10, s_value_$1804, $t11, $t12, $t13, s_ht_$1800, s_key_$1801, s_failure_$1802, $r } = $f);
           const $d = $stack.room - 27;
@@ -37831,7 +37831,7 @@ export const LIBRARIES = {
                 return s_value_$1804;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-intern!"];
         const $proc$js = R.markProcedure($proc, "hash-table-intern!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -37865,7 +37865,7 @@ export const LIBRARIES = {
         let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "apply")).v;
         let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "error")).v;
         function $mk$fn66() {
-          function $fn66(s_ht_$1813, s_key_$1814, s_updater_$1815, s_failure_$1816, s_success_$1817) {
+          const $fn66 = { "anonymous": function (s_ht_$1813, s_key_$1814, s_updater_$1815, s_failure_$1816, s_success_$1817) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 5) R.wrongArity("anonymous", 5, false, arguments.length);
           const $d = $stack.room - 25;
@@ -37895,9 +37895,9 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($fn66$r, 3, { $t3, s_ht_$1813, s_key_$1814 }); return $UNWIND; }
           $t10 = $t3;
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11(s_ht_$1813, s_key_$1814, $t9); } return $tailCall($t10, [s_ht_$1813, s_key_$1814, $t9]);
-        }
+        } }["anonymous"];
           const $fn66$js = R.markProcedure($fn66, "anonymous", E);
-          function $fn66$r($pc, $f) {
+          const $fn66$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ht_$1813, s_key_$1814, s_updater_$1815, s_failure_$1816, s_success_$1817, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ht_$1813, s_key_$1814, s_updater_$1815, s_failure_$1816, s_success_$1817, $r } = $f);
           const $d = $stack.room - 25;
@@ -37942,11 +37942,11 @@ export const LIBRARIES = {
                 return $tailCall($t10, [s_ht_$1813, s_key_$1814, $t9]);
               default: throw new Error('$fn66$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn66$js.$resume = $fn66$r;
           return $fn66$js;
         }
-        function $proc(...s_args_$1805$raw) {
+        const $proc = { "hash-table-update!": function (...s_args_$1805$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1806, $t15, $t16, $t17, s_key_$1807, $t18, $t19, $t20, s_updater_$1808, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1809, $t38, $t39, $t40, s_key_$1810, $t41, $t42, $t43, s_updater_$1811, $t44, $t45, $t46, s_failure_$1812, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t67, $t68, $t69, $t70, $t71, $t72, $t73, $t74, $t75, $t76;
           const $d = $stack.room - 92 - s_args_$1805$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$1805$raw]);
@@ -38125,8 +38125,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-update!"];
+        const $proc$r = { "hash-table-update!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1806, $t15, $t16, $t17, s_key_$1807, $t18, $t19, $t20, s_updater_$1808, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1809, $t38, $t39, $t40, s_key_$1810, $t41, $t42, $t43, s_updater_$1811, $t44, $t45, $t46, s_failure_$1812, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t67, $t68, $t69, $t70, $t71, $t72, $t73, $t74, $t75, $t76, s_args_$1805, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1806, $t15, $t16, $t17, s_key_$1807, $t18, $t19, $t20, s_updater_$1808, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1809, $t38, $t39, $t40, s_key_$1810, $t41, $t42, $t43, s_updater_$1811, $t44, $t45, $t46, s_failure_$1812, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t67, $t68, $t69, $t70, $t71, $t72, $t73, $t74, $t75, $t76, s_args_$1805, $r } = $f);
           const $d = $stack.room - 92;
@@ -38385,7 +38385,7 @@ export const LIBRARIES = {
                 return $tailCall($t75, [$t71, $t74]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-update!"];
         const $proc$js = R.markProcedure($proc, "hash-table-update!", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -38404,7 +38404,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "eq?")).v;
         const W3 = R.primitiveCell("eq?"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "missing")).v;
-        function $proc(s_ht_$1818, s_key_$1819, s_updater_$1820, s_default_$1821) {
+        const $proc = { "hash-table-update!/default": function (s_ht_$1818, s_key_$1819, s_updater_$1820, s_default_$1821) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_value_$1822, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 4) R.wrongArity("hash-table-update!/default", 4, false, arguments.length);
           const $d = $stack.room - 28;
@@ -38442,8 +38442,8 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 6, { $t6, s_ht_$1818, s_key_$1819 }); return $UNWIND; }
           $t13 = $t6;
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14(s_ht_$1818, s_key_$1819, $t12); } return $tailCall($t13, [s_ht_$1818, s_key_$1819, $t12]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-update!/default"];
+        const $proc$r = { "hash-table-update!/default": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_value_$1822, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1818, s_key_$1819, s_updater_$1820, s_default_$1821, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_value_$1822, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1818, s_key_$1819, s_updater_$1820, s_default_$1821, $r } = $f);
           const $d = $stack.room - 28;
@@ -38499,7 +38499,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [s_ht_$1818, s_key_$1819, $t12]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-update!/default"];
         const $proc$js = R.markProcedure($proc, "hash-table-update!/default", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -38528,7 +38528,7 @@ export const LIBRARIES = {
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "remove!")).v;
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "cdr")).v;
         const W12 = R.primitiveCell("cdr"), P12 = W12.primitive;
-        function $proc(s_ht_$1823) {
+        const $proc = { "hash-table-pop!": function (s_ht_$1823) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_store_$1824, $t6, $t7, $t8, s_some_$1825, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_value_$1826, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_entry_$1827, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37;
           if (arguments.length !== 1) R.wrongArity("hash-table-pop!", 1, false, arguments.length);
           const $d = $stack.room - 51;
@@ -38616,8 +38616,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t37 = $t36?.[$RAW] ?? $t36)?.[$PRIM] === true) { $stack.room = $d; return $t37($t34, $t35); } return $tailCall($t36, [$t34, $t35]);
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-pop!"];
+        const $proc$r = { "hash-table-pop!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_store_$1824, $t6, $t7, $t8, s_some_$1825, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_value_$1826, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_entry_$1827, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1823, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_store_$1824, $t6, $t7, $t8, s_some_$1825, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_value_$1826, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_entry_$1827, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_ht_$1823, $r } = $f);
           const $d = $stack.room - 51;
@@ -38740,7 +38740,7 @@ export const LIBRARIES = {
                 return $tailCall($t36, [$t34, $t35]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-pop!"];
         const $proc$js = R.markProcedure($proc, "hash-table-pop!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -38757,7 +38757,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-clear!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-store")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "set-table-count!")).v;
-        function $proc(s_ht_$1828) {
+        const $proc = { "hash-table-clear!": function (s_ht_$1828) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("hash-table-clear!", 1, false, arguments.length);
           const $d = $stack.room - 21;
@@ -38788,8 +38788,8 @@ export const LIBRARIES = {
           $t9;
           $t10 = (C3.v ?? G3());
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11(s_ht_$1828, 0n); } return $tailCall($t10, [s_ht_$1828, 0n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-clear!"];
+        const $proc$r = { "hash-table-clear!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ht_$1828, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ht_$1828, $r } = $f);
           const $d = $stack.room - 21;
@@ -38835,7 +38835,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [s_ht_$1828, 0n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-clear!"];
         const $proc$js = R.markProcedure($proc, "hash-table-clear!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -38853,7 +38853,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%hash-store-size")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "table-store")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "table-count")).v;
-        function $proc(s_ht_$1829) {
+        const $proc = { "hash-table-size": function (s_ht_$1829) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 1) R.wrongArity("hash-table-size", 1, false, arguments.length);
           const $d = $stack.room - 23;
@@ -38888,8 +38888,8 @@ export const LIBRARIES = {
           $t12 = (C4.v ?? G4());
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13(s_ht_$1829); } return $tailCall($t12, [s_ht_$1829]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-size"];
+        const $proc$r = { "hash-table-size": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_ht_$1829, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_ht_$1829, $r } = $f);
           const $d = $stack.room - 23;
@@ -38939,7 +38939,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [$t9]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-size"];
         const $proc$js = R.markProcedure($proc, "hash-table-size", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -38960,7 +38960,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "car")).v;
         const W5 = R.primitiveCell("car"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "entries")).v;
-        function $proc(s_ht_$1830) {
+        const $proc = { "hash-table-keys": function (s_ht_$1830) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           if (arguments.length !== 1) R.wrongArity("hash-table-keys", 1, false, arguments.length);
           const $d = $stack.room - 28;
@@ -39004,8 +39004,8 @@ export const LIBRARIES = {
           $t17 = $t12;
           if ($d > 0 && ($t18 = $t17?.[$RAW] ?? $t17)?.[$PRIM] === true) { $stack.room = $d; return $t18($t13, $t16); } return $tailCall($t17, [$t13, $t16]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-keys"];
+        const $proc$r = { "hash-table-keys": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_ht_$1830, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_ht_$1830, $r } = $f);
           const $d = $stack.room - 28;
@@ -39068,7 +39068,7 @@ export const LIBRARIES = {
                 return $tailCall($t17, [$t13, $t16]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-keys"];
         const $proc$js = R.markProcedure($proc, "hash-table-keys", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -39089,7 +39089,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "entries")).v;
-        function $proc(s_ht_$1831) {
+        const $proc = { "hash-table-values": function (s_ht_$1831) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           if (arguments.length !== 1) R.wrongArity("hash-table-values", 1, false, arguments.length);
           const $d = $stack.room - 28;
@@ -39133,8 +39133,8 @@ export const LIBRARIES = {
           $t17 = $t12;
           if ($d > 0 && ($t18 = $t17?.[$RAW] ?? $t17)?.[$PRIM] === true) { $stack.room = $d; return $t18($t13, $t16); } return $tailCall($t17, [$t13, $t16]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-values"];
+        const $proc$r = { "hash-table-values": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_ht_$1831, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_ht_$1831, $r } = $f);
           const $d = $stack.room - 28;
@@ -39197,7 +39197,7 @@ export const LIBRARIES = {
                 return $tailCall($t17, [$t13, $t16]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-values"];
         const $proc$js = R.markProcedure($proc, "hash-table-values", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -39218,7 +39218,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
-        function $proc(s_ht_$1832) {
+        const $proc = { "hash-table-entries": function (s_ht_$1832) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1833, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 1) R.wrongArity("hash-table-entries", 1, false, arguments.length);
           const $d = $stack.room - 25;
@@ -39256,8 +39256,8 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 4, { $t6, $t9 }); return $UNWIND; }
           $t13 = $t6;
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14($t9, $t12); } return $tailCall($t13, [$t9, $t12]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-entries"];
+        const $proc$r = { "hash-table-entries": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1833, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1832, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1833, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht_$1832, $r } = $f);
           const $d = $stack.room - 25;
@@ -39314,7 +39314,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [$t9, $t12]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-entries"];
         const $proc$js = R.markProcedure($proc, "hash-table-entries", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -39335,7 +39335,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cdr")).v;
         const W4 = R.primitiveCell("cdr"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "entries")).v;
-        function $proc(s_proc_$1834, s_ht_$1835, s_failure_$1836) {
+        const $proc = { "hash-table-find": function (s_proc_$1834, s_ht_$1835, s_failure_$1836) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1838, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_x_$1839, $t18;
           if (arguments.length !== 3) R.wrongArity("hash-table-find", 3, false, arguments.length);
           const $d = $stack.room - 32;
@@ -39393,8 +39393,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-find"];
+        const $proc$r = { "hash-table-find": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1838, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_x_$1839, $t18, s_proc_$1834, s_ht_$1835, s_failure_$1836, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1838, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_x_$1839, $t18, s_proc_$1834, s_ht_$1835, s_failure_$1836, $r } = $f);
           const $d = $stack.room - 32;
@@ -39475,7 +39475,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-find"];
         const $proc$js = R.markProcedure($proc, "hash-table-find", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -39498,7 +39498,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "+")).v;
         const W5 = R.primitiveCell("+"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "entries")).v;
-        function $proc(s_pred_$1840, s_ht_$1841) {
+        const $proc = { "hash-table-count": function (s_pred_$1840, s_ht_$1841) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1843, s_n_$1844, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18;
           if (arguments.length !== 2) R.wrongArity("hash-table-count", 2, false, arguments.length);
           const $d = $stack.room - 31;
@@ -39558,8 +39558,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-count"];
+        const $proc$r = { "hash-table-count": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1843, s_n_$1844, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_pred_$1840, s_ht_$1841, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_es_$1843, s_n_$1844, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, s_pred_$1840, s_ht_$1841, $r } = $f);
           const $d = $stack.room - 31;
@@ -39645,7 +39645,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-count"];
         const $proc$js = R.markProcedure($proc, "hash-table-count", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -39668,7 +39668,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "entries")).v;
         function $mk$fn7(s_result_$1848, s_proc_$1845) {
-          function $fn7(s_e_$1849) {
+          const $fn7 = { "anonymous": function (s_e_$1849) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 17;
@@ -39685,9 +39685,9 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($fn7$r, 1, { $t0, $t1 }); return $UNWIND; }
           $t6 = $t0;
           if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7(s_result_$1848, $t1, $t5); } return $tailCall($t6, [s_result_$1848, $t1, $t5]);
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_e_$1849, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_e_$1849, $r } = $f);
           const $d = $stack.room - 17;
@@ -39711,11 +39711,11 @@ export const LIBRARIES = {
                 return $tailCall($t6, [s_result_$1848, $t1, $t5]);
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_proc_$1845, s_comparator_$1846, s_ht_$1847) {
+        const $proc = { "hash-table-map": function (s_proc_$1845, s_comparator_$1846, s_ht_$1847) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_result_$1848, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 3) R.wrongArity("hash-table-map", 3, false, arguments.length);
           const $d = $stack.room - 26;
@@ -39754,8 +39754,8 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 4, { s_result_$1848 }); return $UNWIND; }
           $t14;
           return s_result_$1848;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-map"];
+        const $proc$r = { "hash-table-map": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_result_$1848, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_proc_$1845, s_comparator_$1846, s_ht_$1847, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_result_$1848, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_proc_$1845, s_comparator_$1846, s_ht_$1847, $r } = $f);
           const $d = $stack.room - 26;
@@ -39813,7 +39813,7 @@ export const LIBRARIES = {
                 return s_result_$1848;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-map"];
         const $proc$js = R.markProcedure($proc, "hash-table-map", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -39836,7 +39836,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "entries")).v;
         function $mk$fn11(s_proc_$1850) {
-          function $fn11(s_e_$1852) {
+          const $fn11 = { "anonymous": function (s_e_$1852) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -39844,9 +39844,9 @@ export const LIBRARIES = {
           $t1 = (W5.intact || (C5.v ?? G5()) === P5) && (s_e_$1852 instanceof R.Cons) ? (s_e_$1852.cdr) : R.callBinding((C5.v ?? G5()), [s_e_$1852]);
           $t2 = s_proc_$1850;
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t0, $t1); } return $tailCall($t2, [$t0, $t1]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_e_$1852, $r;
           ({ $t0, $t1, $t2, $t3, s_e_$1852, $r } = $f);
           for (;;) switch ($pc) {
@@ -39857,11 +39857,11 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t0, $t1]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s_proc_$1850, s_ht_$1851) {
+        const $proc = { "hash-table-for-each": function (s_proc_$1850, s_ht_$1851) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, $t15, $t16, $t17;
           if (arguments.length !== 2) R.wrongArity("hash-table-for-each", 2, false, arguments.length);
           const $d = $stack.room - 27;
@@ -39900,8 +39900,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t17 = $t16?.[$RAW] ?? $t16)?.[$PRIM] === true) { $stack.room = $d; return $t17($t12, $t15); } return $tailCall($t16, [$t12, $t15]);
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-for-each"];
+        const $proc$r = { "hash-table-for-each": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, $t15, $t16, $t17, s_proc_$1850, s_ht_$1851, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, $t13, $t14, $t15, $t16, $t17, s_proc_$1850, s_ht_$1851, $r } = $f);
           const $d = $stack.room - 27;
@@ -39953,7 +39953,7 @@ export const LIBRARIES = {
                 return $tailCall($t16, [$t12, $t15]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-for-each"];
         const $proc$js = R.markProcedure($proc, "hash-table-for-each", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -39967,14 +39967,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "hash-table-for-each")).v;
-        function $proc(s_ht_$1853, s_proc_$1854) {
+        const $proc = { "hash-table-walk": function (s_ht_$1853, s_proc_$1854) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("hash-table-walk", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_proc_$1854, s_ht_$1853); } return $tailCall($t0, [s_proc_$1854, s_ht_$1853]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-walk"];
+        const $proc$r = { "hash-table-walk": function ($pc, $f) {
           let $t0, $t1, s_ht_$1853, s_proc_$1854, $r;
           ({ $t0, $t1, s_ht_$1853, s_proc_$1854, $r } = $f);
           for (;;) switch ($pc) {
@@ -39983,7 +39983,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_proc_$1854, s_ht_$1853]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-walk"];
         const $proc$js = R.markProcedure($proc, "hash-table-walk", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -40005,7 +40005,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("cdr"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "entries")).v;
         function $mk$fn4(s_ht_$1856, s_proc_$1855) {
-          function $fn4(s_e_$1857) {
+          const $fn4 = { "anonymous": function (s_e_$1857) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -40023,9 +40023,9 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($fn4$r, 1, { $t0, $t1 }); return $UNWIND; }
           $t7 = $t0;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8(s_ht_$1856, $t1, $t6); } return $tailCall($t7, [s_ht_$1856, $t1, $t6]);
-        }
+        } }["anonymous"];
           const $fn4$js = R.markProcedure($fn4, "anonymous", E);
-          function $fn4$r($pc, $f) {
+          const $fn4$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_e_$1857, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_e_$1857, $r } = $f);
           const $d = $stack.room - 18;
@@ -40050,11 +40050,11 @@ export const LIBRARIES = {
                 return $tailCall($t7, [s_ht_$1856, $t1, $t6]);
               default: throw new Error('$fn4$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn4$js.$resume = $fn4$r;
           return $fn4$js;
         }
-        function $proc(s_proc_$1855, s_ht_$1856) {
+        const $proc = { "hash-table-map!": function (s_proc_$1855, s_ht_$1856) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 2) R.wrongArity("hash-table-map!", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -40078,8 +40078,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 2, { $t3, $t5 }); return $UNWIND; }
           $t9 = $t3;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t5, $t8); } return $tailCall($t9, [$t5, $t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-map!"];
+        const $proc$r = { "hash-table-map!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_proc_$1855, s_ht_$1856, $r;
           ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_proc_$1855, s_ht_$1856, $r } = $f);
           const $d = $stack.room - 20;
@@ -40114,7 +40114,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t5, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-map!"];
         const $proc$js = R.markProcedure($proc, "hash-table-map!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -40135,7 +40135,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "entries")).v;
         function $mk$fn4(s_proc_$1858) {
-          function $fn4(s_e_$1860) {
+          const $fn4 = { "anonymous": function (s_e_$1860) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -40143,9 +40143,9 @@ export const LIBRARIES = {
           $t1 = (W3.intact || (C3.v ?? G3()) === P3) && (s_e_$1860 instanceof R.Cons) ? (s_e_$1860.cdr) : R.callBinding((C3.v ?? G3()), [s_e_$1860]);
           $t2 = s_proc_$1858;
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t0, $t1); } return $tailCall($t2, [$t0, $t1]);
-        }
+        } }["anonymous"];
           const $fn4$js = R.markProcedure($fn4, "anonymous", E);
-          function $fn4$r($pc, $f) {
+          const $fn4$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_e_$1860, $r;
           ({ $t0, $t1, $t2, $t3, s_e_$1860, $r } = $f);
           for (;;) switch ($pc) {
@@ -40156,11 +40156,11 @@ export const LIBRARIES = {
                 return $tailCall($t2, [$t0, $t1]);
               default: throw new Error('$fn4$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn4$js.$resume = $fn4$r;
           return $fn4$js;
         }
-        function $proc(s_proc_$1858, s_ht_$1859) {
+        const $proc = { "hash-table-map->list": function (s_proc_$1858, s_ht_$1859) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 2) R.wrongArity("hash-table-map->list", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -40184,8 +40184,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 2, { $t3, $t5 }); return $UNWIND; }
           $t9 = $t3;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t5, $t8); } return $tailCall($t9, [$t5, $t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-map->list"];
+        const $proc$r = { "hash-table-map->list": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_proc_$1858, s_ht_$1859, $r;
           ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_proc_$1858, s_ht_$1859, $r } = $f);
           const $d = $stack.room - 20;
@@ -40220,7 +40220,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t5, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-map->list"];
         const $proc$js = R.markProcedure($proc, "hash-table-map->list", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -40243,7 +40243,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "caar")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdar")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "entries")).v;
-        function $proc(s_proc_$1861, s_seed_$1862, s_ht_$1863) {
+        const $proc = { "hash-table-fold": function (s_proc_$1861, s_seed_$1862, s_ht_$1863) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_es_$1865, s_acc_$1866, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24;
           if (arguments.length !== 3) R.wrongArity("hash-table-fold", 3, false, arguments.length);
           const $d = $stack.room - 38;
@@ -40312,8 +40312,8 @@ export const LIBRARIES = {
           }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-fold"];
+        const $proc$r = { "hash-table-fold": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_es_$1865, s_acc_$1866, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_proc_$1861, s_seed_$1862, s_ht_$1863, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_es_$1865, s_acc_$1866, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_proc_$1861, s_seed_$1862, s_ht_$1863, $r } = $f);
           const $d = $stack.room - 38;
@@ -40407,7 +40407,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-fold"];
         const $proc$js = R.markProcedure($proc, "hash-table-fold", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -40429,7 +40429,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "remove!")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "entries")).v;
         function $mk$fn4(s_proc_$1867, s_ht_$1868) {
-          function $fn4(s_e_$1869) {
+          const $fn4 = { "anonymous": function (s_e_$1869) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -40451,9 +40451,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn4$js = R.markProcedure($fn4, "anonymous", E);
-          function $fn4$r($pc, $f) {
+          const $fn4$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_e_$1869, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_e_$1869, $r } = $f);
           const $d = $stack.room - 18;
@@ -40482,11 +40482,11 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn4$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn4$js.$resume = $fn4$r;
           return $fn4$js;
         }
-        function $proc(s_proc_$1867, s_ht_$1868) {
+        const $proc = { "hash-table-prune!": function (s_proc_$1867, s_ht_$1868) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 2) R.wrongArity("hash-table-prune!", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -40510,8 +40510,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 2, { $t3, $t5 }); return $UNWIND; }
           $t9 = $t3;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t5, $t8); } return $tailCall($t9, [$t5, $t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-prune!"];
+        const $proc$r = { "hash-table-prune!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_proc_$1867, s_ht_$1868, $r;
           ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_proc_$1867, s_ht_$1868, $r } = $f);
           const $d = $stack.room - 20;
@@ -40546,7 +40546,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t5, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-prune!"];
         const $proc$js = R.markProcedure($proc, "hash-table-prune!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -40580,16 +40580,16 @@ export const LIBRARIES = {
         let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "table-comparator")).v;
         let C16 = R.UNRESOLVED; const G16 = () => (C16 = R.globalCell(E, "table-count")).v;
         function $mk$fn15_1() {
-          function $fn15_1(s_e_$1876) {
+          const $fn15_1 = { "anonymous": function (s_e_$1876) {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W9.intact || (C9.v ?? G9()) === P9) && (s_e_$1876 instanceof R.Cons) ? (s_e_$1876.car) : R.callBinding((C9.v ?? G9()), [s_e_$1876]);
           $t1 = (W10.intact || (C10.v ?? G10()) === P10) && (s_e_$1876 instanceof R.Cons) ? (s_e_$1876.cdr) : R.callBinding((C10.v ?? G10()), [s_e_$1876]);
           $t2 = (W8.intact || (C8.v ?? G8()) === P8) ? (new R.Cons($t0, $t1)) : R.callBinding((C8.v ?? G8()), [$t0, $t1]);
           return $t2;
-        }
+        } }["anonymous"];
           const $fn15_1$js = R.markProcedure($fn15_1, "anonymous", E);
-          function $fn15_1$r($pc, $f) {
+          const $fn15_1$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_e_$1876, $r;
           ({ $t0, $t1, $t2, s_e_$1876, $r } = $f);
           for (;;) switch ($pc) {
@@ -40600,12 +40600,12 @@ export const LIBRARIES = {
                 return $t2;
               default: throw new Error('$fn15_1$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn15_1$js.$resume = $fn15_1$r;
           return $fn15_1$js;
         }
         function $mk$fn15(s_copy_$1873) {
-          function $fn15(s_h_$1874, s_bucket_$1875) {
+          const $fn15 = { "anonymous": function (s_h_$1874, s_bucket_$1875) {
           let $t0, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 17;
@@ -40621,9 +40621,9 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($fn15$r, 1, { $t0, s_h_$1874 }); return $UNWIND; }
           $t6 = $t0;
           if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7(s_copy_$1873, s_h_$1874, $t5); } return $tailCall($t6, [s_copy_$1873, s_h_$1874, $t5]);
-        }
+        } }["anonymous"];
           const $fn15$js = R.markProcedure($fn15, "anonymous", E);
-          function $fn15$r($pc, $f) {
+          const $fn15$r = { "anonymous": function ($pc, $f) {
           let $t0, $t2, $t3, $t4, $t5, $t6, $t7, s_h_$1874, s_bucket_$1875, $r;
           ({ $t0, $t2, $t3, $t4, $t5, $t6, $t7, s_h_$1874, s_bucket_$1875, $r } = $f);
           const $d = $stack.room - 17;
@@ -40646,11 +40646,11 @@ export const LIBRARIES = {
                 return $tailCall($t6, [s_copy_$1873, s_h_$1874, $t5]);
               default: throw new Error('$fn15$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn15$js.$resume = $fn15$r;
           return $fn15$js;
         }
-        function $proc(s_ht_$1870, s_mutable_3f_$1871) {
+        const $proc = { "copy-table": function (s_ht_$1870, s_mutable_3f_$1871) {
           let $t0, $t1, $t2, s_store_$1872, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_copy_$1873, $t11, $t12, $t13, $t14, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42;
           if (arguments.length !== 2) R.wrongArity("copy-table", 2, false, arguments.length);
           const $d = $stack.room - 54;
@@ -40751,8 +40751,8 @@ export const LIBRARIES = {
           if ($t40 === $UNWIND) { R.reify($proc$r, 15, { $t3, $t7, $t28, $t31, $t34, $t37, s_mutable_3f_$1871 }); return $UNWIND; }
           $t41 = $t3;
           if ($d > 0 && ($t42 = $t41?.[$RAW] ?? $t41)?.[$PRIM] === true) { $stack.room = $d; return $t42($t7, $t28, $t31, $t34, $t37, s_mutable_3f_$1871, $t40); } return $tailCall($t41, [$t7, $t28, $t31, $t34, $t37, s_mutable_3f_$1871, $t40]);
-        }
-        function $proc$r($pc, $f) {
+        } }["copy-table"];
+        const $proc$r = { "copy-table": function ($pc, $f) {
           let $t0, $t1, $t2, s_store_$1872, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_copy_$1873, $t11, $t12, $t13, $t14, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, s_ht_$1870, s_mutable_3f_$1871, $r;
           ({ $t0, $t1, $t2, s_store_$1872, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_copy_$1873, $t11, $t12, $t13, $t14, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, s_ht_$1870, s_mutable_3f_$1871, $r } = $f);
           const $d = $stack.room - 54;
@@ -40907,7 +40907,7 @@ export const LIBRARIES = {
                 return $tailCall($t41, [$t7, $t28, $t31, $t34, $t37, s_mutable_3f_$1871, $t40]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["copy-table"];
         const $proc$js = R.markProcedure($proc, "copy-table", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -40934,7 +40934,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "copy-table")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "error")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "length")).v;
-        function $proc(...s_args_$1877$raw) {
+        const $proc = { "hash-table-copy": function (...s_args_$1877$raw) {
           let $t0, $t1, $t2, $t3, $t4, s_ht_$1878, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_ht_$1879, $t17, $t18, $t19, s_mutable_3f_$1880, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33;
           const $d = $stack.room - 46 - s_args_$1877$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$1877$raw]);
@@ -41015,8 +41015,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t33 = $t32?.[$RAW] ?? $t32)?.[$PRIM] === true) { $stack.room = $d; return $t33($t28, $t31); } return $tailCall($t32, [$t28, $t31]);
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-copy"];
+        const $proc$r = { "hash-table-copy": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_ht_$1878, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_ht_$1879, $t17, $t18, $t19, s_mutable_3f_$1880, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_args_$1877, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_ht_$1878, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_ht_$1879, $t17, $t18, $t19, s_mutable_3f_$1880, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_args_$1877, $r } = $f);
           const $d = $stack.room - 46;
@@ -41128,7 +41128,7 @@ export const LIBRARIES = {
                 return $tailCall($t32, [$t28, $t31]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-copy"];
         const $proc$js = R.markProcedure($proc, "hash-table-copy", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -41148,7 +41148,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "table-equality")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "table-hash")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "table-comparator")).v;
-        function $proc(s_ht_$1881) {
+        const $proc = { "hash-table-empty-copy": function (s_ht_$1881) {
           let $t0, $t1, $t2, $t3, $t4, s_x_$1882, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25;
           if (arguments.length !== 1) R.wrongArity("hash-table-empty-copy", 1, false, arguments.length);
           const $d = $stack.room - 36;
@@ -41213,8 +41213,8 @@ export const LIBRARIES = {
           if ($t23 === $UNWIND) { R.reify($proc$r, 10, { $t3, $t11, $t14, $t17, $t20 }); return $UNWIND; }
           $t24 = $t3;
           if ($d > 0 && ($t25 = $t24?.[$RAW] ?? $t24)?.[$PRIM] === true) { $stack.room = $d; return $t25($t11, $t14, $t17, $t20, $t23, true, 0n); } return $tailCall($t24, [$t11, $t14, $t17, $t20, $t23, true, 0n]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-empty-copy"];
+        const $proc$r = { "hash-table-empty-copy": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_x_$1882, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_ht_$1881, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_x_$1882, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_ht_$1881, $r } = $f);
           const $d = $stack.room - 36;
@@ -41313,7 +41313,7 @@ export const LIBRARIES = {
                 return $tailCall($t24, [$t11, $t14, $t17, $t20, $t23, true, 0n]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-empty-copy"];
         const $proc$js = R.markProcedure($proc, "hash-table-empty-copy", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -41328,7 +41328,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "entries")).v;
-        function $proc(s_ht_$1883) {
+        const $proc = { "hash-table->alist": function (s_ht_$1883) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("hash-table->alist", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -41343,8 +41343,8 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_ht_$1883); } return $tailCall($t3, [s_ht_$1883]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table->alist"];
+        const $proc$r = { "hash-table->alist": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_ht_$1883, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_ht_$1883, $r } = $f);
           const $d = $stack.room - 14;
@@ -41366,7 +41366,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_ht_$1883]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table->alist"];
         const $proc$js = R.markProcedure($proc, "hash-table->alist", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -41393,7 +41393,7 @@ export const LIBRARIES = {
         const W8 = R.primitiveCell("cdr"), P8 = W8.primitive;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "entries")).v;
         function $mk$fn7(s_ht1_$1884) {
-          function $fn7(s_e_$1886) {
+          const $fn7 = { "anonymous": function (s_e_$1886) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 21;
@@ -41418,9 +41418,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_e_$1886, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_e_$1886, $r } = $f);
           const $d = $stack.room - 21;
@@ -41452,11 +41452,11 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_ht1_$1884, s_ht2_$1885) {
+        const $proc = { "hash-table-union!": function (s_ht1_$1884, s_ht2_$1885) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("hash-table-union!", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -41495,8 +41495,8 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 4, { s_ht1_$1884 }); return $UNWIND; }
           $t14;
           return s_ht1_$1884;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-union!"];
+        const $proc$r = { "hash-table-union!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1884, s_ht2_$1885, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1884, s_ht2_$1885, $r } = $f);
           const $d = $stack.room - 24;
@@ -41554,7 +41554,7 @@ export const LIBRARIES = {
                 return s_ht1_$1884;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-union!"];
         const $proc$js = R.markProcedure($proc, "hash-table-union!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -41580,7 +41580,7 @@ export const LIBRARIES = {
         const W8 = R.primitiveCell("cdr"), P8 = W8.primitive;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "entries")).v;
         function $mk$fn7(s_ht1_$1884) {
-          function $fn7(s_e_$1886) {
+          const $fn7 = { "anonymous": function (s_e_$1886) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 21;
@@ -41605,9 +41605,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_e_$1886, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_e_$1886, $r } = $f);
           const $d = $stack.room - 21;
@@ -41639,11 +41639,11 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_ht1_$1884, s_ht2_$1885) {
+        const $proc = { "hash-table-merge!": function (s_ht1_$1884, s_ht2_$1885) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("hash-table-merge!", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -41682,8 +41682,8 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 4, { s_ht1_$1884 }); return $UNWIND; }
           $t14;
           return s_ht1_$1884;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-merge!"];
+        const $proc$r = { "hash-table-merge!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1884, s_ht2_$1885, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1884, s_ht2_$1885, $r } = $f);
           const $d = $stack.room - 24;
@@ -41741,7 +41741,7 @@ export const LIBRARIES = {
                 return s_ht1_$1884;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-merge!"];
         const $proc$js = R.markProcedure($proc, "hash-table-merge!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -41766,7 +41766,7 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "remove!")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "entries")).v;
         function $mk$fn7(s_ht2_$1888, s_ht1_$1887) {
-          function $fn7(s_e_$1889) {
+          const $fn7 = { "anonymous": function (s_e_$1889) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 20;
@@ -41790,9 +41790,9 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_e_$1889, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_e_$1889, $r } = $f);
           const $d = $stack.room - 20;
@@ -41823,11 +41823,11 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_ht1_$1887, s_ht2_$1888) {
+        const $proc = { "hash-table-intersection!": function (s_ht1_$1887, s_ht2_$1888) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("hash-table-intersection!", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -41866,8 +41866,8 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 4, { s_ht1_$1887 }); return $UNWIND; }
           $t14;
           return s_ht1_$1887;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-intersection!"];
+        const $proc$r = { "hash-table-intersection!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1887, s_ht2_$1888, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1887, s_ht2_$1888, $r } = $f);
           const $d = $stack.room - 24;
@@ -41925,7 +41925,7 @@ export const LIBRARIES = {
                 return s_ht1_$1887;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-intersection!"];
         const $proc$js = R.markProcedure($proc, "hash-table-intersection!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -41950,7 +41950,7 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "remove!")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "entries")).v;
         function $mk$fn7(s_ht2_$1891, s_ht1_$1890) {
-          function $fn7(s_e_$1892) {
+          const $fn7 = { "anonymous": function (s_e_$1892) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 20;
@@ -41974,9 +41974,9 @@ export const LIBRARIES = {
           $t9 = $t7;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_ht1_$1890, $t8); } return $tailCall($t9, [s_ht1_$1890, $t8]);
         }
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_e_$1892, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_e_$1892, $r } = $f);
           const $d = $stack.room - 20;
@@ -42007,11 +42007,11 @@ export const LIBRARIES = {
                 return $tailCall($t9, [s_ht1_$1890, $t8]);
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_ht1_$1890, s_ht2_$1891) {
+        const $proc = { "hash-table-difference!": function (s_ht1_$1890, s_ht2_$1891) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("hash-table-difference!", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -42050,8 +42050,8 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 4, { s_ht1_$1890 }); return $UNWIND; }
           $t14;
           return s_ht1_$1890;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-difference!"];
+        const $proc$r = { "hash-table-difference!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1890, s_ht2_$1891, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1890, s_ht2_$1891, $r } = $f);
           const $d = $stack.room - 24;
@@ -42109,7 +42109,7 @@ export const LIBRARIES = {
                 return s_ht1_$1890;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-difference!"];
         const $proc$js = R.markProcedure($proc, "hash-table-difference!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42137,7 +42137,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "remove!")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "entries")).v;
         function $mk$fn7(s_ht1_$1893) {
-          function $fn7(s_e_$1895) {
+          const $fn7 = { "anonymous": function (s_e_$1895) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 25;
@@ -42165,9 +42165,9 @@ export const LIBRARIES = {
           $t14 = $t12;
           if ($d > 0 && ($t15 = $t14?.[$RAW] ?? $t14)?.[$PRIM] === true) { $stack.room = $d; return $t15(s_ht1_$1893, $t13); } return $tailCall($t14, [s_ht1_$1893, $t13]);
         }
-        }
+        } }["anonymous"];
           const $fn7$js = R.markProcedure($fn7, "anonymous", E);
-          function $fn7$r($pc, $f) {
+          const $fn7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_e_$1895, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_e_$1895, $r } = $f);
           const $d = $stack.room - 25;
@@ -42202,11 +42202,11 @@ export const LIBRARIES = {
                 return $tailCall($t14, [s_ht1_$1893, $t13]);
               default: throw new Error('$fn7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn7$js.$resume = $fn7$r;
           return $fn7$js;
         }
-        function $proc(s_ht1_$1893, s_ht2_$1894) {
+        const $proc = { "hash-table-xor!": function (s_ht1_$1893, s_ht2_$1894) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 2) R.wrongArity("hash-table-xor!", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -42245,8 +42245,8 @@ export const LIBRARIES = {
           if ($t14 === $UNWIND) { R.reify($proc$r, 4, { s_ht1_$1893 }); return $UNWIND; }
           $t14;
           return s_ht1_$1893;
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-xor!"];
+        const $proc$r = { "hash-table-xor!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1893, s_ht2_$1894, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_ht1_$1893, s_ht2_$1894, $r } = $f);
           const $d = $stack.room - 24;
@@ -42304,7 +42304,7 @@ export const LIBRARIES = {
                 return s_ht1_$1893;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-xor!"];
         const $proc$js = R.markProcedure($proc, "hash-table-xor!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42319,7 +42319,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-equality")).v;
-        function $proc(s_ht_$1896) {
+        const $proc = { "hash-table-equivalence-function": function (s_ht_$1896) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("hash-table-equivalence-function", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -42334,8 +42334,8 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_ht_$1896); } return $tailCall($t3, [s_ht_$1896]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-equivalence-function"];
+        const $proc$r = { "hash-table-equivalence-function": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_ht_$1896, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_ht_$1896, $r } = $f);
           const $d = $stack.room - 14;
@@ -42357,7 +42357,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_ht_$1896]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-equivalence-function"];
         const $proc$js = R.markProcedure($proc, "hash-table-equivalence-function", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42372,7 +42372,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "table-hash")).v;
-        function $proc(s_ht_$1897) {
+        const $proc = { "hash-table-hash-function": function (s_ht_$1897) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("hash-table-hash-function", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -42387,8 +42387,8 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_ht_$1897); } return $tailCall($t3, [s_ht_$1897]);
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-table-hash-function"];
+        const $proc$r = { "hash-table-hash-function": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_ht_$1897, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_ht_$1897, $r } = $f);
           const $d = $stack.room - 14;
@@ -42410,7 +42410,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_ht_$1897]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-table-hash-function"];
         const $proc$js = R.markProcedure($proc, "hash-table-hash-function", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42489,11 +42489,11 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":27,"column":1,"endLine":27,"endColumn":21},
         make: (R, E, K) => {
-        function $proc(s_x_$1490) {
+        const $proc = { "any?": function (s_x_$1490) {
           if (arguments.length !== 1) R.wrongArity("any?", 1, false, arguments.length);
           return true;
-        }
-        function $proc$r($pc, $f) {
+        } }["any?"];
+        const $proc$r = { "any?": function ($pc, $f) {
           let s_x_$1490, $r;
           ({ s_x_$1490, $r } = $f);
           for (;;) switch ($pc) {
@@ -42501,7 +42501,7 @@ export const LIBRARIES = {
                 return true;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["any?"];
         const $proc$js = R.markProcedure($proc, "any?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42522,7 +42522,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("not"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "error")).v;
         function $mk$fn5(s_ordering_$1493) {
-          function $fn5(s_a_$1495, s_b_$1496) {
+          const $fn5 = { "anonymous": function (s_a_$1495, s_b_$1496) {
           let s_x_$1497, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -42549,9 +42549,9 @@ export const LIBRARIES = {
         }
           $t7 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t3 === false) : R.callBinding((C3.v ?? G3()), [$t3]);
           return $t7;
-        }
+        } }["anonymous"];
           const $fn5$js = R.markProcedure($fn5, "anonymous", E);
-          function $fn5$r($pc, $f) {
+          const $fn5$r = { "anonymous": function ($pc, $f) {
           let s_x_$1497, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_a_$1495, s_b_$1496, $r;
           ({ s_x_$1497, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_a_$1495, s_b_$1496, $r } = $f);
           const $d = $stack.room - 19;
@@ -42592,20 +42592,20 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$fn5$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn5$js.$resume = $fn5$r;
           return $fn5$js;
         }
         function $mk$fn8() {
-          function $fn8(s_a_$1499, s_b_$1500) {
+          const $fn8 = { "anonymous": function (s_a_$1499, s_b_$1500) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = (C4.v ?? G4());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("make-comparator: comparator has no ordering", s_a_$1499, s_b_$1500); } return $tailCall($t0, ["make-comparator: comparator has no ordering", s_a_$1499, s_b_$1500]);
-        }
+        } }["anonymous"];
           const $fn8$js = R.markProcedure($fn8, "anonymous", E);
-          function $fn8$r($pc, $f) {
+          const $fn8$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_a_$1499, s_b_$1500, $r;
           ({ $t0, $t1, s_a_$1499, s_b_$1500, $r } = $f);
           for (;;) switch ($pc) {
@@ -42614,21 +42614,21 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["make-comparator: comparator has no ordering", s_a_$1499, s_b_$1500]);
               default: throw new Error('$fn8$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn8$js.$resume = $fn8$r;
           return $fn8$js;
         }
         function $mk$fn11() {
-          function $fn11(s_x_$1502, ...s_ignored_$1503$raw) {
+          const $fn11 = { "anonymous": function (s_x_$1502, ...s_ignored_$1503$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("anonymous", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_ignored_$1503$raw.length;
           let s_ignored_$1503 = R.listFrom(s_ignored_$1503$raw);
           $t0 = (C4.v ?? G4());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("make-comparator: comparator has no hash function", s_x_$1502); } return $tailCall($t0, ["make-comparator: comparator has no hash function", s_x_$1502]);
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E, true);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_x_$1502, s_ignored_$1503, $r;
           ({ $t0, $t1, s_x_$1502, s_ignored_$1503, $r } = $f);
           for (;;) switch ($pc) {
@@ -42637,11 +42637,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["make-comparator: comparator has no hash function", s_x_$1502]);
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s_type_2dtest_$1491, s_equality_$1492, s_ordering_$1493, s_hash_$1494) {
+        const $proc = { "make-comparator": function (s_type_2dtest_$1491, s_equality_$1492, s_ordering_$1493, s_hash_$1494) {
           let $t0, $t1, $t2, $t3, $t4, $t6, s_x_$1498, $t7, $t9, s_x_$1501, $t10, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length !== 4) R.wrongArity("make-comparator", 4, false, arguments.length);
           const $d = $stack.room - 28;
@@ -42685,8 +42685,8 @@ export const LIBRARIES = {
         }
           $t15 = $t0;
           if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16($t2, $t4, $t7, $t10, $t13, $t14); } return $tailCall($t15, [$t2, $t4, $t7, $t10, $t13, $t14]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-comparator"];
+        const $proc$r = { "make-comparator": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t6, s_x_$1498, $t7, $t9, s_x_$1501, $t10, $t12, $t13, $t14, $t15, $t16, s_type_2dtest_$1491, s_equality_$1492, s_ordering_$1493, s_hash_$1494, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t6, s_x_$1498, $t7, $t9, s_x_$1501, $t10, $t12, $t13, $t14, $t15, $t16, s_type_2dtest_$1491, s_equality_$1492, s_ordering_$1493, s_hash_$1494, $r } = $f);
           for (;;) switch ($pc) {
@@ -42751,7 +42751,7 @@ export const LIBRARIES = {
                 return $tailCall($t15, [$t2, $t4, $t7, $t10, $t13, $t14]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-comparator"];
         const $proc$js = R.markProcedure($proc, "make-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42765,7 +42765,7 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
-        function $proc(s_comparator_$1504, s_obj_$1505) {
+        const $proc = { "comparator-test-type": function (s_comparator_$1504, s_obj_$1505) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 2) R.wrongArity("comparator-test-type", 2, false, arguments.length);
           const $d = $stack.room - 15;
@@ -42779,8 +42779,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_obj_$1505 }); return $UNWIND; }
           $t3 = $t2;
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_obj_$1505); } return $tailCall($t3, [s_obj_$1505]);
-        }
-        function $proc$r($pc, $f) {
+        } }["comparator-test-type"];
+        const $proc$r = { "comparator-test-type": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_comparator_$1504, s_obj_$1505, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_comparator_$1504, s_obj_$1505, $r } = $f);
           const $d = $stack.room - 15;
@@ -42801,7 +42801,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_obj_$1505]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["comparator-test-type"];
         const $proc$js = R.markProcedure($proc, "comparator-test-type", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42816,7 +42816,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
-        function $proc(s_comparator_$1506, s_obj_$1507) {
+        const $proc = { "comparator-check-type": function (s_comparator_$1506, s_obj_$1507) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 2) R.wrongArity("comparator-check-type", 2, false, arguments.length);
           const $d = $stack.room - 18;
@@ -42841,8 +42841,8 @@ export const LIBRARIES = {
           $t6 = (C1.v ?? G1());
           if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7("comparator-check-type: value has the wrong type", s_obj_$1507); } return $tailCall($t6, ["comparator-check-type: value has the wrong type", s_obj_$1507]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["comparator-check-type"];
+        const $proc$r = { "comparator-check-type": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_comparator_$1506, s_obj_$1507, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_comparator_$1506, s_obj_$1507, $r } = $f);
           const $d = $stack.room - 18;
@@ -42878,7 +42878,7 @@ export const LIBRARIES = {
                 return $tailCall($t6, ["comparator-check-type: value has the wrong type", s_obj_$1507]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["comparator-check-type"];
         const $proc$js = R.markProcedure($proc, "comparator-check-type", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42892,7 +42892,7 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-hash-function")).v;
-        function $proc(s_comparator_$1508, s_obj_$1509) {
+        const $proc = { "comparator-hash": function (s_comparator_$1508, s_obj_$1509) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 2) R.wrongArity("comparator-hash", 2, false, arguments.length);
           const $d = $stack.room - 15;
@@ -42906,8 +42906,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_obj_$1509 }); return $UNWIND; }
           $t3 = $t2;
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_obj_$1509); } return $tailCall($t3, [s_obj_$1509]);
-        }
-        function $proc$r($pc, $f) {
+        } }["comparator-hash"];
+        const $proc$r = { "comparator-hash": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_comparator_$1508, s_obj_$1509, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_comparator_$1508, s_obj_$1509, $r } = $f);
           const $d = $stack.room - 15;
@@ -42928,7 +42928,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_obj_$1509]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["comparator-hash"];
         const $proc$js = R.markProcedure($proc, "comparator-hash", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -42948,7 +42948,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
-        function $proc(s_relation_$1510, s_a_$1511, s_b_$1512, s_rest_$1513) {
+        const $proc = { "chain": function (s_relation_$1510, s_a_$1511, s_b_$1512, s_rest_$1513) {
           let $t0, $t1, $t2, $t3, s_x_$1514, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 4) R.wrongArity("chain", 4, false, arguments.length);
           const $d = $stack.room - 23;
@@ -42978,8 +42978,8 @@ export const LIBRARIES = {
           return false;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["chain"];
+        const $proc$r = { "chain": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1514, $t4, $t5, $t6, $t7, $t8, $t9, s_relation_$1510, s_a_$1511, s_b_$1512, s_rest_$1513, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1514, $t4, $t5, $t6, $t7, $t8, $t9, s_relation_$1510, s_a_$1511, s_b_$1512, s_rest_$1513, $r } = $f);
           const $d = $stack.room - 23;
@@ -43014,7 +43014,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_relation_$1510, s_b_$1512, $t5, $t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["chain"];
         const $proc$js = R.markProcedure($proc, "chain", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43029,7 +43029,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "chain")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
-        function $proc(s_comparator_$1515, s_a_$1516, s_b_$1517, ...s_rest_$1518$raw) {
+        const $proc = { "=?": function (s_comparator_$1515, s_a_$1516, s_b_$1517, ...s_rest_$1518$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length < 3) R.wrongArity("=?", 3, true, arguments.length);
           const $d = $stack.room - 18 - s_rest_$1518$raw.length;
@@ -43045,8 +43045,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0, s_a_$1516, s_b_$1517, s_rest_$1518 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3, s_a_$1516, s_b_$1517, s_rest_$1518); } return $tailCall($t4, [$t3, s_a_$1516, s_b_$1517, s_rest_$1518]);
-        }
-        function $proc$r($pc, $f) {
+        } }["=?"];
+        const $proc$r = { "=?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_comparator_$1515, s_a_$1516, s_b_$1517, s_rest_$1518, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_comparator_$1515, s_a_$1516, s_b_$1517, s_rest_$1518, $r } = $f);
           const $d = $stack.room - 18;
@@ -43068,7 +43068,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3, s_a_$1516, s_b_$1517, s_rest_$1518]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["=?"];
         const $proc$js = R.markProcedure($proc, "=?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43083,7 +43083,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "chain")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-ordering-predicate")).v;
-        function $proc(s_comparator_$1519, s_a_$1520, s_b_$1521, ...s_rest_$1522$raw) {
+        const $proc = { "<?": function (s_comparator_$1519, s_a_$1520, s_b_$1521, ...s_rest_$1522$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length < 3) R.wrongArity("<?", 3, true, arguments.length);
           const $d = $stack.room - 18 - s_rest_$1522$raw.length;
@@ -43099,8 +43099,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0, s_a_$1520, s_b_$1521, s_rest_$1522 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3, s_a_$1520, s_b_$1521, s_rest_$1522); } return $tailCall($t4, [$t3, s_a_$1520, s_b_$1521, s_rest_$1522]);
-        }
-        function $proc$r($pc, $f) {
+        } }["<?"];
+        const $proc$r = { "<?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_comparator_$1519, s_a_$1520, s_b_$1521, s_rest_$1522, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_comparator_$1519, s_a_$1520, s_b_$1521, s_rest_$1522, $r } = $f);
           const $d = $stack.room - 18;
@@ -43122,7 +43122,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3, s_a_$1520, s_b_$1521, s_rest_$1522]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["<?"];
         const $proc$js = R.markProcedure($proc, "<?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43138,15 +43138,15 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-ordering-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "chain")).v;
         function $mk$fn3(s_less_3f_$1527) {
-          function $fn3(s_x_$1528, s_y_$1529) {
+          const $fn3 = { "anonymous": function (s_x_$1528, s_y_$1529) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 12;
           $t0 = s_less_3f_$1527;
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_y_$1529, s_x_$1528); } return $tailCall($t0, [s_y_$1529, s_x_$1528]);
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_x_$1528, s_y_$1529, $r;
           ({ $t0, $t1, s_x_$1528, s_y_$1529, $r } = $f);
           for (;;) switch ($pc) {
@@ -43155,11 +43155,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_y_$1529, s_x_$1528]);
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_comparator_$1523, s_a_$1524, s_b_$1525, ...s_rest_$1526$raw) {
+        const $proc = { ">?": function (s_comparator_$1523, s_a_$1524, s_b_$1525, ...s_rest_$1526$raw) {
           let $t0, $t1, $t2, s_less_3f_$1527, $t4, $t5, $t6;
           if (arguments.length < 3) R.wrongArity(">?", 3, true, arguments.length);
           const $d = $stack.room - 19 - s_rest_$1526$raw.length;
@@ -43176,8 +43176,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_less_3f_$1527);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_a_$1524, s_b_$1525, s_rest_$1526); } return $tailCall($t5, [$t4, s_a_$1524, s_b_$1525, s_rest_$1526]);
-        }
-        function $proc$r($pc, $f) {
+        } }[">?"];
+        const $proc$r = { ">?": function ($pc, $f) {
           let $t0, $t1, $t2, s_less_3f_$1527, $t4, $t5, $t6, s_comparator_$1523, s_a_$1524, s_b_$1525, s_rest_$1526, $r;
           ({ $t0, $t1, $t2, s_less_3f_$1527, $t4, $t5, $t6, s_comparator_$1523, s_a_$1524, s_b_$1525, s_rest_$1526, $r } = $f);
           const $d = $stack.room - 19;
@@ -43200,7 +43200,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_a_$1524, s_b_$1525, s_rest_$1526]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }[">?"];
         const $proc$js = R.markProcedure($proc, ">?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43218,7 +43218,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
         const W2 = R.primitiveCell("not"), P2 = W2.primitive;
         function $mk$fn3(s_less_3f_$1534) {
-          function $fn3(s_x_$1535, s_y_$1536) {
+          const $fn3 = { "anonymous": function (s_x_$1535, s_y_$1536) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -43232,9 +43232,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t2 === false) : R.callBinding((C2.v ?? G2()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1535, s_y_$1536, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1535, s_y_$1536, $r } = $f);
           const $d = $stack.room - 14;
@@ -43255,11 +43255,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_comparator_$1530, s_a_$1531, s_b_$1532, ...s_rest_$1533$raw) {
+        const $proc = { "<=?": function (s_comparator_$1530, s_a_$1531, s_b_$1532, ...s_rest_$1533$raw) {
           let $t0, $t1, $t2, s_less_3f_$1534, $t4, $t5, $t6;
           if (arguments.length < 3) R.wrongArity("<=?", 3, true, arguments.length);
           const $d = $stack.room - 19 - s_rest_$1533$raw.length;
@@ -43276,8 +43276,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_less_3f_$1534);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_a_$1531, s_b_$1532, s_rest_$1533); } return $tailCall($t5, [$t4, s_a_$1531, s_b_$1532, s_rest_$1533]);
-        }
-        function $proc$r($pc, $f) {
+        } }["<=?"];
+        const $proc$r = { "<=?": function ($pc, $f) {
           let $t0, $t1, $t2, s_less_3f_$1534, $t4, $t5, $t6, s_comparator_$1530, s_a_$1531, s_b_$1532, s_rest_$1533, $r;
           ({ $t0, $t1, $t2, s_less_3f_$1534, $t4, $t5, $t6, s_comparator_$1530, s_a_$1531, s_b_$1532, s_rest_$1533, $r } = $f);
           const $d = $stack.room - 19;
@@ -43300,7 +43300,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_a_$1531, s_b_$1532, s_rest_$1533]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["<=?"];
         const $proc$js = R.markProcedure($proc, "<=?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43318,7 +43318,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
         const W2 = R.primitiveCell("not"), P2 = W2.primitive;
         function $mk$fn3(s_less_3f_$1541) {
-          function $fn3(s_x_$1542, s_y_$1543) {
+          const $fn3 = { "anonymous": function (s_x_$1542, s_y_$1543) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -43332,9 +43332,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t2 === false) : R.callBinding((C2.v ?? G2()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_x_$1542, s_y_$1543, $r;
           ({ $t0, $t1, $t2, $t3, s_x_$1542, s_y_$1543, $r } = $f);
           const $d = $stack.room - 14;
@@ -43355,11 +43355,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_comparator_$1537, s_a_$1538, s_b_$1539, ...s_rest_$1540$raw) {
+        const $proc = { ">=?": function (s_comparator_$1537, s_a_$1538, s_b_$1539, ...s_rest_$1540$raw) {
           let $t0, $t1, $t2, s_less_3f_$1541, $t4, $t5, $t6;
           if (arguments.length < 3) R.wrongArity(">=?", 3, true, arguments.length);
           const $d = $stack.room - 19 - s_rest_$1540$raw.length;
@@ -43376,8 +43376,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_less_3f_$1541);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t4, s_a_$1538, s_b_$1539, s_rest_$1540); } return $tailCall($t5, [$t4, s_a_$1538, s_b_$1539, s_rest_$1540]);
-        }
-        function $proc$r($pc, $f) {
+        } }[">=?"];
+        const $proc$r = { ">=?": function ($pc, $f) {
           let $t0, $t1, $t2, s_less_3f_$1541, $t4, $t5, $t6, s_comparator_$1537, s_a_$1538, s_b_$1539, s_rest_$1540, $r;
           ({ $t0, $t1, $t2, s_less_3f_$1541, $t4, $t5, $t6, s_comparator_$1537, s_a_$1538, s_b_$1539, s_rest_$1540, $r } = $f);
           const $d = $stack.room - 19;
@@ -43400,7 +43400,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [$t4, s_a_$1538, s_b_$1539, s_rest_$1540]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }[">=?"];
         const $proc$js = R.markProcedure($proc, ">=?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43419,7 +43419,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "*")).v;
         const W2 = R.primitiveCell("*"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "bound")).v;
-        function $proc(s_h_$1544, s_x_$1545) {
+        const $proc = { "combine": function (s_h_$1544, s_x_$1545) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 2) R.wrongArity("combine", 2, false, arguments.length);
           const $d = $stack.room - 15;
@@ -43428,8 +43428,8 @@ export const LIBRARIES = {
           $t2 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof $t1 === 'bigint' && typeof s_x_$1545 === 'bigint') || (typeof $t1 === 'number' && typeof s_x_$1545 === 'number')) ? ($t1 + s_x_$1545) : R.callBinding((C1.v ?? G1()), [$t1, s_x_$1545]);
           $t3 = $t0;
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4($t2, (C3.v ?? G3())); } return $tailCall($t3, [$t2, (C3.v ?? G3())]);
-        }
-        function $proc$r($pc, $f) {
+        } }["combine"];
+        const $proc$r = { "combine": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_h_$1544, s_x_$1545, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_h_$1544, s_x_$1545, $r } = $f);
           for (;;) switch ($pc) {
@@ -43441,7 +43441,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [$t2, (C3.v ?? G3())]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["combine"];
         const $proc$js = R.markProcedure($proc, "combine", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43456,7 +43456,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "boolean?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "error")).v;
-        function $proc(s_b_$1546, ...s_ignored_$1547$raw) {
+        const $proc = { "boolean-hash": function (s_b_$1546, ...s_ignored_$1547$raw) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length < 1) R.wrongArity("boolean-hash", 1, true, arguments.length);
           const $d = $stack.room - 15 - s_ignored_$1547$raw.length;
@@ -43479,8 +43479,8 @@ export const LIBRARIES = {
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4("boolean-hash: not a boolean", s_b_$1546); } return $tailCall($t3, ["boolean-hash: not a boolean", s_b_$1546]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["boolean-hash"];
+        const $proc$r = { "boolean-hash": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_b_$1546, s_ignored_$1547, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_b_$1546, s_ignored_$1547, $r } = $f);
           const $d = $stack.room - 15;
@@ -43509,7 +43509,7 @@ export const LIBRARIES = {
                 return 0n;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["boolean-hash"];
         const $proc$js = R.markProcedure($proc, "boolean-hash", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43523,15 +43523,15 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "char->integer")).v;
-        function $proc(s_c_$1548, ...s_ignored_$1549$raw) {
+        const $proc = { "char-hash": function (s_c_$1548, ...s_ignored_$1549$raw) {
           let $t0, $t1;
           if (arguments.length < 1) R.wrongArity("char-hash", 1, true, arguments.length);
           const $d = $stack.room - 12 - s_ignored_$1549$raw.length;
           let s_ignored_$1549 = R.listFrom(s_ignored_$1549$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_c_$1548); } return $tailCall($t0, [s_c_$1548]);
-        }
-        function $proc$r($pc, $f) {
+        } }["char-hash"];
+        const $proc$r = { "char-hash": function ($pc, $f) {
           let $t0, $t1, s_c_$1548, s_ignored_$1549, $r;
           ({ $t0, $t1, s_c_$1548, s_ignored_$1549, $r } = $f);
           for (;;) switch ($pc) {
@@ -43540,7 +43540,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_c_$1548]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["char-hash"];
         const $proc$js = R.markProcedure($proc, "char-hash", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43555,7 +43555,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "char->integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "char-foldcase")).v;
-        function $proc(s_c_$1550, ...s_ignored_$1551$raw) {
+        const $proc = { "char-ci-hash": function (s_c_$1550, ...s_ignored_$1551$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length < 1) R.wrongArity("char-ci-hash", 1, true, arguments.length);
           const $d = $stack.room - 16 - s_ignored_$1551$raw.length;
@@ -43571,8 +43571,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3); } return $tailCall($t4, [$t3]);
-        }
-        function $proc$r($pc, $f) {
+        } }["char-ci-hash"];
+        const $proc$r = { "char-ci-hash": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_c_$1550, s_ignored_$1551, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_c_$1550, s_ignored_$1551, $r } = $f);
           const $d = $stack.room - 16;
@@ -43594,7 +43594,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["char-ci-hash"];
         const $proc$js = R.markProcedure($proc, "char-ci-hash", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43609,7 +43609,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-hash")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "symbol->string")).v;
-        function $proc(s_s_$1552, ...s_ignored_$1553$raw) {
+        const $proc = { "symbol-hash": function (s_s_$1552, ...s_ignored_$1553$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length < 1) R.wrongArity("symbol-hash", 1, true, arguments.length);
           const $d = $stack.room - 16 - s_ignored_$1553$raw.length;
@@ -43625,8 +43625,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3); } return $tailCall($t4, [$t3]);
-        }
-        function $proc$r($pc, $f) {
+        } }["symbol-hash"];
+        const $proc$r = { "symbol-hash": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_s_$1552, s_ignored_$1553, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_s_$1552, s_ignored_$1553, $r } = $f);
           const $d = $stack.room - 16;
@@ -43648,7 +43648,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["symbol-hash"];
         const $proc$js = R.markProcedure($proc, "symbol-hash", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43666,7 +43666,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
         const W1 = R.primitiveCell("+"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "combine")).v;
-        function $proc(s_element_2dhash_$1554, s_n_$1555, s_ref_$1556) {
+        const $proc = { "hash-sequence": function (s_element_2dhash_$1554, s_n_$1555, s_ref_$1556) {
           let s_i_$1558, s_h_$1559, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 3) R.wrongArity("hash-sequence", 3, false, arguments.length);
           const $d = $stack.room - 25;
@@ -43706,8 +43706,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["hash-sequence"];
+        const $proc$r = { "hash-sequence": function ($pc, $f) {
           let s_i_$1558, s_h_$1559, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_element_2dhash_$1554, s_n_$1555, s_ref_$1556, $r;
           ({ s_i_$1558, s_h_$1559, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_element_2dhash_$1554, s_n_$1555, s_ref_$1556, $r } = $f);
           const $d = $stack.room - 25;
@@ -43762,7 +43762,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["hash-sequence"];
         const $proc$js = R.markProcedure($proc, "hash-sequence", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -43808,14 +43808,14 @@ export const LIBRARIES = {
         let C24 = R.UNRESOLVED; const G24 = () => (C24 = R.globalCell(E, "comparator-hash")).v;
         let C25 = R.UNRESOLVED; const G25 = () => (C25 = R.globalCell(E, "%identity-hash")).v;
         function $mk$fn50(s_obj_$1560) {
-          function $fn50(s_i_$1565) {
+          const $fn50 = { "anonymous": function (s_i_$1565) {
           let $t0;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           $t0 = (W19.intact || (C19.v ?? G19()) === P19) ? ($vectorRef(s_obj_$1560, s_i_$1565)) : R.callBinding((C19.v ?? G19()), [s_obj_$1560, s_i_$1565]);
           return $t0;
-        }
+        } }["anonymous"];
           const $fn50$js = R.markProcedure($fn50, "anonymous", E);
-          function $fn50$r($pc, $f) {
+          const $fn50$r = { "anonymous": function ($pc, $f) {
           let $t0, s_i_$1565, $r;
           ({ $t0, s_i_$1565, $r } = $f);
           for (;;) switch ($pc) {
@@ -43824,17 +43824,17 @@ export const LIBRARIES = {
                 return $t0;
               default: throw new Error('$fn50$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn50$js.$resume = $fn50$r;
           return $fn50$js;
         }
         function $mk$fn58() {
-          function $fn58(s_b_$1566) {
+          const $fn58 = { "anonymous": function (s_b_$1566) {
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           return s_b_$1566;
-        }
+        } }["anonymous"];
           const $fn58$js = R.markProcedure($fn58, "anonymous", E);
-          function $fn58$r($pc, $f) {
+          const $fn58$r = { "anonymous": function ($pc, $f) {
           let s_b_$1566, $r;
           ({ s_b_$1566, $r } = $f);
           for (;;) switch ($pc) {
@@ -43842,20 +43842,20 @@ export const LIBRARIES = {
                 return s_b_$1566;
               default: throw new Error('$fn58$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn58$js.$resume = $fn58$r;
           return $fn58$js;
         }
         function $mk$fn63(s_obj_$1560) {
-          function $fn63(s_i_$1567) {
+          const $fn63 = { "anonymous": function (s_i_$1567) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C22.v ?? G22());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_obj_$1560, s_i_$1567); } return $tailCall($t0, [s_obj_$1560, s_i_$1567]);
-        }
+        } }["anonymous"];
           const $fn63$js = R.markProcedure($fn63, "anonymous", E);
-          function $fn63$r($pc, $f) {
+          const $fn63$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_i_$1567, $r;
           ({ $t0, $t1, s_i_$1567, $r } = $f);
           for (;;) switch ($pc) {
@@ -43864,11 +43864,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_obj_$1560, s_i_$1567]);
               default: throw new Error('$fn63$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn63$js.$resume = $fn63$r;
           return $fn63$js;
         }
-        function $proc(s_obj_$1560, ...s_ignored_$1561$raw) {
+        const $proc = { "default-hash": function (s_obj_$1560, ...s_ignored_$1561$raw) {
           let $t0, s_x_$1563, s_h_$1564, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t59, $t60, $t61, $t62, $t64, $t65, $t66, $t67, $t68, $t69, s_temp_$1568, s_comparator_$1569, $t70, $t71, $t72, $t73;
           if (arguments.length < 1) R.wrongArity("default-hash", 1, true, arguments.length);
           const $d = $stack.room - 85 - s_ignored_$1561$raw.length;
@@ -44036,8 +44036,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["default-hash"];
+        const $proc$r = { "default-hash": function ($pc, $f) {
           let $t0, s_x_$1563, s_h_$1564, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t59, $t60, $t61, $t62, $t64, $t65, $t66, $t67, $t68, $t69, s_temp_$1568, s_comparator_$1569, $t70, $t71, $t72, $t73, s_obj_$1560, s_ignored_$1561, $r;
           ({ $t0, s_x_$1563, s_h_$1564, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t59, $t60, $t61, $t62, $t64, $t65, $t66, $t67, $t68, $t69, s_temp_$1568, s_comparator_$1569, $t70, $t71, $t72, $t73, s_obj_$1560, s_ignored_$1561, $r } = $f);
           const $d = $stack.room - 85;
@@ -44255,7 +44255,7 @@ export const LIBRARIES = {
                 return $tailCall($t72, [s_obj_$1560]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["default-hash"];
         const $proc$js = R.markProcedure($proc, "default-hash", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -44283,7 +44283,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "comparator-ordered?")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "comparator-hashable?")).v;
         function $mk$fn19(s_car_2dtest_$1572, s_cdr_2dtest_$1573) {
-          function $fn19(s_x_$1578) {
+          const $fn19 = { "anonymous": function (s_x_$1578) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 17;
@@ -44308,9 +44308,9 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
+        } }["anonymous"];
           const $fn19$js = R.markProcedure($fn19, "anonymous", E);
-          function $fn19$r($pc, $f) {
+          const $fn19$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$1578, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_x_$1578, $r } = $f);
           const $d = $stack.room - 17;
@@ -44342,12 +44342,12 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$fn19$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn19$js.$resume = $fn19$r;
           return $fn19$js;
         }
         function $mk$fn21(s_car_3d_3f_$1574, s_cdr_3d_3f_$1575) {
-          function $fn21(s_a_$1579, s_b_$1580) {
+          const $fn21 = { "anonymous": function (s_a_$1579, s_b_$1580) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -44369,9 +44369,9 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
+        } }["anonymous"];
           const $fn21$js = R.markProcedure($fn21, "anonymous", E);
-          function $fn21$r($pc, $f) {
+          const $fn21$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_a_$1579, s_b_$1580, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_a_$1579, s_b_$1580, $r } = $f);
           const $d = $stack.room - 19;
@@ -44400,12 +44400,12 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$fn21$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn21$js.$resume = $fn21$r;
           return $fn21$js;
         }
         function $mk$fn23(s_car_3d_3f_$1574, s_cdr_3c_3f_$1577, s_car_3c_3f_$1576) {
-          function $fn23(s_a_$1581, s_b_$1582) {
+          const $fn23 = { "anonymous": function (s_a_$1581, s_b_$1582) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 23;
@@ -44430,9 +44430,9 @@ export const LIBRARIES = {
           $t11 = s_car_3c_3f_$1576;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12($t9, $t10); } return $tailCall($t11, [$t9, $t10]);
         }
-        }
+        } }["anonymous"];
           const $fn23$js = R.markProcedure($fn23, "anonymous", E);
-          function $fn23$r($pc, $f) {
+          const $fn23$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_a_$1581, s_b_$1582, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_a_$1581, s_b_$1582, $r } = $f);
           const $d = $stack.room - 23;
@@ -44464,12 +44464,12 @@ export const LIBRARIES = {
                 return $tailCall($t11, [$t9, $t10]);
               default: throw new Error('$fn23$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn23$js.$resume = $fn23$r;
           return $fn23$js;
         }
         function $mk$fn25(s_car_2dcomparator_$1570, s_cdr_2dcomparator_$1571) {
-          function $fn25(s_x_$1583, ...s_ignored_$1584$raw) {
+          const $fn25 = { "anonymous": function (s_x_$1583, ...s_ignored_$1584$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length < 1) R.wrongArity("anonymous", 1, true, arguments.length);
           const $d = $stack.room - 23 - s_ignored_$1584$raw.length;
@@ -44496,9 +44496,9 @@ export const LIBRARIES = {
           if ($t10 === $UNWIND) { R.reify($fn25$r, 2, { $t0, $t5 }); return $UNWIND; }
           $t11 = $t0;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12($t5, $t10); } return $tailCall($t11, [$t5, $t10]);
-        }
+        } }["anonymous"];
           const $fn25$js = R.markProcedure($fn25, "anonymous", E, true);
-          function $fn25$r($pc, $f) {
+          const $fn25$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$1583, s_ignored_$1584, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_x_$1583, s_ignored_$1584, $r } = $f);
           const $d = $stack.room - 23;
@@ -44535,11 +44535,11 @@ export const LIBRARIES = {
                 return $tailCall($t11, [$t5, $t10]);
               default: throw new Error('$fn25$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn25$js.$resume = $fn25$r;
           return $fn25$js;
         }
-        function $proc(s_car_2dcomparator_$1570, s_cdr_2dcomparator_$1571) {
+        const $proc = { "make-pair-comparator": function (s_car_2dcomparator_$1570, s_cdr_2dcomparator_$1571) {
           let $t0, $t1, $t2, s_car_2dtest_$1572, $t3, $t4, $t5, s_cdr_2dtest_$1573, $t6, $t7, $t8, s_car_3d_3f_$1574, $t9, $t10, $t11, s_cdr_3d_3f_$1575, $t12, $t13, $t14, s_car_3c_3f_$1576, $t15, $t16, $t17, s_cdr_3c_3f_$1577, $t18, $t20, $t22, $t24, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42;
           if (arguments.length !== 2) R.wrongArity("make-pair-comparator", 2, false, arguments.length);
           const $d = $stack.room - 55;
@@ -44637,8 +44637,8 @@ export const LIBRARIES = {
         }
           $t41 = $t18;
           if ($d > 0 && ($t42 = $t41?.[$RAW] ?? $t41)?.[$PRIM] === true) { $stack.room = $d; return $t42($t20, $t22, $t24, $t26, $t30, $t37); } return $tailCall($t41, [$t20, $t22, $t24, $t26, $t30, $t37]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-pair-comparator"];
+        const $proc$r = { "make-pair-comparator": function ($pc, $f) {
           let $t0, $t1, $t2, s_car_2dtest_$1572, $t3, $t4, $t5, s_cdr_2dtest_$1573, $t6, $t7, $t8, s_car_3d_3f_$1574, $t9, $t10, $t11, s_cdr_3d_3f_$1575, $t12, $t13, $t14, s_car_3c_3f_$1576, $t15, $t16, $t17, s_cdr_3c_3f_$1577, $t18, $t20, $t22, $t24, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, s_car_2dcomparator_$1570, s_cdr_2dcomparator_$1571, $r;
           ({ $t0, $t1, $t2, s_car_2dtest_$1572, $t3, $t4, $t5, s_cdr_2dtest_$1573, $t6, $t7, $t8, s_car_3d_3f_$1574, $t9, $t10, $t11, s_cdr_3d_3f_$1575, $t12, $t13, $t14, s_car_3c_3f_$1576, $t15, $t16, $t17, s_cdr_3c_3f_$1577, $t18, $t20, $t22, $t24, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, s_car_2dcomparator_$1570, s_cdr_2dcomparator_$1571, $r } = $f);
           const $d = $stack.room - 55;
@@ -44785,7 +44785,7 @@ export const LIBRARIES = {
                 $pc = 15; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-pair-comparator"];
         const $proc$js = R.markProcedure($proc, "make-pair-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -44807,7 +44807,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "comparator-ordered?")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "comparator-hashable?")).v;
         function $mk$fn10(s_type_2dtest_$1586, s_empty_3f_$1587, s_element_2dtest_$1590, s_head_$1588, s_tail_$1589) {
-          function $fn10(s_x_$1593) {
+          const $fn10 = { "anonymous": function (s_x_$1593) {
           let $t0, $t1, $t2, s_x_$1595, $t3, $t4, $t5, s_x_$1596, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 26;
@@ -44865,9 +44865,9 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
+        } }["anonymous"];
           const $fn10$js = R.markProcedure($fn10, "anonymous", E);
-          function $fn10$r($pc, $f) {
+          const $fn10$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_x_$1595, $t3, $t4, $t5, s_x_$1596, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$1593, $r;
           ({ $t0, $t1, $t2, s_x_$1595, $t3, $t4, $t5, s_x_$1596, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$1593, $r } = $f);
           const $d = $stack.room - 26;
@@ -44948,12 +44948,12 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$fn10$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn10$js.$resume = $fn10$r;
           return $fn10$js;
         }
         function $mk$fn12(s_empty_3f_$1587, s_element_3d_3f_$1591, s_head_$1588, s_tail_$1589) {
-          function $fn12(s_a_$1597, s_b_$1598) {
+          const $fn12 = { "anonymous": function (s_a_$1597, s_b_$1598) {
           let s_a_$1600, s_b_$1601, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 35;
@@ -45027,9 +45027,9 @@ export const LIBRARIES = {
         }
         }
           }
-        }
+        } }["anonymous"];
           const $fn12$js = R.markProcedure($fn12, "anonymous", E);
-          function $fn12$r($pc, $f) {
+          const $fn12$r = { "anonymous": function ($pc, $f) {
           let s_a_$1600, s_b_$1601, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_a_$1597, s_b_$1598, $r;
           ({ s_a_$1600, s_b_$1601, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_a_$1597, s_b_$1598, $r } = $f);
           const $d = $stack.room - 35;
@@ -45134,12 +45134,12 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$fn12$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn12$js.$resume = $fn12$r;
           return $fn12$js;
         }
         function $mk$fn14(s_empty_3f_$1587, s_element_3d_3f_$1591, s_head_$1588, s_tail_$1589, s_element_3c_3f_$1592) {
-          function $fn14(s_a_$1602, s_b_$1603) {
+          const $fn14 = { "anonymous": function (s_a_$1602, s_b_$1603) {
           let s_a_$1605, s_b_$1606, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 41;
@@ -45227,9 +45227,9 @@ export const LIBRARIES = {
         }
         }
           }
-        }
+        } }["anonymous"];
           const $fn14$js = R.markProcedure($fn14, "anonymous", E);
-          function $fn14$r($pc, $f) {
+          const $fn14$r = { "anonymous": function ($pc, $f) {
           let s_a_$1605, s_b_$1606, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_a_$1602, s_b_$1603, $r;
           ({ s_a_$1605, s_b_$1606, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, s_a_$1602, s_b_$1603, $r } = $f);
           const $d = $stack.room - 41;
@@ -45356,12 +45356,12 @@ export const LIBRARIES = {
                 return $tailCall($t27, [$t23, $t26]);
               default: throw new Error('$fn14$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn14$js.$resume = $fn14$r;
           return $fn14$js;
         }
         function $mk$fn16(s_empty_3f_$1587, s_tail_$1589, s_element_2dcomparator_$1585, s_head_$1588) {
-          function $fn16(s_x_$1607, ...s_ignored_$1608$raw) {
+          const $fn16 = { "anonymous": function (s_x_$1607, ...s_ignored_$1608$raw) {
           let s_x_$1610, s_h_$1611, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length < 1) R.wrongArity("anonymous", 1, true, arguments.length);
           const $d = $stack.room - 29 - s_ignored_$1608$raw.length;
@@ -45415,9 +45415,9 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
+        } }["anonymous"];
           const $fn16$js = R.markProcedure($fn16, "anonymous", E, true);
-          function $fn16$r($pc, $f) {
+          const $fn16$r = { "anonymous": function ($pc, $f) {
           let s_x_$1610, s_h_$1611, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_x_$1607, s_ignored_$1608, $r;
           ({ s_x_$1610, s_h_$1611, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_x_$1607, s_ignored_$1608, $r } = $f);
           const $d = $stack.room - 29;
@@ -45493,11 +45493,11 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$fn16$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn16$js.$resume = $fn16$r;
           return $fn16$js;
         }
-        function $proc(s_element_2dcomparator_$1585, s_type_2dtest_$1586, s_empty_3f_$1587, s_head_$1588, s_tail_$1589) {
+        const $proc = { "make-list-comparator": function (s_element_2dcomparator_$1585, s_type_2dtest_$1586, s_empty_3f_$1587, s_head_$1588, s_tail_$1589) {
           let $t0, $t1, $t2, s_element_2dtest_$1590, $t3, $t4, $t5, s_element_3d_3f_$1591, $t6, $t7, $t8, s_element_3c_3f_$1592, $t9, $t11, $t13, $t15, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25;
           if (arguments.length !== 5) R.wrongArity("make-list-comparator", 5, false, arguments.length);
           const $d = $stack.room - 38;
@@ -45547,8 +45547,8 @@ export const LIBRARIES = {
           if ($t23 === $UNWIND) { R.reify($proc$r, 5, { $t9, $t11, $t13, $t15, $t17, $t20 }); return $UNWIND; }
           $t24 = $t9;
           if ($d > 0 && ($t25 = $t24?.[$RAW] ?? $t24)?.[$PRIM] === true) { $stack.room = $d; return $t25($t11, $t13, $t15, $t17, $t20, $t23); } return $tailCall($t24, [$t11, $t13, $t15, $t17, $t20, $t23]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-list-comparator"];
+        const $proc$r = { "make-list-comparator": function ($pc, $f) {
           let $t0, $t1, $t2, s_element_2dtest_$1590, $t3, $t4, $t5, s_element_3d_3f_$1591, $t6, $t7, $t8, s_element_3c_3f_$1592, $t9, $t11, $t13, $t15, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_element_2dcomparator_$1585, s_type_2dtest_$1586, s_empty_3f_$1587, s_head_$1588, s_tail_$1589, $r;
           ({ $t0, $t1, $t2, s_element_2dtest_$1590, $t3, $t4, $t5, s_element_3d_3f_$1591, $t6, $t7, $t8, s_element_3c_3f_$1592, $t9, $t11, $t13, $t15, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_element_2dcomparator_$1585, s_type_2dtest_$1586, s_empty_3f_$1587, s_head_$1588, s_tail_$1589, $r } = $f);
           const $d = $stack.room - 38;
@@ -45621,7 +45621,7 @@ export const LIBRARIES = {
                 return $tailCall($t24, [$t11, $t13, $t15, $t17, $t20, $t23]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-list-comparator"];
         const $proc$js = R.markProcedure($proc, "make-list-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -45651,7 +45651,7 @@ export const LIBRARIES = {
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "comparator-ordered?")).v;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "comparator-hashable?")).v;
         function $mk$fn10(s_type_2dtest_$1613, s_length_$1614, s_element_2dtest_$1616, s_ref_$1615) {
-          function $fn10(s_x_$1619) {
+          const $fn10 = { "anonymous": function (s_x_$1619) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_n_$1620, s_i_$1622, $t6, s_x_$1623, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 26;
@@ -45705,9 +45705,9 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
+        } }["anonymous"];
           const $fn10$js = R.markProcedure($fn10, "anonymous", E);
-          function $fn10$r($pc, $f) {
+          const $fn10$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_n_$1620, s_i_$1622, $t6, s_x_$1623, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_x_$1619, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_n_$1620, s_i_$1622, $t6, s_x_$1623, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_x_$1619, $r } = $f);
           const $d = $stack.room - 26;
@@ -45780,12 +45780,12 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$fn10$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn10$js.$resume = $fn10$r;
           return $fn10$js;
         }
         function $mk$fn12(s_length_$1614, s_element_3d_3f_$1617, s_ref_$1615) {
-          function $fn12(s_a_$1624, s_b_$1625) {
+          const $fn12 = { "anonymous": function (s_a_$1624, s_b_$1625) {
           let $t0, $t1, $t2, s_n_$1626, $t3, $t4, $t5, $t6, s_i_$1628, $t7, s_x_$1629, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 31;
@@ -45847,9 +45847,9 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
+        } }["anonymous"];
           const $fn12$js = R.markProcedure($fn12, "anonymous", E);
-          function $fn12$r($pc, $f) {
+          const $fn12$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_n_$1626, $t3, $t4, $t5, $t6, s_i_$1628, $t7, s_x_$1629, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_a_$1624, s_b_$1625, $r;
           ({ $t0, $t1, $t2, s_n_$1626, $t3, $t4, $t5, $t6, s_i_$1628, $t7, s_x_$1629, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_a_$1624, s_b_$1625, $r } = $f);
           const $d = $stack.room - 31;
@@ -45934,12 +45934,12 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$fn12$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn12$js.$resume = $fn12$r;
           return $fn12$js;
         }
         function $mk$fn14(s_length_$1614, s_element_3d_3f_$1617, s_ref_$1615, s_element_3c_3f_$1618) {
-          function $fn14(s_a_$1630, s_b_$1631) {
+          const $fn14 = { "anonymous": function (s_a_$1630, s_b_$1631) {
           let $t0, $t1, $t2, s_na_$1632, $t3, $t4, $t5, s_nb_$1633, $t6, $t7, s_i_$1635, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 40;
@@ -46021,9 +46021,9 @@ export const LIBRARIES = {
           }
         }
         }
-        }
+        } }["anonymous"];
           const $fn14$js = R.markProcedure($fn14, "anonymous", E);
-          function $fn14$r($pc, $f) {
+          const $fn14$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_na_$1632, $t3, $t4, $t5, s_nb_$1633, $t6, $t7, s_i_$1635, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_a_$1630, s_b_$1631, $r;
           ({ $t0, $t1, $t2, s_na_$1632, $t3, $t4, $t5, s_nb_$1633, $t6, $t7, s_i_$1635, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_a_$1630, s_b_$1631, $r } = $f);
           const $d = $stack.room - 40;
@@ -46136,20 +46136,20 @@ export const LIBRARIES = {
                 return $tailCall($t25, [$t21, $t24]);
               default: throw new Error('$fn14$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn14$js.$resume = $fn14$r;
           return $fn14$js;
         }
         function $mk$fn16_7(s_ref_$1615, s_x_$1636) {
-          function $fn16_7(s_i_$1638) {
+          const $fn16_7 = { "anonymous": function (s_i_$1638) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = s_ref_$1615;
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_x_$1636, s_i_$1638); } return $tailCall($t0, [s_x_$1636, s_i_$1638]);
-        }
+        } }["anonymous"];
           const $fn16_7$js = R.markProcedure($fn16_7, "anonymous", E);
-          function $fn16_7$r($pc, $f) {
+          const $fn16_7$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_i_$1638, $r;
           ({ $t0, $t1, s_i_$1638, $r } = $f);
           for (;;) switch ($pc) {
@@ -46158,12 +46158,12 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_x_$1636, s_i_$1638]);
               default: throw new Error('$fn16_7$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn16_7$js.$resume = $fn16_7$r;
           return $fn16_7$js;
         }
         function $mk$fn16(s_element_2dcomparator_$1612, s_length_$1614, s_ref_$1615) {
-          function $fn16(s_x_$1636, ...s_ignored_$1637$raw) {
+          const $fn16 = { "anonymous": function (s_x_$1636, ...s_ignored_$1637$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10;
           if (arguments.length < 1) R.wrongArity("anonymous", 1, true, arguments.length);
           const $d = $stack.room - 20 - s_ignored_$1637$raw.length;
@@ -46187,9 +46187,9 @@ export const LIBRARIES = {
           $t8 = $mk$fn16_7(s_ref_$1615, s_x_$1636);
           $t9 = $t0;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t3, $t6, $t8); } return $tailCall($t9, [$t3, $t6, $t8]);
-        }
+        } }["anonymous"];
           const $fn16$js = R.markProcedure($fn16, "anonymous", E, true);
-          function $fn16$r($pc, $f) {
+          const $fn16$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, s_x_$1636, s_ignored_$1637, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t8, $t9, $t10, s_x_$1636, s_ignored_$1637, $r } = $f);
           const $d = $stack.room - 20;
@@ -46223,11 +46223,11 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t3, $t6, $t8]);
               default: throw new Error('$fn16$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn16$js.$resume = $fn16$r;
           return $fn16$js;
         }
-        function $proc(s_element_2dcomparator_$1612, s_type_2dtest_$1613, s_length_$1614, s_ref_$1615) {
+        const $proc = { "make-vector-comparator": function (s_element_2dcomparator_$1612, s_type_2dtest_$1613, s_length_$1614, s_ref_$1615) {
           let $t0, $t1, $t2, s_element_2dtest_$1616, $t3, $t4, $t5, s_element_3d_3f_$1617, $t6, $t7, $t8, s_element_3c_3f_$1618, $t9, $t11, $t13, $t15, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25;
           if (arguments.length !== 4) R.wrongArity("make-vector-comparator", 4, false, arguments.length);
           const $d = $stack.room - 37;
@@ -46277,8 +46277,8 @@ export const LIBRARIES = {
           if ($t23 === $UNWIND) { R.reify($proc$r, 5, { $t9, $t11, $t13, $t15, $t17, $t20 }); return $UNWIND; }
           $t24 = $t9;
           if ($d > 0 && ($t25 = $t24?.[$RAW] ?? $t24)?.[$PRIM] === true) { $stack.room = $d; return $t25($t11, $t13, $t15, $t17, $t20, $t23); } return $tailCall($t24, [$t11, $t13, $t15, $t17, $t20, $t23]);
-        }
-        function $proc$r($pc, $f) {
+        } }["make-vector-comparator"];
+        const $proc$r = { "make-vector-comparator": function ($pc, $f) {
           let $t0, $t1, $t2, s_element_2dtest_$1616, $t3, $t4, $t5, s_element_3d_3f_$1617, $t6, $t7, $t8, s_element_3c_3f_$1618, $t9, $t11, $t13, $t15, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_element_2dcomparator_$1612, s_type_2dtest_$1613, s_length_$1614, s_ref_$1615, $r;
           ({ $t0, $t1, $t2, s_element_2dtest_$1616, $t3, $t4, $t5, s_element_3d_3f_$1617, $t6, $t7, $t8, s_element_3c_3f_$1618, $t9, $t11, $t13, $t15, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_element_2dcomparator_$1612, s_type_2dtest_$1613, s_length_$1614, s_ref_$1615, $r } = $f);
           const $d = $stack.room - 37;
@@ -46351,7 +46351,7 @@ export const LIBRARIES = {
                 return $tailCall($t24, [$t11, $t13, $t15, $t17, $t20, $t23]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-vector-comparator"];
         const $proc$js = R.markProcedure($proc, "make-vector-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -46372,7 +46372,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cdr")).v;
         const W3 = R.primitiveCell("cdr"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "registered")).v;
-        function $proc(s_obj_$1639) {
+        const $proc = { "registered-comparator": function (s_obj_$1639) {
           let s_cs_$1641, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 1) R.wrongArity("registered-comparator", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -46402,8 +46402,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["registered-comparator"];
+        const $proc$r = { "registered-comparator": function ($pc, $f) {
           let s_cs_$1641, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_obj_$1639, $r;
           ({ s_cs_$1641, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_obj_$1639, $r } = $f);
           const $d = $stack.room - 18;
@@ -46440,7 +46440,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["registered-comparator"];
         const $proc$js = R.markProcedure($proc, "registered-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -46456,7 +46456,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "append")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "registered")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "list")).v;
-        function $proc(s_comparator_$1642) {
+        const $proc = { "comparator-register-default!": function (s_comparator_$1642) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 1) R.wrongArity("comparator-register-default!", 1, false, arguments.length);
           const $d = $stack.room - 17;
@@ -46479,8 +46479,8 @@ export const LIBRARIES = {
           if ($t7 === $UNWIND) { R.reify($proc$r, 2, {  }); return $UNWIND; }
           E.set("registered", $t7);
           return undefined;
-        }
-        function $proc$r($pc, $f) {
+        } }["comparator-register-default!"];
+        const $proc$r = { "comparator-register-default!": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_comparator_$1642, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_comparator_$1642, $r } = $f);
           const $d = $stack.room - 17;
@@ -46514,7 +46514,7 @@ export const LIBRARIES = {
                 return undefined;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["comparator-register-default!"];
         const $proc$js = R.markProcedure($proc, "comparator-register-default!", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -46546,7 +46546,7 @@ export const LIBRARIES = {
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "+")).v;
         const W12 = R.primitiveCell("+"), P12 = W12.primitive;
         let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "registered")).v;
-        function $proc(s_x_$1643) {
+        const $proc = { "type-rank": function (s_x_$1643) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_cs_$1645, s_rank_$1646, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30;
           if (arguments.length !== 1) R.wrongArity("type-rank", 1, false, arguments.length);
           const $d = $stack.room - 42;
@@ -46665,8 +46665,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["type-rank"];
+        const $proc$r = { "type-rank": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_cs_$1645, s_rank_$1646, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, s_x_$1643, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, s_cs_$1645, s_rank_$1646, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, s_x_$1643, $r } = $f);
           const $d = $stack.room - 42;
@@ -46820,7 +46820,7 @@ export const LIBRARIES = {
                 $pc = 26; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["type-rank"];
         const $proc$js = R.markProcedure($proc, "type-rank", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -46842,7 +46842,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, ">")).v;
         const W4 = R.primitiveCell(">"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "imag-part")).v;
-        function $proc(s_a_$1647, s_b_$1648) {
+        const $proc = { "compare-numbers": function (s_a_$1647, s_b_$1648) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ra_$1649, $t12, $t13, $t14, s_rb_$1650, $t15, $t16, $t17, $t18, $t19, s_ia_$1651, $t20, $t21, $t22, s_ib_$1652, $t23, $t24;
           if (arguments.length !== 2) R.wrongArity("compare-numbers", 2, false, arguments.length);
           const $d = $stack.room - 39;
@@ -46933,8 +46933,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["compare-numbers"];
+        const $proc$r = { "compare-numbers": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ra_$1649, $t12, $t13, $t14, s_rb_$1650, $t15, $t16, $t17, $t18, $t19, s_ia_$1651, $t20, $t21, $t22, s_ib_$1652, $t23, $t24, s_a_$1647, s_b_$1648, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_ra_$1649, $t12, $t13, $t14, s_rb_$1650, $t15, $t16, $t17, $t18, $t19, s_ia_$1651, $t20, $t21, $t22, s_ib_$1652, $t23, $t24, s_a_$1647, s_b_$1648, $r } = $f);
           const $d = $stack.room - 39;
@@ -47055,7 +47055,7 @@ export const LIBRARIES = {
                 return 1n;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["compare-numbers"];
         const $proc$js = R.markProcedure($proc, "compare-numbers", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -47076,7 +47076,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell("="), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "+")).v;
         const W3 = R.primitiveCell("+"), P3 = W3.primitive;
-        function $proc(s_a_$1653, s_b_$1654, s_length_$1655, s_ref_$1656, s_compare_$1657) {
+        const $proc = { "compare-sequences": function (s_a_$1653, s_b_$1654, s_length_$1655, s_ref_$1656, s_compare_$1657) {
           let $t0, $t1, $t2, s_na_$1658, $t3, $t4, $t5, s_nb_$1659, $t6, $t7, s_i_$1661, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_c_$1662, $t18, $t19;
           if (arguments.length !== 5) R.wrongArity("compare-sequences", 5, false, arguments.length);
           const $d = $stack.room - 37;
@@ -47145,8 +47145,8 @@ export const LIBRARIES = {
           }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["compare-sequences"];
+        const $proc$r = { "compare-sequences": function ($pc, $f) {
           let $t0, $t1, $t2, s_na_$1658, $t3, $t4, $t5, s_nb_$1659, $t6, $t7, s_i_$1661, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_c_$1662, $t18, $t19, s_a_$1653, s_b_$1654, s_length_$1655, s_ref_$1656, s_compare_$1657, $r;
           ({ $t0, $t1, $t2, s_na_$1658, $t3, $t4, $t5, s_nb_$1659, $t6, $t7, s_i_$1661, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_c_$1662, $t18, $t19, s_a_$1653, s_b_$1654, s_length_$1655, s_ref_$1656, s_compare_$1657, $r } = $f);
           const $d = $stack.room - 37;
@@ -47238,7 +47238,7 @@ export const LIBRARIES = {
                 return s_c_$1662;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["compare-sequences"];
         const $proc$js = R.markProcedure($proc, "compare-sequences", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -47296,7 +47296,7 @@ export const LIBRARIES = {
         const W31 = R.primitiveCell("eqv?"), P31 = W31.primitive;
         let C32 = R.UNRESOLVED; const G32 = () => (C32 = R.globalCell(E, "error")).v;
         function $mk$fn72() {
-          function $fn72(s_x_$1670, s_y_$1671) {
+          const $fn72 = { "anonymous": function (s_x_$1670, s_y_$1671) {
           let $t0, $t1;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           $t0 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_x_$1670 === 'bigint' && typeof s_y_$1671 === 'bigint') || (typeof s_x_$1670 === 'number' && typeof s_y_$1671 === 'number')) ? (s_x_$1670 < s_y_$1671) : R.callBinding((C1.v ?? G1()), [s_x_$1670, s_y_$1671]);
@@ -47310,9 +47310,9 @@ export const LIBRARIES = {
           return 1n;
         }
         }
-        }
+        } }["anonymous"];
           const $fn72$js = R.markProcedure($fn72, "anonymous", E);
-          function $fn72$r($pc, $f) {
+          const $fn72$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_x_$1670, s_y_$1671, $r;
           ({ $t0, $t1, s_x_$1670, s_y_$1671, $r } = $f);
           for (;;) switch ($pc) {
@@ -47330,11 +47330,11 @@ export const LIBRARIES = {
                 return 1n;
               default: throw new Error('$fn72$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn72$js.$resume = $fn72$r;
           return $fn72$js;
         }
-        function $proc(s_a_$1663, s_b_$1664) {
+        const $proc = { "default-compare": function (s_a_$1663, s_b_$1664) {
           let $t0, $t1, $t2, s_ra_$1665, $t3, $t4, $t5, s_rb_$1666, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_c_$1667, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, s_sa_$1668, $t50, $t51, $t52, s_sb_$1669, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t73, $t74, $t75, $t76, $t77, $t78, s_temp_$1672, s_comparator_$1673, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95;
           if (arguments.length !== 2) R.wrongArity("default-compare", 2, false, arguments.length);
           const $d = $stack.room - 112;
@@ -47632,8 +47632,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["default-compare"];
+        const $proc$r = { "default-compare": function ($pc, $f) {
           let $t0, $t1, $t2, s_ra_$1665, $t3, $t4, $t5, s_rb_$1666, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_c_$1667, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, s_sa_$1668, $t50, $t51, $t52, s_sb_$1669, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t73, $t74, $t75, $t76, $t77, $t78, s_temp_$1672, s_comparator_$1673, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, s_a_$1663, s_b_$1664, $r;
           ({ $t0, $t1, $t2, s_ra_$1665, $t3, $t4, $t5, s_rb_$1666, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_c_$1667, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, s_sa_$1668, $t50, $t51, $t52, s_sb_$1669, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t73, $t74, $t75, $t76, $t77, $t78, s_temp_$1672, s_comparator_$1673, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, s_a_$1663, s_b_$1664, $r } = $f);
           const $d = $stack.room - 112;
@@ -48028,7 +48028,7 @@ export const LIBRARIES = {
                 return $tailCall($t94, ["default comparator: these values have no order", s_a_$1663, s_b_$1664]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["default-compare"];
         const $proc$js = R.markProcedure($proc, "default-compare", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48049,7 +48049,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "default-compare")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "eqv?")).v;
         const W4 = R.primitiveCell("eqv?"), P4 = W4.primitive;
-        function $proc(s_a_$1674, s_b_$1675) {
+        const $proc = { "default-equality": function (s_a_$1674, s_b_$1675) {
           let $t0, $t1, $t2, s_ra_$1676, $t3, $t4, $t5, s_rb_$1677, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("default-equality", 2, false, arguments.length);
           const $d = $stack.room - 26;
@@ -48090,8 +48090,8 @@ export const LIBRARIES = {
         } else {
           return false;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["default-equality"];
+        const $proc$r = { "default-equality": function ($pc, $f) {
           let $t0, $t1, $t2, s_ra_$1676, $t3, $t4, $t5, s_rb_$1677, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_a_$1674, s_b_$1675, $r;
           ({ $t0, $t1, $t2, s_ra_$1676, $t3, $t4, $t5, s_rb_$1677, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_a_$1674, s_b_$1675, $r } = $f);
           const $d = $stack.room - 26;
@@ -48147,7 +48147,7 @@ export const LIBRARIES = {
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["default-equality"];
         const $proc$js = R.markProcedure($proc, "default-equality", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48160,11 +48160,11 @@ export const LIBRARIES = {
         span: {"filename":"comparator.scm","line":534,"column":1,"endLine":535,"endColumn":22},
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "default-comparator")).v;
-        function $proc() {
+        const $proc = { "make-default-comparator": function () {
           if (arguments.length !== 0) R.wrongArity("make-default-comparator", 0, false, arguments.length);
           return (C0.v ?? G0());
-        }
-        function $proc$r($pc, $f) {
+        } }["make-default-comparator"];
+        const $proc$r = { "make-default-comparator": function ($pc, $f) {
           let $r;
           ({ $r } = $f);
           for (;;) switch ($pc) {
@@ -48172,7 +48172,7 @@ export const LIBRARIES = {
                 return (C0.v ?? G0());
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-default-comparator"];
         const $proc$js = R.markProcedure($proc, "make-default-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48187,7 +48187,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "default-compare")).v;
-        function $proc(s_a_$1678, s_b_$1679) {
+        const $proc = { "default-ordering": function (s_a_$1678, s_b_$1679) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("default-ordering", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -48201,8 +48201,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ((typeof $t2 === 'bigint' && typeof 0n === 'bigint') || (typeof $t2 === 'number' && typeof 0n === 'number')) ? ($t2 < 0n) : R.callBinding((C0.v ?? G0()), [$t2, 0n]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["default-ordering"];
+        const $proc$r = { "default-ordering": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_a_$1678, s_b_$1679, $r;
           ({ $t0, $t1, $t2, $t3, s_a_$1678, s_b_$1679, $r } = $f);
           const $d = $stack.room - 14;
@@ -48223,7 +48223,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["default-ordering"];
         const $proc$js = R.markProcedure($proc, "default-ordering", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48236,11 +48236,11 @@ export const LIBRARIES = {
         span: {"filename":"comparator.scm","line":552,"column":1,"endLine":552,"endColumn":44},
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq-comparator")).v;
-        function $proc() {
+        const $proc = { "make-eq-comparator": function () {
           if (arguments.length !== 0) R.wrongArity("make-eq-comparator", 0, false, arguments.length);
           return (C0.v ?? G0());
-        }
-        function $proc$r($pc, $f) {
+        } }["make-eq-comparator"];
+        const $proc$r = { "make-eq-comparator": function ($pc, $f) {
           let $r;
           ({ $r } = $f);
           for (;;) switch ($pc) {
@@ -48248,7 +48248,7 @@ export const LIBRARIES = {
                 return (C0.v ?? G0());
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-eq-comparator"];
         const $proc$js = R.markProcedure($proc, "make-eq-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48261,11 +48261,11 @@ export const LIBRARIES = {
         span: {"filename":"comparator.scm","line":558,"column":1,"endLine":558,"endColumn":46},
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eqv-comparator")).v;
-        function $proc() {
+        const $proc = { "make-eqv-comparator": function () {
           if (arguments.length !== 0) R.wrongArity("make-eqv-comparator", 0, false, arguments.length);
           return (C0.v ?? G0());
-        }
-        function $proc$r($pc, $f) {
+        } }["make-eqv-comparator"];
+        const $proc$r = { "make-eqv-comparator": function ($pc, $f) {
           let $r;
           ({ $r } = $f);
           for (;;) switch ($pc) {
@@ -48273,7 +48273,7 @@ export const LIBRARIES = {
                 return (C0.v ?? G0());
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-eqv-comparator"];
         const $proc$js = R.markProcedure($proc, "make-eqv-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48286,11 +48286,11 @@ export const LIBRARIES = {
         span: {"filename":"comparator.scm","line":564,"column":1,"endLine":564,"endColumn":50},
         make: (R, E, K) => {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "equal-comparator")).v;
-        function $proc() {
+        const $proc = { "make-equal-comparator": function () {
           if (arguments.length !== 0) R.wrongArity("make-equal-comparator", 0, false, arguments.length);
           return (C0.v ?? G0());
-        }
-        function $proc$r($pc, $f) {
+        } }["make-equal-comparator"];
+        const $proc$r = { "make-equal-comparator": function ($pc, $f) {
           let $r;
           ({ $r } = $f);
           for (;;) switch ($pc) {
@@ -48298,7 +48298,7 @@ export const LIBRARIES = {
                 return (C0.v ?? G0());
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-equal-comparator"];
         const $proc$js = R.markProcedure($proc, "make-equal-comparator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48368,7 +48368,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "exact-integer?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1898, s_i_$1899) {
+        const $proc = { "check-integer": function (s_who_$1898, s_i_$1899) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("check-integer", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -48395,8 +48395,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-integer"];
+        const $proc$r = { "check-integer": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1898, s_i_$1899, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1898, s_i_$1899, $r } = $f);
           const $d = $stack.room - 20;
@@ -48434,7 +48434,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_i_$1899]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-integer"];
         const $proc$js = R.markProcedure($proc, "check-integer", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48454,7 +48454,7 @@ export const LIBRARIES = {
         const W2 = R.primitiveCell(">="), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "error")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1900, s_k_$1901) {
+        const $proc = { "check-index": function (s_who_$1900, s_k_$1901) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 2) R.wrongArity("check-index", 2, false, arguments.length);
           const $d = $stack.room - 22;
@@ -48487,8 +48487,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-index"];
+        const $proc$r = { "check-index": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_who_$1900, s_k_$1901, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_who_$1900, s_k_$1901, $r } = $f);
           const $d = $stack.room - 22;
@@ -48535,7 +48535,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [$t9, s_k_$1901]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-index"];
         const $proc$js = R.markProcedure($proc, "check-index", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48553,7 +48553,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("<"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1902, s_start_$1903, s_end_$1904) {
+        const $proc = { "check-field": function (s_who_$1902, s_start_$1903, s_end_$1904) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 3) R.wrongArity("check-field", 3, false, arguments.length);
           const $d = $stack.room - 24;
@@ -48589,8 +48589,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-field"];
+        const $proc$r = { "check-field": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_who_$1902, s_start_$1903, s_end_$1904, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_who_$1902, s_start_$1903, s_end_$1904, $r } = $f);
           const $d = $stack.room - 24;
@@ -48641,7 +48641,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, [$t10, s_start_$1903, s_end_$1904]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-field"];
         const $proc$js = R.markProcedure($proc, "check-field", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48659,7 +48659,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1905, s_f_$1906) {
+        const $proc = { "check-procedure": function (s_who_$1905, s_f_$1906) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("check-procedure", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -48686,8 +48686,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-procedure"];
+        const $proc$r = { "check-procedure": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1905, s_f_$1906, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1905, s_f_$1906, $r } = $f);
           const $d = $stack.room - 20;
@@ -48725,7 +48725,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_f_$1906]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-procedure"];
         const $proc$js = R.markProcedure($proc, "check-procedure", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48743,7 +48743,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "boolean?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$1907, s_b_$1908) {
+        const $proc = { "check-boolean": function (s_who_$1907, s_b_$1908) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("check-boolean", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -48770,8 +48770,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-boolean"];
+        const $proc$r = { "check-boolean": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1907, s_b_$1908, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$1907, s_b_$1908, $r } = $f);
           const $d = $stack.room - 20;
@@ -48809,7 +48809,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_b_$1908]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-boolean"];
         const $proc$js = R.markProcedure($proc, "check-boolean", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48825,7 +48825,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
-        function $proc(s_i_$1909) {
+        const $proc = { "bitwise-not": function (s_i_$1909) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("bitwise-not", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -48840,8 +48840,8 @@ export const LIBRARIES = {
           $t2;
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof -1n === 'bigint' && typeof s_i_$1909 === 'bigint') || (typeof -1n === 'number' && typeof s_i_$1909 === 'number')) ? (-1n - s_i_$1909) : R.callBinding((C1.v ?? G1()), [-1n, s_i_$1909]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-not"];
+        const $proc$r = { "bitwise-not": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_i_$1909, $r;
           ({ $t0, $t1, $t2, $t3, s_i_$1909, $r } = $f);
           const $d = $stack.room - 13;
@@ -48863,7 +48863,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-not"];
         const $proc$js = R.markProcedure($proc, "bitwise-not", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48886,7 +48886,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "-")).v;
         const W4 = R.primitiveCell("-"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "%bitwise-xor")).v;
-        function $proc(...s_is_$1910$raw) {
+        const $proc = { "bitwise-eqv": function (...s_is_$1910$raw) {
           let s_is_$1912, s_acc_$1913, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           const $d = $stack.room - 25 - s_is_$1910$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_is_$1910$raw]);
@@ -48925,8 +48925,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-eqv"];
+        const $proc$r = { "bitwise-eqv": function ($pc, $f) {
           let s_is_$1912, s_acc_$1913, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_is_$1910, $r;
           ({ s_is_$1912, s_acc_$1913, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_is_$1910, $r } = $f);
           const $d = $stack.room - 25;
@@ -48976,7 +48976,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-eqv"];
         const $proc$js = R.markProcedure($proc, "bitwise-eqv", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -48993,7 +48993,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
-        function $proc(s_i_$1914, s_j_$1915) {
+        const $proc = { "bitwise-nand": function (s_i_$1914, s_j_$1915) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("bitwise-nand", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -49023,8 +49023,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, {  }); return $UNWIND; }
           $t9 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof -1n === 'bigint' && typeof $t8 === 'bigint') || (typeof -1n === 'number' && typeof $t8 === 'number')) ? (-1n - $t8) : R.callBinding((C1.v ?? G1()), [-1n, $t8]);
           return $t9;
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-nand"];
+        const $proc$r = { "bitwise-nand": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1914, s_j_$1915, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1914, s_j_$1915, $r } = $f);
           const $d = $stack.room - 20;
@@ -49069,7 +49069,7 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-nand"];
         const $proc$js = R.markProcedure($proc, "bitwise-nand", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49086,7 +49086,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-ior")).v;
-        function $proc(s_i_$1916, s_j_$1917) {
+        const $proc = { "bitwise-nor": function (s_i_$1916, s_j_$1917) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("bitwise-nor", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -49116,8 +49116,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, {  }); return $UNWIND; }
           $t9 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof -1n === 'bigint' && typeof $t8 === 'bigint') || (typeof -1n === 'number' && typeof $t8 === 'number')) ? (-1n - $t8) : R.callBinding((C1.v ?? G1()), [-1n, $t8]);
           return $t9;
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-nor"];
+        const $proc$r = { "bitwise-nor": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1916, s_j_$1917, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1916, s_j_$1917, $r } = $f);
           const $d = $stack.room - 20;
@@ -49162,7 +49162,7 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-nor"];
         const $proc$js = R.markProcedure($proc, "bitwise-nor", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49179,7 +49179,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-and")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
-        function $proc(s_i_$1918, s_j_$1919) {
+        const $proc = { "bitwise-andc1": function (s_i_$1918, s_j_$1919) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("bitwise-andc1", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -49204,8 +49204,8 @@ export const LIBRARIES = {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof -1n === 'bigint' && typeof s_i_$1918 === 'bigint') || (typeof -1n === 'number' && typeof s_i_$1918 === 'number')) ? (-1n - s_i_$1918) : R.callBinding((C2.v ?? G2()), [-1n, s_i_$1918]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9($t7, s_j_$1919); } return $tailCall($t8, [$t7, s_j_$1919]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-andc1"];
+        const $proc$r = { "bitwise-andc1": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1918, s_j_$1919, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1918, s_j_$1919, $r } = $f);
           const $d = $stack.room - 20;
@@ -49241,7 +49241,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_j_$1919]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-andc1"];
         const $proc$js = R.markProcedure($proc, "bitwise-andc1", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49258,7 +49258,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-and")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
-        function $proc(s_i_$1920, s_j_$1921) {
+        const $proc = { "bitwise-andc2": function (s_i_$1920, s_j_$1921) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("bitwise-andc2", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -49283,8 +49283,8 @@ export const LIBRARIES = {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof -1n === 'bigint' && typeof s_j_$1921 === 'bigint') || (typeof -1n === 'number' && typeof s_j_$1921 === 'number')) ? (-1n - s_j_$1921) : R.callBinding((C2.v ?? G2()), [-1n, s_j_$1921]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_i_$1920, $t7); } return $tailCall($t8, [s_i_$1920, $t7]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-andc2"];
+        const $proc$r = { "bitwise-andc2": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1920, s_j_$1921, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1920, s_j_$1921, $r } = $f);
           const $d = $stack.room - 20;
@@ -49320,7 +49320,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_i_$1920, $t7]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-andc2"];
         const $proc$js = R.markProcedure($proc, "bitwise-andc2", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49337,7 +49337,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-ior")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
-        function $proc(s_i_$1922, s_j_$1923) {
+        const $proc = { "bitwise-orc1": function (s_i_$1922, s_j_$1923) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("bitwise-orc1", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -49362,8 +49362,8 @@ export const LIBRARIES = {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof -1n === 'bigint' && typeof s_i_$1922 === 'bigint') || (typeof -1n === 'number' && typeof s_i_$1922 === 'number')) ? (-1n - s_i_$1922) : R.callBinding((C2.v ?? G2()), [-1n, s_i_$1922]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9($t7, s_j_$1923); } return $tailCall($t8, [$t7, s_j_$1923]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-orc1"];
+        const $proc$r = { "bitwise-orc1": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1922, s_j_$1923, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1922, s_j_$1923, $r } = $f);
           const $d = $stack.room - 20;
@@ -49399,7 +49399,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_j_$1923]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-orc1"];
         const $proc$js = R.markProcedure($proc, "bitwise-orc1", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49416,7 +49416,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-ior")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
-        function $proc(s_i_$1924, s_j_$1925) {
+        const $proc = { "bitwise-orc2": function (s_i_$1924, s_j_$1925) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("bitwise-orc2", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -49441,8 +49441,8 @@ export const LIBRARIES = {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof -1n === 'bigint' && typeof s_j_$1925 === 'bigint') || (typeof -1n === 'number' && typeof s_j_$1925 === 'number')) ? (-1n - s_j_$1925) : R.callBinding((C2.v ?? G2()), [-1n, s_j_$1925]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_i_$1924, $t7); } return $tailCall($t8, [s_i_$1924, $t7]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-orc2"];
+        const $proc$r = { "bitwise-orc2": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1924, s_j_$1925, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_i_$1924, s_j_$1925, $r } = $f);
           const $d = $stack.room - 20;
@@ -49478,7 +49478,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_i_$1924, $t7]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-orc2"];
         const $proc$js = R.markProcedure($proc, "bitwise-orc2", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49496,7 +49496,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "-")).v;
         const W3 = R.primitiveCell("-"), P3 = W3.primitive;
-        function $proc(s_mask_$1926, s_i_$1927, s_j_$1928) {
+        const $proc = { "bitwise-if": function (s_mask_$1926, s_i_$1927, s_j_$1928) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19;
           if (arguments.length !== 3) R.wrongArity("bitwise-if", 3, false, arguments.length);
           const $d = $stack.room - 31;
@@ -49544,8 +49544,8 @@ export const LIBRARIES = {
           if ($t17 === $UNWIND) { R.reify($proc$r, 5, { $t9, $t12 }); return $UNWIND; }
           $t18 = $t9;
           if ($d > 0 && ($t19 = $t18?.[$RAW] ?? $t18)?.[$PRIM] === true) { $stack.room = $d; return $t19($t12, $t17); } return $tailCall($t18, [$t12, $t17]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-if"];
+        const $proc$r = { "bitwise-if": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, s_mask_$1926, s_i_$1927, s_j_$1928, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, s_mask_$1926, s_i_$1927, s_j_$1928, $r } = $f);
           const $d = $stack.room - 31;
@@ -49616,7 +49616,7 @@ export const LIBRARIES = {
                 return $tailCall($t18, [$t12, $t17]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-if"];
         const $proc$js = R.markProcedure($proc, "bitwise-if", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49630,14 +49630,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%arithmetic-shift")).v;
-        function $proc(s_index_$1929) {
+        const $proc = { "single-bit": function (s_index_$1929) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("single-bit", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(1n, s_index_$1929); } return $tailCall($t0, [1n, s_index_$1929]);
-        }
-        function $proc$r($pc, $f) {
+        } }["single-bit"];
+        const $proc$r = { "single-bit": function ($pc, $f) {
           let $t0, $t1, s_index_$1929, $r;
           ({ $t0, $t1, s_index_$1929, $r } = $f);
           for (;;) switch ($pc) {
@@ -49646,7 +49646,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, [1n, s_index_$1929]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["single-bit"];
         const $proc$js = R.markProcedure($proc, "single-bit", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49665,7 +49665,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "%arithmetic-shift")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "-")).v;
         const W4 = R.primitiveCell("-"), P4 = W4.primitive;
-        function $proc(s_index_$1930, s_i_$1931) {
+        const $proc = { "bit-set?": function (s_index_$1930, s_i_$1931) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
           if (arguments.length !== 2) R.wrongArity("bit-set?", 2, false, arguments.length);
           const $d = $stack.room - 26;
@@ -49704,8 +49704,8 @@ export const LIBRARIES = {
           if ($t13 === $UNWIND) { R.reify($proc$r, 4, { $t6 }); return $UNWIND; }
           $t14 = $t6;
           if ($d > 0 && ($t15 = $t14?.[$RAW] ?? $t14)?.[$PRIM] === true) { $stack.room = $d; return $t15($t13); } return $tailCall($t14, [$t13]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-set?"];
+        const $proc$r = { "bit-set?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_index_$1930, s_i_$1931, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_index_$1930, s_i_$1931, $r } = $f);
           const $d = $stack.room - 26;
@@ -49763,7 +49763,7 @@ export const LIBRARIES = {
                 return $tailCall($t14, [$t13]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-set?"];
         const $proc$js = R.markProcedure($proc, "bit-set?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49784,7 +49784,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "%bitwise-and")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "-")).v;
         const W6 = R.primitiveCell("-"), P6 = W6.primitive;
-        function $proc(s_index_$1932, s_i_$1933, s_set_$1934) {
+        const $proc = { "copy-bit": function (s_index_$1932, s_i_$1933, s_set_$1934) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21;
           if (arguments.length !== 3) R.wrongArity("copy-bit", 3, false, arguments.length);
           const $d = $stack.room - 33;
@@ -49837,8 +49837,8 @@ export const LIBRARIES = {
           $t20 = $t15;
           if ($d > 0 && ($t21 = $t20?.[$RAW] ?? $t20)?.[$PRIM] === true) { $stack.room = $d; return $t21(s_i_$1933, $t19); } return $tailCall($t20, [s_i_$1933, $t19]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["copy-bit"];
+        const $proc$r = { "copy-bit": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_index_$1932, s_i_$1933, s_set_$1934, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_index_$1932, s_i_$1933, s_set_$1934, $r } = $f);
           const $d = $stack.room - 33;
@@ -49914,7 +49914,7 @@ export const LIBRARIES = {
                 return $tailCall($t20, [s_i_$1933, $t19]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["copy-bit"];
         const $proc$js = R.markProcedure($proc, "copy-bit", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -49931,7 +49931,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-integer")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "bit-set?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "copy-bit")).v;
-        function $proc(s_index1_$1935, s_index2_$1936, s_i_$1937) {
+        const $proc = { "bit-swap": function (s_index1_$1935, s_index2_$1936, s_i_$1937) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_first_$1938, $t12, $t13, $t14, s_second_$1939, $t15, $t16, $t17, $t18, $t19, $t20;
           if (arguments.length !== 3) R.wrongArity("bit-swap", 3, false, arguments.length);
           const $d = $stack.room - 34;
@@ -49986,8 +49986,8 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 6, { s_first_$1938, $t15, s_index2_$1936 }); return $UNWIND; }
           $t19 = $t15;
           if ($d > 0 && ($t20 = $t19?.[$RAW] ?? $t19)?.[$PRIM] === true) { $stack.room = $d; return $t20(s_index2_$1936, $t18, s_first_$1938); } return $tailCall($t19, [s_index2_$1936, $t18, s_first_$1938]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-swap"];
+        const $proc$r = { "bit-swap": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_first_$1938, $t12, $t13, $t14, s_second_$1939, $t15, $t16, $t17, $t18, $t19, $t20, s_index1_$1935, s_index2_$1936, s_i_$1937, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_first_$1938, $t12, $t13, $t14, s_second_$1939, $t15, $t16, $t17, $t18, $t19, $t20, s_index1_$1935, s_index2_$1936, s_i_$1937, $r } = $f);
           const $d = $stack.room - 34;
@@ -50069,7 +50069,7 @@ export const LIBRARIES = {
                 return $tailCall($t19, [s_index2_$1936, $t18, s_first_$1938]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-swap"];
         const $proc$js = R.markProcedure($proc, "bit-swap", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50087,7 +50087,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "zero?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "%bitwise-and")).v;
-        function $proc(s_test_2dbits_$1940, s_i_$1941) {
+        const $proc = { "any-bit-set?": function (s_test_2dbits_$1940, s_i_$1941) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 2) R.wrongArity("any-bit-set?", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -50125,8 +50125,8 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 4, {  }); return $UNWIND; }
           $t13 = (W1.intact || (C1.v ?? G1()) === P1) ? ($t12 === false) : R.callBinding((C1.v ?? G1()), [$t12]);
           return $t13;
-        }
-        function $proc$r($pc, $f) {
+        } }["any-bit-set?"];
+        const $proc$r = { "any-bit-set?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_test_2dbits_$1940, s_i_$1941, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_test_2dbits_$1940, s_i_$1941, $r } = $f);
           const $d = $stack.room - 24;
@@ -50183,7 +50183,7 @@ export const LIBRARIES = {
                 return $t13;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["any-bit-set?"];
         const $proc$js = R.markProcedure($proc, "any-bit-set?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50200,7 +50200,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
-        function $proc(s_test_2dbits_$1942, s_i_$1943) {
+        const $proc = { "every-bit-set?": function (s_test_2dbits_$1942, s_i_$1943) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("every-bit-set?", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -50230,8 +50230,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_test_2dbits_$1942 }); return $UNWIND; }
           $t9 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof s_test_2dbits_$1942 === 'bigint' && typeof $t8 === 'bigint') || (typeof s_test_2dbits_$1942 === 'number' && typeof $t8 === 'number')) ? (s_test_2dbits_$1942 === $t8) : R.callBinding((C1.v ?? G1()), [s_test_2dbits_$1942, $t8]);
           return $t9;
-        }
-        function $proc$r($pc, $f) {
+        } }["every-bit-set?"];
+        const $proc$r = { "every-bit-set?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_test_2dbits_$1942, s_i_$1943, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_test_2dbits_$1942, s_i_$1943, $r } = $f);
           const $d = $stack.room - 20;
@@ -50276,7 +50276,7 @@ export const LIBRARIES = {
                 return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["every-bit-set?"];
         const $proc$js = R.markProcedure($proc, "every-bit-set?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50294,7 +50294,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%integer-length")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "%bitwise-and")).v;
-        function $proc(s_i_$1944) {
+        const $proc = { "first-set-bit": function (s_i_$1944) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 1) R.wrongArity("first-set-bit", 1, false, arguments.length);
           const $d = $stack.room - 24;
@@ -50332,8 +50332,8 @@ export const LIBRARIES = {
           if ($t13 === $UNWIND) { R.reify($proc$r, 4, {  }); return $UNWIND; }
           $t14 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof $t13 === 'bigint' && typeof 1n === 'bigint') || (typeof $t13 === 'number' && typeof 1n === 'number')) ? ($t13 - 1n) : R.callBinding((C1.v ?? G1()), [$t13, 1n]);
           return $t14;
-        }
-        function $proc$r($pc, $f) {
+        } }["first-set-bit"];
+        const $proc$r = { "first-set-bit": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_i_$1944, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_i_$1944, $r } = $f);
           const $d = $stack.room - 24;
@@ -50390,7 +50390,7 @@ export const LIBRARIES = {
                 return $t14;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["first-set-bit"];
         const $proc$js = R.markProcedure($proc, "first-set-bit", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50406,7 +50406,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "-")).v;
         const W0 = R.primitiveCell("-"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "single-bit")).v;
-        function $proc(s_width_$1945) {
+        const $proc = { "low-bits": function (s_width_$1945) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("low-bits", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -50420,8 +50420,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ((typeof $t2 === 'bigint' && typeof 1n === 'bigint') || (typeof $t2 === 'number' && typeof 1n === 'number')) ? ($t2 - 1n) : R.callBinding((C0.v ?? G0()), [$t2, 1n]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["low-bits"];
+        const $proc$r = { "low-bits": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_width_$1945, $r;
           ({ $t0, $t1, $t2, $t3, s_width_$1945, $r } = $f);
           const $d = $stack.room - 13;
@@ -50442,7 +50442,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["low-bits"];
         const $proc$js = R.markProcedure($proc, "low-bits", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50459,7 +50459,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "low-bits")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
-        function $proc(s_start_$1946, s_end_$1947) {
+        const $proc = { "field-mask": function (s_start_$1946, s_end_$1947) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 2) R.wrongArity("field-mask", 2, false, arguments.length);
           const $d = $stack.room - 18;
@@ -50476,8 +50476,8 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 1, { $t0, s_start_$1946 }); return $UNWIND; }
           $t6 = $t0;
           if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7($t5, s_start_$1946); } return $tailCall($t6, [$t5, s_start_$1946]);
-        }
-        function $proc$r($pc, $f) {
+        } }["field-mask"];
+        const $proc$r = { "field-mask": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_start_$1946, s_end_$1947, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_start_$1946, s_end_$1947, $r } = $f);
           const $d = $stack.room - 18;
@@ -50501,7 +50501,7 @@ export const LIBRARIES = {
                 return $tailCall($t6, [$t5, s_start_$1946]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["field-mask"];
         const $proc$js = R.markProcedure($proc, "field-mask", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50521,7 +50521,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "-")).v;
         const W4 = R.primitiveCell("-"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "low-bits")).v;
-        function $proc(s_i_$1948, s_start_$1949, s_end_$1950) {
+        const $proc = { "bit-field": function (s_i_$1948, s_start_$1949, s_end_$1950) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20;
           if (arguments.length !== 3) R.wrongArity("bit-field", 3, false, arguments.length);
           const $d = $stack.room - 32;
@@ -50569,8 +50569,8 @@ export const LIBRARIES = {
           if ($t18 === $UNWIND) { R.reify($proc$r, 5, { $t6, $t13 }); return $UNWIND; }
           $t19 = $t6;
           if ($d > 0 && ($t20 = $t19?.[$RAW] ?? $t19)?.[$PRIM] === true) { $stack.room = $d; return $t20($t13, $t18); } return $tailCall($t19, [$t13, $t18]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field"];
+        const $proc$r = { "bit-field": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_i_$1948, s_start_$1949, s_end_$1950, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, s_i_$1948, s_start_$1949, s_end_$1950, $r } = $f);
           const $d = $stack.room - 32;
@@ -50641,7 +50641,7 @@ export const LIBRARIES = {
                 return $tailCall($t19, [$t13, $t18]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field"];
         const $proc$js = R.markProcedure($proc, "bit-field", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50661,7 +50661,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "zero?")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "%bitwise-and")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "field-mask")).v;
-        function $proc(s_i_$1951, s_start_$1952, s_end_$1953) {
+        const $proc = { "bit-field-any?": function (s_i_$1951, s_start_$1952, s_end_$1953) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17;
           if (arguments.length !== 3) R.wrongArity("bit-field-any?", 3, false, arguments.length);
           const $d = $stack.room - 29;
@@ -50707,8 +50707,8 @@ export const LIBRARIES = {
           if ($t16 === $UNWIND) { R.reify($proc$r, 5, {  }); return $UNWIND; }
           $t17 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t16 === false) : R.callBinding((C2.v ?? G2()), [$t16]);
           return $t17;
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-any?"];
+        const $proc$r = { "bit-field-any?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_i_$1951, s_start_$1952, s_end_$1953, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_i_$1951, s_start_$1952, s_end_$1953, $r } = $f);
           const $d = $stack.room - 29;
@@ -50777,7 +50777,7 @@ export const LIBRARIES = {
                 return $t17;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-any?"];
         const $proc$js = R.markProcedure($proc, "bit-field-any?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50796,7 +50796,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "=")).v;
         const W3 = R.primitiveCell("="), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "%bitwise-and")).v;
-        function $proc(s_i_$1954, s_start_$1955, s_end_$1956) {
+        const $proc = { "bit-field-every?": function (s_i_$1954, s_start_$1955, s_end_$1956) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_mask_$1957, $t9, $t10, $t11, $t12;
           if (arguments.length !== 3) R.wrongArity("bit-field-every?", 3, false, arguments.length);
           const $d = $stack.room - 25;
@@ -50834,8 +50834,8 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 4, { s_mask_$1957 }); return $UNWIND; }
           $t12 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof s_mask_$1957 === 'bigint' && typeof $t11 === 'bigint') || (typeof s_mask_$1957 === 'number' && typeof $t11 === 'number')) ? (s_mask_$1957 === $t11) : R.callBinding((C3.v ?? G3()), [s_mask_$1957, $t11]);
           return $t12;
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-every?"];
+        const $proc$r = { "bit-field-every?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_mask_$1957, $t9, $t10, $t11, $t12, s_i_$1954, s_start_$1955, s_end_$1956, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_mask_$1957, $t9, $t10, $t11, $t12, s_i_$1954, s_start_$1955, s_end_$1956, $r } = $f);
           const $d = $stack.room - 25;
@@ -50892,7 +50892,7 @@ export const LIBRARIES = {
                 return $t12;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-every?"];
         const $proc$js = R.markProcedure($proc, "bit-field-every?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -50911,7 +50911,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "-")).v;
         const W3 = R.primitiveCell("-"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "field-mask")).v;
-        function $proc(s_i_$1958, s_start_$1959, s_end_$1960) {
+        const $proc = { "bit-field-clear": function (s_i_$1958, s_start_$1959, s_end_$1960) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 3) R.wrongArity("bit-field-clear", 3, false, arguments.length);
           const $d = $stack.room - 24;
@@ -50943,8 +50943,8 @@ export const LIBRARIES = {
           $t10 = (W3.intact || (C3.v ?? G3()) === P3) && ((typeof -1n === 'bigint' && typeof $t9 === 'bigint') || (typeof -1n === 'number' && typeof $t9 === 'number')) ? (-1n - $t9) : R.callBinding((C3.v ?? G3()), [-1n, $t9]);
           $t11 = $t6;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12(s_i_$1958, $t10); } return $tailCall($t11, [s_i_$1958, $t10]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-clear"];
+        const $proc$r = { "bit-field-clear": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_i_$1958, s_start_$1959, s_end_$1960, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_i_$1958, s_start_$1959, s_end_$1960, $r } = $f);
           const $d = $stack.room - 24;
@@ -50991,7 +50991,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, [s_i_$1958, $t10]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-clear"];
         const $proc$js = R.markProcedure($proc, "bit-field-clear", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -51008,7 +51008,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-ior")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "field-mask")).v;
-        function $proc(s_i_$1961, s_start_$1962, s_end_$1963) {
+        const $proc = { "bit-field-set": function (s_i_$1961, s_start_$1962, s_end_$1963) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length !== 3) R.wrongArity("bit-field-set", 3, false, arguments.length);
           const $d = $stack.room - 23;
@@ -51039,8 +51039,8 @@ export const LIBRARIES = {
           if ($t9 === $UNWIND) { R.reify($proc$r, 3, { $t6, s_i_$1961 }); return $UNWIND; }
           $t10 = $t6;
           if ($d > 0 && ($t11 = $t10?.[$RAW] ?? $t10)?.[$PRIM] === true) { $stack.room = $d; return $t11(s_i_$1961, $t9); } return $tailCall($t10, [s_i_$1961, $t9]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-set"];
+        const $proc$r = { "bit-field-set": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_i_$1961, s_start_$1962, s_end_$1963, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_i_$1961, s_start_$1962, s_end_$1963, $r } = $f);
           const $d = $stack.room - 23;
@@ -51086,7 +51086,7 @@ export const LIBRARIES = {
                 return $tailCall($t10, [s_i_$1961, $t9]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-set"];
         const $proc$js = R.markProcedure($proc, "bit-field-set", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -51103,7 +51103,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "replace-field")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "%arithmetic-shift")).v;
-        function $proc(s_dest_$1964, s_source_$1965, s_start_$1966, s_end_$1967) {
+        const $proc = { "bit-field-replace": function (s_dest_$1964, s_source_$1965, s_start_$1966, s_end_$1967) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 4) R.wrongArity("bit-field-replace", 4, false, arguments.length);
           const $d = $stack.room - 27;
@@ -51142,8 +51142,8 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 4, { $t9, s_dest_$1964, s_start_$1966, s_end_$1967 }); return $UNWIND; }
           $t13 = $t9;
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14(s_dest_$1964, $t12, s_start_$1966, s_end_$1967); } return $tailCall($t13, [s_dest_$1964, $t12, s_start_$1966, s_end_$1967]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-replace"];
+        const $proc$r = { "bit-field-replace": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_dest_$1964, s_source_$1965, s_start_$1966, s_end_$1967, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_dest_$1964, s_source_$1965, s_start_$1966, s_end_$1967, $r } = $f);
           const $d = $stack.room - 27;
@@ -51201,7 +51201,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [s_dest_$1964, $t12, s_start_$1966, s_end_$1967]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-replace"];
         const $proc$js = R.markProcedure($proc, "bit-field-replace", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -51217,7 +51217,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "replace-field")).v;
-        function $proc(s_dest_$1968, s_source_$1969, s_start_$1970, s_end_$1971) {
+        const $proc = { "bit-field-replace-same": function (s_dest_$1968, s_source_$1969, s_start_$1970, s_end_$1971) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 4) R.wrongArity("bit-field-replace-same", 4, false, arguments.length);
           const $d = $stack.room - 23;
@@ -51248,8 +51248,8 @@ export const LIBRARIES = {
           $t8;
           $t9 = (C2.v ?? G2());
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_dest_$1968, s_source_$1969, s_start_$1970, s_end_$1971); } return $tailCall($t9, [s_dest_$1968, s_source_$1969, s_start_$1970, s_end_$1971]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-replace-same"];
+        const $proc$r = { "bit-field-replace-same": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_dest_$1968, s_source_$1969, s_start_$1970, s_end_$1971, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_dest_$1968, s_source_$1969, s_start_$1970, s_end_$1971, $r } = $f);
           const $d = $stack.room - 23;
@@ -51295,7 +51295,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [s_dest_$1968, s_source_$1969, s_start_$1970, s_end_$1971]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-replace-same"];
         const $proc$js = R.markProcedure($proc, "bit-field-replace-same", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -51313,7 +51313,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "-")).v;
         const W3 = R.primitiveCell("-"), P3 = W3.primitive;
-        function $proc(s_dest_$1972, s_bits_$1973, s_start_$1974, s_end_$1975) {
+        const $proc = { "replace-field": function (s_dest_$1972, s_bits_$1973, s_start_$1974, s_end_$1975) {
           let $t0, $t1, $t2, s_mask_$1976, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length !== 4) R.wrongArity("replace-field", 4, false, arguments.length);
           const $d = $stack.room - 27;
@@ -51345,8 +51345,8 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 3, { $t3, $t6 }); return $UNWIND; }
           $t12 = $t3;
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13($t6, $t11); } return $tailCall($t12, [$t6, $t11]);
-        }
-        function $proc$r($pc, $f) {
+        } }["replace-field"];
+        const $proc$r = { "replace-field": function ($pc, $f) {
           let $t0, $t1, $t2, s_mask_$1976, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_dest_$1972, s_bits_$1973, s_start_$1974, s_end_$1975, $r;
           ({ $t0, $t1, $t2, s_mask_$1976, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_dest_$1972, s_bits_$1973, s_start_$1974, s_end_$1975, $r } = $f);
           const $d = $stack.room - 27;
@@ -51393,7 +51393,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [$t6, $t11]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["replace-field"];
         const $proc$js = R.markProcedure($proc, "replace-field", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -51418,7 +51418,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "%arithmetic-shift")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "low-bits")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "replace-field")).v;
-        function $proc(s_i_$1977, s_count_$1978, s_start_$1979, s_end_$1980) {
+        const $proc = { "bit-field-rotate": function (s_i_$1977, s_count_$1978, s_start_$1979, s_end_$1980) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_width_$1981, $t10, $t11, $t12, $t13, $t14, $t15, s_by_$1982, $t16, $t17, $t18, s_field_$1983, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_rotated_$1984, $t38, $t39, $t40, $t41, $t42, $t43;
           if (arguments.length !== 4) R.wrongArity("bit-field-rotate", 4, false, arguments.length);
           const $d = $stack.room - 60;
@@ -51526,8 +51526,8 @@ export const LIBRARIES = {
           $t42 = $t38;
           if ($d > 0 && ($t43 = $t42?.[$RAW] ?? $t42)?.[$PRIM] === true) { $stack.room = $d; return $t43(s_i_$1977, $t41, s_start_$1979, s_end_$1980); } return $tailCall($t42, [s_i_$1977, $t41, s_start_$1979, s_end_$1980]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-rotate"];
+        const $proc$r = { "bit-field-rotate": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_width_$1981, $t10, $t11, $t12, $t13, $t14, $t15, s_by_$1982, $t16, $t17, $t18, s_field_$1983, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_rotated_$1984, $t38, $t39, $t40, $t41, $t42, $t43, s_i_$1977, s_count_$1978, s_start_$1979, s_end_$1980, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_width_$1981, $t10, $t11, $t12, $t13, $t14, $t15, s_by_$1982, $t16, $t17, $t18, s_field_$1983, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_rotated_$1984, $t38, $t39, $t40, $t41, $t42, $t43, s_i_$1977, s_count_$1978, s_start_$1979, s_end_$1980, $r } = $f);
           const $d = $stack.room - 60;
@@ -51686,7 +51686,7 @@ export const LIBRARIES = {
                 return $tailCall($t42, [s_i_$1977, $t41, s_start_$1979, s_end_$1980]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-rotate"];
         const $proc$js = R.markProcedure($proc, "bit-field-rotate", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -51709,7 +51709,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "%bitwise-ior")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "%bitwise-and")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "bit-field")).v;
-        function $proc(s_i_$1985, s_start_$1986, s_end_$1987) {
+        const $proc = { "bit-field-reverse": function (s_i_$1985, s_start_$1986, s_end_$1987) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_k_$1989, s_field_$1990, s_reversed_$1991, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32;
           if (arguments.length !== 3) R.wrongArity("bit-field-reverse", 3, false, arguments.length);
           const $d = $stack.room - 47;
@@ -51797,8 +51797,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["bit-field-reverse"];
+        const $proc$r = { "bit-field-reverse": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_k_$1989, s_field_$1990, s_reversed_$1991, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$1985, s_start_$1986, s_end_$1987, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_k_$1989, s_field_$1990, s_reversed_$1991, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, s_i_$1985, s_start_$1986, s_end_$1987, $r } = $f);
           const $d = $stack.room - 47;
@@ -51925,7 +51925,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bit-field-reverse"];
         const $proc$js = R.markProcedure($proc, "bit-field-reverse", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -51952,7 +51952,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "cadr")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "error")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "length")).v;
-        function $proc(...s_args_$1992$raw) {
+        const $proc = { "bits->list": function (...s_args_$1992$raw) {
           let $t0, $t1, $t2, $t3, $t4, s_i_$1993, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_i_$1994, $t24, $t25, $t26, s_len_$1995, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41;
           const $d = $stack.room - 54 - s_args_$1992$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$1992$raw]);
@@ -52051,8 +52051,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t41 = $t40?.[$RAW] ?? $t40)?.[$PRIM] === true) { $stack.room = $d; return $t41($t36, $t39); } return $tailCall($t40, [$t36, $t39]);
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["bits->list"];
+        const $proc$r = { "bits->list": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_i_$1993, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_i_$1994, $t24, $t25, $t26, s_len_$1995, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, s_args_$1992, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_i_$1993, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, s_i_$1994, $t24, $t25, $t26, s_len_$1995, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, s_args_$1992, $r } = $f);
           const $d = $stack.room - 54;
@@ -52191,7 +52191,7 @@ export const LIBRARIES = {
                 return $tailCall($t40, [$t36, $t39]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bits->list"];
         const $proc$js = R.markProcedure($proc, "bits->list", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -52213,7 +52213,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cons")).v;
         const W4 = R.primitiveCell("cons"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "odd?")).v;
-        function $proc(s_i_$1996, s_len_$1997) {
+        const $proc = { "low-bits->list": function (s_i_$1996, s_len_$1997) {
           let s_k_$1999, s_rest_$2000, s_acc_$2001, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length !== 2) R.wrongArity("low-bits->list", 2, false, arguments.length);
           const $d = $stack.room - 24;
@@ -52249,8 +52249,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["low-bits->list"];
+        const $proc$r = { "low-bits->list": function ($pc, $f) {
           let s_k_$1999, s_rest_$2000, s_acc_$2001, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$1996, s_len_$1997, $r;
           ({ s_k_$1999, s_rest_$2000, s_acc_$2001, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_i_$1996, s_len_$1997, $r } = $f);
           const $d = $stack.room - 24;
@@ -52297,7 +52297,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["low-bits->list"];
         const $proc$js = R.markProcedure($proc, "low-bits->list", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -52325,7 +52325,7 @@ export const LIBRARIES = {
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "cadr")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "error")).v;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "length")).v;
-        function $proc(...s_args_$2002$raw) {
+        const $proc = { "bits->vector": function (...s_args_$2002$raw) {
           let $t0, $t1, $t2, $t3, $t4, s_i_$2003, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_i_$2004, $t28, $t29, $t30, s_len_$2005, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49;
           const $d = $stack.room - 62 - s_args_$2002$raw.length;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [...s_args_$2002$raw]);
@@ -52440,8 +52440,8 @@ export const LIBRARIES = {
           if ($d > 0 && ($t49 = $t48?.[$RAW] ?? $t48)?.[$PRIM] === true) { $stack.room = $d; return $t49($t44, $t47); } return $tailCall($t48, [$t44, $t47]);
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["bits->vector"];
+        const $proc$r = { "bits->vector": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_i_$2003, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_i_$2004, $t28, $t29, $t30, s_len_$2005, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, s_args_$2002, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_i_$2003, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, s_i_$2004, $t28, $t29, $t30, s_len_$2005, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, s_args_$2002, $r } = $f);
           const $d = $stack.room - 62;
@@ -52604,7 +52604,7 @@ export const LIBRARIES = {
                 return $tailCall($t48, [$t44, $t47]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bits->vector"];
         const $proc$js = R.markProcedure($proc, "bits->vector", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -52618,14 +52618,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "booleans->bits")).v;
-        function $proc(s_list_$2006) {
+        const $proc = { "list->bits": function (s_list_$2006) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("list->bits", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("list->bits", s_list_$2006); } return $tailCall($t0, ["list->bits", s_list_$2006]);
-        }
-        function $proc$r($pc, $f) {
+        } }["list->bits"];
+        const $proc$r = { "list->bits": function ($pc, $f) {
           let $t0, $t1, s_list_$2006, $r;
           ({ $t0, $t1, s_list_$2006, $r } = $f);
           for (;;) switch ($pc) {
@@ -52634,7 +52634,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["list->bits", s_list_$2006]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["list->bits"];
         const $proc$js = R.markProcedure($proc, "list->bits", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -52653,7 +52653,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "booleans->bits")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "vector->list")).v;
-        function $proc(s_vector_$2007) {
+        const $proc = { "vector->bits": function (s_vector_$2007) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
           if (arguments.length !== 1) R.wrongArity("vector->bits", 1, false, arguments.length);
           const $d = $stack.room - 24;
@@ -52690,8 +52690,8 @@ export const LIBRARIES = {
           if ($t12 === $UNWIND) { R.reify($proc$r, 6, { $t8, $t9 }); return $UNWIND; }
           $t13 = $t8;
           if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14($t9, $t12); } return $tailCall($t13, [$t9, $t12]);
-        }
-        function $proc$r($pc, $f) {
+        } }["vector->bits"];
+        const $proc$r = { "vector->bits": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_vector_$2007, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_vector_$2007, $r } = $f);
           const $d = $stack.room - 24;
@@ -52746,7 +52746,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [$t9, $t12]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["vector->bits"];
         const $proc$js = R.markProcedure($proc, "vector->bits", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -52760,14 +52760,14 @@ export const LIBRARIES = {
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "booleans->bits")).v;
-        function $proc(...s_booleans_$2008$raw) {
+        const $proc = { "bits": function (...s_booleans_$2008$raw) {
           let $t0, $t1;
           const $d = $stack.room - 11 - s_booleans_$2008$raw.length;
           let s_booleans_$2008 = R.listFrom(s_booleans_$2008$raw);
           $t0 = (C0.v ?? G0());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("bits", s_booleans_$2008); } return $tailCall($t0, ["bits", s_booleans_$2008]);
-        }
-        function $proc$r($pc, $f) {
+        } }["bits"];
+        const $proc$r = { "bits": function ($pc, $f) {
           let $t0, $t1, s_booleans_$2008, $r;
           ({ $t0, $t1, s_booleans_$2008, $r } = $f);
           for (;;) switch ($pc) {
@@ -52776,7 +52776,7 @@ export const LIBRARIES = {
                 return $tailCall($t0, ["bits", s_booleans_$2008]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bits"];
         const $proc$js = R.markProcedure($proc, "bits", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -52804,7 +52804,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "%bitwise-ior")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "%arithmetic-shift")).v;
         let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "reverse")).v;
-        function $proc(s_who_$2009, s_booleans_$2010) {
+        const $proc = { "booleans->bits": function (s_who_$2009, s_booleans_$2010) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_bs_$2012, s_acc_$2013, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30;
           if (arguments.length !== 2) R.wrongArity("booleans->bits", 2, false, arguments.length);
           const $d = $stack.room - 43;
@@ -52889,8 +52889,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["booleans->bits"];
+        const $proc$r = { "booleans->bits": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_bs_$2012, s_acc_$2013, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, s_who_$2009, s_booleans_$2010, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_bs_$2012, s_acc_$2013, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, s_who_$2009, s_booleans_$2010, $r } = $f);
           const $d = $stack.room - 43;
@@ -53012,7 +53012,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["booleans->bits"];
         const $proc$js = R.markProcedure($proc, "booleans->bits", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -53033,7 +53033,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "%arithmetic-shift")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "odd?")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "%integer-length")).v;
-        function $proc(s_proc_$2014, s_seed_$2015, s_i_$2016) {
+        const $proc = { "bitwise-fold": function (s_proc_$2014, s_seed_$2015, s_i_$2016) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_k_$2018, s_rest_$2019, s_acc_$2020, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21;
           if (arguments.length !== 3) R.wrongArity("bitwise-fold", 3, false, arguments.length);
           const $d = $stack.room - 36;
@@ -53103,8 +53103,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-fold"];
+        const $proc$r = { "bitwise-fold": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_k_$2018, s_rest_$2019, s_acc_$2020, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_proc_$2014, s_seed_$2015, s_i_$2016, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_k_$2018, s_rest_$2019, s_acc_$2020, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_proc_$2014, s_seed_$2015, s_i_$2016, $r } = $f);
           const $d = $stack.room - 36;
@@ -53205,7 +53205,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-fold"];
         const $proc$js = R.markProcedure($proc, "bitwise-fold", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -53227,7 +53227,7 @@ export const LIBRARIES = {
         const W4 = R.primitiveCell("-"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "%arithmetic-shift")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "%integer-length")).v;
-        function $proc(s_proc_$2021, s_i_$2022) {
+        const $proc = { "bitwise-for-each": function (s_proc_$2021, s_i_$2022) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_k_$2024, s_rest_$2025, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19;
           if (arguments.length !== 2) R.wrongArity("bitwise-for-each", 2, false, arguments.length);
           const $d = $stack.room - 32;
@@ -53290,8 +53290,8 @@ export const LIBRARIES = {
           return undefined;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-for-each"];
+        const $proc$r = { "bitwise-for-each": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_k_$2024, s_rest_$2025, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, s_proc_$2021, s_i_$2022, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_k_$2024, s_rest_$2025, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, s_proc_$2021, s_i_$2022, $r } = $f);
           const $d = $stack.room - 32;
@@ -53381,7 +53381,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-for-each"];
         const $proc$js = R.markProcedure($proc, "bitwise-for-each", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -53399,7 +53399,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("+"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-ior")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "single-bit")).v;
-        function $proc(s_stop_3f_$2026, s_mapper_$2027, s_successor_$2028, s_seed_$2029) {
+        const $proc = { "bitwise-unfold": function (s_stop_3f_$2026, s_mapper_$2027, s_successor_$2028, s_seed_$2029) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_state_$2031, s_k_$2032, s_acc_$2033, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26;
           if (arguments.length !== 4) R.wrongArity("bitwise-unfold", 4, false, arguments.length);
           const $d = $stack.room - 42;
@@ -53483,8 +53483,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["bitwise-unfold"];
+        const $proc$r = { "bitwise-unfold": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_state_$2031, s_k_$2032, s_acc_$2033, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_stop_3f_$2026, s_mapper_$2027, s_successor_$2028, s_seed_$2029, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_state_$2031, s_k_$2032, s_acc_$2033, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_stop_3f_$2026, s_mapper_$2027, s_successor_$2028, s_seed_$2029, $r } = $f);
           const $d = $stack.room - 42;
@@ -53606,7 +53606,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["bitwise-unfold"];
         const $proc$js = R.markProcedure($proc, "bitwise-unfold", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -53623,7 +53623,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "odd?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%arithmetic-shift")).v;
         function $mk$fn3(s_rest_$2035) {
-          function $fn3() {
+          const $fn3 = { "anonymous": function () {
           let $t0, $t1, $t2, s_bit_$2036, $t3, $t4, $t5;
           if (arguments.length !== 0) R.wrongArity("anonymous", 0, false, arguments.length);
           const $d = $stack.room - 15;
@@ -53646,9 +53646,9 @@ export const LIBRARIES = {
           s_rest_$2035[0] = $t5;
           undefined;
           return s_bit_$2036;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, s_bit_$2036, $t3, $t4, $t5, $r;
           ({ $t0, $t1, $t2, s_bit_$2036, $t3, $t4, $t5, $r } = $f);
           const $d = $stack.room - 15;
@@ -53682,11 +53682,11 @@ export const LIBRARIES = {
                 return s_bit_$2036;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_i_$2034) {
+        const $proc = { "make-bitwise-generator": function (s_i_$2034) {
           let $t0, $t1, $t2, s_rest_$2035, $t4;
           if (arguments.length !== 1) R.wrongArity("make-bitwise-generator", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -53702,8 +53702,8 @@ export const LIBRARIES = {
           s_rest_$2035 = [s_i_$2034];
           $t4 = $mk$fn3(s_rest_$2035);
           return $t4;
-        }
-        function $proc$r($pc, $f) {
+        } }["make-bitwise-generator"];
+        const $proc$r = { "make-bitwise-generator": function ($pc, $f) {
           let $t0, $t1, $t2, s_rest_$2035, $t4, s_i_$2034, $r;
           ({ $t0, $t1, $t2, s_rest_$2035, $t4, s_i_$2034, $r } = $f);
           const $d = $stack.room - 14;
@@ -53726,7 +53726,7 @@ export const LIBRARIES = {
                 return $t4;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["make-bitwise-generator"];
         const $proc$js = R.markProcedure($proc, "make-bitwise-generator", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -53797,7 +53797,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "error")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$2037, s_f_$2038) {
+        const $proc = { "string-check-procedure": function (s_who_$2037, s_f_$2038) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("string-check-procedure", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -53824,8 +53824,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-check-procedure"];
+        const $proc$r = { "string-check-procedure": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$2037, s_f_$2038, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_who_$2037, s_f_$2038, $r } = $f);
           const $d = $stack.room - 20;
@@ -53863,7 +53863,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [$t7, s_f_$2038]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-check-procedure"];
         const $proc$js = R.markProcedure($proc, "string-check-procedure", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -53894,7 +53894,7 @@ export const LIBRARIES = {
         const W10 = R.primitiveCell("<="), P10 = W10.primitive;
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "cons")).v;
         const W11 = R.primitiveCell("cons"), P11 = W11.primitive;
-        function $proc(s_who_$2039, s_s_$2040, s_range_$2041) {
+        const $proc = { "string-range": function (s_who_$2039, s_s_$2040, s_range_$2041) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_n_$2042, $t15, $t16, $t17, s_start_$2043, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_end_$2044, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46;
           if (arguments.length !== 3) R.wrongArity("string-range", 3, false, arguments.length);
           const $d = $stack.room - 61;
@@ -54020,8 +54020,8 @@ export const LIBRARIES = {
           $t38;
           $t46 = (W11.intact || (C11.v ?? G11()) === P11) ? (new R.Cons(s_start_$2043, s_end_$2044)) : R.callBinding((C11.v ?? G11()), [s_start_$2043, s_end_$2044]);
           return $t46;
-        }
-        function $proc$r($pc, $f) {
+        } }["string-range"];
+        const $proc$r = { "string-range": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_n_$2042, $t15, $t16, $t17, s_start_$2043, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_end_$2044, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, s_who_$2039, s_s_$2040, s_range_$2041, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_n_$2042, $t15, $t16, $t17, s_start_$2043, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, s_end_$2044, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, $t46, s_who_$2039, s_s_$2040, s_range_$2041, $r } = $f);
           const $d = $stack.room - 61;
@@ -54211,7 +54211,7 @@ export const LIBRARIES = {
                 $pc = 29; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-range"];
         const $proc$js = R.markProcedure($proc, "string-range", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -54229,7 +54229,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-ref")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "+")).v;
         const W2 = R.primitiveCell("+"), P2 = W2.primitive;
-        function $proc(s_s_$2045, s_pred_$2046, s_start_$2047, s_end_$2048) {
+        const $proc = { "index-where": function (s_s_$2045, s_pred_$2046, s_start_$2047, s_end_$2048) {
           let s_i_$2050, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
           if (arguments.length !== 4) R.wrongArity("index-where", 4, false, arguments.length);
           const $d = $stack.room - 21;
@@ -54263,8 +54263,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["index-where"];
+        const $proc$r = { "index-where": function ($pc, $f) {
           let s_i_$2050, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_s_$2045, s_pred_$2046, s_start_$2047, s_end_$2048, $r;
           ({ s_i_$2050, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_s_$2045, s_pred_$2046, s_start_$2047, s_end_$2048, $r } = $f);
           const $d = $stack.room - 21;
@@ -54309,7 +54309,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["index-where"];
         const $proc$js = R.markProcedure($proc, "index-where", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -54327,7 +54327,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-ref")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
-        function $proc(s_s_$2051, s_pred_$2052, s_start_$2053, s_end_$2054) {
+        const $proc = { "index-where-right": function (s_s_$2051, s_pred_$2052, s_start_$2053, s_end_$2054) {
           let $t0, s_i_$2056, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 4) R.wrongArity("index-where-right", 4, false, arguments.length);
           const $d = $stack.room - 22;
@@ -54362,8 +54362,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["index-where-right"];
+        const $proc$r = { "index-where-right": function ($pc, $f) {
           let $t0, s_i_$2056, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_s_$2051, s_pred_$2052, s_start_$2053, s_end_$2054, $r;
           ({ $t0, s_i_$2056, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_s_$2051, s_pred_$2052, s_start_$2053, s_end_$2054, $r } = $f);
           const $d = $stack.room - 22;
@@ -54409,7 +54409,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["index-where-right"];
         const $proc$js = R.markProcedure($proc, "index-where-right", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -54425,7 +54425,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-length")).v;
-        function $proc(s_s_$2057) {
+        const $proc = { "string-null?": function (s_s_$2057) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("string-null?", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -54439,8 +54439,8 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t3 = (W0.intact || (C0.v ?? G0()) === P0) && ((typeof $t2 === 'bigint' && typeof 0n === 'bigint') || (typeof $t2 === 'number' && typeof 0n === 'number')) ? ($t2 === 0n) : R.callBinding((C0.v ?? G0()), [$t2, 0n]);
           return $t3;
-        }
-        function $proc$r($pc, $f) {
+        } }["string-null?"];
+        const $proc$r = { "string-null?": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_s_$2057, $r;
           ({ $t0, $t1, $t2, $t3, s_s_$2057, $r } = $f);
           const $d = $stack.room - 13;
@@ -54461,7 +54461,7 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-null?"];
         const $proc$js = R.markProcedure($proc, "string-null?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -54485,7 +54485,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("+"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "car")).v;
         const W6 = R.primitiveCell("car"), P6 = W6.primitive;
-        function $proc(s_pred_$2058, s_s_$2059, ...s_range_$2060$raw) {
+        const $proc = { "string-every": function (s_pred_$2058, s_s_$2059, ...s_range_$2060$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2061, $t6, s_end_$2062, $t7, s_i_$2064, s_last_$2065, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_v_$2066, $t15, $t16;
           if (arguments.length < 2) R.wrongArity("string-every", 2, true, arguments.length);
           const $d = $stack.room - 33 - s_range_$2060$raw.length;
@@ -54543,8 +54543,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-every"];
+        const $proc$r = { "string-every": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2061, $t6, s_end_$2062, $t7, s_i_$2064, s_last_$2065, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_v_$2066, $t15, $t16, s_pred_$2058, s_s_$2059, s_range_$2060, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2061, $t6, s_end_$2062, $t7, s_i_$2064, s_last_$2065, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_v_$2066, $t15, $t16, s_pred_$2058, s_s_$2059, s_range_$2060, $r } = $f);
           const $d = $stack.room - 33;
@@ -54620,7 +54620,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-every"];
         const $proc$js = R.markProcedure($proc, "string-every", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -54644,7 +54644,7 @@ export const LIBRARIES = {
         const W5 = R.primitiveCell("+"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "car")).v;
         const W6 = R.primitiveCell("car"), P6 = W6.primitive;
-        function $proc(s_pred_$2067, s_s_$2068, ...s_range_$2069$raw) {
+        const $proc = { "string-any": function (s_pred_$2067, s_s_$2068, ...s_range_$2069$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2070, $t6, s_end_$2071, $t7, s_i_$2073, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$2074, $t15;
           if (arguments.length < 2) R.wrongArity("string-any", 2, true, arguments.length);
           const $d = $stack.room - 31 - s_range_$2069$raw.length;
@@ -54699,8 +54699,8 @@ export const LIBRARIES = {
           return false;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-any"];
+        const $proc$r = { "string-any": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2070, $t6, s_end_$2071, $t7, s_i_$2073, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$2074, $t15, s_pred_$2067, s_s_$2068, s_range_$2069, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2070, $t6, s_end_$2071, $t7, s_i_$2073, $t8, $t9, $t10, $t11, $t12, $t13, $t14, s_x_$2074, $t15, s_pred_$2067, s_s_$2068, s_range_$2069, $r } = $f);
           const $d = $stack.room - 31;
@@ -54773,7 +54773,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-any"];
         const $proc$js = R.markProcedure($proc, "string-any", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -54800,7 +54800,7 @@ export const LIBRARIES = {
         const W7 = R.primitiveCell("-"), P7 = W7.primitive;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "cons")).v;
         const W8 = R.primitiveCell("cons"), P8 = W8.primitive;
-        function $proc(s_proc_$2075, s_len_$2076) {
+        const $proc = { "string-tabulate": function (s_proc_$2075, s_len_$2076) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_i_$2078, s_chars_$2079, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21;
           if (arguments.length !== 2) R.wrongArity("string-tabulate", 2, false, arguments.length);
           const $d = $stack.room - 34;
@@ -54863,8 +54863,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-tabulate"];
+        const $proc$r = { "string-tabulate": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_i_$2078, s_chars_$2079, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_proc_$2075, s_len_$2076, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_i_$2078, s_chars_$2079, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, s_proc_$2075, s_len_$2076, $r } = $f);
           const $d = $stack.room - 34;
@@ -54952,7 +54952,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-tabulate"];
         const $proc$js = R.markProcedure($proc, "string-tabulate", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -54967,7 +54967,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "char?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string")).v;
-        function $proc(s_x_$2080) {
+        const $proc = { "string-piece": function (s_x_$2080) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 1) R.wrongArity("string-piece", 1, false, arguments.length);
           const $d = $stack.room - 14;
@@ -54985,8 +54985,8 @@ export const LIBRARIES = {
         } else {
           return s_x_$2080;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-piece"];
+        const $proc$r = { "string-piece": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_x_$2080, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_x_$2080, $r } = $f);
           const $d = $stack.room - 14;
@@ -55011,7 +55011,7 @@ export const LIBRARIES = {
                 return s_x_$2080;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-piece"];
         const $proc$js = R.markProcedure($proc, "string-piece", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -55037,12 +55037,12 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "string-piece")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "list")).v;
         function $mk$fn11() {
-          function $fn11(s_x_$2088) {
+          const $fn11 = { "anonymous": function (s_x_$2088) {
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           return "";
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let s_x_$2088, $r;
           ({ s_x_$2088, $r } = $f);
           for (;;) switch ($pc) {
@@ -55050,11 +55050,11 @@ export const LIBRARIES = {
                 return "";
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s_stop_3f_$2081, s_mapper_$2082, s_successor_$2083, s_seed_$2084, ...s_options_$2085$raw) {
+        const $proc = { "string-unfold": function (s_stop_3f_$2081, s_mapper_$2082, s_successor_$2083, s_seed_$2084, ...s_options_$2085$raw) {
           let $t0, $t1, $t2, s_base_$2086, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, s_make_2dfinal_$2087, $t13, $t14, $t15, s_seed_$2090, s_pieces_$2091, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40;
           if (arguments.length < 4) R.wrongArity("string-unfold", 4, true, arguments.length);
           const $d = $stack.room - 57 - s_options_$2085$raw.length;
@@ -55156,8 +55156,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-unfold"];
+        const $proc$r = { "string-unfold": function ($pc, $f) {
           let $t0, $t1, $t2, s_base_$2086, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, s_make_2dfinal_$2087, $t13, $t14, $t15, s_seed_$2090, s_pieces_$2091, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, s_stop_3f_$2081, s_mapper_$2082, s_successor_$2083, s_seed_$2084, s_options_$2085, $r;
           ({ $t0, $t1, $t2, s_base_$2086, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, s_make_2dfinal_$2087, $t13, $t14, $t15, s_seed_$2090, s_pieces_$2091, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, s_stop_3f_$2081, s_mapper_$2082, s_successor_$2083, s_seed_$2084, s_options_$2085, $r } = $f);
           const $d = $stack.room - 57;
@@ -55302,7 +55302,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-unfold"];
         const $proc$js = R.markProcedure($proc, "string-unfold", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -55328,12 +55328,12 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "string-piece")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "list")).v;
         function $mk$fn11() {
-          function $fn11(s_x_$2099) {
+          const $fn11 = { "anonymous": function (s_x_$2099) {
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           return "";
-        }
+        } }["anonymous"];
           const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          function $fn11$r($pc, $f) {
+          const $fn11$r = { "anonymous": function ($pc, $f) {
           let s_x_$2099, $r;
           ({ s_x_$2099, $r } = $f);
           for (;;) switch ($pc) {
@@ -55341,11 +55341,11 @@ export const LIBRARIES = {
                 return "";
               default: throw new Error('$fn11$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn11$js.$resume = $fn11$r;
           return $fn11$js;
         }
-        function $proc(s_stop_3f_$2092, s_mapper_$2093, s_successor_$2094, s_seed_$2095, ...s_options_$2096$raw) {
+        const $proc = { "string-unfold-right": function (s_stop_3f_$2092, s_mapper_$2093, s_successor_$2094, s_seed_$2095, ...s_options_$2096$raw) {
           let $t0, $t1, $t2, s_base_$2097, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, s_make_2dfinal_$2098, $t13, $t14, $t15, s_seed_$2101, s_pieces_$2102, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40;
           if (arguments.length < 4) R.wrongArity("string-unfold-right", 4, true, arguments.length);
           const $d = $stack.room - 57 - s_options_$2096$raw.length;
@@ -55447,8 +55447,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-unfold-right"];
+        const $proc$r = { "string-unfold-right": function ($pc, $f) {
           let $t0, $t1, $t2, s_base_$2097, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, s_make_2dfinal_$2098, $t13, $t14, $t15, s_seed_$2101, s_pieces_$2102, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, s_stop_3f_$2092, s_mapper_$2093, s_successor_$2094, s_seed_$2095, s_options_$2096, $r;
           ({ $t0, $t1, $t2, s_base_$2097, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t12, s_make_2dfinal_$2098, $t13, $t14, $t15, s_seed_$2101, s_pieces_$2102, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, s_stop_3f_$2092, s_mapper_$2093, s_successor_$2094, s_seed_$2095, s_options_$2096, $r } = $f);
           const $d = $stack.room - 57;
@@ -55593,7 +55593,7 @@ export const LIBRARIES = {
                 $pc = 12; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-unfold-right"];
         const $proc$js = R.markProcedure($proc, "string-unfold-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -55608,7 +55608,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list->string")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reverse")).v;
-        function $proc(s_chars_$2103) {
+        const $proc = { "reverse-list->string": function (s_chars_$2103) {
           let $t0, $t1, $t2, $t3, $t4, $t5;
           if (arguments.length !== 1) R.wrongArity("reverse-list->string", 1, false, arguments.length);
           const $d = $stack.room - 15;
@@ -55623,8 +55623,8 @@ export const LIBRARIES = {
           if ($t3 === $UNWIND) { R.reify($proc$r, 1, { $t0 }); return $UNWIND; }
           $t4 = $t0;
           if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3); } return $tailCall($t4, [$t3]);
-        }
-        function $proc$r($pc, $f) {
+        } }["reverse-list->string"];
+        const $proc$r = { "reverse-list->string": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_chars_$2103, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_chars_$2103, $r } = $f);
           const $d = $stack.room - 15;
@@ -55646,7 +55646,7 @@ export const LIBRARIES = {
                 return $tailCall($t4, [$t3]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["reverse-list->string"];
         const $proc$js = R.markProcedure($proc, "reverse-list->string", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -55667,7 +55667,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-length")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "error")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "string-append")).v;
-        function $proc(s_who_$2104, s_s_$2105, s_n_$2106) {
+        const $proc = { "check-count-within": function (s_who_$2104, s_s_$2105, s_n_$2106) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17;
           if (arguments.length !== 3) R.wrongArity("check-count-within", 3, false, arguments.length);
           const $d = $stack.room - 29;
@@ -55714,8 +55714,8 @@ export const LIBRARIES = {
         } else {
           return undefined;
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["check-count-within"];
+        const $proc$r = { "check-count-within": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_who_$2104, s_s_$2105, s_n_$2106, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_who_$2104, s_s_$2105, s_n_$2106, $r } = $f);
           const $d = $stack.room - 29;
@@ -55784,7 +55784,7 @@ export const LIBRARIES = {
                 return $tailCall($t16, [$t15, s_n_$2106]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["check-count-within"];
         const $proc$js = R.markProcedure($proc, "check-count-within", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -55799,7 +55799,7 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
-        function $proc(s_s_$2107, s_n_$2108) {
+        const $proc = { "string-take": function (s_s_$2107, s_n_$2108) {
           let $t0, $t1, $t2, $t3, $t4;
           if (arguments.length !== 2) R.wrongArity("string-take", 2, false, arguments.length);
           const $d = $stack.room - 15;
@@ -55814,8 +55814,8 @@ export const LIBRARIES = {
           $t2;
           $t3 = (C1.v ?? G1());
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4(s_s_$2107, 0n, s_n_$2108); } return $tailCall($t3, [s_s_$2107, 0n, s_n_$2108]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-take"];
+        const $proc$r = { "string-take": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, s_s_$2107, s_n_$2108, $r;
           ({ $t0, $t1, $t2, $t3, $t4, s_s_$2107, s_n_$2108, $r } = $f);
           const $d = $stack.room - 15;
@@ -55837,7 +55837,7 @@ export const LIBRARIES = {
                 return $tailCall($t3, [s_s_$2107, 0n, s_n_$2108]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-take"];
         const $proc$js = R.markProcedure($proc, "string-take", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -55853,7 +55853,7 @@ export const LIBRARIES = {
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-length")).v;
-        function $proc(s_s_$2109, s_n_$2110) {
+        const $proc = { "string-drop": function (s_s_$2109, s_n_$2110) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 2) R.wrongArity("string-drop", 2, false, arguments.length);
           const $d = $stack.room - 19;
@@ -55876,8 +55876,8 @@ export const LIBRARIES = {
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t3, s_s_$2109, s_n_$2110 }); return $UNWIND; }
           $t7 = $t3;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8(s_s_$2109, s_n_$2110, $t6); } return $tailCall($t7, [s_s_$2109, s_n_$2110, $t6]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-drop"];
+        const $proc$r = { "string-drop": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_s_$2109, s_n_$2110, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_s_$2109, s_n_$2110, $r } = $f);
           const $d = $stack.room - 19;
@@ -55911,7 +55911,7 @@ export const LIBRARIES = {
                 return $tailCall($t7, [s_s_$2109, s_n_$2110, $t6]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-drop"];
         const $proc$js = R.markProcedure($proc, "string-drop", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -55929,7 +55929,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-length")).v;
-        function $proc(s_s_$2111, s_n_$2112) {
+        const $proc = { "string-take-right": function (s_s_$2111, s_n_$2112) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12;
           if (arguments.length !== 2) R.wrongArity("string-take-right", 2, false, arguments.length);
           const $d = $stack.room - 23;
@@ -55960,8 +55960,8 @@ export const LIBRARIES = {
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { $t3, $t7, s_s_$2111 }); return $UNWIND; }
           $t11 = $t3;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12(s_s_$2111, $t7, $t10); } return $tailCall($t11, [s_s_$2111, $t7, $t10]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-take-right"];
+        const $proc$r = { "string-take-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$2111, s_n_$2112, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, s_s_$2111, s_n_$2112, $r } = $f);
           const $d = $stack.room - 23;
@@ -56007,7 +56007,7 @@ export const LIBRARIES = {
                 return $tailCall($t11, [s_s_$2111, $t7, $t10]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-take-right"];
         const $proc$js = R.markProcedure($proc, "string-take-right", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -56025,7 +56025,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
         const W2 = R.primitiveCell("-"), P2 = W2.primitive;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-length")).v;
-        function $proc(s_s_$2113, s_n_$2114) {
+        const $proc = { "string-drop-right": function (s_s_$2113, s_n_$2114) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("string-drop-right", 2, false, arguments.length);
           const $d = $stack.room - 20;
@@ -56049,8 +56049,8 @@ export const LIBRARIES = {
           $t7 = (W2.intact || (C2.v ?? G2()) === P2) && ((typeof $t6 === 'bigint' && typeof s_n_$2114 === 'bigint') || (typeof $t6 === 'number' && typeof s_n_$2114 === 'number')) ? ($t6 - s_n_$2114) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2114]);
           $t8 = $t3;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_s_$2113, 0n, $t7); } return $tailCall($t8, [s_s_$2113, 0n, $t7]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-drop-right"];
+        const $proc$r = { "string-drop-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_s_$2113, s_n_$2114, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, s_s_$2113, s_n_$2114, $r } = $f);
           const $d = $stack.room - 20;
@@ -56085,7 +56085,7 @@ export const LIBRARIES = {
                 return $tailCall($t8, [s_s_$2113, 0n, $t7]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-drop-right"];
         const $proc$js = R.markProcedure($proc, "string-drop-right", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -56112,7 +56112,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "substring")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "string-append")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "make-string")).v;
-        function $proc(s_s_$2115, s_len_$2116, ...s_options_$2117$raw) {
+        const $proc = { "string-pad": function (s_s_$2115, s_len_$2116, ...s_options_$2117$raw) {
           let $t0, $t1, $t2, s_char_$2118, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2119, $t11, s_start_$2120, $t12, s_end_$2121, $t13, s_n_$2122, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29;
           if (arguments.length < 2) R.wrongArity("string-pad", 2, true, arguments.length);
           const $d = $stack.room - 46 - s_options_$2117$raw.length;
@@ -56176,8 +56176,8 @@ export const LIBRARIES = {
           $t28 = $t19;
           if ($d > 0 && ($t29 = $t28?.[$RAW] ?? $t28)?.[$PRIM] === true) { $stack.room = $d; return $t29($t24, $t27); } return $tailCall($t28, [$t24, $t27]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-pad"];
+        const $proc$r = { "string-pad": function ($pc, $f) {
           let $t0, $t1, $t2, s_char_$2118, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2119, $t11, s_start_$2120, $t12, s_end_$2121, $t13, s_n_$2122, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_s_$2115, s_len_$2116, s_options_$2117, $r;
           ({ $t0, $t1, $t2, s_char_$2118, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2119, $t11, s_start_$2120, $t12, s_end_$2121, $t13, s_n_$2122, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_s_$2115, s_len_$2116, s_options_$2117, $r } = $f);
           const $d = $stack.room - 46;
@@ -56261,7 +56261,7 @@ export const LIBRARIES = {
                 return $tailCall($t28, [$t24, $t27]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-pad"];
         const $proc$js = R.markProcedure($proc, "string-pad", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -56290,7 +56290,7 @@ export const LIBRARIES = {
         const W7 = R.primitiveCell("+"), P7 = W7.primitive;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "string-append")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "make-string")).v;
-        function $proc(s_s_$2123, s_len_$2124, ...s_options_$2125$raw) {
+        const $proc = { "string-pad-right": function (s_s_$2123, s_len_$2124, ...s_options_$2125$raw) {
           let $t0, $t1, $t2, s_char_$2126, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2127, $t11, s_start_$2128, $t12, s_end_$2129, $t13, s_n_$2130, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29;
           if (arguments.length < 2) R.wrongArity("string-pad-right", 2, true, arguments.length);
           const $d = $stack.room - 46 - s_options_$2125$raw.length;
@@ -56354,8 +56354,8 @@ export const LIBRARIES = {
           $t28 = $t19;
           if ($d > 0 && ($t29 = $t28?.[$RAW] ?? $t28)?.[$PRIM] === true) { $stack.room = $d; return $t29($t22, $t27); } return $tailCall($t28, [$t22, $t27]);
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-pad-right"];
+        const $proc$r = { "string-pad-right": function ($pc, $f) {
           let $t0, $t1, $t2, s_char_$2126, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2127, $t11, s_start_$2128, $t12, s_end_$2129, $t13, s_n_$2130, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_s_$2123, s_len_$2124, s_options_$2125, $r;
           ({ $t0, $t1, $t2, s_char_$2126, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2127, $t11, s_start_$2128, $t12, s_end_$2129, $t13, s_n_$2130, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_s_$2123, s_len_$2124, s_options_$2125, $r } = $f);
           const $d = $stack.room - 46;
@@ -56439,7 +56439,7 @@ export const LIBRARIES = {
                 return $tailCall($t28, [$t22, $t27]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-pad-right"];
         const $proc$js = R.markProcedure($proc, "string-pad-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -56465,7 +56465,7 @@ export const LIBRARIES = {
         const W6 = R.primitiveCell("not"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "substring")).v;
         function $mk$fn12(s_pred_$2133) {
-          function $fn12(s_c_$2136) {
+          const $fn12 = { "anonymous": function (s_c_$2136) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -56479,9 +56479,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn12$r, 1, {  }); return $UNWIND; }
           $t3 = (W6.intact || (C6.v ?? G6()) === P6) ? ($t2 === false) : R.callBinding((C6.v ?? G6()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn12$js = R.markProcedure($fn12, "anonymous", E);
-          function $fn12$r($pc, $f) {
+          const $fn12$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_c_$2136, $r;
           ({ $t0, $t1, $t2, $t3, s_c_$2136, $r } = $f);
           const $d = $stack.room - 13;
@@ -56502,11 +56502,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn12$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn12$js.$resume = $fn12$r;
           return $fn12$js;
         }
-        function $proc(s_s_$2131, ...s_options_$2132$raw) {
+        const $proc = { "string-trim": function (s_s_$2131, ...s_options_$2132$raw) {
           let $t0, $t1, $t2, s_pred_$2133, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2134, $t11, $t13, $t14, $t15, $t16, $t17, $t18, s_from_$2135, $t19, $t20, $t21, $t22;
           if (arguments.length < 1) R.wrongArity("string-trim", 1, true, arguments.length);
           const $d = $stack.room - 35 - s_options_$2132$raw.length;
@@ -56557,8 +56557,8 @@ export const LIBRARIES = {
         } else {
           return "";
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-trim"];
+        const $proc$r = { "string-trim": function ($pc, $f) {
           let $t0, $t1, $t2, s_pred_$2133, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2134, $t11, $t13, $t14, $t15, $t16, $t17, $t18, s_from_$2135, $t19, $t20, $t21, $t22, s_s_$2131, s_options_$2132, $r;
           ({ $t0, $t1, $t2, s_pred_$2133, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2134, $t11, $t13, $t14, $t15, $t16, $t17, $t18, s_from_$2135, $t19, $t20, $t21, $t22, s_s_$2131, s_options_$2132, $r } = $f);
           const $d = $stack.room - 35;
@@ -56625,7 +56625,7 @@ export const LIBRARIES = {
                 return "";
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-trim"];
         const $proc$js = R.markProcedure($proc, "string-trim", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -56653,7 +56653,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "+")).v;
         const W8 = R.primitiveCell("+"), P8 = W8.primitive;
         function $mk$fn12(s_pred_$2139) {
-          function $fn12(s_c_$2142) {
+          const $fn12 = { "anonymous": function (s_c_$2142) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -56667,9 +56667,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn12$r, 1, {  }); return $UNWIND; }
           $t3 = (W6.intact || (C6.v ?? G6()) === P6) ? ($t2 === false) : R.callBinding((C6.v ?? G6()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn12$js = R.markProcedure($fn12, "anonymous", E);
-          function $fn12$r($pc, $f) {
+          const $fn12$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_c_$2142, $r;
           ({ $t0, $t1, $t2, $t3, s_c_$2142, $r } = $f);
           const $d = $stack.room - 13;
@@ -56690,11 +56690,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn12$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn12$js.$resume = $fn12$r;
           return $fn12$js;
         }
-        function $proc(s_s_$2137, ...s_options_$2138$raw) {
+        const $proc = { "string-trim-right": function (s_s_$2137, ...s_options_$2138$raw) {
           let $t0, $t1, $t2, s_pred_$2139, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2140, $t11, $t13, $t14, $t15, $t16, $t17, $t18, s_to_$2141, $t19, $t20, $t21, $t22, $t23;
           if (arguments.length < 1) R.wrongArity("string-trim-right", 1, true, arguments.length);
           const $d = $stack.room - 36 - s_options_$2138$raw.length;
@@ -56746,8 +56746,8 @@ export const LIBRARIES = {
         } else {
           return "";
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-trim-right"];
+        const $proc$r = { "string-trim-right": function ($pc, $f) {
           let $t0, $t1, $t2, s_pred_$2139, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2140, $t11, $t13, $t14, $t15, $t16, $t17, $t18, s_to_$2141, $t19, $t20, $t21, $t22, $t23, s_s_$2137, s_options_$2138, $r;
           ({ $t0, $t1, $t2, s_pred_$2139, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_r_$2140, $t11, $t13, $t14, $t15, $t16, $t17, $t18, s_to_$2141, $t19, $t20, $t21, $t22, $t23, s_s_$2137, s_options_$2138, $r } = $f);
           const $d = $stack.room - 36;
@@ -56815,7 +56815,7 @@ export const LIBRARIES = {
                 return "";
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-trim-right"];
         const $proc$js = R.markProcedure($proc, "string-trim-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -56838,7 +56838,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "string-trim-right")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdr")).v;
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
-        function $proc(s_s_$2143, ...s_options_$2144$raw) {
+        const $proc = { "string-trim-both": function (s_s_$2143, ...s_options_$2144$raw) {
           let $t0, $t1, $t2, s_pred_$2145, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
           if (arguments.length < 1) R.wrongArity("string-trim-both", 1, true, arguments.length);
           const $d = $stack.room - 25 - s_options_$2144$raw.length;
@@ -56871,8 +56871,8 @@ export const LIBRARIES = {
           if ($t11 === $UNWIND) { R.reify($proc$r, 7, { s_pred_$2145, $t3 }); return $UNWIND; }
           $t12 = $t3;
           if ($d > 0 && ($t13 = $t12?.[$RAW] ?? $t12)?.[$PRIM] === true) { $stack.room = $d; return $t13($t11, s_pred_$2145); } return $tailCall($t12, [$t11, s_pred_$2145]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-trim-both"];
+        const $proc$r = { "string-trim-both": function ($pc, $f) {
           let $t0, $t1, $t2, s_pred_$2145, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_s_$2143, s_options_$2144, $r;
           ({ $t0, $t1, $t2, s_pred_$2145, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_s_$2143, s_options_$2144, $r } = $f);
           const $d = $stack.room - 25;
@@ -56917,7 +56917,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [$t11, s_pred_$2145]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-trim-both"];
         const $proc$js = R.markProcedure($proc, "string-trim-both", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -56939,7 +56939,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cdr")).v;
         const W5 = R.primitiveCell("cdr"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "string-length")).v;
-        function $proc(s_s1_$2146, s_s2_$2147, s_start1_$2148, s_end1_$2149, ...s_range2_$2150$raw) {
+        const $proc = { "string-replace": function (s_s1_$2146, s_s2_$2147, s_start1_$2148, s_end1_$2149, ...s_range2_$2150$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_r1_$2151, $t8, $t9, $t10, s_r2_$2152, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29;
           if (arguments.length < 4) R.wrongArity("string-replace", 4, true, arguments.length);
           const $d = $stack.room - 45 - s_range2_$2150$raw.length;
@@ -57005,8 +57005,8 @@ export const LIBRARIES = {
           if ($t27 === $UNWIND) { R.reify($proc$r, 7, { $t11, $t14, $t20 }); return $UNWIND; }
           $t28 = $t11;
           if ($d > 0 && ($t29 = $t28?.[$RAW] ?? $t28)?.[$PRIM] === true) { $stack.room = $d; return $t29($t14, $t20, $t27); } return $tailCall($t28, [$t14, $t20, $t27]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-replace"];
+        const $proc$r = { "string-replace": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_r1_$2151, $t8, $t9, $t10, s_r2_$2152, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_s1_$2146, s_s2_$2147, s_start1_$2148, s_end1_$2149, s_range2_$2150, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, s_r1_$2151, $t8, $t9, $t10, s_r2_$2152, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, s_s1_$2146, s_s2_$2147, s_start1_$2148, s_end1_$2149, s_range2_$2150, $r } = $f);
           const $d = $stack.room - 45;
@@ -57102,7 +57102,7 @@ export const LIBRARIES = {
                 return $tailCall($t28, [$t14, $t20, $t27]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-replace"];
         const $proc$js = R.markProcedure($proc, "string-replace", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -57124,7 +57124,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "list")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "car")).v;
         const W5 = R.primitiveCell("car"), P5 = W5.primitive;
-        function $proc(s_who_$2153, s_s1_$2154, s_s2_$2155, s_range_$2156) {
+        const $proc = { "two-ranges": function (s_who_$2153, s_s1_$2154, s_s2_$2155, s_range_$2156) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r1_$2157, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_r2_$2158, $t18, $t19, $t20, $t21, $t22, $t23, $t24;
           if (arguments.length !== 4) R.wrongArity("two-ranges", 4, false, arguments.length);
           const $d = $stack.room - 39;
@@ -57180,8 +57180,8 @@ export const LIBRARIES = {
           $t22 = (W2.intact || (C2.v ?? G2()) === P2) && (s_r2_$2158 instanceof R.Cons) ? (s_r2_$2158.cdr) : R.callBinding((C2.v ?? G2()), [s_r2_$2158]);
           $t23 = $t18;
           if ($d > 0 && ($t24 = $t23?.[$RAW] ?? $t23)?.[$PRIM] === true) { $stack.room = $d; return $t24($t19, $t20, $t21, $t22); } return $tailCall($t23, [$t19, $t20, $t21, $t22]);
-        }
-        function $proc$r($pc, $f) {
+        } }["two-ranges"];
+        const $proc$r = { "two-ranges": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r1_$2157, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_r2_$2158, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_who_$2153, s_s1_$2154, s_s2_$2155, s_range_$2156, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_r1_$2157, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, s_r2_$2158, $t18, $t19, $t20, $t21, $t22, $t23, $t24, s_who_$2153, s_s1_$2154, s_s2_$2155, s_range_$2156, $r } = $f);
           const $d = $stack.room - 39;
@@ -57261,7 +57261,7 @@ export const LIBRARIES = {
                 return $tailCall($t23, [$t19, $t20, $t21, $t22]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["two-ranges"];
         const $proc$js = R.markProcedure($proc, "two-ranges", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -57286,7 +57286,7 @@ export const LIBRARIES = {
         const W6 = R.primitiveCell("+"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "char=?")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "string-ref")).v;
-        function $proc(s_s1_$2159, s_s2_$2160, ...s_range_$2161$raw) {
+        const $proc = { "string-prefix-length": function (s_s1_$2159, s_s2_$2160, ...s_range_$2161$raw) {
           let $t0, $t1, $t2, s_r_$2162, $t3, s_start1_$2163, $t4, $t5, $t6, s_end1_$2164, $t7, $t8, $t9, s_start2_$2165, $t10, $t11, $t12, s_end2_$2166, s_i_$2168, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33;
           if (arguments.length < 2) R.wrongArity("string-prefix-length", 2, true, arguments.length);
           const $d = $stack.room - 51 - s_range_$2161$raw.length;
@@ -57376,8 +57376,8 @@ export const LIBRARIES = {
           return s_i_$2168;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-prefix-length"];
+        const $proc$r = { "string-prefix-length": function ($pc, $f) {
           let $t0, $t1, $t2, s_r_$2162, $t3, s_start1_$2163, $t4, $t5, $t6, s_end1_$2164, $t7, $t8, $t9, s_start2_$2165, $t10, $t11, $t12, s_end2_$2166, s_i_$2168, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_s1_$2159, s_s2_$2160, s_range_$2161, $r;
           ({ $t0, $t1, $t2, s_r_$2162, $t3, s_start1_$2163, $t4, $t5, $t6, s_end1_$2164, $t7, $t8, $t9, s_start2_$2165, $t10, $t11, $t12, s_end2_$2166, s_i_$2168, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, s_s1_$2159, s_s2_$2160, s_range_$2161, $r } = $f);
           const $d = $stack.room - 51;
@@ -57503,7 +57503,7 @@ export const LIBRARIES = {
                 return s_i_$2168;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-prefix-length"];
         const $proc$js = R.markProcedure($proc, "string-prefix-length", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -57530,7 +57530,7 @@ export const LIBRARIES = {
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "string-ref")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "+")).v;
         const W9 = R.primitiveCell("+"), P9 = W9.primitive;
-        function $proc(s_s1_$2169, s_s2_$2170, ...s_range_$2171$raw) {
+        const $proc = { "string-suffix-length": function (s_s1_$2169, s_s2_$2170, ...s_range_$2171$raw) {
           let $t0, $t1, $t2, s_r_$2172, $t3, s_start1_$2173, $t4, $t5, $t6, s_end1_$2174, $t7, $t8, $t9, s_start2_$2175, $t10, $t11, $t12, s_end2_$2176, s_i_$2178, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37;
           if (arguments.length < 2) R.wrongArity("string-suffix-length", 2, true, arguments.length);
           const $d = $stack.room - 55 - s_range_$2171$raw.length;
@@ -57632,8 +57632,8 @@ export const LIBRARIES = {
           return s_i_$2178;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-suffix-length"];
+        const $proc$r = { "string-suffix-length": function ($pc, $f) {
           let $t0, $t1, $t2, s_r_$2172, $t3, s_start1_$2173, $t4, $t5, $t6, s_end1_$2174, $t7, $t8, $t9, s_start2_$2175, $t10, $t11, $t12, s_end2_$2176, s_i_$2178, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_s1_$2169, s_s2_$2170, s_range_$2171, $r;
           ({ $t0, $t1, $t2, s_r_$2172, $t3, s_start1_$2173, $t4, $t5, $t6, s_end1_$2174, $t7, $t8, $t9, s_start2_$2175, $t10, $t11, $t12, s_end2_$2176, s_i_$2178, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, s_s1_$2169, s_s2_$2170, s_range_$2171, $r } = $f);
           const $d = $stack.room - 55;
@@ -57779,7 +57779,7 @@ export const LIBRARIES = {
                 return s_i_$2178;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-suffix-length"];
         const $proc$js = R.markProcedure($proc, "string-suffix-length", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -57802,7 +57802,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cadr")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "car")).v;
         const W6 = R.primitiveCell("car"), P6 = W6.primitive;
-        function $proc(s_s1_$2179, s_s2_$2180, ...s_range_$2181$raw) {
+        const $proc = { "string-prefix?": function (s_s1_$2179, s_s2_$2180, ...s_range_$2181$raw) {
           let $t0, $t1, $t2, s_r_$2182, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length < 2) R.wrongArity("string-prefix?", 2, true, arguments.length);
           const $d = $stack.room - 24 - s_range_$2181$raw.length;
@@ -57834,8 +57834,8 @@ export const LIBRARIES = {
           $t10 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof $t8 === 'bigint' && typeof $t9 === 'bigint') || (typeof $t8 === 'number' && typeof $t9 === 'number')) ? ($t8 - $t9) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
           $t11 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof $t5 === 'bigint' && typeof $t10 === 'bigint') || (typeof $t5 === 'number' && typeof $t10 === 'number')) ? ($t5 === $t10) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
           return $t11;
-        }
-        function $proc$r($pc, $f) {
+        } }["string-prefix?"];
+        const $proc$r = { "string-prefix?": function ($pc, $f) {
           let $t0, $t1, $t2, s_r_$2182, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_s1_$2179, s_s2_$2180, s_range_$2181, $r;
           ({ $t0, $t1, $t2, s_r_$2182, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_s1_$2179, s_s2_$2180, s_range_$2181, $r } = $f);
           const $d = $stack.room - 24;
@@ -57881,7 +57881,7 @@ export const LIBRARIES = {
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-prefix?"];
         const $proc$js = R.markProcedure($proc, "string-prefix?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -57904,7 +57904,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cadr")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "car")).v;
         const W6 = R.primitiveCell("car"), P6 = W6.primitive;
-        function $proc(s_s1_$2183, s_s2_$2184, ...s_range_$2185$raw) {
+        const $proc = { "string-suffix?": function (s_s1_$2183, s_s2_$2184, ...s_range_$2185$raw) {
           let $t0, $t1, $t2, s_r_$2186, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11;
           if (arguments.length < 2) R.wrongArity("string-suffix?", 2, true, arguments.length);
           const $d = $stack.room - 24 - s_range_$2185$raw.length;
@@ -57936,8 +57936,8 @@ export const LIBRARIES = {
           $t10 = (W4.intact || (C4.v ?? G4()) === P4) && ((typeof $t8 === 'bigint' && typeof $t9 === 'bigint') || (typeof $t8 === 'number' && typeof $t9 === 'number')) ? ($t8 - $t9) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
           $t11 = (W1.intact || (C1.v ?? G1()) === P1) && ((typeof $t5 === 'bigint' && typeof $t10 === 'bigint') || (typeof $t5 === 'number' && typeof $t10 === 'number')) ? ($t5 === $t10) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
           return $t11;
-        }
-        function $proc$r($pc, $f) {
+        } }["string-suffix?"];
+        const $proc$r = { "string-suffix?": function ($pc, $f) {
           let $t0, $t1, $t2, s_r_$2186, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_s1_$2183, s_s2_$2184, s_range_$2185, $r;
           ({ $t0, $t1, $t2, s_r_$2186, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, s_s1_$2183, s_s2_$2184, s_range_$2185, $r } = $f);
           const $d = $stack.room - 24;
@@ -57983,7 +57983,7 @@ export const LIBRARIES = {
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-suffix?"];
         const $proc$js = R.markProcedure($proc, "string-suffix?", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58003,7 +58003,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("car"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cdr")).v;
         const W4 = R.primitiveCell("cdr"), P4 = W4.primitive;
-        function $proc(s_s_$2187, s_pred_$2188, ...s_range_$2189$raw) {
+        const $proc = { "string-index": function (s_s_$2187, s_pred_$2188, ...s_range_$2189$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2190, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 2) R.wrongArity("string-index", 2, true, arguments.length);
           const $d = $stack.room - 23 - s_range_$2189$raw.length;
@@ -58030,8 +58030,8 @@ export const LIBRARIES = {
           $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r_$2190 instanceof R.Cons) ? (s_r_$2190.cdr) : R.callBinding((C4.v ?? G4()), [s_r_$2190]);
           $t9 = $t6;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_s_$2187, s_pred_$2188, $t7, $t8); } return $tailCall($t9, [s_s_$2187, s_pred_$2188, $t7, $t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-index"];
+        const $proc$r = { "string-index": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2190, $t6, $t7, $t8, $t9, $t10, s_s_$2187, s_pred_$2188, s_range_$2189, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2190, $t6, $t7, $t8, $t9, $t10, s_s_$2187, s_pred_$2188, s_range_$2189, $r } = $f);
           const $d = $stack.room - 23;
@@ -58068,7 +58068,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [s_s_$2187, s_pred_$2188, $t7, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-index"];
         const $proc$js = R.markProcedure($proc, "string-index", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58088,7 +58088,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("car"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cdr")).v;
         const W4 = R.primitiveCell("cdr"), P4 = W4.primitive;
-        function $proc(s_s_$2191, s_pred_$2192, ...s_range_$2193$raw) {
+        const $proc = { "string-index-right": function (s_s_$2191, s_pred_$2192, ...s_range_$2193$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2194, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 2) R.wrongArity("string-index-right", 2, true, arguments.length);
           const $d = $stack.room - 23 - s_range_$2193$raw.length;
@@ -58115,8 +58115,8 @@ export const LIBRARIES = {
           $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (s_r_$2194 instanceof R.Cons) ? (s_r_$2194.cdr) : R.callBinding((C4.v ?? G4()), [s_r_$2194]);
           $t9 = $t6;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_s_$2191, s_pred_$2192, $t7, $t8); } return $tailCall($t9, [s_s_$2191, s_pred_$2192, $t7, $t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-index-right"];
+        const $proc$r = { "string-index-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2194, $t6, $t7, $t8, $t9, $t10, s_s_$2191, s_pred_$2192, s_range_$2193, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2194, $t6, $t7, $t8, $t9, $t10, s_s_$2191, s_pred_$2192, s_range_$2193, $r } = $f);
           const $d = $stack.room - 23;
@@ -58153,7 +58153,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [s_s_$2191, s_pred_$2192, $t7, $t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-index-right"];
         const $proc$js = R.markProcedure($proc, "string-index-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58172,7 +58172,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "not")).v;
         const W3 = R.primitiveCell("not"), P3 = W3.primitive;
         function $mk$fn3(s_pred_$2196) {
-          function $fn3(s_c_$2198) {
+          const $fn3 = { "anonymous": function (s_c_$2198) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -58186,9 +58186,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t2 === false) : R.callBinding((C3.v ?? G3()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_c_$2198, $r;
           ({ $t0, $t1, $t2, $t3, s_c_$2198, $r } = $f);
           const $d = $stack.room - 13;
@@ -58209,11 +58209,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_s_$2195, s_pred_$2196, ...s_range_$2197$raw) {
+        const $proc = { "string-skip": function (s_s_$2195, s_pred_$2196, ...s_range_$2197$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("string-skip", 2, true, arguments.length);
           const $d = $stack.room - 17 - s_range_$2197$raw.length;
@@ -58230,8 +58230,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_pred_$2196);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6((C2.v ?? G2()), s_s_$2195, $t4, s_range_$2197); } return $tailCall($t5, [(C2.v ?? G2()), s_s_$2195, $t4, s_range_$2197]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-skip"];
+        const $proc$r = { "string-skip": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_s_$2195, s_pred_$2196, s_range_$2197, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_s_$2195, s_pred_$2196, s_range_$2197, $r } = $f);
           const $d = $stack.room - 17;
@@ -58254,7 +58254,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [(C2.v ?? G2()), s_s_$2195, $t4, s_range_$2197]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-skip"];
         const $proc$js = R.markProcedure($proc, "string-skip", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58273,7 +58273,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "not")).v;
         const W3 = R.primitiveCell("not"), P3 = W3.primitive;
         function $mk$fn3(s_pred_$2200) {
-          function $fn3(s_c_$2202) {
+          const $fn3 = { "anonymous": function (s_c_$2202) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -58287,9 +58287,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t2 === false) : R.callBinding((C3.v ?? G3()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_c_$2202, $r;
           ({ $t0, $t1, $t2, $t3, s_c_$2202, $r } = $f);
           const $d = $stack.room - 13;
@@ -58310,11 +58310,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_s_$2199, s_pred_$2200, ...s_range_$2201$raw) {
+        const $proc = { "string-skip-right": function (s_s_$2199, s_pred_$2200, ...s_range_$2201$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("string-skip-right", 2, true, arguments.length);
           const $d = $stack.room - 17 - s_range_$2201$raw.length;
@@ -58331,8 +58331,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_pred_$2200);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6((C2.v ?? G2()), s_s_$2199, $t4, s_range_$2201); } return $tailCall($t5, [(C2.v ?? G2()), s_s_$2199, $t4, s_range_$2201]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-skip-right"];
+        const $proc$r = { "string-skip-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_s_$2199, s_pred_$2200, s_range_$2201, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_s_$2199, s_pred_$2200, s_range_$2201, $r } = $f);
           const $d = $stack.room - 17;
@@ -58355,7 +58355,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [(C2.v ?? G2()), s_s_$2199, $t4, s_range_$2201]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-skip-right"];
         const $proc$js = R.markProcedure($proc, "string-skip-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58374,7 +58374,7 @@ export const LIBRARIES = {
         const W1 = R.primitiveCell("+"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "char=?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-ref")).v;
-        function $proc(s_s1_$2203, s_i_$2204, s_s2_$2205, s_start2_$2206, s_end2_$2207) {
+        const $proc = { "occurs-at?": function (s_s1_$2203, s_i_$2204, s_s2_$2205, s_start2_$2206, s_end2_$2207) {
           let s_k_$2209, $t0, $t1, s_x_$2210, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length !== 5) R.wrongArity("occurs-at?", 5, false, arguments.length);
           const $d = $stack.room - 32;
@@ -58422,8 +58422,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["occurs-at?"];
+        const $proc$r = { "occurs-at?": function ($pc, $f) {
           let s_k_$2209, $t0, $t1, s_x_$2210, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_s1_$2203, s_i_$2204, s_s2_$2205, s_start2_$2206, s_end2_$2207, $r;
           ({ s_k_$2209, $t0, $t1, s_x_$2210, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_s1_$2203, s_i_$2204, s_s2_$2205, s_start2_$2206, s_end2_$2207, $r } = $f);
           const $d = $stack.room - 32;
@@ -58486,7 +58486,7 @@ export const LIBRARIES = {
                 return false;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["occurs-at?"];
         const $proc$js = R.markProcedure($proc, "occurs-at?", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58512,7 +58512,7 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "occurs-at?")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "+")).v;
         const W8 = R.primitiveCell("+"), P8 = W8.primitive;
-        function $proc(s_s1_$2211, s_s2_$2212, ...s_range_$2213$raw) {
+        const $proc = { "string-contains": function (s_s1_$2211, s_s2_$2212, ...s_range_$2213$raw) {
           let $t0, $t1, $t2, s_r_$2214, $t3, s_start1_$2215, $t4, $t5, $t6, s_end1_$2216, $t7, $t8, $t9, s_start2_$2217, $t10, $t11, $t12, s_end2_$2218, $t13, $t14, s_last_$2219, s_i_$2221, $t15, $t16, $t17, $t18, $t19;
           if (arguments.length < 2) R.wrongArity("string-contains", 2, true, arguments.length);
           const $d = $stack.room - 38 - s_range_$2213$raw.length;
@@ -58577,8 +58577,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-contains"];
+        const $proc$r = { "string-contains": function ($pc, $f) {
           let $t0, $t1, $t2, s_r_$2214, $t3, s_start1_$2215, $t4, $t5, $t6, s_end1_$2216, $t7, $t8, $t9, s_start2_$2217, $t10, $t11, $t12, s_end2_$2218, $t13, $t14, s_last_$2219, s_i_$2221, $t15, $t16, $t17, $t18, $t19, s_s1_$2211, s_s2_$2212, s_range_$2213, $r;
           ({ $t0, $t1, $t2, s_r_$2214, $t3, s_start1_$2215, $t4, $t5, $t6, s_end1_$2216, $t7, $t8, $t9, s_start2_$2217, $t10, $t11, $t12, s_end2_$2218, $t13, $t14, s_last_$2219, s_i_$2221, $t15, $t16, $t17, $t18, $t19, s_s1_$2211, s_s2_$2212, s_range_$2213, $r } = $f);
           const $d = $stack.room - 38;
@@ -58665,7 +58665,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-contains"];
         const $proc$js = R.markProcedure($proc, "string-contains", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58689,7 +58689,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "occurs-at?")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "-")).v;
         const W7 = R.primitiveCell("-"), P7 = W7.primitive;
-        function $proc(s_s1_$2222, s_s2_$2223, ...s_range_$2224$raw) {
+        const $proc = { "string-contains-right": function (s_s1_$2222, s_s2_$2223, ...s_range_$2224$raw) {
           let $t0, $t1, $t2, s_r_$2225, $t3, s_start1_$2226, $t4, $t5, $t6, s_end1_$2227, $t7, $t8, $t9, s_start2_$2228, $t10, $t11, $t12, s_end2_$2229, $t13, $t14, s_i_$2231, $t15, $t16, $t17, $t18, $t19;
           if (arguments.length < 2) R.wrongArity("string-contains-right", 2, true, arguments.length);
           const $d = $stack.room - 37 - s_range_$2224$raw.length;
@@ -58753,8 +58753,8 @@ export const LIBRARIES = {
         }
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-contains-right"];
+        const $proc$r = { "string-contains-right": function ($pc, $f) {
           let $t0, $t1, $t2, s_r_$2225, $t3, s_start1_$2226, $t4, $t5, $t6, s_end1_$2227, $t7, $t8, $t9, s_start2_$2228, $t10, $t11, $t12, s_end2_$2229, $t13, $t14, s_i_$2231, $t15, $t16, $t17, $t18, $t19, s_s1_$2222, s_s2_$2223, s_range_$2224, $r;
           ({ $t0, $t1, $t2, s_r_$2225, $t3, s_start1_$2226, $t4, $t5, $t6, s_end1_$2227, $t7, $t8, $t9, s_start2_$2228, $t10, $t11, $t12, s_end2_$2229, $t13, $t14, s_i_$2231, $t15, $t16, $t17, $t18, $t19, s_s1_$2222, s_s2_$2223, s_range_$2224, $r } = $f);
           const $d = $stack.room - 37;
@@ -58840,7 +58840,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-contains-right"];
         const $proc$js = R.markProcedure($proc, "string-contains-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58860,7 +58860,7 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-append")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "car")).v;
         const W3 = R.primitiveCell("car"), P3 = W3.primitive;
-        function $proc(s_strings_$2232) {
+        const $proc = { "string-concatenate": function (s_strings_$2232) {
           let s_strings_$2234, s_acc_$2235, $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("string-concatenate", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -58887,8 +58887,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-concatenate"];
+        const $proc$r = { "string-concatenate": function ($pc, $f) {
           let s_strings_$2234, s_acc_$2235, $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_strings_$2232, $r;
           ({ s_strings_$2234, s_acc_$2235, $t0, $t1, $t2, $t3, $t4, $t5, $t6, s_strings_$2232, $r } = $f);
           const $d = $stack.room - 18;
@@ -58922,7 +58922,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-concatenate"];
         const $proc$js = R.markProcedure($proc, "string-concatenate", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -58947,7 +58947,7 @@ export const LIBRARIES = {
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "string-concatenate")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "reverse")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "substring")).v;
-        function $proc(s_strings_$2236, ...s_options_$2237$raw) {
+        const $proc = { "string-concatenate-reverse": function (s_strings_$2236, ...s_options_$2237$raw) {
           let $t0, $t1, $t2, s_final_$2238, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_end_$2239, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26;
           if (arguments.length < 1) R.wrongArity("string-concatenate-reverse", 1, true, arguments.length);
           const $d = $stack.room - 39 - s_options_$2237$raw.length;
@@ -59014,8 +59014,8 @@ export const LIBRARIES = {
           if ($t24 === $UNWIND) { R.reify($proc$r, 14, { $t14, $t21 }); return $UNWIND; }
           $t25 = $t14;
           if ($d > 0 && ($t26 = $t25?.[$RAW] ?? $t25)?.[$PRIM] === true) { $stack.room = $d; return $t26($t21, $t24); } return $tailCall($t25, [$t21, $t24]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-concatenate-reverse"];
+        const $proc$r = { "string-concatenate-reverse": function ($pc, $f) {
           let $t0, $t1, $t2, s_final_$2238, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_end_$2239, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_strings_$2236, s_options_$2237, $r;
           ({ $t0, $t1, $t2, s_final_$2238, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, s_end_$2239, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, s_strings_$2236, s_options_$2237, $r } = $f);
           const $d = $stack.room - 39;
@@ -59113,7 +59113,7 @@ export const LIBRARIES = {
                 return $tailCall($t25, [$t21, $t24]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-concatenate-reverse"];
         const $proc$js = R.markProcedure($proc, "string-concatenate-reverse", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -59145,15 +59145,15 @@ export const LIBRARIES = {
         let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "cons")).v;
         const W11 = R.primitiveCell("cons"), P11 = W11.primitive;
         function $mk$fn19(s_delimiter_$2242) {
-          function $fn19(s_s_$2244) {
+          const $fn19 = { "anonymous": function (s_s_$2244) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C9.v ?? G9());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_delimiter_$2242, s_s_$2244); } return $tailCall($t0, [s_delimiter_$2242, s_s_$2244]);
-        }
+        } }["anonymous"];
           const $fn19$js = R.markProcedure($fn19, "anonymous", E);
-          function $fn19$r($pc, $f) {
+          const $fn19$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_s_$2244, $r;
           ({ $t0, $t1, s_s_$2244, $r } = $f);
           for (;;) switch ($pc) {
@@ -59162,20 +59162,20 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_delimiter_$2242, s_s_$2244]);
               default: throw new Error('$fn19$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn19$js.$resume = $fn19$r;
           return $fn19$js;
         }
         function $mk$fn28(s_delimiter_$2242) {
-          function $fn28(s_s_$2245) {
+          const $fn28 = { "anonymous": function (s_s_$2245) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C9.v ?? G9());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_s_$2245, s_delimiter_$2242); } return $tailCall($t0, [s_s_$2245, s_delimiter_$2242]);
-        }
+        } }["anonymous"];
           const $fn28$js = R.markProcedure($fn28, "anonymous", E);
-          function $fn28$r($pc, $f) {
+          const $fn28$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_s_$2245, $r;
           ({ $t0, $t1, s_s_$2245, $r } = $f);
           for (;;) switch ($pc) {
@@ -59184,20 +59184,20 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_s_$2245, s_delimiter_$2242]);
               default: throw new Error('$fn28$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn28$js.$resume = $fn28$r;
           return $fn28$js;
         }
         function $mk$fn41(s_delimiter_$2242) {
-          function $fn41(s_s_$2246) {
+          const $fn41 = { "anonymous": function (s_s_$2246) {
           let $t0, $t1;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 11;
           $t0 = (C9.v ?? G9());
           if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s_delimiter_$2242, s_s_$2246); } return $tailCall($t0, [s_delimiter_$2242, s_s_$2246]);
-        }
+        } }["anonymous"];
           const $fn41$js = R.markProcedure($fn41, "anonymous", E);
-          function $fn41$r($pc, $f) {
+          const $fn41$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, s_s_$2246, $r;
           ({ $t0, $t1, s_s_$2246, $r } = $f);
           for (;;) switch ($pc) {
@@ -59206,11 +59206,11 @@ export const LIBRARIES = {
                 return $tailCall($t0, [s_delimiter_$2242, s_s_$2246]);
               default: throw new Error('$fn41$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn41$js.$resume = $fn41$r;
           return $fn41$js;
         }
-        function $proc(s_strings_$2240, ...s_options_$2241$raw) {
+        const $proc = { "string-join": function (s_strings_$2240, ...s_options_$2241$raw) {
           let $t0, $t1, $t2, s_delimiter_$2242, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_grammar_$2243, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51;
           if (arguments.length < 1) R.wrongArity("string-join", 1, true, arguments.length);
           const $d = $stack.room - 61 - s_options_$2241$raw.length;
@@ -59319,8 +59319,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-join"];
+        const $proc$r = { "string-join": function ($pc, $f) {
           let $t0, $t1, $t2, s_delimiter_$2242, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_grammar_$2243, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_strings_$2240, s_options_$2241, $r;
           ({ $t0, $t1, $t2, s_delimiter_$2242, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, s_grammar_$2243, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, s_strings_$2240, s_options_$2241, $r } = $f);
           const $d = $stack.room - 61;
@@ -59463,7 +59463,7 @@ export const LIBRARIES = {
                 return $tailCall($t48, [$t47]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-join"];
         const $proc$js = R.markProcedure($proc, "string-join", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -59484,7 +59484,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "append")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "car")).v;
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
-        function $proc(s_f_$2247, s_l_$2248) {
+        const $proc = { "append-map-strings": function (s_f_$2247, s_l_$2248) {
           let s_l_$2250, s_acc_$2251, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
           if (arguments.length !== 2) R.wrongArity("append-map-strings", 2, false, arguments.length);
           const $d = $stack.room - 28;
@@ -59527,8 +59527,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["append-map-strings"];
+        const $proc$r = { "append-map-strings": function ($pc, $f) {
           let s_l_$2250, s_acc_$2251, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_f_$2247, s_l_$2248, $r;
           ({ s_l_$2250, s_acc_$2251, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_f_$2247, s_l_$2248, $r } = $f);
           const $d = $stack.room - 28;
@@ -59586,7 +59586,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["append-map-strings"];
         const $proc$js = R.markProcedure($proc, "append-map-strings", E);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -59610,7 +59610,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "string-ref")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "car")).v;
         const W6 = R.primitiveCell("car"), P6 = W6.primitive;
-        function $proc(s_kons_$2252, s_knil_$2253, s_s_$2254, ...s_range_$2255$raw) {
+        const $proc = { "string-fold": function (s_kons_$2252, s_knil_$2253, s_s_$2254, ...s_range_$2255$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2256, $t6, s_end_$2257, $t7, s_i_$2259, s_acc_$2260, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
           if (arguments.length < 3) R.wrongArity("string-fold", 3, true, arguments.length);
           const $d = $stack.room - 32 - s_range_$2255$raw.length;
@@ -59662,8 +59662,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-fold"];
+        const $proc$r = { "string-fold": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2256, $t6, s_end_$2257, $t7, s_i_$2259, s_acc_$2260, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_kons_$2252, s_knil_$2253, s_s_$2254, s_range_$2255, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2256, $t6, s_end_$2257, $t7, s_i_$2259, s_acc_$2260, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, s_kons_$2252, s_knil_$2253, s_s_$2254, s_range_$2255, $r } = $f);
           const $d = $stack.room - 32;
@@ -59733,7 +59733,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-fold"];
         const $proc$js = R.markProcedure($proc, "string-fold", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -59757,7 +59757,7 @@ export const LIBRARIES = {
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "string-ref")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cdr")).v;
         const W6 = R.primitiveCell("cdr"), P6 = W6.primitive;
-        function $proc(s_kons_$2261, s_knil_$2262, s_s_$2263, ...s_range_$2264$raw) {
+        const $proc = { "string-fold-right": function (s_kons_$2261, s_knil_$2262, s_s_$2263, ...s_range_$2264$raw) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2265, $t6, s_start_$2266, $t7, $t8, s_i_$2268, s_acc_$2269, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
           if (arguments.length < 3) R.wrongArity("string-fold-right", 3, true, arguments.length);
           const $d = $stack.room - 33 - s_range_$2264$raw.length;
@@ -59810,8 +59810,8 @@ export const LIBRARIES = {
           continue $loop1;
         }
           }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-fold-right"];
+        const $proc$r = { "string-fold-right": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2265, $t6, s_start_$2266, $t7, $t8, s_i_$2268, s_acc_$2269, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_kons_$2261, s_knil_$2262, s_s_$2263, s_range_$2264, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_r_$2265, $t6, s_start_$2266, $t7, $t8, s_i_$2268, s_acc_$2269, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_kons_$2261, s_knil_$2262, s_s_$2263, s_range_$2264, $r } = $f);
           const $d = $stack.room - 33;
@@ -59882,7 +59882,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-fold-right"];
         const $proc$js = R.markProcedure($proc, "string-fold-right", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -59901,7 +59901,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "+")).v;
         const W3 = R.primitiveCell("+"), P3 = W3.primitive;
         function $mk$fn3(s_pred_$2271) {
-          function $fn3(s_c_$2273, s_n_$2274) {
+          const $fn3 = { "anonymous": function (s_c_$2273, s_n_$2274) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -59919,9 +59919,9 @@ export const LIBRARIES = {
         } else {
           return s_n_$2274;
         }
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_c_$2273, s_n_$2274, $r;
           ({ $t0, $t1, $t2, $t3, s_c_$2273, s_n_$2274, $r } = $f);
           const $d = $stack.room - 14;
@@ -59946,11 +59946,11 @@ export const LIBRARIES = {
                 return s_n_$2274;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_s_$2270, s_pred_$2271, ...s_range_$2272$raw) {
+        const $proc = { "string-count": function (s_s_$2270, s_pred_$2271, ...s_range_$2272$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("string-count", 2, true, arguments.length);
           const $d = $stack.room - 17 - s_range_$2272$raw.length;
@@ -59967,8 +59967,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_pred_$2271);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6((C2.v ?? G2()), $t4, 0n, s_s_$2270, s_range_$2272); } return $tailCall($t5, [(C2.v ?? G2()), $t4, 0n, s_s_$2270, s_range_$2272]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-count"];
+        const $proc$r = { "string-count": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_s_$2270, s_pred_$2271, s_range_$2272, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_s_$2270, s_pred_$2271, s_range_$2272, $r } = $f);
           const $d = $stack.room - 17;
@@ -59991,7 +59991,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [(C2.v ?? G2()), $t4, 0n, s_s_$2270, s_range_$2272]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-count"];
         const $proc$js = R.markProcedure($proc, "string-count", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -60011,7 +60011,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "cons")).v;
         const W4 = R.primitiveCell("cons"), P4 = W4.primitive;
         function $mk$fn4(s_pred_$2275) {
-          function $fn4(s_c_$2278, s_kept_$2279) {
+          const $fn4 = { "anonymous": function (s_c_$2278, s_kept_$2279) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
           const $d = $stack.room - 14;
@@ -60029,9 +60029,9 @@ export const LIBRARIES = {
         } else {
           return s_kept_$2279;
         }
-        }
+        } }["anonymous"];
           const $fn4$js = R.markProcedure($fn4, "anonymous", E);
-          function $fn4$r($pc, $f) {
+          const $fn4$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_c_$2278, s_kept_$2279, $r;
           ({ $t0, $t1, $t2, $t3, s_c_$2278, s_kept_$2279, $r } = $f);
           const $d = $stack.room - 14;
@@ -60056,11 +60056,11 @@ export const LIBRARIES = {
                 return s_kept_$2279;
               default: throw new Error('$fn4$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn4$js.$resume = $fn4$r;
           return $fn4$js;
         }
-        function $proc(s_pred_$2275, s_s_$2276, ...s_range_$2277$raw) {
+        const $proc = { "string-filter": function (s_pred_$2275, s_s_$2276, ...s_range_$2277$raw) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10;
           if (arguments.length < 2) R.wrongArity("string-filter", 2, true, arguments.length);
           const $d = $stack.room - 21 - s_range_$2277$raw.length;
@@ -60085,8 +60085,8 @@ export const LIBRARIES = {
           if ($t8 === $UNWIND) { R.reify($proc$r, 2, { $t3 }); return $UNWIND; }
           $t9 = $t3;
           if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10($t8); } return $tailCall($t9, [$t8]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-filter"];
+        const $proc$r = { "string-filter": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_pred_$2275, s_s_$2276, s_range_$2277, $r;
           ({ $t0, $t1, $t2, $t3, $t5, $t6, $t7, $t8, $t9, $t10, s_pred_$2275, s_s_$2276, s_range_$2277, $r } = $f);
           const $d = $stack.room - 21;
@@ -60121,7 +60121,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, [$t8]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-filter"];
         const $proc$js = R.markProcedure($proc, "string-filter", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -60140,7 +60140,7 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "not")).v;
         const W3 = R.primitiveCell("not"), P3 = W3.primitive;
         function $mk$fn3(s_pred_$2280) {
-          function $fn3(s_c_$2283) {
+          const $fn3 = { "anonymous": function (s_c_$2283) {
           let $t0, $t1, $t2, $t3;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 13;
@@ -60154,9 +60154,9 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($fn3$r, 1, {  }); return $UNWIND; }
           $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t2 === false) : R.callBinding((C3.v ?? G3()), [$t2]);
           return $t3;
-        }
+        } }["anonymous"];
           const $fn3$js = R.markProcedure($fn3, "anonymous", E);
-          function $fn3$r($pc, $f) {
+          const $fn3$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, s_c_$2283, $r;
           ({ $t0, $t1, $t2, $t3, s_c_$2283, $r } = $f);
           const $d = $stack.room - 13;
@@ -60177,11 +60177,11 @@ export const LIBRARIES = {
                 return $t3;
               default: throw new Error('$fn3$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn3$js.$resume = $fn3$r;
           return $fn3$js;
         }
-        function $proc(s_pred_$2280, s_s_$2281, ...s_range_$2282$raw) {
+        const $proc = { "string-remove": function (s_pred_$2280, s_s_$2281, ...s_range_$2282$raw) {
           let $t0, $t1, $t2, $t4, $t5, $t6;
           if (arguments.length < 2) R.wrongArity("string-remove", 2, true, arguments.length);
           const $d = $stack.room - 17 - s_range_$2282$raw.length;
@@ -60198,8 +60198,8 @@ export const LIBRARIES = {
           $t4 = $mk$fn3(s_pred_$2280);
           $t5 = (C1.v ?? G1());
           if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6((C2.v ?? G2()), $t4, s_s_$2281, s_range_$2282); } return $tailCall($t5, [(C2.v ?? G2()), $t4, s_s_$2281, s_range_$2282]);
-        }
-        function $proc$r($pc, $f) {
+        } }["string-remove"];
+        const $proc$r = { "string-remove": function ($pc, $f) {
           let $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$2280, s_s_$2281, s_range_$2282, $r;
           ({ $t0, $t1, $t2, $t4, $t5, $t6, s_pred_$2280, s_s_$2281, s_range_$2282, $r } = $f);
           const $d = $stack.room - 17;
@@ -60222,7 +60222,7 @@ export const LIBRARIES = {
                 return $tailCall($t5, [(C2.v ?? G2()), $t4, s_s_$2281, s_range_$2282]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-remove"];
         const $proc$js = R.markProcedure($proc, "string-remove", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -60256,7 +60256,7 @@ export const LIBRARIES = {
         const W11 = R.primitiveCell("+"), P11 = W11.primitive;
         let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "modulo")).v;
         function $mk$fn23(s_s_$2284, s_start_$2289, s_from_$2285, s_n_$2290) {
-          function $fn23(s_i_$2291) {
+          const $fn23 = { "anonymous": function (s_i_$2291) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
           const $d = $stack.room - 18;
@@ -60274,9 +60274,9 @@ export const LIBRARIES = {
           $t6 = (W11.intact || (C11.v ?? G11()) === P11) && ((typeof s_start_$2289 === 'bigint' && typeof $t5 === 'bigint') || (typeof s_start_$2289 === 'number' && typeof $t5 === 'number')) ? (s_start_$2289 + $t5) : R.callBinding((C11.v ?? G11()), [s_start_$2289, $t5]);
           $t7 = $t0;
           if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8(s_s_$2284, $t6); } return $tailCall($t7, [s_s_$2284, $t6]);
-        }
+        } }["anonymous"];
           const $fn23$js = R.markProcedure($fn23, "anonymous", E);
-          function $fn23$r($pc, $f) {
+          const $fn23$r = { "anonymous": function ($pc, $f) {
           let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$2291, $r;
           ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, s_i_$2291, $r } = $f);
           const $d = $stack.room - 18;
@@ -60301,11 +60301,11 @@ export const LIBRARIES = {
                 return $tailCall($t7, [s_s_$2284, $t6]);
               default: throw new Error('$fn23$r: bad resume point ' + $pc);
           }
-        }
+        } }["anonymous"];
           $fn23$js.$resume = $fn23$r;
           return $fn23$js;
         }
-        function $proc(s_s_$2284, s_from_$2285, s_to_$2286, ...s_range_$2287$raw) {
+        const $proc = { "string-replicate": function (s_s_$2284, s_from_$2285, s_to_$2286, ...s_range_$2287$raw) {
           let $t0, $t1, $t2, s_r_$2288, $t3, s_start_$2289, $t4, $t5, s_n_$2290, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t24, $t25, $t26, $t27;
           if (arguments.length < 3) R.wrongArity("string-replicate", 3, true, arguments.length);
           const $d = $stack.room - 42 - s_range_$2287$raw.length;
@@ -60371,8 +60371,8 @@ export const LIBRARIES = {
         }
         }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-replicate"];
+        const $proc$r = { "string-replicate": function ($pc, $f) {
           let $t0, $t1, $t2, s_r_$2288, $t3, s_start_$2289, $t4, $t5, s_n_$2290, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t24, $t25, $t26, $t27, s_s_$2284, s_from_$2285, s_to_$2286, s_range_$2287, $r;
           ({ $t0, $t1, $t2, s_r_$2288, $t3, s_start_$2289, $t4, $t5, s_n_$2290, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t24, $t25, $t26, $t27, s_s_$2284, s_from_$2285, s_to_$2286, s_range_$2287, $r } = $f);
           const $d = $stack.room - 42;
@@ -60458,7 +60458,7 @@ export const LIBRARIES = {
                 return $tailCall($t26, [$t24, $t25]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-replicate"];
         const $proc$js = R.markProcedure($proc, "string-replicate", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
@@ -60500,7 +60500,7 @@ export const LIBRARIES = {
         const W16 = R.primitiveCell("cons"), P16 = W16.primitive;
         let C17 = R.UNRESOLVED; const G17 = () => (C17 = R.globalCell(E, "substring")).v;
         let C18 = R.UNRESOLVED; const G18 = () => (C18 = R.globalCell(E, "reverse")).v;
-        function $proc(s_s_$2292, s_delimiter_$2293, ...s_options_$2294$raw) {
+        const $proc = { "string-split": function (s_s_$2292, s_delimiter_$2293, ...s_options_$2294$raw) {
           let $t0, $t1, $t2, s_grammar_$2295, $t3, $t4, $t5, s_rest_$2296, $t6, $t7, $t8, s_limit_$2297, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_r_$2298, $t17, s_start_$2299, $t18, s_end_$2300, $t19, $t20, $t21, s_d_$2301, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, s_start_$2302, $t46, $t47, $t48, $t49, $t50, $t51, $t52, s_end_$2303, s_from_$2305, s_splits_$2306, s_fields_$2307, s_x_$2309, $t53, $t54, $t55, $t56, $t57, $t58, $t59, s_at_$2308, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t72;
           if (arguments.length < 2) R.wrongArity("string-split", 2, true, arguments.length);
           const $d = $stack.room - 98 - s_options_$2294$raw.length;
@@ -60699,8 +60699,8 @@ export const LIBRARIES = {
         }
           }
         }
-        }
-        function $proc$r($pc, $f) {
+        } }["string-split"];
+        const $proc$r = { "string-split": function ($pc, $f) {
           let $t0, $t1, $t2, s_grammar_$2295, $t3, $t4, $t5, s_rest_$2296, $t6, $t7, $t8, s_limit_$2297, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_r_$2298, $t17, s_start_$2299, $t18, s_end_$2300, $t19, $t20, $t21, s_d_$2301, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, s_start_$2302, $t46, $t47, $t48, $t49, $t50, $t51, $t52, s_end_$2303, s_from_$2305, s_splits_$2306, s_fields_$2307, s_x_$2309, $t53, $t54, $t55, $t56, $t57, $t58, $t59, s_at_$2308, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t72, s_s_$2292, s_delimiter_$2293, s_options_$2294, $r;
           ({ $t0, $t1, $t2, s_grammar_$2295, $t3, $t4, $t5, s_rest_$2296, $t6, $t7, $t8, s_limit_$2297, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, s_r_$2298, $t17, s_start_$2299, $t18, s_end_$2300, $t19, $t20, $t21, s_d_$2301, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, $t45, s_start_$2302, $t46, $t47, $t48, $t49, $t50, $t51, $t52, s_end_$2303, s_from_$2305, s_splits_$2306, s_fields_$2307, s_x_$2309, $t53, $t54, $t55, $t56, $t57, $t58, $t59, s_at_$2308, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t72, s_s_$2292, s_delimiter_$2293, s_options_$2294, $r } = $f);
           const $d = $stack.room - 98;
@@ -60977,7 +60977,7 @@ export const LIBRARIES = {
                 return $tailCall($t71, [$t70]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
-        }
+        } }["string-split"];
         const $proc$js = R.markProcedure($proc, "string-split", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;

@@ -1441,7 +1441,29 @@
                              ", arguments.length);")))))
 
 ;; /**
-;;  * The fast form of a procedure, as a JavaScript function declaration.
+;;  * Binds a function to a JavaScript name, made under the Scheme name it is
+;;  * to show.
+;;  *
+;;  * A JavaScript engine names a stack frame, in a trace or a profile, by its
+;;  * function's `name`, which for a function made as a property's value is the
+;;  * property's key. So a function made under the Scheme procedure's name shows
+;;  * as that procedure, where a declaration would show as its JavaScript name,
+;;  * `$proc`, the same for every procedure. Setting `name` after the fact would
+;;  * show the same, but reconfigures the function's own property, which leaves
+;;  * every property of it slow to read -- and compiled code reads a callee's
+;;  * properties on every call.
+;;  *
+;;  * @param {string} binding - The JavaScript name it is bound to.
+;;  * @param {string} key - The name it shows as, as a JavaScript string
+;;  *   literal (`js-string`), made once for both of a procedure's forms.
+;;  * @param {string} function - A JavaScript function expression.
+;;  * @returns {string} A `const` declaration.
+;;  */
+(define (named-function binding key function)
+  (string-append "const " binding " = { " key ": " function " }[" key "];"))
+
+;; /**
+;;  * The fast form of a procedure, as a JavaScript function bound to a name.
 ;;  *
 ;;  * A boxed parameter arrives as a plain value and is boxed on entry, so the
 ;;  * body, its closures and any frame it spills all reach one binding. A
@@ -1449,13 +1471,15 @@
 ;;  * A procedure with a tail call to itself runs its body in a loop that takes
 ;;  * in everything a fresh call would redo; only the declarations stay outside.
 ;;  *
-;;  * @param {string} name - The function's name.
+;;  * @param {string} name - The JavaScript name it is bound to.
+;;  * @param {string} shown - The name it shows as, as a JavaScript string
+;;  *   literal (`named-function`).
 ;;  * @param {list} ir - The lambda IR node.
 ;;  * @param {unit} u - The unit.
 ;;  * @param {string} path - Its position in the tree of procedures.
 ;;  * @returns {string} JavaScript source.
 ;;  */
-(define (fast-form name ir u path)
+(define (fast-form name shown ir u path)
   (let ((form (new-form name ir u 'fast path)))
     (emit-define-boxes! form (lambda-body ir))
     (emit-statement! form (lambda-body ir))
@@ -1488,11 +1512,13 @@
                       (append declaration entry (list "$loop: for (;;) {")
                               (indent prologue) (indent body) (list "}"))
                       (append declaration entry prologue body))))
-      (string-append "function " name "(" signature ") {\n"
-                     (string-join (indent lines) "\n") "\n}"))))
+      (named-function name shown
+                      (string-append "function (" signature ") {\n"
+                                     (string-join (indent lines) "\n") "\n}")))))
 
 ;; /**
-;;  * The resumable form of a procedure, as a JavaScript function declaration.
+;;  * The resumable form of a procedure, as a JavaScript function bound to a
+;;  * name.
 ;;  *
 ;;  * It takes no argument list: everything, a rest parameter included, arrives
 ;;  * in the frame `$f`. Generating it records, in the unit, where each call site
@@ -1501,13 +1527,16 @@
 ;;  * Restoring names every local; one that was not saved comes back undefined,
 ;;  * which is safe because it is dead there.
 ;;  *
-;;  * @param {string} name - The function's name.
+;;  * @param {string} name - The JavaScript name it is bound to.
+;;  * @param {string} shown - The name it shows as, as a JavaScript string
+;;  *   literal (`named-function`): the procedure's, as the fast form's, since
+;;  *   a frame resumed is the same procedure's frame.
 ;;  * @param {list} ir - The lambda IR node.
 ;;  * @param {unit} u - The unit.
 ;;  * @param {string} path - Its position in the tree of procedures.
 ;;  * @returns {string} JavaScript source.
 ;;  */
-(define (twin-form name ir u path)
+(define (twin-form name shown ir u path)
   (let ((form (new-form name ir u 'twin path)))
     ;; In block zero, so a fresh entry makes the boxes and a resume, which
     ;; always enters later, takes them from the frame.
@@ -1543,7 +1572,8 @@
                                                    (car blocks))
                                               "\n"))
                                (number (cdr blocks) (+ i 1)))))))
-        (string-append "function " name "($pc, $f) {\n"
+        (named-function name shown
+         (string-append "function ($pc, $f) {\n"
                        "  let " names ";\n"
                        "  ({ " names " } = $f);\n"
                        (string-join (map (lambda (l) (string-append "  " l "\n")) (depth-entry form '())) "")
@@ -1551,7 +1581,7 @@
                        (string-join cases "\n") "\n"
                        "      default: throw new Error('" name ": bad resume point ' + $pc);\n"
                        "  }\n"
-                       "}")))))
+                       "}"))))))
 
 ;; /**
 ;;  * The locals a frame suspended at a resume block saves.
@@ -1614,8 +1644,11 @@
   (let* ((plan (unit-plan u))
          (params (map js-name (plan-free-of plan lam)))
          (own (map js-name (plan-self-of plan lam)))
-         (twin (twin-form (string-append proc "$r") lam u path))
-         (fast (fast-form proc lam u path))
+         ;; A procedure made by a named `let` or an internal definition shows
+         ;; as its name; any other, as `lambda`.
+         (shown (js-string (or (lambda-name lam) "lambda")))
+         (twin (twin-form (string-append proc "$r") shown lam u path))
+         (fast (fast-form proc shown lam u path))
          (value (string-append proc "$js"))
          (lines (append
                   (if (null? own) '() (list (string-append "let " (string-join own ", ") ";")))
@@ -1693,8 +1726,9 @@
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.
-         (twin (twin-form "$proc$r" ir u ""))
-         (fast (fast-form "$proc" ir u ""))
+         (key (js-string name))
+         (twin (twin-form "$proc$r" key ir u ""))
+         (fast (fast-form "$proc" key ir u ""))
          (accessors
            (string-join
              (map (lambda (g)
@@ -1711,7 +1745,7 @@
     (list (string-join (filter (lambda (s) (not (string=? s "")))
                                (list (runtime-prelude (unit-runtime u))
                                      accessors factories fast twin
-                                     (string-append "const $proc$js = R.markProcedure($proc, " (js-string name) ", E"
+                                     (string-append "const $proc$js = R.markProcedure($proc, " key ", E"
                                                     (if (lambda-rest ir) ", true" "") ");")
                                      "$proc$js.$resume = $proc$r;"
                                      "return $proc$js;"))

@@ -294,14 +294,63 @@
         (emit-guarded lowered name closure env span))))
 
 ;; /**
-;;  * Makes generated code a procedure.
+;;  * Whether a character would end a URL's path or begin an escape in it, or
+;;  * is a space.
+;;  * @param {char} c - The character.
+;;  * @returns {boolean}
+;;  */
+(define (url-path-special? c)
+  (case c ((#\% #\? #\# #\space) #t) (else #f)))
+
+;; /**
+;;  * A name escaped for a URL's path: only the characters
+;;  * `url-path-special?` names, so that a Scheme name stays readable where it
+;;  * can. Most names have none, and are returned as they are.
+;;  * @param {string} name - The name.
+;;  * @returns {string}
+;;  */
+(define (url-path-escape name)
+  (if (string-index name url-path-special?)
+      (string-concatenate
+        (map (lambda (c)
+               (case c
+                 ((#\%) "%25") ((#\?) "%3F") ((#\#) "%23") ((#\space) "%20")
+                 (else (string c))))
+             (string->list name)))
+      name))
+
+;; /**
+;;  * Where generated code says it comes from, in a stack trace and in a
+;;  * debugger's list of sources: `scheme:///` and the file the procedure was
+;;  * read from -- or else its library, or else the program -- and the
+;;  * procedure's name. Without it an engine names the code by where `new
+;;  * Function` was called, the same for every procedure.
+;;  * @param {generated} code - The code.
+;;  * @returns {string} The URL.
+;;  */
+(define (source-url code)
+  (let* ((span (generated-span code))
+         ;; The reader records `<unknown>` for source it was given no file for.
+         (file (and span (let ((f (js-ref span "filename")))
+                           (and (string? f) (not (string=? f "<unknown>")) f))))
+         (library (environment-library (generated-env code)))
+         (place (cond (file file)
+                      ;; A library's name, which the host keeps as a vector of strings.
+                      (library (string-join (vector->list library) "/"))
+                      (else "program"))))
+    (string-append "scheme:///" (url-path-escape place) "/" (url-path-escape (generated-name code)))))
+
+;; /**
+;;  * Makes generated code a procedure, named for a debugger by `source-url`.
+;;  * Only here, as a program runs: the build writes the same code into a
+;;  * module, whose own URL it has.
 ;;  * @param {generated} code - The code.
 ;;  * @returns {compiled|declined} The procedure, or why JavaScript would not
 ;;  *   take the code.
 ;;  */
 (define (instantiate-generated code)
-  (let ((procedure (instantiate (generated-source code) (generated-env code)
-                                (generated-constants code) (generated-span code))))
+  (let ((procedure (instantiate (string-append (generated-source code) "\n//# sourceURL=" (source-url code))
+                                (generated-env code) (generated-constants code) (generated-span code))))
     (if (string? procedure)
         (make-declined (generated-name code) procedure (generated-source code))
         (make-compiled (generated-name code) procedure (generated-source code)))))

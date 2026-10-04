@@ -81,6 +81,7 @@ export const functionalTests = [
     { path: 'functional/global_cell_tests.js', fn: 'runGlobalCellTests', async: true, needsInterpreter: false },
     { path: 'functional/loop_compilation_tests.js', fn: 'runLoopCompilationTests', async: true, needsInterpreter: false },
     { path: 'functional/direct_tail_call_tests.js', fn: 'runDirectTailCallTests', async: true, needsInterpreter: false },
+    { path: 'functional/compiled_stack_tests.js', fn: 'runCompiledStackTests', async: true, needsInterpreter: false },
     { path: 'functional/deep_recursion_tests.js', fn: 'runDeepRecursionTests', async: true, needsInterpreter: false },
     { path: 'functional/compiled_error_tests.js', fn: 'runCompiledErrorTests', async: true, needsInterpreter: false },
     { path: 'functional/scheme_call_tests.js', fn: 'runSchemeCallTests', async: true, needsInterpreter: false },
