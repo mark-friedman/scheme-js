@@ -11722,3 +11722,11 @@ scripts by the page and their place, and keeps their text.
 7,702 tests pass in Node with none failing (33 skipped), and 7,490 in the browser -- headless
 Chrome, cache off -- with none failing (55 skipped). Lines under `src/`: JavaScript 105 added and
 17 removed, as above; Scheme 40 added and 14 removed.
+
+# Task 39 done: compiled Scheme in the browser's DevTools (2026-10-03)
+
+Steps 1-3 above: compiled frames named for their procedures, the code the tier generates named by a
+`scheme:///` URL and carrying a source map, and a page's scripts read under names so that its code
+is mapped too. What 39 also listed and a program's own debugging does not need -- maps for the
+shipped libraries' prebuilt tables, and DevTools' custom formatters for Scheme values -- is task 84.
+`ROADMAP.md` records it delivered.

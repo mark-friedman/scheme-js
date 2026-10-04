@@ -56,8 +56,9 @@ succeeded; see the next goal.
 **Where it stands:** the tier works, the standard library runs through it, and so does a program's
 own code, compiled as it runs, by default, in the CLI, the browser and both REPLs. Compiled code is
 debugged by running it as the interpreted closures it replaced while a program is being debugged,
-so every breakpoint fires in the CLI and the browser alike; debugging it in place, through source
-maps, is still to come. Current state, ranked work and rationale:
+so every breakpoint fires in the CLI and the browser alike. In the browser's DevTools it shows as
+Scheme in place: frames named for their procedures and placed in the Scheme source by source maps,
+the page's own scripts included. Current state, ranked work and rationale:
 [docs/compiler_plan.md](docs/compiler_plan.md) and
 [docs/compiler_design.md](docs/compiler_design.md).
 
@@ -238,4 +239,5 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 | **Async execution** | `runAsync` with configurable yields, preserving tail calls, `call/cc` and interop. |
 | **A debugger, twice** | Breakpoints, stepping, stack and scope inspection — in the Node and browser REPLs. A Chrome extension with a standalone window, expression-level breakpoints and mixed JavaScript/Scheme stepping was built on the `debugger-take-3` branch; it is not on the compiler branch and is no longer a goal. |
 | **A compiler tier** | Emits JavaScript for most of the standard library and every library the bundle ships, all compiled at build time, so a page starts in about 60 ms without running the compiler. **A program's own code is compiled as it runs, by default**, in the CLI (`--no-compile` to turn it off), a browser page (which fetches the compiler after it starts; `setUserCodeCompilation(false)`) and both REPLs: a procedure that loops when it is defined, any other on its second call, each still debuggable -- `fib(30)` from the CLI goes from 1.8 s to 64 ms. Against the other Scheme compiled to JavaScript, Gambit, on the same V8: level on calls and fixnums, faster on flonums (4x) and lists (1.7x), behind on bignums and continuations; 2.5x plain JavaScript on calls (details in `docs/r7rs_benchmark_results.md`). Per workload class against the interpreter, as the range over two runs: `flonum` 120–122x, `call` 83–86x, `fixnum` 57–58x, `vector` 37–38x, `list` 23x (and 2.8x more since top-level expressions are compiled), `continuation` 4.2–4.3x, `bignum` 1.2x, `string` 1.0x. Compiled recursion is not bounded by the JavaScript stack, alternating with interpreted code or not: past half of it, compiled frames move to the heap. A continuation may be captured beneath any number of alternations of compiled and interpreted code. |
+| **Compiled Scheme in DevTools** | A stack trace or profile of compiled code is a Scheme stack: each frame named for its procedure, the code the tier generates listed as `scheme:///<file>/<procedure>`, and a source map placing each frame at its expression in the Scheme source -- a page's scripts included, an inline one's text carried in its map. `schemeEval(code, { filename })` names code evaluated from JavaScript. |
 | **A measurement discipline** | 51 vendored canonical benchmarks classified by workload and never blended into one number; cross-implementation comparison against Gambit and Racket; a differential fuzzer running generated programs interpreted, compiled and tiered; 6,222 tests, including 41 whole programs run under both tiers. |
