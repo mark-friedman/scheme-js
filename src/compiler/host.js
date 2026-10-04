@@ -32,6 +32,7 @@ import {
 } from '../core/interpreter/library_registry.js';
 import { astToScheme, toArray } from './marshal.js';
 import * as R from './runtime.js';
+import { sourceText } from '../core/interpreter/source_texts.js';
 
 /**
  * The library's name.
@@ -152,6 +153,10 @@ const hostProcedures = {
   // strings the library registry keys it by, or #f for one that is not a
   // library's.
   'environment-library': (env) => env.libraryName ?? false,
+
+  // The text code read under a name was read from, where nothing could fetch
+  // it by the name -- a page's inline script -- or #f.
+  'source-text': (name) => sourceText(text(name)) ?? false,
 
   // The value a name has where an environment finds it, or #f if it is unbound.
   'environment-value': (env, name) => {

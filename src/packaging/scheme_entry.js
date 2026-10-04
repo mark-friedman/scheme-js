@@ -4,6 +4,7 @@ import { analyze } from '../core/interpreter/analyzer.js';
 import { setFileResolver, setLibraryLoadHook, setLibraryRestorer } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
 import { installLibraryTable, libraryRestorer } from '../compiler/prebuilt.js';
+import { rememberSourceText } from '../core/interpreter/source_texts.js';
 import prebuiltLibraries from './compiled_libraries.js';
 import {
     SchemeDebugRuntime,
@@ -200,37 +201,55 @@ export function setUserCodeCompilation(enabled) {
 /**
  * Internal helper to parse, analyze, and execute Scheme code.
  * @param {string} code - The Scheme source code.
+ * @param {EvalOptions} [options] - How it is read (`schemeEval`).
  * @returns {*} The result of the evaluation.
  */
-function evalCode(code) {
+function evalCode(code, options = {}) {
+    const { filename, inline = false } = options;
+    // Nothing could fetch an inline script's text, so it is kept for the
+    // source maps of what is compiled from it.
+    if (inline && filename !== undefined) rememberSourceText(filename, code);
     // Form by form, as a program's top level is run, so that the compiler
     // tier sees each: a script run as one `begin` would be one form to it.
     let result;
-    for (const form of parse(code)) {
+    for (const form of parse(code, filename === undefined ? undefined : { filename })) {
         result = interpreter.runTopLevel(analyze(form), env);
     }
     return result;
 }
 
 /**
+ * How code is read.
+ * @typedef {Object} EvalOptions
+ * @property {string} [filename] - The name it is read under: in error
+ *   messages, a stack trace, and the source maps of what is compiled from it.
+ *   A URL a debugger can fetch it from, where there is one.
+ * @property {boolean} [inline=false] - Whether nothing could fetch the code by
+ *   its name, as a page's inline script, so that its text is kept for a
+ *   debugger (`sourceText`).
+ */
+
+/**
  * Evaluates Scheme code synchronously.
  * @param {string} code - The Scheme source code.
+ * @param {EvalOptions} [options] - How it is read.
  * @returns {*} The result of the evaluation.
  */
-export function schemeEval(code) {
-    return evalCode(code);
+export function schemeEval(code, options) {
+    return evalCode(code, options);
 }
 
 /**
  * Evaluates Scheme code asynchronously.
  * Returns a Promise that resolves to the result.
  * @param {string} code - The Scheme source code.
+ * @param {EvalOptions} [options] - How it is read.
  * @returns {Promise<*>} A promise resolving to the result.
  */
-export function schemeEvalAsync(code) {
+export function schemeEvalAsync(code, options) {
     return new Promise((resolve, reject) => {
         try {
-            resolve(evalCode(code));
+            resolve(evalCode(code, options));
         } catch (e) {
             reject(e);
         }
@@ -239,6 +258,9 @@ export function schemeEvalAsync(code) {
 
 // Export the interpreter and environment for advanced usage (e.g. testing, extending)
 export { interpreter, env };
+
+// The text of an inline script, by the name it was read under, for a debugger.
+export { sourceText } from '../core/interpreter/source_texts.js';
 
 // JavaScript calling Scheme. A procedure called as a plain function converts
 // its arguments into Scheme and its result out of it; these are the parts of

@@ -297,11 +297,24 @@
         (emit-guarded lowered name closure env span))))
 
 ;; /**
+;;  * A file's name as a place in a `scheme:///` URL: a name that is itself a
+;;  * URL -- a page's script with a `src` -- by its path, since its scheme and
+;;  * host would only be repeated inside another URL; any other as it is.
+;;  * @param {string} file - The name.
+;;  * @returns {string}
+;;  */
+(define (file-place file)
+  (let ((scheme-end (string-contains file "://")))
+    (let ((path (and scheme-end
+                     (string-index file (lambda (c) (char=? c #\/)) (+ scheme-end 3)))))
+      (if path (substring file (+ path 1) (string-length file)) file))))
+
+;; /**
 ;;  * Where generated code says it comes from, in a stack trace and in a
 ;;  * debugger's list of sources: `scheme:///` and the file the procedure was
-;;  * read from -- or else its library, or else the program -- and the
-;;  * procedure's name. Without it an engine names the code by where `new
-;;  * Function` was called, the same for every procedure.
+;;  * read from (`file-place`) -- or else its library, or else the program --
+;;  * and the procedure's name. Without it an engine names the code by where
+;;  * `new Function` was called, the same for every procedure.
 ;;  * @param {generated} code - The code.
 ;;  * @returns {string} The URL.
 ;;  */
@@ -309,7 +322,7 @@
   (let* ((span (generated-span code))
          (file (and span (span-file span)))
          (library (environment-library (generated-env code)))
-         (place (cond (file file)
+         (place (cond (file (file-place file))
                       ;; A library's name, which the host keeps as a vector of strings.
                       (library (string-join (vector->list library) "/"))
                       (else "program"))))
@@ -331,7 +344,7 @@
 ;;  * @returns {string}
 ;;  */
 (define (script-of code)
-  (let ((map (source-map (generated-spans code) lines-before-generated-code)))
+  (let ((map (source-map (generated-spans code) lines-before-generated-code source-text)))
     (string-append (generated-source code)
                    "\n//# sourceURL=" (source-url code)
                    (if map (string-append "\n//# sourceMappingURL=" (source-map-url map)) ""))))

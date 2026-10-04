@@ -112,15 +112,22 @@
 ;;  * map's `sources`; and the span's line and column, counted from zero. Lines
 ;;  * are separated by `;`, and each field is written as its difference from
 ;;  * the same field of the segment before -- the generated column only within
-;;  * its line, so always 0. Its file names are escaped for the URL it goes into
-;;  * (`source-map-url`), whose reader undoes it.
+;;  * its line, so always 0.
+;;  *
+;;  * A file a debugger can fetch by its name it fetches. One it cannot, whose
+;;  * text the caller knows -- a page's inline script -- has the text in the
+;;  * map's `sourcesContent`, and any other file a null beside it. The names and
+;;  * the text are escaped for the URL the map goes into (`source-map-url`),
+;;  * whose reader undoes it.
 ;;  *
 ;;  * @param {list} spans - Each line's span, or #f, as the emitter renders
 ;;  *   them (`render-items` in `emit.scm`).
 ;;  * @param {integer} offset - How many lines the script has before the first.
+;;  * @param {procedure} text-of - A file's text, where the map should hold it,
+;;  *   or #f.
 ;;  * @returns {string|boolean}
 ;;  */
-(define (source-map spans offset)
+(define (source-map spans offset text-of)
   ;; `sources` is newest first, so a file's index in the order first named is
   ;; the length of what follows it. The mappings are appended to as they go,
   ;; as `render-items` in `emit.scm` builds its text.
@@ -128,12 +135,18 @@
              (sources '()) (source 0) (line 0) (column 0) (previous #f))
     (if (null? spans)
         (and (pair? sources)
-             ;; The mappings need no quoting: base-64 digits and `;`.
-             (string-append "{\"version\":3,\"sources\":["
-                            (string-join (map (lambda (file) (url-path-escape (js-string file)))
-                                              (reverse sources))
-                                         ",")
-                            "],\"names\":[],\"mappings\":\"" mappings "\"}"))
+             (let* ((files (reverse sources))
+                    (texts (map text-of files))
+                    (json-list (lambda (strings)
+                                 (string-join (map (lambda (s) (if s (url-path-escape (js-string s)) "null"))
+                                                   strings)
+                                              ","))))
+               ;; The mappings need no quoting: base-64 digits and `;`.
+               (string-append "{\"version\":3,\"sources\":[" (json-list files) "]"
+                              (if (any (lambda (text) text) texts)
+                                  (string-append ",\"sourcesContent\":[" (json-list texts) "]")
+                                  "")
+                              ",\"names\":[],\"mappings\":\"" mappings "\"}")))
         (let* ((span (car spans))
                (mappings (if first? mappings (string-append mappings ";"))))
           (cond

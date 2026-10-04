@@ -11684,3 +11684,41 @@ DevTools protocol reports the map on the script, which is what DevTools reads.
 Chrome, cache off -- with none failing (55 skipped). `npm run prebuild` reaches a fixed point. Lines
 under `src/`: Scheme 412 added and 130 removed; JavaScript 6 added and 2 removed, in `marshal.js`,
 the exception above.
+
+# Task 39, step 3: a page's compiled code is mapped too (2026-10-03)
+
+Step 2 mapped code read from a file, and a page's scripts were read under no name, so the code the
+browser compiles for a page -- what the source maps are mostly for -- had none. Now `html_adapter.js`
+reads each script under a name: one with a `src` under its URL, which a debugger fetches, and an
+inline one as `<page>#scheme-<n>`, `index.html#scheme-2` for the second. An inline script cannot be
+fetched, so its text is kept under its name (`source_texts.js`) and written into the maps of what is
+compiled from it, as `sourcesContent`, escaped for the URL as a name is. `schemeEval` and
+`schemeEvalAsync` take the name as an option, `filename`, and `inline` to keep the text; the bundle
+exports `sourceText`, an inline script's text by its name. A file named by a URL is placed in its
+code's `scheme:///` URL by its path: `scheme:///app/main.scm/f`, not the URL inside another.
+
+On a page loading the bundle, with an inline script defining `count-to`, the tier compiled it as
+`scheme:///_probe39.html%23scheme-1/count-to`, and the DevTools protocol reported its map, naming
+the script and holding its text.
+
+The JavaScript added, and why: `source_texts.js` keeps the text of the page's inline scripts, host
+input, which the page's start-up and the compiler -- loaded later, with an interpreter and libraries
+of its own -- both reach only through a module; `html_adapter.js` names the page's scripts as it
+reads them from the document, host input too, and exports `runScripts` so that a test can hand it
+scripts, running on its own only where there is a document; `scheme_entry.js` passes the name to the
+reader and keeps an inline script's text; `host.js` gives the compiler the text.
+
+## Tests
+
+`sourcemap_tests.scm`: a file's text, where known, in `sourcesContent`, escaped, with a null for a
+file without. `compiled_stack_tests.js`: an inline script's map names it and holds its text, its
+code's URL escapes the name, a fetchable file's map holds no text, and a file named by a URL is placed
+by its path. `test_bundle.js`, through the built bundles: code is read under the name it is given,
+an inline script's text is kept and a fetchable one's is not, and the page adapter names inline
+scripts by the page and their place, and keeps their text.
+
+## Verification
+
+7,702 tests pass in Node with none failing (33 skipped), and 7,490 in the browser -- headless
+Chrome, cache off -- with none failing (55 skipped). Lines under `src/`: JavaScript 105 added and
+17 removed, as above; Scheme 40 added and 14 removed.

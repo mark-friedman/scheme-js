@@ -101,9 +101,12 @@ the unit's text is written once, listing each line's span (`render-items` in `em
 with a span maps, from its start, to the start of the span (`sourcemap.scm`): a frame shows at the
 Scheme expression whose code holds its call. The map goes into the script as a `data:` URL holding
 the JSON as it is: a URL's parser percent-encodes what it must and the URL's body is
-percent-decoded, so only `%`, `#`, `?` and spaces in a file's name are escaped. Only code read from
-a file is mapped. A page's scripts are run with no name yet, and the prebuilt tables, which are
-modules, have no map of their own.
+percent-decoded, so only `%`, `#`, `?` and spaces in a file's name are escaped. Only code read under
+a name is mapped. A page's scripts are read under names (`html_adapter.js`): one with a `src` under
+its URL, which a debugger fetches, and an inline one as `<page>#scheme-<n>`, whose text the page
+keeps (`source_texts.js`), for nothing could fetch it, and the map carries as its `sourcesContent`.
+A file named by a URL is placed in the `scheme:///` URL by its path. The prebuilt tables, which are
+modules, have no map of their own yet.
 
 ## A compiled procedure faces JavaScript; its code faces Scheme
 

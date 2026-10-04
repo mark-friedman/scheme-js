@@ -20,6 +20,7 @@ import { withPrivateLibraries } from '../../src/core/interpreter/library_registr
 import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 import { installLibraryTable, libraryRestorer } from '../../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../../src/packaging/compiled_libraries.js';
+import { rememberSourceText } from '../../src/core/interpreter/source_texts.js';
 
 /**
  * Compiles one definition into an environment.
@@ -39,11 +40,12 @@ function compile(source, env, filename) {
 const BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 /**
- * The source map a script names in a `data:` URL, decoded: its sources, and
- * for each generated line its segments as absolute
- * `[column, source, line, column]`, counted from zero.
+ * The source map a script names in a `data:` URL, decoded: its sources and
+ * their text where it has it, and for each generated line its segments as
+ * absolute `[column, source, line, column]`, counted from zero.
  * @param {string} script - The script.
- * @returns {{sources: string[], lines: Array<Array<number[]>>}|null}
+ * @returns {{sources: string[], sourcesContent: (Array<string|null>|undefined),
+ *   lines: Array<Array<number[]>>}|null}
  */
 function sourceMapOf(script) {
   const match = /\/\/# sourceMappingURL=data:application\/json;charset=utf-8,(\S+)/.exec(script);
@@ -71,7 +73,7 @@ function sourceMapOf(script) {
       return [column, ...state];
     });
   });
-  return { sources: map.sources, lines };
+  return { sources: map.sources, sourcesContent: map.sourcesContent, lines };
 }
 
 /**
@@ -194,6 +196,26 @@ function traces(logger, env) {
   assert(logger, 'a name is escaped in the URL',
     escaped.includes('scheme:///program/empty-vector-head%3F'), true);
   assert(logger, 'and not in the frame', escaped.includes('empty-vector-head?'), true);
+
+  // A page's inline script has no file a debugger could fetch, so its text,
+  // remembered under the name it was read under, goes into the map.
+  const inline = '(define (inline-head v) (vector-ref v 0))';
+  rememberSourceText('page.html#scheme-1', inline);
+  const { source: inlineScript } = compile(inline, env, 'page.html#scheme-1');
+  const inlineMap = sourceMapOf(inlineScript);
+  assert(logger, "an inline script's map names it", inlineMap?.sources, ['page.html#scheme-1']);
+  assert(logger, 'and holds its text', inlineMap?.sourcesContent, [inline]);
+  assert(logger, 'which its URL escapes',
+    traceOf(env.lookup('inline-head'), [[]]).includes('scheme:///page.html%23scheme-1/inline-head'), true);
+  assert(logger, 'a file a debugger can fetch has no text in its map',
+    sourceMapOf(script)?.sourcesContent, undefined);
+
+  // A file named by an absolute URL, as a page's script with a `src` is: its
+  // map names the URL, which a debugger fetches, and its code is named by the
+  // URL's path, where the host would only repeat itself.
+  compile('(define (fetched-head v) (vector-ref v 0))', env, 'http://example.test/app/main.scm');
+  assert(logger, "a fetched file's code is named by its path",
+    traceOf(env.lookup('fetched-head'), [[]]).includes('scheme:///app/main.scm/fetched-head'), true);
 
   // A procedure of a shipped library is code the build generated, installed
   // from its table: its frame has its name too.

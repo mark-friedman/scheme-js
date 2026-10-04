@@ -1,7 +1,7 @@
 import {
     schemeEval, schemeEvalAsync, loadCompiler, isCompilerLoaded, libraryInstallation,
     setUserCodeCompilation, env, interpreter, parse, analyze,
-    callSchemeProcedure, schemeToJs, schemeToJsDeep, jsToScheme, jsToSchemeDeep
+    callSchemeProcedure, schemeToJs, schemeToJsDeep, jsToScheme, jsToSchemeDeep, sourceText
 } from '../dist/scheme.js';
 import { assert } from './harness/helpers.js';
 
@@ -159,5 +159,37 @@ export async function runBundleTests(logger) {
         assert(logger, "Shared Environment (Async Access)", result, 142);
     } catch (e) {
         logger.fail(`Shared Environment (Async Access) failed: ${e.message}`);
+    }
+
+    // Code read under a name -- a page's script, for a debugger and the
+    // source maps of what is compiled from it. An inline script's text is
+    // kept, since nothing could fetch it.
+    try {
+        const code = '(define (bundle-named-f) 1)';
+        schemeEval(code, { filename: 'bundle-page.html#scheme-1', inline: true });
+        assert(logger, "Code is read under the name it is given",
+            runSync('bundle-named-f').source?.filename, 'bundle-page.html#scheme-1');
+        assert(logger, "An inline script's text is kept under its name",
+            sourceText('bundle-page.html#scheme-1'), code);
+        schemeEval('(define (bundle-fetched-f) 1)', { filename: 'http://example.test/fetched.scm' });
+        assert(logger, "Code that could be fetched is not kept",
+            sourceText('http://example.test/fetched.scm'), undefined);
+    } catch (e) {
+        logger.fail(`Code read under a name failed: ${e.message}`);
+    }
+
+    // The page adapter names a page's scripts: one with a `src` by its URL,
+    // an inline one by the page and its place among the inline ones.
+    try {
+        const { runScripts } = await import('../dist/scheme-html.js');
+        const inline = (text) => ({ src: '', textContent: text });
+        await runScripts([inline('(define (adapter-first) 1)'), inline('(define (adapter-second) 2)')],
+            'http://example.test/dir/index.html?q=1#top');
+        assert(logger, "The page adapter names an inline script by the page and its place",
+            [runSync('adapter-first').source?.filename, runSync('adapter-second').source?.filename],
+            ['index.html#scheme-1', 'index.html#scheme-2']);
+        assert(logger, "and keeps its text", sourceText('index.html#scheme-2'), '(define (adapter-second) 2)');
+    } catch (e) {
+        logger.fail(`The page adapter's names failed: ${e.message}`);
     }
 }

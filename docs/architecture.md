@@ -67,6 +67,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 | `analyzers/` | Modular handlers for special forms |
 | `library_registry.js` | The library system's door from JavaScript: the current registry, and the API calling the Scheme |
 | `library_seed.js` | Loads the library system (Scheme) at first use, apart from programs, and installs its prebuilt tables |
+| `source_texts.js` | The text of code read under a name nothing could fetch it by -- a page's inline script -- for source maps |
 | `library_loader.js` | Loading, defining and importing libraries from JavaScript, through the Scheme; fetching an asynchronous resolver's files first |
 | `syntax_rules.js` | Macro transformer + hygiene primitives |
 | `primitives/` | Native procedures |
@@ -227,6 +228,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── type_check.js       # Type checking utilities for primitives
 │       │   ├── library_loader.js   # Loading, defining and importing libraries, through the Scheme + barrel (re-exports)
 │       │   ├── library_registry.js # The library system's door from JavaScript: the current registry, the API
+│       │   ├── source_texts.js     # The text of an inline script, kept for the source maps of what is compiled from it
 │       │   └── library_seed.js     # Loads the library system at first use, on an interpreter of its own, compiled
 │       ├── primitives/             # Native procedures (+, cons, etc.)
 │       │   ├── index.js            # Creates global environment

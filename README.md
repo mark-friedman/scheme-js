@@ -160,6 +160,17 @@ wants none of that calls `setUserCodeCompilation(false)`, imported from `dist/sc
 compiler arrives. Under a Content-Security-Policy that forbids `new Function`, the page's code runs
 interpreted regardless.
 
+Compiled code shows as Scheme in the browser's developer tools: each frame of a stack trace or a
+profile is named for its Scheme procedure, its code is listed as `scheme:///<file>/<procedure>`,
+and a source map places it in the Scheme source. A page's scripts are read under names for this --
+one with a `src` under its URL, an inline one as `<page>#scheme-<n>`, its text kept in the map --
+and code evaluated from JavaScript can be named too:
+
+```js
+schemeEval(code, { filename: 'https://example.com/app/main.scm' }); // a URL the source can be fetched from
+schemeEval(code, { filename: 'widget#1', inline: true });          // nothing to fetch: keep the text
+```
+
 ---
 ### Debugging Tools
 See the [Debugger Manual](./docs/debugger_manual.md) for more details.
