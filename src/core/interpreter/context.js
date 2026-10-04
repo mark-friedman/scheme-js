@@ -408,11 +408,16 @@ export class InterpreterContext {
      * `quasiquote` on the standard one, imported under another name, still
      * reaches the standard one through that name.
      *
+     * A name defined as a variable where it had named a macro is bound with
+     * no keyword, so that it is not looked up by name (`shadowMacro` in
+     * syntax_object.js).
+     *
      * @param {number} scope - A library's scope, or 0 for a program's top level.
      * @param {string} name - The name bound.
-     * @param {string} keyword - The keyword's own name.
+     * @param {string|null} keyword - The keyword's own name, or null for a
+     *   variable.
      * @param {Function|null} transformer - A macro's transformer, or null for
-     *   a special form or auxiliary keyword.
+     *   a special form, an auxiliary keyword or a variable.
      */
     defineKeyword(scope, name, keyword, transformer) {
         this.keywordsIn(scope, true).set(name, { keyword, transformer });

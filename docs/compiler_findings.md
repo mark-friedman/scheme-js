@@ -3311,3 +3311,23 @@ strings and 112 for the n-ary form, and `substring` 142: what would move is the 
 
 *Consequence:* decided with the user, the primitives stay JavaScript, and the rule says so; what
 is above them, and anything that would call Scheme back from JavaScript, is Scheme.
+
+**R114. Import filters hid no procedure either; and two of the three failures had gone.**
+
+Task 55 said `only`, `except`, `prefix` and `rename` "apply to procedures and variables and to nothing
+else", so that `(prefix (scheme base) b:)` gave no `b:let` and `(rapid match)`, which renames `...`,
+could not load. Probed on 2026-10-04: `prefix` and `rename` work for macros -- the library system,
+in Scheme since 64, binds a keyword it imports under the importer's name -- and `(rapid match)` and
+`(rapid syntax)` load, `(rapid syntax)`'s tests passing. What fails is `only` and `except`, and for
+procedures as much as macros: after `(import (only (scheme base) car))`, `cdr` and `assq` are bound,
+as `when` is, in a program and in a library alike. Every library's environment and every program's
+top level is inside the global environment, which holds every primitive, and an operator bound
+nowhere in its scope is looked up among the macros defined for the whole process. So a filter can
+only add a name under another; it can hide none.
+
+What made real code fail was narrower, and was fixed: a top-level definition of a name lost to a
+macro of the name, so a program or library defining its own `when`, `assert` or `match` -- having
+left the macro out of its imports, or never imported it -- called the macro.
+
+*Consequence:* 55 is done with that fix; imports defining what a program or library sees, which needs
+their environments not to inherit the global one, is a task of its own (85).

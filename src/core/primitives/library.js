@@ -23,6 +23,7 @@ import { parse } from '../interpreter/reader.js';
 import { cons, list, toArray } from '../interpreter/cons.js';
 import { intern } from '../interpreter/symbol.js';
 import { SYNTAX_KEYWORDS } from '../interpreter/library_registry.js';
+import { shadowMacro } from '../interpreter/syntax_object.js';
 import { stringValue } from './string_class.js';
 import { runCompiled, runInterpreted } from '../interpreter/values.js';
 
@@ -132,20 +133,28 @@ export const libraryPrimitives = {
     /** The value of a name in an environment. */
     '%environment-ref': (env, name) => env.lookup(name.name),
 
-    /** Defines a name in an environment. */
+    /**
+     * Defines a name in an environment -- an import, as a rule -- which then
+     * names the value, though a macro of the name was bound there
+     * (`shadowMacro`).
+     */
     '%environment-define!': (env, name, value) => {
         env.define(name.name, value);
+        shadowMacro(env.libraryScope ?? GLOBAL_SCOPE_ID, name.name);
         return undefined;
     },
 
     /**
      * The syntactic keyword a name is bound to under a scope, as
      * `(keyword . transformer)`, the transformer #f for a special form or
-     * auxiliary keyword; or #f if nothing binds the name there.
+     * auxiliary keyword; or #f if nothing binds the name there as a keyword --
+     * a variable defined over a macro's name included.
      */
     '%keyword-binding': (scope, name) => {
         const bound = globalContext.keywordBinding(scope, name.name);
-        return bound === undefined ? false : cons(intern(bound.keyword), bound.transformer ?? false);
+        return bound === undefined || bound.keyword === null
+            ? false
+            : cons(intern(bound.keyword), bound.transformer ?? false);
     },
 
     /** Binds a name under a scope to a syntactic keyword. */

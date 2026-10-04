@@ -253,6 +253,34 @@ export function bindDefinedMacro(name, transformer) {
 }
 
 /**
+ * Makes a name a variable, not a macro, where it is bound in a scope: the
+ * name of a macro, whether bound to it there or defined under it for the
+ * whole process, now names a variable for every use the scope analyzes after.
+ * A special form's name is left alone, since redefining `if` is an error a
+ * program could not recover from.
+ * @param {number} scope - A library's scope, or 0 for a program's top level.
+ * @param {string} name - The name.
+ */
+export function shadowMacro(scope, name) {
+    const bound = globalContext.keywordBinding(scope, name);
+    const macro = bound !== undefined ? bound.transformer !== null : globalContext.macroRegistry.isMacro(name);
+    if (macro) globalContext.defineKeyword(scope, name, null, null);
+}
+
+/**
+ * Notes a top-level definition where it is made, as `bindDefinedMacro` notes
+ * a macro's: in the library being loaded, or at a program's top level. The
+ * name then names the variable, though a macro of it is imported or defined
+ * for the whole process (`shadowMacro`), as an internal definition already
+ * shadows one.
+ * @param {string} name - The name defined.
+ */
+export function bindDefinedVariable(name) {
+    const defining = globalContext.definingScopes;
+    shadowMacro(defining.length > 0 ? defining[defining.length - 1] : GLOBAL_SCOPE_ID, name);
+}
+
+/**
  * Where an identifier a library's macro introduced refers to its binding: the
  * library's environment, or null if looking its name up where it is used
  * finds that binding.

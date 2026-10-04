@@ -153,6 +153,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/test_harness_tests.scm',
     'tests/core/scheme/boot_tests.scm',
     'tests/core/scheme/record_tests.scm',
+    'tests/core/scheme/definition_shadowing_tests.scm',
     'tests/core/scheme/tco_tests.scm',
     'tests/core/scheme/dynamic_wind_tests.scm',
     'tests/core/scheme/dynamic_wind_interop_tests.scm',

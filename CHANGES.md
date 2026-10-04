@@ -11730,3 +11730,43 @@ Steps 1-3 above: compiled frames named for their procedures, the code the tier g
 is mapped too. What 39 also listed and a program's own debugging does not need -- maps for the
 shipped libraries' prebuilt tables, and DevTools' custom formatters for Scheme values -- is task 84.
 `ROADMAP.md` records it delivered.
+
+# Task 55 done: a definition shadows a macro of its name (2026-10-04)
+
+Probing what task 55 described found it half gone (R114): `prefix` and `rename` apply to macros, and
+`(rapid match)` and `(rapid syntax)` load. What failed was a top-level definition of a name that was
+also a macro's: `(import (except (scheme base) when))` then `(define (when x) ...)` and `(when 5)`
+expanded the macro, in a program and in a library -- "No matching clause for macro 'when'". An
+internal definition already shadowed a macro, since the analyzer binds a body's definitions before
+analyzing it; a top-level one did not, since an operator bound nowhere in its scope is looked up
+among the macros defined for the whole process.
+
+- **A definition marks its name.** A top-level definition -- in a program, in a library's body, or
+  in a top-level `begin`, which splices -- binds its name, where it names a macro, to a variable in
+  the scope's table of keywords (`shadowMacro` and `bindDefinedVariable` in `syntax_object.js`), so
+  that the operator is an application from then on. It is marked before the value is analyzed, so a
+  procedure calling itself by its name calls itself. A special form's name is left alone. A
+  `define-syntax` of the name later rebinds the macro.
+- **So does an import.** A procedure imported under a macro's name is the procedure
+  (`%environment-define!`).
+- **The top level is said, not guessed.** The analyzer took the environment of a lambda with no
+  parameters for the one around it, so its body's definitions would have looked like the top
+  level's. A form analyzed with no environment now gets one marked as the top level, and a lambda's
+  body always gets an environment of its own.
+
+The JavaScript is a fix to the analyzer's resolution of names, in place: 76 lines added, most of them
+comments, and 11 removed. That `only` and `except` hide nothing -- procedures included, since every
+environment is inside the global one -- is now task 85.
+
+## Tests
+
+`definition_shadowing_tests.scm`, with names of its own so that no other test loses a macro: before
+a definition the macro, after it the procedure, which is a value; a macro defined again shadows the
+definition; a definition in a top-level `begin` shadows; a library's definition shadows in the
+library and is exported as the procedure; an imported procedure shadows; and a local definition
+still shadows, in a lambda with no parameters too.
+
+## Verification
+
+7,713 tests pass in Node with none failing (33 skipped), and 7,501 in the browser with none failing
+(55 skipped). `run_tier.js --set corpus,tests,page` finds no answer changed and nothing broken.

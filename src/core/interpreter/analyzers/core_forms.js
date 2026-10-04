@@ -19,7 +19,7 @@ import {
 } from '../ast.js';
 import { Cons, cons, list, car, cdr, toArray, cadr, cddr, caddr, cdddr } from '../cons.js';
 import { Symbol, intern } from '../symbol.js';
-import { isSyntaxObject, syntaxName, unwrapSyntax, GLOBAL_SCOPE_ID, libraryScopeOf, libraryBindingEnv, keywordName, operatorKeyword, bindDefinedMacro } from '../syntax_object.js';
+import { isSyntaxObject, syntaxName, unwrapSyntax, GLOBAL_SCOPE_ID, libraryScopeOf, libraryBindingEnv, keywordName, operatorKeyword, bindDefinedMacro, bindDefinedVariable } from '../syntax_object.js';
 import { globalContext } from '../context.js';
 import { MacroRegistry } from '../macro_registry.js';
 import { registerHandler } from './registry.js';
@@ -121,7 +121,7 @@ function analyzeLambda(exp, syntacticEnv, ctx) {
     }
 
     const newParams = [];
-    let newEnv = syntacticEnv;
+    let newEnv = syntacticEnv.child();
     let restParamRenamed = null;
 
     const originalParams = [];
@@ -226,6 +226,9 @@ function analyzeBody(body, syntacticEnv, ctx) {
                 }
 
                 if (definedName) {
+                    // A top-level `begin` splices its definitions into the
+                    // top level.
+                    if (syntacticEnv.topLevel) bindDefinedVariable(definedName);
                     extendedEnv = extendedEnv.extend(bindKey, definedName);
                 }
             }
@@ -472,9 +475,11 @@ function analyzeDefine(exp, syntacticEnv, ctx) {
         const body = cddr(exp);
 
         // Desugar to (define f (lambda (args) body...))
+        const name = (nameObj instanceof Symbol) ? nameObj.name : syntaxName(nameObj);
+        // Before the body, which may call the procedure by its name.
+        if (syntacticEnv.topLevel) bindDefinedVariable(name);
         const lambdaExp = cons(intern('lambda'), cons(args, body));
         const valExpr = analyzeLambda(lambdaExp, syntacticEnv, ctx);
-        const name = (nameObj instanceof Symbol) ? nameObj.name : syntaxName(nameObj);
 
         // Propagate name to LambdaNode if it was just created
         if (valExpr instanceof LambdaNode) {
@@ -494,8 +499,9 @@ function analyzeDefine(exp, syntacticEnv, ctx) {
 
     // Simple variable definition: (define x 1)
     const varObj = head;
-    const valExpr = analyze(caddr(exp), syntacticEnv, ctx);
     const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
+    if (syntacticEnv.topLevel) bindDefinedVariable(name);
+    const valExpr = analyze(caddr(exp), syntacticEnv, ctx);
 
     if (valExpr instanceof LambdaNode) {
         valExpr.name = name;

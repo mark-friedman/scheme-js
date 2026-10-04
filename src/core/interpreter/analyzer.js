@@ -46,8 +46,15 @@ import {
  * We'll use a custom class for the Syntactic Environment.
  */
 export class SyntacticEnv {
-  constructor(parent = null) {
+  /**
+   * @param {SyntacticEnv|null} [parent] - The environment this one is inside.
+   * @param {boolean} [topLevel=false] - Whether this is a program's or a
+   *   library's top level, whose definitions shadow macros of their names for
+   *   what follows (`bindDefinedVariable` in syntax_object.js).
+   */
+  constructor(parent = null, topLevel = false) {
     this.parent = parent;
+    this.topLevel = topLevel;
     this.bindings = []; // Array of { id: SyntaxObject|Symbol, newName: string }
   }
 
@@ -55,6 +62,15 @@ export class SyntacticEnv {
     const newEnv = new SyntacticEnv(this);
     newEnv.bindings.push({ id, newName });
     return newEnv;
+  }
+
+  /**
+   * An environment inside this one, binding nothing yet: a procedure's, so
+   * that its body is not taken for the top level when it has no parameters.
+   * @returns {SyntacticEnv}
+   */
+  child() {
+    return new SyntacticEnv(this);
   }
 
   lookup(id) {
@@ -112,8 +128,9 @@ export function analyze(exp, syntacticEnv = null, context = null) {
   // Use global context if none provided
   const ctx = context || globalContext;
 
+  // A form analyzed with no environment is a top-level form.
   if (!syntacticEnv) {
-    syntacticEnv = new SyntacticEnv();
+    syntacticEnv = new SyntacticEnv(null, true);
   }
 
   if (exp instanceof Executable) {
