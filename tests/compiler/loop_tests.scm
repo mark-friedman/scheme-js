@@ -19,9 +19,9 @@
 ;;  */
 (define (lowered-definition definition)
   (let ((result (lower-lambda (analyze-lambda definition))))
-    (if (eq? (car result) 'ok)
-        (cadr result)
-        (error "the lowering declined the definition" (cadr result)))))
+    (if (lowered-lambda? result)
+        (lowered-ir result)
+        (error "the lowering declined the definition" (lowering-failure-reason result)))))
 
 ;; /**
 ;;  * The loop tag on every tagged call in a definition, in walk order.

@@ -43,7 +43,8 @@ import { instrumentInterpreter } from '../src/debug/instrumentation.js';
 import { tryCompileClosure, tryCompileDefinition } from '../src/compiler/index.js';
 import { unsafeDefinitions } from '../src/compiler/index.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
-import { inlineExpansionNames } from '../src/compiler/lowering.js';
+import { callCompiler } from '../src/compiler/lowering.js';
+import { toArray } from '../src/core/interpreter/cons.js';
 
 const PROJECT_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCHEME_TEST_DIR = path.join(PROJECT_ROOT, 'tests', 'core', 'scheme');
@@ -297,9 +298,11 @@ async function runOnce(workload, useCompiler, instrument) {
  * @returns {{calls: number, distinct: number, inlinedShare: number}} Coverage.
  */
 function coverage(counts) {
+  // The globals the compiler has an inline expansion for (`inline.scm`).
+  const expanded = toArray(callCompiler('inline-expansion-names', [])).map((symbol) => symbol.name);
   const calls = [...counts.values()].reduce((a, b) => a + b, 0);
   const inlined = [...counts.entries()]
-    .filter(([name]) => inlineExpansionNames().includes(name))
+    .filter(([name]) => expanded.includes(name))
     .reduce((a, [, c]) => a + c, 0);
   return { calls, distinct: counts.size, inlinedShare: calls > 0 ? inlined / calls : 0 };
 }

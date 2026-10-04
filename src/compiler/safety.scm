@@ -56,7 +56,7 @@
 ;;  */
 (define (lambda-facts node)
   (let ((lowered (lower-lambda node)))
-    (and (eq? (car lowered) 'ok)
+    (and (lowered-lambda? lowered)
          (let ((globals (lowered-globals lowered)))
            (make-facts globals (lowered-calls-unknown? lowered)
                        (control-global-in globals) (lowered-captures? lowered))))))

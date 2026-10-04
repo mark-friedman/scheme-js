@@ -11355,3 +11355,39 @@ failing (55 skipped). Over the task, lines under `src/`: Scheme 91 added, 286 re
 substitution and `substitute.scm` gone; JavaScript 164 added, 153 removed -- `runCompiled`,
 `runInterpreted` and the closure's entry checking for a compiled procedure, in the value
 representation, and the primitives and host procedures that call them.
+
+# Task 73 done: the compiler's JavaScript-only entry points, gone (2026-10-03)
+
+`lowering.js` exported four procedures that nothing in the system called, only tests and
+benchmarks: `lowerLambda`, which called `lower-lambda` and turned its answer into a JavaScript
+object; `jsNameOf`, which called `js-name`; and `inlineExpansionNames`, which called
+`inline-expansion-names` and cached the list. `marshal.js` kept `irToJs`, 66 lines converting the
+IR back to the JavaScript objects the emitter read before it was Scheme, for `lowerLambda`'s `ir`.
+All four are gone, and so is `run_self_host.js`'s `renderIr`, which printed what `irToJs` made.
+
+- `compiler_tests.js` took a compiled procedure's parameters from its lowered IR; it takes them from
+  the analyzed lambda, which has the same renamed names, and asks the compiler for each one's
+  JavaScript name through `callCompiler('js-name', ...)`.
+- `prebuilt_library_tests.js` lowered a lambda only to start the compiler, which asking for its
+  environment does.
+- `primitive_binding_tests.js` and `run_macro.js` ask `callCompiler` for the inline expansions'
+  names, which they used to have from `inlineExpansionNames`.
+- `run_self_host.js`, which compares the lowering's answers interpreted and compiled, prints the IR
+  with the Scheme printer.
+
+What `lower-lambda` answers is then Scheme's choice alone. It was a list, `(ok ir globals
+calls-unknown? captures?)` or `(fail reason)`, which `driver.scm` read by position with four
+accessors of its own and `safety.scm` and the tests by `car` and `cadr`. It is now one of two record
+types in `ir.scm`: a `lowered-lambda`, with the IR, the globals it names, and whether it calls
+something the lowering cannot name and whether it captures a continuation; or a
+`lowering-failure`, with its reason. `run_self_host.js` loads `ir.scm` by itself, compiling its
+definitions, and now runs its other forms -- the two record types -- before them.
+
+## Verification
+
+7,651 tests pass in Node with none failing (33 skipped; one fewer, the assertion that lowered a
+lambda to start the compiler), and 7,439 in the browser with none failing (55 skipped).
+`run_self_host.js` finds the lowering's answers the same interpreted and compiled for all 1,010
+lambdas of its corpus, and `run_macro.js --compile` reports the inline share. Lines under `src/`:
+Scheme 42 added, 20 removed -- the two record types; JavaScript 3 added, 133 removed, the three
+added being comments where the removed procedures were mentioned.

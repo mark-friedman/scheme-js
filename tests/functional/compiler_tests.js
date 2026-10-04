@@ -22,8 +22,9 @@ import {
   interpretedLibrary, standardLibraryFingerprint, STANDARD_LIBRARY_TABLE as PREBUILT
 } from '../harness/standard_library.js';
 import { unsafeDefinitions } from '../../src/compiler/index.js';
-import { lowerLambda, jsNameOf } from '../../src/compiler/lowering.js';
+import { callCompiler } from '../../src/compiler/lowering.js';
 import { Cons } from '../../src/core/interpreter/cons.js';
+import { intern } from '../../src/core/interpreter/symbol.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { settle } from '../../src/compiler/runtime.js';
 
@@ -1789,12 +1790,12 @@ export async function runCompilerTests(interpreter, logger) {
         if (result.compiled) {
           env.define(result.name, result.procedure);
           procedure = result.procedure;
-          const lowered = lowerLambda(ast.valueExpr ?? ast.value);
-          hasRest = Boolean(lowered.ir.rest);
-          params = [
-            ...lowered.ir.params.map(jsNameOf),
-            ...(hasRest ? [jsNameOf(lowered.ir.rest)] : [])
-          ];
+          // The analyzed lambda's parameters, renamed, as generated code
+          // names them (`js-name` in emit.scm).
+          const lambda = ast.valueExpr ?? ast.value;
+          const jsName = (name) => String(callCompiler('js-name', [intern(name)]));
+          hasRest = Boolean(lambda.restParam);
+          params = [...lambda.params.map(jsName), ...(hasRest ? [jsName(lambda.restParam)] : [])];
         } else {
           fresh.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
         }

@@ -27,7 +27,7 @@ import { Environment } from '../../src/core/interpreter/environment.js';
 import { generateEnvironment } from '../../src/compiler/index.js';
 import { installLibraryTable, libraryRestorer, fingerprintSources, RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
 import {
-  compilerEnvironment, compilerSourceOf, COMPILER_LIBRARY, lowerLambda
+  compilerEnvironment, compilerSourceOf, COMPILER_LIBRARY
 } from '../../src/compiler/lowering.js';
 import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 import LIBRARIES from '../../src/packaging/compiled_libraries.js';
@@ -382,10 +382,7 @@ export async function runPrebuiltLibraryTests(logger) {
 
   logger.title('The compiler is a library of its own');
   {
-    // Lowering something is what bootstraps the compiler, if nothing has yet.
-    const [form] = parse('(lambda (x) x)');
-    assert(logger, 'setup: the compiler lowers', lowerLambda(analyze(form)).reason, undefined);
-
+    // Asking for its environment bootstraps the compiler, if nothing has yet.
     const { env } = compilerEnvironment();
     assert(logger, 'its Scheme runs in its library environment',
       env.lookup('lower-lambda') === env.bindings.get('lower-lambda'), true);

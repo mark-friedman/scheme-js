@@ -51,9 +51,9 @@ import { analyze } from '../src/core/interpreter/analyzer.js';
 import { createInterpreter } from '../src/core/interpreter/index.js';
 import { compileProgram } from '../src/compiler/index.js';
 import { DefineNode, LambdaNode } from '../src/core/interpreter/ast_nodes.js';
-import { Cons } from '../src/core/interpreter/cons.js';
 import { invoke, settle } from '../src/compiler/runtime.js';
-import { astToScheme, irToJs, toArray } from '../src/compiler/marshal.js';
+import { astToScheme, toArray } from '../src/compiler/marshal.js';
+import { writeString } from '../src/core/primitives/io/printer.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BOOTSTRAP = ['macros', 'equality', 'cxr', 'numbers', 'list', 'control', 'case_lambda'];
@@ -126,6 +126,12 @@ function loadCompiler(template, compiled, stdlib = false) {
 
   let outcome = { compiled: [], declined: [] };
   if (compiled) {
+    // The forms that are not procedure definitions -- the record types the
+    // lowering answers with -- run as they are, before the definitions that
+    // use them are compiled.
+    for (const ast of asts.filter((a) => !(a instanceof DefineNode))) {
+      interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
+    }
     outcome = compileProgram(definitions, env, interpreter);
   } else {
     for (const ast of asts) {
@@ -173,54 +179,21 @@ function corpus() {
 }
 
 /**
- * Renders an IR tree as text, for comparing configurations.
- *
- * Normalising here keeps the harmless disagreements out of the diff -- how
- * "absent" is spelled, what order globals were first seen in -- while leaving
- * every difference that matters.
- *
- * @param {*} node - A JavaScript IR node, or any value inside one.
- * @returns {string} A canonical rendering.
- */
-function renderIr(node) {
-  if (node === null || node === undefined || node === false) {
-    return node === false ? '#f' : '()';
-  }
-  if (node === true) return '#t';
-  if (typeof node === 'bigint') return `${node}n`;
-  if (typeof node === 'number' || typeof node === 'string') return JSON.stringify(node);
-  if (Array.isArray(node)) return `[${node.map(renderIr).join(' ')}]`;
-  if (node instanceof Cons) {
-    // Walked by hand rather than with `toArray`, which assumes a proper list.
-    // A quoted literal can be a dotted pair, and one in the corpus is.
-    const parts = [];
-    let rest = node;
-    while (rest instanceof Cons) { parts.push(renderIr(rest.car)); rest = rest.cdr; }
-    if (rest !== null && rest !== undefined) parts.push('.', renderIr(rest));
-    return `(${parts.join(' ')})`;
-  }
-  if (node.name !== undefined && node.constructor && node.constructor.name === 'Symbol') {
-    return `'${node.name}`;
-  }
-  if (typeof node === 'object' && node.k !== undefined) {
-    const keys = Object.keys(node).sort();
-    return `{${keys.map((key) => `${key}:${renderIr(node[key])}`).join(' ')}}`;
-  }
-  return String(node);
-}
-
-/**
  * Lowers one lambda with one configuration's `lower-lambda`.
  * @param {Function} proc - A `lower-lambda` procedure.
  * @param {Object} node - An analyzed `LambdaNode`.
  * @returns {string} A canonical rendering of the whole result.
  */
 function lowerAndRender(proc, node) {
-  const parts = toArray(settle(invoke(proc, [astToScheme(node)])));
-  if (parts[0].name === 'fail') return `fail ${JSON.stringify(parts[1])}`;
-  const globals = toArray(parts[2]).map((s) => s.name).sort().join(' ');
-  return `ok ${renderIr(irToJs(parts[1]))} globals[${globals}]`
-    + ` unknown:${parts[3]} captures:${parts[4]}`;
+  // A `lowering-failure` or a `lowered-lambda` (`ir.scm`): records, which
+  // JavaScript reads as objects with a property for each field.
+  const lowered = settle(invoke(proc, [astToScheme(node)]));
+  if (lowered.reason !== undefined) return `fail ${JSON.stringify(String(lowered.reason))}`;
+  // The globals sorted, since the order each configuration first saw them in
+  // is no difference that matters.
+  const globals = toArray(lowered.globals).map((s) => s.name).sort().join(' ');
+  return `ok ${writeString(lowered.ir)} globals[${globals}]`
+    + ` unknown:${lowered['calls-unknown?']} captures:${lowered['captures?']}`;
 }
 
 /**

@@ -1014,6 +1014,32 @@
         (predeclare-definitions! (cdr exprs) scope))))
 
 ;; /**
+;;  * A lambda lowered: its IR, and what it references.
+;;  * @property {list} ir - The IR.
+;;  * @property {list} globals - The globals it names, as symbols, in the order
+;;  *   first named.
+;;  * @property {boolean} calls-unknown? - Whether it calls a callee the lowering
+;;  *   cannot name.
+;;  * @property {boolean} captures? - Whether it captures a continuation.
+;;  */
+(define-record-type lowered-lambda
+  (make-lowered-lambda ir globals calls-unknown? captures?)
+  lowered-lambda?
+  (ir lowered-ir)
+  (globals lowered-globals)
+  (calls-unknown? lowered-calls-unknown?)
+  (captures? lowered-captures?))
+
+;; /**
+;;  * A lambda the lowering cannot express.
+;;  * @property {string} reason - Why.
+;;  */
+(define-record-type lowering-failure
+  (make-lowering-failure reason)
+  lowering-failure?
+  (reason lowering-failure-reason))
+
+;; /**
 ;;  * Lowers a lambda to IR, reporting what it references.
 ;;  *
 ;;  * Lowering failure and safety are kept apart, because they are different
@@ -1022,8 +1048,7 @@
 ;;  * caller makes, and needs more than this one lambda to make.
 ;;  *
 ;;  * @param {list} node - An analyzed lambda node.
-;;  * @returns {list} Either (ok ir globals calls-unknown captures) or
-;;  *   (fail reason).
+;;  * @returns {lowered-lambda|lowering-failure}
 ;;  */
 (define (lower-lambda node)
   (let ((st (make-state)))
@@ -1038,20 +1063,20 @@
 ;;  * The body of `lower-lambda`, once the state is set up.
 ;;  * @param {list} node - An analyzed lambda node.
 ;;  * @param {vector} st - A fresh lowering state.
-;;  * @returns {list} As for `lower-lambda`.
+;;  * @returns {lowered-lambda|lowering-failure} As for `lower-lambda`.
 ;;  */
 (define (lower-top-lambda node st)
   (let ((ir (lower-node node (make-scope '()) #f st)))
     (if ir (confirm-local-loops! st) #f)
     (if (not ir)
-        (list 'fail (let ((r (state-reason st))) (if r r "unsupported form")))
+        (make-lowering-failure (let ((r (state-reason st))) (if r r "unsupported form")))
         ;; A local that was both called and assigned is not the lambda we
         ;; lowered, so the call does not reach a callee this pass can name.
-        (list 'ok ir (reverse (state-globals st))
-              (if (state-calls-unknown? st)
-                  #t
-                  (any-assigned? (vector-ref st 2) (vector-ref st 3)))
-              (state-captures? st)))))
+        (make-lowered-lambda ir (reverse (state-globals st))
+                             (if (state-calls-unknown? st)
+                                 #t
+                                 (any-assigned? (vector-ref st 2) (vector-ref st 3)))
+                             (state-captures? st)))))
 
 ;; /**
 ;;  * Whether any called local is also assigned.

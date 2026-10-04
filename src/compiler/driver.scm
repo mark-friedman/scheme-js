@@ -78,13 +78,8 @@
 ;; What the lowering reports
 ;; ---------------------------------------------------------------------------
 ;;
-;; `lower-lambda` answers `(fail reason)`, or `(ok ir globals calls-unknown?
-;; captures?)`.
-
-(define (lowered-ir lowered) (cadr lowered))
-(define (lowered-globals lowered) (caddr lowered))
-(define (lowered-calls-unknown? lowered) (cadddr lowered))
-(define (lowered-captures? lowered) (car (cddddr lowered)))
+;; `lower-lambda` answers a `lowering-failure`, or a `lowered-lambda` (both in
+;; `ir.scm`).
 
 ;; /**
 ;;  * The first control-transferring global among some globals, or #f: the
@@ -106,13 +101,14 @@
 ;;  * switched back to its closure as the program runs (`note-resume` in
 ;;  * `tier.scm`).
 ;;  *
-;;  * @param {list} lowered - What `lower-lambda` answered.
+;;  * @param {lowered-lambda|lowering-failure} lowered - What `lower-lambda`
+;;  *   answered.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
 ;;  * @returns {string|boolean} The reason, or #f.
 ;;  */
 (define (lowering-decline lowered decline-captures?)
   (cond
-    ((eq? (car lowered) 'fail) (cadr lowered))
+    ((lowering-failure? lowered) (lowering-failure-reason lowered))
     ((control-global-in (lowered-globals lowered))
      => (lambda (g) (string-append "references control global '" (symbol->string g) "'")))
     ((and decline-captures? (lowered-captures? lowered))
@@ -246,7 +242,8 @@
 
 ;; /**
 ;;  * Generates a lowered procedure's JavaScript.
-;;  * @param {list} lowered - What `lower-lambda` answered.
+;;  * @param {lowered-lambda|lowering-failure} lowered - What `lower-lambda`
+;;  *   answered.
 ;;  * @param {string} name - The name to compile it under.
 ;;  * @param {procedure|boolean} closure - The closure it comes from, or #f.
 ;;  * @param {object} env - The environment it will run in.

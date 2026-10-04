@@ -3,9 +3,8 @@
  *
  * `ir.scm` works on Scheme data, because that is what a compiler written in
  * Scheme would be handed. The analyzer in front of it is still JavaScript, so
- * its output is converted on the way in. The IR is no longer converted on the
- * way out: code generation is Scheme too, and reads it as it is. `irToJs`
- * remains for tests that inspect the IR from JavaScript.
+ * its output is converted on the way in. The IR is not converted on the way
+ * out: code generation is Scheme too, and reads it as it is.
  *
  * This module is therefore a measure of how far the port has got: every field
  * it converts is a field two languages have to agree about. What is left of it
@@ -124,69 +123,3 @@ export function astToScheme(node) {
     `unsupported node: ${node?.constructor?.name ?? String(node)}`]);
 }
 
-/**
- * Converts an IR node produced by `ir.scm` into the object form the emitter
- * consumes.
- *
- * @param {*} ir - A Scheme IR node.
- * @returns {Object} The equivalent JavaScript IR node.
- */
-export function irToJs(ir) {
-  const tag = ir.car.name;
-  const f = toArray(ir.cdr);
-
-  switch (tag) {
-    case 'const':
-      return { k: 'const', value: f[0], tail: f[1] };
-    case 'local':
-      return { k: 'local', name: f[0].name, tail: f[1], callable: f[2] };
-    case 'global':
-      return { k: 'global', name: f[0].name, tail: f[1], callable: f[2] };
-    case 'if':
-      return {
-        k: 'if', test: irToJs(f[0]), then: irToJs(f[1]), else: irToJs(f[2]),
-        tail: f[3], callable: f[4]
-      };
-    case 'seq':
-      return {
-        k: 'seq', exprs: toArray(f[0]).map(irToJs), tail: f[1], callable: f[2]
-      };
-    case 'lambda':
-      return {
-        k: 'lambda',
-        params: toArray(f[0]).map((s) => s.name),
-        rest: f[1] === false ? null : f[1].name,
-        name: f[2] === false ? undefined : f[2],
-        body: irToJs(f[3]), tail: f[4], callable: f[5]
-      };
-    case 'let':
-      return {
-        k: 'let', name: f[0].name, init: irToJs(f[1]), body: irToJs(f[2]),
-        tail: f[3], callable: f[4]
-      };
-    case 'letrec':
-      return {
-        k: 'letrec',
-        names: toArray(f[0]).map((s) => s.name),
-        inits: toArray(f[1]).map(irToJs),
-        body: irToJs(f[2]), tail: f[3], callable: f[4],
-        inline: f[5] === true
-      };
-    case 'set':
-      return {
-        k: 'set', name: f[0].name, local: f[1], value: irToJs(f[2]), tail: f[3]
-      };
-    case 'define':
-      return { k: 'define', name: f[0].name, value: irToJs(f[1]), tail: f[2] };
-    case 'call':
-      // `loop` is absent on the calls the lowering synthesizes, which never loop.
-      return {
-        k: 'call', fn: irToJs(f[0]), args: toArray(f[1]).map(irToJs), tail: f[2],
-        loop: f[3] ? f[3].name : false
-      };
-    case 'capture':
-      return { k: 'capture', receiver: irToJs(f[0]), tail: f[1] };
-    default:
-      throw new Error(`irToJs: unknown IR tag '${tag}'`);
-  }
-}

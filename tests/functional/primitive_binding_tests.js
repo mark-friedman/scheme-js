@@ -25,7 +25,8 @@ import {
   registerPrimitive, noteBinding, primitiveCell
 } from '../../src/core/interpreter/primitive_bindings.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
-import { inlineExpansionNames } from '../../src/compiler/lowering.js';
+import { callCompiler } from '../../src/compiler/lowering.js';
+import { toArray } from '../../src/core/interpreter/cons.js';
 import { settle } from '../../src/compiler/runtime.js';
 
 /** @type {number} Makes each name from `freshName` distinct. */
@@ -142,7 +143,9 @@ export async function runPrimitiveBindingTests(logger) {
     // Starting an interpreter binds every primitive's name. None of those
     // bindings may count as a rebinding, or the shortcut would never be
     // available at all.
-    const before = inlineExpansionNames().filter((name) => primitiveCell(name).intact);
+    // The globals the compiler has an inline expansion for (`inline.scm`).
+    const inlined = toArray(callCompiler('inline-expansion-names', [])).map((symbol) => symbol.name);
+    const before = inlined.filter((name) => primitiveCell(name).intact);
     createInterpreter();
     const after = before.filter((name) => primitiveCell(name).intact);
     assert(logger, 'starting an interpreter rebinds no inlined primitive', after, before);

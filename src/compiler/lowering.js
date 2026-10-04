@@ -80,8 +80,6 @@ import { COMPILER_SOURCES } from '../packaging/compiler_sources.js';
 import prebuiltLibraries from '../packaging/compiled_libraries.js';
 import prebuiltCompiler from '../packaging/compiled_compiler.js';
 import { installLibraryTable, libraryRestorer } from './prebuilt.js';
-import { astToScheme, irToJs, toArray } from './marshal.js';
-import { intern } from '../core/interpreter/symbol.js';
 import { registerCompilerHost } from './host.js';
 import { setReentryPolicy } from '../core/interpreter/unwind.js';
 import { callSchemeProcedure } from '../core/interpreter/values.js';
@@ -118,8 +116,7 @@ function resolve(name) {
 
 /**
  * The compiler, bootstrapped on first use, or null if it could not be.
- * @type {{interpreter: Object, env: Object, exports: Map<string, Function>,
- *   inlineNames?: Array<string>}|null}
+ * @type {{interpreter: Object, env: Object, exports: Map<string, Function>}|null}
  */
 let pass = null;
 
@@ -211,40 +208,6 @@ export function compilerStartFailure() {
 }
 
 /**
- * Lowers a lambda to IR, reporting what it references: for tests that inspect
- * the lowering from JavaScript. The compiler's own driver calls `lower-lambda`
- * from Scheme.
- *
- * @param {Object} lambdaNode - An analyzed `LambdaNode`.
- * @returns {{schemeIr: *, ir: Object, globals: Set<string>, callsUnknown: boolean,
- *   captures: boolean}|{reason: string}} The IR -- as Scheme data for code
- *   generation, and as JavaScript objects on request -- with what it
- *   references, or why it could not be lowered.
- */
-export function lowerLambda(lambdaNode) {
-  const scheme = lowering();
-  if (scheme === null) {
-    return { reason: `the Scheme lowering could not start: ${bootstrapFailure}` };
-  }
-
-  const result = toArray(callSchemeProcedure(scheme.exports.get('lower-lambda'), [astToScheme(lambdaNode)]));
-  // Strings the compiler's Scheme made are Scheme strings, which may be
-  // objects; its JavaScript callers read them as JavaScript strings.
-  if (result[0].name === 'fail') return { reason: String(result[1]) };
-
-  const schemeIr = result[1];
-  return {
-    schemeIr,
-    // The IR as JavaScript objects, for tests that inspect it. Code generation
-    // reads the Scheme IR directly, so the conversion is only made if asked.
-    get ir() { return irToJs(schemeIr); },
-    globals: new Set(toArray(result[2]).map((symbol) => symbol.name)),
-    callsUnknown: result[3],
-    captures: result[4]
-  };
-}
-
-/**
  * The interpreter the compiler's Scheme runs in, and its library's own
  * environment, for tests that exercise its internal procedures directly.
  * @returns {{interpreter: Object, env: Object}} The pair.
@@ -254,32 +217,6 @@ export function compilerEnvironment() {
   const scheme = lowering();
   if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
   return { interpreter: scheme.interpreter, env: scheme.env };
-}
-
-/**
- * The JavaScript identifier generated code uses for a renamed Scheme local,
- * from `emit.scm`.
- * @param {string} name - A renamed Scheme identifier.
- * @returns {string} The identifier.
- */
-export function jsNameOf(name) {
-  const scheme = lowering();
-  if (scheme === null) throw new Error(`the Scheme compiler could not start: ${bootstrapFailure}`);
-  return String(callSchemeProcedure(scheme.exports.get('js-name'), [intern(name)]));
-}
-
-/**
- * The globals that have an inline expansion, from `inline.scm`.
- * @returns {Array<string>} Their names.
- */
-export function inlineExpansionNames() {
-  const scheme = lowering();
-  if (scheme === null) return [];
-  if (scheme.inlineNames === undefined) {
-    scheme.inlineNames = toArray(callSchemeProcedure(scheme.exports.get('inline-expansion-names'), []))
-      .map((s) => s.name);
-  }
-  return scheme.inlineNames;
 }
 
 /**
