@@ -11025,6 +11025,7 @@ two tests did, and they tested only the copies.
 `multi_interpreter_tests.js` loses its library-registry and feature-set tests and the assertion
 that `reset()` cleared the registry; `state_isolation_tests.js` loses its library-registry test.
 Their other assertions stay, under renumbered test comments. 8 assertions removed in all.
+`multi_interpreter_tests.js`'s `createMinimalInterpreter`, which nothing called, is gone too.
 
 ## Verification
 

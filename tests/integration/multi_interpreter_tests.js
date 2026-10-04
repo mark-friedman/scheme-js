@@ -9,18 +9,6 @@ import { InterpreterContext, globalContext } from '../../src/core/interpreter/co
 import { Interpreter } from '../../src/core/interpreter/interpreter.js';
 import { run, assert } from '../harness/helpers.js';
 
-/**
- * Creates a minimal interpreter for testing.
- * @param {InterpreterContext} [context] - Optional context
- * @returns {Object} Interpreter with run capability
- */
-function createMinimalInterpreter(context = null) {
-    const interpreter = new Interpreter(context);
-    // For now, this is a placeholder - full isolation requires threading context
-    // through all subsystems (analyzer, syntax_rules, etc.)
-    return interpreter;
-}
-
 export async function runMultiInterpreterTests(interpreter, logger) {
     logger.title('Multi-Interpreter Isolation Tests');
 
