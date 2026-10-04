@@ -27,7 +27,7 @@
     with-input-from-file with-output-to-file
     current-input-port current-output-port current-error-port
     read-char peek-char char-ready? read-line read-string
-    read-u8 peek-u8 u8-ready? read-bytevector read
+    read-u8 peek-u8 u8-ready? read-bytevector read-bytevector! read
     write-char write-string write-u8 write-bytevector
     newline display write write-simple write-shared flush-output-port
     memq memv member
@@ -51,7 +51,7 @@
     max min
     
     ;; GCD/LCM
-    gcd lcm
+    gcd lcm rationalize
     
     ;; Rounding
     round inexact->exact

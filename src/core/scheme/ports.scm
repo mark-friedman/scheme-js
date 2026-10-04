@@ -139,6 +139,34 @@
   (%u8-ready? (if (null? port) (the-current-input-port) (port-given "u8-ready?" port))))
 (define (read-bytevector k . port)
   (%read-bytevector k (if (null? port) (the-current-input-port) (port-given "read-bytevector" port))))
+
+;; /**
+;;  * Reads bytes from a binary input port into part of a bytevector
+;;  * (R7RS 6.13.2): as many as are there, up to the part's length.
+;;  * @param {bytevector} target - Where the bytes go.
+;;  * @param {port} [port] - The port; the current input port if left out.
+;;  * @param {integer} [start=0] - The first position of the part.
+;;  * @param {integer} [end] - The position after its last; the bytevector's
+;;  *   length if left out.
+;;  * @returns {integer|eof-object} How many bytes were read, or the end-of-file
+;;  *   object if the port had none.
+;;  */
+(define (read-bytevector! target . options)
+  (if (not (bytevector? target))
+      (error "read-bytevector!: expected bytevector" target))
+  (let* ((port (if (pair? options) (car options) (the-current-input-port)))
+         (bounds (if (pair? options) (cdr options) '()))
+         (start (if (pair? bounds) (car bounds) 0))
+         (end (if (and (pair? bounds) (pair? (cdr bounds))) (cadr bounds) (bytevector-length target))))
+    (if (and (pair? bounds) (pair? (cdr bounds)) (pair? (cddr bounds)))
+        (error "read-bytevector!: too many arguments" options))
+    (if (not (and (exact-integer? start) (exact-integer? end)
+                  (<= 0 start end (bytevector-length target))))
+        (error "read-bytevector!: range out of bounds" start end))
+    (let ((bytes (if (= start end) (bytevector) (%read-bytevector (- end start) port))))
+      (cond ((eof-object? bytes) bytes)
+            (else (bytevector-copy! target start bytes)
+                  (bytevector-length bytes))))))
 (define (read . port)
   (%read (if (null? port) (the-current-input-port) (port-given "read" port))))
 

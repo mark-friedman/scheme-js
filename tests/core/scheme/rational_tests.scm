@@ -199,4 +199,21 @@
       "94.7"
       (number->string (/ (round (* 1000.0 (/ 71 75))) 10))))
 
+  ;; Negation keeps exactness, and a flonum's sign: it was computed as zero
+  ;; minus the number, with an inexact zero.
+  (test-group "negation"
+    (test "an exact rational stays exact" '(-3/10 #t) (let ((n (- 3/10))) (list n (exact? n))))
+    (test "an exact integer stays exact" '(-3 #t) (let ((n (- 3))) (list n (exact? n))))
+    (test "an inexact number stays inexact" '(-1.5 #t) (let ((n (- 1.5))) (list n (inexact? n))))
+    (test "zero's sign flips" "-0.0" (number->string (- 0.0))))
+
+  ;; `exact` of a flonum that is not an integer is the rational it is: a
+  ;; flonum is a fraction over a power of two (R7RS 6.2.6).
+  (test-group "exact of a flonum"
+    (test "a half" 1/2 (exact 0.5))
+    (test "below zero" -5/2 (exact -2.5))
+    (test "a tenth, as the flonum holds it" 3602879701896397/36028797018963968 (exact 0.1))
+    (test "exact, and back again the same" #t (= 0.1 (inexact (exact 0.1))))
+    (test "an infinity is an error" 'raised (guard (e (#t 'raised)) (exact +inf.0))))
+
 ) ;; end test-group

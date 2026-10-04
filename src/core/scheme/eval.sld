@@ -1,14 +1,16 @@
 ;; (scheme eval) library
 ;;
-;; R7RS evaluation procedures.
-;; Note: environment procedure not fully supported - returns interaction environment.
+;; R7RS evaluation procedures (6.12).
 
 (define-library (scheme eval)
-  (import (scheme base))
+  (import (scheme base) (only (scheme primitives) %import-environment))
   (export eval environment)
   (begin
-    ;; eval and interaction-environment are already primitives
-    ;; environment returns the interaction-environment for now
-    ;; (R7RS allows implementation-defined behavior for environment)
-    (define (environment . import-specs)
-      (interaction-environment))))
+    ;; /**
+    ;;  * An environment holding what some import sets import, for `eval`
+    ;;  * (R7RS 6.12): `(eval '(+ 1 2) (environment '(scheme base)))`.
+    ;;  * @param {...list} sets - The import sets.
+    ;;  * @returns {environment}
+    ;;  */
+    (define (environment . sets)
+      (%import-environment sets))))

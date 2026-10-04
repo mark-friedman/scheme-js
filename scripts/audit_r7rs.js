@@ -24,7 +24,7 @@ import { createInterpreter } from '../src/core/interpreter/index.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { setFileResolver } from '../src/core/interpreter/library_loader.js';
-import { SCHEME_BASE, SCHEME_BASE_SYNTAX, OTHER_LIBRARIES, NON_BASE_SYNTAX } from './r7rs_identifiers.js';
+import { SCHEME_BASE, SCHEME_BASE_SYNTAX, OTHER_LIBRARIES, NON_BASE_SYNTAX, SCHEME_R5RS, R5RS_SYNTAX } from './r7rs_identifiers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.join(__dirname, '..');
@@ -83,7 +83,33 @@ function bootstrap() {
       unavailable.push({ library, detail: String(e.message).slice(0, 100) });
     }
   }
+  // Under a prefix, so that its names are its own and not the libraries'
+  // above.
+  try {
+    run(`(import (prefix (scheme r5rs) ${R5RS_PREFIX}))`);
+  } catch (e) {
+    unavailable.push({ library: '(scheme r5rs)', detail: String(e.message).slice(0, 100) });
+  }
   return { interpreter, env, run, unavailable };
+}
+
+/** The prefix `(scheme r5rs)` is imported under. */
+const R5RS_PREFIX = 'r5rs:';
+
+/**
+ * Whether `environment` makes an environment of its import sets (R7RS 6.12)
+ * rather than returning another: an identifier imported under a prefix is
+ * bound in it.
+ * @param {function(string): *} run - Source evaluator.
+ * @returns {string|null} What is wrong, or null.
+ */
+function checkEnvironment(run) {
+  try {
+    const value = run("(eval '(audit-b:car (audit-b:list 1)) (environment '(prefix (scheme base) audit-b:)))");
+    return value === 1n || value === 1 ? null : `evaluated to ${String(value)}`;
+  } catch (e) {
+    return `ignores its import sets: ${String(e.message).slice(0, 80)}`;
+  }
 }
 
 /**
@@ -149,8 +175,8 @@ const UNSAFE_TO_CALL = new Set([
  * @returns {string|null} A stub message, or null if the procedure looks real
  *   or was not safe to probe.
  */
-function detectStub(run, name) {
-  if (UNSAFE_TO_CALL.has(name)) return null;
+function detectStub(run, name, unprefixed = name) {
+  if (UNSAFE_TO_CALL.has(unprefixed)) return null;
   const STUB_PATTERN = /not (supported|implemented)|immutable in this implementation|unsupported/i;
   try {
     run(`(${name})`);
@@ -190,7 +216,8 @@ function main() {
   const groups = [
     { library: '(scheme base)', names: SCHEME_BASE, syntax: false },
     { library: '(scheme base) [syntax]', names: SCHEME_BASE_SYNTAX, syntax: true },
-    ...Object.entries(OTHER_LIBRARIES).map(([library, names]) => ({ library, names, syntax: false }))
+    ...Object.entries(OTHER_LIBRARIES).map(([library, names]) => ({ library, names, syntax: false })),
+    { library: '(scheme r5rs)', names: SCHEME_R5RS, syntax: false, prefix: R5RS_PREFIX, syntaxNames: R5RS_SYNTAX }
   ];
 
   const missing = [];
@@ -212,8 +239,9 @@ function main() {
   for (const group of groups) {
     const groupMissing = [];
     for (const name of group.names) {
-      const isSyntax = group.syntax || NON_BASE_SYNTAX.has(name);
-      const result = quietly(() => probe(run, name, isSyntax));
+      const isSyntax = group.syntax || NON_BASE_SYNTAX.has(name) || (group.syntaxNames?.has(name) ?? false);
+      const probed = (group.prefix ?? '') + name;
+      const result = quietly(() => probe(run, probed, isSyntax));
       if (result.status === 'missing') {
         groupMissing.push(result);
         missing.push({ ...result, library: group.library });
@@ -221,7 +249,7 @@ function main() {
         assumed++;
       } else {
         bound++;
-        const stub = quietly(() => detectStub(run, name));
+        const stub = quietly(() => detectStub(run, probed, name));
         if (stub) stubs.push({ name, library: group.library, detail: stub });
       }
     }
@@ -234,6 +262,9 @@ function main() {
       for (const m of groupMissing) console.log(`      - ${m.name}`);
     }
   }
+
+  const environmentProblem = quietly(() => checkEnvironment(run));
+  console.log(`  ${'environment, import sets'.padEnd(26)} ${environmentProblem === null ? 'honoured' : environmentProblem}`);
 
   console.log('');
   console.log(`bound: ${bound}   syntax assumed present: ${assumed}   missing: ${missing.length}`);
@@ -252,7 +283,7 @@ function main() {
 
   console.log('');
   console.log('--- JSON Results ---');
-  console.log(JSON.stringify({ bound, assumed, missing, stubs, unavailable }, null, 2));
+  console.log(JSON.stringify({ bound, assumed, missing, stubs, unavailable, environment: environmentProblem }, null, 2));
 }
 
 main();

@@ -185,4 +185,55 @@
                   (loop (quotient (* result b) (%gcd2 result b))
                         (cdr rest))))))))
 
+;; /**
+;;  * The simplest rational in a closed interval of positive exact rationals:
+;;  * the one with the smallest denominator, and of those the smallest
+;;  * numerator (R7RS 6.2.6). An integer in the interval is the smallest one;
+;;  * otherwise the interval's whole part, and the simplest rational of the
+;;  * interval its fractional parts' reciprocals make -- a continued fraction.
+;;  * @param {rational} lo - The lower bound, above zero.
+;;  * @param {rational} hi - The upper bound, at least `lo`.
+;;  * @returns {rational}
+;;  */
+(define (%simplest-positive lo hi)
+  (let ((whole (floor lo)))
+    (cond ((= whole lo) whole)
+          ((< whole (floor hi)) (+ whole 1))
+          (else (+ whole (/ (%simplest-positive (/ (- hi whole)) (/ (- lo whole)))))))))
+
+;; /**
+;;  * The simplest rational in a closed interval of exact rationals: zero if
+;;  * the interval holds it, and otherwise the simplest of its positive
+;;  * mirror, mirrored back.
+;;  * @param {rational} lo - The lower bound.
+;;  * @param {rational} hi - The upper bound, at least `lo`.
+;;  * @returns {rational}
+;;  */
+(define (%simplest lo hi)
+  (cond ((positive? lo) (%simplest-positive lo hi))
+        ((negative? hi) (- (%simplest-positive (- hi) (- lo))))
+        (else 0)))
+
+;; /**
+;;  * The simplest rational number differing from x by no more than y
+;;  * (R7RS 6.2.6), exact when both are: `(rationalize (exact .3) 1/10)` is
+;;  * 1/3, `(rationalize .3 1/10)` is #i1/3. It is found exactly, from the
+;;  * exact values of an inexact x and y, and made inexact last. An infinite x
+;;  * is its own answer; an infinite y makes any finite x zero.
+;;  * @param {real} x - The number.
+;;  * @param {real} y - The tolerance, whose sign does not matter.
+;;  * @returns {real}
+;;  */
+(define (rationalize x y)
+  (if (not (real? x)) (error "rationalize: expected real number" x))
+  (if (not (real? y)) (error "rationalize: expected real number" y))
+  (cond ((or (nan? x) (nan? y)) +nan.0)
+        ((infinite? y) (if (infinite? x) +nan.0 0.0))
+        ((infinite? x) x)
+        (else
+          (let* ((center (exact x))
+                 (radius (abs (exact y)))
+                 (simplest (%simplest (- center radius) (+ center radius))))
+            (if (and (exact? x) (exact? y)) simplest (inexact simplest))))))
+
 

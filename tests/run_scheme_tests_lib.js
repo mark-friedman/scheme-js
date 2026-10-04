@@ -76,6 +76,11 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     await loadLibrary(['scheme', 'file'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'read'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'write'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme', 'char'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme', 'complex'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme', 'cxr'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme', 'load'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme', 'r5rs'], analyze, interpreter, interpreter.globalEnv);
     applyImports(interpreter.globalEnv, baseExports, { libraryName: ['scheme', 'base'] });
     applyImports(interpreter.globalEnv, replExports, { libraryName: ['scheme', 'repl'] });
     applyImports(interpreter.globalEnv, caseLambdaExports, { libraryName: ['scheme', 'case-lambda'] });

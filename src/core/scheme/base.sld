@@ -29,7 +29,7 @@
     ;; Numbers - operations
     abs quotient remainder modulo
     floor ceiling truncate round
-    max min gcd lcm
+    max min gcd lcm rationalize
     expt sqrt square
     exact-integer-sqrt
     exact inexact
@@ -132,7 +132,7 @@
     
     ;; I/O - Binary Input
     read-u8 peek-u8 u8-ready?
-    read-bytevector
+    read-bytevector read-bytevector!
     
     ;; I/O - Output
     write-char write-string

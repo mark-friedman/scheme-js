@@ -408,9 +408,12 @@ export const mathPrimitives = {
         assertNumber('-', 1, first);
         rest.forEach((arg, i) => assertNumber('-', i + 2, arg));
         if (rest.length === 0) {
-            // Negation: preserve exactness
-            if (typeof first === 'bigint') return -first;
-            return genericSub(0, first);
+            // Negation, by representation: zero minus the number would make
+            // an exact rational inexact, with an inexact zero, and lose the
+            // sign of a flonum zero.
+            if (typeof first === 'bigint' || typeof first === 'number') return -first;
+            if (isRational(first)) return first.negate();
+            return genericSub(0n, first);
         }
         return rest.reduce((a, b) => genericSub(a, b), first);
     },
@@ -1198,8 +1201,11 @@ export const mathPrimitives = {
     },
 
     /**
-     * Converts a number to its exact equivalent if possible.
-     * Number (integer) -> BigInt, Rational -> Rational with exact=true
+     * Converts a number to its exact equivalent (R7RS 6.2.6): an integral
+     * flonum to an exact integer, any other finite flonum to the exact
+     * rational it is, `(exact 0.5)` 1/2 and `(exact 0.1)`
+     * 3602879701896397/36028797018963968, an inexact rational to the same
+     * value exact.
      * @param {number|bigint|Rational|Complex} z - Number to convert.
      * @returns {bigint|Rational|Complex} Exact equivalent.
      */
@@ -1212,11 +1218,21 @@ export const mathPrimitives = {
             if (Number.isInteger(z)) {
                 return BigInt(z);  // Number -> BigInt
             }
-            // For non-integers, convert to rational
-            // Use a simple algorithm: multiply by power of 2 to eliminate fractional bits
-            // For now, use a simpler approach: round to integer
-            // TODO: implement proper float-to-rational conversion
-            throw new Error('exact: cannot convert inexact non-integer to exact');
+            if (!Number.isFinite(z)) {
+                throw new Error('exact: an infinity or NaN has no exact equivalent');
+            }
+            // A flonum is a dyadic rational. Doubling one is exact in binary
+            // floating point, so doubling it until it is an integer gives its
+            // numerator over a power of two: at most 1,074 times, for the
+            // smallest subnormal, and never past 2^53, since a flonum that is
+            // not an integer is below 2^52.
+            let numerator = z;
+            let denominator = 1n;
+            while (!Number.isInteger(numerator)) {
+                numerator *= 2;
+                denominator *= 2n;
+            }
+            return new Rational(BigInt(numerator), denominator, true);
         }
         if (isRational(z)) {
             // Return with exact=true

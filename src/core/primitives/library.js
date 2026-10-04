@@ -58,6 +58,21 @@ function stringsOf(strings) {
     return toArray(strings).map(stringValue);
 }
 
+/**
+ * A new environment for a library, or for what `environment` makes, inside
+ * the one given: with a fresh scope of its own, which the keywords imported
+ * into it are bound under and the definitions made in it are noted in.
+ * @param {Environment} base - The environment it is inside.
+ * @returns {Environment}
+ */
+export function makeScopedEnvironment(base) {
+    const env = new Environment(base);
+    const scope = globalContext.freshScope();
+    globalContext.registerLibraryScope(scope, env);
+    env.libraryScope = scope;
+    return env;
+}
+
 export const libraryPrimitives = {
     /**
      * The file a path names, from the host's resolver, or #f if the resolver
@@ -91,11 +106,8 @@ export const libraryPrimitives = {
      * the keywords they rename under and its body's definitions are made in.
      */
     '%make-library-environment': (base, name) => {
-        const env = new Environment(base);
+        const env = makeScopedEnvironment(base);
         env.libraryName = stringsOf(name);
-        const scope = globalContext.freshScope();
-        globalContext.registerLibraryScope(scope, env);
-        env.libraryScope = scope;
         return env;
     },
 

@@ -11770,3 +11770,58 @@ still shadows, in a lambda with no parameters too.
 
 7,713 tests pass in Node with none failing (33 skipped), and 7,501 in the browser with none failing
 (55 skipped). `run_tier.js --set corpus,tests,page` finds no answer changed and nothing broken.
+
+# Task 56 done: the rest of R7RS-small's identifiers and libraries (2026-10-04)
+
+`npm run audit:r7rs` listed five identifiers missing and one library, and did not look at
+`(scheme r5rs)` or at what `environment` does with its import sets. All are there now, and the audit
+checks both: every library's identifiers bound, `(scheme r5rs)`'s 221 under a prefix of their own,
+and `environment` honouring its import sets.
+
+- **`rationalize`** (`numbers.scm`): the simplest rational within the tolerance, by continued
+  fractions, found exactly and made inexact if either argument is; an infinite number is its own
+  answer, an infinite tolerance makes a finite one zero.
+- **`read-bytevector!`** (`ports.scm`): over `read-bytevector`, into part of a bytevector.
+- **`open-binary-input-file` and `open-binary-output-file`** (`file_port.js`): the bytevector ports
+  over a file read whole, and over a buffer appended to the file when flushed or closed -- host
+  input and output, as the textual file ports are.
+- **`(scheme load)`** (`load.scm`): `load` reads a file's forms and evaluates each, in the
+  interaction environment or the one given, with `read` and `eval`.
+- **`environment`** makes a new environment, imports its sets into it through the library system
+  as an `import` form does (`%import-environment`), and `eval` analyzes under the environment's
+  scope, so the macros it imported are found. It was the interaction environment. It is inside the
+  global one, as every library's environment is (85).
+- **`(scheme r5rs)`** (`r5rs.sld`): R7RS Appendix A's list, `exact` and `inexact` as
+  `inexact->exact` and `exact->inexact`, and `scheme-report-environment` and `null-environment` as
+  environments of `(scheme r5rs)` and of its keywords.
+
+Writing the tests found two bugs in the numeric tower, both fixed in place in `math.js`: `exact` of a
+flonum that is not an integer raised "cannot convert inexact non-integer to exact" -- a TODO -- and
+now gives the dyadic rational the flonum is, `(exact 0.1)` 3602879701896397/36028797018963968; and
+negation computed zero minus the number, with an inexact zero, so `(- 3/10)` was inexact and `(- 0.0)`
+lost its sign. The `(exact .3)` the tests began with had passed only because the reader keeps `.3` as
+an inexact rational rather than a flonum.
+
+`ROADMAP.md`'s known deviations were three fixed since -- `equal?` on circular structure, the file
+procedures' exactness, the current ports as parameters -- and now name the one left, visibility.
+
+The JavaScript, and why: the binary file ports, host input and output (76 lines); `exact` and
+negation, the primitives on the representation, fixed in place; `%import-environment` and `eval`'s
+scope, the evaluator's and the library system's door; a helper making a scoped environment, shared
+by it and the library system's primitive. 157 lines added and 18 removed, many of them comments;
+Scheme 187 added and 12 removed.
+
+## Tests
+
+`r7rs_remaining_tests.scm`: `rationalize` by R7RS's examples and the infinities; `read-bytevector!`
+into a range, short reads, the end of the port, an empty range and errors; the binary file ports
+reading back what was written, binary and not textual (Node); `load`, in order and into an
+environment given (Node); `environment` with filters, macros imported and renamed, several sets, a
+new one each time; and `(scheme r5rs)`'s renamed procedures and environments. `rational_tests.scm`:
+negation's exactness and sign, and `exact` of flonums. `eval_tests.scm` had pinned `environment`
+returning the interaction environment, and now says it does not.
+
+## Verification
+
+7,763 tests pass in Node with none failing (33 skipped), and 7,547 in the browser with none
+failing (55 skipped). `npm run audit:r7rs` reports nothing missing.

@@ -86,11 +86,10 @@ for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### Close the known R7RS-small deviations
 
-`equal?` does not terminate on circular structure, which R7RS §6.1 requires. The file procedures
-(`call-with-input-file` and the rest) return an exact integer the procedure returned as inexact.
-And `current-input-port`, `current-output-port` and `current-error-port` are procedures rather than
-parameter objects, so `parameterize` of one has no effect: the program goes on reading and writing
-the port it had.
+Every identifier and library R7RS-small names is bound (`npm run audit:r7rs`, `(scheme r5rs)`
+included). What remains is visibility: a program or library sees what it imports and also everything
+else, since every environment is inside the global one, so `only` and `except` hide nothing and an
+`environment` is not empty but for its import sets (planned in `docs/compiler_plan.md`, 85).
 
 ### Numeric performance
 

@@ -5,7 +5,9 @@ import {
 } from './ports.js';
 import { StringInputPort, StringOutputPort } from './string_port.js';
 import { BytevectorInputPort, BytevectorOutputPort } from './bytevector_port.js';
-import { FileInputPort, FileOutputPort, fileExists, deleteFile } from './file_port.js';
+import {
+    FileInputPort, FileOutputPort, BinaryFileInputPort, BinaryFileOutputPort, fileExists, deleteFile
+} from './file_port.js';
 import { ConsoleOutputPort } from './console_port.js';
 import { standardInputPort } from './stdin_port.js';
 import { standardOutputPort, standardErrorPort } from './stdout_port.js';
@@ -148,6 +150,16 @@ export const ioPrimitives = {
     'open-output-file': (filename) => {
         filename = textOf(filename, 'open-output-file');
         return new FileOutputPort(filename);
+    },
+
+    'open-binary-input-file': (filename) => {
+        filename = textOf(filename, 'open-binary-input-file');
+        return new BinaryFileInputPort(filename);
+    },
+
+    'open-binary-output-file': (filename) => {
+        filename = textOf(filename, 'open-binary-output-file');
+        return new BinaryFileOutputPort(filename);
     },
 
     'file-exists?': (filename) => {

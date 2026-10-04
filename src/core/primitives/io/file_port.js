@@ -1,5 +1,6 @@
 import { Port } from './ports.js';
 import { StringInputPort } from './string_port.js';
+import { BytevectorInputPort, BytevectorOutputPort } from './bytevector_port.js';
 
 // ============================================================================
 // Environment Detection
@@ -120,6 +121,81 @@ export class FileOutputPort extends Port {
 
     toString() {
         return `#<file-output-port:${this._filename}:${this._open ? 'open' : 'closed'}>`;
+    }
+}
+
+/**
+ * Binary file input port - reads a file's bytes (Node.js only). The file is
+ * read whole when the port is opened, and read from as a bytevector port
+ * reads its bytevector.
+ */
+export class BinaryFileInputPort extends BytevectorInputPort {
+    /**
+     * @param {string} filename - Path to the file.
+     */
+    constructor(filename) {
+        if (!isNode || !fs) {
+            throw new Error('open-binary-input-file: file I/O not supported in browser');
+        }
+        let content;
+        try {
+            content = fs.readFileSync(filename);
+        } catch (e) {
+            throw new Error(`open-binary-input-file: cannot open file ${filename}: ${e.message}`);
+        }
+        super(new Uint8Array(content.buffer, content.byteOffset, content.length));
+        this._filename = filename;
+    }
+
+    toString() {
+        return `#<binary-file-input-port:${this._filename}:${this._open ? 'open' : 'closed'}>`;
+    }
+}
+
+/**
+ * Binary file output port - writes bytes to a file (Node.js only), as a
+ * bytevector port collects them, and appends them to the file when flushed or
+ * closed.
+ */
+export class BinaryFileOutputPort extends BytevectorOutputPort {
+    /**
+     * @param {string} filename - Path to the file.
+     */
+    constructor(filename) {
+        super();
+        if (!isNode || !fs) {
+            throw new Error('open-binary-output-file: file I/O not supported in browser');
+        }
+        this._filename = filename;
+        try {
+            fs.writeFileSync(filename, new Uint8Array(0));
+        } catch (e) {
+            throw new Error(`open-binary-output-file: cannot open file ${filename}: ${e.message}`);
+        }
+    }
+
+    /**
+     * Appends the bytes written since the last flush to the file.
+     */
+    flush() {
+        if (this._buffer.length > 0) {
+            fs.appendFileSync(this._filename, Uint8Array.from(this._buffer));
+            this._buffer = [];
+        }
+    }
+
+    /**
+     * Closes the port, writing what remains.
+     */
+    close() {
+        if (this._open) {
+            this.flush();
+            this._open = false;
+        }
+    }
+
+    toString() {
+        return `#<binary-file-output-port:${this._filename}:${this._open ? 'open' : 'closed'}>`;
     }
 }
 

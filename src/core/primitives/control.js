@@ -10,6 +10,9 @@ import { analyze } from '../interpreter/analyzer.js';
 import { Cons, toArray } from '../interpreter/cons.js';
 import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
+import { globalContext } from '../interpreter/context.js';
+import { importLibraries } from '../interpreter/library_loader.js';
+import { makeScopedEnvironment } from './library.js';
 
 /**
  * Returns control primitives.
@@ -106,11 +109,31 @@ export function getControlPrimitives(interpreter) {
         },
 
         /**
-         * eval: Evaluate an expression in an environment.
+         * eval: Evaluate an expression in an environment. One that has a
+         * scope of its own -- what `environment` makes -- has the expression
+         * analyzed under it, so that the keywords imported into it are found.
          */
         'eval': (expr, env) => {
-            const ast = analyze(expr);
-            return new TailCall(ast, env);
+            const scope = env?.libraryScope;
+            if (scope === undefined) return new TailCall(analyze(expr), env);
+            globalContext.pushDefiningScope(scope);
+            try {
+                return new TailCall(analyze(expr), env);
+            } finally {
+                globalContext.popDefiningScope();
+            }
+        },
+
+        /**
+         * The environment `environment` returns (R7RS 6.12): a new one, with
+         * the import sets imported into it by the library system, as an
+         * `import` form's are. It is inside the global environment, as every
+         * library's environment is.
+         */
+        '%import-environment': (sets) => {
+            const env = makeScopedEnvironment(interpreter.globalEnv);
+            importLibraries(toArray(sets), analyze, interpreter, env);
+            return env;
         },
 
         /**

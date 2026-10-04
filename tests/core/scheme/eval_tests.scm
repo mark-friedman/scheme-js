@@ -63,10 +63,9 @@
     (not (eq? (interaction-environment) #f))
     #t)
   
-  (test "environment returns interaction-environment"
-    ;; Our implementation returns interaction-environment
-    (eq? (environment) (interaction-environment))
-    #t)
+  (test "environment makes an environment of its import sets, not the interaction environment"
+    #f
+    (eq? (environment '(scheme base)) (interaction-environment)))
   
   ;; ===== eval with quasiquote =====
   
