@@ -11570,3 +11570,14 @@ characters `callSchemeProcedure` gives as a Scheme string.
 failing. `run_self_host.js` agrees on all 1,010 lambdas; `run_hash_tables.js` runs as before. Lines
 under `src/`: JavaScript 49 added, 32 removed -- each entry point getting the exports and declining
 if the compiler did not start, which `callCompiler` did once for all of them -- and no Scheme.
+
+# Task 61 decided against: the primitives stay JavaScript (2026-10-03)
+
+Before porting `string.js`, what the port would cost was measured (R113): over only `string-length`,
+`string-ref`, `string-set!` and `make-string`, compiled Scheme made `string-append` 66x slower,
+`substring` 22x and `string=?` 40x; over cores doing the work on the whole string, the Scheme would
+only check arguments, at 1.0-2.4x. The procedures that take a procedure are Scheme already, and no
+primitive calls Scheme back. Decided with the user: the primitives stay JavaScript, and a procedure
+above them, or one that would call Scheme back, is Scheme. `.agent/rules/rules.md` (`CLAUDE.md`)
+says so under *What may be JavaScript*; the plan drops 61 into *Decided*, points 56 at the
+primitives, and marks 65, the numeric primitives, to be re-decided the same way before it starts.

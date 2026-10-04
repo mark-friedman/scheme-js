@@ -3296,3 +3296,18 @@ leaves a pair and a record as they are -- and the compiler answers with records 
 records. So `index.js` still reads each record into the object its callers use, and calls the
 exports with `callSchemeProcedure`, which converts nothing, as JavaScript holding Scheme values
 should; only `js-name`, answering a string, is called plainly, by a test.
+
+**R113. Most of `string.js` was the representation, not logic above it.**
+
+Task 61 was to move `string.js` into Scheme, keeping as JavaScript only "the representation":
+`string-length`, `string-ref`, `string-set!`, `make-string`, the boundary conversions and the case
+tables. Measured under the tier, compiled, with 20- and 23-character strings: `string-append` written
+over those in Scheme took 3,970 ns against the primitive's 60, `substring` 1,300 against 60, and
+`string=?` 2,825 against 70. A string keeps its JavaScript text until it is changed, and the
+operations on a whole string -- joining, slicing, comparing -- are JavaScript's own and cheap on
+it; done a character at a time they give that up, and no code generation can win it back. Written
+in Scheme around cores that keep those whole-string operations, `string-append` took 52 ns for two
+strings and 112 for the n-ary form, and `substring` 142: what would move is the argument checking.
+
+*Consequence:* decided with the user, the primitives stay JavaScript, and the rule says so; what
+is above them, and anything that would call Scheme back from JavaScript, is Scheme.
