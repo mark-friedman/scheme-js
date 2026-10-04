@@ -5,8 +5,11 @@
  * and the files beside it, what to compile and why not in `driver.scm` and
  * `safety.scm`, and when, for a program's own code, in `tier.scm`. This module
  * is the door into all of it: it starts the Scheme interpreter the compiler
- * runs in, and calls its entry points (`callCompiler`), for `index.js` and
- * `tiering.js`, and for tests that lower a lambda and inspect the IR.
+ * runs in and hands out its entry points (`compilerExports`), which
+ * `index.js`, `tiering.js` and the tests call as JavaScript calls any Scheme
+ * procedure -- with `callSchemeProcedure`, holding Scheme values, or by a
+ * procedure's plain call. It calls none of them itself, beyond what starting
+ * the compiler needs.
  *
  * ## Why the pass is Scheme
  *
@@ -220,15 +223,12 @@ export function compilerEnvironment() {
 }
 
 /**
- * Calls one of the compiler's entry points, starting the compiler if it has
- * not started.
- * @param {string} name - The entry point, as `compiler.sld` exports it.
- * @param {Array<*>} args - Its arguments, as Scheme values.
- * @returns {*} Its result; `undefined` if the compiler could not start, which
- *   `compilerStartFailure` says why.
+ * The compiler's entry points, starting the compiler if it has not started:
+ * the procedures `compiler.sld` exports, by name.
+ * @returns {Map<string, Function>|null} The entry points; null if the compiler
+ *   could not start, which `compilerStartFailure` says why.
  */
-export function callCompiler(name, args) {
+export function compilerExports() {
   const scheme = lowering();
-  if (scheme === null) return undefined;
-  return callSchemeProcedure(scheme.exports.get(name), args);
+  return scheme === null ? null : scheme.exports;
 }

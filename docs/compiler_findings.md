@@ -3286,3 +3286,13 @@ against about the search's own; programs just do not escape often.
 evidence to rank it higher. If they come back, the scope that matters is the callback's, which
 needs to know what a callee does with its procedure argument, and the cost to beat is a few
 milliseconds a program.
+
+**R112. The plain call would not have reshaped the compiler's results.**
+
+Task 75 expected that once `index.js` called the compiler's exports through the public interop,
+"most of its reshaping of results goes with them": the plain call converts a result for
+JavaScript. It converts a string, an exact integer and a vector, at any depth of vectors, and
+leaves a pair and a record as they are -- and the compiler answers with records and lists of
+records. So `index.js` still reads each record into the object its callers use, and calls the
+exports with `callSchemeProcedure`, which converts nothing, as JavaScript holding Scheme values
+should; only `js-name`, answering a string, is called plainly, by a test.

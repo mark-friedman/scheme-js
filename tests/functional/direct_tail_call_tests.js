@@ -21,6 +21,7 @@ import { analyze } from '../../src/core/interpreter/analyzer.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
 import { invoke, settle, stack, TailCall } from '../../src/compiler/runtime.js';
+import { callSchemeProcedure } from '../../src/core/interpreter/values.js';
 
 /**
  * Compiles one definition into an environment.
@@ -134,7 +135,7 @@ export async function runDirectTailCallTests(logger) {
     compile('(define (wide-again n) (wide n))', env);
     let outcome;
     try {
-      outcome = settle(invoke(env.lookup('wide'), [20000n]));
+      outcome = callSchemeProcedure(env.lookup('wide'), [20000n]);
     } catch (e) {
       outcome = e.message;
     }

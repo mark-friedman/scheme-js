@@ -38,7 +38,7 @@ import { createBenchmarkInterpreter, PROJECT_ROOT } from './lib/harness.js';
 import { compileEnvironment, tryCompileDefinition } from '../src/compiler/index.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
-import { invoke, settle } from '../src/compiler/runtime.js';
+import { callSchemeProcedure } from '../src/core/interpreter/values.js';
 
 const args = process.argv.slice(2);
 const valueOf = (flag, fallback) => {
@@ -146,10 +146,8 @@ function build(size, compileLibrary) {
  * @returns {number}
  */
 function time(loop) {
-  // `invoke` enters the procedure the way compiled code calls it and `settle`
-  // runs its tail calls to the end; calling it as a JavaScript function would
-  // return its first tail call unrun.
-  const call = (n) => settle(invoke(loop, [BigInt(n)]));
+  // Called with Scheme values, and its result left one: an exact integer.
+  const call = (n) => callSchemeProcedure(loop, [BigInt(n)]);
   const expected = BigInt(OPS);
   call(OPS / 10);
   let best = Infinity;

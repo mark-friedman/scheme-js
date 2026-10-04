@@ -11,7 +11,8 @@
  * it to the interpreter.
  */
 
-import { callCompiler } from './lowering.js';
+import { compilerExports } from './lowering.js';
+import { callSchemeProcedure } from '../core/interpreter/values.js';
 
 /**
  * Attaches a compiler tier to a program's interpreter, so that the program's
@@ -34,9 +35,11 @@ import { callCompiler } from './lowering.js';
  *   interpreted, which is a tier and not a failure.
  */
 export function attachTier(interpreter, env, options = {}) {
-  const tier = callCompiler('make-tier',
+  const compiler = compilerExports();
+  if (compiler === null) return null;
+  const tier = callSchemeProcedure(compiler.get('make-tier'),
     [interpreter, env, options.isPrebuilt ?? (() => false), options.declineCaptures === true, new Map()]);
-  if (!tier) return null;
+  if (tier === false) return null;
   interpreter.tier = tier;
   return tier;
 }

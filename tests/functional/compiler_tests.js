@@ -22,7 +22,7 @@ import {
   interpretedLibrary, standardLibraryFingerprint, STANDARD_LIBRARY_TABLE as PREBUILT
 } from '../harness/standard_library.js';
 import { unsafeDefinitions } from '../../src/compiler/index.js';
-import { callCompiler } from '../../src/compiler/lowering.js';
+import { compilerExports } from '../../src/compiler/lowering.js';
 import { Cons } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
@@ -1791,9 +1791,10 @@ export async function runCompilerTests(interpreter, logger) {
           env.define(result.name, result.procedure);
           procedure = result.procedure;
           // The analyzed lambda's parameters, renamed, as generated code
-          // names them (`js-name` in emit.scm).
+          // names them (`js-name` in emit.scm), whose plain call gives a
+          // JavaScript string.
           const lambda = ast.valueExpr ?? ast.value;
-          const jsName = (name) => String(callCompiler('js-name', [intern(name)]));
+          const jsName = (name) => compilerExports().get('js-name')(intern(name));
           hasRest = Boolean(lambda.restParam);
           params = [...lambda.params.map(jsName), ...(hasRest ? [jsName(lambda.restParam)] : [])];
         } else {

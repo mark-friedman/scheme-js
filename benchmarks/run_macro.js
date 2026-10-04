@@ -43,7 +43,7 @@ import { instrumentInterpreter } from '../src/debug/instrumentation.js';
 import { tryCompileClosure, tryCompileDefinition } from '../src/compiler/index.js';
 import { unsafeDefinitions } from '../src/compiler/index.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
-import { callCompiler } from '../src/compiler/lowering.js';
+import { compilerExports } from '../src/compiler/lowering.js';
 import { toArray } from '../src/core/interpreter/cons.js';
 
 const PROJECT_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -299,7 +299,7 @@ async function runOnce(workload, useCompiler, instrument) {
  */
 function coverage(counts) {
   // The globals the compiler has an inline expansion for (`inline.scm`).
-  const expanded = toArray(callCompiler('inline-expansion-names', [])).map((symbol) => symbol.name);
+  const expanded = toArray(compilerExports().get('inline-expansion-names')()).map((symbol) => symbol.name);
   const calls = [...counts.values()].reduce((a, b) => a + b, 0);
   const inlined = [...counts.entries()]
     .filter(([name]) => expanded.includes(name))

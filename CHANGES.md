@@ -11534,3 +11534,39 @@ removed: outside `ctak` and `fibc`, which pass `k` on, no program captures more 
 each capture unwinding about two compiled frames. `puzzle` written without its capture is 10%
 faster, the most the fast path could give it. Findings R111; 37 and 38 move down beside 54 in the
 plan, and 75 is next. Nothing under `src/` changed.
+
+# Task 75 done: one thin door into the compiler (2026-10-03)
+
+`lowering.js` called the compiler's Scheme for everyone through `callCompiler(name, args)`, an
+internal procedure. It now only starts the compiler and hands out its entry points,
+`compilerExports()`: the procedures `compiler.sld` exports, by name, or null if the compiler could
+not start. Everything that calls them calls them as JavaScript calls any Scheme procedure, through
+the public interop task 72 made:
+
+- `index.js`'s entry points and `tiering.js`'s `attachTier` call them with `callSchemeProcedure`,
+  holding Scheme values, each declining as before when the compiler could not start.
+- `compiler_tests.js` asks for a parameter's JavaScript name by `js-name`'s plain call, which gives
+  it a JavaScript string; `primitive_binding_tests.js` and `run_macro.js` call
+  `inline-expansion-names` plainly too.
+- `run_self_host.js`, `run_hash_tables.js` and `direct_tail_call_tests.js` called compiled
+  procedures with the runtime's `settle(invoke(...))`, the way compiled code calls; they use
+  `callSchemeProcedure`. `deep_recursion_tests.js` keeps them, since it tests the runtime's state
+  outside any run of the interpreter, which `callSchemeProcedure` would start.
+
+The plan expected most of `index.js`'s reshaping of results to go too (R112): the plain call's
+conversion leaves records and lists alone, and the compiler answers with them, so it stays.
+`CLAUDE.md` and the head of the plan now say the compiler's Scheme is called through the public
+interop, `lowering.js` handing out its exports; `architecture.md` and `compiler_design.md` follow.
+
+## Tests
+
+`prebuilt_library_tests.js`, first: the compiler's entry points are its library's own exports, and
+a plain call to one converts its result for JavaScript -- `js-name` gives a JavaScript string, the
+characters `callSchemeProcedure` gives as a Scheme string.
+
+## Verification
+
+7,664 tests pass in Node with none failing (33 skipped), and 7,452 in the browser with none
+failing. `run_self_host.js` agrees on all 1,010 lambdas; `run_hash_tables.js` runs as before. Lines
+under `src/`: JavaScript 49 added, 32 removed -- each entry point getting the exports and declining
+if the compiler did not start, which `callCompiler` did once for all of them -- and no Scheme.

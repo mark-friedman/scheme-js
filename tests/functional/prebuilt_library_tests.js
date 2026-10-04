@@ -27,8 +27,10 @@ import { Environment } from '../../src/core/interpreter/environment.js';
 import { generateEnvironment } from '../../src/compiler/index.js';
 import { installLibraryTable, libraryRestorer, fingerprintSources, RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
 import {
-  compilerEnvironment, compilerSourceOf, COMPILER_LIBRARY
+  compilerEnvironment, compilerExports, compilerSourceOf, COMPILER_LIBRARY
 } from '../../src/compiler/lowering.js';
+import { callSchemeProcedure } from '../../src/core/interpreter/values.js';
+import { intern } from '../../src/core/interpreter/symbol.js';
 import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 import LIBRARIES from '../../src/packaging/compiled_libraries.js';
 import COMPILER from '../../src/packaging/compiled_compiler.js';
@@ -397,5 +399,16 @@ export async function runPrebuiltLibraryTests(logger) {
       !isLibraryLoaded('srfi.1') || getLibraryExports('srfi.1').get('fold') !== env.lookup('fold'), true);
     assert(logger, "the compiler's library is not the program's to find",
       isLibraryLoaded('scheme-js.compiler'), false);
+
+    // JavaScript reaches the compiler only by its exports, and calls them as
+    // it calls any Scheme procedure: through the public interop.
+    const exports = compilerExports();
+    assert(logger, 'its entry points are its library\'s exports',
+      ['compile-definition', 'make-tier', 'js-name'].map((name) => exports.get(name) === env.lookup(name)),
+      [true, true, true]);
+    assert(logger, 'called by a plain call, which converts its result for JavaScript',
+      exports.get('js-name')(intern('x_$1')), callSchemeProcedure(exports.get('js-name'), [intern('x_$1')]).toString());
+    assert(logger, 'and so a JavaScript string',
+      typeof exports.get('js-name')(intern('x_$1')), 'string');
   }
 }

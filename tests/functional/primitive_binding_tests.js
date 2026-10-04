@@ -25,7 +25,7 @@ import {
   registerPrimitive, noteBinding, primitiveCell
 } from '../../src/core/interpreter/primitive_bindings.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
-import { callCompiler } from '../../src/compiler/lowering.js';
+import { compilerExports } from '../../src/compiler/lowering.js';
 import { toArray } from '../../src/core/interpreter/cons.js';
 import { settle } from '../../src/compiler/runtime.js';
 
@@ -144,7 +144,7 @@ export async function runPrimitiveBindingTests(logger) {
     // bindings may count as a rebinding, or the shortcut would never be
     // available at all.
     // The globals the compiler has an inline expansion for (`inline.scm`).
-    const inlined = toArray(callCompiler('inline-expansion-names', [])).map((symbol) => symbol.name);
+    const inlined = toArray(compilerExports().get('inline-expansion-names')()).map((symbol) => symbol.name);
     const before = inlined.filter((name) => primitiveCell(name).intact);
     createInterpreter();
     const after = before.filter((name) => primitiveCell(name).intact);

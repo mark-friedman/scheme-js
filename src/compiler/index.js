@@ -10,9 +10,11 @@
  * the execution mode for contexts where generating code is not allowed.
  *
  * What to compile, and why not, is decided in the compiler's Scheme
- * (`driver.scm` and `safety.scm`). Each entry point here hands its arguments
- * across and reads the records that come back -- a record is an object with a
- * property per field -- into the plain objects JavaScript callers use.
+ * (`driver.scm` and `safety.scm`). Each entry point here calls one of the
+ * compiler's exports, as any JavaScript holding Scheme values calls Scheme,
+ * with `callSchemeProcedure`, and reads the records that come back -- a record
+ * is an object with a property per field -- into the plain objects JavaScript
+ * callers use.
  *
  * A compiled procedure keeps the interpreter's value representation and calls
  * the interpreter's own primitives, so the two tiers interoperate without any
@@ -20,8 +22,9 @@
  */
 
 import * as R from './runtime.js';
-import { callCompiler, compilerStartFailure } from './lowering.js';
+import { compilerExports, compilerStartFailure } from './lowering.js';
 import { toArray } from './marshal.js';
+import { callSchemeProcedure } from '../core/interpreter/values.js';
 
 export { runCompiledThunk } from './host.js';
 
@@ -61,12 +64,10 @@ const notStarted = () => `the Scheme compiler could not start: ${compilerStartFa
 
 /**
  * A `compiled` or `declined` record as a `CompileResult`.
- * @param {Object|undefined} outcome - The record, or undefined if the compiler
- *   could not start.
+ * @param {Object} outcome - The record.
  * @returns {CompileResult}
  */
 function resultOf(outcome) {
-  if (outcome === undefined) return { compiled: false, reason: notStarted() };
   if (outcome.procedure !== undefined) {
     return { compiled: true, name: text(outcome.name), procedure: outcome.procedure, source: text(outcome.source) };
   }
@@ -90,7 +91,10 @@ const declinesOf = (declines) => toArray(declines).map((d) => ({ name: text(d.na
  * @returns {CompileResult} The outcome.
  */
 export function tryCompileDefinition(ast, env, options = {}) {
-  return resultOf(callCompiler('compile-definition', [ast, env, options.declineCaptures === true]));
+  const compiler = compilerExports();
+  if (compiler === null) return { compiled: false, reason: notStarted() };
+  return resultOf(callSchemeProcedure(compiler.get('compile-definition'),
+    [ast, env, options.declineCaptures === true]));
 }
 
 /**
@@ -103,7 +107,10 @@ export function tryCompileDefinition(ast, env, options = {}) {
  * @returns {CompileResult} The outcome; `procedure` is the thunk.
  */
 export function tryCompileExpression(ast, env, options = {}) {
-  return resultOf(callCompiler('compile-expression', [ast, env, false, options.declineCaptures === true]));
+  const compiler = compilerExports();
+  if (compiler === null) return { compiled: false, reason: notStarted() };
+  return resultOf(callSchemeProcedure(compiler.get('compile-expression'),
+    [ast, env, false, options.declineCaptures === true]));
 }
 
 /**
@@ -116,7 +123,10 @@ export function tryCompileExpression(ast, env, options = {}) {
  * @returns {CompileResult} The outcome.
  */
 export function tryCompileClosure(closure, name, options = {}) {
-  return resultOf(callCompiler('compile-closure', [closure, name, options.declineCaptures === true]));
+  const compiler = compilerExports();
+  if (compiler === null) return { compiled: false, reason: notStarted() };
+  return resultOf(callSchemeProcedure(compiler.get('compile-closure'),
+    [closure, name, options.declineCaptures === true]));
 }
 
 /**
@@ -130,9 +140,10 @@ export function tryCompileClosure(closure, name, options = {}) {
  *   parameter names and the globals it references.
  */
 export function generateEnvironment(env, options = {}) {
-  const result = callCompiler('generate-environment',
+  const compiler = compilerExports();
+  if (compiler === null) return { generated: [], declined: [], unavailable: notStarted() };
+  const result = callSchemeProcedure(compiler.get('generate-environment'),
     [env, options.ownOnly === true, options.declineCaptures === true, options.strict === true]);
-  if (result === undefined) return { generated: [], declined: [], unavailable: notStarted() };
   const generated = toArray(result.car).map((code) => ({
     name: text(code.name),
     closure: code.closure,
@@ -155,8 +166,9 @@ export function generateEnvironment(env, options = {}) {
  *   if code generation is forbidden here at all -- why nothing was.
  */
 export function compileEnvironment(env, options = {}) {
-  const result = callCompiler('compile-environment', [env, options.strict === true]);
-  if (result === undefined) return { compiled: [], declined: [], unavailable: notStarted() };
+  const compiler = compilerExports();
+  if (compiler === null) return { compiled: [], declined: [], unavailable: notStarted() };
+  const result = callSchemeProcedure(compiler.get('compile-environment'), [env, options.strict === true]);
   if (result === false) {
     return {
       compiled: [],
@@ -182,9 +194,10 @@ export function compileEnvironment(env, options = {}) {
  *   compiled; and the last form's value.
  */
 export function compileProgram(asts, env, interpreter, options = {}) {
-  const run = callCompiler('compile-program',
+  const compiler = compilerExports();
+  if (compiler === null) throw new Error(notStarted());
+  const run = callSchemeProcedure(compiler.get('compile-program'),
     [asts, env, interpreter, options.declineCaptures === true, options.strict === true]);
-  if (run === undefined) throw new Error(notStarted());
   const unsafe = new Map(toArray(run.unsafe).map((pair) => [pair.car.name, text(pair.cdr)]));
   const first = [...unsafe][0];
   return {
@@ -206,8 +219,9 @@ export function compileProgram(asts, env, interpreter, options = {}) {
  * @returns {Map<string, string>} Declined names, each mapped to the reason.
  */
 export function unsafeDefinitions(asts, env, options = {}) {
-  const unsafe = callCompiler('program-unsafe-definitions', [asts, env, options.strict === true]);
-  if (unsafe === undefined) return new Map();
+  const compiler = compilerExports();
+  if (compiler === null) return new Map();
+  const unsafe = callSchemeProcedure(compiler.get('program-unsafe-definitions'), [asts, env, options.strict === true]);
   return new Map(toArray(unsafe).map((pair) => [pair.car.name, text(pair.cdr)]));
 }
 

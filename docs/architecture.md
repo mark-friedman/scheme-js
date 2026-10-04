@@ -303,7 +303,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── safety.scm         # The opt-in rule declining what a capture could unwind through
 │      ├── tier.scm           # A program's own code compiled as it runs: when, installing it, switching re-entered ones back
 │      ├── host.js            # (scheme-js compiler host): new Function, the interpreter's structures, weak tables
-│      ├── lowering.js        # Door into the compiler's Scheme: starts its library, calls its entry points
+│      ├── lowering.js        # Door into the compiler's Scheme: starts its library, hands out its entry points
 │      ├── marshal.js         # The analyzed AST into Scheme data
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
 │      ├── tiering.js         # Attaching the tier: makes its record, whose Scheme procedures the interpreter calls

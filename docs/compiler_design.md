@@ -364,8 +364,8 @@ a continuation shares it and may be resumed more than once.
 - **Room is a segment's, and only some segments may move.** The interpreter resets the room whenever
   it calls compiled code (`openCompiledSegment` in `unwind.js`), because the unwind ends there and
   it can finish it. Anything else that calls a Scheme procedure from JavaScript -- a port primitive,
-  `js-invoke`, a class constructor, a promise's executor, the evaluator and `lowering.js` calling
-  the compiler (`callSchemeProcedure` in `values.js`) -- turns moving off for its duration
+  `js-invoke`, a class constructor, a promise's executor, the evaluator and the compiler's
+  JavaScript calling its Scheme (`callSchemeProcedure` in `values.js`) -- turns moving off for its duration
   (`suspendFlush`), since it would take the sentinel for a value; compiled code beneath it can still
   overflow as before. One way past that remains: compiled code calling a plain JavaScript function
   directly, which calls compiled code back. The interpreter gives the setting back after a normal
@@ -521,7 +521,7 @@ A compiler written in the language it compiles has to start somewhere. It starts
 The compiler's Scheme is a library, `(scheme-js compiler)`: `src/compiler/compiler.sld` imports
 `(scheme base)`, `(scheme char)`, `(scheme cxr)`, SRFI 1, SRFI 151, SRFI 152, `(scheme-js interop)` and the
 host library, includes `ir.scm`, the emitter's files, `driver.scm`, `safety.scm` and `tier.scm` in
-dependency order, and exports the entry points `lowering.js` calls. So the list of
+dependency order, and exports the entry points JavaScript calls, which `lowering.js` hands out. So the list of
 files that make up the compiler, and their order, is said once, in Scheme, and SRFI 1's private
 helpers stay private to SRFI 1. Its table keeps only what its exports can reach.
 
