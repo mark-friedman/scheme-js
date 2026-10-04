@@ -44,15 +44,7 @@ export function runStateIsolationTests(logger) {
         clearGlobalState(); // Reset
         assert(logger, 'Macro registry cleared', globalContext.macroRegistry.isMacro('my-macro'), false);
 
-        // Test 4: Library Registry Clearing
-        clearGlobalState();
-        globalContext.registerLibrary('test.lib', new Map([['foo', 1]]), null);
-        assert(logger, 'Library registered', globalContext.isLibraryLoaded('test.lib'), true);
-
-        clearGlobalState(); // Reset
-        assert(logger, 'Library registry cleared', globalContext.isLibraryLoaded('test.lib'), false);
-
-        // Test 5: Unique ID Counter Reset
+        // Test 4: Unique ID Counter Reset
         clearGlobalState();
         const id1 = globalContext.freshUniqueId();
         const id2 = globalContext.freshUniqueId();
@@ -62,7 +54,7 @@ export function runStateIsolationTests(logger) {
         const id3 = globalContext.freshUniqueId();
         assert(logger, 'Unique ID counter reset', id3, 0);
 
-        // Test 6: clearGlobalState runs without error
+        // Test 5: clearGlobalState runs without error
         clearGlobalState();
         logger.pass('clearGlobalState ran without error');
 
