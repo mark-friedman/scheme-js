@@ -11523,3 +11523,14 @@ test that a feature a host adds reaches `cond-expand` and `(features)`, and its 
 `multi_interpreter_tests.js` on where libraries and features live are kept. The prebuilt tables are
 rebuilt from the merged sources, to a fixed point. 7,661 tests pass in Node with none failing
 (33 skipped), and 7,449 in the browser with none failing (55 skipped).
+
+# Task 37 moved down, measured before building (2026-10-03)
+
+Before building 37(b), the escape fast path, what it could gain was measured. The corpus's 77
+captures, classified by how the receiver uses `k`: 9 call it directly or from a loop of the
+receiver's own -- the local scope the plan recommended -- 56 from a nested lambda, 12 as a value.
+Counted under the tier over `run_tier.js --set all`, with a counter added for the measurement and
+removed: outside `ctak` and `fibc`, which pass `k` on, no program captures more than 2,572 times,
+each capture unwinding about two compiled frames. `puzzle` written without its capture is 10%
+faster, the most the fast path could give it. Findings R111; 37 and 38 move down beside 54 in the
+plan, and 75 is next. Nothing under `src/` changed.

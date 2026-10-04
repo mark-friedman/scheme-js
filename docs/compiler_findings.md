@@ -3259,3 +3259,30 @@ under the tier 34 ms again, `fib(27)` interpreted 455 to 402 ms, and making 300,
 *Consequence:* a function's own properties are not reconfigured after it is made. Whether an
 object's properties are fast is measured (`%HasFastProperties`, under `--allow-natives-syntax`),
 not assumed from how it is used.
+
+**R111. An escape fast path was ranked first for a cost real programs barely pay.**
+
+Task 37(b) -- a capture whose continuation is proved not kept, taken by a jump or a throw rather
+than by unwinding the compiled frames -- was next in the plan, its scope recommended as *local*: the
+receiver's parameter only ever the operator of a call, never captured by a closure, which the plan
+said "covers the library escape pattern". Both beliefs were false.
+
+The library pattern escapes from a callback. Of the 77 `(call/cc (lambda (k) ...))` in the corpus
+(`benchmarks/corpus/manifest.json`), 56 call `k` from a nested lambda -- given to `for-each`, a
+search, a fold -- 12 use `k` as a value, and 9 call it directly or from a loop of the receiver's own,
+which is all the local scope covers. In the canonical programs the local shape is `puzzle`'s and
+`quicksort`'s; `maze`'s is a callback.
+
+And captures are rare where it would matter. Counted under the tier over `run_tier.js --set all`,
+129 programs: besides `ctak` (63,615 captures) and `fibc` (21,898), which pass `k` on and so are
+outside both scopes, the most is `rapid-mapping`'s 2,572 in a 547 ms run, then `puzzle`'s 2,016 and
+`rapid-rbtree`'s 373, each unwinding about two compiled frames. Written without the capture,
+`puzzle` runs in 0.42 s against 0.465 -- 10%, the most any scope could give it -- and `quicksort`
+captures once per iteration, in its result check. The microbenchmark the ranking rested on,
+`run_escapes.js`, is right that an escape costs several times what a jump would, 0.75 to 5.4 us
+against about the search's own; programs just do not escape often.
+
+*Consequence:* 37 and 38, which waits on it, move down beside 54, code generation without the
+evidence to rank it higher. If they come back, the scope that matters is the callback's, which
+needs to know what a callee does with its procedure argument, and the cost to beat is a few
+milliseconds a program.
