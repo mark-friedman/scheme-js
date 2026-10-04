@@ -11,8 +11,8 @@ import { standardInputPort } from './stdin_port.js';
 import { standardOutputPort, standardErrorPort } from './stdout_port.js';
 import { displayString, writeString, writeStringShared, writeStringSimple } from './printer.js';
 import { readExpressionFromPort } from './reader_bridge.js';
-import { list } from '../../interpreter/cons.js';
-import { intern } from '../../interpreter/symbol.js';
+import { callLibrarySystem, currentLibraryRegistry } from '../../interpreter/library_registry.js';
+import { assertArity } from '../../interpreter/type_check.js';
 import { Char } from '../char_class.js';
 import { isString, stringValue, freshString } from '../string_class.js';
 
@@ -161,13 +161,11 @@ export const ioPrimitives = {
         return undefined;
     },
 
-    'features': () => {
-        return list(
-            intern('r7rs'),
-            intern('ieee-float'),
-            intern('full-unicode'),
-            intern('scheme-js')
-        );
+    // The features are the library system's, in the current registry: what
+    // `cond-expand` finds, `node` or `browser` and any a host added included.
+    'features': (...args) => {
+        assertArity('features', args, 0, 0);
+        return callLibrarySystem('registry-feature-list', currentLibraryRegistry());
     },
 
     // --------------------------------------------------------------------------

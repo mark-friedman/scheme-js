@@ -3,6 +3,11 @@
  * 
  * Tests that multiple interpreter instances can run in isolation
  * when given separate InterpreterContext instances.
+ *
+ * The libraries loaded and the features `cond-expand` finds are not a
+ * context's: they are the library system's, in its registries
+ * (library_registry.js), one for a program and others made for a while by
+ * tools (`withPrivateLibraries`).
  */
 
 import { InterpreterContext, globalContext } from '../../src/core/interpreter/context.js';

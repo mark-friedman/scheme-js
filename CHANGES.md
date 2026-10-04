@@ -11427,3 +11427,99 @@ Their other assertions stay, under renumbered test comments. 8 assertions remove
 failing (56 skipped): 8 fewer in each than at the end of task 64. Lines under `src/` against
 `8551c93`: Scheme none; JavaScript 7 added, 98 removed. The 98: 41 lines of code, 46 of comment,
 11 blank. The 7 added are the two rewritten comments.
+
+# `(features)` returns what `cond-expand` finds (2026-10-03)
+
+## Why
+
+R7RS 6.14 defines `(features)` as the list of feature identifiers `cond-expand` treats as true.
+The primitive returned a fixed list -- `r7rs`, `ieee-float`, `full-unicode`, `scheme-js` -- written
+before `cond-expand`'s features became the library system's data. Since task 64 those are each
+registry's own (`standard-features`: also `exact-closed`, `ratios`, and `node` or `browser`, plus
+any a host adds with `addFeature`), so `(features)` left out three of the seven `cond-expand` takes
+on any host, and every feature a host added.
+
+## What changed
+
+- **`registry-feature-list`** (Scheme, `library_system.scm`): a registry's features in a list of
+  the caller's own. `registry-features` hands back the registry's list itself, which a program
+  could then change with `set-cdr!` and so change what `cond-expand` finds.
+- **The `features` primitive** (`io/primitives.js`) calls it with the current registry, through the
+  library system's JavaScript door (`callLibrarySystem`, `currentLibraryRegistry`), in place of
+  the fixed list. It has to be JavaScript: the library system runs apart from programs, on the
+  seed's interpreter, and the current registry is held by `library_registry.js`, so a program has
+  no Scheme path to it; the primitive is the runtime twin of the analyzer's `cond-expand` hook,
+  which reaches the registry the same way. The import makes a cycle
+  (`io/primitives.js` -> `library_registry.js` -> `library_seed.js` -> `primitives/index.js`), which
+  is harmless because the bindings are used only when the primitive runs; each of the three
+  modules loads first without error.
+- **Arity**: `(features 'r7rs)` returned the list; it now raises an arity error, as
+  `command-line` does.
+
+## Tests
+
+`features_tests.scm`: `features` takes no arguments; for each of `r7rs`, `scheme-js`,
+`exact-closed`, `ratios`, `ieee-float`, `full-unicode`, `node` and `browser`, being in
+`(features)` agrees with `cond-expand`; one of `node` and `browser` is there; a feature
+`cond-expand` does not take is not; `cond-expand` (through `eval`) takes every feature in the
+list; no feature is listed twice; and a program that changes the list it was given does not change
+the next one. Before the change, the arity test, the
+agreement tests for `exact-closed`, `ratios` and `node`, and the host test failed.
+
+## Verification
+
+7,566 tests pass in Node with none failing (34 skipped), and 7,354 in the browser with none
+failing (56 skipped; `web/tests.html`, headless, cache disabled). `npm run prebuild` reaches a fixed
+point; the library system's prebuilt table gains the new procedure, and the rest of the tables
+change only by the gensym counters it shifts. Lines
+under `src/`: Scheme 11 added; JavaScript 7 added, 9 removed -- the primitive's body, fixed in
+place, and its two imports.
+
+# `InterpreterContext` loses its feature set and library map (2026-10-03)
+
+## Why
+
+`InterpreterContext` (`src/core/interpreter/context.js`) kept a feature set "for cond-expand"
+(`r7rs`, `scheme-js`, `ratios`, `exact-complex`, and `node` or `browser`), a map of loaded
+libraries, and a file resolver, with `hasFeature`, `addFeature`, `isLibraryLoaded`,
+`getLibraryExports`, `registerLibrary`, `clearLibraryRegistry` and `libraryNameToKey`. They came
+in with the class (2026-01-14), but nothing outside it ever read them: `library_registry.js` kept
+its own features, libraries and resolver from the start, and since task 64 those are the library
+system's registries, in Scheme. So `ctx.addFeature('x')` changed neither `cond-expand` nor
+`(features)`, and the context's list disagreed with the real one (`exact-complex`, which nothing
+else claims; no `exact-closed`, `ieee-float` or `full-unicode`). Only two tests used them.
+
+## What changed
+
+- **Removed from `InterpreterContext`**: the fields `features`, `libraryRegistry` and
+  `fileResolver`, the seven methods, and `reset`'s clearing of the map. They were not made to
+  delegate to the library system: its registries belong to a program, and to tools for a while
+  (`withPrivateLibraries`), not to a context, so a context's `addFeature` could not keep the
+  isolation its place in the class implies. A host adds a feature with `addFeature` from
+  `library_registry.js` (or `library_loader.js`), as before.
+- **Tests**: `multi_interpreter_tests.js` no longer checks per-context libraries and features,
+  and says where they live; `state_isolation_tests.js` no longer checks that `clearGlobalState`
+  empties the context's map, and `state_control.js` no longer lists a library registry among what
+  it clears.
+
+## Tests
+
+`library_loader_tests.js`, written first: a feature a host adds with `addFeature` is one
+`cond-expand` takes and `(features)` lists, and, added inside `withPrivateLibraries`, it goes with
+that registry. The `(features)` test would have failed before the previous entry's fix.
+
+## Verification
+
+7,562 tests pass in Node with none failing (34 skipped), and 7,350 in the browser with none
+failing (56 skipped; `web/tests.html`, headless, cache disabled): eight assertions of the removed
+methods gone, four added. Lines under `src/`: JavaScript 96 removed, none added.
+
+# Merged: the context's registry removed twice, and `(features)` (2026-10-03)
+
+The two entries above that remove `InterpreterContext`'s feature set and library map were made in
+parallel, in two sessions, and remove the same fields and methods. Merged after task 73, the
+removal is the first entry's, with its comments; the second session's `(features)` change, its
+test that a feature a host adds reaches `cond-expand` and `(features)`, and its note in
+`multi_interpreter_tests.js` on where libraries and features live are kept. The prebuilt tables are
+rebuilt from the merged sources, to a fixed point. 7,661 tests pass in Node with none failing
+(33 skipped), and 7,449 in the browser with none failing (55 skipped).

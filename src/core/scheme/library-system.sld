@@ -31,6 +31,7 @@
     requirement-met? standard-features registry-requirement-met?
     ;; Names and registries
     library-key make-library-registry library-registry? add-feature! registry-features
+    registry-feature-list
     registry-resolver set-registry-resolver! registry-load-hook set-registry-load-hook!
     registry-restorer set-registry-restorer!
     registered-exports registered-environment register-exports! registered-keys

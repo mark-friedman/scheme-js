@@ -444,6 +444,16 @@
   (list 'r7rs 'scheme-js 'exact-closed 'ratios 'ieee-float 'full-unicode host))
 
 ;; /**
+;;  * The features `cond-expand` finds in a registry, as `(features)` returns
+;;  * them (R7RS 6.14): in a list of the caller's own, so that a program
+;;  * changing the list changes nothing `cond-expand` finds.
+;;  * @param {library-registry} registry - The registry.
+;;  * @returns {list} The features, as symbols.
+;;  */
+(define (registry-feature-list registry)
+  (list-copy (registry-features registry)))
+
+;; /**
 ;;  * Adds a feature `cond-expand` finds.
 ;;  * @param {library-registry} registry - The registry.
 ;;  * @param {symbol} feature - The feature.

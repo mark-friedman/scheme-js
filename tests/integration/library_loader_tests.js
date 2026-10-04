@@ -18,10 +18,10 @@ import {
     loadLibrarySync,
     getLoadedLibraries
 } from '../../src/core/interpreter/library_loader.js';
-import { registerLibrary } from '../../src/core/interpreter/library_registry.js';
+import { registerLibrary, withPrivateLibraries } from '../../src/core/interpreter/library_registry.js';
 import { seedLibrarySystem } from '../../src/core/interpreter/library_seed.js';
 import { callSchemeProcedure } from '../../src/core/interpreter/values.js';
-import { list } from '../../src/core/interpreter/cons.js';
+import { list, toArray } from '../../src/core/interpreter/cons.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
@@ -257,6 +257,22 @@ export async function runLibraryLoaderTests(logger) {
     // Test getFeatures
     const allFeatures = getFeatures();
     assert(logger, "getFeatures includes r7rs", allFeatures.includes('r7rs'), true);
+
+    // A feature a host adds is one `cond-expand` takes and `(features)`
+    // lists. It is added in a registry made for the test, so that the
+    // registry the other tests share does not gain it.
+    const evaluate = (source) =>
+        interpreter.run(analyze(parse(source)[0]), globalEnv, [], undefined, { jsAutoConvert: 'raw' });
+    withPrivateLibraries({ resolver: null }, () => {
+        addFeature('a-host-feature');
+        assert(logger, "hasFeature after addFeature", hasFeature('a-host-feature'), true);
+        assert(logger, "cond-expand takes a feature the host added",
+            evaluate("(cond-expand (a-host-feature #t) (else #f))"), true);
+        assert(logger, "(features) lists a feature the host added",
+            toArray(evaluate("(features)")).some(feature => feature.name === 'a-host-feature'), true);
+    });
+    assert(logger, "a feature added in a registry made for a while goes with it",
+        hasFeature('a-host-feature'), false);
 
     // Test evaluateFeatureRequirement with simple symbol
     assert(logger, "evalFeature simple r7rs",
