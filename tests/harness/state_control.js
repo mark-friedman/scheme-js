@@ -18,7 +18,6 @@ import { globalContext } from '../../src/core/interpreter/context.js';
  * - Library scope environment map
  * - Scope registry
  * - Macro registry
- * - Library registry
  * - Defining scopes stack
  */
 export function clearGlobalState() {

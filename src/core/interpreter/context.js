@@ -159,19 +159,6 @@ export class InterpreterContext {
         this.macroRegistry = new MacroRegistry(globalMacroRegistry);
         /** Current macro registry stack for scoped expansion (transient during analysis) */
         this.currentMacroRegistry = this.macroRegistry;
-        /** Loaded libraries: key → { exports, env } */
-        this.libraryRegistry = new Map();
-        /** Feature flags for cond-expand */
-        this.features = new Set(['r7rs', 'scheme-js', 'ratios', 'exact-complex']);
-
-        // Detect environment
-        const isNode = typeof process !== 'undefined' &&
-            process.versions != null &&
-            process.versions.node != null;
-        this.features.add(isNode ? 'node' : 'browser');
-
-        /** File resolver for loading library files */
-        this.fileResolver = null;
 
         /** Baseline macro names for reset */
         this.baselineMacroNames = null;
@@ -293,88 +280,6 @@ export class InterpreterContext {
     }
 
     // =========================================================================
-    // Library Registry
-    // =========================================================================
-
-    /**
-     * Converts a library name to a string key.
-     * @param {Array} name - Library name as list or array
-     * @returns {string}
-     */
-    libraryNameToKey(name) {
-        if (Array.isArray(name)) {
-            return name.join('.');
-        }
-        // Assume it's a Cons list - convert to array first
-        const parts = [];
-        let current = name;
-        while (current !== null && current.car !== undefined) {
-            const part = current.car;
-            parts.push(typeof part === 'object' && part.name ? part.name : String(part));
-            current = current.cdr;
-        }
-        return parts.join('.');
-    }
-
-    /**
-     * Checks if a library is loaded.
-     * @param {string} key 
-     * @returns {boolean}
-     */
-    isLibraryLoaded(key) {
-        return this.libraryRegistry.has(key);
-    }
-
-    /**
-     * Gets a library's exports.
-     * @param {string|Array} library 
-     * @returns {Map|null}
-     */
-    getLibraryExports(library) {
-        const key = Array.isArray(library) ? library.join('.') : library;
-        const entry = this.libraryRegistry.get(key);
-        return entry ? entry.exports : null;
-    }
-
-    /**
-     * Registers a library.
-     * @param {string} key 
-     * @param {Map} exports 
-     * @param {*} env 
-     */
-    registerLibrary(key, exports, env) {
-        this.libraryRegistry.set(key, { exports, env });
-    }
-
-    /**
-     * Clears the library registry. (For testing)
-     */
-    clearLibraryRegistry() {
-        this.libraryRegistry.clear();
-    }
-
-    // =========================================================================
-    // Feature Detection
-    // =========================================================================
-
-    /**
-     * Checks if a feature is supported.
-     * @param {string} featureName 
-     * @returns {boolean}
-     */
-    hasFeature(featureName) {
-        return this.features.has(featureName);
-    }
-
-    /**
-     * Adds a feature.
-     * @param {string} featureName 
-     */
-    addFeature(featureName) {
-        this.features.add(featureName);
-    }
-
-    // =========================================================================
     // Full Reset (For Testing)
     // =========================================================================
 
@@ -391,7 +296,6 @@ export class InterpreterContext {
         this.libraryScopeEnvMap.clear();
         this.libraryScopeLog = [];
         this.resetMacroRegistry();
-        this.libraryRegistry.clear();
         this.definingScopes = [];
         this.keywordBindings.clear();
         this.libraryKeywords = new WeakMap();

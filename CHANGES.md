@@ -11044,3 +11044,42 @@ point; the library system's prebuilt table gains the new procedure, and the rest
 change only by the gensym counters it shifts. Lines
 under `src/`: Scheme 11 added; JavaScript 7 added, 9 removed -- the primitive's body, fixed in
 place, and its two imports.
+
+# `InterpreterContext` loses its feature set and library map (2026-10-03)
+
+## Why
+
+`InterpreterContext` (`src/core/interpreter/context.js`) kept a feature set "for cond-expand"
+(`r7rs`, `scheme-js`, `ratios`, `exact-complex`, and `node` or `browser`), a map of loaded
+libraries, and a file resolver, with `hasFeature`, `addFeature`, `isLibraryLoaded`,
+`getLibraryExports`, `registerLibrary`, `clearLibraryRegistry` and `libraryNameToKey`. They came
+in with the class (2026-01-14), but nothing outside it ever read them: `library_registry.js` kept
+its own features, libraries and resolver from the start, and since task 64 those are the library
+system's registries, in Scheme. So `ctx.addFeature('x')` changed neither `cond-expand` nor
+`(features)`, and the context's list disagreed with the real one (`exact-complex`, which nothing
+else claims; no `exact-closed`, `ieee-float` or `full-unicode`). Only two tests used them.
+
+## What changed
+
+- **Removed from `InterpreterContext`**: the fields `features`, `libraryRegistry` and
+  `fileResolver`, the seven methods, and `reset`'s clearing of the map. They were not made to
+  delegate to the library system: its registries belong to a program, and to tools for a while
+  (`withPrivateLibraries`), not to a context, so a context's `addFeature` could not keep the
+  isolation its place in the class implies. A host adds a feature with `addFeature` from
+  `library_registry.js` (or `library_loader.js`), as before.
+- **Tests**: `multi_interpreter_tests.js` no longer checks per-context libraries and features,
+  and says where they live; `state_isolation_tests.js` no longer checks that `clearGlobalState`
+  empties the context's map, and `state_control.js` no longer lists a library registry among what
+  it clears.
+
+## Tests
+
+`library_loader_tests.js`, written first: a feature a host adds with `addFeature` is one
+`cond-expand` takes and `(features)` lists, and, added inside `withPrivateLibraries`, it goes with
+that registry. The `(features)` test would have failed before the previous entry's fix.
+
+## Verification
+
+7,562 tests pass in Node with none failing (34 skipped), and 7,350 in the browser with none
+failing (56 skipped; `web/tests.html`, headless, cache disabled): eight assertions of the removed
+methods gone, four added. Lines under `src/`: JavaScript 96 removed, none added.
