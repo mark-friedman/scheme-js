@@ -520,44 +520,41 @@
 
 ;; /**
 ;;  * Calls a macro's transformer on a use, giving it where the use is as a
-;;  * procedure of an identifier that says what local, if any, binds it there:
-;;  * the Scheme procedure of one an expander made, a pending macro's once it
-;;  * is realized, or one the JavaScript analyzer made, through the shape it
-;;  * has there.
-;;  * @param {procedure|object} transformer - The transformer.
+;;  * procedure of an identifier that says what local, if any, binds it there.
+;;  * @param {procedure|object} transformer - The transformer, or a pending
+;;  *   macro, made one first (`realize!`).
 ;;  * @param {pair} form - The use.
 ;;  * @param {syntactic-env} env - Where it is.
 ;;  * @returns {*}
 ;;  */
 (define (call-transformer transformer form env)
-  (let ((procedure (or (%transformer-procedure transformer) (realize! transformer)))
-        (bound (lambda (id) (env-lookup env id))))
-    (if procedure
-        (procedure form bound)
-        (%call-javascript-transformer transformer form bound))))
+  ((if (procedure? transformer) transformer (realize! transformer))
+   form
+   (lambda (id) (env-lookup env id))))
 
 ;; /**
-;;  * The Scheme procedure of a pending macro, made now, or #f for anything
-;;  * else. A library restored from its prebuilt table has run each of its
-;;  * macro definitions as a core form that binds the macro pending -- its
+;;  * The transformer of a pending macro, made the first time it is asked for.
+;;  * A library restored from its prebuilt table has run each of its macro
+;;  * definitions as a core form that binds the macro pending -- its
 ;;  * definition, and the scope of the library -- and not made its transformer,
 ;;  * which would take an expander, which a library the expander is written
-;;  * with is restored without. The definition is expanded the first time the
-;;  * macro is used, as it was where the library defined it, into a frame of
-;;  * its own, and the transformer it makes is kept on the pending macro, where
-;;  * every library that imported it finds it.
-;;  * @param {object} pending - The transformer.
-;;  * @returns {procedure|boolean}
+;;  * with is restored without. The definition is expanded as it was where the
+;;  * library defined it, into a frame of its own, and the transformer it makes
+;;  * is kept on the pending macro, where every library that imported it finds
+;;  * it.
+;;  * @param {object} pending - The pending macro.
+;;  * @returns {procedure}
 ;;  */
 (define (realize! pending)
-  (let ((definition (%pending-macro pending)))
-    (and definition
-         (let ((table (make-macro-table '())))
-           (parameterize ((realizing-in (cdr definition)))
-             (expand-form (car definition) (env-with-macros (top-level-env) table)))
-           (let ((made (cdar (macro-table-entries table))))
-             (%realize-pending-macro! pending made)
-             (%transformer-procedure made))))))
+  (or (%realized-macro pending)
+      (let ((definition (%pending-macro pending))
+            (table (make-macro-table '())))
+        (if (not definition) (raise-syntax-error "not a macro's transformer" pending 'analyze))
+        (parameterize ((realizing-in (cdr definition)))
+          (expand-form (car definition) (env-with-macros (top-level-env) table)))
+        (let ((made (cdar (macro-table-entries table))))
+          (%realize-pending-macro! pending made)
+          made))))
 
 ;; /**
 ;;  * An application's core form. A property's method called -- `(o.m x)`, read
@@ -1084,9 +1081,7 @@
 ;;  */
 (define (define-syntax-rules! env name ellipsis literals clauses)
   (define-macro! env name
-    (%make-transformer (syntax-rules-transformer (list-items literals) (clause-pairs clauses)
-                                                 (defining-scope) ellipsis env)
-                       #f)))
+    (syntax-rules-transformer (list-items literals) (clause-pairs clauses) (defining-scope) ellipsis env)))
 
 ;; /**
 ;;  * `(define-macro (name . formals) body ...)`, or `(define-macro name
@@ -1105,9 +1100,10 @@
                         ((identifier? head)
                          (values (identifier-name head) (expand-form (caddr form) env)))
                         (else (raise-syntax-error "Invalid define-macro syntax" form 'define-macro)))))
-      (let ((procedure (transformer-procedure made name form)))
-        (define-macro! env name
-          (%make-transformer (lambda (use use-env) (apply-transformer procedure name use)) procedure))
+      (let* ((procedure (transformer-procedure made name form))
+             (transformer (lambda (use use-env) (apply-transformer procedure name use))))
+        (%reflect-transformer! transformer procedure)
+        (define-macro! env name transformer)
         (list 'lit '())))))
 
 ;; /**
@@ -1147,9 +1143,7 @@
 (define (binding-transformer spec env)
   (if (not (and (pair? spec) (named? (car spec) 'syntax-rules)))
       (raise-syntax-error "Transformer must be (syntax-rules ...)" spec 'syntax-rules))
-  (%make-transformer (syntax-rules-transformer (list-items (cadr spec)) (clause-pairs (cddr spec))
-                                               (defining-scope) '... env)
-                     #f))
+  (syntax-rules-transformer (list-items (cadr spec)) (clause-pairs (cddr spec)) (defining-scope) '... env))
 
 ;; /**
 ;;  * The macros a `let-syntax`'s or `letrec-syntax`'s bindings define.

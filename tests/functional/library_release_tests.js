@@ -25,7 +25,7 @@
 import { assert, skip } from '../harness/helpers.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
 import { withPrivateLibraries, getLibraryEnv } from '../../src/core/interpreter/library_registry.js';
 import { globalMacroRegistry } from '../../src/core/interpreter/macro_registry.js';

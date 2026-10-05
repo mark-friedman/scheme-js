@@ -24,7 +24,7 @@ import { callSchemeProcedure } from '../../src/core/interpreter/values.js';
 import { list, toArray } from '../../src/core/interpreter/cons.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { Interpreter } from '../../src/core/interpreter/interpreter.js';
 import { createGlobalEnvironment } from '../../src/core/primitives/index.js';
 import { intern } from '../../src/core/interpreter/symbol.js';

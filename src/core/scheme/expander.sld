@@ -24,6 +24,11 @@
 ;;   (define name value)
 ;;   (app operator operands)
 ;;   (import import-sets)         (define-library form)
+;;   (define-syntax name definition)
+;;                                a macro's definition, restored from a
+;;                                prebuilt table: binds the macro pending,
+;;                                its transformer made from the definition
+;;                                the first time it is used
 ;;   (node executable)            a node of the evaluator's, made already
 ;;
 ;; Names are symbols: a local's renamed, unique where it is bound, and a
@@ -37,7 +42,7 @@
 ;; The expander keeps no state of its own between forms. What a form's
 ;; meaning depends on -- the scopes made so far, the library or program being
 ;; expanded, the syntactic keywords bound in each, the macros defined by name
-;; for the process -- is in the analyzer's tables, reached through primitives
+;; for the process -- is in the context's tables, reached through primitives
 ;; (src/core/primitives/expander_support.js), which the library system reaches
 ;; too.
 ;;

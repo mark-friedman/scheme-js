@@ -4,10 +4,9 @@
  * The library system is Scheme (src/core/scheme/library_system.scm). What it
  * cannot do in Scheme is here: calling the host's file resolver and load hook,
  * reading a file's text into forms (the reader), making a library's
- * environment and binding names in it (`Environment`), the analyzer's
+ * environment and binding names in it (`Environment`), the expander's
  * tables of library scopes, syntactic keywords and macros (context.js,
- * macro_registry.js), which the analyzer, still JavaScript, reads as it
- * expands, and running a closure compiled or as itself (the value
+ * macro_registry.js), and running a closure compiled or as itself (the value
  * representation).
  *
  * Names arrive as symbols and leave as the strings the JavaScript keys its
@@ -23,7 +22,6 @@ import { parse } from '../interpreter/reader.js';
 import { cons, list, toArray } from '../interpreter/cons.js';
 import { intern } from '../interpreter/symbol.js';
 import { SYNTAX_KEYWORDS, getFileResolver } from '../interpreter/library_registry.js';
-import { shadowMacro } from '../interpreter/syntax_object.js';
 import { stringValue } from './string_class.js';
 import { runCompiled, runInterpreted, shareInterpreter } from '../interpreter/values.js';
 
@@ -169,14 +167,9 @@ export const libraryPrimitives = {
     /** The value of a name in an environment. */
     '%environment-ref': (env, name) => env.lookup(name.name),
 
-    /**
-     * Defines a name in an environment -- an import, as a rule -- which then
-     * names the value, though a macro of the name was bound there
-     * (`shadowMacro`).
-     */
+    /** Defines a name in an environment: an import, as a rule. */
     '%environment-define!': (env, name, value) => {
         env.define(name.name, value);
-        shadowMacro(env.libraryScope ?? GLOBAL_SCOPE_ID, name.name);
         return undefined;
     },
 
@@ -203,6 +196,6 @@ export const libraryPrimitives = {
     '%global-macro': (name) =>
         globalMacroRegistry.isMacro(name.name) ? globalMacroRegistry.lookup(name.name) : false,
 
-    /** Whether a name is a keyword the analyzer handles itself. */
+    /** Whether a name is a keyword the expander handles itself. */
     '%special-keyword?': (name) => SYNTAX_KEYWORDS.has(name.name)
 };

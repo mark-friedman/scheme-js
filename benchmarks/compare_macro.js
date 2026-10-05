@@ -37,7 +37,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { createInterpreter } from '../src/core/interpreter/index.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { parse } from '../src/core/interpreter/reader.js';
 
 const PROJECT_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');

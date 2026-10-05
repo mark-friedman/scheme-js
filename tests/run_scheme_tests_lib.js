@@ -1,6 +1,6 @@
 import { run } from './harness/helpers.js';
 import { loadLibrary, applyImports, setFileResolver, registerBuiltinLibrary, createPrimitiveExports } from '../src/core/interpreter/library_loader.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { writeString } from '../src/core/primitives/io/printer.js';
 import { SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';

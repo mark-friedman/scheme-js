@@ -17,7 +17,7 @@
 
 import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
 import { SchemeError } from '../../src/core/interpreter/errors.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';

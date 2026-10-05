@@ -10,7 +10,7 @@ export class Environment {
      * @param {Map<string, *>} [bindings] - Local bindings for this frame.
      * @param {Map<string, string> | null} [nameMap] - Mapping from original name
      *   to alpha-renamed name. Allocated lazily: it exists only for the
-     *   debugger's `:eval`, which reconstructs the analyzer's renaming from it,
+     *   debugger's `:eval`, which reconstructs the expander's renaming from it,
      *   and a `Map` per frame per call is a cost every program was paying for a
      *   facility almost no program uses.
      */

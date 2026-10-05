@@ -2,7 +2,7 @@
  * R7RS Library Loader
  *
  * Loading libraries, defining them and importing them, from JavaScript: from
- * the analyzer's `import` and `define-library` forms, and from whatever starts
+ * the expander's `import` and `define-library` forms, and from whatever starts
  * a program. The library system that does it is Scheme
  * (src/core/scheme/library_system.scm); this hands it what only the caller has
  * -- the interpreter to run a library's body on, and the environment its own
@@ -330,7 +330,7 @@ export function runProgramForm(form, analyze, interpreter, env, options) {
 
 /**
  * Binds every export of a library in an environment, under its own name: a
- * syntactic keyword in the analyzer's tables, anything else in the
+ * syntactic keyword in the expander's tables, anything else in the
  * environment. An import set's filters are applied by importing it
  * (`importLibraries`).
  *

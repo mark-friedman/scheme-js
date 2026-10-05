@@ -63,15 +63,12 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 | `ast_nodes.js` | AST node classes (Literal, If, Lambda...), and the pending raise compiled code throws for the interpreter to perform |
 | `frames.js` | Continuation frame classes |
 | `reader.js` | S-expression parser |
-| `analyzer.js` | Dispatcher for S-exp → AST conversion, its top level handed to the expander in use (`expand.js`) |
-| `analyzers/` | Modular handlers for special forms |
-| `expand.js` | The door into the expander, `(scheme-js expander)`, and the switch between it and `analyzer.js` |
+| `expand.js` | The door into the expander, `(scheme-js expander)`: `analyze`, a form into the evaluator's node |
 | `assembler.js` | The evaluator's door: a core form, as the expander makes it, into nodes |
 | `library_registry.js` | The library system's door from JavaScript: the current registry, and the API calling the Scheme |
 | `library_seed.js` | Loads the library system (Scheme) at first use, apart from programs, and installs its prebuilt tables |
 | `source_texts.js` | The text of code read under a name nothing could fetch it by -- a page's inline script -- for source maps |
 | `library_loader.js` | Loading, defining and importing libraries from JavaScript, through the Scheme; fetching an asynchronous resolver's files first |
-| `syntax_rules.js` | Macro transformer + hygiene primitives |
 | `primitives/` | Native procedures |
 | `primitives/io/` | Port system, Reader execution, Printer |
 
@@ -213,19 +210,10 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── reader/             # The reader's door, and the number parser; the reader is (scheme-js reader)
 │       │   │   ├── index.js        # parse(): the door into (scheme-js reader), on the library system's interpreter
 │       │   │   └── number_parser.js # Number syntax with R7RS prefixes: string->number's core
-│       │   ├── analyzer.js         # S-exp → AST dispatcher; a top-level form goes to the expander in use
-│       │   ├── expand.js           # The door into (scheme-js expander); which expander a top level's forms go to
+│       │   ├── expand.js           # The door into (scheme-js expander): analyze(), a form into the evaluator's node
 │       │   ├── assembler.js        # A core form into the evaluator's nodes
-│       │   ├── analyzers/          # Modular special form handlers
-│       │   │   ├── index.js        # Registry initialization
-│       │   │   ├── registry.js     # Central handler registry
-│       │   │   ├── core_forms.js   # quote, lambda, if, define
-│       │   │   ├── control_forms.js # with-exception-handler, raise
-│       │   │   └── module_forms.js  # import, define-library, cond-expand
-│       │   ├── syntax_rules.js     # syntax-rules transformer
-│       │   ├── syntax_object.js    # SyntaxObject and ScopeBindingRegistry
-│       │   ├── macro_registry.js   # Macro registry
-│       │   ├── identifier_utils.js # Shared identifier helpers
+│       │   ├── syntax_object.js    # SyntaxObject, the identifier; scopes; datum walks marking scopes; ScopeBindingRegistry
+│       │   ├── macro_registry.js   # The macros defined by name for the process
 │       │   ├── type_check.js       # Type checking utilities for primitives
 │       │   ├── library_loader.js   # Loading, defining and importing libraries, through the Scheme + barrel (re-exports)
 │       │   ├── library_registry.js # The library system's door from JavaScript: the current registry, the API
@@ -355,12 +343,10 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── runner.js               # Test runner logic
 │   │   ├── standard_library.js     # The standard library interpreted at top level
 │   │   ├── cli_process.js          # Runs `repl.js` in a child process, for the CLI's tests
-│   │   ├── expander_comparison.js  # The JavaScript analyzer and the Scheme expander compared, form by form and macro use by macro use
 │   │   └── scheme_test.scm         # Scheme test harness
 │   │
 │   ├── test_manifest.js            # Central registry of all test files
 │   ├── run_all.js                  # Node.js test runner entry (Unit + Functional)
-│   ├── compare_expanders.js        # Loaded first, compares the two expanders over a whole run: npm run test:expanders
 │   ├── run_scheme_tests.js         # Node.js Scheme test runner CLI
 │   ├── run_scheme_tests_lib.js     # Shared Scheme test runner logic
 │   ├── run_compiler_scheme_tests_lib.js # Runs compiler/ tests in the compiler library's environment
@@ -380,7 +366,6 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   │   ├── frames_tests.js     # Continuation frame tests
 │   │   │   ├── primitives_tests.js
 │   │   │   ├── winders_tests.js
-│   │   │   ├── syntax_rules_tests.js
 │   │   │   ├── syntax_object_tests.js # Hygiene and scope tests
 │   │   │   ├── data_tests.js
 │   │   │   ├── error_tests.js
@@ -488,7 +473,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 4. **Tests mirror source**: `tests/core/` tests `src/core/`.
 5. **Split Stepables**: AST nodes in `ast_nodes.js`, frames in `frames.js`, shared base in `stepables_base.js`.
 6. **The library system is Scheme**: `(scheme-js library-system)` parses libraries, keeps the registries, loads and imports libraries, and keeps the closures run compiled for a debugger to run as themselves. Its seed (`library_seed.js`) loads it, with `(scheme core)` and `(scheme control)`, from the bundled sources onto an interpreter of its own, apart from every program, installing their prebuilt tables so that it runs compiled; `library_registry.js` and `library_loader.js` are the JavaScript API, which calls it; `primitives/library.js` is what it needs of the host. A library's environment, and one `environment` makes, holds its imports and nothing else (R7RS 5.6.1): it has no parent (`makeScopedEnvironment` in `primitives/library.js`), the primitives reach it through `(scheme primitives)`, which exports every one, and a macro is found by name only where something imported it. A name bound nowhere still falls back to JavaScript's globals, as it does in a program. A program -- a CLI file, `-e` code, a page's script -- that begins with `import` declarations runs in such an environment too: the CLI and the page start-up ask `programEnvironment` (`library_loader.js`), which takes the program apart with the library system's `program-parts`, for the environment and the forms to run there, and run each with `runProgramForm`, under the environment's scope. A program with none runs in the interaction environment, which sees everything. The library system reads every library's files with the reader, `(scheme-js reader)`, and expands every form with the expander, `(scheme-js expander)`, both of which the seed loads before it; a library whose prebuilt table is current is loaded with no file read and no form expanded, the table holding its `define-library` form and its top-level forms as compiled procedures and core forms -- a macro's definition as one that binds it pending, its transformer made the first time it is used -- and the seed reads and expands its own libraries, when their tables are stale, with the pinned seed (`src/packaging/pinned_seed.js`), the reader's and the expander's libraries as core forms.
-7. **The expander is becoming Scheme**: `(scheme-js expander)` turns a form into a core form, a tagged list `expander.sld` lists, which `assembler.js` turns into the evaluator's nodes. It is loaded beside the library system, on its interpreter, and reaches the analyzer's tables -- scopes, the keywords bound in each library and at the top level, the macros defined for the process -- through `primitives/expander_support.js`, as the library system does. Until it replaces the JavaScript analyzer (`analyzer.js` and `analyzers/`, themed handlers behind a dispatcher), a top-level form goes to whichever `expand.js` selects: the expander, or the analyzer under `SCHEME_JS_EXPANDER=javascript`; `npm run test:expanders` runs the suite with the two compared on every form.
+7. **The expander is Scheme**: `(scheme-js expander)` turns a form into a core form, a tagged list `expander.sld` lists, which `assembler.js` turns into the evaluator's nodes; `expand.js` is the door, `analyze`. It is one of the library system's seed libraries, loaded on its interpreter, and reaches the tables a form's meaning depends on -- scopes, the keywords bound in each library and at the top level, the macros defined for the process -- through `primitives/expander_support.js`, as the library system does. Its `syntax-rules` is `syntax_rules.scm`; identifiers are `SyntaxObject`s (`syntax_object.js`), a value representation.
 8. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.
 9. **Self-hosting where it pays**: the compiler's lowering pass is Scheme, and the
    interpreter is what bootstraps it — so the tier's own performance is the

@@ -5,7 +5,7 @@ import { libraryNameToKey } from '../src/core/interpreter/library_registry.js';
 import { installLibraryTable, libraryRestorer } from '../src/compiler/prebuilt.js';
 import { attachTier } from '../src/compiler/tiering.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { prettyPrint } from '../src/core/interpreter/printer.js';
 import { isCompleteExpression, findMatchingDelimiter, delimiterParens } from '../src/core/interpreter/expression_utils.js';

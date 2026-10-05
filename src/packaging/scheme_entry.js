@@ -1,6 +1,6 @@
 import { createInterpreter } from '../core/interpreter/index.js';
 import { parse } from '../core/interpreter/reader.js';
-import { analyze } from '../core/interpreter/analyzer.js';
+import { analyze } from '../core/interpreter/expand.js';
 import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, programEnvironment, runProgramForm } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
 import { installLibraryTable, libraryRestorer } from '../compiler/prebuilt.js';
@@ -276,7 +276,7 @@ export { schemeToJs, schemeToJsDeep, jsToScheme, jsToSchemeDeep } from '../core/
 
 // Export REPL utilities
 export { parse } from '../core/interpreter/reader.js';
-export { analyze } from '../core/interpreter/analyzer.js';
+export { analyze } from '../core/interpreter/expand.js';
 export { prettyPrint } from '../core/interpreter/printer.js';
 export { isCompleteExpression, findMatchingDelimiter, delimiterParens } from '../core/interpreter/expression_utils.js';
 export { SchemeDebugRuntime, ReplDebugBackend, ReplDebugCommands };

@@ -149,7 +149,7 @@ export class ScopedVariable extends Executable {
  *
  * A macro's template means the bindings where the macro was written, so an
  * exported macro whose template calls a procedure the library keeps to itself
- * still calls it from a program that cannot name it. The analyzer makes one of
+ * still calls it from a program that cannot name it. The expander makes one of
  * these when the use site's own environment would not find that same binding
  * by name; the name is looked up in the library's environment when it is
  * evaluated, since a library procedure may be redefined there after the use

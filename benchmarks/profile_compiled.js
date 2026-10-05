@@ -15,7 +15,7 @@ import { Session } from 'inspector';
 import { BENCHMARKS, sizeFor } from './programs/manifest.js';
 import { PROGRAM_DIR, createBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './lib/harness.js';
 import { parse } from '../src/core/interpreter/reader.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
 import { compileProgram } from '../src/compiler/index.js';
 import { settle } from '../src/compiler/runtime.js';

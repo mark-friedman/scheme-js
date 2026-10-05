@@ -93,7 +93,7 @@
 
 ;; /**
 ;;  * Works out the JavaScript identifier for a renamed Scheme local. The
-;;  * analyzer's names look like `x_$147`, already close; any character
+;;  * expander's names look like `x_$147`, already close; any character
 ;;  * JavaScript does not allow in an identifier becomes `_` and its code in hex.
 ;;  * @param {symbol} name - A renamed Scheme identifier.
 ;;  * @returns {string} A JavaScript identifier.
@@ -1756,7 +1756,7 @@
          (params (map js-name (plan-free-of plan lam)))
          (own (map js-name (plan-self-of plan lam)))
          ;; A procedure made by a named `let` or an internal definition shows
-         ;; as its name; any other, as `anonymous`, as the analyzer names it.
+         ;; as its name; any other, as `anonymous`, as the expander names it.
          (shown (js-string (or (lambda-name lam) "anonymous")))
          (twin (twin-form (string-append proc "$r") shown lam u path))
          (fast (fast-form proc shown lam u path))

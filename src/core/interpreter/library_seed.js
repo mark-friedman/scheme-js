@@ -42,7 +42,7 @@
 
 import { Environment } from './environment.js';
 import { Interpreter } from './interpreter.js';
-import { analyze } from './analyzer.js';
+import { analyze } from './expand.js';
 import { assemble } from './assembler.js';
 import { Executable } from './stepables_base.js';
 import { globalContext } from './context.js';
@@ -74,7 +74,7 @@ const SEED_LIBRARIES = [['scheme', 'core'], ['scheme', 'control'], ['scheme-js',
 const PINNED_LIBRARIES = SEED_LIBRARIES.slice(0, 4);
 
 /**
- * A syntactic keyword one of the seed's libraries exports, as the analyzer
+ * A syntactic keyword one of the seed's libraries exports, as the expander
  * binds it where the keyword is imported.
  */
 class SeedKeyword {

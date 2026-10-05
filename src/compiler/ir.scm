@@ -590,7 +590,7 @@
       ((eq? tag 'letrec)
        ;; Every name is in scope in every initializer, which is what makes the
        ;; group mutually recursive, and every initializer is a lambda -- the
-       ;; analyzer only builds this shape. Declaring them all callable before
+       ;; expander only builds this shape. Declaring them all callable before
        ;; lowering any of them is what lets a recursive or mutually recursive
        ;; call be recognised as a callee this pass can name.
        (let ((inner (make-scope scope)))
@@ -618,7 +618,7 @@
 
       ((eq? tag 'define)
        ;; Only reachable for an internal definition; the top-level case is
-       ;; handled by the caller. The analyzer has already hoisted the name.
+       ;; handled by the caller. The expander has already hoisted the name.
        (begin
          (state-defined! st (ast-1 node))
          (if (eq? (ast-tag (ast-2 node)) 'lambda)
@@ -750,7 +750,7 @@
                                           tail #f)))))))))))))
 
 ;; /**
-;;  * A name this pass invents, distinct from anything the analyzer produces.
+;;  * A name this pass invents, distinct from anything the expander produces.
 ;;  * @param {vector} st - The lowering state.
 ;;  * @returns {symbol} A fresh name.
 ;;  */
@@ -763,7 +763,7 @@
 ;;  * Lowers `((lambda (a b) body) x y)` as bindings rather than as a call.
 ;;  *
 ;;  * Every `let` reaches the compiler in this shape, because that is what the
-;;  * analyzer expands it to, so a chain of bindings would otherwise be a chain
+;;  * expander expands it to, so a chain of bindings would otherwise be a chain
 ;;  * of nested procedures -- one per clause of a `let*`. Reducing it is sound
 ;;  * because the operator is a literal lambda applied exactly here: nothing
 ;;  * else can call it and nothing can capture it.
@@ -875,7 +875,7 @@
 ;;  * Lowers a named `let`'s application with the call moved inside the group:
 ;;  * `((letrec ((loop L)) loop) a b)` becomes `(letrec ((loop L)) (loop a b))`.
 ;;  *
-;;  * The analyzer expands a named `let` to the first shape, where the call is
+;;  * The expander expands a named `let` to the first shape, where the call is
 ;;  * outside the group and the group can only be a procedure. In the second the
 ;;  * group's body is the call that enters the loop, which is the shape
 ;;  * `inline-loop?` recognises. The two mean the same thing: the arguments were

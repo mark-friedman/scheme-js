@@ -41,13 +41,13 @@
  * that library is installed at all.
  *
  * The second is per procedure, and is deliberately about *arity* rather than
- * about names. It is tempting to compare the analyzer's renamed parameter
+ * about names. It is tempting to compare the expander's renamed parameter
  * names, and that turns out to be both useless and harmful. Useless because
  * generated code names locals only inside itself -- its sole external
  * references are `globalCell(E, "name")`, `primitiveCell("name")` and `E.set`, and
  * every one of those uses the name as written in the source, never a renamed
  * one. Harmful because renaming comes from a counter that advances as the
- * analyzer works, so a program that bootstraps a second interpreter gets
+ * expander works, so a program that bootstraps a second interpreter gets
  * different names for identical source and would silently lose every prebuilt
  * procedure. Arity is renaming-independent and still catches a changed
  * signature.
@@ -72,7 +72,7 @@ import { runCompiled } from '../core/interpreter/values.js';
 import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { assemble } from '../core/interpreter/assembler.js';
-import { analyze } from '../core/interpreter/analyzer.js';
+import { analyze } from '../core/interpreter/expand.js';
 
 /**
  * Hashes the library sources into a short fingerprint.

@@ -473,7 +473,7 @@
 ;;  * Whether a closure was made at the top level of a program or a library,
 ;;  * rather than inside a procedure or a `let`. One made inside closes over
 ;;  * locals, which generated code reaches by their names, and a local's name
-;;  * carries the counter the analyzer renamed it with in this run: code
+;;  * carries the counter the expander renamed it with in this run: code
 ;;  * generated for a prebuilt table, in one run, would look for it under a name
 ;;  * that the run installing the table did not give it.
 ;;  * @param {procedure} closure - An interpreted closure.

@@ -81,7 +81,7 @@ function's `name`, and places it by its script's URL. Generated code would show 
 property keyed by the Scheme procedure's name, `const $proc = { "count-down": function (n) {...}
 }["count-down"]`, which names the function as it is made (`named-function` in `emit.scm`); a nested
 procedure shows as its name if a named `let` or an internal definition gave it one, and as
-`anonymous`, the analyzer's name for it, otherwise. Setting `name` afterwards would read the same in a trace, but reconfiguring a function's
+`anonymous`, the expander's name for it, otherwise. Setting `name` afterwards would read the same in a trace, but reconfiguring a function's
 own property leaves all its properties slow to read (R110), and compiled code reads its callee's on
 every call. V8 removes the object literal, so making a closure costs what it did.
 
@@ -91,7 +91,7 @@ being the one the procedure was read from, or else its library, or else `program
 The prebuilt tables are module code, placed by their module's URL, and named the same way.
 
 And it is given a source map, which places each frame in the Scheme source. Positions ride from the
-reader to the lines of generated code: the analyzer's span of each application is passed to the
+reader to the lines of generated code: the expander's span of each application is passed to the
 compiler with it (`marshal.js`), the lowering keeps it on the `call` node it makes, and while the
 emitter emits a call, each statement it makes is noted as coming from that span -- beside the
 statement, in a weak table, since every reader of a statement would otherwise have to step over
@@ -526,7 +526,7 @@ internal-definition hoisting are already done, and compiled and interpreted code
 of a program by construction rather than by two front ends being kept in step.
 
 It computes the two things code generation needs and the analyzed AST does not record: **tail
-position** (the analyzer makes every application a `TailAppNode` regardless) and **local versus global
+position** (the expander makes every application a `TailAppNode` regardless) and **local versus global
 reference**.
 
 Lowering is **partial on purpose**. Anything outside the compiler's subset is declined and left to the
@@ -540,7 +540,7 @@ The pass is Scheme: `src/compiler/ir.scm`, reached through `src/compiler/lowerin
 The compiler is meant to end up in Scheme, because a Scheme compiler good enough to compile a Scheme
 compiler is the goal and it cannot be argued from priors. Lowering, code generation, the driver that
 decides what to compile and why not, and the tier's decisions about a program's own code are Scheme;
-the analyzer in front of them is not yet. What the compiler's Scheme needs from the interpreter --
+and so is the expander in front of them, `(scheme-js expander)`, though its forms still reach the compiler as the evaluator's nodes. What the compiler's Scheme needs from the interpreter --
 `new Function`, reading and rebinding environments, the lambda behind a closure, weak tables -- it
 imports from `(scheme-js compiler host)`, `src/compiler/host.js`, and the JavaScript entry points in
 `index.js` and `tiering.js` only hand arguments across and read back the records it returns.

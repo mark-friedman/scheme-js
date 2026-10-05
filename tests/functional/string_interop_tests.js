@@ -10,7 +10,7 @@
 
 import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { SchemeString } from '../../src/core/primitives/string_class.js';
 import { schemeToJs, schemeToJsDeep } from '../../src/core/interpreter/js_interop.js';
 import { attachTier } from '../../src/compiler/tiering.js';

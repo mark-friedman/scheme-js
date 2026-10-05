@@ -20,7 +20,7 @@
 import { assert } from '../harness/helpers.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
 import { ReplDebugBackend } from '../../src/debug/repl_debug_backend.js';
 import { ReplDebugCommands } from '../../src/debug/repl_debug_commands.js';

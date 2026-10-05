@@ -4,7 +4,7 @@
  * Each is run by the debugger's Scheme (`debugger-command` in
  * src/core/scheme/debugger.scm), which answers with the text to show. Only
  * `:eval` comes back to be done here: an expression to evaluate in a frame's
- * environment, which needs the analyzer to see that frame's renamed locals.
+ * environment, which needs the expander to see that frame's renamed locals.
  */
 
 import { parse } from '../core/interpreter/reader.js';

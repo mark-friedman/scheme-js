@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import { setFileResolver, loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
 import { getFileResolver, getLibraryEnv } from '../../src/core/interpreter/library_registry.js';
 import { compileEnvironment } from '../../src/compiler/index.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { expandToCore } from '../../src/core/interpreter/expand.js';
 import { assemble } from '../../src/core/interpreter/assembler.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from '../../src/core/interpreter/values.js';

@@ -6,7 +6,7 @@
 
 import { TailCall, Values, NO_VALUES, isSchemeClosure, isSchemeContinuation, Closure, Continuation } from '../interpreter/values.js';
 import { TailAppNode, LiteralNode, DynamicWindInit, CallWithValuesNode, CallCCNode } from '../interpreter/ast.js';
-import { analyze } from '../interpreter/analyzer.js';
+import { analyze } from '../interpreter/expand.js';
 import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
 import { applyProcedure, valuesToList } from './apply.js';

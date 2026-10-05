@@ -47,7 +47,7 @@ import { fileURLToPath } from 'url';
 
 import { createTestEnv, run as runScheme } from '../tests/harness/helpers.js';
 import { parse } from '../src/core/interpreter/reader.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { createInterpreter } from '../src/core/interpreter/index.js';
 import { compileProgram } from '../src/compiler/index.js';
 import { DefineNode, LambdaNode } from '../src/core/interpreter/ast_nodes.js';

@@ -228,7 +228,7 @@ export class DefineFrame extends Executable {
  * chain returns, so a tail loop's memory would grow with its iteration count
  * whenever debugging was switched on.
  *
- * Tail position is detected from the frame stack rather than from the analyzer,
+ * Tail position is detected from the frame stack rather than from the expander,
  * which does not compute it. A `DebugExitFrame` sitting on top of the stack at
  * the moment of application means nothing is pending in the calling procedure,
  * so this call's result flows straight to that procedure's exit -- which is
@@ -398,7 +398,7 @@ function invokeContinuationFrom(func, args, env, registers, interpreter) {
     // A continuation captured in this run of the interpreter, while the run
     // is still going: the two stacks share everything up to and including the
     // run's sentinel. A run that JavaScript started -- a callback, or the
-    // library system called from the analyzer -- has the Scheme frames beneath
+    // library system called from the expander -- has the Scheme frames beneath
     // its caller under that sentinel, so its continuations hold them too; but
     // a jump to one of its own continuations stays in it, and the run returns
     // to the JavaScript that started it. Only a continuation reaching past the

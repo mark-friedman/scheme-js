@@ -56,8 +56,8 @@
 ;;  * @param {...*} body - Body expressions to evaluate.
 ;;  * @returns {*} Result of the last expression in the body.
 ;;  */
-;; `let` and `letrec` are CORE FORMS, analyzed natively in
-;; `src/core/interpreter/analyzers/core_forms.js`, not macros.
+;; `let` and `letrec` are CORE FORMS, expanded by the expander itself
+;; (`src/core/scheme/expander.scm`), not macros.
 ;;
 ;; They used to be defined here, `letrec` by Al Petrofsky's list-based method:
 ;;

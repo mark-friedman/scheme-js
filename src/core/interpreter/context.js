@@ -1,7 +1,7 @@
 /**
  * Interpreter Context
  * 
- * Encapsulates the analyzer's mutable state for a single interpreter
+ * Encapsulates the expander's mutable state for a single interpreter
  * instance: scopes, interned syntax, the tables keyed by scope, and macros.
  * This enables multiple isolated interpreters to coexist without
  * sharing global state, which is essential for:
@@ -105,7 +105,7 @@ class ScopeBindingRegistry {
 // =============================================================================
 
 /**
- * Holds the analyzer's mutable state for a single interpreter instance.
+ * Holds the expander's mutable state for a single interpreter instance.
  * 
  * When creating interpreters that should be isolated from each other,
  * each should have its own InterpreterContext instance.
@@ -160,10 +160,8 @@ export class InterpreterContext {
         this.libraryScopeLog = [];
         /** @type {string[]} */
         this.syntaxInternLog = [];
-        /** Macro transformer registry (global for this context) - isolated but sees global macros */
+        /** The macros defined by name for the whole process, which this context's sees too. */
         this.macroRegistry = new MacroRegistry(globalMacroRegistry);
-        /** Current macro registry stack for scoped expansion (transient during analysis) */
-        this.currentMacroRegistry = this.macroRegistry;
 
         /** Baseline macro names for reset */
         this.baselineMacroNames = null;
@@ -475,7 +473,6 @@ export class InterpreterContext {
  */
 export const globalContext = new InterpreterContext();
 globalContext.macroRegistry = globalMacroRegistry;
-globalContext.currentMacroRegistry = globalMacroRegistry;
 
 /**
  * Gets the current context (for transitional code).

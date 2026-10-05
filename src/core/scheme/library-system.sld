@@ -10,7 +10,7 @@
 ;; loaded before any other library, by the little that is JavaScript of the
 ;; library system (src/core/interpreter/library_seed.js): what it uses has to
 ;; be loadable without it. What it needs of the host besides -- the reader,
-;; environments, the analyzer's tables -- are primitives
+;; environments, the expander's tables -- are primitives
 ;; (src/core/primitives/library.js).
 ;;
 ;; The file is `library-system.sld` because every library resolver finds a

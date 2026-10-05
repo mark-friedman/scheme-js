@@ -27,7 +27,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { createInterpreter } from '../src/core/interpreter/index.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { setFileResolver } from '../src/core/interpreter/library_loader.js';
 import { SCHEME_BASE, SCHEME_BASE_SYNTAX, OTHER_LIBRARIES, NON_BASE_SYNTAX, SCHEME_R5RS, R5RS_SYNTAX } from './r7rs_identifiers.js';

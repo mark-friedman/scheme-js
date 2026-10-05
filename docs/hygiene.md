@@ -130,14 +130,14 @@ that cannot name them. Three mechanisms carry that across the library boundary.
 Each library has a scope of its own, registered with its environment before
 its imports are applied (`library_loader.js`). A macro defined while the
 library loads marks every identifier its templates introduce with that scope as
-well as the expansion's (`markIntroduced` in `syntax_rules.js`), unless the
+well as the expansion's (`mark-introduced` in `syntax_rules.scm`), unless the
 identifier already carries a library's scope -- it was written in another
 library, whose macro wrote this one. `libraryScopeOf` reads it back.
 
 ### References and assignments
 
 A free identifier carrying a library's scope is the library's binding of its
-name (`libraryBindingEnv` in `syntax_object.js`). Where the use site's own
+name (`library-binding-env` in `expander.scm`). Where the use site's own
 environment would find that same binding by name, it is analyzed as a plain
 global reference, which the compiler tier can compile: within the library
 itself; when the library has no binding of the name of its own; and when the
@@ -167,10 +167,10 @@ imports it as (`InterpreterContext.defineKeyword`). A keyword's binding keeps
 the macro's transformer as it was, so `(import (rename (scheme base)
 (quasiquote std-quasiquote)))` still names the standard `quasiquote` after the
 library defines its own, and two libraries' internal macros of the same name
-each expand into their own. The analyzer looks an operator up in local macros
+each expand into their own. The expander looks an operator up in local macros
 (`let-syntax`, a body's `define-syntax`) first, then in the bindings where the
-identifier is used (`operatorKeyword`), then by name; a pattern literal is
-compared by the keyword each side names (`keywordName`), so a literal written
+identifier is used (`operator-keyword`), then by name; a pattern literal is
+compared by the keyword each side names (`keyword-name`), so a literal written
 `ellipsis` in a library that imported `...` as `ellipsis` matches the user's
 `...`.
 
@@ -196,13 +196,11 @@ Two identifiers are `free-identifier=?` if they resolve to the same binding. Use
 
 | File | Purpose |
 |------|---------|
-| `syntax_object.js` | `SyntaxObject`, `ScopeBindingRegistry`, scope utilities |
-| `syntax_rules.js` | `compileSyntaxRules`, pattern matching, transcription |
-| `identifier_utils.js` | Shared identifier helpers (`getIdentifierName`, `isEllipsisIdentifier`) |
-| `macro_registry.js` | Global macro name registry |
-| `analyzer.js` | S-exp → AST dispatcher |
-| `analyzers/core_forms.js` | `analyzeDefineSyntax` and other special forms |
-| `analyzers/registry.js` | Central handler registry |
+| `src/core/scheme/expander.scm` | The expander: environments, keywords, the special forms, `define-syntax` and `define-macro` |
+| `src/core/scheme/syntax_rules.scm` | `syntax-rules`: pattern matching, transcription, marks |
+| `src/core/interpreter/syntax_object.js` | `SyntaxObject`, the identifier; `ScopeBindingRegistry`; walks of a datum that mark scopes |
+| `src/core/primitives/expander_support.js` | What the expander needs of the host: identifiers, scopes, the keyword tables |
+| `src/core/interpreter/macro_registry.js` | The macros defined by name for the process |
 
 ## Related Documentation
 

@@ -1,5 +1,5 @@
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { VariableNode, LiteralNode } from '../../src/core/interpreter/ast.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { createGlobalEnvironment } from '../../src/core/primitives/index.js';

@@ -15,7 +15,7 @@
 
 import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { DefineNode } from '../../src/core/interpreter/ast_nodes.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 import { settle } from '../../src/compiler/runtime.js';

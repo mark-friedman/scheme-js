@@ -57,7 +57,7 @@ import { fileURLToPath } from 'url';
 
 import { createBenchmarkInterpreter } from './harness.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { DefineNode, LambdaNode } from '../../src/core/interpreter/ast_nodes.js';
 import { tryCompileClosure, tryCompileExpression, runCompiledThunk } from '../../src/compiler/index.js';
 import { recordCompiledOver } from '../../src/core/interpreter/library_registry.js';

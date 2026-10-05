@@ -528,7 +528,7 @@ export async function runIOTests(sharedInterpreter, logger) {
     {
       const { tryCompileDefinition } = await import('../../src/compiler/index.js');
       const { parse } = await import('../../src/core/interpreter/reader.js');
-      const { analyze } = await import('../../src/core/interpreter/analyzer.js');
+      const { analyze } = await import('../../src/core/interpreter/expand.js');
       const { DefineNode } = await import('../../src/core/interpreter/ast_nodes.js');
 
       const source = `(define (read-it path)

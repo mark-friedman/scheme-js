@@ -229,7 +229,7 @@ function schemeRestorer(restorer) {
  * registry outside is current again, whether `fn` returned or threw.
  * Libraries loaded inside stay alive through whatever holds them, and are
  * found by nothing outside: not by name, and not by scope, since the entries
- * made inside in the analyzer's tables keyed by scope go too
+ * made inside in the expander's tables keyed by scope go too
  * (`leavePrivateLibraries` in context.js). Loading is synchronous, so nothing
  * else can observe the swap.
  *
@@ -428,7 +428,7 @@ export function registerBuiltinLibrary(libraryName, exports, env) {
 
 /**
  * Standard Scheme syntax keywords.
- * These are handled by the analyzer as special forms; a library exporting one
+ * These are handled by the expander as special forms; a library exporting one
  * exports it as a keyword (`%special-keyword?` in primitives/library.js).
  */
 export const SYNTAX_KEYWORDS = new Set([
@@ -439,21 +439,4 @@ export const SYNTAX_KEYWORDS = new Set([
     'define-library', 'include', 'include-ci', 'include-library-declarations',
     'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation',
     'define-macro'
-]);
-
-/**
- * Special forms recognized by the analyzer.
- * These have dedicated analysis functions and are NOT treated as macro calls.
- * Also used by syntax_rules to prevent renaming during macro expansion.
- */
-export const SPECIAL_FORMS = new Set([
-    // Core special forms
-    'if', 'let', 'letrec', 'lambda', 'set!', 'define', 'begin',
-    'quote', 'quasiquote', 'unquote', 'unquote-splicing',
-    // Macro-related
-    'define-syntax', 'let-syntax', 'letrec-syntax', 'define-macro',
-    // Control flow
-    'call/cc', 'call-with-current-continuation',
-    // Module system
-    'import', 'cond-expand'
 ]);

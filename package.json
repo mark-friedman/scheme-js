@@ -7,7 +7,6 @@
   "scripts": {
     "test": "node --expose-gc run_tests_node.js",
     "test:repl": "node tests/functional/repl_debug.mjs",
-    "test:expanders": "node --expose-gc --import ./tests/compare_expanders.js run_tests_node.js",
     "benchmark": "node benchmarks/run_benchmarks.js",
     "benchmark:save": "node benchmarks/save_baseline.js",
     "benchmark:compare": "node benchmarks/compare_baseline.js",

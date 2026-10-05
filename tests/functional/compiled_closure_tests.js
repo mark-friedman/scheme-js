@@ -14,7 +14,7 @@
 import { assert } from '../harness/helpers.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 import { list } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';

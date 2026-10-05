@@ -75,7 +75,7 @@
  */
 
 import { createInterpreter } from '../core/interpreter/index.js';
-import { analyze } from '../core/interpreter/analyzer.js';
+import { analyze } from '../core/interpreter/expand.js';
 import { loadLibrarySync } from '../core/interpreter/library_loader.js';
 import { withPrivateLibraries, getLibraryEnv } from '../core/interpreter/library_registry.js';
 import { BUNDLED_SOURCES } from '../packaging/bundled_libraries.js';
@@ -141,7 +141,7 @@ let bootstrapFailure = null;
  *
  * Each library is restored from its prebuilt table as it loads, without its
  * source running: its procedures bound from their compiled code, and its other
- * forms -- the macros the analyzer needs, record types, values -- run in their
+ * forms -- the macros the expander needs, record types, values -- run in their
  * places. A table that no longer matches its sources leaves its library to
  * load from source, and then makes the closures the source made run compiled,
  * defining nothing -- which is what lets the fingerprint check fail towards

@@ -18,7 +18,7 @@ const projectRoot = path.join(__dirname, '..');
 
 // Import from the project's actual structure - match run_all.js approach
 import { createInterpreter } from '../src/core/interpreter/index.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { parse } from '../src/core/interpreter/reader.js';
 
 function evalScheme(interpreter, env, code) {

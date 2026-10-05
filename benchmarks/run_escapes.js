@@ -24,7 +24,7 @@
  */
 
 import { parse } from '../src/core/interpreter/reader.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
 import { tryCompileDefinition } from '../src/compiler/index.js';
 import { unsafeDefinitions } from '../src/compiler/index.js';

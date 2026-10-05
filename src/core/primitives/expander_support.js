@@ -4,7 +4,7 @@
  *
  * Identifiers are a value representation, `SyntaxObject`s beside symbols,
  * interned by name and scopes so that one written twice is one object; what
- * reads and makes them is here. So are the analyzer's tables, which the
+ * reads and makes them is here. So are the expander's tables, which the
  * library system reaches too (src/core/primitives/library.js): the scopes
  * made so far and the library each belongs to, the library or program whose
  * forms are being expanded, the syntactic keywords bound in each -- held by
@@ -23,12 +23,11 @@ import {
 import { cons, list, toArray } from '../interpreter/cons.js';
 import { intern } from '../interpreter/symbol.js';
 import { Executable } from '../interpreter/stepables_base.js';
-import { callSchemeProcedure } from '../interpreter/values.js';
 import { SchemeSyntaxError } from '../interpreter/errors.js';
 import { evaluateFeatureRequirement } from '../interpreter/library_registry.js';
 import { Interpreter } from '../interpreter/interpreter.js';
 import { assemble } from '../interpreter/assembler.js';
-import { analyze } from '../interpreter/analyzer.js';
+import { analyze } from '../interpreter/expand.js';
 import { createGlobalEnvironment } from './index.js';
 import { Rational } from './rational.js';
 import { Complex } from './complex.js';
@@ -226,39 +225,16 @@ export const expanderPrimitives = {
     /** What an error says, or else how a raised value displays. */
     '%error-message': (e) => (e instanceof Error ? e.message : displayString(e)),
 
-    // -- Transformers, between the two expanders --------------------------------------
-    //
-    // A table of keywords holds what the JavaScript analyzer can call: a
-    // function of the form and the syntactic environment where it is used,
-    // which answers `lookup(identifier)`. While both expanders run in one
-    // process, a transformer the Scheme expander makes is kept in that shape
-    // too, and the Scheme expander calls one the analyzer made through it.
+    // -- Transformers ------------------------------------------------------------------
 
     /**
-     * A transformer the tables can hold, of a Scheme procedure of the form and
-     * the environment where it is used; `reflected`, unless #f, is the
-     * procedure a debugger finds the transformer by.
+     * Gives a macro's transformer the procedure a debugger finds it by: a
+     * `define-macro`'s, which runs the procedure the definition gave.
      */
-    '%make-transformer': (procedure, reflected) => {
-        const transformer = (form, useEnv) => callSchemeProcedure(procedure, [form, useEnv ?? false]);
-        transformer.scheme = procedure;
-        if (reflected !== false) transformer.transformerProcedure = reflected;
-        return transformer;
+    '%reflect-transformer!': (transformer, procedure) => {
+        transformer.transformerProcedure = procedure;
+        return undefined;
     },
-
-    /** The Scheme procedure of a transformer `%make-transformer` made, or #f. */
-    '%transformer-procedure': (transformer) => transformer.scheme ?? false,
-
-    /**
-     * Calls a transformer the JavaScript analyzer made, with an environment
-     * that answers `lookup` with a Scheme procedure of an identifier.
-     */
-    '%call-javascript-transformer': (transformer, form, lookup) => transformer(form, {
-        lookup: (id) => {
-            const renamed = callSchemeProcedure(lookup, [id]);
-            return renamed === false ? null : renamed;
-        }
-    }),
 
     /**
      * A pending macro's definition and the scope of the library that defined
@@ -268,19 +244,18 @@ export const expanderPrimitives = {
     '%pending-macro': (x) => (x !== null && typeof x === 'object' && x.pendingMacro !== undefined
         ? cons(x.pendingMacro, x.scope) : false),
 
+    /** The transformer made of a pending macro's definition, or #f if none is yet. */
+    '%realized-macro': (pending) => pending.realized ?? false,
+
     /**
-     * Keeps on a pending macro the transformer made of its definition: its
-     * Scheme procedure, and the procedure a debugger finds a `define-macro`
-     * by.
+     * Keeps on a pending macro the transformer made of its definition, and the
+     * procedure a debugger finds a `define-macro` by.
      */
     '%realize-pending-macro!': (pending, made) => {
-        pending.scheme = made.scheme;
+        pending.realized = made;
         if (made.transformerProcedure !== undefined) pending.transformerProcedure = made.transformerProcedure;
         return undefined;
     },
-
-    /** What the JavaScript analyzer's environment binds an identifier to, or #f. */
-    '%javascript-environment-lookup': (env, id) => env.lookup(id) ?? false,
 
     // -- define-macro ---------------------------------------------------------------
 

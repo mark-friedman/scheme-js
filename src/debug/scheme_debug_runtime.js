@@ -294,14 +294,15 @@ export class SchemeDebugRuntime {
      * The `define-macro` transformers the interpreter's analysis can reach,
      * with their spans: a breakpoint in one is accepted and never fires, since
      * a transformer runs while code is expanded, before any of it runs, on an
-     * interpreter with no debugger (`analyzeDefineMacro`).
+     * interpreter with no debugger (`%evaluate-transformer` in
+     * src/core/primitives/expander_support.js).
      * @returns {Array<[string, Object]>} (name, span) pairs.
      */
     macroTransformers() {
         const context = this.interpreter?.context;
         const seen = new Set();
         const found = [];
-        for (const start of [context?.currentMacroRegistry, context?.macroRegistry, globalMacroRegistry]) {
+        for (const start of [context?.macroRegistry, globalMacroRegistry]) {
             for (let registry = start; registry && !seen.has(registry); registry = registry.parent) {
                 seen.add(registry);
                 for (const [name, transformer] of registry.macros) {

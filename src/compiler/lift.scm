@@ -158,7 +158,7 @@
 
 ;; /**
 ;;  * Whether a subtree reads or assigns a local, nested lambdas included.
-;;  * Names are unique after the analyzer's renaming, so any mention is a
+;;  * Names are unique after the expander's renaming, so any mention is a
 ;;  * mention of that one binding.
 ;;  * @param {list} node - An IR node.
 ;;  * @param {symbol} name - A renamed local.

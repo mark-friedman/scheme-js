@@ -1,6 +1,6 @@
 import { Environment } from '../../../src/core/interpreter/environment.js';
 import { parse } from '../../../src/core/interpreter/reader.js';
-import { analyze } from '../../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../../src/core/interpreter/expand.js';
 import { prettyPrint } from '../../../src/core/interpreter/printer.js';
 import { LiteralNode, VariableNode, IfNode, LetNode, LetRecNode, LambdaNode, TailAppNode, CallCCNode, BeginNode } from '../../../src/core/interpreter/ast.js';
 import { assert, createTestLogger, createTestEnv } from '../../harness/helpers.js';

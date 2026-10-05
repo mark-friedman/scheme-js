@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { compileEnvironment } from '../../src/compiler/index.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

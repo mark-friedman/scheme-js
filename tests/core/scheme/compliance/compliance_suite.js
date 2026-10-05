@@ -22,7 +22,7 @@ import { createInterpreter } from '../../../../src/core/interpreter/index.js';
 import { run, safeStringify } from '../../../harness/helpers.js';
 import { loadLibrarySync, applyImports } from '../../../../src/core/interpreter/library_loader.js';
 import { withPrivateLibraries } from '../../../../src/core/interpreter/library_registry.js';
-import { analyze } from '../../../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../../../src/core/interpreter/expand.js';
 import {
     globalMacroRegistry, resetGlobalMacroRegistry, snapshotMacroRegistry
 } from '../../../../src/core/interpreter/macro_registry.js';

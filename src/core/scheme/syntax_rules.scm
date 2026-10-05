@@ -25,9 +25,8 @@
 ;;  * transcribed with.
 ;;  * @property {list} literals - The macro's literals.
 ;;  * @property {symbol} ellipsis - Its ellipsis' name.
-;;  * @property {*} use-env - Where it is used: a procedure of an identifier
-;;  *   giving the local that binds it there, or #f; or the JavaScript
-;;  *   analyzer's syntactic environment; or #f.
+;;  * @property {procedure} use-env - Where it is used: a procedure of an
+;;  *   identifier giving the local that binds it there, or #f.
 ;;  * @property {number} scope - The expansion's scope.
 ;;  * @property {syntactic-env} definition-env - Where the macro was defined.
 ;;  * @property {number|boolean} library-scope - The scope of the library that
@@ -143,16 +142,13 @@
 
 ;; /**
 ;;  * Whether an identifier is bound locally where a macro is used.
-;;  * @param {*} use-env - Where: a procedure of an identifier giving the
-;;  *   local that binds it, the JavaScript analyzer's syntactic environment,
-;;  *   or #f.
+;;  * @param {procedure} use-env - Where: a procedure of an identifier giving
+;;  *   the local that binds it there, or #f.
 ;;  * @param {identifier} id - The identifier.
 ;;  * @returns {boolean}
 ;;  */
 (define (bound-at-use? use-env id)
-  (cond ((procedure? use-env) (and (use-env id) #t))
-        ((or (not use-env) (null? use-env)) #f)
-        (else (and (%javascript-environment-lookup use-env id) #t))))
+  (and (use-env id) #t))
 
 ;; ---------------------------------------------------------------------------
 ;; Matching

@@ -39,7 +39,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { parse } from '../src/core/interpreter/reader.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { DefineNode, LambdaNode, BeginNode } from '../src/core/interpreter/ast_nodes.js';
 import { setFileResolver, setLibraryLoadHook } from '../src/core/interpreter/library_loader.js';
 import { getLibraryEnv } from '../src/core/interpreter/library_registry.js';

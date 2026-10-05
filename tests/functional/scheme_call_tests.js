@@ -16,7 +16,7 @@
 
 import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, TailCall } from '../../src/core/interpreter/values.js';
 import { compiledStack, openCompiledSegment, restoreFlush } from '../../src/core/interpreter/unwind.js';

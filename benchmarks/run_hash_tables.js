@@ -37,7 +37,7 @@ import path from 'path';
 import { createBenchmarkInterpreter, PROJECT_ROOT } from './lib/harness.js';
 import { compileEnvironment, tryCompileDefinition } from '../src/compiler/index.js';
 import { parse } from '../src/core/interpreter/reader.js';
-import { analyze } from '../src/core/interpreter/analyzer.js';
+import { analyze } from '../src/core/interpreter/expand.js';
 import { callSchemeProcedure } from '../src/core/interpreter/values.js';
 
 const args = process.argv.slice(2);

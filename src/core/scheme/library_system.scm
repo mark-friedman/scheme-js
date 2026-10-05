@@ -9,7 +9,7 @@
 ;; What only the host can do it is given: the file resolver, a procedure from
 ;; a path to a file's text (and the load hook, called with each library
 ;; loaded by name), and through primitives the reader, environments, and the
-;; analyzer's tables of scopes and syntactic keywords. Analyzing and running a
+;; expander's tables of scopes and syntactic keywords. Expanding and running a
 ;; library's body is the host's too, the `evaluate` procedure a loader holds.
 ;;
 ;; Names are symbols here: a library's name is the list it is written as, of
@@ -381,7 +381,7 @@
 ;; /**
 ;;  * A syntactic keyword a library exports: a macro, with its transformer, or
 ;;  * a special form or auxiliary keyword, which has none. Imported, it is bound
-;;  * in the analyzer's tables rather than in an environment, under the name it
+;;  * in the expander's tables rather than in an environment, under the name it
 ;;  * is imported as, and stays the keyword it is though the name is another.
 ;;  * @property {symbol} name - The keyword's own name.
 ;;  * @property {procedure|boolean} transformer - A macro's transformer, or #f.
@@ -826,8 +826,9 @@
 
 ;; /**
 ;;  * Binds a library's exports in an environment, under the names an import
-;;  * set's filters give them. A variable is defined in the environment; a
-;;  * syntactic keyword is bound in the analyzer's tables, in the library whose
+;;  * set's filters give them. A variable is defined in the environment, where
+;;  * it then names the variable though a macro of its name was bound there; a
+;;  * syntactic keyword is bound in the expander's tables, in the library whose
 ;;  * environment it is, or else at a program's top level.
 ;;  * @param {object} env - The environment.
 ;;  * @param {list} exports - The exports, `(name . value)`.
@@ -842,8 +843,24 @@
                         ((syntactic-keyword? value)
                          (%define-keyword! scope name (syntactic-keyword-name value)
                                            (syntactic-keyword-transformer value)))
-                        (else (%environment-define! env name value)))))
+                        (else
+                         (%environment-define! env name value)
+                         (shadow-macro! scope name)))))
               exports)))
+
+;; /**
+;;  * Makes a name a variable's, not a macro's, under a scope: one bound to a
+;;  * macro there, or, bound to nothing there, naming a macro defined for the
+;;  * process, names the variable for every form expanded under the scope
+;;  * after. A special form's name is left alone: redefining `if` is an error a
+;;  * program could not recover from.
+;;  * @param {number} scope - A library's scope, or a program's top level's.
+;;  * @param {symbol} name - The name.
+;;  */
+(define (shadow-macro! scope name)
+  (let ((entry (%keyword-entry scope name)))
+    (if (if entry (cdr entry) (%process-macro name))
+        (%bind-keyword! scope name #f #f))))
 
 ;; ---------------------------------------------------------------------------
 ;; Closures run compiled, and run as themselves for a debugger

@@ -729,7 +729,7 @@ export class Interpreter {
    */
   async evaluateStringAsync(code, options = {}) {
     const { parse } = await import('./reader.js');
-    const { analyze } = await import('./analyzer.js');
+    const { analyze } = await import('./expand.js');
     const { list } = await import('./cons.js');
     const { intern } = await import('./symbol.js');
 

@@ -18,7 +18,7 @@
 
 import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
 import { invoke, settle, stack, SCHEME_PRIMITIVE } from '../../src/compiler/runtime.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';

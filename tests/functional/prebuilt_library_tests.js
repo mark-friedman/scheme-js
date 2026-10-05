@@ -16,7 +16,7 @@
 import { assert } from '../harness/helpers.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { parse } from '../../src/core/interpreter/reader.js';
-import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { analyze } from '../../src/core/interpreter/expand.js';
 import { loadLibrarySync, parseDefineLibrary } from '../../src/core/interpreter/library_loader.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 import {
