@@ -615,8 +615,10 @@ function stringToNumber(str, radix) {
         // If string starts with #, parseNumber handles it.
         // If string DOES NOT start with #, pretend it has #d (default) or the radix prefix.
 
+        // Decimal needs no prefix, and one before a number that begins with a
+        // sign and no digit, `+i`, made it unreadable.
         let targetStr = str;
-        if (!str.trim().startsWith('#')) {
+        if (!str.trim().startsWith('#') && r !== 10) {
             targetStr = prefix + str;
         }
         // If explicit radix given, we check if logic is consistent

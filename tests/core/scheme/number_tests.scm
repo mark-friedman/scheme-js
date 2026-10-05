@@ -442,6 +442,11 @@
     (test "hex radix"
       256
       (string->number "100" 16))
+
+    (test "a complex number that begins with its sign and no digit"
+      '(#t 0 1)
+      (let ((i (string->number "+i")))
+        (list (number? i) (real-part i) (imag-part i))))
     
     (test "invalid string returns false"
       #f

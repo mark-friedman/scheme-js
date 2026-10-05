@@ -195,6 +195,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/r7rs-pitfalls.scm',
     'tests/core/scheme/library_system_tests.scm',
     'tests/core/scheme/debugger_tests.scm',
+    'tests/core/scheme/read_source_tests.scm',
     'tests/scripts/table_writer_tests.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',

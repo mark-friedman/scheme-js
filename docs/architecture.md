@@ -264,6 +264,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── interop.js          # JavaScript interop utilities
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
 │       │   ├── library.js          # What the library system needs of the host: resolver, reader, environments, keyword tables
+│       │   ├── reader_support.js   # What (scheme-js reader) needs of the representations: read errors, literal strings, the datum-label note
 │       │   └── gc.js               # GC-related utilities
 │       │
 │       └── scheme/                 # Core Scheme subset (base library)
@@ -291,6 +292,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── library_system.scm  # define-library, import sets, cond-expand, registries, loading, importing, closures run compiled for a debugger
 │           ├── debugger.sld        # (scheme-js debugger): the debugger's logic, loaded beside the library system
 │           ├── debugger.scm        # breakpoints, the calls a program is in, stepping, exceptions, the REPL's commands
+│           ├── reader.sld          # (scheme-js reader): text into data, with spans
+│           ├── reader.scm          # a character-level recursive descent; dot notation, object literals, directives, datum labels
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
 │           ├── ports.scm           # call-with-port

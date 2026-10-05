@@ -12169,3 +12169,40 @@ debugger chooses, running, stepping and paused.
 
 7,805 tests pass in Node with none failing (33 skipped), and 7,581 in the browser with none
 failing (56 skipped). `tests/functional/repl_debug.mjs` drives the CLI's debugger.
+
+# Task 63, first part: the reader, in Scheme, beside the JavaScript one (2026-10-04)
+
+`(scheme-js reader)` (`src/core/scheme/reader.sld`, `reader.scm`) reads text into data: R7RS's written
+syntax -- lists and dotted lists, vectors, bytevectors, strings and their escapes, characters,
+`|symbols|`, booleans, the quote forms, datum labels and circular data, block and datum comments,
+`#!fold-case` -- and this implementation's dot notation, object literals and `#!dot-notation`
+directives, each list and vector carrying its span. It reads a character at a time, by a recursive
+descent with no tokens between: a datum ends where its syntax says, which is what reading from a
+port will need. A number's syntax is `string->number`'s, the numeric tower's primitive, so
+`number_parser.js` stays as its core. It is written with `(scheme core)` and `(scheme control)`
+alone, to load beside the library system.
+
+Compared over the 725 Scheme files of the repository and the downloaded corpus, it reads what the
+JavaScript reader reads, data and spans alike, but for two vectors written after a datum label,
+`#0=#(...)`, whose span the JavaScript reader loses; both reject the same one file. It takes 4.2 s
+for the 5.4 MB, the JavaScript reader 1.2 s.
+
+Nothing uses it yet: making `parse` a door into it, with the bootstrap a reader needs to read its
+own source, is the next part, designed in `docs/compiler_plan.md`.
+
+Found on the way: `(string->number "+i")` was #f, R7RS's `+i` unreadable through it, since it
+put a `#d` before every number without a prefix; decimal needs none.
+
+JavaScript, under `src/`: `reader_support.js`, three primitives on the representations the reader
+makes -- its errors, the literal strings it reads, the note that a datum label was referred to --
+and `string->number`, fixed in place.
+
+## Tests
+
+`read_source_tests.scm`: every kind of datum, spans, dot notation and the directives, datum labels,
+and the errors. `number_tests.scm`: `(string->number "+i")`.
+
+## Verification
+
+7,839 tests pass in Node with none failing (33 skipped), and 7,615 in the browser with none
+failing (56 skipped).
