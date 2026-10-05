@@ -12,7 +12,8 @@ import { ConsoleOutputPort } from './console_port.js';
 import { standardInputPort } from './stdin_port.js';
 import { standardOutputPort, standardErrorPort } from './stdout_port.js';
 import { displayString, writeString, writeStringShared, writeStringSimple } from './printer.js';
-import { readExpressionFromPort } from './reader_bridge.js';
+import { systemLibrary } from '../../interpreter/library_seed.js';
+import { callSchemeProcedure } from '../../interpreter/values.js';
 import { callLibrarySystem, currentLibraryRegistry } from '../../interpreter/library_registry.js';
 import { assertArity } from '../../interpreter/type_check.js';
 import { Char } from '../char_class.js';
@@ -385,8 +386,10 @@ export const ioPrimitives = {
     // Read
     // --------------------------------------------------------------------------
 
+    // The reader's door for `read`: a datum from a port, read by
+    // `(scheme-js reader)` (`read-from-port` in reader.scm).
     '%read': (port) => {
         requireOpenInputPort(port, 'read');
-        return readExpressionFromPort(port);
+        return callSchemeProcedure(systemLibrary(['scheme-js', 'reader']).get('read-from-port'), [port]);
     }
 };

@@ -12264,3 +12264,39 @@ vectors, infinities and declarations written down.
 
 7,875 tests pass in Node with none failing (33 skipped), and 7,651 in the browser with none
 failing (56 skipped). `run_tier.js --set all` runs every program right.
+
+# Task 63 done: `read` and the REPLs ask the reader too (2026-10-04)
+
+The last two scanners that knew Scheme's lexical syntax beside the reader are gone.
+
+- `read` on a port is the reader's: `read-from-port` in `reader.scm`, through `%read`. A reader of a
+  port takes from it the datum's characters and looks one beyond, a character at a time, with a
+  short queue for the characters it must look further ahead at inside a datum; its data carry no
+  spans. `io/reader_bridge.js`, which collected a datum's characters by a scan of its own to hand
+  to the parser, is deleted. The directives a port's reads meet hold for its next reads, kept on the
+  port; dot notation is off, as R7RS's `read` reads, where the bridge had it on. Within an atom read
+  from a port a `#` is the atom's, since seeing whether `|` follows it, beginning a block comment,
+  would take a character past the datum.
+- The REPLs' questions -- is the text complete, which parentheses delimit its lists and vectors,
+  which one matches the cursor's -- are `complete-text?`, `delimiter-parens` and
+  `matching-delimiter` in the reader, with `expression_utils.js` their doors. The parentheses come
+  from a scan of the text's tokens by the reader's own rules, so an unbalanced one is given and a
+  text that ends inside a token gives those before it. `tokenizer.js` is deleted.
+
+JavaScript under `src/`: the tokenizer and the bridge, 670 lines, removed; `%read` and the three
+REPL doors, which call the reader.
+
+## Tests
+
+`read_source_tests.scm` takes over what `tokenizer_tests.js` tested of the reader's syntax -- block
+comments among strings, characters and |symbols|, where an unfinished token begins, its line and
+column -- and tests reading from a port (a datum at a time, what follows left in the port, dot
+notation off, directives held), spans past CR LF and wide characters, and the REPL's three
+questions. `source_location_tests.js` keeps its tests of the spans `parse` gives, losing those of
+tokens. The browser REPL, driven headless, evaluates a complete expression, keeps an unfinished one
+open, indented by the reader's parentheses, and colours them.
+
+## Verification
+
+7,759 tests pass in Node with none failing (33 skipped), and 7,535 in the browser with none
+failing (56 skipped).

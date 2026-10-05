@@ -17,5 +17,6 @@
   (import (scheme primitives)
           (scheme core)
           (scheme control))
-  (export read-source read-source-continuing)
+  (export read-source read-source-continuing read-from-port
+          complete-text? delimiter-parens matching-delimiter)
   (include "reader.scm"))

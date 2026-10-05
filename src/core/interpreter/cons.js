@@ -19,7 +19,7 @@ export class Cons {
     constructor(car, cdr, source = null) {
         this.car = car;
         this.cdr = cdr;
-        /** @type {import('./reader/tokenizer.js').SourceInfo|null} */
+        /** @type {{filename: string, line: number, column: number, endLine: number, endColumn: number}|null} */
         this.source = source;
     }
 

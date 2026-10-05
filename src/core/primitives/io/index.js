@@ -7,4 +7,3 @@ export { ConsoleOutputPort } from './console_port.js';
 export { StandardInputPort, standardInputPort } from './stdin_port.js';
 export { StandardOutputPort, standardOutputPort, standardErrorPort } from './stdout_port.js';
 export { displayString, writeString, writeStringShared, writeStringSimple, isCircular } from './printer.js';
-export { readExpressionFromPort } from './reader_bridge.js';

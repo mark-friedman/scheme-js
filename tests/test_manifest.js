@@ -27,7 +27,6 @@ export const unitTests = [
     { path: 'core/primitives/io/console_port_tests.js', fn: 'runConsolePortTests', needsInterpreter: false },
     { path: 'core/primitives/io/printer_tests.js', fn: 'runPrinterTests', needsInterpreter: false },
     // Reader Unit Tests
-    { path: 'core/interpreter/reader/tokenizer_tests.js', fn: 'runTokenizerTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/number_parser_tests.js', fn: 'runNumberParserTests', needsInterpreter: false },
     { path: 'core/interpreter/reader/source_location_tests.js', fn: 'runSourceLocationTests', needsInterpreter: false },
     // The browser REPL's questions about its input

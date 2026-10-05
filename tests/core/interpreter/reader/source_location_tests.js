@@ -1,14 +1,10 @@
 /**
- * @fileoverview Unit tests for source location tracking in the tokenizer and parser.
- * 
- * These tests validate that source positions (line, column) are correctly
- * tracked through the tokenization and parsing pipeline, which is foundational
- * for the debugger implementation.
- * 
- * PHASE 0: Foundation - Tests MUST be created BEFORE implementation.
+ * @fileoverview The spans `parse` gives the lists and vectors it reads, which
+ * the debugger and the source maps place code by: JavaScript asking the
+ * reader, `(scheme-js reader)`, through its door. The reader's own tests are
+ * Scheme (`read_source_tests.scm`).
  */
 
-import { tokenize } from '../../../../src/core/interpreter/reader/tokenizer.js';
 import { parse } from '../../../../src/core/interpreter/reader.js';
 import { assert } from '../../../harness/helpers.js';
 import { Cons } from '../../../../src/core/interpreter/cons.js';
@@ -19,211 +15,6 @@ import { Symbol } from '../../../../src/core/interpreter/symbol.js';
  * @param {Object} logger - Test logger
  */
 export function runSourceLocationTests(logger) {
-    // ============================================================
-    // TOKENIZER SOURCE POSITION TESTS
-    // ============================================================
-    logger.title('Tokenizer Source Position - Basic Tokens');
-
-    // Test: Tokenizer produces position info for identifiers
-    {
-        const tokens = tokenize('foo bar baz');
-        // After implementation, each token should have source info
-        assert(logger, 'tokenize returns array', Array.isArray(tokens), true);
-        assert(logger, 'tokenize has 3 tokens', tokens.length, 3);
-
-        // These tests will pass once source info is added to tokens
-        // For now, they verify the tokens exist
-        if (tokens[0].source) {
-            assert(logger, 'first identifier line', tokens[0].source.line, 1);
-            assert(logger, 'first identifier column', tokens[0].source.column, 1);
-            assert(logger, 'second identifier line', tokens[1].source.line, 1);
-            assert(logger, 'second identifier column', tokens[1].source.column, 5);
-            assert(logger, 'third identifier line', tokens[2].source.line, 1);
-            assert(logger, 'third identifier column', tokens[2].source.column, 9);
-        } else {
-            logger.skip('identifier position info (not yet implemented)');
-        }
-    }
-
-    // Test: Tokenizer produces position info for numbers (integers, floats, rationals)
-    logger.title('Tokenizer Source Position - Numbers');
-    {
-        const tokens = tokenize('123 45.67 3/4');
-        assert(logger, 'tokenize has 3 number tokens', tokens.length, 3);
-
-        if (tokens[0].source) {
-            assert(logger, 'integer line', tokens[0].source.line, 1);
-            assert(logger, 'integer column', tokens[0].source.column, 1);
-            assert(logger, 'float line', tokens[1].source.line, 1);
-            assert(logger, 'float column', tokens[1].source.column, 5);
-            assert(logger, 'rational line', tokens[2].source.line, 1);
-            assert(logger, 'rational column', tokens[2].source.column, 11);
-        } else {
-            logger.skip('number position info (not yet implemented)');
-        }
-    }
-
-    // Test: Tokenizer produces position info for strings (including multi-line)
-    logger.title('Tokenizer Source Position - Strings');
-    {
-        const tokens = tokenize('"hello" "world"');
-        assert(logger, 'tokenize has 2 string tokens', tokens.length, 2);
-
-        if (tokens[0].source) {
-            assert(logger, 'first string line', tokens[0].source.line, 1);
-            assert(logger, 'first string column', tokens[0].source.column, 1);
-            // endColumn is exclusive (column after last character)
-            assert(logger, 'first string end column', tokens[0].source.endColumn, 8);
-            assert(logger, 'second string line', tokens[1].source.line, 1);
-            assert(logger, 'second string column', tokens[1].source.column, 9);
-        } else {
-            logger.skip('string position info (not yet implemented)');
-        }
-    }
-
-    // Test: Multi-line string position tracking
-    {
-        const tokens = tokenize('"line1\nline2"');
-        assert(logger, 'tokenize has 1 multi-line string token', tokens.length, 1);
-
-        if (tokens[0].source) {
-            assert(logger, 'multi-line string start line', tokens[0].source.line, 1);
-            assert(logger, 'multi-line string end line', tokens[0].source.endLine, 2);
-        } else {
-            logger.skip('multi-line string position info (not yet implemented)');
-        }
-    }
-
-    // Test: Tokenizer handles escaped characters in strings correctly
-    logger.title('Tokenizer Source Position - Escaped Characters');
-    {
-        const tokens = tokenize('"hello\\nworld" next');
-        assert(logger, 'tokenize has 2 tokens (escaped string + next)', tokens.length, 2);
-
-        if (tokens[1].source) {
-            // The string "hello\nworld" is 14 chars (including quotes and escape)
-            assert(logger, 'token after escaped string column', tokens[1].source.column, 16);
-        } else {
-            logger.skip('escaped char position info (not yet implemented)');
-        }
-    }
-
-    // Test: Tokenizer handles Unicode characters (codepoint tracking)
-    logger.title('Tokenizer Source Position - Unicode');
-    {
-        const tokens = tokenize('λ α β');
-        assert(logger, 'tokenize has 3 unicode tokens', tokens.length, 3);
-
-        if (tokens[0].source) {
-            assert(logger, 'first unicode line', tokens[0].source.line, 1);
-            assert(logger, 'first unicode column', tokens[0].source.column, 1);
-            // Each unicode char is 1 column (not byte count)
-            assert(logger, 'second unicode column', tokens[1].source.column, 3);
-            assert(logger, 'third unicode column', tokens[2].source.column, 5);
-        } else {
-            logger.skip('unicode position info (not yet implemented)');
-        }
-    }
-
-    // Test: Position tracking across line boundaries (\n, \r\n)
-    logger.title('Tokenizer Source Position - Line Boundaries');
-    {
-        const tokens = tokenize('a\nb\r\nc');
-        assert(logger, 'tokenize has 3 tokens across lines', tokens.length, 3);
-
-        if (tokens[0].source) {
-            assert(logger, 'first token line', tokens[0].source.line, 1);
-            assert(logger, 'second token line (after \\n)', tokens[1].source.line, 2);
-            assert(logger, 'third token line (after \\r\\n)', tokens[2].source.line, 3);
-            // Column should reset to 1 on new lines
-            assert(logger, 'second token column', tokens[1].source.column, 1);
-            assert(logger, 'third token column', tokens[2].source.column, 1);
-        } else {
-            logger.skip('line boundary position info (not yet implemented)');
-        }
-    }
-
-    // Test: Position tracking with comments (line and block comments)
-    logger.title('Tokenizer Source Position - Comments');
-    {
-        // Line comments
-        const tokens = tokenize('a ; comment\nb');
-        assert(logger, 'comments skipped, 2 tokens', tokens.length, 2);
-
-        if (tokens[1].source) {
-            assert(logger, 'token after line comment line', tokens[1].source.line, 2);
-            assert(logger, 'token after line comment column', tokens[1].source.column, 1);
-        } else {
-            logger.skip('comment position info (not yet implemented)');
-        }
-    }
-
-    // Block comments: a token after one is where it is in the source, on the
-    // comment's line as well as after one that spans lines
-    {
-        const tokens = tokenize('(a #| c |# b)');
-        assert(logger, 'token after a block comment, column', tokens[2].source.column, 12);
-        assert(logger, 'close paren after a block comment, column', tokens[3].source.column, 13);
-
-        const nested = tokenize('a #| x #| y |# z |# b');
-        assert(logger, 'token after a nested block comment, column', nested[1].source.column, 21);
-
-        const spanning = tokenize('a #| one\ntwo |# b\n  c');
-        assert(logger, 'token after a block comment spanning lines, line', spanning[1].source.line, 2);
-        assert(logger, 'token after a block comment spanning lines, column', spanning[1].source.column, 8);
-        assert(logger, 'token on the line after, line', spanning[2].source.line, 3);
-        assert(logger, 'token on the line after, column', spanning[2].source.column, 3);
-
-        const crlf = tokenize('#| one\r\ntwo |# b');
-        assert(logger, 'token after a block comment with CR LF, line', crlf[0].source.line, 2);
-        assert(logger, 'token after a block comment with CR LF, column', crlf[0].source.column, 8);
-
-        // A string holding #| does not move what follows it
-        const inString = tokenize('"#|" x');
-        assert(logger, 'token after a string holding #|, column', inString[1].source.column, 6);
-    }
-
-    // Test: Tokenizer produces position info for special tokens
-    logger.title('Tokenizer Source Position - Special Tokens');
-    {
-        const tokens = tokenize("' ` , ,@");
-        assert(logger, 'quote tokens count', tokens.length, 4);
-
-        if (tokens[0].source) {
-            assert(logger, 'quote column', tokens[0].source.column, 1);
-            assert(logger, 'quasiquote column', tokens[1].source.column, 3);
-            assert(logger, 'unquote column', tokens[2].source.column, 5);
-            assert(logger, 'unquote-splicing column', tokens[3].source.column, 7);
-        } else {
-            logger.skip('special token position info (not yet implemented)');
-        }
-    }
-
-    // Test: Vector and bytevector starts
-    {
-        const tokens = tokenize('#() #u8()');
-
-        if (tokens[0].source) {
-            assert(logger, 'vector start column', tokens[0].source.column, 1);
-            assert(logger, 'bytevector start column', tokens[2].source.column, 5);
-        } else {
-            logger.skip('vector position info (not yet implemented)');
-        }
-    }
-
-    // Test: Character literals
-    {
-        const tokens = tokenize('#\\a #\\newline');
-        assert(logger, 'char literal count', tokens.length, 2);
-
-        if (tokens[0].source) {
-            assert(logger, 'first char literal column', tokens[0].source.column, 1);
-            assert(logger, 'second char literal column', tokens[1].source.column, 5);
-        } else {
-            logger.skip('char literal position info (not yet implemented)');
-        }
-    }
-
     // ============================================================
     // PARSER SOURCE POSITION TESTS
     // ============================================================
@@ -384,12 +175,6 @@ export function runSourceLocationTests(logger) {
     // be told which file it is reading, every expression in the system claims
     // to come from '<unknown>' and file-scoped breakpoints can never match.
     logger.title('Source Filename Propagation');
-
-    {
-        const tokens = tokenize('(+ 1 2)', 'demo.scm');
-        assert(logger, 'tokenize records the supplied filename',
-            tokens[0].source.filename, 'demo.scm');
-    }
 
     {
         const exprs = parse('(+ 1 2)', { filename: 'arith.scm' });

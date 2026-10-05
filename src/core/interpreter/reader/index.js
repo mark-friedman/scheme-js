@@ -3,15 +3,13 @@
  * `(scheme-js reader)` (src/core/scheme/reader.scm), on the library system's
  * own interpreter, where it is loaded with the library system's seed.
  *
- * The tokenizer is still here for the REPL's colouring and completeness, and
- * the number parser as `string->number`'s core.
+ * The number parser is still here, as `string->number`'s core.
  */
 
 import { systemLibrary } from '../library_seed.js';
 import { callSchemeProcedure } from '../values.js';
 import { toArray } from '../cons.js';
 
-export { tokenize } from './tokenizer.js';
 export { parseNumber, parsePrefixedNumber } from './number_parser.js';
 
 /** The reader's exports, once found. @type {Map<string, Function>|null} */

@@ -16,7 +16,9 @@
 ;;
 ;; The text is read by a recursive descent over a `reader`, which holds where
 ;; in the text it is, with no tokens between: a datum ends where its syntax
-;; says. Runs of whitespace, comments and atoms are scanned whole
+;; says. A reader of a port, which `read` makes, takes from it no more than
+;; the datum's characters, and what it must look at past them, one beyond: it
+;; looks a character at a time, and its data carry no spans. Runs of whitespace, comments and atoms are scanned whole
 ;; (`%string-skip-any`, `%string-find-any`), and a span's lines and columns
 ;; are worked out from where its datum began and ended, from the text's line
 ;; starts, rather than counted a character at a time. A number's syntax is
@@ -89,10 +91,13 @@
 ;;  * A reader: the text, where it has got to, where each of the text's lines
 ;;  * begins and the line it last found a place on, the name its spans give
 ;;  * the text, whether symbols are read folding case and dot notation is on,
-;;  * and the datum labels read so far.
+;;  * and the datum labels read so far. A reader of a port has the port in
+;;  * place of a text, and the characters it has taken from it to look at and
+;;  * not yet stepped over.
 ;;  */
 (define-record-type reader
-  (%make-reader text length position line-starts line-hint filename fold-case? dot-notation? labels)
+  (%make-reader text length position line-starts line-hint filename fold-case? dot-notation? labels
+                port ahead)
   reader?
   (text reader-text)
   (length reader-length)
@@ -102,55 +107,106 @@
   (filename reader-filename)
   (fold-case? reader-fold-case? set-reader-fold-case!)
   (dot-notation? reader-dot-notation? set-reader-dot-notation!)
-  (labels reader-labels set-reader-labels!))
+  (labels reader-labels set-reader-labels!)
+  (port reader-port)
+  (ahead reader-ahead set-reader-ahead!))
 
 ;; /**
 ;;  * A reader at the start of a text.
 ;;  */
 (define (make-reader text filename fold-case? dot-notation?)
-  (%make-reader text (string-length text) 0 (%line-starts text) 0 filename fold-case? dot-notation? '()))
+  (%make-reader text (string-length text) 0 (%line-starts text) 0 filename fold-case? dot-notation? '()
+                #f '()))
+
+;; /**
+;;  * A reader of a port.
+;;  */
+(define (make-port-reader port fold-case? dot-notation?)
+  (%make-reader #f 0 0 #f 0 #f fold-case? dot-notation? '() port '()))
 
 ;; /**
 ;;  * The character where the reader is, or #f at the end of the text.
 ;;  */
 (define (peek r)
-  (let ((index (reader-position r)))
-    (and (< index (reader-length r)) (string-ref (reader-text r) index))))
+  (cond ((reader-port r)
+         => (lambda (port)
+              (if (pair? (reader-ahead r))
+                  (car (reader-ahead r))
+                  (let ((c (peek-char port))) (and (char? c) c)))))
+        (else
+         (let ((index (reader-position r)))
+           (and (< index (reader-length r)) (string-ref (reader-text r) index))))))
 
 ;; /**
-;;  * The character so many characters on, or #f past the end of the text.
+;;  * The character so many characters on, or #f past the end of the text. A
+;;  * port's characters up to it are taken from it, to be stepped over later.
 ;;  */
 (define (peek-at r ahead)
-  (let ((index (+ (reader-position r) ahead)))
-    (and (< index (reader-length r)) (string-ref (reader-text r) index))))
+  (cond ((reader-port r)
+         => (lambda (port)
+              (let fill ()
+                (if (<= (length (reader-ahead r)) ahead)
+                    (let ((c (read-char port)))
+                      (and (char? c)
+                           (begin (set-reader-ahead! r (append (reader-ahead r) (list c)))
+                                  (fill))))
+                    (list-ref (reader-ahead r) ahead)))))
+        (else
+         (let ((index (+ (reader-position r) ahead)))
+           (and (< index (reader-length r)) (string-ref (reader-text r) index))))))
 
 ;; /**
 ;;  * Whether the text goes on with a string, from where the reader is.
 ;;  */
 (define (looking-at? r prefix)
-  (let ((start (reader-position r))
-        (end (+ (reader-position r) (string-length prefix))))
-    (and (<= end (reader-length r))
-         (string=? (substring (reader-text r) start end) prefix))))
+  (if (reader-port r)
+      (let loop ((k 0))
+        (or (= k (string-length prefix))
+            (and (eqv? (peek-at r k) (string-ref prefix k)) (loop (+ k 1)))))
+      (let ((start (reader-position r))
+            (end (+ (reader-position r) (string-length prefix))))
+        (and (<= end (reader-length r))
+             (string=? (substring (reader-text r) start end) prefix)))))
 
 ;; /**
 ;;  * Steps over one character: one outside the Basic Multilingual Plane is two
-;;  * units of the text.
+;;  * units of a text.
 ;;  */
 (define (advance! r)
-  (let ((position (reader-position r)))
-    (set-reader-position!
-     r (+ position (if (> (char->integer (string-ref (reader-text r) position)) #xFFFF) 2 1)))))
+  (cond ((reader-port r)
+         => (lambda (port)
+              (if (pair? (reader-ahead r))
+                  (set-reader-ahead! r (cdr (reader-ahead r)))
+                  (read-char port))))
+        (else
+         (let ((position (reader-position r)))
+           (set-reader-position!
+            r (+ position (if (> (char->integer (string-ref (reader-text r) position)) #xFFFF) 2 1)))))))
 
 ;; /**
-;;  * Steps over so many units of the text, which hold no character outside
-;;  * the Basic Multilingual Plane.
+;;  * Steps over so many characters, none of them outside the Basic
+;;  * Multilingual Plane.
 ;;  */
 (define (advance-by! r count)
-  (set-reader-position! r (+ (reader-position r) count)))
+  (if (reader-port r)
+      (let loop ((count count)) (if (> count 0) (begin (advance! r) (loop (- count 1)))))
+      (set-reader-position! r (+ (reader-position r) count))))
 
 ;; /**
-;;  * The line and column of a place in the text, from one, the column counted
+;;  * Steps over characters while a predicate holds of them, giving them as a
+;;  * string: what reading a port does where reading a text scans.
+;;  */
+(define (take-while! r ok?)
+  (let ((out (open-output-string)))
+    (let loop ()
+      (let ((c (peek r)))
+        (if (and c (ok? c))
+            (begin (write-char c out) (advance! r) (loop))
+            (get-output-string out))))))
+
+;; /**
+;;  * The line and column of a place in the text, from one, or #f for both
+;;  * reading a port, which has no places to give; the column counted
 ;;  * in units of the text, as its other readers count it. The reader asks
 ;;  * about places in the order it reads them, so the line is looked for from
 ;;  * the one found last, forwards; a place before it, as an error's can be,
@@ -158,6 +214,14 @@
 ;;  * @returns {pair} (line . column)
 ;;  */
 (define (line-and-column r position)
+  (if (reader-port r)
+      (cons #f #f)
+      (text-line-and-column r position)))
+
+;; /**
+;;  * The line and column of a place in a reader's text.
+;;  */
+(define (text-line-and-column r position)
   (let* ((starts (reader-line-starts r))
          (last (- (vector-length starts) 1))
          (found (lambda (line)
@@ -178,21 +242,23 @@
 
 ;; /**
 ;;  * The span from a place, as `line-and-column` gave it, to where the reader
-;;  * is, as the JavaScript object a datum's `source` is.
+;;  * is, as the JavaScript object a datum's `source` is; or #f, reading a
+;;  * port.
 ;;  */
 (define (span-from r from)
-  (let ((to (line-and-column r (reader-position r))))
-    (js-obj "filename" (reader-filename r)
-            "line" (inexact (car from))
-            "column" (inexact (cdr from))
-            "endLine" (inexact (car to))
-            "endColumn" (inexact (cdr to)))))
+  (and (not (reader-port r))
+       (let ((to (line-and-column r (reader-position r))))
+         (js-obj "filename" (reader-filename r)
+                 "line" (inexact (car from))
+                 "column" (inexact (cdr from))
+                 "endLine" (inexact (car to))
+                 "endColumn" (inexact (cdr to))))))
 
 ;; /**
-;;  * Gives a list or vector the span it was read from.
+;;  * Gives a list or vector the span it was read from, if there is one.
 ;;  */
 (define (with-span! datum span)
-  (js-set! datum "source" span)
+  (if span (js-set! datum "source" span))
   datum)
 
 ;; ---------------------------------------------------------------------------
@@ -246,6 +312,26 @@
 ;;  * @returns {boolean} Whether anything was skipped.
 ;;  */
 (define (skip-atmosphere! r)
+  (if (reader-port r) (skip-port-atmosphere! r) (skip-text-atmosphere! r)))
+
+;; /**
+;;  * Skips what is not data, a character at a time, reading a port.
+;;  */
+(define (skip-port-atmosphere! r)
+  (let loop ((skipped #f))
+    (let ((c (peek r)))
+      (cond ((not c) skipped)
+            ((blank? c) (advance! r) (loop #t))
+            ((char=? c #\;)
+             (take-while! r (lambda (c) (not (memv c '(#\newline #\return)))))
+             (loop #t))
+            ((at-block-comment? r) (skip-block-comment! r) (loop #t))
+            (else skipped)))))
+
+;; /**
+;;  * Skips what is not data in a text, scanning runs whole.
+;;  */
+(define (skip-text-atmosphere! r)
   (let loop ((skipped #f))
     (let* ((before (reader-position r))
            (after (%string-skip-any (reader-text r) blanks before)))
@@ -269,7 +355,9 @@
     (let nest ((depth 1))
       (if (> depth 0)
           (begin
-            (set-reader-position! r (%string-find-any (reader-text r) "#|" (reader-position r)))
+            (if (reader-port r)
+                (take-while! r (lambda (c) (not (memv c '(#\# #\|)))))
+                (set-reader-position! r (%string-find-any (reader-text r) "#|" (reader-position r))))
             (cond ((not (peek r)) (end-of-text r "unterminated block comment" "block comment" start))
                   ((at-block-comment? r) (advance-by! r 2) (nest (+ depth 1)))
                   ((and (eqv? (peek r) #\|) (eqv? (peek-at r 1) #\#)) (advance-by! r 2) (nest (- depth 1)))
@@ -281,7 +369,7 @@
 ;;  * no such syntax, and its directives begin with neither.
 ;;  */
 (define (skip-script-header! r)
-  (if (or (looking-at? r "#!/") (looking-at? r "#! "))
+  (if (and (not (reader-port r)) (or (looking-at? r "#!/") (looking-at? r "#! ")))
       (set-reader-position! r (%string-find-any (reader-text r) line-endings (reader-position r)))))
 
 ;; ---------------------------------------------------------------------------
@@ -536,14 +624,19 @@
 ;;  * `#` that begins none is part of it.
 ;;  */
 (define (read-atom-text r)
-  (let ((text (reader-text r))
-        (start (reader-position r)))
-    (let loop ((from start))
-      (let ((end (%string-find-any text atom-ends from)))
-        (set-reader-position! r end)
-        (if (and (eqv? (peek r) #\#) (not (at-block-comment? r)))
-            (loop (+ end 1))
-            (substring text start end))))))
+  (if (reader-port r)
+      ;; Up to a delimiter: a `#` is part of the atom, since seeing whether a
+      ;; `|` follows it, beginning a block comment, would take a character
+      ;; from the port past the datum.
+      (take-while! r (lambda (c) (not (delimiter? c))))
+      (let ((text (reader-text r))
+            (start (reader-position r)))
+        (let loop ((from start))
+          (let ((end (%string-find-any text atom-ends from)))
+            (set-reader-position! r end)
+            (if (and (eqv? (peek r) #\#) (not (at-block-comment? r)))
+                (loop (+ end 1))
+                (substring text start end)))))))
 
 ;; /**
 ;;  * An atom's text as the datum it is: a number, a boolean, or a symbol or
@@ -601,18 +694,22 @@
 ;;  * its `#`.
 ;;  */
 (define (read-character r)
+  (named-character r (character-name! r)))
+
+;; /**
+;;  * Steps over a character's token, where the reader is at its `#`, giving
+;;  * what follows its `#\`: `x` and hex digits, a name, or one character.
+;;  */
+(define (character-name! r)
   (if (not (peek-at r 2))
       (end-of-text r "unexpected end of input after #\\" "character" (here r)))
   (advance-by! r 2)
-  (let ((start (reader-position r)))
-    (define (take-while ok?)
-      (let loop () (let ((c (peek r))) (if (and c (ok? c)) (begin (advance! r) (loop))))))
-    (cond ((memv (peek r) '(#\x #\X))
+  (let ((first (peek r)))
+    (cond ((memv first '(#\x #\X))
            (advance! r)
-           (take-while (lambda (c) (string->number (string c) 16))))
-          ((ascii-letter? (peek r)) (take-while ascii-letter?))
-          (else (advance! r)))
-    (named-character r (substring (reader-text r) start (reader-position r)))))
+           (string-append (string first) (take-while! r (lambda (c) (string->number (string c) 16)))))
+          ((ascii-letter? first) (take-while! r ascii-letter?))
+          (else (advance! r) (string first)))))
 
 ;; /**
 ;;  * The character a `#\` names: `x` and hex digits, a name, or itself.
@@ -650,10 +747,13 @@
         (stops (string close #\\)))
     (advance! r)
     (let loop ((pieces '()))
-      (let* ((from (reader-position r))
-             (to (%string-find-any text stops from))
-             (pieces (cons (substring text from to) pieces)))
-        (set-reader-position! r to)
+      (let ((pieces (cons (if (reader-port r)
+                              (take-while! r (lambda (c) (not (or (char=? c close) (char=? c #\\)))))
+                              (let* ((from (reader-position r))
+                                     (to (%string-find-any text stops from)))
+                                (set-reader-position! r to)
+                                (substring text from to)))
+                          pieces)))
         (cond ((not (peek r)) (end-of-text r message context start))
               ((char=? (peek r) close) (advance! r) (apply string-append (reverse pieces)))
               (else
@@ -718,7 +818,9 @@
 ;;  */
 (define (skip-line-continuation! r)
   (define (skip-intraline!)
-    (set-reader-position! r (%string-skip-any (reader-text r) " \t" (reader-position r))))
+    (if (reader-port r)
+        (take-while! r (lambda (c) (memv c '(#\space #\tab))))
+        (set-reader-position! r (%string-skip-any (reader-text r) " \t" (reader-position r)))))
   (skip-intraline!)
   (cond ((eqv? (peek r) #\return)
          (advance! r)
@@ -756,7 +858,7 @@
 ;;  * Reads a datum label's definition, `#n=datum`, or reference, `#n#`.
 ;;  */
 (define (read-label r end)
-  (let ((id (string->number (substring (reader-text r) (+ (reader-position r) 1) (+ (reader-position r) end))))
+  (let ((id (string->number (list->string (map (lambda (k) (peek-at r k)) (iota (- end 1) 1)))))
         (kind (peek-at r end)))
     (advance-by! r (+ end 1))
     (if (char=? kind #\=)
@@ -828,6 +930,27 @@
     (list data (reader-fold-case? r) (reader-dot-notation? r))))
 
 ;; /**
+;;  * Reads a datum from a port, as `read` does, or gives the end-of-file
+;;  * object at the end of it: R7RS's data, dot notation off. The directives
+;;  * it reads hold for the port's next reads, kept on the port.
+;;  * @param {port} port - The port.
+;;  * @returns {*}
+;;  */
+(define (read-from-port port)
+  (let* ((fold-case (js-ref port "schemeReaderFoldCase"))
+         (dot-notation (js-ref port "schemeReaderDotNotation"))
+         (r (make-port-reader port (eq? fold-case #t) (eq? dot-notation #t)))
+         (item (read-item r)))
+    (js-set! port "schemeReaderFoldCase" (reader-fold-case? r))
+    (js-set! port "schemeReaderDotNotation" (reader-dot-notation? r))
+    (cond ((eq? item end-of-input) (eof-object))
+          ((eq? item close-paren) (read-error r "unexpected ')' - unbalanced parentheses" "list"))
+          ((eq? item close-brace) (read-error r "unexpected '}' - unbalanced braces" "object literal"))
+          ((eq? item lone-dot) (read-error r "unexpected '.'" "symbol"))
+          ((null? (reader-labels r)) item)
+          (else (fix-up item)))))
+
+;; /**
 ;;  * Reads every datum from where a reader is to the end of its text.
 ;;  */
 (define (read-all r)
@@ -840,6 +963,93 @@
             ((eq? item lone-dot) (read-error r "unexpected '.'" "symbol"))
             ((null? (reader-labels r)) (loop (cons item data)))
             (else (loop (cons (fix-up item) data)))))))
+
+;; ---------------------------------------------------------------------------
+;; What a REPL asks of a text
+;; ---------------------------------------------------------------------------
+;;
+;; Whether what has been typed is complete, so that it is evaluated rather
+;; than another line asked for; and which parentheses delimit its lists and
+;; vectors, for colouring them and showing the one that matches the cursor's.
+;; Asked of the reader, so that they follow the reader's syntax exactly.
+
+;; /**
+;;  * Whether a read error is for a text that ended inside a datum.
+;;  */
+(define (incomplete-error? e)
+  (and (error-object? e) (eq? (js-ref e "incomplete") #t)))
+
+;; /**
+;;  * Whether a text is complete: it holds something, and reads, or fails to
+;;  * read other than by ending inside a datum, which a REPL reports.
+;;  * @param {string} text - The text.
+;;  * @returns {boolean}
+;;  */
+(define (complete-text? text)
+  (and (< (%string-skip-any text blanks 0) (string-length text))
+       (guard (e ((incomplete-error? e) #f)
+                 (#t #t))
+         (read-source text "<unknown>" #f #t)
+         #t)))
+
+;; /**
+;;  * The parentheses that delimit a text's lists and vectors, in order, each
+;;  * as `(position . opens?)`: the `(` of `#(` and `#u8(` among them, and
+;;  * those in strings, characters, |symbols| and comments left out. A text
+;;  * that ends inside a token gives those before it. Its tokens are read, and
+;;  * not made into data, so a parenthesis no other closes, or closing none,
+;;  * is given too.
+;;  * @param {string} text - The text.
+;;  * @returns {list}
+;;  */
+(define (delimiter-parens text)
+  (let ((r (make-reader text "<unknown>" #f #f))
+        (parens '()))
+    (define (note! position opens?) (set! parens (cons (cons position opens?) parens)))
+    (guard (e ((incomplete-error? e) (reverse parens)))
+      (let loop ()
+        (skip-atmosphere! r)
+        (let ((c (peek r))
+              (at (reader-position r)))
+          (cond ((not c) (reverse parens))
+                ((char=? c #\() (note! at #t) (advance! r) (loop))
+                ((char=? c #\)) (note! at #f) (advance! r) (loop))
+                ((char=? c #\") (read-string r) (loop))
+                ((char=? c #\|) (read-bar-symbol r) (loop))
+                ((char=? c #\#)
+                 (cond ((eqv? (peek-at r 1) #\() (note! (+ at 1) #t) (advance-by! r 2))
+                       ((looking-at? r "#u8(") (note! (+ at 3) #t) (advance-by! r 4))
+                       ((eqv? (peek-at r 1) #\\) (character-name! r))
+                       ((memv (peek-at r 1) '(#\; #\{)) (advance-by! r 2))
+                       (else (read-atom-text r)))
+                 (loop))
+                ((memv c '(#\' #\` #\, #\@ #\[ #\] #\{ #\})) (advance! r) (loop))
+                (else (read-atom-text r) (loop))))))))
+
+;; /**
+;;  * Where the parenthesis that matches the one at a place in a text is, or #f
+;;  * if none is there, or none matches it: from an opening one, forwards,
+;;  * counting those that open as one deeper, to the one that brings the depth
+;;  * back to nothing; from a closing one, backwards.
+;;  * @param {string} text - The text.
+;;  * @param {integer} position - The place.
+;;  * @returns {integer|boolean}
+;;  */
+(define (matching-delimiter text position)
+  (and (<= 0 position) (< position (string-length text))
+       (let* ((parens (list->vector (delimiter-parens text)))
+              (count (vector-length parens)))
+         (let find ((i 0))
+           (cond ((= i count) #f)
+                 ((= (car (vector-ref parens i)) position)
+                  (let ((opens? (cdr (vector-ref parens i))))
+                    (let walk ((j i) (depth 0))
+                      (and (< -1 j count)
+                           (let ((depth (+ depth (if (eq? (cdr (vector-ref parens j)) opens?) 1 -1))))
+                             (if (= depth 0)
+                                 (car (vector-ref parens j))
+                                 (walk (if opens? (+ j 1) (- j 1)) depth)))))))
+                 (else (find (+ i 1))))))))
 
 ;; ---------------------------------------------------------------------------
 ;; Small list helpers
@@ -863,6 +1073,12 @@
 ;;  */
 (define (append-map make items)
   (if (null? items) '() (append (make (car items)) (append-map make (cdr items)))))
+
+;; /**
+;;  * SRFI 1's `iota`, counting up by one: so many integers from one.
+;;  */
+(define (iota count start)
+  (if (= count 0) '() (cons start (iota (- count 1) (+ start 1)))))
 
 ;; /**
 ;;  * SRFI 1's `any`, as a predicate: whether a predicate holds of an element.

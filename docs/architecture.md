@@ -206,10 +206,10 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── values.js           # Closure, Continuation, TailCall, Values; calling a procedure with Scheme values
 │       │   ├── cons.js             # Cons cells + list utilities
 │       │   ├── symbol.js           # Symbol interning
-│       │   ├── reader.js           # Re-exports reader/: parse, tokenize, the number parser
-│       │   ├── reader/             # What is left of the JavaScript reader; the reader is (scheme-js reader)
+│       │   ├── reader.js           # Re-exports reader/: parse, the number parser
+│       │   ├── expression_utils.js # The REPLs' doors into the reader: complete or not, the delimiting parentheses, their match
+│       │   ├── reader/             # The reader's door, and the number parser; the reader is (scheme-js reader)
 │       │   │   ├── index.js        # parse(): the door into (scheme-js reader), on the library system's interpreter
-│       │   │   ├── tokenizer.js    # Tokens, for the REPL's colouring and completeness
 │       │   │   └── number_parser.js # Number syntax with R7RS prefixes: string->number's core
 │       │   ├── analyzer.js         # S-exp → AST dispatcher
 │       │   ├── analyzers/          # Modular special form handlers
@@ -253,8 +253,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   │   ├── stdout_port.js  # The ports over standard output and error (Node.js), written synchronously
 │       │   │   ├── console_port.js # Console ports
 │       │   │   ├── bytevector_port.js # Bytevector ports
-│       │   │   ├── printer.js      # write/display logic
-│       │   │   └── reader_bridge.js # read logic
+│       │   │   └── printer.js      # write/display logic
 │       │   ├── eq.js               # Equality predicates (eq?, eqv?, boolean=?)
 │       │   ├── record.js           # define-record-type support, and a record's type and fields for Scheme that looks inside any record
 │       │   ├── exception.js        # Exception handling primitives

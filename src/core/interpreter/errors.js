@@ -176,8 +176,8 @@ export class SchemeReadError extends SchemeError {
         this.incomplete = false;
         /**
          * Where in the input the token or block comment the input ended
-         * inside begins, so that the tokens before it can be read. Set by
-         * `endOfInput` for the tokenizer's errors.
+         * inside begins, so that the text before it can be read: by
+         * `endOfInput`, for the reader's errors that know it.
          * @type {number|null}
          */
         this.offset = null;
