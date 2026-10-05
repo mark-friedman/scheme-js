@@ -448,7 +448,9 @@
 
 ;; /**
 ;;  * What every procedure in one compilation unit shares: the lifting plan,
-;;  * how each global is reached, the constant pool, the factories emitted so
+;;  * how each global is reached -- each a library's own binding, by the key
+;;  * the lowering gave it, from the library's environment (`library-global-key`
+;;  * in ir.scm) -- the constant pool, the factories emitted so
 ;;  * far, where each call site resumes, and the runtime values its code names
 ;;  * (see `runtime`).
 ;;  *
@@ -457,10 +459,12 @@
 ;;  * into exactly the frame the twin restores.
 ;;  */
 (define-record-type unit
-  (make-unit plan globals global-indices guarded constants factories emitted resume-points runtime)
+  (make-unit plan globals library-globals global-indices guarded constants factories emitted resume-points
+             runtime)
   unit?
   (plan unit-plan)
   (globals unit-globals)
+  (library-globals unit-library-globals)
   (global-indices unit-global-indices)
   (guarded unit-guarded)
   (constants unit-constants set-unit-constants!)
@@ -891,11 +895,15 @@
 ;;  * @returns {list} The expression for its value.
 ;;  */
 (define (emit-assignment! form node)
-  (let ((value (emit-value! form (cadddr node)))
-        (name (cadr node)))
-    (emit! form (if (caddr node)
-                    (list 'assign (read-local form name) value)
-                    (list 'eval (js "E.set(" (js-string (symbol->string name)) ", " value ")"))))
+  (let* ((value (emit-value! form (cadddr node)))
+         (name (cadr node))
+         (u (form-unit form))
+         (library (assq name (unit-library-globals u))))
+    (emit! form (cond ((caddr node) (list 'assign (read-local form name) value))
+                      (library
+                       (list 'eval (js (constant u (cddr library)) ".set("
+                                       (js-string (symbol->string (cadr library))) ", " value ")")))
+                      (else (list 'eval (js "E.set(" (js-string (symbol->string name)) ", " value ")")))))
     (js "undefined")))
 
 ;; /**
@@ -986,7 +994,8 @@
          (u (form-unit form))
          (entry (and (eq? (car fn) 'global)
                      (memq (cadr fn) (unit-guarded u))
-                     (inline-expansion (cadr fn) (caddr node)))))
+                     (inline-expansion (global-written-name (unit-library-globals u) (cadr fn))
+                                       (caddr node)))))
     (and entry
          (let* ((operands (map-in-order (lambda (arg)
                                  (let ((value (emit-value! form arg)))
@@ -1827,6 +1836,8 @@
 ;;  *
 ;;  * @param {list} ir - The procedure's lambda IR node.
 ;;  * @param {list} globals - The globals it references, as symbols.
+;;  * @param {list} library-globals - (key name . env) for each that is a
+;;  *   library's own binding, read from the library's environment.
 ;;  * @param {string} name - Its display name.
 ;;  * @param {list} guarded - The globals with an expansion that are bound to
 ;;  *   their primitive here, which the caller finds out from the environment.
@@ -1834,8 +1845,9 @@
 ;;  *   the span of each of its lines, or #f, which its source map is written
 ;;  *   from.
 ;;  */
-(define (generate-unit ir globals name guarded)
-  (let* ((u (make-unit (plan-lifting ir) globals (global-indices globals) guarded '() '() '() '() '()))
+(define (generate-unit ir globals library-globals name guarded)
+  (let* ((u (make-unit (plan-lifting ir) globals library-globals (global-indices globals) guarded
+                       '() '() '() '() '()))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.
@@ -1845,10 +1857,12 @@
          (accessors
            (append-map
              (lambda (g)
-               (let ((i (global-index u g))
-                     (literal (js-string (symbol->string g))))
+               (let* ((i (global-index u g))
+                      (library (assq g library-globals))
+                      (literal (js-string (symbol->string (if library (cadr library) g))))
+                      (holder (if library (constant u (cddr library)) "E")))
                  (cons (string-append "let C" i " = R.UNRESOLVED; const G" i
-                                      " = () => (C" i " = R.globalCell(E, " literal ")).v;")
+                                      " = () => (C" i " = R.globalCell(" holder ", " literal ")).v;")
                        (if (memq g guarded)
                            (list (string-append "const W" i " = R.primitiveCell(" literal "), P" i
                                                 " = W" i ".primitive;"))

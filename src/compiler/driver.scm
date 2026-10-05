@@ -87,11 +87,19 @@
 ;; /**
 ;;  * The first control-transferring global among some globals, or #f: the
 ;;  * forms there is no IR for, as `control-globals` in `ir.scm` names them.
+;;  * A library's binding is that by the name the code writes.
 ;;  * @param {list} globals - Global names, as symbols.
+;;  * @param {list} [library-globals] - (key name . env) for each that is a
+;;  *   library's binding (`library-global-key` in ir.scm).
 ;;  * @returns {symbol|boolean}
 ;;  */
-(define (control-global-in globals)
-  (find (lambda (g) (memq g control-globals)) globals))
+(define (control-global-in globals . library-globals)
+  (let ((written (if (pair? library-globals) (car library-globals) '())))
+    (let loop ((globals globals))
+      (cond ((null? globals) #f)
+            ((memq (global-written-name written (car globals)) control-globals)
+             (global-written-name written (car globals)))
+            (else (loop (cdr globals)))))))
 
 ;; /**
 ;;  * Why a lowered procedure is not to be compiled, or #f if it is.
@@ -112,7 +120,7 @@
 (define (lowering-decline lowered decline-captures?)
   (cond
     ((lowering-failure? lowered) (lowering-failure-reason lowered))
-    ((control-global-in (lowered-globals lowered))
+    ((control-global-in (lowered-globals lowered) (lowered-library-globals lowered))
      => (lambda (g) (string-append "references control global '" (symbol->string g) "'")))
     ((and decline-captures? (lowered-captures? lowered))
      "captures a continuation, and captures are declined")
@@ -232,15 +240,21 @@
 ;; /**
 ;;  * The globals among a procedure's that may be expanded inline where it will
 ;;  * run: those with an expansion that the environment still binds to the
-;;  * primitive the expansion reproduces. A program that has already redefined
-;;  * `car` must not have its `car` compiled as the primitive's.
+;;  * primitive the expansion reproduces -- for a library's binding, the
+;;  * library's environment. A program that has already redefined `car` must
+;;  * not have its `car` compiled as the primitive's.
 ;;  * @param {list} globals - The procedure's globals, as symbols.
+;;  * @param {list} library-globals - (key name . env) for each that is a
+;;  *   library's binding.
 ;;  * @param {object} env - The environment it will run in.
 ;;  * @returns {list} The globals to expand.
 ;;  */
-(define (guarded-globals globals env)
+(define (guarded-globals globals library-globals env)
   (filter (lambda (g)
-            (and (memq g expandable-globals) (bound-to-primitive? env (symbol->string g))))
+            (let* ((library (assq g library-globals))
+                   (name (if library (cadr library) g)))
+              (and (memq name expandable-globals)
+                   (bound-to-primitive? (if library (cddr library) env) (symbol->string name)))))
           globals))
 
 ;; /**
@@ -255,7 +269,9 @@
 ;;  */
 (define (emit-lowered lowered name closure env span)
   (let* ((globals (lowered-globals lowered))
-         (unit (generate-unit (lowered-ir lowered) globals name (guarded-globals globals env)))
+         (library-globals (lowered-library-globals lowered))
+         (unit (generate-unit (lowered-ir lowered) globals library-globals name
+                              (guarded-globals globals library-globals env)))
          (source (car unit)))
     (cond ((source-too-large source) => (lambda (reason) (make-declined name reason #f)))
           (else (make-generated name closure env span source (cadr unit) globals (caddr unit))))))

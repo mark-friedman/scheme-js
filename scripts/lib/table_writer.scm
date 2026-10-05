@@ -92,6 +92,11 @@
          (let ((expressions (map constant-expression (vector->list value))))
            (and (not (memq #f expressions))
                 (string-append "[" (string-join expressions ", ") "]"))))
+        ;; A library's environment, which code that refers to a library's own
+        ;; binding reads it from, is written as the library's name, and found
+        ;; where the procedure is installed (`poolOf` in src/compiler/prebuilt.js).
+        ((library-environment-name value)
+         => (lambda (name) (string-append "{library: " (json-strings name) "}")))
         (else #f)))
 
 ;; /**

@@ -43,10 +43,10 @@
     (filter (lambda (c) (string-contains source (string-append (symbol->string (car c)) " = " (cdr c))))
             runtime-constants))
   (define (declares-what-it-names? ast globals guarded)
-    (let ((source (car (generate-unit (lowered-ir (lower-lambda ast)) globals "f" guarded))))
+    (let ((source (car (generate-unit (lowered-ir (lower-lambda ast)) globals '() "f" guarded))))
       (equal? (named-in source) (declared-in source))))
   (test "a procedure that calls nothing declares none" '()
-        (declared-in (car (generate-unit (lowered-ir (lower-lambda '(lambda (x) #f #f (var x)))) '() "f" '()))))
+        (declared-in (car (generate-unit (lowered-ir (lower-lambda '(lambda (x) #f #f (var x)))) '() '() "f" '()))))
   (test "a call not in tail position declares what it names" #t
         (declares-what-it-names? '(lambda (x) #f #f (app (var g) ((app (var g) ((var x)))))) '(g) '()))
   (test "and so does a tail call" #t
@@ -186,14 +186,14 @@
   (test "a helper is called with the operands"
         #t
         (let ((source (car (generate-unit (lowered-ir (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))
-                                          '(vector-ref) "f" '(vector-ref)))))
+                                          '(vector-ref) '() "f" '(vector-ref)))))
           (and (string-contains source "$vectorRef(s_v, 0n)") #t)))
   (test "vector-length needs an array and is inline" '("Array.isArray(v)" "BigInt(v.length)")
         (parts 'vector-length '(v)))
   (test "a procedure using the helper declares it"
         #t
         (let ((source (car (generate-unit (lowered-ir (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))
-                                          '(vector-ref) "f" '(vector-ref)))))
+                                          '(vector-ref) '() "f" '(vector-ref)))))
           (and (string-contains source "const $vectorRef = R.vectorRef") #t))))
 
 ;; A tail call to anything but the procedure itself is made directly while
@@ -202,7 +202,7 @@
 ;; takes the size of its own frame from the room it is entered with.
 (test-group "emit - tail calls between procedures"
   (define (unit-source ast globals)
-    (car (generate-unit (lowered-ir (lower-lambda ast)) globals "f" '())))
+    (car (generate-unit (lowered-ir (lower-lambda ast)) globals '() "f" '())))
   (define (position source text) (string-contains source text))
   ;; (lambda (x) (g x))
   (define small (unit-source '(lambda (x) #f #f (app (var g) ((var x)))) '(g)))
@@ -226,7 +226,7 @@
 ;; running.
 (test-group "emit - room on the stack, and moving frames to the heap"
   (define (unit-source ast globals)
-    (car (generate-unit (lowered-ir (lower-lambda ast)) globals "f" '())))
+    (car (generate-unit (lowered-ir (lower-lambda ast)) globals '() "f" '())))
   (define (number-after source marker)
     (let ((start (+ (string-contains source marker) (string-length marker))))
       (let scan ((end start))
@@ -272,7 +272,7 @@
 ;; from being read off the empty list, JavaScript `null`.
 (test-group "emit - a call to a value that is not a procedure"
   (define (unit-source ast globals)
-    (car (generate-unit (lowered-ir (lower-lambda ast)) globals "f" '())))
+    (car (generate-unit (lowered-ir (lower-lambda ast)) globals '() "f" '())))
   (define (count-of source text)
     (let loop ((from 0) (n 0))
       (let ((at (string-contains source text from)))
@@ -294,7 +294,7 @@
 ;; `$foreign`.
 (test-group "emit - a call to a JavaScript function"
   (define (unit-source ast globals)
-    (car (generate-unit (lowered-ir (lower-lambda ast)) globals "f" '())))
+    (car (generate-unit (lowered-ir (lower-lambda ast)) globals '() "f" '())))
   (define call (unit-source '(lambda (x) #f #f (seq ((app (var x) ((lit 1))) (lit 2)))) '()))
   (test "goes through $foreign" #t (and (string-contains call "$foreign($t0, [") #t))
   (test "which the procedure declares" #t (and (string-contains call "$foreign = R.callForeign") #t)))
@@ -305,7 +305,7 @@
 ;; what they assign.
 (test-group "emit - operands in order"
   (define (unit-source ast globals)
-    (car (generate-unit (lowered-ir (lower-lambda ast)) globals "f" '())))
+    (car (generate-unit (lowered-ir (lower-lambda ast)) globals '() "f" '())))
   (define (position source text) (string-contains source text))
   ;; (lambda () (g (h))): the procedure is a global, the argument a call.
   (define nested (unit-source '(lambda () #f #f (app (var g) ((app (var h) ())))) '(g h)))

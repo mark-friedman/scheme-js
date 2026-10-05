@@ -67,34 +67,34 @@
 ;; Facts as the lowering reports them, written by hand: globals, whether the
 ;; procedure calls something it was handed, a control global it names, and
 ;; whether it captures.
-(define (plain . globals) (make-facts globals #f #f #f))
+(define (plain . globals) (make-facts globals '() #f #f #f))
 (define none (lambda (name) #f))
 
 (test-group "safety - declining what a capture could unwind through"
   (test "a procedure naming a control global is declined"
         '((f . "references control global 'dynamic-wind'"))
-        (unsafe-from-facts (list (cons 'f (make-facts '(dynamic-wind) #f 'dynamic-wind #f))) none #f))
+        (unsafe-from-facts (list (cons 'f (make-facts '(dynamic-wind) '() #f 'dynamic-wind #f))) none #f))
   (test "so is one that captures"
-        '(f) (map car (unsafe-from-facts (list (cons 'f (make-facts '() #f #f #t))) none #f)))
+        '(f) (map car (unsafe-from-facts (list (cons 'f (make-facts '() '() #f #f #t))) none #f)))
   (test "a caller of a declined procedure in the unit is declined, with the path"
         "reaches g, which captures a continuation, which costs more compiled than interpreted"
         (cdr (assq 'f (unsafe-from-facts (list (cons 'f (plain 'g))
-                                               (cons 'g (make-facts '() #f #f #t)))
+                                               (cons 'g (make-facts '() '() #f #f #t)))
                                          none #f))))
   (test "and so is its caller's caller"
         '(e f g)
         (map car (unsafe-from-facts (list (cons 'e (plain 'f)) (cons 'f (plain 'g))
-                                          (cons 'g (make-facts '() #f #f #t)))
+                                          (cons 'g (make-facts '() '() #f #f #t)))
                                     none #f)))
   (test "a procedure reaching none is compiled" '() (unsafe-from-facts (list (cons 'f (plain 'car))) none #f))
   (test "calling something handed to it is declined only when strict"
         '(() (f))
-        (list (map car (unsafe-from-facts (list (cons 'f (make-facts '() #t #f #f))) none #f))
-              (map car (unsafe-from-facts (list (cons 'f (make-facts '() #t #f #f))) none #t))))
+        (list (map car (unsafe-from-facts (list (cons 'f (make-facts '() '() #t #f #f))) none #f))
+              (map car (unsafe-from-facts (list (cons 'f (make-facts '() '() #t #f #f))) none #t))))
   (let ((library (lambda (name)
                    (case name
                      ((helper) (plain 'escape))
-                     ((escape) (make-facts '() #f #f #t))
+                     ((escape) (make-facts '() '() #f #f #t))
                      ((loop-a) (plain 'loop-b))
                      ((loop-b) (plain 'loop-a))
                      (else #f)))))
@@ -117,3 +117,31 @@
   (test "and otherwise at the next resume" 2001 (next-resume-to-ask 1 2000))
   (test "counted by JavaScript, the answer is a number JavaScript can compare"
         #t (real? (next-resume-to-ask 1. 5.))))
+
+(test-group "driver - a library's own binding"
+  ;; What a library's macro makes, used outside the library, of a binding of
+  ;; the library's: a reference to it in the library's environment.
+  (define library (js-obj "libraryName" (vector "test" "lib")))
+  (define lowered
+    (lower-lambda `(lambda (x) #f "f" (app (library-var helper ,library) ((var x))) (x) #f)))
+  ;; Written so, since a name with a dot in it reads as a property's here.
+  (define key (string->symbol "helper@test.lib"))
+  (test "is a global of its own, named for the binding and the library"
+        (list key) (lowered-globals lowered))
+  (test "which the lowering says is the library's" #t
+        (eq? (cddr (assq key (lowered-library-globals lowered))) library))
+  (test "and which the code reads from the library's environment" #t
+        (and (string-contains (car (generate-unit (lowered-ir lowered) (lowered-globals lowered)
+                                                  (lowered-library-globals lowered) "f" '()))
+                              "R.globalCell(K[0], \"helper\")")
+             #t))
+  (test "an assignment to it writes the library's environment" #t
+        (let ((assigning (lower-lambda `(lambda (x) #f "f" (library-set count ,library (var x)) (x) #f))))
+          (and (string-contains (car (generate-unit (lowered-ir assigning) (lowered-globals assigning)
+                                                    (lowered-library-globals assigning) "f" '()))
+                                ".set(\"count\", ")
+               #t)))
+  (test "a control global reached so is one, by its name"
+        "references control global 'call/cc'"
+        (lowering-decline
+          (lower-lambda `(lambda (f) #f "f" (app (library-var call/cc ,library) ((var f))) (f) #f)) #f)))

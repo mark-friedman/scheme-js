@@ -155,9 +155,10 @@ export class ScopedVariable extends Executable {
  * evaluated, since a library procedure may be redefined there after the use
  * was analyzed.
  *
- * Deliberately not a `VariableNode`: compiled code reads a global from the
- * environment its procedure closes over, which is not this one, so the
- * compiler must decline a procedure containing one rather than lower it.
+ * Not a `VariableNode`, since compiled code reads a global from the
+ * environment its procedure closes over, and this from the library's: the
+ * compiler reads it through the library's environment's cell for it
+ * (`library-global-key` in src/compiler/ir.scm).
  */
 export class LibraryVariableNode extends Executable {
     /**
@@ -371,6 +372,8 @@ export class IfNode extends Executable {
                 testResult = test.value;
             } else if (test.constructor === VariableNode) {
                 testResult = env.lookup(test.name);
+            } else if (test.constructor === LibraryVariableNode) {
+                testResult = test.env.lookup(test.name);
             } else {
                 registers[FSTACK].push(FrameRegistry.createIfFrame(
                     this.consequent, this.alternative, env));
@@ -488,6 +491,10 @@ export class TailAppNode extends Executable {
             if (operator.constructor === VariableNode) {
                 return FrameRegistry.continueApplication(
                     exprs, 1, [env.lookup(operator.name)], env, registers, interpreter);
+            }
+            if (operator.constructor === LibraryVariableNode) {
+                return FrameRegistry.continueApplication(
+                    exprs, 1, [operator.env.lookup(operator.name)], env, registers, interpreter);
             }
         }
 

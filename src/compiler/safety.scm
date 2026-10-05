@@ -37,13 +37,16 @@
 ;;  * @property {list} globals - The globals it references, as symbols.
 ;;  * @property {boolean} calls-unknown? - Whether it calls a callee it cannot
 ;;  *   name.
+;;  * @property {list} library-globals - (key name . env) for each global that
+;;  *   is a library's own binding (`library-global-key` in ir.scm).
 ;;  * @property {symbol|boolean} control - A control global it names, or #f.
 ;;  * @property {boolean} captures? - Whether it captures a continuation.
 ;;  */
 (define-record-type facts
-  (make-facts globals calls-unknown? control captures?)
+  (make-facts globals library-globals calls-unknown? control captures?)
   facts?
   (globals facts-globals)
+  (library-globals facts-library-globals)
   (calls-unknown? facts-calls-unknown?)
   (control facts-control)
   (captures? facts-captures?))
@@ -57,9 +60,10 @@
 (define (lambda-facts node)
   (let ((lowered (lower-lambda node)))
     (and (lowered-lambda? lowered)
-         (let ((globals (lowered-globals lowered)))
-           (make-facts globals (lowered-calls-unknown? lowered)
-                       (control-global-in globals) (lowered-captures? lowered))))))
+         (let ((globals (lowered-globals lowered))
+               (library-globals (lowered-library-globals lowered)))
+           (make-facts globals library-globals (lowered-calls-unknown? lowered)
+                       (control-global-in globals library-globals) (lowered-captures? lowered))))))
 
 ;; /**
 ;;  * The facts of an interpreted closure, or #f.
@@ -98,13 +102,26 @@
 (define (unsafe-from-facts local external strict?)
   (define verdicts '())
 
+  ;; Each library's binding met so far, as (key name . env): one is looked into
+  ;; in the library's environment, not the program's.
+  (define library-globals '())
+
+  (define (note-library-globals! facts)
+    (set! library-globals (append (facts-library-globals facts) library-globals))
+    facts)
+
+  (define (facts-of name)
+    (let ((library (assq name library-globals)))
+      (if library ((environment-facts (cddr library)) (cadr library)) (external name))))
+
   (define (outside-reason name visiting)
     (cond
       ((assq name verdicts) => cdr)
       ((memq name visiting) #f)
       (else
-       (let* ((facts (external name))
-              (reason (and facts (outside-facts-reason name facts (cons name visiting)))))
+       (let* ((facts (facts-of name))
+              (reason (and facts
+                           (outside-facts-reason name (note-library-globals! facts) (cons name visiting)))))
          (set! verdicts (cons (cons name reason) verdicts))
          reason))))
 
@@ -146,6 +163,7 @@
                   local)))
       (if (null? more) unsafe (spread (append unsafe more)))))
 
+  (for-each (lambda (entry) (note-library-globals! (cdr entry))) local)
   (let ((unsafe (spread (filter-map (lambda (entry)
                                       (let ((reason (own-reason (cdr entry))))
                                         (and reason (cons (car entry) reason))))

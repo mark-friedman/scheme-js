@@ -188,12 +188,14 @@
 ;;   9  pending-self      the binding the next lambda lowered is bound to
 ;;  10  local-loops       calls tagged as local loops, checked once all is seen
 ;;  11  defined           names bound by internal definitions, in order
+;;  12  library-globals   each library's binding referred to, as
+;;                        (key name . env): see `library-global-key`
 
 ;; /**
 ;;  * Creates an empty lowering state.
 ;;  * @returns {vector} The state.
 ;;  */
-(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '()))
+(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '() '()))
 
 (define (state-globals st) (vector-ref st 0))
 (define (state-calls-unknown? st) (vector-ref st 1))
@@ -210,6 +212,42 @@
   (if (memq name (vector-ref st 0))
       #f
       (vector-set! st 0 (cons name (vector-ref st 0)))))
+
+;; /**
+;;  * The global a library's own binding is known by: a name of its own, the
+;;  * binding's and the library's, `eqv?@scheme.control`, which no other global
+;;  * has, so that everything after this pass treats it as a global of the
+;;  * procedure's; what reads its value, or writes it, finds the library's
+;;  * environment by it (`lowered-library-globals`). A library's macro refers
+;;  * so to the library's binding, where the macro is used outside it
+;;  * (`library-binding-env` in src/core/scheme/expander.scm).
+;;  * @param {vector} st - The lowering state.
+;;  * @param {symbol} name - The binding's name.
+;;  * @param {object} env - The library's environment.
+;;  * @returns {symbol}
+;;  */
+(define (library-global-key st name env)
+  (let ((known (find (lambda (entry) (and (eq? (cadr entry) name) (eq? (cddr entry) env)))
+                     (vector-ref st 12))))
+    (if known
+        (car known)
+        (let ((key (string->symbol
+                    (string-append (symbol->string name) "@" (library-key-of env)))))
+          (vector-set! st 12 (cons (cons key (cons name env)) (vector-ref st 12)))
+          key))))
+
+;; /**
+;;  * A library's environment's name, its parts joined with dots, as the
+;;  * library system keys it: `scheme.control`.
+;;  * @param {object} env - The environment.
+;;  * @returns {string}
+;;  */
+(define (library-key-of env)
+  (let ((name (js-ref env "libraryName")))
+    (if (and (vector? name) (> (vector-length name) 0))
+        (let join ((parts (cdr (vector->list name))) (key (vector-ref name 0)))
+          (if (null? parts) key (join (cdr parts) (string-append key "." (car parts)))))
+        "library")))
 
 ;; /**
 ;;  * Records that some call in this form has a callee the pass cannot name.
@@ -609,6 +647,19 @@
                            (if (ir-callable? body) #t #f)
                            (inline-loop? (ast-1 node) inits body tail st))))))))
 
+      ((eq? tag 'library-var)
+       (let ((key (library-global-key st (ast-1 node) (ast-2 node))))
+         (state-add-global! st key)
+         (list 'global key tail #t)))
+
+      ((eq? tag 'library-set)
+       (let ((value (lower-node (ast-3 node) scope #f st)))
+         (if (not value)
+             #f
+             (let ((key (library-global-key st (ast-1 node) (ast-2 node))))
+               (state-add-global! st key)
+               (list 'set key #f value tail)))))
+
       ((eq? tag 'set)
        (let ((value (lower-node (ast-2 node) scope #f st)))
          (if (not value)
@@ -657,7 +708,6 @@
 (define (unsupported-form-reason node)
   (case (ast-tag node)
     ((other) (ast-1 node))
-    ((library-var library-set) "refers to a library's own binding, from its macro")
     ((scoped-var) "refers to a binding found by scopes as it runs")
     (else (string-append "unsupported form: " (symbol->string (ast-tag node))))))
 
@@ -1056,17 +1106,32 @@
 ;;  * @property {list} ir - The IR.
 ;;  * @property {list} globals - The globals it names, as symbols, in the order
 ;;  *   first named.
+;;  * @property {list} library-globals - Those that are a library's own
+;;  *   bindings, as (key name . env) (`library-global-key`).
 ;;  * @property {boolean} calls-unknown? - Whether it calls a callee the lowering
 ;;  *   cannot name.
 ;;  * @property {boolean} captures? - Whether it captures a continuation.
 ;;  */
 (define-record-type lowered-lambda
-  (make-lowered-lambda ir globals calls-unknown? captures?)
+  (make-lowered-lambda ir globals library-globals calls-unknown? captures?)
   lowered-lambda?
   (ir lowered-ir)
   (globals lowered-globals)
+  (library-globals lowered-library-globals)
   (calls-unknown? lowered-calls-unknown?)
   (captures? lowered-captures?))
+
+;; /**
+;;  * A global's name as the code it names it in has it: a library's binding
+;;  * known by a key of its own, by the binding's name.
+;;  * @param {list} library-globals - (key name . env) for each library's
+;;  *   binding.
+;;  * @param {symbol} global - The global.
+;;  * @returns {symbol}
+;;  */
+(define (global-written-name library-globals global)
+  (let ((entry (assq global library-globals)))
+    (if entry (cadr entry) global)))
 
 ;; /**
 ;;  * A lambda the lowering cannot express.
@@ -1110,7 +1175,7 @@
         (make-lowering-failure (let ((r (state-reason st))) (if r r "unsupported form")))
         ;; A local that was both called and assigned is not the lambda we
         ;; lowered, so the call does not reach a callee this pass can name.
-        (make-lowered-lambda ir (reverse (state-globals st))
+        (make-lowered-lambda ir (reverse (state-globals st)) (vector-ref st 12)
                              (if (state-calls-unknown? st)
                                  #t
                                  (any-assigned? (vector-ref st 2) (vector-ref st 3)))

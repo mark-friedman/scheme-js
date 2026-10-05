@@ -21,7 +21,7 @@ import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlus
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
-import { LiteralNode, VariableNode, TailAppNode, RestoreContinuation, RaiseNode } from './ast_nodes.js';
+import { LiteralNode, VariableNode, LibraryVariableNode, TailAppNode, RestoreContinuation, RaiseNode } from './ast_nodes.js';
 
 // =============================================================================
 // Helper Functions
@@ -510,6 +510,8 @@ export function continueApplication(exprs, index, values, env, registers, interp
                 values.push(expr.value);
             } else if (expr.constructor === VariableNode) {
                 values.push(env.lookup(expr.name));
+            } else if (expr.constructor === LibraryVariableNode) {
+                values.push(expr.env.lookup(expr.name));
             } else {
                 break;
             }

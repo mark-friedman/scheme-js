@@ -67,7 +67,7 @@
  */
 
 import * as R from './runtime.js';
-import { libraryNameToKey, recordCompiledOver } from '../core/interpreter/library_registry.js';
+import { libraryNameToKey, recordCompiledOver, getLibraryEnv } from '../core/interpreter/library_registry.js';
 import { runCompiled } from '../core/interpreter/values.js';
 import { Cons, list } from '../core/interpreter/cons.js';
 import { Char } from '../core/primitives/char_class.js';
@@ -178,7 +178,7 @@ export function installProcedures(env, table, fingerprint) {
     }
     // Built against the closure's own environment, so its free variables
     // resolve where they did when it was interpreted.
-    const procedure = R.recordSource(entry.make(R, closure.env, entry.constants), closure.source);
+    const procedure = R.recordSource(entry.make(R, closure.env, poolOf(entry)), closure.source);
     runCompiled(closure, procedure);
     replaced.set(closure, procedure);
     installed.push(name);
@@ -303,6 +303,20 @@ export function libraryRestorer(tables) {
 }
 
 /**
+ * A table entry's constant pool as its code uses it: a library's environment,
+ * which the code of a procedure that refers to a library's own binding reads
+ * the binding from, is written in the table as `{library: name}`, and is the
+ * environment of the library of that name in the registry the procedure is
+ * installed in.
+ * @param {Object} entry - The entry.
+ * @returns {Array<*>}
+ */
+function poolOf(entry) {
+  return entry.constants.map((constant) => (constant !== null && typeof constant === 'object'
+    && Array.isArray(constant.library) ? getLibraryEnv(constant.library) : constant));
+}
+
+/**
  * The datum JSON text holds, as a table and the pinned seed write data
  * (`json-datum` in scripts/lib/table_writer.scm): a symbol as a JSON string,
  * `null` the empty list, an exact integer a JSON number, and anything else an
@@ -364,7 +378,7 @@ const FORM = intern('form');
  */
 export function restoreProcedure(table, env, name) {
   const entry = table.procedures[name];
-  const procedure = R.recordSource(entry.make(R, env, entry.constants), entry.span);
+  const procedure = R.recordSource(entry.make(R, env, poolOf(entry)), entry.span);
   procedure[RESTORED] = entry;
   env.define(name, procedure);
 }
