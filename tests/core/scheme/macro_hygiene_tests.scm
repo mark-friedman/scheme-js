@@ -174,6 +174,28 @@
           50
           (let ((helper (lambda (x) x)))
             (use-helper 5))))
+
+  ;; A library's macro means the library's bindings, though the program it is
+  ;; used in, after expanding the use, assigns or redefines a variable of the
+  ;; same name: `case` from (scheme control) compares with control's `eqv?`
+  ;; and `memv` whatever the program does with its own (R7RS 4.3).
+  (test-group "Referential Transparency of a Library's Macro"
+    (define (fresh) (environment '(scheme base)))
+    (test "a library's macro, the program assigning its procedure's name after the use" 'a
+          (let ((env (fresh)))
+            (eval '(define (classify x) (case x ((a) 'a) (else 'other))) env)
+            (eval '(set! eqv? (lambda (x y) #f)) env)
+            (eval '(classify 'a) env)))
+    (test "and redefining it" 'one
+          (let ((env (fresh)))
+            (eval '(define (classify x) (case x ((1) 'one) (else 'other))) env)
+            (eval '(define (memv x l) #f) env)
+            (eval '(define (eqv? x y) #f) env)
+            (eval '(classify 1) env)))
+    (test "a library's macro used after the program redefined the name" 'a
+          (let ((env (fresh)))
+            (eval '(define (eqv? x y) #f) env)
+            (eval '(case 'a ((a) 'a) (else 'other)) env))))
 )
 
 

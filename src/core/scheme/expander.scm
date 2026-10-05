@@ -326,46 +326,25 @@
 
 ;; /**
 ;;  * Where an identifier a library's macro introduced refers to its binding:
-;;  * the library's environment, or #f if looking the name up where it is used
-;;  * finds the binding anyway. Macros are referentially transparent (R7RS
-;;  * 4.3): the identifier means the library's binding of its name, exported
-;;  * or not. Looked up by name, it finds that binding when the use is in the
-;;  * library itself; when the library has no binding of the name of its own;
-;;  * and when the use site holds the same procedure under the name, as one
-;;  * that imports it does -- every derived form of the standard libraries
-;;  * expands into calls of procedures, and this is what keeps them
-;;  * compilable. A variable not a procedure is not shared so: an import is a
-;;  * copy, which an assignment in the library would leave behind.
+;;  * the library's environment, or #f where looking the name up where it is
+;;  * used finds that binding itself. Macros are referentially transparent
+;;  * (R7RS 4.3): the identifier means the library's binding of its name,
+;;  * exported or not, whatever the use site binds the name to, now or later --
+;;  * a program that assigns or redefines `eqv?` does not change what `case`
+;;  * compares with. Looked up by name, it is the library's binding only where
+;;  * the use is in the library itself, or where the library has no binding of
+;;  * the name of its own. A reference to a library's binding is compiled as a
+;;  * global's is, read through the library's environment (`library-global-key`
+;;  * in src/compiler/ir.scm).
 ;;  * @param {identifier} id - A free identifier.
 ;;  * @param {number} scope - Its library's scope.
-;;  * @param {boolean} assigning? - Whether it is a `set!`'s target, which
-;;  *   must reach the library's binding, never a copy.
 ;;  * @returns {object|boolean} The library's environment, or #f.
 ;;  */
-(define (library-binding-env id scope assigning?)
-  (let ((library-env (%library-environment scope))
-        (name (identifier-name id))
-        (current (current-scope)))
-    (cond ((not (%environment-binds? library-env name)) #f)
-          ((eqv? current scope) #f)
-          ((and (not assigning?) (shared-where-used? library-env name current)) #f)
-          (else library-env))))
-
-;; /**
-;;  * Whether the environment a use outside a library is made in finds the
-;;  * same procedure under a name as the library binds: the library being
-;;  * expanded, or else the environment that first imported the library,
-;;  * which it was loaded into.
-;;  * @param {object} library-env - The library's environment.
-;;  * @param {symbol} name - The name.
-;;  * @param {number|boolean} current - The scope being expanded, or #f.
-;;  * @returns {boolean}
-;;  */
-(define (shared-where-used? library-env name current)
-  (let* ((use-env (or (and current (%library-environment current)) (%environment-parent library-env)))
-         (holder (and use-env (%environment-holder use-env name)))
-         (value (%environment-own-value library-env name)))
-    (and holder (procedure? value) (eq? (%environment-own-value holder name) value))))
+(define (library-binding-env id scope)
+  (let ((library-env (%library-environment scope)))
+    (and (%environment-binds? library-env (identifier-name id))
+         (not (eqv? (current-scope) scope))
+         library-env)))
 
 ;; ---------------------------------------------------------------------------
 ;; Errors and spans
@@ -484,7 +463,7 @@
            (let ((name (identifier-name id))
                  (library-scope (%identifier-library-scope id)))
              (cond (library-scope
-                    (let ((library-env (library-binding-env id library-scope #f)))
+                    (let ((library-env (library-binding-env id library-scope)))
                       (if library-env (list 'library-var name library-env) (list 'var name))))
                    ;; A binding a definition registered under scopes the
                    ;; identifier carries, found as the form runs.
@@ -952,7 +931,7 @@
               (list 'set local value)
               (let* ((name (identifier-name target))
                      (library-scope (library-scope-of target))
-                     (library-env (and library-scope (library-binding-env target library-scope #t))))
+                     (library-env (and library-scope (library-binding-env target library-scope))))
                 (if library-env
                     (list 'library-set name library-env value)
                     (list 'set name value))))))))

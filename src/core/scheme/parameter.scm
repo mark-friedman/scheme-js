@@ -87,9 +87,8 @@
 ;;  * Binds parameters to values for the dynamic extent of body.
 ;;  * Uses dynamic-wind to ensure proper restoration on exit.
 ;;  *
-;;  * NOTE: This procedure is called by the parameterize macro and must be
-;;  * exported from the library. This is an implementation detail that will
-;;  * be unnecessary once we have proper referential transparency in macros.
+;;  * What the parameterize macro expands into a call of. Not exported: a
+;;  * library's macro refers to the library's own bindings wherever it is used.
 ;;  *
 ;;  * @param {list} params - List of parameter objects.
 ;;  * @param {list} values - List of values to bind.

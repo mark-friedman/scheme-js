@@ -99,7 +99,7 @@
     dynamic-wind
     values call-with-values
     procedure?
-    make-parameter parameterize param-dynamic-bind
+    make-parameter parameterize
     
     ;; Exceptions
     raise raise-continuable

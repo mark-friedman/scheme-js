@@ -73,6 +73,18 @@ export function runAssemblerTests(logger) {
   const librarySet = assemble(list(intern('library-set'), intern('x'), env, core('(lit 1)')), analyze);
   assert(logger, "an assignment to one",
     [librarySet instanceof LibrarySetNode, librarySet.name, librarySet.env === env], [true, 'x', true]);
+  // Restored from a table, the library is named, and found by whoever
+  // restores the form: the library system's seed finds its own libraries.
+  const asked = [];
+  const named = { library: ['a', 'b'] };
+  const finding = (name) => { asked.push(name.join('.')); return env; };
+  const restoredVar = assemble(list(intern('library-var'), intern('x'), named), analyze, finding);
+  const restoredSet = assemble(list(intern('library-set'), intern('x'), named, core('(lit 1)')), analyze, finding);
+  assert(logger, "a library named in a table, found as the restorer finds it",
+    [restoredVar.env === env, restoredSet.env === env, asked], [true, true, ['a.b', 'a.b']]);
+  const nested = assemble(list(intern('if'), core('(lit #t)'), list(intern('library-var'), intern('x'), named),
+    core('(lit #f)')), analyze, finding);
+  assert(logger, 'and so inside another form', nested.consequent.env === env, true);
   const scoped = assemble(core('(scoped-var x (3 4))'), analyze);
   assert(logger, 'a scoped variable', [scoped instanceof ScopedVariable, [...scoped.scopes]], [true, [3, 4]]);
 

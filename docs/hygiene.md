@@ -137,13 +137,18 @@ library, whose macro wrote this one. `libraryScopeOf` reads it back.
 ### References and assignments
 
 A free identifier carrying a library's scope is the library's binding of its
-name (`library-binding-env` in `expander.scm`). Where the use site's own
-environment would find that same binding by name, it is analyzed as a plain
-global reference, which the compiler tier can compile: within the library
-itself; when the library has no binding of the name of its own; and when the
-use site holds the same procedure under the name, as a program importing it
-does. Otherwise it becomes a `LibraryVariableNode`, or for `set!` a
-`LibrarySetNode`, which reaches into the library's environment.
+name (`library-binding-env` in `expander.scm`), wherever the macro is used:
+outside the library it becomes a `library-var` core form -- a
+`LibraryVariableNode`, or for `set!` a `LibrarySetNode` -- which reaches into
+the library's environment. So a program that redefines or assigns `eqv?`
+does not change what `case` does, as R7RS 4.3 requires: the macro's `eqv?` is
+its library's. Within the library itself, and for a name the library does not
+bind, it is a plain global reference. The compiler compiles a library
+reference as a global of its own, keyed by the name and the library
+(`eqv?@scheme.control`), read through the library's environment; a prebuilt
+table writes the environment by the library's name, which whoever restores
+the table finds -- a registry, or the library system's seed among its own
+libraries.
 
 ```scheme
 (define-library (counter)

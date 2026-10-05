@@ -514,6 +514,16 @@ The frame is found once, as the lookup it replaces found it once, so a later def
 name in a frame nearer the reader would go unseen. That does not arise for the top-level and library
 frames compiled procedures close over.
 
+A library's macro used outside the library refers to the library's own bindings, as R7RS 4.3
+requires (`library-var` in the core forms; `docs/hygiene.md`). Lowered, such a reference is a global
+of its own, keyed by the name and the library -- `eqv?@scheme.control` -- so that it never merges
+with the program's `eqv?`; its cell is read from the library's environment, which the constant pool
+holds, `R.globalCell(K[n], "eqv?")`. Inlining checks that the library's binding is still the
+primitive, and the control-global check and the safety analysis read the binding by its name in the
+library's environment. A prebuilt table writes that environment as the library's name, which whoever
+installs the table finds: the registry it is installed in, or the library system's seed among its
+own libraries, which are in no registry.
+
 The other cost expected on every call, the `SCHEME_RAW_CALL` lookup that decides whether a callee is
 an interpreted closure, measured as nothing, and is left alone. Reading the runtime values every
 call site uses -- `TailCall`, `step`, `UNWIND`, `SCHEME_RAW_CALL` -- once per procedure rather than
@@ -782,7 +792,7 @@ interpreter looks a local loop's name up in its frame at every iteration too, bu
 | **3. REPLs in both** | Met. Compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working, and both REPLs compile what is typed into them as it runs, by the policy above. |
 | **4. Debuggers in both** | **Met by running compiled code as its closures where it is debugged**, in the CLI and the browser: a procedure holding a breakpoint runs as its closure, and every one while stepping or paused, so every breakpoint fires, the library's and the program's own included, stepping and `:bt` see every frame, and a breakpoint in a callback of the compiled `map` stops the program where it is hit, `map` still compiled. Not reached: code compiled with no closure kept -- `tryCompileDefinition`, and a procedure a compiled top-level loop made and kept -- and debugging compiled code in place, which needs source maps. See below. |
 | **5. Multi-shot `call/cc`** | Met, across any number of alternations of compiled and interpreted code. Refused rather than answered: a capture beneath a redefined inlined primitive. A continuation captured above a JavaScript caller that is not compiled code leaves that caller out, as the interpreter's always have. |
-| **6. R7RS-small** | The compiler adds two refusals: the capture above, and `raise-continuable` handed to a compiled procedure as a value. The rest are the interpreter's: `equal?` on circular structure, `read-char` returning strings, the file procedures returning a procedure's exact integer as inexact, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test` -- three of Chibi's only because its runner rescues a failure whose values agree once converted to JavaScript (R85); and passing them is not evidence of completeness, since neither tested `call-with-port`, which was missing. |
+| **6. R7RS-small** | The compiler adds two refusals: the capture above, and `raise-continuable` handed to a compiled procedure as a value. The rest are the interpreter's: `equal?` on circular structure, `read-char` returning strings, and the file procedures returning a procedure's exact integer as inexact. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test` -- three of Chibi's only because its runner rescues a failure whose values agree once converted to JavaScript (R85); and passing them is not evidence of completeness, since neither tested `call-with-port`, which was missing. |
 
 Constraint 4 has **two mechanisms, not one**, which is what every real toolchain ships:
 

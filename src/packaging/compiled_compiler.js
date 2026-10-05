@@ -6205,12 +6205,12 @@ export const LIBRARIES = {
       "unsupported-form-reason": {
         params: ["node_$1295"],
         rest: null,
-        constants: [intern("other"), intern("scoped-var"), intern("other"), intern("scoped-var")],
+        constants: [intern("other"), intern("scoped-var"), intern("other"), intern("scoped-var"), {library: ["scheme","control"]}],
         span: {"filename":"ir.scm","line":708,"column":1,"endLine":712,"endColumn":82},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-tag")).v;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[4], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "ast-1")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "string-append")).v;
@@ -10493,13 +10493,13 @@ export const LIBRARIES = {
       "ir-children": {
         params: ["node_$1400"],
         rest: null,
-        constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture")],
+        constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture"), {library: ["scheme","control"]}],
         span: {"filename":"lift.scm","line":108,"column":1,"endLine":119,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[18], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "list")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cadr")).v;
@@ -11410,13 +11410,13 @@ export const LIBRARIES = {
       "mentions?": {
         params: ["node_$1414","name_$1415"],
         rest: null,
-        constants: [intern("local"), intern("set"), intern("local"), intern("set")],
+        constants: [intern("local"), intern("set"), intern("local"), intern("set"), {library: ["scheme","control"]}],
         span: {"filename":"lift.scm","line":167,"column":1,"endLine":172,"endColumn":78},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[4], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "eq?")).v;
         const W2 = R.primitiveCell("eq?"), P2 = W2.primitive;
@@ -11721,7 +11721,7 @@ export const LIBRARIES = {
       "free-in": {
         params: ["node_$1420","bound_$1421","found_$1422"],
         rest: null,
-        constants: [intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define"), intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define")],
+        constants: [intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define"), intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define"), {library: ["scheme","control"]}],
         span: {"filename":"lift.scm","line":202,"column":1,"endLine":217,"endColumn":55},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
@@ -11732,7 +11732,7 @@ export const LIBRARIES = {
         const W3 = R.primitiveCell("cons"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "car")).v;
         const W4 = R.primitiveCell("car"), P4 = W4.primitive;
-        let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "eqv?")).v;
+        let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(K[14], "eqv?")).v;
         const W5 = R.primitiveCell("eqv?"), P5 = W5.primitive;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "cadr")).v;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "cadddr")).v;
@@ -15337,13 +15337,13 @@ export const LIBRARIES = {
       "statement-reads": {
         params: ["st_$1545"],
         rest: null,
-        constants: [intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail")],
+        constants: [intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail"), {library: ["scheme","control"]}],
         span: {"filename":"liveness.scm","line":209,"column":1,"endLine":221,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[16], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "append")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "statement-def")).v;
@@ -15838,13 +15838,13 @@ export const LIBRARIES = {
       "statement-mentions": {
         params: ["st_$1547"],
         rest: null,
-        constants: [intern("assign"), intern("assign")],
+        constants: [intern("assign"), intern("assign"), {library: ["scheme","control"]}],
         span: {"filename":"liveness.scm","line":228,"column":1,"endLine":231,"endColumn":34},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[2], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "append")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "expr-locals")).v;
@@ -16223,13 +16223,13 @@ export const LIBRARIES = {
       "statement-jumps": {
         params: ["st_$1554"],
         rest: null,
-        constants: [intern("goto"), intern("branch"), intern("guarded"), intern("goto"), intern("branch"), intern("guarded")],
+        constants: [intern("goto"), intern("branch"), intern("guarded"), intern("goto"), intern("branch"), intern("guarded"), {library: ["scheme","control"]}],
         span: {"filename":"liveness.scm","line":261,"column":1,"endLine":266,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[6], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "list")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cadr")).v;
@@ -18817,7 +18817,7 @@ export const LIBRARIES = {
       "render-statement": {
         params: ["form_$1595","st_$1596"],
         rest: null,
-        constants: [intern("$UNWIND"), intern("$UNWIND"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack")],
+        constants: [intern("$UNWIND"), intern("$UNWIND"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":265,"column":1,"endLine":307,"endColumn":53},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
@@ -18825,7 +18825,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "runtime")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
         const W2 = R.primitiveCell("car"), P2 = W2.primitive;
-        let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "eqv?")).v;
+        let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(K[32], "eqv?")).v;
         const W3 = R.primitiveCell("eqv?"), P3 = W3.primitive;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "string-append")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "cadr")).v;
@@ -24301,13 +24301,13 @@ export const LIBRARIES = {
       "definitions-in": {
         params: ["node_$1693"],
         rest: null,
-        constants: [intern("lambda"), intern("define"), intern("lambda"), intern("define")],
+        constants: [intern("lambda"), intern("define"), intern("lambda"), intern("define"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":781,"column":1,"endLine":785,"endColumn":60},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[4], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cons")).v;
         const W2 = R.primitiveCell("cons"), P2 = W2.primitive;
@@ -24428,13 +24428,13 @@ export const LIBRARIES = {
       "emit-value!": {
         params: ["form_$1695","node_$1696"],
         rest: null,
-        constants: [intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call"), intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call")],
+        constants: [intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call"), intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":797,"column":1,"endLine":820,"endColumn":60},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[24], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "js")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "constant")).v;
@@ -29988,7 +29988,7 @@ export const LIBRARIES = {
       "emit-statement!": {
         params: ["form_$1782","node_$1783"],
         rest: null,
-        constants: [intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return"), intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return")],
+        constants: [intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return"), intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1141,"column":1,"endLine":1160,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
@@ -30000,7 +30000,7 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "emit-value!")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "car")).v;
         const W5 = R.primitiveCell("car"), P5 = W5.primitive;
-        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "eqv?")).v;
+        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(K[16], "eqv?")).v;
         const W6 = R.primitiveCell("eqv?"), P6 = W6.primitive;
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "twin?")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "emit-twin-tail-if!")).v;
@@ -30580,13 +30580,13 @@ export const LIBRARIES = {
       "node-tail?": {
         params: ["node_$1787"],
         rest: null,
-        constants: [intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec")],
+        constants: [intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1168,"column":1,"endLine":1178,"endColumn":16},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "car")).v;
         const W0 = R.primitiveCell("car"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[24], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "caddr")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cadddr")).v;
@@ -40903,11 +40903,11 @@ export const LIBRARIES = {
       "url-path-special?": {
         params: ["c_$1985"],
         rest: null,
-        constants: [new Char(37), new Char(63), new Char(35), new Char(32), new Char(37), new Char(63), new Char(35), new Char(32)],
+        constants: [new Char(37), new Char(63), new Char(35), new Char(32), new Char(37), new Char(63), new Char(35), new Char(32), {library: ["scheme","control"]}],
         span: {"filename":"sourcemap.scm","line":73,"column":1,"endLine":74,"endColumn":49},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
-        let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eqv?")).v;
+        let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(K[8], "eqv?")).v;
         const W0 = R.primitiveCell("eqv?"), P0 = W0.primitive;
         const $proc = { "url-path-special?": function (s_c_$1985) {
           let s_atom_2dkey_$1986, $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
@@ -41055,7 +41055,7 @@ export const LIBRARIES = {
       "url-path-escape": {
         params: ["text_$1987"],
         rest: null,
-        constants: [new Char(37), new Char(63), new Char(35), new Char(32), new Char(37), new Char(63), new Char(35), new Char(32)],
+        constants: [new Char(37), new Char(63), new Char(35), new Char(32), new Char(37), new Char(63), new Char(35), new Char(32), {library: ["scheme","control"]}],
         span: {"filename":"sourcemap.scm","line":83,"column":1,"endLine":91,"endColumn":13},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
@@ -41063,7 +41063,7 @@ export const LIBRARIES = {
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "url-path-special?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-concatenate")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "map")).v;
-        let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "eqv?")).v;
+        let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(K[8], "eqv?")).v;
         const W4 = R.primitiveCell("eqv?"), P4 = W4.primitive;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "string")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "string->list")).v;
@@ -42535,12 +42535,12 @@ export const LIBRARIES = {
       "subforms": {
         params: ["form_$2027"],
         rest: null,
-        constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app")],
+        constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app"), {library: ["scheme","control"]}],
         span: {"filename":"driver.scm","line":144,"column":1,"endLine":153,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-tag")).v;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[16], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "list")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "ast-1")).v;
@@ -43103,12 +43103,12 @@ export const LIBRARIES = {
       "defines-at-top-level?": {
         params: ["form_$2036"],
         rest: null,
-        constants: [intern("define"), intern("seq"), intern("define"), intern("seq")],
+        constants: [intern("define"), intern("seq"), intern("define"), intern("seq"), {library: ["scheme","control"]}],
         span: {"filename":"driver.scm","line":188,"column":1,"endLine":192,"endColumn":16},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "ast-tag")).v;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[4], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "any")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "defines-at-top-level?")).v;
@@ -52005,7 +52005,7 @@ export const LIBRARIES = {
       {core: "[\"l\",\"define\",\"guarded-globals\",[\"l\",\"lambda\",[\"l\",\"globals_$2041\",\"library-globals_$2042\",\"env_$2043\"],false,[\"s\",\"guarded-globals\"],[\"l\",\"app\",[\"l\",\"var\",\"filter\"],[\"l\",[\"l\",\"lambda\",[\"l\",\"g_$2044\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"library_$2045\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"name_$2046\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",null,false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"memq\"],[\"l\",[\"l\",\"var\",\"name_$2046\"],[\"l\",\"var\",\"expandable-globals\"]]],[\"l\",\"app\",[\"l\",\"var\",\"bound-to-primitive?\"],[\"l\",[\"l\",\"if\",[\"l\",\"var\",\"library_$2045\"],[\"l\",\"app\",[\"l\",\"var\",\"cddr\"],[\"l\",[\"l\",\"var\",\"library_$2045\"]]],[\"l\",\"var\",\"env_$2043\"]],[\"l\",\"app\",[\"l\",\"var\",\"symbol->string\"],[\"l\",[\"l\",\"var\",\"name_$2046\"]]]]],[\"l\",\"lit\",false]],null,false],null],[\"l\",\"name\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"var\",\"library_$2045\"],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"library_$2045\"]]],[\"l\",\"var\",\"g_$2044\"]]]],[\"l\",\"library\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"assq\"],[\"l\",[\"l\",\"var\",\"g_$2044\"],[\"l\",\"var\",\"library-globals_$2042\"]]]]],[\"l\",\"g\"],false],[\"l\",\"var\",\"globals_$2041\"]]],[\"l\",\"globals\",\"library-globals\",\"env\"],false]]"},
       {core: "[\"l\",\"define\",\"emit-lowered\",[\"l\",\"lambda\",[\"l\",\"lowered_$2047\",\"name_$2048\",\"closure_$2049\",\"env_$2050\",\"span_$2051\"],false,[\"s\",\"emit-lowered\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"globals_$2052\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"library-globals_$2053\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"unit_$2054\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"source_$2055\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",null,false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"temp_$2056\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"temp_$2056\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"reason_$2057\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"make-declined\"],[\"l\",[\"l\",\"var\",\"name_$2048\"],[\"l\",\"var\",\"reason_$2057\"],[\"l\",\"lit\",false]]],[\"l\",\"reason\"],false],[\"l\",[\"l\",\"var\",\"temp_$2056\"]]],[\"l\",\"app\",[\"l\",\"var\",\"make-generated\"],[\"l\",[\"l\",\"var\",\"name_$2048\"],[\"l\",\"var\",\"closure_$2049\"],[\"l\",\"var\",\"env_$2050\"],[\"l\",\"var\",\"span_$2051\"],[\"l\",\"var\",\"source_$2055\"],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"unit_$2054\"]]],[\"l\",\"var\",\"globals_$2052\"],[\"l\",\"app\",[\"l\",\"var\",\"caddr\"],[\"l\",[\"l\",\"var\",\"unit_$2054\"]]]]]],[\"l\",\"temp\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"source-too-large\"],[\"l\",[\"l\",\"var\",\"source_$2055\"]]]]],null,false],null],[\"l\",\"source\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"unit_$2054\"]]]]],[\"l\",\"unit\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"generate-unit\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"lowered-ir\"],[\"l\",[\"l\",\"var\",\"lowered_$2047\"]]],[\"l\",\"var\",\"globals_$2052\"],[\"l\",\"var\",\"library-globals_$2053\"],[\"l\",\"var\",\"name_$2048\"],[\"l\",\"app\",[\"l\",\"var\",\"guarded-globals\"],[\"l\",[\"l\",\"var\",\"globals_$2052\"],[\"l\",\"var\",\"library-globals_$2053\"],[\"l\",\"var\",\"env_$2050\"]]]]]]],[\"l\",\"library-globals\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"lowered-library-globals\"],[\"l\",[\"l\",\"var\",\"lowered_$2047\"]]]]],[\"l\",\"globals\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"lowered-globals\"],[\"l\",[\"l\",\"var\",\"lowered_$2047\"]]]]],[\"l\",\"lowered\",\"name\",\"closure\",\"env\",\"span\"],false]]"},
       {core: "[\"l\",\"define\",\"failure-message\",[\"l\",\"lambda\",[\"l\",\"e_$2058\"],false,[\"s\",\"failure-message\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"error-object?\"],[\"l\",[\"l\",\"var\",\"e_$2058\"]]],[\"l\",\"app\",[\"l\",\"var\",\"error-object-message\"],[\"l\",[\"l\",\"var\",\"e_$2058\"]]],[\"l\",\"lit\",[\"s\",\"an object that is not an error was raised\"]]],[\"l\",\"e\"],false]]"},
-      {core: "[\"l\",\"define\",\"emit-guarded\",[\"l\",\"lambda\",[\"l\",\"lowered_$2059\",\"name_$2060\",\"closure_$2061\",\"env_$2062\",\"span_$2063\"],false,[\"s\",\"emit-guarded\"],[\"l\",\"app\",[\"l\",\"var\",\"call/cc\"],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2064\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"with-exception-handler\"],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2065\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2066\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2064\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"make-declined\"],[\"l\",[\"l\",\"var\",\"name_$2060\"],[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"code generation failed: \"]],[\"l\",\"app\",[\"l\",\"var\",\"failure-message\"],[\"l\",[\"l\",\"var\",\"e_$2066\"]]]]],[\"l\",\"lit\",false]]]]],[\"l\",\"app\",[\"l\",\"var\",\"raise\"],[\"l\",[\"l\",\"var\",\"e_$2066\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2065\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"emit-lowered\"],[\"l\",[\"l\",\"var\",\"lowered_$2059\"],[\"l\",\"var\",\"name_$2060\"],[\"l\",\"var\",\"closure_$2061\"],[\"l\",\"var\",\"env_$2062\"],[\"l\",\"var\",\"span_$2063\"]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"lowered\",\"name\",\"closure\",\"env\",\"span\"],false]]"},
+      {core: "[\"l\",\"define\",\"emit-guarded\",[\"l\",\"lambda\",[\"l\",\"lowered_$2059\",\"name_$2060\",\"closure_$2061\",\"env_$2062\",\"span_$2063\"],false,[\"s\",\"emit-guarded\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2064\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2065\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2066\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2064\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"make-declined\"],[\"l\",[\"l\",\"var\",\"name_$2060\"],[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"code generation failed: \"]],[\"l\",\"app\",[\"l\",\"var\",\"failure-message\"],[\"l\",[\"l\",\"var\",\"e_$2066\"]]]]],[\"l\",\"lit\",false]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$2066\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2065\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"emit-lowered\"],[\"l\",[\"l\",\"var\",\"lowered_$2059\"],[\"l\",\"var\",\"name_$2060\"],[\"l\",\"var\",\"closure_$2061\"],[\"l\",\"var\",\"env_$2062\"],[\"l\",\"var\",\"span_$2063\"]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"lowered\",\"name\",\"closure\",\"env\",\"span\"],false]]"},
       {procedure: "generate-lambda"},
       {procedure: "file-place"},
       {procedure: "source-url"},

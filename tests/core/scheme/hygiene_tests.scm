@@ -9,8 +9,8 @@
 ;; even if those bindings aren't exported from the library.
 ;; ============================================================================
 
-;; The parameterize macro references param-dynamic-bind internally.
-;; This should work without param-dynamic-bind being exported.
+;; The parameterize macro references param-dynamic-bind internally, which
+;; the library defining it does not export.
 (test "parameterize internal binding" 
   (let ((p (make-parameter 10)))
     (parameterize ((p 42))
@@ -30,6 +30,18 @@
       (parameterize ((p 100))
         (p))))
   100)
+
+;; Nor is it: a library's macro refers to the library's own bindings, so the
+;; procedure `parameterize` expands into a call of is the library's alone.
+(test "param-dynamic-bind is not exported"
+  'unbound
+  (guard (e (#t 'unbound))
+    (eval 'param-dynamic-bind (environment '(scheme base)))))
+
+(test "parameterize, in an environment importing only (scheme base)"
+  42
+  (eval '(let ((p (make-parameter 10))) (parameterize ((p 42)) (p)))
+        (environment '(scheme base))))
 
 ;; ============================================================================
 ;; let-syntax Tests

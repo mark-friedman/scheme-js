@@ -4,39 +4,39 @@
 
 (test-group "4.3 Macros"
 
-  ;; (test 'now (let-syntax
-  ;;                ((when (syntax-rules ()
-  ;;                          ((when test stmt1 stmt2 ...)
-  ;;                           (if test
-  ;;                               (begin stmt1
-  ;;                                      stmt2 ...))))))
-  ;;              (let ((if #t))
-  ;;                (when if (set! if 'now))
-  ;;                if)))
+  (test 'now (let-syntax
+                 ((when (syntax-rules ()
+                           ((when test stmt1 stmt2 ...)
+                            (if test
+                                (begin stmt1
+                                       stmt2 ...))))))
+               (let ((if #t))
+                 (when if (set! if 'now))
+                 if)))
 
-  ;; (test 'outer (let ((x 'outer))
-  ;;   (let-syntax ((m (syntax-rules () ((m) x))))
-  ;;     (let ((x 'inner))
-  ;;       (m)))))
+  (test 'outer (let ((x 'outer))
+    (let-syntax ((m (syntax-rules () ((m) x))))
+      (let ((x 'inner))
+        (m)))))
 
-  ;; (test 7 (letrec-syntax
-  ;;   ((my-or (syntax-rules ()
-  ;;             ((my-or) #f)
-  ;;             ((my-or e) e)
-  ;;             ((my-or e1 e2 ...)
-  ;;              (let ((temp e1))
-  ;;                (if temp
-  ;;                    temp
-  ;;                    (my-or e2 ...)))))))
-  ;;   (let ((x #f)
-  ;;         (y 7)
-  ;;         (temp 8)
-  ;;         (let odd?)
-  ;;         (if even?))
-  ;;     (my-or x
-  ;;            (let temp)
-  ;;            (if y)
-  ;;            y))))
+  (test 7 (letrec-syntax
+    ((my-or (syntax-rules ()
+              ((my-or) #f)
+              ((my-or e) e)
+              ((my-or e1 e2 ...)
+               (let ((temp e1))
+                 (if temp
+                     temp
+                     (my-or e2 ...)))))))
+    (let ((x #f)
+          (y 7)
+          (temp 8)
+          (let odd?)
+          (if even?))
+      (my-or x
+             (let temp)
+             (if y)
+             y))))
 
   (define-syntax be-like-begin1
     (syntax-rules ()

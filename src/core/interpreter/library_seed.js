@@ -92,7 +92,8 @@ class SeedKeyword {
  * The seed made with the shipped tables, kept so that the system's other
  * libraries load beside the library system, on its interpreter
  * (`systemLibrary`).
- * @type {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>, tables: Object}|null}
+ * @type {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>,
+ *   environments: Map<string, Environment>, tables: Object}|null}
  */
 let shipped = null;
 
@@ -113,19 +114,22 @@ export function seedLibrarySystem(tables = prebuiltLibraries) {
 /**
  * An interpreter of the seed's own, with the seed's libraries loaded on it.
  * @param {Object<string, Object>} tables - The prebuilt tables to install.
- * @returns {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>, tables: Object}}
- *   It, its global environment, the exports of the libraries loaded, by key,
- *   and the tables.
+ * @returns {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>,
+ *   environments: Map<string, Environment>, tables: Object}}
+ *   It, its global environment, the exports of the libraries loaded and their
+ *   environments, by key, and the tables.
  */
 function plant(tables) {
     const interpreter = new Interpreter(globalContext);
     const globalEnv = createGlobalEnvironment(interpreter);
     interpreter.setGlobalEnv(globalEnv);
-    const loaded = new Map([['scheme.primitives', createPrimitiveExports(globalEnv)]]);
-    for (const name of SEED_LIBRARIES) {
-        loaded.set(name.join('.'), seedLibrary(name, loaded, interpreter, globalEnv, tables));
-    }
-    return { interpreter, globalEnv, loaded, tables };
+    const seed = {
+        interpreter, globalEnv, tables,
+        loaded: new Map([['scheme.primitives', createPrimitiveExports(globalEnv)]]),
+        environments: new Map()
+    };
+    for (const name of SEED_LIBRARIES) seed.loaded.set(name.join('.'), seedLibrary(name, seed));
+    return seed;
 }
 
 /**
@@ -140,9 +144,7 @@ function plant(tables) {
 export function systemLibrary(name) {
     if (shipped === null) shipped = plant(prebuiltLibraries);
     const key = name.join('.');
-    if (!shipped.loaded.has(key)) {
-        shipped.loaded.set(key, seedLibrary(name, shipped.loaded, shipped.interpreter, shipped.globalEnv, shipped.tables));
-    }
+    if (!shipped.loaded.has(key)) shipped.loaded.set(key, seedLibrary(name, shipped));
     return shipped.loaded.get(key);
 }
 
@@ -217,18 +219,39 @@ export function loadPinnedSeed(image) {
     const interpreter = new Interpreter(globalContext);
     const globalEnv = createGlobalEnvironment(interpreter);
     interpreter.setGlobalEnv(globalEnv);
-    const loaded = new Map([['scheme.primitives', createPrimitiveExports(globalEnv)]]);
+    const seed = {
+        interpreter, globalEnv,
+        loaded: new Map([['scheme.primitives', createPrimitiveExports(globalEnv)]]),
+        environments: new Map()
+    };
+    const libraryEnvironment = environmentIn(seed);
     for (const name of PINNED_LIBRARIES) {
         const { declaration, items } = image[name.join('.')];
-        loaded.set(name.join('.'), loadDeclared(name, decodeDatum(declaration), loaded, interpreter, globalEnv, {
-            restoring: () => ({ items: list(...items.map((core) => list(FORM, assemble(decodeDatum(core), analyze)))) }),
+        seed.loaded.set(name.join('.'), loadDeclared(name, decodeDatum(declaration), seed, {
+            restoring: () => ({
+                items: list(...items.map((core) => list(FORM, assemble(decodeDatum(core), analyze, libraryEnvironment))))
+            }),
             formsOf: () => { throw new Error('the pinned seed reads no file'); },
             expand: () => { throw new Error('the pinned seed expands no form'); },
             install: () => {}
         }));
     }
-    return { loaded };
+    return { loaded: seed.loaded };
 }
+
+/**
+ * What finds the environment of a library a table or the pinned image names
+ * among a seed's own libraries, which are in no registry: a library's macro
+ * refers to the library's own bindings, and to restore what it expanded into
+ * is to refer to them where the seed loaded them.
+ * @param {{environments: Map<string, Environment>}} seed - The seed.
+ * @returns {function(Array<string>): Environment}
+ */
+const environmentIn = (seed) => (name) => {
+    const env = seed.environments.get(name.join('.'));
+    if (env === undefined) throw new Error(`the library system's seed has no library ${name.join('/')}`);
+    return env;
+};
 
 /** The kind of item in a restore sequence that is a form to run. */
 const FORM = intern('form');
@@ -237,37 +260,39 @@ const FORM = intern('form');
  * Loads one of the seed's libraries: from its prebuilt table, which has its
  * `define-library` form, when that is current, and otherwise from its source.
  * @param {string[]} name - The library's name.
- * @param {Map<string, Map<string, *>>} loaded - The exports of the libraries
- *   loaded so far, by key.
- * @param {Interpreter} interpreter - The seed's interpreter.
- * @param {Environment} globalEnv - Its global environment.
- * @param {Object<string, Object>} tables - The prebuilt tables to install.
+ * @param {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>,
+ *   environments: Map<string, Environment>, tables: Object}} seed - The seed:
+ *   its interpreter and global environment, the exports and environments of
+ *   the libraries it has loaded so far, by key, and the prebuilt tables to
+ *   install.
  * @returns {Map<string, *>} The library's exports.
  */
-function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
+function seedLibrary(name, seed) {
+    const { loaded, tables } = seed;
     const source = BUNDLED_SOURCES[`${name[name.length - 1]}.sld`];
     const table = tables[name.join('.')];
     const form = isCurrent(table) ? decodeDatum(table.declaration) : seedRead(loaded, source, name.join('/'))[0];
-    return loadDeclared(name, form, loaded, interpreter, globalEnv, {
+    const libraryEnvironment = environmentIn(seed);
+    return loadDeclared(name, form, seed, {
         restoring: () => {
-            const restorer = libraryRestorer(tables);
+            const restorer = libraryRestorer(tables, libraryEnvironment);
             const files = restorer(name, null);
             return files === null ? null : restorer(name, files.map((file) => BUNDLED_SOURCES[file] ?? null));
         },
         formsOf: (file) => seedRead(loaded, BUNDLED_SOURCES[file], file),
         expand: (expr) => seedExpand(loaded, expr),
-        install: (env) => installLibraryProcedures(tables, name, env, (file) => BUNDLED_SOURCES[file])
+        install: (env) => installLibraryProcedures(tables, name, env, (file) => BUNDLED_SOURCES[file], libraryEnvironment)
     });
 }
 
 /**
- * Loads a library from its `define-library` form.
+ * Loads a library from its `define-library` form, recording its environment
+ * among the seed's.
  * @param {string[]} name - The library's name.
  * @param {*} form - Its `define-library` form.
- * @param {Map<string, Map<string, *>>} loaded - The exports of the libraries
- *   loaded so far, by key.
- * @param {Interpreter} interpreter - The interpreter it is loaded on.
- * @param {Environment} globalEnv - Its global environment.
+ * @param {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>,
+ *   environments: Map<string, Environment>}} seed - The seed loading it, as
+ *   for `seedLibrary`.
  * @param {{restoring: function(Array<string>): (Object|null),
  *   formsOf: function(string): Array<*>, expand: function(*): Executable,
  *   install: function(Environment): void}} how -
@@ -277,9 +302,11 @@ function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
  *   has loaded from source.
  * @returns {Map<string, *>} The library's exports.
  */
-function loadDeclared(name, form, loaded, interpreter, globalEnv, how) {
+function loadDeclared(name, form, seed, how) {
+    const { interpreter, globalEnv, loaded } = seed;
     const env = new Environment(globalEnv);
     env.libraryName = name;
+    seed.environments.set(name.join('.'), env);
     const scope = globalContext.freshScope();
     globalContext.registerLibraryScope(scope, env);
     env.libraryScope = scope;

@@ -136,13 +136,15 @@ export function installPrebuilt(env, table, fingerprint) {
  * @param {Object} env - The environment holding the interpreted library.
  * @param {Object} table - A generated table: `{fingerprint, files, procedures}`.
  * @param {string} fingerprint - The fingerprint of the sources actually loaded.
+ * @param {function(Array<string>): Object} [libraryEnvironment] - What finds
+ *   a library's environment by its name (`poolOf`).
  * @returns {{installed: Array<string>, restored: Array<string>,
  *   skipped: Array<{name: string, reason: string}>, stale: boolean,
  *   replaced: Map<Function, Function>}} What was installed, what the table
  *   had restored already (`restoreProcedure`), what was left interpreted, and
  *   each closure made to run compiled, mapped to its compiled procedure.
  */
-export function installProcedures(env, table, fingerprint) {
+export function installProcedures(env, table, fingerprint, libraryEnvironment = getLibraryEnv) {
   const installed = [];
   const restored = [];
   const skipped = [];
@@ -178,7 +180,7 @@ export function installProcedures(env, table, fingerprint) {
     }
     // Built against the closure's own environment, so its free variables
     // resolve where they did when it was interpreted.
-    const procedure = R.recordSource(entry.make(R, closure.env, poolOf(entry)), closure.source);
+    const procedure = R.recordSource(entry.make(R, closure.env, poolOf(entry, libraryEnvironment)), closure.source);
     runCompiled(closure, procedure);
     replaced.set(closure, procedure);
     installed.push(name);
@@ -236,10 +238,12 @@ export function installLibraryTable(tables, libraryName, env, sourceOf) {
  * @param {Object} env - Its own environment.
  * @param {(file: string) => (string|undefined)} sourceOf - As for
  *   `installLibraryTable`.
+ * @param {function(Array<string>): Object} [libraryEnvironment] - As for
+ *   `installProcedures`.
  * @returns {Object|null} What `installProcedures` did, or null if the library
  *   has no table.
  */
-export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
+export function installLibraryProcedures(tables, libraryName, env, sourceOf, libraryEnvironment = getLibraryEnv) {
   const table = tables[libraryNameToKey(libraryName)];
   if (table === undefined) return null;
   const stale = { installed: [], restored: [], skipped: [], stale: true, replaced: new Map() };
@@ -248,7 +252,7 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
   // A file the table was built from and the loader cannot find now means the
   // library has changed shape since the build, which is staleness too.
   if (sources.some((source) => typeof source !== 'string')) return stale;
-  return installProcedures(env, table, fingerprintSources(sources));
+  return installProcedures(env, table, fingerprintSources(sources), libraryEnvironment);
 }
 
 /**
@@ -275,6 +279,10 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
  *
  * @param {Object<string, Object>} tables - Generated tables, keyed by library
  *   name as `libraryNameToKey` writes it.
+ * @param {function(Array<string>): Object} [libraryEnvironment] - What finds
+ *   the environment of a library a table names: the current registry's by
+ *   default; the library system's seed, whose libraries are in no registry,
+ *   finds its own.
  * @returns {(libraryName: string[], texts: (Array<*>|null)) =>
  *   (string[]|{declaration: *, bind: (env: Object, name: string) => void, items: Cons}|null)}
  *   The restorer: given no texts, the files, or null if no table restores the
@@ -282,7 +290,7 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
  *   restored procedure, and the sequence as a list of `(procedure name)` and
  *   `(form form)`, a form a node or a datum; or null.
  */
-export function libraryRestorer(tables) {
+export function libraryRestorer(tables, libraryEnvironment = getLibraryEnv) {
   return (libraryName, texts) => {
     const table = tables[libraryNameToKey(libraryName)];
     if (table === undefined || table.restore === undefined || table.runtime !== RUNTIME_INTERFACE) return null;
@@ -292,11 +300,11 @@ export function libraryRestorer(tables) {
     }
     return {
       declaration: table.declaration === undefined ? null : decodeDatum(table.declaration),
-      bind: (env, name) => restoreProcedure(table, env, name),
+      bind: (env, name) => restoreProcedure(table, env, name, libraryEnvironment),
       items: list(...table.restore.map((item) => {
         if (item.procedure !== undefined) return list(PROCEDURE, intern(item.procedure));
         return list(FORM, item.core !== undefined
-          ? new RestoredForm(decodeDatum(item.core), analyze) : decodeDatum(item.form));
+          ? new RestoredForm(decodeDatum(item.core), analyze, libraryEnvironment) : decodeDatum(item.form));
       }))
     };
   };
@@ -306,14 +314,16 @@ export function libraryRestorer(tables) {
  * A table entry's constant pool as its code uses it: a library's environment,
  * which the code of a procedure that refers to a library's own binding reads
  * the binding from, is written in the table as `{library: name}`, and is the
- * environment of the library of that name in the registry the procedure is
- * installed in.
+ * environment of the library of that name where the procedure is installed:
+ * in its registry, or among the seed's own libraries.
  * @param {Object} entry - The entry.
+ * @param {function(Array<string>): Object} libraryEnvironment - What finds a
+ *   library's environment by its name.
  * @returns {Array<*>}
  */
-function poolOf(entry) {
+function poolOf(entry, libraryEnvironment) {
   return entry.constants.map((constant) => (constant !== null && typeof constant === 'object'
-    && Array.isArray(constant.library) ? getLibraryEnv(constant.library) : constant));
+    && Array.isArray(constant.library) ? libraryEnvironment(constant.library) : constant));
 }
 
 /**
@@ -375,10 +385,12 @@ const FORM = intern('form');
  * @param {Object} table - The table.
  * @param {Object} env - The library's environment.
  * @param {string} name - The procedure's name.
+ * @param {function(Array<string>): Object} [libraryEnvironment] - What finds
+ *   a library's environment by its name (`poolOf`).
  */
-export function restoreProcedure(table, env, name) {
+export function restoreProcedure(table, env, name, libraryEnvironment = getLibraryEnv) {
   const entry = table.procedures[name];
-  const procedure = R.recordSource(entry.make(R, env, poolOf(entry)), entry.span);
+  const procedure = R.recordSource(entry.make(R, env, poolOf(entry, libraryEnvironment)), entry.span);
   procedure[RESTORED] = entry;
   env.define(name, procedure);
 }

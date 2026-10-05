@@ -54,12 +54,10 @@
                      (when if (set! if 'now))
                      if)))
 
-      ;; NOTE: This hygiene test fails - referential transparency not fully working
-      ;; (test 'outer (let ((x 'outer))
-      ;;   (let-syntax ((m (syntax-rules () ((m) x))))
-      ;;     (let ((x 'inner))
-      ;;       (m))))))
-      )
+      (test 'outer (let ((x 'outer))
+                     (let-syntax ((m (syntax-rules () ((m) x))))
+                       (let ((x 'inner))
+                         (m))))))
 
     (test-group "6.1 Equivalence Predicates"
       (test #t (eqv? 'a 'a))

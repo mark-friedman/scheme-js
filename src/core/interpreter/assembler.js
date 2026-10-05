@@ -66,21 +66,28 @@ const optionalName = (symbol) => (symbol === false ? null : symbol.name);
 /**
  * A library's environment, as a core form holds it: itself, or, restored from
  * a prebuilt table, `{library: name}`, the environment of the library of that
- * name in the registry libraries are loaded into now.
+ * name -- in the registry libraries are loaded into now, or as whoever is
+ * restoring the form finds it (`assemble`).
  * @param {Object} env - The environment, or the name of its library.
+ * @param {function(Array<string>): Environment} libraryEnvironment - What
+ *   finds a library's environment by its name.
  * @returns {Environment}
  */
-const environmentOf = (env) => (env.library !== undefined ? getLibraryEnv(env.library) : env);
+const environmentOf = (env, libraryEnvironment) => (env.library !== undefined ? libraryEnvironment(env.library) : env);
 
 /**
  * The node a core form denotes.
  * @param {Cons} form - The core form.
  * @param {Function} analyze - What an `import` or `define-library` it holds
  *   analyzes the libraries it loads with.
+ * @param {function(Array<string>): Environment} [libraryEnvironment] - What
+ *   finds the environment of a library a form restored from a table names:
+ *   the current registry's by default; the library system's seed, whose
+ *   libraries are in no registry, finds its own.
  * @returns {Executable}
  */
-export function assemble(form, analyze) {
-  const node = build(form, analyze);
+export function assemble(form, analyze, libraryEnvironment = getLibraryEnv) {
+  const node = build(form, analyze, libraryEnvironment);
   if (form.source !== undefined && form.source !== null) node.source = form.source;
   node.core = form;
   return node;
@@ -96,15 +103,18 @@ export class RestoredForm extends Executable {
   /**
    * @param {*} form - The core form.
    * @param {Function} analyze - As for `assemble`.
+   * @param {function(Array<string>): Environment} [libraryEnvironment] - As
+   *   for `assemble`.
    */
-  constructor(form, analyze) {
+  constructor(form, analyze, libraryEnvironment = getLibraryEnv) {
     super();
     this.form = form;
     this.analyze = analyze;
+    this.libraryEnvironment = libraryEnvironment;
   }
 
   step(registers) {
-    registers[CTL] = assemble(this.form, this.analyze);
+    registers[CTL] = assemble(this.form, this.analyze, this.libraryEnvironment);
     return true;
   }
 }
@@ -113,10 +123,12 @@ export class RestoredForm extends Executable {
  * The node a core form denotes, without its span.
  * @param {Cons} form - The core form.
  * @param {Function} analyze - As for `assemble`.
+ * @param {function(Array<string>): Environment} libraryEnvironment - As for
+ *   `assemble`.
  * @returns {Executable}
  */
-function build(form, analyze) {
-  const sub = (f) => assemble(f, analyze);
+function build(form, analyze, libraryEnvironment) {
+  const sub = (f) => assemble(f, analyze, libraryEnvironment);
   const parts = fields(form);
   switch (form.car.name) {
     case 'lit':
@@ -124,7 +136,7 @@ function build(form, analyze) {
     case 'var':
       return new VariableNode(nameOf(parts[0]));
     case 'library-var':
-      return new LibraryVariableNode(nameOf(parts[0]), environmentOf(parts[1]));
+      return new LibraryVariableNode(nameOf(parts[0]), environmentOf(parts[1], libraryEnvironment));
     case 'scoped-var':
       return new ScopedVariable(nameOf(parts[0]), new Set(elements(parts[1])), globalScopeRegistry);
     case 'if':
@@ -144,7 +156,7 @@ function build(form, analyze) {
     case 'set':
       return new SetNode(nameOf(parts[0]), sub(parts[1]));
     case 'library-set':
-      return new LibrarySetNode(nameOf(parts[0]), environmentOf(parts[1]), sub(parts[2]));
+      return new LibrarySetNode(nameOf(parts[0]), environmentOf(parts[1], libraryEnvironment), sub(parts[2]));
     case 'define':
       return new DefineNode(nameOf(parts[0]), sub(parts[1]));
     case 'app':

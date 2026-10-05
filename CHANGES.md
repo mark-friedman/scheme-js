@@ -12444,3 +12444,59 @@ forms, data as JSON. `expander_tests.scm`: what a macro's use was given keeps it
 7,865 tests pass in Node with none failing (33 skipped), and 7,641 in the browser with none failing
 (56 skipped). `run_tier.js --set all` runs every program right but `tco_tests`, whose output holds
 the heap's size, which differs from run to run; it did before this task too.
+
+# Task 45, third increment: a library's macro means the library's bindings (2026-10-05)
+
+R7RS 4.3 asks of a macro that a free identifier its template introduces mean the binding visible
+where the macro was defined. For a library's macro used in a program, the expander had kept that
+only part of the way: where the program held the same procedure under the name, the reference was
+made a plain global, which the compiler could compile -- and which the program could redefine
+afterwards. `(define (classify x) (case x ((a) 'a) (else 'other)))`, then `(set! eqv? ...)`, changed
+what `case` did (R69).
+
+- **A library's own binding, compiled** (step a). The expander's reference to a library's binding,
+  `library-var`, and assignment, `library-set`, had been declined by the compiler. Each is lowered
+  now as a global of its own, keyed by the binding's name and the library's, `eqv?@scheme.control`,
+  so that it never merges with the program's `eqv?`; the emitted code reads its cell from the
+  library's environment, held in the constant pool, and assigns through it. Inlining checks that the
+  library's binding is still the primitive; the control-global check and the safety analysis read
+  it by its name in the library's environment. A prebuilt table writes the environment as the
+  library's name. The interpreter's `if` and tail calls evaluate a library reference in place, as
+  they do a variable.
+- **Every reference by the library** (step b). `library-binding-env` no longer asks whether the use
+  site holds the same procedure: outside the library, a library's binding is always reached in the
+  library's environment. A table's library names are found by whoever restores it -- the registry,
+  or, for the library system's seed, whose libraries are in no registry, the seed's own libraries
+  (`environmentIn` in `library_seed.js`); `assemble`, `RestoredForm`, `libraryRestorer`,
+  `restoreProcedure` and the installers take that resolver. The pinned seed was pinned again, and
+  names `(scheme core)` and `(scheme control)` 111 times.
+- **What it allowed.** `param-dynamic-bind`, which `(scheme base)` and `(scheme core)` exported only
+  so that `parameterize`'s expansion could reach it, is exported no more. Chibi's three tests of
+  section 4.3 -- `when` used where `if` is a variable, a `let-syntax` macro's `x` under an inner `x`,
+  and `my-or` among variables named `let` and `if` -- commented out since the suite was added, pass,
+  with the standard library interpreted and compiled.
+- **The gates**, against the commit before step b: a CLI start level (medians 282 ms against 282),
+  `benchmark:self-host` level (71 ms a pass against 70, then 26.2x against 25.8x the other way), and
+  `run_tier.js` level on the test-file set (1,187 ms with the tier against 1,199; 2,361 without
+  against 2,339) and the corpus (3,480 against 3,537; 3,196 against 3,179). The compiler's one
+  declined procedure, `emit-guarded`, is declined for `call/cc` where it had been for
+  `with-exception-handler`: `guard`'s expansion now names `(scheme control)`'s `call/cc`.
+
+JavaScript under `src/` since the second increment, 129 lines added and 55 removed: the evaluator's
+library references (`ast_nodes.js`, `frames.js`, `assembler.js`); the restorer's finding a library by
+its name (`prebuilt.js`), which installs generated code; and the seed's own libraries
+(`library_seed.js`), which start Scheme.
+
+## Tests
+
+`macro_hygiene_tests.scm`: a library's macro used after the program assigned or redefined the name
+it refers to. `hygiene_tests.scm`: `param-dynamic-bind` is not exported, and `parameterize` works in
+an environment importing only `(scheme base)`. `assembler_tests.js`: a library a restored form
+names is found as its restorer finds it. `driver_tests.scm`: a library's binding lowered as a global
+of its own, read and assigned through the library's environment, and a control global reached so.
+The compliance suite's section 4.3, three tests enabled.
+
+## Verification
+
+7,877 tests pass in Node with none failing (33 skipped), and 7,659 in the browser with none failing
+(56 skipped). `run_tier.js` on the test-file and corpus sets runs every program right.
