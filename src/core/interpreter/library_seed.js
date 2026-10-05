@@ -4,12 +4,22 @@
  *
  * The library system is Scheme (src/core/scheme/library_system.scm), and is
  * itself a library, written with `(scheme core)` and `(scheme control)`, which
- * are libraries too. Something has to load those three before there is a
- * library system to do it, and this is that: a loader for exactly the
- * declarations they use -- `import` of libraries it has loaded already or of
- * the built-in `(scheme primitives)`, `include`, `begin` and `export` -- and no
- * more. Their files are the bundled sources (src/packaging/bundled_libraries.js),
- * which every host has at once, whatever its resolver.
+ * are libraries too, and it reads every other library's files with the
+ * reader, `(scheme-js reader)`, another. Something has to load those four
+ * before there is a library system to do it, and this is that: a loader for
+ * exactly the declarations they use -- `import` of libraries it has loaded
+ * already or of the built-in `(scheme primitives)`, `include`, `begin` and
+ * `export` -- and no more. Their files are the bundled sources
+ * (src/packaging/bundled_libraries.js), which every host has at once, whatever
+ * its resolver.
+ *
+ * Their text cannot be read before the reader is loaded, so a library whose
+ * prebuilt table is current is loaded without reading any: the table has its
+ * `define-library` form, as data. One whose table is not -- a seed library
+ * being edited -- is read by the seed's reader once that is loaded, and before
+ * it by the pinned reader (src/packaging/pinned_reader.js): the reader's
+ * libraries' sources as data, evaluated, which needs neither. A bundle, built
+ * with its tables, carries no pinned reader.
  *
  * They are loaded apart from every program, on an interpreter of their own,
  * and registered nowhere: the library system is a tool that runs Scheme on a
@@ -30,7 +40,6 @@
  * has run; nothing else holds them, so nothing else is changed.
  */
 
-import { parse } from './reader.js';
 import { Environment } from './environment.js';
 import { Interpreter } from './interpreter.js';
 import { analyze } from './analyzer.js';
@@ -42,11 +51,23 @@ import { createGlobalEnvironment } from '../primitives/index.js';
 import { BUNDLED_SOURCES } from '../../packaging/bundled_libraries.js';
 import { createPrimitiveExports } from './library_loader.js';
 import { SYNTAX_KEYWORDS } from './library_registry.js';
-import { installLibraryProcedures, libraryRestorer } from '../../compiler/prebuilt.js';
+import { callSchemeProcedure } from './values.js';
+import { SchemeLibraryError } from './errors.js';
+import {
+    installLibraryProcedures, libraryRestorer, fingerprintSources, RUNTIME_INTERFACE
+} from '../../compiler/prebuilt.js';
 import prebuiltLibraries from '../../packaging/compiled_libraries.js';
+import pinnedReaderSources from '../../packaging/pinned_reader.js';
 
-/** The libraries the seed loads, in the order they need each other. */
-const SEED_LIBRARIES = [['scheme', 'core'], ['scheme', 'control'], ['scheme-js', 'library-system']];
+/**
+ * The libraries the seed loads, in the order they need each other: the reader
+ * before the library system, which reads every other library with it.
+ */
+const SEED_LIBRARIES = [['scheme', 'core'], ['scheme', 'control'], ['scheme-js', 'reader'],
+    ['scheme-js', 'library-system']];
+
+/** The libraries the reader is made of, which the pinned reader holds. */
+const READER_LIBRARIES = SEED_LIBRARIES.slice(0, 3);
 
 /**
  * A syntactic keyword one of the seed's libraries exports, as the analyzer
@@ -122,7 +143,73 @@ export function systemLibrary(name) {
 }
 
 /**
- * Loads one of the seed's libraries.
+ * Whether a library's prebuilt table is current: built, with its
+ * `define-library` form, from the bundled sources as they are, against this
+ * runtime.
+ * @param {Object|undefined} table - The table.
+ * @returns {boolean}
+ */
+function isCurrent(table) {
+    return table !== undefined && table.declaration !== undefined && table.runtime === RUNTIME_INTERFACE
+        && table.files.every((file) => typeof BUNDLED_SOURCES[file] === 'string')
+        && fingerprintSources(table.files.map((file) => BUNDLED_SOURCES[file])) === table.fingerprint;
+}
+
+/**
+ * Reads a text, for the seed: with the seed's reader once it is loaded, and
+ * before that with the pinned reader.
+ * @param {Map<string, Map<string, *>>} loaded - The libraries loaded so far.
+ * @param {string} text - The text.
+ * @param {string} filename - The name its spans give it.
+ * @returns {Array<*>} Its data.
+ * @throws {SchemeLibraryError} With neither reader there, as in a bundle
+ *   whose tables are not current.
+ */
+function seedRead(loaded, text, filename) {
+    const reader = loaded.get('scheme-js.reader');
+    if (reader !== undefined) {
+        return toArray(callSchemeProcedure(reader.get('read-source'), [text, filename, false, false]));
+    }
+    if (pinnedReaderSources === null) {
+        throw new SchemeLibraryError("a prebuilt table of the library system's own libraries is not "
+            + 'current, and there is no reader to read their source with: rebuild them (npm run prebuild)');
+    }
+    if (pinnedRead === null) pinnedRead = pinnedReader(pinnedReaderSources());
+    return pinnedRead(text, filename);
+}
+
+/** The pinned reader, once made. @type {Function|null} */
+let pinnedRead = null;
+
+/**
+ * The reader the pinned sources make: the reader's libraries evaluated from
+ * their data, interpreted, on an interpreter of their own.
+ * @param {Object<string, {declaration: *, files: Object<string, Array<*>>}>} sources -
+ *   Each library's `define-library` form and the forms of the files it
+ *   includes, by key.
+ * @returns {function(string, string): Array<*>} Reads a text, given the name
+ *   its spans give it.
+ */
+export function pinnedReader(sources) {
+    const interpreter = new Interpreter(globalContext);
+    const globalEnv = createGlobalEnvironment(interpreter);
+    interpreter.setGlobalEnv(globalEnv);
+    const loaded = new Map([['scheme.primitives', createPrimitiveExports(globalEnv)]]);
+    for (const name of READER_LIBRARIES) {
+        const { declaration, files } = sources[name.join('.')];
+        loaded.set(name.join('.'), loadDeclared(name, declaration, loaded, interpreter, globalEnv, {
+            restoring: () => null,
+            formsOf: (file) => files[file],
+            install: () => {}
+        }));
+    }
+    const read = loaded.get('scheme-js.reader').get('read-source');
+    return (text, filename) => toArray(callSchemeProcedure(read, [text, filename, false, false]));
+}
+
+/**
+ * Loads one of the seed's libraries: from its prebuilt table, which has its
+ * `define-library` form, when that is current, and otherwise from its source.
  * @param {string[]} name - The library's name.
  * @param {Map<string, Map<string, *>>} loaded - The exports of the libraries
  *   loaded so far, by key.
@@ -133,7 +220,35 @@ export function systemLibrary(name) {
  */
 function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
     const source = BUNDLED_SOURCES[`${name[name.length - 1]}.sld`];
-    const [form] = parse(source, { filename: name.join('/'), dotAccess: false });
+    const table = tables[name.join('.')];
+    const form = isCurrent(table) ? table.declaration : seedRead(loaded, source, name.join('/'))[0];
+    return loadDeclared(name, form, loaded, interpreter, globalEnv, {
+        restoring: () => {
+            const restorer = libraryRestorer(tables);
+            const files = restorer(name, null);
+            return files === null ? null : restorer(name, files.map((file) => BUNDLED_SOURCES[file] ?? null));
+        },
+        formsOf: (file) => seedRead(loaded, BUNDLED_SOURCES[file], file),
+        install: (env) => installLibraryProcedures(tables, name, env, (file) => BUNDLED_SOURCES[file])
+    });
+}
+
+/**
+ * Loads a library from its `define-library` form.
+ * @param {string[]} name - The library's name.
+ * @param {*} form - Its `define-library` form.
+ * @param {Map<string, Map<string, *>>} loaded - The exports of the libraries
+ *   loaded so far, by key.
+ * @param {Interpreter} interpreter - The interpreter it is loaded on.
+ * @param {Environment} globalEnv - Its global environment.
+ * @param {{restoring: function(Array<string>): (Object|null),
+ *   formsOf: function(string): Array<*>, install: function(Environment): void}} how -
+ *   What restores it from a table, given the files it includes, or null if
+ *   none can; the forms of a file it includes; and what installs its table's
+ *   procedures once it has loaded from source.
+ * @returns {Map<string, *>} The library's exports.
+ */
+function loadDeclared(name, form, loaded, interpreter, globalEnv, how) {
     const env = new Environment(globalEnv);
     env.libraryName = name;
     const scope = globalContext.freshScope();
@@ -178,7 +293,7 @@ function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
     };
     // As the library system orders a library's forms: its `begin` forms, then
     // its included files'.
-    const restoring = libraryRestorer(tables)(name, [source, ...includes.map((file) => BUNDLED_SOURCES[file])]);
+    const restoring = how.restoring(includes);
     if (restoring !== null) {
         for (const item of toArray(restoring.items)) {
             const [kind, part] = toArray(item);
@@ -187,9 +302,9 @@ function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
         }
     } else {
         begins.forEach(evaluate);
-        for (const file of includes) parse(BUNDLED_SOURCES[file], { filename: file, dotAccess: false }).forEach(evaluate);
+        for (const file of includes) how.formsOf(file).forEach(evaluate);
     }
-    installLibraryProcedures(tables, name, env, (file) => BUNDLED_SOURCES[file]);
+    how.install(env);
 
     return new Map(exports.map((spec) => {
         const [internal, external] = spec instanceof Symbol ? [spec.name, spec.name] : toArray(spec).slice(1).map(s => s.name);

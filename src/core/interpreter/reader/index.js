@@ -1,60 +1,60 @@
 /**
- * @fileoverview Reader module barrel export.
- * Provides the main parse() entry point and re-exports submodules.
+ * @fileoverview The reader's door: `parse`, which reads text into data with
+ * `(scheme-js reader)` (src/core/scheme/reader.scm), on the library system's
+ * own interpreter, where it is loaded with the library system's seed.
+ *
+ * The tokenizer is still here for the REPL's colouring and completeness, and
+ * the number parser as `string->number`'s core.
  */
 
-import { tokenize } from './tokenizer.js';
-import { readFromTokens } from './parser.js';
-import { fixup } from './datum_labels.js';
+import { systemLibrary } from '../library_seed.js';
+import { callSchemeProcedure } from '../values.js';
+import { toArray } from '../cons.js';
 
-// Re-export for consumers who need specific functions
 export { tokenize } from './tokenizer.js';
-export { readFromTokens, readList, readVector, readAtom, readBytevector, readJSObjectLiteral } from './parser.js';
 export { parseNumber, parsePrefixedNumber } from './number_parser.js';
-export { handleDotAccess, buildPropertyAccessForm } from './dot_access.js';
-export { processStringEscapes, processSymbolEscapes } from './string_utils.js';
-export { readCharacter, NAMED_CHARACTERS } from './character.js';
-export { Placeholder, fixup } from './datum_labels.js';
+
+/** The reader's exports, once found. @type {Map<string, Function>|null} */
+let reader = null;
 
 /**
- * Parses a string of Scheme code into a list of S-expressions.
- * @param {string} input - Source code to parse
- * @param {Object} [options] - Parsing options
- * @param {boolean} [options.caseFold=false] - If true, fold symbol names to lowercase (for include-ci)
- * @param {boolean} [options.dotAccess=true] - Whether dot notation applies, `a.b` read as
- *   `(js-ref a "b")`: off for a library's files, which are written in R7RS, where a dot is a
- *   character of an identifier. The text can say otherwise, with `#!dot-notation` and
- *   `#!no-dot-notation`.
- * @param {string} [options.filename='<unknown>'] - Source file name, recorded on every
- *   expression's source info. The debugger matches breakpoints on this, so callers that
- *   know which file they are reading should supply it.
- * @returns {Array} Array of S-expressions (Cons, Symbol, number, etc.)
+ * Reads a text into data.
+ * @param {string} input - The text.
+ * @param {Object} [options] - How to read it.
+ * @param {boolean} [options.caseFold=false] - Whether symbols are read
+ *   folding case at first, as `#!fold-case` would have them (for include-ci).
+ * @param {boolean} [options.dotAccess=true] - Whether dot notation applies at
+ *   first, `a.b` read as `(js-ref a "b")`: off for a library's files, which
+ *   are written in R7RS, where a dot is a character of an identifier. The text
+ *   can say otherwise, with `#!dot-notation` and `#!no-dot-notation`.
+ * @param {string} [options.filename='<unknown>'] - The name each list's and
+ *   vector's span gives the text. The debugger matches breakpoints on it, so
+ *   callers that know which file they are reading should supply it.
+ * @param {boolean} [options.suppressLog=false] - Whether to say nothing on
+ *   the console when the text cannot be read.
+ * @param {{caseFold: boolean, dotAccess: boolean}} [options.state] - How the
+ *   text read before this one, of which it is the continuation, left case
+ *   folding and dot notation, which reading it updates: as a port's reads do.
+ * @returns {Array} The data.
  */
 export function parse(input, options = {}) {
-    // State object for parsing context
-    // Use provided state or create new one
-    const state = options.state || {
-        caseFold: options.caseFold || false,
-        dotAccess: options.dotAccess !== false,
-        labels: new Map()
-    };
-
-    const expressions = [];
-
+    if (reader === null) reader = systemLibrary(['scheme-js', 'reader']);
+    const filename = options.filename ?? '<unknown>';
     try {
-        const tokens = tokenize(input, options.filename);
-        while (tokens.length > 0) {
-            const expr = readFromTokens(tokens, state);
-            // If the expression is a Placeholder, it means top-level #n# (unlikely but possible)
-            // or #n=... which returns the value. 
-            // We need to run fixup on the result to resolve internal cycles.
-            expressions.push(fixup(expr));
+        const state = options.state;
+        if (state === undefined) {
+            return toArray(callSchemeProcedure(reader.get('read-source'),
+                [input, filename, options.caseFold === true, options.dotAccess !== false]));
         }
+        const [data, caseFold, dotAccess] = toArray(callSchemeProcedure(reader.get('read-source-continuing'),
+            [input, filename, state.caseFold === true, state.dotAccess !== false]));
+        state.caseFold = caseFold;
+        state.dotAccess = dotAccess;
+        return toArray(data);
     } catch (e) {
         if (!options.suppressLog) {
             console.error(`Parse error in input: "${input.substring(0, 100)}${input.length > 100 ? '...' : ''}"`);
         }
         throw e;
     }
-    return expressions;
 }

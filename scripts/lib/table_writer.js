@@ -26,10 +26,13 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
  * @param {Object} env - Its global environment.
  * @returns {{writable: (constants: Array<*>) => boolean,
  *   restoring: (forms: Array<*>, env: Object, entries: Array<Object>) => Object,
+ *   datum: (value: *) => (string|null),
  *   render: (module: Object) => string}} Whether a constant pool can be written
- *   down (`constants-expression`); what restores a library (`restoring`); and a
+ *   down (`constants-expression`); what restores a library (`restoring`); the
+ *   JavaScript that rebuilds a datum, or null if it cannot be written down
+ *   (`constant-expression`); and a
  *   module's text (`render-tables`), from `{generator, title, libraries}`,
- *   each library `{key, fingerprint, files, entries, restore}` and each entry
+ *   each library `{key, fingerprint, files, entries, restore, declaration}` and each entry
  *   as `generateEnvironment` gives it, with a `span` if it is restored.
  */
 export function tableWriter(interpreter, env) {
@@ -88,9 +91,15 @@ export function tableWriter(interpreter, env) {
   return {
     writable: (constants) => call('constants-expression', list(...constants)) !== false,
     restoring,
+    datum: (value) => {
+      const text = call('constant-expression', value);
+      return text === false ? null : String(text);
+    },
     render: ({ generator, title, libraries }) => String(call('render-tables', generator, title, RUNTIME_INTERFACE,
       list(...libraries.map((l) => list(l.key, l.fingerprint, list(...l.files), list(...l.entries.map(entry)),
-        l.restore ?? false)))))
+        // A restore sequence of nothing, a library of re-exports, is the
+        // empty list, JavaScript's null; false is one that cannot restore.
+        l.restore === undefined ? false : l.restore, l.declaration ?? false)))))
   };
 }
 

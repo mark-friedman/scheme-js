@@ -137,7 +137,9 @@ function compileLibrary(name, env, writer, forms) {
   }
   installPrebuilt(env, { fingerprint, files, procedures }, fingerprint);
 
-  return { key: libraryNameToKey(name), fingerprint, files, entries, restore, restored, forms, declined, unserializable };
+  const declaration = parse(readSource(files[0]), { filename: name.join('/'), dotAccess: false })[0];
+  return { key: libraryNameToKey(name), fingerprint, files, entries, restore, restored, forms, declined, unserializable,
+    declaration };
 }
 
 function main() {
@@ -179,8 +181,10 @@ function main() {
   // A library that runs no form of its own -- one that only re-exports --
   // needs no table. One whose forms are all macros, say, has one, which
   // restores it without its files being read.
-  const tables = libraries.filter((library) => library.entries.length > 0
-    || (library.restore !== false && library.forms.length > 0))
+  // Every library that can be restored has a table, one of nothing but
+  // re-exports too, so that its `define-library` form is there and its file
+  // need not be read (`restoring` in library_system.scm).
+  const tables = libraries.filter((library) => library.entries.length > 0 || library.restore !== false)
     .sort((a, b) => a.key.localeCompare(b.key));
   fs.writeFileSync(OUTPUT, writer.render({
     generator: 'scripts/generate_compiled_libraries.js',

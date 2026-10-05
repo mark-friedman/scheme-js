@@ -74,7 +74,10 @@
         ((eq? value #f) "false")
         ((exact-integer? value) (string-append (number->string value) "n"))
         ((and (real? value) (inexact? value))
-         (and (finite? value) (number->string value)))
+         (cond ((finite? value) (number->string value))
+               ((nan? value) "NaN")
+               ((positive? value) "Infinity")
+               (else "-Infinity")))
         ((string? value) (json-string value))
         ((symbol? value) (string-append "intern(" (json-string (symbol->string value)) ")"))
         ((char? value) (string-append "new Char(" (number->string (char->integer value)) ")"))
@@ -83,6 +86,11 @@
                (cdr-expression (constant-expression (cdr value))))
            (and car-expression cdr-expression
                 (string-append "new Cons(" car-expression ", " cdr-expression ")"))))
+        ;; A vector is a JavaScript array.
+        ((vector? value)
+         (let ((expressions (map constant-expression (vector->list value))))
+           (and (not (memq #f expressions))
+                (string-append "[" (string-join expressions ", ") "]"))))
         (else #f)))
 
 ;; /**
@@ -212,20 +220,25 @@
 ;; /**
 ;;  * One library's table, as the text of an object property.
 ;;  * @param {string} runtime - The fingerprint of the runtime interface.
-;;  * @param {list} library - `(key fingerprint files entries restore)`: the
-;;  *   library's key, the fingerprint of its sources, the sources in the order
-;;  *   the fingerprint covers them -- its `.sld` and then each file it
-;;  *   includes -- its entries (`entry-text`), and its restore sequence
-;;  *   (`restore-text`), or #f if it has none.
+;;  * @param {list} library - `(key fingerprint files entries restore
+;;  *   declaration)`: the library's key, the fingerprint of its sources, the
+;;  *   sources in the order the fingerprint covers them -- its `.sld` and then
+;;  *   each file it includes -- its entries (`entry-text`), its restore
+;;  *   sequence (`restore-text`), or #f if it has none, and its
+;;  *   `define-library` form, or #f: what the library system's seed takes
+;;  *   instead of reading the `.sld`, which before the reader is loaded it
+;;  *   could not.
 ;;  * @returns {string}
 ;;  */
 (define (table-text runtime library)
-  (let ((restore (list-ref library 4)))
+  (let ((restore (list-ref library 4))
+        (declaration (list-ref library 5)))
     (string-append
       "  " (json-string (list-ref library 0)) ": {\n"
       "    fingerprint: " (json-string (list-ref library 1)) ",\n"
       "    runtime: " (json-string runtime) ",\n"
       "    files: " (json-strings (list-ref library 2)) ",\n"
+      (if declaration (string-append "    declaration: " (constant-expression declaration) ",\n") "")
       "    procedures: {\n" (string-join (map entry-text (list-ref library 3)) ",\n") "\n    }"
       (if restore (string-append ",\n" (restore-text restore)) "\n")
       "  }")))
@@ -243,14 +256,18 @@
 
 ;; /**
 ;;  * The import lines the constant pools need: each constructor only when
-;;  * some constant is written with it, so a module of procedures with no
-;;  * pooled constants has no dependencies.
+;;  * some constant, restore form or declaration is written with it, so a
+;;  * module of procedures with none has no dependencies.
 ;;  * @param {list} libraries - The libraries (`table-text`).
 ;;  * @returns {list} The lines.
 ;;  */
 (define (import-lines libraries)
-  (let ((constants (apply append (map (lambda (entry) (list-ref entry 3))
-                                      (apply append (map (lambda (library) (list-ref library 3)) libraries))))))
+  (let ((constants (append (apply append (map (lambda (entry) (list-ref entry 3))
+                                              (apply append (map (lambda (library) (list-ref library 3)) libraries))))
+                           (apply append (map (lambda (library)
+                                                (append (map cadr (or (list-ref library 4) '()))
+                                                        (if (list-ref library 5) (list (list-ref library 5)) '())))
+                                              libraries)))))
     (define (used? kind?)
       (let loop ((cs constants)) (and (pair? cs) (or (holds? kind? (car cs)) (loop (cdr cs))))))
     (append (if (used? symbol?) '("import { intern } from '../core/interpreter/symbol.js';") '())

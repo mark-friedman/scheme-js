@@ -652,37 +652,41 @@
     (cond ((registered-library registry (library-key name)) => library-exports)
           (else
            (let* ((path (name-strings name))
-                  (forms (read-library-file loader path (library-path name) #f)))
-             (if (null? forms) (error "library: empty library file" (library-key name)))
-             (let* ((definition (parse-define-library (car forms) (feature-test loader)))
-                    (library (evaluate-definition! loader definition (restoring loader path definition))))
-               (let ((hook (registry-load-hook registry)))
-                 (if hook
-                     (%call-load-hook hook (name-strings (library-definition-name definition))
-                                      (library-environment library))))
-               (library-exports library)))))))
+                  (restoring (restoring loader name path))
+                  (form (if (and restoring (car restoring))
+                            (car restoring)
+                            (let ((forms (read-library-file loader path (library-path name) #f)))
+                              (if (null? forms) (error "library: empty library file" (library-key name)))
+                              (car forms))))
+                  (definition (parse-define-library form (feature-test loader)))
+                  (library (evaluate-definition! loader definition (and restoring (cdr restoring)))))
+             (let ((hook (registry-load-hook registry)))
+               (if hook
+                   (%call-load-hook hook (name-strings (library-definition-name definition))
+                                    (library-environment library))))
+             (library-exports library))))))
 
 ;; /**
-;;  * How the registry's restorer restores a library, if it can: asked with
-;;  * the library's name and the text of its files -- the file declaring it,
-;;  * then those it includes, then its files of library declarations -- which
-;;  * a prebuilt table was built from if it matches them.
+;;  * How the registry's restorer restores a library, if it can. It names the
+;;  * files its table was built from -- the file declaring the library, then
+;;  * those it includes, then its files of library declarations -- and, given
+;;  * their text as it is now, restores the library if the table was built from
+;;  * that text: giving its `define-library` form too, where the table has it,
+;;  * so that the file is fetched, to be fingerprinted, but never read.
 ;;  * @param {loader} loader - The loader.
-;;  * @param {list} path - The path the library's file was read at.
-;;  * @param {library-definition} definition - The library's definition.
-;;  * @returns {pair|boolean} `(bind . items)`, as the restorer gives it, or #f.
+;;  * @param {list} name - The library's name.
+;;  * @param {list} path - The path its file is found at.
+;;  * @returns {pair|boolean} `(declaration bind . items)`, as the restorer
+;;  *   gives it, the declaration #f where the table has none; or #f.
 ;;  */
-(define (restoring loader path definition)
-  (let ((restorer (registry-restorer (loader-registry loader)))
-        (name (library-definition-name definition)))
+(define (restoring loader name path)
+  (let ((restorer (registry-restorer (loader-registry loader))))
     (and restorer
-         (restorer (name-strings name)
-                   (map (loader-resolve loader)
-                        (cons path
-                              (map (lambda (file) (include-path name file))
-                                   (append (library-definition-includes definition)
-                                           (library-definition-includes-ci definition)
-                                           (library-definition-declaration-files definition)))))))))
+         (let ((files (restorer (name-strings name) #f)))
+           (and (pair? files)
+                (restorer (name-strings name)
+                          (map (loader-resolve loader)
+                               (cons path (map (lambda (file) (include-path name file)) (cdr files))))))))))
 
 ;; /**
 ;;  * Defines a library from a `define-library` form a program holds. The

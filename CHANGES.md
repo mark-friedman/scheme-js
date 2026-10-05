@@ -12206,3 +12206,61 @@ and the errors. `number_tests.scm`: `(string->number "+i")`.
 
 7,839 tests pass in Node with none failing (33 skipped), and 7,615 in the browser with none
 failing (56 skipped).
+
+# Task 63, second part: every text read by the reader in Scheme (2026-10-04)
+
+`parse` -- what every reading in the system goes through, from the REPL's line to a library's file --
+is now a door into `(scheme-js reader)`, on the library system's own interpreter, and the JavaScript
+parser is gone: `parser.js`, `string_utils.js`, `character.js`, `datum_labels.js`, `dot_access.js`.
+The tokenizer stays for the REPL's colouring and completeness, the third part's to replace, and
+`number_parser.js` as `string->number`'s core.
+
+The reader reading its own source:
+
+- Every prebuilt table now holds its library's `define-library` form, as data, and the library
+  system's restorer names the files a table was built from and, given their text, answers that form
+  with the rest: so a library whose table is current is loaded without its files being read, only
+  fingerprinted -- the library system's own seed libraries, which it could not read before its
+  reader is loaded, and every other. A library of nothing but re-exports, `(scheme base)`, has a
+  table for it.
+- The seed's libraries are `(scheme core)`, `(scheme control)`, the reader and the library system.
+  When one's table is not current -- a seed library being edited -- the seed reads it with its own
+  reader once that is loaded, and before that with the pinned reader, `src/packaging/pinned_reader.js`:
+  the reader's libraries' sources as data, evaluated interpreted, needing neither a reader nor a
+  table. It is written on purpose, by `npm run pin:reader`, never by the build, and is the
+  known-good version the build can always rebuild the reader from. A bundle, built with its tables,
+  leaves it out.
+
+Made faster on the way, from 3.6 times the JavaScript reader's time over the repository and corpus
+to 1.8: runs of whitespace, comments and atoms are scanned whole, with two primitives that find the
+first of a set of characters and skip a set; a span's lines and columns are worked out, where a
+datum begins and ends, from the text's line starts, rather than counted a character at a time; and
+an atom is tried as a number only if it can begin one. A fifth of what is left is record accessors,
+recorded as evidence for code generation (54).
+
+Found by comparing the two readers over the 726 files: the JavaScript reader read a form feed, which
+some corpus files break into pages with, as the number 0. The Scheme reader takes it for whitespace.
+Otherwise they read the same data and spans, but for two vectors after datum labels whose span the
+JavaScript reader lost.
+
+Measured: `npm test` takes 70 s against 64 s; the corpus set of `run_tier.js`, which loads the
+standard library from source for each program, 3.3 s against 2.9 without the tier and 3.9 against 3.5
+with it; a CLI start 0.25-0.27 s against 0.23. `dist/scheme.js` is 6.7 MB, the reader's and the
+debugger's tables among what it holds now.
+
+JavaScript under `src/`: the parser's 1,000 lines removed; `parse`, a door; the seed's reading and
+the pinned reader, which start the system's Scheme; `reader_support.js`'s three whole-text scans,
+primitives on strings; the restorer's two questions, in `prebuilt.js` and `library_registry.js`.
+
+## Tests
+
+`reader_bootstrap_tests.js`: tables hold `define-library` forms, a re-exporting library's too; the
+pinned reader reads as the seed's does, spans and all; a seed with no table current loads, reading
+its sources. `library_system_tests.scm`: the restorer's protocol, and a library whose table holds its
+form loaded with its file unreadable. `read_source_tests.scm`: a form feed. `table_writer_tests.scm`:
+vectors, infinities and declarations written down.
+
+## Verification
+
+7,875 tests pass in Node with none failing (33 skipped), and 7,651 in the browser with none
+failing (56 skipped). `run_tier.js --set all` runs every program right.

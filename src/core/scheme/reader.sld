@@ -17,5 +17,5 @@
   (import (scheme primitives)
           (scheme core)
           (scheme control))
-  (export read-source)
+  (export read-source read-source-continuing)
   (include "reader.scm"))

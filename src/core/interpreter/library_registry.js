@@ -186,20 +186,27 @@ export function setLibraryRestorer(restorer) {
 
 /**
  * A restorer as the library system calls it: with a list of the strings of a
- * library's name and a list of its files' text, answering `(bind . items)`
- * or #f (`registry-restorer` in library_system.scm).
+ * library's name and #f, answering the names of the files its table was built
+ * from, or #f; and with a list of their text, answering
+ * `(declaration bind . items)` -- the library's `define-library` form, or #f
+ * where the table has none -- or #f (`registry-restorer` in
+ * library_system.scm).
  * @param {Function|null} restorer - The host's restorer, or null.
  * @returns {Function|boolean} The procedure, or #f for none.
  */
 function schemeRestorer(restorer) {
   if (!restorer) return false;
   const restore = (name, texts) => {
-    const restoring = restorer(toArray(name).map(stringValue),
-      toArray(texts).map((text) => (text === false ? null : stringValue(text))));
+    const names = toArray(name).map(stringValue);
+    if (texts === false) {
+      const files = restorer(names, null);
+      return files === null ? false : list(...files);
+    }
+    const restoring = restorer(names, toArray(texts).map((text) => (text === false ? null : stringValue(text))));
     if (restoring === null) return false;
     const bind = (env, procedure) => { restoring.bind(env, procedure.name); return undefined; };
     bind[SCHEME_PRIMITIVE] = true;
-    return cons(bind, restoring.items);
+    return cons(restoring.declaration ?? false, cons(bind, restoring.items));
   };
   restore[SCHEME_PRIMITIVE] = true;
   return restore;

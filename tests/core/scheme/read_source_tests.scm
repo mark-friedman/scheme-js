@@ -37,6 +37,8 @@
   (test "a |symbol|, its name as written" (list (string->symbol "a b")) (read-text "|a b|"))
   (test "a bytevector" (list (bytevector 1 2 255)) (read-text "#u8(1 2 255)"))
   (test "comments of every kind are skipped" '(kept done) (read-text "; line\n#;(skipped) kept #| a #| nested |# |# done"))
+  (test "a form feed, which breaks a file into pages, is whitespace" '(a b)
+        (read-text (string #\a (integer->char 12) #\b)))
   (test "a string that is read cannot be changed" #t
         (guard (e (#t #t)) (string-set! (car (read-text "\"abc\"")) 0 #\x) #f)))
 

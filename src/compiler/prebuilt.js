@@ -262,21 +262,31 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
  * restored so has no closure for a debugger to run instead; it is debugged as
  * compiled code is.
  *
+ * Asked first with no texts, it names the files a library's table was built
+ * from -- the file declaring it, then those it includes -- so that the library
+ * system can fetch them; asked again with their text, it restores the library
+ * if the table was built from that text, giving its `define-library` form
+ * too, where the table has it, so that the file need not be read.
+ *
  * @param {Object<string, Object>} tables - Generated tables, keyed by library
  *   name as `libraryNameToKey` writes it.
- * @returns {(libraryName: string[], texts: Array<*>) =>
- *   ({bind: (env: Object, name: string) => void, items: Cons}|null)} The
- *   restorer: what binds a restored procedure, and the sequence as a list of
- *   `(procedure name)` and `(form form)`; or null.
+ * @returns {(libraryName: string[], texts: (Array<*>|null)) =>
+ *   (string[]|{declaration: *, bind: (env: Object, name: string) => void, items: Cons}|null)}
+ *   The restorer: given no texts, the files, or null if no table restores the
+ *   library; given texts, its `define-library` form or null, what binds a
+ *   restored procedure, and the sequence as a list of `(procedure name)` and
+ *   `(form form)`; or null.
  */
 export function libraryRestorer(tables) {
   return (libraryName, texts) => {
     const table = tables[libraryNameToKey(libraryName)];
     if (table === undefined || table.restore === undefined || table.runtime !== RUNTIME_INTERFACE) return null;
+    if (texts === null) return table.files;
     if (texts.some((text) => typeof text !== 'string') || fingerprintSources(texts) !== table.fingerprint) {
       return null;
     }
     return {
+      declaration: table.declaration ?? null,
       bind: (env, name) => restoreProcedure(table, env, name),
       items: list(...table.restore.map((item) => item.procedure !== undefined
         ? list(PROCEDURE, intern(item.procedure))

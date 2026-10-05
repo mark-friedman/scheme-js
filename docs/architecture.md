@@ -169,6 +169,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── generate_bundled_libraries.js # Inlines .sld/.scm sources for the browser
 │   ├── generate_compiled_libraries.js # Compiles every shipped library at build time
 │   ├── generate_compiled_compiler.js # Compiles the compiler's own library at build time
+│   ├── pin_reader.js               # Writes the pinned reader: the reader's libraries' sources as data (npm run pin:reader)
 │   ├── lib/table-writer.sld        # (scheme-js table-writer): writes a module of prebuilt tables, one per library
 │   ├── lib/table_writer.scm        # Its procedures: constants as JavaScript, entries, tables, the module
 │   ├── lib/table_writer.js         # Loads it for the build scripts, and calls it
@@ -183,8 +184,9 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── html_adapter.js         # HTML script tag adapter
 │   │   ├── bundled_libraries.js    # GENERATED: library sources, for the browser
 │   │   ├── compiler_sources.js     # GENERATED: the compiler library's sources
-│   │   ├── compiled_libraries.js   # GENERATED: each shipped library, compiled
-│   │   └── compiled_compiler.js    # GENERATED: the compiler's library, compiled
+│   │   ├── compiled_libraries.js   # GENERATED: each shipped library, compiled, with its define-library form
+│   │   ├── compiled_compiler.js    # GENERATED: the compiler's library, compiled
+│   │   └── pinned_reader.js        # GENERATED on purpose, not by the build: the reader the seed reads with when its tables are stale
 │   │
 │   └── core/                       # The Core (JS Interpreter + Scheme subset)
 │       ├── interpreter/            # JavaScript Interpreter
@@ -204,16 +206,11 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── values.js           # Closure, Continuation, TailCall, Values; calling a procedure with Scheme values
 │       │   ├── cons.js             # Cons cells + list utilities
 │       │   ├── symbol.js           # Symbol interning
-│       │   ├── reader.js           # S-expression parser (re-exports from reader/)
-│       │   ├── reader/             # Reader submodules
-│       │   │   ├── index.js        # Barrel export + parse() entry
-│       │   │   ├── tokenizer.js    # Tokenization
-│       │   │   ├── parser.js       # Core parsing logic
-│       │   │   ├── number_parser.js # Number parsing with R7RS prefixes
-│       │   │   ├── dot_access.js   # JS property access syntax
-│       │   │   ├── string_utils.js # String/symbol escape processing
-│       │   │   ├── character.js    # Character literal parsing
-│       │   │   └── datum_labels.js # Circular reference handling
+│       │   ├── reader.js           # Re-exports reader/: parse, tokenize, the number parser
+│       │   ├── reader/             # What is left of the JavaScript reader; the reader is (scheme-js reader)
+│       │   │   ├── index.js        # parse(): the door into (scheme-js reader), on the library system's interpreter
+│       │   │   ├── tokenizer.js    # Tokens, for the REPL's colouring and completeness
+│       │   │   └── number_parser.js # Number syntax with R7RS prefixes: string->number's core
 │       │   ├── analyzer.js         # S-exp → AST dispatcher
 │       │   ├── analyzers/          # Modular special form handlers
 │       │   │   ├── index.js        # Registry initialization
@@ -264,7 +261,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── interop.js          # JavaScript interop utilities
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
 │       │   ├── library.js          # What the library system needs of the host: resolver, reader, environments, keyword tables
-│       │   ├── reader_support.js   # What (scheme-js reader) needs of the representations: read errors, literal strings, the datum-label note
+│       │   ├── reader_support.js   # What (scheme-js reader) needs: read errors, literal strings, the datum-label note, whole-text scans
 │       │   └── gc.js               # GC-related utilities
 │       │
 │       └── scheme/                 # Core Scheme subset (base library)
@@ -481,7 +478,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 3. **`src/lib/`**: (Future) Additional R7RS libraries built on-top of the core.
 4. **Tests mirror source**: `tests/core/` tests `src/core/`.
 5. **Split Stepables**: AST nodes in `ast_nodes.js`, frames in `frames.js`, shared base in `stepables_base.js`.
-6. **The library system is Scheme**: `(scheme-js library-system)` parses libraries, keeps the registries, loads and imports libraries, and keeps the closures run compiled for a debugger to run as themselves. Its seed (`library_seed.js`) loads it, with `(scheme core)` and `(scheme control)`, from the bundled sources onto an interpreter of its own, apart from every program, installing their prebuilt tables so that it runs compiled; `library_registry.js` and `library_loader.js` are the JavaScript API, which calls it; `primitives/library.js` is what it needs of the host. A library's environment, and one `environment` makes, holds its imports and nothing else (R7RS 5.6.1): it has no parent (`makeScopedEnvironment` in `primitives/library.js`), the primitives reach it through `(scheme primitives)`, which exports every one, and a macro is found by name only where something imported it. A name bound nowhere still falls back to JavaScript's globals, as it does in a program. A program -- a CLI file, `-e` code, a page's script -- that begins with `import` declarations runs in such an environment too: the CLI and the page start-up ask `programEnvironment` (`library_loader.js`), which takes the program apart with the library system's `program-parts`, for the environment and the forms to run there, and run each with `runProgramForm`, under the environment's scope. A program with none runs in the interaction environment, which sees everything.
+6. **The library system is Scheme**: `(scheme-js library-system)` parses libraries, keeps the registries, loads and imports libraries, and keeps the closures run compiled for a debugger to run as themselves. Its seed (`library_seed.js`) loads it, with `(scheme core)` and `(scheme control)`, from the bundled sources onto an interpreter of its own, apart from every program, installing their prebuilt tables so that it runs compiled; `library_registry.js` and `library_loader.js` are the JavaScript API, which calls it; `primitives/library.js` is what it needs of the host. A library's environment, and one `environment` makes, holds its imports and nothing else (R7RS 5.6.1): it has no parent (`makeScopedEnvironment` in `primitives/library.js`), the primitives reach it through `(scheme primitives)`, which exports every one, and a macro is found by name only where something imported it. A name bound nowhere still falls back to JavaScript's globals, as it does in a program. A program -- a CLI file, `-e` code, a page's script -- that begins with `import` declarations runs in such an environment too: the CLI and the page start-up ask `programEnvironment` (`library_loader.js`), which takes the program apart with the library system's `program-parts`, for the environment and the forms to run there, and run each with `runProgramForm`, under the environment's scope. A program with none runs in the interaction environment, which sees everything. The library system reads every library's files with the reader, `(scheme-js reader)`, which the seed loads before it; a library whose prebuilt table is current is loaded without its files being read, the table holding its `define-library` form, and the seed reads its own libraries, when their tables are stale, with the pinned reader (`src/packaging/pinned_reader.js`), the reader's libraries' sources as data.
 7. **Modular Analyzer**: `analyzer.js` acts as a dispatcher to themed handlers in `analyzers/`, ensuring the analysis phase is extensible and isolated.
 8. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.
 9. **Self-hosting where it pays**: the compiler's lowering pass is Scheme, and the

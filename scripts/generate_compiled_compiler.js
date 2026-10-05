@@ -127,9 +127,10 @@ function bootstrap() {
   }
 
   const sld = `${COMPILER_LIBRARY[COMPILER_LIBRARY.length - 1]}.sld`;
-  const libDef = parseDefineLibrary(parse(readSource(sld))[0]);
+  const declaration = parse(readSource(sld), { filename: COMPILER_LIBRARY.join('/'), dotAccess: false })[0];
+  const libDef = parseDefineLibrary(declaration);
   const files = [sld, ...libDef.includes, ...libDef.includesCi, ...libDef.includeLibraryDeclarations];
-  return { env: getLibraryEnv(COMPILER_LIBRARY), exports, files, forms };
+  return { env: getLibraryEnv(COMPILER_LIBRARY), exports, files, forms, declaration };
 }
 
 function main() {
@@ -140,7 +141,7 @@ function main() {
     console.error(`The compiler could not start, so nothing can be compiled: ${failure}`);
     process.exit(1);
   }
-  const { env, exports, files, forms } = bootstrap();
+  const { env, exports, files, forms, declaration } = bootstrap();
   const fingerprint = fingerprintSources(files.map(readSource));
   const { generated, declined } = generateEnvironment(env, { ownOnly: true });
 
@@ -167,7 +168,7 @@ function main() {
   fs.writeFileSync(OUTPUT, writer.render({
     generator: 'scripts/generate_compiled_compiler.js',
     title: 'The compiler\'s own library, compiled -- the step where it compiles itself.',
-    libraries: [{ key: libraryNameToKey(COMPILER_LIBRARY), fingerprint, files, entries: usable, restore }]
+    libraries: [{ key: libraryNameToKey(COMPILER_LIBRARY), fingerprint, files, entries: usable, restore, declaration }]
   }), 'utf8');
 
   const bytes = usable.reduce((total, entry) => total + entry.source.length, 0);

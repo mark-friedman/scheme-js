@@ -1,6 +1,22 @@
+/**
+ * Leaves the pinned reader out of a bundle: a bundle is built with its
+ * prebuilt tables, so the library system's seed never needs it there, and it
+ * is the seed libraries' sources over again (src/core/interpreter/library_seed.js).
+ */
+const withoutPinnedReader = {
+  name: 'without-pinned-reader',
+  resolveId(source) {
+    return source.endsWith('/pinned_reader.js') ? '\0pinned-reader' : null;
+  },
+  load(id) {
+    return id === '\0pinned-reader' ? 'export default null;' : null;
+  }
+};
+
 export default [
   {
     input: 'src/packaging/scheme_entry.js',
+    plugins: [withoutPinnedReader],
     // The compiler's chunk imports what it shares with the bundle from
     // `scheme.js` itself, rather than both importing a third, shared chunk.
     preserveEntrySignatures: 'allow-extension',

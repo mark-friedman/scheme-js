@@ -16,7 +16,6 @@ import { Symbol, intern } from './symbol.js';
 import { Cons } from './cons.js';
 import { SchemeTypeError } from './errors.js';
 import { globalContext, GLOBAL_SCOPE_ID } from './context.js';
-import { labelReferencesRead } from './reader/datum_labels.js';
 
 // =============================================================================
 // Scope Management (delegated to globalContext)
@@ -699,6 +698,22 @@ export function unwrapSyntax(obj) {
 }
 
 /**
+ * Whether a datum label reference, `#n#`, has been read. Only through one
+ * does data the reader produces share structure or contain a cycle, so until
+ * one has been, whatever copies code can copy it as a tree.
+ * @type {boolean}
+ */
+let labelReferenceRead = false;
+
+/**
+ * Notes that a datum label reference has been read: the reader's, through
+ * `%note-label-reference!`.
+ */
+export function noteLabelReference() {
+    labelReferenceRead = true;
+}
+
+/**
  * Copies a datum's pairs and vectors, applying `leaf` to everything else in
  * it.
  *
@@ -716,7 +731,7 @@ export function unwrapSyntax(obj) {
  * @returns {*} The copy.
  */
 function copyDatum(datum, leaf) {
-    if (!labelReferencesRead()) {
+    if (!labelReferenceRead) {
         treeCopiesLeft = TREE_COPY_LIMIT;
         const walk = (x) => copyTree(x, leaf, walk);
         try {

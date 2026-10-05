@@ -286,19 +286,24 @@
                                  '(define-library (test form) (import (test a)) (include "b.scm")))))
 
 (test-group "library system - restoring a library from its table"
-  ;; A restorer standing for a table of (test a): given the library's name
-  ;; and its files' text, it answers with what binds a procedure the table
-  ;; restores and the library's forms in order -- x such a procedure, bound
-  ;; here to 1000, and y's definition a form -- or #f for any other library,
-  ;; or for text it was not built from.
+  ;; A restorer standing for a table of (test a): asked with the library's
+  ;; name alone, it names the one file the table was built from; given that
+  ;; file's text, it answers with no `define-library` form, so that the file
+  ;; is read for it, what binds a procedure the table restores and the
+  ;; library's forms in order -- x such a procedure, bound here to 1000, and
+  ;; y's definition a form -- or #f for any other library, or for text it was
+  ;; not built from.
   (define bound '())
   (define (restorer name texts)
     (and (equal? name '("test" "a"))
-         (equal? texts (list (cdr (assoc '("test" "a") test-files))))
-         (cons (lambda (env name)
-                 (set! bound (cons name bound))
-                 (%environment-define! env name 1000))
-               '((procedure x) (form (define y 2000))))))
+         (if (not texts)
+             '("a.sld")
+             (and (equal? texts (list (cdr (assoc '("test" "a") test-files))))
+                  (cons #f
+                        (cons (lambda (env name)
+                                (set! bound (cons name bound))
+                                (%environment-define! env name 1000))
+                              '((procedure x) (form (define y 2000)))))))))
   (define loader (loader-over test-files))
   (set-registry-restorer! (loader-registry loader) restorer)
   (test "a procedure the table restores, bound by it" 1000 (exported loader '(test a) 'x))
@@ -314,6 +319,21 @@
   (test "a define-library form is the program's own, never restored" 5
         (let ((inline (loader-over test-files)))
           (set-registry-restorer! (loader-registry inline)
-                                  (lambda (name texts) (cons (lambda (env name) (%environment-define! env name 0))
-                                                             '((procedure v)))))
-          (cdr (assq 'v (define-library! inline '(define-library (test a) (export v) (begin (define v 5)))))))))
+                                  (lambda (name texts)
+                                    (if texts
+                                        (cons #f (cons (lambda (env name) (%environment-define! env name 0))
+                                                       '((procedure v))))
+                                        '("a.sld"))))
+          (cdr (assq 'v (define-library! inline '(define-library (test a) (export v) (begin (define v 5))))))))
+  ;; A table that has the library's `define-library` form gives it, and the
+  ;; file, fetched to be fingerprinted, is never read: here it is not Scheme.
+  (test "a library whose table has its define-library form, its file not read" 7
+        (let ((unreadable (loader-over (cons (cons '("test" "c") "((( not a datum") test-files))))
+          (set-registry-restorer! (loader-registry unreadable)
+                                  (lambda (name texts)
+                                    (and (equal? name '("test" "c"))
+                                         (if texts
+                                             (list '(define-library (test c) (export c)) (lambda (env name) #f)
+                                                   '(form (define c 7)))
+                                             '("c.sld")))))
+          (exported unreadable '(test c) 'c))))
