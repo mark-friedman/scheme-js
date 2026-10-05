@@ -4,7 +4,9 @@
 ;; Some features are environment-specific (Node.js vs browser).
 
 (define-library (scheme process-context)
-  (import (scheme base))
+  (import (scheme base)
+          (only (scheme primitives) command-line exit get-environment-variable
+                get-environment-variables emergency-exit))
   (export command-line exit get-environment-variable get-environment-variables
           emergency-exit)
   (begin

@@ -284,10 +284,14 @@ export async function runLibraryLoaderTests(logger) {
                            (begin (define (length&i0.length p) p) (define x.y 7)))`,
         'dotted.interop': `#!dot-notation
                            (define-library (dotted interop)
+                             (import (only (scheme primitives) js-ref))
                              (export title-of)
                              (begin (define (title-of o) o.title)))`
     };
     withPrivateLibraries({ resolver: (name) => dottedSources[name.join('.')] }, () => {
+        // A registry made for a while has the runtime's library too, for the
+        // `js-ref` dot notation expands into.
+        registerBuiltinLibrary(['scheme', 'primitives'], createPrimitiveExports(globalEnv), globalEnv);
         const dotted = loadLibrarySync(['dotted', 'names'], analyze, interpreter, globalEnv);
         assert(logger, "a library's dotted names are identifiers",
             [...dotted.keys()].sort(), ['length&i0.length', 'x.y']);

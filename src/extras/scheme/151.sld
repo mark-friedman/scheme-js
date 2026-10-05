@@ -11,7 +11,9 @@
 
 (define-library (srfi 151)
   (import (scheme base)
-          (scheme case-lambda))
+          (scheme case-lambda)
+          (only (scheme primitives) %bitwise-and %bitwise-ior %bitwise-xor
+                %arithmetic-shift %integer-length %bit-count))
   (export
     ;; Basic operations
     bitwise-not

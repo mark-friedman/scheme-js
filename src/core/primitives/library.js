@@ -25,7 +25,7 @@ import { intern } from '../interpreter/symbol.js';
 import { SYNTAX_KEYWORDS } from '../interpreter/library_registry.js';
 import { shadowMacro } from '../interpreter/syntax_object.js';
 import { stringValue } from './string_class.js';
-import { runCompiled, runInterpreted } from '../interpreter/values.js';
+import { runCompiled, runInterpreted, shareInterpreter } from '../interpreter/values.js';
 
 /**
  * Calls a file resolver for a file it can return now.
@@ -59,17 +59,23 @@ function stringsOf(strings) {
 }
 
 /**
- * A new environment for a library, or for what `environment` makes, inside
- * the one given: with a fresh scope of its own, which the keywords imported
- * into it are bound under and the definitions made in it are noted in.
- * @param {Environment} base - The environment it is inside.
+ * A new environment for a library, or for what `environment` makes: with a
+ * fresh scope of its own, which the keywords imported into it are bound under
+ * and the definitions made in it are noted in, and inside nothing -- so it
+ * holds what is imported into it and defined in it, and no more (R7RS 5.6.1),
+ * a name it lacks being looked up among JavaScript's globals only, and among
+ * the macros defined for the whole process not at all (`strict`). It belongs
+ * to the interpreter of the environment given, which runs its compiled code.
+ * @param {Environment} base - An environment of the interpreter it is for.
  * @returns {Environment}
  */
 export function makeScopedEnvironment(base) {
-    const env = new Environment(base);
+    const env = new Environment(null);
+    shareInterpreter(env, base);
     const scope = globalContext.freshScope();
     globalContext.registerLibraryScope(scope, env);
     env.libraryScope = scope;
+    env.strict = true;
     return env;
 }
 

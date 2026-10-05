@@ -300,8 +300,9 @@ export function runInterpreted(closure) {
 }
 
 /**
- * The interpreter each global environment belongs to, for compiled code
- * called from JavaScript, which runs on it (`createCompiledProcedure`).
+ * The interpreter each root environment belongs to -- a global environment,
+ * or a library's, which is inside nothing -- for compiled code called from
+ * JavaScript, which runs on it (`createCompiledProcedure`).
  * @type {WeakMap<Object, Object>}
  */
 const interpreterOfGlobalEnvironment = new WeakMap();
@@ -317,6 +318,28 @@ export function registerGlobalEnvironment(env, interpreter) {
 }
 
 /**
+ * The environment an environment is inside, outermost.
+ * @param {Environment} env - An environment.
+ * @returns {Environment}
+ */
+function rootOf(env) {
+    let root = env;
+    while (root.parent) root = root.parent;
+    return root;
+}
+
+/**
+ * Records that a root environment -- a library's, inside nothing -- belongs
+ * to the interpreter another environment does.
+ * @param {Environment} env - The root environment.
+ * @param {Environment} other - An environment of the interpreter.
+ */
+export function shareInterpreter(env, other) {
+    const interpreter = interpreterOfGlobalEnvironment.get(rootOf(other));
+    if (interpreter !== undefined) interpreterOfGlobalEnvironment.set(env, interpreter);
+}
+
+/**
  * The interpreter an environment belongs to: that of the global environment
  * it is inside, as a library's environment is inside the global environment
  * of the interpreter that loaded it.
@@ -325,9 +348,7 @@ export function registerGlobalEnvironment(env, interpreter) {
  * @throws {SchemeError} If it is inside no interpreter's global environment.
  */
 function interpreterOf(env) {
-    let root = env;
-    while (root.parent) root = root.parent;
-    const interpreter = interpreterOfGlobalEnvironment.get(root);
+    const interpreter = interpreterOfGlobalEnvironment.get(rootOf(env));
     if (interpreter === undefined) {
         throw new SchemeError('a compiled procedure was called from JavaScript, but its environment belongs to no interpreter');
     }

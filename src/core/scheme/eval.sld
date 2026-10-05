@@ -3,7 +3,7 @@
 ;; R7RS evaluation procedures (6.12).
 
 (define-library (scheme eval)
-  (import (scheme base) (only (scheme primitives) %import-environment))
+  (import (scheme base) (only (scheme primitives) eval %import-environment))
   (export eval environment)
   (begin
     ;; /**

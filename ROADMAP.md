@@ -86,10 +86,12 @@ for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### Close the known R7RS-small deviations
 
-Every identifier and library R7RS-small names is bound (`npm run audit:r7rs`, `(scheme r5rs)`
-included). What remains is visibility: a program or library sees what it imports and also everything
-else, since every environment is inside the global one, so `only` and `except` hide nothing and an
-`environment` is not empty but for its import sets (planned in `docs/compiler_plan.md`, 85).
+Every library R7RS-small names exports every identifier it names (`npm run audit:r7rs`, which probes
+each library in an environment of it alone, `(scheme r5rs)` included), but for three keywords:
+`syntax-error`, and `include` and `include-ci` as expression and definition forms rather than
+library declarations. A library, and an `environment`, see only what they import; a program still
+sees everything, its imports or not, and one that begins with `import` declarations is to see only
+them. Both planned in `docs/compiler_plan.md`, 87 and 85.
 
 ### Numeric performance
 
@@ -226,7 +228,7 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 
 | | |
 |---|---|
-| **R7RS-small, end to end** | Every phase of the implementation checklist, and every identifier and library the report names. **994 of 994** applicable Chibi conformance tests and **220 of 220** chapter tests pass, both with the standard library interpreted and with it compiled as the browser installs it, each counted as the Scheme test harness counts it. |
+| **R7RS-small, end to end** | Every phase of the implementation checklist, and every identifier and library the report names but three keywords (`syntax-error`, and `include` and `include-ci` outside a library's declarations). **994 of 994** applicable Chibi conformance tests and **220 of 220** chapter tests pass, both with the standard library interpreted and with it compiled as the browser installs it, each counted as the Scheme test harness counts it. |
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |

@@ -7,6 +7,12 @@
  * for the compiler effort, because a stub is a deviation that looks like
  * conformance until someone calls it.
  *
+ * Each library's identifiers are probed in an environment of that library
+ * alone, `(environment '(scheme char))` say, which sees only what the library
+ * exports. Probed where every library is imported, as a program's top level,
+ * a name one library fails to export is found anyway, in another or among the
+ * primitives every program's top level sees.
+ *
  * This is a reporting tool rather than a test: it currently reports known
  * deviations, so wiring it into `npm test` would simply fail the build. Once
  * the deviations are closed it should be promoted to a registered test so the
@@ -35,9 +41,11 @@ const SEARCH_DIRS = [
 ];
 
 /**
- * Builds an interpreter with every R7RS library imported.
- * @returns {{interpreter: Object, env: Object, run: function(string): *}} The
- *   interpreter and a source-evaluating helper.
+ * Builds an interpreter, and an environment of each R7RS library alone, bound
+ * at its top level to `audit-env:` and the library's name.
+ * @returns {{interpreter: Object, env: Object, run: function(string): *,
+ *   unavailable: Array<{library: string, detail: string}>}} The interpreter,
+ *   a source-evaluating helper, and the libraries that could not be imported.
  */
 function bootstrap() {
   setFileResolver((libraryName) => {
@@ -67,34 +75,36 @@ function bootstrap() {
     return result;
   };
 
-  // Import one library at a time: a library that does not exist is itself an
-  // audit finding, so it must be recorded rather than aborting the run.
-  const wanted = [
-    '(scheme base)', '(scheme write)', '(scheme read)', '(scheme repl)',
-    '(scheme lazy)', '(scheme case-lambda)', '(scheme eval)', '(scheme time)',
-    '(scheme complex)', '(scheme cxr)', '(scheme char)', '(scheme inexact)',
-    '(scheme file)', '(scheme process-context)', '(scheme load)'
-  ];
+  run('(import (scheme base) (scheme eval))');
+  // One library at a time: a library that does not exist is itself an audit
+  // finding, so it must be recorded rather than aborting the run.
   const unavailable = [];
-  for (const library of wanted) {
+  for (const library of LIBRARIES) {
     try {
-      run(`(import ${library})`);
+      run(`(define ${environmentOf(library)} (environment '${library}))`);
     } catch (e) {
       unavailable.push({ library, detail: String(e.message).slice(0, 100) });
     }
   }
-  // Under a prefix, so that its names are its own and not the libraries'
-  // above.
-  try {
-    run(`(import (prefix (scheme r5rs) ${R5RS_PREFIX}))`);
-  } catch (e) {
-    unavailable.push({ library: '(scheme r5rs)', detail: String(e.message).slice(0, 100) });
-  }
   return { interpreter, env, run, unavailable };
 }
 
-/** The prefix `(scheme r5rs)` is imported under. */
-const R5RS_PREFIX = 'r5rs:';
+/** The R7RS-small libraries. */
+const LIBRARIES = [
+  '(scheme base)', '(scheme write)', '(scheme read)', '(scheme repl)',
+  '(scheme lazy)', '(scheme case-lambda)', '(scheme eval)', '(scheme time)',
+  '(scheme complex)', '(scheme cxr)', '(scheme char)', '(scheme inexact)',
+  '(scheme file)', '(scheme process-context)', '(scheme load)', '(scheme r5rs)'
+];
+
+/**
+ * The top-level name an environment of a library alone is bound to.
+ * @param {string} library - The library's name, as written.
+ * @returns {string} The name.
+ */
+function environmentOf(library) {
+  return `audit-env:${library.slice(1, -1).replace(/ /g, '-')}`;
+}
 
 /**
  * Whether `environment` makes an environment of its import sets (R7RS 6.12)
@@ -113,31 +123,63 @@ function checkEnvironment(run) {
 }
 
 /**
- * Classifies one required identifier.
+ * Classifies one required identifier, in an environment of its library alone.
  * @param {function(string): *} run - Source evaluator.
+ * @param {string} environment - The top-level name of the environment.
  * @param {string} name - The identifier to probe.
  * @param {boolean} isSyntax - True if the identifier is a syntactic keyword.
  * @returns {{name: string, status: string, detail: string}} The classification.
  */
-function probe(run, name, isSyntax) {
+function probe(run, environment, name, isSyntax) {
   if (isSyntax) {
-    // Syntactic keywords cannot be evaluated as expressions. Probing whether
-    // the analyzer treats the name as a special form or macro is the closest
-    // available check.
+    // A keyword cannot be evaluated as an expression, but it can head a form:
+    // whatever that form's error, it is not that the name is unbound. One
+    // that only another form takes is used in that form instead. The
+    // analyzer's own special forms -- `if`, `quote`, `lambda` -- are found in
+    // every environment, imported or not, so for those this shows only that
+    // the analyzer has them.
+    const form = KEYWORD_USES[name] ?? `(${name})`;
     try {
-      run(`(define (r7rs-audit-probe) (quote ${name}))`);
-      return { name, status: 'assumed', detail: 'syntax (not probed at runtime)' };
+      run(`(eval '${form} ${environment})`);
     } catch (e) {
-      return { name, status: 'missing', detail: e.message };
+      if (unboundIn(e, name) || name in KEYWORD_USES) {
+        return { name, status: 'missing', detail: String(e.message).slice(0, 90) };
+      }
     }
+    return { name, status: 'assumed', detail: 'syntax (not probed at runtime)' };
   }
 
   try {
-    run(name);
+    run(`(eval '${name} ${environment})`);
     return { name, status: 'bound', detail: '' };
   } catch (e) {
     return { name, status: 'missing', detail: String(e.message).slice(0, 90) };
   }
+}
+
+/**
+ * A form using each keyword that only another form takes, which a keyword
+ * heading a form of its own would not show: it is an error to use it so,
+ * whether it is bound or not.
+ */
+const KEYWORD_USES = {
+  'else': '(cond (else 1))',
+  '=>': '(cond (1 => (lambda (x) x)))',
+  '...': '(let-syntax ((m (syntax-rules () ((m x ...) (list x ...))))) (m 1 2))',
+  '_': '(let-syntax ((m (syntax-rules () ((m _) 1)))) (m 2))',
+  'syntax-rules': '(let-syntax ((m (syntax-rules () ((m) 1)))) (m))',
+  'unquote': '(quasiquote ((unquote 1)))',
+  'unquote-splicing': '(quasiquote ((unquote-splicing (list 1))))'
+};
+
+/**
+ * Whether an error says a name is unbound.
+ * @param {Error} e - The error.
+ * @param {string} name - The name.
+ * @returns {boolean}
+ */
+function unboundIn(e, name) {
+  return String(e.message).endsWith(`unbound variable: ${name}`);
 }
 
 /**
@@ -171,15 +213,17 @@ const UNSAFE_TO_CALL = new Set([
  * regardless of input. A stub reports "not supported" for every call; a real
  * procedure reports an arity or type error instead.
  * @param {function(string): *} run - Source evaluator.
+ * @param {string} environment - The top-level name of the environment it is
+ *   bound in.
  * @param {string} name - A bound procedure name.
  * @returns {string|null} A stub message, or null if the procedure looks real
  *   or was not safe to probe.
  */
-function detectStub(run, name, unprefixed = name) {
-  if (UNSAFE_TO_CALL.has(unprefixed)) return null;
+function detectStub(run, environment, name) {
+  if (UNSAFE_TO_CALL.has(name)) return null;
   const STUB_PATTERN = /not (supported|implemented)|immutable in this implementation|unsupported/i;
   try {
-    run(`(${name})`);
+    run(`(eval '(${name}) ${environment})`);
     return null;
   } catch (e) {
     const message = String(e.message);
@@ -215,9 +259,9 @@ function main() {
 
   const groups = [
     { library: '(scheme base)', names: SCHEME_BASE, syntax: false },
-    { library: '(scheme base) [syntax]', names: SCHEME_BASE_SYNTAX, syntax: true },
+    { library: '(scheme base)', label: '(scheme base) [syntax]', names: SCHEME_BASE_SYNTAX, syntax: true },
     ...Object.entries(OTHER_LIBRARIES).map(([library, names]) => ({ library, names, syntax: false })),
-    { library: '(scheme r5rs)', names: SCHEME_R5RS, syntax: false, prefix: R5RS_PREFIX, syntaxNames: R5RS_SYNTAX }
+    { library: '(scheme r5rs)', names: SCHEME_R5RS, syntax: false, syntaxNames: R5RS_SYNTAX }
   ];
 
   const missing = [];
@@ -237,27 +281,28 @@ function main() {
   }
 
   for (const group of groups) {
+    const label = group.label ?? group.library;
+    const environment = environmentOf(group.library);
     const groupMissing = [];
     for (const name of group.names) {
       const isSyntax = group.syntax || NON_BASE_SYNTAX.has(name) || (group.syntaxNames?.has(name) ?? false);
-      const probed = (group.prefix ?? '') + name;
-      const result = quietly(() => probe(run, probed, isSyntax));
+      const result = quietly(() => probe(run, environment, name, isSyntax));
       if (result.status === 'missing') {
         groupMissing.push(result);
-        missing.push({ ...result, library: group.library });
+        missing.push({ ...result, library: label });
       } else if (result.status === 'assumed') {
         assumed++;
       } else {
         bound++;
-        const stub = quietly(() => detectStub(run, probed, name));
-        if (stub) stubs.push({ name, library: group.library, detail: stub });
+        const stub = quietly(() => detectStub(run, environment, name));
+        if (stub) stubs.push({ name, library: label, detail: stub });
       }
     }
     const total = group.names.length;
     const ok = total - groupMissing.length;
     const notImported = unavailableNames.has(group.library) ? '  [library not importable]' : '';
     const flag = (groupMissing.length === 0 ? 'complete' : `${groupMissing.length} MISSING`) + notImported;
-    console.log(`  ${group.library.padEnd(26)} ${String(ok).padStart(3)}/${String(total).padEnd(3)}  ${flag}`);
+    console.log(`  ${label.padEnd(26)} ${String(ok).padStart(3)}/${String(total).padEnd(3)}  ${flag}`);
     if (verbose && groupMissing.length > 0) {
       for (const m of groupMissing) console.log(`      - ${m.name}`);
     }

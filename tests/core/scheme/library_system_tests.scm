@@ -132,13 +132,17 @@
 ;;  * @returns {loader}
 ;;  */
 (define (loader-over files . asked)
-  (make-loader (make-library-registry #f #f '(r7rs))
-               (lambda (path)
-                 (if (pair? asked) ((car asked) path))
-                 (cond ((assoc path files) => cdr)
-                       (else (error "no such file" path))))
-               (interaction-environment)
-               (lambda (form env) (eval form env))))
+  (let ((registry (make-library-registry #f #f '(r7rs))))
+    ;; A library sees only what it imports, so the test libraries that add
+    ;; import `+` from a library of the registry's own.
+    (register-exports! registry "test.arithmetic" (list (cons '+ +)) #f)
+    (make-loader registry
+                 (lambda (path)
+                   (if (pair? asked) ((car asked) path))
+                   (cond ((assoc path files) => cdr)
+                         (else (error "no such file" path))))
+                 (interaction-environment)
+                 (lambda (form env) (eval form env)))))
 
 ;; The value a library exports under a name, loading it if need be.
 (define (exported loader name key)
@@ -146,12 +150,12 @@
 
 (define test-files
   '((("test" "a") . "(define-library (test a) (export x (rename y z)) (begin (define x 1) (define y 2)))")
-    (("test" "b") . "(define-library (test b) (export w) (import (prefix (test a) a:)) (include \"b.scm\") (begin (define w0 10)))")
+    (("test" "b") . "(define-library (test b) (export w) (import (prefix (test a) a:) (test arithmetic)) (include \"b.scm\") (begin (define w0 10)))")
     (("test" "b.scm") . "(define w (+ w0 a:x a:z))")
     (("test" "ci") . "(define-library (test ci) (export ci-value) (include-ci \"ci.scm\"))")
     (("test" "ci.scm") . "(DEFINE CI-VALUE 'Folded)")
     (("test" "decls") . "(define-library (test decls) (include-library-declarations \"decls.scm\"))")
-    (("test" "decls.scm") . "(export d) (import (only (test a) x)) (begin (define d (+ x 100)))")
+    (("test" "decls.scm") . "(export d) (import (only (test a) x) (test arithmetic)) (begin (define d (+ x 100)))")
     (("test" "probe") . "(define-library (test probe) (export found liar missing)
                            (cond-expand ((library (test a)) (begin (define found 'yes))) (else (begin (define found 'no))))
                            (cond-expand ((library (test liar)) (begin (define liar 'yes))) (else (begin (define liar 'no))))
@@ -229,9 +233,11 @@
   ;; A loader that has at hand only the files named, of the test files, and
   ;; answers #f for any other, as one waiting for a fetch does.
   (define (loader-with paths)
-    (make-loader (make-library-registry #f #f '(r7rs))
-                 (lambda (path) (and (member path paths) (cdr (assoc path test-files))))
-                 #f #f))
+    (let ((registry (make-library-registry #f #f '(r7rs))))
+      (register-exports! registry "test.arithmetic" (list (cons '+ +)) #f)
+      (make-loader registry
+                   (lambda (path) (and (member path paths) (cdr (assoc path test-files))))
+                   #f #f)))
   (define (wanted paths name) (files-wanted (loader-with paths) name))
   (test "with nothing at hand, the library's own file" '(("test" "b")) (wanted '() '(test b)))
   (test "with that, the files of what it imports, then what it includes"

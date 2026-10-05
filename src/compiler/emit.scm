@@ -484,17 +484,27 @@
     (symbol->string name)))
 
 ;; /**
+;;  * The globals the lowering itself introduces, which are the runtime's
+;;  * primitives whatever the environment binds under their names
+;;  * (`lower-call-with-values` in ir.scm), each with what reads it.
+;;  */
+(define runtime-globals
+  '((%apply . "R.applyProcedure") (%values->list . "R.valuesToList")))
+
+;; /**
 ;;  * The JavaScript expression that reads a global: its cell's value, or, before
 ;;  * the first read resolves the cell -- or when the value is `null` or
 ;;  * `undefined`, which the cell cannot tell from unresolved -- its resolver's
-;;  * answer. See `R.globalCell` for why a global is read through a cell.
+;;  * answer. See `R.globalCell` for why a global is read through a cell. One
+;;  * the lowering introduced is read from the runtime (`runtime-globals`).
 ;;  * @param {unit} u - The unit.
 ;;  * @param {symbol} name - The global.
 ;;  * @returns {string} The expression.
 ;;  */
 (define (global-read u name)
-  (let ((i (global-index u name)))
-    (string-append "(C" i ".v ?? G" i "())")))
+  (cond ((assq name runtime-globals) => cdr)
+        (else (let ((i (global-index u name)))
+                (string-append "(C" i ".v ?? G" i "())")))))
 
 ;; /**
 ;;  * A global's position in the unit's list, which numbers its accessor.

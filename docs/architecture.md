@@ -237,7 +237,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── string.js           # String operations
 │       │   ├── string_class.js     # SchemeString: a string that may be changed, holding a JS string until it is
 │       │   ├── vector.js           # Vector operations
-│       │   ├── control.js          # apply, map, call/cc
+│       │   ├── control.js          # map, call/cc, eval, dynamic-wind
+│       │   ├── apply.js            # apply and %values->list, which compiled call-with-values calls through the runtime
 │       │   ├── char.js             # Character predicates and operations
 │       │   ├── complex.js          # Complex number support
 │       │   ├── rational.js         # Rational number support
@@ -480,7 +481,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 3. **`src/lib/`**: (Future) Additional R7RS libraries built on-top of the core.
 4. **Tests mirror source**: `tests/core/` tests `src/core/`.
 5. **Split Stepables**: AST nodes in `ast_nodes.js`, frames in `frames.js`, shared base in `stepables_base.js`.
-6. **The library system is Scheme**: `(scheme-js library-system)` parses libraries, keeps the registries, loads and imports libraries, and keeps the closures run compiled for a debugger to run as themselves. Its seed (`library_seed.js`) loads it, with `(scheme core)` and `(scheme control)`, from the bundled sources onto an interpreter of its own, apart from every program, installing their prebuilt tables so that it runs compiled; `library_registry.js` and `library_loader.js` are the JavaScript API, which calls it; `primitives/library.js` is what it needs of the host.
+6. **The library system is Scheme**: `(scheme-js library-system)` parses libraries, keeps the registries, loads and imports libraries, and keeps the closures run compiled for a debugger to run as themselves. Its seed (`library_seed.js`) loads it, with `(scheme core)` and `(scheme control)`, from the bundled sources onto an interpreter of its own, apart from every program, installing their prebuilt tables so that it runs compiled; `library_registry.js` and `library_loader.js` are the JavaScript API, which calls it; `primitives/library.js` is what it needs of the host. A library's environment, and one `environment` makes, holds its imports and nothing else (R7RS 5.6.1): it has no parent (`makeScopedEnvironment` in `primitives/library.js`), the primitives reach it through `(scheme primitives)`, which exports every one, and a macro is found by name only where something imported it. A name bound nowhere still falls back to JavaScript's globals, as it does in a program.
 7. **Modular Analyzer**: `analyzer.js` acts as a dispatcher to themed handlers in `analyzers/`, ensuring the analysis phase is extensible and isolated.
 8. **Minimal Bootstrap**: Scheme libraries define what's needed to load `(scheme base)`.
 9. **Self-hosting where it pays**: the compiler's lowering pass is Scheme, and the

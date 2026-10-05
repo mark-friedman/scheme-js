@@ -4,7 +4,9 @@
 ;; Provides js-eval, js-ref (property access), and js-set! (property mutation).
 
 (define-library (scheme-js interop)
-  (import (scheme base))
+  (import (scheme base)
+          (only (scheme primitives) js-eval js-ref js-set! js-invoke js-obj js-obj-merge
+                js-typeof js-undefined js-undefined? js-null js-null? js-new))
   (export
     js-eval
     js-ref

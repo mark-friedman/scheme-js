@@ -283,75 +283,14 @@ export function applyImports(env, exports, importSpec) {
 // =============================================================================
 
 /**
- * Creates (scheme primitives) exports from the global environment.
- * 
+ * Creates (scheme primitives) exports from the global environment: every
+ * binding it holds, which, made as an interpreter is, is every primitive. A
+ * library sees only what it imports (R7RS 5.6.1), so a primitive missing from
+ * here would be unreachable from Scheme but by a program's top level.
+ *
  * @param {Environment} globalEnv - The global environment with primitives
  * @returns {Map<string, *>} The exports map
  */
 export function createPrimitiveExports(globalEnv) {
-    const exports = new Map();
-
-    // List of (scheme primitives) exports
-    // This MUST match what is actually installed in the global environment by primitives/index.js
-    const primitiveExports = [
-        // Equivalence
-        'eq?', 'eqv?', 'not', 'boolean?', 'boolean=?', 'symbol?',
-        // Math - basic arithmetic
-        '+', '-', '*', '/',
-        // Math - binary comparisons (used by core.scm to build variadic versions)
-        '%num=', '%num<', '%num>', '%num<=', '%num>=',
-        // Math - integer division
-        'modulo', 'quotient', 'remainder',
-        // Math - type predicates
-        'number?', 'real?', 'rational?', 'integer?', 'exact-integer?',
-        'finite?', 'infinite?', 'nan?',
-        // Math - functions requiring Math.*
-        'abs', 'floor', 'ceiling', 'truncate', 'round',
-        'expt', 'sqrt', 'square', 'exact-integer-sqrt',
-        'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'exp',
-        'exact', 'inexact', 'inexact->exact',
-        'numerator', 'denominator',
-        'make-rectangular', 'make-polar', 'real-part', 'imag-part', 'magnitude', 'angle',
-        // Pairs and lists
-        'cons', 'car', 'cdr', 'pair?', 'null?', 'list?',
-        'set-car!', 'set-cdr!',
-        'list', 'append',
-        // Symbols
-        'symbol->string', 'string->symbol',
-        // Strings
-        'string?', 'string-append', 'number->string',
-        // Vectors
-        'vector?', 'make-vector', 'vector', 'vector-length',
-        'vector-ref', 'vector-set!',
-        'vector->list', 'list->vector',
-        // Records (Low-level primitives for define-record-type)
-        'make-record-type', 'record-constructor', 'record-predicate',
-        'record-accessor', 'record-modifier',
-        // Control
-        'apply', 'values', 'call-with-values',
-        'eval', 'interaction-environment',
-        'dynamic-wind',
-        'call-with-current-continuation', 'call/cc',
-        'procedure?',
-        // Exceptions
-        'raise', 'raise-continuable', 'with-exception-handler',
-        'error', 'error-object?', 'error-object-message', 'error-object-irritants',
-        // JS Interop
-        'scheme->js', 'scheme->js-deep',
-        'js->scheme', 'js->scheme-deep',
-        'register-js-object-record',
-        'js-ref', 'js-set!',
-    ];
-
-    for (const name of primitiveExports) {
-        // Use findEnv to check if binding exists without throwing
-        if (globalEnv.findEnv(name) !== null) {
-            exports.set(name, globalEnv.lookup(name));
-        } else {
-            // Warn about missing primitives that we expect to be there
-            console.warn(`Warning: (scheme primitives) claims export '${name}' but it is not in the global environment.`);
-        }
-    }
-
-    return exports;
+    return new Map(globalEnv.bindings);
 }

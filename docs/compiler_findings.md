@@ -3350,3 +3350,22 @@ frames it went on with differed with the tier, hence two symptoms.
 
 *Consequence:* a continuation captured in a run that is still going, invoked in it, now stays in it
 (`invokeContinuationFrom` in `frames.js`). SRFI 135 loads, all 82 exports.
+
+**R116. The R7RS-small audit said the libraries were complete; eleven names were missing from
+them, and three keywords from the system.**
+
+Task 56 closed on `scripts/audit_r7rs.js` reporting every identifier of every R7RS-small library
+bound. It probed them all at one top level that imported every library -- and every top level sat
+inside the global environment, which holds every primitive (R114) -- so a name a library failed to
+export was found anyway, among the primitives. And it probed a keyword by quoting it, which
+succeeds for any name. Once a library saw only what it imported (85), loading the libraries and
+probing each in an environment of it alone found `(scheme char)` exporting none of its eight string
+procedures (`string-ci=?` and the rest, `string-upcase`, `string-downcase`, `string-foldcase`), and
+`(scheme base)` exporting neither `string-copy!`, `string-set!` and `string-fill!` nor `features`,
+`file-error?` and `read-error?`: all bound as primitives, none reachable from a library or from an
+environment of import sets. Probing a keyword by using it found `syntax-error` implemented nowhere,
+and `include` and `include-ci` only as library declarations, not as the expression and definition
+forms R7RS 4.1.7 makes them.
+
+*Consequence:* the eleven are exported; the audit probes each library in `(environment 'L)` and each
+keyword by a form using it; the three keywords are a task of their own (87).

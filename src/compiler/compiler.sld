@@ -22,6 +22,7 @@
 
 (define-library (scheme-js compiler)
   (import (scheme base)
+          (only (scheme primitives) emergency-exit eval exit)
           (scheme char)
           (scheme cxr)
           (srfi 1)

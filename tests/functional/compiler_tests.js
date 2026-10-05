@@ -821,7 +821,13 @@ const VALUES_CASES = [
     '(begin (f) order)', '(2 1)'],
   // A local of the same name is not the primitive, so the rewrite must not fire.
   ['shadowed by a local binding',
-    '(define (f call-with-values) (call-with-values 7))', '(f (lambda (x) (* x 3)))', '21']
+    '(define (f call-with-values) (call-with-values 7))', '(f (lambda (x) (* x 3)))', '21'],
+  // What the rewrite calls are the primitives, read from the runtime: an
+  // environment need not bind them -- a library sees only what it imports --
+  // and what it binds under their names is its own.
+  ['the environment\'s own apply and %values->list are not what the rewrite calls',
+    '(define (apply . xs) (quote mine)) (define (%values->list . xs) (quote mine))'
+    + '(define (f) (call-with-values (lambda () (values 1 2)) +))', '(f)', '3']
 ];
 
 /**

@@ -5,7 +5,10 @@
 ;; in a CPS-style that preserves TCO within callback segments.
 
 (define-library (scheme-js promise)
-  (import (scheme base))
+  (import (scheme base)
+          (only (scheme primitives) js-promise? make-js-promise js-promise-resolve
+                js-promise-reject js-promise-then js-promise-catch js-promise-finally
+                js-promise-all js-promise-race js-promise-all-settled))
   (export 
     ;; Predicates
     js-promise?

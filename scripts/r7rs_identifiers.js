@@ -66,8 +66,7 @@ export const SCHEME_BASE = [
 /** Syntactic keywords exported by `(scheme base)`. Probed differently. */
 export const SCHEME_BASE_SYNTAX = [
   'and', 'begin', 'case', 'cond', 'cond-expand', 'define',
-  'define-record-type', 'define-syntax', 'define-values', 'delay',
-  'delay-force', 'do', 'else', 'guard', 'if', 'include', 'include-ci',
+  'define-record-type', 'define-syntax', 'define-values', 'do', 'else', 'guard', 'if', 'include', 'include-ci',
   'lambda', 'let', 'let*', 'let*-values', 'let-syntax', 'let-values',
   'letrec', 'letrec*', 'letrec-syntax', 'or', 'parameterize', 'quasiquote',
   'quote', 'set!', 'syntax-error', 'syntax-rules', 'unless', 'unquote',

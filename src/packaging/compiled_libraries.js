@@ -25,7 +25,7 @@ import { Char } from '../core/primitives/char_class.js';
 export const LIBRARIES = {
   "scheme-js.js-conversion": {
     fingerprint: "47a51ec1",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["js-conversion.sld"],
     procedures: {
       "make-js-object": {
@@ -66,8 +66,8 @@ export const LIBRARIES = {
     ]
   },
   "scheme-js.library-system": {
-    fingerprint: "525b995a",
-    runtime: "226117ea",
+    fingerprint: "4e6d5d27",
+    runtime: "83f8be9c",
     files: ["library-system.sld","library_system.scm"],
     procedures: {
       "append-each": {
@@ -9688,8 +9688,8 @@ export const LIBRARIES = {
     ]
   },
   "scheme-js.promise": {
-    fingerprint: "5eff2920",
-    runtime: "226117ea",
+    fingerprint: "0daa230e",
+    runtime: "83f8be9c",
     files: ["promise.sld","promise.scm"],
     procedures: {
       "js-promise-map": {
@@ -9811,7 +9811,7 @@ export const LIBRARIES = {
   },
   "scheme.case-lambda": {
     fingerprint: "dd9d041d",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["case-lambda.sld","case_lambda.scm"],
     procedures: {
 
@@ -9823,7 +9823,7 @@ export const LIBRARIES = {
   },
   "scheme.control": {
     fingerprint: "0d0c0d7e",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["control.sld","control.scm"],
     procedures: {
 
@@ -9842,7 +9842,7 @@ export const LIBRARIES = {
   },
   "scheme.core": {
     fingerprint: "cf794da8",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["core.sld","macros.scm","equality.scm","cxr.scm","numbers.scm","list.scm","parameter.scm","ports.scm"],
     procedures: {
       "equal?": {
@@ -20570,7 +20570,6 @@ export const LIBRARIES = {
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "close-port")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "apply")).v;
         let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "values")).v;
-        let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "%values->list")).v;
         function $mk$fn16(s_proc_$1061, s_port_$1060) {
           const $fn16 = { "anonymous": function () {
             let $t0, $t1;
@@ -20686,9 +20685,9 @@ export const LIBRARIES = {
           $t12;
           $t17 = $mk$fn16(s_proc_$1061, s_port_$1060);
           s__25cwv0 = $t17;
-          $t18 = (C5.v ?? G5());
+          $t18 = R.applyProcedure;
           $t20 = $mk$fn19(s_port_$1060);
-          $t21 = (C7.v ?? G7());
+          $t21 = R.valuesToList;
           $t22 = s__25cwv0;
           if (typeof $t22 !== 'function') $notProc($t22);
           $t23 = $t22[$RAW];
@@ -20774,9 +20773,9 @@ export const LIBRARIES = {
                 $t12;
                 $t17 = $mk$fn16(s_proc_$1061, s_port_$1060);
                 s__25cwv0 = $t17;
-                $t18 = (C5.v ?? G5());
+                $t18 = R.applyProcedure;
                 $t20 = $mk$fn19(s_port_$1060);
-                $t21 = (C7.v ?? G7());
+                $t21 = R.valuesToList;
                 $t22 = s__25cwv0;
                 if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
@@ -23991,7 +23990,6 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "close-port")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "apply")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "values")).v;
-        let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "%values->list")).v;
         function $mk$fn11_7(s_thunk_$1120) {
           const $fn11_7 = { "anonymous": function () {
             let $t0, $t1;
@@ -24158,9 +24156,9 @@ export const LIBRARIES = {
           s_port_$1121 = $t10;
           $t12 = $mk$fn11(s_port_$1121, s_thunk_$1120);
           s__25cwv0 = $t12;
-          $t13 = (C8.v ?? G8());
+          $t13 = R.applyProcedure;
           $t15 = $mk$fn14(s_port_$1121);
-          $t16 = (C10.v ?? G10());
+          $t16 = R.valuesToList;
           $t17 = s__25cwv0;
           if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
@@ -24230,9 +24228,9 @@ export const LIBRARIES = {
                 s_port_$1121 = $t10;
                 $t12 = $mk$fn11(s_port_$1121, s_thunk_$1120);
                 s__25cwv0 = $t12;
-                $t13 = (C8.v ?? G8());
+                $t13 = R.applyProcedure;
                 $t15 = $mk$fn14(s_port_$1121);
-                $t16 = (C10.v ?? G10());
+                $t16 = R.valuesToList;
                 $t17 = s__25cwv0;
                 if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
@@ -24283,7 +24281,6 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "close-port")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "apply")).v;
         let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "values")).v;
-        let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "%values->list")).v;
         function $mk$fn11_7(s_thunk_$1124) {
           const $fn11_7 = { "anonymous": function () {
             let $t0, $t1;
@@ -24450,9 +24447,9 @@ export const LIBRARIES = {
           s_port_$1125 = $t10;
           $t12 = $mk$fn11(s_port_$1125, s_thunk_$1124);
           s__25cwv0 = $t12;
-          $t13 = (C8.v ?? G8());
+          $t13 = R.applyProcedure;
           $t15 = $mk$fn14(s_port_$1125);
-          $t16 = (C10.v ?? G10());
+          $t16 = R.valuesToList;
           $t17 = s__25cwv0;
           if (typeof $t17 !== 'function') $notProc($t17);
           $t18 = $t17[$RAW];
@@ -24522,9 +24519,9 @@ export const LIBRARIES = {
                 s_port_$1125 = $t10;
                 $t12 = $mk$fn11(s_port_$1125, s_thunk_$1124);
                 s__25cwv0 = $t12;
-                $t13 = (C8.v ?? G8());
+                $t13 = R.applyProcedure;
                 $t15 = $mk$fn14(s_port_$1125);
-                $t16 = (C10.v ?? G10());
+                $t16 = R.valuesToList;
                 $t17 = s__25cwv0;
                 if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
@@ -24687,8 +24684,8 @@ export const LIBRARIES = {
     ]
   },
   "scheme.eval": {
-    fingerprint: "d9d746c9",
-    runtime: "226117ea",
+    fingerprint: "57557cf9",
+    runtime: "83f8be9c",
     files: ["eval.sld"],
     procedures: {
       "environment": {
@@ -24728,7 +24725,7 @@ export const LIBRARIES = {
   },
   "scheme.lazy": {
     fingerprint: "552f3931",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["lazy.sld","lazy.scm"],
     procedures: {
       "promise?": {
@@ -25128,7 +25125,7 @@ export const LIBRARIES = {
   },
   "scheme.load": {
     fingerprint: "17b0c762",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["load.sld","load.scm"],
     procedures: {
 
@@ -25139,7 +25136,7 @@ export const LIBRARIES = {
   },
   "scheme.r5rs": {
     fingerprint: "1ff030ca",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["r5rs.sld","r5rs.scm"],
     procedures: {
       "scheme-report-environment": {
@@ -25330,7 +25327,7 @@ export const LIBRARIES = {
   },
   "srfi.1": {
     fingerprint: "bd2a2c03",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["1.sld","list_lib.scm"],
     procedures: {
       "check-procedure": {
@@ -33923,8 +33920,6 @@ export const LIBRARIES = {
         let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "member")).v;
         let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "cons")).v;
         const W8 = R.primitiveCell("cons"), P8 = W8.primitive;
-        let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "apply")).v;
-        let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "%values->list")).v;
         function $mk$fn3_0(s__3d_$1498, s_a_$1501, s_b_$1500) {
           const $fn3_0 = { "anonymous": function () {
             let $t0, $t1;
@@ -34053,9 +34048,9 @@ export const LIBRARIES = {
             if ($d < 0 && $stack.flushable) return $flush($fn3$js, [s_b_$1500, s_a_$1501]);
             $t1 = $mk$fn3_0(s__3d_$1498, s_a_$1501, s_b_$1500);
             s__25cwv0 = $t1;
-            $t2 = (C9.v ?? G9());
+            $t2 = R.applyProcedure;
             $t4 = $mk$fn3_3(s__3d_$1498, s_b_$1500, s_a_$1501);
-            $t5 = (C10.v ?? G10());
+            $t5 = R.valuesToList;
             $t6 = s__25cwv0;
             if (typeof $t6 !== 'function') $notProc($t6);
             $t7 = $t6[$RAW];
@@ -34082,9 +34077,9 @@ export const LIBRARIES = {
                 case 0:
                   $t1 = $mk$fn3_0(s__3d_$1498, s_a_$1501, s_b_$1500);
                   s__25cwv0 = $t1;
-                  $t2 = (C9.v ?? G9());
+                  $t2 = R.applyProcedure;
                   $t4 = $mk$fn3_3(s__3d_$1498, s_b_$1500, s_a_$1501);
-                  $t5 = (C10.v ?? G10());
+                  $t5 = R.valuesToList;
                   $t6 = s__25cwv0;
                   if (typeof $t6 !== 'function') $notProc($t6);
                   $t7 = $t6[$RAW];
@@ -34174,8 +34169,6 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "any")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "member")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "values")).v;
-        let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "apply")).v;
-        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "%values->list")).v;
         function $mk$fn3_0_0(s_x_$1509, s__3d_$1506) {
           const $fn3_0_0 = { "anonymous": function (s_other_$1510) {
             let $t0, $t1;
@@ -34284,9 +34277,9 @@ export const LIBRARIES = {
           $t2;
           $t4 = $mk$fn3(s__3d_$1506, s_lists_$1508, s_l_$1507);
           s__25cwv0 = $t4;
-          $t5 = (C5.v ?? G5());
+          $t5 = R.applyProcedure;
           $t7 = $mk$fn6();
-          $t8 = (C6.v ?? G6());
+          $t8 = R.valuesToList;
           $t9 = s__25cwv0;
           if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
@@ -34324,9 +34317,9 @@ export const LIBRARIES = {
                 $t2;
                 $t4 = $mk$fn3(s__3d_$1506, s_lists_$1508, s_l_$1507);
                 s__25cwv0 = $t4;
-                $t5 = (C5.v ?? G5());
+                $t5 = R.applyProcedure;
                 $t7 = $mk$fn6();
-                $t8 = (C6.v ?? G6());
+                $t8 = R.valuesToList;
                 $t9 = s__25cwv0;
                 if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
@@ -34627,8 +34620,8 @@ export const LIBRARIES = {
     ]
   },
   "srfi.125": {
-    fingerprint: "d76cb074",
-    runtime: "226117ea",
+    fingerprint: "172c753c",
+    runtime: "83f8be9c",
     files: ["125.sld","hash_table.scm"],
     procedures: {
       "native-kind": {
@@ -37060,8 +37053,6 @@ export const LIBRARIES = {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-from")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "put!")).v;
-        let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
-        let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "%values->list")).v;
         function $mk$fn3_3(s_mapper_$1779, s_seed_$1786) {
           const $fn3_3 = { "anonymous": function () {
             let $t0, $t1;
@@ -37165,9 +37156,9 @@ export const LIBRARIES = {
             } else {
               $t4 = $mk$fn3_3(s_mapper_$1779, s_seed_$1786);
               s__25cwv0 = $t4;
-              $t5 = (C2.v ?? G2());
+              $t5 = R.applyProcedure;
               $t7 = $mk$fn3_6(s_ht_$1784, s_loop_$1785, s_successor_$1780, s_seed_$1786);
-              $t8 = (C3.v ?? G3());
+              $t8 = R.valuesToList;
               $t9 = s__25cwv0;
               if (typeof $t9 !== 'function') $notProc($t9);
               $t10 = $t9[$RAW];
@@ -37210,9 +37201,9 @@ export const LIBRARIES = {
                 case 3:
                   $t4 = $mk$fn3_3(s_mapper_$1779, s_seed_$1786);
                   s__25cwv0 = $t4;
-                  $t5 = (C2.v ?? G2());
+                  $t5 = R.applyProcedure;
                   $t7 = $mk$fn3_6(s_ht_$1784, s_loop_$1785, s_successor_$1780, s_seed_$1786);
-                  $t8 = (C3.v ?? G3());
+                  $t8 = R.valuesToList;
                   $t9 = s__25cwv0;
                   if (typeof $t9 !== 'function') $notProc($t9);
                   $t10 = $t9[$RAW];
@@ -44029,8 +44020,8 @@ export const LIBRARIES = {
     ]
   },
   "srfi.128": {
-    fingerprint: "4fbea5c8",
-    runtime: "226117ea",
+    fingerprint: "57113b86",
+    runtime: "83f8be9c",
     files: ["128.sld","comparator.scm"],
     procedures: {
       "any?": {
@@ -49902,8 +49893,8 @@ export const LIBRARIES = {
     ]
   },
   "srfi.151": {
-    fingerprint: "91647030",
-    runtime: "226117ea",
+    fingerprint: "5b4e045c",
+    runtime: "83f8be9c",
     files: ["151.sld","bitwise.scm"],
     procedures: {
       "check-integer": {
@@ -55332,7 +55323,7 @@ export const LIBRARIES = {
   },
   "srfi.152": {
     fingerprint: "eecece92",
-    runtime: "226117ea",
+    runtime: "83f8be9c",
     files: ["152.sld","string_lib.scm"],
     procedures: {
       "string-check-procedure": {

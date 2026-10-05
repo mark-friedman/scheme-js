@@ -17,7 +17,10 @@
 ;; library's file by the last part of its name.
 
 (define-library (scheme-js library-system)
-  (import (scheme core)
+  ;; The runtime's procedures first, so that `(scheme core)`'s and `(scheme
+  ;; control)`'s of the same names are the ones bound.
+  (import (scheme primitives)
+          (scheme core)
           (scheme control))
   (export
     ;; define-library

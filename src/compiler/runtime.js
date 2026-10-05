@@ -27,6 +27,10 @@ import { Cons } from '../core/interpreter/cons.js';
 // Kept by the interpreter, which sees every binding write; generated code only
 // reads a cell, once per inlined primitive.
 import { primitiveCell } from '../core/interpreter/primitive_bindings.js';
+// What compiled code makes `call-with-values` of (`lower-call-with-values` in
+// ir.scm): the primitives themselves, whatever the environment the code runs
+// in binds under their names.
+export { applyProcedure, valuesToList } from '../core/primitives/apply.js';
 
 export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, SchemeError, primitiveCell, callForeign };
 

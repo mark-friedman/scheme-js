@@ -3,9 +3,8 @@
 ;; Provides the interaction environment for REPL use.
 
 (define-library (scheme repl)
-  (import (scheme base))
+  (import (only (scheme primitives) interaction-environment))
   (export interaction-environment)
   (begin
-    ;; interaction-environment is already a primitive in our system
-    ;; so we just re-export it.
+    ;; The runtime's primitive, re-exported.
   ))

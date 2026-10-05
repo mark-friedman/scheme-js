@@ -12,7 +12,9 @@
 (define-library (srfi 128)
   (import (scheme base)
           (scheme char)
-          (scheme complex))
+          (scheme complex)
+          (only (scheme primitives) %hash-bound %hash-salt %identity-hash
+                number-hash string-hash string-ci-hash))
   (export
     ;; Predicates
     comparator? comparator-ordered? comparator-hashable?

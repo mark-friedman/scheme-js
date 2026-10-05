@@ -19,6 +19,10 @@
     
     ;; Digit value
     digit-value
+
+    ;; Strings, compared and converted without regard to case
+    string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
+    string-upcase string-downcase string-foldcase
   )
   
   (begin

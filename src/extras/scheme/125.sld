@@ -10,6 +10,10 @@
 (define-library (srfi 125)
   (import (scheme base)
           (scheme case-lambda)
+          (only (scheme char) string-ci=?)
+          (only (scheme primitives) %make-hash-store %hash-store-ref %hash-store-set!
+                %hash-store-delete! %hash-store-contains? %hash-store-size %hash-store-keys
+                %hash-store-values %hash-store-clear! %hash-store-copy %hash-store-some-key)
           (srfi 128))
   (export
     ;; Constructors

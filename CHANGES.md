@@ -11913,3 +11913,62 @@ exception handler, as `guard` makes. Both failed before the fix, the JavaScript'
 
 7,779 tests pass in Node with none failing (33 skipped), and 7,559 in the browser with none
 failing (55 skipped). `run_tier.js --set corpus` finds nothing changed.
+
+# Task 85, libraries: a library sees only what it imports (2026-10-04)
+
+R114 found that imports hid nothing: every library's environment was inside the global one, which
+holds every primitive, and an operator bound nowhere was looked up among the macros defined for the
+whole process. Decided with the user: libraries strict, and programs that begin with `import`
+declarations strict, the REPLs and programs without imports as before. This is the libraries' half.
+
+A library's environment, and one `environment` makes, now has no parent (`makeScopedEnvironment` in
+`primitives/library.js`), and is registered with the interpreter it runs on (`shareInterpreter` in
+`values.js`), which a compiled procedure finds through its environment. A macro is found by name only
+where something imported it (`operatorKeyword` in `syntax_object.js`). `(scheme primitives)` exports
+every primitive rather than a list, and the standard libraries and SRFIs import from it what they
+use, each as an `only` list. A name bound nowhere still falls back to JavaScript's globals, as in a
+program.
+
+What being strict found:
+
+- `(scheme char)` exported none of its eight string procedures, and `(scheme base)` neither
+  `string-copy!`, `string-set!`, `string-fill!` nor `features`, `file-error?`, `read-error?` -- all
+  bound as primitives and reached until now only because everything was (R116). Exported.
+- `(scheme eval)`'s `eval` was JavaScript's `globalThis.eval` once the primitive was not inherited;
+  the library imports the primitive.
+- Compiled `call-with-values`, which the compiler rewrites as `(apply c (%values->list (p)))`, read
+  both from the library's environment, so a library that did not import `apply` failed when compiled
+  (`srfi_1_tests`, `srfi_125_tests` and three `(rapid ...)` programs in `run_tier.js`). The rewrite
+  now reads the primitives from the runtime (`runtime-globals` in `emit.scm`, `apply.js`, moved out
+  of `control.js`), so a library's own `apply` is not what it calls either.
+- The library system's tests defined libraries that used `+` without importing it; they import a
+  test library that exports it.
+
+`scripts/audit_r7rs.js` probes each library in an environment of it alone, and each keyword by a
+form that uses it, where it probed everything at one top level and keywords by quoting them. It
+reports every library complete but three keywords: `syntax-error`, and `include` and `include-ci` as
+forms (87). Its list of `(scheme base)`'s keywords no longer includes `delay` and `delay-force`, which
+are `(scheme lazy)`'s.
+
+Compared, for the user, with Gambit 4.9.5 and Racket's `#lang r7rs`: Racket is strict for programs
+and libraries; Gambit for libraries -- an unimported name is unbound when called -- not programs, and
+has no `environment`.
+
+JavaScript, 136 lines added and 136 removed under `src/`: `apply.js` is `apply` and `%values->list`
+moved from `control.js`, for the runtime to export (code generation); `makeScopedEnvironment`,
+`shareInterpreter` and `rootOf` are the value representations and the evaluator's environments;
+`createPrimitiveExports` lost the list it kept.
+
+## Tests
+
+`strict_library_tests.scm`: a library calling a primitive it did not import, or using a macro the
+program defined, raises; `call-with-values` works in a library that excludes `apply` and defines its
+own; an `environment` of `(scheme char)` has no `car`, no program macro and no `(scheme base)` macro,
+and `(scheme base)`'s has `features`, `file-error?` and `read-error?`. `compiler_tests.js`: compiled
+`call-with-values` calls the primitives when the environment binds its own `apply` and
+`%values->list`.
+
+## Verification
+
+7,789 tests pass in Node with none failing (33 skipped), and 7,570 in the browser with none
+failing (55 skipped). `run_tier.js --set all` runs every program.

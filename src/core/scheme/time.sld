@@ -3,7 +3,8 @@
 ;; R7RS time procedures using JavaScript Date.
 
 (define-library (scheme time)
-  (import (scheme base))
+  (import (scheme base)
+          (only (scheme primitives) current-second current-jiffy jiffies-per-second))
   (export current-second current-jiffy jiffies-per-second)
   (begin
     ;; /**

@@ -229,8 +229,13 @@ export function operatorKeyword(operator, ctx) {
         const local = registry.macros.get(name);
         if (local !== undefined) return { keyword: name, transformer: local };
     }
-    const bound = keywordBindingOf(operator);
+    const scope = scopeOfUse(operator, null);
+    const bound = globalContext.keywordBinding(scope, operator.name ?? name);
     if (bound !== undefined) return bound;
+    // A library, or what `environment` makes, sees the macros it imported or
+    // defined and no others (R7RS 5.6.1); a program's top level sees every
+    // macro defined for the whole process.
+    if (globalContext.lookupLibraryEnv(scope)?.strict === true) return { keyword: name, transformer: null };
     return { keyword: name, transformer: ctx.currentMacroRegistry.lookup(name) ?? null };
 }
 

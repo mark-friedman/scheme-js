@@ -79,7 +79,7 @@
     ;; Strings  
     string? make-string string string-length string-ref
     string=? string<? string>? string<=? string>=?
-    substring string-append string-copy
+    substring string-append string-copy string-copy! string-set! string-fill!
     string->list list->string
     number->string string->number
     string-upcase string-downcase string-foldcase
@@ -106,6 +106,7 @@
     with-exception-handler
     error
     error-object? error-object-message error-object-irritants
+    file-error? read-error?
     
     ;; I/O - Ports
     port? input-port? output-port?
@@ -146,6 +147,8 @@
     define set! lambda if begin quote quasiquote unquote unquote-splicing
     define-syntax let-syntax letrec-syntax syntax-rules
     include include-ci cond-expand
+    ;; The features cond-expand tests for
+    features
     ;; Auxiliary syntax: the keywords other forms take, exported so that
     ;; they can be renamed and excluded like any other
     ... _ => else

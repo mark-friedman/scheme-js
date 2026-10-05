@@ -698,6 +698,11 @@
 ;;  * The producer expression is bound first so the operands are still evaluated
 ;;  * left to right, matching the interpreter.
 ;;  *
+;;  * `%apply` and `%values->list` are the primitives, read from the runtime
+;;  * rather than the environment (`runtime-globals` in emit.scm): a library sees
+;;  * only what it imports, and need not import `apply` to call
+;;  * `call-with-values`, nor be stopped by defining an `apply` of its own.
+;;  *
 ;;  * @param {list} node - An `app` AST node.
 ;;  * @param {list} scope - The enclosing lexical scope.
 ;;  * @param {boolean} tail - Whether the application is in tail position.
@@ -722,18 +727,18 @@
                             (if (not consumer)
                                 #f
                                 (begin
-                                  ;; Not the name being rewritten away: recording
-                                  ;; it would decline the procedure for mentioning
-                                  ;; something it no longer mentions.
-                                  (state-add-global! st 'apply)
-                                  (state-add-global! st '%values->list)
+                                  ;; Neither `call-with-values`, which would
+                                  ;; decline the procedure for mentioning
+                                  ;; what it no longer mentions, nor the two
+                                  ;; primitives is recorded as a global: the
+                                  ;; primitives are read from the runtime.
                                   ;; The producer is whatever the caller was
                                   ;; handed, so calling it is calling something
                                   ;; this pass cannot name.
                                   (state-calls-unknown! st)
                                   (let ((nm (synthesized-name! st)))
                                     (list 'let nm producer
-                                          (list 'call (list 'global 'apply #f #t)
+                                          (list 'call (list 'global '%apply #f #t)
                                                 (list consumer
                                                       (list 'call
                                                             (list 'global '%values->list #f #t)
