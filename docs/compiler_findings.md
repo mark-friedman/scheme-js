@@ -3331,3 +3331,22 @@ left the macro out of its imports, or never imported it -- called the macro.
 
 *Consequence:* 55 is done with that fix; imports defining what a program or library sees, which needs
 their environments not to inherit the global one, is a task of its own (85).
+
+**R115. The library system returning `#t` for SRFI 135's exports was the interpreter's fault, not the
+compiler's.**
+
+Task 86 recorded the library system run from its prebuilt table and run from its source disagreeing
+on `(srfi 135)` -- compiled, `load-library` returned `#t`; interpreted, it raised "unbound variable:
+textual-append" -- and took it for a bug in the compiled code. Both were one fault in the evaluator.
+SRFI 135's body has a body-level `cond-expand` whose requirement is `(library (rnrs unicode))`;
+analyzing it calls the library system, from JavaScript, on the interpreter that is in the middle of
+loading the library; `library-available?` answers inside a `guard`, which captures a continuation
+and escapes through it when the library is missing. A run that JavaScript starts has the Scheme
+frames beneath its caller under its sentinel, so the continuation held the outer `load-library`'s
+frames too, and invoking a continuation in any nested run unwound to the outermost run,
+sentinels dropped: the JavaScript between -- the analyzer, the loader's `evaluate` -- was
+abandoned, and the outer run carried the `guard`'s answer on in place of the body's result. Which
+frames it went on with differed with the tier, hence two symptoms.
+
+*Consequence:* a continuation captured in a run that is still going, invoked in it, now stays in it
+(`invokeContinuationFrom` in `frames.js`). SRFI 135 loads, all 82 exports.

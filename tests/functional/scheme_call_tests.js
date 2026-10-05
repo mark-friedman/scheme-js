@@ -84,6 +84,27 @@ export async function runSchemeCallTests(logger) {
   assert(logger, 'a continuation captured in compiled code beneath it escapes',
     String(callSchemeProcedure(escape.procedure, [5n])), '5');
 
+  // Scheme calling JavaScript calling Scheme, on one interpreter: the inner
+  // run's continuations hold the outer run's frames beneath their own, and an
+  // escape inside the inner run -- `guard` handling an error, say -- used to
+  // unwind to the outer run, which dropped the JavaScript between them and
+  // carried the escape's value on in the outer run. The library system loading
+  // SRFI 135 ended that way, returning a `guard`'s answer as the exports.
+  env.define('around', (thunk) => {
+    const value = callSchemeProcedure(thunk, []);
+    return ['returned to JavaScript', value];
+  });
+  env.lookup('around')[SCHEME_PRIMITIVE] = true;
+  const valueOf = (source) => interpreter.run(analyze(parse(source)[0]), env, [], undefined, { jsAutoConvert: 'raw' });
+  const nested = valueOf(
+    "(around (lambda () (call-with-current-continuation (lambda (k) (k 'escaped) 'not-escaped))))");
+  assert(logger, 'an escape inside a run JavaScript started stays in that run',
+    Array.isArray(nested) ? nested.map(String) : String(nested), ['returned to JavaScript', 'escaped']);
+  const guarded = valueOf(
+    "(list (around (lambda () (call-with-current-continuation (lambda (k) (with-exception-handler (lambda (e) (k 'handled)) (lambda () (raise 'oops))))))) 'after)");
+  assert(logger, 'as does an escape from an exception handler there, as guard makes',
+    guarded ? [guarded.car.map(String), String(guarded.cdr.car)] : null, [['returned to JavaScript', 'handled'], 'after']);
+
   {
     // As beneath compiled code the interpreter called, where frames may move.
     const seen = [];

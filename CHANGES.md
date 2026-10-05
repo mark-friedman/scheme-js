@@ -11881,3 +11881,35 @@ it does. 994 of 994 applicable Chibi tests (13 skipped) and 220 of 220 chapter t
 standard library interpreted and compiled; `ROADMAP.md` says so.
 
 7,777 tests pass in Node with none failing (33 skipped). No source under `src/` changed.
+
+# Task 86 done: an escape inside a run JavaScript started stays in it (2026-10-04)
+
+SRFI 135 would not load: `(srfi 135)` came back from the library system with `#t` for its exports.
+It was the evaluator (R115). A run of the interpreter that JavaScript starts -- a callback, or the
+library system called from the analyzer -- has the Scheme frames beneath its caller under its
+sentinel, and its continuations hold them too. Invoking a continuation in any nested run threw to
+the outermost run of that interpreter, sentinels dropped, which is right for one that reaches past
+the run and wrong for one captured in it: an escape -- `guard` handling an error, a `call/cc` used to
+return early -- abandoned the JavaScript that had started the run and carried its value on in the run
+beneath. SRFI 135's body has a `cond-expand` that asks whether `(rnrs unicode)` is available while
+the library is loading; the library system answers in a `guard`, and its escape ended the outer
+`load-library` with the answer.
+
+`invokeContinuationFrom` (`frames.js`) now jumps within the run when the target stack shares the
+current one up to and including the run's sentinel -- the continuation was captured in this run,
+which is still going -- keeping the sentinel, so the run returns to the JavaScript that started it.
+A continuation reaching past the run unwinds as before. SRFI 135 loads, with all 82 exports, and
+drops off `decline_reasons.js --corpus`'s list of libraries it could not measure.
+
+The JavaScript is the evaluator's, fixed in place: 25 lines, most of them the comment.
+
+## Tests
+
+`scheme_call_tests.js`: JavaScript calls a Scheme procedure that escapes through a continuation it
+captured, and gets the value back to finish its own work; and the same with an escape from an
+exception handler, as `guard` makes. Both failed before the fix, the JavaScript's work skipped.
+
+## Verification
+
+7,779 tests pass in Node with none failing (33 skipped), and 7,559 in the browser with none
+failing (55 skipped). `run_tier.js --set corpus` finds nothing changed.

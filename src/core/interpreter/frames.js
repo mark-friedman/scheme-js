@@ -395,6 +395,19 @@ function invokeContinuationFrom(func, args, env, registers, interpreter) {
     }
     const ancestorIndex = i;
 
+    // A continuation captured in this run of the interpreter, while the run
+    // is still going: the two stacks share everything up to and including the
+    // run's sentinel. A run that JavaScript started -- a callback, or the
+    // library system called from the analyzer -- has the Scheme frames beneath
+    // its caller under that sentinel, so its continuations hold them too; but
+    // a jump to one of its own continuations stays in it, and the run returns
+    // to the JavaScript that started it. Only a continuation reaching past the
+    // run unwinds to the outermost one, which is all that can reinstate frames
+    // beneath JavaScript that cannot be resumed.
+    let sentinel = currentStack.length - 1;
+    while (sentinel >= 0 && currentStack[sentinel].isSentinel !== true) sentinel--;
+    const withinRun = sentinel >= 0 && ancestorIndex > sentinel;
+
     // 2. Identify WindFrames to unwind
     const toUnwind = currentStack.slice(ancestorIndex).reverse().filter(f => f instanceof WindFrameClass);
 
@@ -409,6 +422,18 @@ function invokeContinuationFrom(func, args, env, registers, interpreter) {
     }
     for (const frame of toRewind) {
         actions.push(new TailAppNode(new LiteralNode(frame.before), []));
+    }
+
+    if (withinRun) {
+        if (actions.length === 0) {
+            registers[FSTACK] = [...targetStack];
+            registers[ANS] = value;
+            return false;
+        }
+        actions.push(new RestoreContinuation([...targetStack], value));
+        if (actions.length > 1) registers[FSTACK].push(new BeginFrame(actions.slice(1), env));
+        registers[CTL] = actions[0];
+        return true;
     }
 
     // CRITICAL: Unwind JS stack (Return Value Mode)
