@@ -2,7 +2,7 @@
  * Tests for the R7RS Library Loader
  */
 
-import { assert, createTestLogger } from '../harness/helpers.js';
+import { assert, createTestLogger, loadSpecialForms } from '../harness/helpers.js';
 import {
     parseDefineLibrary,
     libraryNameToKey,
@@ -89,11 +89,14 @@ export async function runLibraryLoaderTests(logger) {
     const globalEnv = createGlobalEnvironment(interpreter);
     interpreter.setGlobalEnv(globalEnv);
 
+    loadSpecialForms(interpreter, globalEnv);
+
     // Create a mock file resolver for testing
     const testLibraries = {
         'test.simple': `
             (define-library (test simple)
               (export add1 value)
+              (import (scheme-js special-forms))
               (begin
                 (define value 100)
                 (define (add1 x) (+ x 1))))
@@ -137,6 +140,7 @@ export async function runLibraryLoaderTests(logger) {
     // Register (scheme base) first (mocking it with primitives for this test)
     const schemeBaseExports = createPrimitiveExports(globalEnv);
     registerBuiltinLibrary(['scheme', 'base'], schemeBaseExports, globalEnv);
+    loadSpecialForms(interpreter, globalEnv);
 
     assert(logger, "registerBuiltinLibrary works",
         isLibraryLoaded('scheme.base'), true);
@@ -148,7 +152,7 @@ export async function runLibraryLoaderTests(logger) {
         'test.withdeps': `
             (define-library (test withdeps)
               (export double)
-              (import (scheme base))
+              (import (scheme base) (scheme-js special-forms))
               (begin
                 (define (double x) (+ x x))))
         `
@@ -189,18 +193,19 @@ export async function runLibraryLoaderTests(logger) {
     // library system's own libraries are not the program's.
     clearLibraryRegistry();
     registerBuiltinLibrary(['scheme', 'base'], schemeBaseExports, globalEnv);
+    loadSpecialForms(interpreter, globalEnv);
     for (const name of ['car', 'cdr', 'cons', 'assoc', 'append', 'map', 'for-each']) {
         globalEnv.define(name, () => { throw new Error(`the program's own ${name}`); });
     }
     setFileResolver((name) => ({
-        'test.apart': '(define-library (test apart) (export seven) (import (prefix (scheme base) b:)) (include "apart.scm"))',
+        'test.apart': '(define-library (test apart) (export seven) (import (prefix (scheme base) b:) (scheme-js special-forms)) (include "apart.scm"))',
         'test.apart.scm': '(define seven (b:+ 3 4))'
     })[name.join('.')]);
     try {
         const apartExports = loadLibrarySync(['test', 'apart'], analyze, interpreter, globalEnv);
         assert(logger, "a program's own bindings do not change loading", apartExports.get('seven'), 7);
         assert(logger, "and the library system's libraries are not the program's",
-            getLoadedLibraries(), ['scheme.base', 'test.apart']);
+            getLoadedLibraries(), ['scheme.base', 'scheme-js.special-forms', 'test.apart']);
     } catch (e) {
         logger.fail(`loading beside a program's own bindings failed: ${e.message}`);
     } finally {
@@ -212,12 +217,13 @@ export async function runLibraryLoaderTests(logger) {
     // and includes, then what those do.
     clearLibraryRegistry();
     registerBuiltinLibrary(['scheme', 'base'], schemeBaseExports, globalEnv);
+    loadSpecialForms(interpreter, globalEnv);
     const fetchable = {
-        'test/top': '(define-library (test top) (export top) (import (scheme base) (test left) (test right)) (include "top.scm"))',
+        'test/top': '(define-library (test top) (export top) (import (scheme base) (scheme-js special-forms) (test left) (test right)) (include "top.scm"))',
         'test/top.scm': '(define top (+ left right))',
-        'test/left': '(define-library (test left) (export left) (import (scheme base)) (include "left.scm"))',
+        'test/left': '(define-library (test left) (export left) (import (scheme base) (scheme-js special-forms)) (include "left.scm"))',
         'test/left.scm': '(define left 1)',
-        'test/right': '(define-library (test right) (export right) (import (scheme base) (test left)) (begin (define right (+ left 1))))'
+        'test/right': '(define-library (test right) (export right) (import (scheme base) (scheme-js special-forms) (test left)) (begin (define right (+ left 1))))'
     };
     const asked = [];
     setFileResolver(async (parts) => {
@@ -279,12 +285,14 @@ export async function runLibraryLoaderTests(logger) {
     // `length&i0.length`. Dot notation is for programs and pages, and a
     // library's file turns it on if it wants it.
     const dottedSources = {
+        'scheme-js.special-forms': '(define-library (scheme-js special-forms) (export define))',
         'dotted.names': `(define-library (dotted names)
+                           (import (scheme-js special-forms))
                            (export length&i0.length x.y)
                            (begin (define (length&i0.length p) p) (define x.y 7)))`,
         'dotted.interop': `#!dot-notation
                            (define-library (dotted interop)
-                             (import (only (scheme primitives) js-ref))
+                             (import (scheme-js special-forms) (only (scheme primitives) js-ref))
                              (export title-of)
                              (begin (define (title-of o) o.title)))`
     };

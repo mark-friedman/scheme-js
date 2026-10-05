@@ -1,7 +1,8 @@
 /**
  * @fileoverview Pins the seed: writes `src/packaging/pinned_seed.js`, the
- * libraries the reader and the expander are made of -- `(scheme core)`,
- * `(scheme control)`, `(scheme-js reader)` and `(scheme-js expander)` -- as
+ * libraries the reader and the expander are made of -- `(scheme-js
+ * special-forms)`, `(scheme core)`, `(scheme control)`, `(scheme-js reader)`
+ * and `(scheme-js expander)` -- as
  * their core forms: each library's `define-library` form, and every top-level
  * form loading it ran, in order, as the core form the expander made of it, a
  * macro's definition as one that binds it pending.
@@ -33,7 +34,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/pinned_seed.js');
 
 /** The libraries pinned, in the order they need each other. */
-const LIBRARIES = [['scheme', 'core'], ['scheme', 'control'], ['scheme-js', 'reader'], ['scheme-js', 'expander']];
+const LIBRARIES = [['scheme-js', 'special-forms'], ['scheme', 'core'], ['scheme', 'control'], ['scheme-js', 'reader'],
+  ['scheme-js', 'expander']];
 
 /**
  * A library's file, or a file it includes, from the bundled sources.

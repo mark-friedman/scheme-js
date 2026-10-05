@@ -186,7 +186,30 @@ export function createTestLogger(options = {}) {
 
 
 import { createInterpreter } from '../../src/core/interpreter/index.js';
+import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
+import { loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
+import { getFileResolver, setFileResolver } from '../../src/core/interpreter/library_registry.js';
 
 export function createTestEnv() {
     return createInterpreter();
 }
+
+/**
+ * Loads `(scheme-js special-forms)`, from the bundle, into the current
+ * library registry, where the resolver set may not be able to find it, or
+ * not at once. A test library that imports nothing else that binds `define`
+ * and the other special forms imports it: a library has a special form only
+ * if it imports it.
+ * @param {Interpreter} interpreter - The interpreter.
+ * @param {Environment} globalEnv - Its global environment.
+ */
+export function loadSpecialForms(interpreter, globalEnv) {
+    const resolver = getFileResolver();
+    setFileResolver(() => BUNDLED_SOURCES['special-forms.sld']);
+    try {
+        loadLibrarySync(['scheme-js', 'special-forms'], analyze, interpreter, globalEnv);
+    } finally {
+        setFileResolver(resolver);
+    }
+}
+

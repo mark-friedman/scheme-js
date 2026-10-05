@@ -25,6 +25,7 @@ import {
 import { loadLibrarySync } from '../../src/core/interpreter/library_loader.js';
 import { compileEnvironment } from '../../src/compiler/index.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
+import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 
 /**
  * Evaluates source in an interpreter's environment.
@@ -108,17 +109,21 @@ export async function runLibraryCompilationTests(logger) {
   // owns the process decides what the hook does; the bundle compiles the
   // libraries it ships.
   const sources = {
-    'test.hooked': `(define-library (test hooked) (export double)
+    'test.hooked': `(define-library (test hooked) (export double) (import (scheme base))
                       (begin (define (double x) (* 2 x))))`,
-    'test.inline': `(define-library (test inline) (export triple)
+    'test.inline': `(define-library (test inline) (export triple) (import (scheme base))
                       (begin (define (triple x) (* 3 x))))`,
-    'test.compiled-on-load': `(define-library (test compiled-on-load) (export quadruple)
+    'test.compiled-on-load': `(define-library (test compiled-on-load) (export quadruple) (import (scheme base))
                       (begin (define (quadruple x) (* 4 x))))`
   };
   const savedResolver = getFileResolver();
-  setFileResolver((name) => sources[name.join('.')]);
+  // The libraries they import are the bundle's, loaded before the hook is
+  // set, so that it sees only these.
+  setFileResolver((name) => sources[name.join('.')]
+    ?? BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] ?? BUNDLED_SOURCES[name[name.length - 1]]);
   try {
     const { interpreter, env } = createInterpreter();
+    loadLibrarySync(['scheme', 'base'], analyze, interpreter, env);
     const calls = [];
     setLibraryLoadHook((name, libraryEnv) => calls.push({ name: name.join('.'), libraryEnv }));
 

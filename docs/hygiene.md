@@ -179,9 +179,16 @@ compared by the keyword each side names (`keyword-name`), so a literal written
 `ellipsis` in a library that imported `...` as `ellipsis` matches the user's
 `...`.
 
-A name that nothing binds is still found by name, so a library that defines a
-macro for a keyword other code uses without importing -- `(scheme core)` uses
-`quasiquote` -- reaches that code too.
+The special forms are keywords too, bound where they are imported, as macros
+are. In a strict scope -- a library's, a program's that imports, an
+`environment`'s -- a name nothing binds there is a variable: a strict scope
+has `if`, `lambda` or `quote` only if it imports it, from `(scheme base)`, or,
+for the system's own libraries, from `(scheme-js special-forms)` through
+`(scheme core)`, and it may define the name if it does not. A program that
+imports nothing, and the REPLs, find a name nothing binds among the macros
+defined for the process, and then among the special forms, by name.
+`syntax-rules` and `er-macro-transformer`, in `define-syntax`, are found as
+an operator is.
 
 ## Procedural Macros
 
@@ -246,6 +253,8 @@ Two identifiers are `free-identifier=?` if they resolve to the same binding. Use
 | `src/core/scheme/expander.scm` | The expander: environments, keywords, the special forms, `define-syntax` and `define-macro` |
 | `src/core/scheme/syntax_rules.scm` | `syntax-rules`: pattern matching, transcription, marks |
 | `src/core/scheme/explicit_renaming.scm` | `er-macro-transformer`: `rename` and `compare` |
+| `src/core/scheme/special-forms.sld` | `(scheme-js special-forms)`: the special forms, as keywords to import |
+| `src/extras/scheme/procedural-macros.sld` | `(scheme-js procedural-macros)`: `er-macro-transformer` and `define-macro`, for a program that imports |
 | `src/core/interpreter/syntax_object.js` | `SyntaxObject`, the identifier; `ScopeBindingRegistry`; walks of a datum that mark scopes |
 | `src/core/primitives/expander_support.js` | What the expander needs of the host: identifiers, scopes, the keyword tables |
 | `src/core/interpreter/macro_registry.js` | The macros defined by name for the process |

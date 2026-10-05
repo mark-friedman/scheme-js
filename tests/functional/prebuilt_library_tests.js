@@ -376,7 +376,11 @@ export async function runPrebuiltLibraryTests(logger) {
     try {
       const inner = { hooked: [] };
       withPrivateLibraries({
-        resolver: (name) => `(define-library ${`(${name.join(' ')})`} (export y) (begin (define y 2)))`,
+        // Each library it is asked for defines y, with the special forms the
+        // bundle's library gives it.
+        resolver: (name) => (name.join(' ') === 'scheme-js special-forms'
+          ? BUNDLED_SOURCES['special-forms.sld']
+          : `(define-library ${`(${name.join(' ')})`} (export y) (import (scheme-js special-forms)) (begin (define y 2)))`),
         hook: (name) => inner.hooked.push(name.join(' '))
       }, () => {
         inner.sawOutside = isLibraryLoaded('test.outside');
@@ -386,7 +390,7 @@ export async function runPrebuiltLibraryTests(logger) {
       });
       assert(logger, 'inside, a library loaded outside is not found', inner.sawOutside, false);
       assert(logger, 'inside, the given resolver and hook are used',
-        [inner.sawInside, inner.hooked.join(',')], [true, 'test inside']);
+        [inner.sawInside, inner.hooked.join(',')], [true, 'scheme-js special-forms,test inside']);
       assert(logger, 'outside again, a library loaded inside is not found',
         isLibraryLoaded('test.inside'), false);
       assert(logger, 'and the ones loaded outside are back', isLibraryLoaded('test.outside'), true);

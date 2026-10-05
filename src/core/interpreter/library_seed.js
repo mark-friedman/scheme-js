@@ -67,11 +67,11 @@ import pinnedSeedImage from '../../packaging/pinned_seed.js';
  * and the expander, which the library system reads and expands every other
  * library with, before it.
  */
-const SEED_LIBRARIES = [['scheme', 'core'], ['scheme', 'control'], ['scheme-js', 'reader'],
-    ['scheme-js', 'expander'], ['scheme-js', 'library-system']];
+const SEED_LIBRARIES = [['scheme-js', 'special-forms'], ['scheme', 'core'], ['scheme', 'control'],
+    ['scheme-js', 'reader'], ['scheme-js', 'expander'], ['scheme-js', 'library-system']];
 
 /** The libraries the reader and the expander are made of, which the pinned seed holds. */
-const PINNED_LIBRARIES = SEED_LIBRARIES.slice(0, 4);
+const PINNED_LIBRARIES = SEED_LIBRARIES.slice(0, 5);
 
 /**
  * A syntactic keyword one of the seed's libraries exports, as the expander

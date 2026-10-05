@@ -142,31 +142,35 @@
 ;;  * @returns {loader}
 ;;  */
 (define (loader-over files . asked)
-  (let ((registry (make-library-registry #f #f '(r7rs))))
+  (let* ((registry (make-library-registry #f #f '(r7rs)))
+         (loader (make-loader registry
+                              (lambda (path)
+                                (if (pair? asked) ((car asked) path))
+                                (cond ((assoc path files) => cdr)
+                                      (else (error "no such file" path))))
+                              (interaction-environment)
+                              (lambda (form env) (eval form env)))))
     ;; A library sees only what it imports, so the test libraries that add
-    ;; import `+` from a library of the registry's own.
+    ;; import `+` from a library of the registry's own, and those that define
+    ;; import `define` and `quote` from one, as the system's libraries import
+    ;; them from (scheme-js special-forms).
     (register-exports! registry "test.arithmetic" (list (cons '+ +)) #f)
-    (make-loader registry
-                 (lambda (path)
-                   (if (pair? asked) ((car asked) path))
-                   (cond ((assoc path files) => cdr)
-                         (else (error "no such file" path))))
-                 (interaction-environment)
-                 (lambda (form env) (eval form env)))))
+    (define-library! loader '(define-library (scheme-js special-forms) (export define quote)))
+    loader))
 
 ;; The value a library exports under a name, loading it if need be.
 (define (exported loader name key)
   (cdr (assq key (load-library loader name))))
 
 (define test-files
-  '((("test" "a") . "(define-library (test a) (export x (rename y z)) (begin (define x 1) (define y 2)))")
-    (("test" "b") . "(define-library (test b) (export w) (import (prefix (test a) a:) (test arithmetic)) (include \"b.scm\") (begin (define w0 10)))")
+  '((("test" "a") . "(define-library (test a) (export x (rename y z)) (import (scheme-js special-forms)) (begin (define x 1) (define y 2)))")
+    (("test" "b") . "(define-library (test b) (export w) (import (scheme-js special-forms) (prefix (test a) a:) (test arithmetic)) (include \"b.scm\") (begin (define w0 10)))")
     (("test" "b.scm") . "(define w (+ w0 a:x a:z))")
-    (("test" "ci") . "(define-library (test ci) (export ci-value) (include-ci \"ci.scm\"))")
+    (("test" "ci") . "(define-library (test ci) (export ci-value) (import (scheme-js special-forms)) (include-ci \"ci.scm\"))")
     (("test" "ci.scm") . "(DEFINE CI-VALUE 'Folded)")
     (("test" "decls") . "(define-library (test decls) (include-library-declarations \"decls.scm\"))")
-    (("test" "decls.scm") . "(export d) (import (only (test a) x) (test arithmetic)) (begin (define d (+ x 100)))")
-    (("test" "probe") . "(define-library (test probe) (export found liar missing)
+    (("test" "decls.scm") . "(export d) (import (scheme-js special-forms) (only (test a) x) (test arithmetic)) (begin (define d (+ x 100)))")
+    (("test" "probe") . "(define-library (test probe) (export found liar missing) (import (scheme-js special-forms))
                            (cond-expand ((library (test a)) (begin (define found 'yes))) (else (begin (define found 'no))))
                            (cond-expand ((library (test liar)) (begin (define liar 'yes))) (else (begin (define liar 'no))))
                            (cond-expand ((library (test missing)) (begin (define missing 'yes))) (else (begin (define missing 'no)))))")
@@ -189,7 +193,7 @@
         (let ((keys (registered-keys (loader-registry loader))))
           (list (car (member "test.a" keys)) (car (member "test.b" keys)))))
   (test "a define-library form" 5
-        (cdr (assq 'v (define-library! loader '(define-library (test inline) (export v) (begin (define v 5)))))))
+        (cdr (assq 'v (define-library! loader '(define-library (test inline) (export v) (import (scheme-js special-forms)) (begin (define v 5)))))))
   (test "is registered" #t (and (registered-exports (loader-registry loader) "test.inline") #t))
   (test "importing into an environment" 1
         (let ((env (%make-library-environment (interaction-environment) '("test" "importer"))))
@@ -259,10 +263,12 @@
 
 (test-group "library system - the files a load would read"
   ;; A loader that has at hand only the files named, of the test files, and
-  ;; answers #f for any other, as one waiting for a fetch does.
+  ;; answers #f for any other, as one waiting for a fetch does; the
+  ;; libraries of the registry's own are loaded already.
   (define (loader-with paths)
     (let ((registry (make-library-registry #f #f '(r7rs))))
       (register-exports! registry "test.arithmetic" (list (cons '+ +)) #f)
+      (register-exports! registry "scheme-js.special-forms" '() #f)
       (make-loader registry
                    (lambda (path) (and (member path paths) (cdr (assoc path test-files))))
                    #f #f)))
@@ -312,7 +318,7 @@
   (test "a library the restorer declines loads from its source, importing the restored one"
         3010 (exported loader '(test b) 'w))
   (test "text other than the table's is declined" 1
-        (let ((other (loader-over (cons (cons '("test" "a") "(define-library (test a) (export x (rename y z)) (begin (define x 1) (define y 2) 'edited))")
+        (let ((other (loader-over (cons (cons '("test" "a") "(define-library (test a) (export x (rename y z)) (import (scheme-js special-forms)) (begin (define x 1) (define y 2) 'edited))")
                                         test-files))))
           (set-registry-restorer! (loader-registry other) restorer)
           (exported other '(test a) 'x)))
@@ -324,7 +330,7 @@
                                         (cons #f (cons (lambda (env name) (%environment-define! env name 0))
                                                        '((procedure v))))
                                         '("a.sld"))))
-          (cdr (assq 'v (define-library! inline '(define-library (test a) (export v) (begin (define v 5))))))))
+          (cdr (assq 'v (define-library! inline '(define-library (test a) (export v) (import (scheme-js special-forms)) (begin (define v 5))))))))
   ;; A table that has the library's `define-library` form gives it, and the
   ;; file, fetched to be fingerprinted, is never read: here it is not Scheme.
   (test "a library whose table has its define-library form, its file not read" 7
@@ -333,7 +339,7 @@
                                   (lambda (name texts)
                                     (and (equal? name '("test" "c"))
                                          (if texts
-                                             (list '(define-library (test c) (export c)) (lambda (env name) #f)
+                                             (list '(define-library (test c) (export c) (import (scheme-js special-forms))) (lambda (env name) #f)
                                                    '(form (define c 7)))
                                              '("c.sld")))))
           (exported unreadable '(test c) 'c))))

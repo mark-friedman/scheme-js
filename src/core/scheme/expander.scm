@@ -305,10 +305,13 @@
 ;; /**
 ;;  * What an identifier in operator position names, where `env` is, as
 ;;  * `(keyword . transformer)`: a macro, by its transformer, or a special
-;;  * form, with none; the keyword #f for a variable defined over a macro's
-;;  * name. A macro defined around the use comes first, by name; then what the
-;;  * name is bound to where the identifier is used; then, where that sees
-;;  * every macro, the macro defined under the name for the process.
+;;  * form, with none; the keyword #f for a variable. A macro defined around
+;;  * the use comes first, by name; then what the name is bound to where the
+;;  * identifier is used. Where nothing is, a strict scope -- a library's, a
+;;  * program's that imports, an `environment`'s -- has a variable, since a
+;;  * special form is a keyword it has only if it imports it (`(scheme-js
+;;  * special-forms)`); any other has the macro defined under the name for the
+;;  * process, or else the special form of the name, if there is one.
 ;;  * @param {identifier} id - The identifier.
 ;;  * @param {syntactic-env} env - Where it is used.
 ;;  * @returns {pair}
@@ -320,7 +323,23 @@
         (cons name local)
         (let ((scope (scope-of-use id #f)))
           (or (%keyword-entry scope name)
-              (cons name (and (not (strict-scope? scope)) (%process-macro name))))))))
+              (if (strict-scope? scope)
+                  (cons #f #f)
+                  (cons name (%process-macro name))))))))
+
+;; /**
+;;  * The keyword a form's head names where `env` is (`operator-keyword`), or
+;;  * #f: for a form that is no list, whose head is no identifier or is bound
+;;  * locally, or names a variable.
+;;  * @param {*} form - The form.
+;;  * @param {syntactic-env} env - Where it is.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (form-keyword form env)
+  (and (pair? form)
+       (identifier? (car form))
+       (not (env-lookup env (car form)))
+       (car (operator-keyword (car form) env))))
 
 ;; /**
 ;;  * Defines a macro where `env` is: in the body or `let-syntax` around it, if
@@ -791,7 +810,7 @@
 (define (hoist-definitions body env)
   (let loop ((forms body) (inner env))
     (if (pair? forms)
-        (let ((id (defined-identifier (car forms))))
+        (let ((id (defined-identifier (car forms) inner)))
           (loop (cdr forms)
                 (if id
                     (let ((name (identifier-name id)))
@@ -804,12 +823,11 @@
 ;;  * The identifier a form defines, if it is a `define`, by the keyword its
 ;;  * head names; else #f.
 ;;  * @param {*} form - The form.
+;;  * @param {syntactic-env} env - Where it is.
 ;;  * @returns {identifier|boolean}
 ;;  */
-(define (defined-identifier form)
-  (and (pair? form)
-       (identifier? (car form))
-       (eq? (keyword-name (car form) #f) 'define)
+(define (defined-identifier form env)
+  (and (eq? (form-keyword form env) 'define)
        (pair? (cdr form))
        (let ((head (cadr form)))
          (cond ((pair? head) (car head))
@@ -1084,31 +1102,36 @@
 ;; /**
 ;;  * `(define-syntax name transformer)`. A transformer of `syntax-rules`, its
 ;;  * ellipsis given or `...`, or of `er-macro-transformer`, is defined where
-;;  * the form is; a transformer of anything else defines nothing.
+;;  * the form is; anything else is a syntax error -- as `er-macro-transformer`
+;;  * is where it is not imported.
 ;;  */
 (define (expand-define-syntax form env)
   (let ((name (identifier-name (cadr form)))
         (spec (caddr form)))
-    (cond ((transformer-of? spec 'syntax-rules)
+    (cond ((transformer-of? spec 'syntax-rules env)
            (let* ((after (cdr spec))
                   (first (if (pair? after) (car after) '())))
              (cond ((or (pair? first) (null? first))
                     (define-syntax-rules! env name '... first (if (pair? after) (cdr after) '())))
                    ((identifier? first)
                     (define-syntax-rules! env name (identifier-name first) (cadr after) (cddr after))))))
-          ((transformer-of? spec 'er-macro-transformer)
-           (define-macro! env name (er-macro-definition spec name env)))))
+          ((transformer-of? spec 'er-macro-transformer env)
+           (define-macro! env name (er-macro-definition spec name env)))
+          (else (raise-syntax-error "Transformer must be (syntax-rules ...) or (er-macro-transformer ...)"
+                                    spec 'define-syntax))))
   (list 'lit '()))
 
 ;; /**
 ;;  * Whether a macro's transformer, as written, is made by a keyword:
-;;  * `syntax-rules` or `er-macro-transformer`.
+;;  * `syntax-rules` or `er-macro-transformer`, as its head names it where the
+;;  * definition is.
 ;;  * @param {*} spec - The transformer, as written.
 ;;  * @param {symbol} keyword - The keyword.
+;;  * @param {syntactic-env} env - Where the definition is.
 ;;  * @returns {boolean}
 ;;  */
-(define (transformer-of? spec keyword)
-  (and (pair? spec) (named? (car spec) keyword)))
+(define (transformer-of? spec keyword env)
+  (eq? (form-keyword spec env) keyword))
 
 ;; /**
 ;;  * `(er-macro-transformer procedure)`'s transformer: the procedure,
@@ -1217,9 +1240,9 @@
 ;;  * @returns {procedure}
 ;;  */
 (define (binding-transformer spec name env)
-  (cond ((transformer-of? spec 'syntax-rules)
+  (cond ((transformer-of? spec 'syntax-rules env)
          (syntax-rules-transformer (list-items (cadr spec)) (clause-pairs (cddr spec)) (defining-scope) '... env))
-        ((transformer-of? spec 'er-macro-transformer) (er-macro-definition spec name env))
+        ((transformer-of? spec 'er-macro-transformer env) (er-macro-definition spec name env))
         (else (raise-syntax-error "Transformer must be (syntax-rules ...) or (er-macro-transformer ...)"
                                   spec 'syntax-rules))))
 

@@ -1,10 +1,11 @@
-import { assert, run } from '../harness/helpers.js';
+import { assert, run, loadSpecialForms } from '../harness/helpers.js';
 import { getLibraryExports, clearLibraryRegistry, withPrivateLibraries } from '../../src/core/interpreter/library_registry.js';
 import { list, cons } from '../../src/core/interpreter/cons.js';
 import { intern } from '../../src/core/interpreter/symbol.js';
 
 export async function runLibraryLoaderTests(interpreter, logger) {
     logger.title('cond-expand Library Tests');
+    loadSpecialForms(interpreter, interpreter.globalEnv);
 
     // Test 1: Simple cond-expand in library
     logger.log('Testing simple cond-expand in library...');
@@ -12,6 +13,7 @@ export async function runLibraryLoaderTests(interpreter, logger) {
     try {
         await run(interpreter, `
           (define-library (test simple)
+            (import (scheme-js special-forms))
             (cond-expand
               (scheme-js
                 (export x)
@@ -34,6 +36,7 @@ export async function runLibraryLoaderTests(interpreter, logger) {
     try {
         await run(interpreter, `
           (define-library (test nested)
+            (import (scheme-js special-forms))
             (cond-expand
               (scheme-js
                 (cond-expand

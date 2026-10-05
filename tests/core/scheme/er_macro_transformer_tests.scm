@@ -105,10 +105,11 @@
           (er-flip 'a 'b))))
 
 ;; A library's macro: what it renames is the library's, exported or not, and
-;; a program that redefines the name afterwards changes nothing.
+;; a program that redefines the name afterwards changes nothing. A library has
+;; er-macro-transformer if it imports it.
 (define-library (er-macro-tests library)
   (export er-call-hidden er-call-car)
-  (import (scheme base))
+  (import (scheme base) (scheme-js procedural-macros))
   (begin
     (define (er-hidden x) (list 'hidden x))
     (define-syntax er-call-hidden
@@ -134,7 +135,7 @@
         (guard (e (#t 'raised))
           (eval '(let-syntax ((er-broken (er-macro-transformer (lambda (form rename compare) (car '())))))
                    (er-broken))
-                (environment '(scheme base))))))
+                (environment '(scheme base) '(scheme-js procedural-macros))))))
 
 ;; define-macro, a legacy extension: a transformer of the use's operands, whose
 ;; result is used as it is, nothing renamed.
@@ -160,7 +161,7 @@
 ;; itself.
 (define-library (er-macro-tests helpers)
   (export er-reversed)
-  (import (scheme base))
+  (import (scheme base) (scheme-js procedural-macros))
   (begin
     (define (reversed-operands form) (reverse (cdr form)))
     (define-syntax er-reversed
@@ -188,4 +189,16 @@
                                          (lambda (form rename compare)
                                            (list (rename 'quote) (reverse (cadr form)))))))
                  (swap-list (a b)))
-              (environment '(scheme base)))))
+              (environment '(scheme base) '(scheme-js procedural-macros))))
+  (test "an environment that does not import er-macro-transformer has none"
+        'raised
+        (guard (e (#t 'raised))
+          (eval '(let-syntax ((m (er-macro-transformer (lambda (form rename compare) 1)))) (m))
+                (environment '(scheme base))))))
+
+(test-group "define-syntax's transformer"
+  (test "one it does not know is a syntax error"
+        'raised
+        (guard (e (#t 'raised))
+          (eval '(define-syntax m (er-macro-transformer (lambda (form rename compare) 1)))
+                (environment '(scheme base))))))

@@ -287,6 +287,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── expander.scm        # environments, keywords, the special forms, bodies, quasiquote, define-syntax and define-macro
 │           ├── syntax_rules.scm    # syntax-rules: matching and transcribing, hygiene by marks
 │           ├── explicit_renaming.scm # er-macro-transformer: rename and compare; define-macro is one
+│           ├── special-forms.sld   # (scheme-js special-forms): the special forms, as keywords a library imports
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
 │           ├── ports.scm           # call-with-port
@@ -325,6 +326,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── hash_table.js       # Map-backed store under SRFI 125; native hash functions
 │       │   └── bitwise.js          # BigInt operators under SRFI 151
 │       └── scheme/                 # Scheme library files
+│           ├── procedural-macros.sld # (scheme-js procedural-macros): er-macro-transformer, define-macro
 │           ├── promise.sld         # (scheme-js promise) library declaration
 │           ├── promise.scm         # Promise utilities and macros
 │           ├── 125.sld             # (srfi 125) hash tables

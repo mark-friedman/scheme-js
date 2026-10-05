@@ -12613,3 +12613,61 @@ imports; and a `define-macro`'s uses `cadr`.
 
 7,909 tests pass in Node with none failing (33 skipped), and 7,685 in the browser with none failing
 (56 skipped).
+
+# Task 45, fourth increment, step (b): the special forms bound in scopes; task 45 done (2026-10-05)
+
+R7RS 5.6.1 gives a library, and 6.12 an `environment`, only what it imports. Task 85 made that so for
+variables and macros, and found the special forms seen everywhere, imported or not: the expander knew
+`if`, `lambda` and `quote` by name, so a strict environment importing only `(scheme char)` had them,
+and a library that did not import `if` could not define it.
+
+- **`(scheme-js special-forms)`**, a library exporting the special forms -- the keywords the expander
+  expands itself, `syntax-rules`, `er-macro-transformer` and `define-macro`, and the auxiliary syntax
+  `...`, `_`, `=>`, `else`, `unquote` and `unquote-splicing` -- which nothing defines: the library
+  system exports a special form under its name. `(scheme core)` imports it and passes it on, so the
+  system's libraries, which import `(scheme core)`, have them; `(scheme base)` exports those R7RS
+  gives it. The seed loads it first, and the pinned seed holds it.
+- **In a strict scope**, a name nothing binds there is a variable (`operator-keyword`): a library, a
+  program that imports and an `environment` have a special form only if they import it, and may
+  define its name if they do not. `define`, recognized where a body's definitions are hoisted, and
+  `syntax-rules` and `er-macro-transformer`, recognized in `define-syntax`, are found as an operator
+  is. A program that imports nothing, and the REPLs, keep finding them by name.
+- **`(scheme-js procedural-macros)`** exports `er-macro-transformer` and `define-macro` for a program
+  or library that imports. `define-syntax` with a transformer it does not know -- as
+  `er-macro-transformer` is where it is not imported -- is a syntax error; it had defined nothing,
+  silently.
+- **Test libraries that imported nothing** and used `define`, invalid in R7RS, import what they use:
+  in `library_system_tests.scm` a `(scheme-js special-forms)` of the test registry's own, and in the
+  JavaScript tests the bundle's, which `loadSpecialForms` in the test harness loads.
+
+**The gates**, against step (a): `run_tier.js --set all` runs every program right, the totals with
+the tier within 1.5% -- the canonical programs 3,917 ms against 3,877, the test files 1,182 against
+1,164, the corpus 3,887 against 3,857, the pages 266 against 268. Every corpus library imports what
+it uses.
+
+## Task 45, in all
+
+The expander is Scheme, `(scheme-js expander)`, and the only one: the JavaScript analyzer, its
+handlers, `syntax_rules.js` and `marshal.js` were deleted once the two agreed on every form the suite
+analyzes. A library's macro means the library's bindings wherever it is used, in both tiers;
+`er-macro-transformer` gives hygienic procedural macros, and `define-macro` is one that renames
+nothing; a procedural macro's procedure runs where the macro is defined; and the special forms are
+keywords bound where they are imported. Under `src/` since the commit before the task, JavaScript 908
+lines added and 3,060 removed, Scheme 2,204 added and 94 removed.
+
+JavaScript in this step, 4 lines added and 4 removed: the seed's list of its libraries, and its list
+of the names a library may export as special forms, `er-macro-transformer` added -- the seed must know
+them before any Scheme runs.
+
+## Tests
+
+`strict_library_tests.scm`: a library that does not import `if` defines it; one that imports it
+renamed has it by that name; an `environment` of `(scheme char)` has no `if`, `lambda` or `quote`, and
+one importing `if` renamed has it by that name only; a program importing nothing has them all.
+`er_macro_transformer_tests.scm`: an `environment` without `er-macro-transformer` has none, and
+`define-syntax` with it there is a syntax error.
+
+## Verification
+
+7,921 tests pass in Node with none failing (33 skipped), and 7,697 in the browser with none failing
+(56 skipped).

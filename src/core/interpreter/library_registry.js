@@ -438,5 +438,5 @@ export const SYNTAX_KEYWORDS = new Set([
     'syntax-rules', '...', '_', 'else', '=>', 'import', 'export',
     'define-library', 'include', 'include-ci', 'include-library-declarations',
     'cond-expand', 'let', 'letrec', 'call/cc', 'call-with-current-continuation',
-    'define-macro'
+    'define-macro', 'er-macro-transformer'
 ]);

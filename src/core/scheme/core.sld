@@ -1,5 +1,5 @@
 (define-library (scheme core)
-  (import (scheme primitives))
+  (import (scheme primitives) (scheme-js special-forms))
   
   ;; Include separate Scheme files in dependency order
   (include "macros.scm")     ; Core macros: and, let, letrec, cond
@@ -11,6 +11,11 @@
   (include "ports.scm")      ; the current ports, reading and writing them, call-with-port, the file procedures
   
   (export
+    ;; The special forms, passed on, so that what imports this library has them
+    define set! lambda if begin quote quasiquote unquote unquote-splicing
+    define-syntax let-syntax letrec-syntax syntax-rules er-macro-transformer define-macro
+    ... _ => else cond-expand import define-library
+
     ;; Macros
     and or let let* letrec cond syntax-error include include-ci
     define-record-type define-record-field

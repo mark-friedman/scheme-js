@@ -16,7 +16,7 @@
 
 (define-library (strict-test char-only)
   (export first-of)
-  (import (scheme char))
+  (import (scheme char) (only (scheme base) define))
   (begin (define (first-of xs) (car xs))))
 
 (define-library (strict-test no-when)
@@ -81,3 +81,51 @@
     '(#t #f #f)
     (eval '(list (pair? (features)) (file-error? 'x) (read-error? 'x))
           (environment '(scheme base)))))
+
+;; A special form is a syntactic keyword like any other: a library or an
+;; environment that does not import it does not have it, and may bind its
+;; name to something else.
+(define-library (strict-test own-if)
+  (export own-if-of)
+  (import (except (scheme base) if))
+  (begin
+    (define (if a b c) (list 'mine a b c))
+    (define (own-if-of) (if 1 2 3))))
+
+(define-library (strict-test renamed-if)
+  (export renamed-if-of)
+  (import (rename (scheme base) (if when-true)))
+  (begin
+    (define (renamed-if-of) (when-true #f 'yes 'no))))
+
+(import (prefix (strict-test own-if) strict-test:)
+        (prefix (strict-test renamed-if) strict-test:))
+
+(test-group "a special form is seen only where it is imported"
+
+  (test "a library that does not import if may define it"
+    '(mine 1 2 3)
+    (strict-test:own-if-of))
+
+  (test "one that imports it renamed has it by that name"
+    'no
+    (strict-test:renamed-if-of))
+
+  (test "in an environment that does not import it, if is not a special form"
+    #t
+    (strict-test-raises? (lambda () (eval '(if #t 1 2) (environment '(scheme char))))))
+
+  (test "nor are lambda and quote"
+    '(#t #t)
+    (list (strict-test-raises? (lambda () (eval '((lambda (x) x) 1) (environment '(scheme char)))))
+          (strict-test-raises? (lambda () (eval '(quote x) (environment '(scheme char)))))))
+
+  (test "an environment importing if renamed has it by that name only"
+    '(1 #t)
+    (let ((env (environment '(rename (only (scheme base) if) (if when-true)))))
+      (list (eval '(when-true #t 1 2) env)
+            (strict-test-raises? (lambda () (eval '(if #t 1 2) env))))))
+
+  (test "a program's top level that imports nothing still has them all"
+    1
+    (if #t 1 2)))

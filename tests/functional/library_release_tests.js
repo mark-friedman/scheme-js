@@ -31,6 +31,7 @@ import { withPrivateLibraries, getLibraryEnv } from '../../src/core/interpreter/
 import { globalMacroRegistry } from '../../src/core/interpreter/macro_registry.js';
 import { globalContext, InterpreterContext } from '../../src/core/interpreter/context.js';
 import { GLOBAL_SCOPE_ID } from '../../src/core/interpreter/syntax_object.js';
+import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 
 /**
  * Two libraries, one using the other's macro under a name it gives it.
@@ -44,9 +45,10 @@ import { GLOBAL_SCOPE_ID } from '../../src/core/interpreter/syntax_object.js';
  * @type {Object<string, string>}
  */
 const SOURCES = {
+  'scheme-js.special-forms': BUNDLED_SOURCES['special-forms.sld'],
   'release.probe': `
     (define-library (release probe)
-      (import (scheme primitives))
+      (import (scheme primitives) (scheme-js special-forms))
       (export probe-macro)
       (begin
         (define secret 42)
@@ -56,7 +58,7 @@ const SOURCES = {
             ((_) (probe-secret))))))`,
   'release.user': `
     (define-library (release user)
-      (import (scheme primitives) (rename (release probe) (probe-macro probe)))
+      (import (scheme primitives) (scheme-js special-forms) (rename (release probe) (probe-macro probe)))
       (export user-macro)
       (begin
         (define-syntax user-macro

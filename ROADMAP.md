@@ -89,8 +89,9 @@ for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
 Every library R7RS-small names exports every identifier it names (`npm run audit:r7rs`, which probes
 each library in an environment of it alone, `(scheme r5rs)` included). A library, an `environment`, and a
 program or page script that begins with `import` declarations see what they import and nothing else;
-a program with none, and the REPLs, see everything. The evaluator's own special forms -- `if`,
-`lambda`, `quote` -- are found everywhere, imported or not, until the expander binds them in scopes.
+a program with none, and the REPLs, see everything. The special forms too -- `if`, `lambda`,
+`quote` -- are keywords each has only if it imports them, and may bind the name to something else
+if it does not.
 
 ### Numeric performance
 
@@ -228,7 +229,7 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 | | |
 |---|---|
 | **R7RS-small, end to end** | Every phase of the implementation checklist, and every identifier and library the report names, each library probed in an environment of it alone. **994 of 994** applicable Chibi conformance tests and **220 of 220** chapter tests pass, both with the standard library interpreted and with it compiled as the browser installs it, each counted as the Scheme test harness counts it. |
-| **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
+| **Hygienic macros** | `syntax-rules`, and procedural macros by explicit renaming (`er-macro-transformer`), hygienic by marks, in an expander written in Scheme, verified against standard hygiene suites. A library's macro means the library's own bindings wherever it is used (R7RS 4.3), and a procedural macro's procedure runs where the macro is defined, seeing what it imports and defines. `define-macro` is kept, as a legacy extension. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. A library, an `environment`, and a program that begins with `import` declarations see only what they import. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |
 | **JavaScript interoperability** | Scheme procedures are callable JavaScript functions, which convert their arguments and results and finish their tail calls, deep recursion and continuations before returning, whichever tier runs them -- primitives excepted, which take Scheme values; the parts of that call, a call that converts nothing and the conversions both ways, are exported for JavaScript to use itself; numbers convert at the boundary, an integral number from JavaScript arriving exact however it arrives, and strings cross as their characters -- a newly made string may be changed in Scheme, and JavaScript always receives a JavaScript string; classes, promises and property access are reachable from Scheme. |
