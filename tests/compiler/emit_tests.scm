@@ -339,3 +339,56 @@
         (< (position global-first "= (C2.v ?? G2());") (position global-first "(C1.v ?? G1())")))
   (test "operands nothing can change are not copied" 0
         (count-of settled "= s_x;")))
+
+;; A loop whose variables provably stay inexact runs on raw doubles first,
+;; before the ordinary loop, when they arrive inexact; boxes, where an
+;; inexact real is an integer (src/core/interpreter/number_representation.js),
+;; are made only where a value leaves it. The answers are checked in both tiers
+;; by tests/tiers/double_loop_tests.scm.
+(test-group "emit - loops on raw doubles"
+  (define (source-of definition)
+    (let ((lowered (lower-lambda (analyze-lambda definition))))
+      (car (generate-unit (lowered-ir lowered) (lowered-globals lowered)
+                          (lowered-library-globals lowered) "f" '(+ - * < > = vector-ref)))))
+  ;; Locals are named for a counter the file shares, so a pattern names a
+  ;; local by its name as written and leaves its number out.
+  (define (contains? text part) (and (string-contains text part) #t))
+  (define summing
+    (source-of '(define (f n) (let loop ((i n) (acc 0.)) (if (< i 0.) acc (loop (- i 1.) (+ i acc)))))))
+  (test "a loop over doubles is run on them, raw" #t (contains? summing "$doubles"))
+  (test "entered only when its variables arrive inexact" #t
+        (contains? summing "instanceof R.Flonum"))
+  (test "its arithmetic is JavaScript's, with no test" #t
+        (contains? summing " + s_acc_$"))
+  (test "and a value leaving it is boxed" #t
+        (contains? summing "return R.inexactReal(s_acc_$"))
+  (test "it boxes its variables and goes on as the ordinary loop if an operator is rebound" #t
+        (contains? summing "break $doubles"))
+  (test "a loop counting exactly is not" #f
+        (contains? (source-of '(define (f n) (let loop ((i n) (acc 0)) (if (< i 0) acc (loop (- i 1) (+ i acc))))))
+                   "$doubles"))
+  (test "nor one that calls a procedure, where a continuation could be captured" #f
+        (contains? (source-of '(define (f n g) (let loop ((x n)) (if (< x 0.) x (loop (- (g x) 1.))))))
+                   "$doubles"))
+  (test "a loop reading a double bound outside it holds that raw too" #t
+        (contains? (source-of '(define (f c) (let loop ((z c) (k 0)) (if (= k 3) z (loop (+ (* 2. (* z z)) c) (+ k 1))))))
+                   "'number' ? s_c_$"))
+  (test "a loop with no inexact constant, whose variables could be doubles only if they arrived so, is not" #f
+        (contains? (source-of '(define (f c) (let loop ((z c) (k 0)) (if (= k 3) z (loop (+ (* z z) c) (+ k 1))))))
+                   "$doubles"))
+  (test "but not an exact bound it only compares with" #f
+        (contains? (source-of '(define (f n) (let loop ((x 0.) (i 0)) (if (= i n) x (loop (+ x 1.) (+ i 1))))))
+                   "'number' ? s_n_$")))
+
+;; A local bound to a constant and never assigned is the constant where it is
+;; read (`constant-binding` in ir.scm): an inexact integer in arithmetic is then
+;; a double rather than a box read from a variable.
+(test-group "lowering - a let-bound constant"
+  (define (code-of definition)
+    (let ((lowered (lower-lambda (analyze-lambda definition))))
+      (car (generate-unit (lowered-ir lowered) (lowered-globals lowered)
+                          (lowered-library-globals lowered) "f" '(*)))))
+  (test "is read as the constant" #t
+        (and (string-contains (code-of '(define (f x) (let ((k 2.)) (* x k)))) " * (2))") #t))
+  (test "but not when it is assigned" #f
+        (and (string-contains (code-of '(define (f x) (let ((k 2.)) (set! k 3.) (* x k)))) " * (2))") #t)))

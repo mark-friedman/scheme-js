@@ -581,11 +581,13 @@
 ;;  * to. `blocks` holds the twin's finished blocks by number, and `sites` its
 ;;  * suspension points with the block each resumes at. `span` is the source
 ;;  * span of the call being emitted, which each statement emitted meanwhile is
-;;  * noted as coming from (`emit!`), or #f.
+;;  * noted as coming from (`emit!`), or #f. `doubles` is the locals that hold
+;;  * raw doubles where the emission is, inside a loop run on them (see "Loops
+;;  * on raw doubles").
 ;;  */
 (define-record-type form
   (make-form name ir unit mode path counter labels loops loop-targets declared
-             out blocks block-count current sites frames depth span)
+             out blocks block-count current sites frames depth span doubles)
   form?
   (name form-name)
   (ir form-ir)
@@ -604,7 +606,8 @@
   (sites form-sites set-form-sites!)
   (frames form-frames set-form-frames!)
   (depth form-depth set-form-depth!)
-  (span form-span set-form-span!))
+  (span form-span set-form-span!)
+  (doubles form-doubles set-form-doubles!))
 
 ;; /**
 ;;  * A fresh emission of a procedure.
@@ -616,7 +619,7 @@
 ;;  * @returns {form} The emission.
 ;;  */
 (define (new-form name ir u mode path)
-  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f))
+  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f '()))
 
 (define (twin? form) (eq? (form-mode form) 'twin))
 (define (plan-of form) (unit-plan (form-unit form)))
@@ -804,7 +807,9 @@
 (define (emit-value! form node)
   (case (car node)
     ((const) (js (constant (form-unit form) (cadr node))))
-    ((local) (read-local form (cadr node)))
+    ((local) (if (memq (cadr node) (form-doubles form))
+                 (js "R.inexactReal(" (js-local (cadr node)) ")")
+                 (read-local form (cadr node))))
     ;; Read through its cell on every reference, because a top-level binding
     ;; can be redefined after this code was compiled -- by the REPL running it,
     ;; for one.
@@ -816,9 +821,11 @@
     ((if) (if (twin? form) (emit-twin-value-if! form node) (emit-value-if! form node)))
     ((let)
      (declare! form (js-local (cadr node)))
-     (let ((init (emit-value! form (caddr node))))
-       (emit! form (bind-local form (cadr node) init))
-       (emit-value! form (cadddr node))))
+     (if (double-let? form node)
+         (with-double form (cadr node) (caddr node) (lambda () (emit-value! form (cadddr node))))
+         (let ((init (emit-value! form (caddr node))))
+           (emit! form (bind-local form (cadr node) init))
+           (emit-value! form (cadddr node)))))
     ((letrec)
      (emit-letrec-bindings! form node)
      (emit-value! form (cadddr node)))
@@ -997,6 +1004,17 @@
 ;;  * @returns {list|boolean} The expression holding the value, or #f.
 ;;  */
 (define (emit-inline! form node)
+  (or (and (pair? (form-doubles form)) (emit-double-inline form node))
+      (emit-guarded-inline! form node)))
+
+;; /**
+;;  * An inline expansion of a call to a primitive whose binding is guarded, or
+;;  * #f (`emit-inline!`).
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - A `call` IR node.
+;;  * @returns {list|boolean} The expression holding the value, or #f.
+;;  */
+(define (emit-guarded-inline! form node)
   (let* ((fn (cadr node))
          (u (form-unit form))
          (entry (and (eq? (car fn) 'global)
@@ -1157,9 +1175,12 @@
              (emit! form (list 'return (js "undefined")))
              (for-each (lambda (expr) (emit-statement! form expr)) (cadr node))))
         ((let)
-         (let ((init (emit-value! form (caddr node))))
-           (emit! form (bind-local form (cadr node) init))
-           (emit-statement! form (cadddr node))))
+         (if (double-let? form node)
+             (begin (declare! form (js-local (cadr node)))
+                    (with-double form (cadr node) (caddr node) (lambda () (emit-statement! form (cadddr node)))))
+             (let ((init (emit-value! form (caddr node))))
+               (emit! form (bind-local form (cadr node) init))
+               (emit-statement! form (cadddr node)))))
         ((letrec)
          (if (letrec-inline? node)
              (emit-inline-loop! form node)
@@ -1219,11 +1240,18 @@
   (let ((inlined (emit-inline! form node)))
     (if inlined
         (emit! form (list 'return inlined))
-        (let* ((operands (emit-operands! form (cons (cadr node) (caddr node))))
+        (let* ((kind (call-loop node))
+               (target (loop-target form))
+               (operands (if (and kind (pair? (form-doubles form)))
+                             (cons (emit-value! form (cadr node))
+                                   (map (lambda (arg param)
+                                          (if (memq param (form-doubles form))
+                                              (emit-double form arg)
+                                              (emit-value! form arg)))
+                                        (caddr node) (loop-params target)))
+                             (emit-operands! form (cons (cadr node) (caddr node)))))
                (fn (car operands))
-               (args (cdr operands))
-               (kind (call-loop node))
-               (target (loop-target form)))
+               (args (cdr operands)))
           (cond
             ((and kind (loop-fixed-arity? target) (= (length args) (length (loop-params target))))
              (let ((jump (loop-back! form args target)))
@@ -1409,11 +1437,16 @@
 (define (emit-inline-loop! form node)
   (let* ((lam (car (caddr node)))
          (params (lambda-params lam))
-         (entry (emit-operands! form (caddr (cadddr node)))))
+         (entries (caddr (cadddr node)))
+         (entry (emit-operands! form entries)))
     (for-each (lambda (param value)
                 (declare! form (js-local param))
                 (emit! form (list 'assign (js (js-local param)) value)))
               params entry)
+    (if (and (not (twin? form)) (null? (form-doubles form)) (pure-loop-body? form (lambda-body lam))
+             (any inexact-constant? (cons (lambda-body lam) entries)))
+        (let ((doubles (double-loop-variables form params entries (lambda-body lam))))
+          (if (pair? doubles) (emit-double-loop! form params doubles (lambda-body lam)))))
     (let ((target (enter-inline-loop! form params)))
       (for-each (lambda (param)
                   (if (boxed-local? form param)
@@ -1447,6 +1480,388 @@
                             (string-append "$loop" (number->string (form-labels form))))))
           (emit! form (list 'text (string-append label ": for (;;) {")))
           (make-loop-target params #t #f plain (list 'text (string-append "continue " label ";")))))))
+
+;; ---------------------------------------------------------------------------
+;; Loops on raw doubles
+;; ---------------------------------------------------------------------------
+;;
+;; An inexact real whose value is an integer is boxed
+;; (src/core/interpreter/number_representation.js), so a loop whose variables
+;; are inexact reals -- summing doubles, iterating a fractal -- allocates a box
+;; whenever one lands on an integer, and V8, finding a variable sometimes a
+;; double and sometimes a box, stops keeping its doubles in registers: a loop
+;; over integral doubles ran ten times slower boxed than raw. So the fast form
+;; runs such a loop on raw doubles first: those of its variables that provably
+;; stay inexact, and the `let`s in its body that hold such values, are held
+;; unboxed, and a value is boxed only where it leaves the loop. Only a loop
+;; whose body calls nothing but inlined primitives and itself, and makes no
+;; procedure, is run so: it has no point where a continuation could be
+;; captured, which would save the raw doubles into a frame as though they were
+;; Scheme values, and nothing outside it can see them. It is entered when its
+;; variables arrive inexact and the operators it uses are still the
+;; primitives; were one rebound while it runs, it boxes its variables and goes
+;; on as the ordinary loop, which follows it.
+
+;; /**
+;;  * The operators a raw double takes, by the Scheme name, and their
+;;  * JavaScript operators: arithmetic, then comparisons.
+;;  */
+(define double-operators
+  '((+ . "+") (- . "-") (* . "*") (< . "<") (> . ">") (<= . "<=") (>= . ">=") (= . "===")))
+
+;; /**
+;;  * Whether an operator is arithmetic a raw double takes, with an inexact
+;;  * result.
+;;  * @param {symbol} name - The Scheme name.
+;;  * @returns {boolean}
+;;  */
+(define (double-arithmetic? name)
+  (and (memq name '(+ - *)) #t))
+
+;; /**
+;;  * The JavaScript operator of one of `double-operators`.
+;;  * @param {symbol} name - The Scheme name.
+;;  * @returns {string}
+;;  */
+(define (operator-text name)
+  (cdr (assq name double-operators)))
+
+;; /**
+;;  * The primitive a call applies, by its name, where the call is inlined: to a
+;;  * global whose binding is guarded, with an expansion for these operands; or
+;;  * #f.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - A `call` IR node.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (inlined-operator form node)
+  (let ((fn (cadr node))
+        (u (form-unit form)))
+    (and (eq? (car fn) 'global)
+         (memq (cadr fn) (unit-guarded u))
+         (let ((name (global-written-name (unit-library-globals u) (cadr fn))))
+           (and (inline-expansion name (caddr node)) name)))))
+
+;; /**
+;;  * Whether a node is an inexact real held as a raw double where `doubles`
+;;  * are held so: an inexact constant; such a local; or `+`, `-` or `*` of two
+;;  * operands, one such a node and the other one too or an exact integer
+;;  * constant, which R7RS makes an inexact result.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node.
+;;  * @param {list} doubles - The locals held as raw doubles.
+;;  * @returns {boolean}
+;;  */
+(define (double-node? form node doubles)
+  (case (car node)
+    ((const) (let ((v (cadr node))) (and (real? v) (inexact? v))))
+    ((local) (and (memq (cadr node) doubles) #t))
+    ((call)
+     (let ((op (and (not (call-loop node)) (inlined-operator form node)))
+           (args (caddr node)))
+       (and op (double-arithmetic? op) (= (length args) 2)
+            (or (and (double-node? form (car args) doubles) (real-operand? form (cadr args) doubles))
+                (and (real-operand? form (car args) doubles) (double-node? form (cadr args) doubles))))))
+    (else #f)))
+
+;; /**
+;;  * Whether a node can be an operand of arithmetic on raw doubles: one
+;;  * `double-node?` accepts, or an exact integer constant, which R7RS converts
+;;  * to inexact there.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node.
+;;  * @param {list} doubles - The locals held as raw doubles.
+;;  * @returns {boolean}
+;;  */
+(define (real-operand? form node doubles)
+  (or (double-node? form node doubles)
+      (and (eq? (car node) 'const) (exact-integer? (cadr node)))))
+
+;; /**
+;;  * The JavaScript expression of a node's raw double, for a node
+;;  * `real-operand?` accepts. Nothing in it has an effect, so it needs no
+;;  * temporaries.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node.
+;;  * @returns {list} The expression.
+;;  */
+(define (emit-double form node)
+  (case (car node)
+    ((const) (js "(" (js-number (inexact (cadr node))) ")"))
+    ((local) (js (js-local (cadr node))))
+    (else
+     (let ((args (caddr node)))
+       (js "(" (emit-double form (car args)) " " (operator-text (inlined-operator form node)) " "
+           (emit-double form (cadr args)) ")")))))
+
+;; /**
+;;  * Whether a `let` holds a raw double: inside a loop on raw doubles, where
+;;  * its initializer is one.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - A `let` IR node.
+;;  * @returns {boolean}
+;;  */
+(define (double-let? form node)
+  (and (pair? (form-doubles form))
+       (double-node? form (caddr node) (form-doubles form))))
+
+;; /**
+;;  * Binds a `let`'s local to its initializer's raw double, and emits what is
+;;  * in its scope with the local held raw.
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} name - The local.
+;;  * @param {list} init - The initializer's IR node.
+;;  * @param {procedure} thunk - Emits the scope, and returns what it returns.
+;;  * @returns {*} What `thunk` returns.
+;;  */
+(define (with-double form name init thunk)
+  (emit! form (list 'assign (js (js-local name)) (emit-double form init)))
+  (let ((outer (form-doubles form)))
+    (set-form-doubles! form (cons name outer))
+    (let ((result (thunk)))
+      (set-form-doubles! form outer)
+      result)))
+
+;; /**
+;;  * Inside a loop on raw doubles, a call the raw doubles serve: arithmetic of
+;;  * them, its raw result boxed for the value wanted; or a comparison of them,
+;;  * made on the raw doubles; else #f, for the ordinary expansion.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - A `call` IR node.
+;;  * @returns {list|boolean} The expression, or #f.
+;;  */
+(define (emit-double-inline form node)
+  (let ((doubles (form-doubles form))
+        (args (caddr node)))
+    (cond ((double-node? form node doubles)
+           (js "R.inexactReal(" (emit-double form node) ")"))
+          ((let ((op (and (not (call-loop node)) (inlined-operator form node))))
+             (and op (assq op double-operators) (not (double-arithmetic? op)) (= (length args) 2)
+                  (real-operand? form (car args) doubles) (real-operand? form (cadr args) doubles)
+                  (or (double-node? form (car args) doubles) (double-node? form (cadr args) doubles))
+                  op))
+           => (lambda (op)
+                (js "(" (emit-double form (car args)) " " (operator-text op) " "
+                    (emit-double form (cadr args)) ")")))
+          (else #f))))
+
+;; /**
+;;  * Whether an IR node holds an inexact constant: a loop that does is one
+;;  * whose variables may be doubles. Any other -- counting over integers, say,
+;;  * whose variables could be inexact only if they arrived so -- is not run on
+;;  * raw doubles at all, rather than carry a second copy whose test fails.
+;;  * @param {list} node - An IR node.
+;;  * @returns {boolean}
+;;  */
+(define (inexact-constant? node)
+  (case (car node)
+    ((const) (let ((v (cadr node))) (and (real? v) (inexact? v))))
+    ((if) (any inexact-constant? (list (cadr node) (caddr node) (cadddr node))))
+    ((seq) (any inexact-constant? (cadr node)))
+    ((let) (or (inexact-constant? (caddr node)) (inexact-constant? (cadddr node))))
+    ((call) (any inexact-constant? (caddr node)))
+    (else #f)))
+
+;; /**
+;;  * Whether a loop's body calls nothing but inlined primitives and the loop
+;;  * itself, and makes no procedure: one that can run on raw doubles.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node of the body.
+;;  * @returns {boolean}
+;;  */
+(define (pure-loop-body? form node)
+  (case (car node)
+    ((const local global) #t)
+    ((if) (every (lambda (n) (pure-loop-body? form n)) (list (cadr node) (caddr node) (cadddr node))))
+    ((seq) (every (lambda (n) (pure-loop-body? form n)) (cadr node)))
+    ((let) (and (pure-loop-body? form (caddr node)) (pure-loop-body? form (cadddr node))))
+    ((call) (and (every (lambda (n) (pure-loop-body? form n)) (caddr node))
+                 (if (call-loop node)
+                     (eq? (call-loop node) 'local)
+                     (and (inlined-operator form node) #t))))
+    (else #f)))
+
+;; /**
+;;  * The locals a loop on raw doubles holds raw: the loop's variables that
+;;  * provably stay inexact -- each arrives as an inexact constant or as a value
+;;  * tested when the loop is entered, and each looping call passes it a raw
+;;  * double where the locals under consideration are raw -- and those locals
+;;  * bound outside the loop, tested on entry too, that some of the loop's
+;;  * variables need raw to be held raw themselves. None, unless some loop
+;;  * variable is held raw.
+;;  * @param {form} form - The emission.
+;;  * @param {list} params - The loop's variables.
+;;  * @param {list} entries - The IR nodes of their first values.
+;;  * @param {list} body - The loop's body.
+;;  * @returns {list} The locals.
+;;  */
+(define (double-loop-variables form params entries body)
+  (let* ((outer (filter (lambda (name) (not (boxed-local? form name)))
+                        (operand-locals form body params)))
+         (raw (double-fixed-point form params body
+                                  (append (filter-map (lambda (param entry)
+                                                        (and (or (not (eq? (car entry) 'const))
+                                                                 (let ((v (cadr entry)))
+                                                                   (and (real? v) (inexact? v))))
+                                                             param))
+                                                      params entries)
+                                          outer)))
+         (raw-params (lambda (locals) (filter (lambda (param) (memq param locals)) params))))
+    (if (null? (raw-params raw))
+        '()
+        ;; An outer local the loop's variables do not need raw would only be
+        ;; tested, and fail the test when it is exact: an exact bound the
+        ;; loop counts to, say.
+        (fold (lambda (local kept)
+                (if (memq local kept)
+                    (let ((without (double-fixed-point form params body (delete local kept))))
+                      (if (equal? (raw-params without) (raw-params kept)) without kept))
+                    kept))
+              raw outer))))
+
+;; /**
+;;  * The greatest fixed point of the locals a loop holds raw, from the
+;;  * candidates down: those the loop's variables no looping call passes a raw
+;;  * double are dropped until none is.
+;;  * @param {form} form - The emission.
+;;  * @param {list} params - The loop's variables.
+;;  * @param {list} body - The loop's body.
+;;  * @param {list} candidates - The locals taken to be raw at first.
+;;  * @returns {list} Those that are.
+;;  */
+(define (double-fixed-point form params body candidates)
+  (let ((failing (loop-back-failures form params candidates body)))
+    (if (null? failing)
+        candidates
+        (double-fixed-point form params body
+                            (filter (lambda (name) (not (memq name failing))) candidates)))))
+
+;; /**
+;;  * The locals bound outside a loop that its body passes to arithmetic or a
+;;  * comparison: the outer locals a loop on raw doubles could hold raw.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node of the body.
+;;  * @param {list} bound - The locals bound in the loop where it is.
+;;  * @returns {list} The locals, each once.
+;;  */
+(define (operand-locals form node bound)
+  (delete-duplicates
+    (let walk ((node node) (bound bound))
+      (case (car node)
+        ((if) (append-map (lambda (n) (walk n bound)) (list (cadr node) (caddr node) (cadddr node))))
+        ((seq) (append-map (lambda (n) (walk n bound)) (cadr node)))
+        ((let) (append (walk (caddr node) bound) (walk (cadddr node) (cons (cadr node) bound))))
+        ((call)
+         (let* ((args (caddr node))
+                (op (and (not (call-loop node)) (inlined-operator form node))))
+           (append (if (and op (assq op double-operators))
+                       (filter-map (lambda (arg)
+                                     (and (eq? (car arg) 'local) (not (memq (cadr arg) bound)) (cadr arg)))
+                                   args)
+                       '())
+                   (append-map (lambda (n) (walk n bound)) args))))
+        (else '())))))
+
+;; /**
+;;  * The variables of `candidates` some looping call in a body does not pass a
+;;  * raw double, where the candidates, and the `let`s holding raw doubles, are
+;;  * raw; all of the loop's variables for a looping call of another arity.
+;;  * @param {form} form - The emission.
+;;  * @param {list} params - The loop's variables.
+;;  * @param {list} candidates - Those taken to be raw.
+;;  * @param {list} node - An IR node of the body.
+;;  * @returns {list} The variables, perhaps repeated.
+;;  */
+(define (loop-back-failures form params candidates node)
+  (let walk ((node node) (doubles candidates))
+    (case (car node)
+      ((if) (append-map (lambda (n) (walk n doubles)) (list (cadr node) (caddr node) (cadddr node))))
+      ((seq) (append-map (lambda (n) (walk n doubles)) (cadr node)))
+      ((let) (append (walk (caddr node) doubles)
+                     (walk (cadddr node) (if (double-node? form (caddr node) doubles)
+                                             (cons (cadr node) doubles)
+                                             doubles))))
+      ((call)
+       (let ((args (caddr node)))
+         (append (append-map (lambda (n) (walk n doubles)) args)
+                 (cond ((not (call-loop node)) '())
+                       ((not (= (length args) (length params))) params)
+                       (else (filter-map (lambda (param arg)
+                                           (and (memq param candidates)
+                                                (not (double-node? form arg doubles))
+                                                param))
+                                         params args))))))
+      (else '()))))
+
+;; /**
+;;  * The indices of the globals a loop's body applies as operators of raw
+;;  * doubles, whose bindings the loop on raw doubles needs intact.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node of the body.
+;;  * @returns {list} The indices, perhaps repeated.
+;;  */
+(define (operator-indices form node)
+  (case (car node)
+    ((if) (append-map (lambda (n) (operator-indices form n)) (list (cadr node) (caddr node) (cadddr node))))
+    ((seq) (append-map (lambda (n) (operator-indices form n)) (cadr node)))
+    ((let) (append (operator-indices form (caddr node)) (operator-indices form (cadddr node))))
+    ((call)
+     (append (append-map (lambda (n) (operator-indices form n)) (caddr node))
+             (let ((op (and (not (call-loop node)) (inlined-operator form node))))
+               (if (and op (assq op double-operators))
+                   (list (global-index (form-unit form) (cadr (cadr node))))
+                   '()))))
+    (else '())))
+
+;; /**
+;;  * Emits a loop on raw doubles before the ordinary one: entered when the
+;;  * loop's variables in `doubles` arrive inexact and the operators it uses
+;;  * are intact, its variables unboxed; it returns from the procedure as the
+;;  * loop would, and at the head of each iteration, were an operator rebound,
+;;  * boxes its variables and leaves for the ordinary loop, which goes on from
+;;  * there.
+;;  * @param {form} form - The emission.
+;;  * @param {list} params - The loop's variables.
+;;  * @param {list} doubles - Those held as raw doubles.
+;;  * @param {list} body - The loop's body.
+;;  * @returns {unspecified}
+;;  */
+(define (emit-double-loop! form params doubles body)
+  (let* ((intact (map (lambda (index) (js "W" index ".intact"))
+                      (delete-duplicates (operator-indices form body))))
+         (inexact-test (lambda (param)
+                         (let ((v (js-local param)))
+                           (js "((typeof " v " === 'number' && !Number.isInteger(" v ")) || " v
+                               " instanceof R.Flonum)"))))
+         (label (begin (set-form-labels! form (+ (form-labels form) 1))
+                       (string-append "$doubles" (number->string (form-labels form)))))
+         (box-all (map (lambda (param)
+                         (list 'assign (js (js-local param)) (js "R.inexactReal(" (js-local param) ")")))
+                       doubles))
+         (statements
+          (collect-statements form
+            (lambda ()
+              (for-each (lambda (param)
+                          (let ((v (js-local param)))
+                            (emit! form (list 'assign (js v) (js "typeof " v " === 'number' ? " v " : " v ".value")))))
+                        doubles)
+              (emit! form (list 'text (string-append label ": for (;;) {")))
+              (if (pair? intact)
+                  (emit! form (list 'if (js "!(" (all-of intact) ")")
+                                    (append box-all (list (list 'text (string-append "break " label ";"))))
+                                    '())))
+              (set-form-doubles! form doubles)
+              (set-form-loop-targets!
+                form
+                (cons (make-loop-target params #t #f
+                                        (lambda (param value) (list 'assign (js (js-local param)) value))
+                                        (list 'text (string-append "continue " label ";")))
+                      (form-loop-targets form)))
+              (emit-statement! form body)
+              (set-form-loop-targets! form (cdr (form-loop-targets form)))
+              (set-form-doubles! form '())
+              (emit! form (list 'text "}"))))))
+    (emit! form (list 'if (all-of (append (map inexact-test doubles) intact)) statements '()))))
 
 ;; ---------------------------------------------------------------------------
 ;; The twin's blocks

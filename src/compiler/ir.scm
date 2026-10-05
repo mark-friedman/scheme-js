@@ -134,7 +134,10 @@
 ;;  * Records a name as bound in the innermost frame of a scope.
 ;;  * @param {list} scope - The scope to extend.
 ;;  * @param {symbol} name - The renamed variable.
-;;  * @param {boolean} callable - Whether it is bound to a lambda we lowered.
+;;  * @param {boolean|list} callable - Whether it is bound to a lambda we
+;;  *   lowered; or, for a name bound to a constant and never assigned, the
+;;  *   constant's IR node, which a reference to the name becomes
+;;  *   (`constant-binding`).
 ;;  * @returns {unspecified}
 ;;  */
 (define (scope-declare! scope name callable)
@@ -168,7 +171,51 @@
 ;;  */
 (define (scope-callable? scope name)
   (let ((hit (scope-lookup scope name)))
-    (if hit (cdr hit) #f)))
+    (and hit (eq? (cdr hit) #t))))
+
+;; /**
+;;  * The constant a name is bound to, where it is bound to one and never
+;;  * assigned, as an IR node; else #f.
+;;  * @param {list} scope - The scope to search.
+;;  * @param {symbol} name - The renamed variable.
+;;  * @returns {list|boolean}
+;;  */
+(define (scope-constant scope name)
+  (let ((hit (scope-lookup scope name)))
+    (and hit (pair? (cdr hit)) (cdr hit))))
+
+;; /**
+;;  * Whether a core form assigns a name anywhere in it, with `set`. A local's
+;;  * name is unique to its binding, so any such form assigns that binding. A
+;;  * quoted datum is not code, and is not searched.
+;;  * @param {symbol} name - The renamed variable.
+;;  * @param {*} form - A core form, or a list of them.
+;;  * @returns {boolean}
+;;  */
+(define (assigns? name form)
+  (and (pair? form)
+       (if (symbol? (car form))
+           (case (car form)
+             ((lit) #f)
+             ((set) (or (eq? (cadr form) name) (assigns? name (cddr form))))
+             (else (any (lambda (part) (assigns? name part)) (cdr form))))
+           (any (lambda (part) (assigns? name part)) form))))
+
+;; /**
+;;  * What a `let`'s name is declared as: the constant its initializer is, if
+;;  * it is one and the body never assigns the name -- so that a reference to
+;;  * the name is the constant, as a literal would be: an inexact integer is
+;;  * then a double in arithmetic rather than a box read from a variable
+;;  * (`fast-operands` in inline.scm) -- or else whether it is a lambda.
+;;  * @param {symbol} name - The renamed variable.
+;;  * @param {list} init - The initializer's IR node.
+;;  * @param {*} body - The body's core form.
+;;  * @returns {boolean|list}
+;;  */
+(define (constant-binding name init body)
+  (cond ((eq? (car init) 'lambda) #t)
+        ((and (eq? (car init) 'const) (not (assigns? name body))) (list 'const (cadr init)))
+        (else #f)))
 
 ;; ---------------------------------------------------------------------------
 ;; Lowering state
@@ -574,9 +621,11 @@
 
       ((eq? tag 'var)
        (let ((name (ast-1 node)))
-         (if (scope-has? scope name)
-             (list 'local name tail (scope-callable? scope name))
-             (begin
+         (cond
+           ((scope-constant scope name) => (lambda (constant) (list 'const (cadr constant) tail)))
+           ((scope-has? scope name)
+            (list 'local name tail (scope-callable? scope name)))
+           (else
                (state-add-global! st name)
                ;; A global callee is nameable in the sense this flag means: the
                ;; safety analysis can look it up and follow it. Not that it is
@@ -622,7 +671,7 @@
          (if (not init)
              #f
              (let ((inner (make-scope scope)))
-               (scope-declare! inner (ast-1 node) (eq? (car init) 'lambda))
+               (scope-declare! inner (ast-1 node) (constant-binding (ast-1 node) init (ast-3 node)))
                (let ((body (lower-node (ast-3 node) inner tail st)))
                  (if (not body)
                      #f
@@ -861,25 +910,27 @@
                     (if (not inits)
                         #f
                         (let ((inner (make-scope scope)))
-                          (declare-bindings! inner params inits)
+                          (declare-bindings! inner params inits (ast-4 fn))
                           (let ((body (lower-body-in (ast-4 fn) inner st tail)))
                             (if (not body)
                                 #f
                                 (wrap-bindings params inits body tail))))))))))))
 
 ;; /**
-;;  * Declares each parameter, noting the ones bound to a lambda.
+;;  * Declares each parameter, noting the ones bound to a lambda, and those
+;;  * bound to a constant the body never assigns (`constant-binding`).
 ;;  * @param {list} scope - The scope to extend.
 ;;  * @param {list} params - Renamed parameter names.
 ;;  * @param {list} inits - Their lowered initializers, in the same order.
+;;  * @param {*} body - The body's core form.
 ;;  * @returns {unspecified}
 ;;  */
-(define (declare-bindings! scope params inits)
+(define (declare-bindings! scope params inits body)
   (if (null? params)
       #f
       (begin
-        (scope-declare! scope (car params) (eq? (car (car inits)) 'lambda))
-        (declare-bindings! scope (cdr params) (cdr inits)))))
+        (scope-declare! scope (car params) (constant-binding (car params) (car inits) body))
+        (declare-bindings! scope (cdr params) (cdr inits) body))))
 
 ;; /**
 ;;  * Wraps a body in one binding per parameter, the first outermost.

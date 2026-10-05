@@ -28,9 +28,10 @@ import { Cons } from '../core/interpreter/cons.js';
 // reads a cell, once per inlined primitive.
 import { primitiveCell } from '../core/interpreter/primitive_bindings.js';
 import {
-  addNumbers, subNumbers, mulNumbers, addReals, subReals, mulReals, lessReals, lessEqualReals, equalReals
+  Flonum, inexactReal, addNumbers, subNumbers, mulNumbers, addReals, subReals, mulReals, lessReals,
+  lessEqualReals, equalReals
 } from '../core/interpreter/number_representation.js';
-export { Flonum } from '../core/interpreter/number_representation.js';
+export { Flonum, inexactReal } from '../core/interpreter/number_representation.js';
 // What compiled code makes `call-with-values` of (`lower-call-with-values` in
 // ir.scm): the primitives themselves, whatever the environment the code runs
 // in binds under their names.
@@ -138,11 +139,45 @@ export function vectorSet(vector, index, value) {
 
 // Each is a binary arithmetic or comparison primitive for an inline
 // expansion, whose guard has established that the name is still bound to the
-// primitive: two JavaScript numbers first, then any real held as a number, a
-// BigInt or a Flonum (src/core/interpreter/number_representation.js), and the
-// primitive for anything else, so that every error is its own. Each is written
-// out, rather than made by one function from the operation, so that each call
-// of an operation is a call site of its own, which V8 can inline.
+// primitive, called where the inline code does not apply: two JavaScript
+// numbers, or any operand held as a number or a Flonum -- an inexact integer,
+// boxed (src/core/interpreter/number_representation.js) -- taken directly, the
+// result of arithmetic with a box inexact and boxed if it is an integer. Each
+// is small, so that V8 inlines it where it is called, and hands anything else
+// -- a BigInt, a rational, a complex, a wrong type -- to `otherwise`, which is
+// not inlined. Each is written out, rather than made by one function from the
+// operation, so that each call of an operation is a call site of its own.
+
+/**
+ * A value's double if it is held as a JavaScript number or a Flonum, else
+ * `undefined`.
+ * @param {*} x - The value.
+ * @returns {number|undefined}
+ */
+function doubleOf(x) {
+  if (typeof x === 'number') return x;
+  return x instanceof Flonum ? x.value : undefined;
+}
+
+/**
+ * An operation on two operands that are not both held as numbers or Flonums:
+ * a real held as a BigInt (`addReals` and the rest), and otherwise the
+ * primitive, so that every error is its own.
+ * @param {function(*, *): *} op - The operation, `undefined` where it does
+ *   not apply.
+ * @param {string} name - The primitive's name.
+ * @param {*} a - One operand.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+function otherwise(op, name, a, b) {
+  const r = op(a, b);
+  return r !== undefined ? r : primitiveCell(name).primitive(a, b);
+}
+
+/** `>` and `>=` with their operands swapped, for `otherwise`. */
+const greaterReals = (a, b) => lessReals(b, a);
+const greaterEqualReals = (a, b) => lessEqualReals(b, a);
 
 /**
  * `+` of two operands.
@@ -152,8 +187,9 @@ export function vectorSet(vector, index, value) {
  */
 export function add(a, b) {
   if (typeof a === 'number' && typeof b === 'number') return addNumbers(a, b);
-  const r = addReals(a, b);
-  return r !== undefined ? r : primitiveCell('+').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return inexactReal(x + y);
+  return otherwise(addReals, '+', a, b);
 }
 
 /**
@@ -164,8 +200,9 @@ export function add(a, b) {
  */
 export function sub(a, b) {
   if (typeof a === 'number' && typeof b === 'number') return subNumbers(a, b);
-  const r = subReals(a, b);
-  return r !== undefined ? r : primitiveCell('-').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return inexactReal(x - y);
+  return otherwise(subReals, '-', a, b);
 }
 
 /**
@@ -176,8 +213,9 @@ export function sub(a, b) {
  */
 export function mul(a, b) {
   if (typeof a === 'number' && typeof b === 'number') return mulNumbers(a, b);
-  const r = mulReals(a, b);
-  return r !== undefined ? r : primitiveCell('*').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return inexactReal(x * y);
+  return otherwise(mulReals, '*', a, b);
 }
 
 /**
@@ -187,9 +225,9 @@ export function mul(a, b) {
  * @returns {*}
  */
 export function lt(a, b) {
-  if (typeof a === 'number' && typeof b === 'number') return a < b;
-  const r = lessReals(a, b);
-  return r !== undefined ? r : primitiveCell('<').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return x < y;
+  return otherwise(lessReals, '<', a, b);
 }
 
 /**
@@ -199,9 +237,9 @@ export function lt(a, b) {
  * @returns {*}
  */
 export function gt(a, b) {
-  if (typeof a === 'number' && typeof b === 'number') return a > b;
-  const r = lessReals(b, a);
-  return r !== undefined ? r : primitiveCell('>').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return x > y;
+  return otherwise(greaterReals, '>', a, b);
 }
 
 /**
@@ -211,9 +249,9 @@ export function gt(a, b) {
  * @returns {*}
  */
 export function le(a, b) {
-  if (typeof a === 'number' && typeof b === 'number') return a <= b;
-  const r = lessEqualReals(a, b);
-  return r !== undefined ? r : primitiveCell('<=').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return x <= y;
+  return otherwise(lessEqualReals, '<=', a, b);
 }
 
 /**
@@ -223,9 +261,9 @@ export function le(a, b) {
  * @returns {*}
  */
 export function ge(a, b) {
-  if (typeof a === 'number' && typeof b === 'number') return a >= b;
-  const r = lessEqualReals(b, a);
-  return r !== undefined ? r : primitiveCell('>=').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return x >= y;
+  return otherwise(greaterEqualReals, '>=', a, b);
 }
 
 /**
@@ -235,9 +273,9 @@ export function ge(a, b) {
  * @returns {*}
  */
 export function numEq(a, b) {
-  if (typeof a === 'number' && typeof b === 'number') return a === b;
-  const r = equalReals(a, b);
-  return r !== undefined ? r : primitiveCell('=').primitive(a, b);
+  const x = doubleOf(a), y = doubleOf(b);
+  if (x !== undefined && y !== undefined) return x === y;
+  return otherwise(equalReals, '=', a, b);
 }
 
 /**

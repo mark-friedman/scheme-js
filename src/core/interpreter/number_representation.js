@@ -54,14 +54,31 @@ export function exactInteger(b) {
     return b >= -MAX_SAFE && b <= MAX_SAFE ? Number(b) : b;
 }
 
+/** The bound of the inexact integers whose boxes are made once and shared. */
+const SHARED_BOUND = 1024;
+
+/**
+ * The boxes of the inexact integers from -1024 to 1024, made once: most of the
+ * inexact integers a program makes are small -- a recursion's leaves, a count
+ * kept in a double, zeros -- and sharing their boxes makes them cost no
+ * allocation. R7RS leaves `eq?` on numbers unspecified, so two of them being
+ * one object is allowed; `eqv?` compares them by value either way. -0.0 is
+ * not among them.
+ * @type {Flonum[]}
+ */
+const SHARED_FLONUMS = Array.from({ length: 2 * SHARED_BOUND + 1 }, (_, i) => new Flonum(i - SHARED_BOUND));
+
 /**
  * The inexact real a double denotes, as Scheme holds it: a box for an integral
- * value, which as a bare number would be exact; the number otherwise.
+ * value, which as a bare number would be exact -- shared for a small one --
+ * and the number otherwise.
  * @param {number} n - The double.
  * @returns {number|Flonum}
  */
 export function inexactReal(n) {
-    return Number.isInteger(n) ? new Flonum(n) : n;
+    if (!Number.isInteger(n)) return n;
+    if (n >= -SHARED_BOUND && n <= SHARED_BOUND && (n !== 0 || 1 / n > 0)) return SHARED_FLONUMS[n + SHARED_BOUND];
+    return new Flonum(n);
 }
 
 /**
