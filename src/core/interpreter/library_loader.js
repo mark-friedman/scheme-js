@@ -319,10 +319,10 @@ export function programEnvironment(forms, analyze, interpreter, env) {
  */
 export function runProgramForm(form, analyze, interpreter, env, options) {
     const scope = env.libraryScope;
-    if (scope === undefined) return interpreter.runTopLevel(analyze(form), env, options);
+    if (scope === undefined) return interpreter.runTopLevel(analyze(form, env), env, options);
     globalContext.pushDefiningScope(scope);
     try {
-        return interpreter.runTopLevel(analyze(form), env, options);
+        return interpreter.runTopLevel(analyze(form, env), env, options);
     } finally {
         globalContext.popDefiningScope();
     }

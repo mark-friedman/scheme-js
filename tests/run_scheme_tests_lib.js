@@ -145,7 +145,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
         // Run the test file a top-level form at a time, as a program is run:
         // a library the file defines is loaded, and the macros it exports
         // known, before the forms after it are analyzed.
-        for (const form of parse(code)) interpreter.run(analyze(form));
+        for (const form of parse(code)) interpreter.run(analyze(form, interpreter.globalEnv));
 
         const result = run(interpreter, '(test-report)');
         if (result !== true) {

@@ -738,10 +738,10 @@ export class Interpreter {
 
     let ast;
     if (expressions.length === 1) {
-      ast = analyze(expressions[0], undefined, this.context);
+      ast = analyze(expressions[0], this.globalEnv);
     } else {
       // Wrap multiple expressions in begin
-      ast = analyze(list(intern('begin'), ...expressions), undefined, this.context);
+      ast = analyze(list(intern('begin'), ...expressions), this.globalEnv);
     }
 
     return this.runAsync(ast, this.globalEnv, options);

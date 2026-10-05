@@ -622,10 +622,10 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             for (const sexp of sexps) {
                 if (interpreter.debugRuntime && !interpreter.debugRuntime.enabled) {
                     // FAST MODE (Sync)
-                    result = interpreter.runTopLevel(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                    result = interpreter.runTopLevel(analyze(sexp, globalEnv), globalEnv, { jsAutoConvert: 'raw' });
                 } else {
                     // DEBUG MODE (Async)
-                    result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                    result = await interpreter.runAsync(analyze(sexp, globalEnv), globalEnv, { jsAutoConvert: 'raw' });
                 }
             }
 
@@ -724,7 +724,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                 const sexps = parse(code);
                 let result;
                 for (const sexp of sexps) {
-                    result = await interpreter.runAsync(analyze(sexp), globalEnv, { jsAutoConvert: 'raw' });
+                    result = await interpreter.runAsync(analyze(sexp, globalEnv), globalEnv, { jsAutoConvert: 'raw' });
                 }
                 if (!debugBackend.isPaused()) {
                     addToHistory(prettyPrint(result), 'result');

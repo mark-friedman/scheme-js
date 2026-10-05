@@ -144,7 +144,7 @@ function runConfiguration(logger, withTier, harness, files) {
     const { interpreter, env } = createInterpreter();
     const evaluate = (source) => {
       let value;
-      for (const form of parse(source)) value = interpreter.runTopLevel(analyze(form), env, { jsAutoConvert: 'raw' });
+      for (const form of parse(source)) value = interpreter.runTopLevel(analyze(form, env), env, { jsAutoConvert: 'raw' });
       return value;
     };
 

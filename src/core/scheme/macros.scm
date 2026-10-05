@@ -155,27 +155,34 @@
   (apply %raise-syntax-error message irritants))
 
 ;; /**
-;;  * include (R7RS 4.1.7): the forms of files, read and put where the form
-;;  * is, as a `begin` of them, in order.
-;;  *
-;;  * A file is found by the file resolver the libraries are found by -- the
+;;  * The forms of files, read in order, for `include` and `include-ci`. A
+;;  * file is found by the file resolver the libraries are found by -- the
 ;;  * CLI's looks in the current directory first -- rather than beside the
 ;;  * file the form is in, which R7RS encourages but which a transformer,
 ;;  * given only the form's operands, cannot know. As a library's files are,
-;;  * a file is read with dot notation off unless it turns it on. A
-;;  * transformer sees only the primitives, so the reading is written out here
-;;  * and in `include-ci` both.
-;;  *
+;;  * a file is read with dot notation off unless it turns it on.
+;;  * @param {string} keyword - The form's name, for the error of a file that
+;;  *   cannot be read.
+;;  * @param {list} files - The files.
+;;  * @param {boolean} fold-case? - Whether to read folding case, as
+;;  *   `#!fold-case` does.
+;;  * @returns {list}
+;;  */
+(define (included-forms keyword files fold-case?)
+  (if (null? files)
+      '()
+      (let ((source (%include-source (car files))))
+        (if (not source) (%raise-syntax-error (string-append keyword ": cannot read " (car files))))
+        (append (%read-forms source (car files) fold-case?)
+                (included-forms keyword (cdr files) fold-case?)))))
+
+;; /**
+;;  * include (R7RS 4.1.7): the forms of files, read and put where the form
+;;  * is, as a `begin` of them, in order (`included-forms`).
 ;;  * @param {...string} files - The files.
 ;;  */
 (define-macro (include . files)
-  (cons 'begin
-        (let read-all ((files files))
-          (if (null? files)
-              '()
-              (let ((source (%include-source (car files))))
-                (if (not source) (%raise-syntax-error (string-append "include: cannot read " (car files))))
-                (append (%read-forms source (car files) #f) (read-all (cdr files))))))))
+  (cons 'begin (included-forms "include" files #f)))
 
 ;; /**
 ;;  * include-ci (R7RS 4.1.7): as `include`, but read folding case, as
@@ -183,13 +190,7 @@
 ;;  * @param {...string} files - The files.
 ;;  */
 (define-macro (include-ci . files)
-  (cons 'begin
-        (let read-all ((files files))
-          (if (null? files)
-              '()
-              (let ((source (%include-source (car files))))
-                (if (not source) (%raise-syntax-error (string-append "include-ci: cannot read " (car files))))
-                (append (%read-forms source (car files) #t) (read-all (cdr files))))))))
+  (cons 'begin (included-forms "include-ci" files #t)))
 
 ;; /**
 ;;  * Internal helper for defining record fields.

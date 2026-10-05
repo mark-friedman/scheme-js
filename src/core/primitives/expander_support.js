@@ -47,6 +47,25 @@ const scopeOf = (scope) => Number(scope);
 /**
  * The expander's primitives.
  */
+/** The interpreter procedural macros' procedures are made on, once made. */
+let transformers = null;
+
+/**
+ * The interpreter procedural macros' procedures are made on, and run by: one
+ * for the process, with no debug runtime, its global environment one where
+ * only the primitives are bound, made the first time a procedure is. It does
+ * not own the environments it evaluates in, a program's or a library's, so
+ * that their code stays their interpreter's.
+ * @returns {Interpreter}
+ */
+function transformerInterpreter() {
+    if (transformers === null) {
+        transformers = new Interpreter(globalContext);
+        transformers.setGlobalEnv(createGlobalEnvironment(transformers));
+    }
+    return transformers;
+}
+
 export const expanderPrimitives = {
     // -- Identifiers ------------------------------------------------------------
 
@@ -261,21 +280,24 @@ export const expanderPrimitives = {
     // -- Procedural macros -----------------------------------------------------------
 
     /**
-     * The value of an expression, a core form, evaluated where only the
-     * primitives are bound, on an interpreter of its own: a procedural
-     * macro's procedure, made as the macro is defined.
+     * The value of an expression, a core form, evaluated in an environment --
+     * that of the library or program defining the macro whose procedure it
+     * is (`defining-environment` in expander.scm) -- or, where none is known,
+     * #f, in one where only the primitives are bound; on the interpreter
+     * procedural macros' procedures are made on (`transformerInterpreter`): a
+     * procedural macro's procedure, made as the macro is defined.
      *
-     * The interpreter is given no debug runtime. A transformer runs inside the
+     * That interpreter has no debug runtime, and the procedure it makes is run
+     * by it. A procedure of the program's that the transformer calls is run
+     * by the program's interpreter, as any call of it is. A transformer runs inside the
      * expander, which finishes before the interpreter runs a step of the code
      * being expanded, while the debugger can only make execution wait between
      * the steps of an asynchronous run: a breakpoint that fired inside a
      * transformer could stop nothing. The debugger reports such breakpoints as
      * never firing, finding the transformer by its `transformerProcedure`.
      */
-    '%evaluate-transformer': (form) => {
-        const interpreter = new Interpreter(globalContext);
-        const env = createGlobalEnvironment(interpreter);
-        interpreter.setGlobalEnv(env);
-        return interpreter.run(assemble(form, analyze), env);
+    '%evaluate-transformer': (form, env) => {
+        const interpreter = transformerInterpreter();
+        return interpreter.run(assemble(form, analyze), env === false ? interpreter.globalEnv : env);
     }
 };

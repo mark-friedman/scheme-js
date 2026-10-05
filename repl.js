@@ -143,7 +143,7 @@ async function bootstrapInterpreter() {
         const exprs = parse(code, { filename });
         let result;
         for (const exp of exprs) {
-            const ast = analyze(exp);
+            const ast = analyze(exp, env);
             result = interpreter.runTopLevel(ast, env);
         }
         return result;
@@ -373,10 +373,10 @@ async function startRepl() {
                     // Check for Fast Mode (Debug Off)
                     if (runtime && !runtime.enabled) {
                         // FAST MODE: Synchronous execution for performance
-                        result = interpreter.runTopLevel(analyze(sexp), env, { jsAutoConvert: 'raw' });
+                        result = interpreter.runTopLevel(analyze(sexp, env), env, { jsAutoConvert: 'raw' });
                     } else {
                         // DEBUG MODE: Asynchronous execution for breakpoints/stepping
-                        result = await interpreter.runAsync(analyze(sexp), env, { jsAutoConvert: 'raw' });
+                        result = await interpreter.runAsync(analyze(sexp, env), env, { jsAutoConvert: 'raw' });
                     }
                 }
                 flushOutput();

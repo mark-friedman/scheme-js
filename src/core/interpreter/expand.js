@@ -25,21 +25,25 @@ export function expander(name) {
  * library or program whose scope is the one being defined in, if any -- as
  * the evaluator's node. A node is itself.
  * @param {*} form - The form.
+ * @param {Environment} [env] - The environment it will run in, where a macro
+ *   it defines evaluates its procedure if no library's or program's scope
+ *   says where.
  * @returns {Executable}
  */
-export function analyze(form) {
+export function analyze(form, env) {
   if (form instanceof Executable) return form;
-  return assemble(expandToCore(form), analyze);
+  return assemble(expandToCore(form, env), analyze);
 }
 
 /**
  * A form, expanded where a program's or library's top level is, as its core
  * form.
  * @param {*} form - The form.
+ * @param {Environment} [env] - The environment it will run in (`analyze`).
  * @returns {*}
  */
-export function expandToCore(form) {
-  return callSchemeProcedure(expander('expand'), [form]);
+export function expandToCore(form, env) {
+  return callSchemeProcedure(expander('expand'), env === undefined ? [form] : [form, env]);
 }
 
 /**

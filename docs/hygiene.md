@@ -210,8 +210,11 @@ where the macro was defined (`explicit_renaming.scm`). `compare` is
               (list (rename 'set!) b (rename 'tmp)))))))
 ```
 
-The procedure is evaluated as the macro is defined, where only the
-primitives are bound, so it uses `car` and `cdr` rather than `cadr` or `map`.
+The procedure is evaluated as the macro is defined, in the environment of the
+library or program defining it: it sees what that imports and what it defined
+before, and a library can share its own procedures with its macros. There is
+no phase of its own, as in Chibi, Gauche and Guile, so nothing is loaded
+twice; the price is that expansion can see the library's state as it runs.
 
 ### define-macro
 

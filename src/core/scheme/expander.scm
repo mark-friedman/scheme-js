@@ -92,14 +92,18 @@
 ;;  * @property {list} bindings - `(identifier . name)` pairs, looked through in order.
 ;;  * @property {boolean} top-level? - Whether this is a top level.
 ;;  * @property {macro-table|boolean} macros - The innermost macros, or #f.
+;;  * @property {object|boolean} runtime - In the outermost frame, the
+;;  *   environment the forms expanded in it will run in, where whoever
+;;  *   expands them says (`expand`); otherwise #f.
 ;;  */
 (define-record-type syntactic-env
-  (make-syntactic-env parent bindings top-level? macros)
+  (make-syntactic-env parent bindings top-level? macros runtime)
   syntactic-env?
   (parent env-parent)
   (bindings env-bindings)
   (top-level? env-top-level?)
-  (macros env-macros))
+  (macros env-macros)
+  (runtime env-runtime))
 
 ;; /**
 ;;  * The macros a body or a `let-syntax` defines, by name, the latest first.
@@ -115,10 +119,23 @@
 
 ;; /**
 ;;  * A program's or a library's top level, where nothing is bound locally.
+;;  * @param {object|boolean} runtime - The environment the forms expanded
+;;  *   there will run in, or #f if that is not known.
 ;;  * @returns {syntactic-env}
 ;;  */
-(define (top-level-env)
-  (make-syntactic-env #f '() #t #f))
+(define (top-level-env runtime)
+  (make-syntactic-env #f '() #t #f runtime))
+
+;; /**
+;;  * The environment the forms expanded where `env` is will run in, as the
+;;  * outermost frame says, or #f.
+;;  * @param {syntactic-env|boolean} env - Where; #f for nowhere in particular.
+;;  * @returns {object|boolean}
+;;  */
+(define (runtime-environment env)
+  (cond ((not env) #f)
+        ((env-parent env) (runtime-environment (env-parent env)))
+        (else (env-runtime env))))
 
 ;; /**
 ;;  * A frame inside one, binding nothing yet: a procedure's, which is never a
@@ -127,7 +144,7 @@
 ;;  * @returns {syntactic-env}
 ;;  */
 (define (env-child env)
-  (make-syntactic-env env '() #f (env-macros env)))
+  (make-syntactic-env env '() #f (env-macros env) #f))
 
 ;; /**
 ;;  * A frame binding an identifier, inside one.
@@ -137,7 +154,7 @@
 ;;  * @returns {syntactic-env}
 ;;  */
 (define (env-extend env id name)
-  (make-syntactic-env env (list (cons id name)) #f (env-macros env)))
+  (make-syntactic-env env (list (cons id name)) #f (env-macros env) #f))
 
 ;; /**
 ;;  * Frames binding identifiers, one each, in order, inside one.
@@ -158,7 +175,7 @@
 ;;  * @returns {syntactic-env} The frame, its macros a table of none yet.
 ;;  */
 (define (env-with-macros env)
-  (make-syntactic-env env '() (env-top-level? env) (make-macro-table '() (env-macros env))))
+  (make-syntactic-env env '() (env-top-level? env) (make-macro-table '() (env-macros env)) #f))
 
 ;; /**
 ;;  * The name an identifier is bound under locally, where `env` is, or #f.
@@ -233,6 +250,20 @@
 ;;  */
 (define (current-scope)
   (or (realizing-in) (%defining-scope)))
+
+;; /**
+;;  * Where a procedural macro's procedure is evaluated: the environment of
+;;  * the library or program that defines the macro -- its imports, and what
+;;  * it defined before -- found by its scope, or else the one the forms
+;;  * expanded where `env` is will run in; #f if neither is known. Expansion
+;;  * has no phase of its own, as in Chibi, Gauche and Guile: a library shares
+;;  * its procedures with its macros, and nothing is loaded twice.
+;;  * @param {syntactic-env} env - Where the macro is defined.
+;;  * @returns {object|boolean}
+;;  */
+(define (defining-environment env)
+  (or (let ((scope (current-scope))) (and scope (%library-environment scope)))
+      (runtime-environment env)))
 
 ;; /**
 ;;  * The scope an identifier is used in: the library whose macro introduced
@@ -376,12 +407,16 @@
 ;; ---------------------------------------------------------------------------
 
 ;; /**
-;;  * A form, expanded where a program's or library's top level is.
+;;  * A form, expanded where a program's or library's top level is, for the
+;;  * environment it will run in, if that is given.
 ;;  * @param {*} form - The form.
+;;  * @param {object} [runtime-env] - The environment it will run in, where a
+;;  *   macro it defines evaluates its procedure if no library's or program's
+;;  *   scope says where (`defining-environment`).
 ;;  * @returns {list} Its core form.
 ;;  */
-(define (expand form)
-  (expand-form form (top-level-env)))
+(define (expand form . runtime-env)
+  (expand-form form (top-level-env (and (pair? runtime-env) (car runtime-env)))))
 
 ;; /**
 ;;  * A form, expanded inside an environment the evaluator made: an
@@ -395,7 +430,7 @@
   (let build ((frames (%environment-renamings runtime-env)) (env #f))
     (if (null? frames)
         (expand-form form env)
-        (build (cdr frames) (make-syntactic-env env (car frames) #f #f)))))
+        (build (cdr frames) (make-syntactic-env env (car frames) #f #f (and (not env) runtime-env))))))
 
 ;; /**
 ;;  * A form's core form, where `env` is.
@@ -540,7 +575,7 @@
 (define (realize! pending)
   (or (%realized-macro pending)
       (let ((definition (%pending-macro pending))
-            (env (env-with-macros (top-level-env))))
+            (env (env-with-macros (top-level-env #f))))
         (if (not definition) (raise-syntax-error "not a macro's transformer" pending 'analyze))
         (parameterize ((realizing-in (cdr definition)))
           (expand-form (car definition) env))
@@ -1087,7 +1122,7 @@
 (define (er-macro-definition spec name env)
   (if (not (and (pair? (cdr spec)) (null? (cddr spec))))
       (raise-syntax-error "er-macro-transformer takes one procedure" spec 'er-macro-transformer))
-  (let ((procedure (transformer-procedure (expand-form (cadr spec) env) name spec 'er-macro-transformer)))
+  (let ((procedure (transformer-procedure (expand-form (cadr spec) env) name spec 'er-macro-transformer env)))
     (reflecting (er-transformer procedure (defining-scope) env) procedure)))
 
 ;; /**
@@ -1116,8 +1151,8 @@
 ;; /**
 ;;  * `(define-macro (name . formals) body ...)`, or `(define-macro name
 ;;  * transformer)`: a procedure of the use's operands, evaluated as the macro
-;;  * is defined, where only the primitives are bound, whose result is what
-;;  * the use expands into. Its lambda, in the first shape, has the
+;;  * is defined, where it is defined (`defining-environment`), whose result is
+;;  * what the use expands into. Its lambda, in the first shape, has the
 ;;  * definition's span.
 ;;  *
 ;;  * A legacy extension, kept for code written for other Lisps: nothing it
@@ -1136,7 +1171,7 @@
                         ((identifier? head)
                          (values (identifier-name head) (expand-form (caddr form) env)))
                         (else (raise-syntax-error "Invalid define-macro syntax" form 'define-macro)))))
-      (let ((procedure (transformer-procedure made name form 'define-macro)))
+      (let ((procedure (transformer-procedure made name form 'define-macro env)))
         (define-macro! env name
           (reflecting (er-transformer (lambda (use rename compare) (apply-transformer procedure name use))
                                       (defining-scope) env)
@@ -1150,13 +1185,14 @@
 ;;  * @param {pair} form - The definition, or the transformer as written.
 ;;  * @param {symbol} keyword - What defines it: `define-macro` or
 ;;  *   `er-macro-transformer`.
+;;  * @param {syntactic-env} env - Where it is defined.
 ;;  * @returns {procedure}
 ;;  */
-(define (transformer-procedure made name form keyword)
+(define (transformer-procedure made name form keyword env)
   (guard (e (#t (raise-syntax-error (string-append "Error evaluating macro transformer for '"
                                                    (symbol->string name) "': " (%error-message e))
                                     form keyword)))
-    (%evaluate-transformer made)))
+    (%evaluate-transformer made (defining-environment env))))
 
 ;; /**
 ;;  * A `define-macro`'s use, expanded: its procedure applied to its operands.

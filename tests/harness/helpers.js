@@ -21,12 +21,12 @@ export function run(interpreter, code, options = {}) {
 
     let ast;
     if (asts.length === 1) {
-        ast = analyze(asts[0]);
+        ast = analyze(asts[0], interpreter.globalEnv);
     } else {
         // Construct a 'begin' S-exp and analyze it
         // asts is an array of S-expressions (Cons, Symbol, etc.)
         // We need to create a Cons list: (begin ...asts)
-        ast = analyze(list(intern('begin'), ...asts));
+        ast = analyze(list(intern('begin'), ...asts), interpreter.globalEnv);
     }
 
     return interpreter.run(ast, undefined, [], undefined, options);

@@ -129,7 +129,7 @@ import {
                     (scheme-js define-macro))
         `;
         for (const exp of parse(imports)) {
-            interpreter.run(analyze(exp), env);
+            interpreter.run(analyze(exp, env), env);
         }
 
         // The program's own procedures are compiled as it runs.

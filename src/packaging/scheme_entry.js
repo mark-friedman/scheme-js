@@ -102,7 +102,7 @@ const imports = `
             (scheme-js interop))
 `;
 for (const exp of parse(imports)) {
-    interpreter.run(analyze(exp), env);
+    interpreter.run(analyze(exp, env), env);
 }
 
 /**

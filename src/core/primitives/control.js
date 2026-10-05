@@ -61,10 +61,10 @@ export function getControlPrimitives(interpreter) {
          */
         'eval': (expr, env) => {
             const scope = env?.libraryScope;
-            if (scope === undefined) return new TailCall(analyze(expr), env);
+            if (scope === undefined) return new TailCall(analyze(expr, env), env);
             globalContext.pushDefiningScope(scope);
             try {
-                return new TailCall(analyze(expr), env);
+                return new TailCall(analyze(expr, env), env);
             } finally {
                 globalContext.popDefiningScope();
             }

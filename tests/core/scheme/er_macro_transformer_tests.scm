@@ -8,8 +8,8 @@
 ;; nothing of the user's. `compare` says whether two identifiers mean the
 ;; same where the macro is used.
 ;;
-;; A transformer runs as the macro is expanded, where only the primitives are
-;; bound, so these use `car` and `cdr` rather than `cadr` and `map`. The names
+;; A transformer's procedure is evaluated where the macro is defined: it sees
+;; the library's or program's imports and what it defined before. The names
 ;; are unusual, since test files share an environment.
 
 (define-syntax er-swap!
@@ -147,3 +147,45 @@
   (test "and what it makes up is the user's"
         7
         (let ((begin (lambda (a b) 7))) (er-legacy-twice 1))))
+
+;; A procedure the file defines before the macro whose procedure calls it.
+(define (er-doubled-form x) (list '* 2 x))
+
+(define-syntax er-double
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (er-doubled-form (cadr form)))))
+
+;; A library whose macro's procedure calls a procedure the library keeps to
+;; itself.
+(define-library (er-macro-tests helpers)
+  (export er-reversed)
+  (import (scheme base))
+  (begin
+    (define (reversed-operands form) (reverse (cdr form)))
+    (define-syntax er-reversed
+      (er-macro-transformer
+        (lambda (form rename compare)
+          (cons (rename 'list) (reversed-operands form)))))))
+
+(import (er-macro-tests helpers))
+
+(define-macro (er-legacy-second . operands) (cadr operands))
+
+(test-group "where a transformer's procedure runs"
+  (test "it sees the standard library"
+        '(2 4 6)
+        (let-syntax ((er-doubles (er-macro-transformer
+                                   (lambda (form rename compare)
+                                     (cons (rename 'list) (map (lambda (x) (* 2 x)) (cdr form)))))))
+          (er-doubles 1 2 3)))
+  (test "and a procedure defined before the macro where it is defined" 10 (er-double 5))
+  (test "a library's, a procedure the library does not export" '(3 2 1) (er-reversed 1 2 3))
+  (test "a define-macro's too" 2 (er-legacy-second 1 2))
+  (test "in an environment, what it imports"
+        '(b a)
+        (eval '(let-syntax ((swap-list (er-macro-transformer
+                                         (lambda (form rename compare)
+                                           (list (rename 'quote) (reverse (cadr form)))))))
+                 (swap-list (a b)))
+              (environment '(scheme base)))))

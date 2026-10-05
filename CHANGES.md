@@ -12568,3 +12568,48 @@ an import the program shadows; a failing procedure; and `define-macro`, unrename
 
 7,901 tests pass in Node with none failing (33 skipped), and 7,680 in the browser with none failing
 (56 skipped).
+
+# Task 45, fourth increment, step (a): a procedural macro's procedure runs where the macro is defined (2026-10-05)
+
+Decided with the user: an `er-macro-transformer`'s or `define-macro`'s procedure is evaluated in the
+environment of the library or program defining the macro -- its imports, and what it defined
+before -- with no phase of its own, as in Chibi, Gauche and Guile. It had been evaluated on a fresh
+interpreter where only the primitives were bound, so a transformer could not call `cadr` or `map`,
+nor a procedure its own library defined.
+
+- **Where.** `defining-environment` in the expander: the environment of the library or strict
+  program being expanded, found by its scope -- the pending macro's library, when a macro restored
+  from a table is made -- or else the environment the forms will run in, which whoever expands them
+  now says: `analyze(form, env)`, and the expander's `expand`, take it, and the outermost syntactic
+  frame carries it. `eval`, a program's forms (`runProgramForm`), the CLI's and the browser's REPLs
+  and `load`, a page's scripts and the test runners give it. Where nothing says, as for a JavaScript
+  caller that gives none, the procedure sees the primitives, as before.
+- **On what.** One interpreter for the process, with no debug runtime, evaluates every procedure,
+  where a fresh interpreter and a fresh global environment of every primitive had been made for each
+  macro. It does not own the environments it evaluates in, so their code stays their interpreter's.
+- **What it allowed.** `include` and `include-ci`, in `macros.scm`, share one reader,
+  `included-forms`, where the loop was written out twice because a transformer saw only the
+  primitives.
+- **A cost found on the way.** The runtime environment was first a parameter, bound around each
+  top-level expansion; that made expansion 1.8 times slower -- 175 ms to 313 on the canonical
+  programs' 1,468 forms, about 100 microseconds a `parameterize` from compiled code, which goes
+  through `dynamic-wind`. As a field of the outermost syntactic frame it costs nothing measurable:
+  175 ms against 176.
+- **The gates**, against the merge before this increment: expansion level (above); `run_tier.js`'s
+  test-file set level (1,264 ms with the tier against 1,262, with one test file more), the corpus
+  level (3,620 against 3,564, then 3,469 against 3,533); no program wrong.
+
+JavaScript under `src/`, 46 lines added and 20 removed: the door into the expander taking the
+environment, and its callers giving it, which start Scheme; `%evaluate-transformer` and the
+interpreter it runs on, the evaluator's.
+
+## Tests
+
+`er_macro_transformer_tests.scm`: a transformer's procedure sees the standard library, a procedure
+defined before the macro, a library's unexported procedure, and, in an `environment`, what that
+imports; and a `define-macro`'s uses `cadr`.
+
+## Verification
+
+7,909 tests pass in Node with none failing (33 skipped), and 7,685 in the browser with none failing
+(56 skipped).
