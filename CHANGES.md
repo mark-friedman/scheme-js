@@ -12375,3 +12375,35 @@ form's node and what it runs to. `expander_comparison_tests.js`: the two compare
 7,850 tests pass in Node with none failing (33 skipped), with the analyzer in use and with the
 Scheme expander (`SCHEME_JS_EXPANDER=scheme`) alike; 7,626 in the browser with none failing (56
 skipped).
+
+# `run_tier.js` no longer calls `tco_tests` wrong: the test prints no heap sizes (2026-10-05)
+
+`node --expose-gc benchmarks/run_tier.js --set tests` reported `tco_tests` as a WRONG ANSWER, and
+`--set all` counted it among its wrong runs, though its test passes with the tier and without.
+`run_tier.js` calls a run wrong if its output with the tier differs from its output without, and
+`tests/core/scheme/tco_tests.scm` displayed the heap size twice, before its loop and after it
+(`35384360.035436496.0` in one run, `43518896.043647464.0` in another), figures that differ from run
+to run. It had done so since the file was added. Nothing read them, and a third display was already
+commented out. All three are gone, and the file's header says why it prints none. `run_tier.js` is
+unchanged: making the output deterministic is the test's job, and comparing it is what catches a
+wrong answer a test file's own assertions miss.
+
+The test still checks what it is for. With the GC exposed, as `npm test` runs it, a copy whose loop
+makes its recursive call outside tail position (`(not (not (check-heap-growth ...)))`) fails, its
+heap past twice its starting size, with the tier and without; the test as it is passes both ways.
+Where the GC is not exposed, as in the browser, the heap check is skipped and that copy passes too:
+a million iterations finish either way, since the interpreter keeps a non-tail call's frames on the
+heap. There the frame stack is checked by `tests/functional/tail_position_tests.js`, which measures
+the interpreter's frame depth for each form that ends in a tail position, with a non-tail control,
+and `tests/functional/direct_tail_call_tests.js` holds a chain of compiled tail calls to a bounded
+stack; both run in Node and the browser. Nothing checks heap growth in the browser.
+
+## Tests
+
+None added: `tco_tests.scm` loses its output, not a check.
+
+## Verification
+
+`run_tier.js --set tests --only tco_tests` reported WRONG ANSWER before the change and does not
+after it; `--set tests`, 68 programs, reports none wrong. `npm test`: 7,859 passed, none failed
+(33 skipped). In the browser, 7,635 passed, none failed (56 skipped).
