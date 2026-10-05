@@ -252,7 +252,7 @@ if (isSchemeContinuation(fn)) {
 
 ## Global JavaScript Access
 
-The Scheme interpreter's global environment automatically falls back to the JavaScript global context (`globalThis`) for any unbound variable. This allows you to access browser APIs, Node.js globals, or variables defined in other `<script>` tags directly by name.
+The Scheme interpreter's global environment automatically falls back to the JavaScript global context (`globalThis`) for any unbound variable. This allows you to access browser APIs, Node.js globals, or variables defined in other `<script>` tags directly by name. So does the environment of a library, or of a program that begins with import declarations, which otherwise sees only what it imports -- a name it neither imports nor defines is looked up in `globalThis`, so in Chrome an unimported `when` is `EventTarget.prototype.when`, not `(scheme base)`'s macro.
 
 ### Reading Global Variables
 
@@ -325,6 +325,16 @@ the library system, which are R7RS. Either can be changed for the rest of a file
 
 A library defined inline, in a program's file, is read as the program is. Anywhere, `|a.b|` is an
 identifier.
+
+**What it needs imported.** Dot notation is written as calls to `js-ref`, `js-invoke` and
+`js-set!`, which `(scheme-js interop)` exports. A program or page script with no import
+declarations sees everything, these included; one that begins with them, and a library, sees only
+what it imports (R7RS 5.6.1), so imports `(scheme-js interop)` to use dot notation:
+
+```scheme
+(import (scheme base) (scheme-js interop))
+(set! document.title "My Scheme App")
+```
 
 ### The `this` Pseudo-Variable
 

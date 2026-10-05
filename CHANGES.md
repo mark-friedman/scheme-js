@@ -11972,3 +11972,53 @@ and `(scheme base)`'s has `features`, `file-error?` and `read-error?`. `compiler
 
 7,789 tests pass in Node with none failing (33 skipped), and 7,570 in the browser with none
 failing (55 skipped). `run_tier.js --set all` runs every program.
+
+# Task 85 done: a program that begins with import declarations sees only them (2026-10-04)
+
+The second half of the decision recorded with the libraries' half: a program -- a file the CLI runs,
+code given with `-e`, a page's script -- that begins with `import` declarations runs in an
+environment of what they import and nothing else, and what it defines is its own; a program with
+none, the REPLs, and code `schemeEval` is given without `{ program: true }` run in the interaction
+environment as before, which sees everything.
+
+The library system takes a program apart (`program-parts` in `library_system.scm`: the import sets
+of the declarations it begins with, and the forms after). The CLI and the page start-up ask
+`programEnvironment` (`library_loader.js`) for the environment and the forms -- an environment of the
+import sets, made as `environment` makes one, or the interaction environment -- and run each form
+with `runProgramForm`, analyzed and run under the environment's scope as a library's body is, so
+that what it defines and the macros it imported are its own. `run_tier.js` runs programs the same
+way. The page adapter marks each script a program.
+
+The tier compiles such a program's procedures and top-level loops as it does any program's: it takes
+an environment of import sets that is not a library's for a program's top level (`program-environment?`
+in `tier.scm`). Its test of whether a library is loading had been whether any scope was being
+defined in, which a program's own scope now is; it asks whether that scope is a library's.
+
+Measured before it was switched on, as decided: every corpus test (23) and page program (3) in
+`run_tier.js` begins with `import`, and every one ran right and compiled as many procedures as it
+had. `npm run audit:languages`, a program that begins with `import`, runs. Dot notation needs
+`(scheme-js interop)` imported in such a program, since it is written as calls to `js-ref` and
+`js-invoke`; the README's page example imports it already, and the README and
+`docs/Interoperability.md` say so.
+
+JavaScript, 96 lines added and 19 removed under `src/`, most of them comments: `programEnvironment`,
+`importEnvironment` (now shared with `environment`) and `runProgramForm` are the door from the CLI and
+a page's start-up into the library system and the evaluator; the compiler host's
+`environment-strict?` is reflection on the evaluator's environments, and `library-loading?` was
+fixed in place; `scheme_entry.js` and `html_adapter.js` are the page's start-up.
+
+## Tests
+
+`program_tests.js`: a program that begins with import declarations sees what they import, in an
+environment of its own where its definitions are bound and the interaction environment's are not;
+an unimported primitive or macro is unbound; a macro it defines is its own and expands into what it
+imported; every leading declaration counts; and a program with none sees everything, in the
+interaction environment. `library_system_tests.scm`: `program-parts`. `tiering_tests.js`: such a
+program's looping procedure is compiled when bound, another on its second call, and a top-level
+loop is compiled. `cli_program_tests.js`: the same seen from the CLI, a file and `-e`.
+`test_bundle.js`: `schemeEval` with `{ program: true }`, and a page script's definitions kept to it.
+
+## Verification
+
+7,812 tests pass in Node with none failing (33 skipped), and 7,588 in the browser with none
+failing (56 skipped). `run_tier.js --set all` runs every program right.

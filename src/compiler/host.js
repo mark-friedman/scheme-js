@@ -154,6 +154,11 @@ const hostProcedures = {
   // library's.
   'environment-library': (env) => env.libraryName ?? false,
 
+  // Whether an environment holds what was imported into it and nothing else:
+  // a library's, a program's that began with import declarations, or one
+  // `environment` made.
+  'environment-strict?': (env) => env.strict === true,
+
   // The text code read under a name was read from, where nothing could fetch
   // it by the name -- a page's inline script -- or #f.
   'source-text': (name) => sourceText(text(name)) ?? false,
@@ -174,8 +179,11 @@ const hostProcedures = {
   },
 
   // Whether any library is being loaded. A definition made then is registered
-  // with the scopes that library's macros resolve through.
-  'library-loading?': () => globalContext.definingScopes.length > 0,
+  // with the scopes that library's macros resolve through. A program that
+  // began with import declarations runs under a scope of its own too, which
+  // is not a library's.
+  'library-loading?': () => globalContext.definingScopes.some(
+    (scope) => globalContext.lookupLibraryEnv(scope)?.libraryName !== undefined),
 
   // Whether an interpreter is running a program under a debugger.
   'debugging?': (interpreter) => interpreter.debugging === true,

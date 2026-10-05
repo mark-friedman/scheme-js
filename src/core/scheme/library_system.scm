@@ -807,6 +807,20 @@
   (for-each (lambda (spec) (import! loader env (parse-import-set spec))) specs))
 
 ;; /**
+;;  * A program taken apart (R7RS 5.1): the import sets of the `import`
+;;  * declarations it begins with, in order, and the forms after them. A
+;;  * program that begins with none has no import sets; whoever runs it decides
+;;  * what it sees then.
+;;  * @param {list} forms - The program's forms, as read.
+;;  * @returns {pair} (import-sets . forms)
+;;  */
+(define (program-parts forms)
+  (if (and (pair? forms) (pair? (car forms)) (eq? (caar forms) 'import))
+      (let ((rest (program-parts (cdr forms))))
+        (cons (append (cdar forms) (car rest)) (cdr rest)))
+      (cons '() forms)))
+
+;; /**
 ;;  * Binds a library's exports in an environment, under the names an import
 ;;  * set's filters give them. A variable is defined in the environment; a
 ;;  * syntactic keyword is bound in the analyzer's tables, in the library whose

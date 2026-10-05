@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import { createInterpreter } from './src/core/interpreter/index.js';
-import { setFileResolver, setLibraryLoadHook, setLibraryRestorer } from './src/core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, programEnvironment, runProgramForm } from './src/core/interpreter/library_loader.js';
 import { libraryNameToKey } from './src/core/interpreter/library_registry.js';
 import { installLibraryTable, libraryRestorer } from './src/compiler/prebuilt.js';
 import { attachTier } from './src/compiler/tiering.js';
@@ -267,6 +267,17 @@ async function startRepl() {
         const newline = scheme('newline');
         const errorPort = scheme('current-error-port')();
 
+        // A program that begins with import declarations sees only them; one
+        // with none sees everything the REPL does.
+        const runProgram = (sexps) => {
+            const program = programEnvironment(sexps, analyze, interpreter, env);
+            let result;
+            for (const sexp of program.forms) {
+                result = runProgramForm(sexp, analyze, interpreter, program.env, { jsAutoConvert: 'raw' });
+            }
+            return result;
+        };
+
         // Handle -e "expression"
         if (args[0] === '-e') {
             const code = args[1];
@@ -276,11 +287,7 @@ async function startRepl() {
                 process.exit(1);
             }
             try {
-                const sexps = parse(code);
-                let result;
-                for (const sexp of sexps) {
-                    result = interpreter.runTopLevel(analyze(sexp), env, { jsAutoConvert: 'raw' });
-                }
+                const result = runProgram(parse(code));
                 // The last result as `write` writes it, after what the program
                 // wrote, unless it is unspecified.
                 if (result !== undefined && result !== NO_VALUES) {
@@ -298,9 +305,9 @@ async function startRepl() {
         else {
             const filePath = args[0];
             try {
-                // Use the 'load' primitive defined in bootstrap
-                const loadProc = env.lookup('load');
-                loadProc(filePath);
+                const filename = path.resolve(process.cwd(), filePath);
+                if (!fs.existsSync(filename)) throw new Error(`file not found: ${filename}`);
+                runProgram(parse(fs.readFileSync(filename, 'utf8'), { filename }));
                 process.exit(0);
             } catch (e) {
                 display(`Error executing ${filePath}: ${e.message}`, errorPort);

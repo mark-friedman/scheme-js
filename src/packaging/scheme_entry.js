@@ -1,7 +1,7 @@
 import { createInterpreter } from '../core/interpreter/index.js';
 import { parse } from '../core/interpreter/reader.js';
 import { analyze } from '../core/interpreter/analyzer.js';
-import { setFileResolver, setLibraryLoadHook, setLibraryRestorer } from '../core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, programEnvironment, runProgramForm } from '../core/interpreter/library_loader.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
 import { installLibraryTable, libraryRestorer } from '../compiler/prebuilt.js';
 import { rememberSourceText } from '../core/interpreter/source_texts.js';
@@ -205,16 +205,16 @@ export function setUserCodeCompilation(enabled) {
  * @returns {*} The result of the evaluation.
  */
 function evalCode(code, options = {}) {
-    const { filename, inline = false } = options;
+    const { filename, inline = false, program = false } = options;
     // Nothing could fetch an inline script's text, so it is kept for the
     // source maps of what is compiled from it.
     if (inline && filename !== undefined) rememberSourceText(filename, code);
     // Form by form, as a program's top level is run, so that the compiler
     // tier sees each: a script run as one `begin` would be one form to it.
+    const forms = parse(code, filename === undefined ? undefined : { filename });
+    const run = program ? programEnvironment(forms, analyze, interpreter, env) : { env, forms };
     let result;
-    for (const form of parse(code, filename === undefined ? undefined : { filename })) {
-        result = interpreter.runTopLevel(analyze(form), env);
-    }
+    for (const form of run.forms) result = runProgramForm(form, analyze, interpreter, run.env);
     return result;
 }
 
@@ -227,6 +227,11 @@ function evalCode(code, options = {}) {
  * @property {boolean} [inline=false] - Whether nothing could fetch the code by
  *   its name, as a page's inline script, so that its text is kept for a
  *   debugger (`sourceText`).
+ * @property {boolean} [program=false] - Whether the code is a program, as a
+ *   page's script is: one that begins with import declarations runs in an
+ *   environment of what they import and nothing else (R7RS 5.1), and what it
+ *   defines is its own. Otherwise it is run in the shared environment, which
+ *   sees everything and keeps what the code imports and defines.
  */
 
 /**

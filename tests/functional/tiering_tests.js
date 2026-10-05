@@ -22,7 +22,7 @@ import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 import { installLibraryTable } from '../../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../../src/packaging/compiled_libraries.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
-import { loadLibrarySync, applyImports } from '../../src/core/interpreter/library_loader.js';
+import { loadLibrarySync, applyImports, programEnvironment, runProgramForm } from '../../src/core/interpreter/library_loader.js';
 import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
 
@@ -211,6 +211,29 @@ export async function runTieringTests(logger) {
     assert(logger, 'and so does the copy another of its libraries imported', seen.inOther, true);
     assert(logger, 'and both answer', seen.answers, '(55 11)');
     assert(logger, 'a library with a prebuilt table is left to it, however often it is called', seen.preSum, false);
+  }
+
+  logger.title('Tiering - A program that begins with import declarations');
+  {
+    // Such a program runs in an environment of its imports alone, not the
+    // one the tier was attached to, and the tier takes its procedures and
+    // forms as it takes any program's.
+    const bundled = (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] ?? BUNDLED_SOURCES[name[name.length - 1]];
+    const seen = withPrivateLibraries({ resolver: bundled }, () => {
+      const t = tiered();
+      const program = programEnvironment(parse(`(import (scheme base))
+        (define (strict-sum n) (let loop ((i 0) (acc 0)) (if (> i n) acc (loop (+ i 1) (+ acc i)))))
+        (define (strict-inc x) (+ x 1))
+        (let loop ((i 0)) (if (< i 10) (loop (+ i 1)) i))`), analyze, t.interpreter, t.env);
+      for (const form of program.forms) settle(runProgramForm(form, analyze, t.interpreter, program.env, { jsAutoConvert: 'raw' }));
+      const calls = parse('(strict-inc 1)')[0];
+      for (let i = 0; i < 2; i++) settle(runProgramForm(calls, analyze, t.interpreter, program.env, { jsAutoConvert: 'raw' }));
+      const compiled = (name) => program.env.lookup(name).$compiled === true;
+      return { looping: compiled('strict-sum'), called: compiled('strict-inc'), expressions: Number(t.tier.expressions) };
+    });
+    assert(logger, 'a procedure that loops is compiled when bound', seen.looping, true);
+    assert(logger, 'any other on its second call', seen.called, true);
+    assert(logger, 'and a top-level form that loops is compiled', seen.expressions, 1);
   }
 
   logger.title('Tiering - Debugging');

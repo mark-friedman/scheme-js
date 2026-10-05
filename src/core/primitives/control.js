@@ -7,13 +7,11 @@
 import { TailCall, Values, NO_VALUES, isSchemeClosure, isSchemeContinuation, Closure, Continuation } from '../interpreter/values.js';
 import { TailAppNode, LiteralNode, DynamicWindInit, CallWithValuesNode, CallCCNode } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/analyzer.js';
-import { Cons, toArray } from '../interpreter/cons.js';
 import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
 import { applyProcedure, valuesToList } from './apply.js';
 import { globalContext } from '../interpreter/context.js';
-import { importLibraries } from '../interpreter/library_loader.js';
-import { makeScopedEnvironment } from './library.js';
+import { importEnvironment } from '../interpreter/library_loader.js';
 
 /**
  * Returns control primitives.
@@ -77,11 +75,7 @@ export function getControlPrimitives(interpreter) {
          * the import sets imported into it by the library system, as an
          * `import` form's are. It holds what they import and nothing else.
          */
-        '%import-environment': (sets) => {
-            const env = makeScopedEnvironment(interpreter.globalEnv);
-            importLibraries(toArray(sets), analyze, interpreter, env);
-            return env;
-        },
+        '%import-environment': (sets) => importEnvironment(sets, analyze, interpreter, interpreter.globalEnv),
 
         /**
          * interaction-environment: Returns the global environment.

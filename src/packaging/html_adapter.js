@@ -17,7 +17,10 @@ function inlineScriptName(pageUrl, place) {
 /**
  * Runs Scheme scripts in order, each read under a name: a script with a `src`
  * under its URL, which a debugger can fetch it from, and an inline one under
- * `inlineScriptName`, its text kept since nothing could fetch it.
+ * `inlineScriptName`, its text kept since nothing could fetch it. Each is a
+ * program: one that begins with import declarations sees only them, and what
+ * it defines is its own; one with none shares the page's environment with
+ * the others like it.
  * @param {Iterable<{src: string, textContent: string}>} [scripts] - The
  *   scripts; the page's `<script type="text/scheme">` elements by default.
  * @param {string} [pageUrl] - The page's URL; the document's by default.
@@ -35,11 +38,11 @@ export async function runScripts(
                     throw new Error(`Failed to load Scheme script: ${script.src}`);
                 }
                 const code = await response.text();
-                await schemeEvalAsync(code, { filename: script.src });
+                await schemeEvalAsync(code, { filename: script.src, program: true });
             } else {
                 inlinePlace++;
                 await schemeEvalAsync(script.textContent,
-                    { filename: inlineScriptName(pageUrl, inlinePlace), inline: true });
+                    { filename: inlineScriptName(pageUrl, inlinePlace), inline: true, program: true });
             }
         } catch (err) {
             console.error('Error executing Scheme script:', err);

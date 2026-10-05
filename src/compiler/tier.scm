@@ -158,6 +158,19 @@
              (and (not (environment-library scope)) (walk (environment-parent scope)))))))
 
 ;; /**
+;;  * Whether an environment is a program's top level: the global environment
+;;  * the tier was attached to, or one of import sets alone that is not a
+;;  * library's -- a program's that began with import declarations, which sees
+;;  * only them, or one `environment` made.
+;;  * @param {tier} tier - The tier.
+;;  * @param {object} env - The environment.
+;;  * @returns {boolean}
+;;  */
+(define (program-environment? tier env)
+  (or (eq? env (tier-env tier))
+      (and (environment-strict? env) (not (environment-library env)))))
+
+;; /**
 ;;  * Whether the procedures an environment binds at top level are the tier's:
 ;;  * the program's own, or those of a library the program loaded that has no
 ;;  * prebuilt table.
@@ -167,7 +180,7 @@
 ;;  */
 (define (tier-manages? tier env)
   (and env
-       (or (eq? env (tier-env tier))
+       (or (program-environment? tier env)
            (let ((library (environment-library env)))
              (and library (not ((tier-prebuilt-test tier) library)))))))
 
@@ -270,7 +283,7 @@
 ;;  * @returns {procedure|boolean} A thunk, or #f.
 ;;  */
 (define (tier-top-level-procedure tier node env)
-  (and (eq? env (tier-env tier))
+  (and (program-environment? tier env)
        (not (tier-deferring? tier))
        (let ((form (ast->scheme node)))
          (and (not (defines-at-top-level? form))

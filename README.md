@@ -116,6 +116,11 @@ See `web/gh-pages.html` for a more complete working example.
 
 Run Scheme code inline in HTML and interact with the DOM:
 
+Each script is a program. One that begins with `import` declarations, as this one does, sees what
+they import and nothing else, as R7RS has it, and what it defines is its own; dot notation needs
+`(scheme-js interop)` imported. A script with no imports sees every standard library and shares the
+page's environment with the others like it.
+
 ```html
 <!-- Import Scheme implementation and HTML adapter -->
 <script type="module" src="dist/scheme.js"></script>

@@ -192,4 +192,32 @@ export async function runBundleTests(logger) {
     } catch (e) {
         logger.fail(`The page adapter's names failed: ${e.message}`);
     }
+
+    // A program -- a page's script -- that begins with import declarations
+    // sees only them, and what it defines is its own; code evaluated
+    // otherwise, as here before, is evaluated in the shared environment,
+    // its imports included.
+    try {
+        assert(logger, "A program that begins with import declarations sees what they import",
+            schemeEval("(import (only (scheme base) car quote)) (car '(1 2))", { program: true }), 1);
+        let unimported = null;
+        try {
+            schemeEval("(import (only (scheme base) car quote)) (cdr '(1 2))", { program: true });
+        } catch (e) {
+            unimported = e.message;
+        }
+        assert(logger, "and nothing else", /unbound variable: cdr/.test(unimported ?? ''), true);
+        const { runScripts } = await import('../dist/scheme-html.js');
+        await runScripts([{ src: '', textContent: '(import (only (scheme base) define)) (define adapter-strict-x 1)' }],
+            'http://example.test/strict.html');
+        let shared = 'bound';
+        try {
+            runSync('adapter-strict-x');
+        } catch (e) {
+            shared = 'unbound';
+        }
+        assert(logger, "A page's script is such a program, its definitions its own", shared, 'unbound');
+    } catch (e) {
+        logger.fail(`A program's imports failed: ${e.message}`);
+    }
 }

@@ -50,6 +50,16 @@
   (test "a library whose name begins with a filter's keyword" '(only lib) (library '(only lib)))
   (test "is not filtered" '() (steps '(only lib))))
 
+(test-group "library system - a program's import declarations"
+  (test "the import sets of those it begins with, in order, and the forms after"
+        '(((scheme base) (only (scheme write) display)) (display 1) (import (scheme char)))
+        (program-parts '((import (scheme base)) (import (only (scheme write) display))
+                         (display 1) (import (scheme char)))))
+  (test "a program that begins with none has no import sets"
+        '(() (define x 1) (import (scheme base)))
+        (program-parts '((define x 1) (import (scheme base)))))
+  (test "nor has an empty one" '(()) (program-parts '())))
+
 (test-group "library system - the names an import set gives"
   (define (named name spec) (imported-name name (import-set-steps (parse-import-set spec))))
   (test "without filters, every name as it is" 'car (named 'car '(scheme base)))

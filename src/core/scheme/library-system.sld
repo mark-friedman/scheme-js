@@ -41,7 +41,7 @@
     clear-registry!
     ;; Loading and importing
     make-loader registry-loader loader-registry load-library define-library!
-    import-sets! import-into! syntactic-keyword?
+    import-sets! import-into! syntactic-keyword? program-parts
     ;; Closures run compiled, and run as themselves for a debugger
     make-debugged-programs record-compiled-over!
     compiled-over? interpret-compiled-over! switch-back-to-closure!

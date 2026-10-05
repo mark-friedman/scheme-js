@@ -67,6 +67,7 @@ export const functionalTests = [
     { path: 'functional/cli_stdin_tests.js', fn: 'runCliStdinTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/cli_stdout_tests.js', fn: 'runCliStdoutTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/cli_repl_input_tests.js', fn: 'runCliReplInputTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'functional/cli_program_tests.js', fn: 'runCliProgramTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },
     { path: 'functional/class_interop_tests.js', fn: 'runClassInteropTests', async: false },
     { path: 'functional/debug_hooks_tests.js', fn: 'runDebugHooksTests', async: true },
@@ -100,6 +101,7 @@ export const functionalTests = [
 // Integration Tests
 export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
+    { path: 'integration/program_tests.js', fn: 'runProgramTests', async: true, needsInterpreter: false },
     { path: 'integration/multi_interpreter_tests.js', fn: 'runMultiInterpreterTests', async: true, needsInterpreter: true },
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
     { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },

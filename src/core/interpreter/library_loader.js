@@ -18,7 +18,7 @@ import { globalContext } from './context.js';
 import { SCHEME_PRIMITIVE } from './values.js';
 import { SchemeLibraryError } from './errors.js';
 import { stringValue } from '../primitives/string_class.js';
-import { resolveNow } from '../primitives/library.js';
+import { resolveNow, makeScopedEnvironment } from '../primitives/library.js';
 
 // Import from focused modules
 import {
@@ -259,6 +259,73 @@ export function defineLibrary(form, analyze, interpreter, env) {
  */
 export function importLibraries(specs, analyze, interpreter, env) {
     callLibrarySystem('import-sets!', loaderFor(analyze, interpreter, env), env, list(...specs));
+}
+
+/**
+ * An environment of import sets and nothing else (R7RS 5.6.1): what
+ * `environment` returns, and what a program that begins with import
+ * declarations runs in.
+ *
+ * @param {Cons|null} sets - The import sets, as written.
+ * @param {Function} analyze - The analyze function
+ * @param {Object} interpreter - The interpreter instance
+ * @param {Environment} base - An environment of the interpreter's, which
+ *   libraries' own are made beside.
+ * @returns {Environment} The environment.
+ */
+export function importEnvironment(sets, analyze, interpreter, base) {
+    const env = makeScopedEnvironment(base);
+    importLibraries(toArray(sets), analyze, interpreter, env);
+    return env;
+}
+
+// =============================================================================
+// Programs
+// =============================================================================
+
+/**
+ * The environment a program runs in, and the forms to run there (R7RS 5.1):
+ * a program that begins with import declarations runs in an environment of
+ * what they import and nothing else, as a library's body does; one with none
+ * runs in `env`, which sees everything, so that a page or a quick script with
+ * no imports keeps working (`program-parts` in library_system.scm).
+ *
+ * @param {Array} forms - The program's forms, as read.
+ * @param {Function} analyze - The analyze function
+ * @param {Object} interpreter - The interpreter instance
+ * @param {Environment} env - Where a program with no import declarations runs.
+ * @returns {{env: Environment, forms: Array}} The environment, and the forms
+ *   after the import declarations, to run with `runProgramForm`.
+ */
+export function programEnvironment(forms, analyze, interpreter, env) {
+    const parts = callLibrarySystem('program-parts', list(...forms));
+    if (parts.car === null) return { env, forms };
+    return { env: importEnvironment(parts.car, analyze, interpreter, env), forms: toArray(parts.cdr) };
+}
+
+/**
+ * Runs one of a program's forms, as read, in the environment
+ * `programEnvironment` gave: through `runTopLevel`, so that the compiler tier
+ * sees it, and analyzed and run under the environment's scope, if it has one,
+ * as a library's body is (`evaluator`), so that the names it defines and the
+ * keywords it imported are the program's own.
+ *
+ * @param {*} form - The form.
+ * @param {Function} analyze - The analyze function
+ * @param {Object} interpreter - The interpreter instance
+ * @param {Environment} env - The program's environment.
+ * @param {Object} [options] - For `runTopLevel`.
+ * @returns {*} The form's value.
+ */
+export function runProgramForm(form, analyze, interpreter, env, options) {
+    const scope = env.libraryScope;
+    if (scope === undefined) return interpreter.runTopLevel(analyze(form), env, options);
+    globalContext.pushDefiningScope(scope);
+    try {
+        return interpreter.runTopLevel(analyze(form), env, options);
+    } finally {
+        globalContext.popDefiningScope();
+    }
 }
 
 /**

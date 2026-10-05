@@ -72,6 +72,7 @@ import { createInterpreter } from '../src/core/interpreter/index.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/analyzer.js';
 import { withPrivateLibraries } from '../src/core/interpreter/library_registry.js';
+import { programEnvironment, runProgramForm } from '../src/core/interpreter/library_loader.js';
 import { globalMacroRegistry } from '../src/core/interpreter/macro_registry.js';
 import { globalContext } from '../src/core/interpreter/context.js';
 import { GLOBAL_SCOPE_ID } from '../src/core/interpreter/syntax_object.js';
@@ -362,6 +363,12 @@ function runOnce(program, withTier) {
         for (const form of parse(source)) value = interpreter.runTopLevel(analyze(form), env, { jsAutoConvert: 'raw' });
         return value;
       };
+      // The program itself is run as the CLI and a page run one: one that
+      // begins with import declarations sees only them.
+      const runProgram = (source) => {
+        const run = programEnvironment(parse(source), analyze, interpreter, env);
+        for (const form of run.forms) runProgramForm(form, analyze, interpreter, run.env, { jsAutoConvert: 'raw' });
+      };
       console.log = (...line) => output.push(line.join(' '));
       console.error = (...line) => output.push(line.join(' '));
       const body = program.setup(interpreter, env, evaluate, withTier);
@@ -374,7 +381,7 @@ function runOnce(program, withTier) {
       const earlier = new Set(env.bindings.keys());
       const start = performance.now();
       try {
-        evaluate(body);
+        runProgram(body);
       } catch (e) {
         if (!exited) result.error = e.message;
       }
