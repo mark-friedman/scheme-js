@@ -23,7 +23,8 @@
 
 ;; /**
 ;;  * One expansion of a `syntax-rules` macro: what its clauses are matched and
-;;  * transcribed with.
+;;  * transcribed with; and of an explicit-renaming macro, which has no
+;;  * literals and no ellipsis, what it renames with (explicit_renaming.scm).
 ;;  * @property {list} literals - The macro's literals.
 ;;  * @property {symbol} ellipsis - Its ellipsis' name.
 ;;  * @property {procedure} use-env - Where it is used: a procedure of an

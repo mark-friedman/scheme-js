@@ -4,8 +4,9 @@
 ;; once its door, the assembler (src/core/interpreter/assembler.js), has made
 ;; it into nodes, and the compiler lowers. Special forms, variables and
 ;; applications, bodies and their definitions, quasiquote, and the macros a
-;; program defines -- `syntax-rules` and `define-macro` -- and uses. Its
-;; procedures are Scheme, in expander.scm and syntax_rules.scm.
+;; program defines -- `syntax-rules`, `er-macro-transformer` and the legacy
+;; `define-macro` -- and uses. Its procedures are Scheme, in expander.scm,
+;; syntax_rules.scm and explicit_renaming.scm.
 ;;
 ;; A core form is a list whose head is a tag:
 ;;
@@ -57,4 +58,4 @@
           (scheme core)
           (scheme control))
   (export expand expand-in-environment)
-  (include "expander.scm" "syntax_rules.scm"))
+  (include "expander.scm" "syntax_rules.scm" "explicit_renaming.scm"))

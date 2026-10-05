@@ -253,7 +253,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
 │       │   ├── library.js          # What the library system needs of the host: resolver, reader, environments, keyword tables
 │       │   ├── reader_support.js   # What (scheme-js reader) needs: read errors, literal strings, the datum-label note, whole-text scans
-│       │   ├── expander_support.js # What (scheme-js expander) needs: identifiers, scopes, the keyword tables, define-macro's evaluation
+│       │   ├── expander_support.js # What (scheme-js expander) needs: identifiers, scopes, the keyword tables, a procedural macro's evaluation
 │       │   └── gc.js               # GC-related utilities
 │       │
 │       └── scheme/                 # Core Scheme subset (base library)
@@ -286,6 +286,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── expander.sld        # (scheme-js expander): forms into core forms, which it lists
 │           ├── expander.scm        # environments, keywords, the special forms, bodies, quasiquote, define-syntax and define-macro
 │           ├── syntax_rules.scm    # syntax-rules: matching and transcribing, hygiene by marks
+│           ├── explicit_renaming.scm # er-macro-transformer: rename and compare; define-macro is one
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
 │           ├── ports.scm           # call-with-port

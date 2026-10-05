@@ -12532,3 +12532,39 @@ None added: `tco_tests.scm` loses its output, not a check.
 `run_tier.js --set tests --only tco_tests` reported WRONG ANSWER before the change and does not
 after it; `--set tests`, 68 programs, reports none wrong. `npm test`: 7,859 passed, none failed
 (33 skipped). In the browser, 7,635 passed, none failed (56 skipped).
+
+# Task 45, third increment, step (c): `er-macro-transformer`, and `define-macro` on it (2026-10-05)
+
+- **`er-macro-transformer`**, explicit renaming (Clinger, 1991), in `define-syntax`, `let-syntax` and
+  `letrec-syntax`: `(er-macro-transformer (lambda (form rename compare) ...))`. What the procedure
+  returns is what the use expands into, untouched: a symbol it made up is the user's; one it
+  renamed is the macro's. `rename` does what a `syntax-rules` template does to an identifier it
+  introduces (`transcribe-identifier`) -- the expansion's scope, the library's if a library defined
+  the macro, or the local it names where the macro was defined -- so a library's explicit-renaming
+  macro refers to the library's bindings, exported or not, as its `syntax-rules` macros do since
+  step (b). `compare` is `free-identifier=?` where the macro is used: the same local, by its unique
+  renamed name, or else the same keyword or global. `explicit_renaming.scm`, in `(scheme-js
+  expander)`; a debugger finds the macro by its procedure's span, as it does a `define-macro`'s.
+- **`define-macro` on it**: an explicit-renaming macro that renames nothing and compares nothing,
+  documented as a legacy extension (`docs/hygiene.md`). It expands as it did.
+- **Not yet**: like `syntax-rules`, `er-macro-transformer` is recognized by name, so a strict
+  environment sees it without importing it; and its procedure, like `define-macro`'s, is evaluated
+  where only the primitives are bound, with no `cadr` or `map`. Both are increment 4's.
+
+CLI start-up is level with the commit before (medians 306 ms against 306). JavaScript under `src/`:
+comments in `expander_support.js` naming procedural macros rather than `define-macro`, 7 lines added
+and 6 removed.
+
+## Tests
+
+`er_macro_transformer_tests.scm`: a binding the macro introduces captures nothing of the user's and
+a user's binding nothing the macro renamed; an unrenamed symbol is the user's; renaming a local of
+where the macro was defined; `compare` on `else`, bound and not, and on the user's identifiers; in
+`letrec-syntax`, recursively, and in a body; a library's macro reaching an unexported procedure and
+an import the program shadows; a failing procedure; and `define-macro`, unrenamed, on it.
+`macro_tests.js`: the procedure of an explicit-renaming macro has its span.
+
+## Verification
+
+7,901 tests pass in Node with none failing (33 skipped), and 7,680 in the browser with none failing
+(56 skipped).

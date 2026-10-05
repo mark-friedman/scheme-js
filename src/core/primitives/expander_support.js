@@ -10,7 +10,7 @@
  * forms are being expanded, the syntactic keywords bound in each -- held by
  * the library's environment, weakly, so that they go when it does -- and the
  * macros defined by name for the whole process. And the evaluator, which runs
- * a `define-macro` transformer as it is defined.
+ * a procedural macro's procedure as it is defined.
  *
  * Names arrive as symbols and leave as the strings the tables are keyed by.
  */
@@ -229,7 +229,8 @@ export const expanderPrimitives = {
 
     /**
      * Gives a macro's transformer the procedure a debugger finds it by: a
-     * `define-macro`'s, which runs the procedure the definition gave.
+     * procedural macro's -- `er-macro-transformer`'s or `define-macro`'s --
+     * which runs the procedure the definition gave.
      */
     '%reflect-transformer!': (transformer, procedure) => {
         transformer.transformerProcedure = procedure;
@@ -249,7 +250,7 @@ export const expanderPrimitives = {
 
     /**
      * Keeps on a pending macro the transformer made of its definition, and the
-     * procedure a debugger finds a `define-macro` by.
+     * procedure a debugger finds a procedural macro by.
      */
     '%realize-pending-macro!': (pending, made) => {
         pending.realized = made;
@@ -257,12 +258,12 @@ export const expanderPrimitives = {
         return undefined;
     },
 
-    // -- define-macro ---------------------------------------------------------------
+    // -- Procedural macros -----------------------------------------------------------
 
     /**
      * The value of an expression, a core form, evaluated where only the
-     * primitives are bound, on an interpreter of its own: a `define-macro`
-     * transformer, made as the macro is defined.
+     * primitives are bound, on an interpreter of its own: a procedural
+     * macro's procedure, made as the macro is defined.
      *
      * The interpreter is given no debug runtime. A transformer runs inside the
      * expander, which finishes before the interpreter runs a step of the code

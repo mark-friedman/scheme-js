@@ -187,6 +187,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/define_values_tests.scm',
     'tests/core/scheme/macro_hygiene_tests.scm',
     'tests/core/scheme/library_macro_tests.scm',
+    'tests/core/scheme/er_macro_transformer_tests.scm',
     'tests/core/scheme/syntax_rules_vector_tests.scm',
     'tests/core/scheme/keyword_rename_tests.scm',
     'tests/core/scheme/datum_label_literal_tests.scm',

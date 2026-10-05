@@ -1048,20 +1048,58 @@
 
 ;; /**
 ;;  * `(define-syntax name transformer)`. A transformer of `syntax-rules`, its
-;;  * ellipsis given or `...`, is defined where the form is; a transformer of
-;;  * anything else defines nothing.
+;;  * ellipsis given or `...`, or of `er-macro-transformer`, is defined where
+;;  * the form is; a transformer of anything else defines nothing.
 ;;  */
 (define (expand-define-syntax form env)
   (let ((name (identifier-name (cadr form)))
         (spec (caddr form)))
-    (if (and (pair? spec) (named? (car spec) 'syntax-rules))
-        (let* ((after (cdr spec))
-               (first (if (pair? after) (car after) '())))
-          (cond ((or (pair? first) (null? first))
-                 (define-syntax-rules! env name '... first (if (pair? after) (cdr after) '())))
-                ((identifier? first)
-                 (define-syntax-rules! env name (identifier-name first) (cadr after) (cddr after)))))))
+    (cond ((transformer-of? spec 'syntax-rules)
+           (let* ((after (cdr spec))
+                  (first (if (pair? after) (car after) '())))
+             (cond ((or (pair? first) (null? first))
+                    (define-syntax-rules! env name '... first (if (pair? after) (cdr after) '())))
+                   ((identifier? first)
+                    (define-syntax-rules! env name (identifier-name first) (cadr after) (cddr after))))))
+          ((transformer-of? spec 'er-macro-transformer)
+           (define-macro! env name (er-macro-definition spec name env)))))
   (list 'lit '()))
+
+;; /**
+;;  * Whether a macro's transformer, as written, is made by a keyword:
+;;  * `syntax-rules` or `er-macro-transformer`.
+;;  * @param {*} spec - The transformer, as written.
+;;  * @param {symbol} keyword - The keyword.
+;;  * @returns {boolean}
+;;  */
+(define (transformer-of? spec keyword)
+  (and (pair? spec) (named? (car spec) keyword)))
+
+;; /**
+;;  * `(er-macro-transformer procedure)`'s transformer: the procedure,
+;;  * evaluated as the macro is defined, made an explicit-renaming macro's
+;;  * defined where `env` is (explicit_renaming.scm).
+;;  * @param {pair} spec - The transformer, as written.
+;;  * @param {symbol} name - The macro's name.
+;;  * @param {syntactic-env} env - Where it is defined.
+;;  * @returns {procedure}
+;;  */
+(define (er-macro-definition spec name env)
+  (if (not (and (pair? (cdr spec)) (null? (cddr spec))))
+      (raise-syntax-error "er-macro-transformer takes one procedure" spec 'er-macro-transformer))
+  (let ((procedure (transformer-procedure (expand-form (cadr spec) env) name spec 'er-macro-transformer)))
+    (reflecting (er-transformer procedure (defining-scope) env) procedure)))
+
+;; /**
+;;  * A procedural macro's transformer, given the procedure a debugger finds it
+;;  * by: the one its definition gave, which has the definition's span.
+;;  * @param {procedure} transformer - The transformer.
+;;  * @param {procedure} procedure - The procedure.
+;;  * @returns {procedure} The transformer.
+;;  */
+(define (reflecting transformer procedure)
+  (%reflect-transformer! transformer procedure)
+  transformer)
 
 ;; /**
 ;;  * Defines a `syntax-rules` macro where `env` is.
@@ -1081,6 +1119,12 @@
 ;;  * is defined, where only the primitives are bound, whose result is what
 ;;  * the use expands into. Its lambda, in the first shape, has the
 ;;  * definition's span.
+;;  *
+;;  * A legacy extension, kept for code written for other Lisps: nothing it
+;;  * introduces is renamed, so a binding it makes captures the user's and a
+;;  * name it refers to means whatever the use site binds it to. It is an
+;;  * explicit-renaming macro that renames nothing and compares nothing, which
+;;  * `er-macro-transformer` writes hygienically.
 ;;  */
 (define (expand-define-macro form env)
   (let ((head (cadr form)))
@@ -1092,23 +1136,26 @@
                         ((identifier? head)
                          (values (identifier-name head) (expand-form (caddr form) env)))
                         (else (raise-syntax-error "Invalid define-macro syntax" form 'define-macro)))))
-      (let* ((procedure (transformer-procedure made name form))
-             (transformer (lambda (use use-env) (apply-transformer procedure name use))))
-        (%reflect-transformer! transformer procedure)
-        (define-macro! env name transformer)
+      (let ((procedure (transformer-procedure made name form 'define-macro)))
+        (define-macro! env name
+          (reflecting (er-transformer (lambda (use rename compare) (apply-transformer procedure name use))
+                                      (defining-scope) env)
+                      procedure))
         (list 'lit '())))))
 
 ;; /**
-;;  * A `define-macro`'s procedure, evaluated.
+;;  * A procedural macro's procedure, evaluated.
 ;;  * @param {list} made - Its core form.
 ;;  * @param {symbol} name - The macro's name.
-;;  * @param {pair} form - The definition.
+;;  * @param {pair} form - The definition, or the transformer as written.
+;;  * @param {symbol} keyword - What defines it: `define-macro` or
+;;  *   `er-macro-transformer`.
 ;;  * @returns {procedure}
 ;;  */
-(define (transformer-procedure made name form)
+(define (transformer-procedure made name form keyword)
   (guard (e (#t (raise-syntax-error (string-append "Error evaluating macro transformer for '"
                                                    (symbol->string name) "': " (%error-message e))
-                                    form 'define-macro)))
+                                    form keyword)))
     (%evaluate-transformer made)))
 
 ;; /**
@@ -1127,15 +1174,18 @@
 
 ;; /**
 ;;  * A `let-syntax`'s or `letrec-syntax`'s binding's transformer, which must
-;;  * be `syntax-rules`'s, its ellipsis `...`.
+;;  * be `syntax-rules`'s, its ellipsis `...`, or `er-macro-transformer`'s.
 ;;  * @param {*} spec - The transformer, as written.
+;;  * @param {symbol} name - The macro's name.
 ;;  * @param {syntactic-env} env - Where the form is.
 ;;  * @returns {procedure}
 ;;  */
-(define (binding-transformer spec env)
-  (if (not (and (pair? spec) (named? (car spec) 'syntax-rules)))
-      (raise-syntax-error "Transformer must be (syntax-rules ...)" spec 'syntax-rules))
-  (syntax-rules-transformer (list-items (cadr spec)) (clause-pairs (cddr spec)) (defining-scope) '... env))
+(define (binding-transformer spec name env)
+  (cond ((transformer-of? spec 'syntax-rules)
+         (syntax-rules-transformer (list-items (cadr spec)) (clause-pairs (cddr spec)) (defining-scope) '... env))
+        ((transformer-of? spec 'er-macro-transformer) (er-macro-definition spec name env))
+        (else (raise-syntax-error "Transformer must be (syntax-rules ...) or (er-macro-transformer ...)"
+                                  spec 'syntax-rules))))
 
 ;; /**
 ;;  * The macros a `let-syntax`'s or `letrec-syntax`'s bindings define.
@@ -1146,7 +1196,7 @@
 (define (define-bindings! bindings env table)
   (for-each (lambda (binding)
               (let ((name (identifier-name (car binding))))
-                (table-define! table name (binding-transformer (cadr binding) env))))
+                (table-define! table name (binding-transformer (cadr binding) name env))))
             (list-items bindings)))
 
 ;; /**

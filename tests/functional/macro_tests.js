@@ -224,6 +224,19 @@ export async function runMacroTests(interpreter, logger) {
                 explicitSpan && explicitSpan.filename, 'twice.scm');
             assert(logger, "define-macro with an explicit lambda: span is the lambda's",
                 explicitSpan && [explicitSpan.line, explicitSpan.endLine], [2, 3]);
+
+            evaluate(`(define-syntax src-er-first
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (car (cdr form)))))`, 'er.scm');
+            assert(logger, "an er-macro-transformer macro expands",
+                run(interpreter, "(src-er-first 42)"), 42);
+            const er = globalMacroRegistry.lookup('src-er-first').transformerProcedure;
+            const erSpan = er && er.source;
+            assert(logger, "er-macro-transformer: its procedure's span names the file",
+                erSpan && erSpan.filename, 'er.scm');
+            assert(logger, "er-macro-transformer: and is the procedure's",
+                erSpan && [erSpan.line, erSpan.endLine], [3, 4]);
         }
 
     } catch (e) {

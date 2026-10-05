@@ -183,6 +183,45 @@ A name that nothing binds is still found by name, so a library that defines a
 macro for a keyword other code uses without importing -- `(scheme core)` uses
 `quasiquote` -- reaches that code too.
 
+## Procedural Macros
+
+### er-macro-transformer
+
+A macro whose transformer is a procedure, by explicit renaming (Clinger,
+1991): `(er-macro-transformer (lambda (form rename compare) ...))`, in
+`define-syntax`, `let-syntax` and `letrec-syntax`. The procedure is given the
+use as written and returns what it expands into, which is used as it is: a
+symbol it makes up is the user's, found where the macro is used, and one it
+passed through `rename` is the macro's. `rename` does to an identifier what a
+`syntax-rules` template does to one it introduces -- marks it with the
+expansion's scope, and the library's if a library defined the macro, or makes
+it the local it names where the macro was defined -- so a binding it makes
+captures nothing of the user's and a reference it makes means what it did
+where the macro was defined (`explicit_renaming.scm`). `compare` is
+`free-identifier=?` where the macro is used.
+
+```scheme
+(define-syntax swap!
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (let ((a (car (cdr form))) (b (car (cdr (cdr form)))))
+        (list (rename 'let) (list (list (rename 'tmp) a))
+              (list (rename 'set!) a b)
+              (list (rename 'set!) b (rename 'tmp)))))))
+```
+
+The procedure is evaluated as the macro is defined, where only the
+primitives are bound, so it uses `car` and `cdr` rather than `cadr` or `map`.
+
+### define-macro
+
+`(define-macro (name . formals) body ...)`, kept for code written for other
+Lisps, is an explicit-renaming macro that renames nothing: its procedure is
+applied to the use's operands, and what it returns is used as it is, so a
+binding it makes captures the user's and a name it refers to means whatever
+the use site binds it to. New code should use `syntax-rules`, or
+`er-macro-transformer` and `rename`.
+
 ## Comparison Semantics
 
 ### bound-identifier=?
@@ -203,6 +242,7 @@ Two identifiers are `free-identifier=?` if they resolve to the same binding. Use
 |------|---------|
 | `src/core/scheme/expander.scm` | The expander: environments, keywords, the special forms, `define-syntax` and `define-macro` |
 | `src/core/scheme/syntax_rules.scm` | `syntax-rules`: pattern matching, transcription, marks |
+| `src/core/scheme/explicit_renaming.scm` | `er-macro-transformer`: `rename` and `compare` |
 | `src/core/interpreter/syntax_object.js` | `SyntaxObject`, the identifier; `ScopeBindingRegistry`; walks of a datum that mark scopes |
 | `src/core/primitives/expander_support.js` | What the expander needs of the host: identifiers, scopes, the keyword tables |
 | `src/core/interpreter/macro_registry.js` | The macros defined by name for the process |
@@ -221,4 +261,4 @@ This implementation draws on ideas from:
 
 - **Eugene E. Kohlbecker, Daniel P. Friedman, Matthias Felleisen, and Bruce Duba**, "Hygienic Macro Expansion" (LFP 1986). The original paper introducing hygiene and the concept of preventing accidental capture.
 
-- **William D. Clinger**, "Hygienic Macros Through Explicit Renaming" (Lisp Pointers, 1991). An alternative approach using explicit renaming that influenced early implementations.
+- **William D. Clinger**, "Hygienic Macros Through Explicit Renaming" (Lisp Pointers, 1991). Explicit renaming, which `er-macro-transformer` implements.
