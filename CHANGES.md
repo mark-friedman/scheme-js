@@ -11868,3 +11868,16 @@ and `x.y` as identifiers, bound to what it defined, and a library whose file beg
 
 7,777 tests pass in Node with none failing (33 skipped), and 7,557 in the browser with none failing
 (55 skipped). `run_tier.js --set corpus` finds nothing changed.
+
+# Task 48 done: the conformance suites count only what Scheme passes (2026-10-04)
+
+The Chibi suite's runner counted a test the Scheme harness failed as passed when the two values
+agreed once converted to JavaScript -- the "rescue" -- which hid any exact integer against an inexact
+one. Of the two tests the plan found rescued, the numeric literal of 7.1 is no longer rescued, and
+`(test 1 (inexact 1))` was the test's fault: the repository's revised copy of Chibi's tests had
+changed Chibi's own `(test 1.0 (inexact 1))` to expect an exact 1, which an inexact 1.0 is not
+`equal?` to. Restored to Chibi's, and the rescue removed: a test passes when the Scheme harness says
+it does. 994 of 994 applicable Chibi tests (13 skipped) and 220 of 220 chapter tests pass, with the
+standard library interpreted and compiled; `ROADMAP.md` says so.
+
+7,777 tests pass in Node with none failing (33 skipped). No source under `src/` changed.

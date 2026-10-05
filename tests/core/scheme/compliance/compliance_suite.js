@@ -19,7 +19,7 @@
  */
 
 import { createInterpreter } from '../../../../src/core/interpreter/index.js';
-import { run, deepEqual, safeStringify, toJS } from '../../../harness/helpers.js';
+import { run, safeStringify } from '../../../harness/helpers.js';
 import { loadLibrarySync, applyImports } from '../../../../src/core/interpreter/library_loader.js';
 import { withPrivateLibraries } from '../../../../src/core/interpreter/library_registry.js';
 import { analyze } from '../../../../src/core/interpreter/analyzer.js';
@@ -43,19 +43,18 @@ const LIBRARIES = [
 /**
  * The two suites.
  *
- * `rescue` counts a test the Scheme harness failed as passed when the values
- * agree after conversion to JavaScript -- an exact integer against the same
- * integer as a number -- as the Chibi runner always has. `isolateMacros`
- * starts from an empty macro registry, as the Chibi runner always has.
+ * `isolateMacros` starts from an empty macro registry, as the Chibi runner
+ * always has. A test passes when the Scheme harness says it does: the Chibi
+ * runner also counted a failure as a pass when the two values agreed once
+ * converted to JavaScript, which hid an exact integer against an inexact one.
  *
- * @type {Object<string, {title: string, dir: string, files: Array<string>, rescue: boolean, isolateMacros: boolean}>}
+ * @type {Object<string, {title: string, dir: string, files: Array<string>, isolateMacros: boolean}>}
  */
 export const SUITES = {
     chapters: {
         title: 'R7RS chapter tests',
         dir: 'tests/core/scheme/compliance/',
         files: ['chapter_3.scm', 'chapter_4.scm', 'chapter_5.scm', 'chapter_6.scm'],
-        rescue: false,
         isolateMacros: false
     },
     chibi: {
@@ -68,7 +67,6 @@ export const SUITES = {
             '6.9-bytevectors.scm', '6.10-control.scm', '6.11-exceptions.scm', '6.12-environments.scm',
             '6.13-io.scm', '6.14-system.scm', '7.1-read-syntax.scm', '7.1-numeric-syntax.scm'
         ],
-        rescue: true,
         isolateMacros: true
     }
 };
@@ -161,14 +159,7 @@ function runInPrivate(suite, sources, files, logger) {
     }
 
     env.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
-        // Checked again in JavaScript, which catches a false failure such as an
-        // exact integer against the same integer as a number.
-        const trulyPassed = passed || deepEqual(toJS(expected), toJS(actual));
-        if (trulyPassed) {
-            if (!passed && suite.rescue) {
-                run(interpreter, '(set! *test-failures* (- *test-failures* 1))');
-                run(interpreter, '(set! *test-passes* (+ *test-passes* 1))');
-            }
+        if (passed) {
             logger.pass(`${name}`);
         } else {
             logger.fail(`${name} (Expected: ${safeStringify(expected)}, Got: ${safeStringify(actual)})`);

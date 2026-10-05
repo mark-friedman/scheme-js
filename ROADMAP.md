@@ -226,7 +226,7 @@ Detail in [CHANGES.md](CHANGES.md); the R7RS-small implementation checklist in
 
 | | |
 |---|---|
-| **R7RS-small, end to end** | Every phase of the implementation checklist. **982 of 982** applicable Chibi conformance tests and **219 of 219** chapter tests pass, with the deviations above outstanding, both with the standard library interpreted and with it compiled as the browser installs it -- two of Chibi's only because its runner rescues a failure whose values agree in JavaScript. |
+| **R7RS-small, end to end** | Every phase of the implementation checklist, and every identifier and library the report names. **994 of 994** applicable Chibi conformance tests and **220 of 220** chapter tests pass, both with the standard library interpreted and with it compiled as the browser installs it, each counted as the Scheme test harness counts it. |
 | **Hygienic macros** | `syntax-rules` via sets-of-scopes, verified against standard hygiene suites. |
 | **The library system** | `define-library`, import filters, `include`, `include-ci`, `include-library-declarations`, `cond-expand`. |
 | **The full numeric tower** | Exact integers on `BigInt`, rationals, complex numbers. JavaScript cannot tell `1` from `1.0`, so exactness does not survive a round trip through it; see [docs/Interoperability.md](docs/Interoperability.md). |

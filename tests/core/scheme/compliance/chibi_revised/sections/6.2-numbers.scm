@@ -124,7 +124,8 @@
   (test 1 (expt 0 0))
   (test 0 (expt 0 1))
 
-  (test 1 (inexact 1))
+  ;; As Chibi's own test has it: an inexact 1 is not `equal?` to an exact one.
+  (test 1.0 (inexact 1))
   ;; This now works: BigInt is exact, Number is inexact
   (test #t (inexact? (inexact 1)))
   (test 1 (exact 1))
