@@ -122,10 +122,10 @@
 ;; What a form contains
 ;; ---------------------------------------------------------------------------
 ;;
-;; Read from the tagged lists `ir.scm` lowers. A form the marshalling does not
-;; know becomes `(other description)`, whose contents are not looked into; the
-;; lowering declines such a form anyway, so what it contains cannot change
-;; whether it is compiled.
+;; Read from the core forms `ir.scm` lowers. A form `ir.scm` does not lower --
+;; a reference to a library's own binding, `(other description)` -- is not
+;; looked into; the lowering declines such a form anyway, so what it contains
+;; cannot change whether it is compiled.
 
 ;; /**
 ;;  * The forms directly inside a form: its subexpressions, never a quoted

@@ -69,9 +69,10 @@
 import * as R from './runtime.js';
 import { libraryNameToKey, recordCompiledOver } from '../core/interpreter/library_registry.js';
 import { runCompiled } from '../core/interpreter/values.js';
-import { list } from '../core/interpreter/cons.js';
+import { Cons, list } from '../core/interpreter/cons.js';
+import { Char } from '../core/primitives/char_class.js';
 import { intern } from '../core/interpreter/symbol.js';
-import { assemble } from '../core/interpreter/assembler.js';
+import { RestoredForm } from '../core/interpreter/assembler.js';
 import { analyze } from '../core/interpreter/expand.js';
 
 /**
@@ -261,8 +262,8 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
  * bound straight from its compiled code, with no closure made and nothing else
  * to change, since nothing holds a closure; each other form run in its place
  * (`evaluate-definition!` in src/core/scheme/library_system.scm): as the
- * evaluator's node of the core form it expanded into, made here, which needs
- * no expander, or else as the form, expanded as it is run. A procedure
+ * evaluator's node of the core form it expanded into, made as it runs, which
+ * needs no expander, or else as the form, expanded as it is run. A procedure
  * restored so has no closure for a debugger to run instead; it is debugged as
  * compiled code is.
  *
@@ -290,14 +291,63 @@ export function libraryRestorer(tables) {
       return null;
     }
     return {
-      declaration: table.declaration ?? null,
+      declaration: table.declaration === undefined ? null : decodeDatum(table.declaration),
       bind: (env, name) => restoreProcedure(table, env, name),
       items: list(...table.restore.map((item) => {
         if (item.procedure !== undefined) return list(PROCEDURE, intern(item.procedure));
-        return list(FORM, item.core !== undefined ? assemble(item.core, analyze) : item.form);
+        return list(FORM, item.core !== undefined
+          ? new RestoredForm(decodeDatum(item.core), analyze) : decodeDatum(item.form));
       }))
     };
   };
+}
+
+/**
+ * The datum JSON text holds, as a table and the pinned seed write data
+ * (`json-datum` in scripts/lib/table_writer.scm): a symbol as a JSON string,
+ * `null` the empty list, an exact integer a JSON number, and anything else an
+ * array whose first element says what it is.
+ * @param {string} text - The JSON text.
+ * @returns {*}
+ */
+export function decodeDatum(text) {
+  return datumOf(JSON.parse(text));
+}
+
+/**
+ * The datum a parsed JSON value encodes (`decodeDatum`).
+ * @param {*} x - The value.
+ * @returns {*}
+ */
+function datumOf(x) {
+  if (typeof x === 'string') return intern(x);
+  if (typeof x === 'number') return BigInt(x);
+  if (x === null || typeof x === 'boolean') return x;
+  switch (x[0]) {
+    case 's': return x[1];
+    case 'n': return BigInt(x[1]);
+    case 'f': return Number(x[1]);
+    case 'c': return new Char(x[1]);
+    case 'u': return undefined;
+    case 'l': return listOf(x, 1, null);
+    case 'd': return listOf(x, 2, datumOf(x[1]));
+    case 'v': return x.slice(1).map(datumOf);
+    case 'e': return { library: x.slice(1) };
+    default: throw new Error(`not an encoded datum: ${JSON.stringify(x)}`);
+  }
+}
+
+/**
+ * The list of the data an array encodes from an index on, ending in a tail.
+ * @param {Array<*>} x - The array.
+ * @param {number} from - Where the items begin.
+ * @param {*} tail - What the last pair's cdr is.
+ * @returns {*}
+ */
+function listOf(x, from, tail) {
+  let out = tail;
+  for (let i = x.length - 1; i >= from; i--) out = new Cons(datumOf(x[i]), out);
+  return out;
 }
 
 /** The kinds of item in a restore sequence, as the library system reads them. */

@@ -23,7 +23,7 @@
 
 import * as R from './runtime.js';
 import { compilerExports, compilerStartFailure } from './lowering.js';
-import { toArray } from './marshal.js';
+import { toArray } from '../core/interpreter/cons.js';
 import { callSchemeProcedure } from '../core/interpreter/values.js';
 
 export { runCompiledThunk } from './host.js';

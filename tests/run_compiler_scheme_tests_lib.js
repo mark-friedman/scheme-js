@@ -11,10 +11,9 @@
  */
 
 import { parse } from '../src/core/interpreter/reader.js';
-import { analyze } from '../src/core/interpreter/expand.js';
+import { analyze, expandToCore } from '../src/core/interpreter/expand.js';
 import { writeString } from '../src/core/primitives/io/printer.js';
 import { compilerEnvironment } from '../src/compiler/lowering.js';
-import { astToScheme } from '../src/compiler/marshal.js';
 import { SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
 
 /**
@@ -52,17 +51,19 @@ export async function runCompilerSchemeTests(logger, testFiles, fileLoader) {
   reportTestResult[SCHEME_PRIMITIVE] = true;
   env.define('native-report-test-result', reportTestResult);
   env.define('native-log-title', (title) => logger.title(title));
-  // The analyzer is JavaScript, so a test that wants to lower real source
-  // rather than a hand-written AST asks for it through this: a `define` or a
-  // `lambda` form, as data, to the analyzed lambda as the lowering receives it.
+  // The expander is a library of the library system's own, which this
+  // environment does not import, so a test that wants to lower real source
+  // rather than a hand-written core form asks for it through this: a `define`
+  // or a `lambda` form, as data, to the lambda's core form, as the lowering
+  // receives it.
   const analyzeLambda = (form) => {
-    const ast = analyze(form);
-    return astToScheme(ast.valueExpr ?? ast.value ?? ast);
+    const core = expandToCore(form);
+    return core.car.name === 'define' ? core.cdr.cdr.car : core;
   };
   analyzeLambda[SCHEME_PRIMITIVE] = true;
   env.define('analyze-lambda', analyzeLambda);
   // And a top-level form, as the lowering receives one.
-  const analyzeForm = (form) => astToScheme(analyze(form));
+  const analyzeForm = (form) => expandToCore(form);
   analyzeForm[SCHEME_PRIMITIVE] = true;
   env.define('analyze-form', analyzeForm);
   env.define('native-report-test-skip', (name, reason) => logger.skip(`${name} (Reason: ${reason})`));

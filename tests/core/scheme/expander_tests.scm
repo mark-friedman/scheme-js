@@ -232,4 +232,8 @@
   (let* ((form (read-first "(define (f x)\n  x)"))
          (core (expand form)))
     (test "a procedure's definition gives its lambda its span" #t
-          (eq? (js-ref (caddr core) "source") (js-ref form "source")))))
+          (eq? (js-ref (caddr core) "source") (js-ref form "source"))))
+  (let* ((form (read-first "(when x\n  (f y))"))
+         (core (expand form)))
+    (test "what a macro's use was given keeps its span through the expansion" #t
+          (eq? (js-ref (caddr core) "source") (js-ref (caddr form) "source")))))

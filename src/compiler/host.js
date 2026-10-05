@@ -8,8 +8,8 @@
  *
  *  - **Generating code**: `new Function`, which only JavaScript has, and the
  *    probe for whether a Content-Security-Policy forbids it.
- *  - **Reading the interpreter's own structures**: an analyzed form as the
- *    tagged lists the compiler reads (`marshal.js`), the lambda behind an
+ *  - **Reading the interpreter's own structures**: the core form a node was
+ *    made of, the tagged lists the compiler reads, the lambda behind an
  *    interpreted closure, an environment's bindings, whether a name is still
  *    bound to its primitive. These are JavaScript objects whose shape the
  *    interpreter owns, and the library registry that keeps what each library
@@ -23,14 +23,14 @@
  * are strings, lists are lists, and "none" is `#f`.
  */
 
-import { LambdaNode, LiteralNode, TailAppNode } from '../core/interpreter/ast_nodes.js';
-import { Cons } from '../core/interpreter/cons.js';
+import { LiteralNode, TailAppNode } from '../core/interpreter/ast_nodes.js';
+import { Cons, list, toArray } from '../core/interpreter/cons.js';
+import { intern } from '../core/interpreter/symbol.js';
 import { SCHEME_PRIMITIVE, SCHEME_RAW_CALL, runCompiled } from '../core/interpreter/values.js';
 import { globalContext } from '../core/interpreter/context.js';
 import {
   registerBuiltinLibrary, recordCompiledOver, switchBackToClosure
 } from '../core/interpreter/library_registry.js';
-import { astToScheme, toArray } from './marshal.js';
 import * as R from './runtime.js';
 import { sourceText } from '../core/interpreter/source_texts.js';
 
@@ -70,6 +70,16 @@ export function runCompiledThunk(interpreter, env, thunk) {
   return R.settle(interpreter.run(new TailAppNode(new LiteralNode(thunk), []), env, [], undefined,
     { jsAutoConvert: 'raw' }));
 }
+
+/**
+ * The core form a node was made of (`assemble` in
+ * src/core/interpreter/assembler.js); for one made otherwise, a form the
+ * compiler declines, saying what it was.
+ * @param {Object} node - The node.
+ * @returns {*}
+ */
+const coreOf = (node) => node.core
+  ?? list(intern('other'), `a node the expander did not make: ${node?.constructor?.name ?? String(node)}`);
 
 /**
  * The procedures of `(scheme-js compiler host)`, by their Scheme names.
@@ -112,7 +122,7 @@ const hostProcedures = {
 
   // -- Reading the interpreter's structures ------------------------------------
 
-  'ast->scheme': (node) => astToScheme(node),
+  'ast->scheme': (node) => coreOf(node),
 
   // An analyzed form's source span, or #f.
   'ast-span': (node) => node.source ?? false,
@@ -123,14 +133,15 @@ const hostProcedures = {
   'interpreted-closure?': (value) => typeof value === 'function' && value.body !== undefined
     && value.compiled === undefined,
 
-  // The lambda an interpreted closure was made from, as the compiler reads it.
-  // A closure keeps its parameters, body and environment, so a procedure that
-  // was loaded and interpreted can be compiled afterwards from them.
-  'closure-lambda': (closure, name) => astToScheme(new LambdaNode(
-    closure.params, closure.body, closure.restParam, text(name),
-    closure.originalParams, closure.originalRestParam)),
+  // The lambda an interpreted closure was made from, as a core form, under a
+  // name. A closure keeps its parameters, body and environment, so a procedure
+  // that was loaded and interpreted can be compiled afterwards from them.
+  'closure-lambda': (closure, name) => list(intern('lambda'), list(...closure.params.map(intern)),
+    closure.restParam ? intern(closure.restParam) : false, text(name), coreOf(closure.body),
+    list(...(closure.originalParams ?? closure.params).map(intern)),
+    closure.originalRestParam ? intern(closure.originalRestParam) : false),
 
-  'closure-body': (closure) => astToScheme(closure.body),
+  'closure-body': (closure) => coreOf(closure.body),
 
   'closure-environment': (closure) => closure.env,
 

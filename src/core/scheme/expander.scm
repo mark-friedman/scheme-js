@@ -85,12 +85,13 @@
 ;;  * Where a form is expanded: frames of the locals bound around it, the
 ;;  * innermost first, each identifier mapped to the name it was renamed to;
 ;;  * whether it is a program's or a library's top level, where a definition
-;;  * shadows a macro of its name for what follows; and, in a frame that
-;;  * begins a body or a `let-syntax`, the macros defined there.
+;;  * shadows a macro of its name for what follows; and the macros defined by
+;;  * the innermost body or `let-syntax` around it, which lead to those of the
+;;  * ones around that.
 ;;  * @property {syntactic-env|boolean} parent - The frame around this one, or #f.
 ;;  * @property {list} bindings - `(identifier . name)` pairs, looked through in order.
 ;;  * @property {boolean} top-level? - Whether this is a top level.
-;;  * @property {macro-table|boolean} macros - The macros defined here, or #f.
+;;  * @property {macro-table|boolean} macros - The innermost macros, or #f.
 ;;  */
 (define-record-type syntactic-env
   (make-syntactic-env parent bindings top-level? macros)
@@ -103,11 +104,14 @@
 ;; /**
 ;;  * The macros a body or a `let-syntax` defines, by name, the latest first.
 ;;  * @property {list} entries - `(name . transformer)` pairs.
+;;  * @property {macro-table|boolean} parent - The macros of the body or
+;;  *   `let-syntax` around it, or #f.
 ;;  */
 (define-record-type macro-table
-  (make-macro-table entries)
+  (make-macro-table entries parent)
   macro-table?
-  (entries macro-table-entries set-macro-table-entries!))
+  (entries macro-table-entries set-macro-table-entries!)
+  (parent macro-table-parent))
 
 ;; /**
 ;;  * A program's or a library's top level, where nothing is bound locally.
@@ -123,7 +127,7 @@
 ;;  * @returns {syntactic-env}
 ;;  */
 (define (env-child env)
-  (make-syntactic-env env '() #f #f))
+  (make-syntactic-env env '() #f (env-macros env)))
 
 ;; /**
 ;;  * A frame binding an identifier, inside one.
@@ -133,7 +137,7 @@
 ;;  * @returns {syntactic-env}
 ;;  */
 (define (env-extend env id name)
-  (make-syntactic-env env (list (cons id name)) #f #f))
+  (make-syntactic-env env (list (cons id name)) #f (env-macros env)))
 
 ;; /**
 ;;  * Frames binding identifiers, one each, in order, inside one.
@@ -151,25 +155,35 @@
 ;;  * A frame where macros are defined -- a body's, a `let-syntax`'s -- which
 ;;  * is a top level if the frame around it is.
 ;;  * @param {syntactic-env} env - The frame around it.
-;;  * @param {macro-table} table - Its macros.
-;;  * @returns {syntactic-env}
+;;  * @returns {syntactic-env} The frame, its macros a table of none yet.
 ;;  */
-(define (env-with-macros env table)
-  (make-syntactic-env env '() (env-top-level? env) table))
+(define (env-with-macros env)
+  (make-syntactic-env env '() (env-top-level? env) (make-macro-table '() (env-macros env))))
 
 ;; /**
 ;;  * The name an identifier is bound under locally, where `env` is, or #f.
+;;  * Most identifiers are symbols, and a symbol is `bound-identifier=?` only
+;;  * to itself -- a syntax object with no scopes, which would be too, is never
+;;  * made -- so a symbol is looked for by `eq?`.
 ;;  * @param {syntactic-env|boolean} env - Where it is used.
 ;;  * @param {identifier} id - The identifier.
 ;;  * @returns {symbol|boolean}
 ;;  */
 (define (env-lookup env id)
-  (let frames ((env env))
-    (and env
-         (let entries ((bindings (env-bindings env)))
-           (cond ((null? bindings) (frames (env-parent env)))
-                 ((bound-identifier=? (caar bindings) id) (cdar bindings))
-                 (else (entries (cdr bindings))))))))
+  (if (symbol? id)
+      (let frames ((env env))
+        (and env
+             (let ((binding (assq id (env-bindings env))))
+               (if binding (cdr binding) (frames (env-parent env))))))
+      (let frames ((env env))
+        (and env
+             (let entries ((bindings (env-bindings env)))
+               (if (null? bindings)
+                   (frames (env-parent env))
+                   (let ((binding (car bindings)))
+                     (if (bound-identifier=? (car binding) id)
+                         (cdr binding)
+                         (entries (cdr bindings))))))))))
 
 ;; /**
 ;;  * The transformer of a macro defined around where `env` is, by name, or #f.
@@ -178,10 +192,10 @@
 ;;  * @returns {procedure|boolean}
 ;;  */
 (define (local-macro env name)
-  (let loop ((env env))
-    (and env
-         (let ((entry (and (env-macros env) (assq name (macro-table-entries (env-macros env))))))
-           (if entry (cdr entry) (loop (env-parent env)))))))
+  (let loop ((table (and env (env-macros env))))
+    (and table
+         (let ((entry (assq name (macro-table-entries table))))
+           (if entry (cdr entry) (loop (macro-table-parent table)))))))
 
 ;; /**
 ;;  * The innermost frame's macros, where `env` is, or #f if no body or
@@ -190,8 +204,7 @@
 ;;  * @returns {macro-table|boolean}
 ;;  */
 (define (innermost-macros env)
-  (let loop ((env env))
-    (and env (or (env-macros env) (loop (env-parent env))))))
+  (and env (env-macros env)))
 
 ;; /**
 ;;  * Defines a macro in a table, over one of its name there.
@@ -548,11 +561,11 @@
 (define (realize! pending)
   (or (%realized-macro pending)
       (let ((definition (%pending-macro pending))
-            (table (make-macro-table '())))
+            (env (env-with-macros (top-level-env))))
         (if (not definition) (raise-syntax-error "not a macro's transformer" pending 'analyze))
         (parameterize ((realizing-in (cdr definition)))
-          (expand-form (car definition) (env-with-macros (top-level-env) table)))
-        (let ((made (cdar (macro-table-entries table))))
+          (expand-form (car definition) env))
+        (let ((made (cdar (macro-table-entries (env-macros env)))))
           (%realize-pending-macro! pending made)
           made))))
 
@@ -794,7 +807,7 @@
 ;;  * macros of its own.
 ;;  */
 (define (expand-scoped-body body env)
-  (expand-body body (env-with-macros env (make-macro-table '()))))
+  (expand-body body (env-with-macros env)))
 
 ;; /**
 ;;  * `(begin form ...)`, a body's forms where it is.
@@ -1174,9 +1187,9 @@
 ;;  */
 (define (expand-let-syntax form env)
   (if (null? (cddr form)) (raise-syntax-error "body cannot be empty" form 'let-syntax))
-  (let ((table (make-macro-table '())))
-    (define-bindings! (cadr form) env table)
-    (expand-with-macros (cons 'let (cons '() (cddr form))) (env-with-macros env table))))
+  (let ((inner (env-with-macros env)))
+    (define-bindings! (cadr form) env (env-macros inner))
+    (expand-with-macros (cons 'let (cons '() (cddr form))) inner)))
 
 ;; /**
 ;;  * `(letrec-syntax ((name transformer) ...) form ...)`: the forms where the
@@ -1185,9 +1198,8 @@
 ;;  */
 (define (expand-letrec-syntax form env)
   (if (null? (cddr form)) (raise-syntax-error "body cannot be empty" form 'letrec-syntax))
-  (let* ((table (make-macro-table '()))
-         (inner (env-with-macros env table)))
-    (define-bindings! (cadr form) env table)
+  (let ((inner (env-with-macros env)))
+    (define-bindings! (cadr form) env (env-macros inner))
     (let ((cores (let each ((forms (cddr form)))
                    (if (pair? forms)
                        (let ((first (expand-with-macros (car forms) inner)))

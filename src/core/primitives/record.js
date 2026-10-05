@@ -192,8 +192,9 @@ export const recordPrimitives = {
                 throw new SchemeTypeError(`${fieldName} accessor`, 1, rtd.name, obj);
             }
             // An integer JavaScript wrote reads as exact; a flonum Scheme
-            // stored reads as itself.
-            return storedToScheme(obj, fieldName, obj[fieldName]);
+            // stored reads as itself. Anything but a number reads as it is.
+            const value = obj[fieldName];
+            return typeof value === 'number' ? storedToScheme(obj, fieldName, value) : value;
         };
         acc[SCHEME_PRIMITIVE] = true;
         return acc;

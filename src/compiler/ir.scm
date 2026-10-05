@@ -1,9 +1,9 @@
-;;; ir.scm -- lowering the analyzed AST to compiler IR.
+;;; ir.scm -- lowering core forms to compiler IR.
 ;;;
 ;;; This is the compiler's lowering pass, and it is Scheme because the compiler
-;;; is meant to end up in Scheme. `src/compiler/lowering.js` is the door into
-;;; it: it marshals the analyzed AST in and calls `lower-lambda`, and the IR it
-;;; returns goes, still as Scheme data, to code generation in `emit.scm`.
+;;; is meant to end up in Scheme. It lowers the core forms the expander,
+;;; `(scheme-js expander)`, makes of a program, and the IR it returns goes,
+;;; still as Scheme data, to code generation in `emit.scm`.
 ;;;
 ;;; ## Running this at a useful speed
 ;;;
@@ -42,15 +42,18 @@
 ;;;
 ;;; ## Representation
 ;;;
-;;; An analyzed AST node is a list whose head is a tag:
+;;; A core form is a list whose head is a tag (`src/core/scheme/expander.sld`
+;;; lists them); this pass reads
 ;;;
 ;;;     (lit value) (var name) (if test then else) (seq exprs)
-;;;     (lambda params rest name body) (let var init body)
-;;;     (letrec names inits body) (set name value) (define name value)
-;;;     (app fn args span) (other description)
+;;;     (lambda params rest name body ...) (let var init body)
+;;;     (letrec names inits body ...) (set name value) (define name value)
+;;;     (app fn args)
 ;;;
-;;; An application's `span` is where it was read from, the reader's, or #f;
-;;; data written by hand may leave it out.
+;;; and declines the rest, and `(other description)`, a form the host could
+;;; not give as a core form. An application's span is where it was read
+;;; from, the reader's, kept as its form's `source` (`app-span`); data written
+;;; by hand has none.
 ;;;
 ;;; An IR node is the same idea, with the fields the JavaScript version stores
 ;;; in an object, in the same order:
@@ -481,13 +484,14 @@
 (define (ast-4 node) (car (cddddr node)))
 
 ;; /**
-;;  * An application's source span, or #f.
-;;  * @param {list} node - An `app` AST node.
+;;  * An application's source span, or #f: its form's `source`, where the
+;;  * expander keeps the span of the text it was made from.
+;;  * @param {list} node - An `app` core form.
 ;;  * @returns {object|boolean}
 ;;  */
 (define (app-span node)
-  (let ((rest (cdddr node)))
-    (and (pair? rest) (car rest))))
+  (let ((span (js-ref node "source")))
+    (if (or (js-undefined? span) (js-null? span)) #f span)))
 
 ;; /**
 ;;  * Whether an IR node denotes something this pass can name as a callee.
@@ -643,7 +647,19 @@
                          captured
                          (lower-ordinary-application node scope tail st))))))))
 
-      (else (fail! st (ast-1 node))))))
+      (else (fail! st (unsupported-form-reason node))))))
+
+;; /**
+;;  * Why a core form this pass does not lower is declined.
+;;  * @param {list} node - The form.
+;;  * @returns {string}
+;;  */
+(define (unsupported-form-reason node)
+  (case (ast-tag node)
+    ((other) (ast-1 node))
+    ((library-var library-set) "refers to a library's own binding, from its macro")
+    ((scoped-var) "refers to a binding found by scopes as it runs")
+    (else (string-append "unsupported form: " (symbol->string (ast-tag node))))))
 
 ;; /**
 ;;  * Lowers `(call/cc receiver)` as a capture made by compiled code.

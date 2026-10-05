@@ -51,7 +51,7 @@ import { analyze } from '../src/core/interpreter/expand.js';
 import { createInterpreter } from '../src/core/interpreter/index.js';
 import { compileProgram } from '../src/compiler/index.js';
 import { DefineNode, LambdaNode } from '../src/core/interpreter/ast_nodes.js';
-import { astToScheme, toArray } from '../src/compiler/marshal.js';
+import { toArray } from '../src/core/interpreter/cons.js';
 import { writeString } from '../src/core/primitives/io/printer.js';
 import { callSchemeProcedure } from '../src/core/interpreter/values.js';
 
@@ -181,13 +181,13 @@ function corpus() {
 /**
  * Lowers one lambda with one configuration's `lower-lambda`.
  * @param {Function} proc - A `lower-lambda` procedure.
- * @param {Object} node - An analyzed `LambdaNode`.
+ * @param {Object} node - An analyzed `LambdaNode`, which keeps its core form.
  * @returns {string} A canonical rendering of the whole result.
  */
 function lowerAndRender(proc, node) {
   // A `lowering-failure` or a `lowered-lambda` (`ir.scm`): records, which
   // JavaScript reads as objects with a property for each field.
-  const lowered = callSchemeProcedure(proc, [astToScheme(node)]);
+  const lowered = callSchemeProcedure(proc, [node.core]);
   if (lowered.reason !== undefined) return `fail ${JSON.stringify(String(lowered.reason))}`;
   // The globals sorted, since the order each configuration first saw them in
   // is no difference that matters.

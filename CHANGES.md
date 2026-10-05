@@ -12375,3 +12375,72 @@ form's node and what it runs to. `expander_comparison_tests.js`: the two compare
 7,850 tests pass in Node with none failing (33 skipped), with the analyzer in use and with the
 Scheme expander (`SCHEME_JS_EXPANDER=scheme`) alike; 7,626 in the browser with none failing (56
 skipped).
+
+# Task 45, second increment: the expander in use, the analyzer deleted (2026-10-05)
+
+The expander, `(scheme-js expander)`, is the only one. In five steps, each committed with the suite
+passing:
+
+- **In use.** A program's and a library's forms are expanded by it; for one step the JavaScript
+  analyzer was still there, selected by `SCHEME_JS_EXPANDER=javascript`, and the library system's
+  seed still used it for its own libraries.
+- **The seed without the analyzer.** A prebuilt table holds a library's top-level forms that are
+  not procedures as the core forms they expanded into, which the restorer turns into nodes as they
+  run, so restoring a library needs no expander. A macro's definition is held as a core form,
+  `(define-syntax name definition)`, that binds the macro *pending* where the definition would
+  have bound it; the expander makes its transformer from the definition the first time the macro
+  is used (`realize!`, `DefineSyntaxNode`), and keeps it on the pending macro, where every library
+  that imported it finds it. So the seed restores its five libraries -- `(scheme core)`,
+  `(scheme control)`, the reader, the expander and the library system -- with no form expanded. One
+  whose table is stale is read and expanded by the seed's own reader and expander once they are
+  loaded, and before them by the pinned seed (`npm run pin:seed`): the reader's and the expander's
+  libraries as core forms, which replaces the pinned reader. A core form that names a library's
+  environment, where a library's macro refers to its own binding, holds the library's name, found
+  as the form runs in the registry it is restored into; so no table holds a form to expand any
+  more, the compiler's own included.
+- **The analyzer deleted**: `analyzer.js`, its handlers in `analyzers/`, `syntax_rules.js`,
+  `identifier_utils.js`, the keyword logic of `syntax_object.js`, and the four primitives that let
+  the two expanders call each other's transformers. `analyze` is the door into the expander, in
+  `expand.js`. A transformer in the tables is a Scheme procedure, or a pending macro; a JavaScript
+  function there is called as any foreign procedure is. An import shadowing a macro of its name is
+  the library system's, in Scheme (`shadow-macro!`). The comparison harness, its work done, went too.
+- **The compiler reads core forms.** Each node keeps the core form it was made of, which the host
+  hands the compiler; an application's span is its form's. `marshal.js` is gone.
+- **The gates.** Against the commit before task 45: a CLI start within the noise (medians 290 ms
+  against 286), `benchmark:self-host` faster (69 ms a pass against 72; the lowering no longer
+  marshals), the corpus set of `run_tier.js` level (3,492 ms against 3,517 without the tier), the
+  page set within 1%, the test-file set 10% slower, with a test file more. Three changes got there,
+  from a start 17% slower and the corpus 43%:
+  - a table's data -- its restore sequence and its `define-library` form -- and the pinned seed are
+    JSON text in strings (`json-datum` in the table writer, `decodeDatum` in `prebuilt.js`), made into
+    data only for a library that is loaded, where they had been code building every library's data
+    as the module loaded: the pinned seed went from 1.0 MB to 0.4;
+  - `syntax-rules` substitutes what a pattern variable matched as it was written, where it had been
+    marked as it was matched and marked again, so unmarked, as it was substituted -- two copies of
+    every match, which also lost the spans of the user's code inside a macro's use. Now that code
+    keeps them, and the nodes and core forms made of it carry them. An escaped template's pattern
+    variable, the one place the single mark showed, is marked there;
+  - `symbol?` tests its argument's class rather than its constructor's name, a record accessor
+    converts a number it reads and nothing else, and the expander finds a symbol's local by `eq?`
+    and the innermost macros of a body without walking every frame.
+  Compiled, the expander now takes 1.4 times the analyzer's time on the canonical programs' 1,468
+  forms (165 ms against about 120).
+
+JavaScript under `src/` since the first increment, 351 lines added and 3,148 removed: the analyzer;
+`DefineSyntaxNode` and `RestoredForm`, the evaluator's; `decodeDatum`, the value representation's,
+with the restorer's library references; the seed's loading of the pinned seed and its expanding,
+which start Scheme; and `symbol?` and the record accessor, fixed in place.
+
+## Tests
+
+`seed_bootstrap_tests.js`, which replaces `reader_bootstrap_tests.js`: tables of the seed's libraries
+hold no form to expand, a macro's definition pending; the pinned seed reads and expands as the seed
+does; a seed with no table current loads. `prebuilt_library_tests.js`: core-form items read back
+against the sources, and the JSON data decoded. `table_writer_tests.scm`: restore sequences of core
+forms, data as JSON. `expander_tests.scm`: what a macro's use was given keeps its span.
+
+## Verification
+
+7,865 tests pass in Node with none failing (33 skipped), and 7,641 in the browser with none failing
+(56 skipped). `run_tier.js --set all` runs every program right but `tco_tests`, whose output holds
+the heap's size, which differs from run to run; it did before this task too.

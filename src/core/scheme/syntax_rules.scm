@@ -4,12 +4,13 @@
 ;; matched against each clause's pattern in turn, and the first that matches
 ;; gives the template the use is transcribed into.
 ;;
-;; Hygiene is by marks, as Dybvig's: each expansion makes a fresh scope. What
-;; a pattern variable matches is marked with it as it is matched, and marked
-;; again, so unmarked, as it is substituted; everything else the template
-;; introduces is marked once, and so kept apart from the user's identifiers of
-;; the same name -- the binding a template introduces captures nothing of the
-;; user's, and the user's captures nothing of the template's. A macro a library
+;; Hygiene is by marks, as Dybvig's: each expansion makes a fresh scope, and
+;; everything the template introduces is marked with it, and so kept apart
+;; from the user's identifiers of the same name -- the binding a template
+;; introduces captures nothing of the user's, and the user's captures nothing
+;; of the template's. What a pattern variable matched is substituted as it was
+;; written, its pairs the user's own, which keep the spans the reader gave
+;; them. A macro a library
 ;; defined also marks what its template introduces with the library's scope,
 ;; which is how a reference it makes finds the library's binding of its name
 ;; where it is used (`library-binding-env` in expander.scm). A template's free
@@ -177,7 +178,7 @@
 ;;  * under different names where each is -- and not bound locally where the
 ;;  * macro is used, where it would mean that binding instead. `_` matches
 ;;  * anything; any other identifier is a pattern variable, and binds what it
-;;  * matches, marked with the expansion's scope.
+;;  * matches.
 ;;  */
 (define (match-identifier pattern input x)
   (cond ((literal? pattern (expansion-literals x))
@@ -186,7 +187,7 @@
               (not (bound-at-use? (expansion-use-env x) input))
               '()))
         ((eq? (identifier-name pattern) '_) '())
-        (else (list (cons pattern (%flip-scope input (expansion-scope x)))))))
+        (else (list (cons pattern input)))))
 
 ;; /**
 ;;  * Whether the item after a pattern's or template's first is its ellipsis.
@@ -328,13 +329,13 @@
 
 ;; /**
 ;;  * A template's identifier, transcribed: what a pattern variable matched,
-;;  * unmarked; a local of where the macro was defined, by its renamed name; or
-;;  * else the identifier, marked as introduced.
+;;  * as it was written; a local of where the macro was defined, by its renamed
+;;  * name; or else the identifier, marked as introduced.
 ;;  */
 (define (transcribe-identifier id bindings x)
   (let ((bound (assq id bindings)))
     (if bound
-        (%flip-scope (matched-datum (cdr bound)) (expansion-scope x))
+        (matched-datum (cdr bound))
         (let ((local (local-where-defined id x)))
           (cond ((not local) (mark-introduced id x))
                 ((syntax-object? id)
@@ -436,14 +437,14 @@
 
 ;; /**
 ;;  * `(<ellipsis> template)`'s template, transcribed as written: an ellipsis
-;;  * in it is itself, and a pattern variable what it matched, as it matched
-;;  * it.
+;;  * in it is itself, and a pattern variable what it matched, marked with the
+;;  * expansion's scope as the identifiers the template introduces are.
 ;;  */
 (define (transcribe-escaped template bindings x)
   (cond ((identifier? template)
          (let ((bound (assq template bindings)))
            (cond ((eq? (identifier-name template) '...) template)
-                 (bound (matched-datum (cdr bound)))
+                 (bound (%flip-scope (matched-datum (cdr bound)) (expansion-scope x)))
                  (else (mark-introduced template x)))))
         ((vector? template)
          (list->vector (map (lambda (item) (transcribe-escaped item bindings x)) (vector->list template))))

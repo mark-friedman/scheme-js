@@ -57,7 +57,7 @@ import { SYNTAX_KEYWORDS } from './library_registry.js';
 import { callSchemeProcedure } from './values.js';
 import { SchemeLibraryError } from './errors.js';
 import {
-    installLibraryProcedures, libraryRestorer, fingerprintSources, RUNTIME_INTERFACE
+    installLibraryProcedures, libraryRestorer, fingerprintSources, decodeDatum, RUNTIME_INTERFACE
 } from '../../compiler/prebuilt.js';
 import prebuiltLibraries from '../../packaging/compiled_libraries.js';
 import pinnedSeedImage from '../../packaging/pinned_seed.js';
@@ -208,9 +208,9 @@ function pinnedSeed() {
  * The libraries the pinned seed's core forms make, run interpreted, on an
  * interpreter of their own: a reader and an expander that need no text read
  * and no form expanded.
- * @param {Object<string, {declaration: *, items: Array<*>}>} image - Each
- *   library's `define-library` form and its top-level forms' core forms, in
- *   order, by key.
+ * @param {Object<string, {declaration: string, items: Array<string>}>} image -
+ *   Each library's `define-library` form and its top-level forms' core forms,
+ *   in order, as JSON (`decodeDatum`), by key.
  * @returns {{loaded: Map<string, Map<string, *>>}} Their exports, by key.
  */
 export function loadPinnedSeed(image) {
@@ -220,8 +220,8 @@ export function loadPinnedSeed(image) {
     const loaded = new Map([['scheme.primitives', createPrimitiveExports(globalEnv)]]);
     for (const name of PINNED_LIBRARIES) {
         const { declaration, items } = image[name.join('.')];
-        loaded.set(name.join('.'), loadDeclared(name, declaration, loaded, interpreter, globalEnv, {
-            restoring: () => ({ items: list(...items.map((core) => list(FORM, assemble(core, analyze)))) }),
+        loaded.set(name.join('.'), loadDeclared(name, decodeDatum(declaration), loaded, interpreter, globalEnv, {
+            restoring: () => ({ items: list(...items.map((core) => list(FORM, assemble(decodeDatum(core), analyze)))) }),
             formsOf: () => { throw new Error('the pinned seed reads no file'); },
             expand: () => { throw new Error('the pinned seed expands no form'); },
             install: () => {}
@@ -247,7 +247,7 @@ const FORM = intern('form');
 function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
     const source = BUNDLED_SOURCES[`${name[name.length - 1]}.sld`];
     const table = tables[name.join('.')];
-    const form = isCurrent(table) ? table.declaration : seedRead(loaded, source, name.join('/'))[0];
+    const form = isCurrent(table) ? decodeDatum(table.declaration) : seedRead(loaded, source, name.join('/'))[0];
     return loadDeclared(name, form, loaded, interpreter, globalEnv, {
         restoring: () => {
             const restorer = libraryRestorer(tables);

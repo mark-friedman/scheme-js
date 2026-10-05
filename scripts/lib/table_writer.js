@@ -99,6 +99,10 @@ export function tableWriter(interpreter, env) {
       const text = call('constant-expression', value);
       return text === false ? null : String(text);
     },
+    json: (value) => {
+      const text = call('json-datum', value);
+      return text === false ? null : String(text);
+    },
     render: ({ generator, title, libraries }) => String(call('render-tables', generator, title, RUNTIME_INTERFACE,
       list(...libraries.map((l) => list(l.key, l.fingerprint, list(...l.files), list(...l.entries.map(entry)),
         // A restore sequence of nothing, a library of re-exports, is the

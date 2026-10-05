@@ -183,7 +183,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── html_adapter.js         # HTML script tag adapter
 │   │   ├── bundled_libraries.js    # GENERATED: library sources, for the browser
 │   │   ├── compiler_sources.js     # GENERATED: the compiler library's sources
-│   │   ├── compiled_libraries.js   # GENERATED: each shipped library, compiled, with its define-library form
+│   │   ├── compiled_libraries.js   # GENERATED: each shipped library, compiled; its other forms as core forms and its define-library form, as JSON
 │   │   ├── compiled_compiler.js    # GENERATED: the compiler's library, compiled
 │   │   └── pinned_seed.js          # GENERATED on purpose, not by the build: what the seed reads and expands with when its tables are stale
 │   │
@@ -305,8 +305,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── tier.scm           # A program's own code compiled as it runs: when, installing it, switching re-entered ones back
 │      ├── host.js            # (scheme-js compiler host): new Function, the interpreter's structures, weak tables
 │      ├── lowering.js        # Door into the compiler's Scheme: starts its library, hands out its entry points
-│      ├── marshal.js         # The analyzed AST into Scheme data
-│      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted
+│      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted; restoring it, its data decoded from JSON
 │      ├── tiering.js         # Attaching the tier: makes its record, whose Scheme procedures the interpreter calls
 │      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
 │

@@ -15,8 +15,10 @@
  *     (define-syntax name definition)
  *     (node executable)
  *
- * and this builds the node the evaluator steps through for each. The
- * expander's header says what each form means; here they are only read.
+ * and this builds the node the evaluator steps through for each, which keeps
+ * the core form it was made of, as `core`, for the compiler, which lowers core
+ * forms. The expander's header says what each form means; here they are only
+ * read.
  * Names are symbols, read here as the strings the evaluator binds; a lambda's
  * own name is a string; a span, where a form has one, is its `source`
  * property, as on the data the reader makes.
@@ -29,6 +31,8 @@ import {
 } from './ast_nodes.js';
 import { globalScopeRegistry } from './syntax_object.js';
 import { importLibraries, defineLibrary } from './library_loader.js';
+import { getLibraryEnv } from './library_registry.js';
+import { Executable, CTL } from './stepables_base.js';
 import { stringValue } from '../primitives/string_class.js';
 
 /**
@@ -60,6 +64,15 @@ const nameOf = (symbol) => symbol.name;
 const optionalName = (symbol) => (symbol === false ? null : symbol.name);
 
 /**
+ * A library's environment, as a core form holds it: itself, or, restored from
+ * a prebuilt table, `{library: name}`, the environment of the library of that
+ * name in the registry libraries are loaded into now.
+ * @param {Object} env - The environment, or the name of its library.
+ * @returns {Environment}
+ */
+const environmentOf = (env) => (env.library !== undefined ? getLibraryEnv(env.library) : env);
+
+/**
  * The node a core form denotes.
  * @param {Cons} form - The core form.
  * @param {Function} analyze - What an `import` or `define-library` it holds
@@ -69,7 +82,31 @@ const optionalName = (symbol) => (symbol === false ? null : symbol.name);
 export function assemble(form, analyze) {
   const node = build(form, analyze);
   if (form.source !== undefined && form.source !== null) node.source = form.source;
+  node.core = form;
   return node;
+}
+
+/**
+ * A core form a library's prebuilt table restores, made into its node when
+ * it runs rather than when the table is read: by then the libraries the
+ * library imports are loaded, and a library the form names
+ * (`environmentOf`) is found.
+ */
+export class RestoredForm extends Executable {
+  /**
+   * @param {*} form - The core form.
+   * @param {Function} analyze - As for `assemble`.
+   */
+  constructor(form, analyze) {
+    super();
+    this.form = form;
+    this.analyze = analyze;
+  }
+
+  step(registers) {
+    registers[CTL] = assemble(this.form, this.analyze);
+    return true;
+  }
 }
 
 /**
@@ -87,7 +124,7 @@ function build(form, analyze) {
     case 'var':
       return new VariableNode(nameOf(parts[0]));
     case 'library-var':
-      return new LibraryVariableNode(nameOf(parts[0]), parts[1]);
+      return new LibraryVariableNode(nameOf(parts[0]), environmentOf(parts[1]));
     case 'scoped-var':
       return new ScopedVariable(nameOf(parts[0]), new Set(elements(parts[1])), globalScopeRegistry);
     case 'if':
@@ -107,7 +144,7 @@ function build(form, analyze) {
     case 'set':
       return new SetNode(nameOf(parts[0]), sub(parts[1]));
     case 'library-set':
-      return new LibrarySetNode(nameOf(parts[0]), parts[1], sub(parts[2]));
+      return new LibrarySetNode(nameOf(parts[0]), environmentOf(parts[1]), sub(parts[2]));
     case 'define':
       return new DefineNode(nameOf(parts[0]), sub(parts[1]));
     case 'app':

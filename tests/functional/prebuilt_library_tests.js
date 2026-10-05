@@ -25,7 +25,7 @@ import {
 } from '../../src/core/interpreter/library_registry.js';
 import { Environment } from '../../src/core/interpreter/environment.js';
 import { generateEnvironment } from '../../src/compiler/index.js';
-import { installLibraryTable, libraryRestorer, fingerprintSources, RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
+import { installLibraryTable, libraryRestorer, fingerprintSources, RUNTIME_INTERFACE, decodeDatum } from '../../src/compiler/prebuilt.js';
 import {
   compilerEnvironment, compilerExports, compilerSourceOf, COMPILER_LIBRARY
 } from '../../src/compiler/lowering.js';
@@ -97,6 +97,14 @@ export async function runPrebuiltLibraryTests(logger) {
     ['scheme.core', 'scheme.lazy', 'srfi.1', 'srfi.125', 'srfi.128', 'srfi.152']
       .filter((key) => LIBRARIES[key] === undefined), []);
 
+  logger.title('Prebuilt libraries - the data a table holds, as JSON');
+  assert(logger, 'every kind of datum, decoded',
+    writeString(decodeDatum('["l","a",["s","b"],12,["n","123456789012345678901234567890"],["f","1.5"],["c",97],'
+      + 'null,["d",3,2],["v",1,"b"],true]')),
+    '(a "b" 12 123456789012345678901234567890 1.5 #\\a () (2 . 3) #(1 b) #t)');
+  assert(logger, "and a library's environment, by its name", decodeDatum('["e","scheme","core"]').library,
+    ['scheme', 'core']);
+
   logger.title('Prebuilt libraries - each table restores its library');
   {
     // A table restores its library from its `restore` sequence: every
@@ -130,26 +138,28 @@ export async function runPrebuiltLibraryTests(logger) {
           return null;
         }
         if (item.core !== undefined) {
-          const tag = item.core.car?.name;
+          const core = decodeDatum(item.core);
+          const tag = core.car?.name;
           if (tag === 'define-syntax') {
-            return writeString(item.core.cdr.cdr.car) === writeString(forms[i]) ? null : `item ${i}: not the macro there`;
+            return writeString(core.cdr.cdr.car) === writeString(forms[i]) ? null : `item ${i}: not the macro there`;
           }
-          if (forms[i].car?.name === 'define' && !(tag === 'define' && item.core.cdr.car.name === definedName(forms[i]))) {
+          if (forms[i].car?.name === 'define' && !(tag === 'define' && core.cdr.car.name === definedName(forms[i]))) {
             return `item ${i}: not the definition there`;
           }
           return coreTags.has(tag) ? null : `item ${i}: not a core form`;
         }
-        return writeString(item.form) === writeString(forms[i]) ? null : `item ${i}: not the form there`;
+        return writeString(decodeDatum(item.form)) === writeString(forms[i]) ? null : `item ${i}: not the form there`;
       }).filter((problem) => problem !== null);
       assert(logger, `${library} restores from a sequence of its forms, in order`,
         [table.restore !== undefined, restore.length, wrong], [true, forms.length, []]);
     }
     const core = LIBRARIES['scheme.core'].restore;
+    const coreOf = (item) => (item.core === undefined ? null : decodeDatum(item.core));
     assert(logger, "(scheme core)'s macros are defined pending", core.some((item) =>
-      item.core?.car?.name === 'define-syntax' && item.core.cdr.car.name === 'cond'), true);
+      coreOf(item)?.car?.name === 'define-syntax' && coreOf(item).cdr.car.name === 'cond'), true);
     assert(logger, 'and its procedures are restored', core.some((item) => item.procedure === 'map'), true);
     assert(logger, 'a library of macros alone has a table that restores it',
-      LIBRARIES['scheme.control']?.restore?.every((item) => item.core?.car?.name === 'define-syntax'), true);
+      LIBRARIES['scheme.control']?.restore?.every((item) => coreOf(item)?.car?.name === 'define-syntax'), true);
   }
 
   logger.title('Prebuilt libraries - each procedure declares the runtime values it names');

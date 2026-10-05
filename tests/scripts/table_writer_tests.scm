@@ -58,6 +58,20 @@
   (test "the exports" #t (has? "export const LIBRARIES = {\n") )
   (test "and the default" #t (has? "\nexport default LIBRARIES;\n")))
 
+(test-group "table writer - data as JSON"
+  (test "a symbol, a JSON string" "\"a\"" (json-datum 'a))
+  (test "the empty list, null" "null" (json-datum '()))
+  (test "an exact integer, a number" "12" (json-datum 12))
+  (test "one too large for a JavaScript number, its digits" "[\"n\",\"123456789012345678901234567890\"]"
+        (json-datum 123456789012345678901234567890))
+  (test "an inexact number, its text" "[\"f\",\"1.5\"]" (json-datum 1.5))
+  (test "a string" "[\"s\",\"x\\\"y\"]" (json-datum "x\"y"))
+  (test "a character, its code" "[\"c\",97]" (json-datum #\a))
+  (test "a list and a dotted list" "[\"l\",1,[\"d\",3,2]]" (json-datum '(1 (2 . 3))))
+  (test "a vector" "[\"v\",1,\"b\"]" (json-datum '#(1 b)))
+  (test "JavaScript's undefined" "[\"u\"]" (json-datum js-undefined))
+  (test "a procedure cannot be written down" #f (json-datum car)))
+
 (test-group "table writer - what restores a library"
   (test "a procedure's definition names it" 'f (procedure-definition-name '(define (f x) x)))
   (test "with no parameters" 'f (procedure-definition-name '(define (f) 1)))
@@ -102,11 +116,11 @@
                                #f #f))))
   (define (has? fragment) (and (string-contains text fragment) #t))
   (test "a restorable procedure's span" #t (has? "        span: {\"line\":1},\n        make: (R, E, K) => {\n"))
-  (test "the forms loading runs, in order" #t
-        (has? "    restore: [\n      {procedure: \"f\"},\n      {core: new Cons(intern(\"define-syntax\"), new Cons(intern(\"m\"), "))
-  (test "and a form to expand" #t (has? "      {form: new Cons(intern(\"g\"), null)}\n"))
+  (test "the forms loading runs, in order, as JSON" #t
+        (has? "    restore: [\n      {procedure: \"f\"},\n      {core: \"[\\\"l\\\",\\\"define-syntax\\\",\\\"m\\\","))
+  (test "and a form to expand" #t (has? "      {form: \"[\\\"l\\\",\\\"g\\\"]\"}\n"))
   (test "the procedures, then the forms" #t (has? "        }\n      }\n    },\n    restore: [\n"))
   (test "a library's define-library form, which the library system's seed reads instead of its .sld" #t
-        (has? "    files: [\"lib.sld\"],\n    declaration: new Cons(intern(\"define-library\"), "))
+        (has? "    files: [\"lib.sld\"],\n    declaration: \"[\\\"l\\\",\\\"define-library\\\","))
   (test "a table that cannot restore has no restore" #t
         (has? "  \"test.other\": {\n    fingerprint: \"0ddba11\",\n    runtime: \"abcd1234\",\n    files: [\"other.sld\"],\n    procedures: {\n      \"g\": {\n        params: [],\n        rest: null,\n        constants: [],\n        make: (R, E, K) => {\n        body\n        }\n      }\n    }\n  }")))

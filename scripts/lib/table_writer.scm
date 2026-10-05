@@ -95,6 +95,16 @@
         (else #f)))
 
 ;; /**
+;;  * The name of the library an environment is, as a list of strings, or #f
+;;  * for any other value.
+;;  * @param {*} value - The value.
+;;  * @returns {list|boolean}
+;;  */
+(define (library-environment-name value)
+  (let ((name (js-ref value "libraryName")))
+    (and (vector? name) (vector->list name))))
+
+;; /**
 ;;  * JavaScript that rebuilds a constant pool, as an array, or #f if some
 ;;  * constant in it cannot be written down.
 ;;  * @param {list} constants - The pool.
@@ -104,6 +114,61 @@
   (let ((expressions (map constant-expression constants)))
     (and (not (memq #f expressions))
          (string-append "[" (string-join expressions ", ") "]"))))
+
+;; ---------------------------------------------------------------------------
+;; Data, as JSON
+;; ---------------------------------------------------------------------------
+;;
+;; What restores a library -- its forms, as core forms, and its
+;; `define-library` form -- is data the module holds as JSON text, in a string,
+;; which costs next to nothing to load and is made into Scheme data only for a
+;; library that is loaded (`decodeDatum` in src/compiler/prebuilt.js). A symbol
+;; is a JSON string; `null` the empty list; an exact integer a JSON number, or
+;; `["n", digits]` where JavaScript's numbers could not hold it; `true` and
+;; `false` themselves; and anything else an array whose first element says
+;; what it is: `["s", text]` a string, `["f", text]` an inexact number,
+;; `["c", code]` a character, `["u"]` JavaScript's `undefined`, `["l", item
+;; ...]` a list, `["d", tail, item ...]` a dotted list, `["v", item ...]` a
+;; vector, and `["e", part ...]` the environment of the library of that name,
+;; which a core form names where a library's macro refers to its own binding.
+
+;; /**
+;;  * The largest integer JavaScript's numbers hold exactly.
+;;  */
+(define largest-safe-integer 9007199254740991)
+
+;; /**
+;;  * A datum as JSON text, or #f if it cannot be written down.
+;;  * @param {*} value - The datum.
+;;  * @returns {string|boolean}
+;;  */
+(define (json-datum value)
+  (define (tagged tag parts)
+    (and (not (memq #f parts))
+         (string-append "[" (json-string tag) (apply string-append (map (lambda (p) (string-append "," p)) parts)) "]")))
+  (cond ((null? value) "null")
+        ((eq? value #t) "true")
+        ((eq? value #f) "false")
+        ((symbol? value) (json-string (symbol->string value)))
+        ((exact-integer? value)
+         (if (<= (abs value) largest-safe-integer)
+             (number->string value)
+             (tagged "n" (list (json-string (number->string value))))))
+        ((and (real? value) (inexact? value))
+         (tagged "f" (list (json-string (cond ((nan? value) "NaN")
+                                              ((infinite? value) (if (positive? value) "Infinity" "-Infinity"))
+                                              (else (number->string value)))))))
+        ((string? value) (tagged "s" (list (json-string value))))
+        ((char? value) (tagged "c" (list (number->string (char->integer value)))))
+        ((js-undefined? value) (tagged "u" '()))
+        ((pair? value)
+         (let loop ((rest value) (items '()))
+           (cond ((pair? rest) (loop (cdr rest) (cons (json-datum (car rest)) items)))
+                 ((null? rest) (tagged "l" (reverse items)))
+                 (else (tagged "d" (cons (json-datum rest) (reverse items)))))))
+        ((vector? value) (tagged "v" (map json-datum (vector->list value))))
+        ((library-environment-name value) => (lambda (name) (tagged "e" (map json-string name))))
+        (else #f)))
 
 ;; ---------------------------------------------------------------------------
 ;; What restores a library
@@ -181,7 +246,7 @@
            (cond ((and name (made-final? name form)) (list 'procedure name))
                  ((and macro (equal? core '(lit ())))
                   (list 'core (list 'define-syntax macro form)))
-                 ((constant-expression core) (list 'core core))
+                 ((json-datum core) (list 'core core))
                  (else (list 'form form)))))
        forms))
 
@@ -193,7 +258,7 @@
 (define (restore-writable? restore)
   (let loop ((items restore))
     (or (null? items)
-        (and (or (eq? (car (car items)) 'procedure) (constant-expression (cadr (car items))))
+        (and (or (eq? (car (car items)) 'procedure) (json-datum (cadr (car items))))
              (loop (cdr items))))))
 
 ;; ---------------------------------------------------------------------------
@@ -235,7 +300,7 @@
 ;;  * A library's restore sequence, as the text of an array: each top-level
 ;;  * form loading runs, in order, as `{procedure: name}` for one the table's
 ;;  * code restores, `{core: ...}`, a core form the evaluator runs, or `{form:
-;;  * ...}`, the form itself, to be expanded and run as source is.
+;;  * ...}`, the form itself, to be expanded and run as source is, each as JSON.
 ;;  * @param {list} restore - The sequence (`restore-sequence`), every form in
 ;;  *   it one that can be written down (`restore-writable?`).
 ;;  * @returns {string}
@@ -247,8 +312,8 @@
       (map (lambda (item)
              (case (car item)
                ((procedure) (string-append "      {procedure: " (json-string (symbol->string (cadr item))) "}"))
-               ((core) (string-append "      {core: " (constant-expression (cadr item)) "}"))
-               (else (string-append "      {form: " (constant-expression (cadr item)) "}"))))
+               ((core) (string-append "      {core: " (json-string (json-datum (cadr item))) "}"))
+               (else (string-append "      {form: " (json-string (json-datum (cadr item))) "}"))))
            restore)
       ",\n")
     "\n    ]\n"))
@@ -274,7 +339,7 @@
       "    fingerprint: " (json-string (list-ref library 1)) ",\n"
       "    runtime: " (json-string runtime) ",\n"
       "    files: " (json-strings (list-ref library 2)) ",\n"
-      (if declaration (string-append "    declaration: " (constant-expression declaration) ",\n") "")
+      (if declaration (string-append "    declaration: " (json-string (json-datum declaration)) ",\n") "")
       "    procedures: {\n" (string-join (map entry-text (list-ref library 3)) ",\n") "\n    }"
       (if restore (string-append ",\n" (restore-text restore)) "\n")
       "  }")))
@@ -296,18 +361,14 @@
 
 ;; /**
 ;;  * The import lines the constant pools need: each constructor only when
-;;  * some constant, restore form or declaration is written with it, so a
-;;  * module of procedures with none has no dependencies.
+;;  * some constant is written with it, so a module of procedures with none has
+;;  * no dependencies.
 ;;  * @param {list} libraries - The libraries (`table-text`).
 ;;  * @returns {list} The lines.
 ;;  */
 (define (import-lines libraries)
-  (let ((constants (append (apply append (map (lambda (entry) (list-ref entry 3))
-                                              (apply append (map (lambda (library) (list-ref library 3)) libraries))))
-                           (apply append (map (lambda (library)
-                                                (append (map cadr (or (list-ref library 4) '()))
-                                                        (if (list-ref library 5) (list (list-ref library 5)) '())))
-                                              libraries)))))
+  (let ((constants (apply append (map (lambda (entry) (list-ref entry 3))
+                                     (apply append (map (lambda (library) (list-ref library 3)) libraries))))))
     (define (used? kind?)
       (let loop ((cs constants)) (and (pair? cs) (or (holds? kind? (car cs)) (loop (cdr cs))))))
     (append (if (used? symbol?) '("import { intern } from '../core/interpreter/symbol.js';") '())
@@ -347,7 +408,7 @@
       "// rather than running code for source that has since changed.\n"
       (if (null? imports) "" (string-append "\n" (string-join imports "\n") "\n"))
       "\n"
-      "/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, restore?: Array<{procedure: string}|{core: *}|{form: *}>}>} */\n"
+      "/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, declaration?: string, restore?: Array<{procedure: string}|{core: string}|{form: string}>}>} */\n"
       "export const LIBRARIES = {\n"
       (string-join (map (lambda (library) (table-text runtime library)) libraries) ",\n")
       "\n};\n"

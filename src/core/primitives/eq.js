@@ -8,6 +8,7 @@ import { assertBoolean, assertArity } from '../interpreter/type_check.js';
 import { Complex } from './complex.js';
 import { Rational } from './rational.js';
 import { Char } from './char_class.js';
+import { Symbol } from '../interpreter/symbol.js';
 
 /**
  * Equality primitives exported to Scheme.
@@ -103,7 +104,7 @@ export const eqPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a symbol.
      */
-    'symbol?': (obj) => obj !== null && typeof obj === 'object' && obj.constructor && obj.constructor.name === 'Symbol',
+    'symbol?': (obj) => obj instanceof Symbol,
 
     /**
      * Symbol equality. Returns true if all arguments are the same symbol.
