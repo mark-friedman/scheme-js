@@ -237,7 +237,25 @@
   (test "a program not debugged is left as it is" 'compiled
         (begin (interpret-compiled-over! registry debugged #f program) (f)))
   (test "a procedure whose resumable form no record's names is not switched back" #f
-        (switch-back-to-closure! registry debugged f)))
+        (switch-back-to-closure! registry debugged f))
+  ;; Debugged with only breakpoints set, only the closures that hold one run
+  ;; as themselves: a procedure says which.
+  (let ((g (lambda () 'g-interpreted))
+        (g-compiled (lambda () 'g-compiled)))
+    (%run-compiled! g g-compiled)
+    (record-compiled-over! registry debugged (list (cons g g-compiled)) program)
+    (interpret-compiled-over! registry debugged (lambda (closure) (eq? closure g)) program)
+    (test "debugged so, the closures it chooses run as themselves, the rest compiled"
+          '(g-interpreted compiled) (list (g) (f)))
+    (let ((h (lambda () 'h-interpreted))
+          (h-compiled (lambda () 'h-compiled)))
+      (%run-compiled! h h-compiled)
+      (record-compiled-over! registry debugged (list (cons h h-compiled)) program)
+      (test "and one compiled meanwhile is chosen as they were" 'h-compiled (h)))
+    (interpret-compiled-over! registry debugged #t program)
+    (test "debugged with a step to take, every one runs as itself" '(g-interpreted interpreted) (list (g) (f)))
+    (interpret-compiled-over! registry debugged #f program)
+    (test "and none once it is not debugged" '(g-compiled compiled) (list (g) (f)))))
 
 (test-group "library system - the files a load would read"
   ;; A loader that has at hand only the files named, of the test files, and

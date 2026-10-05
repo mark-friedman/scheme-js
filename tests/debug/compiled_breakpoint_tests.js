@@ -13,12 +13,12 @@
  *     REPL says so when a breakpoint lands there.
  *
  * A procedure compiled over an interpreted closure -- the standard library's
- * prebuilt code, or `compileEnvironment` -- does stop at breakpoints: while any
- * breakpoint is set, or the program is paused or stepping, it runs as the
- * closure it replaced (`Interpreter.interpretForDebugger`). So the warning is
- * left for code compiled with nothing to go back to, and the last section tests
- * that breakpoints fire -- including inside a callback that compiled code
- * called, which used to be reached and not stop.
+ * prebuilt code, or `compileEnvironment` -- does stop at breakpoints: while a
+ * breakpoint is set inside it, or the program is paused or stepping, it runs
+ * as the closure it replaced (`Interpreter.interpretForDebugger`), and the
+ * rest stay compiled. So the warning is left for code compiled with nothing to
+ * go back to, and the last section tests that breakpoints fire -- including
+ * inside a callback that compiled code called, which pauses beneath it.
  */
 
 import { assert } from '../harness/helpers.js';
@@ -322,11 +322,11 @@ export async function runCompiledBreakpointTests(logger) {
   {
     // The standard library the browser installs, compiled, and a program
     // whose procedure, on line 2, is called back by the compiled `map`. The
-    // callback ran in a synchronous nested run of the interpreter, which
-    // cannot wait, so the breakpoint was reached on every element and the
-    // program stopped only when `map` returned. Now `map` runs as its closure
-    // while a breakpoint is set, and the session is the one the interpreted
-    // library gives: every pause answered by a resume before the next.
+    // callback runs in a synchronous nested run of the interpreter, which
+    // cannot wait; it moves `map`'s compiled frames to the heap and the step
+    // is paused at by the run that can, so the session is the one the
+    // interpreted library gives -- every pause answered by a resume before the
+    // next -- with `map`, which holds no breakpoint, compiled throughout.
     const session = async (compiledLibrary) => {
       const pair = interpretedLibrary();
       if (compiledLibrary) installStandardLibrary(pair.env);
@@ -345,6 +345,9 @@ export async function runCompiledBreakpointTests(logger) {
       pair.interpreter.setDebugRuntime(runtime);
       runtime.enable();
       const id = runtime.setBreakpoint('cb.scm', 2);
+      // While the program runs, `map` holds no breakpoint and stays compiled;
+      // paused, every closure runs as itself, since a step may follow.
+      const compiledAtStart = pair.env.lookup('map').$compiled === true;
       let result = null;
       try {
         result = await pair.interpreter.runAsync(analyze(forms[2]), pair.env, { stepsPerYield: 1000 });
@@ -353,7 +356,7 @@ export async function runCompiledBreakpointTests(logger) {
       }
       const compiledAfter = pair.env.lookup('map').$compiled === true;
       pair.interpreter.setDebugRuntime(null);
-      return { events: events.join(', '), result: writeString(result), compiledBefore, compiledAfter };
+      return { events: events.join(', '), result: writeString(result), compiledBefore, compiledAfter, compiledAtStart };
     };
     const reference = await session(false);
     const compiled = await session(true);
@@ -363,7 +366,8 @@ export async function runCompiledBreakpointTests(logger) {
     assert(logger, 'a breakpoint in a callback of the compiled map pauses as with the interpreted library',
       compiled.events, reference.events);
     assert(logger, 'and the program then finishes', compiled.result, '(10 20 30)');
-    assert(logger, 'and map is compiled again once no breakpoint is set', compiled.compiledAfter, true);
+    assert(logger, 'map, which holds no breakpoint, running compiled as it began', compiled.compiledAtStart, true);
+    assert(logger, 'and afterwards', compiled.compiledAfter, true);
   }
   {
     // Libraries loaded through the library system, as the browser loads them:
@@ -385,15 +389,20 @@ export async function runCompiledBreakpointTests(logger) {
       const runtime = new SchemeDebugRuntime();
       interpreter.setDebugRuntime(runtime);
       runtime.enable();
-      const id = runtime.setBreakpoint('anywhere.scm', 1);
+      const elsewhere = runtime.setBreakpoint('anywhere.scm', 1);
+      const duringElsewhere = compiled();
+      const span = core.bindings.get('map').source;
+      const inside = runtime.setBreakpoint(span.filename, span.line + 1);
       const during = compiled();
-      runtime.removeBreakpoint(id);
+      runtime.removeBreakpoint(inside);
+      runtime.removeBreakpoint(elsewhere);
       const after = compiled();
       interpreter.setDebugRuntime(null);
-      return { before, during, after };
+      return { before, duringElsewhere, during, after };
     });
     assert(logger, 'setup: map is compiled in the library and in the program', seen.before.join(' '), 'true true');
-    assert(logger, 'with a breakpoint set, both run the closure', seen.during.join(' '), 'false false');
+    assert(logger, 'with a breakpoint set elsewhere, both stay compiled', seen.duringElsewhere.join(' '), 'true true');
+    assert(logger, 'with one inside map, both run the closure', seen.during.join(' '), 'false false');
     assert(logger, 'and both are compiled again once there is none', seen.after.join(' '), 'true true');
 
     // A library imported while a breakpoint is set arrives compiled, by value;
@@ -415,7 +424,7 @@ export async function runCompiledBreakpointTests(logger) {
       return { imported, run };
     });
     assert(logger, 'setup: a library imported while a breakpoint is set arrives compiled', late.imported, true);
-    assert(logger, 'and runs as its closures from the next run', late.run, false);
+    assert(logger, 'and, holding no breakpoint, stays so when the program next runs', late.run, true);
 
     // A value a library made as it loaded holds the library's procedures, and
     // switches with them: SRFI 128's default comparator, a record, holds
@@ -432,7 +441,8 @@ export async function runCompiledBreakpointTests(logger) {
       const runtime = new SchemeDebugRuntime();
       interpreter.setDebugRuntime(runtime);
       runtime.enable();
-      const id = runtime.setBreakpoint('anywhere.scm', 1);
+      const span = library.bindings.get('default-hash').source;
+      const id = runtime.setBreakpoint(span.filename, span.line);
       const during = hash();
       runtime.removeBreakpoint(id);
       const after = hash();
@@ -441,7 +451,7 @@ export async function runCompiledBreakpointTests(logger) {
     });
     assert(logger, "setup: a library's record holds the compiled procedure its name is bound to",
       held.before, 'true true');
-    assert(logger, 'with a breakpoint set, it holds the closure, as the name is bound to', held.during, 'true false');
+    assert(logger, 'with a breakpoint set inside it, it holds the closure, as the name is bound to', held.during, 'true false');
     assert(logger, 'and the compiled procedure again once there is none', held.after, 'true true');
   }
   {

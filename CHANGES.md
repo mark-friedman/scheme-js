@@ -12127,3 +12127,45 @@ test of what the program's debugger is told watches the calls it records.
 7,794 tests pass in Node with none failing (33 skipped), and 7,570 in the browser with none
 failing (56 skipped). `tests/functional/repl_debug.mjs` drives the CLI's debugger: pausing, `:bt`,
 `:locals`, an evaluation and `:c`. The bundle makes a runtime, sets a breakpoint and pauses.
+
+# Task 40 done: debugging an optimized procedure by not optimizing it, per procedure (2026-10-04)
+
+While a program was being debugged -- a breakpoint set anywhere, a step in progress, a pause -- every
+closure run compiled ran as itself, the program's and its libraries', so a breakpoint could fire
+anywhere and the whole program ran at the interpreter's speed. Now, with only breakpoints set, only
+the closures whose span holds one run as themselves; every one does while a step is in progress or
+the program is paused, since a step may go anywhere. The debugger chooses (`debugger-interpretation`
+in `debugger.scm`): its host is told after each change, and `interpret-compiled-over!`
+(`library_system.scm`) takes the choice -- #t, #f, or a procedure saying of a closure whether to
+switch it -- and keeps it for the closures compiled meanwhile.
+
+Keeping the callers compiled needed a breakpoint reached beneath compiled code to pause there. A run
+of the interpreter that compiled code called -- the procedure given to the compiled `map` -- is
+beneath the compiled frames on the JavaScript stack and cannot wait; it now moves them to the heap,
+as a continuation captured there would, and the step is taken again, and paused at, by the run that
+finishes the move, the asynchronous loop's (`beginStepAgain` in `unwind.js`, `Interpreter.step`). No
+continuation is taken; the frames go on the stack as a move for a call too deep to make puts them,
+with the run's own on top (R118).
+
+A program using the compiled library, debugged with a breakpoint in a procedure it does not reach,
+ran 3,000 iterations of a loop over `map` in 1,556 ms with the whole program switched, and runs them in
+154 ms now.
+
+JavaScript, 67 lines added and 22 removed under `src/`: the move and the step taken again, which is
+the save-and-resume protocol, and the interpreter's switch taking the debugger's choice.
+
+## Tests
+
+`compiled_breakpoint_tests.js`: a breakpoint in a callback of the compiled `map` pauses as with the
+interpreted library, every pause answered before the next, with `map` compiled as the run began --
+which, with the move disabled, fails as the switched-off program would, its pauses not waiting; a
+breakpoint elsewhere leaves `map` compiled in the library and the program, one inside it switches
+both; a library imported meanwhile stays compiled holding none; SRFI 128's comparator holds the
+closure of the procedure a breakpoint is in. `library_system_tests.scm`: `interpret-compiled-over!`
+with a choice, and a closure compiled meanwhile following it. `debugger_tests.scm`: which closures the
+debugger chooses, running, stepping and paused.
+
+## Verification
+
+7,805 tests pass in Node with none failing (33 skipped), and 7,581 in the browser with none
+failing (56 skipped). `tests/functional/repl_debug.mjs` drives the CLI's debugger.

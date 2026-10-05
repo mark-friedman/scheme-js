@@ -353,6 +353,32 @@ export function beginFlush(procedure, args) {
 }
 
 /**
+ * Begins moving the compiled frames beneath a run to the heap, so that a step
+ * the run cannot take now is taken again by the run that finishes the move: a
+ * pause at a breakpoint, which a run compiled code called -- beneath compiled
+ * frames on the JavaScript stack -- could not wait at, as the run of the
+ * asynchronous loop does. No continuation is taken; the frames are moved as
+ * for a call too deep to make, then the run's own on top of them.
+ *
+ * @param {Array} fstack - The run's frame stack.
+ * @param {Object} step - The step to take again.
+ * @param {Object} env - Its environment.
+ * @returns {boolean} Whether the run was called by compiled code, and so began
+ *   the move: it then abandons itself by throwing `CaptureUnwind`. A run
+ *   called beneath an inline expansion of a redefined primitive cannot move
+ *   them, there being no point to resume the expansion from.
+ */
+export function beginStepAgain(fstack, step, env) {
+  let start = fstack.length;
+  while (start > 0 && fstack[start - 1].isSentinel !== true) start--;
+  const sentinel = start > 0 ? fstack[start - 1] : null;
+  if (sentinel === null || sentinel.compiledBoundary !== true || sentinel.refusesCapture === true) return false;
+  unwinding.frames = [];
+  unwinding.pending = { resume: step, env, segment: fstack.slice(start) };
+  return true;
+}
+
+/**
  * Begins a capture made *by* compiled code rather than beneath it.
  *
  * `call/cc` reached from a compiled procedure has no interpreter frame stack to
@@ -404,7 +430,8 @@ export function beginCompiledCapture(receiver) {
  * the run they called, then the compiled frames that run called, and so on
  * inwards. A capture then applies its receiver to a continuation of that
  * stack, with the frames of the run `call/cc` was in innermost; a move to the
- * heap makes the call that was too deep to make.
+ * heap makes the call that was too deep to make, or takes again the step a
+ * run could not take (`beginStepAgain`), with that run's frames on top.
  *
  * @param {Array} registers - The interpreter registers.
  * @param {Object} interpreter - The interpreter.
@@ -421,7 +448,7 @@ export function completeCapture(registers, interpreter, hooks) {
     unwinding.frames.push({ segment: hooks.segmentOf(registers[FSTACK]) });
     throw new CaptureUnwind();
   }
-  const { lambdaExpr, env, segment, call, args } = unwinding.pending;
+  const { lambdaExpr, env, segment, call, args, resume } = unwinding.pending;
 
   // `unwinding.frames` is innermost first, because the innermost procedure
   // reifies first as the unwind travels outward. A frame stack is innermost
@@ -442,6 +469,13 @@ export function completeCapture(registers, interpreter, hooks) {
   if (call !== undefined) {
     hooks.pushMoved(registers[FSTACK], collected);
     registers[CTL] = hooks.applyCall(call, args);
+    return true;
+  }
+  if (resume !== undefined) {
+    hooks.pushMoved(registers[FSTACK], collected);
+    registers[FSTACK].push(...segment);
+    registers[ENV] = env;
+    registers[CTL] = resume;
     return true;
   }
 

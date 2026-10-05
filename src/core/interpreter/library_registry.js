@@ -363,14 +363,16 @@ export function isCompiledOver(procedure) {
 }
 
 /**
- * Runs every recorded closure as itself, or compiled again, while a program
- * is debugged (`interpret-compiled-over!` in library_system.scm).
+ * Runs the recorded closures a program's debugger chooses as themselves, the
+ * rest compiled, while it is debugged, and every one compiled again once it is
+ * not (`interpret-compiled-over!` in library_system.scm).
  *
- * @param {boolean} interpreted - Whether to run the closures as themselves.
+ * @param {boolean|Function} which - True for every one, false for none, or a
+ *   Scheme procedure saying of a closure whether it is one.
  * @param {Object} globalEnv - The program's global environment.
  */
-export function interpretCompiledOver(interpreted, globalEnv) {
-    callLibrarySystem('interpret-compiled-over!', currentLibraryRegistry(), debugged(), interpreted, globalEnv);
+export function interpretCompiledOver(which, globalEnv) {
+    callLibrarySystem('interpret-compiled-over!', currentLibraryRegistry(), debugged(), which, globalEnv);
 }
 
 /**

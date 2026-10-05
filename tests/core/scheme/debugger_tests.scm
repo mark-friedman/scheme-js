@@ -20,7 +20,7 @@
   (let ((told '()))
     (define (tell! . what) (set! told (cons what told)))
     (cons (make-debugger-host
-           (lambda (enabled? debugging? paused? aborted?)
+           (lambda (enabled? debugging? paused? aborted? interpretation)
              (tell! 'changed enabled? debugging? paused? aborted?))
            (lambda () (tell! 'released))
            (lambda (how) (tell! 'resumed how))
@@ -185,6 +185,22 @@
   (clear-breakpoints! dbg)
   (step-into! dbg)
   (test "or stepping" #t (debugger-debugging? dbg)))
+
+(test-group "debugger - which closures run as themselves"
+  (define dbg (fresh-debugger))
+  (define holder (js-obj "source" (span "test.scm" 8 1 12 4)))
+  (define other (js-obj "source" (span "test.scm" 20 1 22 4)))
+  (define (chooses? interpretation closure) (and (procedure? interpretation) (interpretation closure)))
+  (test "none while debugging is off" #f (debugger-interpretation dbg))
+  (set-debugger-enabled! dbg #t)
+  (test "none with nothing to stop at" #f (debugger-interpretation dbg))
+  (add-breakpoint! dbg "test.scm" 10 #f)
+  (test "with a breakpoint, the closure whose span holds it" '(#t #f)
+        (list (chooses? (debugger-interpretation dbg) holder) (chooses? (debugger-interpretation dbg) other)))
+  (step-into! dbg)
+  (test "every one, stepping" #t (debugger-interpretation dbg))
+  (pause! dbg "breakpoint" #f)
+  (test "and paused" #t (debugger-interpretation dbg)))
 
 (test-group "debugger - exceptions"
   (define dbg (fresh-debugger))

@@ -3383,3 +3383,21 @@ nor any other.
 *Consequence:* found by 67, whose tests pause the program, as the port moved the paused state into
 the debugger's Scheme for both to read. `:eval` now runs its expression to its end, synchronously,
 at no breakpoint, with the debugger set aside.
+
+**R118. A breakpoint beneath compiled code did not need its callers interpreted.**
+
+Task 40 was written to switch, besides the procedures a breakpoint is in, "the callers of an
+interpreted procedure a breakpoint is in, since those make the nested runs that cannot pause" -- and
+the switch made for the whole program (33) rested on the same belief: a run of the interpreter that
+compiled code called sits beneath the compiled frames on the JavaScript stack, so it cannot wait, so
+the compiled code above it must not be compiled. With higher-order callers that is every procedure
+that calls one it cannot name, `map` first, which no call graph could list.
+
+The run cannot wait, but it need not: the machinery that lets a continuation be captured beneath
+compiled code already moves those frames to the heap, and a pause needs no continuation, only the
+step taken again by the run that finishes the move, which can wait. Done so (`beginStepAgain`), the
+callers stay compiled.
+
+*Consequence:* 40 switches only the procedures a breakpoint is in, and every one while stepping or
+paused; a program debugged with a breakpoint it does not reach ran ten times faster than with the
+whole program switched.

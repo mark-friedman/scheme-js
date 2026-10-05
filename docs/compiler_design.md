@@ -778,17 +778,18 @@ interpreter looks a local loop's name up in its frame at every iteration too, bu
 | **1. JS interop** | Met. Scheme closures stay callable JavaScript functions; compiled procedures keep the same wrapper. Value representation is untouched, and compiled code converts at the boundary exactly as the interpreter does -- including where the interpreter is inconsistent: a JavaScript function's integral result reads as exact through `js-invoke` and inexact through a direct call (`Interoperability.md`, *Numbers at the boundary*). No benchmark measures interop yet. |
 | **2. Browser + CLI** | Met. Generated code is ordinary JavaScript; the libraries and the compiler are AOT-compiled, and a browser page fetches the compiler after it has started, to compile the page's own code. |
 | **3. REPLs in both** | Met. Compilation is a backend *after* `analyze`, so `analyze` stays runtime-callable and `eval`, `load` and macro expansion keep working, and both REPLs compile what is typed into them as it runs, by the policy above. |
-| **4. Debuggers in both** | **Met by running compiled code as its closures while debugging**, in the CLI and the browser: every breakpoint fires, the library's and the program's own included, stepping and `:bt` see every frame, and a breakpoint in a callback of the compiled `map` stops the program where it is hit. Not reached: code compiled with no closure kept -- `tryCompileDefinition`, and a procedure a compiled top-level loop made and kept -- and debugging compiled code in place, which needs source maps. See below. |
+| **4. Debuggers in both** | **Met by running compiled code as its closures where it is debugged**, in the CLI and the browser: a procedure holding a breakpoint runs as its closure, and every one while stepping or paused, so every breakpoint fires, the library's and the program's own included, stepping and `:bt` see every frame, and a breakpoint in a callback of the compiled `map` stops the program where it is hit, `map` still compiled. Not reached: code compiled with no closure kept -- `tryCompileDefinition`, and a procedure a compiled top-level loop made and kept -- and debugging compiled code in place, which needs source maps. See below. |
 | **5. Multi-shot `call/cc`** | Met, across any number of alternations of compiled and interpreted code. Refused rather than answered: a capture beneath a redefined inlined primitive. A continuation captured above a JavaScript caller that is not compiled code leaves that caller out, as the interpreter's always have. |
 | **6. R7RS-small** | The compiler adds two refusals: the capture above, and `raise-continuable` handed to a compiled procedure as a value. The rest are the interpreter's: `equal?` on circular structure, `read-char` returning strings, the file procedures returning a procedure's exact integer as inexact, and referential transparency of macro-introduced free identifiers. Both conformance suites pass with the standard library interpreted and compiled, inside `npm test` -- three of Chibi's only because its runner rescues a failure whose values agree once converted to JavaScript (R85); and passing them is not evidence of completeness, since neither tested `call-with-port`, which was missing. |
 
 Constraint 4 has **two mechanisms, not one**, which is what every real toolchain ships:
 
-- **Declining to optimize what is being debugged** -- shipped for the whole program at once. While a
-  program is being debugged -- a breakpoint set, a step in progress, or the program paused -- every
-  closure run compiled runs as itself again (`Interpreter.interpretForDebugger`,
-  `interpret-compiled-over!` in `src/core/scheme/library_system.scm`): its own and its libraries',
-  which the registry's other programs share and get back once none of them is being debugged.
+- **Declining to optimize what is being debugged** -- shipped per procedure. While a program is
+  being debugged, the closures run compiled that hold a breakpoint run as themselves again, and every
+  one while a step is in progress or the program is paused (`debugger-interpretation` in
+  `src/core/scheme/debugger.scm`, `Interpreter.interpretForDebugger`, `interpret-compiled-over!` in
+  `src/core/scheme/library_system.scm`): its own and its libraries', which the registry's other
+  programs share and get back once none of them is being debugged.
   The closures are recorded when they are made to run compiled, by the library registry current
   then, each with the environment it was compiled in. Whatever holds a closure holds the object
   switched, a program's data too. The equivalent of compiling at `-O0` while debugging. A
@@ -809,15 +810,24 @@ locals; a source map maps *locations*, and cannot resurrect a binding that no lo
 info yields "optimized out" exactly where a user is most confused, and the interpreter yields the
 real value.
 
-### Running compiled code as its closures while debugging
+### Running compiled code as its closures where it is debugged
 
 The debugger pauses only between the interpreter's steps. Compiled code takes none, so a breakpoint
 inside it could not fire. Worse, a breakpoint in an *interpreted* procedure that compiled code
 called was reached in a synchronous nested run of the interpreter, which cannot wait: in the browser
 REPL, a breakpoint in a procedure given to the compiled `map` was reached on every element and the
-program stopped only when `map` returned. The first plan was to interpret only the program's own code
-while debugging and leave the library compiled; that cannot fix the callback case, since it is the
-compiled library that makes the nested runs. So the whole program switches.
+program stopped only when `map` returned. The first fix switched the whole program while it was
+debugged, since it is the compiled library that makes the nested runs, and the whole program then ran
+at the interpreter's speed.
+
+Now such a run moves the compiled frames beneath it to the heap, as a continuation captured there
+would, and the step is taken again, and paused at, by the run that finishes the move -- the
+asynchronous loop's, which can wait (`beginStepAgain` in `unwind.js`, `Interpreter.step`). No
+continuation is taken: the frames go on the stack as a move for a call too deep to make puts them,
+with the nested run's own on top. So only what a breakpoint is in need run as its closure, and every
+procedure while a step is in progress or the program is paused, since a step may go anywhere. A
+program using the compiled library, debugged with a breakpoint in a procedure it does not reach,
+runs in 0.15 s with only that procedure switched, where switching the whole program took 1.6 s.
 
 - **What switches.** The pairs are switched through the frames that hold them -- in the program's
   global environment and in every library loaded in the current registry -- so the cells compiled
@@ -828,21 +838,21 @@ compiled library that makes the nested runs. So the whole program switches.
   pausing, resuming, enabling or disabling, and at the start of each asynchronous run, which catches
   a library loaded during the session. An enabled runtime with nothing set costs nothing: the CLI
   REPL enables one at start-up.
-- **What it gives.** Every breakpoint fires, the library's included; a step goes into any procedure;
-  `:bt` has every frame; every local is an interpreted binding, by its own name. In the CLI and the
-  browser alike.
+- **What it gives.** Every breakpoint fires, the library's included, beneath compiled code too; a
+  step goes into any procedure; `:bt` has every frame; every local is an interpreted binding, by its
+  own name. In the CLI and the browser alike.
 - **What it does not reach.** A procedure compiled with no closure to go back to --
   `tryCompileDefinition` compiles from the analyzed definition, and the REPL's `:break` still warns
   that a breakpoint there will not fire. A compiled procedure a program holds in a data structure,
-  or has captured in a closure. A pause the program asks for itself, inside a nested run, before the
-  switch: the first one is not honoured. And the program runs at the interpreter's speed while it is
-  being debugged; declining only the procedures being debugged (plan: debugging by not optimizing,
-  per procedure) is the refinement that keeps the rest fast.
+  or has captured in a closure. A pause the program asks for itself, `(pause)`, inside a nested run:
+  it is not a step the debugger stops at, so it is not taken again. A nested run that JavaScript
+  other than compiled code started -- a callback the host calls -- cannot move what is beneath it,
+  and a breakpoint there stops the program once that JavaScript returns, as without compiled code.
 
 | Context | Interpreted code | Compiled code |
 |---|---|---|
-| CLI REPL | the `:break` / `:step` / `:bt` debugger | runs as its closures while debugging |
-| Browser | the REPL debugger, cooperative under `runAsync` | runs as its closures while debugging; in place through DevTools and source maps, still to come |
+| CLI REPL | the `:break` / `:step` / `:bt` debugger | runs as its closures where a breakpoint is, or everywhere while stepping |
+| Browser | the REPL debugger, cooperative under `runAsync` | runs as its closures where a breakpoint is, or everywhere while stepping; in place through DevTools and source maps, still to come |
 
 ## How this is verified
 

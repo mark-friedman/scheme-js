@@ -1,7 +1,7 @@
 import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush } from './unwind.js';
+import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain } from './unwind.js';
 import { takeCompiledRaise } from './ast_nodes.js';
 import { interpretCompiledOver } from './library_registry.js';
 import { globalContext } from './context.js';
@@ -527,6 +527,11 @@ export class Interpreter {
     // does the debugger have anything to check.
     if (this.debugRuntime?.debugging && ctl.source) {
       if (this.debugRuntime.shouldPause(ctl.source, registers[ENV])) {
+        // A run compiled code called is beneath the compiled frames, on the
+        // JavaScript stack, and cannot wait there; so it moves them to the
+        // heap and the step is taken again, and paused at, by the run that
+        // finishes the move.
+        if (beginStepAgain(registers[FSTACK], ctl, registers[ENV])) throw new CaptureUnwind();
         this.debugRuntime.pause(ctl.source, registers[ENV]);
       }
     }
@@ -548,21 +553,25 @@ export class Interpreter {
   }
 
   /**
-   * Runs every procedure compiled over an interpreted closure as that closure
-   * while the program is being debugged, or compiled again once it is not.
+   * Runs the procedures compiled over interpreted closures that the debugger
+   * chooses as those closures while the program is being debugged, the rest
+   * compiled, and every one compiled again once it is not.
    *
-   * The debugger pauses only between the interpreter's steps. Compiled code
-   * takes none, so a breakpoint inside it could not fire; and a procedure it
-   * calls runs in a synchronous nested run, which cannot wait, so a breakpoint
-   * there stopped the program only once the compiled code returned. Called by
-   * the debug runtime whenever what it needs changes (`SchemeDebugRuntime`,
-   * `updateInterpretation`). See `interpretCompiledOver`.
+   * The debugger pauses only between the interpreter's steps, which compiled
+   * code takes none of, so a breakpoint inside a compiled procedure could not
+   * fire; the debugger chooses those holding a breakpoint, or every one while
+   * it steps (`debugger-interpretation` in debugger.scm). One it calls from
+   * compiled code pauses all the same (`step`). Called by the debug runtime
+   * whenever what it needs changes. The tier compiles nothing meanwhile. See
+   * `interpretCompiledOver`.
    *
-   * @param {boolean} interpreted - Whether the program is being debugged.
+   * @param {boolean|Function} which - True for every one, false for none --
+   *   the program is not being debugged -- or a Scheme procedure saying of a
+   *   closure whether it is one.
    */
-  interpretForDebugger(interpreted) {
-    this.debugging = interpreted;
-    if (this.globalEnv) interpretCompiledOver(interpreted, this.globalEnv);
+  interpretForDebugger(which) {
+    this.debugging = which !== false;
+    if (this.globalEnv) interpretCompiledOver(which, this.globalEnv);
   }
 
   /**

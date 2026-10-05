@@ -851,18 +851,19 @@
 ;; holds it, a library's exports, a program's data, needs to change.
 ;;
 ;; A debugger pauses only between the interpreter's steps, which compiled code
-;; never takes: a breakpoint inside a compiled procedure cannot fire, and one
-;; inside an interpreted procedure that compiled code called is reached in a
-;; synchronous nested run of the interpreter, which cannot wait, so the program
-;; stops only once the compiled code returns. So while a program is being
-;; debugged, every closure run compiled runs as itself again: the
-;; declining-to-optimize every toolchain offers beside its debug info, applied
-;; to the whole program. Each is recorded, with the compiled procedure it runs
-;; as, by the registry current when it was compiled, so that a registry made for
-;; a while takes its records with it.
+;; never takes, so a breakpoint inside a compiled procedure cannot fire. So
+;; while a program is being debugged, the closures run compiled that the
+;; debugger chooses run as themselves again -- those holding a breakpoint, or
+;; every one while it steps: the declining-to-optimize every toolchain offers
+;; beside its debug info. (One reached beneath compiled code still pauses: its
+;; run moves the compiled frames to the heap and takes the step again where it
+;; can wait, `Interpreter.step`.) Each is recorded, with the compiled procedure
+;; it runs as, by the registry current when it was compiled, so that a
+;; registry made for a while takes its records with it.
 ;;
-;; Which programs are being debugged, and in which registry, the host keeps in
-;; an `eq` store from each program's global environment to its registry
+;; Which programs are being debugged, in which registry and which of their
+;; closures run as themselves, the host keeps in an `eq` store from each
+;; program's global environment to a pair of the registry and the choice
 ;; (`make-debugged-programs`), one for the process.
 
 ;; /**
@@ -879,9 +880,10 @@
 ;;  * program's debugging alone, or a library's, shared by the registry's
 ;;  * programs.
 ;;  *
-;;  * Compiled in the global environment of a program being debugged, they run
-;;  * as themselves at once. A library loaded while a program is being debugged
-;;  * runs as itself when the program next runs (`interpret-compiled-over!`).
+;;  * Compiled in the global environment of a program being debugged, those
+;;  * its debugger chooses run as themselves at once. A library loaded while a
+;;  * program is being debugged is switched when the program next runs
+;;  * (`interpret-compiled-over!`).
 ;;  * A tool's own closures -- the compiler's, in its own registry -- are
 ;;  * recorded too, and never switched: switching reaches only the records of
 ;;  * the registry it is made in.
@@ -892,10 +894,20 @@
 ;;  * @param {object} env - The environment they were compiled in.
 ;;  */
 (define (record-compiled-over! registry debugged compiled env)
-  (let ((records (registry-compiled-over registry)))
+  (let ((records (registry-compiled-over registry))
+        (debugging (%hash-store-ref debugged env #f)))
     (for-each (lambda (pair) (%hash-store-set! records (car pair) (cons (cdr pair) env))) compiled)
-    (if (%hash-store-ref debugged env #f)
-        (for-each (lambda (pair) (%run-interpreted! (car pair))) compiled))))
+    (if debugging
+        (for-each (lambda (pair)
+                    (if (chosen? (cdr debugging) (car pair)) (%run-interpreted! (car pair))))
+                  compiled))))
+
+;; /**
+;;  * Whether a debugger's choice includes a closure: #t is every one, a
+;;  * procedure says which.
+;;  */
+(define (chosen? which closure)
+  (or (eq? which #t) (and (procedure? which) (which closure) #t)))
 
 ;; /**
 ;;  * Whether a procedure is a closure run compiled, which can run as itself.
@@ -908,35 +920,40 @@
 
 ;; /**
 ;;  * Runs the recorded closures of one program, and of the registry's
-;;  * libraries, as themselves while the program is debugged, or compiled again
-;;  * once it is not. The libraries' are the registry's other programs' too, so
-;;  * they are compiled again only once none of those is being debugged; other
-;;  * programs' own are left as they are.
+;;  * libraries, that its debugger chooses as themselves while the program is
+;;  * debugged, the others compiled, and every one compiled again once it is
+;;  * not. The libraries' are the registry's other programs' too, so they are
+;;  * compiled again only once none of those is being debugged; other programs'
+;;  * own are left as they are.
 ;;  *
-;;  * Switching to the closures again is harmless, and catches what was
-;;  * compiled since. Whatever holds a closure, a name or a program's data,
-;;  * holds the object switched, and compiled code still running calls the
-;;  * closure from its next call on.
+;;  * Switching again is harmless, and catches what was compiled since.
+;;  * Whatever holds a closure, a name or a program's data, holds the object
+;;  * switched, and compiled code still running calls the closure from its
+;;  * next call on.
 ;;  * @param {library-registry} registry - The registry current now, which a
 ;;  *   program starting to be debugged is debugged in.
 ;;  * @param {object} debugged - The programs being debugged.
-;;  * @param {boolean} interpreted? - Whether to run the closures as themselves.
+;;  * @param {boolean|procedure} which - Which closures run as themselves: #t
+;;  *   every one, #f none -- the program is not being debugged -- or a
+;;  *   procedure saying of a closure whether it does.
 ;;  * @param {object} program - The program's global environment.
 ;;  */
-(define (interpret-compiled-over! registry debugged interpreted? program)
-  (let ((in (if interpreted? registry (%hash-store-ref debugged program #f))))
+(define (interpret-compiled-over! registry debugged which program)
+  (let* ((debugging? (not (eq? which #f)))
+         (before (%hash-store-ref debugged program #f))
+         (in (if debugging? registry (and before (car before)))))
     (when in
-      (if interpreted?
-          (%hash-store-set! debugged program in)
+      (if debugging?
+          (%hash-store-set! debugged program (cons in which))
           (%hash-store-delete! debugged program))
-      (let ((libraries-too? (or interpreted? (not (memq in (%hash-store-values debugged))))))
+      (let ((libraries-too? (or debugging? (not (memq in (map car (%hash-store-values debugged)))))))
         (for-each (lambda (closure record)
                     (let ((env (cdr record)))
                       ;; A library's environment has a scope of its own; a
                       ;; program's is the top level's, 0.
                       (when (or (eq? env program)
                                 (and libraries-too? (not (zero? (%environment-scope env)))))
-                        (if interpreted?
+                        (if (and debugging? (chosen? which closure))
                             (%run-interpreted! closure)
                             (%run-compiled! closure (car record))))))
                   (%hash-store-keys (registry-compiled-over in))

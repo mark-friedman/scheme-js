@@ -211,7 +211,9 @@
 ;;  * What only the host can do, as procedures.
 ;;  * @property {procedure} changed - Called after every change, with whether
 ;;  *   debugging is enabled, whether the program is being debugged, whether
-;;  *   it is paused and whether it was aborted, which the evaluator reads.
+;;  *   it is paused and whether it was aborted, which the evaluator reads, and
+;;  *   which closures run compiled are to run as themselves
+;;  *   (`debugger-interpretation`).
 ;;  * @property {procedure} release - Lets the asynchronous run waiting on a
 ;;  *   pause go on.
 ;;  * @property {procedure} resumed - Says the program resumed, and how: as a
@@ -324,12 +326,47 @@
            (not (eq? (debugger-mode dbg) 'running)))))
 
 ;; /**
+;;  * Which closures run compiled are to run as themselves, the interpreter's
+;;  * steps being where the debugger stops: every one while a step is in
+;;  * progress or the program is paused, since a step may stop anywhere; with
+;;  * only breakpoints set, those whose span holds one, the rest staying
+;;  * compiled -- a breakpoint reached beneath compiled code still pauses
+;;  * there, its run moving the compiled frames to the heap first
+;;  * (`Interpreter.step`); and none with debugging off or nothing to stop at.
+;;  * Every procedure nested in a compiled one is compiled with it, inside its
+;;  * span, so its closure is the one chosen.
+;;  * @param {debugger} dbg - The debugger.
+;;  * @returns {boolean|procedure} #t for every one, #f for none, or a
+;;  *   procedure saying of a closure whether it is one.
+;;  */
+(define (debugger-interpretation dbg)
+  (cond ((not (debugger-enabled? dbg)) #f)
+        ((not (eq? (debugger-mode dbg) 'running)) #t)
+        ((pair? (debugger-breakpoints dbg))
+         (lambda (closure) (holds-breakpoint? dbg (js-ref closure "source"))))
+        (else #f)))
+
+;; /**
+;;  * Whether a span holds a breakpoint.
+;;  * @param {debugger} dbg - The debugger.
+;;  * @param {*} span - The span, or no location.
+;;  * @returns {boolean}
+;;  */
+(define (holds-breakpoint? dbg span)
+  (and (location? span)
+       (first-that (lambda (bp)
+                     (span-contains? span (breakpoint-filename bp) (breakpoint-line bp) (breakpoint-column bp)))
+                   (debugger-breakpoints dbg))
+       #t))
+
+;; /**
 ;;  * Tells the host what it keeps for the evaluator, after a change.
 ;;  * @param {debugger} dbg - The debugger.
 ;;  */
 (define (debugger-changed! dbg)
   ((host-changed (debugger-host dbg))
-   (debugger-enabled? dbg) (debugger-debugging? dbg) (debugger-paused? dbg) (debugger-aborted? dbg)))
+   (debugger-enabled? dbg) (debugger-debugging? dbg) (debugger-paused? dbg) (debugger-aborted? dbg)
+   (debugger-interpretation dbg)))
 
 ;; /**
 ;;  * Turns debugging on or off.

@@ -145,12 +145,12 @@ export class SchemeDebugRuntime {
      */
     host() {
         return debuggerCall('make-debugger-host',
-            procedure((enabled, debugging, paused, aborted) => {
+            procedure((enabled, debugging, paused, aborted, interpretation) => {
                 this.enabled = enabled;
                 this.debugging = debugging;
                 this.paused = paused;
                 this.aborted = aborted;
-                this.interpreter?.interpretForDebugger?.(debugging);
+                this.interpreter?.interpretForDebugger?.(interpretation);
             }),
             procedure(() => {
                 const waiting = this.waiting;

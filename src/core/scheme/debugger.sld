@@ -22,7 +22,7 @@
   (export
     ;; The host, and the debugger
     make-debugger-host make-debugger debugger? debugger-enabled? set-debugger-enabled!
-    debugger-debugging? debugger-changed! reset-debugger!
+    debugger-debugging? debugger-interpretation debugger-changed! reset-debugger!
     ;; Breakpoints
     add-breakpoint! remove-breakpoint! clear-breakpoints! debugger-breakpoints breakpoint-at
     breakpoint-id breakpoint-filename breakpoint-line breakpoint-column
