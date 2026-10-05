@@ -12,7 +12,7 @@
   
   (export
     ;; Macros
-    and or let let* letrec cond
+    and or let let* letrec cond syntax-error include include-ci
     define-record-type define-record-field
     define-class define-class-field define-class-method
     

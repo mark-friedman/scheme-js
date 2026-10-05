@@ -282,7 +282,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── lazy.sld            # (scheme lazy) library declaration
 │           ├── process-context.sld # (scheme process-context)
 │           ├── time.sld            # (scheme time) library declaration
-│           ├── macros.scm          # Core macros: and, let, letrec, cond
+│           ├── macros.scm          # Core macros: and, let, letrec, cond; syntax-error, include, include-ci
 │           ├── equality.scm        # Deep equality: equal?
 │           ├── cxr.scm             # All 28 cxr accessors
 │           ├── numbers.scm         # Variadic comparisons, predicates, min/max

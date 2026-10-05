@@ -254,6 +254,20 @@ function analyzeBegin(exp, syntacticEnv, ctx) {
 }
 
 /**
+ * A binding of a `let` or `letrec`, checked to be `(variable expression)`.
+ * @param {*} pair - The binding.
+ * @param {string} keyword - The form's keyword.
+ * @param {Cons} exp - The form.
+ * @returns {Cons} The binding.
+ */
+function checkBinding(pair, keyword, exp) {
+    if (!(pair instanceof Cons) || !(pair.cdr instanceof Cons) || pair.cdr.cdr !== null) {
+        throw new SchemeSyntaxError('a binding is (variable expression)', exp, keyword);
+    }
+    return pair;
+}
+
+/**
  * Analyzes (let <bindings> <body>) or (let <name> <bindings> <body>).
  * @param {Cons} exp - The let expression.
  * @returns {TailAppNode}
@@ -272,7 +286,7 @@ function analyzeLet(exp, syntacticEnv, ctx) {
         const vals = [];
         let curr = bindPairs;
         while (curr instanceof Cons) {
-            const pair = curr.car;
+            const pair = checkBinding(curr.car, 'let', exp);
             vars.push(car(pair));
             vals.push(cadr(pair));
             curr = curr.cdr;
@@ -310,7 +324,7 @@ function analyzeLet(exp, syntacticEnv, ctx) {
 
     let curr = bindings;
     while (curr instanceof Cons) {
-        const pair = curr.car;
+        const pair = checkBinding(curr.car, 'let', exp);
         const varObj = car(pair);
         const valObj = cadr(pair);
 
@@ -358,7 +372,7 @@ function analyzeLetRec(exp, syntacticEnv, ctx) {
     // Phase 1: Alpha-rename all variables and extend the environment.
     let curr = bindings;
     while (curr instanceof Cons) {
-        const pair = curr.car;
+        const pair = checkBinding(curr.car, 'letrec', exp);
         const varObj = car(pair);
 
         const name = (varObj instanceof Symbol) ? varObj.name : syntaxName(varObj);
@@ -719,6 +733,7 @@ function analyzeDefineMacro(exp, syntacticEnv = null, ctx) {
 
             return expansionInterpreter.run(applyNode, expansionEnv);
         } catch (e) {
+            if (e instanceof SchemeSyntaxError) throw e;
             throw new SchemeSyntaxError(`Error expanding macro '${name}': ${e.message}`, macroCallExp, name);
         }
     };

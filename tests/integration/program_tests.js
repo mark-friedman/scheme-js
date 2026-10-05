@@ -5,10 +5,14 @@
  * everything, as a program's top level always has, so that a page or a quick
  * script with no imports keeps working.
  *
+ * And a program's `include` and `include-ci` forms (R7RS 4.1.7), which read
+ * their files through the file resolver.
+ *
  * JavaScript tests, since what is tested is how the CLI, a page and the
  * benchmarks start a program: JavaScript asking the library system for the
  * program's environment (`programEnvironment` in `library_loader.js`) and
- * running its forms there (`runProgramForm`).
+ * running its forms there (`runProgramForm`), with files a resolver set from
+ * JavaScript serves.
  */
 
 import { assert } from '../harness/helpers.js';
@@ -81,4 +85,41 @@ export async function runProgramTests(logger) {
   assert(logger, 'every import declaration it begins with counts', seen.severalDeclarations, '(#\\A)');
   assert(logger, 'a program with no import declarations sees everything', seen.lenient, '(2)');
   assert(logger, 'and runs in the interaction environment, as before', seen.lenientEnvironment, true);
+
+  // `include` and `include-ci` as forms (R7RS 4.1.7), not library
+  // declarations: the forms of files, found by the file resolver, put where
+  // the form is.
+  logger.title('include and include-ci, as forms');
+  const files = {
+    'include-a.scm': '(define include-test-a 1)',
+    'include-b.scm': '(define include-test-b (+ include-test-a 1))',
+    'include-ci.scm': '(define INCLUDE-TEST-FOLDED 3)',
+    'include-expression.scm': '(* 6 7)'
+  };
+  const included = withPrivateLibraries({ resolver: (name) => files[name.join('/')] ?? bundled(name) }, () => {
+    const { interpreter, env } = createInterpreter();
+    const valueOf = (source) => {
+      const program = programEnvironment(parse(source), analyze, interpreter, env);
+      try {
+        let value;
+        for (const form of program.forms) {
+          value = runProgramForm(form, analyze, interpreter, program.env, { jsAutoConvert: 'raw' });
+        }
+        return writeString(value);
+      } catch (e) {
+        return `raised: ${e.message}`;
+      }
+    };
+    return {
+      files: valueOf('(import (scheme base)) (include "include-a.scm" "include-b.scm") (list include-test-a include-test-b)'),
+      folded: valueOf('(import (scheme base)) (include-ci "include-ci.scm") include-test-folded'),
+      expression: valueOf('(import (scheme base)) (define (include-test-f) (include "include-expression.scm")) (include-test-f)'),
+      missing: valueOf('(import (scheme base)) (include "include-missing.scm")')
+    };
+  });
+  assert(logger, 'include puts the forms of its files where it is, in order', included.files, '(1 2)');
+  assert(logger, 'include-ci reads them folding case', included.folded, '3');
+  assert(logger, 'in a body, as an expression', included.expression, '42');
+  assert(logger, 'a file that cannot be read is a syntax error naming it',
+    included.missing.startsWith('raised:') && included.missing.includes('include-missing.scm'), true);
 }

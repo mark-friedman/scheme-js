@@ -12022,3 +12022,44 @@ loop is compiled. `cli_program_tests.js`: the same seen from the CLI, a file and
 
 7,812 tests pass in Node with none failing (33 skipped), and 7,588 in the browser with none
 failing (56 skipped). `run_tier.js --set all` runs every program right.
+
+# Task 87 done: `syntax-error`, `include` and `include-ci` as forms, and malformed core forms (2026-10-04)
+
+The three keywords task 85's audit found missing (R116). Each is a procedural macro written in
+Scheme, in `macros.scm`, since a transformer runs as the form is expanded -- which is what
+`syntax-error` must do -- and the analyzer, which is to become Scheme, was not to grow forms.
+
+- `syntax-error` raises a syntax error with its message and irritants (`%raise-syntax-error`), as
+  soon as it is expanded: a macro whose template reports a misuse raises where the misuse is, in a
+  procedure never called as much as one run. A syntax error now reaches whoever analyzed the form as
+  it was raised; it, and any error in the code a macro expanded into, had been wrapped once more
+  for every macro the use was inside ("Error expanding macro: ... Error expanding macro: ...").
+- `include` and `include-ci` put the forms of their files where they are, as a `begin`, reading
+  through the file resolver the libraries are read through (`%include-source`), `include-ci`
+  folding case. R7RS encourages looking beside the including file, which a transformer, given only
+  the form's operands, cannot know; the CLI's resolver looks in the current directory first. A file
+  is read with dot notation off, as a library's files are.
+
+And the analyzer checks the shape of its core forms (`checkOperands` in `analyzer.js`): `(if)`,
+`(lambda)`, `(set! x)`, `(define-syntax m)`, `(let ((x)) x)` and the rest raise a syntax error
+naming the form's keyword, where they reached a JavaScript `TypeError`; `(if a b c d)`,
+`(quote a b)` and `(define x 1 2)`, which had their extra operands ignored, are errors too.
+
+`npm run audit:r7rs` finds nothing missing from any library.
+
+JavaScript, 94 lines added and 7 removed under `src/`, half of them comments: `%raise-syntax-error`
+is a primitive on the error representation and `%include-source` host input; the analyzer's checks
+and the two places that wrapped expansion errors are the evaluator, fixed in place.
+
+## Tests
+
+`syntax_error_tests.scm`: a macro's template's `syntax-error` raises its message and irritants, as
+data, when the use is expanded, in a procedure never called too, and directly; each malformed core
+form raises a syntax error naming its keyword, and well-formed ones do not. `program_tests.js`:
+`include` of several files in order, `include-ci` folding case, `include` in a body as an
+expression, and a file that cannot be read named in the error.
+
+## Verification
+
+7,835 tests pass in Node with none failing (33 skipped), and 7,611 in the browser with none
+failing (56 skipped). `run_tier.js --set all` runs every program right.

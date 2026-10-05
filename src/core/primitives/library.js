@@ -22,7 +22,7 @@ import { globalMacroRegistry } from '../interpreter/macro_registry.js';
 import { parse } from '../interpreter/reader.js';
 import { cons, list, toArray } from '../interpreter/cons.js';
 import { intern } from '../interpreter/symbol.js';
-import { SYNTAX_KEYWORDS } from '../interpreter/library_registry.js';
+import { SYNTAX_KEYWORDS, getFileResolver } from '../interpreter/library_registry.js';
 import { shadowMacro } from '../interpreter/syntax_object.js';
 import { stringValue } from './string_class.js';
 import { runCompiled, runInterpreted, shareInterpreter } from '../interpreter/values.js';
@@ -85,6 +85,22 @@ export const libraryPrimitives = {
      * can answer only later (`resolveNow`).
      */
     '%resolve': (resolver, path) => resolveNow(resolver, stringsOf(path)),
+
+    /**
+     * The text of a file an `include` form names, from the resolver the
+     * libraries are read through, or #f if it cannot be read now: there is
+     * no resolver, it has no such file, or it can answer only later.
+     */
+    '%include-source': (name) => {
+        const resolver = getFileResolver();
+        if (resolver === null) return false;
+        try {
+            const source = resolveNow(resolver, [stringValue(name)]);
+            return typeof source === 'string' ? source : false;
+        } catch (e) {
+            return false;
+        }
+    },
 
     /**
      * Calls the host's load hook with a library just loaded: its name, as

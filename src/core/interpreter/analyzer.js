@@ -124,6 +124,40 @@ initHandlers({
 });
 registerAllHandlers();
 
+/**
+ * How many operands each core form takes, at least and at most. A form with
+ * another number, or whose operands are not a proper list, is a syntax error;
+ * unchecked, it reached a JavaScript error in its handler, or had operands
+ * ignored. A `define` of a procedure, `(define (f x) ...)`, takes any number:
+ * its body is checked as a `lambda`'s.
+ */
+const FORM_OPERANDS = new Map([
+  ['quote', [1, 1]], ['quasiquote', [1, 1]], ['if', [2, 3]], ['set!', [2, 2]],
+  ['define', [1, 2]], ['lambda', [2, Infinity]], ['let', [2, Infinity]], ['letrec', [2, Infinity]],
+  ['define-syntax', [2, 2]], ['let-syntax', [2, Infinity]], ['letrec-syntax', [2, Infinity]],
+  ['define-macro', [2, Infinity]]
+]);
+
+/**
+ * Raises a syntax error if a core form has the wrong number of operands
+ * (`FORM_OPERANDS`).
+ * @param {string} keyword - The form's keyword.
+ * @param {Cons} exp - The form.
+ */
+function checkOperands(keyword, exp) {
+  const bounds = FORM_OPERANDS.get(keyword);
+  if (bounds === undefined) return;
+  let count = 0;
+  let rest = exp.cdr;
+  for (; rest instanceof Cons; rest = rest.cdr) count++;
+  if (rest !== null) throw new SchemeSyntaxError('its operands are not a proper list', exp, keyword);
+  const [least, most] = keyword === 'define' && exp.cdr?.car instanceof Cons ? [2, Infinity] : bounds;
+  if (count < least || count > most) {
+    const expected = least === most ? `${least}` : most === Infinity ? `at least ${least}` : `${least} to ${most}`;
+    throw new SchemeSyntaxError(`expected ${expected} operand${most === 1 ? '' : 's'}, got ${count}`, exp, keyword);
+  }
+}
+
 export function analyze(exp, syntacticEnv = null, context = null) {
   // Use global context if none provided
   const ctx = context || globalContext;
@@ -195,16 +229,23 @@ export function analyze(exp, syntacticEnv = null, context = null) {
       const { keyword, transformer } = operatorKeyword(operator, ctx);
 
       if (transformer) {
+        // A failure of the transformer is reported as this macro's; a syntax
+        // error it raised on purpose, as `syntax-error` does, and anything
+        // wrong with the code it expanded into, are reported as they are,
+        // rather than once more for each macro the use is inside.
+        let expanded;
         try {
-          const expanded = transformer(exp, syntacticEnv);
-          return analyze(expanded, syntacticEnv, ctx);
+          expanded = transformer(exp, syntacticEnv);
         } catch (e) {
+          if (e instanceof SchemeSyntaxError) throw e;
           throw new SchemeSyntaxError(`Error expanding macro: ${e.message}`, exp, keyword);
         }
+        return analyze(expanded, syntacticEnv, ctx);
       }
 
       const handler = getHandler(keyword);
       if (handler) {
+        checkOperands(keyword, exp);
         // Call handler and attach source from the original Cons
         const node = handler(exp, syntacticEnv, ctx);
         return withSourceFrom(node, exp);

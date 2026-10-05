@@ -12,7 +12,8 @@
 import { TailCall } from '../interpreter/values.js';
 import { WithExceptionHandlerInit } from '../interpreter/ast.js';
 import { pendingRaise } from '../interpreter/ast_nodes.js';
-import { SchemeError } from '../interpreter/errors.js';
+import { SchemeError, SchemeSyntaxError } from '../interpreter/errors.js';
+import { unwrapSyntax } from '../interpreter/syntax_object.js';
 import { list } from '../interpreter/cons.js';
 
 /**
@@ -60,6 +61,20 @@ export function getExceptionPrimitives(interpreter) {
         'raise-continuable': raiseContinuablePrimitive,
         'with-exception-handler': withExceptionHandlerPrimitive,
         'error': errorPrimitive,
+
+        /**
+         * %raise-syntax-error: Raises a syntax error with a message and
+         * irritants, as `syntax-error` does when it is expanded (macros.scm).
+         * A syntax error reaches whoever analyzed the form as it was raised,
+         * where what `error` raises in a transformer is reported as the
+         * transformer's failure; and its irritants are data, though a macro's
+         * template gives them as syntax.
+         */
+        '%raise-syntax-error': (message, ...irritants) => {
+            const error = new SchemeSyntaxError(typeof message === 'string' ? message : String(message));
+            error.irritants = irritants.map(unwrapSyntax);
+            return pendingRaise(error, false);
+        },
 
         /**
          * error-object?: Check if value is a SchemeError.

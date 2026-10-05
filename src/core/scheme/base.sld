@@ -145,7 +145,7 @@
     
     ;; Syntax (Macros & Special Forms)
     define set! lambda if begin quote quasiquote unquote unquote-splicing
-    define-syntax let-syntax letrec-syntax syntax-rules
+    define-syntax let-syntax letrec-syntax syntax-rules syntax-error
     include include-ci cond-expand
     ;; The features cond-expand tests for
     features

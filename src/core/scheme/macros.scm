@@ -140,6 +140,58 @@
          (cond clause1 clause2 ...)))))
 
 ;; /**
+;;  * syntax-error (R7RS 4.3.3): an error, raised when the form is expanded
+;;  * rather than when it is run, so that a macro's template can report a
+;;  * misuse of the macro wherever the misuse is, in code that runs or not.
+;;  *
+;;  * A procedural macro, since a `syntax-rules` macro cannot act as it is
+;;  * expanded, only produce a form; its transformer raises a syntax error,
+;;  * which reaches whoever analyzed the use as it was raised.
+;;  *
+;;  * @param {string} message - What is wrong.
+;;  * @param {...*} irritants - The forms it is wrong about.
+;;  */
+(define-macro (syntax-error message . irritants)
+  (apply %raise-syntax-error message irritants))
+
+;; /**
+;;  * include (R7RS 4.1.7): the forms of files, read and put where the form
+;;  * is, as a `begin` of them, in order.
+;;  *
+;;  * A file is found by the file resolver the libraries are found by -- the
+;;  * CLI's looks in the current directory first -- rather than beside the
+;;  * file the form is in, which R7RS encourages but which a transformer,
+;;  * given only the form's operands, cannot know. As a library's files are,
+;;  * a file is read with dot notation off unless it turns it on. A
+;;  * transformer sees only the primitives, so the reading is written out here
+;;  * and in `include-ci` both.
+;;  *
+;;  * @param {...string} files - The files.
+;;  */
+(define-macro (include . files)
+  (cons 'begin
+        (let read-all ((files files))
+          (if (null? files)
+              '()
+              (let ((source (%include-source (car files))))
+                (if (not source) (%raise-syntax-error (string-append "include: cannot read " (car files))))
+                (append (%read-forms source (car files) #f) (read-all (cdr files))))))))
+
+;; /**
+;;  * include-ci (R7RS 4.1.7): as `include`, but read folding case, as
+;;  * `#!fold-case` does.
+;;  * @param {...string} files - The files.
+;;  */
+(define-macro (include-ci . files)
+  (cons 'begin
+        (let read-all ((files files))
+          (if (null? files)
+              '()
+              (let ((source (%include-source (car files))))
+                (if (not source) (%raise-syntax-error (string-append "include-ci: cannot read " (car files))))
+                (append (%read-forms source (car files) #t) (read-all (cdr files))))))))
+
+;; /**
 ;;  * Internal helper for defining record fields.
 ;;  * Defines accessors and modifiers for a specific field of a record type.
 ;;  *
