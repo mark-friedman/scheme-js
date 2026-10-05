@@ -192,6 +192,8 @@ function atomToString(val, mode) {
         if (val === Infinity) return '+inf.0';
         if (val === -Infinity) return '-inf.0';
         if (Number.isNaN(val)) return '+nan.0';
+        // String(-0) is "0": the sign of zero is written, so read gives it back.
+        if (Object.is(val, -0)) return '-0.0';
         let s = String(val);
         if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
             s += '.0';

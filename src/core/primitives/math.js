@@ -9,9 +9,9 @@
  */
 
 import { assertNumber, assertInteger, assertArity } from '../interpreter/type_check.js';
-import { SchemeTypeError } from '../interpreter/errors.js';
+import { SchemeError, SchemeTypeError } from '../interpreter/errors.js';
 import { Values } from '../interpreter/values.js';
-import { Rational, isRational } from './rational.js';
+import { Rational, isRational, bitLength, ratioToNumber } from './rational.js';
 import { Complex, isComplex, makeRectangular, makePolar } from './complex.js';
 
 // =============================================================================
@@ -133,16 +133,6 @@ function isqrtBigInt(n) {
         return a * a > n ? a - 1n : a;
     }
     return BigInt(Math.floor(Math.sqrt(Number(n))));
-}
-
-/**
- * How many bits a positive integer takes.
- * @param {bigint} n - The integer.
- * @returns {number}
- */
-function bitLength(n) {
-    const hex = n.toString(16);
-    return 4 * (hex.length - 1) + (32 - Math.clz32(parseInt(hex[0], 16)));
 }
 
 /**
@@ -399,6 +389,206 @@ function genericDiv(a, b) {
     return res;
 }
 
+// =============================================================================
+// Integer Division Helpers
+// =============================================================================
+
+/**
+ * Checks the arguments of an integer division (R7RS 6.2.6): two integers, the
+ * divisor not zero.
+ * @param {string} name - The procedure's name, for the error message.
+ * @param {*} n1 - The dividend.
+ * @param {*} n2 - The divisor.
+ * @returns {void}
+ */
+function assertDivision(name, n1, n2) {
+    assertInteger(name, 1, n1);
+    assertInteger(name, 2, n2);
+    if (n2 === 0n || n2 === 0) {
+        throw new SchemeError(`${name}: division by zero`, [n1, n2], name);
+    }
+}
+
+/**
+ * An integer division's result, computed exactly, made inexact if either
+ * argument was: R7RS 6.2.6 has `(truncate/ -5.0 -2)` => 2.0 -1.0. The
+ * division is done on BigInts even then, since an inexact integer can be far
+ * past 2^53, where a double's remainder is no longer exact.
+ * @param {bigint} result - The quotient or remainder.
+ * @param {*} n1 - The dividend.
+ * @param {*} n2 - The divisor.
+ * @returns {bigint|number}
+ */
+function divisionResult(result, n1, n2) {
+    return typeof n1 === 'number' || typeof n2 === 'number' ? Number(result) : result;
+}
+
+// =============================================================================
+// Functions of Real Numbers
+// =============================================================================
+// The transcendental functions and `expt` are JavaScript's Math functions,
+// which take doubles, so an exact argument is converted to the double nearest
+// it, by `toNumber`. Two kinds of argument need more than that: an exact
+// number too large or too small for a double, whose logarithm, square root and
+// powers are computed from its exact value, and a real number whose value is
+// not real -- the square root of -4 -- which R7RS 6.2.6 defines as a complex
+// number and Math as NaN. R7RS 6.2.4 allows the NaN only where there are no
+// complex numbers.
+
+/**
+ * The real number a function of real numbers is given. Complex arguments are
+ * not supported yet, beyond a complex number with a zero imaginary part, which
+ * is the real number it equals.
+ * @param {string} name - The procedure's name, for the error message.
+ * @param {number} position - The argument's position, from 1.
+ * @param {*} z - The argument.
+ * @returns {number|bigint|Rational} The real number.
+ */
+function realArgument(name, position, z) {
+    assertNumber(name, position, z);
+    if (!isComplex(z)) return z;
+    if (z.isReal()) return z.real;
+    throw new SchemeError(`${name}: complex not fully supported`, [z], name);
+}
+
+/**
+ * The negation of a real number, in its own representation.
+ * @param {number|bigint|Rational} x - The number.
+ * @returns {number|bigint|Rational}
+ */
+function negateReal(x) {
+    return isRational(x) ? x.negate() : -x;
+}
+
+/** The smallest positive double with all 53 bits of precision. */
+const MIN_NORMAL = 2 ** -1022;
+
+/**
+ * An exact positive number whose nearest double has lost its magnitude, split
+ * as m * 2^k, m a double between 1/2 and 2. An integer of 400 digits converts
+ * to +inf.0, and its reciprocal to 0.0, but its logarithm, square root and
+ * powers are doubles, which m and k give. Null for a number whose double
+ * serves: an inexact one, zero, or one in the normal range of doubles.
+ * @param {number|bigint|Rational} x - A real number, not negative.
+ * @returns {Array<number>|null} `[m, k]`, or null.
+ */
+function splitBeyondDoubles(x) {
+    const fraction = asExactFraction(x);
+    if (fraction === null || fraction[0] === 0n) return null;
+    const d = toNumber(x);
+    if (d >= MIN_NORMAL && d < Infinity) return null;
+    const [num, den] = fraction;
+    const k = bitLength(num) - bitLength(den);
+    const m = k >= 0
+        ? ratioToNumber(num, den << BigInt(k))
+        : ratioToNumber(num << BigInt(-k), den);
+    return [m, k];
+}
+
+/**
+ * The natural logarithm of a real number that is not negative.
+ * @param {number|bigint|Rational} x - The number.
+ * @returns {number}
+ */
+function logNonNegative(x) {
+    const split = splitBeyondDoubles(x);
+    if (split === null) return Math.log(toNumber(x));
+    return Math.log(split[0]) + split[1] * Math.LN2;
+}
+
+/**
+ * The natural logarithm of a real number. A negative number's is the complex
+ * log|x| + pi i, whose imaginary part is in (-pi, pi] as R7RS 6.2.6 requires;
+ * -0.0 counts as negative there, so `(log -0.0)` is -inf.0+pi i, as R7RS has it.
+ * @param {number|bigint|Rational} x - The number.
+ * @returns {number|Complex}
+ */
+function logReal(x) {
+    if (numericCompare(x, 0n) < 0 || Object.is(x, -0)) {
+        return makeRectangular(logNonNegative(negateReal(x)), Math.PI);
+    }
+    return logNonNegative(x);
+}
+
+/**
+ * The exact square root of an exact number that is not negative, or null if
+ * it has none: an integer's if it is a perfect square, a rational's if its
+ * numerator and denominator both are.
+ * @param {number|bigint|Rational} x - The number.
+ * @returns {bigint|Rational|null}
+ */
+function exactSqrt(x) {
+    const fraction = asExactFraction(x);
+    if (fraction === null) return null;
+    const [num, den] = fraction;
+    const rootNum = isqrtBigInt(num);
+    if (rootNum * rootNum !== num) return null;
+    if (den === 1n) return rootNum;
+    const rootDen = isqrtBigInt(den);
+    return rootDen * rootDen === den ? new Rational(rootNum, rootDen) : null;
+}
+
+/**
+ * The square root of a real number that is not negative: exact for an exact
+ * square, as R7RS 6.2.6's `(sqrt 9)` => 3 has it, and otherwise a double.
+ * @param {number|bigint|Rational} x - The number.
+ * @returns {number|bigint|Rational}
+ */
+function sqrtNonNegative(x) {
+    const root = exactSqrt(x);
+    if (root !== null) return root;
+    const split = splitBeyondDoubles(x);
+    if (split === null) return Math.sqrt(toNumber(x));
+    // An odd power of two leaves one factor of two with m.
+    const [m, k] = split;
+    return k % 2 === 0
+        ? Math.sqrt(m) * 2 ** (k / 2)
+        : Math.sqrt(2 * m) * 2 ** ((k - 1) / 2);
+}
+
+/**
+ * A real number that is not negative raised to a real power, as a double.
+ * @param {number|bigint|Rational} x - The base.
+ * @param {number} e - The exponent.
+ * @returns {number}
+ */
+function powNonNegative(x, e) {
+    const split = splitBeyondDoubles(x);
+    if (split === null) return Math.pow(toNumber(x), e);
+    return Math.pow(split[0], e) * Math.pow(2, split[1] * e);
+}
+
+/**
+ * The exact number a real number is (R7RS 6.2.6): an integral flonum an exact
+ * integer, any other finite flonum the exact rational it is -- `(exact 0.5)`
+ * is 1/2 and `(exact 0.1)` 3602879701896397/36028797018963968 -- and an
+ * inexact rational the same value exact.
+ * @param {number|bigint|Rational} x - The real number.
+ * @param {*} z - The argument `exact` was given, of which x is a part, for
+ *   the error.
+ * @returns {bigint|Rational}
+ */
+function exactReal(x, z) {
+    if (typeof x === 'bigint') return x;
+    if (isRational(x)) {
+        return x.denominator === 1n ? x.numerator : new Rational(x.numerator, x.denominator, true);
+    }
+    if (Number.isInteger(x)) return BigInt(x);
+    if (!Number.isFinite(x)) {
+        throw new SchemeError('exact: an infinity or NaN has no exact equivalent', [z], 'exact');
+    }
+    // A flonum is a dyadic rational. Doubling one is exact in binary floating
+    // point, so doubling it until it is an integer gives its numerator over a
+    // power of two: at most 1,074 times, for the smallest subnormal, and never
+    // past 2^53, since a flonum that is not an integer is below 2^52.
+    let numerator = x;
+    let denominator = 1n;
+    while (!Number.isInteger(numerator)) {
+        numerator *= 2;
+        denominator *= 2n;
+    }
+    return new Rational(BigInt(numerator), denominator, true);
+}
 
 /**
  * Math primitives exported to Scheme.
@@ -519,51 +709,56 @@ export const mathPrimitives = {
     // =========================================================================
     // Integer Division
     // =========================================================================
-
+    // Each is exact on exact integers and inexact if either argument is
+    // inexact; see `divisionResult`. The three that loops spend their time in
+    // take two exact integers, the divisor not zero, first.
 
     /**
      * Modulo operation (result has same sign as divisor).
-     * @param {number} a - Dividend.
-     * @param {number} b - Divisor.
-     * @returns {number} Modulo.
+     * @param {bigint|number} a - Dividend.
+     * @param {bigint|number} b - Divisor.
+     * @returns {bigint|number} Modulo.
      */
     'modulo': (a, b) => {
         assertArity('modulo', [a, b], 2, 2);
-        assertInteger('modulo', 1, a);
-        assertInteger('modulo', 2, b);
+        if (typeof a === 'bigint' && typeof b === 'bigint' && b !== 0n) {
+            const rem = a % b;
+            return rem === 0n || (rem > 0n) === (b > 0n) ? rem : rem + b;
+        }
+        assertDivision('modulo', a, b);
         const aBig = toBigInt(a);
         const bBig = toBigInt(b);
         // JavaScript % gives remainder with sign of dividend
         // modulo should have sign of divisor
         const rem = aBig % bBig;
-        if (rem === 0n) return 0n;
-        return (rem > 0n) === (bBig > 0n) ? rem : rem + bBig;
+        const result = rem === 0n || (rem > 0n) === (bBig > 0n) ? rem : rem + bBig;
+        return divisionResult(result, a, b);
     },
 
     /**
      * Quotient (integer division, truncates toward zero).
-     * @param {number} a - Dividend.
-     * @param {number} b - Divisor.
-     * @returns {number} Integer quotient.
+     * @param {bigint|number} a - Dividend.
+     * @param {bigint|number} b - Divisor.
+     * @returns {bigint|number} Integer quotient.
      */
     'quotient': (a, b) => {
         assertArity('quotient', [a, b], 2, 2);
-        assertInteger('quotient', 1, a);
-        assertInteger('quotient', 2, b);
-        return truncDivBigInt(toBigInt(a), toBigInt(b));
+        if (typeof a === 'bigint' && typeof b === 'bigint' && b !== 0n) return a / b;
+        assertDivision('quotient', a, b);
+        return divisionResult(truncDivBigInt(toBigInt(a), toBigInt(b)), a, b);
     },
 
     /**
      * Remainder (result has same sign as dividend).
-     * @param {number} a - Dividend.
-     * @param {number} b - Divisor.
-     * @returns {number} Remainder.
+     * @param {bigint|number} a - Dividend.
+     * @param {bigint|number} b - Divisor.
+     * @returns {bigint|number} Remainder.
      */
     'remainder': (a, b) => {
         assertArity('remainder', [a, b], 2, 2);
-        assertInteger('remainder', 1, a);
-        assertInteger('remainder', 2, b);
-        return toBigInt(a) % toBigInt(b);
+        if (typeof a === 'bigint' && typeof b === 'bigint' && b !== 0n) return a % b;
+        assertDivision('remainder', a, b);
+        return divisionResult(toBigInt(a) % toBigInt(b), a, b);
     },
 
     // =========================================================================
@@ -886,164 +1081,145 @@ export const mathPrimitives = {
             return roundDivBigInt(x.numerator, x.denominator);
         }
         assertNumber('round', 1, x);
-        // JS Math.round is round-half-up, we default to it for now for floats
-        return Math.round(x);
+        // Math.round takes a half up; R7RS 6.2.6 takes it to the even
+        // integer. A half is exactly representable, so the test is exact.
+        const r = Math.round(x);
+        return r - x === 0.5 && r % 2 !== 0 ? r - 1 : r;
     },
 
     /**
-     * Exponentiation.
-     * @param {number} base - Base.
-     * @param {number} exponent - Exponent.
-     * @returns {number} base^exponent.
+     * Exponentiation: z1^z2, which R7RS 6.2.6 defines as e^(z2 log z1).
+     * Exact for an exact base and an exact integer exponent; otherwise a
+     * double, or for a negative base and an exponent that is not an integer,
+     * the complex |z1|^z2 (cos(pi z2) + i sin(pi z2)), since log z1 is
+     * log|z1| + pi i.
+     * @param {number|bigint|Rational} base - Base.
+     * @param {number|bigint|Rational} exponent - Exponent.
+     * @returns {number|bigint|Rational|Complex} base^exponent.
      */
     'expt': (base, exponent) => {
         assertArity('expt', [base, exponent], 2, 2);
-        assertNumber('expt', 1, base);
-        assertNumber('expt', 2, exponent);
-
-        // BigInt exponentiation
         if (typeof base === 'bigint' && typeof exponent === 'bigint') {
-            if (exponent >= 0n) {
-                return base ** exponent;
-            } else {
-                // Negative exponent with integer base -> Rational or float
-                // For now, fall back to Rational if possible, or float
-                // R7RS: (expt 2 -2) => 1/4 (exact) or 0.25 (inexact)
-                // If we have rational support, we could return 1 / (base^abs(exponent))
-                // But let's check if Rational is fully integrated yet.
-                // Assuming mixed arithmetic handles BigInt/Rational:
-                return genericDiv(1n, base ** (-exponent));
-            }
+            return exponent >= 0n ? base ** exponent : genericDiv(1n, base ** -exponent);
         }
-
-        // Handle mixed BigInt/Rational cases or Complex
-        // ... (complex/rational logic could go here)
-
-        // Default to float
-        const toNumVal = (v) => {
-            if (typeof v === 'bigint') return Number(v);
-            if (isRational(v)) return v.toNumber();
-            if (isComplex(v)) return v.toNumber();
-            return v;
-        };
-        return Math.pow(toNumVal(base), toNumVal(exponent));
+        const x = realArgument('expt', 1, base);
+        const y = realArgument('expt', 2, exponent);
+        if (typeof y === 'bigint' && isRational(x) && x.exact !== false) {
+            const k = y < 0n ? -y : y;
+            const num = x.numerator ** k;
+            const den = x.denominator ** k;
+            return y < 0n ? genericDiv(den, num) : genericDiv(num, den);
+        }
+        const e = toNumber(y);
+        // Compared exactly: a negative rational too small for a double
+        // converts to -0.0, which is not below zero. A NaN base is not
+        // negative either.
+        if (!(numericCompare(x, 0n) < 0)) return powNonNegative(x, e);
+        // An infinite or NaN exponent, as IEEE 754 has it.
+        if (!Number.isFinite(e)) return Math.pow(toNumber(x), e);
+        const magnitude = powNonNegative(negateReal(x), e);
+        // An integer power of a negative base: its parity gives the sign.
+        if (Number.isInteger(e)) return e % 2 === 0 ? magnitude : -magnitude;
+        return makeRectangular(magnitude * Math.cos(Math.PI * e), magnitude * Math.sin(Math.PI * e));
     },
 
     /**
-     * Square root.
-     * @param {number} x - Number.
-     * @returns {number} Square root.
+     * Square root: exact for an exact square, and for a negative number the
+     * imaginary i sqrt(-z), as R7RS 6.2.6's `(sqrt -1)` => +i has it.
+     * @param {number|bigint|Rational} z - Number.
+     * @returns {number|bigint|Rational|Complex} Square root.
      */
-    'sqrt': (x) => {
-        assertNumber('sqrt', 1, x);
-        // TODO: Complex sqrt
-        if (isComplex(x)) throw new Error('sqrt: complex not fully supported');
-        // Convert BigInt or Rational to Number
-        let val = x;
-        if (typeof x === 'bigint') val = Number(x);
-        else if (isRational(x)) val = x.toNumber();
-        return Math.sqrt(val);
+    'sqrt': (z) => {
+        if (typeof z === 'number' && z >= 0) return Math.sqrt(z);
+        const x = realArgument('sqrt', 1, z);
+        // Compared exactly, as in `expt`; -0.0 is not below zero, and is its
+        // own root.
+        if (numericCompare(x, 0n) < 0) return makeRectangular(0n, sqrtNonNegative(negateReal(x)));
+        return sqrtNonNegative(x);
     },
 
     /**
      * Sine.
-     * @param {number} x - Angle in radians.
-     * @returns {number} Sine of x.
+     * @param {number|bigint|Rational} z - Angle in radians.
+     * @returns {number} Sine of z.
      */
-    'sin': (x) => {
-        assertNumber('sin', 1, x);
-        if (isComplex(x)) throw new Error('sin: complex not fully supported');
-        const val = typeof x === 'bigint' ? Number(x) : (isRational(x) ? x.toNumber() : x);
-        return Math.sin(val);
-    },
+    'sin': (z) => Math.sin(toNumber(realArgument('sin', 1, z))),
 
     /**
      * Cosine.
-     * @param {number} x - Angle in radians.
-     * @returns {number} Cosine of x.
+     * @param {number|bigint|Rational} z - Angle in radians.
+     * @returns {number} Cosine of z.
      */
-    'cos': (x) => {
-        assertNumber('cos', 1, x);
-        if (isComplex(x)) throw new Error('cos: complex not fully supported');
-        const val = typeof x === 'bigint' ? Number(x) : (isRational(x) ? x.toNumber() : x);
-        return Math.cos(val);
-    },
+    'cos': (z) => Math.cos(toNumber(realArgument('cos', 1, z))),
 
     /**
      * Tangent.
-     * @param {number} x - Angle in radians.
-     * @returns {number} Tangent of x.
+     * @param {number|bigint|Rational} z - Angle in radians.
+     * @returns {number} Tangent of z.
      */
-    'tan': (x) => {
-        assertNumber('tan', 1, x);
-        if (isComplex(x)) throw new Error('tan: complex not fully supported');
-        const val = typeof x === 'bigint' ? Number(x) : (isRational(x) ? x.toNumber() : x);
-        return Math.tan(val);
+    'tan': (z) => Math.tan(toNumber(realArgument('tan', 1, z))),
+
+    /**
+     * Arcsine. Beyond [-1, 1] it is complex: R7RS 6.2.6 defines asin z as
+     * -i log(iz + sqrt(1 - z^2)), which for a real x > 1 is pi/2 - i acosh x,
+     * and asin is odd.
+     * @param {number|bigint|Rational} z - Value.
+     * @returns {number|Complex} Arcsine in radians.
+     */
+    'asin': (z) => {
+        const x = toNumber(realArgument('asin', 1, z));
+        if (x > 1) return makeRectangular(Math.PI / 2, -Math.acosh(x));
+        if (x < -1) return makeRectangular(-Math.PI / 2, Math.acosh(-x));
+        return Math.asin(x);
     },
 
     /**
-     * Arcsine.
-     * @param {number} x - Value.
-     * @returns {number} Arcsine in radians.
+     * Arccosine. Beyond [-1, 1] it is complex: R7RS 6.2.6 defines acos z as
+     * pi/2 - asin z.
+     * @param {number|bigint|Rational} z - Value.
+     * @returns {number|Complex} Arccosine in radians.
      */
-    'asin': (x) => {
-        assertNumber('asin', 1, x);
-        const val = typeof x === 'bigint' ? Number(x) : (isRational(x) ? x.toNumber() : x);
-        return Math.asin(val);
+    'acos': (z) => {
+        const x = toNumber(realArgument('acos', 1, z));
+        if (x > 1) return makeRectangular(0, Math.acosh(x));
+        if (x < -1) return makeRectangular(Math.PI, -Math.acosh(-x));
+        return Math.acos(x);
     },
 
     /**
-     * Arccosine.
-     * @param {number} x - Value.
-     * @returns {number} Arccosine in radians.
-     */
-    'acos': (x) => {
-        assertNumber('acos', 1, x);
-        const val = typeof x === 'bigint' ? Number(x) : (isRational(x) ? x.toNumber() : x);
-        return Math.acos(val);
-    },
-
-    /**
-     * Arctangent. With two arguments, returns atan2(y, x).
-     * @param {number} y - Y value (or angle if single arg).
-     * @param {number} [x] - X value (optional).
+     * Arctangent. With two arguments, the angle of the point (x, y), which
+     * R7RS 6.2.6 requires to be real.
+     * @param {...(number|bigint|Rational)} args - z, or y and x.
      * @returns {number} Arctangent in radians.
      */
-    'atan': (y, x) => {
-        assertNumber('atan', 1, y);
-        const vy = typeof y === 'bigint' ? Number(y) : (isRational(y) ? y.toNumber() : y);
-
-        if (x === undefined) {
-            return Math.atan(vy);
-        }
-        assertNumber('atan', 2, x);
-        const vx = typeof x === 'bigint' ? Number(x) : (isRational(x) ? x.toNumber() : x);
-        return Math.atan2(vy, vx);
+    'atan': (...args) => {
+        assertArity('atan', args, 1, 2);
+        if (args.length === 1) return Math.atan(toNumber(realArgument('atan', 1, args[0])));
+        assertReal('atan', 1, args[0]);
+        assertReal('atan', 2, args[1]);
+        return Math.atan2(toNumber(args[0]), toNumber(args[1]));
     },
 
     /**
-     * Natural logarithm.
-     * @param {number} x - Number.
-     * @returns {number} Natural log of x.
+     * Logarithm: natural with one argument, and with two the logarithm of the
+     * first in the base of the second, log z1 / log z2. A negative number's is
+     * complex; see `logReal`.
+     * @param {...(number|bigint|Rational)} args - z, or z1 and z2.
+     * @returns {number|Complex} The logarithm.
      */
-    'log': (x) => {
-        assertNumber('log', 1, x);
-        if (isComplex(x)) throw new Error('log: complex not fully supported');
-        const val = typeof x === 'bigint' ? Number(x) : (isRational(x) ? x.toNumber() : x);
-        return Math.log(val);
+    'log': (...args) => {
+        assertArity('log', args, 1, 2);
+        const z = logReal(realArgument('log', 1, args[0]));
+        if (args.length === 1) return z;
+        return genericDiv(z, logReal(realArgument('log', 2, args[1])));
     },
 
     /**
-     * Exponential function (e^x).
-     * @param {number} x - Exponent.
-     * @returns {number} e^x.
+     * Exponential function (e^z).
+     * @param {number|bigint|Rational} z - Exponent.
+     * @returns {number} e^z.
      */
-    'exp': (x) => {
-        assertNumber('exp', 1, x);
-        if (isComplex(x)) throw new Error('exp: complex not fully supported');
-        const val = isRational(x) ? x.toNumber() : x;
-        return Math.exp(val);
-    },
+    'exp': (z) => Math.exp(toNumber(realArgument('exp', 1, z))),
 
     // =========================================================================
     // Multiple-Value Returning Procedures (R7RS §6.2.6)
@@ -1056,151 +1232,115 @@ export const mathPrimitives = {
      * @returns {Values} Two values: root and remainder
      */
     'exact-integer-sqrt': (k) => {
-        assertInteger('exact-integer-sqrt', 1, k);
-        const kBig = toBigInt(k);
-        if (kBig < 0n) {
-            throw new Error('exact-integer-sqrt: expected non-negative integer');
+        // R7RS 6.2.6 takes an exact integer only: an inexact one's root
+        // would have to be inexact, and this procedure's are exact.
+        if (typeof k !== 'bigint' || k < 0n) {
+            throw new SchemeTypeError('exact-integer-sqrt', 1, 'non-negative exact integer', k);
         }
-        const s = isqrtBigInt(kBig);
-        const r = kBig - s * s;
-        return new Values([s, r]);
+        const s = isqrtBigInt(k);
+        return new Values([s, k - s * s]);
     },
 
     /**
      * Floor division.
      * Returns two values: quotient and remainder such that
      * n1 = n2 * quotient + remainder, with remainder having same sign as n2.
-     * @param {number} n1 - Dividend
-     * @param {number} n2 - Divisor
+     * @param {bigint|number} n1 - Dividend
+     * @param {bigint|number} n2 - Divisor
      * @returns {Values} Two values: quotient and remainder
      */
     'floor/': (n1, n2) => {
         assertArity('floor/', [n1, n2], 2, 2);
-        assertInteger('floor/', 1, n1);
-        assertInteger('floor/', 2, n2);
+        assertDivision('floor/', n1, n2);
         const a = toBigInt(n1);
         const b = toBigInt(n2);
-        if (b === 0n) {
-            throw new Error('floor/: division by zero');
-        }
         const q = floorDivBigInt(a, b);
-        const r = a - b * q;
-        return new Values([q, r]);
+        return new Values([divisionResult(q, n1, n2), divisionResult(a - b * q, n1, n2)]);
     },
 
     /**
      * Truncate division.
      * Returns two values: quotient and remainder such that
      * n1 = n2 * quotient + remainder, with remainder having same sign as n1.
-     * @param {number} n1 - Dividend
-     * @param {number} n2 - Divisor
+     * @param {bigint|number} n1 - Dividend
+     * @param {bigint|number} n2 - Divisor
      * @returns {Values} Two values: quotient and remainder
      */
     'truncate/': (n1, n2) => {
         assertArity('truncate/', [n1, n2], 2, 2);
-        assertInteger('truncate/', 1, n1);
-        assertInteger('truncate/', 2, n2);
+        assertDivision('truncate/', n1, n2);
         const a = toBigInt(n1);
         const b = toBigInt(n2);
-        if (b === 0n) {
-            throw new Error('truncate/: division by zero');
-        }
         const q = truncDivBigInt(a, b);
-        const r = a - b * q;
-        return new Values([q, r]);
+        return new Values([divisionResult(q, n1, n2), divisionResult(a - b * q, n1, n2)]);
     },
 
     /**
      * Floor quotient (single value).
-     * @param {number} n1 - Dividend
-     * @param {number} n2 - Divisor
-     * @returns {number} Floor quotient
+     * @param {bigint|number} n1 - Dividend
+     * @param {bigint|number} n2 - Divisor
+     * @returns {bigint|number} Floor quotient
      */
     'floor-quotient': (n1, n2) => {
         assertArity('floor-quotient', [n1, n2], 2, 2);
-        assertInteger('floor-quotient', 1, n1);
-        assertInteger('floor-quotient', 2, n2);
-        const a = toBigInt(n1);
-        const b = toBigInt(n2);
-        if (b === 0n) {
-            throw new Error('floor-quotient: division by zero');
-        }
-        return floorDivBigInt(a, b);
+        assertDivision('floor-quotient', n1, n2);
+        return divisionResult(floorDivBigInt(toBigInt(n1), toBigInt(n2)), n1, n2);
     },
 
     /**
      * Floor remainder (single value).
-     * @param {number} n1 - Dividend
-     * @param {number} n2 - Divisor
-     * @returns {number} Floor remainder
+     * @param {bigint|number} n1 - Dividend
+     * @param {bigint|number} n2 - Divisor
+     * @returns {bigint|number} Floor remainder
      */
     'floor-remainder': (n1, n2) => {
         assertArity('floor-remainder', [n1, n2], 2, 2);
-        assertInteger('floor-remainder', 1, n1);
-        assertInteger('floor-remainder', 2, n2);
+        assertDivision('floor-remainder', n1, n2);
         const a = toBigInt(n1);
         const b = toBigInt(n2);
-        if (b === 0n) {
-            throw new Error('floor-remainder: division by zero');
-        }
-        const q = floorDivBigInt(a, b);
-        return a - b * q;
+        return divisionResult(a - b * floorDivBigInt(a, b), n1, n2);
     },
 
     /**
      * Truncate quotient (single value).
-     * @param {number} n1 - Dividend
-     * @param {number} n2 - Divisor
-     * @returns {number} Truncate quotient
+     * @param {bigint|number} n1 - Dividend
+     * @param {bigint|number} n2 - Divisor
+     * @returns {bigint|number} Truncate quotient
      */
     'truncate-quotient': (n1, n2) => {
         assertArity('truncate-quotient', [n1, n2], 2, 2);
-        assertInteger('truncate-quotient', 1, n1);
-        assertInteger('truncate-quotient', 2, n2);
-        const a = toBigInt(n1);
-        const b = toBigInt(n2);
-        if (b === 0n) {
-            throw new Error('truncate-quotient: division by zero');
-        }
-        return truncDivBigInt(a, b);
+        assertDivision('truncate-quotient', n1, n2);
+        return divisionResult(truncDivBigInt(toBigInt(n1), toBigInt(n2)), n1, n2);
     },
 
     /**
      * Truncate remainder (single value).
-     * @param {number} n1 - Dividend
-     * @param {number} n2 - Divisor
-     * @returns {number} Truncate remainder
+     * @param {bigint|number} n1 - Dividend
+     * @param {bigint|number} n2 - Divisor
+     * @returns {bigint|number} Truncate remainder
      */
     'truncate-remainder': (n1, n2) => {
         assertArity('truncate-remainder', [n1, n2], 2, 2);
-        assertInteger('truncate-remainder', 1, n1);
-        assertInteger('truncate-remainder', 2, n2);
-        const a = toBigInt(n1);
-        const b = toBigInt(n2);
-        if (b === 0n) {
-            throw new Error('truncate-remainder: division by zero');
-        }
-        return a % b;
+        assertDivision('truncate-remainder', n1, n2);
+        return divisionResult(toBigInt(n1) % toBigInt(n2), n1, n2);
     },
 
     /**
-     * Returns the square of a number.
-     * @param {number} z - Number to square.
-     * @returns {number} z * z
+     * Returns the square of a number. A rational or complex number is
+     * multiplied by the tower's multiplication: JavaScript's `*` on the
+     * objects that represent them gives NaN, or throws.
+     * @param {number|bigint|Rational|Complex} z - Number to square.
+     * @returns {number|bigint|Rational|Complex} z * z
      */
     'square': (z) => {
         assertNumber('square', 1, z);
-        if (isComplex(z)) {
-            // (a+bi)^2 = a^2 - b^2 + 2abi
-            const a = z.real, b = z.imag;
-            return makeRectangular(a * a - b * b, 2 * a * b);
-        }
-        return z * z;
+        if (typeof z === 'bigint' || typeof z === 'number') return z * z;
+        return genericMul(z, z);
     },
 
     /**
-     * Converts a number to its inexact equivalent.
-     * BigInt -> Number, Rational -> Number (or Rational with exact=false)
+     * Converts a number to its inexact equivalent: the nearest double, and
+     * for a complex number the nearest double of each part.
      * @param {number|bigint|Rational|Complex} z - Number to convert.
      * @returns {number|Rational|Complex} Inexact equivalent.
      */
@@ -1217,54 +1357,27 @@ export const mathPrimitives = {
             return z.toNumber();
         }
         if (isComplex(z)) {
-            // Complex with inexact parts
-            return z;
+            // An exact complex number's parts converted, as the constructor
+            // does for one made inexact.
+            return z.exact ? new Complex(z.real, z.imag, false) : z;
         }
         return z;
     },
 
     /**
-     * Converts a number to its exact equivalent (R7RS 6.2.6): an integral
-     * flonum to an exact integer, any other finite flonum to the exact
-     * rational it is, `(exact 0.5)` 1/2 and `(exact 0.1)`
-     * 3602879701896397/36028797018963968, an inexact rational to the same
-     * value exact.
+     * Converts a number to its exact equivalent (R7RS 6.2.6): a real number
+     * as `exactReal` converts it, and a complex number part by part.
      * @param {number|bigint|Rational|Complex} z - Number to convert.
      * @returns {bigint|Rational|Complex} Exact equivalent.
      */
     'exact': (z) => {
         assertNumber('exact', 1, z);
-        if (typeof z === 'bigint') {
-            return z;  // Already exact
-        }
-        if (typeof z === 'number') {
-            if (Number.isInteger(z)) {
-                return BigInt(z);  // Number -> BigInt
-            }
-            if (!Number.isFinite(z)) {
-                throw new Error('exact: an infinity or NaN has no exact equivalent');
-            }
-            // A flonum is a dyadic rational. Doubling one is exact in binary
-            // floating point, so doubling it until it is an integer gives its
-            // numerator over a power of two: at most 1,074 times, for the
-            // smallest subnormal, and never past 2^53, since a flonum that is
-            // not an integer is below 2^52.
-            let numerator = z;
-            let denominator = 1n;
-            while (!Number.isInteger(numerator)) {
-                numerator *= 2;
-                denominator *= 2n;
-            }
-            return new Rational(BigInt(numerator), denominator, true);
-        }
-        if (isRational(z)) {
-            // Return with exact=true
-            return new Rational(z.numerator, z.denominator, true);
-        }
-        if (isComplex(z)) {
-            throw new Error('exact: cannot convert complex to exact');
-        }
-        return z;
+        if (!isComplex(z)) return exactReal(z, z);
+        // Each part converted; an exact zero imaginary part leaves the real
+        // number, as `(exact 3.0+0.0i)` is 3.
+        const real = exactReal(z.real, z);
+        const imag = exactReal(z.imag, z);
+        return imag === 0n ? real : makeRectangular(real, imag);
     },
 };
 mathPrimitives['inexact->exact'] = mathPrimitives['exact'];

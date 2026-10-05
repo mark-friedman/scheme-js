@@ -244,3 +244,38 @@
   )
   
 ) ;; end test-group
+
+;; ===== The Sign of Zero =====
+;;
+;; R7RS 6.2.4 distinguishes -0.0 from 0.0, and `write` writes a number so that
+;; `read` gives it back. JavaScript's `String(-0)` is "0", so `write` lost the
+;; sign, and a complex number's -0.0 imaginary part was written "+-0.0i",
+;; which is not a number at all.
+
+;; /**
+;;  * Whether a number is negative zero.
+;;  * @param {number} x - The number.
+;;  * @returns {boolean}
+;;  */
+(define (negative-zero? x)
+  (and (inexact? x) (zero? x) (= -inf.0 (/ 1 x))))
+
+(test-group "the sign of zero"
+  (test "write -0.0" "-0.0" (written write -0.0))
+  (test "display -0.0" "-0.0" (written display -0.0))
+  (test "write 0.0" "0.0" (written write 0.0))
+  (test "write -0.0 in a list" "(-0.0 0.0)" (written write (list -0.0 0.0)))
+  (test "write -0.0 in a vector" "#(-0.0)" (written write (vector -0.0)))
+  (test "write a computed -0.0" "-0.0" (written write (round -0.5)))
+  (test "number->string -0.0" "-0.0" (number->string -0.0))
+  (test "-0.0 written reads back as -0.0"
+    #t (negative-zero? (read (open-input-string (written write -0.0)))))
+  (test "a negative zero imaginary part" "1.0-0.0i" (written write (make-rectangular 1.0 -0.0)))
+  (test "a negative zero real part" "-0.0+2.0i" (written write (make-rectangular -0.0 2.0)))
+  (test "both parts negative zero" "-0.0-0.0i" (written write (make-rectangular -0.0 -0.0)))
+  (test "a positive zero imaginary part" "1.0+0.0i" (written write (make-rectangular 1.0 0.0)))
+  (test "number->string of a negative zero imaginary part"
+    "1.0-0.0i" (number->string (make-rectangular 1.0 -0.0)))
+  (test "a negative zero imaginary part written reads back"
+    #t (negative-zero?
+        (imag-part (read (open-input-string (written write (make-rectangular 1.0 -0.0))))))))

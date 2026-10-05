@@ -93,6 +93,11 @@ a program with none, and the REPLs, see everything. The special forms too -- `if
 `quote` -- are keywords each has only if it imports them, and may bind the name to something else
 if it does not.
 
+Left: the transcendental functions -- `exp`, `log`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`,
+`sqrt` and `expt` -- take a complex argument only if its imaginary part is zero, and refuse any
+other. A real argument whose value is complex has it: `(sqrt -4)` is `+2i`, `(asin 2)` and
+`(expt -8 1/3)` the principal values R7RS 6.2.6 defines.
+
 ### Numeric performance
 
 **Deferred, deliberately.** The full numeric tower costs about 3x; interpretive overhead cost about

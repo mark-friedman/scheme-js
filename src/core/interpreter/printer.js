@@ -74,17 +74,10 @@ function prettyPrintValue(val) {
     if (typeof val === 'bigint') {
         return `${val}`;
     }
-    // Handle Numbers (inexact)
+    // Inexact numbers, as write writes them: a copy of its rules here showed
+    // -0.0 as 0.0 and 1e21 as 1e+21.0, which read takes for a symbol.
     if (typeof val === 'number') {
-        // Display inexact integers with decimal point to distinguish from exact
-        if (Number.isInteger(val) && Number.isFinite(val)) {
-            return `${val}.0`;
-        }
-        // Handle special values
-        if (val === Infinity) return '+inf.0';
-        if (val === -Infinity) return '-inf.0';
-        if (Number.isNaN(val)) return '+nan.0';
-        return `${val}`;
+        return writeString(val);
     }
     // Other objects (Rational, Complex, etc.) use their toString method
     return `${val}`;

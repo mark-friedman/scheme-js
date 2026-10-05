@@ -12707,3 +12707,136 @@ the iteration it replaced.
 
 7,927 tests pass in Node with none failing (33 skipped), and 7,703 in the browser with none failing
 (56 skipped).
+
+# The numeric primitives on every kind of real number (2026-10-05)
+
+`(exp 0)` and `(exp 1)` raised "Cannot convert a BigInt value to a number": `exp` converted a
+rational argument to a double but not an exact integer, a `BigInt`, which `Math.exp` refuses. Every
+primitive in `math.js` that calls a `Math` function was checked for that gap and for the other ways
+it gave a value R7RS does not.
+
+- **Exact arguments.** `exp`, `log`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sqrt` and `expt`
+  each had its own copy of the conversion, and `exp`'s missed `BigInt`. All now take the real number
+  through one check, `realArgument`, and convert it with `toNumber`.
+- **Exact rationals, converted once.** `Rational.toNumber` converted numerator and denominator and
+  divided, rounding twice, and past 2^1024 dividing infinity by infinity: `(inexact (/ (+ (expt 10
+  400) 1) (expt 10 399)))` was +nan.0, and `(inexact (/ (+ (expt 2 53) 3) 3))` one double off.
+  `ratioToNumber` (`rational.js`) rounds the exact quotient once, subnormals included.
+- **Exact numbers beyond a double's range.** `(log (expt 10 400))` and `(sqrt (expt 10 401))` were
+  +inf.0. `log`, `sqrt` and `expt` of an exact number whose double has lost its magnitude now compute
+  from m * 2^k, m a double near 1 (`splitBeyondDoubles`).
+- **`log` with a base.** `(log z1 z2)` ignored z2: `(log 100 10)` was 4.605. It is log z1 / log z2,
+  and three arguments are an arity error, as they now are for `atan`.
+- **`sqrt` of a negative number, decided: complex.** `(sqrt -4)` was +nan.0. R7RS 6.2.4 allows the
+  NaN only in an implementation without complex numbers, and this one has them, so it is `+2i`. And
+  exact for an exact square, as R7RS's own examples have it -- `(sqrt 9)` => 3, and in 4.2.8
+  `` `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8) `` => `#(10 5 2 4 3 8)`: `(sqrt 25)` was 5.0, and two
+  tests pinned that (`number_tests.scm`, `compliance/chapter_4.scm`), now R7RS's values.
+- **The other real arguments whose values are complex,** decided with `sqrt`, as the same deviation:
+  `(log -1)` is 0.0+pi i (and `(log -0.0)` -inf.0+pi i, as R7RS has it), `(asin 2)` pi/2 - i acosh 2
+  and `(acos -2)` pi - i acosh 2, as R7RS's definitions of the two give them, and `(expt -8 1/3)`
+  1.0000000000000002+1.7320508075688772i, the principal value e^(log(-8)/3). Each is a closed form
+  on a real argument. Complex arguments remain unsupported, now refused the same way by all ten,
+  except one whose imaginary part is zero; `ROADMAP.md` lists that as the deviation left.
+- **`expt` exact for an exact rational base.** `(expt 1/2 2)` was 0.25 and `(expt 2/3 -2)`
+  2.2500000000000004; they are 1/4 and 9/4.
+- **Integer division, decided: inexact for an inexact argument.** `(quotient 17. 5)` was an exact 3;
+  R7RS 6.2.6 has `(truncate/ -5.0 -2)` => 2.0 -1.0. All nine -- `quotient`, `remainder`, `modulo`,
+  `floor/`, `truncate/` and the four single-valued ones -- divide on `BigInt`s and make the result
+  inexact if either argument was, so `(lcm 32.0 -36)` is 288.0, R7RS's example. A zero divisor is
+  one error from all nine, naming the procedure, where three raised JavaScript's "Division by zero".
+  `quotient`, `remainder` and `modulo` take two exact integers first, so the checks added cost loops
+  nothing: a loop of the three ran in 195 ms against 250-290 ms before (2 million iterations, Node).
+- **`round` to even.** `Math.round` takes a half up: `(round 2.5)` was 3.0 and `(round 0.5)` 1.0.
+- **`square`** of a rational was +nan.0, and of an exact complex number threw; it multiplies by the
+  tower's multiplication.
+- **Three JavaScript tests bound `log`.** `js_exception_tests.js`, `async_mode_functional_tests.js`
+  and `async_trampoline_tests.js` ran `(define log '())` in the interpreter the whole suite shares,
+  so every Scheme test after them saw `log` as a list: the first test of `log` in `number_tests.scm`
+  crashed the Scheme suite. Their variable is `wind-log` now.
+
+Found on the way and not changed: complex arguments to the transcendental functions; the printer
+writes -0.0 as `0.0` and `(make-rectangular 1.0 -0.0)` as `1.0+-0.0i`; `(inexact +2i)` is exact;
+`exact-integer-sqrt` accepts an inexact integer; and a one-argument primitive ignores extra
+arguments, `(sqrt 4 5)` being 2.
+
+JavaScript under `src/`, 374 lines added and 219 removed, all of it the numeric primitives and their
+representations, which stay JavaScript (decided 2026-10-05, `docs/compiler_plan.md`): `math.js`,
+`rational.js` (`ratioToNumber`, and `bitLength`, moved from `math.js`), and one line of
+`complex.js`, whose `toNumber` now takes an exact zero imaginary part as zero.
+
+## Tests
+
+`number_tests.scm`, 142 tests: every function above of exact integers and rationals, of numbers too
+large and too small for a double, at the subnormal boundary, and of negative arguments; `log` with
+a base; `inexact` of rationals whose parts are past 2^53 and 2^1024; integer division with an inexact
+argument and by zero; `round`'s halves; `square` across the tower; and complex arguments with and
+without a zero imaginary part.
+
+## Verification
+
+8,069 tests pass in Node with none failing (33 skipped), and 7,845 in the browser with none failing
+(56 skipped).
+
+# The printer writes the sign of zero (2026-10-05)
+
+`write` and `display` wrote -0.0 as `0.0`, losing the sign R7RS 6.2.4 distinguishes, so what was
+written did not read back as the number written: JavaScript's `String(-0)` is "0". `number->string`
+had the case already; the printer did not. And a complex number whose imaginary part is -0.0 was
+written `1.0+-0.0i` -- by `write` and `number->string` alike -- which is not a number, because the
+sign was chosen by `imag < 0`, false for -0.0, and the part then wrote its own minus.
+
+- **`write` and `display`** (`io/printer.js`) write -0.0 as `-0.0`, as `number->string` does.
+- **`Complex.toString`** takes a -0.0 imaginary part as negative: `1.0-0.0i`, `-0.0-0.0i`.
+- **The REPL's `prettyPrint`** (`interpreter/printer.js`) had a third copy of the rules for writing a
+  double, which showed -0.0 as `0.0` and 1e21 as `1e+21.0`, which `read` takes for a symbol. It now
+  shows a double as `write` writes it, through `writeString`, which it already used for circular
+  structure.
+
+JavaScript under `src/`, fixed in place: 7 lines added and 11 removed across `io/printer.js`,
+`complex.js` and `interpreter/printer.js`. The printer is to become Scheme (66 in
+`docs/compiler_plan.md`); this neither adds to it nor moves it.
+
+## Tests
+
+`write_tests.scm`, 14 tests: -0.0 written and displayed alone, in a list, in a vector and when
+computed; `number->string` of it; complex numbers with a negative zero part, through `write` and
+`number->string`; and both read back with their sign. `unit_tests.js`, 5 tests of `prettyPrint`:
+-0.0 alone and in a list, 1e21, a fraction, and an infinity.
+
+## Verification
+
+8,106 tests pass in Node with none failing (33 skipped), and 7,882 in the browser with none failing
+(56 skipped), run together with the next entry's change.
+
+
+# `exact` and `inexact` of complex numbers; `exact-integer-sqrt` takes exact integers only (2026-10-05)
+
+Two R7RS 6.2.6 deviations found while fixing the numeric primitives (above):
+
+- **`inexact` of an exact complex number** returned it unchanged: `(exact? (inexact +2i))` was #t.
+  It now converts both parts, as the `Complex` constructor does for a number made inexact.
+- **`exact` of a complex number** threw "cannot convert complex to exact". It now converts each part
+  as it converts a real number -- that conversion moved into `exactReal` -- so `(exact 0.5-0.25i)`
+  is `1/2-1/4i`; an exact zero imaginary part leaves the real number, so `(exact 3.0+0.0i)` is 3;
+  and an infinite or NaN part is an error, a Scheme error with the argument as its irritant where it
+  was a plain JavaScript one.
+- **`exact-integer-sqrt`** accepted an inexact integer and returned an exact root: `(exact-integer-sqrt
+  4.0)` was 2 0. R7RS takes an exact non-negative integer, and anything else is now a type error
+  naming the procedure, with the argument as its irritant -- a negative one too, which was a plain
+  JavaScript error.
+
+JavaScript under `src/`, all in `math.js`'s primitives, fixed in place: 51 lines added and 47
+removed, most of them `exact`'s conversion of a real number moved into `exactReal` unchanged.
+
+## Tests
+
+`number_tests.scm`, 18 tests: `inexact` of exact complex numbers with integer and rational parts and
+of an inexact one; `exact` of complex numbers with integral, fractional and zero parts, an infinite or
+NaN part, and back through `inexact`; and `exact-integer-sqrt` of an exact integer, an inexact one, a
+rational and a negative one, with the error's message and irritants.
+
+## Verification
+
+8,106 tests pass in Node with none failing (33 skipped), and 7,882 in the browser with none failing
+(56 skipped).

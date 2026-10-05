@@ -102,17 +102,17 @@ export function runJsExceptionTests(interpreter, logger) {
     // === Dynamic-wind: After thunks run before handler ===
     {
         const result = run(interpreter, `
-            (define log '())
+            (define wind-log '())
             (call/cc (lambda (escape)
               (with-exception-handler
-                (lambda (e) (escape log))
+                (lambda (e) (escape wind-log))
                 (lambda ()
                   (dynamic-wind
-                    (lambda () (set! log (cons 'before log)))
+                    (lambda () (set! wind-log (cons 'before wind-log)))
                     (lambda () (+ "error" 1))
-                    (lambda () (set! log (cons 'after log))))))))
+                    (lambda () (set! wind-log (cons 'after wind-log))))))))
         `);
-        // log should be '(after before) - after runs before handler catches
+        // wind-log should be '(after before) - after runs before handler catches
         // Result is a Cons list, check the structure
         const pass = result && result.car && result.car.name === 'after' &&
             result.cdr && result.cdr.car && result.cdr.car.name === 'before';

@@ -28,6 +28,53 @@ function gcdBigInt(a, b) {
     return a;
 }
 
+/**
+ * How many bits a positive integer takes.
+ * @param {bigint} n - The integer.
+ * @returns {number}
+ */
+export function bitLength(n) {
+    const hex = n.toString(16);
+    return 4 * (hex.length - 1) + (32 - Math.clz32(parseInt(hex[0], 16)));
+}
+
+/** The largest integer below which every integer is a double. */
+const DOUBLE_INTEGERS = 2n ** 53n;
+
+/**
+ * The double nearest the quotient of two integers, a tie going to the even
+ * one, as IEEE 754 rounds.
+ *
+ * When both integers are doubles that is one division, which IEEE 754 rounds
+ * correctly. Otherwise converting each to a double first rounds twice, and
+ * past 2^1024 divides infinity by infinity: `(inexact (/ (+ (expt 10 400) 1)
+ * (expt 10 399)))` was +nan.0. So the quotient is taken exactly, scaled by the
+ * power of two that puts 53 significant bits before the binary point -- fewer
+ * for a subnormal, whose last bit is 2^-1074 -- and rounded there; the
+ * rounded integer is then a double, and scaling it back is exact.
+ * @param {bigint} n - The numerator.
+ * @param {bigint} d - The denominator, positive.
+ * @returns {number}
+ */
+export function ratioToNumber(n, d) {
+    if (-DOUBLE_INTEGERS <= n && n <= DOUBLE_INTEGERS && d <= DOUBLE_INTEGERS) {
+        return Number(n) / Number(d);
+    }
+    const a = n < 0n ? -n : n;
+    // e with 2^e <= a/d < 2^(e+1).
+    let e = bitLength(a) - bitLength(d);
+    if (e >= 0 ? a < d << BigInt(e) : a << BigInt(-e) < d) e -= 1;
+    if (e >= 1024) return n < 0n ? -Infinity : Infinity;
+    const shift = Math.min(52 - e, 1074);
+    const p = shift >= 0 ? a << BigInt(shift) : a;
+    const q = shift >= 0 ? d : d << BigInt(-shift);
+    let m = p / q;
+    const twiceRemainder = (p % q) * 2n;
+    if (twiceRemainder > q || (twiceRemainder === q && (m & 1n) === 1n)) m += 1n;
+    const magnitude = Number(m) * 2 ** -shift;
+    return n < 0n ? -magnitude : magnitude;
+}
+
 // =============================================================================
 // Rational Class
 // =============================================================================
@@ -110,11 +157,11 @@ export class Rational {
     }
 
     /**
-     * Converts to JavaScript number (may lose precision).
+     * Converts to the nearest JavaScript number.
      * @returns {number}
      */
     toNumber() {
-        return Number(this.numerator) / Number(this.denominator);
+        return ratioToNumber(this.numerator, this.denominator);
     }
 
     /**

@@ -181,8 +181,7 @@ export class Complex {
     }
 
     toNumber() {
-        const iZero = this.imag === 0 || (this.imag instanceof Rational && this.imag.numerator === 0);
-        if (iZero) {
+        if (this.isReal()) {
             return toNum(this.real);
         }
         throw new Error('Cannot convert complex with non-zero imaginary part to real');
@@ -240,8 +239,9 @@ export class Complex {
             return `${realStr}${imagStr}i`;
         }
 
-        // Regular handling for non-special values
-        if (typeof imagVal === 'number' && imagVal < 0) {
+        // Regular handling for non-special values. -0.0 is not below zero, but
+        // its sign is the one written: 1.0-0.0i, not 1.0+-0.0i.
+        if (typeof imagVal === 'number' && (imagVal < 0 || Object.is(imagVal, -0))) {
             imagVal = -imagVal;
             signStr = '-';
         } else if (imagVal instanceof Rational && imagVal.numerator < 0n) {
