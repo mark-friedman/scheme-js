@@ -3401,3 +3401,23 @@ callers stay compiled.
 *Consequence:* 40 switches only the procedures a breakpoint is in, and every one while stepping or
 paused; a program debugged with a breakpoint it does not reach ran ten times faster than with the
 whole program switched.
+
+**R119. The bignum class was not bound by BigInt arithmetic, nor by the tower's dispatch.**
+
+R29 ranked the bignum class as the one place "BigInt arithmetic genuinely dominates", where code
+generation could not help; once `pi` compiled every definition and still measured 1.00x, the
+class's 53x behind Gambit's interpreter was put down to the numeric tower's dispatch (42), and the
+tower's port to Scheme (65) was to be decided by profiling it. Profiled, `pi` spent 98% of its time,
+and `chudnovsky` 98% of its, in one primitive: `exact-integer-sqrt`, whose Newton iteration started
+from the integer itself and so took about half its bit length in steps -- thousands of divisions of
+numbers thousands of bits long, for each root. Neither BigInt arithmetic as such nor dispatch was
+measurable beside it. Started from the root of the leading bits and doubling its precision each step
+(Mark Dickinson's algorithm, Python's `math.isqrt`), the root costs about two divisions: `pi` went
+from 560 ms to 2.0 ms compiled, `chudnovsky` from 10 ms to 0.15 ms -- ahead of Racket CS (4.7 ms,
+0.18 ms) and Gambit compiled to C -- and the class from 1.2x over the interpreter to 7x, since what
+remains is the programs' own arithmetic, which compiled code does inline.
+
+*Consequence:* a class that does not move when its code is compiled is profiled before it is
+explained. What the bignum programs spend now is BigInt division and multiplication themselves; the
+tower's dispatch is at most about 15% of `chudnovsky` and less of `pi`, so 65 is not a bignum
+optimization, and is decided on other grounds.

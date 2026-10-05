@@ -12671,3 +12671,39 @@ one importing `if` renamed has it by that name only; a program importing nothing
 
 7,921 tests pass in Node with none failing (33 skipped), and 7,697 in the browser with none failing
 (56 skipped).
+
+# Task 42: the bignum class profiled -- one primitive's algorithm (2026-10-05)
+
+The bignum class was the worst against Gambit's interpreter, 53x, and the one class compiling did
+not move (1.2x). R29 put it down to BigInt arithmetic, and once `pi` compiled every definition and
+still measured 1.00x, the plan put it down to the numeric tower's dispatch, to be profiled before
+porting the tower to Scheme (65).
+
+- **The profile.** `pi`, compiled, spent 98% of its time in `exact-integer-sqrt`, and so did
+  `chudnovsky`: the primitive's Newton iteration started from the integer itself, which takes about
+  half its bit length in steps to come down to the root, each a division of numbers thousands of
+  bits long. Dispatch and BigInt arithmetic were not measurable beside it (R119).
+- **The fix**, in the primitive, in place: the root of the leading bits, its precision doubled at
+  each step, one division a step (Mark Dickinson's algorithm, Python's `math.isqrt`), so a root costs
+  about two divisions of the integer's size. A 16,902-digit root takes 1.0 ms.
+- **Measured.** `pi` 560 ms to 2.0 ms compiled and 6.9 ms to 4.6 interpreted -- against Gambit's
+  interpreter 6.3 ms, Gambit compiled to C 6.1, Racket CS 4.7; `chudnovsky` 10 ms to 0.15 ms
+  compiled -- against 0.50, 0.25 and 0.18 ms. The class is 7x faster compiled than interpreted, where
+  it was 1.2x: what remains is the programs' own arithmetic, which compiled code does inline.
+- **What is left** is BigInt division and multiplication; the tower's dispatch is at most about 15%
+  of `chudnovsky` and less of `pi`, so 65 is not a bignum optimization and is decided on other
+  grounds (`docs/compiler_plan.md`).
+
+JavaScript under `src/`: `exact-integer-sqrt`'s root in `math.js`, a primitive fixed in place.
+
+## Tests
+
+`bigint_exactness_tests.scm`: `exact-integer-sqrt`'s root and remainder hold for small integers,
+around the largest integer a double holds exactly, around squares of hundreds and thousands of
+digits, and for a square of ten thousand digits; checked besides on about 210,000 integers against
+the iteration it replaced.
+
+## Verification
+
+7,927 tests pass in Node with none failing (33 skipped), and 7,703 in the browser with none failing
+(56 skipped).

@@ -203,6 +203,13 @@ the answer three times running. It compiles **9 of 9** now and measures **1.00x*
 really is bound by BigInt arithmetic, code generation cannot reach it, and the remaining gap against
 Gambit is worth profiling in the numeric tower rather than the compiler.
 
+> **Corrected 2026-10-05 (task 42, R119):** profiled, it was neither BigInt arithmetic nor the
+> tower. `pi` and `chudnovsky` spent 98% of their time in `exact-integer-sqrt`, whose Newton
+> iteration started from the integer itself. With a root that doubles its precision each step, `pi`
+> takes 2.0 ms compiled (560 ms before; Gambit's interpreter 6.3 ms, Racket CS 4.7 ms) and
+> `chudnovsky` 0.15 ms (10 ms before; 0.50 and 0.18 ms), and the class is 7x faster compiled than
+> interpreted. The tables on this page were measured before.
+
 ### Two results worth reading closely
 
 **We are faster than both references on strings** — 0.3x of Gambit on `string`, which builds a

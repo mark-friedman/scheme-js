@@ -103,23 +103,46 @@ function roundDivBigInt(a, b) {
 }
 
 /**
- * BigInt-compatible integer square root using Newton's method.
- * Returns the floor of the square root.
+ * The integer square root of a non-negative integer: the largest s with
+ * s * s <= n.
+ *
+ * The root of n's leading bits, its precision doubled at each step: the root
+ * a of the top 2d bits gives the root of the top 4d to within one by one
+ * division, (a << d) + (top bits) / a, a Newton step taken where it is
+ * already close (Mark Dickinson's algorithm, Python's `math.isqrt`). The
+ * divisions double in size as they go, so the whole root costs about two
+ * divisions of n's size. Newton's iteration started from n itself, as it
+ * was, took about half n's bit length in steps, each a division of numbers
+ * that long -- nearly all of the time the benchmarks `pi` and `chudnovsky`
+ * took.
+ * @param {bigint|number} n - The integer.
+ * @returns {bigint} Its integer square root.
  */
 function isqrtBigInt(n) {
     if (typeof n === 'bigint') {
         if (n < 0n) throw new Error('Square root of negative number');
-        if (n === 0n) return 0n;
-        if (n === 1n) return 1n;
-        let x = n;
-        let y = (x + 1n) / 2n;
-        while (y < x) {
-            x = y;
-            y = (x + n / x) / 2n;
+        if (n < 2n) return n;
+        const c = (bitLength(n) - 1) >> 1;
+        let a = 1n;
+        let d = 0;
+        for (let s = 31 - Math.clz32(c); s >= 0; s--) {
+            const e = d;
+            d = c >> s;
+            a = (a << BigInt(d - e - 1)) + (n >> BigInt(2 * c - e - d + 1)) / a;
         }
-        return x;
+        return a * a > n ? a - 1n : a;
     }
     return BigInt(Math.floor(Math.sqrt(Number(n))));
+}
+
+/**
+ * How many bits a positive integer takes.
+ * @param {bigint} n - The integer.
+ * @returns {number}
+ */
+function bitLength(n) {
+    const hex = n.toString(16);
+    return 4 * (hex.length - 1) + (32 - Math.clz32(parseInt(hex[0], 16)));
 }
 
 /**
