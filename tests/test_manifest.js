@@ -17,6 +17,7 @@ export const unitTests = [
     { path: 'core/interpreter/syntax_rules_tests.js', fn: 'runSyntaxRulesUnitTests', needsInterpreter: false },
     { path: 'core/interpreter/error_tests.js', fn: 'runErrorTests', needsInterpreter: false },
     { path: 'core/interpreter/syntax_object_tests.js', fn: 'runSyntaxObjectTests', needsInterpreter: false },
+    { path: 'core/interpreter/assembler_tests.js', fn: 'runAssemblerTests', needsInterpreter: false },
     { path: 'core/interpreter/state_isolation_tests.js', fn: 'runStateIsolationTests', needsInterpreter: false },
     // IO Unit Tests
     { path: 'core/primitives/io/string_port_tests.js', fn: 'runStringPortTests', needsInterpreter: false },
@@ -98,6 +99,7 @@ export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
     { path: 'integration/program_tests.js', fn: 'runProgramTests', async: true, needsInterpreter: false },
     { path: 'integration/reader_bootstrap_tests.js', fn: 'runReaderBootstrapTests', needsInterpreter: false },
+    { path: 'integration/expander_comparison_tests.js', fn: 'runExpanderComparisonTests', needsInterpreter: false },
     { path: 'integration/multi_interpreter_tests.js', fn: 'runMultiInterpreterTests', async: true, needsInterpreter: true },
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },
     { path: 'functional/callable_closures_tests.js', fn: 'runCallableClosuresTests', async: true },
@@ -196,6 +198,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/library_system_tests.scm',
     'tests/core/scheme/debugger_tests.scm',
     'tests/core/scheme/read_source_tests.scm',
+    'tests/core/scheme/expander_tests.scm',
     'tests/scripts/table_writer_tests.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',

@@ -8,8 +8,7 @@
  */
 
 import { parse } from '../core/interpreter/reader.js';
-import { analyze, SyntacticEnv } from '../core/interpreter/analyzer.js';
-import { intern } from '../core/interpreter/symbol.js';
+import { analyzeInEnvironment } from '../core/interpreter/expand.js';
 import { systemLibrary } from '../core/interpreter/library_seed.js';
 import { callSchemeProcedure } from '../core/interpreter/values.js';
 
@@ -75,7 +74,7 @@ export class ReplDebugCommands {
         const debugRuntime = this.interpreter.debugRuntime;
         this.interpreter.debugRuntime = null;
         try {
-            const ast = analyze(parse(expression)[0], syntacticEnvFor(env), this.interpreter.context);
+            const ast = analyzeInEnvironment(parse(expression)[0], env, this.interpreter.context);
             const result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
             return String(debuggerCall('eval-answer', this.backend.formatValue(result)));
         } catch (e) {
@@ -91,24 +90,4 @@ export class ReplDebugCommands {
     resetSelection() {
         debuggerCall('reset-frame-selection!', this.debugRuntime.scheme);
     }
-}
-
-/**
- * The analyzer's view of an environment: each scope's renamed locals under
- * the names they were written with, so that an expression typed at the REPL
- * finds them.
- * @param {Environment} env - The environment.
- * @returns {SyntacticEnv|null}
- */
-function syntacticEnvFor(env) {
-    const chain = [];
-    for (let scope = env; scope; scope = scope.parent) chain.push(scope);
-    let syntacticEnv = null;
-    for (const scope of chain.reverse()) {
-        syntacticEnv = new SyntacticEnv(syntacticEnv);
-        for (const [written, renamed] of scope.nameMap ?? []) {
-            syntacticEnv.bindings.push({ id: intern(written), newName: renamed });
-        }
-    }
-    return syntacticEnv;
 }

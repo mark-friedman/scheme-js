@@ -12300,3 +12300,78 @@ open, indented by the reader's parentheses, and colours them.
 
 7,759 tests pass in Node with none failing (33 skipped), and 7,535 in the browser with none
 failing (56 skipped).
+
+# Task 45, first increment: the expander in Scheme, beside the analyzer (2026-10-05)
+
+Task 45 is done in four increments, decided with the user and listed in `docs/compiler_plan.md`.
+This is the first: the expander written in Scheme, its behaviour the JavaScript analyzer's, run beside
+it and compared with it, and not yet the one in use.
+
+- `(scheme-js expander)` (`expander.sld`, `expander.scm`, `syntax_rules.scm`) turns a form into a
+  *core form*: the tagged lists `marshal.js` made of the analyzer's nodes for the compiler,
+  completed -- a library's binding reached from its macro's expansion, a scoped variable, `import`,
+  `define-library`, a node made already -- with a lambda's name and its parameters' written names,
+  and a span as its first pair's `source` property, as the reader's data carry theirs.
+  `expander.sld` lists them.
+- `assembler.js`, the evaluator's door, turns a core form into the nodes the analyzer made.
+- The expander keeps no state between forms: the scopes made so far, the library or program being
+  expanded, the keywords bound in each, and the macros defined for the process stay in the context,
+  reached through `primitives/expander_support.js`, as the library system reaches them; the
+  identifiers are the same `SyntaxObject`s. So both expanders share one state, and a library's
+  macros mean the same to both.
+- A transformer the Scheme expander makes is a Scheme procedure of a use and of where it is used,
+  given as a procedure that says which local, if any, binds an identifier there. Kept in the tables
+  as the analyzer can call it, and calling the analyzer's through the shape it has there, each
+  expander uses the other's macros -- four primitives that go when the analyzer does.
+- `expand.js` is the door into the expander, loaded beside the library system, on its interpreter.
+  `analyze` with no syntactic environment -- a program's or library's top-level form, as every caller
+  analyzes -- goes to the expander it selects: the analyzer, or the Scheme expander where
+  `SCHEME_JS_EXPANDER=scheme`. The library system's seed analyzes its own libraries, the expander
+  among them, with the analyzer either way. The debugger's `:eval` analyzes in a paused frame through
+  it (`expand-in-environment`).
+
+Faithful to the analyzer down to the order it makes names in, so that the two can be compared
+exactly, with three differences, none met by anything the suite analyzes: an application or body
+whose forms are not a proper list is a syntax error, where the analyzer called a variable named
+`.`; `(define)` among a body's definitions is the operand-count error the form gives elsewhere,
+where it crashed; and a pattern variable that matched a vector, used under an ellipsis, is an
+error, where the analyzer repeated the template over the vector's elements.
+
+Compared: `tests/harness/expander_comparison.js`, installed in place of the expander in use, expands
+each top-level form with both, the Scheme one's assembled, and writes both out with the names they
+made and the scopes they marked numbered as they appear; and each `syntax-rules` macro a top-level
+form defines is replaced by one that runs both transformers on every use and compares their output.
+Over the whole suite, `npm run test:expanders`, the two agree on all 2,021,312 forms and 64,322
+macro uses; a bug planted in either the expander or `syntax-rules` shows as hundreds of
+disagreements. `expander_comparison_tests.js` keeps a smaller comparison in the suite, in Node and
+the browser: eight libraries from source and two programs using every kind of form, 509 forms and
+1,964 macro uses.
+
+Found on the way: a scope written as a literal in Scheme is an exact integer, a `BigInt`, which
+missed the top level's keyword table, keyed by the JavaScript number 0; the primitives now take a
+scope as either.
+
+Measured: compiled, the expander takes 2.4 times the analyzer's time on the canonical programs'
+1,468 forms (285-300 ms against 116-122). Its prebuilt table adds 1.2 MB to
+`compiled_libraries.js`, 5.7 MB to 6.9, and `dist/scheme.js` is 8.2 MB; parsing it costs a CLI start
+about 9 ms (medians 287 ms against 278), though nothing runs it by default. Recorded on 41.
+
+JavaScript under `src/`, 568 lines added and 24 removed: `assembler.js`, the evaluator's; `expand.js`,
+a door, with `syntacticEnvFor` moved there from `repl_debug_commands.js`; `expander_support.js`'s
+primitives on identifiers, environments and the context's tables, and `define-macro`'s evaluation, the
+evaluator's; and, transitional, the switch at `analyze`'s entry and the four primitives between the
+two expanders' transformers, which go in the second increment with the analyzer.
+
+## Tests
+
+`expander_tests.scm`: each special form's core form, renamed names normalized; quasiquote, nested;
+dot notation; `cond-expand`; operand counts; `syntax-rules` -- hygiene, literals, a custom ellipsis,
+vector patterns, nested and escaped ellipses -- `let-syntax`, `letrec-syntax`, `define-macro` and its
+failures; a definition over a macro's name at the top level; spans. `assembler_tests.js`: each core
+form's node and what it runs to. `expander_comparison_tests.js`: the two compared.
+
+## Verification
+
+7,850 tests pass in Node with none failing (33 skipped), with the analyzer in use and with the
+Scheme expander (`SCHEME_JS_EXPANDER=scheme`) alike; 7,626 in the browser with none failing (56
+skipped).

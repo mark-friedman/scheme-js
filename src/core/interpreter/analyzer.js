@@ -29,6 +29,7 @@ import { Symbol, intern } from './symbol.js';
 import { SyntaxObject, globalScopeRegistry, GLOBAL_SCOPE_ID, syntaxName, isSyntaxObject, identifierEquals, unwrapSyntax, syntaxScopes, libraryScopeOf, libraryBindingEnv, operatorKeyword } from './syntax_object.js';
 import { globalContext } from './context.js';
 import { SchemeSyntaxError } from './errors.js';
+import { analyzeTopLevel } from './expand.js';
 import {
   initHandlers,
   registerAllHandlers,
@@ -158,7 +159,28 @@ function checkOperands(keyword, exp) {
   }
 }
 
+/**
+ * Analyzes a form. One analyzed where a program's or library's top level is,
+ * with no syntactic environment, is analyzed by the expander in use (expand.js);
+ * one inside another form, by the analyzer below.
+ * @param {*} exp - The form.
+ * @param {SyntacticEnv|null} [syntacticEnv=null] - Where it is.
+ * @param {InterpreterContext|null} [context=null] - The context.
+ * @returns {Executable}
+ */
 export function analyze(exp, syntacticEnv = null, context = null) {
+  return syntacticEnv === null ? analyzeTopLevel(exp, context) : analyzeInJavaScript(exp, syntacticEnv, context);
+}
+
+/**
+ * Analyzes a form with this analyzer.
+ * @param {*} exp - The form.
+ * @param {SyntacticEnv|null} [syntacticEnv=null] - Where it is; none for a
+ *   top level.
+ * @param {InterpreterContext|null} [context=null] - The context.
+ * @returns {Executable}
+ */
+export function analyzeInJavaScript(exp, syntacticEnv = null, context = null) {
   // Use global context if none provided
   const ctx = context || globalContext;
 

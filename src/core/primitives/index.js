@@ -27,6 +27,7 @@ import { bitwisePrimitives } from '../../extras/primitives/bitwise.js';
 import { jsInteropPrimitives } from './js_interop_primitives.js';
 import { libraryPrimitives } from './library.js';
 import { readerPrimitives } from './reader_support.js';
+import { expanderPrimitives } from './expander_support.js';
 import { classPrimitives } from './class.js';
 
 /**
@@ -83,6 +84,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(classPrimitives);
     addPrimitives(libraryPrimitives);
     addPrimitives(readerPrimitives);
+    addPrimitives(expanderPrimitives);
 
     return new Environment(null, bindings);
 }

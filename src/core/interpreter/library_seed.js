@@ -42,7 +42,7 @@
 
 import { Environment } from './environment.js';
 import { Interpreter } from './interpreter.js';
-import { analyze } from './analyzer.js';
+import { analyzeInJavaScript as analyze } from './analyzer.js';
 import { globalContext } from './context.js';
 import { globalMacroRegistry } from './macro_registry.js';
 import { toArray } from './cons.js';
