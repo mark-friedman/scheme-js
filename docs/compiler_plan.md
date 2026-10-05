@@ -191,6 +191,14 @@ The fifteen most recent. Every completed task, these included, is in [compiler_p
 
 ## Decided, so not open
 
+- **A procedural macro's procedure runs where the macro is defined.** Decided 2026-10-05 by the user,
+  for increment 4 of 45: an `er-macro-transformer`'s or `define-macro`'s procedure is evaluated in
+  the environment of the library or program that defines the macro -- its imports, and what it
+  defined before -- as Chibi, Gauche and Guile do: one instance, no phase separation, so a library
+  can share helper procedures with its macros and nothing is loaded twice; the price is that
+  expansion can see the library's state as it runs. Chosen over a fixed fresh `(scheme base)` for
+  every transformer, which keeps phases apart but leaves a library no way to use its own helpers, and
+  over R6RS's `(import (for lib expand))`, a second instance of each library, beyond R7RS.
 - **The tier's first user is this implementation, and the order reaches that user first.** Decided
   2026-09-26. Its REPLs, CLI and build come first, then public benchmark numbers for an announcement;
   there are no outside users, so the representative programs are the implementation's own Scheme and
