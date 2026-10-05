@@ -7,10 +7,10 @@
  * library system, on its interpreter (`systemLibrary` in library_seed.js).
  * While the JavaScript analyzer (analyzer.js) is still here, a form analyzed
  * where a program's or library's top level is -- by `analyze` in analyzer.js,
- * which every caller uses -- is analyzed by the one this selects: the analyzer
- * by default, the expander where a Node process has `SCHEME_JS_EXPANDER=scheme`
- * in its environment or `useSchemeExpander` says so, or whatever a test puts
- * in their place (`useTopLevelAnalyzer`). The library system's seed analyzes
+ * which every caller uses -- is analyzed by the one this selects: the expander
+ * by default, the analyzer where a Node process has
+ * `SCHEME_JS_EXPANDER=javascript` in its environment or `useSchemeExpander`
+ * says so, or whatever a test puts in their place (`useTopLevelAnalyzer`). The library system's seed analyzes
  * its own libraries with the analyzer whatever this says, since the expander
  * is one of them.
  */
@@ -45,8 +45,8 @@ const inJavaScript = (form, context) => analyzeInJavaScript(form, null, context)
  * What analyzes a form where a program's or library's top level is.
  * @type {function(*, Object|null): Executable}
  */
-let topLevelAnalyzer = typeof process !== 'undefined' && process.env?.SCHEME_JS_EXPANDER === 'scheme'
-  ? expand : inJavaScript;
+let topLevelAnalyzer = typeof process !== 'undefined' && process.env?.SCHEME_JS_EXPANDER === 'javascript'
+  ? inJavaScript : expand;
 
 /**
  * Analyzes a form where a program's or library's top level is, with the
