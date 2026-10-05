@@ -312,6 +312,20 @@ The reader transforms dot notation into property access. When used in the operat
 > [!NOTE]
 > Standard Scheme number syntax takes precedence. `3.14` is a number, not a property access on `3`.
 
+**Where it applies.** R7RS allows a dot in an identifier, and portable code uses it -- SRFI 135's
+reference implementation names a procedure `length&i0.length`. So dot notation is on in programs,
+pages' scripts and the REPLs, where interop is written, and off in the files of a library loaded by
+the library system, which are R7RS. Either can be changed for the rest of a file by a directive, as
+`#!fold-case` changes case folding:
+
+```scheme
+#!no-dot-notation    ; node.left is an identifier from here on
+#!dot-notation       ; document.title is a property access from here on
+```
+
+A library defined inline, in a program's file, is read as the program is. Anywhere, `|a.b|` is an
+identifier.
+
 ### The `this` Pseudo-Variable
 
 When a Scheme closure is invoked from JavaScript as a method (or via `js-invoke`), the JavaScript `this` context is automatically bound to a pseudo-variable named `this` within the closure's scope.

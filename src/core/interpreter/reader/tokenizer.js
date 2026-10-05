@@ -387,6 +387,12 @@ export function tokenize(input, filename = '<unknown>') {
             } else if (startsWith('#!no-fold-case')) {
                 tokenValue = '#!no-fold-case';
                 for (let i = 0; i < 14; i++) advance();
+            } else if (startsWith('#!dot-notation')) {
+                tokenValue = '#!dot-notation';
+                for (let i = 0; i < 14; i++) advance();
+            } else if (startsWith('#!no-dot-notation')) {
+                tokenValue = '#!no-dot-notation';
+                for (let i = 0; i < 17; i++) advance();
             } else {
                 // Generic # token - read as atom
                 tokenValue = readAtom();

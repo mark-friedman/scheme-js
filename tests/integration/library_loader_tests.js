@@ -274,6 +274,30 @@ export async function runLibraryLoaderTests(logger) {
     assert(logger, "a feature added in a registry made for a while goes with it",
         hasFeature('a-host-feature'), false);
 
+    // A library's files are read in R7RS, where a dot is a character of an
+    // identifier: SRFI 135's reference implementation names a procedure
+    // `length&i0.length`. Dot notation is for programs and pages, and a
+    // library's file turns it on if it wants it.
+    const dottedSources = {
+        'dotted.names': `(define-library (dotted names)
+                           (export length&i0.length x.y)
+                           (begin (define (length&i0.length p) p) (define x.y 7)))`,
+        'dotted.interop': `#!dot-notation
+                           (define-library (dotted interop)
+                             (export title-of)
+                             (begin (define (title-of o) o.title)))`
+    };
+    withPrivateLibraries({ resolver: (name) => dottedSources[name.join('.')] }, () => {
+        const dotted = loadLibrarySync(['dotted', 'names'], analyze, interpreter, globalEnv);
+        assert(logger, "a library's dotted names are identifiers",
+            [...dotted.keys()].sort(), ['length&i0.length', 'x.y']);
+        assert(logger, "bound to what the library defined",
+            [dotted.get('x.y'), callSchemeProcedure(dotted.get('length&i0.length'), [5n])], [7n, 5n]);
+        const interop = loadLibrarySync(['dotted', 'interop'], analyze, interpreter, globalEnv);
+        assert(logger, "a library's file can ask for dot notation",
+            callSchemeProcedure(interop.get('title-of'), [{ title: 'from a property' }]), 'from a property');
+    });
+
     // Test evaluateFeatureRequirement with simple symbol
     assert(logger, "evalFeature simple r7rs",
         evaluateFeatureRequirement(intern('r7rs')), true);

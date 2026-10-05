@@ -178,9 +178,14 @@ export function assemble(name, params, count, implName, dir = R7RS_DIR) {
  */
 export function assembleParts(name, params, count, implName, dir = R7RS_DIR) {
   const common = fs.readFileSync(path.join(dir, 'src', 'common.scm'), 'utf8');
+  // The programs are R7RS, where a dot is a character of an identifier --
+  // `gcbench` names a record's accessor `node.left` -- so this implementation
+  // reads them with its dot notation off, by the directive its reader takes.
+  // Another implementation is given the program as it is.
+  const directive = implName === 'scheme-js-4' ? ['#!no-dot-notation'] : [];
   return {
     prelude: buildPrelude(buildInput(name, params, count, dir), implName),
-    body: [readProgram(name, dir), common, '(run-benchmark)'].join('\n')
+    body: [...directive, readProgram(name, dir), common, '(run-benchmark)'].join('\n')
   };
 }
 

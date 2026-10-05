@@ -21,6 +21,10 @@ export { Placeholder, fixup } from './datum_labels.js';
  * @param {string} input - Source code to parse
  * @param {Object} [options] - Parsing options
  * @param {boolean} [options.caseFold=false] - If true, fold symbol names to lowercase (for include-ci)
+ * @param {boolean} [options.dotAccess=true] - Whether dot notation applies, `a.b` read as
+ *   `(js-ref a "b")`: off for a library's files, which are written in R7RS, where a dot is a
+ *   character of an identifier. The text can say otherwise, with `#!dot-notation` and
+ *   `#!no-dot-notation`.
  * @param {string} [options.filename='<unknown>'] - Source file name, recorded on every
  *   expression's source info. The debugger matches breakpoints on this, so callers that
  *   know which file they are reading should supply it.
@@ -31,6 +35,7 @@ export function parse(input, options = {}) {
     // Use provided state or create new one
     const state = options.state || {
         caseFold: options.caseFold || false,
+        dotAccess: options.dotAccess !== false,
         labels: new Map()
     };
 

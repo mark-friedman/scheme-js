@@ -37,9 +37,9 @@
  * `status` is `'ok'` for programs that run and agree, `'slow'` for programs
  * that run but have no parameter that can be reduced without changing what they
  * measure, and `'blocked'` for programs this implementation cannot run yet. The
- * blocked entries are kept rather than dropped: they are the evidence for four
- * conformance gaps this suite found on its first run, and each becomes
- * available the moment its gap closes.
+ * blocked entries are kept rather than dropped: each is the evidence for a gap,
+ * and becomes available the moment its gap closes, as `gcbench`, `matrix` and
+ * `slatex` did when the harness read them with dot notation off.
  */
 
 /**
@@ -194,6 +194,13 @@ export const R7RS_BENCHMARKS = [
     note: 'the parameters are board positions, not a size; ~18 s per iteration here'
   },
 
+  {
+    name: 'equal', workload: 'list', status: 'slow', params: null,
+    note: 'runs since equal? terminates on circular structure (R7RS 6.1), the program\'s '
+      + '"worst case for R5RS equal?"; but an iteration takes ~444 s interpreted and ~12 s '
+      + 'compiled, where Gambit takes 0.08 s'
+  },
+
   // --- Vectors and bytevectors ---------------------------------------------
   {
     name: 'array1', workload: 'vector', status: 'ok', params: '100000\n100000',
@@ -204,12 +211,28 @@ export const R7RS_BENCHMARKS = [
     note: 'canonical is 1000/1000; bytevector/string conversion'
   },
 
+  {
+    name: 'matrix', workload: 'vector', status: 'ok', params: null,
+    note: 'names like `node.left` are R7RS identifiers; the harness reads every program '
+      + 'with dot notation off (`#!no-dot-notation`)'
+  },
+  {
+    name: 'gcbench', workload: 'vector', status: 'slow', params: null,
+    note: 'record accessors named `node.left`, read with dot notation off; no parameter '
+      + 'reduces it, and an iteration takes ~107 s interpreted, ~6.4 s compiled'
+  },
+
   // --- Strings and text -----------------------------------------------------
   { name: 'string', workload: 'string', status: 'ok', params: null },
   { name: 'read1', workload: 'string', status: 'ok', params: null, note: 'reads inputs/parsing.data' },
   {
     name: 'parsing', workload: 'string', status: 'ok', params: null,
     note: 'blocked until read-char and peek-char returned characters rather than strings'
+  },
+
+  {
+    name: 'slatex', workload: 'string', status: 'ok', params: null,
+    note: '`slatex.ormap` and friends, read with dot notation off'
   },
 
   // --- Continuations --------------------------------------------------------
@@ -230,32 +253,12 @@ export const R7RS_BENCHMARKS = [
   // Each is kept because it is the evidence for a conformance gap, and each
   // becomes available the moment its gap closes.
   {
-    name: 'gcbench', workload: 'vector', status: 'blocked', params: null,
-    note: 'uses record accessors named node.left, node.right; identifiers containing a '
-      + 'dot are rejected by extended dot notation, a deliberate interop feature '
-      + '(tests/extras/scheme/dot_access_tests.scm)'
-  },
-  {
-    name: 'matrix', workload: 'vector', status: 'blocked', params: null,
-    note: 'same dotted-identifier gap'
-  },
-  {
-    name: 'slatex', workload: 'string', status: 'blocked', params: null,
-    note: 'same dotted-identifier gap (slatex.ormap and friends)'
-  },
-  {
     name: 'read0', workload: 'string', status: 'blocked', params: null,
     note: 'does not finish within the correctness runner\'s 120 s in either tier. It reads '
       + 'every two-character string from "a" and U+0000 to "a" and U+10FFFF, twice each, and '
       + 'also exercises reader syntax we do not accept. It was blocked on read-char too, '
       + 'until read-char and peek-char returned characters'
   },
-  {
-    name: 'equal', workload: 'list', status: 'blocked', params: null,
-    note: 'equal? does not terminate on circular structure, which R7RS 6.1 requires. '
-      + 'Gambit runs this in 0.08 s; we hang at every size, including the smallest. '
-      + 'The program\'s own comment calls a circular list "a worst case for R5RS equal?"'
-  }
 ];
 
 /**

@@ -1,6 +1,6 @@
 import { assert, createTestLogger } from '../../harness/helpers.js';
 import { parse } from '../../../src/core/interpreter/reader.js';
-import { Cons } from '../../../src/core/interpreter/cons.js';
+import { Cons, toArray } from '../../../src/core/interpreter/cons.js';
 import { Symbol } from '../../../src/core/interpreter/symbol.js';
 
 export function runReaderTests(logger) {
@@ -126,5 +126,23 @@ export function runReaderTests(logger) {
         /unterminated \|symbol\|/.test(readError("|a\\|")), true);
     assert(logger, "An unterminated string gives its line", /at line 2/.test(readError('(a\n "b)')), true);
     assert(logger, "#\\ at the end is an error", /end of input after #\\/.test(readError("(a #\\")), true);
+
+    // 13. Dot notation, `a.b` as `(js-ref a "b")`, applies unless the reader
+    // is told otherwise -- as it is for a library's files -- and a file says
+    // which it wants with a directive, as with `#!fold-case`.
+    const show = (x) => (x instanceof Symbol ? `symbol ${x.name}` : x instanceof Cons ? `list ${x.car.name}` : String(x));
+    assert(logger, "Dot notation by default", show(parse('a.b')[0]), 'list js-ref');
+    assert(logger, "Turned off, a dotted name is an R7RS identifier",
+        show(parse('length&i0.length', { dotAccess: false })[0]), 'symbol length&i0.length');
+    assert(logger, "and so is a name with several dots",
+        show(parse('a.b.c', { dotAccess: false })[0]), 'symbol a.b.c');
+    assert(logger, "and a property after an expression is a datum of its own",
+        parse('(f).x', { dotAccess: false }).map(show), ['list f', 'symbol .x']);
+    assert(logger, "#!no-dot-notation turns it off for the rest of the text",
+        parse('a.b #!no-dot-notation a.b').map(show), ['list js-ref', 'symbol a.b']);
+    assert(logger, "#!dot-notation turns it on again",
+        parse('#!dot-notation a.b', { dotAccess: false }).map(show), ['list js-ref']);
+    assert(logger, "a directive inside a list",
+        parse('(x.y #!no-dot-notation x.y)').map((l) => toArray(l).map(show).join(', ')), ['list js-ref, symbol x.y']);
 
 }

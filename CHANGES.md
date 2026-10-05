@@ -11825,3 +11825,46 @@ returning the interaction environment, and now says it does not.
 
 7,763 tests pass in Node with none failing (33 skipped), and 7,547 in the browser with none
 failing (55 skipped). `npm run audit:r7rs` reports nothing missing.
+
+# Task 57 done: dot notation against R7RS identifiers (2026-10-04)
+
+The reader read every name with a dot inside it as a property access, `a.b` as `(js-ref a "b")`, so
+R7RS code with names like `node.left` could not be read: SRFI 135's reference implementation, and
+the canonical benchmarks `gcbench`, `matrix` and `slatex`. Decided with the user: dot notation stays
+on for programs, pages and the REPLs, where interop is written, and is off in the files of a library
+the library system loads, which are R7RS; a file says which it wants with a directive.
+
+- **The reader** takes `dotAccess` as an option, true by default, and the directives
+  `#!dot-notation` and `#!no-dot-notation`, which change it for the rest of the text as
+  `#!fold-case` changes case folding. Off, a dotted name is an identifier and a `.prop` after an
+  expression is a datum of its own.
+- **The library system** reads a library's files with it off (`%read-forms`), and so does the seed
+  its three libraries. No library in the repository used it.
+- **The benchmark harness** reads every canonical program with it off, by putting
+  `#!no-dot-notation` before the program when the program is for this implementation, and
+  leaving the vendored sources as they are. `matrix` and `slatex` run and agree in both tiers, and are
+  `'ok'`; `gcbench` runs and agrees, at about 107 s an iteration interpreted and 6.4 s compiled, and is
+  `'slow'`. Looking at the suite's remaining blocked programs found `equal` running too -- since
+  `equal?` terminates on circular structure -- at 444 s interpreted and 12 s compiled, where Gambit
+  takes 0.08 s; it is `'slow'`. Only `read0` is blocked now.
+- `docs/Interoperability.md` says where dot notation applies and names the directives.
+
+SRFI 135 now gets past the reader, and stops further on: the exports of `(srfi 135)` come back from
+loading it as `#t`, and the program importing it fails in `import-into!` with "for-each: expected
+list". That is a fault of its own, 86.
+
+The JavaScript is the reader's fix in place, in code that is to become Scheme (63): 39 lines added
+and 12 removed, the option and the two directives handled as `#!fold-case` is.
+
+## Tests
+
+`reader_tests.js`: dot notation by default; off, a dotted name, a name with several dots and a
+property after an expression read as R7RS reads them; each directive for the rest of the text, and
+inside a list. `library_loader_tests.js`: a library read through a resolver keeps `length&i0.length`
+and `x.y` as identifiers, bound to what it defined, and a library whose file begins with
+`#!dot-notation` gets a property access.
+
+## Verification
+
+7,777 tests pass in Node with none failing (33 skipped), and 7,557 in the browser with none failing
+(55 skipped). `run_tier.js --set corpus` finds nothing changed.

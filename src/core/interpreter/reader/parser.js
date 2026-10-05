@@ -59,6 +59,15 @@ export function readFromTokens(tokens, state) {
         return readFromTokens(tokens, state); // Continue to next datum
     }
 
+    // Dot notation, `a.b` as `(js-ref a "b")`, on or off for the rest of
+    // the text: R7RS allows a dot in an identifier, and code written for
+    // another Scheme has names like `length&i0.length`.
+    if (token === '#!dot-notation' || token === '#!no-dot-notation') {
+        state.dotAccess = token === '#!dot-notation';
+        if (tokens.length === 0) return undefined;
+        return readFromTokens(tokens, state); // Continue to next datum
+    }
+
     // Handle datum comments: #; skips the next datum
     if (token === '#;') {
         if (tokens.length === 0) {
@@ -102,7 +111,7 @@ export function readFromTokens(tokens, state) {
 
             placeholder.value = val;
             placeholder.resolved = true;
-            return handleDotAccess(val, tokens);
+            return handleDotAccess(val, tokens, state);
         }
     }
 
@@ -115,7 +124,7 @@ export function readFromTokens(tokens, state) {
         const val = readFromTokens(tokens, state);
         placeholder.value = val;
         placeholder.resolved = true;
-        return handleDotAccess(val, tokens);
+        return handleDotAccess(val, tokens, state);
     }
 
     // Handle #n# reference
@@ -126,7 +135,7 @@ export function readFromTokens(tokens, state) {
             throw new SchemeReadError(`reference to undefined label #${id}#`, 'datum label');
         }
         noteLabelReference();
-        return handleDotAccess(placeholder, tokens);
+        return handleDotAccess(placeholder, tokens, state);
     }
 
     // Capture source from opening token
@@ -166,10 +175,10 @@ export function readFromTokens(tokens, state) {
         const name = processSymbolEscapes(inner);
         result = intern(name);
     } else {
-        result = readAtom(token, state.caseFold);
+        result = readAtom(token, state.caseFold, state.dotAccess !== false);
     }
 
-    return handleDotAccess(result, tokens);
+    return handleDotAccess(result, tokens, state);
 }
 
 /**
@@ -430,9 +439,11 @@ export function readBytevector(tokens) {
  * Reads an atom (number, boolean, string, character, or symbol).
  * @param {string} token
  * @param {boolean} caseFold
+ * @param {boolean} [dotAccess=true] - Whether a name with dots inside it is a
+ *   property access, `a.b` as `(js-ref a "b")`, rather than an identifier.
  * @returns {*}
  */
-export function readAtom(token, caseFold = false) {
+export function readAtom(token, caseFold = false, dotAccess = true) {
     // Try to parse as a number (including rationals and complex)
     const numResult = parseNumber(token);
     if (numResult !== null) {
@@ -471,7 +482,7 @@ export function readAtom(token, caseFold = false) {
     }
 
     // JS Property Access: obj.prop1.prop2 -> (js-ref (js-ref obj "prop1") "prop2")
-    if (symbolName.includes('.') && !symbolName.startsWith('.') && !symbolName.endsWith('.')) {
+    if (dotAccess && symbolName.includes('.') && !symbolName.startsWith('.') && !symbolName.endsWith('.')) {
         const parts = symbolName.split('.');
         // Ensure all parts are non-empty (no consecutive dots)
         if (parts.every(part => part.length > 0)) {

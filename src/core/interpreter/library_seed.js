@@ -93,7 +93,7 @@ export function seedLibrarySystem(tables = prebuiltLibraries) {
  */
 function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
     const source = BUNDLED_SOURCES[`${name[name.length - 1]}.sld`];
-    const [form] = parse(source, { filename: name.join('/') });
+    const [form] = parse(source, { filename: name.join('/'), dotAccess: false });
     const env = new Environment(globalEnv);
     env.libraryName = name;
     const scope = globalContext.freshScope();
@@ -147,7 +147,7 @@ function seedLibrary(name, loaded, interpreter, globalEnv, tables) {
         }
     } else {
         begins.forEach(evaluate);
-        for (const file of includes) parse(BUNDLED_SOURCES[file], { filename: file }).forEach(evaluate);
+        for (const file of includes) parse(BUNDLED_SOURCES[file], { filename: file, dotAccess: false }).forEach(evaluate);
     }
     installLibraryProcedures(tables, name, env, (file) => BUNDLED_SOURCES[file]);
 

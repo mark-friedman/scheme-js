@@ -90,11 +90,13 @@ export const libraryPrimitives = {
     },
 
     /**
-     * The forms a file's text holds, read, each carrying its location in
+     * The forms a library's file holds, read, each carrying its location in
      * the file named, if one is; folding case as `#!fold-case` does if asked.
+     * Dot notation is off, since a library is written in R7RS, where a dot is
+     * a character of an identifier, unless the file turns it on.
      */
     '%read-forms': (source, filename, foldCase) => {
-        const options = { caseFold: foldCase === true };
+        const options = { caseFold: foldCase === true, dotAccess: false };
         if (filename !== false) options.filename = stringValue(filename);
         return list(...parse(stringValue(source), options));
     },

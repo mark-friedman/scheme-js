@@ -12,9 +12,12 @@ import { intern } from '../symbol.js';
  * 
  * @param {*} expr - The base expression
  * @param {Array} tokens - Remaining tokens (may be consumed)
+ * @param {Object} [state] - The parser's state: with dot notation off
+ *   (`dotAccess` false), a `.prop` after an expression is a datum of its own.
  * @returns {*} The expression with property accesses chained
  */
-export function handleDotAccess(expr, tokens) {
+export function handleDotAccess(expr, tokens, state) {
+    if (state?.dotAccess === false) return expr;
     let currentExpr = expr;
 
     while (tokens.length > 0) {
