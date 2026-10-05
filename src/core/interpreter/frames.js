@@ -577,8 +577,10 @@ export function continueApplication(exprs, index, values, env, registers, interp
                 registers[ENV] = newEnv;
             }
 
-            // Instrumentation: record frame entry (tail-call aware)
-            if (interpreter.debugRuntime) {
+            // Instrumentation: record frame entry (tail-call aware), while
+            // debugging is on: a runtime attached and off, as the CLI's is
+            // until asked, would otherwise cost every call.
+            if (interpreter.debugRuntime?.enabled) {
                 recordDebugFrameEntry(interpreter, registers[FSTACK], {
                     name: func.name || 'anonymous',
                     env: newEnv,
@@ -596,8 +598,10 @@ export function continueApplication(exprs, index, values, env, registers, interp
                 registers[ENV] = newEnv;
             }
 
-            // Instrumentation: record frame entry (tail-call aware)
-            if (interpreter.debugRuntime) {
+            // Instrumentation: record frame entry (tail-call aware), while
+            // debugging is on: a runtime attached and off, as the CLI's is
+            // until asked, would otherwise cost every call.
+            if (interpreter.debugRuntime?.enabled) {
                 recordDebugFrameEntry(interpreter, registers[FSTACK], {
                     name: func.name || 'anonymous',
                     env: newEnv,

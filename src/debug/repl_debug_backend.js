@@ -4,6 +4,8 @@
 
 import { DebugBackend } from './debug_backend.js';
 import { prettyPrint } from '../core/interpreter/printer.js';
+import { systemLibrary } from '../core/interpreter/library_seed.js';
+import { callSchemeProcedure } from '../core/interpreter/values.js';
 
 /**
  * REPL debug backend for interactive debugging in browser and Node.js REPLs.
@@ -41,15 +43,9 @@ export class ReplDebugBackend extends DebugBackend {
         this.paused = true;
         this.pauseInfo = pauseInfo;
 
-        const { reason, source, breakpointId } = pauseInfo;
-        const location = source ? `${source.filename}:${source.line}` : 'unknown location';
-
-        const reasonStr = breakpointId
-            ? `breakpoint ${breakpointId} hit`
-            : (reason === 'step' ? 'step complete' : reason);
-
-        this.outputFn(`\n;; Paused: ${reasonStr} at ${location}`);
-        this.outputFn(`;; Use :bt for backtrace, :locals for variables, :continue to resume`);
+        // What to say is the debugger's (`pause-message` in debugger.scm).
+        const lines = callSchemeProcedure(systemLibrary(['scheme-js', 'debugger']).get('pause-message'), [pauseInfo]);
+        for (const line of lines) this.outputFn(String(line));
 
         if (this.onPauseCallback) {
             this.onPauseCallback(pauseInfo);

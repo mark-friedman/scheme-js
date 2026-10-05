@@ -289,6 +289,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── list.scm            # map, for-each, memq, assq, length, etc.
 │           ├── library-system.sld  # (scheme-js library-system): the library system
 │           ├── library_system.scm  # define-library, import sets, cond-expand, registries, loading, importing, closures run compiled for a debugger
+│           ├── debugger.sld        # (scheme-js debugger): the debugger's logic, loaded beside the library system
+│           ├── debugger.scm        # breakpoints, the calls a program is in, stepping, exceptions, the REPL's commands
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
 │           ├── ports.scm           # call-with-port
@@ -313,17 +315,12 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── tiering.js         # Attaching the tier: makes its record, whose Scheme procedures the interpreter calls
 │      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
 │
-│   └── debug/                  # Debugger Runtime & Tools
+│   └── debug/                  # The debugger's doors and backends; its logic is (scheme-js debugger)
 │      ├── index.js            # Barrel export
-│      ├── scheme_debug_runtime.js # Central debugger coordinator
+│      ├── scheme_debug_runtime.js # The evaluator's hooks, each a call into (scheme-js debugger); the paused run's promise
 │      ├── debug_backend.js    # Abstract backend interface
-│      ├── breakpoint_manager.js # Breakpoint registry
-│      ├── stack_tracer.js     # Logical stack tracking
-│      ├── pause_controller.js # Stepping state machine
-│      ├── state_inspector.js  # Scope & value inspection
-│      ├── exception_handler.js # Error interception
 │      ├── repl_debug_backend.js # REPL-specific backend adapter
-│      ├── repl_debug_commands.js # REPL command parser (:break, :step, etc.)
+│      ├── repl_debug_commands.js # Hands :commands to the Scheme; evaluates :eval in a frame
 │      └── instrumentation.js  # Deterministic evaluator step counting
 │
 │   └── extras/                     # Extension libraries (non-R7RS)

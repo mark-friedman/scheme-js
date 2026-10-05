@@ -12063,3 +12063,67 @@ expression, and a file that cannot be read named in the error.
 
 7,835 tests pass in Node with none failing (33 skipped), and 7,611 in the browser with none
 failing (56 skipped). `run_tier.js --set all` runs every program right.
+
+# Task 67 done: the debugger's logic, in Scheme (2026-10-04)
+
+The debugger's decisions were about 1,000 lines of JavaScript in `src/debug/`: `BreakpointManager`,
+`StackTracer`, `PauseController`, `StateInspector`, `DebugExceptionHandler`, and the REPL's commands.
+They are now a library, `(scheme-js debugger)` (`src/core/scheme/debugger.sld`, `debugger.scm`): a
+`debugger` record per runtime holds the breakpoints, the calls the program is in (newest first, a
+tail call replacing the newest), the run's mode -- running, paused, or stepping into, over or out --
+and the exception settings; procedures decide which breakpoint a location hits, whether a step
+stops, whether to pause, whether an exception breaks, which compiled procedure or transformer holds
+a location where no breakpoint can fire, and run the REPL's commands and write the pause message.
+
+It is written with `(scheme core)` and `(scheme control)` alone and loaded beside the library system,
+on its interpreter (`systemLibrary` in `library_seed.js`), from its prebuilt table, the first time a
+runtime is used. No debugger is attached to that interpreter, so the debugger's own Scheme is never
+paused or stepped. The CLI attaches a runtime at start-up and loads nothing until it is used: a start
+takes 0.23 s, as before.
+
+What only JavaScript can do it is given as a host: the promise a paused asynchronous run waits on,
+the backend told of pauses and resumptions, `interpretForDebugger`, and listing an environment's
+bindings and the compiled procedures and transformers there are. `SchemeDebugRuntime` is the
+evaluator's door -- each hook a call into the Scheme -- with `enabled`, `debugging`, `paused` and
+`aborted` as properties the Scheme sets after each change, since the evaluator reads them at every
+step. The hooks taken at every step and call go through the procedures' raw entries, with compiled
+frames kept from moving, as primitives are called: run on the interpreter, as `callSchemeProcedure`
+runs a compiled procedure, a call cost 0.41 µs; this way, 0.012. `ReplDebugCommands` hands each line
+to the Scheme and evaluates `:eval`'s expression, which needs the analyzer.
+
+Changed with it:
+
+- The evaluator asks whether to pause only while the program is being debugged -- a breakpoint set,
+  a step in progress -- and records a call only while debugging is on; once a runtime was attached,
+  every call of every program recorded one, debugging on or not.
+- A pause's reason is the breakpoint it hit, else the step in progress ("step complete"), where every
+  pause the evaluator made was reported as at a breakpoint.
+- `:eval` in a paused frame answered only an expression of one step (R117); it now runs to its end,
+  at no breakpoint, with the debugger set aside.
+- `:locals` shows each value as `write` writes it. The DevTools-protocol formatting `StateInspector`
+  and `StackTracer.toCDPFormat` made, which nothing on this branch reads -- the extension is not a
+  goal, and `debugger-take-3`, where it lives, is ignored (decided by the user) -- is gone.
+
+Measured with `(fib 18)`, against the JavaScript debugger: with a runtime attached and off, 5.3 ms
+(5.8 before); debugging on with nothing to stop at, 11.9 (10.7); with a breakpoint set elsewhere,
+19.3 (10.4). The last is the compiled `should-pause?` calling a record accessor, `string?` and `real?`
+out of line at every step, recorded as evidence for code generation (54).
+
+JavaScript, 447 lines added and 1,625 removed under `src/`: what is left is the evaluator's hooks
+and door into the Scheme, reflection over its environments, macro registries and frame stack, the
+paused run's promise (host asynchrony), and `systemLibrary`, which starts the system's Scheme.
+
+## Tests
+
+`debugger_tests.scm`, 101 tests, in place of the four JavaScript test files of the classes removed:
+breakpoints and which hit, the calls and tail calls, the modes and when a step stops, whether to
+pause and what the host is told, exceptions, spans, every REPL command, breakpoints that cannot
+fire, and the pause message. The JavaScript tests that reached into the classes use the runtime's
+own methods; the REPL commands' test pauses the program, where it set the backend's flag; the tier's
+test of what the program's debugger is told watches the calls it records.
+
+## Verification
+
+7,794 tests pass in Node with none failing (33 skipped), and 7,570 in the browser with none
+failing (56 skipped). `tests/functional/repl_debug.mjs` drives the CLI's debugger: pausing, `:bt`,
+`:locals`, an evaluation and `:c`. The bundle makes a runtime, sets a breakpoint and pauses.

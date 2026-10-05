@@ -33,10 +33,6 @@ export const unitTests = [
     // The browser REPL's questions about its input
     { path: 'core/interpreter/expression_utils_tests.js', fn: 'runExpressionUtilsTests', needsInterpreter: false },
     // Debug Unit Tests
-    { path: 'debug/breakpoint_manager_tests.js', fn: 'runBreakpointManagerTests', needsInterpreter: false },
-    { path: 'debug/stack_tracer_tests.js', fn: 'runStackTracerTests', needsInterpreter: false },
-    { path: 'debug/pause_controller_tests.js', fn: 'runPauseControllerTests', needsInterpreter: false },
-    { path: 'debug/state_inspector_tests.js', fn: 'runStateInspectorTests', needsInterpreter: false },
     { path: 'unit/repl_debug_commands_tests.js', fn: 'runReplDebugCommandsTests', needsInterpreter: true },
     { path: 'unit/repl_parens_tests.js', fn: 'runReplParensTests', needsInterpreter: false },
     // Benchmark harness arithmetic
@@ -198,6 +194,7 @@ export const schemeTestFiles = [
     'tests/core/scheme/bigint_exactness_tests.scm',
     'tests/core/scheme/r7rs-pitfalls.scm',
     'tests/core/scheme/library_system_tests.scm',
+    'tests/core/scheme/debugger_tests.scm',
     'tests/scripts/table_writer_tests.scm',
     // Extension library tests
     'tests/extras/scheme/promise_tests.scm',

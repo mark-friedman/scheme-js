@@ -3369,3 +3369,17 @@ forms R7RS 4.1.7 makes them.
 
 *Consequence:* the eleven are exported; the audit probes each library in `(environment 'L)` and each
 keyword by a form using it; the three keywords are a task of their own (87).
+
+**R117. The REPL debugger's `:eval` worked in a paused frame only for an expression of one step.**
+
+`:eval` -- evaluate an expression in the selected frame of a paused program -- was tested, and passed:
+`:eval debug-var` and `:eval (+ debug-var #e8)` gave 42 and 50. The test never paused the program;
+it set the REPL backend's `paused` flag by hand, which `:eval` checked, while the runtime that the
+evaluator's loop checks stayed running. In a real pause, `:eval` ran its expression with `runAsync`,
+whose loop waits after every step while the runtime is paused -- for the pause the expression was
+being evaluated within. An expression done in one step, a variable, answered; `(+ v 1)` never did,
+nor any other.
+
+*Consequence:* found by 67, whose tests pause the program, as the port moved the paused state into
+the debugger's Scheme for both to read. `:eval` now runs its expression to its end, synchronously,
+at no breakpoint, with the debugger set aside.

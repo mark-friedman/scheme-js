@@ -64,13 +64,35 @@ class SeedKeyword {
 }
 
 /**
+ * The seed made with the shipped tables, kept so that the system's other
+ * libraries load beside the library system, on its interpreter
+ * (`systemLibrary`).
+ * @type {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>, tables: Object}|null}
+ */
+let shipped = null;
+
+/**
  * Loads the library system.
  * @param {Object<string, Object>} [tables] - The prebuilt tables to install,
- *   by library key; the shipped ones by default.
+ *   by library key; the shipped ones by default, with which it is loaded
+ *   once.
  * @returns {Map<string, Function>} The procedures `(scheme-js library-system)`
  *   exports, by name.
  */
 export function seedLibrarySystem(tables = prebuiltLibraries) {
+    if (tables !== prebuiltLibraries) return plant(tables).loaded.get('scheme-js.library-system');
+    if (shipped === null) shipped = plant(tables);
+    return shipped.loaded.get('scheme-js.library-system');
+}
+
+/**
+ * An interpreter of the seed's own, with the seed's libraries loaded on it.
+ * @param {Object<string, Object>} tables - The prebuilt tables to install.
+ * @returns {{interpreter: Interpreter, globalEnv: Environment, loaded: Map<string, Map<string, *>>, tables: Object}}
+ *   It, its global environment, the exports of the libraries loaded, by key,
+ *   and the tables.
+ */
+function plant(tables) {
     const interpreter = new Interpreter(globalContext);
     const globalEnv = createGlobalEnvironment(interpreter);
     interpreter.setGlobalEnv(globalEnv);
@@ -78,7 +100,25 @@ export function seedLibrarySystem(tables = prebuiltLibraries) {
     for (const name of SEED_LIBRARIES) {
         loaded.set(name.join('.'), seedLibrary(name, loaded, interpreter, globalEnv, tables));
     }
-    return loaded.get('scheme-js.library-system');
+    return { interpreter, globalEnv, loaded, tables };
+}
+
+/**
+ * One of the system's own libraries, loaded beside the library system, on its
+ * interpreter, the first time it is asked for: one that runs Scheme on a
+ * program's behalf, as the debugger's does, and so must not run where the
+ * program's debugger could pause it. It is written with the seed's
+ * libraries, and loaded as they are.
+ * @param {string[]} name - The library's name.
+ * @returns {Map<string, *>} Its exports, by name.
+ */
+export function systemLibrary(name) {
+    if (shipped === null) shipped = plant(prebuiltLibraries);
+    const key = name.join('.');
+    if (!shipped.loaded.has(key)) {
+        shipped.loaded.set(key, seedLibrary(name, shipped.loaded, shipped.interpreter, shipped.globalEnv, shipped.tables));
+    }
+    return shipped.loaded.get(key);
 }
 
 /**

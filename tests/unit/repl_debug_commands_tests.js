@@ -37,8 +37,12 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
         assert(logger, 'debug status check',
             await commands.execute(':debug'), ';; Debugging is ON');
 
+        // A run that is not being debugged holds a browser's page until it
+        // ends, which turning debugging off there warns of.
+        const browser = !(typeof process !== 'undefined' && process.versions?.node);
         assert(logger, 'debug toggle off',
-            await commands.execute(':debug off'), ';; Debugging disabled\n;; WARNING: Fast Mode enabled. UI will freeze during long computations.');
+            await commands.execute(':debug off'),
+            browser ? ';; Debugging disabled\n;; WARNING: Fast Mode enabled. UI will freeze during long computations.' : ';; Debugging disabled');
 
         assert(logger, 'runtime is disabled',
             runtime.enabled, false);
@@ -69,14 +73,12 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
         const mockEnv = interpreter.globalEnv.extend();
         mockEnv.define('debug-var', 42n);
 
-        runtime.stackTracer.enterFrame({
+        runtime.enterFrame({
             name: 'test-proc',
             source: { filename: 'test.scm', line: 20 },
             env: mockEnv
         });
-
-        // Mock pause state
-        backend.paused = true;
+        runtime.pause(null, null, 'test');
 
         const locals = await commands.execute(':locals');
         assert(logger, 'show locals contains variable',
@@ -94,34 +96,32 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
         assert(logger, 'eval error handling',
             evalError.includes('Error during eval'), true);
 
-        runtime.stackTracer.exitFrame();
-        backend.paused = false;
+        runtime.exitFrame();
+        runtime.resume();
     }
 
     // Test: Stack Navigation
     {
-        runtime.stackTracer.enterFrame({ name: 'frame-0', env: interpreter.globalEnv });
-        runtime.stackTracer.enterFrame({ name: 'frame-1', env: interpreter.globalEnv });
+        runtime.enterFrame({ name: 'frame-0', env: interpreter.globalEnv });
+        runtime.enterFrame({ name: 'frame-1', env: interpreter.globalEnv });
+        runtime.pause(null, null, 'test');
 
-        backend.paused = true;
-
-        assert(logger, 'initial frame is newest',
-            commands._getSelectedIndex(runtime.getStack()), 1);
+        // The backtrace marks the selected frame.
+        const selected = async () => (await commands.execute(':bt')).match(/=> #(\d+)/)[1];
+        assert(logger, 'initial frame is newest', await selected(), '1');
 
         await commands.execute(':up');
-        assert(logger, 'frame up',
-            commands._getSelectedIndex(runtime.getStack()), 0);
+        assert(logger, 'frame up', await selected(), '0');
 
         await commands.execute(':up'); // stay at oldest
-        assert(logger, 'frame up at boundary',
-            commands._getSelectedIndex(runtime.getStack()), 0);
+        assert(logger, 'frame up at boundary', await selected(), '0');
 
         await commands.execute(':down');
-        assert(logger, 'frame down',
-            commands._getSelectedIndex(runtime.getStack()), 1);
+        assert(logger, 'frame down', await selected(), '1');
 
-        runtime.stackTracer.clear();
-        backend.paused = false;
+        runtime.exitFrame();
+        runtime.exitFrame();
+        runtime.resume();
         commands.resetSelection();
     }
 

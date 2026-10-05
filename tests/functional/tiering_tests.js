@@ -334,19 +334,19 @@ export async function runTieringTests(logger) {
     const t = tiered();
     assert(logger, 'the tier the interpreter holds has a procedure for each thing it tells or asks the tier',
       ['bound', 'due', 'form'].map((hook) => typeof t.tier[hook]).join(' '), 'function function function');
-    // An enabled debug runtime with nothing to pause at, as the command-line
-    // REPL starts with: the program is not being debugged, so the tier
-    // compiles, and the runtime is asked about every step the program's
-    // interpreter takes that has a source. The tier's Scheme runs compiled, or
-    // in the compiler's own interpreter, and so is never among them.
+    // An enabled debug runtime with nothing to pause at: the program is not
+    // being debugged, so the tier compiles, and the runtime is told of every
+    // call to a closure the program's interpreter makes. The tier's Scheme
+    // runs compiled, or in the compiler's own interpreter, and so is never
+    // among them.
     const runtime = new SchemeDebugRuntime();
     t.interpreter.setDebugRuntime(runtime);
     runtime.enable();
     const files = new Set();
-    const shouldPause = runtime.shouldPause.bind(runtime);
-    runtime.shouldPause = (source, env) => {
-      files.add(source.filename);
-      return shouldPause(source, env);
+    const enterFrame = runtime.enterFrame.bind(runtime);
+    runtime.enterFrame = (info) => {
+      files.add(info.source?.filename);
+      return enterFrame(info);
     };
     const program = [
       '(define (helper x) (* x x))',

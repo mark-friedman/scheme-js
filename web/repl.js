@@ -630,7 +630,7 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
             }
 
             // Only add result if we didn't terminate (paused or aborted)
-            if (!debugBackend.isPaused() && !interpreter.debugRuntime?.pauseController?.isAborted()) {
+            if (!debugBackend.isPaused() && !interpreter.debugRuntime?.isAborted()) {
                 addToHistory(prettyPrint(result), 'result');
             }
 

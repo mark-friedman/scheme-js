@@ -522,8 +522,10 @@ export class Interpreter {
   step(registers) {
     const ctl = registers[CTL];
 
-    // Debug hook: check if we should pause before this step
-    if (this.debugRuntime && this.debugRuntime.enabled && ctl.source) {
+    // Debug hook: check if we should pause before this step. Only while the
+    // program is being debugged -- a breakpoint set, a step in progress --
+    // does the debugger have anything to check.
+    if (this.debugRuntime?.debugging && ctl.source) {
       if (this.debugRuntime.shouldPause(ctl.source, registers[ENV])) {
         this.debugRuntime.pause(ctl.source, registers[ENV]);
       }
@@ -623,11 +625,11 @@ export class Interpreter {
             stepCount++;
 
             // Check if debugger has paused (e.g., breakpoint, exception)
-            if (this.debugRuntime?.pauseController?.isPaused()) {
-              await this.debugRuntime.pauseController.waitForResume();
+            if (this.debugRuntime?.isPaused()) {
+              await this.debugRuntime.waitForResume();
 
               // Check if evaluation was aborted while paused
-              if (this.debugRuntime.pauseController.isAborted()) {
+              if (this.debugRuntime.isAborted()) {
                 throw new SchemeError("Evaluation aborted");
               }
             }
@@ -687,8 +689,8 @@ export class Interpreter {
           }
 
           // Check if debugger has paused on this exception
-          if (this.debugRuntime?.pauseController?.isPaused()) {
-            await this.debugRuntime.pauseController.waitForResume();
+          if (this.debugRuntime?.isPaused()) {
+            await this.debugRuntime.waitForResume();
           }
 
           const handlerIndex = findExceptionHandler(registers[FSTACK]);

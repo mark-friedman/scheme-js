@@ -771,9 +771,7 @@ export class RaiseNode extends Executable {
         const fstack = registers[FSTACK];
 
         // Check if we should pause on this exception (debug mode)
-        if (interpreter.debugRuntime?.exceptionHandler?.shouldBreakOnException(
-            this.exception, fstack
-        )) {
+        if (interpreter.debugRuntime?.shouldBreakOnException(this.exception, fstack)) {
             interpreter.debugRuntime.pauseOnException(this, registers);
             // After pause, execution will continue from here when resumed
             // The exception handling will proceed normally

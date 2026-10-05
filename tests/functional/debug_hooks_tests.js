@@ -73,20 +73,21 @@ export async function runDebugHooksTests(interpreter, logger) {
     // Test: Breakpoint management works
     {
         const debugRuntime = new SchemeDebugRuntime();
+        debugRuntime.enable();
         const bp1 = debugRuntime.setBreakpoint('test.scm', 10);
         const bp2 = debugRuntime.setBreakpoint('test.scm', 20, 5);
 
         assert(logger, 'breakpoint IDs are strings', typeof bp1, 'string');
-        assert(logger, 'hasBreakpoint true', debugRuntime.breakpointManager.hasBreakpoint(
-            { filename: 'test.scm', line: 10, column: 1 }
+        assert(logger, 'a step at a breakpoint pauses', debugRuntime.shouldPause(
+            { filename: 'test.scm', line: 10, column: 1 }, null
         ), true);
-        assert(logger, 'hasBreakpoint with column', debugRuntime.breakpointManager.hasBreakpoint(
-            { filename: 'test.scm', line: 20, column: 5 }
+        assert(logger, 'and at a column breakpoint', debugRuntime.shouldPause(
+            { filename: 'test.scm', line: 20, column: 5 }, null
         ), true);
 
         debugRuntime.removeBreakpoint(bp1);
-        assert(logger, 'hasBreakpoint after remove', debugRuntime.breakpointManager.hasBreakpoint(
-            { filename: 'test.scm', line: 10, column: 1 }
+        assert(logger, 'not once it is removed', debugRuntime.shouldPause(
+            { filename: 'test.scm', line: 10, column: 1 }, null
         ), false);
     }
 
@@ -203,10 +204,10 @@ export async function runDebugHooksTests(interpreter, logger) {
 
         assert(logger, 'initial not paused', debugRuntime.isPaused(), false);
 
-        debugRuntime.pauseController.pause();
+        debugRuntime.pause(null, null, 'test');
         assert(logger, 'after pause isPaused', debugRuntime.isPaused(), true);
 
-        debugRuntime.pauseController.resume();
+        debugRuntime.resume();
         assert(logger, 'after resume not paused', debugRuntime.isPaused(), false);
     }
 
@@ -217,7 +218,7 @@ export async function runDebugHooksTests(interpreter, logger) {
         const debugRuntime = new SchemeDebugRuntime();
         debugRuntime.setBreakpoint('test.scm', 10);
         debugRuntime.enterFrame({ name: 'test', source: null, env: {} });
-        debugRuntime.pauseController.pause();
+        debugRuntime.pause(null, null, 'test');
 
         debugRuntime.reset();
 

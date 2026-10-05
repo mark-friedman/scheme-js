@@ -30,10 +30,10 @@ export async function runExceptionDebuggingTests(interpreter, logger) {
         });
         runtime.enable();
 
-        assert(logger, 'pause controller exists',
-            runtime.pauseController !== undefined, true);
-        assert(logger, 'exception handler exists',
-            runtime.exceptionHandler !== undefined, true);
+        assert(logger, 'an enabled runtime is not paused at first',
+            runtime.isPaused(), false);
+        assert(logger, 'and breaks on an exception no handler will catch',
+            runtime.shouldBreakOnException('oops', []), true);
     }
 
     // Test: breakOnUncaughtException defaults to true

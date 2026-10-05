@@ -1,15 +1,30 @@
 /**
- * @fileoverview REPL Debug Commands parser and executor.
+ * @fileoverview The REPL's debug commands: lines beginning with `:`.
+ *
+ * Each is run by the debugger's Scheme (`debugger-command` in
+ * src/core/scheme/debugger.scm), which answers with the text to show. Only
+ * `:eval` comes back to be done here: an expression to evaluate in a frame's
+ * environment, which needs the analyzer to see that frame's renamed locals.
  */
 
 import { parse } from '../core/interpreter/reader.js';
 import { analyze, SyntacticEnv } from '../core/interpreter/analyzer.js';
-import { prettyPrint } from '../core/interpreter/printer.js';
 import { intern } from '../core/interpreter/symbol.js';
+import { systemLibrary } from '../core/interpreter/library_seed.js';
+import { callSchemeProcedure } from '../core/interpreter/values.js';
 
 /**
- * Parses and executes REPL debug commands.
- * Commands start with ':' prefix.
+ * Calls a procedure of `(scheme-js debugger)`.
+ * @param {string} name - The procedure's name.
+ * @param {...*} args - Its arguments.
+ * @returns {*}
+ */
+function debuggerCall(name, ...args) {
+    return callSchemeProcedure(systemLibrary(['scheme-js', 'debugger']).get(name), args);
+}
+
+/**
+ * Runs the REPL's debug commands.
  */
 export class ReplDebugCommands {
     /**
@@ -21,325 +36,79 @@ export class ReplDebugCommands {
         this.interpreter = interpreter;
         this.debugRuntime = debugRuntime;
         this.backend = backend;
-        this.selectedFrameIndex = -1; // -1 means newest (top) frame
     }
 
     /**
-     * Checks if a string is a debug command.
+     * Whether a line is a debug command.
      * @param {string} input
      * @returns {boolean}
      */
     isDebugCommand(input) {
-        return input.trim().startsWith(':');
+        return debuggerCall('debugger-command?', input);
     }
 
     /**
-     * Executes a debug command.
+     * Runs a debug command.
      * @param {string} input
-     * @returns {Promise<string>} Output message
+     * @returns {Promise<string>} What to show.
      */
     async execute(input) {
-        const trimmed = input.trim();
-        const parts = trimmed.slice(1).split(/\s+/);
-        const cmd = parts[0].toLowerCase();
-        const args = parts.slice(1);
-
-        switch (cmd) {
-            case 'debug':
-                return this.handleDebug(args);
-            case 'break':
-                return this.handleBreak(args);
-            case 'unbreak':
-                return this.handleUnbreak(args);
-            case 'breakpoints':
-                return this.handleListBreakpoints();
-            case 'step':
-            case 's':
-                return this.handleStepInto();
-            case 'next':
-            case 'n':
-                return this.handleStepOver();
-            case 'finish':
-            case 'fin':
-                return this.handleStepOut();
-            case 'continue':
-            case 'c':
-                return this.handleContinue();
-            case 'bt':
-            case 'backtrace':
-                return this.handleBacktrace();
-            case 'locals':
-                return this.handleLocals();
-            case 'eval':
-                return await this.handleEval(args.join(' '));
-            case 'abort':
-            case 'a':
-                return this.handleAbort();
-            case 'up':
-            case 'u':
-                return this.handleFrameUp();
-            case 'down':
-            case 'd':
-                return this.handleFrameDown();
-            case 'help':
-            case 'h':
-            case '?':
-                return this.handleHelp();
-            default:
-                return `;; Unknown debug command: ${cmd}. Type :help for commands.`;
+        const answer = debuggerCall('debugger-command', this.debugRuntime.scheme, input);
+        if (answer !== null && typeof answer === 'object' && 'expression' in answer) {
+            return this.evaluate(String(answer.expression), answer.env);
         }
-    }
-
-    handleDebug(args) {
-        if (args.length === 0) {
-            return `;; Debugging is ${this.debugRuntime.enabled ? 'ON' : 'OFF'}`;
-        }
-        const val = args[0].toLowerCase();
-        if (val === 'on') {
-            this.debugRuntime.enable();
-            return ';; Debugging enabled';
-        } else if (val === 'off') {
-            this.debugRuntime.disable();
-            let msg = ';; Debugging disabled';
-            if (typeof window !== 'undefined') {
-                msg += '\n;; WARNING: Fast Mode enabled. UI will freeze during long computations.';
-            }
-            return msg;
-        }
-
-        return ';; Usage: :debug on|off';
-    }
-
-    handleAbort() {
-        this.debugRuntime.abort();
-        return ';; Evaluation aborted';
-    }
-
-    handleBreak(args) {
-        if (args.length < 2) {
-            return ';; Usage: :break <file> <line> [column]';
-        }
-        const filename = args[0];
-        const line = parseInt(args[1], 10);
-        const column = args[2] ? parseInt(args[2], 10) : null;
-
-        if (isNaN(line)) return ';; Invalid line number';
-
-        const id = this.debugRuntime.setBreakpoint(filename, line, column);
-        const set = `;; Breakpoint ${id} set at ${filename}:${line}${column ? ':' + column : ''}`;
-
-        // Accepted either way, since the procedure may be redefined as
-        // interpreted before the line runs. But a breakpoint inside compiled
-        // code is otherwise silently ignored, and saying so is the difference
-        // between a known limitation and a debugger that appears broken.
-        const compiled = this.debugRuntime.compiledProcedureAt?.(filename, line, column);
-        if (compiled) {
-            return `${set}\n;; Warning: this is inside compiled procedure '${compiled.name}', `
-                + `which does not stop at breakpoints -- it will not fire`;
-        }
-        // Likewise a macro transformer, which runs during expansion, before
-        // any of the code being expanded -- where the debugger cannot wait.
-        const transformer = this.debugRuntime.macroTransformerAt?.(filename, line, column);
-        if (transformer) {
-            return `${set}\n;; Warning: this is inside macro transformer '${transformer.name}', `
-                + `which runs during expansion, where the debugger cannot stop -- it will not fire`;
-        }
-        return set;
-    }
-
-    handleUnbreak(args) {
-        if (args.length === 0) return ';; Usage: :unbreak <id>';
-        const id = args[0];
-        const success = this.debugRuntime.removeBreakpoint(id);
-        return success ? `;; Breakpoint ${id} removed` : `;; Breakpoint ${id} not found`;
-    }
-
-    handleListBreakpoints() {
-        const breakpoints = this.debugRuntime.breakpointManager.getAllBreakpoints();
-        if (breakpoints.length === 0) return ';; No breakpoints set';
-
-        let output = ';; Breakpoints:\n';
-        for (const bp of breakpoints) {
-            // Breakpoints carry no `enabled` field, so reading it as a boolean
-            // listed every one as disabled. Absent means enabled.
-            const enabled = bp.enabled !== false ? 'enabled' : 'disabled';
-            // Worked out now rather than when the breakpoint was set, so one
-            // placed before its procedure was compiled, or its macro defined,
-            // is still reported.
-            const compiled = this.debugRuntime.compiledProcedureAt?.(bp.filename, bp.line, bp.column);
-            const transformer = compiled
-                ? null
-                : this.debugRuntime.macroTransformerAt?.(bp.filename, bp.line, bp.column);
-            let status = enabled;
-            if (compiled) {
-                status = `${enabled} -- will not fire: inside compiled procedure '${compiled.name}'`;
-            } else if (transformer) {
-                status = `${enabled} -- will not fire: inside macro transformer '${transformer.name}'`;
-            }
-            output += `;;   ${bp.id}: ${bp.filename}:${bp.line}${bp.column ? ':' + bp.column : ''} (${status})\n`;
-        }
-        return output.trim();
-    }
-
-    handleStepInto() {
-        if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.stepInto();
-        return ';; Stepping into...';
-    }
-
-    handleStepOver() {
-        if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.stepOver();
-        return ';; Stepping over...';
-    }
-
-    handleStepOut() {
-        if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.stepOut();
-        return ';; Stepping out...';
-    }
-
-    handleContinue() {
-        if (!this.backend.isPaused()) return ';; Not paused';
-        this.debugRuntime.resume();
-        return ';; Continuing...';
-    }
-
-    handleBacktrace() {
-        const stack = this.debugRuntime.getStack();
-        if (stack.length === 0) return ';; No call stack info available';
-
-        let output = ';; Call Stack:\n';
-        // newest first (0 is oldest though, so we reverse for display)
-        const displayStack = [...stack].reverse();
-        for (let i = 0; i < displayStack.length; i++) {
-            const frame = displayStack[i];
-            const realIdx = stack.length - 1 - i;
-            const marker = realIdx === this._getSelectedIndex(stack) ? '=>' : '  ';
-            const loc = frame.source ? `${frame.source.filename}:${frame.source.line}` : 'unknown location';
-            output += `;; ${marker} #${realIdx} ${frame.name || '(anonymous procedure)'} at ${loc}\n`;
-        }
-        return output.trim();
-    }
-
-    handleLocals() {
-        if (!this.backend.isPaused()) return ';; Not paused';
-        const stack = this.debugRuntime.getStack();
-        const idx = this._getSelectedIndex(stack);
-        if (idx < 0 || idx >= stack.length) return ';; Invalid frame selected';
-
-        const frame = stack[idx];
-        const properties = this.debugRuntime.stateInspector.getScopeProperties(frame.env);
-
-        if (properties.length === 0) return `;; Frame #${idx} has no local bindings`;
-
-        let output = `;; Local variables for frame #${idx}:\n`;
-        for (const prop of properties) {
-            output += `;;   ${prop.name} = ${prop.value.description || prop.value.value}\n`;
-        }
-        return output.trim();
-    }
-
-    async handleEval(expr) {
-        if (!this.backend.isPaused()) return ';; Not paused';
-        if (!expr) return ';; Usage: :eval <expression>';
-
-        const stack = this.debugRuntime.getStack();
-        const idx = this._getSelectedIndex(stack);
-        if (idx < 0 || idx >= stack.length) return ';; Invalid frame selected';
-
-        const frame = stack[idx];
-        const env = frame.env;
-
-        try {
-            const sexp = parse(expr)[0];
-
-            // Reconstruct SyntacticEnv from the interpreter's Environment nameMap
-            // This allows the analyzer to correctly resolve alpha-renamed local variables.
-            let syntacticEnv = null;
-            let currEnv = env;
-            const envChain = [];
-            while (currEnv) {
-                envChain.push(currEnv);
-                currEnv = currEnv.parent;
-            }
-
-            // Reconstruct SyntacticEnv from global upwards
-            for (let i = envChain.length - 1; i >= 0; i--) {
-                const frame = envChain[i];
-                const nextSyntacticEnv = new SyntacticEnv(syntacticEnv);
-                if (frame.nameMap) {
-                    for (const [orig, renamed] of frame.nameMap) {
-                        nextSyntacticEnv.bindings.push({ id: intern(orig), newName: renamed });
-                    }
-                }
-                syntacticEnv = nextSyntacticEnv;
-            }
-
-            const ast = analyze(sexp, syntacticEnv, this.interpreter.context);
-
-            let result;
-            if (this.debugRuntime.enabled) {
-                // Async eval in selected scope
-                result = await this.interpreter.runAsync(ast, env, { jsAutoConvert: 'raw' });
-            } else {
-                // Sync eval (will freeze UI if long)
-                result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
-            }
-            return `;; result: ${this.backend.formatValue(result)}`;
-        } catch (e) {
-            return `;; Error during eval: ${e.message}`;
-        }
-    }
-
-    handleFrameUp() {
-        const stack = this.debugRuntime.getStack();
-        let currentIdx = this._getSelectedIndex(stack);
-        if (currentIdx > 0) {
-            this.selectedFrameIndex = currentIdx - 1;
-            return `;; Selected frame #${this.selectedFrameIndex}`;
-        }
-        return ';; Already at oldest frame';
-    }
-
-    handleFrameDown() {
-        const stack = this.debugRuntime.getStack();
-        let currentIdx = this._getSelectedIndex(stack);
-        if (currentIdx < stack.length - 1) {
-            this.selectedFrameIndex = currentIdx + 1;
-            return `;; Selected frame #${this.selectedFrameIndex}`;
-        }
-        return ';; Already at newest frame';
-    }
-
-    handleHelp() {
-        return `;; Debug Commands:
-;;   :debug on|off     - Enable/disable debugging
-;;   :break <file> <l> [c] - Set breakpoint
-;;   :unbreak <id>     - Remove breakpoint
-;;   :breakpoints      - List all breakpoints
-;;   :step / :s        - Step into
-;;   :next / :n        - Step over
-;;   :finish / :fin    - Step out
-;;   :continue / :c    - Resume execution
-;;   :bt / :backtrace  - Show backtrace
-;;   :locals           - Show local variables
-;;   :eval <expr>      - Evaluate in selected frame's scope
-;;   :abort / :a       - Abort current evaluation and return to prompt
-;;   :up / :u          - Move up the stack
-;;   :down / :d        - Move down the stack
-;;   :help / :h / :?   - Show this help`;
-    }
-
-    _getSelectedIndex(stack) {
-        if (this.selectedFrameIndex === -1) return stack.length - 1;
-        return Math.min(this.selectedFrameIndex, stack.length - 1);
+        return String(answer);
     }
 
     /**
-     * Resets the selected frame to the top.
+     * Evaluates an expression in a paused frame's environment, for `:eval`:
+     * analyzed with the frame's renamed locals in view, and run to its end,
+     * at no breakpoint, with the debugger set aside. The run it is evaluated
+     * within is paused, and an asynchronous run here waits on that same pause
+     * after its first step: before this was done so, a variable answered and
+     * `(+ v 1)` never did.
+     * @param {string} expression - The expression, as written.
+     * @param {Environment} env - The frame's environment.
+     * @returns {Promise<string>} What to show.
+     */
+    async evaluate(expression, env) {
+        const debugRuntime = this.interpreter.debugRuntime;
+        this.interpreter.debugRuntime = null;
+        try {
+            const ast = analyze(parse(expression)[0], syntacticEnvFor(env), this.interpreter.context);
+            const result = this.interpreter.run(ast, env, undefined, undefined, { jsAutoConvert: 'raw' });
+            return String(debuggerCall('eval-answer', this.backend.formatValue(result)));
+        } catch (e) {
+            return String(debuggerCall('eval-failure', e.message));
+        } finally {
+            this.interpreter.debugRuntime = debugRuntime;
+        }
+    }
+
+    /**
+     * Selects the newest frame again.
      */
     resetSelection() {
-        this.selectedFrameIndex = -1;
+        debuggerCall('reset-frame-selection!', this.debugRuntime.scheme);
     }
+}
+
+/**
+ * The analyzer's view of an environment: each scope's renamed locals under
+ * the names they were written with, so that an expression typed at the REPL
+ * finds them.
+ * @param {Environment} env - The environment.
+ * @returns {SyntacticEnv|null}
+ */
+function syntacticEnvFor(env) {
+    const chain = [];
+    for (let scope = env; scope; scope = scope.parent) chain.push(scope);
+    let syntacticEnv = null;
+    for (const scope of chain.reverse()) {
+        syntacticEnv = new SyntacticEnv(syntacticEnv);
+        for (const [written, renamed] of scope.nameMap ?? []) {
+            syntacticEnv.bindings.push({ id: intern(written), newName: renamed });
+        }
+    }
+    return syntacticEnv;
 }
